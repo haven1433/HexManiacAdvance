@@ -1,0 +1,14 @@
+
+# User-specific files
+*.suo
+*.user
+
+# Build results
+Debug/
+Release/
+
+# Visual Studio 2015 cache/options directory
+.vs/
+
+# local downloaded nuget packages
+packages/
