@@ -1,9 +1,8 @@
 ﻿using HavenSoft.Gen3Hex.Model;
+using HavenSoft.ViewModel;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Windows.Input;
 
 namespace HavenSoft.Gen3Hex.ViewModel {
    /// <summary>
@@ -33,17 +32,35 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       #endregion
 
-      public int MinimumScroll { get; set; }
+      #region MinimumScroll
 
-      public int MaximumScroll { get; set; }
+      private int minimumScroll;
 
-      public HexElement this[int x, int y] => new HexElement();
+      public int MinimumScroll {
+         get => minimumScroll;
+         set => Update(ref minimumScroll, value);
+      }
+
+      #endregion
+
+      #region MaximumScroll
+
+      private int maximumScroll;
+
+      public int MaximumScroll {
+         get => maximumScroll;
+         set => Update(ref maximumScroll, value);
+      }
+
+      #endregion
+
+      public HexElement this[int x, int y] => new HexElement { Format = CommonFormats.Undefined.Instance };
 
       public event PropertyChangedEventHandler PropertyChanged;
 
-      public void LoadFile(LoadedFile file) {
-         // TODO use the data
-      }
+      public ViewPort() { }
+
+      public ViewPort(LoadedFile file) { }
 
       /// <summary>
       /// Utility function to make writing property updates easier.

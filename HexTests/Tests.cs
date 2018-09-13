@@ -1,11 +1,12 @@
 ﻿using HavenSoft.Gen3Hex.Model;
 using HavenSoft.Gen3Hex.ViewModel;
+using HavenSoft.ViewModel;
 using System.Reflection;
 using Xunit;
 
 [assembly: AssemblyTitle("HexTests")]
 
-namespace HexTests {
+namespace HavenSoft.HexTests {
    public class Tests {
       [Fact]
       public void ViewPortNotifiesOnSizeChange() {
@@ -23,7 +24,9 @@ namespace HexTests {
       public void ViewPortStartsEmpty() {
          var viewPort = new ViewPort();
 
-         Assert.Equal(CommonFormats.Undefined, viewPort[0, 0].Format);
+         Assert.IsType<CommonFormats.Undefined>(viewPort[0, 0].Format);
+         Assert.Equal(0, viewPort.MinimumScroll);
+         Assert.Equal(0, viewPort.MaximumScroll);
       }
 
       /// <summary>
@@ -32,8 +35,8 @@ namespace HexTests {
       /// </summary>
       [Fact]
       public void ViewPortScrollingDoesNotAllowEmptyScreen() {
-         var viewPort = new ViewPort { Width = 5, Height = 5 };
          var loadedFile = new LoadedFile("test", new byte[25]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
 
          Assert.Equal(-4, viewPort.MinimumScroll);
          Assert.Equal(4, viewPort.MaximumScroll);
