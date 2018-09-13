@@ -7,8 +7,13 @@
 Debug/
 Release/
 
+#codegen files
+generatedCode/
+
 # Visual Studio 2015 cache/options directory
 .vs/
 
 # local downloaded nuget packages
 packages/
+
+

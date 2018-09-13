@@ -6,9 +6,9 @@
         Title="Gen3Hex" Height="450" Width="800">
    <DockPanel>
       <hsg3hv:HexContent>
-         <hsg3hv:HexContent.DataContext>
+         <hsg3hv:HexContent.ViewPort>
             <hsg3hvm:ViewPort/>
-         </hsg3hv:HexContent.DataContext>
+         </hsg3hv:HexContent.ViewPort>
       </hsg3hv:HexContent>
    </DockPanel>
 </Window>

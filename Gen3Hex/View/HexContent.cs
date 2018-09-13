@@ -9,30 +9,54 @@ using System.Windows.Media;
 namespace HavenSoft.Gen3Hex.View {
    public class HexContent : FrameworkElement {
       public const int
+         FontSize = 16,
          CellWidth = 30,
          CellHeight = 20;
+
+      public static readonly Point CellTextOffset = new Point(4, 3);
 
       public const string Hex = "0123456789ABCDEF";
 
       private readonly List<FormattedText> byteVisualCache = new List<FormattedText>();
 
-      private ViewPort ViewModel => (ViewPort)DataContext;
+      #region ViewPort
 
-      public HexContent() {
-         DataContextChanged += OnDataContextChanged;
+      public ViewPort ViewPort {
+         get { return (ViewPort)GetValue(ViewPortProperty); }
+         set { SetValue(ViewPortProperty, value); }
       }
+
+      public static readonly DependencyProperty ViewPortProperty = DependencyProperty.Register("ViewPort", typeof(ViewPort), typeof(HexContent), new FrameworkPropertyMetadata(null, ViewPortChanged));
+
+      private static void ViewPortChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+         var self = (HexContent)d;
+         self.OnViewPortChanged(e);
+      }
+
+      private void OnViewPortChanged(DependencyPropertyChangedEventArgs e) {
+         if (e.OldValue is INotifyPropertyChanged oldContext) {
+            oldContext.PropertyChanged -= OnViewPortPropertyChanged;
+         }
+
+         if (e.NewValue is INotifyPropertyChanged newContext) {
+            newContext.PropertyChanged += OnViewPortPropertyChanged;
+         }
+
+         this.InvalidateVisual();
+      }
+
+      #endregion
 
       protected override void OnRender(DrawingContext drawingContext) {
          base.OnRender(drawingContext);
 
-         var viewPort = ViewModel;
-
          VerifyByteVisualCache();
 
-         for (int x = 0; x < viewPort.Width; x++) {
-            for (int y = 0; y < viewPort.Height; y++) {
-               var element = viewPort[x, y];
-               drawingContext.DrawText(byteVisualCache[element.Value], new Point(x * CellWidth, y * CellHeight));
+         for (int x = 0; x < ViewPort.Width; x++) {
+            for (int y = 0; y < ViewPort.Height; y++) {
+               var element = ViewPort[x, y];
+               var origin = new Point(x * CellWidth + CellTextOffset.X, y * CellHeight + CellTextOffset.Y);
+               drawingContext.DrawText(byteVisualCache[element.Value], origin);
             }
          }
       }
@@ -40,24 +64,12 @@ namespace HavenSoft.Gen3Hex.View {
       protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo) {
          base.OnRenderSizeChanged(sizeInfo);
 
-         ViewModel.Width = (int)sizeInfo.NewSize.Width / CellWidth;
-         ViewModel.Height = (int)sizeInfo.NewSize.Height / CellHeight;
+         ViewPort.Width = (int)sizeInfo.NewSize.Width / CellWidth;
+         ViewPort.Height = (int)sizeInfo.NewSize.Height / CellHeight;
       }
 
-      private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e) {
-         if (e.OldValue is INotifyPropertyChanged oldContext) {
-            oldContext.PropertyChanged -= OnDataContextPropertyChanged;
-         }
-
-         if(e.NewValue is INotifyPropertyChanged newContext) {
-            newContext.PropertyChanged += OnDataContextPropertyChanged;
-         }
-
-         this.InvalidateVisual();
-      }
-
-      private void OnDataContextPropertyChanged(object sender, PropertyChangedEventArgs e) {
-         if (e.PropertyName == nameof(ViewModel.Width) || e.PropertyName == nameof(ViewModel.Height)) {
+      private void OnViewPortPropertyChanged(object sender, PropertyChangedEventArgs e) {
+         if (e.PropertyName == nameof(ViewPort.Width) || e.PropertyName == nameof(ViewPort.Height)) {
             this.InvalidateVisual();
          }
       }
@@ -72,7 +84,7 @@ namespace HavenSoft.Gen3Hex.View {
             CultureInfo.CurrentCulture,
             FlowDirection.LeftToRight,
             new Typeface("Consolas"),
-            16,
+            FontSize,
             Brushes.Black,
             1.0));
 
