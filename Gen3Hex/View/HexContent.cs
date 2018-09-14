@@ -1,20 +1,13 @@
 ﻿using HavenSoft.Gen3Hex.ViewModel;
-using HavenSoft.ViewModel.DataFormats;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Globalization;
-using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 
 namespace HavenSoft.Gen3Hex.View {
    public class HexContent : FrameworkElement {
-      public const int
-         FontSize = 16,
-         CellWidth = 30,
-         CellHeight = 20;
+      public const int CellWidth = 30, CellHeight = 20;
 
       #region ViewPort
 
@@ -32,12 +25,10 @@ namespace HavenSoft.Gen3Hex.View {
 
       private void OnViewPortChanged(DependencyPropertyChangedEventArgs e) {
          if (e.OldValue is ViewPort oldViewPort) {
-            oldViewPort.PropertyChanged -= OnViewPortPropertyChanged;
             oldViewPort.CollectionChanged -= OnViewPortContentChanged;
          }
 
          if (e.NewValue is ViewPort newViewPort) {
-            newViewPort.PropertyChanged += OnViewPortPropertyChanged;
             newViewPort.CollectionChanged += OnViewPortContentChanged;
          }
 
@@ -68,50 +59,8 @@ namespace HavenSoft.Gen3Hex.View {
          ViewPort.Height = (int)sizeInfo.NewSize.Height / CellHeight;
       }
 
-      private void OnViewPortPropertyChanged(object sender, PropertyChangedEventArgs e) {
-         if (e.PropertyName == nameof(ViewPort.Width) || e.PropertyName == nameof(ViewPort.Height)) {
-            this.InvalidateVisual();
-         }
-      }
-
       private void OnViewPortContentChanged(object sender, NotifyCollectionChangedEventArgs e) {
          this.InvalidateVisual();
-      }
-
-      private class FormatDrawer : IDataFormatVisitor {
-         public static readonly Point CellTextOffset = new Point(4, 3);
-
-         private static readonly List<FormattedText> noneVisualCache = new List<FormattedText>();
-
-         private readonly DrawingContext context;
-
-         public FormatDrawer(DrawingContext drawingContext) => context = drawingContext;
-
-         public void Visit(Undefined dataFormat, byte data) {
-            // intentionally draw nothing
-         }
-
-         public void Visit(None dataFormat, byte data) {
-            VerifyNoneVisualCache();
-            context.DrawText(noneVisualCache[data], CellTextOffset);
-         }
-
-         private void VerifyNoneVisualCache() {
-            if (noneVisualCache.Count != 0) return;
-
-            var bytesAsHex = Enumerable.Range(0, 0x100).Select(i => i.ToString("X2"));
-
-            var text = bytesAsHex.Select(hex => new FormattedText(
-               hex,
-               CultureInfo.CurrentCulture,
-               FlowDirection.LeftToRight,
-               new Typeface("Consolas"),
-               FontSize,
-               Brushes.Black,
-               1.0));
-
-            noneVisualCache.AddRange(text);
-         }
       }
    }
 }

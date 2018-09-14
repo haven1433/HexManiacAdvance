@@ -14,6 +14,8 @@ namespace HavenSoft.Gen3Hex.ViewModel {
    public class ViewPort : INotifyPropertyChanged, INotifyCollectionChanged {
       private readonly byte[] data;
 
+      private readonly NotifyCollectionChangedEventArgs resetArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
+
       private int dataIndex;
 
       #region Name
@@ -77,9 +79,11 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             var dif = value - scrollValue;
             dataIndex += dif * width;
             Update(ref scrollValue, value);
-            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+            NotifyCollectionChanged(resetArgs);
          }
       }
+
+      private void NotifyCollectionChanged(NotifyCollectionChangedEventArgs args) => CollectionChanged?.Invoke(this, args);
 
       #endregion
 
@@ -123,12 +127,12 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       /// Utility function to make writing property updates easier.
       /// </summary>
       /// <typeparam name="T">The type of the property being updated.</typeparam>
-      /// <param name="field">A reference to the backing field of the property being changed.</param>
-      /// <param name="value">The new value for the property.</param>
+      /// <param name="backingField">A reference to the backing field of the property being changed.</param>
+      /// <param name="newValue">The new value for the property.</param>
       /// <param name="propertyName">The name of the property to notify on. If the property is the caller, the compiler will figure this parameter out automatically.</param>
-      private void Update<T>(ref T field, T value, [CallerMemberName]string propertyName = null) where T : IEquatable<T> {
-         if (field.Equals(value)) return;
-         field = value;
+      private void Update<T>(ref T backingField, T newValue, [CallerMemberName]string propertyName = null) where T : IEquatable<T> {
+         if (backingField.Equals(newValue)) return;
+         backingField = newValue;
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
       }
 
@@ -136,7 +140,10 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          var lineCount = (int)Math.Ceiling((double)data.Length / width);
 
          MinimumScroll = 1 - height;
-         MaximumScroll = lineCount + height - 1;
+         MaximumScroll = lineCount - 1;
+         var newCurrentScroll = (int)Math.Ceiling((double)dataIndex / width);
+         Update(ref scrollValue, newCurrentScroll, nameof(ScrollValue));
+         NotifyCollectionChanged(resetArgs);
       }
    }
 }

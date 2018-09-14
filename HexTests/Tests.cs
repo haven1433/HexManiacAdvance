@@ -2,6 +2,7 @@
 using HavenSoft.Gen3Hex.ViewModel;
 using HavenSoft.ViewModel;
 using HavenSoft.ViewModel.DataFormats;
+using System.Collections.Generic;
 using System.Reflection;
 using Xunit;
 
@@ -12,13 +13,14 @@ namespace HavenSoft.HexTests {
       [Fact]
       public void ViewPortNotifiesOnSizeChange() {
          var viewPort = new ViewPort();
-         var counter = 0;
-         viewPort.PropertyChanged += (sender, e) => counter++;
+         var changeList = new List<string>();
+         viewPort.PropertyChanged += (sender, e) => changeList.Add(e.PropertyName);
 
          viewPort.Width = 12;
          viewPort.Height = 50;
 
-         Assert.Equal(2, counter);
+         Assert.Contains(nameof(viewPort.Width), changeList);
+         Assert.Contains(nameof(viewPort.Height), changeList);
       }
 
       [Fact]
@@ -45,7 +47,25 @@ namespace HavenSoft.HexTests {
 
       [Fact]
       public void ViewPortWillNotScrollAboveAllData() {
-         // TODO
+         var loadedFile = new LoadedFile("test", new byte[25]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         viewPort.ScrollValue = -10;
+
+         Assert.Equal(-4, viewPort.MinimumScroll);
+      }
+
+      [Fact]
+      public void ChangingWidthUpdatesScrollValueIfNeeded() {
+         // ScrollValue=0 is always the line that contains the first byte of the file.
+
+         var loadedFile = new LoadedFile("test", new byte[25]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         viewPort.ScrollValue = 1; // scroll down one line
+         viewPort.Width -= 1;      // decrease the width so that there is data 2 lines above
+
+         Assert.Equal(2, viewPort.ScrollValue);
       }
    }
 }
