@@ -1,14 +1,31 @@
 ﻿using HavenSoft.Gen3Hex.Model;
 using HavenSoft.ViewModel;
+using HavenSoft.ViewModel.DataFormats;
 using System;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows.Input;
 
 namespace HavenSoft.Gen3Hex.ViewModel {
    /// <summary>
    /// A range of visible data that should be displayed.
    /// </summary>
-   public class ViewPort : INotifyPropertyChanged {
+   public class ViewPort : INotifyPropertyChanged, INotifyCollectionChanged {
+      private readonly byte[] data;
+
+      private int dataIndex;
+
+      #region Name
+
+      private string name;
+
+      public string Name {
+         get => name;
+         set => Update(ref name, value);
+      }
+
+      #endregion
 
       #region Width
 
@@ -16,7 +33,10 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       public int Width {
          get => width;
-         set => Update(ref width, value);
+         set {
+            Update(ref width, value);
+            UpdateScrollRange();
+         }
       }
 
       #endregion
@@ -27,7 +47,10 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       public int Height {
          get => height;
-         set => Update(ref height, value);
+         set {
+            Update(ref height, value);
+            UpdateScrollRange();
+         }
       }
 
       #endregion
@@ -43,6 +66,23 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       #endregion
 
+      #region ScrollValue
+
+      private int scrollValue;
+
+      public int ScrollValue {
+         get => scrollValue;
+         set {
+            value = Math.Min(Math.Max(minimumScroll, value), maximumScroll);
+            var dif = value - scrollValue;
+            dataIndex += dif * width;
+            Update(ref scrollValue, value);
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+         }
+      }
+
+      #endregion
+
       #region MaximumScroll
 
       private int maximumScroll;
@@ -54,13 +94,30 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       #endregion
 
-      public HexElement this[int x, int y] => new HexElement { Format = CommonFormats.Undefined.Instance };
+      public HexElement this[int x, int y] {
+         get {
+            var index = y * Width + x + dataIndex;
+            if (index < 0 || index >= data.Length) {
+               return new HexElement { Format = Undefined.Instance };
+            }
+
+            return new HexElement {
+               Format = new None(data[index]),
+               Value = data[index],
+            };
+         }
+      }
 
       public event PropertyChangedEventHandler PropertyChanged;
 
-      public ViewPort() { }
+      public event NotifyCollectionChangedEventHandler CollectionChanged;
 
-      public ViewPort(LoadedFile file) { }
+      public ViewPort() { data = new byte[0]; }
+
+      public ViewPort(LoadedFile file) {
+         name = file.Name;
+         data = file.Contents;
+      }
 
       /// <summary>
       /// Utility function to make writing property updates easier.
@@ -73,6 +130,13 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          if (field.Equals(value)) return;
          field = value;
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+      }
+
+      private void UpdateScrollRange() {
+         var lineCount = (int)Math.Ceiling((double)data.Length / width);
+
+         MinimumScroll = 1 - height;
+         MaximumScroll = lineCount + height - 1;
       }
    }
 }

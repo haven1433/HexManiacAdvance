@@ -3,6 +3,9 @@
 *.suo
 *.user
 
+# example binary files
+sampleFiles/
+
 # Build results
 Debug/
 Release/

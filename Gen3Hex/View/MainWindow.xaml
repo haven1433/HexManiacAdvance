@@ -4,11 +4,11 @@
         xmlns:hsg3hv="clr-namespace:HavenSoft.Gen3Hex.View"
         xmlns:hsg3hvm="clr-namespace:HavenSoft.Gen3Hex.ViewModel"
         Title="Gen3Hex" Height="450" Width="800">
+   <Window.DataContext>
+      <hsg3hvm:ViewPort/>
+   </Window.DataContext>
    <DockPanel>
-      <hsg3hv:HexContent>
-         <hsg3hv:HexContent.ViewPort>
-            <hsg3hvm:ViewPort/>
-         </hsg3hv:HexContent.ViewPort>
-      </hsg3hv:HexContent>
+      <ScrollBar Name="ScrollBar" DockPanel.Dock="Right" Minimum="{Binding MinimumScroll}" Maximum="{Binding MaximumScroll}" SmallChange="1" LargeChange="{Binding Height}" Value="{Binding ScrollValue}"/>
+      <hsg3hv:HexContent ViewPort="{Binding}"/>
    </DockPanel>
 </Window>

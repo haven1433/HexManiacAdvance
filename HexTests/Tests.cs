@@ -1,6 +1,7 @@
 ﻿using HavenSoft.Gen3Hex.Model;
 using HavenSoft.Gen3Hex.ViewModel;
 using HavenSoft.ViewModel;
+using HavenSoft.ViewModel.DataFormats;
 using System.Reflection;
 using Xunit;
 
@@ -24,7 +25,7 @@ namespace HavenSoft.HexTests {
       public void ViewPortStartsEmpty() {
          var viewPort = new ViewPort();
 
-         Assert.IsType<CommonFormats.Undefined>(viewPort[0, 0].Format);
+         Assert.IsType<Undefined>(viewPort[0, 0].Format);
          Assert.Equal(0, viewPort.MinimumScroll);
          Assert.Equal(0, viewPort.MaximumScroll);
       }
@@ -40,6 +41,11 @@ namespace HavenSoft.HexTests {
 
          Assert.Equal(-4, viewPort.MinimumScroll);
          Assert.Equal(4, viewPort.MaximumScroll);
+      }
+
+      [Fact]
+      public void ViewPortWillNotScrollAboveAllData() {
+         // TODO
       }
    }
 }

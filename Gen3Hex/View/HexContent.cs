@@ -1,5 +1,8 @@
 ﻿using HavenSoft.Gen3Hex.ViewModel;
+using HavenSoft.ViewModel.DataFormats;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
@@ -12,12 +15,6 @@ namespace HavenSoft.Gen3Hex.View {
          FontSize = 16,
          CellWidth = 30,
          CellHeight = 20;
-
-      public static readonly Point CellTextOffset = new Point(4, 3);
-
-      public const string Hex = "0123456789ABCDEF";
-
-      private readonly List<FormattedText> byteVisualCache = new List<FormattedText>();
 
       #region ViewPort
 
@@ -34,12 +31,14 @@ namespace HavenSoft.Gen3Hex.View {
       }
 
       private void OnViewPortChanged(DependencyPropertyChangedEventArgs e) {
-         if (e.OldValue is INotifyPropertyChanged oldContext) {
-            oldContext.PropertyChanged -= OnViewPortPropertyChanged;
+         if (e.OldValue is ViewPort oldViewPort) {
+            oldViewPort.PropertyChanged -= OnViewPortPropertyChanged;
+            oldViewPort.CollectionChanged -= OnViewPortContentChanged;
          }
 
-         if (e.NewValue is INotifyPropertyChanged newContext) {
-            newContext.PropertyChanged += OnViewPortPropertyChanged;
+         if (e.NewValue is ViewPort newViewPort) {
+            newViewPort.PropertyChanged += OnViewPortPropertyChanged;
+            newViewPort.CollectionChanged += OnViewPortContentChanged;
          }
 
          this.InvalidateVisual();
@@ -50,13 +49,14 @@ namespace HavenSoft.Gen3Hex.View {
       protected override void OnRender(DrawingContext drawingContext) {
          base.OnRender(drawingContext);
 
-         VerifyByteVisualCache();
+         var visitor = new FormatDrawer(drawingContext);
 
          for (int x = 0; x < ViewPort.Width; x++) {
             for (int y = 0; y < ViewPort.Height; y++) {
                var element = ViewPort[x, y];
-               var origin = new Point(x * CellWidth + CellTextOffset.X, y * CellHeight + CellTextOffset.Y);
-               drawingContext.DrawText(byteVisualCache[element.Value], origin);
+               drawingContext.PushTransform(new TranslateTransform(x * CellWidth, y * CellHeight));
+               element.Format.Visit(visitor, element.Value);
+               drawingContext.Pop();
             }
          }
       }
@@ -74,21 +74,44 @@ namespace HavenSoft.Gen3Hex.View {
          }
       }
 
-      private void VerifyByteVisualCache() {
-         if (byteVisualCache.Count != 0) return;
+      private void OnViewPortContentChanged(object sender, NotifyCollectionChangedEventArgs e) {
+         this.InvalidateVisual();
+      }
 
-         var bytesAsHex = Enumerable.Range(0, 255).Select(i => $"{Hex[i / 0x10]}{Hex[i % 0x10]}");
+      private class FormatDrawer : IDataFormatVisitor {
+         public static readonly Point CellTextOffset = new Point(4, 3);
 
-         var text = bytesAsHex.Select(hex => new FormattedText(
-            hex,
-            CultureInfo.CurrentCulture,
-            FlowDirection.LeftToRight,
-            new Typeface("Consolas"),
-            FontSize,
-            Brushes.Black,
-            1.0));
+         private static readonly List<FormattedText> noneVisualCache = new List<FormattedText>();
 
-         byteVisualCache.AddRange(text);
+         private readonly DrawingContext context;
+
+         public FormatDrawer(DrawingContext drawingContext) => context = drawingContext;
+
+         public void Visit(Undefined dataFormat, byte data) {
+            // intentionally draw nothing
+         }
+
+         public void Visit(None dataFormat, byte data) {
+            VerifyNoneVisualCache();
+            context.DrawText(noneVisualCache[data], CellTextOffset);
+         }
+
+         private void VerifyNoneVisualCache() {
+            if (noneVisualCache.Count != 0) return;
+
+            var bytesAsHex = Enumerable.Range(0, 0x100).Select(i => i.ToString("X2"));
+
+            var text = bytesAsHex.Select(hex => new FormattedText(
+               hex,
+               CultureInfo.CurrentCulture,
+               FlowDirection.LeftToRight,
+               new Typeface("Consolas"),
+               FontSize,
+               Brushes.Black,
+               1.0));
+
+            noneVisualCache.AddRange(text);
+         }
       }
    }
 }

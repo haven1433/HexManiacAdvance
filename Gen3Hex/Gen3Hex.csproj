@@ -52,7 +52,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Model\LoadedFile.cs" />
-    <Compile Include="ViewModel\CommonFormats.cs" />
+    <Compile Include="ViewModel\DataFormats.cs" />
     <Compile Include="ViewModel\HexElement.cs" />
     <Compile Include="ViewModel\ViewPort.cs" />
     <Page Include="View\MainWindow.xaml">
