@@ -134,6 +134,12 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          MaximumScroll = lineCount - 1;
          var newCurrentScroll = (int)Math.Ceiling((double)dataIndex / width);
 
+         // screen size changes while scrolled above the data can make the data scroll completely out of view
+         while (newCurrentScroll <= -Height) {
+            newCurrentScroll++;
+            dataIndex += Width;
+         }
+
          // Call Update instead of ScrollValue.set to avoid changing the dataIndex.
          if (Update(ref scrollValue, newCurrentScroll, nameof(ScrollValue))) {
             NotifyCollectionChanged(resetArgs);

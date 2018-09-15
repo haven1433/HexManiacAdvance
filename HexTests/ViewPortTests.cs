@@ -89,5 +89,16 @@ namespace HavenSoft.HexTests {
          Assert.Equal(Undefined.Instance, viewPort[0, 5].Format);
          Assert.Equal(Undefined.Instance, viewPort[-1, 0].Format);
       }
+
+      [Fact]
+      public void ResizingCannotLeaveNoDataOnScreen() {
+         var loadedFile = new LoadedFile("test", new byte[25]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         viewPort.ScrollValue = -10;
+         viewPort.Height--;
+
+         Assert.NotEqual(Undefined.Instance, viewPort[viewPort.Width - 1, viewPort.Height - 1].Format);
+      }
    }
 }
