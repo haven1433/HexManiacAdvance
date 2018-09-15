@@ -9,7 +9,7 @@ using Xunit;
 [assembly: AssemblyTitle("HexTests")]
 
 namespace HavenSoft.HexTests {
-   public class Tests {
+   public class ViewPortTests {
       [Fact]
       public void ViewPortNotifiesOnSizeChange() {
          var viewPort = new ViewPort();
@@ -65,7 +65,29 @@ namespace HavenSoft.HexTests {
          viewPort.ScrollValue = 1; // scroll down one line
          viewPort.Width -= 1;      // decrease the width so that there is data 2 lines above
 
+         // Example of what it should look like:
+         // .. .. .. ..
+         // .. .. .. 00
+         // 00 00 00 00
+         // 00 00 00 00 <- this is the top line in view
+         // 00 00 00 00
+         // 00 00 00 00
+         // 00 00 00 00
+         // 00 00 00 00 <- this is the bottom line in view
+         // .. .. .. ..
          Assert.Equal(2, viewPort.ScrollValue);
+         Assert.Equal(6, viewPort.MaximumScroll);
+      }
+
+      [Fact]
+      public void RequestingOutOfRangeDataReturnsUnavailable() {
+         var loadedFile = new LoadedFile("test", new byte[25]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         Assert.Equal(Undefined.Instance, viewPort[0, -1].Format);
+         Assert.Equal(Undefined.Instance, viewPort[5, 0].Format);
+         Assert.Equal(Undefined.Instance, viewPort[0, 5].Format);
+         Assert.Equal(Undefined.Instance, viewPort[-1, 0].Format);
       }
    }
 }

@@ -4,6 +4,9 @@
 
       public byte[] Contents { get; }
 
-      public LoadedFile(string name, byte[] contents) => (Name, Contents) = (name, contents);
+      public LoadedFile(string name, byte[] contents) {
+         Name = name;
+         Contents = contents;
+      }
    }
 }

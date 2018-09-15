@@ -1,7 +1,5 @@
 ﻿using HavenSoft.Gen3Hex.ViewModel;
-using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Windows;
 using System.Windows.Media;
 
@@ -30,15 +28,17 @@ namespace HavenSoft.Gen3Hex.View {
 
          if (e.NewValue is ViewPort newViewPort) {
             newViewPort.CollectionChanged += OnViewPortContentChanged;
+            UpdateViewPortSize();
          }
 
-         this.InvalidateVisual();
+         InvalidateVisual();
       }
 
       #endregion
 
       protected override void OnRender(DrawingContext drawingContext) {
          base.OnRender(drawingContext);
+         if (ViewPort == null) return;
 
          var visitor = new FormatDrawer(drawingContext);
 
@@ -54,13 +54,16 @@ namespace HavenSoft.Gen3Hex.View {
 
       protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo) {
          base.OnRenderSizeChanged(sizeInfo);
+         if (ViewPort != null) UpdateViewPortSize();
+      }
 
-         ViewPort.Width = (int)sizeInfo.NewSize.Width / CellWidth;
-         ViewPort.Height = (int)sizeInfo.NewSize.Height / CellHeight;
+      private void UpdateViewPortSize() {
+         ViewPort.Width = (int)ActualWidth / CellWidth;
+         ViewPort.Height = (int)ActualHeight / CellHeight;
       }
 
       private void OnViewPortContentChanged(object sender, NotifyCollectionChangedEventArgs e) {
-         this.InvalidateVisual();
+         InvalidateVisual();
       }
    }
 }
