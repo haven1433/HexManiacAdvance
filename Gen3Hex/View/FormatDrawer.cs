@@ -31,14 +31,22 @@ namespace HavenSoft.Gen3Hex.View {
 
          var bytesAsHex = Enumerable.Range(0, 0x100).Select(i => i.ToString("X2"));
 
-         var text = bytesAsHex.Select(hex => new FormattedText(
-            hex,
-            CultureInfo.CurrentCulture,
-            FlowDirection.LeftToRight,
-            new Typeface("Consolas"),
-            FontSize,
-            Brushes.Black,
-            1.0));
+         var text = bytesAsHex.Select(hex => {
+            var brush = Solarized.Theme.Emphasis;
+            var typeface = new Typeface("Consolas");
+            if (hex == "00" || hex == "FF") {
+               brush = Solarized.Theme.Secondary;
+               typeface = new Typeface(new FontFamily("Consolas"), FontStyles.Italic, FontWeights.Light, FontStretches.Normal);
+            }
+            return new FormattedText(
+               hex,
+               CultureInfo.CurrentCulture,
+               FlowDirection.LeftToRight,
+               typeface,
+               FontSize,
+               brush,
+               1.0);
+         });
 
          noneVisualCache.AddRange(text);
       }

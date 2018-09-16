@@ -39,6 +39,7 @@ namespace HavenSoft.Gen3Hex.View {
       protected override void OnRender(DrawingContext drawingContext) {
          base.OnRender(drawingContext);
          if (ViewPort == null) return;
+         drawingContext.DrawRectangle(Solarized.Theme.Background, null, new Rect(0, 0, ActualWidth, ActualHeight));
 
          var visitor = new FormatDrawer(drawingContext);
 
