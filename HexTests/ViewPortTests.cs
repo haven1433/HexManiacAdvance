@@ -32,6 +32,14 @@ namespace HavenSoft.HexTests {
          Assert.Equal(0, viewPort.MaximumScroll);
       }
 
+      [Fact]
+      public void ViewPortScrollStartsAtTopRow() {
+         var loadedFile = new LoadedFile("test", new byte[25]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         Assert.Equal(0, viewPort.ScrollValue);
+      }
+
       /// <summary>
       /// The scroll bar is in terms of lines.
       /// The viewport should not be able to scroll such that all the data is out of view.
@@ -41,7 +49,7 @@ namespace HavenSoft.HexTests {
          var loadedFile = new LoadedFile("test", new byte[25]);
          var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
 
-         Assert.Equal(-4, viewPort.MinimumScroll);
+         Assert.Equal(0, viewPort.MinimumScroll);
          Assert.Equal(4, viewPort.MaximumScroll);
       }
 
@@ -52,7 +60,7 @@ namespace HavenSoft.HexTests {
 
          viewPort.ScrollValue = -10;
 
-         Assert.Equal(-4, viewPort.MinimumScroll);
+         Assert.Equal(0, viewPort.MinimumScroll);
       }
 
       [Fact]
@@ -77,6 +85,20 @@ namespace HavenSoft.HexTests {
          // .. .. .. ..
          Assert.Equal(2, viewPort.ScrollValue);
          Assert.Equal(6, viewPort.MaximumScroll);
+      }
+
+      [Fact]
+      public void ResizingCannotLeaveTotallyBlankLineAtTop() {
+         var loadedFile = new LoadedFile("test", new byte[25]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         viewPort.ScrollValue++;   // scroll down one line
+         viewPort.Width--;         // decrease the width so that there is data 2 lines above
+         viewPort.ScrollValue = 0; // scroll up to top
+         viewPort.Width--;         // decrease the width to make the top line totally blank
+
+         // expected: viewPort should auto-scroll here to make the top line full of data again
+         Assert.Equal(0, viewPort.ScrollValue);
       }
 
       [Fact]

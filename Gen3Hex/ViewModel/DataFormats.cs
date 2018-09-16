@@ -30,16 +30,10 @@ namespace HavenSoft.ViewModel.DataFormats {
    /// Basically everything is 'None' unless we have special information about it.
    /// </summary>
    public class None : IDataFormat {
-      public bool IsUnused { get; }
-      public None(byte value) => IsUnused = value == 0x00 || value == 0xFF;
+      public static None Instance { get; } = new None();
+      private None() { }
 
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
-      public bool Equals(IDataFormat format) {
-         if (format is None that) {
-            return this.IsUnused == that.IsUnused;
-         }
-
-         return false;
-      }
+      public bool Equals(IDataFormat format) => format is None;
    }
 }
