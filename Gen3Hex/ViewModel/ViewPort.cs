@@ -36,7 +36,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public int Width {
          get => width;
          set {
-            if (Update(ref width, value)) {
+            if (Update(ref width, value) && width > 0 && height > 0) {
                UpdateScrollRange();
             }
          }
@@ -51,7 +51,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public int Height {
          get => height;
          set {
-            if (Update(ref height, value)) {
+            if (Update(ref height, value) && width > 0 && height > 0) {
                UpdateScrollRange();
             }
          }
@@ -111,7 +111,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             if (index < 0 || index >= data.Length) return new HexElement { Format = Undefined.Instance };
 
             return new HexElement {
-               Format = new None(data[index]),
+               Format = None.Instance,
                Value = data[index],
             };
          }
@@ -130,12 +130,12 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       private void UpdateScrollRange() {
          var lineCount = (int)Math.Ceiling((double)data.Length / width);
-         MinimumScroll = 1 - height;
+         MinimumScroll = 0;
          MaximumScroll = lineCount - 1;
          var newCurrentScroll = (int)Math.Ceiling((double)dataIndex / width);
 
          // screen size changes while scrolled above the data can make the data scroll completely out of view
-         while (newCurrentScroll <= -Height) {
+         while (newCurrentScroll < 0) {
             newCurrentScroll++;
             dataIndex += Width;
          }
