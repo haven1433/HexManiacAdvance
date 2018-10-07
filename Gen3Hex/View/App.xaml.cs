@@ -10,14 +10,13 @@ namespace HavenSoft.Gen3Hex.View {
    public partial class App {
       protected override void OnStartup(StartupEventArgs e) {
          base.OnStartup(e);
-         var viewPort = GetViewPort(e.Args);
+         var fileName = e.Args?.Length == 1 ? e.Args[0] : string.Empty;
+         var viewPort = GetViewPort(fileName);
          MainWindow = new MainWindow(viewPort);
          MainWindow.Show();
       }
 
-      private ViewPort GetViewPort(string[] args) {
-         if (args?.Length != 1) return new ViewPort();
-         var fileName = args[0];
+      private ViewPort GetViewPort(string fileName) {
          if (!File.Exists(fileName)) return new ViewPort();
 
          var bytes = File.ReadAllBytes(fileName);

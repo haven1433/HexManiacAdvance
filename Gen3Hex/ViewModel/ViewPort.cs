@@ -103,12 +103,11 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       public HexElement this[int x, int y] {
          get {
-            var undefined = new HexElement { Format = Undefined.Instance };
-            if (x < 0 || x >= Width) return undefined;
-            if (y < 0 || y >= Height) return undefined;
+            if (x < 0 || x >= Width) return HexElement.Undefined;
+            if (y < 0 || y >= Height) return HexElement.Undefined;
 
             var index = y * Width + x + dataIndex;
-            if (index < 0 || index >= data.Length) return new HexElement { Format = Undefined.Instance };
+            if (index < 0 || index >= data.Length) return HexElement.Undefined;
 
             return new HexElement {
                Format = None.Instance,

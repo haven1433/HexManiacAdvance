@@ -60,7 +60,7 @@ namespace HavenSoft.HexTests {
 
          viewPort.ScrollValue = -10;
 
-         Assert.Equal(0, viewPort.MinimumScroll);
+         Assert.Equal(viewPort.MinimumScroll, viewPort.ScrollValue);
       }
 
       [Fact]
@@ -94,33 +94,35 @@ namespace HavenSoft.HexTests {
 
          viewPort.ScrollValue++;   // scroll down one line
          viewPort.Width--;         // decrease the width so that there is data 2 lines above
+
+         // Example of what it should look like right now:
+         // .. .. .. ..
+         // .. .. .. 00
+         // 00 00 00 00
+         // 00 00 00 00 <- this is the top line in view
+         // 00 00 00 00
+         // 00 00 00 00
+         // 00 00 00 00
+         // 00 00 00 00 <- this is the bottom line in view
+         // .. .. .. ..
+
          viewPort.ScrollValue = 0; // scroll up to top
-         viewPort.Width--;         // decrease the width to make the top line totally blank
+         viewPort.Width--;         // decrease the width to hide the last visible byte in the top row
 
          // expected: viewPort should auto-scroll here to make the top line full of data again
          Assert.Equal(0, viewPort.ScrollValue);
+         Assert.NotEqual(HexElement.Undefined, viewPort[0, 0]);
       }
 
       [Fact]
-      public void RequestingOutOfRangeDataReturnsUnavailable() {
+      public void RequestingOutOfRangeDataReturnsUndefinedFormat() {
          var loadedFile = new LoadedFile("test", new byte[25]);
          var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
 
-         Assert.Equal(Undefined.Instance, viewPort[0, -1].Format);
-         Assert.Equal(Undefined.Instance, viewPort[5, 0].Format);
-         Assert.Equal(Undefined.Instance, viewPort[0, 5].Format);
-         Assert.Equal(Undefined.Instance, viewPort[-1, 0].Format);
-      }
-
-      [Fact]
-      public void ResizingCannotLeaveNoDataOnScreen() {
-         var loadedFile = new LoadedFile("test", new byte[25]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
-
-         viewPort.ScrollValue = -10;
-         viewPort.Height--;
-
-         Assert.NotEqual(Undefined.Instance, viewPort[viewPort.Width - 1, viewPort.Height - 1].Format);
+         Assert.Equal(HexElement.Undefined, viewPort[0, -1]);
+         Assert.Equal(HexElement.Undefined, viewPort[5, 0]);
+         Assert.Equal(HexElement.Undefined, viewPort[0, 5]);
+         Assert.Equal(HexElement.Undefined, viewPort[-1, 0]);
       }
    }
 }
