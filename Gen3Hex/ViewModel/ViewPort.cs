@@ -4,6 +4,7 @@ using System;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows.Input;
 
 namespace HavenSoft.Gen3Hex.ViewModel {
    /// <summary>
@@ -91,6 +92,53 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          get => maximumScroll;
          private set => TryUpdate(ref maximumScroll, value);
       }
+
+      #endregion
+
+
+      #region Scroll
+
+      private readonly StubCommand scroll = new StubCommand();
+
+      public ICommand Scroll => scroll;
+
+      #endregion
+
+      #region SelectionStart
+
+      private Point selectionStart;
+
+      public Point SelectionStart {
+         get => selectionStart;
+         set => TryUpdate(ref selectionStart, value);
+      }
+
+      #endregion
+
+      #region SelectionEnd
+
+      private Point selectionEnd;
+
+      public Point SelectionEnd {
+         get => selectionEnd;
+         set => TryUpdate(ref selectionEnd, value);
+      }
+
+      #endregion
+
+      #region MoveSelectionStart
+
+      private readonly StubCommand moveSelectionStart = new StubCommand();
+
+      public ICommand MoveSelectionStart => moveSelectionStart;
+
+      #endregion
+
+      #region MoveSelectionEnd
+
+      private readonly StubCommand moveSelectionEnd = new StubCommand();
+
+      public ICommand MoveSelectionEnd => moveSelectionEnd;
 
       #endregion
 

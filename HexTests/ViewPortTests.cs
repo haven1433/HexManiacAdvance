@@ -168,7 +168,7 @@ namespace HavenSoft.HexTests {
          viewPort.Scroll.Execute(Direction.Left);
          viewPort.Scroll.Execute(Direction.Right);
 
-         Assert.Equal(0x10, viewPort[3, 0]);
+         Assert.Equal(0x10, viewPort[3, 0].Value);
       }
 
       [Fact]
@@ -177,10 +177,10 @@ namespace HavenSoft.HexTests {
          var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
          viewPort.SelectionStart = new Point(3, 0);
 
-         viewPort.MoveSelectionStart(Direction.Right);
-         viewPort.MoveSelectionStart(Direction.Down);
-         viewPort.MoveSelectionStart(Direction.Left);
-         viewPort.MoveSelectionStart(Direction.Up);
+         viewPort.MoveSelectionStart.Execute(Direction.Right);
+         viewPort.MoveSelectionStart.Execute(Direction.Down);
+         viewPort.MoveSelectionStart.Execute(Direction.Left);
+         viewPort.MoveSelectionStart.Execute(Direction.Up);
 
          Assert.Equal(new Point(3, 0), viewPort.SelectionStart);
       }
@@ -191,7 +191,7 @@ namespace HavenSoft.HexTests {
          var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
          viewPort.SelectionStart = new Point(3, 0);
 
-         viewPort.MoveSelectionStart(Direction.Up);
+         viewPort.MoveSelectionStart.Execute(Direction.Up);
 
          Assert.Equal(new Point(3, 0), viewPort.SelectionStart);
       }
@@ -202,7 +202,7 @@ namespace HavenSoft.HexTests {
          var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
          viewPort.SelectionStart = new Point(4, 0);
 
-         viewPort.MoveSelectionStart(Direction.Right);
+         viewPort.MoveSelectionStart.Execute(Direction.Right);
 
          Assert.Equal(new Point(0, 1), viewPort.SelectionStart);
       }
@@ -213,7 +213,7 @@ namespace HavenSoft.HexTests {
          var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 3 };
          viewPort.SelectionStart = new Point(0, 2);
 
-         viewPort.MoveSelectionStart(Direction.Down);
+         viewPort.MoveSelectionStart.Execute(Direction.Down);
 
          Assert.Equal(1, viewPort.ScrollValue);
       }
@@ -222,17 +222,17 @@ namespace HavenSoft.HexTests {
       public void CursorCanMoveOutsideDataRangeButNotOutsideScrollRange() {
          var loadedFile = new LoadedFile("test", new byte[25]);
          var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
-         viewPort.ScrollRight.Execute(null);
+         viewPort.Scroll.Execute(Direction.Right);
          viewPort.SelectionStart = new Point(0, 0);
 
-         viewPort.MoveSelectionStart(Direction.Up);
-         viewPort.MoveSelectionStart(Direction.Up);
+         viewPort.MoveSelectionStart.Execute(Direction.Up);
+         viewPort.MoveSelectionStart.Execute(Direction.Up);
 
          Assert.Equal(new Point(0, 0), viewPort.SelectionStart);
          Assert.Equal(0, viewPort.ScrollValue);
 
          viewPort.SelectionStart = new Point(4, 4);
-         for (int i = 0; i < 6; i++) viewPort.MoveDown.Execute(null); // 6 moves, 5 moves work, last one should do nothing
+         for (int i = 0; i < 6; i++) viewPort.MoveSelectionStart.Execute(Direction.Down); // 6 moves, 5 moves work, last one should do nothing
 
          Assert.Equal(new Point(4, 4), viewPort.SelectionStart);
          Assert.Equal(5, viewPort.ScrollValue);
@@ -244,8 +244,8 @@ namespace HavenSoft.HexTests {
          var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
          viewPort.SelectionStart = new Point(0, 0);
 
-         viewPort.MoveSelectionStart(Direction.Right);
-         viewPort.MoveSelectionEnd(Direction.Down);
+         viewPort.MoveSelectionStart.Execute(Direction.Right);
+         viewPort.MoveSelectionEnd.Execute(Direction.Down);
 
          Assert.Equal(new Point(1, 1), viewPort.SelectionEnd);
       }
