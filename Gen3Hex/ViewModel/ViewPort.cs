@@ -1,6 +1,7 @@
 ﻿using HavenSoft.Gen3Hex.Model;
 using HavenSoft.ViewModel.DataFormats;
 using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -11,9 +12,16 @@ namespace HavenSoft.Gen3Hex.ViewModel {
    /// A range of visible data that should be displayed.
    /// </summary>
    public class ViewPort : INotifyPropertyChanged, INotifyCollectionChanged {
-      private readonly byte[] data;
-
       private static readonly NotifyCollectionChangedEventArgs ResetArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
+
+      private static readonly Dictionary<Direction, Point> directionToDif = new Dictionary<Direction, Point> {
+         { Direction.Up,    new Point( 0,-1) },
+         { Direction.Down,  new Point( 0, 1) },
+         { Direction.Left,  new Point(-1, 0) },
+         { Direction.Right, new Point( 1, 0) },
+      };
+
+      private readonly byte[] data;
 
       private int dataIndex;
 
@@ -37,6 +45,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          set {
             if (TryUpdate(ref width, value) && width > 0 && height > 0) {
                UpdateScrollRange();
+               NotifyCollectionChanged(ResetArgs);
             }
          }
       }
@@ -52,6 +61,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          set {
             if (TryUpdate(ref height, value) && width > 0 && height > 0) {
                UpdateScrollRange();
+               NotifyCollectionChanged(ResetArgs);
             }
          }
       }
@@ -76,6 +86,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             if (dif == 0) return;
 
             dataIndex += dif * width;
+            ShiftSelectionFromScroll(dif * width);
             if (TryUpdate(ref scrollValue, value)) {
                NotifyCollectionChanged(ResetArgs);
             }
@@ -102,6 +113,19 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       public ICommand Scroll => scroll;
 
+      private void ScrollExecuted(Direction direction) {
+         var dif = directionToDif[direction];
+         if (dif.Y != 0) {
+            ScrollValue += dif.Y;
+         } else {
+            dataIndex += dif.X;
+            ShiftSelectionFromScroll(dif.X);
+            dataIndex = Math.Min(Math.Max(1 - width, dataIndex), data.Length - 1);
+            UpdateScrollRange();
+            NotifyCollectionChanged(ResetArgs);
+         }
+      }
+
       #endregion
 
       #region SelectionStart
@@ -110,7 +134,12 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       public Point SelectionStart {
          get => selectionStart;
-         set => TryUpdate(ref selectionStart, value);
+         set {
+            value = ScrollToPoint(value);
+            if (TryUpdate(ref selectionStart, value)) {
+               SelectionEnd = selectionStart;
+            }
+         }
       }
 
       #endregion
@@ -121,7 +150,10 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       public Point SelectionEnd {
          get => selectionEnd;
-         set => TryUpdate(ref selectionEnd, value);
+         set {
+            value = ScrollToPoint(value);
+            TryUpdate(ref selectionEnd, value);
+         }
       }
 
       #endregion
@@ -132,6 +164,11 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       public ICommand MoveSelectionStart => moveSelectionStart;
 
+      private void MoveSelectionStartExecuted(Direction direction) {
+         var dif = directionToDif[direction];
+         SelectionStart = SelectionEnd + dif;
+      }
+
       #endregion
 
       #region MoveSelectionEnd
@@ -139,6 +176,11 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       private readonly StubCommand moveSelectionEnd = new StubCommand();
 
       public ICommand MoveSelectionEnd => moveSelectionEnd;
+
+      private void MoveSelectionEndExecuted(Direction direction) {
+         var dif = directionToDif[direction];
+         SelectionEnd += dif;
+      }
 
       #endregion
 
@@ -161,14 +203,18 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       public event NotifyCollectionChangedEventHandler CollectionChanged;
 
-      public ViewPort() {
-         name = string.Empty;
-         data = new byte[0];
-      }
+      public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
 
       public ViewPort(LoadedFile file) {
          name = file.Name;
          data = file.Contents;
+
+         moveSelectionStart.CanExecute = args => true;
+         moveSelectionStart.Execute = args => MoveSelectionStartExecuted((Direction)args);
+         moveSelectionEnd.CanExecute = args => true;
+         moveSelectionEnd.Execute = args => MoveSelectionEndExecuted((Direction)args);
+         scroll.CanExecute = args => true;
+         scroll.Execute = args => ScrollExecuted((Direction)args);
       }
 
       private void UpdateScrollRange() {
@@ -184,9 +230,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          }
 
          // Call Update instead of ScrollValue.set to avoid changing the dataIndex.
-         if (TryUpdate(ref scrollValue, newCurrentScroll, nameof(ScrollValue))) {
-            NotifyCollectionChanged(ResetArgs);
-         }
+         TryUpdate(ref scrollValue, newCurrentScroll, nameof(ScrollValue));
       }
 
       /// <summary>
@@ -203,6 +247,42 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          return effectiveDataLength;
       }
 
+      /// <param name="initial">The point to scroll to, using screen coordinates</param>
+      /// <returns>The same point, adjusted based on scrolling.</returns>
+      private Point ScrollToPoint(Point target) {
+         while (target.X < 0) target += new Point(width, -1);
+         while (target.X >= width) target -= new Point(width, -1);
+
+         if (target.Y < 0) {
+            ScrollValue += target.Y;
+            target = new Point(target.X, 0);
+         }
+         if (target.Y >= height) {
+            ScrollValue += target.Y + 1 - height;
+            target = new Point(target.X, height - 1);
+         }
+
+         return target;
+      }
+
+      /// <summary>
+      /// When the scrolling changes, the selection has to move as well.
+      /// This is because the selection is in terms of the viewPort, not the overall data.
+      /// Nothing in this method notifies because any amount of scrolling means we already need a complete redraw.
+      /// </summary>
+      private void ShiftSelectionFromScroll(int distance) {
+         var dif = new Point(distance, 0);
+         var line = new Point(width, -1);
+
+         selectionStart += dif;
+         while (selectionStart.X < 0) selectionStart += line;
+         while (selectionStart.X >= width) selectionStart -= line;
+
+         selectionEnd += dif;
+         while (selectionEnd.X < 0) selectionEnd += line;
+         while (selectionEnd.X >= width) selectionEnd -= line;
+      }
+
       private void NotifyCollectionChanged(NotifyCollectionChangedEventArgs args) => CollectionChanged?.Invoke(this, args);
 
       /// <summary>
@@ -215,7 +295,8 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       /// <param name="propertyName">The name of the property to notify on. If the property is the caller, the compiler will figure this parameter out automatically.</param>
       /// <returns>false if the data did not need to be updated, true if it did.</returns>
       private bool TryUpdate<T>(ref T backingField, T newValue, [CallerMemberName]string propertyName = null) where T : IEquatable<T> {
-         if (backingField.Equals(newValue)) return false;
+         if (backingField == null && newValue == null) return false;
+         if (backingField != null && backingField.Equals(newValue)) return false;
          backingField = newValue;
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
          return true;

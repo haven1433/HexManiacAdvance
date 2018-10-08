@@ -257,9 +257,9 @@ namespace HavenSoft.HexTests {
          viewPort.SelectionStart = new Point(0, 0);
 
          viewPort.SelectionEnd = new Point(3, 3);
-         viewPort.SelectionStart = new Point(0, 0);
+         viewPort.SelectionStart = new Point(1, 0);
 
-         Assert.Equal(new Point(0, 0), viewPort.SelectionEnd);
+         Assert.Equal(new Point(1, 0), viewPort.SelectionEnd);
       }
    }
 }
