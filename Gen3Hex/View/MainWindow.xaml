@@ -1,0 +1,12 @@
+﻿<Window x:Class="HavenSoft.Gen3Hex.View.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:hsg3hv="clr-namespace:HavenSoft.Gen3Hex.View"
+        Title="Gen3Hex" Height="450" Width="800">
+   <DockPanel>
+      <ScrollBar DockPanel.Dock="Right"
+         Minimum="{Binding MinimumScroll}" Maximum="{Binding MaximumScroll}" Value="{Binding ScrollValue}"
+         SmallChange="1" LargeChange="{Binding Height}" />
+      <hsg3hv:HexContent ViewPort="{Binding}"/>
+   </DockPanel>
+</Window>

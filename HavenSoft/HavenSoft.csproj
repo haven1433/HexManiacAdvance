@@ -33,10 +33,25 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Delegation, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\HavenSoft.AutoImplement.1.0.0\lib\System.Delegation.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="..\SharedAssemblyInfo.cs" />
+    <Compile Include="generatedCode\StubCommand.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>$(SolutionDir)packages\HavenSoft.AutoImplement.1.0.0\AutoImplement "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" ICommand
+if not exist $(ProjectDir)generatedCode mkdir $(ProjectDir)generatedCode
+move /Y StubCommand.cs $(ProjectDir)generatedCode
+del CompositeCommand.cs
+del CommandDecorator.cs
+</PreBuildEvent>
+  </PropertyGroup>
 </Project>
