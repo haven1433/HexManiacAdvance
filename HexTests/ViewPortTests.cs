@@ -1,7 +1,5 @@
 ﻿using HavenSoft.Gen3Hex.Model;
 using HavenSoft.Gen3Hex.ViewModel;
-using HavenSoft.ViewModel;
-using HavenSoft.ViewModel.DataFormats;
 using System.Collections.Generic;
 using System.Reflection;
 using Xunit;
@@ -13,21 +11,21 @@ namespace HavenSoft.HexTests {
       [Fact]
       public void ViewPortNotifiesOnSizeChange() {
          var viewPort = new ViewPort();
-         var changeList = new List<string>();
-         viewPort.PropertyChanged += (sender, e) => changeList.Add(e.PropertyName);
+         var changedProperties = new List<string>();
+         viewPort.PropertyChanged += (sender, e) => changedProperties.Add(e.PropertyName);
 
          viewPort.Width = 12;
          viewPort.Height = 50;
 
-         Assert.Contains(nameof(viewPort.Width), changeList);
-         Assert.Contains(nameof(viewPort.Height), changeList);
+         Assert.Contains(nameof(viewPort.Width), changedProperties);
+         Assert.Contains(nameof(viewPort.Height), changedProperties);
       }
 
       [Fact]
       public void ViewPortStartsEmpty() {
          var viewPort = new ViewPort();
 
-         Assert.IsType<Undefined>(viewPort[0, 0].Format);
+         Assert.Equal(HexElement.Undefined, viewPort[0, 0]);
          Assert.Equal(0, viewPort.MinimumScroll);
          Assert.Equal(0, viewPort.MaximumScroll);
       }
@@ -54,13 +52,13 @@ namespace HavenSoft.HexTests {
       }
 
       [Fact]
-      public void ViewPortWillNotScrollAboveAllData() {
+      public void ViewPortCannotScrollLowerThanMinimumScroll() {
          var loadedFile = new LoadedFile("test", new byte[25]);
          var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
 
-         viewPort.ScrollValue = -10;
+         viewPort.ScrollValue = int.MinValue;
 
-         Assert.Equal(0, viewPort.MinimumScroll);
+         Assert.Equal(viewPort.MinimumScroll, viewPort.ScrollValue);
       }
 
       [Fact]
@@ -69,8 +67,8 @@ namespace HavenSoft.HexTests {
          var loadedFile = new LoadedFile("test", new byte[25]);
          var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
 
-         viewPort.ScrollValue = 1; // scroll down one line
-         viewPort.Width -= 1;      // decrease the width so that there is data 2 lines above
+         viewPort.ScrollValue++; // scroll down one line
+         viewPort.Width--;      // decrease the width so that there is data 2 lines above
 
          // Example of what it should look like:
          // .. .. .. ..
@@ -93,33 +91,62 @@ namespace HavenSoft.HexTests {
 
          viewPort.ScrollValue++;   // scroll down one line
          viewPort.Width--;         // decrease the width so that there is data 2 lines above
-         viewPort.ScrollValue = 0; // scroll up to top
-         viewPort.Width--;         // decrease the width to make the top line totally blank
+
+         // Example of what it should look like right now:
+         // .. .. .. ..
+         // .. .. .. 00
+         // 00 00 00 00
+         // 00 00 00 00 <- this is the top line in view
+         // 00 00 00 00
+         // 00 00 00 00
+         // 00 00 00 00
+         // 00 00 00 00 <- this is the bottom line in view
+         // .. .. .. ..
+
+         viewPort.ScrollValue = viewPort.MinimumScroll; // scroll up to top
+         viewPort.Width--;                              // decrease the width to hide the last visible byte in the top row
 
          // expected: viewPort should auto-scroll here to make the top line full of data again
          Assert.Equal(0, viewPort.ScrollValue);
+         Assert.NotEqual(HexElement.Undefined, viewPort[0, 0]);
       }
 
       [Fact]
-      public void RequestingOutOfRangeDataReturnsUnavailable() {
+      public void RequestingOutOfRangeDataReturnsUndefinedFormat() {
          var loadedFile = new LoadedFile("test", new byte[25]);
          var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
 
-         Assert.Equal(Undefined.Instance, viewPort[0, -1].Format);
-         Assert.Equal(Undefined.Instance, viewPort[5, 0].Format);
-         Assert.Equal(Undefined.Instance, viewPort[0, 5].Format);
-         Assert.Equal(Undefined.Instance, viewPort[-1, 0].Format);
+         Assert.Equal(HexElement.Undefined, viewPort[0, -1]);
+         Assert.Equal(HexElement.Undefined, viewPort[5, 0]);
+         Assert.Equal(HexElement.Undefined, viewPort[0, 5]);
+         Assert.Equal(HexElement.Undefined, viewPort[-1, 0]);
       }
 
       [Fact]
-      public void ResizingCannotLeaveNoDataOnScreen() {
-         var loadedFile = new LoadedFile("test", new byte[25]);
+      public void MaximumScrollChangesBasedOnDataOffset() {
+         var loadedFile = new LoadedFile("test", new byte[26]);
          var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
 
-         viewPort.ScrollValue = -10;
-         viewPort.Height--;
+         // initial condition: given 4 data per row, there should be 7 rows (0-6) because 7*4=28
+         viewPort.Width--;
+         Assert.Equal(6, viewPort.MaximumScroll);
+         viewPort.Width++;
 
-         Assert.NotEqual(Undefined.Instance, viewPort[viewPort.Width - 1, viewPort.Height - 1].Format);
+         viewPort.ScrollValue++;   // scroll down one line
+         viewPort.Width--;         // decrease the width so that there is data 2 lines above
+
+         // Example of what it should look like right now:
+         // .. .. .. 00
+         // 00 00 00 00
+         // 00 00 00 00 <- this is the top line in view
+         // 00 00 00 00
+         // 00 00 00 00
+         // 00 00 00 00
+         // 00 00 00 00 <- this is the bottom line in view
+         // 00 .. .. ..
+
+         // notice from the diagram above that there should now be _8_ rows (0-7).
+         Assert.Equal(7, viewPort.MaximumScroll);
       }
 
       [Fact]

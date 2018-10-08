@@ -35,8 +35,8 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Delegation">
-      <HintPath>..\libs\System.Delegation.dll</HintPath>
+    <Reference Include="System.Delegation, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\HavenSoft.AutoImplement.1.0.0\lib\System.Delegation.dll</HintPath>
     </Reference>
     <Reference Include="System.Xaml" />
     <Reference Include="WindowsBase" />
@@ -47,11 +47,16 @@
     <Compile Include="generatedCode\StubCommand.cs" />
     <Compile Include="Solarized.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>$(SolutionDir)libs\AutoImplement "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" ICommand
+    <PreBuildEvent>$(SolutionDir)packages\HavenSoft.AutoImplement.1.0.0\AutoImplement "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" ICommand
 if not exist $(ProjectDir)generatedCode mkdir $(ProjectDir)generatedCode
-copy StubCommand.cs $(ProjectDir)generatedCode
+move /Y StubCommand.cs $(ProjectDir)generatedCode
+del CompositeCommand.cs
+del CommandDecorator.cs
 </PreBuildEvent>
   </PropertyGroup>
 </Project>
