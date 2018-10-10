@@ -106,7 +106,6 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       #endregion
 
-
       #region Scroll
 
       private readonly StubCommand scroll = new StubCommand();
