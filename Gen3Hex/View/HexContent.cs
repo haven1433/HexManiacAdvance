@@ -1,6 +1,5 @@
 ﻿using HavenSoft.Gen3Hex.Model;
 using HavenSoft.Gen3Hex.ViewModel;
-using System;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
