@@ -216,6 +216,20 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          scroll.Execute = args => ScrollExecuted((Direction)args);
       }
 
+      public bool IsSelected(Point point) {
+         if (point.X < 0 || point.X >= width) return false;
+
+         int linearize(Point p) => p.Y * width + p.X;
+         var selectionStart = linearize(SelectionStart);
+         var selectionEnd = linearize(SelectionEnd);
+         var middle = linearize(point);
+
+         var leftEdge = Math.Min(selectionStart, selectionEnd);
+         var rightEdge = Math.Max(selectionStart, selectionEnd);
+
+         return leftEdge <= middle && middle <= rightEdge;
+      }
+
       private void UpdateScrollRange() {
          int effectiveDataLength = CalculateEffectiveDataLength();
          var lineCount = (int)Math.Ceiling((double)effectiveDataLength / width);
@@ -273,11 +287,11 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          var dif = new Point(distance, 0);
          var line = new Point(width, -1);
 
-         selectionStart += dif;
+         selectionStart -= dif;
          while (selectionStart.X < 0) selectionStart += line;
          while (selectionStart.X >= width) selectionStart -= line;
 
-         selectionEnd += dif;
+         selectionEnd -= dif;
          while (selectionEnd.X < 0) selectionEnd += line;
          while (selectionEnd.X >= width) selectionEnd -= line;
       }

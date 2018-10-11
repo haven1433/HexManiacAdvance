@@ -9,7 +9,7 @@ namespace HavenSoft.Gen3Hex.View {
    public class FormatDrawer : IDataFormatVisitor {
       public static int FontSize = 16;
 
-      public static readonly Point CellTextOffset = new Point(4, 3);
+      public static readonly Point CellTextOffset = new Point(6, 1);
 
       private static readonly List<FormattedText> noneVisualCache = new List<FormattedText>();
 

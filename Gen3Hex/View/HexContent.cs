@@ -1,11 +1,19 @@
-﻿using HavenSoft.Gen3Hex.ViewModel;
+﻿using HavenSoft.Gen3Hex.Model;
+using HavenSoft.Gen3Hex.ViewModel;
+using System;
 using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Linq;
 using System.Windows;
+using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace HavenSoft.Gen3Hex.View {
    public class HexContent : FrameworkElement {
       public const int CellWidth = 30, CellHeight = 20;
+
+      public static readonly Rect CellRect = new Rect(0, 0, CellWidth, CellHeight);
 
       #region ViewPort
 
@@ -24,17 +32,78 @@ namespace HavenSoft.Gen3Hex.View {
       private void OnViewPortChanged(DependencyPropertyChangedEventArgs e) {
          if (e.OldValue is ViewPort oldViewPort) {
             oldViewPort.CollectionChanged -= OnViewPortContentChanged;
+            oldViewPort.PropertyChanged -= OnViewPortPropertyChanged;
          }
 
          if (e.NewValue is ViewPort newViewPort) {
             newViewPort.CollectionChanged += OnViewPortContentChanged;
+            newViewPort.PropertyChanged += OnViewPortPropertyChanged;
             UpdateViewPortSize();
          }
 
          InvalidateVisual();
       }
 
+      private void OnViewPortContentChanged(object sender, NotifyCollectionChangedEventArgs e) {
+         InvalidateVisual();
+      }
+
+      private void OnViewPortPropertyChanged(object sender, PropertyChangedEventArgs e) {
+         var propertyChangesThatRequireRedraw = new[] {
+            nameof(ViewPort.SelectionStart),
+            nameof(ViewPort.SelectionEnd),
+         };
+
+         if (propertyChangesThatRequireRedraw.Contains(e.PropertyName)) {
+            InvalidateVisual();
+         }
+      }
+
       #endregion
+
+      public HexContent() {
+         Focusable = true;
+
+         void AddKeyCommand(string commandPath, Direction direction, Key key, ModifierKeys modifiers = ModifierKeys.None) {
+            var keyBinding = new KeyBinding {
+               CommandParameter = direction,
+               Key = key,
+               Modifiers = modifiers,
+            };
+            BindingOperations.SetBinding(keyBinding, InputBinding.CommandProperty, new Binding(commandPath));
+            InputBindings.Add(keyBinding);
+         }
+
+         AddKeyCommand(nameof(ViewPort.MoveSelectionStart), Direction.Up, Key.Up);
+         AddKeyCommand(nameof(ViewPort.MoveSelectionStart), Direction.Down, Key.Down);
+         AddKeyCommand(nameof(ViewPort.MoveSelectionStart), Direction.Left, Key.Left);
+         AddKeyCommand(nameof(ViewPort.MoveSelectionStart), Direction.Right, Key.Right);
+
+         AddKeyCommand(nameof(ViewPort.MoveSelectionEnd), Direction.Up, Key.Up, ModifierKeys.Shift);
+         AddKeyCommand(nameof(ViewPort.MoveSelectionEnd), Direction.Down, Key.Down, ModifierKeys.Shift);
+         AddKeyCommand(nameof(ViewPort.MoveSelectionEnd), Direction.Left, Key.Left, ModifierKeys.Shift);
+         AddKeyCommand(nameof(ViewPort.MoveSelectionEnd), Direction.Right, Key.Right, ModifierKeys.Shift);
+
+         AddKeyCommand(nameof(ViewPort.Scroll), Direction.Up, Key.Up, ModifierKeys.Control);
+         AddKeyCommand(nameof(ViewPort.Scroll), Direction.Down, Key.Down, ModifierKeys.Control);
+         AddKeyCommand(nameof(ViewPort.Scroll), Direction.Left, Key.Left, ModifierKeys.Control);
+         AddKeyCommand(nameof(ViewPort.Scroll), Direction.Right, Key.Right, ModifierKeys.Control);
+      }
+
+      protected override void OnMouseDown(MouseButtonEventArgs e) {
+         base.OnMouseDown(e);
+         if (e.LeftButton != MouseButtonState.Pressed) return;
+         Focus();
+         
+         ViewPort.SelectionStart = ControlCoordinatesToModelCoordinates(e);
+      }
+
+      protected override void OnMouseMove(MouseEventArgs e) {
+         base.OnMouseMove(e);
+         if (e.LeftButton != MouseButtonState.Pressed) return;
+
+         ViewPort.SelectionEnd = ControlCoordinatesToModelCoordinates(e);
+      }
 
       protected override void OnRender(DrawingContext drawingContext) {
          base.OnRender(drawingContext);
@@ -47,6 +116,9 @@ namespace HavenSoft.Gen3Hex.View {
             for (int y = 0; y < ViewPort.Height; y++) {
                var element = ViewPort[x, y];
                drawingContext.PushTransform(new TranslateTransform(x * CellWidth, y * CellHeight));
+               if (ViewPort.IsSelected(new Model.Point(x, y))) {
+                  drawingContext.DrawRectangle(Solarized.Theme.Backlight, null, CellRect);
+               }
                element.Format.Visit(visitor, element.Value);
                drawingContext.Pop();
             }
@@ -63,8 +135,9 @@ namespace HavenSoft.Gen3Hex.View {
          ViewPort.Height = (int)ActualHeight / CellHeight;
       }
 
-      private void OnViewPortContentChanged(object sender, NotifyCollectionChangedEventArgs e) {
-         InvalidateVisual();
+      private Model.Point ControlCoordinatesToModelCoordinates(MouseEventArgs e) {
+         var point = e.GetPosition(this);
+         return new Model.Point((int)point.X / CellWidth, (int)point.Y / CellHeight);
       }
    }
 }

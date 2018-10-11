@@ -261,5 +261,40 @@ namespace HavenSoft.HexTests {
 
          Assert.Equal(new Point(1, 0), viewPort.SelectionEnd);
       }
+
+      [Fact]
+      public void ScrollingUpdatesSelection() {
+         var loadedFile = new LoadedFile("test", new byte[25]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.SelectionEnd = new Point(4, 2);
+         viewPort.Scroll.Execute(Direction.Up);
+
+         Assert.Equal(new Point(0, 1), viewPort.SelectionStart);
+         Assert.Equal(new Point(4, 1), viewPort.SelectionEnd);
+      }
+
+      [Fact]
+      public void ForwardSelectionWorks() {
+         var loadedFile = new LoadedFile("test", new byte[25]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         viewPort.SelectionStart = new Point(2, 1);
+         viewPort.SelectionEnd = new Point(3, 3);
+
+         Assert.True(viewPort.IsSelected(new Point(4, 2)));
+      }
+
+      [Fact]
+      public void BackSelectionWorks() {
+         var loadedFile = new LoadedFile("test", new byte[25]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         viewPort.SelectionStart = new Point(3, 3);
+         viewPort.SelectionEnd = new Point(2, 1);
+
+         Assert.True(viewPort.IsSelected(new Point(4, 2)));
+      }
    }
 }
