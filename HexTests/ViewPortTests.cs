@@ -321,5 +321,22 @@ namespace HavenSoft.HexTests {
          viewPort.Scroll.Execute(Direction.Left); // try to scroll further. Should fail, because then the whole top row would be empty.
          Assert.Equal(new Point(4, 0), viewPort.SelectionStart); // first byte of data should still be selected.
       }
+
+      [Fact]
+      public void EmptyFileMaximumScrollMatchesMinimumScroll() {
+         var viewPort = new ViewPort();
+
+         Assert.Equal(viewPort.MinimumScroll, viewPort.MaximumScroll);
+      }
+
+      [Fact]
+      public void EmptyFileCannotScroll() {
+         var viewPort = new ViewPort();
+
+         Assert.False(viewPort.Scroll.CanExecute(Direction.Left));
+         Assert.False(viewPort.Scroll.CanExecute(Direction.Right));
+         Assert.False(viewPort.Scroll.CanExecute(Direction.Up));
+         Assert.False(viewPort.Scroll.CanExecute(Direction.Down));
+      }
    }
 }

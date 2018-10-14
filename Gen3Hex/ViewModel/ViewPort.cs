@@ -212,7 +212,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          moveSelectionStart.Execute = args => MoveSelectionStartExecuted((Direction)args);
          moveSelectionEnd.CanExecute = args => true;
          moveSelectionEnd.Execute = args => MoveSelectionEndExecuted((Direction)args);
-         scroll.CanExecute = args => true;
+         scroll.CanExecute = args => data.Length > 0;
          scroll.Execute = args => ScrollExecuted((Direction)args);
       }
 
@@ -233,7 +233,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       private void UpdateScrollRange() {
          int effectiveDataLength = CalculateEffectiveDataLength();
          var lineCount = (int)Math.Ceiling((double)effectiveDataLength / width);
-         MaximumScroll = lineCount - 1;
+         MaximumScroll = Math.Max(lineCount - 1, 0);
          var newCurrentScroll = (int)Math.Ceiling((double)dataIndex / width);
 
          // screen size changes while scrolled above the data can make the data scroll completely out of view
