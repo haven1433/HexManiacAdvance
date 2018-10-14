@@ -88,15 +88,15 @@ namespace Solarized {
 
       public enum Variant { Dark, Light }
 
-      static Variant _variant;
+      static Variant variant;
 
       public static Variant DefaultVariant => 6 < DateTime.Now.Hour || DateTime.Now.Hour < 19 ? Variant.Light : Variant.Dark;
 
       public static Variant CurrentVariant {
-         get => _variant;
+         get => variant;
          set {
-            Color current(Color a, Color b) => _variant == Variant.Light ? a : b;
-            _variant = value;
+            Color current(Color a, Color b) => variant == Variant.Light ? a : b;
+            variant = value;
             Emphasis   = Brush(current(Base01, Base1));
             Primary    = Brush(current(Base00, Base0));
             Secondary  = Brush(current(Base1, Base01));
