@@ -269,7 +269,7 @@ namespace HavenSoft.HexTests {
 
          viewPort.SelectionStart = new Point(0, 2);
          viewPort.SelectionEnd = new Point(4, 2);
-         viewPort.Scroll.Execute(Direction.Up);
+         viewPort.Scroll.Execute(Direction.Down);
 
          Assert.Equal(new Point(0, 1), viewPort.SelectionStart);
          Assert.Equal(new Point(4, 1), viewPort.SelectionEnd);
@@ -295,6 +295,31 @@ namespace HavenSoft.HexTests {
          viewPort.SelectionEnd = new Point(2, 1);
 
          Assert.True(viewPort.IsSelected(new Point(4, 2)));
+      }
+
+      /// <remarks>
+      /// Scrolling Down makes you see lower data.
+      /// Scrolling Up makes you see higher data.
+      /// Scrolling Left makes you see one more byte, left of what's currently in view.
+      /// Scrolling Right makes you see one more byte, right of what's currently in view.
+      /// </remarks>
+      [Fact]
+      public void ScrollingBeforeStartOfDataMovesSelectionOnlyWhenDataMoves() {
+         var loadedFile = new LoadedFile("test", new byte[25]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         viewPort.Scroll.Execute(Direction.Right); // move the first byte out of view
+         viewPort.Scroll.Execute(Direction.Up);    // scroll up, so we can see the first byte again
+
+         // Example of what it should look like right now:
+         // .. .. .. 00 <- this is the top line in the view
+         // 00 00 00 00
+         // 00 00 00 00
+         // 00 00 00 00
+         // 00 00 00 00
+
+         viewPort.Scroll.Execute(Direction.Left); // try to scroll further. Should fail, because then the whole top row would be empty.
+         Assert.Equal(new Point(4, 0), viewPort.SelectionStart); // first byte of data should still be selected.
       }
    }
 }

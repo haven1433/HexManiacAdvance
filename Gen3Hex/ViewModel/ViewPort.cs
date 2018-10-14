@@ -117,9 +117,9 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          if (dif.Y != 0) {
             ScrollValue += dif.Y;
          } else {
-            dataIndex += dif.X;
-            ShiftSelectionFromScroll(dif.X);
-            dataIndex = Math.Min(Math.Max(1 - width, dataIndex), data.Length - 1);
+            var newDataIndex = Math.Min(Math.Max(1 - width, dataIndex + dif.X), data.Length - 1);
+            ShiftSelectionFromScroll(newDataIndex - dataIndex);
+            dataIndex = newDataIndex;
             UpdateScrollRange();
             NotifyCollectionChanged(ResetArgs);
          }
