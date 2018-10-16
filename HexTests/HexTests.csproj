@@ -56,7 +56,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ViewPortTests.cs" />
+    <Compile Include="ViewPortCursorTests.cs" />
+    <Compile Include="ViewPortEditTests.cs" />
+    <Compile Include="ViewPortScrollTests.cs" />
     <Compile Include="..\SharedAssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
