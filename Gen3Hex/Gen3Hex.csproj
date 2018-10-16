@@ -51,7 +51,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Model\Enums.cs" />
     <Compile Include="Model\LoadedFile.cs" />
+    <Compile Include="Model\Point.cs" />
     <Compile Include="ViewModel\DataFormats.cs" />
     <Compile Include="ViewModel\HexElement.cs" />
     <Compile Include="ViewModel\ViewPort.cs" />

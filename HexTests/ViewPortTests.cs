@@ -1,6 +1,5 @@
 ﻿using HavenSoft.Gen3Hex.Model;
 using HavenSoft.Gen3Hex.ViewModel;
-using HavenSoft.ViewModel.DataFormats;
 using System.Collections.Generic;
 using System.Reflection;
 using Xunit;
@@ -65,7 +64,6 @@ namespace HavenSoft.HexTests {
       [Fact]
       public void ChangingWidthUpdatesScrollValueIfNeeded() {
          // ScrollValue=0 is always the line that contains the first byte of the file.
-
          var loadedFile = new LoadedFile("test", new byte[25]);
          var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
 
@@ -149,6 +147,196 @@ namespace HavenSoft.HexTests {
 
          // notice from the diagram above that there should now be _8_ rows (0-7).
          Assert.Equal(7, viewPort.MaximumScroll);
+      }
+
+      [Fact]
+      public void ScrollingRightUpdatesScrollValueIfNeeded() {
+         var loadedFile = new LoadedFile("test", new byte[25]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         viewPort.Scroll.Execute(Direction.Right);
+
+         Assert.Equal(1, viewPort.ScrollValue);
+      }
+
+      [Fact]
+      public void ScrollingRightAndLeftCancel() {
+         var loadedFile = new LoadedFile("test", new byte[25]);
+         loadedFile.Contents[3] = 0x10;
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         viewPort.Scroll.Execute(Direction.Left);
+         viewPort.Scroll.Execute(Direction.Right);
+
+         Assert.Equal(0x10, viewPort[3, 0].Value);
+      }
+
+      [Fact]
+      public void CursorCanMoveAllFourDirections() {
+         var loadedFile = new LoadedFile("test", new byte[25]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         viewPort.SelectionStart = new Point(3, 0);
+
+         viewPort.MoveSelectionStart.Execute(Direction.Right);
+         viewPort.MoveSelectionStart.Execute(Direction.Down);
+         viewPort.MoveSelectionStart.Execute(Direction.Left);
+         viewPort.MoveSelectionStart.Execute(Direction.Up);
+
+         Assert.Equal(new Point(3, 0), viewPort.SelectionStart);
+      }
+
+      [Fact]
+      public void CursorCannotMoveAboveTopRow() {
+         var loadedFile = new LoadedFile("test", new byte[25]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         viewPort.SelectionStart = new Point(3, 0);
+
+         viewPort.MoveSelectionStart.Execute(Direction.Up);
+
+         Assert.Equal(new Point(3, 0), viewPort.SelectionStart);
+      }
+
+      [Fact]
+      public void MovingCursorRightFromRightEdgeMovesToNextLine() {
+         var loadedFile = new LoadedFile("test", new byte[25]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         viewPort.SelectionStart = new Point(4, 0);
+
+         viewPort.MoveSelectionStart.Execute(Direction.Right);
+
+         Assert.Equal(new Point(0, 1), viewPort.SelectionStart);
+      }
+
+      [Fact]
+      public void MovingCursorDownFromBottomRowScrolls() {
+         var loadedFile = new LoadedFile("test", new byte[25]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 3 };
+         viewPort.SelectionStart = new Point(0, 2);
+
+         viewPort.MoveSelectionStart.Execute(Direction.Down);
+
+         Assert.Equal(1, viewPort.ScrollValue);
+      }
+
+      [Fact]
+      public void CursorCanMoveOutsideDataRangeButNotOutsideScrollRange() {
+         var loadedFile = new LoadedFile("test", new byte[25]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         viewPort.Scroll.Execute(Direction.Right);
+         viewPort.SelectionStart = new Point(0, 0);
+
+         viewPort.MoveSelectionStart.Execute(Direction.Up);
+         viewPort.MoveSelectionStart.Execute(Direction.Up);
+
+         Assert.Equal(new Point(0, 0), viewPort.SelectionStart);
+         Assert.Equal(0, viewPort.ScrollValue);
+
+         viewPort.SelectionStart = new Point(4, 4);
+         for (int i = 0; i < 6; i++) viewPort.MoveSelectionStart.Execute(Direction.Down); // 6 moves, 5 moves work, last one should do nothing
+
+         Assert.Equal(new Point(4, 4), viewPort.SelectionStart);
+         Assert.Equal(5, viewPort.ScrollValue);
+      }
+
+      [Fact]
+      public void MoveSelectionEndWorks() {
+         var loadedFile = new LoadedFile("test", new byte[25]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         viewPort.SelectionStart = new Point(0, 0);
+
+         viewPort.MoveSelectionStart.Execute(Direction.Right);
+         viewPort.MoveSelectionEnd.Execute(Direction.Down);
+
+         Assert.Equal(new Point(1, 1), viewPort.SelectionEnd);
+      }
+
+      [Fact]
+      public void SetSelectionStartResetsSelectionEnd() {
+         var loadedFile = new LoadedFile("test", new byte[25]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         viewPort.SelectionStart = new Point(0, 0);
+
+         viewPort.SelectionEnd = new Point(3, 3);
+         viewPort.SelectionStart = new Point(1, 0);
+
+         Assert.Equal(new Point(1, 0), viewPort.SelectionEnd);
+      }
+
+      [Fact]
+      public void ScrollingUpdatesSelection() {
+         var loadedFile = new LoadedFile("test", new byte[25]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.SelectionEnd = new Point(4, 2);
+         viewPort.Scroll.Execute(Direction.Down);
+
+         Assert.Equal(new Point(0, 1), viewPort.SelectionStart);
+         Assert.Equal(new Point(4, 1), viewPort.SelectionEnd);
+      }
+
+      [Fact]
+      public void ForwardSelectionWorks() {
+         var loadedFile = new LoadedFile("test", new byte[25]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         viewPort.SelectionStart = new Point(2, 1);
+         viewPort.SelectionEnd = new Point(3, 3);
+
+         Assert.True(viewPort.IsSelected(new Point(4, 2)));
+      }
+
+      [Fact]
+      public void BackSelectionWorks() {
+         var loadedFile = new LoadedFile("test", new byte[25]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         viewPort.SelectionStart = new Point(3, 3);
+         viewPort.SelectionEnd = new Point(2, 1);
+
+         Assert.True(viewPort.IsSelected(new Point(4, 2)));
+      }
+
+      /// <remarks>
+      /// Scrolling Down makes you see lower data.
+      /// Scrolling Up makes you see higher data.
+      /// Scrolling Left makes you see one more byte, left of what's currently in view.
+      /// Scrolling Right makes you see one more byte, right of what's currently in view.
+      /// </remarks>
+      [Fact]
+      public void ScrollingBeforeStartOfDataMovesSelectionOnlyWhenDataMoves() {
+         var loadedFile = new LoadedFile("test", new byte[25]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         viewPort.Scroll.Execute(Direction.Right); // move the first byte out of view
+         viewPort.Scroll.Execute(Direction.Up);    // scroll up, so we can see the first byte again
+
+         // Example of what it should look like right now:
+         // .. .. .. 00 <- this is the top line in the view
+         // 00 00 00 00
+         // 00 00 00 00
+         // 00 00 00 00
+         // 00 00 00 00
+
+         viewPort.Scroll.Execute(Direction.Left); // try to scroll further. Should fail, because then the whole top row would be empty.
+         Assert.Equal(new Point(4, 0), viewPort.SelectionStart); // first byte of data should still be selected.
+      }
+
+      [Fact]
+      public void EmptyFileMaximumScrollMatchesMinimumScroll() {
+         var viewPort = new ViewPort();
+
+         Assert.Equal(viewPort.MinimumScroll, viewPort.MaximumScroll);
+      }
+
+      [Fact]
+      public void EmptyFileCannotScroll() {
+         var viewPort = new ViewPort();
+
+         Assert.False(viewPort.Scroll.CanExecute(Direction.Left));
+         Assert.False(viewPort.Scroll.CanExecute(Direction.Right));
+         Assert.False(viewPort.Scroll.CanExecute(Direction.Up));
+         Assert.False(viewPort.Scroll.CanExecute(Direction.Down));
       }
    }
 }
