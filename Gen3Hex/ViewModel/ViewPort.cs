@@ -222,6 +222,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             currentView[point.X, point.Y] = element;
          }
 
+         if (changes.Count > 0) NotifyCollectionChanged(ResetArgs);
          return opposite;
       }
 
@@ -301,7 +302,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             if (underEdit.CurrentText.Length == 2) {
                var byteValue = byte.Parse(underEdit.CurrentText, NumberStyles.HexNumber);
                var memoryLocation = Linearize(point) + dataIndex;
-               history.CurrentChange[memoryLocation] = currentView[point.X, point.Y];
+               history.CurrentChange[memoryLocation] = new HexElement(element.Value, underEdit.OriginalFormat);
                data[memoryLocation] = byteValue;
                var nextPoint = point + new Point(1, 0);
                if (nextPoint.X == width) nextPoint += new Point(-width, 1);

@@ -215,5 +215,30 @@ namespace HavenSoft.HexTests {
          Assert.Equal(2, collectionNotifications); // should have been notified since the visual data changed.
       }
 
+      [Fact]
+      public void UndoNotifiesCollectionChange() {
+         var loadedFile = new LoadedFile("test", new byte[30]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         int collectionNotifications = 0;
+         viewPort.CollectionChanged += (sender, e) => collectionNotifications++;
+
+         viewPort.Edit("0102030405");
+         collectionNotifications = 0;
+         viewPort.Undo.Execute();
+
+         Assert.Equal(1, collectionNotifications);
+      }
+
+      [Fact]
+      public void UndoRestoresOriginalDataFormat() {
+         var loadedFile = new LoadedFile("test", new byte[30]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         var originalFormat = viewPort[0, 0].Format;
+         viewPort.Edit("ff");
+         viewPort.Undo.Execute();
+
+         Assert.IsType(originalFormat.GetType(), viewPort[0, 0].Format);
+      }
    }
 }

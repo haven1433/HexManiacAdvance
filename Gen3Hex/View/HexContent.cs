@@ -63,9 +63,9 @@ namespace HavenSoft.Gen3Hex.View {
       public HexContent() {
          Focusable = true;
 
-         void AddKeyCommand(string commandPath, Direction direction, Key key, ModifierKeys modifiers = ModifierKeys.None) {
+         void AddKeyCommand(string commandPath, object arg, Key key, ModifierKeys modifiers = ModifierKeys.None) {
             var keyBinding = new KeyBinding {
-               CommandParameter = direction,
+               CommandParameter = arg,
                Key = key,
                Modifiers = modifiers,
             };
@@ -87,6 +87,9 @@ namespace HavenSoft.Gen3Hex.View {
          AddKeyCommand(nameof(ViewPort.Scroll), Direction.Down, Key.Down, ModifierKeys.Control);
          AddKeyCommand(nameof(ViewPort.Scroll), Direction.Left, Key.Left, ModifierKeys.Control);
          AddKeyCommand(nameof(ViewPort.Scroll), Direction.Right, Key.Right, ModifierKeys.Control);
+
+         AddKeyCommand(nameof(ViewPort.Undo), null, Key.Z, ModifierKeys.Control);
+         AddKeyCommand(nameof(ViewPort.Redo), null, Key.Y, ModifierKeys.Control);
       }
 
       protected override void OnMouseDown(MouseButtonEventArgs e) {
@@ -127,6 +130,11 @@ namespace HavenSoft.Gen3Hex.View {
       protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo) {
          base.OnRenderSizeChanged(sizeInfo);
          if (ViewPort != null) UpdateViewPortSize();
+      }
+
+      protected override void OnTextInput(TextCompositionEventArgs e) {
+         ViewPort.Edit(e.Text);
+         e.Handled = true;
       }
 
       private void UpdateViewPortSize() {
