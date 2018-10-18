@@ -49,8 +49,14 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public int Width {
          get => width;
          set {
+            var selectionStart = Linearize(SelectionStart) + dataIndex;
+            var selectionEnd = Linearize(SelectionEnd) + dataIndex;
             if (TryUpdate(ref width, value) && width > 0 && height > 0) {
                UpdateScrollRange();
+
+               TryUpdate(ref this.selectionStart, DataIndexToViewPoint(selectionStart), nameof(SelectionStart));
+               TryUpdate(ref this.selectionEnd, DataIndexToViewPoint(selectionEnd), nameof(SelectionEnd));
+
                RefreshBackingData();
             }
          }

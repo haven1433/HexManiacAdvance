@@ -154,5 +154,15 @@ namespace HavenSoft.HexTests {
          viewPort.Scroll.Execute(Direction.Left); // try to scroll further. Should fail, because then the whole top row would be empty.
          Assert.Equal(new Point(4, 0), viewPort.SelectionStart); // first byte of data should still be selected.
       }
+
+      [Fact]
+      public void ChangingWidthKeepsSameDataSelected() {
+         var loadedFile = new LoadedFile("test", new byte[25]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         viewPort.SelectionEnd = new Point(2, 2); // 13 cells selected
+         viewPort.Width += 1;
+
+         Assert.Equal(new Point(0, 2), viewPort.SelectionEnd); // 13 cells selected
+      }
    }
 }
