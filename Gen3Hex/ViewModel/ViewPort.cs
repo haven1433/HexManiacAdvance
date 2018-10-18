@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Globalization;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 
@@ -155,7 +157,9 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          get => selectionEnd;
          set {
             value = ScrollToPoint(value);
-            TryUpdate(ref selectionEnd, value);
+            if (TryUpdate(ref selectionEnd, value)) {
+               history.ChangeCompleted();
+            }
          }
       }
 
@@ -237,10 +241,9 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public bool IsSelected(Point point) {
          if (point.X < 0 || point.X >= width) return false;
 
-         int linearize(Point p) => p.Y * width + p.X;
-         var selectionStart = linearize(SelectionStart);
-         var selectionEnd = linearize(SelectionEnd);
-         var middle = linearize(point);
+         var selectionStart = Linearize(SelectionStart);
+         var selectionEnd = Linearize(SelectionEnd);
+         var middle = Linearize(point);
 
          var leftEdge = Math.Min(selectionStart, selectionEnd);
          var rightEdge = Math.Max(selectionStart, selectionEnd);
@@ -249,14 +252,54 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       }
 
       public void Edit(string input) {
-         if (input.Length == 0) return;
-         if (input.Length > 1) {
-            for (int i = 0; i < input.Length; i++) Edit(input.Substring(i, 1));
+         for (int i = 0; i < input.Length; i++) Edit(input[i]);
+      }
+
+      private void Edit(char input) {
+         var selectionStart = Linearize(SelectionStart);
+         var selectionEnd = Linearize(SelectionEnd);
+         var leftEdge = Math.Min(selectionStart, selectionEnd);
+         var point = new Point(leftEdge % width, leftEdge / width);
+         if (leftEdge < 0) point = new Point(width - ((-leftEdge) % width), leftEdge / width - 1);
+         var point2 = ScrollToPoint(point);
+         if (!point2.Equals(point)) {
+            RefreshBackingData();
+            point = point2;
+         }
+         var element = currentView[point.X, point.Y];
+         var underEdit = element.Format as UnderEdit;
+
+         if (!"0123456789ABCDEFabcdef".Contains(input)) {
+            if (underEdit != null) {
+               currentView[point.X, point.Y] = new HexElement(element.Value, underEdit.OriginalFormat);
+            }
             return;
          }
 
-         // TODO working here
+         SelectionStart = point;
+
+         if (underEdit != null) {
+            currentView[point.X, point.Y] = new HexElement(element.Value, new UnderEdit(underEdit.OriginalFormat, underEdit.CurrentText + input));
+         } else {
+            currentView[point.X, point.Y] = new HexElement(element.Value, new UnderEdit(element.Format, input.ToString()));
+         }
+
+         underEdit = (UnderEdit)currentView[point.X, point.Y].Format;
+         if (underEdit.CurrentText.Length == 2) {
+            var byteValue = byte.Parse(underEdit.CurrentText, NumberStyles.HexNumber);
+            var memoryLocation = Linearize(point) + dataIndex;
+            history.CurrentChange[memoryLocation] = currentView[point.X, point.Y];
+            data[memoryLocation] = byteValue;
+            var nextPoint = point + new Point(1, 0);
+            if (nextPoint.X == width) nextPoint += new Point(-width, 1);
+            nextPoint = ScrollToPoint(nextPoint);
+            TryUpdate(ref this.selectionStart, nextPoint, nameof(SelectionStart));
+            TryUpdate(ref this.selectionEnd, nextPoint, nameof(SelectionEnd));
+            RefreshBackingData();
+         }
       }
+
+      private int Linearize(Point p) => p.Y * width + p.X;
 
       private void RefreshBackingData() {
          currentView = new HexElement[Width, Height];

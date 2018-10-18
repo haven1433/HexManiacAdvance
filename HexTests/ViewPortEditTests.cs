@@ -26,9 +26,9 @@ namespace HavenSoft.HexTests {
          viewPort.Edit("DEADBEEF");
 
          Assert.Equal(0xDE, viewPort[2, 2].Value);
-         Assert.Equal(0xAD, viewPort[2, 3].Value);
-         Assert.Equal(0xBE, viewPort[2, 4].Value);
-         Assert.Equal(0xEF, viewPort[3, 0].Value);
+         Assert.Equal(0xAD, viewPort[3, 2].Value);
+         Assert.Equal(0xBE, viewPort[4, 2].Value);
+         Assert.Equal(0xEF, viewPort[0, 3].Value);
       }
 
       [Fact]
