@@ -186,5 +186,19 @@ namespace HavenSoft.HexTests {
          Assert.False(viewPort.Scroll.CanExecute(Direction.Up));
          Assert.False(viewPort.Scroll.CanExecute(Direction.Down));
       }
+
+      [Fact]
+      public void NotifyCollectionChangeAfterScrolling() {
+         var loadedFile = new LoadedFile("test", new byte[25]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         var propertyNotifications = new List<string>();
+         viewPort.PropertyChanged += (sender, e) => propertyNotifications.Add(e.PropertyName);
+         int collectionNotifications = 0;
+         viewPort.CollectionChanged += (sender, e) => collectionNotifications++;
+
+         viewPort.Scroll.Execute(Direction.Down);
+
+         Assert.Equal(1, collectionNotifications);
+      }
    }
 }

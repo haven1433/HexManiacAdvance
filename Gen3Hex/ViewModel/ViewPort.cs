@@ -140,7 +140,18 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public Point SelectionStart {
          get => selectionStart;
          set {
+            if (selectionStart.Equals(value)) return;
+            var originalSelectionStart = selectionStart;
+
             value = ScrollToPoint(value);
+            if (selectionStart.X >= 0 && selectionStart.X < width && selectionStart.Y >= 0 && selectionStart.Y < height) {
+               var element = currentView[selectionStart.X, selectionStart.Y];
+               if (element.Format is UnderEdit underEdit) {
+                  currentView[selectionStart.X, selectionStart.Y] = new HexElement(element.Value, underEdit.OriginalFormat);
+                  NotifyCollectionChanged(ResetArgs);
+               }
+            }
+
             if (TryUpdate(ref selectionStart, value)) {
                SelectionEnd = selectionStart;
             }
@@ -157,6 +168,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          get => selectionEnd;
          set {
             value = ScrollToPoint(value);
+
             if (TryUpdate(ref selectionEnd, value)) {
                history.ChangeCompleted();
             }
@@ -193,16 +205,22 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       #region Undo / Redo
 
-      public ICommand Undo => History.Undo;
+      public ICommand Undo => history.Undo;
 
-      public ICommand Redo => History.Redo;
-
-      public ChangeHistory<Dictionary<int, HexElement>> History => history;
+      public ICommand Redo => history.Redo;
 
       private Dictionary<int, HexElement> RevertChanges(Dictionary<int, HexElement> changes) {
          var opposite = new Dictionary<int, HexElement>();
 
-         // um... sorry
+         foreach (var change in changes) {
+            var (index, element) = (change.Key, change.Value);
+            var point = DataIndexToViewPoint(index);
+            point = ScrollToPoint(point);
+
+            opposite[index] = currentView[point.X, point.Y];
+            data[index] = element.Value;
+            currentView[point.X, point.Y] = element;
+         }
 
          return opposite;
       }
@@ -259,47 +277,63 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          var selectionStart = Linearize(SelectionStart);
          var selectionEnd = Linearize(SelectionEnd);
          var leftEdge = Math.Min(selectionStart, selectionEnd);
-         var point = new Point(leftEdge % width, leftEdge / width);
-         if (leftEdge < 0) point = new Point(width - ((-leftEdge) % width), leftEdge / width - 1);
-         var point2 = ScrollToPoint(point);
-         if (!point2.Equals(point)) {
-            RefreshBackingData();
-            point = point2;
-         }
+         var point = DataIndexToViewPoint(leftEdge + dataIndex);
+         point = ScrollToPoint(point);
          var element = currentView[point.X, point.Y];
          var underEdit = element.Format as UnderEdit;
 
          if (!"0123456789ABCDEFabcdef".Contains(input)) {
             if (underEdit != null) {
                currentView[point.X, point.Y] = new HexElement(element.Value, underEdit.OriginalFormat);
+               NotifyCollectionChanged(ResetArgs);
             }
             return;
          }
 
          SelectionStart = point;
 
-         if (underEdit != null) {
-            currentView[point.X, point.Y] = new HexElement(element.Value, new UnderEdit(underEdit.OriginalFormat, underEdit.CurrentText + input));
-         } else {
+         if (underEdit == null) {
             currentView[point.X, point.Y] = new HexElement(element.Value, new UnderEdit(element.Format, input.ToString()));
-         }
+            NotifyCollectionChanged(ResetArgs);
+         } else {
+            currentView[point.X, point.Y] = new HexElement(element.Value, new UnderEdit(underEdit.OriginalFormat, underEdit.CurrentText + input));
+            underEdit = (UnderEdit)currentView[point.X, point.Y].Format;
+            if (underEdit.CurrentText.Length == 2) {
+               var byteValue = byte.Parse(underEdit.CurrentText, NumberStyles.HexNumber);
+               var memoryLocation = Linearize(point) + dataIndex;
+               history.CurrentChange[memoryLocation] = currentView[point.X, point.Y];
+               data[memoryLocation] = byteValue;
+               var nextPoint = point + new Point(1, 0);
+               if (nextPoint.X == width) nextPoint += new Point(-width, 1);
+               var nextPoint2 = ScrollToPoint(nextPoint);
+               if (nextPoint2.Equals(nextPoint)) {
+                  // didn't scroll: update manually
+                  if (currentView[point.X, point.Y].Format is UnderEdit) {
+                     currentView[point.X, point.Y] = new HexElement(byteValue, underEdit.OriginalFormat);
+                  }
+                  NotifyCollectionChanged(ResetArgs);
+               } else {
+                  nextPoint = nextPoint2;
+               }
 
-         underEdit = (UnderEdit)currentView[point.X, point.Y].Format;
-         if (underEdit.CurrentText.Length == 2) {
-            var byteValue = byte.Parse(underEdit.CurrentText, NumberStyles.HexNumber);
-            var memoryLocation = Linearize(point) + dataIndex;
-            history.CurrentChange[memoryLocation] = currentView[point.X, point.Y];
-            data[memoryLocation] = byteValue;
-            var nextPoint = point + new Point(1, 0);
-            if (nextPoint.X == width) nextPoint += new Point(-width, 1);
-            nextPoint = ScrollToPoint(nextPoint);
-            TryUpdate(ref this.selectionStart, nextPoint, nameof(SelectionStart));
-            TryUpdate(ref this.selectionEnd, nextPoint, nameof(SelectionEnd));
-            RefreshBackingData();
+               TryUpdate(ref this.selectionStart, nextPoint, nameof(SelectionStart));
+               TryUpdate(ref this.selectionEnd, nextPoint, nameof(SelectionEnd));
+            } else {
+               NotifyCollectionChanged(ResetArgs);
+            }
          }
       }
 
       private int Linearize(Point p) => p.Y * width + p.X;
+
+      private Point DataIndexToViewPoint(int index) {
+         index -= dataIndex;
+         if (index >= 0) {
+            return new Point(index % width, index / width);
+         } else {
+            return new Point(width - ((-index) % width), index / width - 1);
+         }
+      }
 
       private void RefreshBackingData() {
          currentView = new HexElement[Width, Height];
@@ -357,6 +391,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             ScrollValue += target.Y;
             target = new Point(target.X, 0);
          }
+
          if (target.Y >= height) {
             ScrollValue += target.Y + 1 - height;
             target = new Point(target.X, height - 1);

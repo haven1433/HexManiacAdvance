@@ -1,5 +1,6 @@
 ﻿using HavenSoft.Gen3Hex.Model;
 using HavenSoft.Gen3Hex.ViewModel;
+using HavenSoft.ViewModel.DataFormats;
 using Xunit;
 
 namespace HavenSoft.HexTests {
@@ -65,12 +66,12 @@ namespace HavenSoft.HexTests {
 
          viewPort.SelectionStart = new Point(2, 2);
          viewPort.Edit("01");
-         viewPort.SelectionStart = new Point(3, 2);
+         viewPort.SelectionStart = new Point(2, 3);
          viewPort.Edit("02");
          viewPort.Undo.Execute();
 
          Assert.Equal(0x01, viewPort[2, 2].Value);
-         Assert.Equal(0x00, viewPort[3, 2].Value);
+         Assert.Equal(0x00, viewPort[2, 3].Value);
       }
 
       [Fact]
@@ -139,5 +140,80 @@ namespace HavenSoft.HexTests {
 
          Assert.Equal(0, viewPort.ScrollValue);
       }
+
+      [Fact]
+      public void SingleCharacterEditChangesToUnderEditFormat() {
+         var loadedFile = new LoadedFile("test", new byte[30]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.Edit("F");
+
+         Assert.IsType<UnderEdit>(viewPort[0, 2].Format);
+         Assert.Equal("F", ((UnderEdit)viewPort[0, 2].Format).CurrentText);
+      }
+
+      [Fact]
+      public void UnsupportedCharacterRevertsChangeWithoutAddingUndoOperation() {
+         var loadedFile = new LoadedFile("test", new byte[30]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.Edit("F");
+         viewPort.Edit("|");
+
+         Assert.IsType<None>(viewPort[0, 2].Format);
+         Assert.Equal(new Point(0, 2), viewPort.SelectionStart);
+         Assert.Equal(0, viewPort[0, 2].Value);
+         Assert.False(viewPort.Undo.CanExecute(null));
+      }
+
+      [Fact]
+      public void SelectionChangeRevertsChangeWithoutAddingUndoOperation() {
+         var loadedFile = new LoadedFile("test", new byte[30]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.Edit("F");
+         viewPort.SelectionStart = new Point(1, 2);
+
+         Assert.IsType<None>(viewPort[0, 2].Format);
+         Assert.Equal(new Point(1, 2), viewPort.SelectionStart);
+         Assert.Equal(0, viewPort[0, 2].Value);
+         Assert.False(viewPort.Undo.CanExecute(null));
+      }
+
+      [Fact]
+      public void EditOnlyNotifiesCollectionChangeOnceWhenScrolling() {
+         var loadedFile = new LoadedFile("test", new byte[30]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         int collectionNotifications = 0;
+         viewPort.CollectionChanged += (sender, e) => collectionNotifications++;
+
+         viewPort.SelectionStart = new Point(4, 4);
+         viewPort.Edit("F");
+         Assert.Equal(1, collectionNotifications);
+
+         viewPort.Edit("F");
+         Assert.Equal(2, collectionNotifications);
+         Assert.Equal(new Point(0, 4), viewPort.SelectionStart);
+         Assert.Equal(0xFF, viewPort[4, 3].Value);
+      }
+
+      [Fact]
+      public void SelectionChangeDuringEditNotifiesCollectionChange() {
+         var loadedFile = new LoadedFile("test", new byte[30]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         int collectionNotifications = 0;
+         viewPort.CollectionChanged += (sender, e) => collectionNotifications++;
+
+         viewPort.SelectionStart = new Point(4, 4);
+         viewPort.Edit("F");
+         Assert.Equal(1, collectionNotifications);
+
+         viewPort.MoveSelectionStart.Execute(Direction.Up);
+         Assert.Equal(2, collectionNotifications); // should have been notified since the visual data changed.
+      }
+
    }
 }
