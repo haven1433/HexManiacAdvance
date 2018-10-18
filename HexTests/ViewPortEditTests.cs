@@ -38,7 +38,7 @@ namespace HavenSoft.HexTests {
 
          viewPort.SelectionStart = new Point(2, 2);
          viewPort.Edit("AD");
-         viewPort.Undo.Execute(null);
+         viewPort.Undo.Execute();
 
          Assert.Equal(0x00, viewPort[2, 2].Value);
       }
@@ -50,7 +50,7 @@ namespace HavenSoft.HexTests {
 
          viewPort.SelectionStart = new Point(2, 2);
          viewPort.Edit("DEADBEEF");
-         viewPort.Undo.Execute(null);
+         viewPort.Undo.Execute();
 
          Assert.Equal(0x00, viewPort[2, 2].Value);
          Assert.Equal(0x00, viewPort[2, 3].Value);
@@ -67,7 +67,7 @@ namespace HavenSoft.HexTests {
          viewPort.Edit("01");
          viewPort.SelectionStart = new Point(3, 2);
          viewPort.Edit("02");
-         viewPort.Undo.Execute(null);
+         viewPort.Undo.Execute();
 
          Assert.Equal(0x01, viewPort[2, 2].Value);
          Assert.Equal(0x00, viewPort[3, 2].Value);
@@ -81,11 +81,63 @@ namespace HavenSoft.HexTests {
          viewPort.Edit("DEADBEEF");
          Assert.False(viewPort.Redo.CanExecute(null));
 
-         viewPort.Undo.Execute(null);
+         viewPort.Undo.Execute();
          Assert.True(viewPort.Redo.CanExecute(null));
 
-         viewPort.Redo.Execute(null);
+         viewPort.Redo.Execute();
          Assert.False(viewPort.Redo.CanExecute(null));
+      }
+
+      [Fact]
+      public void UndoFixesCorrectDataAfterScroll() {
+         var loadedFile = new LoadedFile("test", new byte[30]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         viewPort.SelectionStart = new Point(2, 2);
+         viewPort.Edit("FF");
+
+         viewPort.SelectionStart = new Point(2, 2);
+         viewPort.Edit("EE");
+         viewPort.Scroll.Execute(Direction.Down);
+         viewPort.Undo.Execute();
+
+         Assert.Equal(1, viewPort.ScrollValue);
+         Assert.Equal(0xFF, viewPort[2, 1].Value);
+      }
+
+      [Fact]
+      public void EditMovesSelection() {
+         var loadedFile = new LoadedFile("test", new byte[30]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         viewPort.SelectionStart = new Point(2, 2);
+         viewPort.Edit("FF");
+
+         Assert.Equal(new Point(3, 2), viewPort.SelectionStart);
+      }
+
+      [Fact]
+      public void UndoDoesNotMoveSelection() {
+         var loadedFile = new LoadedFile("test", new byte[30]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         viewPort.SelectionStart = new Point(2, 2);
+         viewPort.Edit("FF");
+         viewPort.Undo.Execute();
+
+         Assert.Equal(new Point(3, 2), viewPort.SelectionStart);
+      }
+
+      [Fact]
+      public void UndoCanCauseScrolling() {
+         var loadedFile = new LoadedFile("test", new byte[30]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         viewPort.SelectionStart = new Point(0, 0);
+         viewPort.Edit("FF");
+         viewPort.Scroll.Execute(Direction.Down);
+         viewPort.Undo.Execute();
+
+         Assert.Equal(0, viewPort.ScrollValue);
       }
    }
 }

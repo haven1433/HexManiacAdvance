@@ -45,6 +45,7 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="..\SharedAssemblyInfo.cs" />
     <Compile Include="generatedCode\StubCommand.cs" />
+    <Compile Include="ICommandExtensions.cs" />
     <Compile Include="Solarized.cs" />
   </ItemGroup>
   <ItemGroup>

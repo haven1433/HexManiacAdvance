@@ -23,6 +23,10 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       private readonly byte[] data;
 
+      private readonly ChangeHistory<Dictionary<int, HexElement>> history;
+
+      private HexElement[,] currentView;
+
       private int dataIndex;
 
       #region Name
@@ -45,7 +49,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          set {
             if (TryUpdate(ref width, value) && width > 0 && height > 0) {
                UpdateScrollRange();
-               NotifyCollectionChanged(ResetArgs);
+               RefreshBackingData();
             }
          }
       }
@@ -61,7 +65,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          set {
             if (TryUpdate(ref height, value) && width > 0 && height > 0) {
                UpdateScrollRange();
-               NotifyCollectionChanged(ResetArgs);
+               RefreshBackingData();
             }
          }
       }
@@ -88,7 +92,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             dataIndex += dif * width;
             ShiftSelectionFromScroll(dif * width);
             if (TryUpdate(ref scrollValue, value)) {
-               NotifyCollectionChanged(ResetArgs);
+               RefreshBackingData();
             }
          }
       }
@@ -121,7 +125,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             ShiftSelectionFromScroll(newDataIndex - dataIndex);
             dataIndex = newDataIndex;
             UpdateScrollRange();
-            NotifyCollectionChanged(ResetArgs);
+            RefreshBackingData();
          }
       }
 
@@ -183,18 +187,30 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       #endregion
 
+      #region Undo / Redo
+
+      public ICommand Undo => History.Undo;
+
+      public ICommand Redo => History.Redo;
+
+      public ChangeHistory<Dictionary<int, HexElement>> History => history;
+
+      private Dictionary<int, HexElement> RevertChanges(Dictionary<int, HexElement> changes) {
+         var opposite = new Dictionary<int, HexElement>();
+
+         // um... sorry
+
+         return opposite;
+      }
+
+      #endregion
+
       public HexElement this[int x, int y] {
          get {
             if (x < 0 || x >= Width) return HexElement.Undefined;
             if (y < 0 || y >= Height) return HexElement.Undefined;
 
-            var index = y * Width + x + dataIndex;
-            if (index < 0 || index >= data.Length) return HexElement.Undefined;
-
-            return new HexElement {
-               Format = None.Instance,
-               Value = data[index],
-            };
+            return currentView[x, y];
          }
       }
 
@@ -214,6 +230,8 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          moveSelectionEnd.Execute = args => MoveSelectionEndExecuted((Direction)args);
          scroll.CanExecute = args => data.Length > 0;
          scroll.Execute = args => ScrollExecuted((Direction)args);
+
+         history = new ChangeHistory<Dictionary<int, HexElement>>(RevertChanges);
       }
 
       public bool IsSelected(Point point) {
@@ -228,6 +246,32 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          var rightEdge = Math.Max(selectionStart, selectionEnd);
 
          return leftEdge <= middle && middle <= rightEdge;
+      }
+
+      public void Edit(string input) {
+         if (input.Length == 0) return;
+         if (input.Length > 1) {
+            for (int i = 0; i < input.Length; i++) Edit(input.Substring(i, 1));
+            return;
+         }
+
+         // TODO working here
+      }
+
+      private void RefreshBackingData() {
+         currentView = new HexElement[Width, Height];
+         for (int y = 0; y < Height; y++) {
+            for (int x = 0; x < Width; x++) {
+               var index = y * Width + x + dataIndex;
+               if (index < 0 || index >= data.Length) {
+                  currentView[x, y] = HexElement.Undefined;
+               } else {
+                  currentView[x, y] = new HexElement(data[index], None.Instance);
+               }
+            }
+         }
+
+         NotifyCollectionChanged(ResetArgs);
       }
 
       private void UpdateScrollRange() {

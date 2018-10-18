@@ -26,6 +26,22 @@ namespace HavenSoft.Gen3Hex.View {
          context.DrawText(noneVisualCache[data], CellTextOffset);
       }
 
+      public void Visit(UnderEdit dataFormat, byte data) {
+         var brush = Solarized.Theme.Primary;
+         var typeface = new Typeface("Consolas");
+
+         var text = new FormattedText(
+            dataFormat.CurrentText,
+            CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            typeface,
+            FontSize,
+            brush,
+            1.0);
+
+         context.DrawText(text, CellTextOffset);
+      }
+
       private void VerifyNoneVisualCache() {
          if (noneVisualCache.Count != 0) return;
 

@@ -25,8 +25,8 @@ namespace HavenSoft.HexTests {
 
       [Fact]
       public void CallingUndoWhenStackIsEmptyDoesNothing() {
-         history.Undo.Execute(null);
-         history.Redo.Execute(null);
+         history.Undo.Execute();
+         history.Redo.Execute();
          Assert.Equal(0, callCount);
       }
 
@@ -40,7 +40,7 @@ namespace HavenSoft.HexTests {
       [Fact]
       public void UndoCallsRevertDelegate() {
          history.CurrentChange.Count();
-         history.Undo.Execute(null);
+         history.Undo.Execute();
          Assert.Equal(1, callCount);
          Assert.False(history.Undo.CanExecute(null));
          Assert.True(history.Redo.CanExecute(null));
@@ -49,7 +49,7 @@ namespace HavenSoft.HexTests {
       [Fact]
       public void UndoPassesInRecentChanges() {
          history.CurrentChange.Add(3);
-         history.Undo.Execute(null);
+         history.Undo.Execute();
 
          Assert.NotNull(recentChanges);
          Assert.Single(recentChanges);
@@ -59,8 +59,8 @@ namespace HavenSoft.HexTests {
       [Fact]
       public void RedoPassesInRecentChanges() {
          history.CurrentChange.Add(3);
-         history.Undo.Execute(null);
-         history.Redo.Execute(null);
+         history.Undo.Execute();
+         history.Redo.Execute();
 
          Assert.NotNull(recentChanges);
          Assert.Single(recentChanges);
@@ -70,7 +70,7 @@ namespace HavenSoft.HexTests {
       [Fact]
       public void CannotRedoAfterNewChange() {
          history.CurrentChange.Add(3);
-         history.Undo.Execute(null);
+         history.Undo.Execute();
          history.CurrentChange.Add(4);
 
          Assert.True(history.Undo.CanExecute(null));
@@ -90,10 +90,10 @@ namespace HavenSoft.HexTests {
          history.ChangeCompleted();
          history.CurrentChange.Add(4);
 
-         history.Undo.Execute(null);
+         history.Undo.Execute();
          Assert.Equal(4, recentChanges[0]);
 
-         history.Undo.Execute(null);
+         history.Undo.Execute();
          Assert.Equal(3, recentChanges[0]);
       }
 
@@ -105,7 +105,7 @@ namespace HavenSoft.HexTests {
          history.CurrentChange.Add(3);
          Assert.Equal(1, canExecuteChangeCalled);
 
-         history.Undo.Execute(null);
+         history.Undo.Execute();
          Assert.Equal(2, canExecuteChangeCalled);
       }
 
@@ -117,10 +117,10 @@ namespace HavenSoft.HexTests {
          history.CurrentChange.Add(3);
          Assert.Equal(0, canExecuteChangeCalled);
 
-         history.Undo.Execute(null);
+         history.Undo.Execute();
          Assert.Equal(1, canExecuteChangeCalled);
 
-         history.Redo.Execute(null);
+         history.Redo.Execute();
          Assert.Equal(2, canExecuteChangeCalled);
       }
 
@@ -132,7 +132,7 @@ namespace HavenSoft.HexTests {
          history.CurrentChange.Add(3);
          Assert.Equal(0, canExecuteChangeCalled);
 
-         history.Undo.Execute(null);
+         history.Undo.Execute();
          Assert.Equal(1, canExecuteChangeCalled);
 
          history.CurrentChange.Add(4); // adding another change clears the redo stack
