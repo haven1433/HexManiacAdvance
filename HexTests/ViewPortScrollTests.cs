@@ -61,6 +61,17 @@ namespace HavenSoft.HexTests {
       }
 
       [Fact]
+      public void ChangingWidthUpdatesScrollValueIfNeededOnScrollRegion() {
+         var scroll = new ScrollRegion { DataLength = 25, Width = 5, Height = 5 };
+
+         scroll.ScrollValue++;
+         scroll.Width--;
+
+         Assert.Equal(2, scroll.ScrollValue);
+         Assert.Equal(6, scroll.MaximumScroll);
+      }
+
+      [Fact]
       public void ChangingWidthUpdatesScrollValueIfNeeded() {
          // ScrollValue=0 is always the line that contains the first byte of the file.
          var loadedFile = new LoadedFile("test", new byte[25]);

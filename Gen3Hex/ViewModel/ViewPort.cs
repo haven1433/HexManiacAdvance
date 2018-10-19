@@ -18,9 +18,9 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       private readonly byte[] data;
 
-      private readonly ChangeHistory<Dictionary<int, HexElement>> history;
-
       private readonly ScrollRegion scroll;
+      private readonly Selection selection;
+      private readonly ChangeHistory<Dictionary<int, HexElement>> history;
 
       private HexElement[,] currentView;
 
@@ -35,15 +35,11 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       #endregion
 
+      #region Scrolling Properties
+
       public int Width {
          get => scroll.Width;
-         set {
-            var start = scroll.ViewPointToDataIndex(selectionStart);
-            var end = scroll.ViewPointToDataIndex(selectionEnd);
-            scroll.Width = value;
-            TryUpdate(ref selectionStart, scroll.DataIndexToViewPoint(start), nameof(SelectionStart));
-            TryUpdate(ref selectionEnd, scroll.DataIndexToViewPoint(end), nameof(SelectionEnd));
-         }
+         set => selection.ChangeWidth(value);
       }
 
       public int Height {
@@ -62,72 +58,32 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       public ICommand Scroll => scroll.Scroll;
 
-      #region SelectionStart
+      #endregion
 
-      private Point selectionStart;
+      #region Selection Properties
 
       public Point SelectionStart {
-         get => selectionStart;
-         set {
-            if (selectionStart.Equals(value)) return;
-            var originalSelectionStart = selectionStart;
-
-            scroll.ScrollToPoint(ref value);
-            if (selectionStart.X >= 0 && selectionStart.X < Width && selectionStart.Y >= 0 && selectionStart.Y < Height) {
-               var element = currentView[selectionStart.X, selectionStart.Y];
-               if (element.Format is UnderEdit underEdit) {
-                  currentView[selectionStart.X, selectionStart.Y] = new HexElement(element.Value, underEdit.OriginalFormat);
-                  NotifyCollectionChanged(ResetArgs);
-               }
-            }
-
-            if (TryUpdate(ref selectionStart, value)) {
-               SelectionEnd = selectionStart;
-            }
-         }
+         get => selection.SelectionStart;
+         set => selection.SelectionStart = value;
       }
-
-      #endregion
-
-      #region SelectionEnd
-
-      private Point selectionEnd;
 
       public Point SelectionEnd {
-         get => selectionEnd;
-         set {
-            scroll.ScrollToPoint(ref value);
+         get => selection.SelectionEnd;
+         set => selection.SelectionEnd = value;
+      }
 
-            if (TryUpdate(ref selectionEnd, value)) {
-               history.ChangeCompleted();
+      public ICommand MoveSelectionStart => selection.MoveSelectionStart;
+
+      public ICommand MoveSelectionEnd => selection.MoveSelectionEnd;
+
+      private void SelectionLeaving(object sender, Point location) {
+         if (location.X >= 0 && location.X < scroll.Width && location.Y >= 0 && location.Y < scroll.Height) {
+            var element = currentView[location.X, location.Y];
+            if (element.Format is UnderEdit underEdit) {
+               currentView[location.X, location.Y] = new HexElement(element.Value, underEdit.OriginalFormat);
+               NotifyCollectionChanged(ResetArgs);
             }
          }
-      }
-
-      #endregion
-
-      #region MoveSelectionStart
-
-      private readonly StubCommand moveSelectionStart = new StubCommand();
-
-      public ICommand MoveSelectionStart => moveSelectionStart;
-
-      private void MoveSelectionStartExecuted(Direction direction) {
-         var dif = ScrollRegion.DirectionToDif[direction];
-         SelectionStart = SelectionEnd + dif;
-      }
-
-      #endregion
-
-      #region MoveSelectionEnd
-
-      private readonly StubCommand moveSelectionEnd = new StubCommand();
-
-      public ICommand MoveSelectionEnd => moveSelectionEnd;
-
-      private void MoveSelectionEndExecuted(Direction direction) {
-         var dif = ScrollRegion.DirectionToDif[direction];
-         SelectionEnd += dif;
       }
 
       #endregion
@@ -175,30 +131,18 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public ViewPort(LoadedFile file) {
          name = file.Name;
          data = file.Contents;
+
          scroll = new ScrollRegion { DataLength = data.Length };
          scroll.PropertyChanged += ScrollPropertyChanged;
-         scroll.ScrollChanged += (sender, e) => ShiftSelectionFromScroll(e);
 
-         moveSelectionStart.CanExecute = args => true;
-         moveSelectionStart.Execute = args => MoveSelectionStartExecuted((Direction)args);
-         moveSelectionEnd.CanExecute = args => true;
-         moveSelectionEnd.Execute = args => MoveSelectionEndExecuted((Direction)args);
+         selection = new Selection(scroll);
+         selection.PropertyChanged += SelectionPropertyChanged;
+         selection.SelectionLeaving += SelectionLeaving;
 
          history = new ChangeHistory<Dictionary<int, HexElement>>(RevertChanges);
       }
 
-      public bool IsSelected(Point point) {
-         if (point.X < 0 || point.X >= Width) return false;
-
-         var selectionStart = scroll.ViewPointToDataIndex(SelectionStart);
-         var selectionEnd = scroll.ViewPointToDataIndex(SelectionEnd);
-         var middle = scroll.ViewPointToDataIndex(point);
-
-         var leftEdge = Math.Min(selectionStart, selectionEnd);
-         var rightEdge = Math.Max(selectionStart, selectionEnd);
-
-         return leftEdge <= middle && middle <= rightEdge;
-      }
+      public bool IsSelected(Point point) => selection.IsSelected(point);
 
       public void Edit(string input) {
          for (int i = 0; i < input.Length; i++) Edit(input[i]);
@@ -234,8 +178,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
                var memoryLocation = scroll.ViewPointToDataIndex(point);
                history.CurrentChange[memoryLocation] = new HexElement(element.Value, underEdit.OriginalFormat);
                data[memoryLocation] = byteValue;
-               var nextPoint = point + new Point(1, 0);
-               if (nextPoint.X == Width) nextPoint += new Point(-Width, 1);
+               var nextPoint = scroll.DataIndexToViewPoint(memoryLocation + 1);
                if (!scroll.ScrollToPoint(ref nextPoint)) {
                   // didn't scroll: update manually
                   if (currentView[point.X, point.Y].Format is UnderEdit) {
@@ -244,8 +187,11 @@ namespace HavenSoft.Gen3Hex.ViewModel {
                   NotifyCollectionChanged(ResetArgs);
                }
 
-               TryUpdate(ref this.selectionStart, nextPoint, nameof(SelectionStart));
-               TryUpdate(ref this.selectionEnd, nextPoint, nameof(SelectionEnd));
+               selection.PropertyChanged -= SelectionPropertyChanged; // unregister so that we don't fire history.ChangeCompleted
+               SelectionStart = nextPoint;
+               PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SelectionStart)));
+               PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SelectionEnd)));
+               selection.PropertyChanged += SelectionPropertyChanged;
             } else {
                NotifyCollectionChanged(ResetArgs);
             }
@@ -280,20 +226,12 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          }
       }
 
-      /// <summary>
-      /// When the scrolling changes, the selection has to move as well.
-      /// This is because the selection is in terms of the viewPort, not the overall data.
-      /// Nothing in this method notifies because any amount of scrolling means we already need a complete redraw.
-      /// </summary>
-      private void ShiftSelectionFromScroll(int distance) {
-         var start = scroll.ViewPointToDataIndex(selectionStart);
-         var end = scroll.ViewPointToDataIndex(selectionEnd);
+      private void SelectionPropertyChanged(object sender, PropertyChangedEventArgs e) {
+         if (e.PropertyName == nameof(SelectionEnd)) {
 
-         start -= distance;
-         end -= distance;
-
-         selectionStart = scroll.DataIndexToViewPoint(start);
-         selectionEnd = scroll.DataIndexToViewPoint(end);
+            history.ChangeCompleted();
+         }
+         PropertyChanged?.Invoke(this, e);
       }
 
       private void NotifyCollectionChanged(NotifyCollectionChangedEventArgs args) => CollectionChanged?.Invoke(this, args);

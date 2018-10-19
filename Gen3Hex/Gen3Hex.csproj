@@ -59,6 +59,7 @@
     <Compile Include="ViewModel\DataFormats.cs" />
     <Compile Include="ViewModel\HexElement.cs" />
     <Compile Include="ViewModel\ScrollRegion.cs" />
+    <Compile Include="ViewModel\Selection.cs" />
     <Compile Include="ViewModel\ViewPort.cs" />
     <Page Include="View\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
