@@ -13,7 +13,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
    /// <summary>
    /// A range of visible data that should be displayed.
    /// </summary>
-   public class ViewPort : INotifyPropertyChanged, INotifyCollectionChanged {
+   public class ViewPort : ViewModelCore, INotifyCollectionChanged {
       private static readonly NotifyCollectionChangedEventArgs ResetArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
 
       private readonly byte[] data;
@@ -122,8 +122,6 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          }
       }
 
-      public event PropertyChangedEventHandler PropertyChanged;
-
       public event NotifyCollectionChangedEventHandler CollectionChanged;
 
       public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
@@ -189,8 +187,8 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
                selection.PropertyChanged -= SelectionPropertyChanged; // unregister so that we don't fire history.ChangeCompleted
                SelectionStart = nextPoint;
-               PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SelectionStart)));
-               PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SelectionEnd)));
+               NotifyPropertyChanged(nameof(SelectionStart));
+               NotifyPropertyChanged(nameof(SelectionEnd));
                selection.PropertyChanged += SelectionPropertyChanged;
             } else {
                NotifyCollectionChanged(ResetArgs);
@@ -218,7 +216,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          if (e.PropertyName == nameof(scroll.DataIndex)) {
             RefreshBackingData();
          } else if (e.PropertyName != nameof(scroll.DataLength)) {
-            PropertyChanged?.Invoke(this, e);
+            NotifyPropertyChanged(e.PropertyName);
          }
 
          if (e.PropertyName == nameof(Width) || e.PropertyName == nameof(Height)) {
@@ -227,30 +225,10 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       }
 
       private void SelectionPropertyChanged(object sender, PropertyChangedEventArgs e) {
-         if (e.PropertyName == nameof(SelectionEnd)) {
-
-            history.ChangeCompleted();
-         }
-         PropertyChanged?.Invoke(this, e);
+         if (e.PropertyName == nameof(SelectionEnd)) history.ChangeCompleted();
+         NotifyPropertyChanged(e.PropertyName);
       }
 
       private void NotifyCollectionChanged(NotifyCollectionChangedEventArgs args) => CollectionChanged?.Invoke(this, args);
-
-      /// <summary>
-      /// Utility function to make writing property updates easier.
-      /// If the backing field's value does not match the new value, the backing field is updated and PropertyChanged gets called.
-      /// </summary>
-      /// <typeparam name="T">The type of the property being updated.</typeparam>
-      /// <param name="backingField">A reference to the backing field of the property being changed.</param>
-      /// <param name="newValue">The new value for the property.</param>
-      /// <param name="propertyName">The name of the property to notify on. If the property is the caller, the compiler will figure this parameter out automatically.</param>
-      /// <returns>false if the data did not need to be updated, true if it did.</returns>
-      private bool TryUpdate<T>(ref T backingField, T newValue, [CallerMemberName]string propertyName = null) where T : IEquatable<T> {
-         if (backingField == null && newValue == null) return false;
-         if (backingField != null && backingField.Equals(newValue)) return false;
-         backingField = newValue;
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-         return true;
-      }
    }
 }
