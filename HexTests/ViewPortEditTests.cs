@@ -240,5 +240,16 @@ namespace HavenSoft.HexTests {
 
          Assert.IsType(originalFormat.GetType(), viewPort[0, 0].Format);
       }
+
+      [Fact] void CanEnterDataAfterLastByte() {
+         var loadedFile = new LoadedFile("test", new byte[20]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         viewPort.SelectionStart = new Point(0, 4);
+         viewPort.Edit("00");
+
+         Assert.NotEqual(Undefined.Instance, viewPort[0, 4].Format);
+         Assert.Equal(new Point(1, 4), viewPort.SelectionStart);
+      }
    }
 }

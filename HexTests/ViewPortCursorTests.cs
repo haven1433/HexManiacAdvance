@@ -26,7 +26,7 @@ namespace HavenSoft.HexTests {
 
          viewPort.MoveSelectionStart.Execute(Direction.Up);
 
-         Assert.Equal(new Point(3, 0), viewPort.SelectionStart);
+         Assert.Equal(new Point(0, 0), viewPort.SelectionStart); // coerced to first byte
       }
 
       [Fact]
@@ -61,14 +61,15 @@ namespace HavenSoft.HexTests {
          viewPort.MoveSelectionStart.Execute(Direction.Up);
          viewPort.MoveSelectionStart.Execute(Direction.Up);
 
-         Assert.Equal(new Point(0, 0), viewPort.SelectionStart);
+         Assert.Equal(new Point(4, 0), viewPort.SelectionStart);
          Assert.Equal(0, viewPort.ScrollValue);
 
          viewPort.SelectionStart = new Point(4, 4);
-         for (int i = 0; i < 6; i++) viewPort.MoveSelectionStart.Execute(Direction.Down); // 6 moves, 5 moves work, last one should do nothing
+         viewPort.MoveSelectionStart.Execute(Direction.Down);
+         viewPort.MoveSelectionStart.Execute(Direction.Down);
 
          Assert.Equal(new Point(4, 4), viewPort.SelectionStart);
-         Assert.Equal(5, viewPort.ScrollValue);
+         Assert.Equal(1, viewPort.ScrollValue); // I can scroll lower using Scroll.Execute, but I cannot select lower.
       }
 
       [Fact]
@@ -163,6 +164,29 @@ namespace HavenSoft.HexTests {
          viewPort.Width += 1;
 
          Assert.Equal(new Point(0, 2), viewPort.SelectionEnd); // 13 cells selected
+      }
+
+      [Fact] void CannotSelectBeforeFirstByte() {
+         var loadedFile = new LoadedFile("test", new byte[30]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         // view the cell left of the first byte
+         viewPort.Scroll.Execute(Direction.Left);
+
+         // try to select the cell left of the first byte
+         viewPort.MoveSelectionStart.Execute(Direction.Left);
+
+         // assert that the selection is still on the first byte, not the first cell
+         Assert.Equal(new Point(1, 0), viewPort.SelectionStart);
+      }
+
+      [Fact] void CannotSelectFarAfterLastByte() {
+         var loadedFile = new LoadedFile("test", new byte[20]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         viewPort.SelectionStart = new Point(4, 4);
+
+         Assert.Equal(new Point(0, 4), viewPort.SelectionStart);
       }
    }
 }

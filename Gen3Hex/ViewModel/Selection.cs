@@ -18,10 +18,13 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public Point SelectionStart {
          get => selectionStart;
          set {
+            var index = scroll.ViewPointToDataIndex(value);
+            value = scroll.DataIndexToViewPoint(index.LimitToRange(0, scroll.DataLength));
+
             if (selectionStart.Equals(value)) return;
 
             if (!scroll.ScrollToPoint(ref value)) {
-               SelectionLeaving?.Invoke(this, selectionStart);
+               PreviewSelectionStartChanged?.Invoke(this, selectionStart);
             }
 
             if (TryUpdate(ref selectionStart, value)) {
@@ -43,7 +46,11 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       public ICommand MoveSelectionEnd => moveSelectionEnd;
 
-      public event EventHandler<Point> SelectionLeaving;
+      /// <summary>
+      /// The owner may have something special going on with the selected point.
+      /// Warn the owner before the selection changes, in case they need to do cleanup.
+      /// </summary>
+      public event EventHandler<Point> PreviewSelectionStartChanged;
 
       public Selection(ScrollRegion scrollRegion) {
          scroll = scrollRegion;

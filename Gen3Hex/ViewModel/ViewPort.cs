@@ -16,7 +16,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
    public class ViewPort : ViewModelCore, INotifyCollectionChanged {
       private static readonly NotifyCollectionChangedEventArgs ResetArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
 
-      private readonly byte[] data;
+      private byte[] data;
 
       private readonly ScrollRegion scroll;
       private readonly Selection selection;
@@ -76,7 +76,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       public ICommand MoveSelectionEnd => selection.MoveSelectionEnd;
 
-      private void SelectionLeaving(object sender, Point location) {
+      private void ClearActiveEditBeforeSelectionChanges(object sender, Point location) {
          if (location.X >= 0 && location.X < scroll.Width && location.Y >= 0 && location.Y < scroll.Height) {
             var element = currentView[location.X, location.Y];
             if (element.Format is UnderEdit underEdit) {
@@ -135,7 +135,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
          selection = new Selection(scroll);
          selection.PropertyChanged += SelectionPropertyChanged;
-         selection.SelectionLeaving += SelectionLeaving;
+         selection.PreviewSelectionStartChanged += ClearActiveEditBeforeSelectionChanges;
 
          history = new ChangeHistory<Dictionary<int, HexElement>>(RevertChanges);
       }
@@ -147,12 +147,37 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       }
 
       private void Edit(char input) {
+         var point = GetEditPoint();
+         var element = currentView[point.X, point.Y];
+
+         if (!ShouldAcceptInput(point, element, input)) return;
+
+         SelectionStart = point;
+
+         if (element.Format is UnderEdit) {
+            currentView[point.X, point.Y] = AppendEdit(point, input);
+
+            if (!TryCompleteEdit(point)) {
+               // only need to notify collection changes if we didn't complete an edit
+               NotifyCollectionChanged(ResetArgs);
+            }
+         } else {
+            currentView[point.X, point.Y] = CreateEditElement(point, input);
+            NotifyCollectionChanged(ResetArgs);
+         }
+      }
+
+      private Point GetEditPoint() {
          var selectionStart = scroll.ViewPointToDataIndex(SelectionStart);
          var selectionEnd = scroll.ViewPointToDataIndex(SelectionEnd);
          var leftEdge = Math.Min(selectionStart, selectionEnd);
          var point = scroll.DataIndexToViewPoint(Math.Min(selectionStart, selectionEnd));
          scroll.ScrollToPoint(ref point);
-         var element = currentView[point.X, point.Y];
+
+         return point;
+      }
+
+      private bool ShouldAcceptInput(Point point, HexElement element, char input) {
          var underEdit = element.Format as UnderEdit;
 
          if (!"0123456789ABCDEFabcdef".Contains(input)) {
@@ -160,40 +185,73 @@ namespace HavenSoft.Gen3Hex.ViewModel {
                currentView[point.X, point.Y] = new HexElement(element.Value, underEdit.OriginalFormat);
                NotifyCollectionChanged(ResetArgs);
             }
-            return;
+            return false;
          }
 
-         SelectionStart = point;
+         return true;
+      }
 
-         if (underEdit == null) {
-            currentView[point.X, point.Y] = new HexElement(element.Value, new UnderEdit(element.Format, input.ToString()));
+      private HexElement CreateEditElement(Point point, char input) {
+         var element = currentView[point.X, point.Y];
+         var newFormat = new UnderEdit(element.Format, input.ToString());
+         return new HexElement(element.Value, newFormat);
+      }
+
+      private HexElement AppendEdit(Point point, char input) {
+         var element = currentView[point.X, point.Y];
+         var underEdit = (UnderEdit)element.Format;
+         var newFormat = new UnderEdit(underEdit.OriginalFormat, underEdit.CurrentText + input);
+         return new HexElement(element.Value, newFormat);
+      }
+
+      private bool TryCompleteEdit(Point point) {
+         var element = currentView[point.X, point.Y];
+         var underEdit = (UnderEdit)element.Format;
+         if (underEdit.CurrentText.Length < 2) return false;
+
+         var byteValue = byte.Parse(underEdit.CurrentText, NumberStyles.HexNumber);
+         var memoryLocation = scroll.ViewPointToDataIndex(point);
+         history.CurrentChange[memoryLocation] = new HexElement(element.Value, underEdit.OriginalFormat);
+         ExpandData(memoryLocation);
+         data[memoryLocation] = byteValue;
+         currentView[point.X, point.Y] = new HexElement(byteValue, None.Instance);
+         var nextPoint = scroll.DataIndexToViewPoint(memoryLocation + 1);
+         if (!scroll.ScrollToPoint(ref nextPoint)) {
+            // only need to notify collection change if we didn't auto-scroll after changing cells
             NotifyCollectionChanged(ResetArgs);
-         } else {
-            currentView[point.X, point.Y] = new HexElement(element.Value, new UnderEdit(underEdit.OriginalFormat, underEdit.CurrentText + input));
-            underEdit = (UnderEdit)currentView[point.X, point.Y].Format;
-            if (underEdit.CurrentText.Length == 2) {
-               var byteValue = byte.Parse(underEdit.CurrentText, NumberStyles.HexNumber);
-               var memoryLocation = scroll.ViewPointToDataIndex(point);
-               history.CurrentChange[memoryLocation] = new HexElement(element.Value, underEdit.OriginalFormat);
-               data[memoryLocation] = byteValue;
-               var nextPoint = scroll.DataIndexToViewPoint(memoryLocation + 1);
-               if (!scroll.ScrollToPoint(ref nextPoint)) {
-                  // didn't scroll: update manually
-                  if (currentView[point.X, point.Y].Format is UnderEdit) {
-                     currentView[point.X, point.Y] = new HexElement(byteValue, underEdit.OriginalFormat);
-                  }
-                  NotifyCollectionChanged(ResetArgs);
-               }
-
-               selection.PropertyChanged -= SelectionPropertyChanged; // unregister so that we don't fire history.ChangeCompleted
-               SelectionStart = nextPoint;
-               NotifyPropertyChanged(nameof(SelectionStart));
-               NotifyPropertyChanged(nameof(SelectionEnd));
-               selection.PropertyChanged += SelectionPropertyChanged;
-            } else {
-               NotifyCollectionChanged(ResetArgs);
-            }
          }
+
+         UpdateSelectionWithoutNotify(nextPoint);
+         return true;
+      }
+
+      // Calling this method over and over
+      // (for example, holding a key on the keyboard at the end of the file)
+      // makes the garbage collector go crazy.
+      // However, running performance is still super smooth, so don't optimize yet.
+      private void ExpandData(int minimumIndex) {
+         if (data.Length > minimumIndex) return;
+
+         var newData = new byte[minimumIndex + 1];
+         Array.Copy(data, newData, data.Length);
+         data = newData;
+         scroll.DataLength = data.Length;
+      }
+
+      /// <summary>
+      /// When automatically updating the selection,
+      /// update it without notifying ourselves.
+      /// This lets us tell the difference between a manual cell change and an auto-cell change,
+      /// which is useful for deciding change history boundaries.
+      /// </summary>
+      private void UpdateSelectionWithoutNotify(Point nextPoint) {
+         selection.PropertyChanged -= SelectionPropertyChanged;
+
+         SelectionStart = nextPoint;
+         NotifyPropertyChanged(nameof(SelectionStart));
+         NotifyPropertyChanged(nameof(SelectionEnd));
+
+         selection.PropertyChanged += SelectionPropertyChanged;
       }
 
       private void RefreshBackingData() {
