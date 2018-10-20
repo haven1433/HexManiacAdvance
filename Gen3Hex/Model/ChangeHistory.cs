@@ -37,7 +37,7 @@ namespace HavenSoft.Gen3Hex.Model {
          }
       }
 
-      public ChangeHistory(Func<T,T> revertChange) {
+      public ChangeHistory(Func<T, T> revertChange) {
          revert = revertChange;
          undo = new StubCommand {
             Execute = arg => UndoExecuted(),

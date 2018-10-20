@@ -166,7 +166,8 @@ namespace HavenSoft.HexTests {
          Assert.Equal(new Point(0, 2), viewPort.SelectionEnd); // 13 cells selected
       }
 
-      [Fact] void CannotSelectBeforeFirstByte() {
+      [Fact]
+      void CannotSelectBeforeFirstByte() {
          var loadedFile = new LoadedFile("test", new byte[30]);
          var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
 
@@ -180,7 +181,8 @@ namespace HavenSoft.HexTests {
          Assert.Equal(new Point(1, 0), viewPort.SelectionStart);
       }
 
-      [Fact] void CannotSelectFarAfterLastByte() {
+      [Fact]
+      void CannotSelectFarAfterLastByte() {
          var loadedFile = new LoadedFile("test", new byte[20]);
          var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
 

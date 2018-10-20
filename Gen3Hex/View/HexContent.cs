@@ -96,7 +96,7 @@ namespace HavenSoft.Gen3Hex.View {
          base.OnMouseDown(e);
          if (e.LeftButton != MouseButtonState.Pressed) return;
          Focus();
-         
+
          ViewPort.SelectionStart = ControlCoordinatesToModelCoordinates(e);
       }
 
