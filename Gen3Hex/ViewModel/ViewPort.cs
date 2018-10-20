@@ -16,12 +16,11 @@ namespace HavenSoft.Gen3Hex.ViewModel {
    public class ViewPort : ViewModelCore, INotifyCollectionChanged {
       private static readonly NotifyCollectionChangedEventArgs ResetArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
 
-      private byte[] data;
-
       private readonly ScrollRegion scroll;
       private readonly Selection selection;
       private readonly ChangeHistory<Dictionary<int, HexElement>> history;
 
+      private byte[] data;
       private HexElement[,] currentView;
 
       #region Name
