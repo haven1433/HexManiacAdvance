@@ -37,7 +37,6 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          get => selectionEnd;
          set {
             scroll.ScrollToPoint(ref value);
-
             TryUpdate(ref selectionEnd, value);
          }
       }
