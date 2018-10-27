@@ -45,6 +45,9 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="..\SharedAssemblyInfo.cs" />
     <Compile Include="generatedCode\StubCommand.cs" />
+    <Compile Include="generatedCode\StubDisposable.cs" />
+    <Compile Include="ICommandExtensions.cs" />
+    <Compile Include="NumericExtensions.cs" />
     <Compile Include="Solarized.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -52,11 +55,15 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>$(SolutionDir)packages\HavenSoft.AutoImplement.1.0.0\AutoImplement "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" ICommand
+    <PreBuildEvent>
 if not exist $(ProjectDir)generatedCode mkdir $(ProjectDir)generatedCode
+
+$(SolutionDir)packages\HavenSoft.AutoImplement.1.0.0\AutoImplement "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" ICommand
 move /Y StubCommand.cs $(ProjectDir)generatedCode
-del CompositeCommand.cs
-del CommandDecorator.cs
-</PreBuildEvent>
+
+$(SolutionDir)packages\HavenSoft.AutoImplement.1.0.0\AutoImplement "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" IDisposable
+move /Y StubDisposable.cs $(ProjectDir)generatedCode
+
+del *.cs</PreBuildEvent>
   </PropertyGroup>
 </Project>

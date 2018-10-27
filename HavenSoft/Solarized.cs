@@ -21,19 +21,19 @@ namespace Solarized {
          Base02 = Color(0x073642),
          Base01 = Color(0x586e75),
          Base00 = Color(0x657b83),
-         Base0  = Color(0x839496),
-         Base1  = Color(0x93a1a1),
-         Base2  = Color(0xeee8d5),
-         Base3  = Color(0xfdf6e3),
+         Base0 = Color(0x839496),
+         Base1 = Color(0x93a1a1),
+         Base2 = Color(0xeee8d5),
+         Base3 = Color(0xfdf6e3),
 
-         Yellow  = Color(0x5b8900),
-         Orange  = Color(0xcb4b16),
-         Red     = Color(0xdc322f),
+         Yellow = Color(0x5b8900),
+         Orange = Color(0xcb4b16),
+         Red = Color(0xdc322f),
          Magenta = Color(0xd33682),
-         Violet  = Color(0x6c71c4),
-         Blue    = Color(0x268bd2),
-         Cyan    = Color(0x2aa198),
-         Green   = Color(0x859900);
+         Violet = Color(0x6c71c4),
+         Blue = Color(0x268bd2),
+         Cyan = Color(0x2aa198),
+         Green = Color(0x859900);
    }
 
    /// <summary>
@@ -47,14 +47,14 @@ namespace Solarized {
       }
 
       public static readonly Brush
-         Yellow  = Brush(Colors.Yellow),
-         Orange  = Brush(Colors.Orange),
-         Red     = Brush(Colors.Red),
+         Yellow = Brush(Colors.Yellow),
+         Orange = Brush(Colors.Orange),
+         Red = Brush(Colors.Red),
          Magenta = Brush(Colors.Magenta),
-         Violet  = Brush(Colors.Violet),
-         Blue    = Brush(Colors.Blue),
-         Cyan    = Brush(Colors.Cyan),
-         Green   = Brush(Colors.Green);
+         Violet = Brush(Colors.Violet),
+         Blue = Brush(Colors.Blue),
+         Cyan = Brush(Colors.Cyan),
+         Green = Brush(Colors.Green);
    }
 
    /// <summary>
@@ -76,10 +76,10 @@ namespace Solarized {
       // theme could change from dark to light and everyone would
       // just update automatically. However, freezing the brush
       // gives us significant performance gains.
-      public static SolidColorBrush Emphasis   { get; private set; }
-      public static SolidColorBrush Primary    { get; private set; }
-      public static SolidColorBrush Secondary  { get; private set; }
-      public static SolidColorBrush Backlight  { get; private set; }
+      public static SolidColorBrush Emphasis { get; private set; }
+      public static SolidColorBrush Primary { get; private set; }
+      public static SolidColorBrush Secondary { get; private set; }
+      public static SolidColorBrush Backlight { get; private set; }
       public static SolidColorBrush Background { get; private set; }
 
       #endregion
@@ -97,10 +97,10 @@ namespace Solarized {
          set {
             Color current(Color a, Color b) => variant == Variant.Light ? a : b;
             variant = value;
-            Emphasis   = Brush(current(Base01, Base1));
-            Primary    = Brush(current(Base00, Base0));
-            Secondary  = Brush(current(Base1, Base01));
-            Backlight  = Brush(current(Base2, Base02));
+            Emphasis = Brush(current(Base01, Base1));
+            Primary = Brush(current(Base00, Base0));
+            Secondary = Brush(current(Base1, Base01));
+            Backlight = Brush(current(Base2, Base02));
             Background = Brush(current(Base3, Base03));
             VariantChanged?.Invoke(null, EventArgs.Empty);
          }
@@ -128,20 +128,20 @@ namespace Solarized {
       public ThemeExtension(ThemeProperties target) => Target = target;
       public override object ProvideValue(IServiceProvider serviceProvider) {
          switch (Target) {
-            case ThemeProperties.Emphasis:   return Theme.Emphasis;
-            case ThemeProperties.Primary:    return Theme.Primary;
-            case ThemeProperties.Secondary:  return Theme.Secondary;
-            case ThemeProperties.Backlight:  return Theme.Backlight;
+            case ThemeProperties.Emphasis: return Theme.Emphasis;
+            case ThemeProperties.Primary: return Theme.Primary;
+            case ThemeProperties.Secondary: return Theme.Secondary;
+            case ThemeProperties.Backlight: return Theme.Backlight;
             case ThemeProperties.Background: return Theme.Background;
 
-            case ThemeProperties.Yellow:  return Brushes.Yellow;
-            case ThemeProperties.Orange:  return Brushes.Orange;
-            case ThemeProperties.Red:     return Brushes.Red;
+            case ThemeProperties.Yellow: return Brushes.Yellow;
+            case ThemeProperties.Orange: return Brushes.Orange;
+            case ThemeProperties.Red: return Brushes.Red;
             case ThemeProperties.Magenta: return Brushes.Magenta;
-            case ThemeProperties.Violet:  return Brushes.Violet;
-            case ThemeProperties.Blue:    return Brushes.Blue;
-            case ThemeProperties.Cyan:    return Brushes.Cyan;
-            case ThemeProperties.Green:   return Brushes.Green;
+            case ThemeProperties.Violet: return Brushes.Violet;
+            case ThemeProperties.Blue: return Brushes.Blue;
+            case ThemeProperties.Cyan: return Brushes.Cyan;
+            case ThemeProperties.Green: return Brushes.Green;
          }
          throw new NotImplementedException();
       }

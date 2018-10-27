@@ -11,6 +11,7 @@ namespace HavenSoft.ViewModel.DataFormats {
    public interface IDataFormatVisitor {
       void Visit(Undefined dataFormat, byte data);
       void Visit(None dataFormat, byte data);
+      void Visit(UnderEdit dataFormat, byte data);
    }
 
    /// <summary>
@@ -35,5 +36,29 @@ namespace HavenSoft.ViewModel.DataFormats {
 
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
       public bool Equals(IDataFormat format) => format is None;
+   }
+
+   public class UnderEdit : IDataFormat {
+      public IDataFormat OriginalFormat { get; }
+      public string CurrentText { get; }
+      public UnderEdit(IDataFormat original, string text) => (OriginalFormat, CurrentText) = (original, text);
+
+      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
+      public bool Equals(IDataFormat format) {
+         var that = format as UnderEdit;
+         if (that == null) return false;
+
+         if (!OriginalFormat.Equals(that.OriginalFormat)) return false;
+         return CurrentText == that.CurrentText;
+      }
+   }
+   public static class UnderEditExtensions {
+      public static UnderEdit Edit(this IDataFormat format, string text) {
+         if (format is UnderEdit underEdit) {
+            return new UnderEdit(underEdit.OriginalFormat, underEdit.CurrentText + text);
+         }
+
+         return new UnderEdit(format, text);
+      }
    }
 }

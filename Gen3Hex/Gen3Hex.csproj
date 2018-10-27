@@ -39,6 +39,7 @@
     <Reference Include="System.Data" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Delegation, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" />
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
@@ -51,11 +52,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Model\ChangeHistory.cs" />
     <Compile Include="Model\Enums.cs" />
     <Compile Include="Model\LoadedFile.cs" />
     <Compile Include="Model\Point.cs" />
     <Compile Include="ViewModel\DataFormats.cs" />
     <Compile Include="ViewModel\HexElement.cs" />
+    <Compile Include="ViewModel\ScrollRegion.cs" />
+    <Compile Include="ViewModel\Selection.cs" />
+    <Compile Include="ViewModel\ViewModelCore.cs" />
     <Compile Include="ViewModel\ViewPort.cs" />
     <Page Include="View\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
