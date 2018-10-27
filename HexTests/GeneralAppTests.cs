@@ -99,7 +99,7 @@ namespace HavenSoft.HexTests {
             },
          });
 
-         editor.Save.Execute();
+         editor.SaveAs.Execute();
          Assert.Equal(10, executeCount);
       }
 

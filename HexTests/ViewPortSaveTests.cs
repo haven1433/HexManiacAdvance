@@ -11,7 +11,7 @@ namespace HavenSoft.HexTests {
       public ViewPortSaveTests() {
          var fileSystem = new StubFileSystem {
             RequestNewName = (previousName, extensions) => $"file.txt",
-            TrySave = loadedFile => { name = loadedFile.Name; return true; }
+            TrySavePrompt = loadedFile => { name = loadedFile.Name; return true; }
          };
       }
 
@@ -40,7 +40,7 @@ namespace HavenSoft.HexTests {
       }
 
       [Fact]
-      public void SaveDoesNotCallFileSystemTrySaveIfNoChanges() {
+      public void SaveDoesNotCallFileSystemTrySavePromptIfNoChanges() {
          var viewPort1 = new ViewPort();
          var viewPort2 = new ViewPort(new LoadedFile("input1.txt", new byte[10]));
          var viewPort3 = new ViewPort(new LoadedFile("input2.txt", new byte[10]));
@@ -64,7 +64,7 @@ namespace HavenSoft.HexTests {
          bool triedToSave = false;
          var viewPort = new ViewPort();
          viewPort.Edit("ab cd ef");
-         fileSystem.TrySave = loadedFile => { triedToSave = true; return true; };
+         fileSystem.TrySavePrompt = loadedFile => { triedToSave = true; return true; };
 
          viewPort.Close.Execute(fileSystem);
 
@@ -75,7 +75,7 @@ namespace HavenSoft.HexTests {
       public void NonEditedFileDoesNotPromptForSaveOnExit() {
          bool triedToSave = false;
          var viewPort = new ViewPort(new LoadedFile("input.txt", new byte[10]));
-         fileSystem.TrySave = loadedFile => { triedToSave = true; return true; };
+         fileSystem.TrySavePrompt = loadedFile => { triedToSave = true; return true; };
 
          Assert.False(viewPort.Save.CanExecute(fileSystem));
          viewPort.Close.Execute(fileSystem);
@@ -99,7 +99,7 @@ namespace HavenSoft.HexTests {
          int closed = 0;
          var viewPort = new ViewPort();
          viewPort.Closed += (sender, e) => closed++;
-         fileSystem.TrySave = loadedFile => true;
+         fileSystem.TrySavePrompt = loadedFile => true;
 
          viewPort.Edit("12");
          viewPort.Close.Execute(fileSystem);
@@ -112,7 +112,7 @@ namespace HavenSoft.HexTests {
          int closed = 0;
          var viewPort = new ViewPort();
          viewPort.Closed += (sender, e) => closed++;
-         fileSystem.TrySave = loadedFile => false;
+         fileSystem.TrySavePrompt = loadedFile => false;
 
          viewPort.Edit("12");
          viewPort.Close.Execute(fileSystem);
@@ -125,7 +125,7 @@ namespace HavenSoft.HexTests {
          int closed = 0;
          var viewPort = new ViewPort();
          viewPort.Closed += (sender, e) => closed++;
-         fileSystem.TrySave = loadedFile => null;
+         fileSystem.TrySavePrompt = loadedFile => null;
 
          viewPort.Edit("12");
          viewPort.Close.Execute(fileSystem);
@@ -137,7 +137,7 @@ namespace HavenSoft.HexTests {
       public void CallingSaveMultipleTimesOnlySavesOnce() {
          int count = 0;
          var viewPort = new ViewPort();
-         fileSystem.TrySave = loadedFile => { count++; return true; };
+         fileSystem.Save = loadedFile => { count++; return true; };
 
          viewPort.Edit("00 01 02");
          viewPort.Save.Execute(fileSystem);

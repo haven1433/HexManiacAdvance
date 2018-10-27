@@ -13,15 +13,32 @@
       /// A set of extensions, such as 'txt', 'gba', or 'png'. Should not start with a dot.
       /// The set may be empty, but not null.
       /// </param>
+      /// <returns>
+      /// The new name if provided, or null if the operation was canceled by the user.
+      /// </returns>
       string RequestNewName(string currentName, params string[] extensionOptions);
 
+      /// <summary>
+      /// Saves the file without prompting the user for permission.
+      /// </summary>
       /// <returns>
-      /// true if the file was written successfully, false if there was any error.
-      /// null if the operation was canceled.
+      /// true if it was possible to save, false if there was an error.
+      /// In the case of false, the file system would have already dealt with the error.
+      /// The return value is just so the program can know if it was written or not.
+      /// </returns>
+      bool Save(LoadedFile file);
+
+      /// <summary>
+      /// should prompt the user if they want to save and then save
+      /// </summary>
+      /// <returns>
+      /// true if the user wanted to save the file and it was written successfully
+      /// false if the user decided not to save the file
+      /// null if there was any error or if the operation was canceled by the user.
       /// the FileSystem object will handle the error and potentially notify the user,
       /// the result is only so the program can know if it was written or not.
       /// </returns>
-      bool? TrySave(LoadedFile file);
+      bool? TrySavePrompt(LoadedFile file);
 
    }
 }
