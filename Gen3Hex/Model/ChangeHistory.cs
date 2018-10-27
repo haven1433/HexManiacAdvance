@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Windows.Input;
 
 namespace HavenSoft.Gen3Hex.Model {
@@ -18,12 +19,15 @@ namespace HavenSoft.Gen3Hex.Model {
          undoStack = new Stack<T>(),
          redoStack = new Stack<T>();
 
+      private bool revertInProgress;
       private T currentChange;
 
       public ICommand Undo => undo;
       public ICommand Redo => redo;
       public T CurrentChange {
          get {
+            VerifyRevertNotInProgress();
+
             if (redoStack.Count > 0) {
                redoStack.Clear();
                redo.CanExecuteChanged.Invoke(redo, EventArgs.Empty);
@@ -33,6 +37,7 @@ namespace HavenSoft.Gen3Hex.Model {
                currentChange = new T();
                if (undoStack.Count == 0) undo.CanExecuteChanged.Invoke(undo, EventArgs.Empty);
             }
+
             return currentChange;
          }
       }
@@ -51,6 +56,7 @@ namespace HavenSoft.Gen3Hex.Model {
 
       public void ChangeCompleted() {
          if (currentChange == null) return;
+         VerifyRevertNotInProgress();
          undoStack.Push(currentChange);
          currentChange = null;
       }
@@ -58,24 +64,38 @@ namespace HavenSoft.Gen3Hex.Model {
       private void UndoExecuted() {
          ChangeCompleted();
          if (undoStack.Count == 0) return;
+         revertInProgress = true;
 
-         var originalChange = undoStack.Pop();
-         if (undoStack.Count == 0) undo.CanExecuteChanged.Invoke(undoStack, EventArgs.Empty);
-         var reverseChange = revert(originalChange);
-         if (currentChange != null) throw new InvalidOperationException("Cannot create a change during an undo.");
-         redoStack.Push(reverseChange);
-         if (redoStack.Count == 1) redo.CanExecuteChanged.Invoke(redo, EventArgs.Empty);
+         using (CreateRevertScope()) {
+            var originalChange = undoStack.Pop();
+            if (undoStack.Count == 0) undo.CanExecuteChanged.Invoke(undoStack, EventArgs.Empty);
+            var reverseChange = revert(originalChange);
+            redoStack.Push(reverseChange);
+            if (redoStack.Count == 1) redo.CanExecuteChanged.Invoke(redo, EventArgs.Empty);
+         }
       }
 
       private void RedoExecuted() {
          if (redoStack.Count == 0) return;
 
-         var reverseChange = redoStack.Pop();
-         if (redoStack.Count == 0) redo.CanExecuteChanged.Invoke(redoStack, EventArgs.Empty);
-         var originalChange = revert(reverseChange);
-         if (currentChange != null) throw new InvalidOperationException("Cannot create a change during an redo.");
-         undoStack.Push(originalChange);
-         if (undoStack.Count == 1) undo.CanExecuteChanged.Invoke(undo, EventArgs.Empty);
+         using (CreateRevertScope()) {
+            var reverseChange = redoStack.Pop();
+            if (redoStack.Count == 0) redo.CanExecuteChanged.Invoke(redoStack, EventArgs.Empty);
+            var originalChange = revert(reverseChange);
+            undoStack.Push(originalChange);
+            if (undoStack.Count == 1) undo.CanExecuteChanged.Invoke(undo, EventArgs.Empty);
+         }
+      }
+
+      private void VerifyRevertNotInProgress([CallerMemberName]string caller = null) {
+         if (!revertInProgress) return;
+         throw new InvalidOperationException($"Cannot execute member {caller} while a revert is in progress.");
+      }
+
+      private IDisposable CreateRevertScope() {
+         revertInProgress = true;
+         var stub = new StubDisposable { Dispose = () => revertInProgress = false };
+         return stub;
       }
    }
 }

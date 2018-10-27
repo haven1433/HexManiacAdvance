@@ -1,4 +1,5 @@
 ﻿using HavenSoft.Gen3Hex.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -137,6 +138,29 @@ namespace HavenSoft.HexTests {
 
          history.CurrentChange.Add(4); // adding another change clears the redo stack
          Assert.Equal(2, canExecuteChangeCalled);
+      }
+
+      [Fact]
+      public void ThrowExceptionIfChangeStartsDuringUndo() {
+         // setup a revert call that tries to access a change during revert
+         ChangeHistory<object> history = null;
+         history = new ChangeHistory<object>(token => history.CurrentChange.ToString());
+
+         history.CurrentChange.ToString(); // create current change
+         Assert.Throws<InvalidOperationException>(() => history.Undo.Execute());
+      }
+
+      [Fact]
+      public void ThrowExceptionIfChangeCompletedDuringUndo() {
+         ChangeHistory<object> history = null;
+         history = new ChangeHistory<object>(token => {
+            history.CurrentChange.ToString();
+            history.ChangeCompleted();
+            return new object();
+         });
+
+         history.CurrentChange.ToString(); // create current change
+         Assert.Throws<InvalidOperationException>(() => history.Undo.Execute());
       }
    }
 }

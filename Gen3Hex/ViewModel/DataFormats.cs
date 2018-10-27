@@ -52,5 +52,13 @@ namespace HavenSoft.ViewModel.DataFormats {
          return CurrentText == that.CurrentText;
       }
    }
-   public static class UndeEditExtensions { public static UnderEdit Edit(this IDataFormat format, string text) => new UnderEdit(format, text); }
+   public static class UnderEditExtensions {
+      public static UnderEdit Edit(this IDataFormat format, string text) {
+         if (format is UnderEdit underEdit) {
+            return new UnderEdit(underEdit.OriginalFormat, underEdit.CurrentText + text);
+         }
+
+         return new UnderEdit(format, text);
+      }
+   }
 }

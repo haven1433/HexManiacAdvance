@@ -86,7 +86,6 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
          TryUpdate(ref selectionStart, scroll.DataIndexToViewPoint(start));
          TryUpdate(ref selectionEnd, scroll.DataIndexToViewPoint(end));
-
       }
 
       /// <summary>

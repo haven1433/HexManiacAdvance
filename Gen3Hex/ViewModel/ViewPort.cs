@@ -153,15 +153,10 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
          SelectionStart = point;
 
-         if (element.Format is UnderEdit) {
-            currentView[point.X, point.Y] = AppendEdit(point, input);
-
-            if (!TryCompleteEdit(point)) {
-               // only need to notify collection changes if we didn't complete an edit
-               NotifyCollectionChanged(ResetArgs);
-            }
-         } else {
-            currentView[point.X, point.Y] = CreateEditElement(point, input);
+         var newFormat = element.Format.Edit(input.ToString());
+         currentView[point.X, point.Y] = new HexElement(element.Value, newFormat);
+         if (!TryCompleteEdit(point)) {
+            // only need to notify collection changes if we didn't complete an edit
             NotifyCollectionChanged(ResetArgs);
          }
       }
@@ -188,19 +183,6 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          }
 
          return true;
-      }
-
-      private HexElement CreateEditElement(Point point, char input) {
-         var element = currentView[point.X, point.Y];
-         var newFormat = new UnderEdit(element.Format, input.ToString());
-         return new HexElement(element.Value, newFormat);
-      }
-
-      private HexElement AppendEdit(Point point, char input) {
-         var element = currentView[point.X, point.Y];
-         var underEdit = (UnderEdit)element.Format;
-         var newFormat = new UnderEdit(underEdit.OriginalFormat, underEdit.CurrentText + input);
-         return new HexElement(element.Value, newFormat);
       }
 
       private bool TryCompleteEdit(Point point) {
