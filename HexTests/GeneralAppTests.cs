@@ -14,7 +14,7 @@ namespace HavenSoft.HexTests {
 
       [Fact]
       public void ApplicationOpensWithNoTabs() {
-         Assert.Empty(editor);
+         Assert.Equal(0, editor.Count);
          Assert.Equal(-1, editor.SelectedIndex);
       }
 
@@ -101,6 +101,20 @@ namespace HavenSoft.HexTests {
 
          editor.Save.Execute();
          Assert.Equal(10, executeCount);
+      }
+
+      [Fact]
+      public void SaveAllSavesAllDocumentsThatNeedSaving() {
+         int executeCount = 0;
+
+         var save = new StubCommand { CanExecute = arg => true, Execute = arg => executeCount++ };
+         var noSave = new StubCommand { CanExecute = arg => false, Execute = arg => executeCount++ };
+         editor.Add(new StubTabContent { Save = save });
+         editor.Add(new StubTabContent { Save = noSave });
+         editor.Add(new StubTabContent { Save = save });
+
+         editor.SaveAll.Execute();
+         Assert.Equal(2, executeCount);
       }
    }
 }
