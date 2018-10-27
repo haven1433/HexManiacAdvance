@@ -13,7 +13,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
    /// <summary>
    /// A range of visible data that should be displayed.
    /// </summary>
-   public class ViewPort : ViewModelCore, INotifyCollectionChanged {
+   public class ViewPort : ViewModelCore, ITabContent, INotifyCollectionChanged {
       private static readonly NotifyCollectionChangedEventArgs ResetArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
 
       private readonly ScrollRegion scroll;
@@ -109,6 +109,16 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          if (changes.Count > 0) NotifyCollectionChanged(ResetArgs);
          return opposite;
       }
+
+      #endregion
+
+      #region Saving
+
+      public ICommand Save { get; }
+      public ICommand SaveAs { get; }
+      public ICommand Close { get; }
+
+      public event EventHandler Closed;
 
       #endregion
 

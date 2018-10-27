@@ -9,7 +9,7 @@ namespace HavenSoft.HexTests {
       private readonly EditorViewModel editor;
 
       public GeneralAppTests() {
-         editor = new EditorViewModel(fileSystem);
+         editor = new EditorViewModel(new StubFileSystem());
       }
 
       [Fact]
@@ -116,5 +116,7 @@ namespace HavenSoft.HexTests {
          editor.SaveAll.Execute();
          Assert.Equal(2, executeCount);
       }
+
+      // TODO write test for closing current tab
    }
 }

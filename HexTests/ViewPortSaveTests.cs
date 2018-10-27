@@ -5,13 +5,13 @@ using Xunit;
 namespace HavenSoft.HexTests {
    public class ViewPortSaveTests {
 
-      private readonly string name = string.Empty;
       private readonly StubFileSystem fileSystem;
+      private string name = string.Empty;
 
       public ViewPortSaveTests() {
          var fileSystem = new StubFileSystem {
-            RequestNewName = extension => $"file.txt",
-            WriteFile = (LoadedFile loadedFile) => name = loadedFile.Name,
+            RequestNewName = (previousName, extensions) => $"file.txt",
+            TrySave = loadedFile => { name = loadedFile.Name; return true; }
          };
       }
 
@@ -40,7 +40,7 @@ namespace HavenSoft.HexTests {
       }
 
       [Fact]
-      public void SaveDoesNotWriteFileIfNoChanges() {
+      public void SaveDoesNotCallFileSystemTrySaveIfNoChanges() {
          var viewPort1 = new ViewPort();
          var viewPort2 = new ViewPort(new LoadedFile("input1.txt", new byte[10]));
          var viewPort3 = new ViewPort(new LoadedFile("input2.txt", new byte[10]));
@@ -56,7 +56,7 @@ namespace HavenSoft.HexTests {
          Assert.False(viewPort3.Save.CanExecute(fileSystem));
          viewPort3.Save.Execute(fileSystem);
 
-         Assert.Equal(string.Empty, name); // none should have called WriteFile
+         Assert.Equal(string.Empty, name); // none should have called TrySave
       }
 
       [Fact]
@@ -137,7 +137,7 @@ namespace HavenSoft.HexTests {
       public void CallingSaveMultipleTimesOnlySavesOnce() {
          int count = 0;
          var viewPort = new ViewPort();
-         fileSystem.WriteFile = loadedFile => count++;
+         fileSystem.TrySave = loadedFile => { count++; return true; };
 
          viewPort.Edit("00 01 02");
          viewPort.Save.Execute(fileSystem);
@@ -150,7 +150,7 @@ namespace HavenSoft.HexTests {
       public void SaveCanExecuteChangesOnEdit() {
          int canExecuteChangedCount = 0;
          var viewPort = new ViewPort(new LoadedFile("input.txt", new byte[20]));
-         viewPort.Save.CanExecuteChanged += canExecuteChangedCount++;
+         viewPort.Save.CanExecuteChanged += (sender, e) => canExecuteChangedCount++;
 
          viewPort.Edit("aa bb cc");
 
@@ -161,7 +161,7 @@ namespace HavenSoft.HexTests {
       public void SaveCanExecuteChangesOnUndo() {
          int canExecuteChangedCount = 0;
          var viewPort = new ViewPort(new LoadedFile("input.txt", new byte[20]));
-         viewPort.Save.CanExecuteChanged += canExecuteChangedCount++;
+         viewPort.Save.CanExecuteChanged += (sender, e) => canExecuteChangedCount++;
 
          viewPort.Edit("aa bb cc");
          viewPort.Undo.Execute();
