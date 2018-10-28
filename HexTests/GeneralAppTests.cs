@@ -1,5 +1,6 @@
 ﻿using HavenSoft.Gen3Hex.Model;
 using HavenSoft.Gen3Hex.ViewModel;
+using System;
 using System.Linq;
 using System.Windows.Input;
 using Xunit;
@@ -7,9 +8,11 @@ using Xunit;
 namespace HavenSoft.HexTests {
    public class GeneralAppTests {
       private readonly EditorViewModel editor;
+      private readonly StubFileSystem fileSystem;
 
       public GeneralAppTests() {
-         editor = new EditorViewModel(new StubFileSystem());
+         fileSystem = new StubFileSystem();
+         editor = new EditorViewModel(fileSystem);
       }
 
       [Fact]
@@ -117,6 +120,60 @@ namespace HavenSoft.HexTests {
          Assert.Equal(2, executeCount);
       }
 
-      // TODO write test for closing current tab
+      [Fact]
+      public void ClosingCurrentTabSelectsAnotherTab() {
+         editor.Add(CreateClosableTab());
+         editor.Add(CreateClosableTab());
+         editor.Add(CreateClosableTab());
+
+         editor.Close.Execute();
+
+         Assert.Equal(1, editor.SelectedIndex);
+      }
+
+      [Fact]
+      public void ClosingAllTabsWorks() {
+         editor.Add(CreateClosableTab());
+         editor.Add(CreateClosableTab());
+         editor.Add(CreateClosableTab());
+
+         editor.CloseAll.Execute();
+
+         Assert.Equal(-1, editor.SelectedIndex);
+         Assert.Equal(0, editor.Count);
+      }
+
+      [Fact]
+      public void NewAddsATab() {
+         editor.New.Execute();
+
+         Assert.Equal(1, editor.Count);
+      }
+
+      [Fact]
+      public void OpenCanAddTab() {
+         fileSystem.OpenFile = args => new LoadedFile("chosenFile.txt", new byte[20]);
+
+         editor.Open.Execute();
+
+         Assert.Equal(1, editor.Count);
+      }
+
+      [Fact]
+      public void OpenDoesNotAddTabIfUserCancels() {
+         fileSystem.OpenFile = args => null;
+
+         editor.Open.Execute();
+
+         Assert.Equal(0, editor.Count);
+      }
+
+      private StubTabContent CreateClosableTab() {
+         var tab = new StubTabContent();
+         var close = new StubCommand { CanExecute = arg => true };
+         close.Execute = arg => tab.Closed.Invoke(tab, EventArgs.Empty);
+         tab.Close = close;
+         return tab;
+      }
    }
 }

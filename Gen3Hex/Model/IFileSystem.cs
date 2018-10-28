@@ -19,6 +19,20 @@
       string RequestNewName(string currentName, params string[] extensionOptions);
 
       /// <summary>
+      /// Have the filesystem ask the user for an existing file.
+      /// If no extensionOptions are provided, the user may specify any existing file.
+      /// </summary>
+      /// <param name="extensionOptions">
+      /// A set of extensions, such as 'txt', 'gba', or 'png'. Should not start with a dot.
+      /// The set may be empty, but not null.
+      /// </param>
+      /// <returns>
+      /// If the user chooses a file, that file is loaded and returned.
+      /// If the user cancels or selects an unreadable file, returns null.
+      /// </returns>
+      LoadedFile OpenFile(params string[] extensionOptions);
+
+      /// <summary>
       /// Saves the file without prompting the user for permission.
       /// </summary>
       /// <returns>
@@ -39,6 +53,5 @@
       /// the result is only so the program can know if it was written or not.
       /// </returns>
       bool? TrySavePrompt(LoadedFile file);
-
    }
 }

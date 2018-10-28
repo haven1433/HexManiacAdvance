@@ -11,7 +11,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       private readonly IFileSystem fileSystem;
       private readonly List<ITabContent> tabs;
-      private readonly StubCommand saveAll, closeAll;
+      private readonly StubCommand saveAll, closeAll, newCommand, open;
 
       private int selectedIndex;
 
@@ -22,6 +22,8 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public ICommand Close => SelectedTab?.Close;
       public ICommand SaveAll => saveAll;
       public ICommand CloseAll => closeAll;
+      public ICommand Open => open;
+      public ICommand New => newCommand;
 
       #region Collection Properties
 
@@ -65,7 +67,21 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          };
          closeAll = new StubCommand {
             CanExecute = arg => tabs.Any(tab => tab.Close.CanExecute(fileSystem)),
-            Execute = arg => tabs.ForEach(tab => tab.Close.Execute(fileSystem)),
+            Execute = arg => tabs.ToList().ForEach(tab => tab.Close.Execute(fileSystem)), // ToList -> because closing a tab modifies the original list
+         };
+         open = new StubCommand {
+            CanExecute = arg => true,
+            Execute = arg => {
+               var file = arg as LoadedFile;
+               if (file == null) file = fileSystem.OpenFile();
+               if (file == null) return;
+               var tab = new ViewPort(file);
+               Add(tab);
+            },
+         };
+         newCommand = new StubCommand {
+            CanExecute = arg => true,
+            Execute = arg => Add(new ViewPort()),
          };
       }
 
