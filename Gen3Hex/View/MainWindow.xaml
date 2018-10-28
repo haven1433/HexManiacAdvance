@@ -4,10 +4,51 @@
         xmlns:hsg3hv="clr-namespace:HavenSoft.Gen3Hex.View"
         xmlns:solarized="clr-namespace:Solarized;assembly=HavenSoft"
         Title="Gen3Hex" Height="450" Width="800" Background="{solarized:Theme Background}">
+   <Window.InputBindings>
+      <KeyBinding Key="N" Modifiers="Ctrl" Command="{Binding New}" />
+      <KeyBinding Key="O" Modifiers="Ctrl" Command="{Binding Open}" />
+      <KeyBinding Key="S" Modifiers="Ctrl" Command="{Binding Save}" />
+      <KeyBinding Key="S" Modifiers="Ctrl+Shift" Command="{Binding SaveAs}" />
+      <KeyBinding Key="A" Modifiers="Ctrl+Shift" Command="{Binding SaveAll}" />
+      <KeyBinding Key="W" Modifiers="Ctrl" Command="{Binding Close}" />
+
+      <KeyBinding Key="Z" Modifiers="Ctrl" Command="{Binding Undo}" />
+      <KeyBinding Key="Y" Modifiers="Ctrl" Command="{Binding Redo}" />
+   </Window.InputBindings>
    <DockPanel>
-      <ScrollBar DockPanel.Dock="Right"
-         Minimum="{Binding MinimumScroll}" Maximum="{Binding MaximumScroll}" Value="{Binding ScrollValue}"
-         SmallChange="1" LargeChange="{Binding Height}" />
-      <hsg3hv:HexContent ViewPort="{Binding}"/>
+      <Menu DockPanel.Dock="Top">
+         <MenuItem Header="_File">
+            <MenuItem Header="_New" Command="{Binding New}" InputGestureText="Ctrl+N" />
+            <MenuItem Header="_Open" Command="{Binding Open}" InputGestureText="Ctrl+O" />
+            <Separator />
+            <MenuItem Header="_Save" Command="{Binding Save}" InputGestureText="Ctrl+S" />
+            <MenuItem Header="Save _As" Command="{Binding SaveAs}" InputGestureText="Ctrl+Shift+S" />
+            <MenuItem Header="Save A_ll" Command="{Binding SaveAll}" InputGestureText="Ctrl+Shift+A" />
+            <Separator />
+            <MenuItem Header="_Close Current Tab" Command="{Binding Close}" InputGestureText="Ctrl+W" />
+            <MenuItem Header="E_xit" Click="ExitClicked" InputGestureText="Alt+F4" />
+         </MenuItem>
+         <MenuItem Header="_Edit">
+            <MenuItem Header="_Undo" Command="{Binding Undo}" InputGestureText="Ctrl+Z" />
+            <MenuItem Header="_Redo" Command="{Binding Redo}" InputGestureText="Ctrl+Y" />
+         </MenuItem>
+      </Menu>
+      <TabControl ItemsSource="{Binding}" SelectedIndex="{Binding SelectedIndex}">
+         <TabControl.ItemTemplate>
+            <DataTemplate>
+               <TextBlock Text="{Binding Name}"/>
+            </DataTemplate>
+         </TabControl.ItemTemplate>
+         <TabControl.ContentTemplate>
+            <DataTemplate>
+               <DockPanel>
+                  <ScrollBar DockPanel.Dock="Right"
+                     Minimum="{Binding MinimumScroll}" Maximum="{Binding MaximumScroll}" Value="{Binding ScrollValue}"
+                     SmallChange="1" LargeChange="{Binding Height}" />
+                  <hsg3hv:HexContent ViewPort="{Binding}"/>
+               </DockPanel>
+            </DataTemplate>
+         </TabControl.ContentTemplate>
+      </TabControl>
    </DockPanel>
 </Window>

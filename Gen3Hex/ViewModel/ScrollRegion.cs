@@ -31,14 +31,14 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public int Width {
          get => width;
          set {
-            if (TryUpdate(ref width, value)) UpdateScrollRange();
+            if (TryUpdate(ref width, value.LimitToRange(4, int.MaxValue))) UpdateScrollRange();
          }
       }
 
       public int Height {
          get => height;
          set {
-            if (TryUpdate(ref height, value)) UpdateScrollRange();
+            if (TryUpdate(ref height, value.LimitToRange(4, int.MaxValue))) UpdateScrollRange();
          }
       }
 
@@ -71,6 +71,8 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public event EventHandler<int> ScrollChanged;
 
       public ScrollRegion() {
+         width = 4;
+         height = 4;
          scroll = new StubCommand {
             CanExecute = args => dataLength > 0,
             Execute = args => ScrollExecuted((Direction)args),

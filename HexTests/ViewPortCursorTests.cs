@@ -43,8 +43,8 @@ namespace HavenSoft.HexTests {
       [Fact]
       public void MovingCursorDownFromBottomRowScrolls() {
          var loadedFile = new LoadedFile("test", new byte[25]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 3 };
-         viewPort.SelectionStart = new Point(0, 2);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 4 };
+         viewPort.SelectionStart = new Point(0, 3);
 
          viewPort.MoveSelectionStart.Execute(Direction.Down);
 

@@ -1,20 +1,26 @@
 ﻿using HavenSoft.Gen3Hex.ViewModel;
 using System;
-using System.Windows.Input;
+using System.ComponentModel;
 
 namespace HavenSoft.Gen3Hex.View {
    public partial class MainWindow {
-      private readonly ViewPort viewPort;
+      public EditorViewModel ViewModel { get; }
 
-      public MainWindow(ViewPort viewModel) {
+      public MainWindow(EditorViewModel viewModel) {
          InitializeComponent();
-         viewPort = viewModel;
+         ViewModel = viewModel;
          DataContext = viewModel;
       }
 
-      protected override void OnMouseWheel(MouseWheelEventArgs e) {
-         base.OnMouseWheel(e);
-         viewPort.ScrollValue -= Math.Sign(e.Delta);
+      protected override void OnClosing(CancelEventArgs e) {
+         base.OnClosing(e);
+         ViewModel.CloseAll.Execute();
+         if (ViewModel.Count != 0) e.Cancel = true;
+      }
+
+      private void ExitClicked(object sender, EventArgs e) {
+         ViewModel.CloseAll.Execute();
+         if (ViewModel.Count == 0) Close();
       }
    }
 }

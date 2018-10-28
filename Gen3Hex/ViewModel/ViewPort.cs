@@ -165,6 +165,8 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             CanExecute = arg => true,
             Execute = arg => CloseExecuted((IFileSystem)arg),
          };
+
+         RefreshBackingData();
       }
 
       public bool IsSelected(Point point) => selection.IsSelected(point);

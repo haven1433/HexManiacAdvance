@@ -1,5 +1,6 @@
 ﻿using HavenSoft.Gen3Hex.Model;
 using HavenSoft.Gen3Hex.ViewModel;
+using System;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
@@ -105,6 +106,11 @@ namespace HavenSoft.Gen3Hex.View {
          if (e.LeftButton != MouseButtonState.Pressed) return;
 
          ViewPort.SelectionEnd = ControlCoordinatesToModelCoordinates(e);
+      }
+
+      protected override void OnMouseWheel(MouseWheelEventArgs e) {
+         base.OnMouseWheel(e);
+         ViewPort.ScrollValue -= Math.Sign(e.Delta);
       }
 
       protected override void OnRender(DrawingContext drawingContext) {

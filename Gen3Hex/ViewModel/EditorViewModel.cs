@@ -11,19 +11,19 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       private readonly IFileSystem fileSystem;
       private readonly List<ITabContent> tabs;
-      private readonly StubCommand saveAll, closeAll, newCommand, open;
+      private readonly StubCommand newCommand, open, save, saveAs, saveAll, close, closeAll, undo, redo;
 
       private int selectedIndex;
 
-      public ICommand Undo => SelectedTab?.Undo;
-      public ICommand Redo => SelectedTab?.Redo;
-      public ICommand Save => SelectedTab?.Save;
-      public ICommand SaveAs => SelectedTab?.SaveAs;
-      public ICommand Close => SelectedTab?.Close;
-      public ICommand SaveAll => saveAll;
-      public ICommand CloseAll => closeAll;
-      public ICommand Open => open;
       public ICommand New => newCommand;
+      public ICommand Open => open;
+      public ICommand Save => save;
+      public ICommand SaveAs => saveAs;
+      public ICommand SaveAll => saveAll;
+      public ICommand Close => close;
+      public ICommand CloseAll => closeAll;
+      public ICommand Undo => undo;
+      public ICommand Redo => redo;
 
       #region Collection Properties
 
@@ -36,15 +36,10 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public int SelectedIndex {
          get => selectedIndex;
          set {
-            if (!TryUpdate(ref selectedIndex, value)) return;
-            var commandsToRefresh = new List<string> {
-               nameof(Undo),
-               nameof(Redo),
-               nameof(Save),
-               nameof(SaveAs),
-               nameof(Close),
-            };
-            commandsToRefresh.ForEach(NotifyPropertyChanged);
+            StopListeningToCommandsFromCurrentTab();
+            bool updated = TryUpdate(ref selectedIndex, value);
+            StartListeningToCommandsFromCurrentTab();
+            if (!updated) return;
          }
       }
 
@@ -57,17 +52,9 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          tabs = new List<ITabContent>();
          selectedIndex = -1;
 
-         saveAll = new StubCommand {
-            CanExecute = arg => tabs.Any(tab => tab.Save.CanExecute(fileSystem)),
-            Execute = arg => tabs.ForEach(tab => {
-               if (tab.Save.CanExecute(fileSystem)) {
-                  tab.Save.Execute(fileSystem);
-               }
-            }),
-         };
-         closeAll = new StubCommand {
-            CanExecute = arg => tabs.Any(tab => tab.Close.CanExecute(fileSystem)),
-            Execute = arg => tabs.ToList().ForEach(tab => tab.Close.Execute(fileSystem)), // ToList -> because closing a tab modifies the original list
+         newCommand = new StubCommand {
+            CanExecute = arg => true,
+            Execute = arg => Add(new ViewPort()),
          };
          open = new StubCommand {
             CanExecute = arg => true,
@@ -79,10 +66,27 @@ namespace HavenSoft.Gen3Hex.ViewModel {
                Add(tab);
             },
          };
-         newCommand = new StubCommand {
-            CanExecute = arg => true,
-            Execute = arg => Add(new ViewPort()),
+         save = CreateWrapperFor(tab => tab.Save);
+         saveAs = CreateWrapperFor(tab => tab.SaveAs);
+         saveAll = new StubCommand {
+            CanExecute = arg => tabs.Any(tab => tab.Save.CanExecute(fileSystem)),
+            Execute = arg => tabs.ForEach(tab => {
+               if (tab.Save.CanExecute(fileSystem)) {
+                  tab.Save.Execute(fileSystem);
+               }
+            }),
          };
+         close = CreateWrapperFor(tab => tab.Close);
+         closeAll = new StubCommand {
+            CanExecute = arg => tabs.Any(tab => tab.Close.CanExecute(fileSystem)),
+            Execute = arg => tabs.ToList().ForEach(tab => { // ToList -> because closing a tab modifies the original list
+               if (tab.Close.CanExecute(fileSystem)) {
+                  tab.Close.Execute(fileSystem);
+               }
+            }),
+         };
+         undo = CreateWrapperFor(tab => tab.Undo);
+         redo = CreateWrapperFor(tab => tab.Redo);
       }
 
       public void Add(ITabContent content) {
@@ -103,20 +107,81 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 
+      private StubCommand CreateWrapperFor(Func<ITabContent, ICommand> commandGetter) {
+         var command = new StubCommand {
+            CanExecute = arg => {
+               if (SelectedIndex < 0) return false;
+               var innerCommand = commandGetter(tabs[SelectedIndex]);
+               if (innerCommand == null) return false;
+               return innerCommand.CanExecute(fileSystem);
+            },
+            Execute = arg => {
+               var innerCommand = commandGetter(tabs[SelectedIndex]);
+               if (innerCommand == null) return;
+               innerCommand.Execute(fileSystem);
+            }
+         };
+
+         return command;
+      }
+
       private void RemoveTab(object sender, EventArgs e) {
          var tab = (ITabContent)sender;
          if (!tabs.Contains(tab)) throw new InvalidOperationException("Cannot remove tab, because tab is not currently in editor.");
          var index = tabs.IndexOf(tab);
-         tabs.Remove(tab);
-         tab.Closed -= RemoveTab;
-         CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, tab));
-         if (index < SelectedIndex) {
-            selectedIndex--;
-         } else if (index == SelectedIndex) {
-            SelectedIndex = Math.Max(0, selectedIndex - 1);
+
+         if (index == SelectedIndex) {
+            StopListeningToCommandsFromCurrentTab();
+            tabs.Remove(tab);
+            tab.Closed -= RemoveTab;
+            if (selectedIndex == tabs.Count) TryUpdate(ref selectedIndex, tabs.Count - 1, nameof(SelectedIndex));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, tab, index));
+            StartListeningToCommandsFromCurrentTab();
+            return;
          }
 
-         if (tabs.Count == 0) SelectedIndex = -1;
+         if (index < SelectedIndex) selectedIndex--;
+
+         tabs.Remove(tab);
+         tab.Closed -= RemoveTab;
+         CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, tab, index));
       }
+
+      private void StartListeningToCommandsFromCurrentTab() {
+         var commandsToRefresh = new List<StubCommand> {
+            undo,
+            redo,
+            save,
+            saveAs,
+            close,
+         };
+         commandsToRefresh.ForEach(command => command.CanExecuteChanged.Invoke(command, EventArgs.Empty));
+
+         if (selectedIndex == -1) return;
+         var tab = tabs[selectedIndex];
+
+         if (tab.Save != null) tab.Save.CanExecuteChanged += RaiseSaveCanExecutedChanged;
+         if (tab.SaveAs != null) tab.SaveAs.CanExecuteChanged += RaiseSaveAsCanExecutedChanged;
+         if (tab.Close != null) tab.Close.CanExecuteChanged += RaiseCloseCanExecutedChanged;
+         if (tab.Undo != null) tab.Undo.CanExecuteChanged += RaiseUndoCanExecutedChanged;
+         if (tab.Redo != null) tab.Redo.CanExecuteChanged += RaiseRedoCanExecutedChanged;
+      }
+
+      private void StopListeningToCommandsFromCurrentTab() {
+         if (selectedIndex == -1) return;
+         var tab = tabs[selectedIndex];
+
+         if (tab.Save != null) tab.Save.CanExecuteChanged -= RaiseSaveCanExecutedChanged;
+         if (tab.SaveAs != null) tab.SaveAs.CanExecuteChanged -= RaiseSaveAsCanExecutedChanged;
+         if (tab.Close != null) tab.Close.CanExecuteChanged -= RaiseCloseCanExecutedChanged;
+         if (tab.Undo != null) tab.Undo.CanExecuteChanged -= RaiseUndoCanExecutedChanged;
+         if (tab.Redo != null) tab.Redo.CanExecuteChanged -= RaiseRedoCanExecutedChanged;
+      }
+
+      private void RaiseSaveCanExecutedChanged(object sender, EventArgs e) => save.CanExecuteChanged.Invoke(this, e);
+      private void RaiseSaveAsCanExecutedChanged(object sender, EventArgs e) => saveAs.CanExecuteChanged.Invoke(this, e);
+      private void RaiseCloseCanExecutedChanged(object sender, EventArgs e) => close.CanExecuteChanged.Invoke(this, e);
+      private void RaiseUndoCanExecutedChanged(object sender, EventArgs e) => undo.CanExecuteChanged.Invoke(this, e);
+      private void RaiseRedoCanExecutedChanged(object sender, EventArgs e) => redo.CanExecuteChanged.Invoke(this, e);
    }
 }

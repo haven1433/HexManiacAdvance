@@ -65,6 +65,7 @@
     <Compile Include="ViewModel\Selection.cs" />
     <Compile Include="ViewModel\ViewModelCore.cs" />
     <Compile Include="ViewModel\ViewPort.cs" />
+    <Compile Include="View\WindowsFileSystem.cs" />
     <Page Include="View\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

@@ -59,7 +59,7 @@ namespace HavenSoft.HexTests {
          Assert.Equal(1, executeCounter);
 
          editor.SelectedIndex = 0;
-         Assert.Null(editor.Undo);
+         Assert.False(editor.Undo.CanExecute(null));
       }
 
       [Fact]
@@ -167,6 +167,75 @@ namespace HavenSoft.HexTests {
 
          Assert.Equal(0, editor.Count);
       }
+
+      [Fact]
+      public void SaveCommandsPassInFileSystemAsParameter() {
+         int count = 0;
+         void checkIfArgIsFileSystem(object arg) { if (arg is IFileSystem) count++; }
+         bool canExecuteWrapper(object arg) { checkIfArgIsFileSystem(arg); return true; }
+         var save = new StubCommand { CanExecute = canExecuteWrapper, Execute = checkIfArgIsFileSystem };
+
+         editor.Add(new StubTabContent { Save = save, SaveAs = save });
+         editor.Add(new StubTabContent { Save = save, SaveAs = save });
+         editor.Add(new StubTabContent { Save = save, SaveAs = save });
+
+         editor.Save.Execute(); // once
+         editor.SaveAs.Execute(); // once
+         editor.SaveAll.Execute(); // 6 times, since SaveAll should also check CanExecute
+
+         Assert.Equal(8, count);
+      }
+
+      [Fact]
+      public void CloseCommandsPassInFileSystemAsParameter() {
+         int count = 0;
+         void checkIfArgIsFileSystem(object arg) { if (arg is IFileSystem) count++; }
+         bool canExecuteWrapper(object arg) { checkIfArgIsFileSystem(arg); return true; }
+         var close = new StubCommand { CanExecute = canExecuteWrapper, Execute = checkIfArgIsFileSystem };
+
+         editor.Add(new StubTabContent { Close = close });
+         editor.Add(new StubTabContent { Close = close });
+         editor.Add(new StubTabContent { Close = close });
+
+         editor.Close.Execute(); // once
+         editor.CloseAll.Execute(); // 6 times, since SaveAll should also check CanExecute
+
+         Assert.Equal(7, count);
+      }
+
+      [Fact]
+      public void EditorNotifiesCanExecuteChangedOnTabChange() {
+         int count = 0;
+         editor.Save.CanExecuteChanged += (sender, e) => count++;
+         editor.SaveAs.CanExecuteChanged += (sender, e) => count++;
+         editor.Close.CanExecuteChanged += (sender, e) => count++;
+         editor.Undo.CanExecuteChanged += (sender, e) => count++;
+         editor.Redo.CanExecuteChanged += (sender, e) => count++;
+         var tab = new StubTabContent();
+         tab.Close = new StubCommand { CanExecute = arg => true, Execute = arg => tab.Closed.Invoke(tab, EventArgs.Empty) };
+
+         editor.Add(tab);
+         Assert.Equal(5, count);
+
+         count = 0;
+         editor.Close.Execute();
+         Assert.Equal(5, count);
+      }
+
+      [Fact]
+      public void EditorNotifiesWhenUndoCanExecuteChange() {
+         int count = 0;
+         var undo = new StubCommand();
+         var tab = new StubTabContent { Undo = undo };
+         editor.Add(tab);
+         editor.Undo.CanExecuteChanged += (sender, e) => count++;
+
+         undo.CanExecute = arg => true;
+         undo.CanExecuteChanged.Invoke(undo, EventArgs.Empty);
+
+         Assert.Equal(1, count);
+      }
+
 
       private StubTabContent CreateClosableTab() {
          var tab = new StubTabContent();
