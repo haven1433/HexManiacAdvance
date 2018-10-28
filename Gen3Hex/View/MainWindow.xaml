@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:hsg3hv="clr-namespace:HavenSoft.Gen3Hex.View"
         xmlns:solarized="clr-namespace:Solarized;assembly=HavenSoft"
-        Title="Gen3Hex" Height="450" Width="800" Background="{solarized:Theme Background}">
+        Title="Gen3Hex" Height="450" Width="800" AllowDrop="True" Background="{solarized:Theme Background}">
    <Window.InputBindings>
       <KeyBinding Key="N" Modifiers="Ctrl" Command="{Binding New}" />
       <KeyBinding Key="O" Modifiers="Ctrl" Command="{Binding Open}" />

@@ -23,7 +23,6 @@ namespace HavenSoft.Gen3Hex.View {
       }
 
       public bool Save(LoadedFile file) {
-         if (!File.Exists(file.Name)) return false;
          File.WriteAllBytes(file.Name, file.Contents);
          return true;
       }

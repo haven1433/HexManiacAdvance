@@ -200,5 +200,14 @@ namespace HavenSoft.HexTests {
          Assert.NotEqual(0, viewPort.Width);
          Assert.NotEqual(0, viewPort.Height);
       }
+
+      [Fact]
+      public void CannotMoveSelectEndFarPassedEndOfFile() {
+         var selection = new Selection(new ScrollRegion { DataLength = 8 });
+
+         selection.SelectionEnd = new Point(3, 3);
+
+         Assert.Equal(new Point(0, 2), selection.SelectionEnd);
+      }
    }
 }

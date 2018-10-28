@@ -173,5 +173,56 @@ namespace HavenSoft.HexTests {
 
          Assert.Equal(2, canExecuteChangedCount);
       }
+
+      [Fact]
+      public void ViewPortNameDoesNotContainPathOrExension() {
+         var viewPort = new ViewPort(new LoadedFile("path/to/myfile.txt", new byte[10]));
+
+         Assert.Equal("myfile", viewPort.Name);
+      }
+
+      [Fact]
+      public void ViewPortNameEndsWithStarIfNeedsSave() {
+         var viewPort = new ViewPort(new LoadedFile("path/to/myfile.txt", new byte[10]));
+         int nameChangedCount = 0;
+         viewPort.PropertyChanged += (sender, e) => { if (e.PropertyName == nameof(viewPort.Name)) nameChangedCount++; };
+
+         viewPort.Edit("12 34 56");
+
+         Assert.EndsWith("*", viewPort.Name);
+         Assert.Equal(1, nameChangedCount);
+      }
+
+      [Fact]
+      public void ViewPortHasDefaultNameBeforeFirstSave() {
+         var viewPort = new ViewPort();
+
+         Assert.NotEqual(string.Empty, viewPort.Name);
+         Assert.NotNull(viewPort.Name);
+      }
+
+      [Fact]
+      public void EditDefaultFileStillShowsStar() {
+         var viewPort = new ViewPort();
+         var name = viewPort.Name;
+
+         viewPort.Edit("11 22 33");
+
+         Assert.Equal($"{name}*", viewPort.Name);
+      }
+
+      [Fact]
+      public void ViewPortTakesNewNameOnSave() {
+         var fileSystem = new StubFileSystem { RequestNewName = (originalName, extensions) => "path/to/newfile.txt", Save = loadedFile => true };
+         var viewPort = new ViewPort();
+         int nameChangedCount = 0;
+         viewPort.PropertyChanged += (sender, e) => { if (e.PropertyName == nameof(viewPort.Name)) nameChangedCount++; };
+
+         viewPort.Edit("012345");
+         viewPort.Save.Execute(fileSystem);
+
+         Assert.Equal("newfile", viewPort.Name);
+         Assert.Equal(2, nameChangedCount);
+      }
    }
 }

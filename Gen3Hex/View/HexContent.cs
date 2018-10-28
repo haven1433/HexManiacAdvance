@@ -99,13 +99,20 @@ namespace HavenSoft.Gen3Hex.View {
          Focus();
 
          ViewPort.SelectionStart = ControlCoordinatesToModelCoordinates(e);
+         CaptureMouse();
       }
 
       protected override void OnMouseMove(MouseEventArgs e) {
          base.OnMouseMove(e);
-         if (e.LeftButton != MouseButtonState.Pressed) return;
+         if (!IsMouseCaptured) return;
 
          ViewPort.SelectionEnd = ControlCoordinatesToModelCoordinates(e);
+      }
+
+      protected override void OnMouseUp(MouseButtonEventArgs e) {
+         base.OnMouseUp(e);
+         if (!IsMouseCaptured) return;
+         ReleaseMouseCapture();
       }
 
       protected override void OnMouseWheel(MouseWheelEventArgs e) {

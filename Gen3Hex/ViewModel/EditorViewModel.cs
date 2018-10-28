@@ -59,6 +59,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          open = new StubCommand {
             CanExecute = arg => true,
             Execute = arg => {
+               var fileName = arg as string;
                var file = arg as LoadedFile;
                if (file == null) file = fileSystem.OpenFile();
                if (file == null) return;

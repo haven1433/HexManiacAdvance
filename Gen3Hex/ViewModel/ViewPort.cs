@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
@@ -16,27 +17,22 @@ namespace HavenSoft.Gen3Hex.ViewModel {
    public class ViewPort : ViewModelCore, ITabContent, INotifyCollectionChanged {
       private static readonly NotifyCollectionChangedEventArgs ResetArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
 
-      private readonly ScrollRegion scroll;
-      private readonly Selection selection;
-      private readonly ChangeHistory<Dictionary<int, HexElement>> history;
-      private readonly StubCommand save, saveAs, close;
-
       private byte[] data;
       private HexElement[,] currentView;
-
-      #region Name
-
-      private string name;
+      private string fileName;
 
       public string Name {
          get {
+            var name = Path.GetFileNameWithoutExtension(fileName);
+            if (string.IsNullOrEmpty(name)) name = "Untitled";
+            if (!history.IsSaved) name += "*";
             return name;
          }
       }
 
-      #endregion
-
       #region Scrolling Properties
+
+      private readonly ScrollRegion scroll;
 
       public int Width {
          get => scroll.Width;
@@ -59,9 +55,23 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       public ICommand Scroll => scroll.Scroll;
 
+      private void ScrollPropertyChanged(object sender, PropertyChangedEventArgs e) {
+         if (e.PropertyName == nameof(scroll.DataIndex)) {
+            RefreshBackingData();
+         } else if (e.PropertyName != nameof(scroll.DataLength)) {
+            NotifyPropertyChanged(e.PropertyName);
+         }
+
+         if (e.PropertyName == nameof(Width) || e.PropertyName == nameof(Height)) {
+            RefreshBackingData();
+         }
+      }
+
       #endregion
 
       #region Selection Properties
+
+      private readonly Selection selection;
 
       public Point SelectionStart {
          get => selection.SelectionStart;
@@ -87,9 +97,16 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          }
       }
 
+      private void SelectionPropertyChanged(object sender, PropertyChangedEventArgs e) {
+         if (e.PropertyName == nameof(SelectionEnd)) history.ChangeCompleted();
+         NotifyPropertyChanged(e.PropertyName);
+      }
+
       #endregion
 
       #region Undo / Redo
+
+      private readonly ChangeHistory<Dictionary<int, HexElement>> history;
 
       public ICommand Undo => history.Undo;
 
@@ -112,9 +129,17 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          return opposite;
       }
 
+      private void HistoryPropertyChanged(object sender, PropertyChangedEventArgs e) {
+         if (e.PropertyName != nameof(history.IsSaved)) return;
+         save.CanExecuteChanged.Invoke(save, EventArgs.Empty);
+         NotifyPropertyChanged(nameof(Name));
+      }
+
       #endregion
 
       #region Saving
+
+      private readonly StubCommand save, saveAs, close;
 
       public ICommand Save => save;
 
@@ -123,6 +148,35 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public ICommand Close => close;
 
       public event EventHandler Closed;
+
+      private void SaveExecuted(IFileSystem fileSystem) {
+         if (history.IsSaved) return;
+
+         if (string.IsNullOrEmpty(fileName)) {
+            SaveAsExecuted(fileSystem);
+            return;
+         }
+
+         if (fileSystem.Save(new LoadedFile(fileName, data))) history.TagAsSaved();
+      }
+
+      private void SaveAsExecuted(IFileSystem fileSystem) {
+         var newName = fileSystem.RequestNewName(fileName);
+         if (newName == null) return;
+
+         if (fileSystem.Save(new LoadedFile(newName, data))) {
+            fileName = newName; // don't bother notifying, because tagging the history will cause a notify;
+            history.TagAsSaved();
+         }
+      }
+
+      private void CloseExecuted(IFileSystem fileSystem) {
+         if (!history.IsSaved) {
+            var result = fileSystem.TrySavePrompt(new LoadedFile(fileName, data));
+            if (result == null) return;
+         }
+         Closed?.Invoke(this, EventArgs.Empty);
+      }
 
       #endregion
 
@@ -140,7 +194,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
 
       public ViewPort(LoadedFile file) {
-         name = file.Name;
+         fileName = file.Name;
          data = file.Contents;
 
          scroll = new ScrollRegion { DataLength = data.Length };
@@ -282,57 +336,6 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          }
 
          NotifyCollectionChanged(ResetArgs);
-      }
-
-      private void ScrollPropertyChanged(object sender, PropertyChangedEventArgs e) {
-         if (e.PropertyName == nameof(scroll.DataIndex)) {
-            RefreshBackingData();
-         } else if (e.PropertyName != nameof(scroll.DataLength)) {
-            NotifyPropertyChanged(e.PropertyName);
-         }
-
-         if (e.PropertyName == nameof(Width) || e.PropertyName == nameof(Height)) {
-            RefreshBackingData();
-         }
-      }
-
-      private void SelectionPropertyChanged(object sender, PropertyChangedEventArgs e) {
-         if (e.PropertyName == nameof(SelectionEnd)) history.ChangeCompleted();
-         NotifyPropertyChanged(e.PropertyName);
-      }
-
-      private void HistoryPropertyChanged(object sender, PropertyChangedEventArgs e) {
-         if (e.PropertyName != nameof(history.IsSaved)) return;
-         save.CanExecuteChanged.Invoke(save, EventArgs.Empty);
-      }
-
-      private void SaveExecuted(IFileSystem fileSystem) {
-         if (history.IsSaved) return;
-
-         if (string.IsNullOrEmpty(name)) {
-            SaveAsExecuted(fileSystem);
-            return;
-         }
-
-         if (fileSystem.Save(new LoadedFile(name, data))) history.TagAsSaved();
-      }
-
-      private void SaveAsExecuted(IFileSystem fileSystem) {
-         var newName = fileSystem.RequestNewName(name);
-         if (newName == null) return;
-
-         if (fileSystem.Save(new LoadedFile(newName, data))) {
-            TryUpdate(ref name, newName, nameof(Name));
-            history.TagAsSaved();
-         }
-      }
-
-      private void CloseExecuted(IFileSystem fileSystem) {
-         if (!history.IsSaved) {
-            var result = fileSystem.TrySavePrompt(new LoadedFile(name, data));
-            if (result == null) return;
-         }
-         Closed?.Invoke(this, EventArgs.Empty);
       }
 
       private void NotifyCollectionChanged(NotifyCollectionChangedEventArgs args) => CollectionChanged?.Invoke(this, args);
