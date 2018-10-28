@@ -1,4 +1,4 @@
-﻿using HavenSoft.Gen3Hex.Model;
+﻿using HavenSoft.Gen3Hex.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;

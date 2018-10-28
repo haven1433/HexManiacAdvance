@@ -52,7 +52,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Model\ChangeHistory.cs" />
+    <Compile Include="ViewModel\ChangeHistory.cs" />
     <Compile Include="Model\Enums.cs" />
     <Compile Include="Model\IFileSystem.cs" />
     <Compile Include="Model\LoadedFile.cs" />

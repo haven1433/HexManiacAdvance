@@ -1,10 +1,9 @@
-﻿using HavenSoft.Gen3Hex.ViewModel;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 
-namespace HavenSoft.Gen3Hex.Model {
+namespace HavenSoft.Gen3Hex.ViewModel {
    /// <summary>
    /// Represents a history of changes that can undo / redo.
    /// The change can be reperesented by any class with an empty constructor.
