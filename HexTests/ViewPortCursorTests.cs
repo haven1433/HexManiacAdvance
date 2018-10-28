@@ -167,7 +167,7 @@ namespace HavenSoft.HexTests {
       }
 
       [Fact]
-      void CannotSelectBeforeFirstByte() {
+      public void CannotSelectBeforeFirstByte() {
          var loadedFile = new LoadedFile("test", new byte[30]);
          var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
 
@@ -182,13 +182,23 @@ namespace HavenSoft.HexTests {
       }
 
       [Fact]
-      void CannotSelectFarAfterLastByte() {
+      public void CannotSelectFarAfterLastByte() {
          var loadedFile = new LoadedFile("test", new byte[20]);
          var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
 
          viewPort.SelectionStart = new Point(4, 4);
 
          Assert.Equal(new Point(0, 4), viewPort.SelectionStart);
+      }
+
+      [Fact]
+      public void MovingSelectionInAnUnsizedPanelAutoSizesThePanel() {
+         var viewPort = new ViewPort();
+
+         viewPort.SelectionStart = new Point(4, 4);
+
+         Assert.NotEqual(0, viewPort.Width);
+         Assert.NotEqual(0, viewPort.Height);
       }
    }
 }

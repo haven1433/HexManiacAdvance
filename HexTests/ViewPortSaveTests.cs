@@ -9,9 +9,9 @@ namespace HavenSoft.HexTests {
       private string name = string.Empty;
 
       public ViewPortSaveTests() {
-         var fileSystem = new StubFileSystem {
-            RequestNewName = (previousName, extensions) => $"file.txt",
-            TrySavePrompt = loadedFile => { name = loadedFile.Name; return true; }
+         fileSystem = new StubFileSystem {
+            RequestNewName = (previousName, extensions) => { name = $"file.txt"; return name; },
+            TrySavePrompt = loadedFile => { name = loadedFile.Name; return true; },
          };
       }
 
@@ -26,6 +26,8 @@ namespace HavenSoft.HexTests {
       [Fact]
       public void SaveRequestsNewNameIfFileIsNew() {
          var viewPort = new ViewPort();
+
+         viewPort.Edit("01 23 45");
          viewPort.Save.Execute(fileSystem);
 
          Assert.Equal("file.txt", name);
@@ -34,6 +36,9 @@ namespace HavenSoft.HexTests {
       [Fact]
       public void SaveDoesNotRequestNewNameIfFileIsNotNew() {
          var viewPort = new ViewPort(new LoadedFile("input.txt", new byte[0]));
+         fileSystem.Save = loadedFile => { name = loadedFile.Name; return true; };
+
+         viewPort.Edit("01 23 45");
          viewPort.Save.Execute(fileSystem);
 
          Assert.Equal("input.txt", name);

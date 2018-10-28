@@ -19,6 +19,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       private readonly ScrollRegion scroll;
       private readonly Selection selection;
       private readonly ChangeHistory<Dictionary<int, HexElement>> history;
+      private readonly StubCommand save, saveAs, close;
 
       private byte[] data;
       private HexElement[,] currentView;
@@ -28,8 +29,9 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       private string name;
 
       public string Name {
-         get => name;
-         private set => TryUpdate(ref name, value);
+         get {
+            return name;
+         }
       }
 
       #endregion
@@ -114,9 +116,11 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       #region Saving
 
-      public ICommand Save { get; }
-      public ICommand SaveAs { get; }
-      public ICommand Close { get; }
+      public ICommand Save => save;
+
+      public ICommand SaveAs => saveAs;
+
+      public ICommand Close => close;
 
       public event EventHandler Closed;
 
@@ -147,11 +151,28 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          selection.PreviewSelectionStartChanged += ClearActiveEditBeforeSelectionChanges;
 
          history = new ChangeHistory<Dictionary<int, HexElement>>(RevertChanges);
+         history.PropertyChanged += HistoryPropertyChanged;
+
+         save = new StubCommand {
+            CanExecute = arg => !history.IsSaved,
+            Execute = arg => SaveExecuted((IFileSystem)arg),
+         };
+         saveAs = new StubCommand {
+            CanExecute = arg => true,
+            Execute = arg => SaveAsExecuted((IFileSystem)arg),
+         };
+         close = new StubCommand {
+            CanExecute = arg => true,
+            Execute = arg => CloseExecuted((IFileSystem)arg),
+         };
       }
 
       public bool IsSelected(Point point) => selection.IsSelected(point);
 
       public void Edit(string input) {
+         if (Width == 0) Width = 0x10; // editing data from a tab that's never been sized should be possible.
+         if (Height == 0) Height = 0x10;
+
          for (int i = 0; i < input.Length; i++) Edit(input[i]);
       }
 
@@ -276,6 +297,40 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       private void SelectionPropertyChanged(object sender, PropertyChangedEventArgs e) {
          if (e.PropertyName == nameof(SelectionEnd)) history.ChangeCompleted();
          NotifyPropertyChanged(e.PropertyName);
+      }
+
+      private void HistoryPropertyChanged(object sender, PropertyChangedEventArgs e) {
+         if (e.PropertyName != nameof(history.IsSaved)) return;
+         save.CanExecuteChanged.Invoke(save, EventArgs.Empty);
+      }
+
+      private void SaveExecuted(IFileSystem fileSystem) {
+         if (history.IsSaved) return;
+
+         if (string.IsNullOrEmpty(name)) {
+            SaveAsExecuted(fileSystem);
+            return;
+         }
+
+         if (fileSystem.Save(new LoadedFile(name, data))) history.TagAsSaved();
+      }
+
+      private void SaveAsExecuted(IFileSystem fileSystem) {
+         var newName = fileSystem.RequestNewName(name);
+         if (newName == null) return;
+
+         if (fileSystem.Save(new LoadedFile(newName, data))) {
+            TryUpdate(ref name, newName, nameof(Name));
+            history.TagAsSaved();
+         }
+      }
+
+      private void CloseExecuted(IFileSystem fileSystem) {
+         if (!history.IsSaved) {
+            var result = fileSystem.TrySavePrompt(new LoadedFile(name, data));
+            if (result == null) return;
+         }
+         Closed?.Invoke(this, EventArgs.Empty);
       }
 
       private void NotifyCollectionChanged(NotifyCollectionChangedEventArgs args) => CollectionChanged?.Invoke(this, args);
