@@ -261,5 +261,45 @@
             </Trigger>
          </Style.Triggers>
       </Style>
+
+      <!-- Menu style. Based on normal style, but with solarized colors. -->
+      <solarized:ThemeExtension x:Key="Menu.Static.Background" Target="Background"/>
+      <Style TargetType="{x:Type Menu}">
+         <Setter Property="Background" Value="{StaticResource Menu.Static.Background}"/>
+         <Setter Property="Foreground" Value="{solarized:Theme Primary}"/>
+      </Style>
+
+      <!-- TabContol style. Based on normal style, but with solarized colors -->
+      <solarized:ThemeExtension x:Key="TabItem.Selected.Background" Target="Background"/>
+      <solarized:ThemeExtension x:Key="TabItem.Selected.Border" Target="Background"/>
+      <Style TargetType="{x:Type TabControl}">
+         <Setter Property="Padding" Value="2"/>
+         <Setter Property="HorizontalContentAlignment" Value="Center"/>
+         <Setter Property="VerticalContentAlignment" Value="Center"/>
+         <Setter Property="Background" Value="{StaticResource TabItem.Selected.Background}"/>
+         <Setter Property="BorderBrush" Value="{StaticResource TabItem.Selected.Border}"/>
+         <Setter Property="BorderThickness" Value="1"/>
+         <Setter Property="Foreground" Value="{solarized:Theme Primary}"/>
+      </Style>
+
+      <Style TargetType="{x:Type TabItem}">
+         <Setter Property="Template">
+            <Setter.Value>
+               <ControlTemplate TargetType="{x:Type TabItem}">
+                  <Border Name="Border" BorderThickness="1,1,1,0" Padding="5" BorderBrush="{solarized:Theme Secondary}" Background="{solarized:Theme Backlight}">
+                     <ContentPresenter ContentSource="Header"/>
+                  </Border>
+                  <ControlTemplate.Triggers>
+                     <Trigger Property="IsSelected" Value="True">
+                        <Setter TargetName="Border" Property="Background" Value="{solarized:Theme Background}"/>
+                        <Setter TargetName="Border" Property="BorderBrush" Value="{solarized:Theme Blue}"/>
+                        <Setter TargetName="Border" Property="BorderThickness" Value="2,2,2,0"/>
+                        <Setter TargetName="Border" Property="Panel.ZIndex" Value="10"/>
+                     </Trigger>
+                  </ControlTemplate.Triggers>
+               </ControlTemplate>
+            </Setter.Value>
+         </Setter>
+      </Style>
    </Application.Resources>
 </Application>
