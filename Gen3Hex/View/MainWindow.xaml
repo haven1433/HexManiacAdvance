@@ -4,6 +4,7 @@
         xmlns:hsg3hv="clr-namespace:HavenSoft.Gen3Hex.View"
         xmlns:hsv="clr-namespace:HavenSoft.View;assembly=HavenSoft"
         xmlns:solarized="clr-namespace:Solarized;assembly=HavenSoft"
+        Icon="..\Snorlax.ico"
         Title="Gen3Hex" Height="450" Width="800" AllowDrop="True" Background="{solarized:Theme Background}">
    <Window.InputBindings>
       <KeyBinding Key="N" Modifiers="Ctrl" Command="{Binding New}" />
