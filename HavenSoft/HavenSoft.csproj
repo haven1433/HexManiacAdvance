@@ -47,11 +47,21 @@
     <Compile Include="generatedCode\StubCommand.cs" />
     <Compile Include="generatedCode\StubDisposable.cs" />
     <Compile Include="ICommandExtensions.cs" />
+    <Compile Include="Icons.xaml.cs">
+      <DependentUpon>Icons.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MarkupExtensions.cs" />
     <Compile Include="NumericExtensions.cs" />
     <Compile Include="Solarized.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Icons.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
