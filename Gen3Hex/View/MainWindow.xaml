@@ -59,10 +59,14 @@
             </MenuItem>
          </MenuItem>
       </Menu>
-      <TabControl ItemsSource="{Binding}" SelectedIndex="{Binding SelectedIndex}">
+      <TabControl Name="Tabs" ItemsSource="{Binding}" SelectedIndex="{Binding SelectedIndex}">
          <TabControl.ItemTemplate>
             <DataTemplate>
-               <TextBlock Text="{Binding Name}"/>
+               <TextBlock Name="TabTextBlock" Background="Transparent" Text="{Binding Name}" MouseDown="TabMouseDown" MouseMove="TabMouseMove" MouseUp="TabMouseUp">
+                  <TextBlock.InputBindings>
+                     <MouseBinding MouseAction="MiddleClick" Command="{Binding Close}"/>
+                  </TextBlock.InputBindings>
+               </TextBlock>
             </DataTemplate>
          </TabControl.ItemTemplate>
          <TabControl.ContentTemplate>

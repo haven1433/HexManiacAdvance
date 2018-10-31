@@ -101,7 +101,15 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          var temp = tabs[a];
          tabs[a] = tabs[b];
          tabs[b] = temp;
-         CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+
+         // if one of the items to swap is selected, swap the selection too
+         if (selectedIndex == a || selectedIndex == b) {
+            selectedIndex ^= a;
+            selectedIndex ^= b;
+         }
+
+         var args = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, tabs[a], a, b);
+         CollectionChanged?.Invoke(this, args);
       }
 
       public IEnumerator<ITabContent> GetEnumerator() => tabs.GetEnumerator();

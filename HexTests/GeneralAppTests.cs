@@ -42,6 +42,7 @@ namespace HavenSoft.HexTests {
 
          Assert.Equal("file2", editor[0].Name);
          Assert.Equal("file1", editor[1].Name);
+         Assert.Equal(0, editor.SelectedIndex);
       }
 
       [Fact]
@@ -235,7 +236,6 @@ namespace HavenSoft.HexTests {
 
          Assert.Equal(1, count);
       }
-
 
       private StubTabContent CreateClosableTab() {
          var tab = new StubTabContent();
