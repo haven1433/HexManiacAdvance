@@ -237,6 +237,20 @@ namespace HavenSoft.HexTests {
          Assert.Equal(1, count);
       }
 
+      [Fact]
+      public void SaveAllChangesWhenCurrentFileChanges() {
+         int count = 0;
+         var save = new StubCommand();
+         var tab = new StubTabContent { Save = save };
+         editor.Add(tab);
+         editor.SaveAll.CanExecuteChanged += (sender, e) => count++;
+
+         save.CanExecute = arg => true;
+         save.CanExecuteChanged.Invoke(save, EventArgs.Empty);
+
+         Assert.Equal(1, count);
+      }
+
       private StubTabContent CreateClosableTab() {
          var tab = new StubTabContent();
          var close = new StubCommand { CanExecute = arg => true };

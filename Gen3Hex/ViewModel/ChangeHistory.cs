@@ -12,6 +12,11 @@ namespace HavenSoft.Gen3Hex.ViewModel {
    /// The user is responsible for converting from a backward change object to a forward change (redo) object.
    /// The user is responsible for assigning boundaries between changes by calling ChangeCompleted.
    /// </summary>
+   /// <remarks>
+   /// Aside from undo/redo, the ChangeHistory can also track whether the file has been changed since the last save.
+   /// However, since ChangeHistory is not responsible for saving, you have to tell it whenever the data is saved.
+   /// This is accomplished via the TagAsSaved() method.
+   /// </remarks>
    public class ChangeHistory<T> : ViewModelCore where T : class, new() {
       private readonly Func<T, T> revert;
       private readonly StubCommand undo, redo;
@@ -82,7 +87,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
          using (CreateRevertScope()) {
             var originalChange = undoStack.Pop();
-            if (undoStack.Count == 0) undo.CanExecuteChanged.Invoke(undoStack, EventArgs.Empty);
+            if (undoStack.Count == 0) undo.CanExecuteChanged.Invoke(undo, EventArgs.Empty);
             var reverseChange = revert(originalChange);
             redoStack.Push(reverseChange);
             if (redoStack.Count == 1) redo.CanExecuteChanged.Invoke(redo, EventArgs.Empty);
@@ -94,6 +99,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       private void RedoExecuted() {
          if (redoStack.Count == 0) return;
          bool previouslyWasSaved = IsSaved;
+         VerifyRevertNotInProgress();
 
          using (CreateRevertScope()) {
             var reverseChange = redoStack.Pop();

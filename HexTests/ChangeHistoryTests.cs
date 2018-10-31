@@ -162,5 +162,30 @@ namespace HavenSoft.HexTests {
          history.CurrentChange.ToString(); // create current change
          Assert.Throws<InvalidOperationException>(() => history.Undo.Execute());
       }
+
+      [Fact]
+      public void IsSavedIsRecalledCorrectlyWhenSavingAfterUndo() {
+         history.CurrentChange.Add(1); // 1
+         history.ChangeCompleted();
+         history.CurrentChange.Add(2); // 1 2
+         history.ChangeCompleted();
+         history.CurrentChange.Add(3); // 1 2 3
+         history.ChangeCompleted();
+
+         history.Undo.Execute();       // 1 2  |  3
+         history.Undo.Execute();       // 1  |  2 3
+         history.TagAsSaved();
+
+         history.Redo.Execute();       // 1 2  |  3
+         history.CurrentChange.Add(4); // 1 2 4
+         history.ChangeCompleted();
+
+         history.Undo.Execute(); // 1 2  |  4
+         history.Undo.Execute(); // 1  | 2 4
+
+         // even though the redo history is different,
+         // the current state is the same as when we last saved
+         Assert.True(history.IsSaved);
+      }
    }
 }

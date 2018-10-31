@@ -22,7 +22,7 @@ namespace HavenSoft.Gen3Hex.View {
          set { SetValue(ViewPortProperty, value); }
       }
 
-      public static readonly DependencyProperty ViewPortProperty = DependencyProperty.Register("ViewPort", typeof(ViewPort), typeof(HexContent), new FrameworkPropertyMetadata(null, ViewPortChanged));
+      public static readonly DependencyProperty ViewPortProperty = DependencyProperty.Register(nameof(ViewPort), typeof(ViewPort), typeof(HexContent), new FrameworkPropertyMetadata(null, ViewPortChanged));
 
       private static void ViewPortChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
          var self = (HexContent)d;
@@ -96,6 +96,7 @@ namespace HavenSoft.Gen3Hex.View {
       protected override void OnMouseDown(MouseButtonEventArgs e) {
          base.OnMouseDown(e);
          if (e.LeftButton != MouseButtonState.Pressed) return;
+         if (e.ChangedButton != MouseButton.Left) return;
          Focus();
 
          ViewPort.SelectionStart = ControlCoordinatesToModelCoordinates(e);

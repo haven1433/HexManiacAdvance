@@ -266,7 +266,7 @@
          </Style.Triggers>
       </Style>
 
-      <!-- Menu style. Based on normal style, but with solarized colors. -->
+      <!-- Menu style -->
       <solarized:ThemeExtension x:Key="Menu.Static.Background" Target="Background"/>
       <Style TargetType="{x:Type Menu}">
          <Setter Property="Background" Value="{StaticResource Menu.Static.Background}"/>
@@ -333,16 +333,9 @@
          <Setter Property="Margin" Value="0,2"/>
          <Setter Property="Focusable" Value="false"/>
          <Setter Property="BorderBrush" Value="{solarized:Theme Secondary}"/>
-         <Setter Property="Template">
-            <Setter.Value>
-               <ControlTemplate TargetType="{x:Type Separator}">
-                  <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" Height="1" SnapsToDevicePixels="true"/>
-               </ControlTemplate>
-            </Setter.Value>
-         </Setter>
       </Style>
 
-      <!-- TabContol style. Based on normal style, but with solarized colors -->
+      <!-- TabContol Styles -->
       <solarized:ThemeExtension x:Key="TabItem.Selected.Background" Target="Background"/>
       <solarized:ThemeExtension x:Key="TabItem.Selected.Border" Target="Background"/>
       <Style TargetType="{x:Type TabControl}">
@@ -359,9 +352,12 @@
          <Setter Property="Template">
             <Setter.Value>
                <ControlTemplate TargetType="{x:Type TabItem}">
-                  <Border Name="OuterBorder" BorderThickness="0,0,1,0" BorderBrush="{solarized:Theme Background}"> <!-- used for the 1-pixel spacing between tabs -->
-                     <Border Name="Border" BorderThickness="1,1,1,0" BorderBrush="{solarized:Theme Backlight}" Background="{solarized:Theme Backlight}"> <!-- used for selection -->
-                        <Border Name="InnerBorder" BorderThickness="1,1,1,0" Padding="5,3" BorderBrush="{solarized:Theme Backlight}"> <!-- used for hover-over before selection -->
+                  <Border Name="OuterBorder" BorderThickness="0,0,1,0" BorderBrush="{solarized:Theme Background}">
+                     <!-- used for the 1-pixel spacing between tabs -->
+                     <Border Name="Border" BorderThickness="1,1,1,0" BorderBrush="{solarized:Theme Backlight}" Background="{solarized:Theme Backlight}">
+                        <!-- used for selection -->
+                        <Border Name="InnerBorder" BorderThickness="1,1,1,0" Padding="5,3" BorderBrush="{solarized:Theme Backlight}">
+                           <!-- used for hover-over before selection -->
                            <ContentPresenter ContentSource="Header" />
                         </Border>
                      </Border>

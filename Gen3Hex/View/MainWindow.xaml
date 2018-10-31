@@ -62,7 +62,7 @@
       <TabControl Name="Tabs" ItemsSource="{Binding}" SelectedIndex="{Binding SelectedIndex}">
          <TabControl.ItemTemplate>
             <DataTemplate>
-               <TextBlock Name="TabTextBlock" Background="Transparent" Text="{Binding Name}" MouseDown="TabMouseDown" MouseMove="TabMouseMove" MouseUp="TabMouseUp">
+               <TextBlock Name="TabTextBlock" Background="Transparent" Text="{Binding Name}" Foreground="{solarized:Theme Primary}" MouseDown="TabMouseDown" MouseMove="TabMouseMove" MouseUp="TabMouseUp">
                   <TextBlock.InputBindings>
                      <MouseBinding MouseAction="MiddleClick" Command="{Binding Close}"/>
                   </TextBlock.InputBindings>
