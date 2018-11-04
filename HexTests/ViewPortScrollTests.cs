@@ -96,8 +96,8 @@ namespace HavenSoft.HexTests {
 
       [Fact]
       public void ResizingCannotLeaveTotallyBlankLineAtTop() {
-         var loadedFile = new LoadedFile("test", new byte[25]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         var loadedFile = new LoadedFile("test", new byte[36]);
+         var viewPort = new ViewPort(loadedFile) { Width = 6, Height = 6 };
 
          viewPort.ScrollValue++;   // scroll down one line
          viewPort.Width--;         // decrease the width so that there is data 2 lines above

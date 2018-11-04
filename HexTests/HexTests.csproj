@@ -42,6 +42,9 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Delegation, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\HavenSoft.AutoImplement.1.0.1\lib\System.Delegation.dll</HintPath>
+    </Reference>
     <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <HintPath>..\packages\xunit.abstractions.2.0.2\lib\net35\xunit.abstractions.dll</HintPath>
     </Reference>
@@ -57,8 +60,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChangeHistoryTests.cs" />
+    <Compile Include="GeneralAppTests.cs" />
+    <Compile Include="generatedCode\StubFileSystem.cs" />
+    <Compile Include="generatedCode\StubTabContent.cs" />
     <Compile Include="ViewPortCursorTests.cs" />
     <Compile Include="ViewPortEditTests.cs" />
+    <Compile Include="ViewPortSaveTests.cs" />
     <Compile Include="ViewPortScrollTests.cs" />
     <Compile Include="..\SharedAssemblyInfo.cs" />
   </ItemGroup>
@@ -78,6 +85,7 @@
       <Name>HavenSoft</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
@@ -92,4 +100,13 @@
   </Target>
   <Import Project="..\packages\MSTest.TestAdapter.1.3.2\build\net45\MSTest.TestAdapter.targets" Condition="Exists('..\packages\MSTest.TestAdapter.1.3.2\build\net45\MSTest.TestAdapter.targets')" />
   <Import Project="..\packages\xunit.core.2.4.0\build\xunit.core.targets" Condition="Exists('..\packages\xunit.core.2.4.0\build\xunit.core.targets')" />
+  <PropertyGroup>
+    <PreBuildEvent>if not exist $(ProjectDir)generatedCode mkdir $(ProjectDir)generatedCode
+
+$(SolutionDir)packages\HavenSoft.AutoImplement.1.0.1\AutoImplement $(SolutionDir)Gen3Hex\$(OutDir)Gen3Hex.exe ITabContent IFileSystem
+move /Y StubTabContent.cs $(ProjectDir)generatedCode
+move /Y StubFileSystem.cs $(ProjectDir)generatedCode
+
+del *.cs</PreBuildEvent>
+  </PropertyGroup>
 </Project>

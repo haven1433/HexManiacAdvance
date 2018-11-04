@@ -1,20 +1,101 @@
-﻿using HavenSoft.Gen3Hex.ViewModel;
+﻿using HavenSoft.Gen3Hex.Model;
+using HavenSoft.Gen3Hex.ViewModel;
 using System;
+using System.ComponentModel;
+using System.IO;
+using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace HavenSoft.Gen3Hex.View {
    public partial class MainWindow {
-      private readonly ViewPort viewPort;
+      public EditorViewModel ViewModel { get; }
 
-      public MainWindow(ViewPort viewModel) {
+      public MainWindow(EditorViewModel viewModel) {
          InitializeComponent();
-         viewPort = viewModel;
+         ViewModel = viewModel;
          DataContext = viewModel;
       }
 
-      protected override void OnMouseWheel(MouseWheelEventArgs e) {
-         base.OnMouseWheel(e);
-         viewPort.ScrollValue -= Math.Sign(e.Delta);
+      protected override void OnDrop(DragEventArgs e) {
+         base.OnDrop(e);
+
+         if (e.Data.GetDataPresent(DataFormats.FileDrop)) {
+            var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            foreach (var fileName in files) {
+               var data = File.ReadAllBytes(fileName);
+               ViewModel.Open.Execute(new LoadedFile(fileName, data));
+            }
+         }
+      }
+
+      protected override void OnClosing(CancelEventArgs e) {
+         base.OnClosing(e);
+         ViewModel.CloseAll.Execute();
+         if (ViewModel.Count != 0) e.Cancel = true;
+      }
+
+      private static FrameworkElement GetChild(DependencyObject depObj, string name, object dataContext) {
+         for (int i = 0; i < VisualTreeHelper.GetChildrenCount(depObj); i++) {
+            var child = VisualTreeHelper.GetChild(depObj, i);
+            var childContext = child.GetValue(DataContextProperty);
+            var childName = child.GetValue(NameProperty);
+            if (childContext == dataContext && name == childName.ToString()) return (FrameworkElement)child;
+            var next = GetChild(child, name, dataContext);
+            if (next != null) return next;
+         }
+
+         return null;
+      }
+
+      #region Tab Mouse Events
+
+      private void TabMouseDown(object sender, MouseButtonEventArgs e) {
+         var element = (FrameworkElement)sender;
+         if (e.LeftButton != MouseButtonState.Pressed) return;
+         if (e.ChangedButton != MouseButton.Left) return;
+
+         element.CaptureMouse();
+      }
+
+      /// <summary>
+      /// If the mouse has dragged the tab through more than half of the next tab, swap the tabs horizontally.
+      /// </summary>
+      /// <remarks>
+      /// The "more than half through the next tab" metric was chosen to deal with disparity between widths of tabs.
+      /// A smaller number would cause tabs to flicker when a narrow tab is dragged past a wide tab.
+      /// </remarks>
+      private void TabMouseMove(object sender, MouseEventArgs e) {
+         var element = (FrameworkElement)sender;
+         if (!element.IsMouseCaptured) return;
+
+         var index = ViewModel.SelectedIndex;
+         var leftWidth = index > 0 ? GetChild(Tabs, "TabTextBlock", ViewModel[index - 1]).ActualWidth : double.PositiveInfinity;
+         var rightWidth = index < ViewModel.Count - 1 ? GetChild(Tabs, "TabTextBlock", ViewModel[index + 1]).ActualWidth : double.PositiveInfinity;
+         var offset = e.GetPosition(element).X;
+
+         if (offset < -leftWidth / 2) {
+            ViewModel.SwapTabs(index, index - 1);
+         } else if (offset > element.ActualWidth + rightWidth / 2) {
+            ViewModel.SwapTabs(index, index + 1);
+         }
+      }
+
+      private void TabMouseUp(object sender, MouseButtonEventArgs e) {
+         var element = (FrameworkElement)sender;
+         if (!element.IsMouseCaptured) return;
+         if (e.LeftButton != MouseButtonState.Released) return;
+         if (e.ChangedButton != MouseButton.Left) return;
+
+         e.Handled = true;
+         element.ReleaseMouseCapture();
+      }
+
+      #endregion
+
+      private void ExitClicked(object sender, EventArgs e) {
+         ViewModel.CloseAll.Execute();
+         if (ViewModel.Count == 0) Close();
       }
    }
 }

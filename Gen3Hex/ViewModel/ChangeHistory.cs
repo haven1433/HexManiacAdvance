@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 
-namespace HavenSoft.Gen3Hex.Model {
+namespace HavenSoft.Gen3Hex.ViewModel {
    /// <summary>
    /// Represents a history of changes that can undo / redo.
    /// The change can be reperesented by any class with an empty constructor.
@@ -12,7 +12,12 @@ namespace HavenSoft.Gen3Hex.Model {
    /// The user is responsible for converting from a backward change object to a forward change (redo) object.
    /// The user is responsible for assigning boundaries between changes by calling ChangeCompleted.
    /// </summary>
-   public class ChangeHistory<T> where T : class, new() {
+   /// <remarks>
+   /// Aside from undo/redo, the ChangeHistory can also track whether the file has been changed since the last save.
+   /// However, since ChangeHistory is not responsible for saving, you have to tell it whenever the data is saved.
+   /// This is accomplished via the TagAsSaved() method.
+   /// </remarks>
+   public class ChangeHistory<T> : ViewModelCore where T : class, new() {
       private readonly Func<T, T> revert;
       private readonly StubCommand undo, redo;
       private readonly Stack<T>
@@ -21,6 +26,7 @@ namespace HavenSoft.Gen3Hex.Model {
 
       private bool revertInProgress;
       private T currentChange;
+      private int undoStackSizeAtSaveTag;
 
       public ICommand Undo => undo;
       public ICommand Redo => redo;
@@ -30,17 +36,22 @@ namespace HavenSoft.Gen3Hex.Model {
 
             if (redoStack.Count > 0) {
                redoStack.Clear();
+               if (undoStack.Count < undoStackSizeAtSaveTag) undoStackSizeAtSaveTag = -1;
                redo.CanExecuteChanged.Invoke(redo, EventArgs.Empty);
             }
 
             if (currentChange == null) {
+               bool notifyIsSavedChanged = IsSaved;
                currentChange = new T();
                if (undoStack.Count == 0) undo.CanExecuteChanged.Invoke(undo, EventArgs.Empty);
+               if (notifyIsSavedChanged) NotifyPropertyChanged(nameof(IsSaved));
             }
 
             return currentChange;
          }
       }
+
+      public bool IsSaved => undoStackSizeAtSaveTag == undoStack.Count && currentChange == null;
 
       public ChangeHistory(Func<T, T> revertChange) {
          revert = revertChange;
@@ -61,22 +72,31 @@ namespace HavenSoft.Gen3Hex.Model {
          currentChange = null;
       }
 
+      public void TagAsSaved() {
+         ChangeCompleted();
+         TryUpdate(ref undoStackSizeAtSaveTag, undoStack.Count, nameof(IsSaved));
+      }
+
       private void UndoExecuted() {
          ChangeCompleted();
          if (undoStack.Count == 0) return;
-         revertInProgress = true;
+         bool previouslyWasSaved = IsSaved;
 
          using (CreateRevertScope()) {
             var originalChange = undoStack.Pop();
-            if (undoStack.Count == 0) undo.CanExecuteChanged.Invoke(undoStack, EventArgs.Empty);
+            if (undoStack.Count == 0) undo.CanExecuteChanged.Invoke(undo, EventArgs.Empty);
             var reverseChange = revert(originalChange);
             redoStack.Push(reverseChange);
             if (redoStack.Count == 1) redo.CanExecuteChanged.Invoke(redo, EventArgs.Empty);
          }
+
+         if (previouslyWasSaved != IsSaved) NotifyPropertyChanged(nameof(IsSaved));
       }
 
       private void RedoExecuted() {
          if (redoStack.Count == 0) return;
+         bool previouslyWasSaved = IsSaved;
+         VerifyRevertNotInProgress();
 
          using (CreateRevertScope()) {
             var reverseChange = redoStack.Pop();
@@ -85,6 +105,8 @@ namespace HavenSoft.Gen3Hex.Model {
             undoStack.Push(originalChange);
             if (undoStack.Count == 1) undo.CanExecuteChanged.Invoke(undo, EventArgs.Empty);
          }
+
+         if (previouslyWasSaved != IsSaved) NotifyPropertyChanged(nameof(IsSaved));
       }
 
       private void VerifyRevertNotInProgress([CallerMemberName]string caller = null) {

@@ -11,17 +11,19 @@ namespace HavenSoft.Gen3Hex.View {
       protected override void OnStartup(StartupEventArgs e) {
          base.OnStartup(e);
          var fileName = e.Args?.Length == 1 ? e.Args[0] : string.Empty;
-         var viewPort = GetViewPort(fileName);
+         var viewPort = GetViewModel(fileName);
          MainWindow = new MainWindow(viewPort);
          MainWindow.Show();
       }
 
-      private ViewPort GetViewPort(string fileName) {
-         if (!File.Exists(fileName)) return new ViewPort();
+      private EditorViewModel GetViewModel(string fileName) {
+         var editor = new EditorViewModel(new WindowsFileSystem());
+         if (!File.Exists(fileName)) return editor;
 
          var bytes = File.ReadAllBytes(fileName);
          var loadedFile = new LoadedFile(fileName, bytes);
-         return new ViewPort(loadedFile);
+         editor.Add(new ViewPort(loadedFile));
+         return editor;
       }
    }
 }

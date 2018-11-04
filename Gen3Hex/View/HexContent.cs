@@ -1,5 +1,6 @@
 ﻿using HavenSoft.Gen3Hex.Model;
 using HavenSoft.Gen3Hex.ViewModel;
+using System;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
@@ -21,7 +22,7 @@ namespace HavenSoft.Gen3Hex.View {
          set { SetValue(ViewPortProperty, value); }
       }
 
-      public static readonly DependencyProperty ViewPortProperty = DependencyProperty.Register("ViewPort", typeof(ViewPort), typeof(HexContent), new FrameworkPropertyMetadata(null, ViewPortChanged));
+      public static readonly DependencyProperty ViewPortProperty = DependencyProperty.Register(nameof(ViewPort), typeof(ViewPort), typeof(HexContent), new FrameworkPropertyMetadata(null, ViewPortChanged));
 
       private static void ViewPortChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
          var self = (HexContent)d;
@@ -95,16 +96,29 @@ namespace HavenSoft.Gen3Hex.View {
       protected override void OnMouseDown(MouseButtonEventArgs e) {
          base.OnMouseDown(e);
          if (e.LeftButton != MouseButtonState.Pressed) return;
+         if (e.ChangedButton != MouseButton.Left) return;
          Focus();
 
          ViewPort.SelectionStart = ControlCoordinatesToModelCoordinates(e);
+         CaptureMouse();
       }
 
       protected override void OnMouseMove(MouseEventArgs e) {
          base.OnMouseMove(e);
-         if (e.LeftButton != MouseButtonState.Pressed) return;
+         if (!IsMouseCaptured) return;
 
          ViewPort.SelectionEnd = ControlCoordinatesToModelCoordinates(e);
+      }
+
+      protected override void OnMouseUp(MouseButtonEventArgs e) {
+         base.OnMouseUp(e);
+         if (!IsMouseCaptured) return;
+         ReleaseMouseCapture();
+      }
+
+      protected override void OnMouseWheel(MouseWheelEventArgs e) {
+         base.OnMouseWheel(e);
+         ViewPort.ScrollValue -= Math.Sign(e.Delta);
       }
 
       protected override void OnRender(DrawingContext drawingContext) {

@@ -90,7 +90,7 @@ namespace Solarized {
 
       static Variant variant;
 
-      public static Variant DefaultVariant => 6 < DateTime.Now.Hour || DateTime.Now.Hour < 19 ? Variant.Light : Variant.Dark;
+      public static Variant DefaultVariant => 6 < DateTime.Now.Hour && DateTime.Now.Hour < 19 ? Variant.Light : Variant.Dark;
 
       public static Variant CurrentVariant {
          get => variant;
