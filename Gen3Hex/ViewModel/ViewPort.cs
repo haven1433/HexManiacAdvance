@@ -225,9 +225,6 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public bool IsSelected(Point point) => selection.IsSelected(point);
 
       public void Edit(string input) {
-         if (Width == 0) Width = 0x10; // editing data from a tab that's never been sized should be possible.
-         if (Height == 0) Height = 0x10;
-
          for (int i = 0; i < input.Length; i++) Edit(input[i]);
       }
 

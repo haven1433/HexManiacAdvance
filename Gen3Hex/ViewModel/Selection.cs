@@ -18,9 +18,6 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public Point SelectionStart {
          get => selectionStart;
          set {
-            if (scroll.Width == 0) scroll.Width = 0x10;
-            if (scroll.Height == 0) scroll.Height = 0x10;
-
             var index = scroll.ViewPointToDataIndex(value);
             value = scroll.DataIndexToViewPoint(index.LimitToRange(0, scroll.DataLength));
 

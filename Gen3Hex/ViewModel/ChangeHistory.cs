@@ -74,10 +74,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       public void TagAsSaved() {
          ChangeCompleted();
-         if (undoStackSizeAtSaveTag != undoStack.Count) {
-            undoStackSizeAtSaveTag = undoStack.Count;
-            NotifyPropertyChanged(nameof(IsSaved));
-         }
+         TryUpdate(ref undoStackSizeAtSaveTag, undoStack.Count, nameof(IsSaved));
       }
 
       private void UndoExecuted() {
