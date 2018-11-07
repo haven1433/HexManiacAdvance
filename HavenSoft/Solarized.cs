@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Markup;
 using System.Windows.Media;
-
+using System.Xaml;
 using static Solarized.Brushes;
 using static Solarized.Colors;
 
@@ -46,7 +46,7 @@ namespace Solarized {
          return brush;
       }
 
-      public static readonly Brush
+      public static readonly SolidColorBrush
          Yellow = Brush(Colors.Yellow),
          Orange = Brush(Colors.Orange),
          Red = Brush(Colors.Red),
@@ -127,7 +127,20 @@ namespace Solarized {
       public ThemeExtension() { }
       public ThemeExtension(ThemeProperties target) => Target = target;
       public override object ProvideValue(IServiceProvider serviceProvider) {
-         switch (Target) {
+         return ThemeColorExtension.GetBrush(Target);
+      }
+   }
+
+   public sealed class ThemeColorExtension : MarkupExtension {
+      public ThemeProperties Target { get; set; }
+      public ThemeColorExtension() { }
+      public ThemeColorExtension(ThemeProperties target) => Target = target;
+      public override object ProvideValue(IServiceProvider serviceProvider) {
+         return GetBrush(Target).Color;
+      }
+
+      public static SolidColorBrush GetBrush(ThemeProperties property) {
+         switch (property) {
             case ThemeProperties.Emphasis: return Theme.Emphasis;
             case ThemeProperties.Primary: return Theme.Primary;
             case ThemeProperties.Secondary: return Theme.Secondary;

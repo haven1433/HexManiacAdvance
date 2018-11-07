@@ -1,8 +1,8 @@
 ﻿using HavenSoft.Gen3Hex.Model;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Windows.Input;
 
 namespace HavenSoft.Gen3Hex.ViewModel {
@@ -14,31 +14,45 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          { Direction.Right, new Point( 1, 0) },
       };
 
-      private readonly StubCommand scroll;
+      private readonly StubCommand scroll, gotoCommand, back, forward;
+
+      // these back/forward stacks are not incapsulated in a history object because we want to be able to change a remembered address each time we visit it.
+      // if we navigate back, then scroll, then navigate forward, we want to remember the scroll if we go back again.
+      private readonly Stack<int> backStack = new Stack<int>(), forwardStack = new Stack<int>();
 
       private int dataIndex, width, height, scrollValue, maximumScroll, dataLength;
 
       public ICommand Scroll => scroll;
+      public ICommand Goto => gotoCommand;
+      public ICommand Back => back;
+      public ICommand Forward => forward;
 
       public int DataIndex {
          get => dataIndex;
          private set {
             var dif = value - dataIndex;
-            if (TryUpdate(ref dataIndex, value)) ScrollChanged?.Invoke(this, dif);
+            if (TryUpdate(ref dataIndex, value)) {
+               ScrollChanged?.Invoke(this, dif);
+               UpdateHeaders();
+            }
          }
       }
 
       public int Width {
          get => width;
          set {
-            if (TryUpdate(ref width, value.LimitToRange(4, int.MaxValue))) UpdateScrollRange();
+            if (TryUpdate(ref width, value.LimitToRange(4, int.MaxValue))) {
+               UpdateScrollRange();
+            }
          }
       }
 
       public int Height {
          get => height;
          set {
-            if (TryUpdate(ref height, value.LimitToRange(4, int.MaxValue))) UpdateScrollRange();
+            if (TryUpdate(ref height, value.LimitToRange(4, int.MaxValue))) {
+               UpdateScrollRange();
+            }
          }
       }
 
@@ -68,6 +82,8 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          }
       }
 
+      public ObservableCollection<string> Headers { get; } = new ObservableCollection<string>();
+
       public event EventHandler<int> ScrollChanged;
 
       public ScrollRegion() {
@@ -77,6 +93,33 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             CanExecute = args => dataLength > 0,
             Execute = args => ScrollExecuted((Direction)args),
          };
+         gotoCommand = new StubCommand {
+            CanExecute = args => true,
+            Execute = args => {
+               if (int.TryParse(args.ToString(), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int result)) {
+                  backStack.Push(DataIndex);
+                  forwardStack.Clear();
+                  DataIndex = result;
+               }
+            },
+         };
+         back = new StubCommand {
+            CanExecute = args => backStack.Count > 0,
+            Execute = args => {
+               if (backStack.Count == 0) return;
+               forwardStack.Push(DataIndex);
+               DataIndex = backStack.Pop();
+            },
+         };
+         forward = new StubCommand {
+            CanExecute = args => forwardStack.Count > 0,
+            Execute = args => {
+               if (forwardStack.Count == 0) return;
+               backStack.Push(DataIndex);
+               DataIndex = forwardStack.Pop();
+            },
+         };
+         UpdateHeaders();
       }
 
       public int ViewPointToDataIndex(Point p) => p.Y * width + p.X + dataIndex;
@@ -119,8 +162,12 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          if (dif.Y != 0) {
             ScrollValue += dif.Y;
          } else {
-            DataIndex = (dataIndex + dif.X).LimitToRange(1 - width, dataLength - 1);
-            UpdateScrollRange();
+            var newDataIndex = (dataIndex + dif.X).LimitToRange(1 - width, dataLength - 1);
+            var scrollDif = newDataIndex - dataIndex;
+            if (TryUpdate(ref dataIndex, newDataIndex, nameof(DataIndex))) {
+               ScrollChanged?.Invoke(this, scrollDif);
+               UpdateScrollRange();
+            }
          }
       }
 
@@ -139,6 +186,23 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
          // Call Update instead of ScrollValue.set to avoid changing the dataIndex.
          TryUpdate(ref scrollValue, newCurrentScroll, nameof(ScrollValue));
+         UpdateHeaders();
+      }
+
+      private void UpdateHeaders() {
+         while (Headers.Count > Height) Headers.RemoveAt(Headers.Count - 1);
+         for (int i = 0; i < Height; i++) {
+            var address = dataIndex + i * Width;
+            var hexAddress = address.ToString("X6");
+            if (address >= DataLength) hexAddress = string.Empty;
+            if (address < 0) hexAddress = string.Empty;
+
+            if (Headers.Count > i) {
+               Headers[i] = hexAddress;
+            } else {
+               Headers.Add(hexAddress);
+            }
+         }
       }
 
       /// <summary>

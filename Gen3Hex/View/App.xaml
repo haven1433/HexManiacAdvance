@@ -8,21 +8,21 @@
       <hsv:Icons x:Key="Icons"/>
 
       <!-- Scrollbar style. Based on normal style, but with solarize colors. -->
-      <solarized:ThemeExtension x:Key="ScrollBar.Static.Background" Target="Background"/>
-      <solarized:ThemeExtension x:Key="ScrollBar.MouseOver.Background" Target="Background"/>
-      <solarized:ThemeExtension x:Key="ScrollBar.Pressed.Background" Target="Background"/>
-      <solarized:ThemeExtension x:Key="ScrollBar.Disabled.Background" Target="Background"/>
-      <solarized:ThemeExtension x:Key="ScrollBar.Pressed.Glyph" Target="Primary"/>
-      <solarized:ThemeExtension x:Key="ScrollBar.MouseOver.Glyph" Target="Primary"/>
-      <solarized:ThemeExtension x:Key="ScrollBar.Disabled.Glyph" Target="Primary"/>
-      <solarized:ThemeExtension x:Key="ScrollBar.Static.Glyph" Target="Primary"/>
-      <solarized:ThemeExtension x:Key="ScrollBar.Static.Border" Target="Backlight"/>
-      <solarized:ThemeExtension x:Key="ScrollBar.MouseOver.Border" Target="Backlight"/>
-      <solarized:ThemeExtension x:Key="ScrollBar.Pressed.Border" Target="Backlight"/>
-      <solarized:ThemeExtension x:Key="ScrollBar.Disabled.Border" Target="Backlight"/>
-      <solarized:ThemeExtension x:Key="ScrollBar.MouseOver.Thumb" Target="Secondary"/>
-      <solarized:ThemeExtension x:Key="ScrollBar.Pressed.Thumb" Target="Secondary"/>
-      <solarized:ThemeExtension x:Key="ScrollBar.Static.Thumb" Target="Secondary"/>
+      <SolidColorBrush x:Key="ScrollBar.Static.Background" Color="{DynamicResource BackgroundColor}"/>
+      <SolidColorBrush x:Key="ScrollBar.MouseOver.Background" Color="{DynamicResource BackgroundColor}"/>
+      <SolidColorBrush x:Key="ScrollBar.Pressed.Background" Color="{DynamicResource BackgroundColor}"/>
+      <SolidColorBrush x:Key="ScrollBar.Disabled.Background" Color="{DynamicResource BackgroundColor}"/>
+      <SolidColorBrush x:Key="ScrollBar.Pressed.Glyph" Color="{DynamicResource PrimaryColor}"/>
+      <SolidColorBrush x:Key="ScrollBar.MouseOver.Glyph" Color="{DynamicResource PrimaryColor}"/>
+      <SolidColorBrush x:Key="ScrollBar.Disabled.Glyph" Color="{DynamicResource PrimaryColor}"/>
+      <SolidColorBrush x:Key="ScrollBar.Static.Glyph" Color="{DynamicResource PrimaryColor}"/>
+      <SolidColorBrush x:Key="ScrollBar.Static.Border" Color="{DynamicResource BacklightColor}"/>
+      <SolidColorBrush x:Key="ScrollBar.MouseOver.Border" Color="{DynamicResource BacklightColor}"/>
+      <SolidColorBrush x:Key="ScrollBar.Pressed.Border" Color="{DynamicResource BacklightColor}"/>
+      <SolidColorBrush x:Key="ScrollBar.Disabled.Border" Color="{DynamicResource BacklightColor}"/>
+      <SolidColorBrush x:Key="ScrollBar.MouseOver.Thumb" Color="{DynamicResource SecondaryColor}"/>
+      <SolidColorBrush x:Key="ScrollBar.Pressed.Thumb" Color="{DynamicResource SecondaryColor}"/>
+      <SolidColorBrush x:Key="ScrollBar.Static.Thumb" Color="{DynamicResource SecondaryColor}"/>
       <Style x:Key="FocusVisual">
          <Setter Property="Control.Template">
             <Setter.Value>
@@ -267,10 +267,10 @@
       </Style>
 
       <!-- Menu style -->
-      <solarized:ThemeExtension x:Key="Menu.Static.Background" Target="Background"/>
+      <SolidColorBrush x:Key="Menu.Static.Background" Color="{DynamicResource BackgroundColor}"/>
       <Style TargetType="{x:Type Menu}">
          <Setter Property="Background" Value="{StaticResource Menu.Static.Background}"/>
-         <Setter Property="Foreground" Value="{solarized:Theme Primary}"/>
+         <Setter Property="Foreground" Value="{DynamicResource Primary}"/>
       </Style>
 
       <Style TargetType="{x:Type MenuItem}">
@@ -280,18 +280,16 @@
                   <Setter.Value>
                      <ControlTemplate TargetType="{x:Type MenuItem}">
                         <Grid Name="ItemBorder">
-                           <ContentPresenter Margin="10,2" ContentSource="Header" RecognizesAccessKey="True" TextBlock.Foreground="{solarized:Theme Emphasis}"/>
-                           <Popup x:Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsSubmenuOpen}">
-                              <Border x:Name="SubmenuBorder" BorderThickness="1"
-                                 Background="{solarized:Theme Background}"
-                                 BorderBrush="{solarized:Theme Blue}">
+                           <ContentPresenter Margin="10,2" ContentSource="Header" RecognizesAccessKey="True" TextBlock.Foreground="{DynamicResource Emphasis}"/>
+                           <Popup x:Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsSubmenuOpen}" SnapsToDevicePixels="True">
+                              <Border x:Name="SubmenuBorder" BorderThickness="1" Background="{DynamicResource Background}" BorderBrush="{solarized:Theme Blue}">
                                  <StackPanel Name="ItemsPresenter" IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
                               </Border>
                            </Popup>
                         </Grid>
                         <ControlTemplate.Triggers>
                            <Trigger Property="IsMouseOver" Value="True">
-                              <Setter TargetName="ItemBorder" Property="Background" Value="{solarized:Theme Backlight}" />
+                              <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource Backlight}" />
                            </Trigger>
                         </ControlTemplate.Triggers>
                      </ControlTemplate>
@@ -309,15 +307,15 @@
                               <ColumnDefinition Width="100"/>
                            </Grid.ColumnDefinitions>
                            <ContentPresenter Grid.Column="0" Margin="5,5,0,5" ContentSource="Icon" />
-                           <ContentPresenter Grid.Column="1" Name="MainContent" Margin="10,5" VerticalAlignment="Center" ContentSource="Header" RecognizesAccessKey="True" TextBlock.Foreground="{solarized:Theme Emphasis}" />
-                           <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{TemplateBinding InputGestureText}" Foreground="{solarized:Theme Secondary}" />
+                           <ContentPresenter Grid.Column="1" Name="MainContent" Margin="10,5" VerticalAlignment="Center" ContentSource="Header" RecognizesAccessKey="True" TextBlock.Foreground="{DynamicResource Emphasis}" />
+                           <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{TemplateBinding InputGestureText}" Foreground="{DynamicResource Secondary}" />
                         </Grid>
                         <ControlTemplate.Triggers>
                            <Trigger Property="IsMouseOver" Value="True">
-                              <Setter TargetName="ItemBorder" Property="Background" Value="{solarized:Theme Backlight}" />
+                              <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource Backlight}" />
                            </Trigger>
                            <Trigger Property="IsEnabled" Value="False">
-                              <Setter TargetName="MainContent" Property="TextBlock.Foreground" Value="{solarized:Theme Secondary}" />
+                              <Setter TargetName="MainContent" Property="TextBlock.Foreground" Value="{DynamicResource Secondary}" />
                               <Setter TargetName="MainContent" Property="TextBlock.FontStyle" Value="Italic" />
                            </Trigger>
                         </ControlTemplate.Triggers>
@@ -328,16 +326,38 @@
          </Style.Triggers>
       </Style>
 
-      <Style TargetType="{x:Type Separator}">
-         <Setter Property="Background" Value="{solarized:Theme Background}"/>
+      <!-- Separator Style has to specify that it's the style to use for MenuItems. This has something to do with the Menu searching for this key. -->
+      <Style TargetType="{x:Type Separator}" x:Key="{x:Static MenuItem.SeparatorStyleKey}">
+         <Setter Property="Background" Value="{DynamicResource Secondary}"/>
          <Setter Property="Margin" Value="0,2"/>
          <Setter Property="Focusable" Value="false"/>
-         <Setter Property="BorderBrush" Value="{solarized:Theme Secondary}"/>
+         <Setter Property="BorderBrush" Value="{DynamicResource Secondary}"/>
+      </Style>
+
+      <!-- TextBlock Style-->
+      <Style TargetType="TextBlock">
+         <Setter Property="Foreground" Value="{DynamicResource Primary}"/>
+      </Style>
+
+      <!-- TextBox Style -->
+      <Style TargetType="TextBox">
+         <Setter Property="Background" Value="{DynamicResource Backlight}"/>
+         <Setter Property="BorderBrush" Value="{solarized:Theme Blue}"/>
+         <Setter Property="Foreground" Value="{DynamicResource Primary}"/>
+         <Setter Property="Template">
+            <Setter.Value>
+               <ControlTemplate TargetType="TextBox">
+                  <Border Name="Border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
+                     <ScrollViewer Foreground="{TemplateBinding Foreground}" x:Name="PART_ContentHost" />
+                  </Border>
+               </ControlTemplate>
+            </Setter.Value>
+         </Setter>
       </Style>
 
       <!-- TabContol Styles -->
-      <solarized:ThemeExtension x:Key="TabItem.Selected.Background" Target="Background"/>
-      <solarized:ThemeExtension x:Key="TabItem.Selected.Border" Target="Background"/>
+      <SolidColorBrush x:Key="TabItem.Selected.Background" Color="{DynamicResource BackgroundColor}"/>
+      <SolidColorBrush x:Key="TabItem.Selected.Border" Color="{DynamicResource BackgroundColor}"/>
       <Style TargetType="{x:Type TabControl}">
          <Setter Property="Padding" Value="2"/>
          <Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -345,18 +365,18 @@
          <Setter Property="Background" Value="{StaticResource TabItem.Selected.Background}"/>
          <Setter Property="BorderBrush" Value="{StaticResource TabItem.Selected.Border}"/>
          <Setter Property="BorderThickness" Value="1"/>
-         <Setter Property="Foreground" Value="{solarized:Theme Primary}"/>
+         <Setter Property="Foreground" Value="{DynamicResource Primary}"/>
       </Style>
 
       <Style TargetType="{x:Type TabItem}">
          <Setter Property="Template">
             <Setter.Value>
                <ControlTemplate TargetType="{x:Type TabItem}">
-                  <Border Name="OuterBorder" BorderThickness="0,0,1,0" BorderBrush="{solarized:Theme Background}">
+                  <Border Name="OuterBorder" BorderThickness="0,0,1,0" BorderBrush="{DynamicResource Background}">
                      <!-- used for the 1-pixel spacing between tabs -->
-                     <Border Name="Border" BorderThickness="1,1,1,0" BorderBrush="{solarized:Theme Backlight}" Background="{solarized:Theme Backlight}">
+                     <Border Name="Border" BorderThickness="1,1,1,0" BorderBrush="{DynamicResource Backlight}" Background="{DynamicResource Backlight}">
                         <!-- used for selection -->
-                        <Border Name="InnerBorder" BorderThickness="1,1,1,0" Padding="5,3" BorderBrush="{solarized:Theme Backlight}">
+                        <Border Name="InnerBorder" BorderThickness="1,1,1,0" Padding="5,3" BorderBrush="{DynamicResource Backlight}">
                            <!-- used for hover-over before selection -->
                            <ContentPresenter ContentSource="Header" />
                         </Border>
@@ -364,10 +384,10 @@
                   </Border>
                   <ControlTemplate.Triggers>
                      <Trigger Property="IsSelected" Value="True">
-                        <Setter TargetName="Border" Property="Background" Value="{solarized:Theme Background}"/>
+                        <Setter TargetName="Border" Property="Background" Value="{DynamicResource Background}"/>
                         <Setter TargetName="Border" Property="BorderBrush" Value="{solarized:Theme Blue}"/>
                         <Setter TargetName="InnerBorder" Property="BorderBrush" Value="{solarized:Theme Blue}"/>
-                        <Setter TargetName="OuterBorder" Property="BorderBrush" Value="{solarized:Theme Background}"/>
+                        <Setter TargetName="OuterBorder" Property="BorderBrush" Value="{DynamicResource Background}"/>
                         <Setter TargetName="Border" Property="Panel.ZIndex" Value="10"/>
                      </Trigger>
                      <Trigger Property="IsMouseOver" Value="True">

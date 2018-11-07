@@ -10,10 +10,30 @@ namespace HavenSoft.Gen3Hex.View {
    public partial class App {
       protected override void OnStartup(StartupEventArgs e) {
          base.OnStartup(e);
+         UpdateThemeDictionary();
+         Solarized.Theme.VariantChanged += (sender, args) => UpdateThemeDictionary();
+
          var fileName = e.Args?.Length == 1 ? e.Args[0] : string.Empty;
          var viewPort = GetViewModel(fileName);
          MainWindow = new MainWindow(viewPort);
          MainWindow.Show();
+      }
+
+      private void UpdateThemeDictionary() {
+         var dict = new ResourceDictionary {
+            { "Emphasis", Solarized.Theme.Emphasis },
+            { "Primary", Solarized.Theme.Primary },
+            { "Secondary", Solarized.Theme.Secondary },
+            { "Background", Solarized.Theme.Background },
+            { "Backlight", Solarized.Theme.Backlight },
+            { "EmphasisColor", Solarized.Theme.Emphasis.Color },
+            { "PrimaryColor", Solarized.Theme.Primary.Color },
+            { "SecondaryColor", Solarized.Theme.Secondary.Color },
+            { "BackgroundColor", Solarized.Theme.Background.Color },
+            { "BacklightColor", Solarized.Theme.Backlight.Color },
+         };
+         Resources.MergedDictionaries.Clear();
+         Resources.MergedDictionaries.Add(dict);
       }
 
       private EditorViewModel GetViewModel(string fileName) {

@@ -2,6 +2,7 @@
 using HavenSoft.ViewModel.DataFormats;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Globalization;
@@ -52,7 +53,11 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       public int MaximumScroll => scroll.MaximumScroll;
 
+      public ObservableCollection<string> Headers => scroll.Headers;
       public ICommand Scroll => scroll.Scroll;
+      public ICommand Goto => scroll.Goto;
+      public ICommand Back => scroll.Back;
+      public ICommand Forward => scroll.Forward;
 
       private void ScrollPropertyChanged(object sender, PropertyChangedEventArgs e) {
          if (e.PropertyName == nameof(scroll.DataIndex)) {

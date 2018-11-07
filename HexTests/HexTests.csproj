@@ -63,6 +63,7 @@
     <Compile Include="GeneralAppTests.cs" />
     <Compile Include="generatedCode\StubFileSystem.cs" />
     <Compile Include="generatedCode\StubTabContent.cs" />
+    <Compile Include="NavigationTests.cs" />
     <Compile Include="ViewPortCursorTests.cs" />
     <Compile Include="ViewPortEditTests.cs" />
     <Compile Include="ViewPortSaveTests.cs" />

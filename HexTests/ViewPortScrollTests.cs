@@ -163,10 +163,14 @@ namespace HavenSoft.HexTests {
       public void ScrollingRightUpdatesScrollValueIfNeeded() {
          var loadedFile = new LoadedFile("test", new byte[25]);
          var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         var changeCount = 0;
+
+         viewPort.CollectionChanged += (sender, e) => changeCount += 1;
 
          viewPort.Scroll.Execute(Direction.Right);
 
          Assert.Equal(1, viewPort.ScrollValue);
+         Assert.NotEqual(0, changeCount);
       }
 
       [Fact]

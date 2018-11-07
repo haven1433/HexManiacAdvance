@@ -11,7 +11,7 @@ using System.Windows.Media;
 
 namespace HavenSoft.Gen3Hex.View {
    public class HexContent : FrameworkElement {
-      public const int CellWidth = 30, CellHeight = 20;
+      public const double CellWidth = 30, CellHeight = 20;
 
       public static readonly Rect CellRect = new Rect(0, 0, CellWidth, CellHeight);
 
@@ -152,13 +152,13 @@ namespace HavenSoft.Gen3Hex.View {
       }
 
       private void UpdateViewPortSize() {
-         ViewPort.Width = (int)ActualWidth / CellWidth;
-         ViewPort.Height = (int)ActualHeight / CellHeight;
+         ViewPort.Width = (int)(ActualWidth / CellWidth);
+         ViewPort.Height = (int)(ActualHeight / CellHeight);
       }
 
       private Model.Point ControlCoordinatesToModelCoordinates(MouseEventArgs e) {
          var point = e.GetPosition(this);
-         return new Model.Point((int)point.X / CellWidth, (int)point.Y / CellHeight);
+         return new Model.Point((int)(point.X / CellWidth), (int)(point.Y / CellHeight));
       }
    }
 }
