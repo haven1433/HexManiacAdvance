@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Globalization;
 using System.Windows.Input;
 
 namespace HavenSoft.Gen3Hex.ViewModel {
@@ -14,26 +13,19 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          { Direction.Right, new Point( 1, 0) },
       };
 
-      private readonly StubCommand scroll, gotoCommand, back, forward;
-
-      // these back/forward stacks are not incapsulated in a history object because we want to be able to change a remembered address each time we visit it.
-      // if we navigate back, then scroll, then navigate forward, we want to remember the scroll if we go back again.
-      private readonly Stack<int> backStack = new Stack<int>(), forwardStack = new Stack<int>();
+      private readonly StubCommand scroll;
 
       private int dataIndex, width, height, scrollValue, maximumScroll, dataLength;
 
       public ICommand Scroll => scroll;
-      public ICommand Goto => gotoCommand;
-      public ICommand Back => back;
-      public ICommand Forward => forward;
 
       public int DataIndex {
          get => dataIndex;
-         private set {
+         set {
             var dif = value - dataIndex;
             if (TryUpdate(ref dataIndex, value)) {
                ScrollChanged?.Invoke(this, dif);
-               UpdateHeaders();
+               UpdateScrollRange();
             }
          }
       }
@@ -92,32 +84,6 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          scroll = new StubCommand {
             CanExecute = args => dataLength > 0,
             Execute = args => ScrollExecuted((Direction)args),
-         };
-         gotoCommand = new StubCommand {
-            CanExecute = args => true,
-            Execute = args => {
-               if (int.TryParse(args.ToString(), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int result)) {
-                  backStack.Push(DataIndex);
-                  forwardStack.Clear();
-                  DataIndex = result;
-               }
-            },
-         };
-         back = new StubCommand {
-            CanExecute = args => backStack.Count > 0,
-            Execute = args => {
-               if (backStack.Count == 0) return;
-               forwardStack.Push(DataIndex);
-               DataIndex = backStack.Pop();
-            },
-         };
-         forward = new StubCommand {
-            CanExecute = args => forwardStack.Count > 0,
-            Execute = args => {
-               if (forwardStack.Count == 0) return;
-               backStack.Push(DataIndex);
-               DataIndex = forwardStack.Pop();
-            },
          };
          UpdateHeaders();
       }

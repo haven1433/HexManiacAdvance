@@ -140,5 +140,34 @@ namespace HavenSoft.HexTests {
          viewPort.Forward.Execute();
          Assert.Equal("000A10", viewPort.Headers[0]);
       }
+
+      [Fact]
+      public void GotoMovesScroll() {
+         var viewPort = new ViewPort(new LoadedFile("test.txt", new byte[0x1000])) { Width = 0x10, Height = 0x10 };
+
+         viewPort.Goto.Execute("000A00");
+
+         Assert.NotEqual(0, viewPort.ScrollValue);
+      }
+
+      [Fact]
+      public void GotoErrorsOnBadAddress() {
+         var viewPort = new ViewPort(new LoadedFile("test.txt", new byte[0x1000])) { Width = 0x10, Height = 0x10 };
+         int errorCount = 0;
+         viewPort.OnError += (sender, e) => errorCount += 1;
+
+         viewPort.Goto.Execute("BadAddress");
+
+         Assert.Equal(1, errorCount);
+      }
+
+      [Fact]
+      public void GotoMovesSelection() {
+         var viewPort = new ViewPort(new LoadedFile("test.txt", new byte[0x1000])) { Width = 0x10, Height = 0x10 };
+
+         viewPort.Goto.Execute("000C00");
+
+         Assert.Equal(new Point(0, 0), viewPort.SelectionStart);
+      }
    }
 }

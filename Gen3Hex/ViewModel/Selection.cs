@@ -1,6 +1,8 @@
 ﻿using HavenSoft.Gen3Hex.Model;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 
@@ -9,9 +11,16 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       private readonly StubCommand
          moveSelectionStart = new StubCommand(),
-         moveSelectionEnd = new StubCommand();
+         moveSelectionEnd = new StubCommand(),
+         gotoCommand = new StubCommand(),
+         forward = new StubCommand(),
+         backward = new StubCommand();
 
       private readonly ScrollRegion scroll;
+
+      // these back/forward stacks are not incapsulated in a history object because we want to be able to change a remembered address each time we visit it.
+      // if we navigate back, then scroll, then navigate forward, we want to remember the scroll if we go back again.
+      private readonly Stack<int> backStack = new Stack<int>(), forwardStack = new Stack<int>();
 
       private Point selectionStart, selectionEnd;
 
@@ -45,8 +54,12 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       }
 
       public ICommand MoveSelectionStart => moveSelectionStart;
-
       public ICommand MoveSelectionEnd => moveSelectionEnd;
+      public ICommand Goto => gotoCommand;
+      public ICommand Forward => forward;
+      public ICommand Back => backward;
+
+      public event EventHandler<string> OnError;
 
       /// <summary>
       /// The owner may have something special going on with the selected point.
@@ -62,6 +75,40 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          moveSelectionStart.Execute = args => MoveSelectionStartExecuted((Direction)args);
          moveSelectionEnd.CanExecute = args => true;
          moveSelectionEnd.Execute = args => MoveSelectionEndExecuted((Direction)args);
+
+         gotoCommand = new StubCommand {
+            CanExecute = args => true,
+            Execute = args => {
+               var address = args.ToString();
+               if (int.TryParse(address, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int result)) {
+                  backStack.Push(scroll.DataIndex);
+                  forwardStack.Clear();
+                  scroll.DataIndex = result;
+                  SelectionStart = scroll.DataIndexToViewPoint(scroll.DataIndex);
+               } else {
+                  OnError?.Invoke(this, $"Unable to goto address '{address}'");
+               }
+            },
+         };
+         backward = new StubCommand {
+            CanExecute = args => backStack.Count > 0,
+            Execute = args => {
+               if (backStack.Count == 0) return;
+               forwardStack.Push(scroll.DataIndex);
+               scroll.DataIndex = backStack.Pop();
+               SelectionStart = scroll.DataIndexToViewPoint(scroll.DataIndex);
+            },
+         };
+         forward = new StubCommand {
+            CanExecute = args => forwardStack.Count > 0,
+            Execute = args => {
+               if (forwardStack.Count == 0) return;
+               backStack.Push(scroll.DataIndex);
+               scroll.DataIndex = forwardStack.Pop();
+               SelectionStart = scroll.DataIndexToViewPoint(scroll.DataIndex);
+            },
+         };
+
       }
 
       public bool IsSelected(Point point) {

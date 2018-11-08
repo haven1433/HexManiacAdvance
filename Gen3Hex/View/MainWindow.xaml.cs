@@ -107,6 +107,7 @@ namespace HavenSoft.Gen3Hex.View {
             GotoBox.SelectAll();
             Keyboard.Focus(GotoBox);
          } else {
+            if (ViewModel.SelectedIndex == -1) return;
             var selectedElement = (HexContent)GetChild(Tabs, "HexContent", ViewModel[ViewModel.SelectedIndex]);
             Keyboard.Focus(selectedElement);
          }

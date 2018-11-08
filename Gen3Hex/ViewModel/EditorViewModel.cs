@@ -11,10 +11,8 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       private readonly IFileSystem fileSystem;
       private readonly List<ITabContent> tabs;
-      private readonly StubCommand newCommand, open, save, saveAs, saveAll, close, closeAll, undo, redo, back, forward, gotoCommand, showGoto;
+      private readonly StubCommand newCommand, open, save, saveAs, saveAll, close, closeAll, undo, redo, back, forward, gotoCommand, showGoto, clearError;
       private readonly Dictionary<Func<ITabContent, ICommand>, EventHandler> forwardExecuteChangeNotifications;
-
-      private int selectedIndex;
 
       public ICommand New => newCommand;
       public ICommand Open => open;
@@ -29,11 +27,31 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public ICommand Forward => forward;
       public ICommand Goto => gotoCommand;
       public ICommand ShowGoto => showGoto;
+      public ICommand ClearError => clearError;
 
       private bool gotoControlVisible;
       public bool GotoControlVisible {
          get => gotoControlVisible;
-         set => TryUpdate(ref gotoControlVisible, value);
+         private set {
+            TryUpdate(ref gotoControlVisible, value);
+            if (value) ClearError.Execute();
+         }
+      }
+
+      private bool showError;
+      public bool ShowError {
+         get => showError;
+         private set {
+            if (TryUpdate(ref showError, value)) clearError.CanExecuteChanged.Invoke(clearError, EventArgs.Empty);
+         }
+      }
+
+      private string errorMessage;
+      public string ErrorMessage {
+         get => errorMessage;
+         private set {
+            if (TryUpdate(ref errorMessage, value)) ShowError = !string.IsNullOrEmpty(ErrorMessage);
+         }
       }
 
       #region Collection Properties
@@ -44,6 +62,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       public int Count => tabs.Count;
 
+      private int selectedIndex;
       public int SelectedIndex {
          get => selectedIndex;
          set {
@@ -87,6 +106,10 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             CanExecute = CanAlwaysExecute,
             Execute = arg => GotoControlVisible = (bool)arg,
          };
+         clearError = new StubCommand {
+            CanExecute = arg => showError,
+            Execute = arg => ErrorMessage = string.Empty,
+         };
          save = CreateWrapperForSelected(tab => tab.Save);
          saveAs = CreateWrapperForSelected(tab => tab.SaveAs);
          saveAll = CreateWrapperForAll(tab => tab.Save);
@@ -113,6 +136,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          SelectedIndex = tabs.Count - 1;
          CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, content));
          content.Closed += RemoveTab;
+         content.OnError += AcceptError;
          if (content.Save != null) content.Save.CanExecuteChanged += RaiseSaveAllCanExecuteChanged;
       }
 
@@ -188,8 +212,11 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
          tabs.Remove(tab);
          tab.Closed -= RemoveTab;
+         tab.OnError -= AcceptError;
          CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, tab, index));
       }
+
+      private void AcceptError(object sender, string message) => ErrorMessage = message;
 
       private void StartListeningToCommandsFromCurrentTab() {
          var commandsToRefresh = new List<StubCommand> {

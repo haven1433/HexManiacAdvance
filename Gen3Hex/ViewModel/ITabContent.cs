@@ -16,6 +16,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       ICommand Forward { get; }
       ICommand Close { get; }
 
+      event EventHandler<string> OnError;
       event EventHandler Closed;
    }
 }

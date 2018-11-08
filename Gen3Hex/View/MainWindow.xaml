@@ -4,6 +4,7 @@
         xmlns:hsg3hv="clr-namespace:HavenSoft.Gen3Hex.View"
         xmlns:hsv="clr-namespace:HavenSoft.View;assembly=HavenSoft"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:solarized="clr-namespace:Solarized;assembly=HavenSoft"
         Icon="..\Snorlax.ico"
         Title="Gen3Hex" Height="450" Width="800" AllowDrop="True" Background="{DynamicResource Background}">
    <Window.Resources>
@@ -19,6 +20,7 @@
 
       <KeyBinding Key="Z" Modifiers="Ctrl" Command="{Binding Undo}" />
       <KeyBinding Key="Y" Modifiers="Ctrl" Command="{Binding Redo}" />
+      <KeyBinding Key="Esc" Command="{Binding ClearError}"/>
       <KeyBinding Key="G" Modifiers="Ctrl" Command="{Binding ShowGoto}">
          <KeyBinding.CommandParameter>
             <sys:Boolean>true</sys:Boolean>
@@ -46,6 +48,12 @@
                   <KeyBinding Key="Return" Command="{Binding Goto}" CommandParameter="{Binding Text, ElementName=GotoBox}"/>
                </TextBox.InputBindings>
             </TextBox>
+         </StackPanel>
+         <StackPanel Orientation="Horizontal" Background="{DynamicResource Backlight}" DockPanel.Dock="Right" Visibility="{Binding ShowError, Converter={StaticResource BoolToVisibility}}">
+            <TextBlock Margin="10,0" VerticalAlignment="Center" Text="{Binding ErrorMessage}" Foreground="{solarized:Theme Red}"/>
+            <Button Command="{Binding ClearError}" Width="15">
+               <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+            </Button>
          </StackPanel>
          <Menu>
             <MenuItem Header="_File">
@@ -92,8 +100,9 @@
                <MenuItem Header="Go _Forward" Command="{Binding Forward}" InputGestureText="Ctrl+Shift+-"/>
             </MenuItem>
             <MenuItem Header="_View">
-            <MenuItem Header="_Toggle Theme" Click="ToggleTheme" InputGestureText="Ctrl+T"/>
-         </MenuItem>
+               <MenuItem Header="_Toggle Theme" Click="ToggleTheme" InputGestureText="Ctrl+T"/>
+               <MenuItem Header="_Clear Error" Command="{Binding ClearError}" InputGestureText="Esc"/>
+            </MenuItem>
          </Menu>
       </DockPanel>
       <TabControl Name="Tabs" ItemsSource="{Binding}" SelectedIndex="{Binding SelectedIndex}">

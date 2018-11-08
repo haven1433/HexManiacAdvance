@@ -7,6 +7,27 @@
       <!-- Icons accessible using IconExtension -->
       <hsv:Icons x:Key="Icons"/>
 
+      <!-- Button Style -->
+      <Style TargetType="Button">
+         <Setter Property="Padding" Value="3"/>
+         <Setter Property="BorderBrush" Value="{DynamicResource Backlight}"/>
+         <Setter Property="Background" Value="{DynamicResource Backlight}"/>
+         <Setter Property="Template">
+            <Setter.Value>
+               <ControlTemplate TargetType="Button">
+                  <Border Padding="{TemplateBinding Padding}" Name="Border" BorderThickness="1" BorderBrush="{TemplateBinding BorderBrush}" Background="{TemplateBinding Background}">
+                     <ContentPresenter/>
+                  </Border>
+                  <ControlTemplate.Triggers>
+                     <Trigger SourceName="Border" Property="IsMouseOver" Value="True">
+                        <Setter TargetName="Border" Property="BorderBrush" Value="{solarized:Theme Blue}"/>
+                     </Trigger>
+                  </ControlTemplate.Triggers>
+               </ControlTemplate>
+            </Setter.Value>
+         </Setter>
+      </Style>
+
       <!-- Scrollbar style. Based on normal style, but with solarize colors. -->
       <SolidColorBrush x:Key="ScrollBar.Static.Background" Color="{DynamicResource BackgroundColor}"/>
       <SolidColorBrush x:Key="ScrollBar.MouseOver.Background" Color="{DynamicResource BackgroundColor}"/>
