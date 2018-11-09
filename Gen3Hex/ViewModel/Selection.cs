@@ -18,7 +18,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       private readonly ScrollRegion scroll;
 
-      // these back/forward stacks are not incapsulated in a history object because we want to be able to change a remembered address each time we visit it.
+      // these back/forward stacks are not encapsulated in a history object because we want to be able to change a remembered address each time we visit it.
       // if we navigate back, then scroll, then navigate forward, we want to remember the scroll if we go back again.
       private readonly Stack<int> backStack = new Stack<int>(), forwardStack = new Stack<int>();
 

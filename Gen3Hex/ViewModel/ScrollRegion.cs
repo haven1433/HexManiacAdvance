@@ -128,12 +128,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          if (dif.Y != 0) {
             ScrollValue += dif.Y;
          } else {
-            var newDataIndex = (dataIndex + dif.X).LimitToRange(1 - width, dataLength - 1);
-            var scrollDif = newDataIndex - dataIndex;
-            if (TryUpdate(ref dataIndex, newDataIndex, nameof(DataIndex))) {
-               ScrollChanged?.Invoke(this, scrollDif);
-               UpdateScrollRange();
-            }
+            DataIndex = (dataIndex + dif.X).LimitToRange(1 - width, dataLength - 1);
          }
       }
 
