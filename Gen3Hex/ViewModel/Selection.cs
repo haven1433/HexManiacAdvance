@@ -83,8 +83,8 @@ namespace HavenSoft.Gen3Hex.ViewModel {
                if (int.TryParse(address, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int result)) {
                   backStack.Push(scroll.DataIndex);
                   forwardStack.Clear();
-                  scroll.DataIndex = result;
-                  SelectionStart = scroll.DataIndexToViewPoint(scroll.DataIndex);
+                  SelectionStart = scroll.DataIndexToViewPoint(result);
+                  scroll.ScrollValue += selectionStart.Y;
                } else {
                   OnError?.Invoke(this, $"Unable to goto address '{address}'");
                }
@@ -95,8 +95,8 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             Execute = args => {
                if (backStack.Count == 0) return;
                forwardStack.Push(scroll.DataIndex);
-               scroll.DataIndex = backStack.Pop();
-               SelectionStart = scroll.DataIndexToViewPoint(scroll.DataIndex);
+               SelectionStart = scroll.DataIndexToViewPoint(backStack.Pop());
+               scroll.ScrollValue += selectionStart.Y;
             },
          };
          forward = new StubCommand {
@@ -104,8 +104,8 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             Execute = args => {
                if (forwardStack.Count == 0) return;
                backStack.Push(scroll.DataIndex);
-               scroll.DataIndex = forwardStack.Pop();
-               SelectionStart = scroll.DataIndexToViewPoint(scroll.DataIndex);
+               SelectionStart = scroll.DataIndexToViewPoint(forwardStack.Pop());
+               scroll.ScrollValue += selectionStart.Y;
             },
          };
 

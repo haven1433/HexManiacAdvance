@@ -21,7 +21,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       public int DataIndex {
          get => dataIndex;
-         set {
+         private set {
             var dif = value - dataIndex;
             if (TryUpdate(ref dataIndex, value)) {
                ScrollChanged?.Invoke(this, dif);

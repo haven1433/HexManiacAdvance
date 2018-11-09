@@ -286,7 +286,7 @@ namespace HavenSoft.HexTests {
          editor.Add(tab);
 
          tab.OnError.Invoke(tab, "Some Message");
-         editor.ShowGoto.Execute();
+         editor.ShowGoto.Execute(true);
 
          Assert.True(editor.GotoControlVisible);
          Assert.False(editor.ShowError);
