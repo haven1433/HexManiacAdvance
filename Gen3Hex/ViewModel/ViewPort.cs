@@ -2,6 +2,7 @@
 using HavenSoft.ViewModel.DataFormats;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Globalization;
@@ -52,7 +53,11 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       public int MaximumScroll => scroll.MaximumScroll;
 
+      public ObservableCollection<string> Headers => scroll.Headers;
       public ICommand Scroll => scroll.Scroll;
+      public ICommand Goto => selection.Goto;
+      public ICommand Back => selection.Back;
+      public ICommand Forward => selection.Forward;
 
       private void ScrollPropertyChanged(object sender, PropertyChangedEventArgs e) {
          if (e.PropertyName == nameof(scroll.DataIndex)) {
@@ -188,6 +193,8 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          }
       }
 
+      public event EventHandler<string> OnError;
+
       public event NotifyCollectionChangedEventHandler CollectionChanged;
 
       public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
@@ -202,6 +209,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          selection = new Selection(scroll);
          selection.PropertyChanged += SelectionPropertyChanged;
          selection.PreviewSelectionStartChanged += ClearActiveEditBeforeSelectionChanges;
+         selection.OnError += (sender, e) => OnError?.Invoke(this, e);
 
          history = new ChangeHistory<Dictionary<int, HexElement>>(RevertChanges);
          history.PropertyChanged += HistoryPropertyChanged;

@@ -93,9 +93,24 @@ namespace HavenSoft.Gen3Hex.View {
 
       #endregion
 
+      private void ToggleTheme(object sender, EventArgs e) {
+         Solarized.Theme.CurrentVariant = 1 - Solarized.Theme.CurrentVariant;
+      }
+
       private void ExitClicked(object sender, EventArgs e) {
          ViewModel.CloseAll.Execute();
          if (ViewModel.Count == 0) Close();
+      }
+
+      private void GotoBoxVisibilityChanged(object sender, DependencyPropertyChangedEventArgs e) {
+         if (GotoBox.IsVisible) {
+            GotoBox.SelectAll();
+            Keyboard.Focus(GotoBox);
+         } else {
+            if (ViewModel.SelectedIndex == -1) return;
+            var selectedElement = (HexContent)GetChild(Tabs, "HexContent", ViewModel[ViewModel.SelectedIndex]);
+            Keyboard.Focus(selectedElement);
+         }
       }
    }
 }

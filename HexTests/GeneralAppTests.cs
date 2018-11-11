@@ -251,6 +251,47 @@ namespace HavenSoft.HexTests {
          Assert.Equal(1, count);
       }
 
+      [Fact]
+      public void EditorShowsErrors() {
+         var tab = new StubTabContent();
+         editor.Add(tab);
+         var clearErrorChangedNotifications = 0;
+         editor.ClearError.CanExecuteChanged += (sender, e) => clearErrorChangedNotifications += 1;
+
+         tab.OnError.Invoke(tab, "Some Message");
+
+         Assert.True(editor.ShowError);
+         Assert.Equal(editor.ErrorMessage, "Some Message");
+         Assert.Equal(1, clearErrorChangedNotifications);
+      }
+
+      [Fact]
+      public void EditorCanClearErrors() {
+         var tab = new StubTabContent();
+         editor.Add(tab);
+         var clearErrorChangedNotifications = 0;
+         editor.ClearError.CanExecuteChanged += (sender, e) => clearErrorChangedNotifications += 1;
+
+         tab.OnError.Invoke(tab, "Some Message");
+         editor.ClearError.Execute();
+
+         Assert.False(editor.ShowError);
+         Assert.Equal(editor.ErrorMessage, string.Empty);
+         Assert.Equal(2, clearErrorChangedNotifications);
+      }
+
+      [Fact]
+      public void ShowingGotoClearsErrors() {
+         var tab = new StubTabContent();
+         editor.Add(tab);
+
+         tab.OnError.Invoke(tab, "Some Message");
+         editor.ShowGoto.Execute(true);
+
+         Assert.True(editor.GotoControlVisible);
+         Assert.False(editor.ShowError);
+      }
+
       private StubTabContent CreateClosableTab() {
          var tab = new StubTabContent();
          var close = new StubCommand { CanExecute = arg => true };

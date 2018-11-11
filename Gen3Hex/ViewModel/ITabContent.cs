@@ -11,8 +11,12 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       ICommand SaveAs { get; }
       ICommand Undo { get; }
       ICommand Redo { get; }
+      ICommand Goto { get; }
+      ICommand Back { get; }
+      ICommand Forward { get; }
       ICommand Close { get; }
 
+      event EventHandler<string> OnError;
       event EventHandler Closed;
    }
 }
