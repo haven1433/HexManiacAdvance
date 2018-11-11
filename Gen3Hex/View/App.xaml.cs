@@ -1,5 +1,6 @@
 ﻿using HavenSoft.Gen3Hex.Model;
 using HavenSoft.Gen3Hex.ViewModel;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Windows;
@@ -26,11 +27,6 @@ namespace HavenSoft.Gen3Hex.View {
             { "Secondary", Solarized.Theme.Secondary },
             { "Background", Solarized.Theme.Background },
             { "Backlight", Solarized.Theme.Backlight },
-            { "EmphasisColor", Solarized.Theme.Emphasis.Color },
-            { "PrimaryColor", Solarized.Theme.Primary.Color },
-            { "SecondaryColor", Solarized.Theme.Secondary.Color },
-            { "BackgroundColor", Solarized.Theme.Background.Color },
-            { "BacklightColor", Solarized.Theme.Backlight.Color },
          };
          Resources.MergedDictionaries.Clear();
          Resources.MergedDictionaries.Add(dict);
