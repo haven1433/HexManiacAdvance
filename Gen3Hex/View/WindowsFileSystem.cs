@@ -6,6 +6,11 @@ using System.Windows;
 
 namespace HavenSoft.Gen3Hex.View {
    public class WindowsFileSystem : IFileSystem {
+      public string CopyText {
+         get => Clipboard.ContainsText() ? Clipboard.GetText() : string.Empty;
+         set => Clipboard.SetText(value);
+      }
+
       public LoadedFile OpenFile(params string[] extensionOptions) {
          var dialog = new OpenFileDialog { Filter = CreateFilterFromOptions(extensionOptions) };
          var result = dialog.ShowDialog();

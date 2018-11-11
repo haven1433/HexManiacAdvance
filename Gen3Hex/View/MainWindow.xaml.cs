@@ -102,6 +102,10 @@ namespace HavenSoft.Gen3Hex.View {
          if (ViewModel.Count == 0) Close();
       }
 
+      private void WikiClick(object sender, EventArgs e) => System.Diagnostics.Process.Start("https://github.com/haven1433/gen3hex/wiki");
+      private void ReportIssueClick(object sender, EventArgs e) => System.Diagnostics.Process.Start("https://github.com/haven1433/gen3hex/issues");
+      private void AboutClick(object sender, EventArgs e) => new AboutWindow().ShowDialog();
+
       private void GotoBoxVisibilityChanged(object sender, DependencyPropertyChangedEventArgs e) {
          if (GotoBox.IsVisible) {
             GotoBox.SelectAll();

@@ -11,7 +11,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       private readonly IFileSystem fileSystem;
       private readonly List<ITabContent> tabs;
-      private readonly StubCommand newCommand, open, save, saveAs, saveAll, close, closeAll, undo, redo, back, forward, gotoCommand, showGoto, clearError;
+      private readonly StubCommand newCommand, open, save, saveAs, saveAll, close, closeAll, undo, redo, cut, copy, paste, delete, back, forward, gotoCommand, showGoto, clearError;
       private readonly Dictionary<Func<ITabContent, ICommand>, EventHandler> forwardExecuteChangeNotifications;
 
       public ICommand New => newCommand;
@@ -23,6 +23,10 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public ICommand CloseAll => closeAll;
       public ICommand Undo => undo;
       public ICommand Redo => redo;
+      public ICommand Cut => cut;
+      public ICommand Copy => copy;
+      public ICommand Paste => paste;
+      public ICommand Delete => delete;
       public ICommand Back => back;
       public ICommand Forward => forward;
       public ICommand Goto => gotoCommand;
@@ -110,6 +114,21 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             CanExecute = arg => showError,
             Execute = arg => ErrorMessage = string.Empty,
          };
+         cut = new StubCommand {
+            CanExecute = arg => SelectedTab?.Copy?.CanExecute(arg) ?? false,
+            Execute = arg => {
+               if (SelectedTab != null && SelectedTab.Copy != null && SelectedTab.Clear != null) {
+                  SelectedTab.Copy.Execute(fileSystem);
+                  SelectedTab.Clear.Execute();
+               }
+            }
+         };
+         copy = CreateWrapperForSelected(tab => tab.Copy);
+         paste = new StubCommand {
+            CanExecute = arg => SelectedTab is ViewPort,
+            Execute = arg => (SelectedTab as ViewPort)?.Edit(fileSystem.CopyText),
+         };
+         delete = CreateWrapperForSelected(tab => tab.Clear);
          save = CreateWrapperForSelected(tab => tab.Save);
          saveAs = CreateWrapperForSelected(tab => tab.SaveAs);
          saveAll = CreateWrapperForAll(tab => tab.Save);

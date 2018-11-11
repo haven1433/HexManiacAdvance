@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Windows.Input;
 
 namespace HavenSoft.Gen3Hex.ViewModel {
@@ -16,6 +17,9 @@ namespace HavenSoft.Gen3Hex.ViewModel {
    /// </summary>
    public class ViewPort : ViewModelCore, ITabContent, INotifyCollectionChanged {
       private static readonly NotifyCollectionChangedEventArgs ResetArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
+      private readonly StubCommand
+         clear = new StubCommand(),
+         copy = new StubCommand();
 
       private byte[] data;
       private HexElement[,] currentView;
@@ -184,6 +188,9 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       #endregion
 
+      public ICommand Copy => copy;
+      public ICommand Clear => clear;
+
       public HexElement this[int x, int y] {
          get {
             if (x < 0 || x >= Width) return HexElement.Undefined;
@@ -214,6 +221,29 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          history = new ChangeHistory<Dictionary<int, HexElement>>(RevertChanges);
          history.PropertyChanged += HistoryPropertyChanged;
 
+         clear.CanExecute = arg => true;
+         clear.Execute = arg => {
+            var selectionStart = scroll.ViewPointToDataIndex(selection.SelectionStart);
+            var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
+            var left = Math.Min(selectionStart, selectionEnd);
+            var right = Math.Max(selectionStart, selectionEnd);
+            for (int i = left; i <= right; i++) data[i] = 0xFF;
+            RefreshBackingData();
+         };
+
+         copy.CanExecute = arg => true;
+         copy.Execute = arg => {
+            var selectionStart = scroll.ViewPointToDataIndex(selection.SelectionStart);
+            var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
+            var left = Math.Min(selectionStart, selectionEnd);
+            var right = Math.Max(selectionStart, selectionEnd);
+            var buffer = new StringBuilder();
+            for (int i = left; i <= right; i++) {
+               buffer.Append(data[i].ToString("X2"));
+               if (i < right) buffer.Append(" ");
+            }
+            ((IFileSystem)arg).CopyText = buffer.ToString();
+         };
          save = new StubCommand {
             CanExecute = arg => !history.IsSaved,
             Execute = arg => SaveExecuted((IFileSystem)arg),

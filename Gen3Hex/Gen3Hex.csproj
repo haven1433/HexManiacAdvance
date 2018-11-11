@@ -68,7 +68,14 @@
     <Compile Include="ViewModel\Selection.cs" />
     <Compile Include="ViewModel\ViewModelCore.cs" />
     <Compile Include="ViewModel\ViewPort.cs" />
+    <Compile Include="View\AboutWindow.xaml.cs">
+      <DependentUpon>AboutWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\WindowsFileSystem.cs" />
+    <Page Include="View\AboutWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -96,6 +103,7 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Snorlax.ico" />
+    <Resource Include="snorlax.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
