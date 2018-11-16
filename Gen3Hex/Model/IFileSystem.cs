@@ -1,5 +1,7 @@
 ﻿namespace HavenSoft.Gen3Hex.Model {
    public interface IFileSystem {
+      string CopyText { get; set; }
+
       /// <summary>
       /// Have the filesystem ask the user for a new name for a file.
       /// If no extensionOptions are provided, the user may specify any extension.

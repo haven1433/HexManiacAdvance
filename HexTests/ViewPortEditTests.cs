@@ -252,5 +252,31 @@ namespace HavenSoft.HexTests {
          Assert.NotEqual(Undefined.Instance, viewPort[0, 4].Format);
          Assert.Equal(new Point(1, 4), viewPort.SelectionStart);
       }
+
+      [Fact]
+      void CanClearData() {
+         var loadedFile = new LoadedFile("test", new byte[1000]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+
+         viewPort.SelectionStart = new Point(0, 0);
+         viewPort.SelectionEnd = new Point(3, 3);
+         viewPort.Clear.Execute();
+
+         Assert.Equal(0xFF, viewPort[2, 2].Value);
+      }
+
+      [Fact]
+      void CanCopyData() {
+         var loadedFile = new LoadedFile("test", new byte[1000]);
+         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         var fileSystem = new StubFileSystem();
+
+         viewPort.Edit("Cafe Babe");
+         viewPort.SelectionStart = new Point(0, 0);
+         viewPort.SelectionEnd = new Point(3, 0);
+         viewPort.Copy.Execute(fileSystem);
+
+         Assert.Equal("CA FE BA BE", fileSystem.CopyText);
+      }
    }
 }

@@ -20,7 +20,9 @@
 
       <KeyBinding Key="Z" Modifiers="Ctrl" Command="{Binding Undo}" />
       <KeyBinding Key="Y" Modifiers="Ctrl" Command="{Binding Redo}" />
-      <KeyBinding Key="Esc" Command="{Binding ClearError}"/>
+      <KeyBinding Key="X" Modifiers="Ctrl" Command="{Binding Cut}" />
+      <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding Copy}" />
+      <KeyBinding Key="P" Modifiers="Ctrl" Command="{Binding Paste}" />
       <KeyBinding Key="G" Modifiers="Ctrl" Command="{Binding ShowGoto}">
          <KeyBinding.CommandParameter>
             <sys:Boolean>true</sys:Boolean>
@@ -30,6 +32,7 @@
       <KeyBinding Key="OemMinus" Modifiers="Ctrl+Shift" Command="{Binding Forward}" />
 
       <KeyBinding Key="T" Modifiers="Ctrl" Command="ToggleBullets" /> <!-- Stealing this routed command for toggling theme -->
+      <KeyBinding Key="Esc" Command="{Binding ClearError}"/>
    </Window.InputBindings>
    <Window.CommandBindings>
       <CommandBinding Command="ToggleBullets" Executed="ToggleTheme"/>
@@ -95,6 +98,11 @@
                   </MenuItem.Icon>
                </MenuItem>
                <Separator />
+               <MenuItem Header="Cu_t" Command="{Binding Cut}" InputGestureText="Ctrl+X"/>
+               <MenuItem Header="_Copy" Command="{Binding Copy}" InputGestureText="Ctrl+C"/>
+               <MenuItem Header="_Paste" Command="{Binding Paste}" InputGestureText="Ctrl+V"/>
+               <MenuItem Header="_Delete" Command="{Binding Delete}" InputGestureText="Del"/>
+               <Separator />
                <MenuItem Header="_Goto" Command="GoToPage" InputGestureText="Ctrl+G"/>
                <MenuItem Header="Go _Back" Command="{Binding Back}" InputGestureText="Ctrl+-"/>
                <MenuItem Header="Go _Forward" Command="{Binding Forward}" InputGestureText="Ctrl+Shift+-"/>
@@ -102,6 +110,11 @@
             <MenuItem Header="_View">
                <MenuItem Header="_Toggle Theme" Click="ToggleTheme" InputGestureText="Ctrl+T"/>
                <MenuItem Header="_Clear Error" Command="{Binding ClearError}" InputGestureText="Esc"/>
+            </MenuItem>
+            <MenuItem Header="_Help">
+               <MenuItem Header="_Wiki" Click="WikiClick"/>
+               <MenuItem Header="_Report an Issue" Click="ReportIssueClick"/>
+               <MenuItem Header="_About" Click="AboutClick"/>
             </MenuItem>
          </Menu>
       </DockPanel>
