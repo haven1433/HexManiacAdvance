@@ -236,13 +236,9 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             var selectionStart = scroll.ViewPointToDataIndex(selection.SelectionStart);
             var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
             var left = Math.Min(selectionStart, selectionEnd);
-            var right = Math.Max(selectionStart, selectionEnd);
-            var buffer = new StringBuilder();
-            for (int i = left; i <= right; i++) {
-               buffer.Append(data[i].ToString("X2"));
-               if (i < right) buffer.Append(" ");
-            }
-            ((IFileSystem)arg).CopyText = buffer.ToString();
+            var length = Math.Abs(selectionEnd - selectionStart) + 1;
+            var bytes = Enumerable.Range(left, length).Select(i => data[i]);
+            ((IFileSystem)arg).CopyText = string.Join(" ", bytes.Select(value => value.ToString("X2")));
          };
          save = new StubCommand {
             CanExecute = arg => !history.IsSaved,
