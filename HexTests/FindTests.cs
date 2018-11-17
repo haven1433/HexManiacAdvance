@@ -1,6 +1,5 @@
 ﻿using HavenSoft.Gen3Hex.Model;
 using HavenSoft.Gen3Hex.ViewModel;
-using System.Linq;
 using System.Windows.Input;
 using Xunit;
 
@@ -68,7 +67,7 @@ namespace HavenSoft.HexTests {
 
          tab.Find = str => new[] { 0x54, 0x154 };
          tab.CreateChildView = (int offset) => {
-            var child = new ViewPort(new LoadedFile(string.Empty, new byte[0x50]));
+            var child = new ChildViewPort(new StubViewPort(), new byte[0x50]);
             count++;
             return child;
          };
@@ -88,6 +87,7 @@ namespace HavenSoft.HexTests {
 
          tab.Find = str => new[] { 0x54, 0x154 };
          tab.Goto = new StubCommand { CanExecute = arg => true, Execute = arg => gotoCount++ };
+         editor.Find.Execute("something");
          editor.FindNext.Execute("something");
          editor.FindPrevious.Execute("something");
 

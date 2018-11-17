@@ -12,7 +12,6 @@ using System.Text;
 using System.Windows.Input;
 
 namespace HavenSoft.Gen3Hex.ViewModel {
-
    /// <summary>
    /// A range of visible data that should be displayed.
    /// </summary>
@@ -60,9 +59,6 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       public ObservableCollection<string> Headers => scroll.Headers;
       public ICommand Scroll => scroll.Scroll;
-      public ICommand Goto => selection.Goto;
-      public ICommand Back => selection.Back;
-      public ICommand Forward => selection.Forward;
 
       private void ScrollPropertyChanged(object sender, PropertyChangedEventArgs e) {
          if (e.PropertyName == nameof(scroll.DataIndex)) {
@@ -93,8 +89,10 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       }
 
       public ICommand MoveSelectionStart => selection.MoveSelectionStart;
-
       public ICommand MoveSelectionEnd => selection.MoveSelectionEnd;
+      public ICommand Goto => selection.Goto;
+      public ICommand Back => selection.Back;
+      public ICommand Forward => selection.Forward;
 
       private void ClearActiveEditBeforeSelectionChanges(object sender, Point location) {
          if (location.X >= 0 && location.X < scroll.Width && location.Y >= 0 && location.Y < scroll.Height) {
@@ -202,8 +200,8 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       }
 
       public event EventHandler<string> OnError;
-
       public event NotifyCollectionChangedEventHandler CollectionChanged;
+      public event EventHandler<ITabContent> RequestTabChange;
 
       public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
 
@@ -263,14 +261,38 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          for (int i = 0; i < input.Length; i++) Edit(input[i]);
       }
 
-      public IReadOnlyList<int> Find(string search) {
-         // TODO
+      public IReadOnlyList<int> Find(string rawSearch) {
+         var results = new List<int>();
+
+         // basic attempt: see if the search term is a string of bytes
+         var cleanedSearch = rawSearch.Replace(" ", string.Empty).ToUpper();
+         var hex = "0123456789ABCDEF";
+         if (cleanedSearch.All(hex.Contains) && cleanedSearch.Length % 2 == 0) {
+            var search = new byte[cleanedSearch.Length / 2];
+            for (int i = 0; i < search.Length; i++) {
+               var thisByte = cleanedSearch.Substring(i * 2, 2);
+               search[i] += (byte)(hex.IndexOf(thisByte[0]) * 0x10);
+               search[i] += (byte)hex.IndexOf(thisByte[1]);
+            }
+            for (int i = 0; i < data.Length - search.Length; i++) {
+               for (int j = 0; j < search.Length; j++) {
+                  if (data[i + j] != search[j]) break;
+                  if (j == search.Length - 1) results.Add(i);
+               }
+            }
+            return results;
+         }
+
          return new int[0];
       }
 
-      public IViewPort CreateChildView(int offset) {
-         return null;
+      public ChildViewPort CreateChildView(int offset) {
+         var child = new ChildViewPort(this, data);
+         child.Goto.Execute(offset.ToString("X2"));
+         return child;
       }
+
+      public void FollowLink(int x, int y) { }
 
       private void Edit(char input) {
          var point = GetEditPoint();

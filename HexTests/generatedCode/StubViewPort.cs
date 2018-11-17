@@ -37,9 +37,9 @@ namespace HavenSoft.Gen3Hex.ViewModel
             }
         }
         
-        public Func<int, IViewPort> CreateChildView { get; set; }
+        public Func<int, ChildViewPort> CreateChildView { get; set; }
         
-        IViewPort IViewPort.CreateChildView(int offset)
+        ChildViewPort IViewPort.CreateChildView(int offset)
         {
             if (this.CreateChildView != null)
             {
@@ -47,7 +47,17 @@ namespace HavenSoft.Gen3Hex.ViewModel
             }
             else
             {
-                return default(IViewPort);
+                return default(ChildViewPort);
+            }
+        }
+        
+        public Action<int, int> FollowLink { get; set; }
+        
+        void IViewPort.FollowLink(int x, int y)
+        {
+            if (this.FollowLink != null)
+            {
+                this.FollowLink(x, y);
             }
         }
         
@@ -93,6 +103,9 @@ namespace HavenSoft.Gen3Hex.ViewModel
             get
             {
                 return this.ScrollValue.get();
+            }
+            set {
+                this.ScrollValue.set(value);
             }
         }
         public PropertyImplementation<int> MaximumScroll = new PropertyImplementation<int>();
@@ -254,6 +267,19 @@ namespace HavenSoft.Gen3Hex.ViewModel
             remove
             {
                 Closed.remove(new EventHandler<System.EventArgs>(value));
+            }
+        }
+        public EventImplementation<ITabContent> RequestTabChange = new EventImplementation<ITabContent>();
+        
+        event System.EventHandler<ITabContent> ITabContent.RequestTabChange
+        {
+            add
+            {
+                RequestTabChange.add(new EventHandler<ITabContent>(value));
+            }
+            remove
+            {
+                RequestTabChange.remove(new EventHandler<ITabContent>(value));
             }
         }
         public EventImplementation<NotifyCollectionChangedEventArgs> CollectionChanged = new EventImplementation<NotifyCollectionChangedEventArgs>();

@@ -11,7 +11,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       int Height { get; set; }
 
       int MinimumScroll { get; }
-      int ScrollValue { get; }
+      int ScrollValue { get; set;  }
       int MaximumScroll { get; }
       ObservableCollection<string> Headers { get; }
       ICommand Scroll { get; }
@@ -20,6 +20,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       bool IsSelected(Point point);
 
       IReadOnlyList<int> Find(string search);
-      IViewPort CreateChildView(int offset);
+      ChildViewPort CreateChildView(int offset);
+      void FollowLink(int x, int y);
    }
 }

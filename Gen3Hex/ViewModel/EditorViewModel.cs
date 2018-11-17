@@ -208,6 +208,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, content));
          content.Closed += RemoveTab;
          content.OnError += AcceptError;
+         content.RequestTabChange += TabChangeRequested;
          if (content.Save != null) content.Save.CanExecuteChanged += RaiseSaveAllCanExecuteChanged;
       }
 
@@ -262,7 +263,30 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       }
 
       private void FindExecuted(string search) {
+         var results = new List<(IViewPort, int)>();
+         foreach (var tab in tabs) {
+            if (tab is IViewPort viewPort) results.AddRange(viewPort.Find(search).Select(offset => (viewPort, offset)));
+         }
 
+         if (results.Count == 0) {
+            ErrorMessage = $"Could not find {search}.";
+            return;
+         }
+
+         recentFindResults = results.ToArray();
+
+         if (results.Count == 1) {
+            var (tab, offset) = results[0];
+            tab.Goto.Execute(offset.ToString("X2"));
+            return;
+         }
+
+         var newTab = new CompositeViewPort(search);
+         foreach (var (tab, offset) in results) {
+            newTab.Add(tab.CreateChildView(offset));
+         }
+
+         Add(newTab);
       }
 
       private void RemoveTab(object sender, EventArgs e) {
@@ -276,6 +300,8 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             StopListeningToCommandsFromCurrentTab();
             tabs.Remove(tab);
             tab.Closed -= RemoveTab;
+            tab.OnError -= AcceptError;
+            tab.RequestTabChange -= TabChangeRequested;
             if (selectedIndex == tabs.Count) TryUpdate(ref selectedIndex, tabs.Count - 1, nameof(SelectedIndex));
             CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, tab, index));
             StartListeningToCommandsFromCurrentTab();
@@ -288,10 +314,22 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          tabs.Remove(tab);
          tab.Closed -= RemoveTab;
          tab.OnError -= AcceptError;
+         tab.RequestTabChange -= TabChangeRequested;
          CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, tab, index));
       }
 
       private void AcceptError(object sender, string message) => ErrorMessage = message;
+
+      private void TabChangeRequested(object sender, ITabContent newTab) {
+         if (sender != SelectedTab) return;
+         var index = tabs.IndexOf(newTab);
+         if (index == -1) {
+            Add(newTab);
+            return;
+         }
+
+         SelectedIndex = index;
+      }
 
       private void StartListeningToCommandsFromCurrentTab() {
          var commandsToRefresh = new List<StubCommand> {

@@ -60,6 +60,7 @@
     <Compile Include="Model\IFileSystem.cs" />
     <Compile Include="Model\LoadedFile.cs" />
     <Compile Include="Model\Point.cs" />
+    <Compile Include="ViewModel\ChildViewPort.cs" />
     <Compile Include="ViewModel\CompositeViewPort.cs" />
     <Compile Include="ViewModel\DataFormats.cs" />
     <Compile Include="ViewModel\EditorViewModel.cs" />

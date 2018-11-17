@@ -7,57 +7,123 @@ using System.Windows.Input;
 
 namespace HavenSoft.Gen3Hex.ViewModel {
    public class CompositeViewPort : ViewModelCore, IViewPort {
-      public HexElement this[int x, int y] => throw new NotImplementedException();
+      private readonly StubCommand scroll, close;
+      private readonly List<ChildViewPort> children = new List<ChildViewPort>();
+      private int width, height, scrollValue, maxScrollValue;
 
-      public int Width { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-      public int Height { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+      #region Implementing IViewPort
 
-      public int MinimumScroll => throw new NotImplementedException();
+      public HexElement this[int x, int y] {
+         get {
+            if (y < 0 || y > height || x < 0 || x > width) return HexElement.Undefined;
 
-      public int ScrollValue => throw new NotImplementedException();
+            int line = scrollValue + y;
+            int childIndex = 0;
+            while(childIndex<children.Count && children[childIndex].Height < line) {
+               line -= children[childIndex].Height + 1; childIndex++;
+            }
 
-      public int MaximumScroll => throw new NotImplementedException();
+            if (line == -1 || childIndex >= children.Count) return HexElement.Undefined;
+            return children[childIndex][x, line];
+         }
+      }
 
-      public ObservableCollection<string> Headers => throw new NotImplementedException();
-
-      public ICommand Scroll => throw new NotImplementedException();
-
-      public string Name => throw new NotImplementedException();
-
-      public ICommand Save => throw new NotImplementedException();
-
-      public ICommand SaveAs => throw new NotImplementedException();
-
-      public ICommand Undo => throw new NotImplementedException();
-
-      public ICommand Redo => throw new NotImplementedException();
-
-      public ICommand Copy => throw new NotImplementedException();
-
-      public ICommand Clear => throw new NotImplementedException();
-
-      public ICommand Goto => throw new NotImplementedException();
-
-      public ICommand Back => throw new NotImplementedException();
-
-      public ICommand Forward => throw new NotImplementedException();
-
-      public ICommand Close => throw new NotImplementedException();
+      public int Width { get => width; set {
+            if (TryUpdate(ref width, value)) NotifyCollectionChanged();
+         }
+      }
+      public int Height {
+         get => height; set {
+            if (TryUpdate(ref height, value)) NotifyCollectionChanged();
+         }
+      }
+      public int MinimumScroll => 0;
+      public int ScrollValue {
+         get => scrollValue; set {
+            if (TryUpdate(ref scrollValue, value)) NotifyCollectionChanged();
+         }
+      }
+      public int MaximumScroll { get => maxScrollValue; private set => TryUpdate(ref maxScrollValue, value); }
+      public ObservableCollection<string> Headers { get; } = new ObservableCollection<string>();
+      public ICommand Scroll => scroll;
+      public string Name { get; }
+      public ICommand Save => null;
+      public ICommand SaveAs => null;
+      public ICommand Undo => null;
+      public ICommand Redo => null;
+      public ICommand Copy => null;
+      public ICommand Clear => null;
+      public ICommand Goto => null;
+      public ICommand Back => null;
+      public ICommand Forward => null;
+      public ICommand Close => close;
 
       public event EventHandler<string> OnError;
       public event EventHandler Closed;
       public event NotifyCollectionChangedEventHandler CollectionChanged;
+      public event EventHandler<ITabContent> RequestTabChange;
 
-      public IViewPort CreateChildView(int offset) {
-         throw new NotImplementedException();
+      #endregion
+
+      public CompositeViewPort(string searchTerm) {
+         Name = $"Results for {searchTerm}";
+         width = 4;
+         height = 4;
+
+         scroll = new StubCommand {
+            CanExecute = arg => (Direction)arg != Direction.Left && (Direction)arg != Direction.Right,
+            Execute = arg => {
+               var direction = (Direction)arg;
+               if (direction == Direction.Up) ScrollValue--;
+               if (direction == Direction.Down) ScrollValue++;
+            },
+         };
+
+         close = new StubCommand {
+            CanExecute = arg => true,
+            Execute = arg => Closed?.Invoke(this, EventArgs.Empty),
+         };
       }
 
-      public IReadOnlyList<int> Find(string search) {
-         throw new NotImplementedException();
+      public void Add(ChildViewPort child) {
+         children.Add(child);
+         NotifyCollectionChanged();
       }
+
+      public ChildViewPort CreateChildView(int offset) => throw new NotImplementedException();
+
+      public IReadOnlyList<int> Find(string search) => new int[0];
 
       public bool IsSelected(Point point) {
-         throw new NotImplementedException();
+         var (x, y) = (point.X, point.Y);
+         if (y < 0 || y > height || x < 0 || x > width) return false;
+
+         int line = scrollValue + y;
+         int childIndex = 0;
+         while (childIndex < children.Count && children[childIndex].Height < line) {
+            line -= children[childIndex].Height + 1; childIndex++;
+         }
+
+         if (line == -1 || childIndex >= children.Count) return false;
+         return children[childIndex].IsSelected(new Point(x, line));
       }
+
+      public void FollowLink(int x, int y) {
+         if (y < 0 || y > height || x < 0 || x > width) return;
+
+         int line = scrollValue + y;
+         int childIndex = 0;
+         while (childIndex < children.Count && children[childIndex].Height < line) {
+            line -= children[childIndex].Height + 1; childIndex++;
+         }
+
+         if (line == -1 || childIndex >= children.Count) return;
+         var child = children[childIndex];
+         var parent = child.Parent;
+         parent.ScrollValue = child.ScrollValue - (y - line);
+         RequestTabChange?.Invoke(this, parent);
+      }
+
+      private void NotifyCollectionChanged() => CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
    }
 }

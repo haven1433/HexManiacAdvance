@@ -20,5 +20,6 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       event EventHandler<string> OnError;
       event EventHandler Closed;
+      event EventHandler<ITabContent> RequestTabChange;
    }
 }
