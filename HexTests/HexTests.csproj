@@ -64,6 +64,7 @@
     <Compile Include="GeneralAppTests.cs" />
     <Compile Include="generatedCode\StubFileSystem.cs" />
     <Compile Include="generatedCode\StubTabContent.cs" />
+    <Compile Include="generatedCode\StubViewPort.cs" />
     <Compile Include="NavigationTests.cs" />
     <Compile Include="ViewPortCursorTests.cs" />
     <Compile Include="ViewPortEditTests.cs" />
@@ -105,7 +106,7 @@
   <PropertyGroup>
     <PreBuildEvent>if not exist $(ProjectDir)generatedCode mkdir $(ProjectDir)generatedCode
 
-$(SolutionDir)packages\HavenSoft.AutoImplement.1.0.1\AutoImplement $(SolutionDir)Gen3Hex\$(OutDir)Gen3Hex.exe ITabContent IFileSystem
+$(SolutionDir)packages\HavenSoft.AutoImplement.1.0.1\AutoImplement $(SolutionDir)Gen3Hex\$(OutDir)Gen3Hex.exe ITabContent IFileSystem IViewPort
 move /Y StubTabContent.cs $(ProjectDir)generatedCode
 move /Y StubFileSystem.cs $(ProjectDir)generatedCode
 

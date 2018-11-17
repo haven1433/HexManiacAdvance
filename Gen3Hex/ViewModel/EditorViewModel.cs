@@ -11,8 +11,13 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       private readonly IFileSystem fileSystem;
       private readonly List<ITabContent> tabs;
-      private readonly StubCommand newCommand, open, save, saveAs, saveAll, close, closeAll, undo, redo, cut, copy, paste, delete, back, forward, gotoCommand, showGoto, clearError;
+      private readonly StubCommand newCommand, open, save, saveAs, saveAll, close, closeAll;
+      private readonly StubCommand undo, redo, cut, copy, paste, delete;
+      private readonly StubCommand back, forward, gotoCommand, showGoto, find, findPrevious, findNext, showFind, clearError;
       private readonly Dictionary<Func<ITabContent, ICommand>, EventHandler> forwardExecuteChangeNotifications;
+
+      private (IViewPort tab, int)[] recentFindResults;
+      private int currentFindResultIndex;
 
       public ICommand New => newCommand;
       public ICommand Open => open;
@@ -31,6 +36,10 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public ICommand Forward => forward;
       public ICommand Goto => gotoCommand;
       public ICommand ShowGoto => showGoto;
+      public ICommand Find => find;
+      public ICommand FindPrevious => findPrevious;
+      public ICommand FindNext => findNext;
+      public ICommand ShowFind => showFind;
       public ICommand ClearError => clearError;
 
       private bool gotoControlVisible;
@@ -38,7 +47,22 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          get => gotoControlVisible;
          private set {
             TryUpdate(ref gotoControlVisible, value);
-            if (value) ClearError.Execute();
+            if (value) {
+               ClearError.Execute();
+               FindControlVisible = false;
+            }
+         }
+      }
+
+      private bool findControlVisible;
+      public bool FindControlVisible {
+         get => findControlVisible;
+         private set {
+            TryUpdate(ref findControlVisible, value);
+            if (value) {
+               ClearError.Execute();
+               GotoControlVisible = false;
+            }
          }
       }
 
@@ -109,6 +133,34 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          showGoto = new StubCommand {
             CanExecute = CanAlwaysExecute,
             Execute = arg => GotoControlVisible = (bool)arg,
+         };
+         find = new StubCommand {
+            CanExecute = CanAlwaysExecute,
+            Execute = arg => FindExecuted((string)arg),
+         };
+         findPrevious = new StubCommand {
+            CanExecute = arg => recentFindResults?.Length != 0,
+            Execute = arg => {
+               currentFindResultIndex--;
+               if (currentFindResultIndex < 0) currentFindResultIndex += recentFindResults.Length;
+               var (tab, offset) = recentFindResults[currentFindResultIndex];
+               SelectedIndex = tabs.IndexOf(tab);
+               tab.Goto.Execute(offset.ToString("X2"));
+            },
+         };
+         findNext = new StubCommand {
+            CanExecute = arg => recentFindResults?.Length != 0,
+            Execute = arg => {
+               currentFindResultIndex++;
+               if (currentFindResultIndex >= recentFindResults.Length) currentFindResultIndex -= recentFindResults.Length;
+               var (tab, offset) = recentFindResults[currentFindResultIndex];
+               SelectedIndex = tabs.IndexOf(tab);
+               tab.Goto.Execute(offset.ToString("X2"));
+            },
+         };
+         showFind = new StubCommand {
+            CanExecute = CanAlwaysExecute,
+            Execute = arg => FindControlVisible = (bool)arg,
          };
          clearError = new StubCommand {
             CanExecute = arg => showError,
@@ -207,6 +259,10 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          };
 
          return command;
+      }
+
+      private void FindExecuted(string search) {
+
       }
 
       private void RemoveTab(object sender, EventArgs e) {

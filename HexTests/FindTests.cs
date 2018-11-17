@@ -36,7 +36,7 @@ namespace HavenSoft.HexTests {
 
       [Fact]
       public void EditorShowsErrorIfNoneFound() {
-         var tab = new StubTabContent();
+         var tab = new StubViewPort();
          var editor = new EditorViewModel(new StubFileSystem()) { tab };
 
          tab.Find = str => new int[0];
@@ -48,7 +48,7 @@ namespace HavenSoft.HexTests {
 
       [Fact]
       public void EditorJumpsToResultIfSingleResult() {
-         var tab = new StubTabContent();
+         var tab = new StubViewPort();
          var editor = new EditorViewModel(new StubFileSystem()) { tab };
          string gotoArg = string.Empty;
 
@@ -62,7 +62,7 @@ namespace HavenSoft.HexTests {
 
       [Fact]
       public void EditorOpensHelperTabIfMultipleResult() {
-         var tab = new StubTabContent();
+         var tab = new StubViewPort();
          var editor = new EditorViewModel(new StubFileSystem()) { tab };
          var count = 0;
 
@@ -82,7 +82,7 @@ namespace HavenSoft.HexTests {
 
       [Fact]
       public void EditorHasShortcutsToGetPreviousOrNextFindResult() {
-         var tab = new StubTabContent();
+         var tab = new StubViewPort();
          var editor = new EditorViewModel(new StubFileSystem()) { tab };
          int gotoCount = 0;
 

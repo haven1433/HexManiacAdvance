@@ -12,10 +12,11 @@ using System.Text;
 using System.Windows.Input;
 
 namespace HavenSoft.Gen3Hex.ViewModel {
+
    /// <summary>
    /// A range of visible data that should be displayed.
    /// </summary>
-   public class ViewPort : ViewModelCore, ITabContent, INotifyCollectionChanged {
+   public class ViewPort : ViewModelCore, IViewPort {
       private static readonly NotifyCollectionChangedEventArgs ResetArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
       private readonly StubCommand
          clear = new StubCommand(),
@@ -260,6 +261,15 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       public void Edit(string input) {
          for (int i = 0; i < input.Length; i++) Edit(input[i]);
+      }
+
+      public IReadOnlyList<int> Find(string search) {
+         // TODO
+         return new int[0];
+      }
+
+      public IViewPort CreateChildView(int offset) {
+         return null;
       }
 
       private void Edit(char input) {

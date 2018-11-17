@@ -17,8 +17,8 @@ namespace HavenSoft.Gen3Hex.View {
 
       #region ViewPort
 
-      public ViewPort ViewPort {
-         get { return (ViewPort)GetValue(ViewPortProperty); }
+      public IViewPort ViewPort {
+         get { return (IViewPort)GetValue(ViewPortProperty); }
          set { SetValue(ViewPortProperty, value); }
       }
 
@@ -50,8 +50,8 @@ namespace HavenSoft.Gen3Hex.View {
 
       private void OnViewPortPropertyChanged(object sender, PropertyChangedEventArgs e) {
          var propertyChangesThatRequireRedraw = new[] {
-            nameof(ViewPort.SelectionStart),
-            nameof(ViewPort.SelectionEnd),
+            nameof(ViewModel.ViewPort.SelectionStart),
+            nameof(ViewModel.ViewPort.SelectionEnd),
          };
 
          if (propertyChangesThatRequireRedraw.Contains(e.PropertyName)) {
@@ -74,23 +74,23 @@ namespace HavenSoft.Gen3Hex.View {
             InputBindings.Add(keyBinding);
          }
 
-         AddKeyCommand(nameof(ViewPort.MoveSelectionStart), Direction.Up, Key.Up);
-         AddKeyCommand(nameof(ViewPort.MoveSelectionStart), Direction.Down, Key.Down);
-         AddKeyCommand(nameof(ViewPort.MoveSelectionStart), Direction.Left, Key.Left);
-         AddKeyCommand(nameof(ViewPort.MoveSelectionStart), Direction.Right, Key.Right);
+         AddKeyCommand(nameof(ViewModel.ViewPort.MoveSelectionStart), Direction.Up, Key.Up);
+         AddKeyCommand(nameof(ViewModel.ViewPort.MoveSelectionStart), Direction.Down, Key.Down);
+         AddKeyCommand(nameof(ViewModel.ViewPort.MoveSelectionStart), Direction.Left, Key.Left);
+         AddKeyCommand(nameof(ViewModel.ViewPort.MoveSelectionStart), Direction.Right, Key.Right);
 
-         AddKeyCommand(nameof(ViewPort.MoveSelectionEnd), Direction.Up, Key.Up, ModifierKeys.Shift);
-         AddKeyCommand(nameof(ViewPort.MoveSelectionEnd), Direction.Down, Key.Down, ModifierKeys.Shift);
-         AddKeyCommand(nameof(ViewPort.MoveSelectionEnd), Direction.Left, Key.Left, ModifierKeys.Shift);
-         AddKeyCommand(nameof(ViewPort.MoveSelectionEnd), Direction.Right, Key.Right, ModifierKeys.Shift);
+         AddKeyCommand(nameof(ViewModel.ViewPort.MoveSelectionEnd), Direction.Up, Key.Up, ModifierKeys.Shift);
+         AddKeyCommand(nameof(ViewModel.ViewPort.MoveSelectionEnd), Direction.Down, Key.Down, ModifierKeys.Shift);
+         AddKeyCommand(nameof(ViewModel.ViewPort.MoveSelectionEnd), Direction.Left, Key.Left, ModifierKeys.Shift);
+         AddKeyCommand(nameof(ViewModel.ViewPort.MoveSelectionEnd), Direction.Right, Key.Right, ModifierKeys.Shift);
 
-         AddKeyCommand(nameof(ViewPort.Scroll), Direction.Up, Key.Up, ModifierKeys.Control);
-         AddKeyCommand(nameof(ViewPort.Scroll), Direction.Down, Key.Down, ModifierKeys.Control);
-         AddKeyCommand(nameof(ViewPort.Scroll), Direction.Left, Key.Left, ModifierKeys.Control);
-         AddKeyCommand(nameof(ViewPort.Scroll), Direction.Right, Key.Right, ModifierKeys.Control);
+         AddKeyCommand(nameof(IViewPort.Scroll), Direction.Up, Key.Up, ModifierKeys.Control);
+         AddKeyCommand(nameof(IViewPort.Scroll), Direction.Down, Key.Down, ModifierKeys.Control);
+         AddKeyCommand(nameof(IViewPort.Scroll), Direction.Left, Key.Left, ModifierKeys.Control);
+         AddKeyCommand(nameof(IViewPort.Scroll), Direction.Right, Key.Right, ModifierKeys.Control);
 
-         AddKeyCommand(nameof(ViewPort.Undo), null, Key.Z, ModifierKeys.Control);
-         AddKeyCommand(nameof(ViewPort.Redo), null, Key.Y, ModifierKeys.Control);
+         AddKeyCommand(nameof(IViewPort.Undo), null, Key.Z, ModifierKeys.Control);
+         AddKeyCommand(nameof(IViewPort.Redo), null, Key.Y, ModifierKeys.Control);
       }
 
       protected override void OnMouseDown(MouseButtonEventArgs e) {
@@ -99,15 +99,17 @@ namespace HavenSoft.Gen3Hex.View {
          if (e.ChangedButton != MouseButton.Left) return;
          Focus();
 
-         ViewPort.SelectionStart = ControlCoordinatesToModelCoordinates(e);
-         CaptureMouse();
+         if (ViewPort is ViewPort editableViewPort) {
+            editableViewPort.SelectionStart = ControlCoordinatesToModelCoordinates(e);
+            CaptureMouse();
+         }
       }
 
       protected override void OnMouseMove(MouseEventArgs e) {
          base.OnMouseMove(e);
          if (!IsMouseCaptured) return;
 
-         ViewPort.SelectionEnd = ControlCoordinatesToModelCoordinates(e);
+         ((ViewPort)ViewPort).SelectionEnd = ControlCoordinatesToModelCoordinates(e);
       }
 
       protected override void OnMouseUp(MouseButtonEventArgs e) {
@@ -118,7 +120,9 @@ namespace HavenSoft.Gen3Hex.View {
 
       protected override void OnMouseWheel(MouseWheelEventArgs e) {
          base.OnMouseWheel(e);
-         ViewPort.ScrollValue -= Math.Sign(e.Delta);
+         if (ViewPort is ViewPort editableViewPort) {
+            editableViewPort.ScrollValue -= Math.Sign(e.Delta);
+         }
       }
 
       protected override void OnRender(DrawingContext drawingContext) {
@@ -147,8 +151,10 @@ namespace HavenSoft.Gen3Hex.View {
       }
 
       protected override void OnTextInput(TextCompositionEventArgs e) {
-         ViewPort.Edit(e.Text);
-         e.Handled = true;
+         if (ViewPort is ViewPort editableViewPort) {
+            editableViewPort.Edit(e.Text);
+            e.Handled = true;
+         }
       }
 
       private void UpdateViewPortSize() {
