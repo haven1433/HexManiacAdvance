@@ -60,6 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChangeHistoryTests.cs" />
+    <Compile Include="FindTests.cs" />
     <Compile Include="GeneralAppTests.cs" />
     <Compile Include="generatedCode\StubFileSystem.cs" />
     <Compile Include="generatedCode\StubTabContent.cs" />
