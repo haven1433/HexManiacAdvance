@@ -196,5 +196,22 @@ namespace HavenSoft.HexTests {
          Assert.True(bodyChanged);
          Assert.True(headerChanged);
       }
+
+      [Fact]
+      public void FindOrderShouldBeBasedOnCurrentSelection() {
+         var data = new byte[0x100];
+         var dataToFind = new byte[] { 0x52, 0xDC, 0xFF, 0x79 };
+         dataToFind.CopyTo(data, 0x2);
+         dataToFind.CopyTo(data, 0x62);
+         dataToFind.CopyTo(data, 0xA8);
+         dataToFind.CopyTo(data, 0xCC);
+         var viewPort = new ViewPort(new LoadedFile("test", data)) { Width = 8, Height = 8 };
+         viewPort.SelectionStart = new Point(0, 2); // select byte 0x10
+
+         var results = viewPort.Find("52 DC FF 79");
+
+         // the earliest match is at the end because the search started where the cursor was and looped around.
+         Assert.True(results.SequenceEqual(new [] { 0x62, 0xA8, 0xCC, 0x02 })); 
+      }
    }
 }

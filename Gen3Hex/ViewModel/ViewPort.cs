@@ -280,6 +280,12 @@ namespace HavenSoft.Gen3Hex.ViewModel {
                   if (j == search.Length - 1) results.Add(i);
                }
             }
+            var offset = scroll.ViewPointToDataIndex(SelectionStart);
+
+            // reorder the list to start at the current cursor position
+            var left = results.Where(result => result < offset);
+            var right = results.Where(result => result >= offset);
+            results = right.Concat(left).ToList();
             return results;
          }
 
