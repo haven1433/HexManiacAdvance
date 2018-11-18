@@ -141,21 +141,31 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          findPrevious = new StubCommand {
             CanExecute = arg => recentFindResults?.Length != 0,
             Execute = arg => {
-               currentFindResultIndex--;
-               if (currentFindResultIndex < 0) currentFindResultIndex += recentFindResults.Length;
-               var (tab, offset) = recentFindResults[currentFindResultIndex];
-               SelectedIndex = tabs.IndexOf(tab);
-               tab.Goto.Execute(offset.ToString("X2"));
+               int attemptCount = 0;
+               while (attemptCount < recentFindResults.Length) {
+                  attemptCount++;
+                  currentFindResultIndex--;
+                  if (currentFindResultIndex < 0) currentFindResultIndex += recentFindResults.Length;
+                  var (tab, offset) = recentFindResults[currentFindResultIndex];
+                  if (tab != SelectedTab) continue;
+                  tab.Goto.Execute(offset.ToString("X2"));
+                  break;
+               }
             },
          };
          findNext = new StubCommand {
             CanExecute = arg => recentFindResults?.Length != 0,
             Execute = arg => {
-               currentFindResultIndex++;
-               if (currentFindResultIndex >= recentFindResults.Length) currentFindResultIndex -= recentFindResults.Length;
-               var (tab, offset) = recentFindResults[currentFindResultIndex];
-               SelectedIndex = tabs.IndexOf(tab);
-               tab.Goto.Execute(offset.ToString("X2"));
+               int attemptCount = 0;
+               while (attemptCount < recentFindResults.Length) {
+                  attemptCount++;
+                  currentFindResultIndex++;
+                  if (currentFindResultIndex >= recentFindResults.Length) currentFindResultIndex -= recentFindResults.Length;
+                  var (tab, offset) = recentFindResults[currentFindResultIndex];
+                  if (tab != SelectedTab) continue;
+                  tab.Goto.Execute(offset.ToString("X2"));
+                  break;
+               }
             },
          };
          showFind = new StubCommand {

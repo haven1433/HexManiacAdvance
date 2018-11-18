@@ -88,10 +88,31 @@ namespace HavenSoft.HexTests {
          tab.Find = str => new[] { 0x54, 0x154 };
          tab.Goto = new StubCommand { CanExecute = arg => true, Execute = arg => gotoCount++ };
          editor.Find.Execute("something");
+         editor.SelectedIndex = 0;
          editor.FindNext.Execute("something");
          editor.FindPrevious.Execute("something");
 
          Assert.Equal(2, gotoCount); // findNext / findPrevious use goto
+      }
+
+      [Fact]
+      public void EditorFindNextDoesNotSwitchTabs() {
+         var tab1 = new StubViewPort { Find = query => new[] { 0x60 }, Goto = new StubCommand() };
+         var tab2 = new StubViewPort { Find = query => new[] { 0x50, 0x70 }, Goto = new StubCommand() };
+         var editor = new EditorViewModel(new StubFileSystem()) { tab1, tab2 };
+
+         editor.Find.Execute("something");
+
+         editor.FindNext.Execute("something");
+         Assert.Equal(2, editor.SelectedIndex); // results still selected
+
+         editor.SelectedIndex = 0;
+         editor.FindNext.Execute("something");
+         Assert.Equal(0, editor.SelectedIndex); // results in first tab selected
+
+         editor.SelectedIndex = 1;
+         editor.FindNext.Execute("something");
+         Assert.Equal(1, editor.SelectedIndex); // results in second tab selected
       }
    }
 }
