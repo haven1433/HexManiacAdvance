@@ -14,7 +14,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       int ScrollValue { get; set;  }
       int MaximumScroll { get; }
       ObservableCollection<string> Headers { get; }
-      ICommand Scroll { get; }
+      ICommand Scroll { get; } // parameter: Direction to scroll
 
       HexElement this[int x, int y] { get; }
       bool IsSelected(Point point);

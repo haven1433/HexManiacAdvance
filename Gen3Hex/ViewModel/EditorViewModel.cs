@@ -20,7 +20,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       private int currentFindResultIndex;
 
       public ICommand New => newCommand;
-      public ICommand Open => open;
+      public ICommand Open => open;                // parameter: file to open (or null)
       public ICommand Save => save;
       public ICommand SaveAs => saveAs;
       public ICommand SaveAll => saveAll;
@@ -34,12 +34,12 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public ICommand Delete => delete;
       public ICommand Back => back;
       public ICommand Forward => forward;
-      public ICommand Goto => gotoCommand;
-      public ICommand ShowGoto => showGoto;
-      public ICommand Find => find;
-      public ICommand FindPrevious => findPrevious;
-      public ICommand FindNext => findNext;
-      public ICommand ShowFind => showFind;
+      public ICommand Goto => gotoCommand;          // parameter: target destination as string (for example, a hex address)
+      public ICommand ShowGoto => showGoto;         // parameter: true for show, false for hide
+      public ICommand Find => find;                 // parameter: target string to search
+      public ICommand FindPrevious => findPrevious; // parameter: target string to search
+      public ICommand FindNext => findNext;         // parameter: target string to search
+      public ICommand ShowFind => showFind;         // parameter: true for show, false for hide
       public ICommand ClearError => clearError;
 
       private bool gotoControlVisible;
