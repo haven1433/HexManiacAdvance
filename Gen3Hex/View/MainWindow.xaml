@@ -23,6 +23,13 @@
       <KeyBinding Key="X" Modifiers="Ctrl" Command="{Binding Cut}" />
       <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding Copy}" />
       <KeyBinding Key="P" Modifiers="Ctrl" Command="{Binding Paste}" />
+      <KeyBinding Key="F" Modifiers="Ctrl" Command="{Binding ShowFind}">
+         <KeyBinding.CommandParameter>
+            <sys:Boolean>true</sys:Boolean>
+         </KeyBinding.CommandParameter>
+      </KeyBinding>
+      <KeyBinding Key="F3" Command="{Binding FindNext}" CommandParameter="{Binding Text, ElementName=FindBox}"/>
+      <KeyBinding Key="F3" Modifiers="Shift" Command="{Binding FindPrevious}" CommandParameter="{Binding Text, ElementName=FindBox}"/>
       <KeyBinding Key="G" Modifiers="Ctrl" Command="{Binding ShowGoto}">
          <KeyBinding.CommandParameter>
             <sys:Boolean>true</sys:Boolean>
@@ -41,7 +48,7 @@
       <DockPanel DockPanel.Dock="Top">
          <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding GotoControlVisible, Converter={StaticResource BoolToVisibility}}">
             <TextBlock Text="Goto :" Margin="10,0" />
-            <TextBox Name="GotoBox" MinWidth="200" IsVisibleChanged="GotoBoxVisibilityChanged">
+            <TextBox Name="GotoBox" MinWidth="200" IsVisibleChanged="EditBoxVisibilityChanged">
                <TextBox.InputBindings>
                   <KeyBinding Key="Esc" Command="{Binding ShowGoto}">
                      <KeyBinding.CommandParameter>
@@ -49,6 +56,19 @@
                      </KeyBinding.CommandParameter>
                   </KeyBinding>
                   <KeyBinding Key="Return" Command="{Binding Goto}" CommandParameter="{Binding Text, ElementName=GotoBox}"/>
+               </TextBox.InputBindings>
+            </TextBox>
+         </StackPanel>
+         <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding FindControlVisible, Converter={StaticResource BoolToVisibility}}">
+            <TextBlock Text="Find :" Margin="10,0" />
+            <TextBox Name="FindBox" MinWidth="200" IsVisibleChanged="EditBoxVisibilityChanged">
+               <TextBox.InputBindings>
+                  <KeyBinding Key="Esc" Command="{Binding ShowFind}">
+                     <KeyBinding.CommandParameter>
+                        <sys:Boolean>false</sys:Boolean>
+                     </KeyBinding.CommandParameter>
+                  </KeyBinding>
+                  <KeyBinding Key="Return" Command="{Binding Find}" CommandParameter="{Binding Text, ElementName=FindBox}"/>
                </TextBox.InputBindings>
             </TextBox>
          </StackPanel>
@@ -103,7 +123,18 @@
                <MenuItem Header="_Paste" Command="{Binding Paste}" InputGestureText="Ctrl+V"/>
                <MenuItem Header="_Delete" Command="{Binding Delete}" InputGestureText="Del"/>
                <Separator />
-               <MenuItem Header="_Goto" Command="GoToPage" InputGestureText="Ctrl+G"/>
+               <MenuItem Header="_Find" Command="{Binding ShowFind}" InputGestureText="Ctrl+F">
+                  <MenuItem.CommandParameter>
+                     <sys:Boolean>true</sys:Boolean>
+                  </MenuItem.CommandParameter>
+               </MenuItem>
+               <MenuItem Header="Find _Next" Command="{Binding FindNext}" CommandParameter="{Binding Text, ElementName=FindBox}" InputGestureText="F3"/>
+               <MenuItem Header="Find _Previous" Command="{Binding FindPrevious}" CommandParameter="{Binding Text, ElementName=FindBox}" InputGestureText="Shift+F3"/>
+               <MenuItem Header="_Goto" Command="{Binding ShowGoto}" InputGestureText="Ctrl+G">
+                  <MenuItem.CommandParameter>
+                     <sys:Boolean>true</sys:Boolean>
+                  </MenuItem.CommandParameter>
+               </MenuItem>
                <MenuItem Header="Go _Back" Command="{Binding Back}" InputGestureText="Ctrl+-"/>
                <MenuItem Header="Go _Forward" Command="{Binding Forward}" InputGestureText="Ctrl+Shift+-"/>
             </MenuItem>

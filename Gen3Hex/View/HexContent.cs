@@ -22,7 +22,7 @@ namespace HavenSoft.Gen3Hex.View {
          set { SetValue(ViewPortProperty, value); }
       }
 
-      public static readonly DependencyProperty ViewPortProperty = DependencyProperty.Register(nameof(ViewPort), typeof(ViewPort), typeof(HexContent), new FrameworkPropertyMetadata(null, ViewPortChanged));
+      public static readonly DependencyProperty ViewPortProperty = DependencyProperty.Register(nameof(ViewPort), typeof(IViewPort), typeof(HexContent), new FrameworkPropertyMetadata(null, ViewPortChanged));
 
       private static void ViewPortChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
          var self = (HexContent)d;
@@ -30,12 +30,12 @@ namespace HavenSoft.Gen3Hex.View {
       }
 
       private void OnViewPortChanged(DependencyPropertyChangedEventArgs e) {
-         if (e.OldValue is ViewPort oldViewPort) {
+         if (e.OldValue is IViewPort oldViewPort) {
             oldViewPort.CollectionChanged -= OnViewPortContentChanged;
             oldViewPort.PropertyChanged -= OnViewPortPropertyChanged;
          }
 
-         if (e.NewValue is ViewPort newViewPort) {
+         if (e.NewValue is IViewPort newViewPort) {
             newViewPort.CollectionChanged += OnViewPortContentChanged;
             newViewPort.PropertyChanged += OnViewPortPropertyChanged;
             UpdateViewPortSize();
@@ -98,9 +98,14 @@ namespace HavenSoft.Gen3Hex.View {
          if (e.LeftButton != MouseButtonState.Pressed) return;
          if (e.ChangedButton != MouseButton.Left) return;
          Focus();
+         var p = ControlCoordinatesToModelCoordinates(e);
+         if (e.ClickCount == 2) {
+            ViewPort.FollowLink(p.X, p.Y);
+            return;
+         }
 
          if (ViewPort is ViewPort editableViewPort) {
-            editableViewPort.SelectionStart = ControlCoordinatesToModelCoordinates(e);
+            editableViewPort.SelectionStart = p;
             CaptureMouse();
          }
       }
@@ -120,9 +125,7 @@ namespace HavenSoft.Gen3Hex.View {
 
       protected override void OnMouseWheel(MouseWheelEventArgs e) {
          base.OnMouseWheel(e);
-         if (ViewPort is ViewPort editableViewPort) {
-            editableViewPort.ScrollValue -= Math.Sign(e.Delta);
-         }
+         ViewPort.ScrollValue -= Math.Sign(e.Delta);
       }
 
       protected override void OnRender(DrawingContext drawingContext) {

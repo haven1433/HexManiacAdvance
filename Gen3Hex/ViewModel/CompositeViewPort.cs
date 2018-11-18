@@ -40,6 +40,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public int MinimumScroll => 0;
       public int ScrollValue {
          get => scrollValue; set {
+            value = value.LimitToRange(0, MaximumScroll);
             if (TryUpdate(ref scrollValue, value)) NotifyCollectionChanged();
          }
       }
@@ -87,6 +88,8 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       public void Add(ChildViewPort child) {
          children.Add(child);
+         maxScrollValue += child.Height;
+         if (children.Count > 1) maxScrollValue++;
          NotifyCollectionChanged();
       }
 
@@ -100,7 +103,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
          int line = scrollValue + y;
          int childIndex = 0;
-         while (childIndex < children.Count && children[childIndex].Height < line) {
+         while (childIndex < children.Count && children[childIndex].Height <= line) {
             line -= children[childIndex].Height + 1; childIndex++;
          }
 
@@ -113,7 +116,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
          int line = scrollValue + y;
          int childIndex = 0;
-         while (childIndex < children.Count && children[childIndex].Height < line) {
+         while (childIndex < children.Count && children[childIndex].Height <= line) {
             line -= children[childIndex].Height + 1; childIndex++;
          }
 
@@ -124,6 +127,22 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          RequestTabChange?.Invoke(this, parent);
       }
 
-      private void NotifyCollectionChanged() => CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+      private void NotifyCollectionChanged() {
+         if (children.Count == 0) return;
+         Headers.Clear();
+         for (int i = 0; i < height; i++) {
+            int line = scrollValue + i;
+            int childIndex = 0;
+            while (childIndex < children.Count && children[childIndex].Height <= line) {
+               line -= children[childIndex].Height + 1; childIndex++;
+            }
+            if (line == -1 || childIndex >= children.Count) { // blank line between results / after results
+               Headers.Add(string.Empty);
+            } else {
+               Headers.Add(children[childIndex].Headers[line]);
+            }
+         }
+         CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+      }
    }
 }

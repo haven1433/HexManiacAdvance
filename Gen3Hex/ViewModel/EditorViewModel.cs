@@ -46,11 +46,11 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public bool GotoControlVisible {
          get => gotoControlVisible;
          private set {
-            TryUpdate(ref gotoControlVisible, value);
             if (value) {
                ClearError.Execute();
                FindControlVisible = false;
             }
+            TryUpdate(ref gotoControlVisible, value);
          }
       }
 
@@ -58,11 +58,11 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public bool FindControlVisible {
          get => findControlVisible;
          private set {
-            TryUpdate(ref findControlVisible, value);
             if (value) {
                ClearError.Execute();
                GotoControlVisible = false;
             }
+            TryUpdate(ref findControlVisible, value);
          }
       }
 
@@ -277,6 +277,8 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          foreach (var tab in tabs) {
             if (tab is IViewPort viewPort) results.AddRange(viewPort.Find(search).Select(offset => (viewPort, offset)));
          }
+
+         FindControlVisible = false;
 
          if (results.Count == 0) {
             ErrorMessage = $"Could not find {search}.";

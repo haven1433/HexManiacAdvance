@@ -1,5 +1,7 @@
 ﻿using HavenSoft.Gen3Hex.Model;
 using HavenSoft.Gen3Hex.ViewModel;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows.Input;
 using Xunit;
 
@@ -81,12 +83,18 @@ namespace HavenSoft.HexTests {
 
       [Fact]
       public void EditorHasShortcutsToGetPreviousOrNextFindResult() {
-         var tab = new StubViewPort();
-         var editor = new EditorViewModel(new StubFileSystem()) { tab };
          int gotoCount = 0;
+         StubViewPort tab = null;
+         tab = new StubViewPort {
+            Find = str => new[] { 0x54, 0x154 },
+            Goto = new StubCommand { CanExecute = arg => true, Execute = arg => gotoCount++ },
+            CreateChildView = offset => new ChildViewPort(tab, new byte[100]),
+            Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
+            Width = 4,
+            Height = 4,
+         };
+         var editor = new EditorViewModel(new StubFileSystem()) { tab };
 
-         tab.Find = str => new[] { 0x54, 0x154 };
-         tab.Goto = new StubCommand { CanExecute = arg => true, Execute = arg => gotoCount++ };
          editor.Find.Execute("something");
          editor.SelectedIndex = 0;
          editor.FindNext.Execute("something");
@@ -97,8 +105,24 @@ namespace HavenSoft.HexTests {
 
       [Fact]
       public void EditorFindNextDoesNotSwitchTabs() {
-         var tab1 = new StubViewPort { Find = query => new[] { 0x60 }, Goto = new StubCommand() };
-         var tab2 = new StubViewPort { Find = query => new[] { 0x50, 0x70 }, Goto = new StubCommand() };
+         StubViewPort tab1 = null;
+         tab1 = new StubViewPort {
+            Find = query => new[] { 0x60 },
+            Goto = new StubCommand(),
+            CreateChildView = offset => new ChildViewPort(tab1, new byte[100]),
+            Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
+            Width = 4,
+            Height = 4,
+         };
+         StubViewPort tab2 = null;
+         tab2 = new StubViewPort {
+            Find = query => new[] { 0x50, 0x70 },
+            Goto = new StubCommand(),
+            CreateChildView = offset => new ChildViewPort(tab2, new byte[100]),
+            Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
+            Width = 4,
+            Height = 4,
+         };
          var editor = new EditorViewModel(new StubFileSystem()) { tab1, tab2 };
 
          editor.Find.Execute("something");
@@ -113,6 +137,64 @@ namespace HavenSoft.HexTests {
          editor.SelectedIndex = 1;
          editor.FindNext.Execute("something");
          Assert.Equal(1, editor.SelectedIndex); // results in second tab selected
+      }
+
+      [Fact]
+      public void FindResultsHasHeadersAndGaps() {
+         StubViewPort tab = null;
+         tab = new StubViewPort {
+            Find = query => new[] { 0x50, 0x70 },
+            Goto = new StubCommand(),
+            CreateChildView = offset => new ChildViewPort(tab, new byte[100]),
+            Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
+            Width = 4,
+            Height = 4,
+         };
+         var editor = new EditorViewModel(new StubFileSystem()) { tab };
+
+         editor.Find.Execute("something");
+         var results = (IViewPort)editor[1];
+         results.Height = 9; // both children are size 4, one space inbetween
+         Assert.False(results.Headers.All(string.IsNullOrEmpty)); // not all the headers are blank
+         Assert.Contains(results.Headers, string.IsNullOrEmpty);  // blank lines have blank headers
+      }
+
+      [Fact]
+      public void FindClosesAfterRun() {
+         StubViewPort tab = null;
+         tab = new StubViewPort {
+            Find = query => new[] { 0x50, 0x70 },
+            Goto = new StubCommand(),
+            CreateChildView = offset => new ChildViewPort(tab, new byte[100]),
+            Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
+            Width = 4,
+            Height = 4,
+         };
+         var editor = new EditorViewModel(new StubFileSystem()) { tab };
+
+         editor.ShowFind.Execute(true);
+         editor.Find.Execute("something");
+
+         Assert.False(editor.FindControlVisible);
+      }
+
+      [Fact]
+      public void CompositeCanScroll() {
+         var composite = new CompositeViewPort("search") { Height = 0x10 };
+         var parent = new StubViewPort { Width = 0x10, Height = 0x10 };
+         var parentData = new byte[0x100];
+         composite.Add(new ChildViewPort(parent, parentData));
+         composite.Add(new ChildViewPort(parent, parentData));
+
+         var bodyChanged = false;
+         var headerChanged = false;
+         composite.Headers.CollectionChanged += (sender, e) => headerChanged = true;
+         composite.CollectionChanged += (sender, e) => bodyChanged = true;
+
+         composite.ScrollValue = 4;
+
+         Assert.True(bodyChanged);
+         Assert.True(headerChanged);
       }
    }
 }
