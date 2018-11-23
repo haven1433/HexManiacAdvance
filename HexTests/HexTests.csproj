@@ -109,6 +109,7 @@
 $(SolutionDir)packages\HavenSoft.AutoImplement.1.0.1\AutoImplement $(SolutionDir)Gen3Hex\$(OutDir)Gen3Hex.exe ITabContent IFileSystem IViewPort
 move /Y StubTabContent.cs $(ProjectDir)generatedCode
 move /Y StubFileSystem.cs $(ProjectDir)generatedCode
+move /Y StubViewPort.cs $(ProjectDir)generatedCode
 
 del *.cs</PreBuildEvent>
   </PropertyGroup>
