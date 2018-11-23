@@ -2,7 +2,7 @@
    /// <summary>
    ///  exactly replaces a ViewPort, except that it also has a known parent view
    /// </summary>
-   public class ChildViewPort : ViewPort {
+   public class ChildViewPort : ViewPort, IChildViewPort {
       public IViewPort Parent { get; }
 
       public ChildViewPort(IViewPort viewPort, byte[] data) : base(new Model.LoadedFile(string.Empty, data)) {

@@ -8,7 +8,7 @@ using System.Windows.Input;
 namespace HavenSoft.Gen3Hex.ViewModel {
    public class CompositeViewPort : ViewModelCore, IViewPort {
       private readonly StubCommand scroll, close;
-      private readonly List<ChildViewPort> children = new List<ChildViewPort>();
+      private readonly List<IChildViewPort> children = new List<IChildViewPort>();
       private int width, height, scrollValue, maxScrollValue;
 
       #region Implementing IViewPort
@@ -87,14 +87,14 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          };
       }
 
-      public void Add(ChildViewPort child) {
+      public void Add(IChildViewPort child) {
          children.Add(child);
          maxScrollValue += child.Height;
          if (children.Count > 1) maxScrollValue++;
          NotifyCollectionChanged();
       }
 
-      public ChildViewPort CreateChildView(int offset) => throw new NotImplementedException();
+      public IChildViewPort CreateChildView(int offset) => throw new NotImplementedException();
 
       public IReadOnlyList<int> Find(string search) => new int[0];
 

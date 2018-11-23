@@ -68,10 +68,10 @@
     <PreBuildEvent>
 if not exist $(ProjectDir)generatedCode mkdir $(ProjectDir)generatedCode
 
-$(SolutionDir)packages\HavenSoft.AutoImplement.1.0.1\AutoImplement "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" ICommand
+$(SolutionDir)packages\HavenSoft.AutoImplement.1.1.0\AutoImplement "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" ICommand
 move /Y StubCommand.cs $(ProjectDir)generatedCode
 
-$(SolutionDir)packages\HavenSoft.AutoImplement.1.0.1\AutoImplement "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" IDisposable
+$(SolutionDir)packages\HavenSoft.AutoImplement.1.1.0\AutoImplement "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" IDisposable
 move /Y StubDisposable.cs $(ProjectDir)generatedCode
 
 del *.cs</PreBuildEvent>

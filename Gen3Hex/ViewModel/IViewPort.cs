@@ -20,7 +20,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       bool IsSelected(Point point);
 
       IReadOnlyList<int> Find(string search);
-      ChildViewPort CreateChildView(int offset);
+      IChildViewPort CreateChildView(int offset);
       void FollowLink(int x, int y);
    }
 }

@@ -292,7 +292,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          return new int[0];
       }
 
-      public ChildViewPort CreateChildView(int offset) {
+      public IChildViewPort CreateChildView(int offset) {
          var child = new ChildViewPort(this, data);
          child.Goto.Execute(offset.ToString("X2"));
          return child;

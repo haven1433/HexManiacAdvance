@@ -65,6 +65,7 @@
     <Compile Include="ViewModel\DataFormats.cs" />
     <Compile Include="ViewModel\EditorViewModel.cs" />
     <Compile Include="ViewModel\HexElement.cs" />
+    <Compile Include="ViewModel\IChildViewPort.cs" />
     <Compile Include="ViewModel\ITabContent.cs" />
     <Compile Include="ViewModel\IViewPort.cs" />
     <Compile Include="ViewModel\ScrollRegion.cs" />
