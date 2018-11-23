@@ -211,7 +211,7 @@ namespace HavenSoft.HexTests {
          var results = viewPort.Find("52 DC FF 79");
 
          // the earliest match is at the end because the search started where the cursor was and looped around.
-         Assert.True(results.SequenceEqual(new [] { 0x62, 0xA8, 0xCC, 0x02 })); 
+         Assert.True(results.SequenceEqual(new[] { 0x62, 0xA8, 0xCC, 0x02 }));
       }
    }
 }

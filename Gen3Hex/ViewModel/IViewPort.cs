@@ -11,7 +11,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       int Height { get; set; }
 
       int MinimumScroll { get; }
-      int ScrollValue { get; set;  }
+      int ScrollValue { get; set; }
       int MaximumScroll { get; }
       ObservableCollection<string> Headers { get; }
       ICommand Scroll { get; } // parameter: Direction to scroll

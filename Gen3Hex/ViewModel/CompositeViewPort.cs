@@ -19,7 +19,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
             int line = scrollValue + y;
             int childIndex = 0;
-            while(childIndex<children.Count && children[childIndex].Height < line) {
+            while (childIndex < children.Count && children[childIndex].Height < line) {
                line -= children[childIndex].Height + 1; childIndex++;
             }
 
@@ -28,7 +28,8 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          }
       }
 
-      public int Width { get => width; set {
+      public int Width {
+         get => width; set {
             if (TryUpdate(ref width, value)) NotifyCollectionChanged();
          }
       }
