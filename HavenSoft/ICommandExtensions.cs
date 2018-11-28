@@ -6,5 +6,10 @@ namespace HavenSoft {
       /// Runs execute on the command with a null parameter.
       /// </summary>
       public static void Execute(this ICommand command) => command.Execute(null);
+
+      /// <summary>
+      /// Utility implementation of CanExecute for commands that can always execute.
+      /// </summary>
+      public static bool CanAlwaysExecute(object sender) => true;
    }
 }

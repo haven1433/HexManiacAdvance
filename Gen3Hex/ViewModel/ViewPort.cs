@@ -8,8 +8,8 @@ using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Windows.Input;
+using static HavenSoft.ICommandExtensions;
 
 namespace HavenSoft.Gen3Hex.ViewModel {
    /// <summary>
@@ -146,7 +146,10 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       #region Saving
 
-      private readonly StubCommand save, saveAs, close;
+      private readonly StubCommand
+         save = new StubCommand(),
+         saveAs = new StubCommand(),
+         close = new StubCommand();
 
       public ICommand Save => save;
 
@@ -220,7 +223,12 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          history = new ChangeHistory<Dictionary<int, HexElement>>(RevertChanges);
          history.PropertyChanged += HistoryPropertyChanged;
 
-         clear.CanExecute = arg => true;
+         ImplementCommands();
+         RefreshBackingData();
+      }
+
+      private void ImplementCommands() {
+         clear.CanExecute = CanAlwaysExecute;
          clear.Execute = arg => {
             var selectionStart = scroll.ViewPointToDataIndex(selection.SelectionStart);
             var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
@@ -230,7 +238,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             RefreshBackingData();
          };
 
-         copy.CanExecute = arg => true;
+         copy.CanExecute = CanAlwaysExecute;
          copy.Execute = arg => {
             var selectionStart = scroll.ViewPointToDataIndex(selection.SelectionStart);
             var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
@@ -239,20 +247,15 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             var bytes = Enumerable.Range(left, length).Select(i => data[i]);
             ((IFileSystem)arg).CopyText = string.Join(" ", bytes.Select(value => value.ToString("X2")));
          };
-         save = new StubCommand {
-            CanExecute = arg => !history.IsSaved,
-            Execute = arg => SaveExecuted((IFileSystem)arg),
-         };
-         saveAs = new StubCommand {
-            CanExecute = arg => true,
-            Execute = arg => SaveAsExecuted((IFileSystem)arg),
-         };
-         close = new StubCommand {
-            CanExecute = arg => true,
-            Execute = arg => CloseExecuted((IFileSystem)arg),
-         };
 
-         RefreshBackingData();
+         save.CanExecute = arg => !history.IsSaved;
+         save.Execute = arg => SaveExecuted((IFileSystem)arg);
+
+         saveAs.CanExecute = CanAlwaysExecute;
+         saveAs.Execute = arg => SaveAsExecuted((IFileSystem)arg);
+
+         close.CanExecute = CanAlwaysExecute;
+         close.Execute = arg => CloseExecuted((IFileSystem)arg);
       }
 
       public bool IsSelected(Point point) => selection.IsSelected(point);

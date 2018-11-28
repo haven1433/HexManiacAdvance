@@ -204,23 +204,30 @@ namespace HavenSoft.HexTests {
          Assert.Equal(7, count);
       }
 
-      [Fact]
-      public void EditorNotifiesCanExecuteChangedOnTabChange() {
+
+      [Theory]
+      [InlineData("Copy")]
+      [InlineData("Delete")]
+      [InlineData("Save")]
+      [InlineData("SaveAs")]
+      [InlineData("Close")]
+      [InlineData("Undo")]
+      [InlineData("Redo")]
+      [InlineData("Back")]
+      [InlineData("Forward")]
+      public void EditorNotifiesCanExecuteChangedOnTabChange(string commandName) {
          int count = 0;
-         editor.Save.CanExecuteChanged += (sender, e) => count++;
-         editor.SaveAs.CanExecuteChanged += (sender, e) => count++;
-         editor.Close.CanExecuteChanged += (sender, e) => count++;
-         editor.Undo.CanExecuteChanged += (sender, e) => count++;
-         editor.Redo.CanExecuteChanged += (sender, e) => count++;
+         var command = (ICommand)editor.GetType().GetProperty(commandName).GetValue(editor);
+         command.CanExecuteChanged += (sender, e) => count++;
          var tab = new StubTabContent();
          tab.Close = new StubCommand { CanExecute = arg => true, Execute = arg => tab.Closed.Invoke(tab, EventArgs.Empty) };
 
          editor.Add(tab);
-         Assert.Equal(5, count);
+         Assert.Equal(1, count);
 
          count = 0;
          editor.Close.Execute();
-         Assert.Equal(5, count);
+         Assert.Equal(1, count);
       }
 
       [Fact]

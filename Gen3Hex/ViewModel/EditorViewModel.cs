@@ -5,15 +5,41 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Windows.Input;
+using static HavenSoft.ICommandExtensions;
 
 namespace HavenSoft.Gen3Hex.ViewModel {
    public class EditorViewModel : ViewModelCore, IEnumerable<ITabContent>, INotifyCollectionChanged {
 
       private readonly IFileSystem fileSystem;
       private readonly List<ITabContent> tabs;
-      private readonly StubCommand newCommand, open, save, saveAs, saveAll, close, closeAll;
-      private readonly StubCommand undo, redo, cut, copy, paste, delete;
-      private readonly StubCommand back, forward, gotoCommand, showGoto, find, findPrevious, findNext, showFind, clearError;
+
+      private readonly List<StubCommand> commandsToRefreshOnTabChange = new List<StubCommand>();
+      private readonly StubCommand
+         newCommand = new StubCommand(),
+         open = new StubCommand(),
+         save = new StubCommand(),
+         saveAs = new StubCommand(),
+         saveAll = new StubCommand(),
+         close = new StubCommand(),
+         closeAll = new StubCommand(),
+
+         undo = new StubCommand(),
+         redo = new StubCommand(),
+         cut = new StubCommand(),
+         copy = new StubCommand(),
+         paste = new StubCommand(),
+         delete = new StubCommand(),
+
+         back = new StubCommand(),
+         forward = new StubCommand(),
+         gotoCommand = new StubCommand(),
+         showGoto = new StubCommand(),
+         find = new StubCommand(),
+         findPrevious = new StubCommand(),
+         findNext = new StubCommand(),
+         showFind = new StubCommand(),
+         clearError = new StubCommand();
+
       private readonly Dictionary<Func<ITabContent, ICommand>, EventHandler> forwardExecuteChangeNotifications;
 
       private (IViewPort tab, int)[] recentFindResults;
@@ -91,6 +117,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public int Count => tabs.Count;
 
       private int selectedIndex;
+
       public int SelectedIndex {
          get => selectedIndex;
          set {
@@ -109,99 +136,24 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          tabs = new List<ITabContent>();
          selectedIndex = -1;
 
-         bool CanAlwaysExecute(object arg) => true;
+         ImplementCommands();
 
-         newCommand = new StubCommand {
-            CanExecute = CanAlwaysExecute,
-            Execute = arg => Add(new ViewPort()),
-         };
-         open = new StubCommand {
-            CanExecute = CanAlwaysExecute,
-            Execute = arg => {
-               var file = arg as LoadedFile ?? fileSystem.OpenFile();
-               if (file == null) return;
-               Add(new ViewPort(file));
-            },
-         };
-         gotoCommand = new StubCommand {
-            CanExecute = arg => SelectedTab?.Goto?.CanExecute(arg) ?? false,
-            Execute = arg => {
-               SelectedTab?.Goto?.Execute(arg);
-               GotoControlVisible = false;
-            },
-         };
-         showGoto = new StubCommand {
-            CanExecute = CanAlwaysExecute,
-            Execute = arg => GotoControlVisible = (bool)arg,
-         };
-         find = new StubCommand {
-            CanExecute = CanAlwaysExecute,
-            Execute = arg => FindExecuted((string)arg),
-         };
-         findPrevious = new StubCommand {
-            CanExecute = arg => recentFindResults?.Length != 0,
-            Execute = arg => {
-               int attemptCount = 0;
-               while (attemptCount < recentFindResults.Length) {
-                  attemptCount++;
-                  currentFindResultIndex--;
-                  if (currentFindResultIndex < 0) currentFindResultIndex += recentFindResults.Length;
-                  var (tab, offset) = recentFindResults[currentFindResultIndex];
-                  if (tab != SelectedTab) continue;
-                  tab.Goto.Execute(offset.ToString("X2"));
-                  break;
-               }
-            },
-         };
-         findNext = new StubCommand {
-            CanExecute = arg => recentFindResults?.Length != 0,
-            Execute = arg => {
-               int attemptCount = 0;
-               while (attemptCount < recentFindResults.Length) {
-                  attemptCount++;
-                  currentFindResultIndex++;
-                  if (currentFindResultIndex >= recentFindResults.Length) currentFindResultIndex -= recentFindResults.Length;
-                  var (tab, offset) = recentFindResults[currentFindResultIndex];
-                  if (tab != SelectedTab) continue;
-                  tab.Goto.Execute(offset.ToString("X2"));
-                  break;
-               }
-            },
-         };
-         showFind = new StubCommand {
-            CanExecute = CanAlwaysExecute,
-            Execute = arg => FindControlVisible = (bool)arg,
-         };
-         clearError = new StubCommand {
-            CanExecute = arg => showError,
-            Execute = arg => ErrorMessage = string.Empty,
-         };
-         cut = new StubCommand {
-            CanExecute = arg => SelectedTab?.Copy?.CanExecute(arg) ?? false,
-            Execute = arg => {
-               if (SelectedTab != null && SelectedTab.Copy != null && SelectedTab.Clear != null) {
-                  SelectedTab.Copy.Execute(fileSystem);
-                  SelectedTab.Clear.Execute();
-               }
-            }
-         };
          copy = CreateWrapperForSelected(tab => tab.Copy);
-         paste = new StubCommand {
-            CanExecute = arg => SelectedTab is ViewPort,
-            Execute = arg => (SelectedTab as ViewPort)?.Edit(fileSystem.CopyText),
-         };
          delete = CreateWrapperForSelected(tab => tab.Clear);
          save = CreateWrapperForSelected(tab => tab.Save);
          saveAs = CreateWrapperForSelected(tab => tab.SaveAs);
-         saveAll = CreateWrapperForAll(tab => tab.Save);
          close = CreateWrapperForSelected(tab => tab.Close);
-         closeAll = CreateWrapperForAll(tab => tab.Close);
          undo = CreateWrapperForSelected(tab => tab.Undo);
          redo = CreateWrapperForSelected(tab => tab.Redo);
          back = CreateWrapperForSelected(tab => tab.Back);
          forward = CreateWrapperForSelected(tab => tab.Forward);
 
+         saveAll = CreateWrapperForAll(tab => tab.Save);
+         closeAll = CreateWrapperForAll(tab => tab.Close);
+
          forwardExecuteChangeNotifications = new Dictionary<Func<ITabContent, ICommand>, EventHandler> {
+            { tab => tab.Copy, (sender, e) => copy.CanExecuteChanged.Invoke(this, e) },
+            { tab => tab.Clear, (sender, e) => delete.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.Save, (sender, e) => save.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.SaveAs, (sender, e) => saveAs.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.Close, (sender, e) => close.CanExecuteChanged.Invoke(this, e) },
@@ -210,6 +162,79 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             { tab => tab.Back, (sender, e) => back.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.Forward, (sender, e) => forward.CanExecuteChanged.Invoke(this, e) },
          };
+      }
+
+      private void ImplementCommands() {
+         newCommand.CanExecute = CanAlwaysExecute;
+         newCommand.Execute = arg => Add(new ViewPort());
+
+         open.CanExecute = CanAlwaysExecute;
+         open.Execute = arg => {
+            var file = arg as LoadedFile ?? fileSystem.OpenFile();
+            if (file == null) return;
+            Add(new ViewPort(file));
+         };
+
+         gotoCommand.CanExecute = arg => SelectedTab?.Goto?.CanExecute(arg) ?? false;
+         gotoCommand.Execute = arg => {
+            SelectedTab?.Goto?.Execute(arg);
+            GotoControlVisible = false;
+         };
+
+         showGoto.CanExecute = CanAlwaysExecute;
+         showGoto.Execute = arg => GotoControlVisible = (bool)arg;
+
+         ImplementFindCommands();
+
+         clearError.CanExecute = arg => showError;
+         clearError.Execute = arg => ErrorMessage = string.Empty;
+
+         cut.CanExecute = arg => SelectedTab?.Copy?.CanExecute(arg) ?? false;
+         cut.Execute = arg => {
+            if (SelectedTab != null && SelectedTab.Copy != null && SelectedTab.Clear != null) {
+               SelectedTab.Copy.Execute(fileSystem);
+               SelectedTab.Clear.Execute();
+            }
+         };
+
+         paste.CanExecute = arg => SelectedTab is ViewPort;
+         paste.Execute = arg => (SelectedTab as ViewPort)?.Edit(fileSystem.CopyText);
+      }
+
+      private void ImplementFindCommands() {
+         find.CanExecute = CanAlwaysExecute;
+         find.Execute = arg => FindExecuted((string)arg);
+
+         findPrevious.CanExecute = arg => recentFindResults?.Length != 0;
+         findPrevious.Execute = arg => {
+            int attemptCount = 0;
+            while (attemptCount < recentFindResults.Length) {
+               attemptCount++;
+               currentFindResultIndex--;
+               if (currentFindResultIndex < 0) currentFindResultIndex += recentFindResults.Length;
+               var (tab, offset) = recentFindResults[currentFindResultIndex];
+               if (tab != SelectedTab) continue;
+               tab.Goto.Execute(offset.ToString("X2"));
+               break;
+            }
+         };
+
+         findNext.CanExecute = arg => recentFindResults?.Length != 0;
+         findNext.Execute = arg => {
+            int attemptCount = 0;
+            while (attemptCount < recentFindResults.Length) {
+               attemptCount++;
+               currentFindResultIndex++;
+               if (currentFindResultIndex >= recentFindResults.Length) currentFindResultIndex -= recentFindResults.Length;
+               var (tab, offset) = recentFindResults[currentFindResultIndex];
+               if (tab != SelectedTab) continue;
+               tab.Goto.Execute(offset.ToString("X2"));
+               break;
+            }
+         };
+
+         showFind.CanExecute = CanAlwaysExecute;
+         showFind.Execute = arg => FindControlVisible = (bool)arg;
       }
 
       public void Add(ITabContent content) {
@@ -255,6 +280,8 @@ namespace HavenSoft.Gen3Hex.ViewModel {
                innerCommand.Execute(fileSystem);
             }
          };
+
+         commandsToRefreshOnTabChange.Add(command);
 
          return command;
       }
@@ -344,16 +371,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       }
 
       private void StartListeningToCommandsFromCurrentTab() {
-         var commandsToRefresh = new List<StubCommand> {
-            undo,
-            redo,
-            save,
-            saveAs,
-            close,
-            back,
-            forward,
-         };
-         commandsToRefresh.ForEach(command => command.CanExecuteChanged.Invoke(command, EventArgs.Empty));
+         commandsToRefreshOnTabChange.ForEach(command => command.CanExecuteChanged.Invoke(command, EventArgs.Empty));
 
          if (selectedIndex == -1) return;
 
