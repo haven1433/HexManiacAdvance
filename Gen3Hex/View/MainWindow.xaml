@@ -38,8 +38,9 @@
       <KeyBinding Key="OemMinus" Modifiers="Ctrl" Command="{Binding Back}" />
       <KeyBinding Key="OemMinus" Modifiers="Ctrl+Shift" Command="{Binding Forward}" />
 
-      <KeyBinding Key="T" Modifiers="Ctrl" Command="ToggleBullets" />
       <!-- Stealing this routed command for toggling theme -->
+      <KeyBinding Key="T" Modifiers="Ctrl" Command="ToggleBullets" />
+
       <KeyBinding Key="Esc" Command="{Binding ClearError}"/>
    </Window.InputBindings>
    <Window.CommandBindings>

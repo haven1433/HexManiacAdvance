@@ -78,7 +78,7 @@ namespace HavenSoft.HexTests {
          Assert.Equal(2, count); // since there were 2 results, editor should've asked for 2 child views
          Assert.Equal(2, editor.Count);
          Assert.Equal(1, editor.SelectedIndex);
-         Assert.IsType<CompositeViewPort>(editor[1]);
+         Assert.IsType<SearchResultsViewPort>(editor[1]);
       }
 
       [Fact]
@@ -180,7 +180,7 @@ namespace HavenSoft.HexTests {
 
       [Fact]
       public void CompositeCanScroll() {
-         var composite = new CompositeViewPort("search") { Height = 0x10 };
+         var composite = new SearchResultsViewPort("search") { Height = 0x10 };
          var parent = new StubViewPort { Width = 0x10, Height = 0x10 };
          var parentData = new byte[0x100];
          composite.Add(new ChildViewPort(parent, parentData));

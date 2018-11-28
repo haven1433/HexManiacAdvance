@@ -293,7 +293,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             return;
          }
 
-         var newTab = new CompositeViewPort(search);
+         var newTab = new SearchResultsViewPort(search);
          foreach (var (tab, offset) in results) {
             newTab.Add(tab.CreateChildView(offset));
          }
