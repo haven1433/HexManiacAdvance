@@ -206,15 +206,15 @@ namespace HavenSoft.HexTests {
 
 
       [Theory]
-      [InlineData("Copy")]
-      [InlineData("Delete")]
-      [InlineData("Save")]
-      [InlineData("SaveAs")]
-      [InlineData("Close")]
-      [InlineData("Undo")]
-      [InlineData("Redo")]
-      [InlineData("Back")]
-      [InlineData("Forward")]
+      [InlineData(nameof(EditorViewModel.Copy))]
+      [InlineData(nameof(EditorViewModel.Delete))]
+      [InlineData(nameof(EditorViewModel.Save))]
+      [InlineData(nameof(EditorViewModel.SaveAs))]
+      [InlineData(nameof(EditorViewModel.Close))]
+      [InlineData(nameof(EditorViewModel.Undo))]
+      [InlineData(nameof(EditorViewModel.Redo))]
+      [InlineData(nameof(EditorViewModel.Back))]
+      [InlineData(nameof(EditorViewModel.Forward))]
       public void EditorNotifiesCanExecuteChangedOnTabChange(string commandName) {
          int count = 0;
          var command = (ICommand)editor.GetType().GetProperty(commandName).GetValue(editor);

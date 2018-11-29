@@ -213,5 +213,21 @@ namespace HavenSoft.HexTests {
          // the earliest match is at the end because the search started where the cursor was and looped around.
          Assert.True(results.SequenceEqual(new[] { 0x62, 0xA8, 0xCC, 0x02 }));
       }
+
+      /// <summary>
+      /// editor starts with most recently added tab selected.
+      /// if a single result is found, the editor should switch to the tab that contains it.
+      /// </summary>
+      [Fact]
+      public void FindSwitchesTabIfSingleResultIsOnAnotherTab() {
+         var tab0 = new StubViewPort { Goto = new StubCommand() };
+         var tab1 = new StubTabContent();
+         var editor = new EditorViewModel(new StubFileSystem()) { tab0, tab1 };
+
+         tab0.Find = query => new[] { 0x50 };
+         editor.Find.Execute("search");
+
+         Assert.Equal(0, editor.SelectedIndex);
+      }
    }
 }

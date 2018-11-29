@@ -121,9 +121,9 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public int SelectedIndex {
          get => selectedIndex;
          set {
-            StopListeningToCommandsFromCurrentTab();
-            TryUpdate(ref selectedIndex, value);
-            StartListeningToCommandsFromCurrentTab();
+            using (WorkWithoutListeningToCommandsFromCurrentTab()) {
+               TryUpdate(ref selectedIndex, value);
+            }
          }
       }
 
@@ -241,9 +241,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          tabs.Add(content);
          SelectedIndex = tabs.Count - 1;
          CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, content));
-         content.Closed += RemoveTab;
-         content.OnError += AcceptError;
-         content.RequestTabChange += TabChangeRequested;
+         AddContentListeners(content);
          if (content.Save != null) content.Save.CanExecuteChanged += RaiseSaveAllCanExecuteChanged;
       }
 
@@ -316,6 +314,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
          if (results.Count == 1) {
             var (tab, offset) = results[0];
+            SelectedIndex = tabs.IndexOf(tab);
             tab.Goto.Execute(offset.ToString("X2"));
             return;
          }
@@ -336,14 +335,12 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
          // if the tab to remove is the selected tab, select the next tab (or the previous if there is no next)
          if (index == SelectedIndex) {
-            StopListeningToCommandsFromCurrentTab();
-            tabs.Remove(tab);
-            tab.Closed -= RemoveTab;
-            tab.OnError -= AcceptError;
-            tab.RequestTabChange -= TabChangeRequested;
-            if (selectedIndex == tabs.Count) TryUpdate(ref selectedIndex, tabs.Count - 1, nameof(SelectedIndex));
-            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, tab, index));
-            StartListeningToCommandsFromCurrentTab();
+            using (WorkWithoutListeningToCommandsFromCurrentTab()) {
+               tabs.Remove(tab);
+               RemoveContentListeners(tab);
+               if (selectedIndex == tabs.Count) TryUpdate(ref selectedIndex, tabs.Count - 1, nameof(SelectedIndex));
+               CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, tab, index));
+            }
             return;
          }
 
@@ -351,10 +348,20 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          if (index < SelectedIndex) selectedIndex--;
 
          tabs.Remove(tab);
-         tab.Closed -= RemoveTab;
-         tab.OnError -= AcceptError;
-         tab.RequestTabChange -= TabChangeRequested;
+         RemoveContentListeners(tab);
          CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, tab, index));
+      }
+
+      private void AddContentListeners(ITabContent content) {
+         content.Closed += RemoveTab;
+         content.OnError += AcceptError;
+         content.RequestTabChange += TabChangeRequested;
+      }
+
+      private void RemoveContentListeners(ITabContent content) {
+         content.Closed -= RemoveTab;
+         content.OnError -= AcceptError;
+         content.RequestTabChange -= TabChangeRequested;
       }
 
       private void AcceptError(object sender, string message) => ErrorMessage = message;
@@ -364,35 +371,32 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          var index = tabs.IndexOf(newTab);
          if (index == -1) {
             Add(newTab);
-            return;
-         }
-
-         SelectedIndex = index;
-      }
-
-      private void StartListeningToCommandsFromCurrentTab() {
-         commandsToRefreshOnTabChange.ForEach(command => command.CanExecuteChanged.Invoke(command, EventArgs.Empty));
-
-         if (selectedIndex == -1) return;
-
-         var tab = tabs[selectedIndex];
-         foreach (var kvp in forwardExecuteChangeNotifications) {
-            var getCommand = kvp.Key;
-            var notify = kvp.Value;
-            var command = getCommand(tab);
-            if (command != null) command.CanExecuteChanged += notify;
+         } else {
+            SelectedIndex = index;
          }
       }
 
-      private void StopListeningToCommandsFromCurrentTab() {
+      private void AdjustNotificationsFromCurrentTab(Action<ICommand, EventHandler> adjust) {
          if (selectedIndex == -1) return;
          var tab = tabs[selectedIndex];
          foreach (var kvp in forwardExecuteChangeNotifications) {
             var getCommand = kvp.Key;
             var notify = kvp.Value;
             var command = getCommand(tab);
-            if (command != null) command.CanExecuteChanged -= notify;
+            if (command != null) adjust(command, notify);
          }
+      }
+
+      private IDisposable WorkWithoutListeningToCommandsFromCurrentTab() {
+         void add(ICommand command, EventHandler notify) => command.CanExecuteChanged += notify;
+         void remove(ICommand command, EventHandler notify) => command.CanExecuteChanged -= notify;
+         AdjustNotificationsFromCurrentTab(remove);
+         return new StubDisposable {
+            Dispose = () => {
+               commandsToRefreshOnTabChange.ForEach(command => command.CanExecuteChanged.Invoke(command, EventArgs.Empty));
+               AdjustNotificationsFromCurrentTab(add);
+            }
+         };
       }
 
       private void RaiseSaveAllCanExecuteChanged(object sender, EventArgs e) => saveAll.CanExecuteChanged.Invoke(this, e);
