@@ -5,17 +5,48 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Windows.Input;
+using static HavenSoft.ICommandExtensions;
 
 namespace HavenSoft.Gen3Hex.ViewModel {
    public class EditorViewModel : ViewModelCore, IEnumerable<ITabContent>, INotifyCollectionChanged {
 
       private readonly IFileSystem fileSystem;
       private readonly List<ITabContent> tabs;
-      private readonly StubCommand newCommand, open, save, saveAs, saveAll, close, closeAll, undo, redo, cut, copy, paste, delete, back, forward, gotoCommand, showGoto, clearError;
+
+      private readonly List<StubCommand> commandsToRefreshOnTabChange = new List<StubCommand>();
+      private readonly StubCommand
+         newCommand = new StubCommand(),
+         open = new StubCommand(),
+         save = new StubCommand(),
+         saveAs = new StubCommand(),
+         saveAll = new StubCommand(),
+         close = new StubCommand(),
+         closeAll = new StubCommand(),
+
+         undo = new StubCommand(),
+         redo = new StubCommand(),
+         cut = new StubCommand(),
+         copy = new StubCommand(),
+         paste = new StubCommand(),
+         delete = new StubCommand(),
+
+         back = new StubCommand(),
+         forward = new StubCommand(),
+         gotoCommand = new StubCommand(),
+         showGoto = new StubCommand(),
+         find = new StubCommand(),
+         findPrevious = new StubCommand(),
+         findNext = new StubCommand(),
+         showFind = new StubCommand(),
+         clearError = new StubCommand();
+
       private readonly Dictionary<Func<ITabContent, ICommand>, EventHandler> forwardExecuteChangeNotifications;
 
+      private (IViewPort tab, int)[] recentFindResults;
+      private int currentFindResultIndex;
+
       public ICommand New => newCommand;
-      public ICommand Open => open;
+      public ICommand Open => open;                // parameter: file to open (or null)
       public ICommand Save => save;
       public ICommand SaveAs => saveAs;
       public ICommand SaveAll => saveAll;
@@ -29,16 +60,35 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public ICommand Delete => delete;
       public ICommand Back => back;
       public ICommand Forward => forward;
-      public ICommand Goto => gotoCommand;
-      public ICommand ShowGoto => showGoto;
+      public ICommand Goto => gotoCommand;          // parameter: target destination as string (for example, a hex address)
+      public ICommand ShowGoto => showGoto;         // parameter: true for show, false for hide
+      public ICommand Find => find;                 // parameter: target string to search
+      public ICommand FindPrevious => findPrevious; // parameter: target string to search
+      public ICommand FindNext => findNext;         // parameter: target string to search
+      public ICommand ShowFind => showFind;         // parameter: true for show, false for hide
       public ICommand ClearError => clearError;
 
       private bool gotoControlVisible;
       public bool GotoControlVisible {
          get => gotoControlVisible;
          private set {
+            if (value) {
+               ClearError.Execute();
+               FindControlVisible = false;
+            }
             TryUpdate(ref gotoControlVisible, value);
-            if (value) ClearError.Execute();
+         }
+      }
+
+      private bool findControlVisible;
+      public bool FindControlVisible {
+         get => findControlVisible;
+         private set {
+            if (value) {
+               ClearError.Execute();
+               GotoControlVisible = false;
+            }
+            TryUpdate(ref findControlVisible, value);
          }
       }
 
@@ -67,12 +117,13 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public int Count => tabs.Count;
 
       private int selectedIndex;
+
       public int SelectedIndex {
          get => selectedIndex;
          set {
-            StopListeningToCommandsFromCurrentTab();
-            TryUpdate(ref selectedIndex, value);
-            StartListeningToCommandsFromCurrentTab();
+            using (WorkWithoutListeningToCommandsFromCurrentTab()) {
+               TryUpdate(ref selectedIndex, value);
+            }
          }
       }
 
@@ -85,61 +136,24 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          tabs = new List<ITabContent>();
          selectedIndex = -1;
 
-         bool CanAlwaysExecute(object arg) => true;
+         ImplementCommands();
 
-         newCommand = new StubCommand {
-            CanExecute = CanAlwaysExecute,
-            Execute = arg => Add(new ViewPort()),
-         };
-         open = new StubCommand {
-            CanExecute = CanAlwaysExecute,
-            Execute = arg => {
-               var file = arg as LoadedFile ?? fileSystem.OpenFile();
-               if (file == null) return;
-               Add(new ViewPort(file));
-            },
-         };
-         gotoCommand = new StubCommand {
-            CanExecute = arg => SelectedTab?.Goto?.CanExecute(arg) ?? false,
-            Execute = arg => {
-               SelectedTab?.Goto?.Execute(arg);
-               GotoControlVisible = false;
-            },
-         };
-         showGoto = new StubCommand {
-            CanExecute = CanAlwaysExecute,
-            Execute = arg => GotoControlVisible = (bool)arg,
-         };
-         clearError = new StubCommand {
-            CanExecute = arg => showError,
-            Execute = arg => ErrorMessage = string.Empty,
-         };
-         cut = new StubCommand {
-            CanExecute = arg => SelectedTab?.Copy?.CanExecute(arg) ?? false,
-            Execute = arg => {
-               if (SelectedTab != null && SelectedTab.Copy != null && SelectedTab.Clear != null) {
-                  SelectedTab.Copy.Execute(fileSystem);
-                  SelectedTab.Clear.Execute();
-               }
-            }
-         };
          copy = CreateWrapperForSelected(tab => tab.Copy);
-         paste = new StubCommand {
-            CanExecute = arg => SelectedTab is ViewPort,
-            Execute = arg => (SelectedTab as ViewPort)?.Edit(fileSystem.CopyText),
-         };
          delete = CreateWrapperForSelected(tab => tab.Clear);
          save = CreateWrapperForSelected(tab => tab.Save);
          saveAs = CreateWrapperForSelected(tab => tab.SaveAs);
-         saveAll = CreateWrapperForAll(tab => tab.Save);
          close = CreateWrapperForSelected(tab => tab.Close);
-         closeAll = CreateWrapperForAll(tab => tab.Close);
          undo = CreateWrapperForSelected(tab => tab.Undo);
          redo = CreateWrapperForSelected(tab => tab.Redo);
          back = CreateWrapperForSelected(tab => tab.Back);
          forward = CreateWrapperForSelected(tab => tab.Forward);
 
+         saveAll = CreateWrapperForAll(tab => tab.Save);
+         closeAll = CreateWrapperForAll(tab => tab.Close);
+
          forwardExecuteChangeNotifications = new Dictionary<Func<ITabContent, ICommand>, EventHandler> {
+            { tab => tab.Copy, (sender, e) => copy.CanExecuteChanged.Invoke(this, e) },
+            { tab => tab.Clear, (sender, e) => delete.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.Save, (sender, e) => save.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.SaveAs, (sender, e) => saveAs.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.Close, (sender, e) => close.CanExecuteChanged.Invoke(this, e) },
@@ -150,12 +164,84 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          };
       }
 
+      private void ImplementCommands() {
+         newCommand.CanExecute = CanAlwaysExecute;
+         newCommand.Execute = arg => Add(new ViewPort());
+
+         open.CanExecute = CanAlwaysExecute;
+         open.Execute = arg => {
+            var file = arg as LoadedFile ?? fileSystem.OpenFile();
+            if (file == null) return;
+            Add(new ViewPort(file));
+         };
+
+         gotoCommand.CanExecute = arg => SelectedTab?.Goto?.CanExecute(arg) ?? false;
+         gotoCommand.Execute = arg => {
+            SelectedTab?.Goto?.Execute(arg);
+            GotoControlVisible = false;
+         };
+
+         showGoto.CanExecute = CanAlwaysExecute;
+         showGoto.Execute = arg => GotoControlVisible = (bool)arg;
+
+         ImplementFindCommands();
+
+         clearError.CanExecute = arg => showError;
+         clearError.Execute = arg => ErrorMessage = string.Empty;
+
+         cut.CanExecute = arg => SelectedTab?.Copy?.CanExecute(arg) ?? false;
+         cut.Execute = arg => {
+            if (SelectedTab != null && SelectedTab.Copy != null && SelectedTab.Clear != null) {
+               SelectedTab.Copy.Execute(fileSystem);
+               SelectedTab.Clear.Execute();
+            }
+         };
+
+         paste.CanExecute = arg => SelectedTab is ViewPort;
+         paste.Execute = arg => (SelectedTab as ViewPort)?.Edit(fileSystem.CopyText);
+      }
+
+      private void ImplementFindCommands() {
+         find.CanExecute = CanAlwaysExecute;
+         find.Execute = arg => FindExecuted((string)arg);
+
+         findPrevious.CanExecute = arg => recentFindResults?.Length != 0;
+         findPrevious.Execute = arg => {
+            int attemptCount = 0;
+            while (attemptCount < recentFindResults.Length) {
+               attemptCount++;
+               currentFindResultIndex--;
+               if (currentFindResultIndex < 0) currentFindResultIndex += recentFindResults.Length;
+               var (tab, offset) = recentFindResults[currentFindResultIndex];
+               if (tab != SelectedTab) continue;
+               tab.Goto.Execute(offset.ToString("X2"));
+               break;
+            }
+         };
+
+         findNext.CanExecute = arg => recentFindResults?.Length != 0;
+         findNext.Execute = arg => {
+            int attemptCount = 0;
+            while (attemptCount < recentFindResults.Length) {
+               attemptCount++;
+               currentFindResultIndex++;
+               if (currentFindResultIndex >= recentFindResults.Length) currentFindResultIndex -= recentFindResults.Length;
+               var (tab, offset) = recentFindResults[currentFindResultIndex];
+               if (tab != SelectedTab) continue;
+               tab.Goto.Execute(offset.ToString("X2"));
+               break;
+            }
+         };
+
+         showFind.CanExecute = CanAlwaysExecute;
+         showFind.Execute = arg => FindControlVisible = (bool)arg;
+      }
+
       public void Add(ITabContent content) {
          tabs.Add(content);
          SelectedIndex = tabs.Count - 1;
          CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, content));
-         content.Closed += RemoveTab;
-         content.OnError += AcceptError;
+         AddContentListeners(content);
          if (content.Save != null) content.Save.CanExecuteChanged += RaiseSaveAllCanExecuteChanged;
       }
 
@@ -193,6 +279,8 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             }
          };
 
+         commandsToRefreshOnTabChange.Add(command);
+
          return command;
       }
 
@@ -209,6 +297,36 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          return command;
       }
 
+      private void FindExecuted(string search) {
+         var results = new List<(IViewPort, int)>();
+         foreach (var tab in tabs) {
+            if (tab is IViewPort viewPort) results.AddRange(viewPort.Find(search).Select(offset => (viewPort, offset)));
+         }
+
+         FindControlVisible = false;
+
+         if (results.Count == 0) {
+            ErrorMessage = $"Could not find {search}.";
+            return;
+         }
+
+         recentFindResults = results.ToArray();
+
+         if (results.Count == 1) {
+            var (tab, offset) = results[0];
+            SelectedIndex = tabs.IndexOf(tab);
+            tab.Goto.Execute(offset.ToString("X2"));
+            return;
+         }
+
+         var newTab = new SearchResultsViewPort(search);
+         foreach (var (tab, offset) in results) {
+            newTab.Add(tab.CreateChildView(offset));
+         }
+
+         Add(newTab);
+      }
+
       private void RemoveTab(object sender, EventArgs e) {
          var tab = (ITabContent)sender;
          if (!tabs.Contains(tab)) throw new InvalidOperationException("Cannot remove tab, because tab is not currently in editor.");
@@ -217,12 +335,12 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
          // if the tab to remove is the selected tab, select the next tab (or the previous if there is no next)
          if (index == SelectedIndex) {
-            StopListeningToCommandsFromCurrentTab();
-            tabs.Remove(tab);
-            tab.Closed -= RemoveTab;
-            if (selectedIndex == tabs.Count) TryUpdate(ref selectedIndex, tabs.Count - 1, nameof(SelectedIndex));
-            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, tab, index));
-            StartListeningToCommandsFromCurrentTab();
+            using (WorkWithoutListeningToCommandsFromCurrentTab()) {
+               tabs.Remove(tab);
+               RemoveContentListeners(tab);
+               if (selectedIndex == tabs.Count) TryUpdate(ref selectedIndex, tabs.Count - 1, nameof(SelectedIndex));
+               CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, tab, index));
+            }
             return;
          }
 
@@ -230,45 +348,55 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          if (index < SelectedIndex) selectedIndex--;
 
          tabs.Remove(tab);
-         tab.Closed -= RemoveTab;
-         tab.OnError -= AcceptError;
+         RemoveContentListeners(tab);
          CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, tab, index));
+      }
+
+      private void AddContentListeners(ITabContent content) {
+         content.Closed += RemoveTab;
+         content.OnError += AcceptError;
+         content.RequestTabChange += TabChangeRequested;
+      }
+
+      private void RemoveContentListeners(ITabContent content) {
+         content.Closed -= RemoveTab;
+         content.OnError -= AcceptError;
+         content.RequestTabChange -= TabChangeRequested;
       }
 
       private void AcceptError(object sender, string message) => ErrorMessage = message;
 
-      private void StartListeningToCommandsFromCurrentTab() {
-         var commandsToRefresh = new List<StubCommand> {
-            undo,
-            redo,
-            save,
-            saveAs,
-            close,
-            back,
-            forward,
-         };
-         commandsToRefresh.ForEach(command => command.CanExecuteChanged.Invoke(command, EventArgs.Empty));
-
-         if (selectedIndex == -1) return;
-
-         var tab = tabs[selectedIndex];
-         foreach (var kvp in forwardExecuteChangeNotifications) {
-            var getCommand = kvp.Key;
-            var notify = kvp.Value;
-            var command = getCommand(tab);
-            if (command != null) command.CanExecuteChanged += notify;
+      private void TabChangeRequested(object sender, ITabContent newTab) {
+         if (sender != SelectedTab) return;
+         var index = tabs.IndexOf(newTab);
+         if (index == -1) {
+            Add(newTab);
+         } else {
+            SelectedIndex = index;
          }
       }
 
-      private void StopListeningToCommandsFromCurrentTab() {
+      private void AdjustNotificationsFromCurrentTab(Action<ICommand, EventHandler> adjust) {
          if (selectedIndex == -1) return;
          var tab = tabs[selectedIndex];
          foreach (var kvp in forwardExecuteChangeNotifications) {
             var getCommand = kvp.Key;
             var notify = kvp.Value;
             var command = getCommand(tab);
-            if (command != null) command.CanExecuteChanged -= notify;
+            if (command != null) adjust(command, notify);
          }
+      }
+
+      private IDisposable WorkWithoutListeningToCommandsFromCurrentTab() {
+         void add(ICommand command, EventHandler notify) => command.CanExecuteChanged += notify;
+         void remove(ICommand command, EventHandler notify) => command.CanExecuteChanged -= notify;
+         AdjustNotificationsFromCurrentTab(remove);
+         return new StubDisposable {
+            Dispose = () => {
+               commandsToRefreshOnTabChange.ForEach(command => command.CanExecuteChanged.Invoke(command, EventArgs.Empty));
+               AdjustNotificationsFromCurrentTab(add);
+            }
+         };
       }
 
       private void RaiseSaveAllCanExecuteChanged(object sender, EventArgs e) => saveAll.CanExecuteChanged.Invoke(this, e);

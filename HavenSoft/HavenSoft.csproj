@@ -35,8 +35,8 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Delegation, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\HavenSoft.AutoImplement.1.0.1\lib\System.Delegation.dll</HintPath>
+    <Reference Include="System.Delegation, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\HavenSoft.AutoImplement.1.1.0\lib\System.Delegation.dll</HintPath>
     </Reference>
     <Reference Include="System.Xaml" />
     <Reference Include="WindowsBase" />
@@ -55,23 +55,23 @@
     <Compile Include="Solarized.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <Page Include="Icons.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>
 if not exist $(ProjectDir)generatedCode mkdir $(ProjectDir)generatedCode
 
-$(SolutionDir)packages\HavenSoft.AutoImplement.1.0.1\AutoImplement "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" ICommand
+$(SolutionDir)packages\HavenSoft.AutoImplement.1.1.0\AutoImplement "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" ICommand
 move /Y StubCommand.cs $(ProjectDir)generatedCode
 
-$(SolutionDir)packages\HavenSoft.AutoImplement.1.0.1\AutoImplement "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" IDisposable
+$(SolutionDir)packages\HavenSoft.AutoImplement.1.1.0\AutoImplement "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" IDisposable
 move /Y StubDisposable.cs $(ProjectDir)generatedCode
 
 del *.cs</PreBuildEvent>

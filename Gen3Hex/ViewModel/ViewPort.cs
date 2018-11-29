@@ -8,14 +8,14 @@ using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Windows.Input;
+using static HavenSoft.ICommandExtensions;
 
 namespace HavenSoft.Gen3Hex.ViewModel {
    /// <summary>
    /// A range of visible data that should be displayed.
    /// </summary>
-   public class ViewPort : ViewModelCore, ITabContent, INotifyCollectionChanged {
+   public class ViewPort : ViewModelCore, IViewPort {
       private static readonly NotifyCollectionChangedEventArgs ResetArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
       private readonly StubCommand
          clear = new StubCommand(),
@@ -59,9 +59,6 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       public ObservableCollection<string> Headers => scroll.Headers;
       public ICommand Scroll => scroll.Scroll;
-      public ICommand Goto => selection.Goto;
-      public ICommand Back => selection.Back;
-      public ICommand Forward => selection.Forward;
 
       private void ScrollPropertyChanged(object sender, PropertyChangedEventArgs e) {
          if (e.PropertyName == nameof(scroll.DataIndex)) {
@@ -92,8 +89,10 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       }
 
       public ICommand MoveSelectionStart => selection.MoveSelectionStart;
-
       public ICommand MoveSelectionEnd => selection.MoveSelectionEnd;
+      public ICommand Goto => selection.Goto;
+      public ICommand Back => selection.Back;
+      public ICommand Forward => selection.Forward;
 
       private void ClearActiveEditBeforeSelectionChanges(object sender, Point location) {
          if (location.X >= 0 && location.X < scroll.Width && location.Y >= 0 && location.Y < scroll.Height) {
@@ -147,7 +146,10 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       #region Saving
 
-      private readonly StubCommand save, saveAs, close;
+      private readonly StubCommand
+         save = new StubCommand(),
+         saveAs = new StubCommand(),
+         close = new StubCommand();
 
       public ICommand Save => save;
 
@@ -201,8 +203,8 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       }
 
       public event EventHandler<string> OnError;
-
       public event NotifyCollectionChangedEventHandler CollectionChanged;
+      public event EventHandler<ITabContent> RequestTabChange;
 
       public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
 
@@ -221,7 +223,12 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          history = new ChangeHistory<Dictionary<int, HexElement>>(RevertChanges);
          history.PropertyChanged += HistoryPropertyChanged;
 
-         clear.CanExecute = arg => true;
+         ImplementCommands();
+         RefreshBackingData();
+      }
+
+      private void ImplementCommands() {
+         clear.CanExecute = CanAlwaysExecute;
          clear.Execute = arg => {
             var selectionStart = scroll.ViewPointToDataIndex(selection.SelectionStart);
             var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
@@ -231,7 +238,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             RefreshBackingData();
          };
 
-         copy.CanExecute = arg => true;
+         copy.CanExecute = CanAlwaysExecute;
          copy.Execute = arg => {
             var selectionStart = scroll.ViewPointToDataIndex(selection.SelectionStart);
             var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
@@ -240,20 +247,15 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             var bytes = Enumerable.Range(left, length).Select(i => data[i]);
             ((IFileSystem)arg).CopyText = string.Join(" ", bytes.Select(value => value.ToString("X2")));
          };
-         save = new StubCommand {
-            CanExecute = arg => !history.IsSaved,
-            Execute = arg => SaveExecuted((IFileSystem)arg),
-         };
-         saveAs = new StubCommand {
-            CanExecute = arg => true,
-            Execute = arg => SaveAsExecuted((IFileSystem)arg),
-         };
-         close = new StubCommand {
-            CanExecute = arg => true,
-            Execute = arg => CloseExecuted((IFileSystem)arg),
-         };
 
-         RefreshBackingData();
+         save.CanExecute = arg => !history.IsSaved;
+         save.Execute = arg => SaveExecuted((IFileSystem)arg);
+
+         saveAs.CanExecute = CanAlwaysExecute;
+         saveAs.Execute = arg => SaveAsExecuted((IFileSystem)arg);
+
+         close.CanExecute = CanAlwaysExecute;
+         close.Execute = arg => CloseExecuted((IFileSystem)arg);
       }
 
       public bool IsSelected(Point point) => selection.IsSelected(point);
@@ -261,6 +263,43 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public void Edit(string input) {
          for (int i = 0; i < input.Length; i++) Edit(input[i]);
       }
+
+      public IReadOnlyList<int> Find(string rawSearch) {
+         var results = new List<int>();
+
+         // basic attempt: see if the search term is a string of bytes
+         var cleanedSearch = rawSearch.Replace(" ", string.Empty).ToUpper();
+         var hex = "0123456789ABCDEF";
+         if (cleanedSearch.All(hex.Contains) && cleanedSearch.Length % 2 == 0) {
+            var search = new byte[cleanedSearch.Length / 2];
+            for (int i = 0; i < search.Length; i++) {
+               var thisByte = cleanedSearch.Substring(i * 2, 2);
+               search[i] += (byte)(hex.IndexOf(thisByte[0]) * 0x10);
+               search[i] += (byte)hex.IndexOf(thisByte[1]);
+            }
+            for (int i = 0; i < data.Length - search.Length; i++) {
+               for (int j = 0; j < search.Length; j++) {
+                  if (data[i + j] != search[j]) break;
+                  if (j == search.Length - 1) results.Add(i);
+               }
+            }
+         }
+
+         // reorder the list to start at the current cursor position
+         var offset = scroll.ViewPointToDataIndex(SelectionStart);
+         var left = results.Where(result => result < offset);
+         var right = results.Where(result => result >= offset);
+         results = right.Concat(left).ToList();
+         return results;
+      }
+
+      public IChildViewPort CreateChildView(int offset) {
+         var child = new ChildViewPort(this, data);
+         child.Goto.Execute(offset.ToString("X2"));
+         return child;
+      }
+
+      public void FollowLink(int x, int y) { }
 
       private void Edit(char input) {
          var point = GetEditPoint();

@@ -204,23 +204,30 @@ namespace HavenSoft.HexTests {
          Assert.Equal(7, count);
       }
 
-      [Fact]
-      public void EditorNotifiesCanExecuteChangedOnTabChange() {
+
+      [Theory]
+      [InlineData(nameof(EditorViewModel.Copy))]
+      [InlineData(nameof(EditorViewModel.Delete))]
+      [InlineData(nameof(EditorViewModel.Save))]
+      [InlineData(nameof(EditorViewModel.SaveAs))]
+      [InlineData(nameof(EditorViewModel.Close))]
+      [InlineData(nameof(EditorViewModel.Undo))]
+      [InlineData(nameof(EditorViewModel.Redo))]
+      [InlineData(nameof(EditorViewModel.Back))]
+      [InlineData(nameof(EditorViewModel.Forward))]
+      public void EditorNotifiesCanExecuteChangedOnTabChange(string commandName) {
          int count = 0;
-         editor.Save.CanExecuteChanged += (sender, e) => count++;
-         editor.SaveAs.CanExecuteChanged += (sender, e) => count++;
-         editor.Close.CanExecuteChanged += (sender, e) => count++;
-         editor.Undo.CanExecuteChanged += (sender, e) => count++;
-         editor.Redo.CanExecuteChanged += (sender, e) => count++;
+         var command = (ICommand)editor.GetType().GetProperty(commandName).GetValue(editor);
+         command.CanExecuteChanged += (sender, e) => count++;
          var tab = new StubTabContent();
          tab.Close = new StubCommand { CanExecute = arg => true, Execute = arg => tab.Closed.Invoke(tab, EventArgs.Empty) };
 
          editor.Add(tab);
-         Assert.Equal(5, count);
+         Assert.Equal(1, count);
 
          count = 0;
          editor.Close.Execute();
-         Assert.Equal(5, count);
+         Assert.Equal(1, count);
       }
 
       [Fact]
@@ -261,7 +268,7 @@ namespace HavenSoft.HexTests {
          tab.OnError.Invoke(tab, "Some Message");
 
          Assert.True(editor.ShowError);
-         Assert.Equal(editor.ErrorMessage, "Some Message");
+         Assert.Equal("Some Message", editor.ErrorMessage);
          Assert.Equal(1, clearErrorChangedNotifications);
       }
 
@@ -290,6 +297,30 @@ namespace HavenSoft.HexTests {
 
          Assert.True(editor.GotoControlVisible);
          Assert.False(editor.ShowError);
+      }
+
+      [Fact]
+      public void ActiveTabCanTellEditorToSwitch() {
+         var tab0 = new StubTabContent();
+         var tab1 = new StubTabContent();
+         editor.Add(tab0);
+         editor.Add(tab1);
+
+         tab1.RequestTabChange.Invoke(tab1, tab0); // tab 1 is requesting that the editor switch to tab 0
+
+         Assert.Equal(0, editor.SelectedIndex);
+      }
+
+      [Fact]
+      public void NonActiveTabSwitchesAreIgnored() {
+         var tab0 = new StubTabContent();
+         var tab1 = new StubTabContent();
+         editor.Add(tab0);
+         editor.Add(tab1);
+
+         tab1.RequestTabChange.Invoke(tab0, tab0); // tab 0 is trying to force itself to be focused
+
+         Assert.Equal(1, editor.SelectedIndex);
       }
 
       private StubTabContent CreateClosableTab() {

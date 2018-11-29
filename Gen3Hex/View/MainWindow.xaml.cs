@@ -4,6 +4,7 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -106,10 +107,11 @@ namespace HavenSoft.Gen3Hex.View {
       private void ReportIssueClick(object sender, EventArgs e) => System.Diagnostics.Process.Start("https://github.com/haven1433/gen3hex/issues");
       private void AboutClick(object sender, EventArgs e) => new AboutWindow().ShowDialog();
 
-      private void GotoBoxVisibilityChanged(object sender, DependencyPropertyChangedEventArgs e) {
-         if (GotoBox.IsVisible) {
-            GotoBox.SelectAll();
-            Keyboard.Focus(GotoBox);
+      private void EditBoxVisibilityChanged(object sender, DependencyPropertyChangedEventArgs e) {
+         var box = (TextBox)sender;
+         if (box.IsVisible) {
+            box.SelectAll();
+            Keyboard.Focus(box);
          } else {
             if (ViewModel.SelectedIndex == -1) return;
             var selectedElement = (HexContent)GetChild(Tabs, "HexContent", ViewModel[ViewModel.SelectedIndex]);
