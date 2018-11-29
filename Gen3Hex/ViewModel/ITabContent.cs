@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HavenSoft.Gen3Hex.Model;
+using System;
 using System.Windows.Input;
 
 namespace HavenSoft.Gen3Hex.ViewModel {

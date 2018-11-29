@@ -1,11 +1,15 @@
 ﻿using HavenSoft.Gen3Hex.Model;
 using Microsoft.Win32;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows;
 
 namespace HavenSoft.Gen3Hex.View {
    public class WindowsFileSystem : IFileSystem {
+      private readonly Dictionary<string, List<FileSystemWatcher>> watchers = new Dictionary<string, List<FileSystemWatcher>>();
+
       public string CopyText {
          get => Clipboard.ContainsText() ? Clipboard.GetText() : string.Empty;
          set => Clipboard.SetText(value);
@@ -15,9 +19,31 @@ namespace HavenSoft.Gen3Hex.View {
          var dialog = new OpenFileDialog { Filter = CreateFilterFromOptions(extensionOptions) };
          var result = dialog.ShowDialog();
          if (result != true) return null;
-         if (!File.Exists(dialog.FileName)) return null;
-         var data = File.ReadAllBytes(dialog.FileName);
-         return new LoadedFile(dialog.FileName, data);
+         return LoadFile(dialog.FileName);
+      }
+
+      public LoadedFile LoadFile(string fileName) {
+         if (!File.Exists(fileName)) return null;
+         var data = File.ReadAllBytes(fileName);
+         return new LoadedFile(fileName, data);
+      }
+
+      public void AddListenerToFile(string fileName, Action<IFileSystem> listener) {
+         var watcher = new FileSystemWatcher(Path.GetDirectoryName(fileName)) {
+            NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName,
+         };
+         watcher.Changed += (sender, e) => {
+            if (e.FullPath.EndsWith(fileName)) listener(this);
+         };
+         watcher.EnableRaisingEvents = true;
+
+         if (!watchers.ContainsKey(fileName)) watchers[fileName] = new List<FileSystemWatcher>();
+         watchers[fileName].Add(watcher);
+      }
+
+      public void RemoveAllListenersForFile(string fileName) {
+         if (!watchers.ContainsKey(fileName)) return;
+         watchers[fileName].Clear();
       }
 
       public string RequestNewName(string currentName, params string[] extensionOptions) {

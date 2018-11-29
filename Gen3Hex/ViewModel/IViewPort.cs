@@ -22,5 +22,6 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       IReadOnlyList<int> Find(string search);
       IChildViewPort CreateChildView(int offset);
       void FollowLink(int x, int y);
+      void ConsiderReload(IFileSystem fileSystem);
    }
 }

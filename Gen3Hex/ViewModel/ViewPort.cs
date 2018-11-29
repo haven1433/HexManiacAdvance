@@ -301,6 +301,10 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       public void FollowLink(int x, int y) { }
 
+      public void ConsiderReload(IFileSystem fileSystem) {
+         
+      }
+
       private void Edit(char input) {
          var point = GetEditPoint();
          var element = currentView[point.X, point.Y];

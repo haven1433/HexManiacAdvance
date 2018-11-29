@@ -116,6 +116,8 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          RequestTabChange?.Invoke(this, parent);
       }
 
+      public void ConsiderReload(IFileSystem fileSystem) { }
+
       private void NotifyCollectionChanged() {
          if (children.Count == 0) return;
          UpdateHeaders();
