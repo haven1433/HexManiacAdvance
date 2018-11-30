@@ -238,5 +238,19 @@ namespace HavenSoft.HexTests {
 
          Assert.Equal(1, retryCount);
       }
+
+      [Fact]
+      public void ViewPortAdjustsSelectionWhenLoadingAShorterFile() {
+         var viewPort = new ViewPort(new LoadedFile("file.txt", new byte[12]));
+         viewPort.SelectionStart = new Point(3, 3);
+         Assert.Equal(4, viewPort.Width);
+         Assert.Equal(4, viewPort.Height);
+         Assert.Equal(new Point(0, 3), viewPort.SelectionStart);
+
+         var fileSystem = new StubFileSystem { LoadFile = filename => new LoadedFile("file.txt", new byte[10]) };
+         viewPort.ConsiderReload(fileSystem);
+
+         Assert.Equal(new Point(2, 2), viewPort.SelectionStart);
+      }
    }
 }

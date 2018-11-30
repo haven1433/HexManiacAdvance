@@ -45,9 +45,7 @@ namespace HavenSoft.Gen3Hex.View {
       }
 
       private void OnViewPortContentChanged(object sender, NotifyCollectionChangedEventArgs e) {
-         // the ViewPort Content can change from a background thread.
-         // make sure we're on the forground thread before messing with the UI state.
-         Dispatcher.BeginInvoke((Action)InvalidateVisual);
+         InvalidateVisual();
       }
 
       private void OnViewPortPropertyChanged(object sender, PropertyChangedEventArgs e) {

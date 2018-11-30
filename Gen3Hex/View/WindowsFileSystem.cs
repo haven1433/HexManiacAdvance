@@ -5,16 +5,21 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace HavenSoft.Gen3Hex.View {
    public class WindowsFileSystem : IFileSystem {
       private readonly Dictionary<string, List<FileSystemWatcher>> watchers = new Dictionary<string, List<FileSystemWatcher>>();
       private readonly Dictionary<string, List<Action<IFileSystem>>> listeners = new Dictionary<string, List<Action<IFileSystem>>>();
 
+      private readonly Dispatcher dispatcher;
+
       public string CopyText {
          get => Clipboard.ContainsText() ? Clipboard.GetText() : string.Empty;
          set => Clipboard.SetText(value);
       }
+
+      public WindowsFileSystem(Dispatcher uiDispatcher) => dispatcher = uiDispatcher;
 
       public LoadedFile OpenFile(params string[] extensionOptions) {
          var dialog = new OpenFileDialog { Filter = CreateFilterFromOptions(extensionOptions) };
@@ -34,7 +39,7 @@ namespace HavenSoft.Gen3Hex.View {
             NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName,
          };
          watcher.Changed += (sender, e) => {
-            if (e.FullPath.EndsWith(fileName)) listener(this);
+            if (e.FullPath.EndsWith(fileName)) dispatcher.BeginInvoke(listener, this);
          };
          watcher.EnableRaisingEvents = true;
 
@@ -69,6 +74,9 @@ namespace HavenSoft.Gen3Hex.View {
       }
 
       public bool Save(LoadedFile file) {
+         // make sure the required directory exists
+         var path = Path.GetDirectoryName(file.Name);
+         Directory.CreateDirectory(path);
          File.WriteAllBytes(file.Name, file.Contents);
          return true;
       }

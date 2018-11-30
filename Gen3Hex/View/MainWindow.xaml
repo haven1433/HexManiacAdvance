@@ -157,7 +157,7 @@
             <DataTemplate>
                <TextBlock Name="TabTextBlock" Background="Transparent" Text="{Binding Name}" Foreground="{DynamicResource Primary}" MouseDown="TabMouseDown" MouseMove="TabMouseMove" MouseUp="TabMouseUp">
                   <TextBlock.InputBindings>
-                     <MouseBinding MouseAction="MiddleClick" Command="{Binding Close}"/>
+                     <MouseBinding MouseAction="MiddleClick" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}"/>
                   </TextBlock.InputBindings>
                </TextBlock>
             </DataTemplate>

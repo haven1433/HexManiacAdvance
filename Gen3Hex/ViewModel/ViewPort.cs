@@ -308,9 +308,14 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
          try {
             var file = fileSystem.LoadFile(FileName);
+            if (file == null) return; // asked to load the file, but the file wasn't found... carry on
             data = file.Contents;
             scroll.DataLength = data.Length;
             RefreshBackingData();
+
+            // if the new file is shorter, selection might need to be updated
+            // this forces it to be re-evaluated.
+            SelectionStart = SelectionStart;
          } catch (IOException) {
             // something happened when we tried to load the file
             // try again soon.
