@@ -45,7 +45,7 @@ namespace HavenSoft.Gen3Hex.View {
       }
 
       private void OnViewPortContentChanged(object sender, NotifyCollectionChangedEventArgs e) {
-         InvalidateVisual();
+         Dispatcher.BeginInvoke((Action)InvalidateVisual);
       }
 
       private void OnViewPortPropertyChanged(object sender, PropertyChangedEventArgs e) {

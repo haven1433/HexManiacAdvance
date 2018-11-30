@@ -15,8 +15,8 @@ namespace HavenSoft.Gen3Hex.View {
          Solarized.Theme.VariantChanged += (sender, args) => UpdateThemeDictionary();
 
          var fileName = e.Args?.Length == 1 ? e.Args[0] : string.Empty;
-         var viewPort = GetViewModel(fileName);
-         MainWindow = new MainWindow(viewPort);
+         var viewModel = GetViewModel(fileName);
+         MainWindow = new MainWindow(viewModel);
          MainWindow.Show();
       }
 

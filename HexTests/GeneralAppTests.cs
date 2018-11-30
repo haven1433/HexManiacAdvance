@@ -338,7 +338,7 @@ namespace HavenSoft.HexTests {
       public void EditorRemovesFileSystemWatchWhenTabsClose() {
          var fileSystem = new StubFileSystem();
          string name = null;
-         fileSystem.RemoveAllListenersForFile = fileName => name = fileName;
+         fileSystem.RemoveListenerForFile = (fileName, listener) => name = fileName;
          var editor = new EditorViewModel(fileSystem);
          editor.Open.Execute(new LoadedFile("InputFile.txt", new byte[20]));
 
@@ -372,6 +372,20 @@ namespace HavenSoft.HexTests {
 
          Assert.Null(file);
          Assert.Equal(0x05, viewPort[0, 0].Value);
+      }
+
+      [Fact]
+      public void EditorForwardsTabDelayedWork() {
+         void SomeAction() { }
+         Action work = null;
+         var editor = new EditorViewModel(new StubFileSystem());
+         var tab = new StubTabContent();
+         editor.Add(tab);
+
+         editor.RequestDelayedWork += (sender, e) => work = e;
+         tab.RequestDelayedWork.Invoke(tab, SomeAction);
+
+         Assert.Equal(SomeAction, work);
       }
 
       private StubTabContent CreateClosableTab() {

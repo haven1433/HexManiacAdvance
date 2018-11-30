@@ -46,6 +46,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public ObservableCollection<string> Headers { get; } = new ObservableCollection<string>();
       public ICommand Scroll => scroll;
       public string Name { get; }
+      public string FileName => string.Empty;
       public ICommand Save => null;
       public ICommand SaveAs => null;
       public ICommand Undo => null;
@@ -61,6 +62,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public event EventHandler Closed;
       public event NotifyCollectionChangedEventHandler CollectionChanged;
       public event EventHandler<ITabContent> RequestTabChange;
+      public event EventHandler<Action> RequestDelayedWork;
 
       #endregion
 

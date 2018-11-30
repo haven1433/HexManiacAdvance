@@ -23,16 +23,17 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       private byte[] data;
       private HexElement[,] currentView;
-      private string fileName;
 
       public string Name {
          get {
-            var name = Path.GetFileNameWithoutExtension(fileName);
+            var name = Path.GetFileNameWithoutExtension(FileName);
             if (string.IsNullOrEmpty(name)) name = "Untitled";
             if (!history.IsSaved) name += "*";
             return name;
          }
       }
+
+      public string FileName { get; private set; }
 
       #region Scrolling Properties
 
@@ -162,27 +163,27 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       private void SaveExecuted(IFileSystem fileSystem) {
          if (history.IsSaved) return;
 
-         if (string.IsNullOrEmpty(fileName)) {
+         if (string.IsNullOrEmpty(FileName)) {
             SaveAsExecuted(fileSystem);
             return;
          }
 
-         if (fileSystem.Save(new LoadedFile(fileName, data))) history.TagAsSaved();
+         if (fileSystem.Save(new LoadedFile(FileName, data))) history.TagAsSaved();
       }
 
       private void SaveAsExecuted(IFileSystem fileSystem) {
-         var newName = fileSystem.RequestNewName(fileName);
+         var newName = fileSystem.RequestNewName(FileName);
          if (newName == null) return;
 
          if (fileSystem.Save(new LoadedFile(newName, data))) {
-            fileName = newName; // don't bother notifying, because tagging the history will cause a notify;
+            FileName = newName; // don't bother notifying, because tagging the history will cause a notify;
             history.TagAsSaved();
          }
       }
 
       private void CloseExecuted(IFileSystem fileSystem) {
          if (!history.IsSaved) {
-            var result = fileSystem.TrySavePrompt(new LoadedFile(fileName, data));
+            var result = fileSystem.TrySavePrompt(new LoadedFile(FileName, data));
             if (result == null) return;
          }
          Closed?.Invoke(this, EventArgs.Empty);
@@ -205,11 +206,12 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public event EventHandler<string> OnError;
       public event NotifyCollectionChangedEventHandler CollectionChanged;
       public event EventHandler<ITabContent> RequestTabChange;
+      public event EventHandler<Action> RequestDelayedWork;
 
       public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
 
       public ViewPort(LoadedFile file) {
-         fileName = file.Name;
+         FileName = file.Name;
          data = file.Contents;
 
          scroll = new ScrollRegion { DataLength = data.Length };
@@ -302,7 +304,18 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       public void FollowLink(int x, int y) { }
 
       public void ConsiderReload(IFileSystem fileSystem) {
-         
+         if (!history.IsSaved) return; // don't overwrite local changes
+
+         try {
+            var file = fileSystem.LoadFile(FileName);
+            data = file.Contents;
+            scroll.DataLength = data.Length;
+            RefreshBackingData();
+         } catch (IOException) {
+            // something happened when we tried to load the file
+            // try again soon.
+            RequestDelayedWork?.Invoke(this, () => ConsiderReload(fileSystem));
+         }
       }
 
       private void Edit(char input) {

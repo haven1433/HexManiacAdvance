@@ -7,6 +7,8 @@ using System.Windows.Input;
 
 namespace HavenSoft.Gen3Hex.ViewModel {
    public interface IViewPort : ITabContent, INotifyCollectionChanged, INotifyPropertyChanged {
+      string FileName { get; } // Name is the name dispayed in a tab. If an IViewPort is tied to a file on disk, return the name.
+
       int Width { get; set; }
       int Height { get; set; }
 

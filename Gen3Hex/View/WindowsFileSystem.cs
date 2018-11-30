@@ -9,6 +9,7 @@ using System.Windows;
 namespace HavenSoft.Gen3Hex.View {
    public class WindowsFileSystem : IFileSystem {
       private readonly Dictionary<string, List<FileSystemWatcher>> watchers = new Dictionary<string, List<FileSystemWatcher>>();
+      private readonly Dictionary<string, List<Action<IFileSystem>>> listeners = new Dictionary<string, List<Action<IFileSystem>>>();
 
       public string CopyText {
          get => Clipboard.ContainsText() ? Clipboard.GetText() : string.Empty;
@@ -37,13 +38,27 @@ namespace HavenSoft.Gen3Hex.View {
          };
          watcher.EnableRaisingEvents = true;
 
-         if (!watchers.ContainsKey(fileName)) watchers[fileName] = new List<FileSystemWatcher>();
+         if (!watchers.ContainsKey(fileName)) {
+            watchers[fileName] = new List<FileSystemWatcher>();
+            listeners[fileName] = new List<Action<IFileSystem>>();
+         }
+
          watchers[fileName].Add(watcher);
+         listeners[fileName].Add(listener);
       }
 
-      public void RemoveAllListenersForFile(string fileName) {
+      public void RemoveListenerForFile(string fileName, Action<IFileSystem> listener) {
          if (!watchers.ContainsKey(fileName)) return;
-         watchers[fileName].Clear();
+
+         var index = listeners[fileName].IndexOf(listener);
+         if (index == -1) return;
+
+         var watcher = watchers[fileName][index];
+         watcher.EnableRaisingEvents = false;
+         watcher.Dispose();
+
+         listeners[fileName].RemoveAt(index);
+         watchers[fileName].RemoveAt(index);
       }
 
       public string RequestNewName(string currentName, params string[] extensionOptions) {

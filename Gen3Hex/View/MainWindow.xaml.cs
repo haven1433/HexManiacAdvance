@@ -1,8 +1,10 @@
 ﻿using HavenSoft.Gen3Hex.Model;
 using HavenSoft.Gen3Hex.ViewModel;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -10,11 +12,14 @@ using System.Windows.Media;
 
 namespace HavenSoft.Gen3Hex.View {
    public partial class MainWindow {
+      private readonly List<Action> deferredActions = new List<Action>();
+
       public EditorViewModel ViewModel { get; }
 
       public MainWindow(EditorViewModel viewModel) {
          InitializeComponent();
          ViewModel = viewModel;
+         viewModel.RequestDelayedWork += (sender, e) => deferredActions.Add(e);
          DataContext = viewModel;
       }
 
@@ -117,6 +122,13 @@ namespace HavenSoft.Gen3Hex.View {
             var selectedElement = (HexContent)GetChild(Tabs, "HexContent", ViewModel[ViewModel.SelectedIndex]);
             Keyboard.Focus(selectedElement);
          }
+      }
+
+      private void RunDeferredActions(object sender, MouseButtonEventArgs e) {
+         if (deferredActions.Count == 0) return;
+         var copy = deferredActions.ToList();
+         deferredActions.Clear();
+         foreach (var action in copy) action();
       }
    }
 }

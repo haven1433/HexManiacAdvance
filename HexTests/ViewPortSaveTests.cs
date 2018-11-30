@@ -1,5 +1,6 @@
 ﻿using HavenSoft.Gen3Hex.Model;
 using HavenSoft.Gen3Hex.ViewModel;
+using System.IO;
 using Xunit;
 
 namespace HavenSoft.HexTests {
@@ -223,6 +224,19 @@ namespace HavenSoft.HexTests {
 
          Assert.Equal("newfile", viewPort.Name);
          Assert.Equal(2, nameChangedCount);
+      }
+
+      [Fact]
+      public void ViewPortRequestsDelayedReloadIfReloadFails() {
+         var viewPort = new ViewPort(new LoadedFile("file.txt", new byte[50]));
+         var fileSystem = new StubFileSystem { LoadFile = fileName => throw new IOException() };
+
+         var retryCount = 0;
+         viewPort.RequestDelayedWork += (sender, e) => retryCount++;
+
+         viewPort.ConsiderReload(fileSystem);
+
+         Assert.Equal(1, retryCount);
       }
    }
 }

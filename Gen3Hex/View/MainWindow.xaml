@@ -6,6 +6,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:solarized="clr-namespace:Solarized;assembly=HavenSoft"
         Icon="..\Snorlax.ico"
+        PreviewMouseDown="RunDeferredActions"
         Title="Gen3Hex" Height="450" Width="800" AllowDrop="True" Background="{DynamicResource Background}">
    <Window.Resources>
       <BooleanToVisibilityConverter x:Key="BoolToVisibility" />

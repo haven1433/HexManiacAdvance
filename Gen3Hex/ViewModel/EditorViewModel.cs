@@ -108,6 +108,8 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          }
       }
 
+      public event EventHandler<Action> RequestDelayedWork;
+
       #region Collection Properties
 
       public event NotifyCollectionChangedEventHandler CollectionChanged;
@@ -242,7 +244,6 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          SelectedIndex = tabs.Count - 1;
          CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, content));
          AddContentListeners(content);
-         if (content.Save != null) content.Save.CanExecuteChanged += RaiseSaveAllCanExecuteChanged;
       }
 
       public void SwapTabs(int a, int b) {
@@ -330,7 +331,6 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       private void RemoveTab(object sender, EventArgs e) {
          var tab = (ITabContent)sender;
          if (!tabs.Contains(tab)) throw new InvalidOperationException("Cannot remove tab, because tab is not currently in editor.");
-         if (tab.Save != null) tab.Save.CanExecuteChanged -= RaiseSaveAllCanExecuteChanged;
          var index = tabs.IndexOf(tab);
 
          // if the tab to remove is the selected tab, select the next tab (or the previous if there is no next)
@@ -356,13 +356,27 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          content.Closed += RemoveTab;
          content.OnError += AcceptError;
          content.RequestTabChange += TabChangeRequested;
+         content.RequestDelayedWork += ForwardDelayedWork;
+         if (content.Save != null) content.Save.CanExecuteChanged += RaiseSaveAllCanExecuteChanged;
+
+         if (content is IViewPort viewPort && !string.IsNullOrEmpty(viewPort.FileName)) {
+            fileSystem.AddListenerToFile(viewPort.FileName, viewPort.ConsiderReload);
+         }
       }
 
       private void RemoveContentListeners(ITabContent content) {
          content.Closed -= RemoveTab;
          content.OnError -= AcceptError;
          content.RequestTabChange -= TabChangeRequested;
+         content.RequestDelayedWork -= ForwardDelayedWork;
+         if (content.Save != null) content.Save.CanExecuteChanged -= RaiseSaveAllCanExecuteChanged;
+
+         if (content is IViewPort viewPort && !string.IsNullOrEmpty(viewPort.FileName)) {
+            fileSystem.RemoveListenerForFile(viewPort.FileName, viewPort.ConsiderReload);
+         }
       }
+
+      private void ForwardDelayedWork(object sender, Action e) => RequestDelayedWork?.Invoke(this, e);
 
       private void AcceptError(object sender, string message) => ErrorMessage = message;
 

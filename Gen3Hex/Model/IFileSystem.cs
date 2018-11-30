@@ -50,7 +50,7 @@ namespace HavenSoft.Gen3Hex.Model {
       /// </summary>
       void AddListenerToFile(string fileName, Action<IFileSystem> listener);
 
-      void RemoveAllListenersForFile(string fileName);
+      void RemoveListenerForFile(string fileName, Action<IFileSystem> listener);
 
       /// <summary>
       /// Saves the file without prompting the user for permission.
