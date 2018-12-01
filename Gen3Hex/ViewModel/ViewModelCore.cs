@@ -10,6 +10,10 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
       }
 
+      protected void NotifyPropertyChanged(object oldValue, [CallerMemberName]string propertyName = null) {
+         PropertyChanged?.Invoke(this, new ExtendedPropertyChangedEventArgs(oldValue, propertyName));
+      }
+
       /// <summary>
       /// Utility function to make writing property updates easier.
       /// If the backing field's value does not match the new value, the backing field is updated and PropertyChanged gets called.
@@ -22,9 +26,15 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       protected bool TryUpdate<T>(ref T backingField, T newValue, [CallerMemberName]string propertyName = null) where T : IEquatable<T> {
          if (backingField == null && newValue == null) return false;
          if (backingField != null && backingField.Equals(newValue)) return false;
+         var oldValue = backingField;
          backingField = newValue;
-         NotifyPropertyChanged(propertyName);
+         NotifyPropertyChanged(oldValue, propertyName);
          return true;
       }
+   }
+
+   public class ExtendedPropertyChangedEventArgs : PropertyChangedEventArgs {
+      public object OldValue { get; }
+      public ExtendedPropertyChangedEventArgs(object oldValue, string propertyName) : base(propertyName) => OldValue = oldValue;
    }
 }

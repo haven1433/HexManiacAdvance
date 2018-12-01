@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows.Input;
 using static HavenSoft.ICommandExtensions;
@@ -357,6 +358,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          content.OnError += AcceptError;
          content.RequestTabChange += TabChangeRequested;
          content.RequestDelayedWork += ForwardDelayedWork;
+         content.PropertyChanged += TabPropertyChanged;
          if (content.Save != null) content.Save.CanExecuteChanged += RaiseSaveAllCanExecuteChanged;
 
          if (content is IViewPort viewPort && !string.IsNullOrEmpty(viewPort.FileName)) {
@@ -369,6 +371,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          content.OnError -= AcceptError;
          content.RequestTabChange -= TabChangeRequested;
          content.RequestDelayedWork -= ForwardDelayedWork;
+         content.PropertyChanged -= TabPropertyChanged;
          if (content.Save != null) content.Save.CanExecuteChanged -= RaiseSaveAllCanExecuteChanged;
 
          if (content is IViewPort viewPort && !string.IsNullOrEmpty(viewPort.FileName)) {
@@ -377,6 +380,17 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       }
 
       private void ForwardDelayedWork(object sender, Action e) => RequestDelayedWork?.Invoke(this, e);
+
+      private void TabPropertyChanged(object sender, PropertyChangedEventArgs e) {
+         if (e.PropertyName == nameof(IViewPort.FileName) && sender is IViewPort viewPort) {
+            if (e.PropertyName != nameof(IViewPort.FileName) || !(sender is IViewPort)) return;
+            var args = (ExtendedPropertyChangedEventArgs)e;
+            var oldName = (string)args.OldValue;
+
+            if (!string.IsNullOrEmpty(oldName)) fileSystem.RemoveListenerForFile(oldName, viewPort.ConsiderReload);
+            if (!string.IsNullOrEmpty(viewPort.FileName)) fileSystem.AddListenerToFile(viewPort.FileName, viewPort.ConsiderReload);
+         }
+      }
 
       private void AcceptError(object sender, string message) => ErrorMessage = message;
 

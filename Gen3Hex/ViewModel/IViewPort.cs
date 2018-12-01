@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Windows.Input;
 
 namespace HavenSoft.Gen3Hex.ViewModel {
-   public interface IViewPort : ITabContent, INotifyCollectionChanged, INotifyPropertyChanged {
+   public interface IViewPort : ITabContent, INotifyCollectionChanged {
       string FileName { get; } // Name is dispayed in a tab. FileName lets us know when to call 'ConsiderReload'
 
       int Width { get; set; }

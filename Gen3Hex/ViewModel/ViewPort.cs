@@ -33,7 +33,8 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          }
       }
 
-      public string FileName { get; private set; }
+      private string fileName;
+      public string FileName { get => fileName; private set => TryUpdate(ref fileName, value); }
 
       #region Scrolling Properties
 
