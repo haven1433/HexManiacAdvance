@@ -1,7 +1,6 @@
 ﻿using HavenSoft.Gen3Hex.Model;
 using HavenSoft.Gen3Hex.ViewModel;
 using System;
-using System.Linq;
 using System.Windows.Input;
 using Xunit;
 
