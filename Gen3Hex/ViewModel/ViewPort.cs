@@ -236,7 +236,15 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
             var left = Math.Min(selectionStart, selectionEnd);
             var right = Math.Max(selectionStart, selectionEnd);
-            for (int i = left; i <= right; i++) data[i] = 0xFF;
+            for (int i = left; i <= right; i++) {
+               var p = scroll.DataIndexToViewPoint(i);
+               if (p.Y >= 0 && p.Y < scroll.Height) {
+                  history.CurrentChange[i] = this[p.X, p.Y];
+               } else {
+                  history.CurrentChange[i] = new HexElement(data[i], None.Instance);
+               }
+               data[i] = 0xFF;
+            }
             RefreshBackingData();
          };
 

@@ -23,7 +23,8 @@
       <KeyBinding Key="Y" Modifiers="Ctrl" Command="{Binding Redo}" />
       <KeyBinding Key="X" Modifiers="Ctrl" Command="{Binding Cut}" />
       <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding Copy}" />
-      <KeyBinding Key="P" Modifiers="Ctrl" Command="{Binding Paste}" />
+      <KeyBinding Key="V" Modifiers="Ctrl" Command="{Binding Paste}" />
+      <KeyBinding Key="Delete" Command="{Binding Delete}" />
       <KeyBinding Key="F" Modifiers="Ctrl" Command="{Binding ShowFind}">
          <KeyBinding.CommandParameter>
             <sys:Boolean>true</sys:Boolean>

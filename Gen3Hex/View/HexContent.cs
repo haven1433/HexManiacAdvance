@@ -105,7 +105,11 @@ namespace HavenSoft.Gen3Hex.View {
          }
 
          if (ViewPort is ViewPort editableViewPort) {
-            editableViewPort.SelectionStart = p;
+            if (Keyboard.Modifiers == ModifierKeys.Shift) {
+               editableViewPort.SelectionEnd = p;
+            } else {
+               editableViewPort.SelectionStart = p;
+            }
             CaptureMouse();
          }
       }
