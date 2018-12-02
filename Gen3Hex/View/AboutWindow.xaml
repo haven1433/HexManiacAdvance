@@ -15,7 +15,7 @@
       <TextBlock DockPanel.Dock="Top" VerticalAlignment="Center" FontWeight="Bold" Text="Gen3Hex" FontSize="20"/>
       <Image Source="..\Snorlax.png" DockPanel.Dock="Left" RenderOptions.BitmapScalingMode="Fant"/>
       <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-         <TextBlock Text="Version 1.0.0"/>
+         <TextBlock Name="Version"/>
          <TextBlock>
             <Hyperlink Foreground="{solarized:Theme Blue}" NavigateUri="https://github.com/haven1433/gen3hex/blob/master/LICENSE" RequestNavigate="Navigate">MIT License</Hyperlink>
          </TextBlock>
