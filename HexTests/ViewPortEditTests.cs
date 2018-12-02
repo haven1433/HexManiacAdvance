@@ -263,6 +263,7 @@ namespace HavenSoft.HexTests {
          viewPort.Clear.Execute();
 
          Assert.Equal(0xFF, viewPort[2, 2].Value);
+         Assert.True(viewPort.Save.CanExecute(new StubFileSystem()));
       }
 
       [Fact]

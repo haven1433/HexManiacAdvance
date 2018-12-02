@@ -15,8 +15,10 @@ namespace HavenSoft.Gen3Hex.View {
          Solarized.Theme.VariantChanged += (sender, args) => UpdateThemeDictionary();
 
          var fileName = e.Args?.Length == 1 ? e.Args[0] : string.Empty;
-         var viewPort = GetViewModel(fileName);
-         MainWindow = new MainWindow(viewPort);
+         var fileSystem = new WindowsFileSystem(Dispatcher);
+         var viewModel = GetViewModel(fileName, fileSystem);
+         MainWindow = new MainWindow(viewModel);
+         MainWindow.Resources.Add("FileSystem", fileSystem);
          MainWindow.Show();
       }
 
@@ -32,12 +34,11 @@ namespace HavenSoft.Gen3Hex.View {
          Resources.MergedDictionaries.Add(dict);
       }
 
-      private EditorViewModel GetViewModel(string fileName) {
-         var editor = new EditorViewModel(new WindowsFileSystem());
+      private EditorViewModel GetViewModel(string fileName, IFileSystem fileSystem) {
+         var editor = new EditorViewModel(fileSystem);
          if (!File.Exists(fileName)) return editor;
 
-         var bytes = File.ReadAllBytes(fileName);
-         var loadedFile = new LoadedFile(fileName, bytes);
+         var loadedFile = fileSystem.LoadFile(fileName);
          editor.Add(new ViewPort(loadedFile));
          return editor;
       }

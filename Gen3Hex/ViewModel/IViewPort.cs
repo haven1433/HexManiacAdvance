@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Windows.Input;
 
 namespace HavenSoft.Gen3Hex.ViewModel {
-   public interface IViewPort : ITabContent, INotifyCollectionChanged, INotifyPropertyChanged {
+   public interface IViewPort : ITabContent, INotifyCollectionChanged {
+      string FileName { get; } // Name is dispayed in a tab. FileName lets us know when to call 'ConsiderReload'
+
       int Width { get; set; }
       int Height { get; set; }
 
@@ -22,5 +23,6 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       IReadOnlyList<int> Find(string search);
       IChildViewPort CreateChildView(int offset);
       void FollowLink(int x, int y);
+      void ConsiderReload(IFileSystem fileSystem);
    }
 }

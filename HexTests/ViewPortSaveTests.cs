@@ -1,5 +1,7 @@
 ﻿using HavenSoft.Gen3Hex.Model;
 using HavenSoft.Gen3Hex.ViewModel;
+using System.Collections.Generic;
+using System.IO;
 using Xunit;
 
 namespace HavenSoft.HexTests {
@@ -223,6 +225,75 @@ namespace HavenSoft.HexTests {
 
          Assert.Equal("newfile", viewPort.Name);
          Assert.Equal(2, nameChangedCount);
+      }
+
+      [Fact]
+      public void ViewPortRequestsDelayedReloadIfReloadFails() {
+         var viewPort = new ViewPort(new LoadedFile("file.txt", new byte[50]));
+         var fileSystem = new StubFileSystem { LoadFile = fileName => throw new IOException() };
+
+         var retryCount = 0;
+         viewPort.RequestDelayedWork += (sender, e) => retryCount++;
+
+         viewPort.ConsiderReload(fileSystem);
+
+         Assert.Equal(1, retryCount);
+      }
+
+      [Fact]
+      public void ViewPortAdjustsSelectionWhenLoadingAShorterFile() {
+         var viewPort = new ViewPort(new LoadedFile("file.txt", new byte[12]));
+         viewPort.SelectionStart = new Point(3, 3);
+         Assert.Equal(4, viewPort.Width);
+         Assert.Equal(4, viewPort.Height);
+         Assert.Equal(new Point(0, 3), viewPort.SelectionStart);
+
+         var fileSystem = new StubFileSystem { LoadFile = filename => new LoadedFile("file.txt", new byte[10]) };
+         viewPort.ConsiderReload(fileSystem);
+
+         Assert.Equal(new Point(2, 2), viewPort.SelectionStart);
+      }
+
+      [Fact]
+      public void ViewPortNotifiesOnFileNameChange() {
+         var properties = new List<string>();
+
+         var fileSystem = new StubFileSystem {
+            RequestNewName = (currentName, extensionOptions) => "file.txt",
+            Save = file => true,
+         };
+         var viewPort = new ViewPort();
+         viewPort.PropertyChanged += (sender, e) => properties.Add(e.PropertyName);
+
+         viewPort.Edit("01 23 45 67");
+         viewPort.SaveAs.Execute(fileSystem);
+
+         Assert.Contains("FileName", properties);
+         Assert.Equal("file.txt", viewPort.FileName);
+      }
+
+      [Fact]
+      public void EditorUpdatesFileSystemWatchesWhenViewPortFileNameChanges() {
+         var fileSystem = new StubFileSystem();
+         int addCalls = 0, removeCalls = 0;
+         fileSystem.AddListenerToFile = (fileName, action) => addCalls++;
+         fileSystem.RemoveListenerForFile = (fileName, action) => removeCalls++;
+         var editor = new EditorViewModel(fileSystem);
+         var tab = new StubViewPort();
+
+         editor.Add(tab);
+         Assert.Equal(0, addCalls);
+         Assert.Equal(0, removeCalls);
+
+         tab.FileName = "file.txt";
+         tab.PropertyChanged.Invoke(tab, new ExtendedPropertyChangedEventArgs(null, nameof(tab.FileName)));
+         Assert.Equal(1, addCalls);
+         Assert.Equal(0, removeCalls);
+
+         tab.FileName = "file2.txt";
+         tab.PropertyChanged.Invoke(tab, new ExtendedPropertyChangedEventArgs("file.txt", nameof(tab.FileName)));
+         Assert.Equal(2, addCalls);
+         Assert.Equal(1, removeCalls);
       }
    }
 }

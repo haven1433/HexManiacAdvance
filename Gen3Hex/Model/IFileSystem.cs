@@ -1,4 +1,6 @@
-﻿namespace HavenSoft.Gen3Hex.Model {
+﻿using System;
+
+namespace HavenSoft.Gen3Hex.Model {
    public interface IFileSystem {
       string CopyText { get; set; }
 
@@ -33,6 +35,22 @@
       /// If the user cancels or selects an unreadable file, returns null.
       /// </returns>
       LoadedFile OpenFile(params string[] extensionOptions);
+
+      /// <summary>
+      /// Have the filesystem open a specific file.
+      /// </summary>
+      /// <returns>
+      /// If the file exists, it is loaded and returned.
+      /// If it doesn't exist, returns null.
+      /// </returns>
+      LoadedFile LoadFile(string fileName);
+
+      /// <summary>
+      /// When a file changes, the filesystem will call all listeners for that file.
+      /// </summary>
+      void AddListenerToFile(string fileName, Action<IFileSystem> listener);
+
+      void RemoveListenerForFile(string fileName, Action<IFileSystem> listener);
 
       /// <summary>
       /// Saves the file without prompting the user for permission.

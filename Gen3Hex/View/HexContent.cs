@@ -95,7 +95,14 @@ namespace HavenSoft.Gen3Hex.View {
 
       protected override void OnMouseDown(MouseButtonEventArgs e) {
          base.OnMouseDown(e);
-         if (e.LeftButton != MouseButtonState.Pressed) return;
+         if (e.ChangedButton == MouseButton.XButton1 && ViewPort.Back.CanExecute(null)) {
+            ViewPort.Back.Execute();
+            return;
+         }
+         if (e.ChangedButton == MouseButton.XButton2 && ViewPort.Forward.CanExecute(null)) {
+            ViewPort.Forward.Execute();
+            return;
+         }
          if (e.ChangedButton != MouseButton.Left) return;
          Focus();
          var p = ControlCoordinatesToModelCoordinates(e);
@@ -105,7 +112,11 @@ namespace HavenSoft.Gen3Hex.View {
          }
 
          if (ViewPort is ViewPort editableViewPort) {
-            editableViewPort.SelectionStart = p;
+            if (Keyboard.Modifiers == ModifierKeys.Shift) {
+               editableViewPort.SelectionEnd = p;
+            } else {
+               editableViewPort.SelectionStart = p;
+            }
             CaptureMouse();
          }
       }

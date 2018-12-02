@@ -82,7 +82,11 @@ namespace HavenSoft.Gen3Hex.ViewModel {
                var address = args.ToString();
                if (int.TryParse(address, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int result)) {
                   backStack.Push(scroll.DataIndex);
-                  forwardStack.Clear();
+                  if (backStack.Count == 1) backward.CanExecuteChanged.Invoke(backward, EventArgs.Empty);
+                  if (forwardStack.Count > 0) {
+                     forward.CanExecuteChanged.Invoke(forward, EventArgs.Empty);
+                     forwardStack.Clear();
+                  }
                   SelectionStart = scroll.DataIndexToViewPoint(result);
                   scroll.ScrollValue += selectionStart.Y;
                } else {
@@ -95,7 +99,9 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             Execute = args => {
                if (backStack.Count == 0) return;
                forwardStack.Push(scroll.DataIndex);
+               if (forwardStack.Count == 1) forward.CanExecuteChanged.Invoke(forward, EventArgs.Empty);
                SelectionStart = scroll.DataIndexToViewPoint(backStack.Pop());
+               if (backStack.Count == 0) backward.CanExecuteChanged.Invoke(backward, EventArgs.Empty);
                scroll.ScrollValue += selectionStart.Y;
             },
          };
@@ -104,11 +110,12 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             Execute = args => {
                if (forwardStack.Count == 0) return;
                backStack.Push(scroll.DataIndex);
+               if (backStack.Count == 1) backward.CanExecuteChanged.Invoke(backward, EventArgs.Empty);
                SelectionStart = scroll.DataIndexToViewPoint(forwardStack.Pop());
+               if (forwardStack.Count == 0) forward.CanExecuteChanged.Invoke(forward, EventArgs.Empty);
                scroll.ScrollValue += selectionStart.Y;
             },
          };
-
       }
 
       public bool IsSelected(Point point) {

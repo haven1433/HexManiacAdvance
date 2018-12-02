@@ -110,8 +110,14 @@ namespace HavenSoft.HexTests {
       public void GotoIsReversable() {
          var viewPort = new ViewPort(new LoadedFile("test.txt", new byte[0x1000])) { Width = 0x10, Height = 0x10 };
 
+         var changeCount = 0;
+         viewPort.Forward.CanExecuteChanged += (sender, e) => changeCount++;
+
          viewPort.Goto.Execute("000A00");
+         Assert.Equal(0, changeCount);
+
          viewPort.Back.Execute();
+         Assert.Equal(1, changeCount);
 
          Assert.Equal("000000", viewPort.Headers[0]);
       }
@@ -120,9 +126,17 @@ namespace HavenSoft.HexTests {
       public void BackIsReversable() {
          var viewPort = new ViewPort(new LoadedFile("test.txt", new byte[0x1000])) { Width = 0x10, Height = 0x10 };
 
+         var changeCount = 0;
+         viewPort.Back.CanExecuteChanged += (sender, e) => changeCount++;
+
          viewPort.Goto.Execute("000A00");
+         Assert.Equal(1, changeCount);
+
          viewPort.Back.Execute();
+         Assert.Equal(2, changeCount);
+
          viewPort.Forward.Execute();
+         Assert.Equal(3, changeCount);
 
          Assert.Equal("000A00", viewPort.Headers[0]);
       }

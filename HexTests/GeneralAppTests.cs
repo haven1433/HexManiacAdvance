@@ -1,7 +1,6 @@
 ﻿using HavenSoft.Gen3Hex.Model;
 using HavenSoft.Gen3Hex.ViewModel;
 using System;
-using System.Linq;
 using System.Windows.Input;
 using Xunit;
 
@@ -204,7 +203,6 @@ namespace HavenSoft.HexTests {
          Assert.Equal(7, count);
       }
 
-
       [Theory]
       [InlineData(nameof(EditorViewModel.Copy))]
       [InlineData(nameof(EditorViewModel.Delete))]
@@ -321,6 +319,72 @@ namespace HavenSoft.HexTests {
          tab1.RequestTabChange.Invoke(tab0, tab0); // tab 0 is trying to force itself to be focused
 
          Assert.Equal(1, editor.SelectedIndex);
+      }
+
+      [Fact]
+      public void EditorAddsOpenedFilesToFileSystemWatch() {
+         var fileSystem = new StubFileSystem();
+         string name = null;
+         fileSystem.AddListenerToFile = (fileName, action) => name = fileName;
+         var editor = new EditorViewModel(fileSystem);
+
+         editor.Open.Execute(new LoadedFile("InputFile.txt", new byte[20]));
+
+         Assert.Equal("InputFile.txt", name);
+      }
+
+      [Fact]
+      public void EditorRemovesFileSystemWatchWhenTabsClose() {
+         var fileSystem = new StubFileSystem();
+         string name = null;
+         fileSystem.RemoveListenerForFile = (fileName, listener) => name = fileName;
+         var editor = new EditorViewModel(fileSystem);
+         editor.Open.Execute(new LoadedFile("InputFile.txt", new byte[20]));
+
+         editor.Close.Execute();
+
+         Assert.Equal("InputFile.txt", name);
+      }
+
+      [Fact]
+      public void ViewPortReloadsIfNoLocalChangesWhenFileChanges() {
+         var fileSystem = new StubFileSystem();
+         string file = null;
+         fileSystem.LoadFile = input => { file = input; return new LoadedFile(input, new byte[] { 0x10, 0x20 }); };
+         var viewPort = new ViewPort(new LoadedFile("file.txt", new byte[] { 0x00, 0x00 }));
+
+         viewPort.ConsiderReload(fileSystem);
+
+         Assert.Equal("file.txt", file);
+         Assert.Equal(0x10, viewPort[0, 0].Value);
+      }
+
+      [Fact]
+      public void ViewPortDoesNotReloadIfLocalChangesWhenFileChanges() {
+         var fileSystem = new StubFileSystem();
+         string file = null;
+         fileSystem.LoadFile = input => { file = input; return new LoadedFile(input, new byte[] { 0x10, 0x20 }); };
+         var viewPort = new ViewPort(new LoadedFile("file.txt", new byte[] { 0x00, 0x00 }));
+
+         viewPort.Edit("05");
+         viewPort.ConsiderReload(fileSystem);
+
+         Assert.Null(file);
+         Assert.Equal(0x05, viewPort[0, 0].Value);
+      }
+
+      [Fact]
+      public void EditorForwardsTabDelayedWork() {
+         void SomeAction() { }
+         Action work = null;
+         var editor = new EditorViewModel(new StubFileSystem());
+         var tab = new StubTabContent();
+         editor.Add(tab);
+
+         editor.RequestDelayedWork += (sender, e) => work = e;
+         tab.RequestDelayedWork.Invoke(tab, SomeAction);
+
+         Assert.Equal(SomeAction, work);
       }
 
       private StubTabContent CreateClosableTab() {

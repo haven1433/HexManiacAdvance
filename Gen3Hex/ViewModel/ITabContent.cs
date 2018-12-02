@@ -1,11 +1,12 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Windows.Input;
 
 namespace HavenSoft.Gen3Hex.ViewModel {
    /// <summary>
    /// Each command expects an IFileSystem as its Command Parameter.
    /// </summary>
-   public interface ITabContent {
+   public interface ITabContent : INotifyPropertyChanged {
       string Name { get; }
       ICommand Save { get; }   // parameter: IFileSystem
       ICommand SaveAs { get; } // parameter: IFileSystem
@@ -21,5 +22,6 @@ namespace HavenSoft.Gen3Hex.ViewModel {
       event EventHandler<string> OnError;
       event EventHandler Closed;
       event EventHandler<ITabContent> RequestTabChange;
+      event EventHandler<Action> RequestDelayedWork;
    }
 }
