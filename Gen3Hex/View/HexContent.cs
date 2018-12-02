@@ -95,15 +95,14 @@ namespace HavenSoft.Gen3Hex.View {
 
       protected override void OnMouseDown(MouseButtonEventArgs e) {
          base.OnMouseDown(e);
-         if (e.ChangedButton == MouseButton.XButton1 && e.XButton1 == MouseButtonState.Pressed && ViewPort.Back.CanExecute(null)) {
+         if (e.ChangedButton == MouseButton.XButton1 && ViewPort.Back.CanExecute(null)) {
             ViewPort.Back.Execute();
             return;
          }
-         if (e.ChangedButton == MouseButton.XButton2 && e.XButton2 == MouseButtonState.Pressed && ViewPort.Forward.CanExecute(null)) {
+         if (e.ChangedButton == MouseButton.XButton2 && ViewPort.Forward.CanExecute(null)) {
             ViewPort.Forward.Execute();
             return;
          }
-         if (e.LeftButton != MouseButtonState.Pressed) return;
          if (e.ChangedButton != MouseButton.Left) return;
          Focus();
          var p = ControlCoordinatesToModelCoordinates(e);
