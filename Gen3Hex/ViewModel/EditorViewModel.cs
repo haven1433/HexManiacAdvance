@@ -42,7 +42,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       private readonly Dictionary<Func<ITabContent, ICommand>, EventHandler> forwardExecuteChangeNotifications;
 
-      private (IViewPort tab, int)[] recentFindResults;
+      private (IViewPort tab, int)[] recentFindResults = new (IViewPort, int)[0];
       private int currentFindResultIndex;
 
       public ICommand New => newCommand;
@@ -208,7 +208,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          find.CanExecute = CanAlwaysExecute;
          find.Execute = arg => FindExecuted((string)arg);
 
-         findPrevious.CanExecute = arg => recentFindResults?.Any(pair => pair.tab == SelectedTab) ?? false;
+         findPrevious.CanExecute = arg => recentFindResults.Any(pair => pair.tab == SelectedTab);
          findPrevious.Execute = arg => {
             int attemptCount = 0;
             while (attemptCount < recentFindResults.Length) {
@@ -222,7 +222,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             }
          };
 
-         findNext.CanExecute = arg => recentFindResults?.Any(pair => pair.tab == SelectedTab) ?? false;
+         findNext.CanExecute = arg => recentFindResults.Any(pair => pair.tab == SelectedTab);
          findNext.Execute = arg => {
             int attemptCount = 0;
             while (attemptCount < recentFindResults.Length) {
