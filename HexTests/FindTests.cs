@@ -7,7 +7,6 @@ using Xunit;
 
 namespace HavenSoft.HexTests {
    public class FindTests {
-
       [Fact]
       public void FindCanFindSingle() {
          var array = new byte[0x1000];
@@ -228,6 +227,57 @@ namespace HavenSoft.HexTests {
          editor.Find.Execute("search");
 
          Assert.Equal(0, editor.SelectedIndex);
+      }
+
+      [Fact]
+      public void FindNextFindPreviousDisabledIfNoResults() {
+         var editor = new EditorViewModel(new StubFileSystem());
+
+         Assert.False(editor.FindPrevious.CanExecute("text"));
+         Assert.False(editor.FindNext.CanExecute("text"));
+      }
+
+      [Fact]
+      public void FindNextAndPreviousBecomePossibleAfterFindSingleResult() {
+         var editor = new EditorViewModel(new StubFileSystem());
+         StubViewPort tab = null;
+         tab = new StubViewPort {
+            Find = query => new[] { 0x50 },
+            Goto = new StubCommand(),
+            CreateChildView = offset => new ChildViewPort(tab, new byte[100]),
+            Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
+            Width = 4,
+            Height = 4,
+         };
+         editor.Add(tab);
+
+         editor.Find.Execute("text");
+
+         Assert.True(editor.FindPrevious.CanExecute("text"));
+         Assert.True(editor.FindNext.CanExecute("text"));
+      }
+
+      [Fact]
+      public void FindNextAndPreviousBecomePossibleAfterTabSwitchAfterFindMultiResult() {
+         var editor = new EditorViewModel(new StubFileSystem());
+         StubViewPort tab = null;
+         tab = new StubViewPort {
+            Find = query => new[] { 0x50, 0x70 },
+            Goto = new StubCommand(),
+            CreateChildView = offset => new ChildViewPort(tab, new byte[100]),
+            Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
+            Width = 4,
+            Height = 4,
+         };
+         editor.Add(tab);
+
+         editor.Find.Execute("text");
+         Assert.False(editor.FindPrevious.CanExecute("text"));
+         Assert.False(editor.FindNext.CanExecute("text"));
+
+         editor.SelectedIndex = 0;
+         Assert.True(editor.FindPrevious.CanExecute("text"));
+         Assert.True(editor.FindNext.CanExecute("text"));
       }
    }
 }

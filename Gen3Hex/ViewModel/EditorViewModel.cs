@@ -122,7 +122,10 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          get => selectedIndex;
          set {
             using (WorkWithoutListeningToCommandsFromCurrentTab()) {
-               TryUpdate(ref selectedIndex, value);
+               if (TryUpdate(ref selectedIndex, value)) {
+                  findPrevious.CanExecuteChanged.Invoke(findPrevious, EventArgs.Empty);
+                  findNext.CanExecuteChanged.Invoke(findNext, EventArgs.Empty);
+               }
             }
          }
       }
@@ -205,7 +208,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          find.CanExecute = CanAlwaysExecute;
          find.Execute = arg => FindExecuted((string)arg);
 
-         findPrevious.CanExecute = arg => recentFindResults?.Length != 0;
+         findPrevious.CanExecute = arg => recentFindResults?.Any(pair => pair.tab == SelectedTab) ?? false;
          findPrevious.Execute = arg => {
             int attemptCount = 0;
             while (attemptCount < recentFindResults.Length) {
@@ -219,7 +222,7 @@ namespace HavenSoft.Gen3Hex.ViewModel {
             }
          };
 
-         findNext.CanExecute = arg => recentFindResults?.Length != 0;
+         findNext.CanExecute = arg => recentFindResults?.Any(pair => pair.tab == SelectedTab) ?? false;
          findNext.Execute = arg => {
             int attemptCount = 0;
             while (attemptCount < recentFindResults.Length) {
@@ -311,6 +314,8 @@ namespace HavenSoft.Gen3Hex.ViewModel {
          }
 
          recentFindResults = results.ToArray();
+         findPrevious.CanExecuteChanged.Invoke(findPrevious, EventArgs.Empty);
+         findNext.CanExecuteChanged.Invoke(findNext, EventArgs.Empty);
 
          if (results.Count == 1) {
             var (tab, offset) = results[0];
