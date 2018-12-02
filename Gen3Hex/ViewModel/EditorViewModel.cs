@@ -383,7 +383,6 @@ namespace HavenSoft.Gen3Hex.ViewModel {
 
       private void TabPropertyChanged(object sender, PropertyChangedEventArgs e) {
          if (e.PropertyName == nameof(IViewPort.FileName) && sender is IViewPort viewPort) {
-            if (e.PropertyName != nameof(IViewPort.FileName) || !(sender is IViewPort)) return;
             var args = (ExtendedPropertyChangedEventArgs)e;
             var oldName = (string)args.OldValue;
 
