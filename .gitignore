@@ -7,11 +7,7 @@
 sampleFiles/
 
 # Build results
-Debug/
-Release/
-
-#codegen files
-generatedCode/
+artifacts/
 
 # Visual Studio 2015 cache/options directory
 .vs/

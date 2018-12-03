@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2016
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gen3Hex", "Gen3Hex\Gen3Hex.csproj", "{386DC8E2-BABC-475C-94B6-37B3986F5F4C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gen3Hex.WPF", "src\Gen3Hex.WPF\Gen3Hex.WPF.csproj", "{386DC8E2-BABC-475C-94B6-37B3986F5F4C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HavenSoft", "HavenSoft\HavenSoft.csproj", "{B7B9D932-4271-493D-AADD-6CF147C91373}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gen3Hex.Core", "src\Gen3Hex.Core\Gen3Hex.Core.csproj", "{B7B9D932-4271-493D-AADD-6CF147C91373}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HexTests", "HexTests\HexTests.csproj", "{B6A52732-E0F8-466D-8E29-664C797A21FA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gen3Hex.Tests", "src\Gen3Hex.Tests\Gen3Hex.Tests.csproj", "{B6A52732-E0F8-466D-8E29-664C797A21FA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
