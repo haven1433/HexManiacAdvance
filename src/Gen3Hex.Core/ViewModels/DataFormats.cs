@@ -12,6 +12,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels.DataFormats {
       void Visit(Undefined dataFormat, byte data);
       void Visit(None dataFormat, byte data);
       void Visit(UnderEdit dataFormat, byte data);
+      void Visit(Pointer pointer, byte data);
    }
 
    /// <summary>
@@ -60,5 +61,20 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels.DataFormats {
 
          return new UnderEdit(format, text);
       }
+   }
+
+   public class Pointer : IDataFormat {
+      public int Source { get; }      // 6 hex digits
+      public int Position { get; }    // 0 through 3
+      public int Destination { get; } // 6 hex digits
+
+      public Pointer(int source, int positionInPointer, int destination) => (Source, Position, Destination) = (source, positionInPointer, destination);
+
+      public bool Equals(IDataFormat other) {
+         if (!(other is Pointer pointer)) return false;
+         return pointer.Source == Source && pointer.Position == Position && pointer.Destination == Destination;
+      }
+
+      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 }

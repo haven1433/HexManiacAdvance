@@ -213,7 +213,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
       public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
 
-      public ViewPort(LoadedFile file) {
+      public ViewPort(LoadedFile file, IModel model = null) {
          FileName = file.Name;
          data = file.Contents;
 

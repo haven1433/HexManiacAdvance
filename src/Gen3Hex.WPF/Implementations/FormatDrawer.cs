@@ -42,6 +42,10 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
          context.DrawText(text, CellTextOffset);
       }
 
+      public void Visit(Pointer dataFormat, byte data) {
+         // TODO
+      }
+
       private void VerifyNoneVisualCache() {
          if (noneVisualCache.Count != 0) return;
 
