@@ -256,9 +256,10 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          tabs[b] = temp;
 
          // if one of the items to swap is selected, swap the selection too
-         if (selectedIndex == a || selectedIndex == b) {
-            selectedIndex ^= a;
-            selectedIndex ^= b;
+         if (selectedIndex == a) {
+            selectedIndex = b;
+         } else if (selectedIndex == b) {
+            selectedIndex = a;
          }
 
          var args = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, tabs[a], a, b);
