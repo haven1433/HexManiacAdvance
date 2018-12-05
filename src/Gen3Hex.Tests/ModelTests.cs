@@ -5,6 +5,7 @@ using Xunit;
 
 namespace HavenSoft.Gen3Hex.Tests {
    public class ModelTests {
+      [Fact]
       public void PointerModelFindsNoPointersInRandomData() {
          var rnd = new Random(0xCafe);
          var buffer = new byte[0x10000]; // 64KB
@@ -16,6 +17,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Null(model.GetNextRun(0));
       }
 
+      [Fact]
       public void PointerModelFindsPointersInRange() {
          var rnd = new Random(0xCafe);
          var buffer = new byte[0x10000]; // 64KB
@@ -38,6 +40,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Equal(4, model.GetNextRun(0x4071).Length);
       }
 
+      [Fact]
       public void PointerModelFindsSelfReferences() {
          var buffer = new byte[0x20];
          buffer.WritePointer(0xC, 0xC);
@@ -51,17 +54,19 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Null(nextRun);
       }
 
+      [Fact]
       public void PointerModelMergesDuplicates() {
          var buffer = new byte[0x20];
-         buffer.WritePointer(0x0C, 0x12);
-         buffer.WritePointer(0x1C, 0x12);
+         buffer.WritePointer(0x0C, 0x14);
+         buffer.WritePointer(0x1C, 0x14);
 
          var model = new PointerModel(buffer);
 
-         var run = model.GetNextRun(0x12);
+         var run = model.GetNextRun(0x14);
          Assert.Equal(2, run.PointerSources.Count);
       }
 
+      [Fact]
       public void ModelUpdatesWhenViewPortChanges() {
          var buffer = new byte[0x100];
          var model = new PointerModel(buffer);

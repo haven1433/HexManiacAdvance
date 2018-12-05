@@ -39,13 +39,13 @@ namespace HavenSoft.Gen3Hex.Core.Models {
    }
 
    public class PointerRun : IFormattedRun {
-      public static PointerRun Default { get; } = new PointerRun(0, new int[0]);
+      public static PointerRun Default { get; } = new PointerRun(0);
 
       public int Start { get; }
       public int Length => 4;
       public IReadOnlyList<int> PointerSources { get; }
 
-      public PointerRun(int start, IReadOnlyList<int> sources) {
+      public PointerRun(int start, IReadOnlyList<int> sources = null) {
          Start = start;
          PointerSources = sources;
       }
