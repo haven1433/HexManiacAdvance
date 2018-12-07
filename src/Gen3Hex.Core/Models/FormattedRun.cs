@@ -1,13 +1,15 @@
 ﻿using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HavenSoft.Gen3Hex.Core.Models {
    public interface IFormattedRun {
       int Start { get; }
       int Length { get; }
-      IReadOnlyList<int> PointerSources { get; }
+      Anchor Anchor { get; }
       IDataFormat CreateDataFormat(IReadOnlyList<byte> data, int index);
+      void MergeAnchor(Anchor other);
    }
 
    public class FormattedRunComparer : IComparer<IFormattedRun> {
@@ -24,34 +26,52 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       public CompareFormattedRun(int start) => Start = start;
 
-      public IReadOnlyList<int> PointerSources => throw new NotImplementedException();
+      public Anchor Anchor => throw new NotImplementedException();
       public IDataFormat CreateDataFormat(IReadOnlyList<byte> data, int index) => throw new NotImplementedException();
+      public void MergeAnchor(Anchor other) => throw new NotImplementedException();
    }
 
    public class NoInfoRun : IFormattedRun {
       public int Start { get; }
       public int Length => 1;
-      public IReadOnlyList<int> PointerSources { get; }
+      public Anchor Anchor { get; private set; }
 
-      public NoInfoRun(int start, IReadOnlyList<int> sources) => (Start, PointerSources) = (start, sources);
+      public NoInfoRun(int start, Anchor anchor = null) => (Start, Anchor) = (start, anchor ?? new Anchor());
 
       public IDataFormat CreateDataFormat(IReadOnlyList<byte> data, int index) => None.Instance;
+      public void MergeAnchor(Anchor other) {
+         var sources = other.PointerSources.Concat(Anchor.PointerSources).Distinct().OrderBy(i => i).ToList();
+         // var name = !string.IsNullOrEmpty(other.Name) ? other.Name : Anchor.Name;
+         Anchor = new Anchor(sources);
+      }
    }
 
    public class PointerRun : IFormattedRun {
-      public static PointerRun Default { get; } = new PointerRun(0);
-
       public int Start { get; }
+      public int DestinationAddress { get; }
       public int Length => 4;
-      public IReadOnlyList<int> PointerSources { get; }
+      public Anchor Anchor { get; private set; }
 
-      public PointerRun(int start, IReadOnlyList<int> sources = null) {
+      public PointerRun(int start, int destinationAddress, Anchor anchor = null) {
          Start = start;
-         PointerSources = sources;
+         DestinationAddress = destinationAddress;
+         Anchor = anchor ?? new Anchor();
       }
 
       public IDataFormat CreateDataFormat(IReadOnlyList<byte> data, int index) {
          return new Pointer(Start, index - Start, data.ReadAddress(Start));
       }
+
+      public void MergeAnchor(Anchor other) {
+         var sources = other.PointerSources.Concat(Anchor.PointerSources).Distinct().OrderBy(i => i).ToList();
+         // var name = !string.IsNullOrEmpty(other.Name) ? other.Name : Anchor.Name;
+         Anchor = new Anchor(sources);
+      }
+   }
+
+   public class Anchor {
+      public IReadOnlyList<int> PointerSources { get; }
+
+      public Anchor(IReadOnlyList<int> sources = null) => PointerSources = sources ?? new int[0];
    }
 }

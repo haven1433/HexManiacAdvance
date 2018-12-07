@@ -22,6 +22,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          copy = new StubCommand();
 
       private byte[] data;
+      private IModel model;
       private HexElement[,] currentView;
 
       public string Name {
@@ -199,7 +200,6 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          get {
             if (x < 0 || x >= Width) return HexElement.Undefined;
             if (y < 0 || y >= Height) return HexElement.Undefined;
-
             return currentView[x, y];
          }
       }
@@ -214,6 +214,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
 
       public ViewPort(LoadedFile file, IModel model = null) {
+         this.model = model ?? new BasicModel();
          FileName = file.Name;
          data = file.Contents;
 
@@ -338,7 +339,10 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          var point = GetEditPoint();
          var element = currentView[point.X, point.Y];
 
-         if (!ShouldAcceptInput(point, element, input)) return;
+         if (!ShouldAcceptInput(point, element, input)) {
+            ClearEdits(point);
+            return;
+         }
 
          SelectionStart = point;
 
@@ -348,6 +352,20 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             // only need to notify collection changes if we didn't complete an edit
             NotifyCollectionChanged(ResetArgs);
          }
+      }
+
+      private void ClearEdits(Point point) {
+         var element = currentView[point.X, point.Y];
+         var underEdit = element.Format as UnderEdit;
+         bool notifyCollectionChange = false;
+         while (underEdit != null) {
+            currentView[point.X, point.Y] = new HexElement(element.Value, underEdit.OriginalFormat);
+            point = scroll.DataIndexToViewPoint(scroll.ViewPointToDataIndex(point) + 1);
+            element = currentView[point.X, point.Y];
+            underEdit = element.Format as UnderEdit;
+            notifyCollectionChange = true;
+         }
+         if (notifyCollectionChange) RefreshBackingData();
       }
 
       private Point GetEditPoint() {
@@ -363,21 +381,109 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       private bool ShouldAcceptInput(Point point, HexElement element, char input) {
          var underEdit = element.Format as UnderEdit;
 
-         if (!"0123456789ABCDEFabcdef".Contains(input)) {
-            if (underEdit != null) {
-               currentView[point.X, point.Y] = new HexElement(element.Value, underEdit.OriginalFormat);
-               NotifyCollectionChanged(ResetArgs);
+         // pointer check
+         if (underEdit == null) {
+            if (input == '<') {
+               // pointer edits are 4 bytes long
+               PrepareForMultiSpaceEdit(point, 4);
+               return true;
             }
-            return false;
+            if (input == '^') {
+               // anchor edits are actually 0 length
+               // but lets give them 4 spaces to work with
+               PrepareForMultiSpaceEdit(point, 4);
+               return true;
+            }
+         } else if (underEdit.CurrentText.StartsWith("<")) {
+            return char.IsLetterOrDigit(input) || input == '>';
+         }else if (underEdit.CurrentText.StartsWith("^")) {
+            return char.IsLetterOrDigit(input) || char.IsWhiteSpace(input);
          }
 
-         return true;
+         // hex-format check
+         return "0123456789ABCDEFabcdef".Contains(input);
+      }
+
+      private void PrepareForMultiSpaceEdit(Point point, int length) {
+         var index = scroll.ViewPointToDataIndex(point);
+
+         for (int i = 0; i < length; i++) {
+            point = scroll.DataIndexToViewPoint(index + i);
+            if (point.Y >= Height) return;
+            var element = currentView[point.X, point.Y];
+            var newFormat = element.Format.Edit(string.Empty);
+            currentView[point.X, point.Y] = new HexElement(element.Value, newFormat);
+         }
       }
 
       private bool TryCompleteEdit(Point point) {
          var element = currentView[point.X, point.Y];
          var underEdit = (UnderEdit)element.Format;
+
+         if (underEdit.CurrentText.StartsWith("<")) {
+            if (!underEdit.CurrentText.EndsWith(">")) return false;
+            CompletePointerEdit(point);
+            return true;
+         }
+         if (underEdit.CurrentText.StartsWith("^")) {
+            if (!char.IsWhiteSpace(underEdit.CurrentText[underEdit.CurrentText.Length - 1])) return false;
+            CompleteAnchorEdit(point);
+            return true;
+         }
+
          if (underEdit.CurrentText.Length < 2) return false;
+         CompleteHexEdit(point);
+         return true;
+      }
+
+      private void CompletePointerEdit(Point point) {
+         var element = currentView[point.X, point.Y];
+         var underEdit = (UnderEdit)element.Format;
+
+         var index = scroll.ViewPointToDataIndex(point);
+         var destination = underEdit.CurrentText.Substring(1, underEdit.CurrentText.Length - 2);
+         int fullValue;
+         if (destination.All("0123456789ABCDEFabcdef".Contains) && destination.Length <= 6) {
+            while (destination.Length < 6) destination = "0" + destination;
+            fullValue = int.Parse(destination, NumberStyles.HexNumber);
+            model.ObserveRunWritten(data, new PointerRun(index, fullValue));
+         } else {
+            fullValue = model.GetAddressFromAnchor(index, destination);
+            model.ObserveRunWritten(data, new PointerRun(index, fullValue));
+         }
+
+         var byteValue1 = (byte)(fullValue >> 0);
+         var byteValue2 = (byte)(fullValue >> 8);
+         var byteValue3 = (byte)(fullValue >> 16);
+
+         ExpandData(index + 3);
+
+         currentView[point.X, point.Y] = new HexElement(byteValue1, new Pointer(index, 0, fullValue));
+
+         point = scroll.DataIndexToViewPoint(index + 1);
+         currentView[point.X, point.Y] = new HexElement(byteValue2, new Pointer(index, 1, fullValue));
+
+         point = scroll.DataIndexToViewPoint(index + 2);
+         currentView[point.X, point.Y] = new HexElement(byteValue3, new Pointer(index, 2, fullValue));
+
+         point = scroll.DataIndexToViewPoint(index + 3);
+         currentView[point.X, point.Y] = new HexElement(0x08, new Pointer(index, 3, fullValue));
+
+         data.Write(index, fullValue);
+
+         SilentScroll(index + 4);
+      }
+
+      private void CompleteAnchorEdit(Point point) {
+         var underEdit = (UnderEdit)currentView[point.X, point.Y].Format;
+         var index = scroll.ViewPointToDataIndex(point);
+         model.ObserveAnchorWritten(data, index, underEdit.CurrentText.Substring(1).Trim(), string.Empty);
+         ClearEdits(point);
+      }
+
+      private void CompleteHexEdit(Point point) {
+         var element = currentView[point.X, point.Y];
+         var underEdit = (UnderEdit)element.Format;
 
          var byteValue = byte.Parse(underEdit.CurrentText, NumberStyles.HexNumber);
          var memoryLocation = scroll.ViewPointToDataIndex(point);
@@ -385,14 +491,17 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          ExpandData(memoryLocation);
          data[memoryLocation] = byteValue;
          currentView[point.X, point.Y] = new HexElement(byteValue, None.Instance);
-         var nextPoint = scroll.DataIndexToViewPoint(memoryLocation + 1);
+         SilentScroll(memoryLocation + 1);
+      }
+
+      private void SilentScroll(int memoryLocation) {
+         var nextPoint = scroll.DataIndexToViewPoint(memoryLocation);
          if (!scroll.ScrollToPoint(ref nextPoint)) {
             // only need to notify collection change if we didn't auto-scroll after changing cells
             NotifyCollectionChanged(ResetArgs);
          }
 
          UpdateSelectionWithoutNotify(nextPoint);
-         return true;
       }
 
       // Calling this method over and over
@@ -426,11 +535,15 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
       private void RefreshBackingData() {
          currentView = new HexElement[Width, Height];
+         IFormattedRun run = null;
          for (int y = 0; y < Height; y++) {
             for (int x = 0; x < Width; x++) {
                var index = scroll.ViewPointToDataIndex(new Point(x, y));
+               if (run == null || run.Start + run.Length < index) run = model.GetNextRun(index) ?? new NoInfoRun(data.Length);
                if (index < 0 || index >= data.Length) {
                   currentView[x, y] = HexElement.Undefined;
+               } else if (index >= run.Start) {
+                  currentView[x, y] = new HexElement(data[index], run.CreateDataFormat(data, index));
                } else {
                   currentView[x, y] = new HexElement(data[index], None.Instance);
                }
