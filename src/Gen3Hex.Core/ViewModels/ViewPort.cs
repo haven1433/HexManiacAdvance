@@ -446,31 +446,15 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          if (destination.All("0123456789ABCDEFabcdef".Contains) && destination.Length <= 6) {
             while (destination.Length < 6) destination = "0" + destination;
             fullValue = int.Parse(destination, NumberStyles.HexNumber);
-            model.ObserveRunWritten(data, new PointerRun(index, fullValue));
          } else {
             fullValue = model.GetAddressFromAnchor(index, destination);
-            model.ObserveRunWritten(data, new PointerRun(index, fullValue));
          }
 
-         var byteValue1 = (byte)(fullValue >> 0);
-         var byteValue2 = (byte)(fullValue >> 8);
-         var byteValue3 = (byte)(fullValue >> 16);
-
          ExpandData(index + 3);
-
-         currentView[point.X, point.Y] = new HexElement(byteValue1, new Pointer(index, 0, fullValue));
-
-         point = scroll.DataIndexToViewPoint(index + 1);
-         currentView[point.X, point.Y] = new HexElement(byteValue2, new Pointer(index, 1, fullValue));
-
-         point = scroll.DataIndexToViewPoint(index + 2);
-         currentView[point.X, point.Y] = new HexElement(byteValue3, new Pointer(index, 2, fullValue));
-
-         point = scroll.DataIndexToViewPoint(index + 3);
-         currentView[point.X, point.Y] = new HexElement(0x08, new Pointer(index, 3, fullValue));
-
-         data.Write(index, fullValue);
-
+         model.ClearFormat(data, index, 4);
+         data.WritePointer(index, fullValue);
+         model.ObserveRunWritten(data, new PointerRun(model, index));
+         ClearEdits(point);
          SilentScroll(index + 4);
       }
 
@@ -543,7 +527,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                if (index < 0 || index >= data.Length) {
                   currentView[x, y] = HexElement.Undefined;
                } else if (index >= run.Start) {
-                  currentView[x, y] = new HexElement(data[index], run.CreateDataFormat(data, index));
+                  var format = run.CreateDataFormat(data, index);
+                  if (run.Anchor != null && run.Start == index) format = new DataFormats.Anchor(format, run.Anchor.PointerSources);
+                  currentView[x, y] = new HexElement(data[index], format);
                } else {
                   currentView[x, y] = new HexElement(data[index], None.Instance);
                }

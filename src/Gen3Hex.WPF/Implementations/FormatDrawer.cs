@@ -46,6 +46,10 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
          // TODO
       }
 
+      public void Visit(Anchor anchor, byte data) {
+         // TODO
+      }
+
       private void VerifyNoneVisualCache() {
          if (noneVisualCache.Count != 0) return;
 

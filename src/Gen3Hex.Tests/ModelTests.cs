@@ -1,5 +1,6 @@
 ﻿using HavenSoft.Gen3Hex.Core.Models;
 using HavenSoft.Gen3Hex.Core.ViewModels;
+using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
 using System;
 using Xunit;
 
@@ -106,14 +107,153 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Equal(4, viewPort[0, 2].Value);
       }
 
-      // TODO test writing an anchor where there is already a pointer
-      // TODO test writing an anchor over a pointer that references that anchor
-      // TODO test writing a pointer over the front half of an existing pointer
-      // TODO test writing a pointer over the back half of an existing pointer
-      // TODO test writing an anchor into the middle of a pointer (should erase the pointer)
-      // TODO test writing a pointer over an existing anchor (should erase the anchor and any pointers to it)
+      [Fact]
+      public void CanWriteAnchorToSameLocationAsPointerWithoutRemovingPointer() {
+         var buffer = new byte[0x100];
+         var model = new PointerModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model);
 
-      // TODO test getting anchor source addresses
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.Edit("<000040>");
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.Edit("^bob ");
+
+         Assert.IsType<Core.ViewModels.DataFormats.Anchor>(viewPort[0, 2].Format);
+      }
+
+      [Fact]
+      public void CanWriteAnchorToSameLocationAsPointerPointingToThatAnchor() {
+         var buffer = new byte[0x100];
+         var model = new PointerModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model);
+
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.Edit("<bob>");
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.Edit("^bob ");
+
+         Assert.IsType<Core.ViewModels.DataFormats.Anchor>(viewPort[0, 2].Format);
+         Assert.Equal(0x8, viewPort[0, 2].Value);
+      }
+
+      [Fact]
+      public void WritingAnAnchorUpdatesPointersToUseThatName() {
+         var buffer = new byte[0x100];
+         var model = new PointerModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model);
+
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.Edit("<000004>");
+         viewPort.SelectionStart = new Point(0, 1);
+         viewPort.Edit("^bob ");
+
+         Assert.Equal("bob", ((Pointer)viewPort[0, 2].Format).DestinationName);
+      }
+
+      [Fact]
+      public void WritingAPointerOverlappingAPointerRemovesOriginalPointer() {
+         var buffer = new byte[0x100];
+         var model = new PointerModel(buffer);
+
+         buffer.WritePointer(16, 100);
+         model.ObserveRunWritten(buffer, new PointerRun(model, 16));
+         Assert.Equal(16, model.GetNextRun(10).Start);
+         Assert.Equal(16, model.GetNextRun(17).Start);
+         Assert.Equal(16, model.GetNextRun(19).Start);
+         Assert.Equal(100, model.GetNextRun(20).Start); // the reference at 100 has been added
+
+         model.ClearFormat(buffer, 14, 4);
+         buffer.WritePointer(14, 200);
+         model.ObserveRunWritten(buffer, new PointerRun(model, 14));
+         Assert.Equal(14, model.GetNextRun(10).Start);
+         Assert.Equal(14, model.GetNextRun(15).Start);
+         Assert.Equal(14, model.GetNextRun(16).Start);
+         Assert.Equal(14, model.GetNextRun(17).Start);
+         Assert.Equal(200, model.GetNextRun(18).Start); // the reference at 100 has been erased, and there's a new one at 200
+      }
+
+      [Fact]
+      public void WritingAnchorIntoAPointerRemovesThatPointer() {
+         var buffer = new byte[0x100];
+         var model = new PointerModel(buffer);
+
+         buffer.WritePointer(16, 12);
+         model.ObserveRunWritten(buffer, new PointerRun(model, 16));
+         model.ObserveAnchorWritten(buffer, 18, "bob", string.Empty);
+
+         Assert.Equal(18, model.GetNextRun(10).Start);
+      }
+
+      [Fact]
+      public void WritingOverAnAnchorDeletesThatAnchor() {
+         var buffer = new byte[0x100];
+         var model = new PointerModel(buffer);
+
+         buffer.WritePointer(16, 32);
+         model.ObserveRunWritten(buffer, new PointerRun(model, 16));
+
+         model.ClearFormat(buffer, 30, 4);
+         buffer.WritePointer(30, 64);
+         model.ObserveRunWritten(buffer, new PointerRun(model, 30));
+
+         Assert.Equal(16, model.GetNextRun(10).Start); // original pointer at 16 is still there, but it no longer knows what it's pointing to
+         Assert.Equal(30, model.GetNextRun(24).Start); // next data is the pointer at 30
+         Assert.Equal(64, model.GetNextRun(34).Start); // next data is the reference to the pointer at 30
+      }
+
+      [Fact]
+      public void PointerCanPointToNameAfterThatNameGetsDeleted() {
+         var buffer = new byte[0x100];
+         var model = new PointerModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 16, Height = 16 };
+
+         viewPort.SelectionStart = new Point(0, 1);
+         viewPort.Edit("^bob ");
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.Edit("<bob>");
+         viewPort.SelectionStart = new Point(0, 1);
+
+         // as an alternative to being able to delete an anchor from the viewPort,
+         // just edit the model directly and then scroll to force the viewPort to refresh
+         model.ClearFormat(buffer, 0x10, 1);
+         viewPort.ScrollValue = 1;
+         viewPort.ScrollValue = 0;
+
+         Assert.Equal("bob", ((Pointer)viewPort[0, 2].Format).DestinationName);
+      }
+
+      [Fact]
+      public void PointerGetsSetToZeroAfterAnchorGetsDeleted() {
+         var buffer = new byte[0x100];
+         var model = new PointerModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 16, Height = 16 };
+
+         viewPort.SelectionStart = new Point(0, 1);
+         viewPort.Edit("^bob ");
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.Edit("<bob>");
+         viewPort.SelectionStart = new Point(0, 1);
+
+         // as an alternative to being able to delete an anchor from the viewPort,
+         // just edit the model directly and then scroll to force the viewPort to refresh
+         model.ClearFormat(buffer, 0x10, 1);
+         viewPort.ScrollValue = 1;
+         viewPort.ScrollValue = 0;
+
+         Assert.Equal(Pointer.NULL, ((Pointer)viewPort[0, 2].Format).Destination);
+      }
+
+      [Fact]
+      public void AnchorCarriesSourceInformation() {
+         var buffer = new byte[0x100];
+         var model = new PointerModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 16, Height = 16 };
+
+         viewPort.SelectionStart = new Point(0, 1);
+         viewPort.Edit("<000020>");
+         var anchor = (Core.ViewModels.DataFormats.Anchor)viewPort[0, 2].Format;
+         Assert.Contains(16, anchor.Sources);
+      }
 
       // TODO EDIT TEST backspace should open an edit on the byte before the selected byte
       // TODO EDIT TEST backspace during an edit should back out
@@ -127,6 +267,5 @@ namespace HavenSoft.Gen3Hex.Tests {
       // TODO backspace on the first byte of the pointer edits the previous byte
 
       // TODO undo/redo
-      // TODO save/load anchor names
    }
 }

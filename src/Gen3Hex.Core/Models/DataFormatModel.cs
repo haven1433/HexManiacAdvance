@@ -15,8 +15,10 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       void ObserveRunWritten(byte[] data, IFormattedRun run);
       void ObserveAnchorWritten(byte[] data, int location, string anchorName, string anchorFormat);
+      void ClearFormat(byte[] data, int start, int length);
 
       int GetAddressFromAnchor(int requestSource, string anchor);
+      string GetAnchorFromAddress(int requestSource, int destination);
    }
 
    public class PointerModel : IModel {
@@ -67,10 +69,10 @@ namespace HavenSoft.Gen3Hex.Core.Models {
                runs.Add(new NoInfoRun(destinations.Current, new Anchor(sources: pointersForDestination[destinations.Current])));
                moreDestinations = destinations.MoveNext();
             } else if (sources.Current < destinations.Current) {
-               runs.Add(new PointerRun(sources.Current, data.ReadAddress(sources.Current)));
+               runs.Add(new PointerRun(this, sources.Current));
                moreSources = sources.MoveNext();
             } else {
-               runs.Add(new PointerRun(sources.Current, data.ReadAddress(sources.Current), anchor: new Anchor(sources: pointersForDestination[destinations.Current])));
+               runs.Add(new PointerRun(this, sources.Current, new Anchor(sources: pointersForDestination[destinations.Current])));
                moreDestinations = destinations.MoveNext();
                moreSources = sources.MoveNext();
             }
@@ -82,7 +84,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          }
 
          while (moreSources) {
-            runs.Add(new PointerRun(sources.Current, data.ReadAddress(sources.Current)));
+            runs.Add(new PointerRun(this, sources.Current));
             moreSources = sources.MoveNext();
          }
       }
@@ -109,12 +111,14 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          return 0;
       }
 
-      public string GetAnchorFromAddress(int address) {
-         return anchorForAddress.TryGetValue(address, out string anchor) ? anchor : string.Empty;
+      public string GetAnchorFromAddress(int requestSource, int address) {
+         if (anchorForAddress.TryGetValue(address, out string anchor)) return anchor;
+         if (sourceToUnmappedName.TryGetValue(requestSource, out anchor)) return anchor;
+         return string.Empty;
       }
 
       public IFormattedRun GetNextRun(int dataIndex) {
-         var index = runs.BinarySearch(new CompareFormattedRun(dataIndex), FormattedRunComparer.Instance);
+         var index = BinarySearch(dataIndex);
          if (index < 0) {
             index = ~index;
             if (index > 0) {
@@ -127,7 +131,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       }
 
       public void ObserveRunWritten(byte[] data, IFormattedRun run) {
-         var index = runs.BinarySearch(run, FormattedRunComparer.Instance);
+         var index = BinarySearch(run.Start);
          if (index < 0) {
             index = ~index;
             if (runs.Count == index || (runs[index].Start >= run.Start + run.Length && (index == 0 || runs[index - 1].Start + runs[index - 1].Length <= run.Start))) {
@@ -145,7 +149,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             // if the only thing changed was the anchor, then don't change the format, just merge the anchor
             var existingRun = runs[index];
             if (existingRun is PointerRun pointerRun1) {
-               if (pointerRun1.DestinationAddress == 0) {
+               if (data.ReadWord(pointerRun1.Start) == 0) {
                   var name = sourceToUnmappedName[pointerRun1.Start];
                   sourceToUnmappedName.Remove(pointerRun1.Start);
                   unmappedNameToSources[name].Remove(pointerRun1.Start);
@@ -157,73 +161,106 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          }
 
          if (run is PointerRun pointerRun) {
-            if (pointerRun.DestinationAddress != 0) {
-               index = runs.BinarySearch(new CompareFormattedRun(pointerRun.DestinationAddress), FormattedRunComparer.Instance);
+            if (data.ReadWord(pointerRun.Start) != 0) {
+               var destination = data.ReadAddress(pointerRun.Start);
+               index = BinarySearch(destination);
                if (index < 0) {
                   // the pointer is brand new
                   index = ~index;
-                  runs.Insert(index, new NoInfoRun(pointerRun.DestinationAddress, new Anchor(new[] { run.Start })));
+                  runs.Insert(index, new NoInfoRun(destination, new Anchor(new[] { run.Start })));
                } else {
                   runs[index].MergeAnchor(new Anchor(new[] { run.Start }));
                }
             }
-            //if (pointerRun.DestinationName == string.Empty) {
-            //   var destination = data.ReadAddress(pointerRun.Start);
-            //   index = runs.BinarySearch(new CompareFormattedRun(destination), FormattedRunComparer.Instance);
-            //   if (index < 0) {
-            //      // does not exist yet: add it
-            //      runs.Insert(~index, new NoInfoRun(destination, new Anchor(null, new[] { pointerRun.Start })));
-            //   } else {
-            //      // does exist: add it
-            //      runs[index].MergeAnchor(new Anchor(null, new[] { pointerRun.Start }));
-            //   }
-            //}
          }
       }
 
       public void ObserveAnchorWritten(byte[] data, int location, string anchorName, string anchorFormat) {
+         int index = BinarySearch(location);
+         if (index < 0) ClearFormat(data, location, 1); // no format starts exactly at this anchor, so clear any format that goes over this anchor.
+
          if (anchorForAddress.TryGetValue(location, out string oldAnchorName)) {
             anchorForAddress.Remove(location);
-            addressForAnchor.Remove(anchorName);
+            addressForAnchor.Remove(oldAnchorName);
          }
 
          if (addressForAnchor.ContainsKey(anchorName)) {
             // TODO the desired name already exists
-            // (1) remove old name
-            // (2) remove old name and delete data
-            // (3) rename old name
+            // (1) remove old name and delete data
+            // anything pointing to the old should now be pointing to the new
             throw new NotImplementedException();
-            // no matter which is chosen, anything pointing to the old should now be pointing to the new
          } else {
             anchorForAddress.Add(location, anchorName);
             addressForAnchor.Add(anchorName, location);
          }
 
-         if (unmappedNameToSources.TryGetValue(anchorName, out var sources)) {
+         List<int> sources = null;
+         if (unmappedNameToSources.TryGetValue(anchorName, out sources)) {
             foreach (var source in sources) {
-               var index = runs.BinarySearch(new CompareFormattedRun(source), FormattedRunComparer.Instance);
+               index = BinarySearch(source);
                Debug.Assert(index >= 0 && runs[index] is PointerRun);
-               runs[index] = new PointerRun(source, location, runs[index].Anchor);
+               runs[index] = new PointerRun(this, source, runs[index].Anchor);
                sourceToUnmappedName.Remove(source);
                data.WritePointer(source, location);
             }
             unmappedNameToSources.Remove(anchorName);
          }
 
+         index = BinarySearch(location);
+         if (index < 0) {
+            runs.Insert(~index, new NoInfoRun(location, new Anchor(sources)));
+         } else {
+            runs[index].MergeAnchor(new Anchor(sources));
+         }
       }
 
       // TODO observe removal of runs (pointer replaced with normal data)
       public void ObserveNormalDataWrite(byte[] data, int index) {
       }
 
-      // TODO observe anchor removal
+      public void ClearFormat(byte[] data, int start, int length) {
+         for (var run = GetNextRun(start); length > 0 && run != null; run = GetNextRun(start)) {
+            if (run.Start >= start + length) return;
+            if (run is PointerRun pointerRun) {
+               // remove the reference from the anchor we're pointing to as well
+               var destination = data.ReadAddress(pointerRun.Start);
+               var anchorRun = runs[BinarySearch(destination)];
+               anchorRun.Anchor.RemoveSource(pointerRun.Start);
+               if (anchorRun.Anchor.PointerSources.Count == 0) {
+                  ClearFormat(data, anchorRun.Start, length);
+                  if (anchorForAddress.ContainsKey(anchorRun.Start)) {
+                     addressForAnchor.Remove(anchorForAddress[anchorRun.Start]);
+                     anchorForAddress.Remove(anchorRun.Start);
+                  }
+               }
+            }
+            foreach (var source in run.Anchor?.PointerSources ?? new int[0]) data.Write(source, 0);
+            if (anchorForAddress.ContainsKey(run.Start)) {
+               unmappedNameToSources[anchorForAddress[run.Start]] = new List<int>(run.Anchor.PointerSources);
+               foreach (var source in run.Anchor.PointerSources) sourceToUnmappedName[source] = anchorForAddress[run.Start];
+               addressForAnchor.Remove(anchorForAddress[run.Start]);
+               anchorForAddress.Remove(run.Start);
+            }
+            for (int i = 0; i < run.Length; i++) data[run.Start + i] = 0xFF;
+            runs.RemoveAt(BinarySearch(run.Start));
+            start = run.Start + run.Length;
+            length -= run.Length;
+         }
+      }
+
+      private int BinarySearch(int start) {
+         var index = runs.BinarySearch(new CompareFormattedRun(start), FormattedRunComparer.Instance);
+         return index;
+      }
    }
 
    public class BasicModel : IModel {
       public static IModel Instance { get; } = new BasicModel();
       public int GetAddressFromAnchor(int requestSource, string anchor) => 0;
+      public string GetAnchorFromAddress(int requestSource, int destination) => string.Empty;
       public IFormattedRun GetNextRun(int dataIndex) => null;
       public void ObserveRunWritten(byte[] data, IFormattedRun run) { }
       public void ObserveAnchorWritten(byte[] data, int location, string anchorName, string anchorFormat) { }
+      public void ClearFormat(byte[] data, int start, int length) { }
    }
 }

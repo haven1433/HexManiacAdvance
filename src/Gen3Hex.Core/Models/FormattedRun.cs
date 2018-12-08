@@ -36,42 +36,51 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       public int Length => 1;
       public Anchor Anchor { get; private set; }
 
-      public NoInfoRun(int start, Anchor anchor = null) => (Start, Anchor) = (start, anchor ?? new Anchor());
+      public NoInfoRun(int start, Anchor anchor = null) => (Start, Anchor) = (start, anchor);
 
       public IDataFormat CreateDataFormat(IReadOnlyList<byte> data, int index) => None.Instance;
       public void MergeAnchor(Anchor other) {
+         if (other == null) return;
+         if (Anchor == null) { Anchor = other; return; }
          var sources = other.PointerSources.Concat(Anchor.PointerSources).Distinct().OrderBy(i => i).ToList();
-         // var name = !string.IsNullOrEmpty(other.Name) ? other.Name : Anchor.Name;
          Anchor = new Anchor(sources);
       }
    }
 
    public class PointerRun : IFormattedRun {
+      private readonly IModel parent;
       public int Start { get; }
-      public int DestinationAddress { get; }
       public int Length => 4;
       public Anchor Anchor { get; private set; }
 
-      public PointerRun(int start, int destinationAddress, Anchor anchor = null) {
+      public PointerRun(IModel parent, int start, Anchor anchor = null) {
+         this.parent = parent;
          Start = start;
-         DestinationAddress = destinationAddress;
-         Anchor = anchor ?? new Anchor();
+         Anchor = anchor;
       }
 
       public IDataFormat CreateDataFormat(IReadOnlyList<byte> data, int index) {
-         return new Pointer(Start, index - Start, data.ReadAddress(Start));
+         var destinationAddress = Math.Max(0, data.ReadAddress(Start));
+         var anchor = parent.GetAnchorFromAddress(Start, destinationAddress);
+         var pointer = new Pointer(Start, index - Start, data.ReadAddress(Start), anchor);
+         return pointer;
       }
 
       public void MergeAnchor(Anchor other) {
+         if (other == null) return;
+         if (Anchor == null) { Anchor = other; return; }
          var sources = other.PointerSources.Concat(Anchor.PointerSources).Distinct().OrderBy(i => i).ToList();
-         // var name = !string.IsNullOrEmpty(other.Name) ? other.Name : Anchor.Name;
          Anchor = new Anchor(sources);
       }
    }
 
    public class Anchor {
-      public IReadOnlyList<int> PointerSources { get; }
+      public IReadOnlyList<int> PointerSources { get; private set; }
 
       public Anchor(IReadOnlyList<int> sources = null) => PointerSources = sources ?? new int[0];
+
+      public void RemoveSource(int source) {
+         PointerSources = PointerSources.Except(new[] { source }).ToList();
+      }
    }
 }
