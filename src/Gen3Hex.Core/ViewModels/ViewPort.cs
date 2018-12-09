@@ -621,7 +621,10 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                   currentView[x, y] = HexElement.Undefined;
                } else if (index >= run.Start) {
                   var format = run.CreateDataFormat(data, index);
-                  if (run.Anchor != null && run.Start == index) format = new DataFormats.Anchor(format, run.Anchor.PointerSources);
+                  if (run.Anchor != null && run.Start == index) {
+                     var name = model.GetAnchorFromAddress(-1, run.Start);
+                     format = new DataFormats.Anchor(format, name, string.Empty, run.Anchor.PointerSources);
+                  }
                   currentView[x, y] = new HexElement(data[index], format);
                } else {
                   currentView[x, y] = new HexElement(data[index], None.Instance);

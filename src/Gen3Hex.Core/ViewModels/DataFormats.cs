@@ -90,13 +90,15 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels.DataFormats {
 
    public class Anchor : IDataFormat {
       public IDataFormat OriginalFormat { get; }
+      public string Name { get; }
+      public string Format { get; }
       public IReadOnlyList<int> Sources { get; }
 
-      public Anchor(IDataFormat original, IReadOnlyList<int> sources) => (OriginalFormat, Sources) = (original, sources);
+      public Anchor(IDataFormat original, string name, string format, IReadOnlyList<int> sources) => (OriginalFormat, Name, Format, Sources) = (original, name, format, sources);
 
       public bool Equals(IDataFormat other) {
          if (!(other is Anchor anchor)) return false;
-         return anchor.Sources.SequenceEqual(Sources) && anchor.OriginalFormat.Equals(OriginalFormat);
+         return anchor.Name == Name && anchor.Format == Format && anchor.Sources.SequenceEqual(Sources) && anchor.OriginalFormat.Equals(OriginalFormat);
       }
 
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);

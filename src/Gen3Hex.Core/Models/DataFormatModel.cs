@@ -189,7 +189,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             // (1) remove old name and delete data
             // anything pointing to the old should now be pointing to the new
             throw new NotImplementedException();
-         } else {
+         } else if (anchorName != string.Empty) {
             anchorForAddress.Add(location, anchorName);
             addressForAnchor.Add(anchorName, location);
          }

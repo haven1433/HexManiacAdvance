@@ -255,7 +255,25 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Contains(16, anchor.Sources);
       }
 
-      // TODO be able to remove an anchor name by typing ^, Whitespace
+      [Fact]
+      public void StartingAnAnchorAndGivingItNoNameClearsAnyAnchorNameAtThatPosition() {
+         var buffer = new byte[0x100];
+         var model = new PointerModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.SelectionStart = new Point(0, 1);
+         viewPort.Edit("<bob>");
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.Edit("^bob ");
+         viewPort.Edit("^ ");
+
+         var format = (Pointer)viewPort[0, 1].Format;
+         Assert.Equal(0x20, format.Destination);
+         Assert.Equal(string.Empty, format.DestinationName);
+         var address = model.GetAddressFromAnchor(-1, string.Empty);
+         Assert.Equal(0, address);
+      }
+
       // TODO be able to remove a pointer via backspace from within the pointer
       // TODO be able to remove a pointer via backspace from directly after the pointer
       // TODO backspace on the first byte of the pointer edits the previous byte
