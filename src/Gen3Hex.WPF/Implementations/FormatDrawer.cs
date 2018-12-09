@@ -43,11 +43,31 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
       }
 
       public void Visit(Pointer dataFormat, byte data) {
-         // TODO
+         if (dataFormat.Position != 1) return;
+
+         var brush = Solarized.Brushes.Blue;
+         var typeface = new Typeface("Consolas");
+         var destination = dataFormat.DestinationName;
+         if (string.IsNullOrEmpty(destination)) destination = dataFormat.Destination.ToString("X6");
+         destination = $"<{destination}>";
+         if (dataFormat.Destination == Pointer.NULL) brush = Solarized.Brushes.Red;
+ 
+         var text = new FormattedText(
+            destination,
+            CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            typeface,
+            FontSize,
+            brush,
+            1.0);
+
+         context.DrawText(text, new Point(CellTextOffset.X - 10, CellTextOffset.Y));
       }
 
+      private static readonly Geometry Triangle = Geometry.Parse("M1,0 L4,5 -2,5 Z");
       public void Visit(Anchor anchor, byte data) {
-         // TODO
+         anchor.OriginalFormat.Visit(this, data);
+         context.DrawGeometry(Solarized.Brushes.Blue, null, Triangle);
       }
 
       private void VerifyNoneVisualCache() {

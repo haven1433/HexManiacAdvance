@@ -58,6 +58,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public ICommand Forward => null;
       public ICommand Close => close;
 
+      public IModel Model => null;
+
 #pragma warning disable 0067 // it's ok if events are never used
       public event EventHandler<string> OnError;
       public event EventHandler Closed;

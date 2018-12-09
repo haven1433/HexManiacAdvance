@@ -5,7 +5,7 @@
    public class ChildViewPort : ViewPort, IChildViewPort {
       public IViewPort Parent { get; }
 
-      public ChildViewPort(IViewPort viewPort, byte[] data) : base(new Models.LoadedFile(string.Empty, data)) {
+      public ChildViewPort(IViewPort viewPort, byte[] data) : base(new Models.LoadedFile(string.Empty, data), viewPort.Model) {
          Parent = viewPort;
          Width = Parent.Width;
       }

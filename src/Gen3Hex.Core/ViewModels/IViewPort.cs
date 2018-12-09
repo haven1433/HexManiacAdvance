@@ -18,6 +18,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       ICommand Scroll { get; } // parameter: Direction to scroll
 
       HexElement this[int x, int y] { get; }
+      IModel Model { get; }
       bool IsSelected(Point point);
 
       IReadOnlyList<int> Find(string search);

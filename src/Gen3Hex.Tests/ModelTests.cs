@@ -274,9 +274,28 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Equal(0, address);
       }
 
-      // TODO be able to remove a pointer via backspace from within the pointer
-      // TODO be able to remove a pointer via backspace from directly after the pointer
-      // TODO backspace on the first byte of the pointer edits the previous byte
+      [Fact]
+      public void BackspaceClearsDataButNotFormats() {
+         var buffer = new byte[0x100];
+         var model = new PointerModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.SelectionStart = new Point(0, 1);
+         viewPort.Edit("01 02 03 04");
+         viewPort.Edit("<000020>");
+         viewPort.Edit("<000030>");
+         viewPort.SelectionStart = new Point(10, 1);
+
+         for (int i = 0; i < 21; i++) viewPort.Edit(ConsoleKey.Backspace);
+         viewPort.MoveSelectionStart.Execute(Direction.Up);
+
+         Assert.Equal(Pointer.NULL, ((Pointer)viewPort[8, 1].Format).Destination);
+         Assert.Equal(Pointer.NULL, ((Pointer)viewPort[4, 1].Format).Destination);
+         Assert.Equal(0x01, viewPort[0, 1].Value);
+         Assert.Equal(0x02, viewPort[1, 1].Value);
+         Assert.Equal(0xFF, viewPort[2, 1].Value);
+         Assert.Equal(0xFF, viewPort[3, 1].Value);
+      }
 
       // TODO undo/redo
    }

@@ -22,7 +22,6 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          copy = new StubCommand();
 
       private byte[] data;
-      private IModel model;
       private HexElement[,] currentView;
 
       public string Name {
@@ -204,6 +203,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          }
       }
 
+      public IModel Model { get; private set; }
+
 #pragma warning disable 0067 // it's ok if events are never used
       public event EventHandler<string> OnError;
       public event NotifyCollectionChangedEventHandler CollectionChanged;
@@ -214,7 +215,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
 
       public ViewPort(LoadedFile file, IModel model = null) {
-         this.model = model ?? new BasicModel();
+         Model = model ?? new BasicModel();
          FileName = file.Name;
          data = file.Contents;
 
@@ -299,7 +300,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             RefreshBackingData();
          }
 
-         var run = model.GetNextRun(index - 1) ?? new NoInfoRun(int.MaxValue);
+         var run = Model.GetNextRun(index - 1) ?? new NoInfoRun(int.MaxValue);
          if (run.Start <= index - 1 && run.Start + run.Length > index - 1) {
             // I want to do a backspace at the end of this run
             SelectionStart = scroll.DataIndexToViewPoint(run.Start);
@@ -540,13 +541,13 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             while (destination.Length < 6) destination = "0" + destination;
             fullValue = int.Parse(destination, NumberStyles.HexNumber);
          } else {
-            fullValue = model.GetAddressFromAnchor(index, destination);
+            fullValue = Model.GetAddressFromAnchor(index, destination);
          }
 
          ExpandData(index + 3);
-         model.ClearFormat(data, index, 4);
+         Model.ClearFormat(data, index, 4);
          data.WritePointer(index, fullValue);
-         model.ObserveRunWritten(data, new PointerRun(model, index));
+         Model.ObserveRunWritten(data, new PointerRun(Model, index));
          ClearEdits(point);
          SilentScroll(index + 4);
       }
@@ -554,7 +555,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       private void CompleteAnchorEdit(Point point) {
          var underEdit = (UnderEdit)currentView[point.X, point.Y].Format;
          var index = scroll.ViewPointToDataIndex(point);
-         model.ObserveAnchorWritten(data, index, underEdit.CurrentText.Substring(1).Trim(), string.Empty);
+         Model.ObserveAnchorWritten(data, index, underEdit.CurrentText.Substring(1).Trim(), string.Empty);
          ClearEdits(point);
       }
 
@@ -616,13 +617,13 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          for (int y = 0; y < Height; y++) {
             for (int x = 0; x < Width; x++) {
                var index = scroll.ViewPointToDataIndex(new Point(x, y));
-               if (run == null || run.Start + run.Length < index) run = model.GetNextRun(index) ?? new NoInfoRun(data.Length);
+               if (run == null || run.Start + run.Length < index) run = Model.GetNextRun(index) ?? new NoInfoRun(data.Length);
                if (index < 0 || index >= data.Length) {
                   currentView[x, y] = HexElement.Undefined;
                } else if (index >= run.Start) {
                   var format = run.CreateDataFormat(data, index);
                   if (run.Anchor != null && run.Start == index) {
-                     var name = model.GetAnchorFromAddress(-1, run.Start);
+                     var name = Model.GetAnchorFromAddress(-1, run.Start);
                      format = new DataFormats.Anchor(format, name, string.Empty, run.Anchor.PointerSources);
                   }
                   currentView[x, y] = new HexElement(data[index], format);

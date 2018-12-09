@@ -64,6 +64,7 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
       #endregion
 
       public HexContent() {
+         ClipToBounds = true;
          Focusable = true;
 
          void AddKeyCommand(string commandPath, object arg, Key key, ModifierKeys modifiers = ModifierKeys.None) {
@@ -93,6 +94,14 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
 
          AddKeyCommand(nameof(IViewPort.Undo), null, Key.Z, ModifierKeys.Control);
          AddKeyCommand(nameof(IViewPort.Redo), null, Key.Y, ModifierKeys.Control);
+
+         InputBindings.Add(new KeyBinding {
+            Key = Key.Back,
+            Command = new StubCommand {
+               CanExecute = ICommandExtensions.CanAlwaysExecute,
+               Execute = arg => (ViewPort as ViewPort).Edit(ConsoleKey.Backspace)
+            }
+         });
       }
 
       protected override void OnMouseDown(MouseButtonEventArgs e) {
@@ -148,13 +157,23 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
 
          var visitor = new FormatDrawer(drawingContext);
 
+         // first pass: draw selection
+         for (int x = 0; x < ViewPort.Width; x++) {
+            for (int y = 0; y < ViewPort.Height; y++) {
+               if (ViewPort.IsSelected(new Core.Models.Point(x, y))) {
+                  var element = ViewPort[x, y];
+                  drawingContext.PushTransform(new TranslateTransform(x * CellWidth, y * CellHeight));
+                  drawingContext.DrawRectangle(Solarized.Theme.Backlight, null, CellRect);
+                  drawingContext.Pop();
+               }
+            }
+         }
+
+         // second pass: draw data
          for (int x = 0; x < ViewPort.Width; x++) {
             for (int y = 0; y < ViewPort.Height; y++) {
                var element = ViewPort[x, y];
                drawingContext.PushTransform(new TranslateTransform(x * CellWidth, y * CellHeight));
-               if (ViewPort.IsSelected(new Core.Models.Point(x, y))) {
-                  drawingContext.DrawRectangle(Solarized.Theme.Backlight, null, CellRect);
-               }
                element.Format.Visit(visitor, element.Value);
                drawingContext.Pop();
             }
