@@ -187,23 +187,6 @@ namespace HavenSoft.Gen3Hex.Tests {
       }
 
       [Fact]
-      public void EditOnlyNotifiesCollectionChangeOnceWhenScrolling() {
-         var loadedFile = new LoadedFile("test", new byte[30]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
-         int collectionNotifications = 0;
-         viewPort.CollectionChanged += (sender, e) => collectionNotifications++;
-
-         viewPort.SelectionStart = new Point(4, 4);
-         viewPort.Edit("F");
-         Assert.Equal(1, collectionNotifications);
-
-         viewPort.Edit("F");
-         Assert.Equal(2, collectionNotifications);
-         Assert.Equal(new Point(0, 4), viewPort.SelectionStart);
-         Assert.Equal(0xFF, viewPort[4, 3].Value);
-      }
-
-      [Fact]
       public void SelectionChangeDuringEditNotifiesCollectionChange() {
          var loadedFile = new LoadedFile("test", new byte[30]);
          var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };

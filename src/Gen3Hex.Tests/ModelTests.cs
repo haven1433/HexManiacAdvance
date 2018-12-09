@@ -271,7 +271,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Equal(0x20, format.Destination);
          Assert.Equal(string.Empty, format.DestinationName);
          var address = model.GetAddressFromAnchor(-1, string.Empty);
-         Assert.Equal(0, address);
+         Assert.Equal(Pointer.NULL, address);
       }
 
       [Fact]
@@ -281,12 +281,12 @@ namespace HavenSoft.Gen3Hex.Tests {
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.SelectionStart = new Point(0, 1);
-         viewPort.Edit("01 02 03 04");
-         viewPort.Edit("<000020>");
-         viewPort.Edit("<000030>");
+         viewPort.Edit("01 02 03 04");                // 2x4 characters to clear
+         viewPort.Edit("<000020>");                   // 8 characters to clear
+         viewPort.Edit("<000030>");                   // 8 characters to clear
          viewPort.SelectionStart = new Point(10, 1);
 
-         for (int i = 0; i < 21; i++) viewPort.Edit(ConsoleKey.Backspace);
+         for (int i = 0; i < 21; i++) viewPort.Edit(ConsoleKey.Backspace); // should clear both pointers (16) and 2 bytes (4)
          viewPort.MoveSelectionStart.Execute(Direction.Up);
 
          Assert.Equal(Pointer.NULL, ((Pointer)viewPort[8, 1].Format).Destination);
@@ -296,6 +296,66 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Equal(0xFF, viewPort[2, 1].Value);
          Assert.Equal(0xFF, viewPort[3, 1].Value);
       }
+
+      [Fact]
+      public void WritingOverTwoPointersWorks() {
+         var buffer = new byte[0x100];
+         var model = new PointerModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.SelectionStart = new Point(0, 1);
+         viewPort.Edit("<000020>");
+         viewPort.Edit("<000030>");
+         viewPort.SelectionStart = new Point(2, 1);
+         viewPort.Edit("<000040>");
+
+         Assert.Equal(0xFF, viewPort[0, 1].Value);
+         Assert.Equal(0xFF, viewPort[1, 1].Value);
+         Assert.Equal(0x40, viewPort[2, 1].Value);
+         Assert.Equal(0x00, viewPort[3, 1].Value);
+         Assert.Equal(0x00, viewPort[4, 1].Value);
+         Assert.Equal(0x08, viewPort[5, 1].Value);
+         Assert.Equal(0xFF, viewPort[6, 1].Value);
+         Assert.Equal(0xFF, viewPort[7, 1].Value);
+
+         Assert.IsNotType<Pointer>(viewPort[1, 1].Format);
+         Assert.IsType<Pointer>(viewPort[2, 1].Format);
+         Assert.IsType<Pointer>(viewPort[5, 1].Format);
+         Assert.IsNotType<Pointer>(viewPort[6, 1].Format);
+      }
+
+      [Fact]
+      public void PointerToUnknownLocationShowsUpDifferent() {
+         var buffer = new byte[0x100];
+         var model = new PointerModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.SelectionStart = new Point(2, 1);
+         viewPort.Edit("<bob>");
+
+         var pointer = (Pointer)viewPort[2, 1].Format;
+         Assert.Equal("bob", pointer.DestinationName);
+         Assert.Equal(Pointer.NULL, pointer.Destination);
+      }
+
+      [Fact]
+      public void AddingANewNamedPointerToNoLocationOverExistingNamedPointerToNoLocationWorks() {
+         var buffer = new byte[0x100];
+         var model = new PointerModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.SelectionStart = new Point(2, 1);
+         viewPort.Edit("<bob>");
+
+         viewPort.SelectionStart = new Point(0, 1);
+         viewPort.Edit("<tom>");
+
+         Assert.IsNotType<Pointer>(viewPort[4, 1].Format);
+      }
+
+      // TODO putting a new anchor with the same name: delete any run that starts at that anchor, repoint everything from the old location to the new location
+      // TODO goto named anchor
+      // TODO find pointer
 
       // TODO undo/redo
    }

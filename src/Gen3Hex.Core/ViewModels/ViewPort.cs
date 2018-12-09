@@ -288,6 +288,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          if (format != null && format.CurrentText.Length > 0) {
             var newFormat = new UnderEdit(format.OriginalFormat, format.CurrentText.Substring(0, format.CurrentText.Length - 1));
             currentView[point.X, point.Y] = new HexElement(currentView[point.X, point.Y].Value, newFormat);
+            NotifyCollectionChanged(ResetArgs);
             return;
          }
 
@@ -318,58 +319,6 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             var text = element.Value.ToString("X2");
             currentView[SelectionStart.X, SelectionStart.Y] = new HexElement(element.Value, element.Format.Edit(text.Substring(0, text.Length - 1)));
          }
-      }
-
-      private class DataRead : IDataFormatVisitor {
-         private readonly byte[] buffer;
-         private readonly int index;
-         private readonly string[] asText;
-
-         public DataRead(byte[] buffer, int index, out string[] asText) {
-            this.buffer = buffer;
-            this.index = index;
-            asText = new string[1];
-            this.asText = asText;
-         }
-
-         public void Visit(Undefined dataFormat, byte data) { }
-
-         public void Visit(None dataFormat, byte data) => asText[0] = data.ToString("X2");
-
-         public void Visit(UnderEdit dataFormat, byte data) {
-            throw new NotImplementedException();
-         }
-
-         public void Visit(Pointer pointer, byte data) {
-            var destination = pointer.Destination.ToString("X6");
-            asText[0] = $"<{pointer.Destination}>";
-            if (!string.IsNullOrEmpty(pointer.DestinationName)) asText[0] = $"<{pointer.DestinationName}>";
-         }
-
-         public void Visit(DataFormats.Anchor anchor, byte data) => anchor.OriginalFormat.Visit(this, data);
-      }
-
-      private class DataClear : IDataFormatVisitor {
-         private readonly byte[] buffer;
-         private readonly int index;
-
-         public DataClear(byte[] data, int index) {
-            buffer = data;
-            this.index = index;
-         }
-
-         public void Visit(Undefined dataFormat, byte data) { }
-
-         public void Visit(None dataFormat, byte data) => buffer[index] = 0xFF;
-
-         public void Visit(UnderEdit dataFormat, byte data) => throw new NotImplementedException();
-
-         public void Visit(Pointer pointer, byte data) {
-            int start = index - pointer.Position;
-            buffer.Write(start, 0);
-         }
-
-         public void Visit(DataFormats.Anchor anchor, byte data) => anchor.OriginalFormat.Visit(this, data);
       }
 
       public IReadOnlyList<int> Find(string rawSearch) {
@@ -449,17 +398,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       }
 
       private void ClearEdits(Point point) {
-         var element = currentView[point.X, point.Y];
-         var underEdit = element.Format as UnderEdit;
-         bool notifyCollectionChange = false;
-         while (underEdit != null) {
-            currentView[point.X, point.Y] = new HexElement(element.Value, underEdit.OriginalFormat);
-            point = scroll.DataIndexToViewPoint(scroll.ViewPointToDataIndex(point) + 1);
-            element = currentView[point.X, point.Y];
-            underEdit = element.Format as UnderEdit;
-            notifyCollectionChange = true;
-         }
-         if (notifyCollectionChange) RefreshBackingData();
+         if (currentView[point.X, point.Y].Format is UnderEdit) RefreshBackingData();
       }
 
       private Point GetEditPoint() {
@@ -568,7 +507,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          history.CurrentChange[memoryLocation] = new HexElement(element.Value, underEdit.OriginalFormat);
          ExpandData(memoryLocation);
          data[memoryLocation] = byteValue;
-         currentView[point.X, point.Y] = new HexElement(byteValue, None.Instance);
+         ClearEdits(point);
          SilentScroll(memoryLocation + 1);
       }
 
@@ -617,7 +556,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          for (int y = 0; y < Height; y++) {
             for (int x = 0; x < Width; x++) {
                var index = scroll.ViewPointToDataIndex(new Point(x, y));
-               if (run == null || run.Start + run.Length < index) run = Model.GetNextRun(index) ?? new NoInfoRun(data.Length);
+               if (run == null || index >= run.Start + run.Length) run = Model.GetNextRun(index) ?? new NoInfoRun(data.Length);
                if (index < 0 || index >= data.Length) {
                   currentView[x, y] = HexElement.Undefined;
                } else if (index >= run.Start) {
@@ -637,5 +576,57 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       }
 
       private void NotifyCollectionChanged(NotifyCollectionChangedEventArgs args) => CollectionChanged?.Invoke(this, args);
+
+      private class DataRead : IDataFormatVisitor {
+         private readonly byte[] buffer;
+         private readonly int index;
+         private readonly string[] asText;
+
+         public DataRead(byte[] buffer, int index, out string[] asText) {
+            this.buffer = buffer;
+            this.index = index;
+            asText = new string[1];
+            this.asText = asText;
+         }
+
+         public void Visit(Undefined dataFormat, byte data) { }
+
+         public void Visit(None dataFormat, byte data) => asText[0] = data.ToString("X2");
+
+         public void Visit(UnderEdit dataFormat, byte data) {
+            throw new NotImplementedException();
+         }
+
+         public void Visit(Pointer pointer, byte data) {
+            var destination = pointer.Destination.ToString("X6");
+            asText[0] = $"<{destination}>";
+            if (!string.IsNullOrEmpty(pointer.DestinationName)) asText[0] = $"<{pointer.DestinationName}>";
+         }
+
+         public void Visit(DataFormats.Anchor anchor, byte data) => anchor.OriginalFormat.Visit(this, data);
+      }
+
+      private class DataClear : IDataFormatVisitor {
+         private readonly byte[] buffer;
+         private readonly int index;
+
+         public DataClear(byte[] data, int index) {
+            buffer = data;
+            this.index = index;
+         }
+
+         public void Visit(Undefined dataFormat, byte data) { }
+
+         public void Visit(None dataFormat, byte data) => buffer[index] = 0xFF;
+
+         public void Visit(UnderEdit dataFormat, byte data) => throw new NotImplementedException();
+
+         public void Visit(Pointer pointer, byte data) {
+            int start = index - pointer.Position;
+            buffer.Write(start, 0);
+         }
+
+         public void Visit(DataFormats.Anchor anchor, byte data) => anchor.OriginalFormat.Visit(this, data);
+      }
    }
 }

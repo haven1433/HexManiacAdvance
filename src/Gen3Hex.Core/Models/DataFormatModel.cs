@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -108,7 +109,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          unmappedNameToSources[anchor].Add(requestSource);
          sourceToUnmappedName[requestSource] = anchor;
 
-         return 0;
+         return Pointer.NULL;
       }
 
       public string GetAnchorFromAddress(int requestSource, int address) {
@@ -224,14 +225,21 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             if (run is PointerRun pointerRun) {
                // remove the reference from the anchor we're pointing to as well
                var destination = data.ReadAddress(pointerRun.Start);
-               var anchorRun = runs[BinarySearch(destination)];
-               anchorRun.Anchor.RemoveSource(pointerRun.Start);
-               if (anchorRun.Anchor.PointerSources.Count == 0) {
-                  ClearFormat(data, anchorRun.Start, length);
-                  if (anchorForAddress.ContainsKey(anchorRun.Start)) {
-                     addressForAnchor.Remove(anchorForAddress[anchorRun.Start]);
-                     anchorForAddress.Remove(anchorRun.Start);
+               if (destination != Pointer.NULL) {
+                  var anchorRun = runs[BinarySearch(destination)];
+                  anchorRun.Anchor.RemoveSource(pointerRun.Start);
+                  if (anchorRun.Anchor.PointerSources.Count == 0) {
+                     ClearFormat(data, anchorRun.Start, length);
+                     if (anchorForAddress.ContainsKey(anchorRun.Start)) {
+                        addressForAnchor.Remove(anchorForAddress[anchorRun.Start]);
+                        anchorForAddress.Remove(anchorRun.Start);
+                     }
                   }
+               } else {
+                  var name = sourceToUnmappedName[pointerRun.Start];
+                  sourceToUnmappedName.Remove(pointerRun.Start);
+                  unmappedNameToSources[name].Remove(pointerRun.Start);
+                  if (unmappedNameToSources[name].Count == 0) unmappedNameToSources.Remove(name);
                }
             }
             foreach (var source in run.Anchor?.PointerSources ?? new int[0]) data.Write(source, 0);
@@ -243,8 +251,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             }
             for (int i = 0; i < run.Length; i++) data[run.Start + i] = 0xFF;
             runs.RemoveAt(BinarySearch(run.Start));
+            length -= run.Length + run.Start - start;
             start = run.Start + run.Length;
-            length -= run.Length;
          }
       }
 
