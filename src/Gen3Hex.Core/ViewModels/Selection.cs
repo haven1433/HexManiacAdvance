@@ -1,4 +1,5 @@
 ﻿using HavenSoft.Gen3Hex.Core.Models;
+using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -65,7 +66,18 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       /// </summary>
       public event EventHandler<Point> PreviewSelectionStartChanged;
 
-      public Selection(ScrollRegion scrollRegion) {
+      private void GotoAddress(int address) {
+         backStack.Push(scroll.DataIndex);
+         if (backStack.Count == 1) backward.CanExecuteChanged.Invoke(backward, EventArgs.Empty);
+         if (forwardStack.Count > 0) {
+            forward.CanExecuteChanged.Invoke(forward, EventArgs.Empty);
+            forwardStack.Clear();
+         }
+         SelectionStart = scroll.DataIndexToViewPoint(address);
+         scroll.ScrollValue += selectionStart.Y;
+      }
+
+      public Selection(ScrollRegion scrollRegion, IModel model) {
          scroll = scrollRegion;
          scroll.ScrollChanged += (sender, e) => ShiftSelectionFromScroll(e);
 
@@ -78,15 +90,11 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             CanExecute = args => true,
             Execute = args => {
                var address = args.ToString();
-               if (int.TryParse(address, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int result)) {
-                  backStack.Push(scroll.DataIndex);
-                  if (backStack.Count == 1) backward.CanExecuteChanged.Invoke(backward, EventArgs.Empty);
-                  if (forwardStack.Count > 0) {
-                     forward.CanExecuteChanged.Invoke(forward, EventArgs.Empty);
-                     forwardStack.Clear();
-                  }
-                  SelectionStart = scroll.DataIndexToViewPoint(result);
-                  scroll.ScrollValue += selectionStart.Y;
+               var anchor = model.GetAddressFromAnchor(-1, address);
+               if (anchor != Pointer.NULL) {
+                  GotoAddress(anchor);
+               } else if (int.TryParse(address, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int result)) {
+                  GotoAddress(result);
                } else {
                   OnError?.Invoke(this, $"Unable to goto address '{address}'");
                }

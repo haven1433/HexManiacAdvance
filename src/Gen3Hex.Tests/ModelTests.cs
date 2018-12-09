@@ -353,9 +353,36 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.IsNotType<Pointer>(viewPort[4, 1].Format);
       }
 
+      [Fact]
+      public void CanGotoAnchorName() {
+         var buffer = new byte[0x100];
+         var model = new PointerModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         int errorCalls = 0;
+         viewPort.OnError += (sender, e) => errorCalls++;
+
+         viewPort.SelectionStart = new Point(2, 1);
+         viewPort.Edit("^bob ");
+         viewPort.Goto.Execute("bob");
+
+         Assert.Equal(0, errorCalls);
+      }
+
+      [Fact]
+      public void CanFindPointer() {
+         var buffer = new byte[0x100];
+         var model = new PointerModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.SelectionStart = new Point(4, 1);
+         viewPort.Edit("<000058>");
+         var results = viewPort.Find("<000058>");
+
+         Assert.Single(results);
+      }
+
       // TODO putting a new anchor with the same name: delete any run that starts at that anchor, repoint everything from the old location to the new location
-      // TODO goto named anchor
-      // TODO find pointer
 
       // TODO undo/redo
    }

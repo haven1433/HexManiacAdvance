@@ -222,7 +222,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          scroll = new ScrollRegion { DataLength = data.Length };
          scroll.PropertyChanged += ScrollPropertyChanged;
 
-         selection = new Selection(scroll);
+         selection = new Selection(scroll, Model);
          selection.PropertyChanged += SelectionPropertyChanged;
          selection.PreviewSelectionStartChanged += ClearActiveEditBeforeSelectionChanges;
          selection.OnError += (sender, e) => OnError?.Invoke(this, e);
@@ -321,19 +321,41 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          }
       }
 
+      private byte[] Parse(string content) {
+         var hex = "0123456789ABCDEF";
+         var result = new byte[content.Length / 2];
+         for (int i = 0; i < result.Length; i++) {
+            var thisByte = content.Substring(i * 2, 2);
+            result[i] += (byte)(hex.IndexOf(thisByte[0]) * 0x10);
+            result[i] += (byte)hex.IndexOf(thisByte[1]);
+         }
+         return result;
+      }
+
       public IReadOnlyList<int> Find(string rawSearch) {
          var results = new List<int>();
-
-         // basic attempt: see if the search term is a string of bytes
          var cleanedSearch = rawSearch.Replace(" ", string.Empty).ToUpper();
          var hex = "0123456789ABCDEF";
-         if (cleanedSearch.All(hex.Contains) && cleanedSearch.Length % 2 == 0) {
-            var search = new byte[cleanedSearch.Length / 2];
-            for (int i = 0; i < search.Length; i++) {
-               var thisByte = cleanedSearch.Substring(i * 2, 2);
-               search[i] += (byte)(hex.IndexOf(thisByte[0]) * 0x10);
-               search[i] += (byte)hex.IndexOf(thisByte[1]);
+
+         // pointer attempt: see if the search term is a pointer
+         if (cleanedSearch.StartsWith("<") && cleanedSearch.EndsWith(">")) {
+            var content = cleanedSearch.Substring(1, cleanedSearch.Length - 2);
+            int destination = 0;
+            if (content.All(hex.Contains) && content.Length == 6) {
+               var bytes = Parse(content);
+               destination = (bytes[0] << 16) + (bytes[1] << 8) + (bytes[2] << 0);
             }
+            for (var run = Model.GetNextRun(0); run != null; run = Model.GetNextRun(run.Start + run.Length)) {
+               if (run is PointerRun pointerRun) {
+                  var pointer = (Pointer)pointerRun.CreateDataFormat(data, pointerRun.Start);
+                  if (pointer.Destination == destination || pointer.DestinationName == content) results.Add(run.Start);
+               }
+            }
+         }
+
+         // basic attempt: see if the search term is a string of bytes
+         if (cleanedSearch.All(hex.Contains) && cleanedSearch.Length % 2 == 0) {
+            var search = Parse(cleanedSearch);
             for (int i = 0; i < data.Length - search.Length; i++) {
                for (int j = 0; j < search.Length; j++) {
                   if (data[i + j] != search[j]) break;

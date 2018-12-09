@@ -102,6 +102,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             return address;
          }
 
+         if (requestSource < 0) return Pointer.NULL;
+
          // the named anchor does not exist! Add it to the list of desired anchors
          if (!unmappedNameToSources.ContainsKey(anchor)) {
             unmappedNameToSources[anchor] = new List<int>();
@@ -264,7 +266,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
    public class BasicModel : IModel {
       public static IModel Instance { get; } = new BasicModel();
-      public int GetAddressFromAnchor(int requestSource, string anchor) => 0;
+      public int GetAddressFromAnchor(int requestSource, string anchor) => Pointer.NULL;
       public string GetAnchorFromAddress(int requestSource, int destination) => string.Empty;
       public IFormattedRun GetNextRun(int dataIndex) => null;
       public void ObserveRunWritten(byte[] data, IFormattedRun run) { }
