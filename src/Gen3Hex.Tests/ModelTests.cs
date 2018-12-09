@@ -382,6 +382,36 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Single(results);
       }
 
+      [Fact]
+      public void CanUsePointerAsLink() {
+         var buffer = new byte[0x200];
+         var model = new PointerModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.SelectionStart = new Point(4, 1);
+         viewPort.Edit("<000120>");
+         viewPort.FollowLink(4, 1);
+
+         Assert.Equal("000120", viewPort.Headers[0]);
+      }
+
+      [Fact]
+      public void FindAllSourcesWorks() {
+         var buffer = new byte[0x200];
+         var model = new PointerModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var editor = new EditorViewModel(new StubFileSystem());
+         editor.Add(viewPort);
+
+         viewPort.SelectionStart = new Point(4, 1);
+         viewPort.Edit("<000120>");
+         viewPort.FollowLink(4, 1);
+
+         viewPort.FindAllSources(0, 0);
+
+         Assert.Equal(1, editor.SelectedIndex);
+      }
+
       // TODO putting a new anchor with the same name: delete any run that starts at that anchor, repoint everything from the old location to the new location
 
       // TODO undo/redo

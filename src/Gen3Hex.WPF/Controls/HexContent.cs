@@ -7,6 +7,8 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -115,8 +117,8 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
             return;
          }
          if (e.ChangedButton != MouseButton.Left) return;
-         Focus();
          var p = ControlCoordinatesToModelCoordinates(e);
+         Focus();
          if (e.ClickCount == 2) {
             ViewPort.FollowLink(p.X, p.Y);
             return;
@@ -141,6 +143,11 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
 
       protected override void OnMouseUp(MouseButtonEventArgs e) {
          base.OnMouseUp(e);
+         if (e.ChangedButton == MouseButton.Right && e.LeftButton == MouseButtonState.Released && !IsMouseCaptured) {
+            var p = ControlCoordinatesToModelCoordinates(e);
+            if (ViewPort[p.X, p.Y].Format is Core.ViewModels.DataFormats.Anchor) ShowAnchorMenu(p);
+            return;
+         }
          if (!IsMouseCaptured) return;
          ReleaseMouseCapture();
       }
@@ -192,6 +199,47 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
          }
       }
 
+      private void ShowAnchorMenu(Core.Models.Point p) {
+         var anchor = (Core.ViewModels.DataFormats.Anchor)ViewPort[p.X, p.Y].Format;
+
+         var panel = new StackPanel { Background = Solarized.Theme.Background };
+         var menu = new Popup { Placement = PlacementMode.Mouse, Child = panel, StaysOpen = false };
+
+         if (anchor.Sources.Count > 1) {
+            panel.Children.Add(new Button {
+               Content = "Show All Sources in new tab"
+            }.SetEvent(ButtonBase.ClickEvent, (sender, e) => {
+               ViewPort.FindAllSources(p.X, p.Y);
+               menu.IsOpen = false;
+            }));
+         }
+
+         if (anchor.Sources.Count < 5) {
+            for (int i = 0; i < anchor.Sources.Count; i++) {
+               var source = anchor.Sources[i].ToString("X2");
+               panel.Children.Add(new Button {
+                  Content = source,
+               }.SetEvent(ButtonBase.ClickEvent, (sender, e) => {
+                  ViewPort.Goto.Execute(source);
+                  menu.IsOpen = false;
+               }));
+            }
+         } else {
+            panel.Children.Add(new ScrollViewer {
+               MaxHeight = 120,
+               Content = new ListBox {
+                  ItemsSource = anchor.Sources.Select(source => source.ToString("X2")).ToList(),
+               }.SetEvent(Selector.SelectionChangedEvent, (sender, e) => {
+                  var source = anchor.Sources[((ListBox)sender).SelectedIndex].ToString("X2");
+                  ViewPort.Goto.Execute(source);
+                  menu.IsOpen = false;
+               }),
+            });
+         }
+
+         menu.IsOpen = true;
+      }
+
       private void UpdateViewPortSize() {
          ViewPort.Width = (int)(ActualWidth / CellWidth);
          ViewPort.Height = (int)(ActualHeight / CellHeight);
@@ -200,6 +248,13 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
       private Core.Models.Point ControlCoordinatesToModelCoordinates(MouseEventArgs e) {
          var point = e.GetPosition(this);
          return new Core.Models.Point((int)(point.X / CellWidth), (int)(point.Y / CellHeight));
+      }
+   }
+
+   public static class FrameworkElementExtensions {
+      public static T SetEvent<T>(this T item, RoutedEvent routedEvent, RoutedEventHandler handler) where T : FrameworkElement {
+         item.AddHandler(routedEvent, handler);
+         return item;
       }
    }
 }

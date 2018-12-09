@@ -64,10 +64,10 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
          context.DrawText(text, new Point(CellTextOffset.X - 10, CellTextOffset.Y));
       }
 
-      private static readonly Geometry Triangle = Geometry.Parse("M1,0 L4,5 -2,5 Z");
+      private static readonly Geometry Triangle = Geometry.Parse("M0,5 L3,0 6,5");
       public void Visit(Anchor anchor, byte data) {
          anchor.OriginalFormat.Visit(this, data);
-         context.DrawGeometry(Solarized.Brushes.Blue, null, Triangle);
+         context.DrawGeometry(null, new Pen(Solarized.Brushes.Blue, 2), Triangle);
       }
 
       private void VerifyNoneVisualCache() {

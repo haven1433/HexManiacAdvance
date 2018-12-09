@@ -25,5 +25,6 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       IChildViewPort CreateChildView(int offset);
       void FollowLink(int x, int y);
       void ConsiderReload(IFileSystem fileSystem);
+      void FindAllSources(int x, int y);
    }
 }

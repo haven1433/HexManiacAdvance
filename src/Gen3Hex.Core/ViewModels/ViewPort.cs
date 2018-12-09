@@ -378,7 +378,16 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          return child;
       }
 
-      public void FollowLink(int x, int y) { }
+      public void FollowLink(int x, int y) {
+         var format = currentView[x, y].Format;
+         if (format is Pointer pointer) {
+            if (pointer.Destination != Pointer.NULL) {
+               selection.GotoAddress(pointer.Destination);
+            } else {
+               OnError(this, $"Pointer destination {pointer.DestinationName} not found.");
+            }
+         }
+      }
 
       public void ConsiderReload(IFileSystem fileSystem) {
          if (!history.IsSaved) return; // don't overwrite local changes
@@ -398,6 +407,18 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             // try again soon.
             RequestDelayedWork?.Invoke(this, () => ConsiderReload(fileSystem));
          }
+      }
+
+      public virtual void FindAllSources(int x, int y) {
+         var anchor = currentView[x, y].Format as DataFormats.Anchor;
+         if (anchor == null) return;
+         var title = string.IsNullOrEmpty(anchor.Name) ? (y * Width + x + scroll.DataIndex).ToString("X6") : anchor.Name;
+         title = "Sources of " + title;
+         var newTab = new SearchResultsViewPort(title);
+
+         foreach (var source in anchor.Sources) newTab.Add(CreateChildView(source));
+
+         RequestTabChange(this, newTab);
       }
 
       private void Edit(char input) {
