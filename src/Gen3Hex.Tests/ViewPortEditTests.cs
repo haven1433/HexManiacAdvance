@@ -2,6 +2,8 @@
 using HavenSoft.Gen3Hex.Core.Models;
 using HavenSoft.Gen3Hex.Core.ViewModels;
 using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
+using System;
+using System.Linq;
 using Xunit;
 
 namespace HavenSoft.Gen3Hex.Tests {
@@ -243,7 +245,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       }
 
       [Fact]
-      void CanEnterDataAfterLastByte() {
+      public void CanEnterDataAfterLastByte() {
          var loadedFile = new LoadedFile("test", new byte[20]);
          var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
 
@@ -255,7 +257,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       }
 
       [Fact]
-      void CanClearData() {
+      public void CanClearData() {
          var loadedFile = new LoadedFile("test", new byte[1000]);
          var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
 
@@ -268,7 +270,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       }
 
       [Fact]
-      void CanCopyData() {
+      public void CanCopyData() {
          var loadedFile = new LoadedFile("test", new byte[1000]);
          var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
          var fileSystem = new StubFileSystem();
@@ -279,6 +281,38 @@ namespace HavenSoft.Gen3Hex.Tests {
          viewPort.Copy.Execute(fileSystem);
 
          Assert.Equal("CA FE BA BE", fileSystem.CopyText);
+      }
+
+      [Fact]
+      public void CanBackspaceOnEdits() {
+         var buffer = Enumerable.Range(0, 255).Select(i => (byte)i).ToArray();
+         var file = new LoadedFile("file.txt", buffer);
+         var viewPort = new ViewPort(file) { Width = 0x10, Height = 0x10 };
+
+         viewPort.SelectionStart = new Point(4, 4); // current value: 0x44
+         viewPort.Edit("C");
+         viewPort.Edit(ConsoleKey.Backspace);
+
+         var editFormat = (UnderEdit)viewPort[4, 4].Format;
+         Assert.Equal(string.Empty, editFormat.CurrentText);
+
+         viewPort.MoveSelectionStart.Execute(Direction.Down); // any movement should revert any in-progress edits
+         Assert.Equal(0x44, viewPort[4, 4].Value);
+      }
+
+      [Fact]
+      public void BackspaceBeforeEditChangesPreviousCell() {
+         var buffer = Enumerable.Range(0, 255).Select(i => (byte)i).ToArray();
+         var file = new LoadedFile("file.txt", buffer);
+         var viewPort = new ViewPort(file) { Width = 0x10, Height = 0x10 };
+
+         viewPort.SelectionStart = new Point(4, 4); // current value: 0x44
+         viewPort.Edit(ConsoleKey.Backspace);
+         Assert.Equal(new Point(3, 4), viewPort.SelectionStart);
+
+         viewPort.Edit(ConsoleKey.Backspace); // if I hit an arrow key now, it'll give up on the edit
+         viewPort.Edit(ConsoleKey.Backspace); // but since I hit backspace, it commits the erasure and starts erasing the next cell
+         Assert.Equal(0xFF, viewPort[3, 4].Value);
       }
    }
 }

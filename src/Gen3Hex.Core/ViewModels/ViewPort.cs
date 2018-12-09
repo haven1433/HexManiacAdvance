@@ -278,6 +278,99 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          for (int i = 0; i < input.Length; i++) Edit(input[i]);
       }
 
+      public void Edit(ConsoleKey key) {
+         if (key != ConsoleKey.Backspace) return;
+
+         var point = GetEditPoint();
+         var format = currentView[point.X, point.Y].Format as UnderEdit;
+
+         if (format != null && format.CurrentText.Length > 0) {
+            var newFormat = new UnderEdit(format.OriginalFormat, format.CurrentText.Substring(0, format.CurrentText.Length - 1));
+            currentView[point.X, point.Y] = new HexElement(currentView[point.X, point.Y].Value, newFormat);
+            return;
+         }
+
+         var index = scroll.ViewPointToDataIndex(point);
+
+         // if there's an open edit, clear the data from those cells
+         if (format != null) {
+            var operation = new DataClear(data, index);
+            format.OriginalFormat.Visit(operation, data[index]);
+            RefreshBackingData();
+         }
+
+         var run = model.GetNextRun(index - 1) ?? new NoInfoRun(int.MaxValue);
+         if (run.Start <= index - 1 && run.Start + run.Length > index - 1) {
+            // I want to do a backspace at the end of this run
+            SelectionStart = scroll.DataIndexToViewPoint(run.Start);
+            var dataRead = new DataRead(data, run.Start, out string[] asText);
+            var element = currentView[SelectionStart.X, SelectionStart.Y];
+            element.Format.Visit(dataRead, element.Value);
+            for (int i = 0; i < run.Length; i++) {
+               var p = scroll.DataIndexToViewPoint(run.Start + i);
+               string editString = i == 0 ? asText[0].Substring(0, asText[0].Length - 1) : string.Empty;
+               currentView[p.X, p.Y] = new HexElement(currentView[p.X, p.Y].Value, currentView[p.X, p.Y].Format.Edit(editString));
+            }
+         } else {
+            SelectionStart = scroll.DataIndexToViewPoint(index - 1);
+            var element = currentView[SelectionStart.X, SelectionStart.Y];
+            var text = element.Value.ToString("X2");
+            currentView[SelectionStart.X, SelectionStart.Y] = new HexElement(element.Value, element.Format.Edit(text.Substring(0, text.Length - 1)));
+         }
+      }
+
+      private class DataRead : IDataFormatVisitor {
+         private readonly byte[] buffer;
+         private readonly int index;
+         private readonly string[] asText;
+
+         public DataRead(byte[] buffer, int index, out string[] asText) {
+            this.buffer = buffer;
+            this.index = index;
+            asText = new string[1];
+            this.asText = asText;
+         }
+
+         public void Visit(Undefined dataFormat, byte data) { }
+
+         public void Visit(None dataFormat, byte data) => asText[0] = data.ToString("X2");
+
+         public void Visit(UnderEdit dataFormat, byte data) {
+            throw new NotImplementedException();
+         }
+
+         public void Visit(Pointer pointer, byte data) {
+            var destination = pointer.Destination.ToString("X6");
+            asText[0] = $"<{pointer.Destination}>";
+            if (!string.IsNullOrEmpty(pointer.DestinationName)) asText[0] = $"<{pointer.DestinationName}>";
+         }
+
+         public void Visit(DataFormats.Anchor anchor, byte data) => anchor.OriginalFormat.Visit(this, data);
+      }
+
+      private class DataClear : IDataFormatVisitor {
+         private readonly byte[] buffer;
+         private readonly int index;
+
+         public DataClear(byte[] data, int index) {
+            buffer = data;
+            this.index = index;
+         }
+
+         public void Visit(Undefined dataFormat, byte data) { }
+
+         public void Visit(None dataFormat, byte data) => buffer[index] = 0xFF;
+
+         public void Visit(UnderEdit dataFormat, byte data) => throw new NotImplementedException();
+
+         public void Visit(Pointer pointer, byte data) {
+            int start = index - pointer.Position;
+            buffer.Write(start, 0);
+         }
+
+         public void Visit(DataFormats.Anchor anchor, byte data) => anchor.OriginalFormat.Visit(this, data);
+      }
+
       public IReadOnlyList<int> Find(string rawSearch) {
          var results = new List<int>();
 

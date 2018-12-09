@@ -255,13 +255,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Contains(16, anchor.Sources);
       }
 
-      // TODO EDIT TEST backspace should open an edit on the byte before the selected byte
-      // TODO EDIT TEST backspace during an edit should back out
-      // TODO EDIT TEST backspace from the start of an edited byte should replace it with FF if it had no format
-
-      // TODO be able to remove an anchor by typing ^, Backspace, Whitespace
-      // TODO be able to remove a pointer via delete
-      // TODO be able to remove a pointer via typing a normal byte
+      // TODO be able to remove an anchor name by typing ^, Whitespace
       // TODO be able to remove a pointer via backspace from within the pointer
       // TODO be able to remove a pointer via backspace from directly after the pointer
       // TODO backspace on the first byte of the pointer edits the previous byte
