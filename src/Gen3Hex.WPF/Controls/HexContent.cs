@@ -203,7 +203,15 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
          var anchor = (Core.ViewModels.DataFormats.Anchor)ViewPort[p.X, p.Y].Format;
 
          var panel = new StackPanel { Background = Solarized.Theme.Background };
-         var menu = new Popup { Placement = PlacementMode.Mouse, Child = panel, StaysOpen = false };
+         var menu = new Popup {
+            Placement = PlacementMode.Mouse,
+            Child = new Border {
+               BorderBrush = Solarized.Brushes.Blue,
+               BorderThickness = new Thickness(1),
+               Child = panel,
+            },
+            StaysOpen = false,
+         };
 
          if (anchor.Sources.Count > 1) {
             panel.Children.Add(new Button {
@@ -225,16 +233,14 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
                }));
             }
          } else {
-            panel.Children.Add(new ScrollViewer {
+            panel.Children.Add(new ListBox {
                MaxHeight = 120,
-               Content = new ListBox {
-                  ItemsSource = anchor.Sources.Select(source => source.ToString("X2")).ToList(),
-               }.SetEvent(Selector.SelectionChangedEvent, (sender, e) => {
-                  var source = anchor.Sources[((ListBox)sender).SelectedIndex].ToString("X2");
-                  ViewPort.Goto.Execute(source);
-                  menu.IsOpen = false;
-               }),
-            });
+               ItemsSource = anchor.Sources.Select(source => source.ToString("X2")).ToList(),
+            }.SetEvent(Selector.SelectionChangedEvent, (sender, e) => {
+               var source = anchor.Sources[((ListBox)sender).SelectedIndex].ToString("X2");
+               ViewPort.Goto.Execute(source);
+               menu.IsOpen = false;
+            }));
          }
 
          menu.IsOpen = true;

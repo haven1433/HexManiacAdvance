@@ -415,5 +415,6 @@ namespace HavenSoft.Gen3Hex.Tests {
       // TODO putting a new anchor with the same name: delete any run that starts at that anchor, repoint everything from the old location to the new location
 
       // TODO undo/redo
+      // TODO file load/save (metadata file / TOML)
    }
 }
