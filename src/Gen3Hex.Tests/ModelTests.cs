@@ -436,6 +436,23 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Equal(0x48, ((Pointer)viewPort[4, 3].Format).Destination);
       }
 
+      [Fact]
+      public void CanCopyAndPastePointers() {
+         var buffer = new byte[0x200];
+         var fileSystem = new StubFileSystem();
+         var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), new PointerModel(buffer)) { Width = 0x10, Height = 0x10 };
+
+         viewPort.SelectionStart = new Point(0, 2);
+
+         viewPort.Edit("<000058>");
+         viewPort.Edit("FF FF");
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.SelectionEnd = new Point(5, 2);
+
+         viewPort.Copy.Execute(fileSystem);
+         Assert.Equal("<000058> FF FF", fileSystem.CopyText);
+      }
+
       // TODO undo/redo
       // TODO file load/save (metadata file / TOML)
    }

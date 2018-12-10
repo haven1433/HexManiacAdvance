@@ -259,8 +259,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
             var left = Math.Min(selectionStart, selectionEnd);
             var length = Math.Abs(selectionEnd - selectionStart) + 1;
-            var bytes = Enumerable.Range(left, length).Select(i => data[i]);
-            ((IFileSystem)arg).CopyText = string.Join(" ", bytes.Select(value => value.ToString("X2")));
+            ((IFileSystem)arg).CopyText = Model.Copy(data, left, length);
          };
 
          save.CanExecute = arg => !history.IsSaved;

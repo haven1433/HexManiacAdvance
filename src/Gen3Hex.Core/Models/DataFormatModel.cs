@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 
 namespace HavenSoft.Gen3Hex.Core.Models {
    public interface IModel {
@@ -17,6 +18,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       void ObserveRunWritten(byte[] data, IFormattedRun run);
       void ObserveAnchorWritten(byte[] data, int location, string anchorName, string anchorFormat);
       void ClearFormat(byte[] data, int start, int length);
+      string Copy(byte[] data, int start, int length);
 
       int GetAddressFromAnchor(int requestSource, string anchor);
       string GetAnchorFromAddress(int requestSource, int destination);
@@ -254,6 +256,47 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          }
       }
 
+      public string Copy(byte[] data, int start, int length) {
+         var text = new StringBuilder();
+         var run = GetNextRun(start);
+         if (run.Start < start) {
+            length += start - run.Start;
+            start = run.Start;
+         }
+
+         while (length > 0) {
+            run = GetNextRun(start);
+            if (run.Start > start) {
+               var len = Math.Min(length, run.Start - start);
+               var bytes = Enumerable.Range(start, len).Select(i => data[i].ToString("X2"));
+               text.Append(string.Join(" ", bytes) + " ");
+               length -= len;
+               start += len;
+               continue;
+            }
+            if (anchorForAddress.TryGetValue(start, out string anchor)) text.Append($"^{anchor} ");
+            if (run is PointerRun pointerRun) {
+               var destination = data.ReadAddress(pointerRun.Start);
+               var anchorName = GetAnchorFromAddress(run.Start, destination);
+               if (string.IsNullOrEmpty(anchorName)) anchorName = destination.ToString("X6");
+               text.Append($"<{anchorName}> ");
+               start += 4;
+               length -= 4;
+               continue;
+            }
+            if (run is NoInfoRun noInfoRun) {
+               text.Append(data[run.Start].ToString("X2") + " ");
+               start += 1;
+               length -= 1;
+               continue;
+            }
+            throw new NotImplementedException();
+         }
+
+         text.Remove(text.Length - 1, 1); // remove the trailing space
+         return text.ToString();
+      }
+
       private int BinarySearch(int start) {
          var index = runs.BinarySearch(new CompareFormattedRun(start), FormattedRunComparer.Instance);
          return index;
@@ -268,5 +311,10 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       public void ObserveRunWritten(byte[] data, IFormattedRun run) { }
       public void ObserveAnchorWritten(byte[] data, int location, string anchorName, string anchorFormat) { }
       public void ClearFormat(byte[] data, int start, int length) { }
+
+      public string Copy(byte[] data, int start, int length) {
+         var bytes = Enumerable.Range(start, length).Select(i => data[i]);
+         return string.Join(" ", bytes.Select(value => value.ToString("X2")));
+      }
    }
 }
