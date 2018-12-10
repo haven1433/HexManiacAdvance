@@ -436,8 +436,6 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Equal(0x48, ((Pointer)viewPort[4, 3].Format).Destination);
       }
 
-      // TODO putting a new anchor with the same name: delete any run that starts at that anchor, repoint everything from the old location to the new location
-
       // TODO undo/redo
       // TODO file load/save (metadata file / TOML)
    }
