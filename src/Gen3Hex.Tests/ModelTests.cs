@@ -412,6 +412,30 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Equal(1, editor.SelectedIndex);
       }
 
+      [Fact]
+      public void NewAnchorWithSameNameMovesPointersToNewAnchor() {
+         var buffer = new byte[0x200];
+         var model = new PointerModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         // put some pointers in the file
+         viewPort.SelectionStart = new Point(4, 1);
+         viewPort.Edit("<bob>");
+         viewPort.SelectionStart = new Point(4, 3);
+         viewPort.Edit("<bob>");
+
+         // make them point somewhere real
+         viewPort.SelectionStart = new Point(8, 2);
+         viewPort.Edit("^bob ");
+
+         // move them to point to somewhere else
+         viewPort.SelectionStart = new Point(8, 4);
+         viewPort.Edit("^bob ");
+
+         Assert.Equal(0x48, ((Pointer)viewPort[4, 1].Format).Destination);
+         Assert.Equal(0x48, ((Pointer)viewPort[4, 3].Format).Destination);
+      }
+
       // TODO putting a new anchor with the same name: delete any run that starts at that anchor, repoint everything from the old location to the new location
 
       // TODO undo/redo

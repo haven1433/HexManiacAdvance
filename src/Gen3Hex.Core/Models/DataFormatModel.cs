@@ -188,11 +188,11 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          }
 
          if (addressForAnchor.ContainsKey(anchorName)) {
-            // TODO the desired name already exists
-            // (1) remove old name and delete data
-            // anything pointing to the old should now be pointing to the new
-            throw new NotImplementedException();
-         } else if (anchorName != string.Empty) {
+            index = BinarySearch(addressForAnchor[anchorName]);
+            var oldAnchor = runs[index];
+            ClearFormat(data, oldAnchor.Start, oldAnchor.Length);
+         }
+         if (anchorName != string.Empty) {
             anchorForAddress.Add(location, anchorName);
             addressForAnchor.Add(anchorName, location);
          }
@@ -215,10 +215,6 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          } else {
             runs[index].MergeAnchor(new Anchor(sources));
          }
-      }
-
-      // TODO observe removal of runs (pointer replaced with normal data)
-      public void ObserveNormalDataWrite(byte[] data, int index) {
       }
 
       public void ClearFormat(byte[] data, int start, int length) {
