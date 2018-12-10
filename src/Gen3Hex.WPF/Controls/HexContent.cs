@@ -202,7 +202,7 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
       private void ShowAnchorMenu(Core.Models.Point p) {
          var anchor = (Core.ViewModels.DataFormats.Anchor)ViewPort[p.X, p.Y].Format;
 
-         var panel = new StackPanel { Background = Solarized.Theme.Background };
+         var panel = new StackPanel { Background = Solarized.Theme.Background, MinWidth = 150 };
          var menu = new Popup {
             Placement = PlacementMode.Mouse,
             Child = new Border {
@@ -212,6 +212,24 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
             },
             StaysOpen = false,
          };
+
+         if (!string.IsNullOrEmpty(anchor.Name)) {
+            panel.Children.Add(new TextBlock {
+               HorizontalAlignment = HorizontalAlignment.Center,
+               Text = anchor.Name,
+               Margin = new Thickness(0, 0, 0, 10),
+            });
+         };
+
+         if (anchor.Sources.Count == 0) {
+            panel.Children.Add(new TextBlock {
+               HorizontalAlignment = HorizontalAlignment.Center,
+               Foreground = Solarized.Theme.Secondary,
+               FontStyle = FontStyles.Italic,
+               Text = "(Nothing points to this.)",
+               Margin = new Thickness(0, 0, 0, 5),
+            });
+         }
 
          if (anchor.Sources.Count > 1) {
             panel.Children.Add(new Button {
@@ -224,7 +242,7 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
 
          if (anchor.Sources.Count < 5) {
             for (int i = 0; i < anchor.Sources.Count; i++) {
-               var source = anchor.Sources[i].ToString("X2");
+               var source = anchor.Sources[i].ToString("X6");
                panel.Children.Add(new Button {
                   Content = source,
                }.SetEvent(ButtonBase.ClickEvent, (sender, e) => {
@@ -235,9 +253,9 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
          } else {
             panel.Children.Add(new ListBox {
                MaxHeight = 120,
-               ItemsSource = anchor.Sources.Select(source => source.ToString("X2")).ToList(),
+               ItemsSource = anchor.Sources.Select(source => source.ToString("X6")).ToList(),
             }.SetEvent(Selector.SelectionChangedEvent, (sender, e) => {
-               var source = anchor.Sources[((ListBox)sender).SelectedIndex].ToString("X2");
+               var source = anchor.Sources[((ListBox)sender).SelectedIndex].ToString("X6");
                ViewPort.Goto.Execute(source);
                menu.IsOpen = false;
             }));
