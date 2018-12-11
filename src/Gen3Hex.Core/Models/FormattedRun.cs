@@ -7,9 +7,10 @@ namespace HavenSoft.Gen3Hex.Core.Models {
    public interface IFormattedRun {
       int Start { get; }
       int Length { get; }
-      Anchor Anchor { get; }
+      IReadOnlyList<int> PointerSources { get; }
       IDataFormat CreateDataFormat(IModel data, int index);
-      void MergeAnchor(Anchor other);
+      void MergeAnchor(IReadOnlyList<int> sources);
+      void RemoveSource(int source);
    }
 
    public class FormattedRunComparer : IComparer<IFormattedRun> {
@@ -26,61 +27,53 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       public CompareFormattedRun(int start) => Start = start;
 
-      public Anchor Anchor => throw new NotImplementedException();
+      public IReadOnlyList<int> PointerSources => throw new NotImplementedException();
       public IDataFormat CreateDataFormat(IModel data, int index) => throw new NotImplementedException();
-      public void MergeAnchor(Anchor other) => throw new NotImplementedException();
+      public void MergeAnchor(IReadOnlyList<int> other) => throw new NotImplementedException();
+      public void RemoveSource(int source) => throw new NotImplementedException();
    }
 
-   public class NoInfoRun : IFormattedRun {
+   public abstract class BaseRun : IFormattedRun {
       public int Start { get; }
-      public int Length => 1;
-      public Anchor Anchor { get; private set; }
-
-      public NoInfoRun(int start, Anchor anchor = null) => (Start, Anchor) = (start, anchor);
-
-      public IDataFormat CreateDataFormat(IModel data, int index) => None.Instance;
-      public void MergeAnchor(Anchor other) {
-         if (other == null) return;
-         if (Anchor == null) { Anchor = other; return; }
-         var sources = other.PointerSources.Concat(Anchor.PointerSources).Distinct().OrderBy(i => i).ToList();
-         Anchor = new Anchor(sources);
-      }
-   }
-
-   public class PointerRun : IFormattedRun {
-      private readonly IModel parent;
-      public int Start { get; }
-      public int Length => 4;
-      public Anchor Anchor { get; private set; }
-
-      public PointerRun(IModel parent, int start, Anchor anchor = null) {
-         this.parent = parent;
-         Start = start;
-         Anchor = anchor;
-      }
-
-      public IDataFormat CreateDataFormat(IModel data, int index) {
-         var destinationAddress = Math.Max(0, data.ReadPointer(Start));
-         var anchor = parent.GetAnchorFromAddress(Start, destinationAddress);
-         var pointer = new Pointer(Start, index - Start, data.ReadPointer(Start), anchor);
-         return pointer;
-      }
-
-      public void MergeAnchor(Anchor other) {
-         if (other == null) return;
-         if (Anchor == null) { Anchor = other; return; }
-         var sources = other.PointerSources.Concat(Anchor.PointerSources).Distinct().OrderBy(i => i).ToList();
-         Anchor = new Anchor(sources);
-      }
-   }
-
-   public class Anchor {
+      public abstract int Length { get; }
       public IReadOnlyList<int> PointerSources { get; private set; }
 
-      public Anchor(IReadOnlyList<int> sources = null) => PointerSources = sources ?? new int[0];
+      public BaseRun(int start, IReadOnlyList<int> sources = null) {
+         Start = start;
+         PointerSources = sources;
+      }
+
+      public abstract IDataFormat CreateDataFormat(IModel data, int index);
+
+      public void MergeAnchor(IReadOnlyList<int> sources) {
+         if (sources == null) return;
+         if (PointerSources == null) { PointerSources = sources; return; }
+         PointerSources = sources.Concat(PointerSources).Distinct().OrderBy(i => i).ToList();
+      }
 
       public void RemoveSource(int source) {
          PointerSources = PointerSources.Except(new[] { source }).ToList();
+      }
+   }
+
+   public class NoInfoRun : BaseRun {
+      public override int Length => 1;
+
+      public NoInfoRun(int start, IReadOnlyList<int> sources = null) : base(start, sources) { }
+
+      public override IDataFormat CreateDataFormat(IModel data, int index) => None.Instance;
+   }
+
+   public class PointerRun : BaseRun {
+      public override int Length => 4;
+
+      public PointerRun(int start, IReadOnlyList<int> sources = null) : base(start, sources) { }
+
+      public override IDataFormat CreateDataFormat(IModel data, int index) {
+         var destinationAddress = Math.Max(0, data.ReadPointer(Start));
+         var anchor = data.GetAnchorFromAddress(Start, destinationAddress);
+         var pointer = new Pointer(Start, index - Start, data.ReadPointer(Start), anchor);
+         return pointer;
       }
    }
 }

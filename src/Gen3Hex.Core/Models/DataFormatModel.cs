@@ -139,25 +139,25 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
          while (moreDestinations && moreSources) {
             if (destinations.Current < sources.Current) {
-               runs.Add(new NoInfoRun(destinations.Current, new Anchor(sources: pointersForDestination[destinations.Current])));
+               runs.Add(new NoInfoRun(destinations.Current, pointersForDestination[destinations.Current]));
                moreDestinations = destinations.MoveNext();
             } else if (sources.Current < destinations.Current) {
-               runs.Add(new PointerRun(this, sources.Current));
+               runs.Add(new PointerRun(sources.Current));
                moreSources = sources.MoveNext();
             } else {
-               runs.Add(new PointerRun(this, sources.Current, new Anchor(sources: pointersForDestination[destinations.Current])));
+               runs.Add(new PointerRun(sources.Current, pointersForDestination[destinations.Current]));
                moreDestinations = destinations.MoveNext();
                moreSources = sources.MoveNext();
             }
          }
 
          while (moreDestinations) {
-            runs.Add(new NoInfoRun(destinations.Current, new Anchor(sources: pointersForDestination[destinations.Current])));
+            runs.Add(new NoInfoRun(destinations.Current, pointersForDestination[destinations.Current]));
             moreDestinations = destinations.MoveNext();
          }
 
          while (moreSources) {
-            runs.Add(new PointerRun(this, sources.Current));
+            runs.Add(new PointerRun(sources.Current));
             moreSources = sources.MoveNext();
          }
       }
@@ -232,7 +232,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             }
 
             runs[index] = run;
-            run.MergeAnchor(existingRun.Anchor);
+            run.MergeAnchor(existingRun.PointerSources);
          }
 
          if (run is PointerRun pointerRun) {
@@ -242,9 +242,9 @@ namespace HavenSoft.Gen3Hex.Core.Models {
                if (index < 0) {
                   // the pointer is brand new
                   index = ~index;
-                  runs.Insert(index, new NoInfoRun(destination, new Anchor(new[] { run.Start })));
+                  runs.Insert(index, new NoInfoRun(destination, new[] { run.Start }));
                } else {
-                  runs[index].MergeAnchor(new Anchor(new[] { run.Start }));
+                  runs[index].MergeAnchor(new[] { run.Start });
                }
             }
          }
@@ -269,23 +269,25 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             addressForAnchor.Add(anchorName, location);
          }
 
-         List<int> sources = null;
+         List<int> sources;
          if (unmappedNameToSources.TryGetValue(anchorName, out sources)) {
             foreach (var source in sources) {
                index = BinarySearch(source);
                Debug.Assert(index >= 0 && runs[index] is PointerRun);
-               runs[index] = new PointerRun(this, source, runs[index].Anchor);
+               runs[index] = new PointerRun(source, runs[index].PointerSources);
                sourceToUnmappedName.Remove(source);
                WritePointer(source, location);
             }
             unmappedNameToSources.Remove(anchorName);
+         } else {
+            sources = new List<int>(); // an anchor was added: there is a list. It's just that in this case, the list is empty for now.
          }
 
          index = BinarySearch(location);
          if (index < 0) {
-            runs.Insert(~index, new NoInfoRun(location, new Anchor(sources)));
+            runs.Insert(~index, new NoInfoRun(location, sources));
          } else {
-            runs[index].MergeAnchor(new Anchor(sources));
+            runs[index].MergeAnchor(sources); // merging will give us anything that already pointed here for free
          }
       }
 
@@ -297,8 +299,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
                var destination = ReadPointer(pointerRun.Start);
                if (destination != Pointer.NULL) {
                   var anchorRun = runs[BinarySearch(destination)];
-                  anchorRun.Anchor.RemoveSource(pointerRun.Start);
-                  if (anchorRun.Anchor.PointerSources.Count == 0) {
+                  anchorRun.RemoveSource(pointerRun.Start);
+                  if (anchorRun.PointerSources.Count == 0) {
                      ClearFormat(anchorRun.Start, length);
                      if (anchorForAddress.ContainsKey(anchorRun.Start)) {
                         addressForAnchor.Remove(anchorForAddress[anchorRun.Start]);
@@ -312,10 +314,10 @@ namespace HavenSoft.Gen3Hex.Core.Models {
                   if (unmappedNameToSources[name].Count == 0) unmappedNameToSources.Remove(name);
                }
             }
-            foreach (var source in run.Anchor?.PointerSources ?? new int[0]) WriteValue(source, 0);
+            foreach (var source in run.PointerSources ?? new int[0]) WriteValue(source, 0);
             if (anchorForAddress.ContainsKey(run.Start)) {
-               unmappedNameToSources[anchorForAddress[run.Start]] = new List<int>(run.Anchor.PointerSources);
-               foreach (var source in run.Anchor.PointerSources) sourceToUnmappedName[source] = anchorForAddress[run.Start];
+               unmappedNameToSources[anchorForAddress[run.Start]] = new List<int>(run.PointerSources);
+               foreach (var source in run.PointerSources) sourceToUnmappedName[source] = anchorForAddress[run.Start];
                addressForAnchor.Remove(anchorForAddress[run.Start]);
                anchorForAddress.Remove(run.Start);
             }

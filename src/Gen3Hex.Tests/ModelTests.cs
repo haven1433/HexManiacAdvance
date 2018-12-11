@@ -35,7 +35,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.IsType<PointerRun>(model.GetNextRun(0x206));
 
          Assert.IsType<NoInfoRun>(model.GetNextRun(0x208));
-         Assert.Single(model.GetNextRun(0x400).Anchor.PointerSources);
+         Assert.Single(model.GetNextRun(0x400).PointerSources);
 
          Assert.Equal(0x4050, model.GetNextRun(0x4050).Start);
          Assert.Equal(4, model.GetNextRun(0x4071).Length);
@@ -64,7 +64,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          model = new PointerModel(buffer);
 
          var run = model.GetNextRun(0x14);
-         Assert.Equal(2, run.Anchor.PointerSources.Count);
+         Assert.Equal(2, run.PointerSources.Count);
       }
 
       [Fact]
@@ -118,7 +118,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          viewPort.SelectionStart = new Point(0, 2);
          viewPort.Edit("^bob ");
 
-         Assert.IsType<Core.ViewModels.DataFormats.Anchor>(viewPort[0, 2].Format);
+         Assert.IsType<Anchor>(viewPort[0, 2].Format);
       }
 
       [Fact]
@@ -156,7 +156,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          var model = new PointerModel(buffer);
 
          model.WritePointer(16, 100);
-         model.ObserveRunWritten(new PointerRun(model, 16));
+         model.ObserveRunWritten(new PointerRun(16));
          Assert.Equal(16, model.GetNextRun(10).Start);
          Assert.Equal(16, model.GetNextRun(17).Start);
          Assert.Equal(16, model.GetNextRun(19).Start);
@@ -164,7 +164,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
          model.ClearFormat(14, 4);
          model.WritePointer(14, 200);
-         model.ObserveRunWritten(new PointerRun(model, 14));
+         model.ObserveRunWritten(new PointerRun(14));
          Assert.Equal(14, model.GetNextRun(10).Start);
          Assert.Equal(14, model.GetNextRun(15).Start);
          Assert.Equal(14, model.GetNextRun(16).Start);
@@ -178,7 +178,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          var model = new PointerModel(buffer);
 
          model.WritePointer(16, 12);
-         model.ObserveRunWritten(new PointerRun(model, 16));
+         model.ObserveRunWritten(new PointerRun(16));
          model.ObserveAnchorWritten(18, "bob", string.Empty);
 
          Assert.Equal(18, model.GetNextRun(10).Start);
@@ -190,11 +190,11 @@ namespace HavenSoft.Gen3Hex.Tests {
          var model = new PointerModel(buffer);
 
          model.WritePointer(16, 32);
-         model.ObserveRunWritten(new PointerRun(model, 16));
+         model.ObserveRunWritten(new PointerRun(16));
 
          model.ClearFormat(30, 4);
          model.WritePointer(30, 64);
-         model.ObserveRunWritten(new PointerRun(model, 30));
+         model.ObserveRunWritten(new PointerRun(30));
 
          Assert.Equal(16, model.GetNextRun(10).Start); // original pointer at 16 is still there, but it no longer knows what it's pointing to
          Assert.Equal(30, model.GetNextRun(24).Start); // next data is the pointer at 30

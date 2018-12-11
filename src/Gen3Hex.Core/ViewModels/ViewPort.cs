@@ -538,7 +538,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          scroll.DataLength = Model.Count;
          Model.ClearFormat(index, 4);
          Model.WritePointer(index, fullValue);
-         Model.ObserveRunWritten(new PointerRun(Model, index));
+         Model.ObserveRunWritten(new PointerRun(index));
          ClearEdits(point);
          SilentScroll(index + 4);
       }
@@ -601,9 +601,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                   currentView[x, y] = HexElement.Undefined;
                } else if (index >= run.Start) {
                   var format = run.CreateDataFormat(Model, index);
-                  if (run.Anchor != null && run.Start == index) {
+                  if (run.PointerSources != null && run.Start == index) {
                      var name = Model.GetAnchorFromAddress(-1, run.Start);
-                     format = new DataFormats.Anchor(format, name, string.Empty, run.Anchor.PointerSources);
+                     format = new Anchor(format, name, string.Empty, run.PointerSources);
                   }
                   currentView[x, y] = new HexElement(Model[index], format);
                } else {
