@@ -67,8 +67,9 @@ namespace HavenSoft.Gen3Hex.Tests {
          var count = 0;
 
          tab.Find = str => new[] { 0x54, 0x154 };
+         tab.Model = new BasicModel(new byte[0x200]);
          tab.CreateChildView = (int offset) => {
-            var child = new ChildViewPort(new StubViewPort(), new byte[0x50]);
+            var child = new ChildViewPort(tab);
             count++;
             return child;
          };
@@ -86,8 +87,9 @@ namespace HavenSoft.Gen3Hex.Tests {
          StubViewPort tab = null;
          tab = new StubViewPort {
             Find = str => new[] { 0x54, 0x154 },
+            Model = new BasicModel(new byte[0x200]),
             Goto = new StubCommand { CanExecute = arg => true, Execute = arg => gotoCount++ },
-            CreateChildView = offset => new ChildViewPort(tab, new byte[100]),
+            CreateChildView = offset => new ChildViewPort(tab),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
@@ -108,7 +110,8 @@ namespace HavenSoft.Gen3Hex.Tests {
          tab1 = new StubViewPort {
             Find = query => new[] { 0x60 },
             Goto = new StubCommand(),
-            CreateChildView = offset => new ChildViewPort(tab1, new byte[100]),
+            Model = new BasicModel(new byte[0x200]),
+            CreateChildView = offset => new ChildViewPort(tab1),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
@@ -117,7 +120,8 @@ namespace HavenSoft.Gen3Hex.Tests {
          tab2 = new StubViewPort {
             Find = query => new[] { 0x50, 0x70 },
             Goto = new StubCommand(),
-            CreateChildView = offset => new ChildViewPort(tab2, new byte[100]),
+            Model = new BasicModel(new byte[0x200]),
+            CreateChildView = offset => new ChildViewPort(tab2),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
@@ -144,7 +148,8 @@ namespace HavenSoft.Gen3Hex.Tests {
          tab = new StubViewPort {
             Find = query => new[] { 0x50, 0x70 },
             Goto = new StubCommand(),
-            CreateChildView = offset => new ChildViewPort(tab, new byte[100]),
+            Model = new BasicModel(new byte[0x200]),
+            CreateChildView = offset => new ChildViewPort(tab),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
@@ -164,7 +169,8 @@ namespace HavenSoft.Gen3Hex.Tests {
          tab = new StubViewPort {
             Find = query => new[] { 0x50, 0x70 },
             Goto = new StubCommand(),
-            CreateChildView = offset => new ChildViewPort(tab, new byte[100]),
+            Model = new BasicModel(new byte[0x200]),
+            CreateChildView = offset => new ChildViewPort(tab),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
@@ -180,10 +186,10 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CompositeCanScroll() {
          var composite = new SearchResultsViewPort("search") { Height = 0x10 };
-         var parent = new StubViewPort { Width = 0x10, Height = 0x10 };
          var parentData = new byte[0x100];
-         composite.Add(new ChildViewPort(parent, parentData));
-         composite.Add(new ChildViewPort(parent, parentData));
+         var parent = new StubViewPort { Width = 0x10, Height = 0x10, Model = new BasicModel(parentData) };
+         composite.Add(new ChildViewPort(parent));
+         composite.Add(new ChildViewPort(parent));
 
          var bodyChanged = false;
          var headerChanged = false;
@@ -244,7 +250,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          tab = new StubViewPort {
             Find = query => new[] { 0x50 },
             Goto = new StubCommand(),
-            CreateChildView = offset => new ChildViewPort(tab, new byte[100]),
+            CreateChildView = offset => new ChildViewPort(tab),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
@@ -264,7 +270,8 @@ namespace HavenSoft.Gen3Hex.Tests {
          tab = new StubViewPort {
             Find = query => new[] { 0x50, 0x70 },
             Goto = new StubCommand(),
-            CreateChildView = offset => new ChildViewPort(tab, new byte[100]),
+            Model = new BasicModel(new byte[0x200]),
+            CreateChildView = offset => new ChildViewPort(tab),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,

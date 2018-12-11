@@ -21,7 +21,6 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          clear = new StubCommand(),
          copy = new StubCommand();
 
-      private byte[] data;
       private HexElement[,] currentView;
 
       public string Name {
@@ -130,7 +129,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             scroll.ScrollToPoint(ref point);
 
             opposite[index] = currentView[point.X, point.Y];
-            data[index] = element.Value;
+            Model[index] = element.Value;
             currentView[point.X, point.Y] = element;
          }
 
@@ -169,14 +168,14 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             return;
          }
 
-         if (fileSystem.Save(new LoadedFile(FileName, data))) history.TagAsSaved();
+         if (fileSystem.Save(new LoadedFile(FileName, Model.RawData))) history.TagAsSaved();
       }
 
       private void SaveAsExecuted(IFileSystem fileSystem) {
          var newName = fileSystem.RequestNewName(FileName);
          if (newName == null) return;
 
-         if (fileSystem.Save(new LoadedFile(newName, data))) {
+         if (fileSystem.Save(new LoadedFile(newName, Model.RawData))) {
             FileName = newName; // don't bother notifying, because tagging the history will cause a notify;
             history.TagAsSaved();
          }
@@ -184,7 +183,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
       private void CloseExecuted(IFileSystem fileSystem) {
          if (!history.IsSaved) {
-            var result = fileSystem.TrySavePrompt(new LoadedFile(FileName, data));
+            var result = fileSystem.TrySavePrompt(new LoadedFile(FileName, Model.RawData));
             if (result == null) return;
          }
          Closed?.Invoke(this, EventArgs.Empty);
@@ -215,11 +214,10 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
 
       public ViewPort(LoadedFile file, IModel model = null) {
-         Model = model ?? new BasicModel();
+         Model = model ?? new BasicModel(file.Contents);
          FileName = file.Name;
-         data = file.Contents;
 
-         scroll = new ScrollRegion { DataLength = data.Length };
+         scroll = new ScrollRegion { DataLength = Model.Count };
          scroll.PropertyChanged += ScrollPropertyChanged;
 
          selection = new Selection(scroll, Model);
@@ -246,9 +244,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                if (p.Y >= 0 && p.Y < scroll.Height) {
                   history.CurrentChange[i] = this[p.X, p.Y];
                } else {
-                  history.CurrentChange[i] = new HexElement(data[i], None.Instance);
+                  history.CurrentChange[i] = new HexElement(Model[i], None.Instance);
                }
-               data[i] = 0xFF;
+               Model[i] = 0xFF;
             }
             RefreshBackingData();
          };
@@ -259,7 +257,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
             var left = Math.Min(selectionStart, selectionEnd);
             var length = Math.Abs(selectionEnd - selectionStart) + 1;
-            ((IFileSystem)arg).CopyText = Model.Copy(data, left, length);
+            ((IFileSystem)arg).CopyText = Model.Copy(left, length);
          };
 
          save.CanExecute = arg => !history.IsSaved;
@@ -282,10 +280,10 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          if (key != ConsoleKey.Backspace) return;
 
          var point = GetEditPoint();
-         var format = currentView[point.X, point.Y].Format as UnderEdit;
+         var underEdit = currentView[point.X, point.Y].Format as UnderEdit;
 
-         if (format != null && format.CurrentText.Length > 0) {
-            var newFormat = new UnderEdit(format.OriginalFormat, format.CurrentText.Substring(0, format.CurrentText.Length - 1));
+         if (underEdit != null && underEdit.CurrentText.Length > 0) {
+            var newFormat = new UnderEdit(underEdit.OriginalFormat, underEdit.CurrentText.Substring(0, underEdit.CurrentText.Length - 1));
             currentView[point.X, point.Y] = new HexElement(currentView[point.X, point.Y].Value, newFormat);
             NotifyCollectionChanged(ResetArgs);
             return;
@@ -294,9 +292,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          var index = scroll.ViewPointToDataIndex(point);
 
          // if there's an open edit, clear the data from those cells
-         if (format != null) {
-            var operation = new DataClear(data, index);
-            format.OriginalFormat.Visit(operation, data[index]);
+         if (underEdit != null) {
+            var operation = new DataClear(Model, index);
+            underEdit.OriginalFormat.Visit(operation, Model[index]);
             RefreshBackingData();
          }
 
@@ -304,12 +302,13 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          if (run.Start <= index - 1 && run.Start + run.Length > index - 1) {
             // I want to do a backspace at the end of this run
             SelectionStart = scroll.DataIndexToViewPoint(run.Start);
-            var dataRead = new DataRead(data, run.Start, out string[] asText);
+            var cellToText = new ConvertCellToText(Model, run.Start);
             var element = currentView[SelectionStart.X, SelectionStart.Y];
-            element.Format.Visit(dataRead, element.Value);
+            element.Format.Visit(cellToText, element.Value);
+            var text = cellToText.Result;
             for (int i = 0; i < run.Length; i++) {
                var p = scroll.DataIndexToViewPoint(run.Start + i);
-               string editString = i == 0 ? asText[0].Substring(0, asText[0].Length - 1) : string.Empty;
+               string editString = i == 0 ? text.Substring(0, text.Length - 1) : string.Empty;
                currentView[p.X, p.Y] = new HexElement(currentView[p.X, p.Y].Value, currentView[p.X, p.Y].Format.Edit(editString));
             }
          } else {
@@ -333,12 +332,12 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
       public IReadOnlyList<int> Find(string rawSearch) {
          var results = new List<int>();
-         var cleanedSearch = rawSearch.Replace(" ", string.Empty).ToUpper();
+         var cleanedSearchString = rawSearch.Replace(" ", string.Empty).ToUpper();
          var hex = "0123456789ABCDEF";
 
          // pointer attempt: see if the search term is a pointer
-         if (cleanedSearch.StartsWith("<") && cleanedSearch.EndsWith(">")) {
-            var content = cleanedSearch.Substring(1, cleanedSearch.Length - 2);
+         if (cleanedSearchString.StartsWith("<") && cleanedSearchString.EndsWith(">")) {
+            var content = cleanedSearchString.Substring(1, cleanedSearchString.Length - 2);
             int destination = 0;
             if (content.All(hex.Contains) && content.Length == 6) {
                var bytes = Parse(content);
@@ -346,18 +345,18 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             }
             for (var run = Model.GetNextRun(0); run != null; run = Model.GetNextRun(run.Start + run.Length)) {
                if (run is PointerRun pointerRun) {
-                  var pointer = (Pointer)pointerRun.CreateDataFormat(data, pointerRun.Start);
+                  var pointer = (Pointer)pointerRun.CreateDataFormat(Model, pointerRun.Start);
                   if (pointer.Destination == destination || pointer.DestinationName == content) results.Add(run.Start);
                }
             }
          }
 
          // basic attempt: see if the search term is a string of bytes
-         if (cleanedSearch.All(hex.Contains) && cleanedSearch.Length % 2 == 0) {
-            var search = Parse(cleanedSearch);
-            for (int i = 0; i < data.Length - search.Length; i++) {
+         if (cleanedSearchString.All(hex.Contains) && cleanedSearchString.Length % 2 == 0) {
+            var search = Parse(cleanedSearchString);
+            for (int i = 0; i < Model.Count - search.Length; i++) {
                for (int j = 0; j < search.Length; j++) {
-                  if (data[i + j] != search[j]) break;
+                  if (Model[i + j] != search[j]) break;
                   if (j == search.Length - 1) results.Add(i);
                }
             }
@@ -372,7 +371,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       }
 
       public IChildViewPort CreateChildView(int offset) {
-         var child = new ChildViewPort(this, data);
+         var child = new ChildViewPort(this);
          child.Goto.Execute(offset.ToString("X2"));
          return child;
       }
@@ -394,8 +393,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          try {
             var file = fileSystem.LoadFile(FileName);
             if (file == null) return; // asked to load the file, but the file wasn't found... carry on
-            data = file.Contents;
-            scroll.DataLength = data.Length;
+            Model.Load(file.Contents);
+            scroll.DataLength = Model.Count;
             RefreshBackingData();
 
             // if the new file is shorter, selection might need to be updated
@@ -525,10 +524,11 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             fullValue = Model.GetAddressFromAnchor(index, destination);
          }
 
-         ExpandData(index + 3);
-         Model.ClearFormat(data, index, 4);
-         data.WritePointer(index, fullValue);
-         Model.ObserveRunWritten(data, new PointerRun(Model, index));
+         Model.ExpandData(index + 3);
+         scroll.DataLength = Model.Count;
+         Model.ClearFormat(index, 4);
+         Model.WritePointer(index, fullValue);
+         Model.ObserveRunWritten(new PointerRun(Model, index));
          ClearEdits(point);
          SilentScroll(index + 4);
       }
@@ -536,7 +536,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       private void CompleteAnchorEdit(Point point) {
          var underEdit = (UnderEdit)currentView[point.X, point.Y].Format;
          var index = scroll.ViewPointToDataIndex(point);
-         Model.ObserveAnchorWritten(data, index, underEdit.CurrentText.Substring(1).Trim(), string.Empty);
+         Model.ObserveAnchorWritten(index, underEdit.CurrentText.Substring(1).Trim(), string.Empty);
          ClearEdits(point);
       }
 
@@ -547,8 +547,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          var byteValue = byte.Parse(underEdit.CurrentText, NumberStyles.HexNumber);
          var memoryLocation = scroll.ViewPointToDataIndex(point);
          history.CurrentChange[memoryLocation] = new HexElement(element.Value, underEdit.OriginalFormat);
-         ExpandData(memoryLocation);
-         data[memoryLocation] = byteValue;
+         Model.ExpandData(memoryLocation);
+         scroll.DataLength = Model.Count;
+         Model[memoryLocation] = byteValue;
          ClearEdits(point);
          SilentScroll(memoryLocation + 1);
       }
@@ -561,19 +562,6 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          }
 
          UpdateSelectionWithoutNotify(nextPoint);
-      }
-
-      // Calling this method over and over
-      // (for example, holding a key on the keyboard at the end of the file)
-      // makes the garbage collector go crazy.
-      // However, running performance is still super smooth, so don't optimize yet.
-      private void ExpandData(int minimumIndex) {
-         if (data.Length > minimumIndex) return;
-
-         var newData = new byte[minimumIndex + 1];
-         Array.Copy(data, newData, data.Length);
-         data = newData;
-         scroll.DataLength = data.Length;
       }
 
       /// <summary>
@@ -598,18 +586,18 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          for (int y = 0; y < Height; y++) {
             for (int x = 0; x < Width; x++) {
                var index = scroll.ViewPointToDataIndex(new Point(x, y));
-               if (run == null || index >= run.Start + run.Length) run = Model.GetNextRun(index) ?? new NoInfoRun(data.Length);
-               if (index < 0 || index >= data.Length) {
+               if (run == null || index >= run.Start + run.Length) run = Model.GetNextRun(index) ?? new NoInfoRun(Model.Count);
+               if (index < 0 || index >= Model.Count) {
                   currentView[x, y] = HexElement.Undefined;
                } else if (index >= run.Start) {
-                  var format = run.CreateDataFormat(data, index);
+                  var format = run.CreateDataFormat(Model, index);
                   if (run.Anchor != null && run.Start == index) {
                      var name = Model.GetAnchorFromAddress(-1, run.Start);
                      format = new DataFormats.Anchor(format, name, string.Empty, run.Anchor.PointerSources);
                   }
-                  currentView[x, y] = new HexElement(data[index], format);
+                  currentView[x, y] = new HexElement(Model[index], format);
                } else {
-                  currentView[x, y] = new HexElement(data[index], None.Instance);
+                  currentView[x, y] = new HexElement(Model[index], None.Instance);
                }
             }
          }
@@ -619,21 +607,23 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
       private void NotifyCollectionChanged(NotifyCollectionChangedEventArgs args) => CollectionChanged?.Invoke(this, args);
 
-      private class DataRead : IDataFormatVisitor {
-         private readonly byte[] buffer;
+      /// <summary>
+      /// Given a data format, decide how to best display that as text
+      /// </summary>
+      private class ConvertCellToText : IDataFormatVisitor {
+         private readonly IModel buffer;
          private readonly int index;
-         private readonly string[] asText;
 
-         public DataRead(byte[] buffer, int index, out string[] asText) {
+         public string Result { get; private set; }
+
+         public ConvertCellToText(IModel buffer, int index) {
             this.buffer = buffer;
             this.index = index;
-            asText = new string[1];
-            this.asText = asText;
          }
 
          public void Visit(Undefined dataFormat, byte data) { }
 
-         public void Visit(None dataFormat, byte data) => asText[0] = data.ToString("X2");
+         public void Visit(None dataFormat, byte data) => Result = data.ToString("X2");
 
          public void Visit(UnderEdit dataFormat, byte data) {
             throw new NotImplementedException();
@@ -641,18 +631,23 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
          public void Visit(Pointer pointer, byte data) {
             var destination = pointer.Destination.ToString("X6");
-            asText[0] = $"<{destination}>";
-            if (!string.IsNullOrEmpty(pointer.DestinationName)) asText[0] = $"<{pointer.DestinationName}>";
+            Result = $"<{destination}>";
+            if (!string.IsNullOrEmpty(pointer.DestinationName)) Result = $"<{pointer.DestinationName}>";
          }
 
          public void Visit(DataFormats.Anchor anchor, byte data) => anchor.OriginalFormat.Visit(this, data);
       }
 
+      /// <summary>
+      /// How we clear data depends on what type of data we're clearing.
+      /// For example, cleared pointers get replaced with NULL (0x00000000).
+      /// For example, cleared data with no known format gets 0xFF.
+      /// </summary>
       private class DataClear : IDataFormatVisitor {
-         private readonly byte[] buffer;
+         private readonly IModel buffer;
          private readonly int index;
 
-         public DataClear(byte[] data, int index) {
+         public DataClear(IModel data, int index) {
             buffer = data;
             this.index = index;
          }
@@ -665,7 +660,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
          public void Visit(Pointer pointer, byte data) {
             int start = index - pointer.Position;
-            buffer.Write(start, 0);
+            buffer.WriteValue(start, 0);
          }
 
          public void Visit(DataFormats.Anchor anchor, byte data) => anchor.OriginalFormat.Visit(this, data);

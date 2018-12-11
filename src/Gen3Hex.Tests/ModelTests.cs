@@ -26,10 +26,10 @@ namespace HavenSoft.Gen3Hex.Tests {
          for (int i = 0; i < buffer.Length; i++) if (buffer[i] == 0x08) buffer[i] = 0x10;
 
          // write two specific pointers
-         buffer.WritePointer(0x204, 0x4050);
-         buffer.WritePointer(0x4070, 0x101C);
-
          var model = new PointerModel(buffer);
+         model.WritePointer(0x204, 0x4050);
+         model.WritePointer(0x4070, 0x101C);
+         model = new PointerModel(buffer);
 
          Assert.Equal(0x204, model.GetNextRun(0).Start);
          Assert.IsType<PointerRun>(model.GetNextRun(0x206));
@@ -44,9 +44,9 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void PointerModelFindsSelfReferences() {
          var buffer = new byte[0x20];
-         buffer.WritePointer(0xC, 0xC);
-
          var model = new PointerModel(buffer);
+         model.WritePointer(0xC, 0xC);
+         model = new PointerModel(buffer);
 
          var run = model.GetNextRun(0);
          var nextRun = model.GetNextRun(run.Start + run.Length);
@@ -58,10 +58,10 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void PointerModelMergesDuplicates() {
          var buffer = new byte[0x20];
-         buffer.WritePointer(0x0C, 0x14);
-         buffer.WritePointer(0x1C, 0x14);
-
          var model = new PointerModel(buffer);
+         model.WritePointer(0x0C, 0x14);
+         model.WritePointer(0x1C, 0x14);
+         model = new PointerModel(buffer);
 
          var run = model.GetNextRun(0x14);
          Assert.Equal(2, run.Anchor.PointerSources.Count);
@@ -155,16 +155,16 @@ namespace HavenSoft.Gen3Hex.Tests {
          var buffer = new byte[0x100];
          var model = new PointerModel(buffer);
 
-         buffer.WritePointer(16, 100);
-         model.ObserveRunWritten(buffer, new PointerRun(model, 16));
+         model.WritePointer(16, 100);
+         model.ObserveRunWritten(new PointerRun(model, 16));
          Assert.Equal(16, model.GetNextRun(10).Start);
          Assert.Equal(16, model.GetNextRun(17).Start);
          Assert.Equal(16, model.GetNextRun(19).Start);
          Assert.Equal(100, model.GetNextRun(20).Start); // the reference at 100 has been added
 
-         model.ClearFormat(buffer, 14, 4);
-         buffer.WritePointer(14, 200);
-         model.ObserveRunWritten(buffer, new PointerRun(model, 14));
+         model.ClearFormat(14, 4);
+         model.WritePointer(14, 200);
+         model.ObserveRunWritten(new PointerRun(model, 14));
          Assert.Equal(14, model.GetNextRun(10).Start);
          Assert.Equal(14, model.GetNextRun(15).Start);
          Assert.Equal(14, model.GetNextRun(16).Start);
@@ -177,9 +177,9 @@ namespace HavenSoft.Gen3Hex.Tests {
          var buffer = new byte[0x100];
          var model = new PointerModel(buffer);
 
-         buffer.WritePointer(16, 12);
-         model.ObserveRunWritten(buffer, new PointerRun(model, 16));
-         model.ObserveAnchorWritten(buffer, 18, "bob", string.Empty);
+         model.WritePointer(16, 12);
+         model.ObserveRunWritten(new PointerRun(model, 16));
+         model.ObserveAnchorWritten(18, "bob", string.Empty);
 
          Assert.Equal(18, model.GetNextRun(10).Start);
       }
@@ -189,12 +189,12 @@ namespace HavenSoft.Gen3Hex.Tests {
          var buffer = new byte[0x100];
          var model = new PointerModel(buffer);
 
-         buffer.WritePointer(16, 32);
-         model.ObserveRunWritten(buffer, new PointerRun(model, 16));
+         model.WritePointer(16, 32);
+         model.ObserveRunWritten(new PointerRun(model, 16));
 
-         model.ClearFormat(buffer, 30, 4);
-         buffer.WritePointer(30, 64);
-         model.ObserveRunWritten(buffer, new PointerRun(model, 30));
+         model.ClearFormat(30, 4);
+         model.WritePointer(30, 64);
+         model.ObserveRunWritten(new PointerRun(model, 30));
 
          Assert.Equal(16, model.GetNextRun(10).Start); // original pointer at 16 is still there, but it no longer knows what it's pointing to
          Assert.Equal(30, model.GetNextRun(24).Start); // next data is the pointer at 30
@@ -215,7 +215,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
          // as an alternative to being able to delete an anchor from the viewPort,
          // just edit the model directly and then scroll to force the viewPort to refresh
-         model.ClearFormat(buffer, 0x10, 1);
+         model.ClearFormat(0x10, 1);
          viewPort.ScrollValue = 1;
          viewPort.ScrollValue = 0;
 
@@ -236,7 +236,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
          // as an alternative to being able to delete an anchor from the viewPort,
          // just edit the model directly and then scroll to force the viewPort to refresh
-         model.ClearFormat(buffer, 0x10, 1);
+         model.ClearFormat(0x10, 1);
          viewPort.ScrollValue = 1;
          viewPort.ScrollValue = 0;
 

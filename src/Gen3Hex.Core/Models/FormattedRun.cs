@@ -8,7 +8,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       int Start { get; }
       int Length { get; }
       Anchor Anchor { get; }
-      IDataFormat CreateDataFormat(IReadOnlyList<byte> data, int index);
+      IDataFormat CreateDataFormat(IModel data, int index);
       void MergeAnchor(Anchor other);
    }
 
@@ -27,7 +27,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       public CompareFormattedRun(int start) => Start = start;
 
       public Anchor Anchor => throw new NotImplementedException();
-      public IDataFormat CreateDataFormat(IReadOnlyList<byte> data, int index) => throw new NotImplementedException();
+      public IDataFormat CreateDataFormat(IModel data, int index) => throw new NotImplementedException();
       public void MergeAnchor(Anchor other) => throw new NotImplementedException();
    }
 
@@ -38,7 +38,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       public NoInfoRun(int start, Anchor anchor = null) => (Start, Anchor) = (start, anchor);
 
-      public IDataFormat CreateDataFormat(IReadOnlyList<byte> data, int index) => None.Instance;
+      public IDataFormat CreateDataFormat(IModel data, int index) => None.Instance;
       public void MergeAnchor(Anchor other) {
          if (other == null) return;
          if (Anchor == null) { Anchor = other; return; }
@@ -59,10 +59,10 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          Anchor = anchor;
       }
 
-      public IDataFormat CreateDataFormat(IReadOnlyList<byte> data, int index) {
-         var destinationAddress = Math.Max(0, data.ReadAddress(Start));
+      public IDataFormat CreateDataFormat(IModel data, int index) {
+         var destinationAddress = Math.Max(0, data.ReadPointer(Start));
          var anchor = parent.GetAnchorFromAddress(Start, destinationAddress);
-         var pointer = new Pointer(Start, index - Start, data.ReadAddress(Start), anchor);
+         var pointer = new Pointer(Start, index - Start, data.ReadPointer(Start), anchor);
          return pointer;
       }
 
