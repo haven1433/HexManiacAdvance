@@ -376,8 +376,8 @@ namespace HavenSoft.Gen3Hex.Tests {
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.SelectionStart = new Point(4, 1);
-         viewPort.Edit("<000058>");
-         var results = viewPort.Find("<000058>");
+         viewPort.Edit("<000058> 23 19");
+         var results = viewPort.Find("<000058> 23 19");
 
          Assert.Single(results);
       }

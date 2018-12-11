@@ -333,32 +333,42 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public IReadOnlyList<int> Find(string rawSearch) {
          var results = new List<int>();
          var cleanedSearchString = rawSearch.Replace(" ", string.Empty).ToUpper();
+         var searchBytes = new List<byte>();
          var hex = "0123456789ABCDEF";
 
-         // pointer attempt: see if the search term is a pointer
-         if (cleanedSearchString.StartsWith("<") && cleanedSearchString.EndsWith(">")) {
-            var content = cleanedSearchString.Substring(1, cleanedSearchString.Length - 2);
-            int destination = 0;
-            if (content.All(hex.Contains) && content.Length == 6) {
-               var bytes = Parse(content);
-               destination = (bytes[0] << 16) + (bytes[1] << 8) + (bytes[2] << 0);
-            }
-            for (var run = Model.GetNextRun(0); run != null; run = Model.GetNextRun(run.Start + run.Length)) {
-               if (run is PointerRun pointerRun) {
-                  var pointer = (Pointer)pointerRun.CreateDataFormat(Model, pointerRun.Start);
-                  if (pointer.Destination == destination || pointer.DestinationName == content) results.Add(run.Start);
+         for (int i = 0; i < cleanedSearchString.Length;) {
+            if (cleanedSearchString[i] == '<') {
+               var pointerEnd = cleanedSearchString.IndexOf('>', i);
+               if (pointerEnd == -1) { OnError(this, "Search mismatch: no closing >"); return results; }
+               var pointerContents = cleanedSearchString.Substring(i + 1, pointerEnd - i - 2);
+               var address = Model.GetAddressFromAnchor(-1, pointerContents);
+               if (address != Pointer.NULL) {
+                  searchBytes.Add((byte)(address >> 0));
+                  searchBytes.Add((byte)(address >> 8));
+                  searchBytes.Add((byte)(address >> 16));
+                  searchBytes.Add(0x08);
+               } else if (pointerContents.All(hex.Contains) && pointerContents.Length <= 6) {
+                  searchBytes.AddRange(Parse(pointerContents).Reverse().Append((byte)0x08));
+               } else {
+                  OnError(this, $"Could not parse pointer <{pointerContents}>");
+                  return results;
                }
+               i = pointerEnd + 1;
+               continue;
             }
+            if (cleanedSearchString.Length >= i + 2 && cleanedSearchString.Substring(i, 2).All(hex.Contains)) {
+               searchBytes.AddRange(Parse(cleanedSearchString.Substring(i, 2)));
+               i += 2;
+               continue;
+            }
+            OnError(this, $"Could not parse search term {cleanedSearchString.Substring(i)}");
+            return results;
          }
 
-         // basic attempt: see if the search term is a string of bytes
-         if (cleanedSearchString.All(hex.Contains) && cleanedSearchString.Length % 2 == 0) {
-            var search = Parse(cleanedSearchString);
-            for (int i = 0; i < Model.Count - search.Length; i++) {
-               for (int j = 0; j < search.Length; j++) {
-                  if (Model[i + j] != search[j]) break;
-                  if (j == search.Length - 1) results.Add(i);
-               }
+         for (int i = 0; i < Model.Count - searchBytes.Count; i++) {
+            for (int j = 0; j < searchBytes.Count; j++) {
+               if (Model[i + j] != searchBytes[j]) break;
+               if (j == searchBytes.Count - 1) results.Add(i);
             }
          }
 
