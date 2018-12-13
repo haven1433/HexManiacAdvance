@@ -15,7 +15,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
          var model = new PointerModel(buffer);
 
-         Assert.Null(model.GetNextRun(0));
+         Assert.Equal(NoInfoRun.NullRun, model.GetNextRun(0));
       }
 
       [Fact]
@@ -52,7 +52,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          var nextRun = model.GetNextRun(run.Start + run.Length);
 
          Assert.NotNull(run);
-         Assert.Null(nextRun);
+         Assert.Equal(NoInfoRun.NullRun, nextRun);
       }
 
       [Fact]

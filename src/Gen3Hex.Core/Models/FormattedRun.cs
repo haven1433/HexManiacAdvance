@@ -57,6 +57,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
    }
 
    public class NoInfoRun : BaseRun {
+      public static NoInfoRun NullRun { get; } = new NoInfoRun(int.MaxValue);  // effectively a null object
+
       public override int Length => 1;
 
       public NoInfoRun(int start, IReadOnlyList<int> sources = null) : base(start, sources) { }

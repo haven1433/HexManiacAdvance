@@ -201,7 +201,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
                if (previous.Start + previous.Length > dataIndex) index -= 1;
             }
          }
-         if (index >= runs.Count) return null;
+         if (index >= runs.Count) return NoInfoRun.NullRun;
          return runs[index];
       }
 
