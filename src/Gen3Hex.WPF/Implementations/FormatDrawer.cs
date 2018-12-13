@@ -31,8 +31,11 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
          var brush = Solarized.Theme.Primary;
          var typeface = new Typeface("Consolas");
 
+         var content = dataFormat.CurrentText;
+         if (content.Length > 12) content = "…" + content.Substring(content.Length - 11);
+
          var text = new FormattedText(
-            dataFormat.CurrentText,
+            content,
             CultureInfo.CurrentCulture,
             FlowDirection.LeftToRight,
             typeface,
