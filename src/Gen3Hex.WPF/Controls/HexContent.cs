@@ -19,6 +19,8 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
 
       public static readonly Rect CellRect = new Rect(0, 0, CellWidth, CellHeight);
 
+      private Core.Models.Point downPoint;
+
       #region ViewPort
 
       public IViewPort ViewPort {
@@ -116,19 +118,19 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
             ViewPort.Forward.Execute();
             return;
          }
+         downPoint = ControlCoordinatesToModelCoordinates(e);
          if (e.ChangedButton != MouseButton.Left) return;
-         var p = ControlCoordinatesToModelCoordinates(e);
          Focus();
          if (e.ClickCount == 2) {
-            ViewPort.FollowLink(p.X, p.Y);
+            ViewPort.FollowLink(downPoint.X, downPoint.Y);
             return;
          }
 
          if (ViewPort is ViewPort editableViewPort) {
             if (Keyboard.Modifiers == ModifierKeys.Shift) {
-               editableViewPort.SelectionEnd = p;
+               editableViewPort.SelectionEnd = downPoint;
             } else {
-               editableViewPort.SelectionStart = p;
+               editableViewPort.SelectionStart = downPoint;
             }
             CaptureMouse();
          }
@@ -145,7 +147,7 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
          base.OnMouseUp(e);
          if (e.ChangedButton == MouseButton.Right && e.LeftButton == MouseButtonState.Released && !IsMouseCaptured) {
             var p = ControlCoordinatesToModelCoordinates(e);
-            if (ViewPort[p.X, p.Y].Format is Core.ViewModels.DataFormats.Anchor) ShowAnchorMenu(p);
+            if (ViewPort[p.X, p.Y].Format is Core.ViewModels.DataFormats.Anchor && p.Equals(downPoint)) ShowAnchorMenu(p);
             return;
          }
          if (!IsMouseCaptured) return;
