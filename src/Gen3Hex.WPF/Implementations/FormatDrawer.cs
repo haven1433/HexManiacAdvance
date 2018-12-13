@@ -56,8 +56,9 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
          var typeface = new Typeface("Consolas");
          var destination = dataFormat.DestinationName;
          if (string.IsNullOrEmpty(destination)) destination = dataFormat.Destination.ToString("X6");
+         if (destination.Length > 11) destination = destination.Substring(0, 10) + "…";
          destination = $"<{destination}>";
- 
+         var xOffset = 21 - destination.Length * 4.2; // centering
          var text = new FormattedText(
             destination,
             CultureInfo.CurrentCulture,
@@ -67,7 +68,7 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
             brush,
             1.0);
 
-         context.DrawText(text, new Point(CellTextOffset.X - 10, CellTextOffset.Y));
+         context.DrawText(text, new Point(CellTextOffset.X + xOffset, CellTextOffset.Y));
       }
 
       private static readonly Geometry Triangle = Geometry.Parse("M0,5 L3,0 6,5");
