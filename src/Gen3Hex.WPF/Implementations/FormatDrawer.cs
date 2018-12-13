@@ -1,4 +1,5 @@
 ﻿using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
+using HavenSoft.Gen3Hex.WPF.Controls;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -43,14 +44,19 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
       }
 
       public void Visit(Pointer dataFormat, byte data) {
+         var brush = Solarized.Brushes.Blue;
+         if (dataFormat.Destination == Pointer.NULL) brush = Solarized.Brushes.Red;
+         int startPoint = dataFormat.Position == 0 ? 5 : 0;
+         int endPoint = (int)HexContent.CellWidth - (dataFormat.Position == 3 ? 5 : 0);
+         double y = (int)HexContent.CellHeight - 1.5;
+         context.DrawLine(new Pen(brush, 1), new Point(startPoint, y), new Point(endPoint, y));
+
          if (dataFormat.Position != 1) return;
 
-         var brush = Solarized.Brushes.Blue;
          var typeface = new Typeface("Consolas");
          var destination = dataFormat.DestinationName;
          if (string.IsNullOrEmpty(destination)) destination = dataFormat.Destination.ToString("X6");
          destination = $"<{destination}>";
-         if (dataFormat.Destination == Pointer.NULL) brush = Solarized.Brushes.Red;
  
          var text = new FormattedText(
             destination,
