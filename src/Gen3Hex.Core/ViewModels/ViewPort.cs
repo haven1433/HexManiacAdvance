@@ -529,6 +529,11 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
          var index = scroll.ViewPointToDataIndex(point);
          var destination = underEdit.CurrentText.Substring(1, underEdit.CurrentText.Length - 2);
+
+         Model.ExpandData(index + 3);
+         scroll.DataLength = Model.Count;
+         Model.ClearFormat(index, 4);
+
          int fullValue;
          if (destination.All("0123456789ABCDEFabcdef".Contains) && destination.Length <= 6) {
             while (destination.Length < 6) destination = "0" + destination;
@@ -537,9 +542,6 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             fullValue = Model.GetAddressFromAnchor(index, destination);
          }
 
-         Model.ExpandData(index + 3);
-         scroll.DataLength = Model.Count;
-         Model.ClearFormat(index, 4);
          Model.WritePointer(index, fullValue);
          Model.ObserveRunWritten(new PointerRun(index));
          ClearEdits(point);

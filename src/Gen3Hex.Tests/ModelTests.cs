@@ -464,6 +464,21 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Equal("null", format.DestinationName);
       }
 
+      [Fact]
+      public void CanWriteNameOverNullPointer() {
+         var buffer = new byte[0x200];
+         var model = new PointerModel(buffer);
+         var fileSystem = new StubFileSystem();
+         var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.Edit("<null>");
+         viewPort.SelectionStart = new Point(0, 0);
+         viewPort.Edit("<bob>");
+
+         var format = (Pointer)model.GetNextRun(0x0).CreateDataFormat(model, 0x00);
+         Assert.Equal("bob", format.DestinationName);
+      }
+
       // TODO undo/redo
       // TODO file load/save (metadata file / TOML)
    }

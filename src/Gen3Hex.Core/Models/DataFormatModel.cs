@@ -309,8 +309,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
                         anchorForAddress.Remove(anchorRun.Start);
                      }
                   }
-               } else {
-                  var name = sourceToUnmappedName[pointerRun.Start];
+               } else if (sourceToUnmappedName.TryGetValue(pointerRun.Start, out var name)) {
                   sourceToUnmappedName.Remove(pointerRun.Start);
                   unmappedNameToSources[name].Remove(pointerRun.Start);
                   if (unmappedNameToSources[name].Count == 0) unmappedNameToSources.Remove(name);
