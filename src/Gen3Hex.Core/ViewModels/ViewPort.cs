@@ -391,6 +391,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          if (format is Pointer pointer) {
             if (pointer.Destination != Pointer.NULL) {
                selection.GotoAddress(pointer.Destination);
+            } else if (string.IsNullOrEmpty(pointer.DestinationName)) {
+               OnError(this, $"null pointers point to nothing, so going to their source isn't possible.");
             } else {
                OnError(this, $"Pointer destination {pointer.DestinationName} not found.");
             }
@@ -546,7 +548,12 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       private void CompleteAnchorEdit(Point point) {
          var underEdit = (UnderEdit)currentView[point.X, point.Y].Format;
          var index = scroll.ViewPointToDataIndex(point);
-         Model.ObserveAnchorWritten(index, underEdit.CurrentText.Substring(1).Trim(), string.Empty);
+         var name = underEdit.CurrentText.Substring(1).Trim();
+         if (name.ToLower() != "null") {
+            Model.ObserveAnchorWritten(index, name, string.Empty);
+         } else {
+            OnError(this, "'null' is a reserved word and cannot be used as an anchor name.");
+         }
          ClearEdits(point);
       }
 

@@ -72,7 +72,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       public PointerRun(int start, IReadOnlyList<int> sources = null) : base(start, sources) { }
 
       public override IDataFormat CreateDataFormat(IModel data, int index) {
-         var destinationAddress = Math.Max(0, data.ReadPointer(Start));
+         var destinationAddress = data.ReadPointer(Start);
          var anchor = data.GetAnchorFromAddress(Start, destinationAddress);
          var pointer = new Pointer(Start, index - Start, data.ReadPointer(Start), anchor);
          return pointer;

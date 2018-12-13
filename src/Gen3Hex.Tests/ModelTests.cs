@@ -453,6 +453,17 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Equal("<000058> FF FF", fileSystem.CopyText);
       }
 
+      [Fact]
+      public void CanWriteNullPointer() {
+         var buffer = new byte[0x200];
+         var model = new PointerModel(buffer);
+
+         model.ObserveRunWritten(new PointerRun(0x10));
+
+         var format = (Pointer)model.GetNextRun(0x10).CreateDataFormat(model, 0x10);
+         Assert.Equal("null", format.DestinationName);
+      }
+
       // TODO undo/redo
       // TODO file load/save (metadata file / TOML)
    }

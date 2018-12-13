@@ -175,6 +175,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          }
 
          if (requestSource < 0) return Pointer.NULL;
+         if (anchor.ToLower() == "null") return Pointer.NULL;
 
          // the named anchor does not exist! Add it to the list of desired anchors
          if (!unmappedNameToSources.ContainsKey(anchor)) {
@@ -189,6 +190,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       public override string GetAnchorFromAddress(int requestSource, int address) {
          if (anchorForAddress.TryGetValue(address, out string anchor)) return anchor;
          if (sourceToUnmappedName.TryGetValue(requestSource, out anchor)) return anchor;
+         if (address == -0x08000000) return "null";
          return string.Empty;
       }
 
