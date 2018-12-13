@@ -482,7 +482,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             }
          } else if (underEdit.CurrentText.StartsWith("<")) {
             return char.IsLetterOrDigit(input) || input == '>';
-         }else if (underEdit.CurrentText.StartsWith("^")) {
+         } else if (underEdit.CurrentText.StartsWith("^")) {
             return char.IsLetterOrDigit(input) || char.IsWhiteSpace(input);
          }
 

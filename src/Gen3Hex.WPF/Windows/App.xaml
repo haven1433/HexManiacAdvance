@@ -407,7 +407,7 @@
             </Setter.Value>
          </Setter>
       </Style>
-      
+
       <!-- ListBox Style -->
       <Style TargetType="ListBox">
          <Setter Property="Background" Value="{DynamicResource Backlight}"/>
