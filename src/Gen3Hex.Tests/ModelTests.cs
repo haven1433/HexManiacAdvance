@@ -236,7 +236,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
          // as an alternative to being able to delete an anchor from the viewPort,
          // just edit the model directly and then scroll to force the viewPort to refresh
-         model.ClearFormat(0x10, 1);
+         model.ClearFormat(0xF, 2);
          viewPort.ScrollValue = 1;
          viewPort.ScrollValue = 0;
 
@@ -477,6 +477,17 @@ namespace HavenSoft.Gen3Hex.Tests {
 
          var format = (Pointer)model.GetNextRun(0x0).CreateDataFormat(model, 0x00);
          Assert.Equal("bob", format.DestinationName);
+      }
+
+      [Fact]
+      public void FormatClearDoesNotClearAnchorIfAnchorIsAtStartOfClear() {
+         var buffer = new byte[0x200];
+         var model = new PointerModel(buffer);
+
+         model.ObserveAnchorWritten(0x10, "bob", string.Empty);
+         model.ClearFormat(0x10, 1);
+
+         Assert.Equal(0x10, model.GetNextRun(0x10).Start);
       }
 
       // TODO undo/redo

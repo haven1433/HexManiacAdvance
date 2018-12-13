@@ -569,6 +569,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          history.CurrentChange[memoryLocation] = new HexElement(element.Value, underEdit.OriginalFormat);
          Model.ExpandData(memoryLocation);
          scroll.DataLength = Model.Count;
+         Model.ClearFormat(memoryLocation, 1);
          Model[memoryLocation] = byteValue;
          ClearEdits(point);
          SilentScroll(memoryLocation + 1);

@@ -264,7 +264,16 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          if (addressForAnchor.ContainsKey(anchorName)) {
             index = BinarySearch(addressForAnchor[anchorName]);
             var oldAnchor = runs[index];
-            ClearFormat(oldAnchor.Start, oldAnchor.Length);
+            runs.RemoveAt(index);
+
+            foreach (var source in oldAnchor.PointerSources ?? new int[0]) {
+               WriteValue(source, 0);
+               sourceToUnmappedName[source] = anchorForAddress[oldAnchor.Start];
+            }
+
+            unmappedNameToSources[anchorForAddress[oldAnchor.Start]] = new List<int>(oldAnchor.PointerSources);
+            addressForAnchor.Remove(anchorForAddress[oldAnchor.Start]);
+            anchorForAddress.Remove(oldAnchor.Start);
          }
          if (anchorName != string.Empty) {
             anchorForAddress.Add(location, anchorName);
@@ -293,7 +302,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          }
       }
 
-      public override void ClearFormat(int start, int length) {
+      public override void ClearFormat(int originalStart, int length) {
+         int start = originalStart;
          for (var run = GetNextRun(start); length > 0 && run != null; run = GetNextRun(start)) {
             if (run.Start >= start + length) return;
             if (run is PointerRun pointerRun) {
@@ -303,7 +313,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
                   var anchorRun = runs[BinarySearch(destination)];
                   anchorRun.RemoveSource(pointerRun.Start);
                   if (anchorRun.PointerSources.Count == 0) {
-                     ClearFormat(anchorRun.Start, length);
+                     runs.RemoveAt(BinarySearch(anchorRun.Start));
                      if (anchorForAddress.ContainsKey(anchorRun.Start)) {
                         addressForAnchor.Remove(anchorForAddress[anchorRun.Start]);
                         anchorForAddress.Remove(anchorRun.Start);
@@ -315,15 +325,22 @@ namespace HavenSoft.Gen3Hex.Core.Models {
                   if (unmappedNameToSources[name].Count == 0) unmappedNameToSources.Remove(name);
                }
             }
-            foreach (var source in run.PointerSources ?? new int[0]) WriteValue(source, 0);
-            if (anchorForAddress.ContainsKey(run.Start)) {
-               unmappedNameToSources[anchorForAddress[run.Start]] = new List<int>(run.PointerSources);
-               foreach (var source in run.PointerSources) sourceToUnmappedName[source] = anchorForAddress[run.Start];
-               addressForAnchor.Remove(anchorForAddress[run.Start]);
-               anchorForAddress.Remove(run.Start);
+            if (run.Start != originalStart) {
+               // delete the anchor
+               foreach (var source in run.PointerSources ?? new int[0]) WriteValue(source, 0);
+               if (anchorForAddress.ContainsKey(run.Start)) {
+                  unmappedNameToSources[anchorForAddress[run.Start]] = new List<int>(run.PointerSources);
+                  foreach (var source in run.PointerSources) sourceToUnmappedName[source] = anchorForAddress[run.Start];
+                  addressForAnchor.Remove(anchorForAddress[run.Start]);
+                  anchorForAddress.Remove(run.Start);
+               }
+               runs.RemoveAt(BinarySearch(run.Start));
+            } else {
+               // delete the content, but leave the anchor
+               runs[BinarySearch(run.Start)] = new NoInfoRun(run.Start, run.PointerSources);
             }
+
             for (int i = 0; i < run.Length; i++) RawData[run.Start + i] = 0xFF;
-            runs.RemoveAt(BinarySearch(run.Start));
             length -= run.Length + run.Start - start;
             start = run.Start + run.Length;
          }
