@@ -492,7 +492,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
       private void PrepareForMultiSpaceEdit(Point point, int length) {
          var index = scroll.ViewPointToDataIndex(point);
-
+         var endIndex = index + length - 1;
          for (int i = 0; i < length; i++) {
             point = scroll.DataIndexToViewPoint(index + i);
             if (point.Y >= Height) return;
@@ -500,6 +500,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             var newFormat = element.Format.Edit(string.Empty);
             currentView[point.X, point.Y] = new HexElement(element.Value, newFormat);
          }
+         SelectionEnd = scroll.DataIndexToViewPoint(endIndex);
       }
 
       private bool TryCompleteEdit(Point point) {
