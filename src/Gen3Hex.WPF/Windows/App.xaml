@@ -407,5 +407,32 @@
             </Setter.Value>
          </Setter>
       </Style>
+
+      <!-- ListBox Style -->
+      <Style TargetType="ListBox">
+         <Setter Property="Background" Value="{DynamicResource Backlight}"/>
+         <Setter Property="Foreground" Value="{DynamicResource Primary}"/>
+         <Setter Property="BorderThickness" Value="0"/>
+      </Style>
+      <Style TargetType="ListBoxItem">
+         <Setter Property="Template">
+            <Setter.Value>
+               <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                  <Border Padding="5,3" BorderThickness="1" Background="Transparent">
+                     <Border.Style>
+                        <Style TargetType="Border">
+                           <Style.Triggers>
+                              <Trigger Property="IsMouseOver" Value="True">
+                                 <Setter Property="BorderBrush" Value="{solarized:Theme Blue}"/>
+                              </Trigger>
+                           </Style.Triggers>
+                        </Style>
+                     </Border.Style>
+                     <ContentPresenter/>
+                  </Border>
+               </ControlTemplate>
+            </Setter.Value>
+         </Setter>
+      </Style>
    </Application.Resources>
 </Application>

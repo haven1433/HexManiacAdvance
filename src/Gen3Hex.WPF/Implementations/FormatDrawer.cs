@@ -1,4 +1,5 @@
 ﻿using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
+using HavenSoft.Gen3Hex.WPF.Controls;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -30,8 +31,11 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
          var brush = Solarized.Theme.Primary;
          var typeface = new Typeface("Consolas");
 
+         var content = dataFormat.CurrentText;
+         if (content.Length > 12) content = "…" + content.Substring(content.Length - 11);
+
          var text = new FormattedText(
-            dataFormat.CurrentText,
+            content,
             CultureInfo.CurrentCulture,
             FlowDirection.LeftToRight,
             typeface,
@@ -40,6 +44,40 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
             1.0);
 
          context.DrawText(text, CellTextOffset);
+      }
+
+      public void Visit(Pointer dataFormat, byte data) {
+         var brush = Solarized.Brushes.Blue;
+         if (dataFormat.Destination == Pointer.NULL) brush = Solarized.Brushes.Red;
+         int startPoint = dataFormat.Position == 0 ? 5 : 0;
+         int endPoint = (int)HexContent.CellWidth - (dataFormat.Position == 3 ? 5 : 0);
+         double y = (int)HexContent.CellHeight - 1.5;
+         context.DrawLine(new Pen(brush, 1), new Point(startPoint, y), new Point(endPoint, y));
+
+         if (dataFormat.Position != 1) return;
+
+         var typeface = new Typeface("Consolas");
+         var destination = dataFormat.DestinationName;
+         if (string.IsNullOrEmpty(destination)) destination = dataFormat.Destination.ToString("X6");
+         if (destination.Length > 11) destination = destination.Substring(0, 10) + "…";
+         destination = $"<{destination}>";
+         var xOffset = 21 - destination.Length * 4.2; // centering
+         var text = new FormattedText(
+            destination,
+            CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            typeface,
+            FontSize,
+            brush,
+            1.0);
+
+         context.DrawText(text, new Point(CellTextOffset.X + xOffset, CellTextOffset.Y));
+      }
+
+      private static readonly Geometry Triangle = Geometry.Parse("M0,5 L3,0 6,5");
+      public void Visit(Anchor anchor, byte data) {
+         anchor.OriginalFormat.Visit(this, data);
+         context.DrawGeometry(null, new Pen(Solarized.Brushes.Blue, 2), Triangle);
       }
 
       private void VerifyNoneVisualCache() {

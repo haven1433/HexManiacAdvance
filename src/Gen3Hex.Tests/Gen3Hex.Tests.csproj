@@ -61,6 +61,7 @@
     <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubFileSystem.cs" />
     <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubTabContent.cs" />
     <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubViewPort.cs" />
+    <Compile Include="ModelTests.cs" />
     <Compile Include="NavigationTests.cs" />
     <Compile Include="ViewPortCursorTests.cs" />
     <Compile Include="ViewPortEditTests.cs" />

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Linq;
 using System.Windows.Input;
 
 namespace HavenSoft.Gen3Hex.Core.ViewModels {
@@ -57,6 +58,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public ICommand Back => null;
       public ICommand Forward => null;
       public ICommand Close => close;
+
+      public IModel Model => null;
 
 #pragma warning disable 0067 // it's ok if events are never used
       public event EventHandler<string> OnError;
@@ -122,6 +125,14 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
       public void ConsiderReload(IFileSystem fileSystem) { }
 
+      public void FindAllSources(int x, int y) {
+         if (y < 0 || y > height || x < 0 || x > width) return;
+         var (childIndex, line) = GetChildLine(y);
+         if (line == -1 || childIndex >= children.Count) return;
+
+         children[childIndex].FindAllSources(x, y);
+      }
+
       private void NotifyCollectionChanged() {
          if (children.Count == 0) return;
          UpdateHeaders();
@@ -153,5 +164,6 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          }
          return (childIndex, line);
       }
+
    }
 }

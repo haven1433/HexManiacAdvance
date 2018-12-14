@@ -43,6 +43,8 @@
     <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubCommand.cs" />
     <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubDisposable.cs" />
     <Compile Include="ICommandExtensions.cs" />
+    <Compile Include="Models\FormattedRun.cs" />
+    <Compile Include="Models\DataFormatModel.cs" />
     <Compile Include="NumericExtensions.cs" />
     <Compile Include="Models\Enums.cs" />
     <Compile Include="Models\IFileSystem.cs" />
@@ -60,7 +62,7 @@
     <Compile Include="ViewModels\SearchResultsViewPort.cs" />
     <Compile Include="ViewModels\Selection.cs" />
     <Compile Include="ViewModels\ViewModelCore.cs" />
-    <Compile Include="ViewModels\ViewPort.cs" />    
+    <Compile Include="ViewModels\ViewPort.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

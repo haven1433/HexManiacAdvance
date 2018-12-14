@@ -2,6 +2,8 @@
 // Data Formats use the Visitor design pattern to allow things like rendering of the data
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace HavenSoft.Gen3Hex.Core.ViewModels.DataFormats {
    public interface IDataFormat : IEquatable<IDataFormat> {
@@ -12,6 +14,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels.DataFormats {
       void Visit(Undefined dataFormat, byte data);
       void Visit(None dataFormat, byte data);
       void Visit(UnderEdit dataFormat, byte data);
+      void Visit(Pointer pointer, byte data);
+      void Visit(Anchor anchor, byte data);
    }
 
    /// <summary>
@@ -60,5 +64,43 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels.DataFormats {
 
          return new UnderEdit(format, text);
       }
+   }
+
+   public class Pointer : IDataFormat {
+      public const int NULL = -0x08000000;
+      public int Source { get; }      // 6 hex digits
+      public int Position { get; }    // 0 through 3
+      public int Destination { get; } // 6 hex digits
+      public string DestinationName { get; } // null if there is no name for that anchor
+
+      public Pointer(int source, int positionInPointer, int destination, string destinationName) {
+         Source = source;
+         Position = positionInPointer;
+         Destination = destination;
+         DestinationName = destinationName;
+      }
+
+      public bool Equals(IDataFormat other) {
+         if (!(other is Pointer pointer)) return false;
+         return pointer.Source == Source && pointer.Position == Position && pointer.Destination == Destination;
+      }
+
+      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
+   }
+
+   public class Anchor : IDataFormat {
+      public IDataFormat OriginalFormat { get; }
+      public string Name { get; }
+      public string Format { get; }
+      public IReadOnlyList<int> Sources { get; }
+
+      public Anchor(IDataFormat original, string name, string format, IReadOnlyList<int> sources) => (OriginalFormat, Name, Format, Sources) = (original, name, format, sources);
+
+      public bool Equals(IDataFormat other) {
+         if (!(other is Anchor anchor)) return false;
+         return anchor.Name == Name && anchor.Format == Format && anchor.Sources.SequenceEqual(Sources) && anchor.OriginalFormat.Equals(OriginalFormat);
+      }
+
+      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 }

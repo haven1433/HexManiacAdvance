@@ -203,7 +203,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
       [Fact]
       public void CannotMoveSelectEndFarPassedEndOfFile() {
-         var selection = new Selection(new ScrollRegion { DataLength = 8 });
+         var selection = new Selection(new ScrollRegion { DataLength = 8 }, new BasicModel(new byte[8]));
 
          selection.SelectionEnd = new Point(3, 3);
 

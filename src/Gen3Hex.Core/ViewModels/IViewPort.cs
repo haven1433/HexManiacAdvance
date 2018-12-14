@@ -18,11 +18,13 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       ICommand Scroll { get; } // parameter: Direction to scroll
 
       HexElement this[int x, int y] { get; }
+      IModel Model { get; }
       bool IsSelected(Point point);
 
       IReadOnlyList<int> Find(string search);
       IChildViewPort CreateChildView(int offset);
       void FollowLink(int x, int y);
       void ConsiderReload(IFileSystem fileSystem);
+      void FindAllSources(int x, int y);
    }
 }
