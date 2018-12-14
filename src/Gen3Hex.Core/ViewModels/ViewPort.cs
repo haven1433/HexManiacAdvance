@@ -480,6 +480,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                PrepareForMultiSpaceEdit(point, 4);
                return true;
             }
+            // TODO working here: detect the start of a string
          } else if (underEdit.CurrentText.StartsWith("<")) {
             return char.IsLetterOrDigit(input) || input == '>';
          } else if (underEdit.CurrentText.StartsWith("^")) {
@@ -656,7 +657,13 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             if (!string.IsNullOrEmpty(pointer.DestinationName)) Result = $"<{pointer.DestinationName}>";
          }
 
-         public void Visit(DataFormats.Anchor anchor, byte data) => anchor.OriginalFormat.Visit(this, data);
+         public void Visit(Anchor anchor, byte data) => anchor.OriginalFormat.Visit(this, data);
+
+         public void Visit(PCS pcs, byte data) {
+            Result = pcs.ThisCharacter;
+         }
+
+         public void Visit(EscapedPCS pcs, byte data) => Visit((None)null, data);
       }
 
       /// <summary>
@@ -684,7 +691,11 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             buffer.WriteValue(start, 0);
          }
 
-         public void Visit(DataFormats.Anchor anchor, byte data) => anchor.OriginalFormat.Visit(this, data);
+         public void Visit(Anchor anchor, byte data) => anchor.OriginalFormat.Visit(this, data);
+
+         public void Visit(PCS pcs, byte data) => buffer[index] = 0xFF;
+
+         public void Visit(EscapedPCS pcs, byte data) => buffer[index] = 0xFF;
       }
    }
 }

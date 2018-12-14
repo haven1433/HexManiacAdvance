@@ -5,7 +5,7 @@ using System;
 using Xunit;
 
 namespace HavenSoft.Gen3Hex.Tests {
-   public class ModelTests {
+   public class PointerModelTests {
       [Fact]
       public void PointerModelFindsNoPointersInRandomData() {
          var rnd = new Random(0xCafe);

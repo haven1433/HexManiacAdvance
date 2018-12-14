@@ -78,4 +78,21 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          return pointer;
       }
    }
+
+   public class PCSRun : BaseRun {
+      public override int Length { get; }
+
+      public PCSRun(int start, int length, IReadOnlyList<int> sources = null) : base(start, sources) => Length = length;
+
+      public override IDataFormat CreateDataFormat(IModel data, int index) {
+         bool isEscaped = index > Start && data[index - 1] == PCSString.Escape;
+         var fullString = PCSString.Convert(data, Start, Length);
+         if (isEscaped) {
+            return new EscapedPCS(Start, index-Start, fullString, data[Start + index]);
+         } else {
+            var pcs = new PCS(Start, index - Start, fullString, PCSString.Convert(data, index, 1));
+            return pcs;
+         }
+      }
+   }
 }

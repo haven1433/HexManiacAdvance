@@ -45,6 +45,7 @@
     <Compile Include="ICommandExtensions.cs" />
     <Compile Include="Models\FormattedRun.cs" />
     <Compile Include="Models\DataFormatModel.cs" />
+    <Compile Include="Models\PCSString.cs" />
     <Compile Include="NumericExtensions.cs" />
     <Compile Include="Models\Enums.cs" />
     <Compile Include="Models\IFileSystem.cs" />

@@ -1,0 +1,82 @@
+﻿using System.Collections.Generic;
+
+namespace HavenSoft.Gen3Hex.Core.Models {
+   public class PCSString {
+      public static IReadOnlyList<string> PCS;
+
+      public static readonly byte Escape = 0xFD;
+
+      static PCSString() {
+         var pcs = new string[0x100];
+         pcs[0] = " ";
+
+         pcs[0x1B] = "é";
+         pcs[0x2D] = "&";
+
+         Fill(pcs, "\\pk \\mn \\Po \\Ke \\Bl \\Lo \\Ck", 0x53);
+
+         Fill(pcs, "%()", 0x5B);
+         Fill(pcs, "0123456789", 0xA1);
+         // \. -> ellipsis   \qo \qc -> quote open/close    \sm \sf -> male/female symbols
+         Fill(pcs, "! ? . - ‧ \\. \\qo \\qc ‘ ' \\sm \\sf $ , * /", 0xAB);
+
+         Fill(pcs, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 0XBB);
+         Fill(pcs, "abcdefghijklmnopqrstuvwxyz", 0xD5);
+
+         pcs[0xF0] = ":";
+         pcs[0xF9] = "\\9";
+         pcs[0xFA] = "\\l";
+         pcs[0xFB] = "\\pn";
+         pcs[0xFC] = "\\CC";
+         pcs[0xFD] = "\\\\"; // escape character: next byte is interpreted raw
+         pcs[0xFE] = "\\n";
+         pcs[0xFF] = "\"";
+
+         PCS = pcs;
+      }
+
+      public static string Convert(IReadOnlyList<byte> data, int startIndex, int length) {
+         var result = string.Empty;
+         for (int i = 0; i < length; i++) {
+            if (PCS[data[startIndex + i]] == null) return null;
+            result += PCS[data[startIndex + i]];
+            if (data[startIndex + i] == Escape) {
+               result += data[startIndex + i + 1].ToString("X2");
+               i++;
+            }
+         }
+         return result;
+      }
+
+      public static List<byte> Convert(string input) {
+         var result = new List<byte>();
+
+         int index = 0;
+         while (index < input.Length) {
+            for (int i = 0; i < 0x100; i++) {
+               if (PCS[i] == null) continue;
+               if (!input.Substring(index).StartsWith(PCS[i])) continue;
+               result.Add((byte)i);
+               index += PCS[i].Length - 1;
+               break;
+            }
+            index++; // always increment by one, even if the character was not found. This lets us skip past newlines and such.
+         }
+
+         return result;
+      }
+
+      private static void Fill(string[] array, string characters, int startIndex) {
+         if (characters.Contains(" ")) {
+            foreach (var part in characters.Split(' ')) {
+               array[startIndex] = part;
+               startIndex++;
+            }
+         } else {
+            for (int i = 0; i < characters.Length; i++) {
+               array[startIndex + i] = characters.Substring(i, 1);
+            }
+         }
+      }
+   }
+}
