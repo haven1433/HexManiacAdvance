@@ -21,6 +21,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       void ObserveRunWritten(IFormattedRun run);
       void ObserveAnchorWritten(int location, string anchorName, string anchorFormat);
+      IFormattedRun RelocateForExpansion(IFormattedRun run, int minimumLength);
       void ClearFormat(int start, int length);
       string Copy(int start, int length);
 
@@ -73,6 +74,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       public abstract void ObserveRunWritten(IFormattedRun run);
 
+      public abstract IFormattedRun RelocateForExpansion(IFormattedRun run, int minimumLength);
+
       public int ReadValue(int index) {
          int word = 0;
          word |= RawData[index + 0] << 0;
@@ -96,7 +99,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
    }
 
-   public class PointerModel : BaseModel {
+   public class PointerAndStringModel : BaseModel {
       // list of runs, in sorted address order. Includes no names
       private readonly List<IFormattedRun> runs = new List<IFormattedRun>();
 
@@ -110,11 +113,16 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       private readonly Dictionary<string, List<int>> unmappedNameToSources = new Dictionary<string, List<int>>();
       private readonly Dictionary<int, string> sourceToUnmappedName = new Dictionary<int, string>();
 
-      public PointerModel(byte[] data) : base(data) {
+      public PointerAndStringModel(byte[] data) : base(data) {
+         Initialize();
+      }
+
+      private void Initialize() {
          var pointersForDestination = new Dictionary<int, List<int>>();
          var destinationForSource = new SortedList<int, int>();
          SearchForPointers(pointersForDestination, destinationForSource);
-         WriteRuns(pointersForDestination, destinationForSource);
+         WritePointerRuns(pointersForDestination, destinationForSource);
+         WriteStringRuns(pointersForDestination);
          ResolveConflicts();
       }
 
@@ -130,7 +138,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          }
       }
 
-      private void WriteRuns(Dictionary<int, List<int>> pointersForDestination, SortedList<int, int> destinationForSource) {
+      private void WritePointerRuns(Dictionary<int, List<int>> pointersForDestination, SortedList<int, int> destinationForSource) {
          var destinations = pointersForDestination.Keys.OrderBy(i => i).GetEnumerator();
          var sources = destinationForSource.Keys.GetEnumerator();
 
@@ -159,6 +167,17 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          while (moreSources) {
             runs.Add(new PointerRun(sources.Current));
             moreSources = sources.MoveNext();
+         }
+      }
+
+      private void WriteStringRuns(Dictionary<int, List<int>> pointersForDestination) {
+         var destinations = pointersForDestination.Keys.OrderBy(i => i).GetEnumerator();
+         destinations.MoveNext();
+         foreach (var destination in pointersForDestination.Keys.OrderBy(i => i)) {
+            var length = PCSString.ReadString(RawData, destination);
+            if (length < 2) continue;
+            if (GetNextRun(destination + 1).Start < destination + length) continue;
+            ObserveRunWritten(new PCSRun(destination, length, pointersForDestination[destination]));
          }
       }
 
@@ -295,11 +314,81 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          }
 
          index = BinarySearch(location);
-         if (index < 0) {
-            runs.Insert(~index, new NoInfoRun(location, sources));
+         IFormattedRun newRun;
+         if (anchorFormat == "\"\"") {
+            newRun = new PCSRun(location, PCSString.ReadString(this, location), sources);
          } else {
-            runs[index].MergeAnchor(sources); // merging will give us anything that already pointed here for free
+            newRun = new NoInfoRun(location, sources);
          }
+
+         ObserveRunWritten(newRun);
+      }
+
+      public override IFormattedRun RelocateForExpansion(IFormattedRun run, int minimumLength) {
+         if (minimumLength <= run.Length) return run;
+         if (CanSafelyUse(run.Start + run.Length, run.Start + minimumLength)) return run;
+         var start = 0x100;
+         var runIndex = 0;
+         while (start < RawData.Length - minimumLength) {
+            // catch the currentRun up to where we are
+            while (runIndex < runs.Count && runs[runIndex].Start < start) runIndex++;
+            var currentRun = runIndex < runs.Count ? runs[runIndex] : NoInfoRun.NullRun;
+            if (currentRun == run) { runIndex++; continue; } // special case: if the found run is our current run, ignore it, since it'll be moving.
+
+            // if the space we want intersects the current run, then skip past the current run
+            if (start + minimumLength > currentRun.Start) {
+               start = currentRun.Start + currentRun.Length + 8;
+               start -= start % 4;
+               continue;
+            }
+
+            // if the space we want already has some data in it that we don't have a run for, skip it
+            var firstConflictingData = Enumerable.Range(start, minimumLength).Cast<int?>().FirstOrDefault<int?>(i => RawData[(int)i] != 0xFF);
+            if (firstConflictingData != null) {
+               start += (int)firstConflictingData + 8;
+               start -= start % 4;
+               continue;
+            }
+
+            // found a good spot!
+            // move the run
+            return MoveRun(run, start);
+         }
+         return null;
+      }
+
+      private IFormattedRun MoveRun(IFormattedRun run, int newStart) {
+         // repoint
+         foreach (var source in run.PointerSources) {
+            WritePointer(source, newStart);
+         }
+         // move data
+         for (int i = 0; i < run.Length; i++) {
+            RawData[newStart + i] = RawData[run.Start + i];
+            RawData[run.Start + i] = 0xFF;
+         }
+
+         if (run is PCSRun pcs) {
+            var newRun = new PCSRun(newStart, run.Length, run.PointerSources);
+            int index = BinarySearch(run.Start);
+            runs.RemoveAt(index);
+            int newIndex = BinarySearch(newStart);
+            runs.Insert(~newIndex, newRun);
+            return newRun;
+         } else {
+            throw new NotImplementedException();
+         }
+      }
+
+      private bool CanSafelyUse(int rangeStart, int rangeEnd) {
+         // only safe to use if there is no run in that range
+         var nextRun = GetNextRun(rangeStart);
+         if (nextRun.Start < rangeEnd) return false;
+
+         // make sure the data is clear
+         for (int i = rangeStart; i < rangeEnd; i++) if (RawData[i] != 0xFF) return false;
+
+         return true;
       }
 
       public override void ClearFormat(int originalStart, int length) {
@@ -399,12 +488,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          addressForAnchor.Clear();
          anchorForAddress.Clear();
          runs.Clear();
-
-         var pointersForDestination = new Dictionary<int, List<int>>();
-         var destinationForSource = new SortedList<int, int>();
-         SearchForPointers(pointersForDestination, destinationForSource);
-         WriteRuns(pointersForDestination, destinationForSource);
-         ResolveConflicts();
+         Initialize();
       }
    }
 
@@ -417,6 +501,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       public override IFormattedRun GetNextRun(int dataIndex) => null;
       public override void ObserveRunWritten(IFormattedRun run) { }
       public override void ObserveAnchorWritten(int location, string anchorName, string anchorFormat) { }
+      public override IFormattedRun RelocateForExpansion(IFormattedRun run, int minimumLength) => throw new NotImplementedException();
       public override void ClearFormat(int start, int length) { }
 
       public override string Copy(int start, int length) {

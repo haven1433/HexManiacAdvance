@@ -13,7 +13,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          rnd.NextBytes(buffer);
          for (int i = 0; i < buffer.Length; i++) if (buffer[i] == 0x08) buffer[i] = 0x10;
 
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
 
          Assert.Equal(NoInfoRun.NullRun, model.GetNextRun(0));
       }
@@ -26,10 +26,10 @@ namespace HavenSoft.Gen3Hex.Tests {
          for (int i = 0; i < buffer.Length; i++) if (buffer[i] == 0x08) buffer[i] = 0x10;
 
          // write two specific pointers
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
          model.WritePointer(0x204, 0x4050);
          model.WritePointer(0x4070, 0x101C);
-         model = new PointerModel(buffer);
+         model = new PointerAndStringModel(buffer);
 
          Assert.Equal(0x204, model.GetNextRun(0).Start);
          Assert.IsType<PointerRun>(model.GetNextRun(0x206));
@@ -44,9 +44,9 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void PointerModelFindsSelfReferences() {
          var buffer = new byte[0x20];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
          model.WritePointer(0xC, 0xC);
-         model = new PointerModel(buffer);
+         model = new PointerAndStringModel(buffer);
 
          var run = model.GetNextRun(0);
          var nextRun = model.GetNextRun(run.Start + run.Length);
@@ -58,10 +58,10 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void PointerModelMergesDuplicates() {
          var buffer = new byte[0x20];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
          model.WritePointer(0x0C, 0x14);
          model.WritePointer(0x1C, 0x14);
-         model = new PointerModel(buffer);
+         model = new PointerAndStringModel(buffer);
 
          var run = model.GetNextRun(0x14);
          Assert.Equal(2, run.PointerSources.Count);
@@ -70,7 +70,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void ModelUpdatesWhenViewPortChanges() {
          var buffer = new byte[0x100];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model);
 
          viewPort.Edit("<000020>");
@@ -82,7 +82,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void WritingNamedAnchorFollowedByPointerToNameWorks() {
          var buffer = new byte[0x100];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model);
 
          viewPort.SelectionStart = new Point(0, 1);
@@ -96,7 +96,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void WritingPointerToNameFollowedByNamedAnchorWorks() {
          var buffer = new byte[0x100];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model);
 
          viewPort.SelectionStart = new Point(0, 2);
@@ -110,7 +110,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CanWriteAnchorToSameLocationAsPointerWithoutRemovingPointer() {
          var buffer = new byte[0x100];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model);
 
          viewPort.SelectionStart = new Point(0, 2);
@@ -124,7 +124,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CanWriteAnchorToSameLocationAsPointerPointingToThatAnchor() {
          var buffer = new byte[0x100];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model);
 
          viewPort.SelectionStart = new Point(0, 2);
@@ -139,7 +139,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void WritingAnAnchorUpdatesPointersToUseThatName() {
          var buffer = new byte[0x100];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model);
 
          viewPort.SelectionStart = new Point(0, 2);
@@ -153,7 +153,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void WritingAPointerOverlappingAPointerRemovesOriginalPointer() {
          var buffer = new byte[0x100];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
 
          model.WritePointer(16, 100);
          model.ObserveRunWritten(new PointerRun(16));
@@ -175,7 +175,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void WritingAnchorIntoAPointerRemovesThatPointer() {
          var buffer = new byte[0x100];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
 
          model.WritePointer(16, 12);
          model.ObserveRunWritten(new PointerRun(16));
@@ -187,7 +187,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void WritingOverAnAnchorDeletesThatAnchor() {
          var buffer = new byte[0x100];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
 
          model.WritePointer(16, 32);
          model.ObserveRunWritten(new PointerRun(16));
@@ -204,7 +204,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void PointerCanPointToNameAfterThatNameGetsDeleted() {
          var buffer = new byte[0x100];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 16, Height = 16 };
 
          viewPort.SelectionStart = new Point(0, 1);
@@ -225,7 +225,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void PointerGetsSetToZeroAfterAnchorGetsDeleted() {
          var buffer = new byte[0x100];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 16, Height = 16 };
 
          viewPort.SelectionStart = new Point(0, 1);
@@ -246,7 +246,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void AnchorCarriesSourceInformation() {
          var buffer = new byte[0x100];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 16, Height = 16 };
 
          viewPort.SelectionStart = new Point(0, 1);
@@ -258,7 +258,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void StartingAnAnchorAndGivingItNoNameClearsAnyAnchorNameAtThatPosition() {
          var buffer = new byte[0x100];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.SelectionStart = new Point(0, 1);
@@ -277,7 +277,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void BackspaceClearsDataButNotFormats() {
          var buffer = new byte[0x100];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.SelectionStart = new Point(0, 1);
@@ -300,7 +300,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void WritingOverTwoPointersWorks() {
          var buffer = new byte[0x100];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.SelectionStart = new Point(0, 1);
@@ -327,7 +327,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void PointerToUnknownLocationShowsUpDifferent() {
          var buffer = new byte[0x100];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.SelectionStart = new Point(2, 1);
@@ -341,7 +341,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void AddingANewNamedPointerToNoLocationOverExistingNamedPointerToNoLocationWorks() {
          var buffer = new byte[0x100];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.SelectionStart = new Point(2, 1);
@@ -356,7 +356,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CanGotoAnchorName() {
          var buffer = new byte[0x100];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          int errorCalls = 0;
@@ -372,7 +372,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CanFindPointer() {
          var buffer = new byte[0x100];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.SelectionStart = new Point(4, 1);
@@ -385,7 +385,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CanUsePointerAsLink() {
          var buffer = new byte[0x200];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.SelectionStart = new Point(4, 1);
@@ -398,7 +398,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void FindAllSourcesWorks() {
          var buffer = new byte[0x200];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
          var editor = new EditorViewModel(new StubFileSystem());
          editor.Add(viewPort);
@@ -415,7 +415,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void NewAnchorWithSameNameMovesPointersToNewAnchor() {
          var buffer = new byte[0x200];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          // put some pointers in the file
@@ -440,7 +440,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       public void CanCopyAndPastePointers() {
          var buffer = new byte[0x200];
          var fileSystem = new StubFileSystem();
-         var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), new PointerModel(buffer)) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), new PointerAndStringModel(buffer)) { Width = 0x10, Height = 0x10 };
 
          viewPort.SelectionStart = new Point(0, 2);
 
@@ -456,7 +456,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CanWriteNullPointer() {
          var buffer = new byte[0x200];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
 
          model.ObserveRunWritten(new PointerRun(0x10));
 
@@ -467,7 +467,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CanWriteNameOverNullPointer() {
          var buffer = new byte[0x200];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
          var fileSystem = new StubFileSystem();
          var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
@@ -482,7 +482,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void FormatClearDoesNotClearAnchorIfAnchorIsAtStartOfClear() {
          var buffer = new byte[0x200];
-         var model = new PointerModel(buffer);
+         var model = new PointerAndStringModel(buffer);
 
          model.ObserveAnchorWritten(0x10, "bob", string.Empty);
          model.ClearFormat(0x10, 1);

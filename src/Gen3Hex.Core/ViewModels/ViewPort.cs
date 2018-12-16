@@ -480,13 +480,29 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                PrepareForMultiSpaceEdit(point, 4);
                return true;
             }
-            // TODO working here: detect the start of a string
+
+            if (element.Format is PCS) {
+               if (input == '"') return true;
+               return PCSString.PCS.Any(str => str != null && str.StartsWith(input.ToString()));
+            }
+
+            if (element.Format is Anchor anchorFormat && anchorFormat.OriginalFormat is PCS) {
+               if (input == '"') return true;
+               return PCSString.PCS.Any(str => str != null && str.StartsWith(input.ToString()));
+            }
          } else if (underEdit.CurrentText.StartsWith("<")) {
             return char.IsLetterOrDigit(input) || input == '>';
          } else if (underEdit.CurrentText.StartsWith("^")) {
-            return char.IsLetterOrDigit(input) || char.IsWhiteSpace(input);
+            return char.IsLetterOrDigit(input) || char.IsWhiteSpace(input) || input == '"';
+         } else if (underEdit.OriginalFormat is Anchor anchorFormat && anchorFormat.OriginalFormat is PCS) {
+            if (input == '"') return true;
+            var currentText = underEdit.CurrentText;
+            if (currentText.StartsWith("\"")) currentText = currentText.Substring(1);
+            return PCSString.PCS.Any(str => str != null && str.StartsWith(currentText + input));
+         } else if (underEdit.OriginalFormat is PCS) {
+            if (input == '"') return true;
+            return PCSString.PCS.Any(str => str != null && str.StartsWith(underEdit.CurrentText + input));
          }
-
          // hex-format check
          return "0123456789ABCDEFabcdef".Contains(input);
       }
@@ -517,6 +533,23 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             if (!char.IsWhiteSpace(underEdit.CurrentText[underEdit.CurrentText.Length - 1])) return false;
             CompleteAnchorEdit(point);
             return true;
+         }
+
+         PCS stringFormat = null;
+         if (underEdit.OriginalFormat is Anchor anchorFormat) stringFormat = anchorFormat.OriginalFormat as PCS;
+         stringFormat = stringFormat ?? underEdit.OriginalFormat as PCS;
+         if (stringFormat != null) {
+            var currentText = underEdit.CurrentText;
+            if (currentText.StartsWith("\"")) currentText = currentText.Substring(1);
+            if (stringFormat.Position != 0 && underEdit.CurrentText == "\"") {
+               CompleteStringEdit(point);
+               return true;
+            } else if (PCSString.PCS.Any(str => str == currentText)) {
+               CompleteCharacterEdit(point);
+               return true;
+            }
+
+            return false;
          }
 
          if (underEdit.CurrentText.Length < 2) return false;
@@ -553,12 +586,78 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          var underEdit = (UnderEdit)currentView[point.X, point.Y].Format;
          var index = scroll.ViewPointToDataIndex(point);
          var name = underEdit.CurrentText.Substring(1).Trim();
-         if (name.ToLower() != "null") {
-            Model.ObserveAnchorWritten(index, name, string.Empty);
-         } else {
-            OnError(this, "'null' is a reserved word and cannot be used as an anchor name.");
+         string format = string.Empty;
+
+         if (name.Contains('"')) {
+            var split = name.IndexOf('"');
+            format = name.Substring(split);
+            name = name.Substring(0, split);
          }
+
+         if (format == "\"\"") {
+            var length = PCSString.ReadString(Model, index);
+            if (length < 0) {
+               OnError(this, $"Format was specified as a string, but no string was recognized.");
+               format = string.Empty;
+            }
+         } else if (format != string.Empty) {
+            OnError(this, $"Format {format} was not understood.");
+            format = string.Empty;
+         }
+
+         if (name.ToLower() == "null") {
+            OnError(this, "'null' is a reserved word and cannot be used as an anchor name.");
+         } else {
+            Model.ObserveAnchorWritten(index, name, format);
+         }
+
          ClearEdits(point);
+      }
+
+      private void CompleteStringEdit(Point point) {
+         // all the bytes are already correct, just move to the next space
+         ClearEdits(point);
+         var memoryLocation = scroll.ViewPointToDataIndex(point);
+         var run = (PCSRun)Model.GetNextRun(memoryLocation);
+         while (run.Start + run.Length > memoryLocation) {
+            Model[memoryLocation] = 0xFF;
+            memoryLocation++;
+            SilentScroll(memoryLocation);
+            var newRunLength = PCSString.ReadString(Model, run.Start);
+            Model.ObserveRunWritten(new PCSRun(run.Start, newRunLength, run.PointerSources));
+         }
+      }
+
+      private void CompleteCharacterEdit(Point point) {
+         var memoryLocation = scroll.ViewPointToDataIndex(point);
+         var element = currentView[point.X, point.Y];
+         var underEdit = (UnderEdit)element.Format;
+
+         var editText = underEdit.CurrentText;
+         if (editText.StartsWith("\"")) editText = editText.Substring(1);
+         var pcs = underEdit.OriginalFormat as PCS;
+         pcs = pcs ?? ((Anchor)underEdit.OriginalFormat).OriginalFormat as PCS;
+         var run = Model.GetNextRun(memoryLocation);
+         var byteValue = (byte)Enumerable.Range(0, 0x100).First(i => PCSString.PCS[i] == editText);
+
+         // if its the last character being edited, do some stuff
+         if (run.Length == pcs.Position + 1) {
+            // last character edit: might require relocation
+            var newRun = Model.RelocateForExpansion(run, run.Length + 1);
+            if (newRun != run) {
+               var offset = memoryLocation - scroll.ViewPointToDataIndex(new Point(0, 0));
+               selection.GotoAddress(newRun.Start - offset);
+               memoryLocation += newRun.Start - run.Start;
+               run = newRun;
+            }
+
+            Model[memoryLocation + 1] = 0xFF;
+            Model.ObserveRunWritten(new PCSRun(run.Start, run.Length + 1, run.PointerSources));
+         }
+
+         Model[memoryLocation] = byteValue;
+         ClearEdits(point);
+         SilentScroll(memoryLocation + 1);
       }
 
       private void CompleteHexEdit(Point point) {

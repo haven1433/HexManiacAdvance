@@ -66,6 +66,21 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          return result;
       }
 
+      /// <summary>
+      /// Figure out the length of a string starting at a given location in the data.
+      /// If the data doesn't represent a string, return -1.
+      /// </summary>
+      public static int ReadString(IReadOnlyList<byte> data, int start) {
+         int length = 0;
+         while (start + length < data.Count) {
+            if (PCS[data[start + length]] == null) return -1; // not valid string data
+            if (data[start + length] == 0xFF) return length + 1;  // end of string. Add one extra space for the end-of-stream byte
+            if (data[start + length] == Escape) length++;     // escape character, skip the next byte
+            length++;
+         }
+         return -1;
+      }
+
       private static void Fill(string[] array, string characters, int startIndex) {
          if (characters.Contains(" ")) {
             foreach (var part in characters.Split(' ')) {
