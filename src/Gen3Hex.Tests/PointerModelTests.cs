@@ -2,6 +2,7 @@
 using HavenSoft.Gen3Hex.Core.ViewModels;
 using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
 using System;
+using System.Linq;
 using Xunit;
 
 namespace HavenSoft.Gen3Hex.Tests {
@@ -488,6 +489,46 @@ namespace HavenSoft.Gen3Hex.Tests {
          model.ClearFormat(0x10, 1);
 
          Assert.Equal(0x10, model.GetNextRun(0x10).Start);
+      }
+
+      [Fact]
+      public void ArrowMovementWhileTypingAnchorInsertsAnchor() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.Edit("^bob"); // no trailing space: still under edit
+
+         viewPort.SelectionStart = new Point(1, 1);
+
+         var format = viewPort[0, 0].Format;
+         Assert.IsType<Anchor>(format);
+      }
+
+      [Fact]
+      public void EscapeWhileTypingAnchorCancelsChange() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.Edit("^bob"); // no trailing space: still under edit
+         viewPort.Edit(ConsoleKey.Escape);
+
+         Assert.IsType<None>(viewPort[0, 0].Format);
+         Assert.Equal(NoInfoRun.NullRun, model.GetNextRun(0));
+      }
+
+      [Fact]
+      public void StartingAnAnchorOverAnAnchorBringsUpTheExistingAnchorInfo() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.Edit("^bob ");
+         viewPort.Edit("^");
+
+         var format = (UnderEdit)viewPort[0, 0].Format;
+         Assert.Equal("^bob", format.CurrentText);
       }
 
       // TODO undo/redo

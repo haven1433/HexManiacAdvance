@@ -1,6 +1,7 @@
 ﻿using HavenSoft.Gen3Hex.Core.Models;
 using HavenSoft.Gen3Hex.Core.ViewModels;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -128,6 +129,25 @@ namespace HavenSoft.Gen3Hex.Tests {
 
          // pointer should be updated
          Assert.Equal(run.Start, model.ReadPointer(0xC));
+      }
+
+      [Fact]
+      public void AnchorWithNoNameIsNotValidIfNothingPointsToIt() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var errors = new List<string>();
+         viewPort.OnError += (sender, e) => errors.Add(e);
+
+         viewPort.Edit("^ ");
+         Assert.Equal(NoInfoRun.NullRun, model.GetNextRun(0));
+         Assert.Single(errors);
+
+         errors.Clear();
+
+         viewPort.Edit("^\"\" ");
+         Assert.Equal(NoInfoRun.NullRun, model.GetNextRun(0));
+         Assert.Single(errors);
       }
 
       // test: an anchor with no name is invalid if nothing points to it
