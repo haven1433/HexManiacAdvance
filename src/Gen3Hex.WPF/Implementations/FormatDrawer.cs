@@ -91,7 +91,8 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
             Solarized.Brushes.Violet,
             1.0);
 
-         context.DrawText(text, CellTextOffset);
+         var xOffset = (pcs.ThisCharacter.Length - 2) * 4;
+         context.DrawText(text, new Point(CellTextOffset.X + xOffset, CellTextOffset.Y));
       }
 
       public void Visit(EscapedPCS pcs, byte data) {

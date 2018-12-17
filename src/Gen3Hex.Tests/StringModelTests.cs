@@ -53,7 +53,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          editor.Add(viewPort);
 
          viewPort.Edit("^\"\" ");
-         Assert.False(string.IsNullOrEmpty(editor.ErrorMessage));
+         Assert.False(string.IsNullOrEmpty(editor.ErrorMessage)); // should get an error, because the data located at the cursor could not convert to a string.
       }
 
       [Fact]
@@ -118,6 +118,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          // the run was moved
          var run = model.GetNextRun(0x10);
          Assert.IsType<PCSRun>(run);
+         Assert.Equal(24, run.Length);
 
          // the original data is now cleared
          Assert.Equal(0xFF, buffer[0]);
@@ -129,8 +130,18 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Equal(run.Start, model.ReadPointer(0xC));
       }
 
+      // test: an anchor with no name is invalid if nothing points to it
+
+      // test: leading character of string knows it needs to render the opening "
+
+      // test: string anchor is invalid when there is no end character before the next anchor
+
+      // test: backspace
+
       // TODO escape sequences
 
       // TODO copy/paste
+
+      // TODO Find
    }
 }

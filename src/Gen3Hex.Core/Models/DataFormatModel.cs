@@ -343,7 +343,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             }
 
             // if the space we want already has some data in it that we don't have a run for, skip it
-            var firstConflictingData = Enumerable.Range(start, minimumLength).Cast<int?>().FirstOrDefault<int?>(i => RawData[(int)i] != 0xFF);
+            var firstConflictingData = Enumerable.Range(start, minimumLength).Cast<int?>().FirstOrDefault<int?>(i => RawData[(int)i] != 0xFF && RawData[(int)i] != 0x00);
             if (firstConflictingData != null) {
                start += (int)firstConflictingData + 8;
                start -= start % 4;
@@ -386,7 +386,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          if (nextRun.Start < rangeEnd) return false;
 
          // make sure the data is clear
-         for (int i = rangeStart; i < rangeEnd; i++) if (RawData[i] != 0xFF) return false;
+         for (int i = rangeStart; i < rangeEnd; i++) if (RawData[i] != 0xFF && RawData[i] != 0x00) return false;
 
          return true;
       }

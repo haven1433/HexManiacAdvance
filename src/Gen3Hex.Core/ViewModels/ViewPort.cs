@@ -646,7 +646,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             var newRun = Model.RelocateForExpansion(run, run.Length + 1);
             if (newRun != run) {
                var offset = memoryLocation - scroll.ViewPointToDataIndex(new Point(0, 0));
-               selection.GotoAddress(newRun.Start - offset);
+               selection.GotoAddress(newRun.Start + pcs.Position - offset);
                memoryLocation += newRun.Start - run.Start;
                run = newRun;
             }
@@ -656,7 +656,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          }
 
          Model[memoryLocation] = byteValue;
-         ClearEdits(point);
+         RefreshBackingData();
          SilentScroll(memoryLocation + 1);
       }
 
