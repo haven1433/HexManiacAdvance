@@ -614,6 +614,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             if (length < 0) {
                OnError(this, $"Format was specified as a string, but no string was recognized.");
                format = string.Empty;
+            } else if (SpanContainsAnchor(index, length)) {
+               OnError(this, $"Format was specified as a string, but a string would overlap the next anchor.");
+               format = string.Empty;
             }
          } else if (format != string.Empty) {
             OnError(this, $"Format {format} was not understood.");
@@ -633,6 +636,32 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          }
 
          ClearEdits(point);
+      }
+
+      private bool SpanContainsAnchor(int start, int length) {
+         var run = Model.GetNextRun(start + 1);
+
+         // if we're starting in the middle of a run, get the next one
+         if (run.Start <= start) {
+            length -= run.Length + run.Start - start;
+            start = run.Start + run.Length;
+            run = Model.GetNextRun(start);
+         }
+
+         // move start forward to the start of the run
+         length -= run.Start - start;
+         start = run.Start;
+
+         // check all the runs in the range for pointer sources / destination names
+         while (length > 0) {
+            if (run.PointerSources.Count > 0) return true;
+            if (!string.IsNullOrEmpty(Model.GetAnchorFromAddress(-1, run.Start))) return true;
+            run = Model.GetNextRun(run.Start + run.Length);
+            length -= run.Start - start;
+            start = run.Start;
+         }
+
+         return false;
       }
 
       private void CompleteStringEdit(Point point) {

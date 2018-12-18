@@ -90,7 +90,9 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          if (isEscaped) {
             return new EscapedPCS(Start, index-Start, fullString, data[Start + index]);
          } else {
-            var pcs = new PCS(Start, index - Start, fullString, PCSString.Convert(data, index, 1));
+            var character = PCSString.Convert(data, index, 1);
+            if (index == Start) character = '"' + character; // include the opening quotation mark
+            var pcs = new PCS(Start, index - Start, fullString, character);
             return pcs;
          }
       }

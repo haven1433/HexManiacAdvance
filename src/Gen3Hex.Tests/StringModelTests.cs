@@ -1,5 +1,6 @@
 ﻿using HavenSoft.Gen3Hex.Core.Models;
 using HavenSoft.Gen3Hex.Core.ViewModels;
+using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -150,9 +151,40 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Single(errors);
       }
 
-      // test: leading character of string knows it needs to render the opening "
+      [Fact]
+      public void OpeningStringFormatIncludesOpeningQuote() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
-      // test: string anchor is invalid when there is no end character before the next anchor
+         viewPort.Edit("^bob\"\" \"Hello World!\"");
+         var anchor = (Anchor)viewPort[0, 0].Format;
+         var innerFormat = (PCS)anchor.OriginalFormat;
+         Assert.Equal("\"H", innerFormat.ThisCharacter);
+      }
+
+      [Fact]
+      public void CannotAddNewStringAnchorUnlessItEndsBeforeNextKnownAnchor() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         for (int i = 0; i < 0x10; i++) buffer[i] = 0x00;
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var errors = new List<string>();
+         viewPort.OnError += (sender, e) => errors.Add(e);
+
+         // add an anchor with some data on the 2nd line
+         viewPort.SelectionStart = new Point(0, 1);
+         viewPort.Edit("^bob\"\" \"Hello World!\"");
+
+         // but now, try to add a string format in the middle of all the 00 bytes
+         viewPort.SelectionStart = new Point(0, 0);
+         viewPort.Edit("^tom\"\" ");
+
+         // trying to add a string anchor should've failed
+         Assert.Single(errors);
+         Assert.Equal(0x10, model.GetNextRun(1).Start);
+         Assert.Equal(string.Empty, ((Anchor)viewPort[0, 0].Format).Format);
+      }
 
       // test: backspace
 
