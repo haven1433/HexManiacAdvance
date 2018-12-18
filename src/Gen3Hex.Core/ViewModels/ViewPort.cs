@@ -99,8 +99,13 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          if (location.X >= 0 && location.X < scroll.Width && location.Y >= 0 && location.Y < scroll.Height) {
             var element = currentView[location.X, location.Y];
             if (element.Format is UnderEdit underEdit) {
-               currentView[location.X, location.Y] = new HexElement(element.Value, underEdit.OriginalFormat);
-               NotifyCollectionChanged(ResetArgs);
+               if (underEdit.CurrentText.StartsWith("^")) {
+                  currentView[location.X, location.Y] = new HexElement(element.Value, underEdit.Edit(" "));
+                  if (!TryCompleteEdit(location)) ClearEdits(location);
+               } else {
+                  currentView[location.X, location.Y] = new HexElement(element.Value, underEdit.OriginalFormat);
+                  NotifyCollectionChanged(ResetArgs);
+               }
             }
          }
       }
@@ -277,6 +282,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       }
 
       public void Edit(ConsoleKey key) {
+         if (key == ConsoleKey.Escape) ClearEdits(SelectionStart);
          if (key != ConsoleKey.Backspace) return;
 
          var point = GetEditPoint();
@@ -442,8 +448,13 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
          SelectionStart = point;
 
-         var newFormat = element.Format.Edit(input.ToString());
-         currentView[point.X, point.Y] = new HexElement(element.Value, newFormat);
+         if (element == currentView[point.X, point.Y]) {
+            var newFormat = element.Format.Edit(input.ToString());
+            currentView[point.X, point.Y] = new HexElement(element.Value, newFormat);
+         } else {
+            // ShouldAcceptInput already did the work: nothing to change
+         }
+
          if (!TryCompleteEdit(point)) {
             // only need to notify collection changes if we didn't complete an edit
             NotifyCollectionChanged(ResetArgs);
@@ -478,6 +489,10 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                // anchor edits are actually 0 length
                // but lets give them 4 spaces to work with
                PrepareForMultiSpaceEdit(point, 4);
+               if (element.Format is Anchor anchor) {
+                  underEdit = new UnderEdit(anchor, "^" + anchor.Name + anchor.Format);
+                  currentView[point.X, point.Y] = new HexElement(element.Value, underEdit);
+               }
                return true;
             }
 
@@ -510,7 +525,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       private void PrepareForMultiSpaceEdit(Point point, int length) {
          var index = scroll.ViewPointToDataIndex(point);
          var endIndex = index + length - 1;
-         for (int i = 0; i < length; i++) {
+         for (int i = 1; i < length; i++) {
             point = scroll.DataIndexToViewPoint(index + i);
             if (point.Y >= Height) return;
             var element = currentView[point.X, point.Y];
@@ -605,8 +620,14 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             format = string.Empty;
          }
 
+         var nextRun = Model.GetNextRun(index);
+
          if (name.ToLower() == "null") {
             OnError(this, "'null' is a reserved word and cannot be used as an anchor name.");
+         } else if (name == string.Empty && nextRun.Start != index) {
+            OnError(this, "An anchor with nothing pointing to it must have a name.");
+         } else if (name == string.Empty && nextRun.PointerSources.Count == 0 && format != string.Empty) {
+            OnError(this, "An anchor with nothing pointing to it must have a name.");
          } else {
             Model.ObserveAnchorWritten(index, name, format);
          }

@@ -72,11 +72,7 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
          Focusable = true;
 
          void AddKeyCommand(string commandPath, object arg, Key key, ModifierKeys modifiers = ModifierKeys.None) {
-            var keyBinding = new KeyBinding {
-               CommandParameter = arg,
-               Key = key,
-               Modifiers = modifiers,
-            };
+            var keyBinding = new KeyBinding { CommandParameter = arg, Key = key, Modifiers = modifiers };
             BindingOperations.SetBinding(keyBinding, InputBinding.CommandProperty, new Binding(commandPath));
             InputBindings.Add(keyBinding);
          }
@@ -99,13 +95,18 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
          AddKeyCommand(nameof(IViewPort.Undo), null, Key.Z, ModifierKeys.Control);
          AddKeyCommand(nameof(IViewPort.Redo), null, Key.Y, ModifierKeys.Control);
 
-         InputBindings.Add(new KeyBinding {
-            Key = Key.Back,
-            Command = new StubCommand {
-               CanExecute = ICommandExtensions.CanAlwaysExecute,
-               Execute = arg => (ViewPort as ViewPort).Edit(ConsoleKey.Backspace)
-            }
-         });
+         void AddConsoleKeyCommand(Key key, ConsoleKey consoleKey) {
+            InputBindings.Add(new KeyBinding {
+               Key = key,
+               Command = new StubCommand {
+                  CanExecute = ICommandExtensions.CanAlwaysExecute,
+                  Execute = arg => (ViewPort as ViewPort)?.Edit(consoleKey)
+               }
+            });
+         }
+
+         AddConsoleKeyCommand(Key.Back, ConsoleKey.Backspace);
+         AddConsoleKeyCommand(Key.Escape, ConsoleKey.Escape);
       }
 
       protected override void OnMouseDown(MouseButtonEventArgs e) {

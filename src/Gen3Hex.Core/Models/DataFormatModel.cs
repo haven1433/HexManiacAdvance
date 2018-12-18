@@ -269,6 +269,11 @@ namespace HavenSoft.Gen3Hex.Core.Models {
                }
             }
          }
+
+         if (run is NoInfoRun && run.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(run.Start)) {
+            // this run has no useful information. Remove it.
+            runs.RemoveAt(index);
+         }
       }
 
       public override void ObserveAnchorWritten(int location, string anchorName, string anchorFormat) {

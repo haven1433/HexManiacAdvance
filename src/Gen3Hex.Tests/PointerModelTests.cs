@@ -266,13 +266,33 @@ namespace HavenSoft.Gen3Hex.Tests {
          viewPort.Edit("<bob>");
          viewPort.SelectionStart = new Point(0, 2);
          viewPort.Edit("^bob ");
-         viewPort.Edit("^ ");
+         viewPort.Edit("^");
+         viewPort.Edit(ConsoleKey.Backspace);
+         viewPort.Edit(ConsoleKey.Backspace);
+         viewPort.Edit(ConsoleKey.Backspace);
+         viewPort.Edit(" ");
 
          var format = (Pointer)viewPort[0, 1].Format;
          Assert.Equal(0x20, format.Destination);
          Assert.Equal(string.Empty, format.DestinationName);
          var address = model.GetAddressFromAnchor(-1, string.Empty);
          Assert.Equal(Pointer.NULL, address);
+      }
+
+      [Fact]
+      public void CanRemoveAnchorWithNoReferences() {
+         var buffer = new byte[0x100];
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.Edit("^bob ^");
+         viewPort.Edit(ConsoleKey.Backspace);
+         viewPort.Edit(ConsoleKey.Backspace);
+         viewPort.Edit(ConsoleKey.Backspace);
+         viewPort.Edit(" ");
+
+         Assert.Equal(NoInfoRun.NullRun, model.GetNextRun(0));
       }
 
       [Fact]

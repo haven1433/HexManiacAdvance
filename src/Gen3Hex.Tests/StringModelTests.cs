@@ -26,7 +26,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          var model = new PointerAndStringModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model);
 
-         viewPort.Edit("^\"\" \"Hello World!\"");
+         viewPort.Edit("^bob\"\" \"Hello World!\"");
 
          var run = (PCSRun)model.GetNextRun(0);
          Assert.Equal(13, run.Length);
@@ -63,7 +63,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          var model = new PointerAndStringModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
-         viewPort.Edit("^\"\" \"Hello World!\"");
+         viewPort.Edit("^bob\"\" \"Hello World!\"");
 
          viewPort.SelectionStart = new Point("Hello".Length, 0);
 
@@ -149,8 +149,6 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Equal(NoInfoRun.NullRun, model.GetNextRun(0));
          Assert.Single(errors);
       }
-
-      // test: an anchor with no name is invalid if nothing points to it
 
       // test: leading character of string knows it needs to render the opening "
 
