@@ -186,7 +186,21 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Equal(string.Empty, ((Anchor)viewPort[0, 0].Format).Format);
       }
 
-      // test: backspace
+      [Fact]
+      public void UsingBackspaceMidStringMakesTheStringEndThere() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         for (int i = 0; i < 0x10; i++) buffer[i] = 0x00;
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         // add an anchor with some data on the 2nd line
+         viewPort.SelectionStart = new Point(0, 1);
+         viewPort.Edit("^bob\"\" \"Hello World!\"");
+         viewPort.SelectionStart = new Point(6, 1);
+         viewPort.Edit(ConsoleKey.Backspace);
+
+         Assert.Equal("Hello\"", ((PCSString.Convert(model, 0x10, PCSString.ReadString(model, 0x10)))));
+      }
 
       // TODO escape sequences
 

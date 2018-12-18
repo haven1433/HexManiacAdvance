@@ -305,7 +305,12 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          }
 
          var run = Model.GetNextRun(index - 1) ?? new NoInfoRun(int.MaxValue);
-         if (run.Start <= index - 1 && run.Start + run.Length > index - 1) {
+         if (run is PCSRun pcs) {
+            for (int i = index - 1; i < run.Start + run.Length; i++) Model[i] = 0xFF;
+            var length = PCSString.ReadString(Model, run.Start);
+            Model.ObserveRunWritten(new PCSRun(run.Start, length, run.PointerSources));
+            RefreshBackingData();
+         } else if (run.Start <= index - 1 && run.Start + run.Length > index - 1) {
             // I want to do a backspace at the end of this run
             SelectionStart = scroll.DataIndexToViewPoint(run.Start);
             var cellToText = new ConvertCellToText(Model, run.Start);
