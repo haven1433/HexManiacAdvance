@@ -199,10 +199,21 @@ namespace HavenSoft.Gen3Hex.Tests {
          viewPort.SelectionStart = new Point(6, 1);
          viewPort.Edit(ConsoleKey.Backspace);
 
-         Assert.Equal("Hello\"", ((PCSString.Convert(model, 0x10, PCSString.ReadString(model, 0x10)))));
+         Assert.Equal("Hello\"", PCSString.Convert(model, 0x10, PCSString.ReadString(model, 0x10)));
       }
 
-      // TODO escape sequences
+      [Fact]
+      public void UsingEscapeSequencesWorks() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         for (int i = 0; i < 0x10; i++) buffer[i] = 0x00;
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.Edit("^bob\"\" \"Some Content \\\\03More Content\"");
+
+         Assert.Equal(28, model.GetNextRun(0).Length);
+         Assert.IsType<EscapedPCS>(viewPort[14, 0].Format);
+      }
 
       // TODO copy/paste
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 
 namespace HavenSoft.Gen3Hex.Core.Models {
    public class PCSString {
@@ -58,6 +59,10 @@ namespace HavenSoft.Gen3Hex.Core.Models {
                if (!input.Substring(index).StartsWith(PCS[i])) continue;
                result.Add((byte)i);
                index += PCS[i].Length - 1;
+               if (i == Escape) {
+                  result.Add(byte.Parse(input.Substring(index, 2), NumberStyles.HexNumber));
+                  index += 2;
+               }
                break;
             }
             index++; // always increment by one, even if the character was not found. This lets us skip past newlines and such.

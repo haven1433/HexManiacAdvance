@@ -16,6 +16,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
    /// A range of visible data that should be displayed.
    /// </summary>
    public class ViewPort : ViewModelCore, IViewPort {
+      private const string AllHexCharacters = "0123456789ABCDEFabcdef";
       private static readonly NotifyCollectionChangedEventArgs ResetArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
       private readonly StubCommand
          clear = new StubCommand(),
@@ -483,8 +484,19 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       private bool ShouldAcceptInput(Point point, HexElement element, char input) {
          var underEdit = element.Format as UnderEdit;
 
-         // pointer check
          if (underEdit == null) {
+            var innerFormat = element.Format;
+            if (innerFormat is Anchor anchorFormat) innerFormat = anchorFormat.OriginalFormat;
+
+            if (innerFormat is PCS) {
+               if (input == '"') return true;
+               return PCSString.PCS.Any(str => str != null && str.StartsWith(input.ToString()));
+            }
+
+            if (innerFormat is EscapedPCS) {
+               return AllHexCharacters.Contains(input);
+            }
+
             if (input == '<') {
                // pointer edits are 4 bytes long
                PrepareForMultiSpaceEdit(point, 4);
@@ -500,16 +512,6 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                }
                return true;
             }
-
-            if (element.Format is PCS) {
-               if (input == '"') return true;
-               return PCSString.PCS.Any(str => str != null && str.StartsWith(input.ToString()));
-            }
-
-            if (element.Format is Anchor anchorFormat && anchorFormat.OriginalFormat is PCS) {
-               if (input == '"') return true;
-               return PCSString.PCS.Any(str => str != null && str.StartsWith(input.ToString()));
-            }
          } else if (underEdit.CurrentText.StartsWith("<")) {
             return char.IsLetterOrDigit(input) || input == '>';
          } else if (underEdit.CurrentText.StartsWith("^")) {
@@ -523,8 +525,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             if (input == '"') return true;
             return PCSString.PCS.Any(str => str != null && str.StartsWith(underEdit.CurrentText + input));
          }
-         // hex-format check
-         return "0123456789ABCDEFabcdef".Contains(input);
+
+         return AllHexCharacters.Contains(input);
       }
 
       private void PrepareForMultiSpaceEdit(Point point, int length) {
@@ -570,6 +572,10 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             }
 
             return false;
+         } else if (underEdit.OriginalFormat is EscapedPCS escaped) {
+            if (underEdit.CurrentText.Length < 2) return false;
+            CompleteCharacterEdit(point);
+            return true;
          }
 
          if (underEdit.CurrentText.Length < 2) return false;
@@ -691,14 +697,19 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          var editText = underEdit.CurrentText;
          if (editText.StartsWith("\"")) editText = editText.Substring(1);
          var pcs = underEdit.OriginalFormat as PCS;
-         pcs = pcs ?? ((Anchor)underEdit.OriginalFormat).OriginalFormat as PCS;
+         pcs = pcs ?? (underEdit.OriginalFormat as Anchor)?.OriginalFormat as PCS;
+         var escaped = underEdit.OriginalFormat as EscapedPCS;
+         escaped = escaped ?? (underEdit.OriginalFormat as Anchor)?.OriginalFormat as EscapedPCS;
          var run = Model.GetNextRun(memoryLocation);
-         var byteValue = (byte)Enumerable.Range(0, 0x100).First(i => PCSString.PCS[i] == editText);
+         var byteValue = escaped != null ?
+            byte.Parse(underEdit.CurrentText, NumberStyles.HexNumber) :
+            (byte)Enumerable.Range(0, 0x100).First(i => PCSString.PCS[i] == editText);
 
          // if its the last character being edited, do some stuff
-         if (run.Length == pcs.Position + 1) {
+         if (pcs != null && run.Length == pcs.Position + 1) {
+            int extraBytesNeeded = editText == "\\\\" ? 2 : 1;
             // last character edit: might require relocation
-            var newRun = Model.RelocateForExpansion(run, run.Length + 1);
+            var newRun = Model.RelocateForExpansion(run, run.Length + extraBytesNeeded);
             if (newRun != run) {
                var offset = memoryLocation - scroll.ViewPointToDataIndex(new Point(0, 0));
                selection.GotoAddress(newRun.Start + pcs.Position - offset);
@@ -707,7 +718,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             }
 
             Model[memoryLocation + 1] = 0xFF;
-            Model.ObserveRunWritten(new PCSRun(run.Start, run.Length + 1, run.PointerSources));
+            if (editText == "\\\\") Model[memoryLocation + 2] = 0xFF;
+            Model.ObserveRunWritten(new PCSRun(run.Start, run.Length + extraBytesNeeded, run.PointerSources));
          }
 
          Model[memoryLocation] = byteValue;
