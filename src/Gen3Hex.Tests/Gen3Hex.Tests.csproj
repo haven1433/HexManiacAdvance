@@ -64,6 +64,7 @@
     <Compile Include="PointerModelTests.cs" />
     <Compile Include="NavigationTests.cs" />
     <Compile Include="StringModelTests.cs" />
+    <Compile Include="ToolTests.cs" />
     <Compile Include="ViewPortCursorTests.cs" />
     <Compile Include="ViewPortEditTests.cs" />
     <Compile Include="ViewPortSaveTests.cs" />

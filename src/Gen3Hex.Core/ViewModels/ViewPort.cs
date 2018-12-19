@@ -197,6 +197,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
       #endregion
 
+      public bool HasTools => true;
+      public IToolTrayViewModel Tools { get; }
+
       public ICommand Copy => copy;
       public ICommand Clear => clear;
 

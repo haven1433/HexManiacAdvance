@@ -26,5 +26,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       void FollowLink(int x, int y);
       void ConsiderReload(IFileSystem fileSystem);
       void FindAllSources(int x, int y);
+
+      bool HasTools { get; }
+      IToolTrayViewModel Tools { get; }
    }
 }
