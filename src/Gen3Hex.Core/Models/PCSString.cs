@@ -37,7 +37,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       }
 
       public static string Convert(IReadOnlyList<byte> data, int startIndex, int length) {
-         var result = string.Empty;
+         var result = "\"";
          for (int i = 0; i < length; i++) {
             if (PCS[data[startIndex + i]] == null) return null;
             result += PCS[data[startIndex + i]];

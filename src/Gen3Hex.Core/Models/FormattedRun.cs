@@ -8,6 +8,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       int Start { get; }
       int Length { get; }
       IReadOnlyList<int> PointerSources { get; }
+      string FormatString { get; }
       IDataFormat CreateDataFormat(IModel data, int index);
       void MergeAnchor(IReadOnlyList<int> sources);
       void RemoveSource(int source);
@@ -24,6 +25,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
    public class CompareFormattedRun : IFormattedRun {
       public int Start { get; }
       public int Length => 0;
+      public string FormatString => throw new NotImplementedException();
 
       public CompareFormattedRun(int start) => Start = start;
 
@@ -36,6 +38,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
    public abstract class BaseRun : IFormattedRun {
       public int Start { get; }
       public abstract int Length { get; }
+      public abstract string FormatString { get; }
       public IReadOnlyList<int> PointerSources { get; private set; }
 
       public BaseRun(int start, IReadOnlyList<int> sources = null) {
@@ -60,6 +63,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       public static NoInfoRun NullRun { get; } = new NoInfoRun(int.MaxValue);  // effectively a null object
 
       public override int Length => 1;
+      public override string FormatString => string.Empty;
 
       public NoInfoRun(int start, IReadOnlyList<int> sources = null) : base(start, sources) { }
 
@@ -68,6 +72,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
    public class PointerRun : BaseRun {
       public override int Length => 4;
+      public override string FormatString => string.Empty;
 
       public PointerRun(int start, IReadOnlyList<int> sources = null) : base(start, sources) { }
 
@@ -81,6 +86,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
    public class PCSRun : BaseRun {
       public override int Length { get; }
+      public override string FormatString => "\"\"";
 
       public PCSRun(int start, int length, IReadOnlyList<int> sources = null) : base(start, sources) => Length = length;
 
@@ -90,8 +96,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          if (isEscaped) {
             return new EscapedPCS(Start, index-Start, fullString, data[Start + index]);
          } else {
-            var character = PCSString.Convert(data, index, 1);
-            if (index == Start) character = '"' + character; // include the opening quotation mark
+            var character = PCSString.Convert(data, index, 1).Substring(1); // trim leading "
+            if (index == Start) character = '"' + character; // include the opening quotation mark, only for the first character
             var pcs = new PCS(Start, index - Start, fullString, character);
             return pcs;
          }

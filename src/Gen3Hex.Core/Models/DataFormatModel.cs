@@ -458,7 +458,9 @@ namespace HavenSoft.Gen3Hex.Core.Models {
                start += len;
                continue;
             }
-            if (anchorForAddress.TryGetValue(start, out string anchor)) text.Append($"^{anchor} ");
+            if (anchorForAddress.TryGetValue(start, out string anchor)) {
+               text.Append($"^{anchor}{run.FormatString} ");
+            }
             if (run is PointerRun pointerRun) {
                var destination = ReadPointer(pointerRun.Start);
                var anchorName = GetAnchorFromAddress(run.Start, destination);
@@ -466,15 +468,17 @@ namespace HavenSoft.Gen3Hex.Core.Models {
                text.Append($"<{anchorName}> ");
                start += 4;
                length -= 4;
-               continue;
-            }
-            if (run is NoInfoRun noInfoRun) {
+            } else if (run is NoInfoRun noInfoRun) {
                text.Append(RawData[run.Start].ToString("X2") + " ");
                start += 1;
                length -= 1;
-               continue;
+            } else if (run is PCSRun pcsRun) {
+               text.Append(PCSString.Convert(this, run.Start, run.Length) + " ");
+               start += run.Length;
+               length -= run.Length;
+            } else {
+               throw new NotImplementedException();
             }
-            throw new NotImplementedException();
          }
 
          text.Remove(text.Length - 1, 1); // remove the trailing space
