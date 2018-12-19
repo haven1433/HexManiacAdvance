@@ -344,23 +344,40 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
       public IReadOnlyList<int> Find(string rawSearch) {
          var results = new List<int>();
-         var cleanedSearchString = rawSearch.Replace(" ", string.Empty).ToUpper();
-         var searchBytes = new List<byte>();
+         var cleanedSearchString = rawSearch.ToUpper();
+         var searchBytes = new List<ISearchByte>();
          var hex = "0123456789ABCDEF";
 
+         // precheck: it might be a string with no quotes, we should check for matches for that.
+         if (cleanedSearchString.Length > 3 && !cleanedSearchString.Contains('"')) {
+            var pcsBytes = PCSString.Convert(cleanedSearchString);
+            searchBytes.AddRange(pcsBytes.Select(b => new PCSSearchByte(b)));
+            for (int i = 0; i < Model.Count - searchBytes.Count; i++) {
+               for (int j = 0; j < searchBytes.Count; j++) {
+                  if (!searchBytes[j].Match(Model[i + j])) break;
+                  if (j == searchBytes.Count - 1) results.Add(i);
+               }
+            }
+            searchBytes.Clear();
+         }
+
          for (int i = 0; i < cleanedSearchString.Length;) {
+            if (cleanedSearchString[i] == ' ') {
+               i++;
+               continue;
+            }
             if (cleanedSearchString[i] == '<') {
                var pointerEnd = cleanedSearchString.IndexOf('>', i);
                if (pointerEnd == -1) { OnError(this, "Search mismatch: no closing >"); return results; }
                var pointerContents = cleanedSearchString.Substring(i + 1, pointerEnd - i - 2);
                var address = Model.GetAddressFromAnchor(-1, pointerContents);
                if (address != Pointer.NULL) {
-                  searchBytes.Add((byte)(address >> 0));
-                  searchBytes.Add((byte)(address >> 8));
-                  searchBytes.Add((byte)(address >> 16));
-                  searchBytes.Add(0x08);
+                  searchBytes.Add((SearchByte)(address >> 0));
+                  searchBytes.Add((SearchByte)(address >> 8));
+                  searchBytes.Add((SearchByte)(address >> 16));
+                  searchBytes.Add((SearchByte)0x08);
                } else if (pointerContents.All(hex.Contains) && pointerContents.Length <= 6) {
-                  searchBytes.AddRange(Parse(pointerContents).Reverse().Append((byte)0x08));
+                  searchBytes.AddRange(Parse(pointerContents).Reverse().Append((byte)0x08).Select(b => (SearchByte)b));
                } else {
                   OnError(this, $"Could not parse pointer <{pointerContents}>");
                   return results;
@@ -368,18 +385,31 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                i = pointerEnd + 1;
                continue;
             }
+            if (cleanedSearchString[i] == '"') {
+               var endIndex = cleanedSearchString.IndexOf('"', i + 1);
+               while (endIndex > i && cleanedSearchString[endIndex - 1] == '\\') endIndex = cleanedSearchString.IndexOf('"', endIndex + 1);
+               if (endIndex > i) {
+                  var pcsBytes = PCSString.Convert(cleanedSearchString.Substring(i, endIndex + 1 - i));
+                  i = endIndex + 1;
+                  if (i == cleanedSearchString.Length) pcsBytes.RemoveAt(pcsBytes.Count - 1);
+                  searchBytes.AddRange(pcsBytes.Select(b => new PCSSearchByte(b)));
+                  continue;
+               }
+            }
             if (cleanedSearchString.Length >= i + 2 && cleanedSearchString.Substring(i, 2).All(hex.Contains)) {
-               searchBytes.AddRange(Parse(cleanedSearchString.Substring(i, 2)));
+               searchBytes.AddRange(Parse(cleanedSearchString.Substring(i, 2)).Select(b => (SearchByte)b));
                i += 2;
                continue;
             }
-            OnError(this, $"Could not parse search term {cleanedSearchString.Substring(i)}");
+            if (results.Count == 0) {
+               OnError(this, $"Could not parse search term {cleanedSearchString.Substring(i)}");
+            }
             return results;
          }
 
          for (int i = 0; i < Model.Count - searchBytes.Count; i++) {
             for (int j = 0; j < searchBytes.Count; j++) {
-               if (Model[i + j] != searchBytes[j]) break;
+               if (!searchBytes[j].Match(Model[i + j])) break;
                if (j == searchBytes.Count - 1) results.Add(i);
             }
          }

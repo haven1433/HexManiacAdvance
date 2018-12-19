@@ -231,7 +231,31 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Equal("^bob\"\" \"Hello World!\"", fileSystem.CopyText);
       }
 
-      // TODO Find
+      [Fact]
+      public void FindForStringsIsNotCaseSensitive() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         for (int i = 0; i < 0x10; i++) buffer[i] = 0x00;
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         viewPort.Edit("^bob\"\" \"Text and BULBASAUR!\"");
+
+         var results = viewPort.Find("\"bulbasaur\"");
+         Assert.Single(results);
+         Assert.Equal(9, results[0]);
+      }
+
+      [Fact]
+      public void FindForStringsWorksWithoutQuotes() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         for (int i = 0; i < 0x10; i++) buffer[i] = 0x00;
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         viewPort.Edit("^bob\"\" \"Text and BULBASAUR!\"");
+
+         var results = viewPort.Find("bulbasaur");
+         Assert.Single(results);
+         Assert.Equal(9, results[0]);
+      }
 
       // TODO undo/redo
 

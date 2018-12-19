@@ -50,6 +50,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       }
 
       public static List<byte> Convert(string input) {
+         if (input.StartsWith("\"")) input = input.Substring(1); // trim leading " at start of string
          var result = new List<byte>();
 
          int index = 0;
