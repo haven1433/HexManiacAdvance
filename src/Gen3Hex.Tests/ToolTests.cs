@@ -25,5 +25,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Contains("SelectedIndex", toolProperties);
          Assert.IsType<PCSTool>(viewPort.Tools[viewPort.Tools.SelectedIndex]);
       }
+
+      // TODO tool changes should be immediately reflected in the ViewPort
    }
 }
