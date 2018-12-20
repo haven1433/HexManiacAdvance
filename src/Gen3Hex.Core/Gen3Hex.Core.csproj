@@ -60,7 +60,6 @@
     <Compile Include="ViewModels\IChildViewPort.cs" />
     <Compile Include="ViewModels\ITabContent.cs" />
     <Compile Include="ViewModels\IToolViewModel.cs" />
-    <Compile Include="ViewModels\IToolViewModel1.cs" />
     <Compile Include="ViewModels\IViewPort.cs" />
     <Compile Include="ViewModels\ScrollRegion.cs" />
     <Compile Include="ViewModels\SearchResultsViewPort.cs" />

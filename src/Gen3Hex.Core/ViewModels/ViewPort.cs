@@ -225,6 +225,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public ViewPort(LoadedFile file, IModel model = null) {
          Model = model ?? new BasicModel(file.Contents);
          FileName = file.Name;
+         Tools = new ToolTray(Model);
 
          scroll = new ScrollRegion { DataLength = Model.Count };
          scroll.PropertyChanged += ScrollPropertyChanged;
@@ -441,6 +442,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             } else {
                OnError(this, $"Pointer destination {pointer.DestinationName} not found.");
             }
+         }
+         if (format is PCS pcs) {
+            Tools.StringTool.Address = pcs.Source;
          }
       }
 
