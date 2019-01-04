@@ -94,7 +94,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          bool isEscaped = index > Start && data[index - 1] == PCSString.Escape;
          var fullString = PCSString.Convert(data, Start, Length);
          if (isEscaped) {
-            return new EscapedPCS(Start, index-Start, fullString, data[Start + index]);
+            return new EscapedPCS(Start, index-Start, fullString, data[index]);
          } else {
             var character = PCSString.Convert(data, index, 1).Substring(1); // trim leading "
             if (index == Start) character = '"' + character; // include the opening quotation mark, only for the first character

@@ -1,5 +1,6 @@
 ﻿using HavenSoft.Gen3Hex.Core.Models;
 using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -64,8 +65,18 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                if (run == null) return;
                var bytes = PCSString.Convert(content);
                var newRun = model.RelocateForExpansion(run, bytes.Count);
+               if (run.Start != newRun.Start) ModelDataMoved?.Invoke(this, (run.Start, newRun.Start));
+
+               // clear out excess bytes that are no longer in use
+               if (run.Start == newRun.Start) {
+                  for (int i = bytes.Count; i < run.Length; i++) model[run.Start + i] = 0xFF;
+               }
+
                for (int i = 0; i < bytes.Count; i++) model[newRun.Start + i] = bytes[i];
-               model.ObserveRunWritten(new PCSRun(newRun.Start, bytes.Count, newRun.PointerSources));
+               run = new PCSRun(newRun.Start, bytes.Count, newRun.PointerSources);
+               model.ObserveRunWritten(run);
+               ModelDataChanged?.Invoke(this, run);
+               TryUpdate(ref address, newRun.Start, nameof(Address));
             }
          }
       }
@@ -81,6 +92,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             }
          }
       }
+
+      public event EventHandler<IFormattedRun> ModelDataChanged;
+      public event EventHandler<(int originalLocation, int newLocation)> ModelDataMoved;
 
       public PCSTool(IModel model) => this.model = model;
    }

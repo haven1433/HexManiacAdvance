@@ -61,7 +61,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
                result.Add((byte)i);
                index += PCS[i].Length - 1;
                if (i == Escape) {
-                  result.Add(byte.Parse(input.Substring(index, 2), NumberStyles.HexNumber));
+                  result.Add(byte.Parse(input.Substring(index + 1, 2), NumberStyles.HexNumber));
                   index += 2;
                }
                break;

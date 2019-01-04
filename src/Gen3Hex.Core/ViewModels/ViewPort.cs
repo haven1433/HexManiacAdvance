@@ -226,6 +226,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          Model = model ?? new BasicModel(file.Contents);
          FileName = file.Name;
          Tools = new ToolTray(Model);
+         Tools.StringTool.ModelDataChanged += ModelChangedByTool;
+         Tools.StringTool.ModelDataMoved += ModelDataMovedByTool;
 
          scroll = new ScrollRegion { DataLength = Model.Count };
          scroll.PropertyChanged += ScrollPropertyChanged;
@@ -748,7 +750,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             // last character edit: might require relocation
             var newRun = Model.RelocateForExpansion(run, run.Length + extraBytesNeeded);
             if (newRun != run) {
-               var offset = memoryLocation - scroll.ViewPointToDataIndex(new Point(0, 0));
+               var offset = memoryLocation - scroll.DataIndex;
                selection.GotoAddress(newRun.Start + pcs.Position - offset);
                memoryLocation += newRun.Start - run.Start;
                run = newRun;
@@ -803,6 +805,21 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          NotifyPropertyChanged(nameof(SelectionEnd));
 
          selection.PropertyChanged += SelectionPropertyChanged;
+      }
+
+      private void ModelChangedByTool(object sender, IFormattedRun run) {
+         if (run.Start < scroll.ViewPointToDataIndex(new Point(Width - 1, Height - 1)) || run.Start + run.Length > scroll.DataIndex) {
+            // there's some visible data that changed
+            RefreshBackingData();
+         }
+      }
+
+      private void ModelDataMovedByTool(object sender, (int originalLocation, int newLocation) locations) {
+         if (scroll.DataIndex <= locations.originalLocation && locations.originalLocation < scroll.ViewPointToDataIndex(new Point(Width - 1, Height - 1))) {
+            // data was moved from onscreen: follow it
+            int offset = locations.originalLocation - scroll.DataIndex;
+            selection.GotoAddress(locations.newLocation - offset);
+         }
       }
 
       private void RefreshBackingData() {
