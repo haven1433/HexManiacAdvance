@@ -181,11 +181,11 @@
                   </ItemsControl>
                   <Line Width="1" DockPanel.Dock="Left" Stroke="{DynamicResource Background}"/>
                   <StackPanel DockPanel.Dock="Right" Visibility="{Binding HasTools, Converter={StaticResource BoolToVisibility}}">
-                     <ToggleButton Content="String" Command="{Binding Tools.StringToolCommand}" IsChecked="{Binding Tools.SelectedIndex, Converter={StaticResource IndexMatch}, ConverterParameter=0}">
-                        <ToggleButton.LayoutTransform>
+                     <Button Content="String" Command="{Binding Tools.StringToolCommand}">
+                        <Button.LayoutTransform>
                            <RotateTransform Angle="90"/>
-                        </ToggleButton.LayoutTransform>
-                     </ToggleButton>
+                        </Button.LayoutTransform>
+                     </Button>
                   </StackPanel>
                   <Grid DockPanel.Dock="Right" DataContext="{Binding Tools}">
                      <Grid.Style>
