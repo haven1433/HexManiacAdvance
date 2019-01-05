@@ -518,4 +518,50 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          return string.Join(" ", bytes.Select(value => value.ToString("X2")));
       }
    }
+
+   public class DeltaModel {
+      private readonly Dictionary<int, byte> oldData = new Dictionary<int, byte>();
+      private readonly Dictionary<int, IFormattedRun> addedRuns = new Dictionary<int, IFormattedRun>();
+      private readonly Dictionary<int, IFormattedRun> removedRuns = new Dictionary<int, IFormattedRun>();
+
+      public int EarliestChange {
+         get {
+            var allChanges = oldData.Keys.Concat(addedRuns.Keys).Concat(removedRuns.Keys).ToList();
+            if (allChanges.Count == 0) return -1;
+            return allChanges.Min();
+         }
+      }
+
+      public void ChangeData(IModel model, int index, byte data) {
+         if (!oldData.ContainsKey(index)) {
+            if (model.Count <= index) {
+               model.ExpandData(index);
+            }
+            oldData[index] = model[index];
+         }
+
+         model.ClearFormat(index, 1);
+         model[index] = data;
+      }
+
+      public void AddRun(IModel model, int index, IFormattedRun run) {
+         model.ObserveRunWritten(run);
+      }
+
+      public void RemoveRun(IModel model, int index, IFormattedRun run) {
+         model.ClearFormat(run.Start, run.Length);
+      }
+
+      public DeltaModel Revert(IModel model) {
+         var reverse = new DeltaModel();
+
+         foreach (var kvp in oldData) {
+            var (index, data) = (kvp.Key, kvp.Value);
+            reverse.oldData[index] = model[index];
+            model[index] = data;
+         }
+
+         return reverse;
+      }
+   }
 }

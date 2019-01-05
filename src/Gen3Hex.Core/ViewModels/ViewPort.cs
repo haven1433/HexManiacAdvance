@@ -120,27 +120,17 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
       #region Undo / Redo
 
-      private readonly ChangeHistory<Dictionary<int, HexElement>> history;
+      private readonly ChangeHistory<DeltaModel> history;
 
       public ICommand Undo => history.Undo;
 
       public ICommand Redo => history.Redo;
 
-      private Dictionary<int, HexElement> RevertChanges(Dictionary<int, HexElement> changes) {
-         var opposite = new Dictionary<int, HexElement>();
-
-         foreach (var change in changes) {
-            var (index, element) = (change.Key, change.Value);
-            var point = scroll.DataIndexToViewPoint(index);
-            scroll.ScrollToPoint(ref point);
-
-            opposite[index] = currentView[point.X, point.Y];
-            Model[index] = element.Value;
-            currentView[point.X, point.Y] = element;
-         }
-
-         if (changes.Count > 0) NotifyCollectionChanged(ResetArgs);
-         return opposite;
+      private DeltaModel RevertChanges(DeltaModel changes) {
+         var reverse = changes.Revert(Model);
+         var point = scroll.DataIndexToViewPoint(reverse.EarliestChange);
+         if (!scroll.ScrollToPoint(ref point)) RefreshBackingData();
+         return reverse;
       }
 
       private void HistoryPropertyChanged(object sender, PropertyChangedEventArgs e) {
@@ -237,7 +227,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          selection.PreviewSelectionStartChanged += ClearActiveEditBeforeSelectionChanges;
          selection.OnError += (sender, e) => OnError?.Invoke(this, e);
 
-         history = new ChangeHistory<Dictionary<int, HexElement>>(RevertChanges);
+         history = new ChangeHistory<DeltaModel>(RevertChanges);
          history.PropertyChanged += HistoryPropertyChanged;
 
          ImplementCommands();
@@ -253,12 +243,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             var right = Math.Max(selectionStart, selectionEnd);
             for (int i = left; i <= right; i++) {
                var p = scroll.DataIndexToViewPoint(i);
-               if (p.Y >= 0 && p.Y < scroll.Height) {
-                  history.CurrentChange[i] = this[p.X, p.Y];
-               } else {
-                  history.CurrentChange[i] = new HexElement(Model[i], None.Instance);
-               }
-               Model[i] = 0xFF;
+               history.CurrentChange.ChangeData(Model, i, 0xFF);
             }
             RefreshBackingData();
          };
@@ -772,11 +757,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
          var byteValue = byte.Parse(underEdit.CurrentText, NumberStyles.HexNumber);
          var memoryLocation = scroll.ViewPointToDataIndex(point);
-         history.CurrentChange[memoryLocation] = new HexElement(element.Value, underEdit.OriginalFormat);
-         Model.ExpandData(memoryLocation);
+         history.CurrentChange.ChangeData(Model, memoryLocation, byteValue);
          scroll.DataLength = Model.Count;
-         Model.ClearFormat(memoryLocation, 1);
-         Model[memoryLocation] = byteValue;
          ClearEdits(point);
          SilentScroll(memoryLocation + 1);
       }
