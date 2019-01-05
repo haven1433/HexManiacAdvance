@@ -1,9 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace HavenSoft.Gen3Hex.Core.Models {
    public class PCSString {
       public static IReadOnlyList<string> PCS;
+      public static IReadOnlyList<byte> Newlines;
 
       public static readonly byte Escape = 0xFD;
 
@@ -34,6 +37,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          pcs[0xFF] = "\"";
 
          PCS = pcs;
+
+         Newlines = new byte[] { 0xFB, 0xFE };
       }
 
       public static string Convert(IReadOnlyList<byte> data, int startIndex, int length) {
@@ -41,6 +46,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          for (int i = 0; i < length; i++) {
             if (PCS[data[startIndex + i]] == null) return null;
             result += PCS[data[startIndex + i]];
+            if (Newlines.Contains(data[startIndex + i])) result += Environment.NewLine;
             if (data[startIndex + i] == Escape) {
                result += data[startIndex + i + 1].ToString("X2");
                i++;

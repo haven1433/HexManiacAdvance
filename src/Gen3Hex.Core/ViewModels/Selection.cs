@@ -81,9 +81,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                var address = args.ToString();
                var anchor = model.GetAddressFromAnchor(-1, address);
                if (anchor != Pointer.NULL) {
-                  GotoAddressLine(anchor);
+                  GotoAddress(anchor);
                } else if (int.TryParse(address, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int result)) {
-                  GotoAddressLine(result);
+                  GotoAddress(result);
                } else {
                   OnError?.Invoke(this, $"Unable to goto address '{address}'");
                }
@@ -95,9 +95,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                if (backStack.Count == 0) return;
                forwardStack.Push(scroll.DataIndex);
                if (forwardStack.Count == 1) forward.CanExecuteChanged.Invoke(forward, EventArgs.Empty);
-               SelectionStart = scroll.DataIndexToViewPoint(backStack.Pop());
+               GotoAddressHelper(backStack.Pop());
                if (backStack.Count == 0) backward.CanExecuteChanged.Invoke(backward, EventArgs.Empty);
-               scroll.ScrollValue += selectionStart.Y;
             },
          };
          forward = new StubCommand {
@@ -106,9 +105,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                if (forwardStack.Count == 0) return;
                backStack.Push(scroll.DataIndex);
                if (backStack.Count == 1) backward.CanExecuteChanged.Invoke(backward, EventArgs.Empty);
-               SelectionStart = scroll.DataIndexToViewPoint(forwardStack.Pop());
+               GotoAddressHelper(forwardStack.Pop());
                if (forwardStack.Count == 0) forward.CanExecuteChanged.Invoke(forward, EventArgs.Empty);
-               scroll.ScrollValue += selectionStart.Y;
             },
          };
       }
@@ -147,20 +145,13 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             forwardStack.Clear();
             forward.CanExecuteChanged.Invoke(forward, EventArgs.Empty);
          }
+         GotoAddressHelper(address);
+      }
+
+      private void GotoAddressHelper(int address) {
          SelectionStart = scroll.DataIndexToViewPoint(address);
          scroll.ScrollValue += selectionStart.Y;
          while (scroll.DataIndex < address) scroll.Scroll.Execute(Direction.Right);
-      }
-
-      private void GotoAddressLine(int address) {
-         backStack.Push(scroll.DataIndex);
-         if (backStack.Count == 1) backward.CanExecuteChanged.Invoke(backward, EventArgs.Empty);
-         if (forwardStack.Count > 0) {
-            forwardStack.Clear();
-            forward.CanExecuteChanged.Invoke(forward, EventArgs.Empty);
-         }
-         SelectionStart = scroll.DataIndexToViewPoint(address);
-         scroll.ScrollValue += selectionStart.Y;
       }
 
       /// <summary>

@@ -91,13 +91,12 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
             Solarized.Brushes.Violet,
             1.0);
 
-         var xOffset = (pcs.ThisCharacter.Length - 2) * 4;
+         var xOffset = 1 - pcs.ThisCharacter.Length;
          context.DrawText(text, new Point(CellTextOffset.X + xOffset, CellTextOffset.Y));
       }
 
       public void Visit(EscapedPCS pcs, byte data) {
-         VerifyNoneVisualCache();
-         context.DrawText(noneVisualCache[data], CellTextOffset);
+         // intentionally draw nothing: this is taken care of by Visit PCS
       }
 
       private void VerifyNoneVisualCache() {
