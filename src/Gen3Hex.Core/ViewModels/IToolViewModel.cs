@@ -70,10 +70,10 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
                // clear out excess bytes that are no longer in use
                if (run.Start == newRun.Start) {
-                  for (int i = bytes.Count; i < run.Length; i++) model[run.Start + i] = 0xFF;
+                  for (int i = bytes.Count; i < run.Length; i++) history.CurrentChange.ChangeData(model, run.Start + i, 0xFF);
                }
 
-               for (int i = 0; i < bytes.Count; i++) model[newRun.Start + i] = bytes[i];
+               for (int i = 0; i < bytes.Count; i++) history.CurrentChange.ChangeData(model, newRun.Start + i, bytes[i]);
                run = new PCSRun(newRun.Start, bytes.Count, newRun.PointerSources);
                model.ObserveRunWritten(history.CurrentChange, run);
                ModelDataChanged?.Invoke(this, run);
@@ -90,6 +90,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                var run = model.GetNextRun(address) as PCSRun;
                if (run == null) return;
                TryUpdate(ref content, PCSString.Convert(model, run.Start, run.Length), nameof(Content));
+               history.ChangeCompleted();
             }
          }
       }

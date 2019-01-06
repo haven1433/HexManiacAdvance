@@ -21,7 +21,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       void ObserveRunWritten(DeltaModel changeToken, IFormattedRun run);
       void ObserveAnchorWritten(DeltaModel changeToken, int location, string anchorName, string anchorFormat);
-      void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd);
+      void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd);
       IFormattedRun RelocateForExpansion(DeltaModel changeToken, IFormattedRun run, int minimumLength);
       void ClearFormat(DeltaModel changeToken, int start, int length);
       string Copy(int start, int length);
@@ -75,7 +75,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       public abstract void ObserveRunWritten(DeltaModel changeToken, IFormattedRun run);
 
-      public abstract void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd);
+      public abstract void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd);
 
       public abstract IFormattedRun RelocateForExpansion(DeltaModel changeToken, IFormattedRun run, int minimumLength);
 
@@ -293,40 +293,21 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          if (anchorForAddress.TryGetValue(location, out string oldAnchorName)) {
             anchorForAddress.Remove(location);
             addressForAnchor.Remove(oldAnchorName);
+            changeToken.RemoveName(location, oldAnchorName);
          }
 
          if (addressForAnchor.ContainsKey(anchorName)) {
-            index = BinarySearch(addressForAnchor[anchorName]);
-            var oldAnchor = runs[index];
-            runs.RemoveAt(index);
-
-            foreach (var source in oldAnchor.PointerSources ?? new int[0]) {
-               WriteValue(changeToken, source, 0);
-               sourceToUnmappedName[source] = anchorForAddress[oldAnchor.Start];
-            }
-
-            unmappedNameToSources[anchorForAddress[oldAnchor.Start]] = new List<int>(oldAnchor.PointerSources);
-            addressForAnchor.Remove(anchorForAddress[oldAnchor.Start]);
-            anchorForAddress.Remove(oldAnchor.Start);
+            RemoveAnchorByName(changeToken, anchorName);
          }
+
+         // if this anchor was given a name, add it
          if (anchorName != string.Empty) {
             anchorForAddress.Add(location, anchorName);
             addressForAnchor.Add(anchorName, location);
+            changeToken.AddName(location, anchorName);
          }
 
-         List<int> sources;
-         if (unmappedNameToSources.TryGetValue(anchorName, out sources)) {
-            foreach (var source in sources) {
-               index = BinarySearch(source);
-               Debug.Assert(index >= 0 && runs[index] is PointerRun);
-               runs[index] = new PointerRun(source, runs[index].PointerSources);
-               sourceToUnmappedName.Remove(source);
-               WritePointer(changeToken, source, location);
-            }
-            unmappedNameToSources.Remove(anchorName);
-         } else {
-            sources = new List<int>(); // an anchor was added: there is a list. It's just that in this case, the list is empty for now.
-         }
+         var sources = GetSourcesPointingToNewAnchor(changeToken, anchorName);
 
          index = BinarySearch(location);
          IFormattedRun newRun;
@@ -339,7 +320,46 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          ObserveRunWritten(changeToken, newRun);
       }
 
-      public override void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd) {
+      /// <summary>
+      /// if there are unmapped sources trying to point to this name, point them at the new anchor
+      /// </summary>
+      /// <returns>
+      /// The list of sources that point at the new anchor
+      /// </returns>
+      private IReadOnlyList<int> GetSourcesPointingToNewAnchor(DeltaModel changeToken, string anchorName) {
+         if (!addressForAnchor.TryGetValue(anchorName, out int location)) return new List<int>();     // new anchor is unnamed, so nothing points to it yet
+         if (!unmappedNameToSources.TryGetValue(anchorName, out var sources)) return new List<int>(); // no pointer was waiting for this anchor to be created
+
+         foreach (var source in sources) {
+            var index = BinarySearch(source);
+            Debug.Assert(index >= 0 && runs[index] is PointerRun);
+            runs[index] = new PointerRun(source, runs[index].PointerSources);
+            sourceToUnmappedName.Remove(source);
+            WritePointer(changeToken, source, location);
+         }
+         unmappedNameToSources.Remove(anchorName);
+
+         return sources;
+      }
+
+      private void RemoveAnchorByName(DeltaModel changeToken, string anchorName) {
+         var index = BinarySearch(addressForAnchor[anchorName]);
+         var oldAnchor = runs[index];
+         runs.RemoveAt(index);
+
+         foreach (var source in oldAnchor.PointerSources ?? new int[0]) {
+            WriteValue(changeToken, source, 0);
+            sourceToUnmappedName[source] = anchorForAddress[oldAnchor.Start];
+         }
+
+         unmappedNameToSources[anchorForAddress[oldAnchor.Start]] = new List<int>(oldAnchor.PointerSources);
+         var nameToRemove = anchorForAddress[oldAnchor.Start];
+         addressForAnchor.Remove(nameToRemove);
+         anchorForAddress.Remove(oldAnchor.Start);
+         changeToken.RemoveName(oldAnchor.Start, nameToRemove);
+      }
+
+      public override void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd) {
          foreach (var kvp in runsToRemove) {
             var index = BinarySearch(kvp.Key);
             if (index >= 0) runs.RemoveAt(index);
@@ -548,7 +568,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       public override IFormattedRun GetNextRun(int dataIndex) => null;
       public override void ObserveRunWritten(DeltaModel changeToken, IFormattedRun run) { }
       public override void ObserveAnchorWritten(DeltaModel changeToken, int location, string anchorName, string anchorFormat) { }
-      public override void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd) { }
+      public override void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd) { }
       public override IFormattedRun RelocateForExpansion(DeltaModel changeToken, IFormattedRun run, int minimumLength) => throw new NotImplementedException();
       public override void ClearFormat(DeltaModel changeToken, int start, int length) { }
 
@@ -559,10 +579,11 @@ namespace HavenSoft.Gen3Hex.Core.Models {
    }
 
    public class DeltaModel {
-      // TODO undo/redo anchor names
       private readonly Dictionary<int, byte> oldData = new Dictionary<int, byte>();
       private readonly Dictionary<int, IFormattedRun> addedRuns = new Dictionary<int, IFormattedRun>();
       private readonly Dictionary<int, IFormattedRun> removedRuns = new Dictionary<int, IFormattedRun>();
+      private readonly Dictionary<int, string> addedNames = new Dictionary<int, string>();
+      private readonly Dictionary<int, string> removedNames = new Dictionary<int, string>();
 
       public int EarliestChange {
          get {
@@ -595,6 +616,18 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          }
       }
 
+      public void AddName(int index, string name) {
+         addedNames[index] = name;
+      }
+
+      public void RemoveName(int index, string name) {
+         if (addedNames.ContainsKey(index)) {
+            addedNames.Remove(index);
+         } else if (!removedNames.ContainsKey(index)) {
+            removedNames[index] = name;
+         }
+      }
+
       public DeltaModel Revert(IModel model) {
          var reverse = new DeltaModel();
 
@@ -606,7 +639,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
          foreach (var kvp in addedRuns) reverse.removedRuns[kvp.Key] = kvp.Value;
          foreach (var kvp in removedRuns) reverse.addedRuns[kvp.Key] = kvp.Value;
-         model.MassUpdateFromDelta(addedRuns, removedRuns);
+         model.MassUpdateFromDelta(addedRuns, removedRuns, addedNames, removedNames);
 
          return reverse;
       }

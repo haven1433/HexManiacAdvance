@@ -1,6 +1,7 @@
 ﻿using HavenSoft.Gen3Hex.Core;
 using HavenSoft.Gen3Hex.Core.Models;
 using HavenSoft.Gen3Hex.Core.ViewModels;
+using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -224,6 +225,50 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Equal(int.MaxValue, model.GetNextRun(0x31).Start);
       }
 
-      // TODO can undo tool changes
+      [Fact]
+      public void CanUndoFromToolChange() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.Edit("^bob\"\" ");
+         viewPort.Tools.StringTool.Address = 0;
+         viewPort.Tools.StringTool.Content = "Hello World!";
+         viewPort.Undo.Execute();
+
+         Assert.Equal(0xFF, model[0]);
+         Assert.True(viewPort.Undo.CanExecute(null));
+      }
+
+      [Fact]
+      public void UndoCanHandleNameMove() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         // operation 1
+         viewPort.Edit("<bob> 03 08 24 16 <bob>");
+
+         // operation 2
+         viewPort.SelectionStart = new Point(0, 1);
+         viewPort.Edit("^bob ");
+
+         // operation 3
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.Edit("^bob ");
+
+         Assert.Equal(0x20, model.ReadPointer(0x00));
+         Assert.Equal("bob", ((Pointer)viewPort[0, 0].Format).DestinationName);
+
+         // undo operation 3
+         viewPort.Undo.Execute();
+         Assert.Equal(0x10, model.ReadPointer(0x00));
+         Assert.Equal("bob", ((Pointer)viewPort[0, 0].Format).DestinationName);
+
+         // undo operation 2
+         viewPort.Undo.Execute();
+         Assert.Equal(Pointer.NULL, model.ReadPointer(0x00));
+         Assert.Equal("bob", ((Pointer)viewPort[0, 0].Format).DestinationName);
+      }
    }
 }
