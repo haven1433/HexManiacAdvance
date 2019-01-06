@@ -116,6 +116,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       private readonly Dictionary<string, List<int>> unmappedNameToSources = new Dictionary<string, List<int>>();
       private readonly Dictionary<int, string> sourceToUnmappedName = new Dictionary<int, string>();
 
+      #region Constructor
+
       public PointerAndStringModel(byte[] data) : base(data) {
          Initialize();
       }
@@ -190,6 +192,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             Debug.Fail("Pointers and Destinations are both 4-byte aligned, and pointers are only 4 bytes long. How the heck did I get a conflict?");
          }
       }
+
+      #endregion
 
       public override int GetAddressFromAnchor(int requestSource, string anchor) {
          if (addressForAnchor.TryGetValue(anchor, out int address)) {
@@ -320,46 +324,31 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          ObserveRunWritten(changeToken, newRun);
       }
 
-      /// <summary>
-      /// if there are unmapped sources trying to point to this name, point them at the new anchor
-      /// </summary>
-      /// <returns>
-      /// The list of sources that point at the new anchor
-      /// </returns>
-      private IReadOnlyList<int> GetSourcesPointingToNewAnchor(DeltaModel changeToken, string anchorName) {
-         if (!addressForAnchor.TryGetValue(anchorName, out int location)) return new List<int>();     // new anchor is unnamed, so nothing points to it yet
-         if (!unmappedNameToSources.TryGetValue(anchorName, out var sources)) return new List<int>(); // no pointer was waiting for this anchor to be created
-
-         foreach (var source in sources) {
-            var index = BinarySearch(source);
-            Debug.Assert(index >= 0 && runs[index] is PointerRun);
-            runs[index] = new PointerRun(source, runs[index].PointerSources);
-            sourceToUnmappedName.Remove(source);
-            WritePointer(changeToken, source, location);
-         }
-         unmappedNameToSources.Remove(anchorName);
-
-         return sources;
-      }
-
-      private void RemoveAnchorByName(DeltaModel changeToken, string anchorName) {
-         var index = BinarySearch(addressForAnchor[anchorName]);
-         var oldAnchor = runs[index];
-         runs.RemoveAt(index);
-
-         foreach (var source in oldAnchor.PointerSources ?? new int[0]) {
-            WriteValue(changeToken, source, 0);
-            sourceToUnmappedName[source] = anchorForAddress[oldAnchor.Start];
-         }
-
-         unmappedNameToSources[anchorForAddress[oldAnchor.Start]] = new List<int>(oldAnchor.PointerSources);
-         var nameToRemove = anchorForAddress[oldAnchor.Start];
-         addressForAnchor.Remove(nameToRemove);
-         anchorForAddress.Remove(oldAnchor.Start);
-         changeToken.RemoveName(oldAnchor.Start, nameToRemove);
-      }
-
       public override void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd) {
+         foreach (var kvp in namesToRemove) {
+            var (address, name) = (kvp.Key, kvp.Value);
+            // when removing the name, add all locations that point to it to unmapped
+            var index = BinarySearch(address);
+            var oldAnchor = runs[index];
+            foreach (var source in oldAnchor.PointerSources ?? new int[0]) {
+               sourceToUnmappedName[source] = name;
+            }
+            unmappedNameToSources[name] = new List<int>(oldAnchor.PointerSources);
+            addressForAnchor.Remove(name);
+            anchorForAddress.Remove(address);
+         }
+
+         foreach (var kvp in namesToAdd) {
+            var (address, name) = (kvp.Key, kvp.Value);
+            // when adding the name, remove all locations that point to it from unmapped
+            if (unmappedNameToSources.TryGetValue(name, out var sources)) {
+               foreach (var source in sources) sourceToUnmappedName.Remove(source);
+               unmappedNameToSources.Remove(name);
+            }
+            addressForAnchor[name] = address;
+            anchorForAddress[address] = name;
+         }
+
          foreach (var kvp in runsToRemove) {
             var index = BinarySearch(kvp.Key);
             if (index >= 0) runs.RemoveAt(index);
@@ -408,45 +397,17 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
             // found a good spot!
             // move the run
-            return MoveRun(changeToken, run, start);
+            var newRun = MoveRun(changeToken, run, start);
+            if (anchorForAddress.TryGetValue(run.Start, out var name)) {
+               addressForAnchor[name] = newRun.Start;
+               anchorForAddress.Remove(run.Start);
+               anchorForAddress[newRun.Start] = name;
+               changeToken.RemoveName(run.Start, name);
+               changeToken.AddName(newRun.Start, name);
+            }
+            return newRun;
          }
          return null;
-      }
-
-      private IFormattedRun MoveRun(DeltaModel changeToken, IFormattedRun run, int newStart) {
-         // repoint
-         foreach (var source in run.PointerSources) {
-            WritePointer(changeToken, source, newStart);
-         }
-         // move data
-         for (int i = 0; i < run.Length; i++) {
-            changeToken.ChangeData(this, newStart + i, RawData[run.Start + i]);
-            changeToken.ChangeData(this, run.Start + i, 0xFF);
-         }
-
-         if (run is PCSRun pcs) {
-            var newRun = new PCSRun(newStart, run.Length, run.PointerSources);
-            int index = BinarySearch(run.Start);
-            changeToken.RemoveRun(runs[index]);
-            runs.RemoveAt(index);
-            int newIndex = BinarySearch(newStart);
-            runs.Insert(~newIndex, newRun);
-            changeToken.AddRun(newRun);
-            return newRun;
-         } else {
-            throw new NotImplementedException();
-         }
-      }
-
-      private bool CanSafelyUse(int rangeStart, int rangeEnd) {
-         // only safe to use if there is no run in that range
-         var nextRun = GetNextRun(rangeStart);
-         if (nextRun.Start < rangeEnd) return false;
-
-         // make sure the data is clear
-         for (int i = rangeStart; i < rangeEnd; i++) if (RawData[i] != 0xFF && RawData[i] != 0x00) return false;
-
-         return true;
       }
 
       public override void ClearFormat(DeltaModel changeToken, int originalStart, int length) {
@@ -543,11 +504,6 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          return text.ToString();
       }
 
-      private int BinarySearch(int start) {
-         var index = runs.BinarySearch(new CompareFormattedRun(start), FormattedRunComparer.Instance);
-         return index;
-      }
-
       public override void Load(byte[] newData) {
          base.Load(newData);
          unmappedNameToSources.Clear();
@@ -556,6 +512,87 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          anchorForAddress.Clear();
          runs.Clear();
          Initialize();
+      }
+
+      private void RemoveAnchorByName(DeltaModel changeToken, string anchorName) {
+         var index = BinarySearch(addressForAnchor[anchorName]);
+         var oldAnchor = runs[index];
+         changeToken.RemoveRun(oldAnchor);
+         runs.RemoveAt(index);
+
+         foreach (var source in oldAnchor.PointerSources ?? new int[0]) {
+            WriteValue(changeToken, source, 0);
+            sourceToUnmappedName[source] = anchorForAddress[oldAnchor.Start];
+         }
+
+         unmappedNameToSources[anchorForAddress[oldAnchor.Start]] = new List<int>(oldAnchor.PointerSources);
+         var nameToRemove = anchorForAddress[oldAnchor.Start];
+         addressForAnchor.Remove(nameToRemove);
+         anchorForAddress.Remove(oldAnchor.Start);
+         changeToken.RemoveName(oldAnchor.Start, nameToRemove);
+      }
+
+      /// <summary>
+      /// if there are unmapped sources trying to point to this name, point them at the new anchor
+      /// </summary>
+      /// <returns>
+      /// The list of sources that point at the new anchor
+      /// </returns>
+      private IReadOnlyList<int> GetSourcesPointingToNewAnchor(DeltaModel changeToken, string anchorName) {
+         if (!addressForAnchor.TryGetValue(anchorName, out int location)) return new List<int>();     // new anchor is unnamed, so nothing points to it yet
+         if (!unmappedNameToSources.TryGetValue(anchorName, out var sources)) return new List<int>(); // no pointer was waiting for this anchor to be created
+
+         foreach (var source in sources) {
+            var index = BinarySearch(source);
+            Debug.Assert(index >= 0 && runs[index] is PointerRun);
+            runs[index] = new PointerRun(source, runs[index].PointerSources);
+            sourceToUnmappedName.Remove(source);
+            WritePointer(changeToken, source, location);
+         }
+         unmappedNameToSources.Remove(anchorName);
+
+         return sources;
+      }
+
+      private IFormattedRun MoveRun(DeltaModel changeToken, IFormattedRun run, int newStart) {
+         // repoint
+         foreach (var source in run.PointerSources) {
+            WritePointer(changeToken, source, newStart);
+         }
+         // move data
+         for (int i = 0; i < run.Length; i++) {
+            changeToken.ChangeData(this, newStart + i, RawData[run.Start + i]);
+            changeToken.ChangeData(this, run.Start + i, 0xFF);
+         }
+
+         if (run is PCSRun pcs) {
+            var newRun = new PCSRun(newStart, run.Length, run.PointerSources);
+            int index = BinarySearch(run.Start);
+            changeToken.RemoveRun(runs[index]);
+            runs.RemoveAt(index);
+            int newIndex = BinarySearch(newStart);
+            runs.Insert(~newIndex, newRun);
+            changeToken.AddRun(newRun);
+            return newRun;
+         } else {
+            throw new NotImplementedException();
+         }
+      }
+
+      private bool CanSafelyUse(int rangeStart, int rangeEnd) {
+         // only safe to use if there is no run in that range
+         var nextRun = GetNextRun(rangeStart);
+         if (nextRun.Start < rangeEnd) return false;
+
+         // make sure the data is clear
+         for (int i = rangeStart; i < rangeEnd; i++) if (RawData[i] != 0xFF && RawData[i] != 0x00) return false;
+
+         return true;
+      }
+
+      private int BinarySearch(int start) {
+         var index = runs.BinarySearch(new CompareFormattedRun(start), FormattedRunComparer.Instance);
+         return index;
       }
    }
 
@@ -639,6 +676,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
          foreach (var kvp in addedRuns) reverse.removedRuns[kvp.Key] = kvp.Value;
          foreach (var kvp in removedRuns) reverse.addedRuns[kvp.Key] = kvp.Value;
+         foreach (var kvp in addedNames) reverse.removedNames[kvp.Key] = kvp.Value;
+         foreach (var kvp in removedNames) reverse.addedNames[kvp.Key] = kvp.Value;
          model.MassUpdateFromDelta(addedRuns, removedRuns, addedNames, removedNames);
 
          return reverse;

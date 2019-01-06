@@ -563,7 +563,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             var newFormat = element.Format.Edit(string.Empty);
             currentView[point.X, point.Y] = new HexElement(element.Value, newFormat);
          }
+         selection.PropertyChanged -= SelectionPropertyChanged; // don't notify on multi-space edit: it breaks up the undo history
          SelectionEnd = scroll.DataIndexToViewPoint(endIndex);
+         selection.PropertyChanged += SelectionPropertyChanged;
       }
 
       private bool TryCompleteEdit(Point point) {
