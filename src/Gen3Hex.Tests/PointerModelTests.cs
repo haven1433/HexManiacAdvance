@@ -28,8 +28,9 @@ namespace HavenSoft.Gen3Hex.Tests {
 
          // write two specific pointers
          var model = new PointerAndStringModel(buffer);
-         model.WritePointer(0x204, 0x4050);
-         model.WritePointer(0x4070, 0x101C);
+         var token = new DeltaModel();
+         model.WritePointer(token, 0x204, 0x4050);
+         model.WritePointer(token, 0x4070, 0x101C);
          model = new PointerAndStringModel(buffer);
 
          Assert.Equal(0x204, model.GetNextRun(0).Start);
@@ -46,7 +47,8 @@ namespace HavenSoft.Gen3Hex.Tests {
       public void PointerModelFindsSelfReferences() {
          var buffer = new byte[0x20];
          var model = new PointerAndStringModel(buffer);
-         model.WritePointer(0xC, 0xC);
+         var token = new DeltaModel();
+         model.WritePointer(token, 0xC, 0xC);
          model = new PointerAndStringModel(buffer);
 
          var run = model.GetNextRun(0);
@@ -60,8 +62,9 @@ namespace HavenSoft.Gen3Hex.Tests {
       public void PointerModelMergesDuplicates() {
          var buffer = new byte[0x20];
          var model = new PointerAndStringModel(buffer);
-         model.WritePointer(0x0C, 0x14);
-         model.WritePointer(0x1C, 0x14);
+         var token = new DeltaModel();
+         model.WritePointer(token, 0x0C, 0x14);
+         model.WritePointer(token, 0x1C, 0x14);
          model = new PointerAndStringModel(buffer);
 
          var run = model.GetNextRun(0x14);
@@ -155,17 +158,18 @@ namespace HavenSoft.Gen3Hex.Tests {
       public void WritingAPointerOverlappingAPointerRemovesOriginalPointer() {
          var buffer = new byte[0x100];
          var model = new PointerAndStringModel(buffer);
+         var token = new DeltaModel();
 
-         model.WritePointer(16, 100);
-         model.ObserveRunWritten(new PointerRun(16));
+         model.WritePointer(token, 16, 100);
+         model.ObserveRunWritten(token, new PointerRun(16));
          Assert.Equal(16, model.GetNextRun(10).Start);
          Assert.Equal(16, model.GetNextRun(17).Start);
          Assert.Equal(16, model.GetNextRun(19).Start);
          Assert.Equal(100, model.GetNextRun(20).Start); // the reference at 100 has been added
 
-         model.ClearFormat(14, 4);
-         model.WritePointer(14, 200);
-         model.ObserveRunWritten(new PointerRun(14));
+         model.ClearFormat(token, 14, 4);
+         model.WritePointer(token, 14, 200);
+         model.ObserveRunWritten(token, new PointerRun(14));
          Assert.Equal(14, model.GetNextRun(10).Start);
          Assert.Equal(14, model.GetNextRun(15).Start);
          Assert.Equal(14, model.GetNextRun(16).Start);
@@ -177,10 +181,11 @@ namespace HavenSoft.Gen3Hex.Tests {
       public void WritingAnchorIntoAPointerRemovesThatPointer() {
          var buffer = new byte[0x100];
          var model = new PointerAndStringModel(buffer);
+         var token = new DeltaModel();
 
-         model.WritePointer(16, 12);
-         model.ObserveRunWritten(new PointerRun(16));
-         model.ObserveAnchorWritten(18, "bob", string.Empty);
+         model.WritePointer(token, 16, 12);
+         model.ObserveRunWritten(token, new PointerRun(16));
+         model.ObserveAnchorWritten(token, 18, "bob", string.Empty);
 
          Assert.Equal(18, model.GetNextRun(10).Start);
       }
@@ -189,13 +194,14 @@ namespace HavenSoft.Gen3Hex.Tests {
       public void WritingOverAnAnchorDeletesThatAnchor() {
          var buffer = new byte[0x100];
          var model = new PointerAndStringModel(buffer);
+         var token = new DeltaModel();
 
-         model.WritePointer(16, 32);
-         model.ObserveRunWritten(new PointerRun(16));
+         model.WritePointer(token, 16, 32);
+         model.ObserveRunWritten(token, new PointerRun(16));
 
-         model.ClearFormat(30, 4);
-         model.WritePointer(30, 64);
-         model.ObserveRunWritten(new PointerRun(30));
+         model.ClearFormat(token, 30, 4);
+         model.WritePointer(token, 30, 64);
+         model.ObserveRunWritten(token, new PointerRun(30));
 
          Assert.Equal(16, model.GetNextRun(10).Start); // original pointer at 16 is still there, but it no longer knows what it's pointing to
          Assert.Equal(30, model.GetNextRun(24).Start); // next data is the pointer at 30
@@ -207,6 +213,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          var buffer = new byte[0x100];
          var model = new PointerAndStringModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 16, Height = 16 };
+         var token = new DeltaModel();
 
          viewPort.SelectionStart = new Point(0, 1);
          viewPort.Edit("^bob ");
@@ -216,7 +223,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
          // as an alternative to being able to delete an anchor from the viewPort,
          // just edit the model directly and then scroll to force the viewPort to refresh
-         model.ClearFormat(0x10, 1);
+         model.ClearFormat(token, 0x10, 1);
          viewPort.ScrollValue = 1;
          viewPort.ScrollValue = 0;
 
@@ -228,6 +235,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          var buffer = new byte[0x100];
          var model = new PointerAndStringModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 16, Height = 16 };
+         var token = new DeltaModel();
 
          viewPort.SelectionStart = new Point(0, 1);
          viewPort.Edit("^bob ");
@@ -237,7 +245,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
          // as an alternative to being able to delete an anchor from the viewPort,
          // just edit the model directly and then scroll to force the viewPort to refresh
-         model.ClearFormat(0xF, 2);
+         model.ClearFormat(token, 0xF, 2);
          viewPort.ScrollValue = 1;
          viewPort.ScrollValue = 0;
 
@@ -478,8 +486,9 @@ namespace HavenSoft.Gen3Hex.Tests {
       public void CanWriteNullPointer() {
          var buffer = new byte[0x200];
          var model = new PointerAndStringModel(buffer);
+         var token = new DeltaModel();
 
-         model.ObserveRunWritten(new PointerRun(0x10));
+         model.ObserveRunWritten(token, new PointerRun(0x10));
 
          var format = (Pointer)model.GetNextRun(0x10).CreateDataFormat(model, 0x10);
          Assert.Equal("null", format.DestinationName);
@@ -504,9 +513,10 @@ namespace HavenSoft.Gen3Hex.Tests {
       public void FormatClearDoesNotClearAnchorIfAnchorIsAtStartOfClear() {
          var buffer = new byte[0x200];
          var model = new PointerAndStringModel(buffer);
+         var token = new DeltaModel();
 
-         model.ObserveAnchorWritten(0x10, "bob", string.Empty);
-         model.ClearFormat(0x10, 1);
+         model.ObserveAnchorWritten(token, 0x10, "bob", string.Empty);
+         model.ClearFormat(token, 0x10, 1);
 
          Assert.Equal(0x10, model.GetNextRun(0x10).Start);
       }

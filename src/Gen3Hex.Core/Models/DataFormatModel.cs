@@ -19,17 +19,18 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       /// </summary>
       IFormattedRun GetNextRun(int dataIndex);
 
-      void ObserveRunWritten(IFormattedRun run);
-      void ObserveAnchorWritten(int location, string anchorName, string anchorFormat);
-      IFormattedRun RelocateForExpansion(IFormattedRun run, int minimumLength);
-      void ClearFormat(int start, int length);
+      void ObserveRunWritten(DeltaModel changeToken, IFormattedRun run);
+      void ObserveAnchorWritten(DeltaModel changeToken, int location, string anchorName, string anchorFormat);
+      void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd);
+      IFormattedRun RelocateForExpansion(DeltaModel changeToken, IFormattedRun run, int minimumLength);
+      void ClearFormat(DeltaModel changeToken, int start, int length);
       string Copy(int start, int length);
 
       void Load(byte[] newData);
-      void ExpandData(int minimumLength);
+      void ExpandData(DeltaModel changeToken, int minimumLength);
 
-      void WritePointer(int address, int pointerDestination);
-      void WriteValue(int address, int value);
+      void WritePointer(DeltaModel changeToken, int address, int pointerDestination);
+      void WriteValue(DeltaModel changeToken, int address, int value);
       int ReadPointer(int address);
       int ReadValue(int address);
 
@@ -48,11 +49,11 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       public int Count => RawData.Length;
 
-      public abstract void ClearFormat(int start, int length);
+      public abstract void ClearFormat(DeltaModel changeToken, int start, int length);
 
       public abstract string Copy(int start, int length);
 
-      public void ExpandData(int minimumIndex) {
+      public void ExpandData(DeltaModel changeToken, int minimumIndex) {
          if (Count > minimumIndex) return;
 
          var newData = new byte[minimumIndex + 1];
@@ -70,11 +71,13 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       public virtual void Load(byte[] newData) => RawData = newData;
 
-      public abstract void ObserveAnchorWritten(int location, string anchorName, string anchorFormat);
+      public abstract void ObserveAnchorWritten(DeltaModel changeToken, int location, string anchorName, string anchorFormat);
 
-      public abstract void ObserveRunWritten(IFormattedRun run);
+      public abstract void ObserveRunWritten(DeltaModel changeToken, IFormattedRun run);
 
-      public abstract IFormattedRun RelocateForExpansion(IFormattedRun run, int minimumLength);
+      public abstract void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd);
+
+      public abstract IFormattedRun RelocateForExpansion(DeltaModel changeToken, IFormattedRun run, int minimumLength);
 
       public int ReadValue(int index) {
          int word = 0;
@@ -85,16 +88,16 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          return word;
       }
 
-      public void WriteValue(int index, int word) {
-         RawData[index + 0] = (byte)(word >> 0);
-         RawData[index + 1] = (byte)(word >> 8);
-         RawData[index + 2] = (byte)(word >> 16);
-         RawData[index + 3] = (byte)(word >> 24);
+      public void WriteValue(DeltaModel changeToken, int index, int word) {
+         changeToken.ChangeData(this, index + 0, (byte)(word >> 0));
+         changeToken.ChangeData(this, index + 1, (byte)(word >> 8));
+         changeToken.ChangeData(this, index + 2, (byte)(word >> 16));
+         changeToken.ChangeData(this, index + 3, (byte)(word >> 24));
       }
 
       public int ReadPointer(int index) => ReadValue(index) - 0x08000000;
 
-      public void WritePointer(int address, int pointerDestination) => WriteValue(address, pointerDestination + 0x08000000);
+      public void WritePointer(DeltaModel changeToken, int address, int pointerDestination) => WriteValue(changeToken, address, pointerDestination + 0x08000000);
 
       IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
    }
@@ -177,7 +180,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             var length = PCSString.ReadString(RawData, destination);
             if (length < 2) continue;
             if (GetNextRun(destination + 1).Start < destination + length) continue;
-            ObserveRunWritten(new PCSRun(destination, length, pointersForDestination[destination]));
+            ObserveRunWritten(new DeltaModel(), new PCSRun(destination, length, pointersForDestination[destination]));
          }
       }
 
@@ -226,13 +229,13 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          return runs[index];
       }
 
-      public override void ObserveRunWritten(IFormattedRun run) {
+      public override void ObserveRunWritten(DeltaModel changeToken, IFormattedRun run) {
          var index = BinarySearch(run.Start);
          if (index < 0) {
             index = ~index;
             if (runs.Count == index || (runs[index].Start >= run.Start + run.Length && (index == 0 || runs[index - 1].Start + runs[index - 1].Length <= run.Start))) {
                runs.Insert(index, run);
-               // if (run.Anchor.Name != string.Empty) UpdateAnchor(run.Start, run.Anchor.Name);
+               changeToken.AddRun(run);
             } else {
                // there's a conflict: the new run was written in a space already being used, but not where another run starts
                // I'll need to do something here eventually... but for now, just error
@@ -252,8 +255,10 @@ namespace HavenSoft.Gen3Hex.Core.Models {
                }
             }
 
+            changeToken.RemoveRun(existingRun);
+            run = run.MergeAnchor(existingRun.PointerSources);
             runs[index] = run;
-            run.MergeAnchor(existingRun.PointerSources);
+            changeToken.AddRun(run);
          }
 
          if (run is PointerRun pointerRun) {
@@ -263,22 +268,27 @@ namespace HavenSoft.Gen3Hex.Core.Models {
                if (index < 0) {
                   // the pointer is brand new
                   index = ~index;
-                  runs.Insert(index, new NoInfoRun(destination, new[] { run.Start }));
+                  var newRun = new NoInfoRun(destination, new[] { run.Start });
+                  runs.Insert(index, newRun);
+                  changeToken.AddRun(newRun);
                } else {
-                  runs[index].MergeAnchor(new[] { run.Start });
+                  changeToken.RemoveRun(runs[index]);
+                  runs[index] = runs[index].MergeAnchor(new[] { run.Start });
+                  changeToken.AddRun(runs[index]);
                }
             }
          }
 
          if (run is NoInfoRun && run.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(run.Start)) {
             // this run has no useful information. Remove it.
+            changeToken.RemoveRun(runs[index]);
             runs.RemoveAt(index);
          }
       }
 
-      public override void ObserveAnchorWritten(int location, string anchorName, string anchorFormat) {
+      public override void ObserveAnchorWritten(DeltaModel changeToken, int location, string anchorName, string anchorFormat) {
          int index = BinarySearch(location);
-         if (index < 0) ClearFormat(location, 1); // no format starts exactly at this anchor, so clear any format that goes over this anchor.
+         if (index < 0) ClearFormat(changeToken, location, 1); // no format starts exactly at this anchor, so clear any format that goes over this anchor.
 
          if (anchorForAddress.TryGetValue(location, out string oldAnchorName)) {
             anchorForAddress.Remove(location);
@@ -291,7 +301,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             runs.RemoveAt(index);
 
             foreach (var source in oldAnchor.PointerSources ?? new int[0]) {
-               WriteValue(source, 0);
+               WriteValue(changeToken, source, 0);
                sourceToUnmappedName[source] = anchorForAddress[oldAnchor.Start];
             }
 
@@ -311,7 +321,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
                Debug.Assert(index >= 0 && runs[index] is PointerRun);
                runs[index] = new PointerRun(source, runs[index].PointerSources);
                sourceToUnmappedName.Remove(source);
-               WritePointer(source, location);
+               WritePointer(changeToken, source, location);
             }
             unmappedNameToSources.Remove(anchorName);
          } else {
@@ -326,10 +336,31 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             newRun = new NoInfoRun(location, sources);
          }
 
-         ObserveRunWritten(newRun);
+         ObserveRunWritten(changeToken, newRun);
       }
 
-      public override IFormattedRun RelocateForExpansion(IFormattedRun run, int minimumLength) {
+      public override void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd) {
+         foreach (var kvp in runsToRemove) {
+            var index = BinarySearch(kvp.Key);
+            if (index >= 0) runs.RemoveAt(index);
+         }
+
+         foreach (var kvp in runsToAdd) {
+            var index = BinarySearch(kvp.Key);
+            if (index >= 0) {
+               runs[index] = kvp.Value;
+            } else {
+               index = ~index;
+               if (index < runs.Count) {
+                  runs[index] = kvp.Value;
+               } else {
+                  runs.Add(kvp.Value);
+               }
+            }
+         }
+      }
+
+      public override IFormattedRun RelocateForExpansion(DeltaModel changeToken, IFormattedRun run, int minimumLength) {
          if (minimumLength <= run.Length) return run;
          if (CanSafelyUse(run.Start + run.Length, run.Start + minimumLength)) return run;
          var start = 0x100;
@@ -357,28 +388,30 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
             // found a good spot!
             // move the run
-            return MoveRun(run, start);
+            return MoveRun(changeToken, run, start);
          }
          return null;
       }
 
-      private IFormattedRun MoveRun(IFormattedRun run, int newStart) {
+      private IFormattedRun MoveRun(DeltaModel changeToken, IFormattedRun run, int newStart) {
          // repoint
          foreach (var source in run.PointerSources) {
-            WritePointer(source, newStart);
+            WritePointer(changeToken, source, newStart);
          }
          // move data
          for (int i = 0; i < run.Length; i++) {
-            RawData[newStart + i] = RawData[run.Start + i];
-            RawData[run.Start + i] = 0xFF;
+            changeToken.ChangeData(this, newStart + i, RawData[run.Start + i]);
+            changeToken.ChangeData(this, run.Start + i, 0xFF);
          }
 
          if (run is PCSRun pcs) {
             var newRun = new PCSRun(newStart, run.Length, run.PointerSources);
             int index = BinarySearch(run.Start);
+            changeToken.RemoveRun(runs[index]);
             runs.RemoveAt(index);
             int newIndex = BinarySearch(newStart);
             runs.Insert(~newIndex, newRun);
+            changeToken.AddRun(newRun);
             return newRun;
          } else {
             throw new NotImplementedException();
@@ -396,7 +429,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          return true;
       }
 
-      public override void ClearFormat(int originalStart, int length) {
+      public override void ClearFormat(DeltaModel changeToken, int originalStart, int length) {
          int start = originalStart;
          for (var run = GetNextRun(start); length > 0 && run != null; run = GetNextRun(start)) {
             if (run.Start >= start + length) return;
@@ -405,7 +438,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
                var destination = ReadPointer(pointerRun.Start);
                if (destination != Pointer.NULL) {
                   var anchorRun = runs[BinarySearch(destination)];
-                  anchorRun.RemoveSource(pointerRun.Start);
+                  anchorRun = anchorRun.RemoveSource(pointerRun.Start);
                   if (anchorRun.PointerSources.Count == 0) {
                      runs.RemoveAt(BinarySearch(anchorRun.Start));
                      if (anchorForAddress.ContainsKey(anchorRun.Start)) {
@@ -421,17 +454,22 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             }
             if (run.Start != originalStart) {
                // delete the anchor
-               foreach (var source in run.PointerSources ?? new int[0]) WriteValue(source, 0);
+               foreach (var source in run.PointerSources ?? new int[0]) WriteValue(changeToken, source, 0);
                if (anchorForAddress.ContainsKey(run.Start)) {
                   unmappedNameToSources[anchorForAddress[run.Start]] = new List<int>(run.PointerSources);
                   foreach (var source in run.PointerSources) sourceToUnmappedName[source] = anchorForAddress[run.Start];
                   addressForAnchor.Remove(anchorForAddress[run.Start]);
                   anchorForAddress.Remove(run.Start);
                }
-               runs.RemoveAt(BinarySearch(run.Start));
+               var index = BinarySearch(run.Start);
+               changeToken.RemoveRun(run);
+               runs.RemoveAt(index);
             } else {
                // delete the content, but leave the anchor
-               runs[BinarySearch(run.Start)] = new NoInfoRun(run.Start, run.PointerSources);
+               var index = BinarySearch(run.Start);
+               changeToken.RemoveRun(run);
+               runs[index] = new NoInfoRun(run.Start, run.PointerSources);
+               changeToken.AddRun(runs[index]);
             }
 
             for (int i = 0; i < run.Length; i++) RawData[run.Start + i] = 0xFF;
@@ -508,10 +546,11 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       public override int GetAddressFromAnchor(int requestSource, string anchor) => Pointer.NULL;
       public override string GetAnchorFromAddress(int requestSource, int destination) => string.Empty;
       public override IFormattedRun GetNextRun(int dataIndex) => null;
-      public override void ObserveRunWritten(IFormattedRun run) { }
-      public override void ObserveAnchorWritten(int location, string anchorName, string anchorFormat) { }
-      public override IFormattedRun RelocateForExpansion(IFormattedRun run, int minimumLength) => throw new NotImplementedException();
-      public override void ClearFormat(int start, int length) { }
+      public override void ObserveRunWritten(DeltaModel changeToken, IFormattedRun run) { }
+      public override void ObserveAnchorWritten(DeltaModel changeToken, int location, string anchorName, string anchorFormat) { }
+      public override void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd) { }
+      public override IFormattedRun RelocateForExpansion(DeltaModel changeToken, IFormattedRun run, int minimumLength) => throw new NotImplementedException();
+      public override void ClearFormat(DeltaModel changeToken, int start, int length) { }
 
       public override string Copy(int start, int length) {
          var bytes = Enumerable.Range(start, length).Select(i => RawData[i]);
@@ -520,6 +559,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
    }
 
    public class DeltaModel {
+      // TODO undo/redo anchor names
       private readonly Dictionary<int, byte> oldData = new Dictionary<int, byte>();
       private readonly Dictionary<int, IFormattedRun> addedRuns = new Dictionary<int, IFormattedRun>();
       private readonly Dictionary<int, IFormattedRun> removedRuns = new Dictionary<int, IFormattedRun>();
@@ -535,21 +575,24 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       public void ChangeData(IModel model, int index, byte data) {
          if (!oldData.ContainsKey(index)) {
             if (model.Count <= index) {
-               model.ExpandData(index);
+               model.ExpandData(this, index);
             }
             oldData[index] = model[index];
          }
 
-         model.ClearFormat(index, 1);
          model[index] = data;
       }
 
-      public void AddRun(IModel model, int index, IFormattedRun run) {
-         model.ObserveRunWritten(run);
+      public void AddRun(IFormattedRun run) {
+         addedRuns[run.Start] = run;
       }
 
-      public void RemoveRun(IModel model, int index, IFormattedRun run) {
-         model.ClearFormat(run.Start, run.Length);
+      public void RemoveRun(IFormattedRun run) {
+         if (addedRuns.ContainsKey(run.Start)) {
+            addedRuns.Remove(run.Start);
+         } else if (!removedRuns.ContainsKey(run.Start)) {
+            removedRuns[run.Start] = run;
+         }
       }
 
       public DeltaModel Revert(IModel model) {
@@ -560,6 +603,10 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             reverse.oldData[index] = model[index];
             model[index] = data;
          }
+
+         foreach (var kvp in addedRuns) reverse.removedRuns[kvp.Key] = kvp.Value;
+         foreach (var kvp in removedRuns) reverse.addedRuns[kvp.Key] = kvp.Value;
+         model.MassUpdateFromDelta(addedRuns, removedRuns);
 
          return reverse;
       }

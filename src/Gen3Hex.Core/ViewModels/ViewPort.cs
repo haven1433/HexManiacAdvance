@@ -213,9 +213,12 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
 
       public ViewPort(LoadedFile file, IModel model = null) {
+         history = new ChangeHistory<DeltaModel>(RevertChanges);
+         history.PropertyChanged += HistoryPropertyChanged;
+
          Model = model ?? new BasicModel(file.Contents);
          FileName = file.Name;
-         Tools = new ToolTray(Model);
+         Tools = new ToolTray(Model, history);
          Tools.StringTool.ModelDataChanged += ModelChangedByTool;
          Tools.StringTool.ModelDataMoved += ModelDataMovedByTool;
 
@@ -226,9 +229,6 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          selection.PropertyChanged += SelectionPropertyChanged;
          selection.PreviewSelectionStartChanged += ClearActiveEditBeforeSelectionChanges;
          selection.OnError += (sender, e) => OnError?.Invoke(this, e);
-
-         history = new ChangeHistory<DeltaModel>(RevertChanges);
-         history.PropertyChanged += HistoryPropertyChanged;
 
          ImplementCommands();
          RefreshBackingData();
@@ -291,7 +291,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
          // if there's an open edit, clear the data from those cells
          if (underEdit != null) {
-            var operation = new DataClear(Model, index);
+            var operation = new DataClear(Model, history.CurrentChange, index);
             underEdit.OriginalFormat.Visit(operation, Model[index]);
             RefreshBackingData();
          }
@@ -300,7 +300,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          if (run is PCSRun pcs) {
             for (int i = index - 1; i < run.Start + run.Length; i++) Model[i] = 0xFF;
             var length = PCSString.ReadString(Model, run.Start);
-            Model.ObserveRunWritten(new PCSRun(run.Start, length, run.PointerSources));
+            Model.ObserveRunWritten(history.CurrentChange, new PCSRun(run.Start, length, run.PointerSources));
             RefreshBackingData();
          } else if (run.Start <= index - 1 && run.Start + run.Length > index - 1) {
             // I want to do a backspace at the end of this run
@@ -614,9 +614,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          var index = scroll.ViewPointToDataIndex(point);
          var destination = underEdit.CurrentText.Substring(1, underEdit.CurrentText.Length - 2);
 
-         Model.ExpandData(index + 3);
+         Model.ExpandData(history.CurrentChange, index + 3);
          scroll.DataLength = Model.Count;
-         Model.ClearFormat(index, 4);
+         Model.ClearFormat(history.CurrentChange, index, 4);
 
          int fullValue;
          if (destination.All("0123456789ABCDEFabcdef".Contains) && destination.Length <= 6) {
@@ -626,8 +626,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             fullValue = Model.GetAddressFromAnchor(index, destination);
          }
 
-         Model.WritePointer(index, fullValue);
-         Model.ObserveRunWritten(new PointerRun(index));
+         Model.WritePointer(history.CurrentChange, index, fullValue);
+         Model.ObserveRunWritten(history.CurrentChange, new PointerRun(index));
          ClearEdits(point);
          SilentScroll(index + 4);
       }
@@ -667,7 +667,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          } else if (name == string.Empty && nextRun.PointerSources.Count == 0 && format != string.Empty) {
             OnError(this, "An anchor with nothing pointing to it must have a name.");
          } else {
-            Model.ObserveAnchorWritten(index, name, format);
+            Model.ObserveAnchorWritten(history.CurrentChange, index, name, format);
          }
 
          ClearEdits(point);
@@ -705,11 +705,11 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          var memoryLocation = scroll.ViewPointToDataIndex(point);
          var run = (PCSRun)Model.GetNextRun(memoryLocation);
          while (run.Start + run.Length > memoryLocation) {
-            Model[memoryLocation] = 0xFF;
+            history.CurrentChange.ChangeData(Model, memoryLocation, 0xFF);
             memoryLocation++;
             SilentScroll(memoryLocation);
             var newRunLength = PCSString.ReadString(Model, run.Start);
-            Model.ObserveRunWritten(new PCSRun(run.Start, newRunLength, run.PointerSources));
+            Model.ObserveRunWritten(history.CurrentChange, new PCSRun(run.Start, newRunLength, run.PointerSources));
          }
       }
 
@@ -733,20 +733,22 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          if (pcs != null && run.Length == pcs.Position + 1) {
             int extraBytesNeeded = editText == "\\\\" ? 2 : 1;
             // last character edit: might require relocation
-            var newRun = Model.RelocateForExpansion(run, run.Length + extraBytesNeeded);
+            var newRun = Model.RelocateForExpansion(history.CurrentChange, run, run.Length + extraBytesNeeded);
             if (newRun != run) {
                var offset = memoryLocation - scroll.DataIndex;
+               selection.PropertyChanged -= SelectionPropertyChanged;
                selection.GotoAddress(newRun.Start + pcs.Position - offset);
+               selection.PropertyChanged += SelectionPropertyChanged;
                memoryLocation += newRun.Start - run.Start;
                run = newRun;
             }
 
-            Model[memoryLocation + 1] = 0xFF;
-            if (editText == "\\\\") Model[memoryLocation + 2] = 0xFF;
-            Model.ObserveRunWritten(new PCSRun(run.Start, run.Length + extraBytesNeeded, run.PointerSources));
+            history.CurrentChange.ChangeData(Model, memoryLocation + 1, 0xFF);
+            if (editText == "\\\\") history.CurrentChange.ChangeData(Model, memoryLocation + 2, 0xFF);
+            Model.ObserveRunWritten(history.CurrentChange, new PCSRun(run.Start, run.Length + extraBytesNeeded, run.PointerSources));
          }
 
-         Model[memoryLocation] = byteValue;
+         history.CurrentChange.ChangeData(Model, memoryLocation, byteValue);
          RefreshBackingData();
          SilentScroll(memoryLocation + 1);
       }
@@ -875,29 +877,31 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       /// </summary>
       private class DataClear : IDataFormatVisitor {
          private readonly IModel buffer;
+         private readonly DeltaModel currentChange;
          private readonly int index;
 
-         public DataClear(IModel data, int index) {
+         public DataClear(IModel data, DeltaModel delta, int index) {
             buffer = data;
+            currentChange = delta;
             this.index = index;
          }
 
          public void Visit(Undefined dataFormat, byte data) { }
 
-         public void Visit(None dataFormat, byte data) => buffer[index] = 0xFF;
+         public void Visit(None dataFormat, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
 
          public void Visit(UnderEdit dataFormat, byte data) => throw new NotImplementedException();
 
          public void Visit(Pointer pointer, byte data) {
             int start = index - pointer.Position;
-            buffer.WriteValue(start, 0);
+            buffer.WriteValue(currentChange, start, 0);
          }
 
          public void Visit(Anchor anchor, byte data) => anchor.OriginalFormat.Visit(this, data);
 
-         public void Visit(PCS pcs, byte data) => buffer[index] = 0xFF;
+         public void Visit(PCS pcs, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
 
-         public void Visit(EscapedPCS pcs, byte data) => buffer[index] = 0xFF;
+         public void Visit(EscapedPCS pcs, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
       }
    }
 }

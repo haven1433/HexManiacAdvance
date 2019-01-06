@@ -1,4 +1,5 @@
 ﻿using HavenSoft.Gen3Hex.Core;
+using HavenSoft.Gen3Hex.Core.Models;
 using HavenSoft.Gen3Hex.Core.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -188,5 +189,41 @@ namespace HavenSoft.Gen3Hex.Tests {
          // the current state is the same as when we last saved
          Assert.True(history.IsSaved);
       }
+
+      [Fact]
+      public void CanUndoFormatChange() {
+         var data = new byte[0x100];
+         var model = new PointerAndStringModel(data);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", data), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.SelectionStart = new Point(4, 0);
+         viewPort.Edit("<000030>");
+         Assert.Equal(0x04, model.GetNextRun(0).Start);
+
+         viewPort.Undo.Execute();
+         Assert.Equal(int.MaxValue, model.GetNextRun(0).Start);
+      }
+
+      [Fact]
+      public void CanUndoDataMove() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.SelectionStart = new Point(8, 0);
+         viewPort.Edit("<000030>");
+
+         viewPort.SelectionStart = new Point(0, 0);
+         viewPort.Edit("^bob\"\" \"Hello World!\"");
+
+         viewPort.Undo.Execute(); // should undo the entire last edit transaction
+
+         Assert.Equal(0xFF, model[0]);
+         Assert.Equal(8, model.GetNextRun(0).Start);
+         Assert.Equal(0x30, model.GetNextRun(0x10).Start);
+         Assert.Equal(int.MaxValue, model.GetNextRun(0x31).Start);
+      }
+
+      // TODO can undo tool changes
    }
 }

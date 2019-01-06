@@ -29,9 +29,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public PCSTool StringTool => (PCSTool)tools[0];
       public ICommand StringToolCommand => stringToolCommand;
 
-      public ToolTray(IModel model) {
+      public ToolTray(IModel model, ChangeHistory<DeltaModel> history) {
          tools = new[] {
-            new PCSTool(model),
+            new PCSTool(model, history),
          };
 
          stringToolCommand = new StubCommand {
@@ -54,6 +54,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
    public class PCSTool : ViewModelCore, IToolViewModel {
       private readonly IModel model;
+      private readonly ChangeHistory<DeltaModel> history;
       public string Name => "String";
 
       private string content;
@@ -64,7 +65,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                var run = model.GetNextRun(address) as PCSRun;
                if (run == null) return;
                var bytes = PCSString.Convert(content);
-               var newRun = model.RelocateForExpansion(run, bytes.Count);
+               var newRun = model.RelocateForExpansion(history.CurrentChange, run, bytes.Count);
                if (run.Start != newRun.Start) ModelDataMoved?.Invoke(this, (run.Start, newRun.Start));
 
                // clear out excess bytes that are no longer in use
@@ -74,7 +75,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
                for (int i = 0; i < bytes.Count; i++) model[newRun.Start + i] = bytes[i];
                run = new PCSRun(newRun.Start, bytes.Count, newRun.PointerSources);
-               model.ObserveRunWritten(run);
+               model.ObserveRunWritten(history.CurrentChange, run);
                ModelDataChanged?.Invoke(this, run);
                TryUpdate(ref address, newRun.Start, nameof(Address));
             }
@@ -96,6 +97,6 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public event EventHandler<IFormattedRun> ModelDataChanged;
       public event EventHandler<(int originalLocation, int newLocation)> ModelDataMoved;
 
-      public PCSTool(IModel model) => this.model = model;
+      public PCSTool(IModel model, ChangeHistory<DeltaModel> history) => (this.model, this.history) = (model, history);
    }
 }

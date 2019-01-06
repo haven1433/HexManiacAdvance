@@ -10,8 +10,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       IReadOnlyList<int> PointerSources { get; }
       string FormatString { get; }
       IDataFormat CreateDataFormat(IModel data, int index);
-      void MergeAnchor(IReadOnlyList<int> sources);
-      void RemoveSource(int source);
+      IFormattedRun MergeAnchor(IReadOnlyList<int> sources);
+      IFormattedRun RemoveSource(int source);
    }
 
    public class FormattedRunComparer : IComparer<IFormattedRun> {
@@ -31,8 +31,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       public IReadOnlyList<int> PointerSources => throw new NotImplementedException();
       public IDataFormat CreateDataFormat(IModel data, int index) => throw new NotImplementedException();
-      public void MergeAnchor(IReadOnlyList<int> other) => throw new NotImplementedException();
-      public void RemoveSource(int source) => throw new NotImplementedException();
+      public IFormattedRun MergeAnchor(IReadOnlyList<int> other) => throw new NotImplementedException();
+      public IFormattedRun RemoveSource(int source) => throw new NotImplementedException();
    }
 
    public abstract class BaseRun : IFormattedRun {
@@ -48,15 +48,18 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       public abstract IDataFormat CreateDataFormat(IModel data, int index);
 
-      public void MergeAnchor(IReadOnlyList<int> sources) {
-         if (sources == null) return;
-         if (PointerSources == null) { PointerSources = sources; return; }
-         PointerSources = sources.Concat(PointerSources).Distinct().OrderBy(i => i).ToList();
+      public IFormattedRun MergeAnchor(IReadOnlyList<int> sources) {
+         if (sources == null) return this;
+
+         if (PointerSources == null) return Clone(sources);
+         return Clone(sources.Concat(PointerSources).Distinct().OrderBy(i => i).ToList());
       }
 
-      public void RemoveSource(int source) {
-         PointerSources = PointerSources.Except(new[] { source }).ToList();
+      public IFormattedRun RemoveSource(int source) {
+         return Clone(PointerSources.Except(new[] { source }).ToList());
       }
+
+      protected abstract IFormattedRun Clone(IReadOnlyList<int> newPointerSources);
    }
 
    public class NoInfoRun : BaseRun {
@@ -68,6 +71,9 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       public NoInfoRun(int start, IReadOnlyList<int> sources = null) : base(start, sources) { }
 
       public override IDataFormat CreateDataFormat(IModel data, int index) => None.Instance;
+      protected override IFormattedRun Clone(IReadOnlyList<int> newPointerSources) {
+         return new NoInfoRun(Start, newPointerSources);
+      }
    }
 
    public class PointerRun : BaseRun {
@@ -81,6 +87,9 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          var anchor = data.GetAnchorFromAddress(Start, destinationAddress);
          var pointer = new Pointer(Start, index - Start, data.ReadPointer(Start), anchor);
          return pointer;
+      }
+      protected override IFormattedRun Clone(IReadOnlyList<int> newPointerSources) {
+         return new PointerRun(Start, newPointerSources);
       }
    }
 
@@ -101,6 +110,9 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             var pcs = new PCS(Start, index - Start, fullString, character);
             return pcs;
          }
+      }
+      protected override IFormattedRun Clone(IReadOnlyList<int> newPointerSources) {
+         return new PCSRun(Start, Length, newPointerSources);
       }
    }
 }

@@ -12,10 +12,11 @@ namespace HavenSoft.Gen3Hex.Tests {
       public void CanRecognizeString() {
          var buffer = new byte[0x100];
          var model = new PointerAndStringModel(buffer);
+         var token = new DeltaModel();
 
          var data = PCSString.Convert("Hello World!").ToArray();
          Array.Copy(data, 0, buffer, 0x10, data.Length);
-         model.ObserveRunWritten(new PCSRun(0x10, data.Length));
+         model.ObserveRunWritten(token, new PCSRun(0x10, data.Length));
 
          var run = (PCSRun)model.GetNextRun(0);
          Assert.Equal(data.Length, run.Length);
@@ -39,7 +40,8 @@ namespace HavenSoft.Gen3Hex.Tests {
          var data = PCSString.Convert("Hello World!").ToArray();
          Array.Copy(data, 0, buffer, 0x10, data.Length);
          var model1 = new PointerAndStringModel(buffer);
-         model1.WritePointer(0x00, 0x10);
+         var token = new DeltaModel();
+         model1.WritePointer(token, 0x00, 0x10);
 
          var model = new PointerAndStringModel(buffer);
 
