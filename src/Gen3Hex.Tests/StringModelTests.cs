@@ -258,9 +258,5 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Single(results);
          Assert.Equal(9, results[0]);
       }
-
-      // TODO undo/redo
-
-      // TODO save
    }
 }

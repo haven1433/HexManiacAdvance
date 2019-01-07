@@ -164,14 +164,16 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             return;
          }
 
-         if (fileSystem.Save(new LoadedFile(FileName, Model.RawData))) history.TagAsSaved();
+         var metadata = Model.ExportMetadata();
+         if (fileSystem.Save(new LoadedFile(FileName, Model.RawData), metadata)) history.TagAsSaved();
       }
 
       private void SaveAsExecuted(IFileSystem fileSystem) {
          var newName = fileSystem.RequestNewName(FileName);
          if (newName == null) return;
 
-         if (fileSystem.Save(new LoadedFile(newName, Model.RawData))) {
+         var metadata = Model.ExportMetadata();
+         if (fileSystem.Save(new LoadedFile(newName, Model.RawData), metadata)) {
             FileName = newName; // don't bother notifying, because tagging the history will cause a notify;
             history.TagAsSaved();
          }
@@ -179,7 +181,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
       private void CloseExecuted(IFileSystem fileSystem) {
          if (!history.IsSaved) {
-            var result = fileSystem.TrySavePrompt(new LoadedFile(FileName, Model.RawData));
+            var metadata = Model.ExportMetadata();
+            var result = fileSystem.TrySavePrompt(new LoadedFile(FileName, Model.RawData), metadata);
             if (result == null) return;
          }
          Closed?.Invoke(this, EventArgs.Empty);
@@ -441,7 +444,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          try {
             var file = fileSystem.LoadFile(FileName);
             if (file == null) return; // asked to load the file, but the file wasn't found... carry on
-            Model.Load(file.Contents);
+            Model.Load(file.Contents, fileSystem.MetadataFor(FileName));
             scroll.DataLength = Model.Count;
             RefreshBackingData();
 

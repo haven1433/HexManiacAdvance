@@ -73,19 +73,28 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
          return dialog.FileName;
       }
 
-      public bool Save(LoadedFile file) {
+      public bool Save(LoadedFile file, StoredMetadata metadata) {
          // make sure the required directory exists
          var path = Path.GetDirectoryName(file.Name);
          Directory.CreateDirectory(path);
          File.WriteAllBytes(file.Name, file.Contents);
+         var metadataName = Path.ChangeExtension(file.Name, ".toml");
+         File.WriteAllLines(metadataName, metadata.Serialize());
          return true;
       }
 
-      public bool? TrySavePrompt(LoadedFile file) {
+      public bool? TrySavePrompt(LoadedFile file, StoredMetadata metadata) {
          var result = MessageBox.Show($"Would you like to save {file.Name}?", Application.Current.MainWindow.Title, MessageBoxButton.YesNoCancel);
          if (result == MessageBoxResult.Cancel) return null;
          if (result == MessageBoxResult.No) return false;
-         return Save(file);
+         return Save(file, metadata);
+      }
+
+      public StoredMetadata MetadataFor(string fileName) {
+         var metadataName = Path.ChangeExtension(fileName, ".toml");
+         if (!File.Exists(metadataName)) return null;
+         var lines = File.ReadAllLines(metadataName);
+         return new StoredMetadata(lines);
       }
 
       private static string CreateFilterFromOptions(string[] extensionOptions) {

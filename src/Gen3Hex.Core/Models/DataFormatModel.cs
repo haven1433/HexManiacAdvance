@@ -26,7 +26,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       void ClearFormat(DeltaModel changeToken, int start, int length);
       string Copy(int start, int length);
 
-      void Load(byte[] newData);
+      void Load(byte[] newData, StoredMetadata metadata);
       void ExpandData(DeltaModel changeToken, int minimumLength);
 
       void WritePointer(DeltaModel changeToken, int address, int pointerDestination);
@@ -36,6 +36,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       int GetAddressFromAnchor(int requestSource, string anchor);
       string GetAnchorFromAddress(int requestSource, int destination);
+      StoredMetadata ExportMetadata();
    }
 
    public abstract class BaseModel : IModel {
@@ -69,7 +70,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       public abstract IFormattedRun GetNextRun(int dataIndex);
 
-      public virtual void Load(byte[] newData) => RawData = newData;
+      public virtual void Load(byte[] newData, StoredMetadata metadata) => RawData = newData;
 
       public abstract void ObserveAnchorWritten(DeltaModel changeToken, int location, string anchorName, string anchorFormat);
 
@@ -99,6 +100,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       public void WritePointer(DeltaModel changeToken, int address, int pointerDestination) => WriteValue(changeToken, address, pointerDestination + 0x08000000);
 
+      public virtual StoredMetadata ExportMetadata() => null;
+
       IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
    }
 
@@ -118,17 +121,28 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       #region Constructor
 
-      public PointerAndStringModel(byte[] data) : base(data) {
-         Initialize();
+      public PointerAndStringModel(byte[] data, StoredMetadata metadata = null) : base(data) {
+         Initialize(metadata);
       }
 
-      private void Initialize() {
+      private void Initialize(StoredMetadata metadata) {
          var pointersForDestination = new Dictionary<int, List<int>>();
          var destinationForSource = new SortedList<int, int>();
          SearchForPointers(pointersForDestination, destinationForSource);
          WritePointerRuns(pointersForDestination, destinationForSource);
          WriteStringRuns(pointersForDestination);
          ResolveConflicts();
+
+         if (metadata == null) return;
+
+         foreach (var anchor in metadata.NamedAnchors) {
+            ObserveAnchorWritten(new DeltaModel(), anchor.Address, anchor.Name, anchor.Format);
+         }
+         foreach (var unmappedPointer in metadata.UnmappedPointers) {
+            sourceToUnmappedName[unmappedPointer.Address] = unmappedPointer.Name;
+            if (!unmappedNameToSources.ContainsKey(unmappedPointer.Name)) unmappedNameToSources[unmappedPointer.Name] = new List<int>();
+            unmappedNameToSources[unmappedPointer.Name].Add(unmappedPointer.Address);
+         }
       }
 
       private void SearchForPointers(Dictionary<int, List<int>> pointersForDestination, SortedList<int, int> destinationForSource) {
@@ -504,14 +518,31 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          return text.ToString();
       }
 
-      public override void Load(byte[] newData) {
-         base.Load(newData);
+      public override void Load(byte[] newData, StoredMetadata metadata) {
+         base.Load(newData, metadata);
          unmappedNameToSources.Clear();
          sourceToUnmappedName.Clear();
          addressForAnchor.Clear();
          anchorForAddress.Clear();
          runs.Clear();
-         Initialize();
+         Initialize(metadata);
+      }
+
+      public override StoredMetadata ExportMetadata() {
+         var anchors = new List<StoredAnchor>();
+         foreach (var kvp in anchorForAddress) {
+            var (address, name) = (kvp.Key, kvp.Value);
+            var format = runs[BinarySearch(address)].FormatString;
+            anchors.Add(new StoredAnchor(address, name, format));
+         }
+
+         var unmappedPointers = new List<StoredUnmappedPointers>();
+         foreach (var kvp in sourceToUnmappedName) {
+            var (address, name) = (kvp.Key, kvp.Value);
+            unmappedPointers.Add(new StoredUnmappedPointers(address, name));
+         }
+
+         return new StoredMetadata(anchors, unmappedPointers);
       }
 
       private void RemoveAnchorByName(DeltaModel changeToken, string anchorName) {

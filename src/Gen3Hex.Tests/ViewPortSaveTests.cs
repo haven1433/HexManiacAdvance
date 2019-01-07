@@ -1,8 +1,10 @@
 ﻿using HavenSoft.Gen3Hex.Core;
 using HavenSoft.Gen3Hex.Core.Models;
 using HavenSoft.Gen3Hex.Core.ViewModels;
+using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Xunit;
 
 namespace HavenSoft.Gen3Hex.Tests {
@@ -14,7 +16,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       public ViewPortSaveTests() {
          fileSystem = new StubFileSystem {
             RequestNewName = (previousName, extensions) => { name = $"file.txt"; return name; },
-            TrySavePrompt = loadedFile => { name = loadedFile.Name; return true; },
+            TrySavePrompt = (loadedFile, md) => { name = loadedFile.Name; return true; },
          };
       }
 
@@ -39,7 +41,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void SaveDoesNotRequestNewNameIfFileIsNotNew() {
          var viewPort = new ViewPort(new LoadedFile("input.txt", new byte[0]));
-         fileSystem.Save = loadedFile => { name = loadedFile.Name; return true; };
+         fileSystem.Save = (loadedFile, md) => { name = loadedFile.Name; return true; };
 
          viewPort.Edit("01 23 45");
          viewPort.Save.Execute(fileSystem);
@@ -72,7 +74,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          bool triedToSave = false;
          var viewPort = new ViewPort();
          viewPort.Edit("ab cd ef");
-         fileSystem.TrySavePrompt = loadedFile => { triedToSave = true; return true; };
+         fileSystem.TrySavePrompt = (loadedFile, md) => { triedToSave = true; return true; };
 
          viewPort.Close.Execute(fileSystem);
 
@@ -83,7 +85,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       public void NonEditedFileDoesNotPromptForSaveOnExit() {
          bool triedToSave = false;
          var viewPort = new ViewPort(new LoadedFile("input.txt", new byte[10]));
-         fileSystem.TrySavePrompt = loadedFile => { triedToSave = true; return true; };
+         fileSystem.TrySavePrompt = (loadedFile, md) => { triedToSave = true; return true; };
 
          Assert.False(viewPort.Save.CanExecute(fileSystem));
          viewPort.Close.Execute(fileSystem);
@@ -107,7 +109,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          int closed = 0;
          var viewPort = new ViewPort();
          viewPort.Closed += (sender, e) => closed++;
-         fileSystem.TrySavePrompt = loadedFile => true;
+         fileSystem.TrySavePrompt = (loadedFile, md) => true;
 
          viewPort.Edit("12");
          viewPort.Close.Execute(fileSystem);
@@ -120,7 +122,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          int closed = 0;
          var viewPort = new ViewPort();
          viewPort.Closed += (sender, e) => closed++;
-         fileSystem.TrySavePrompt = loadedFile => false;
+         fileSystem.TrySavePrompt = (loadedFile, md) => false;
 
          viewPort.Edit("12");
          viewPort.Close.Execute(fileSystem);
@@ -133,7 +135,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          int closed = 0;
          var viewPort = new ViewPort();
          viewPort.Closed += (sender, e) => closed++;
-         fileSystem.TrySavePrompt = loadedFile => null;
+         fileSystem.TrySavePrompt = (loadedFile, md) => null;
 
          viewPort.Edit("12");
          viewPort.Close.Execute(fileSystem);
@@ -145,7 +147,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       public void CallingSaveMultipleTimesOnlySavesOnce() {
          int count = 0;
          var viewPort = new ViewPort();
-         fileSystem.Save = loadedFile => { count++; return true; };
+         fileSystem.Save = (loadedFile, md) => { count++; return true; };
 
          viewPort.Edit("00 01 02");
          viewPort.Save.Execute(fileSystem);
@@ -216,7 +218,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
       [Fact]
       public void ViewPortTakesNewNameOnSave() {
-         var fileSystem = new StubFileSystem { RequestNewName = (originalName, extensions) => "path/to/newfile.txt", Save = loadedFile => true };
+         var fileSystem = new StubFileSystem { RequestNewName = (originalName, extensions) => "path/to/newfile.txt", Save = (loadedFile, md) => true };
          var viewPort = new ViewPort();
          int nameChangedCount = 0;
          viewPort.PropertyChanged += (sender, e) => { if (e.PropertyName == nameof(viewPort.Name)) nameChangedCount++; };
@@ -261,7 +263,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
          var fileSystem = new StubFileSystem {
             RequestNewName = (currentName, extensionOptions) => "file.txt",
-            Save = file => true,
+            Save = (file, md) => true,
          };
          var viewPort = new ViewPort();
          viewPort.PropertyChanged += (sender, e) => properties.Add(e.PropertyName);
@@ -295,6 +297,23 @@ namespace HavenSoft.Gen3Hex.Tests {
          tab.PropertyChanged.Invoke(tab, new ExtendedPropertyChangedEventArgs("file.txt", nameof(tab.FileName)));
          Assert.Equal(2, addCalls);
          Assert.Equal(1, removeCalls);
+      }
+
+      [Fact]
+      public void CanSaveAndLoadNamesAndFormats() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         StoredMetadata metadata = null;
+         var fileSystem = new StubFileSystem { Save = (file, md) => { metadata = md; return true; } };
+
+         viewPort.Edit("^bob\"\" \"Hello\"");
+         viewPort.Save.Execute(fileSystem);
+
+         var model2 = new PointerAndStringModel(buffer, metadata);
+         var viewPort2 = new ViewPort(new LoadedFile("test.txt", buffer), model2) { Width = 0x10, Height = 0x10 };
+
+         Assert.Equal("bob", ((Anchor)viewPort2[0, 0].Format).Name);
       }
    }
 }
