@@ -39,7 +39,6 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             Execute = arg => SelectedIndex = selectedIndex == 0 ? -1 : 0,
          };
 
-         foreach (var tool in tools) tool.PropertyChanged += (sender, e) => SelectedIndex = tools.IndexOf((IToolViewModel)sender);
          SelectedIndex = -1;
       }
 

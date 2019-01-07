@@ -15,6 +15,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       int ScrollValue { get; set; }
       int MaximumScroll { get; }
       ObservableCollection<string> Headers { get; }
+      int DataOffset { get; }
       ICommand Scroll { get; } // parameter: Direction to scroll
 
       HexElement this[int x, int y] { get; }

@@ -193,7 +193,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          var destinations = pointersForDestination.Keys.OrderBy(i => i).GetEnumerator();
          destinations.MoveNext();
          foreach (var destination in pointersForDestination.Keys.OrderBy(i => i)) {
-            var length = PCSString.ReadString(RawData, destination);
+            var length = PCSString.ReadString(RawData, destination, false);
             if (length < 2) continue;
             if (GetNextRun(destination + 1).Start < destination + length) continue;
             ObserveRunWritten(new DeltaModel(), new PCSRun(destination, length, pointersForDestination[destination]));
@@ -330,7 +330,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          index = BinarySearch(location);
          IFormattedRun newRun;
          if (anchorFormat == "\"\"") {
-            newRun = new PCSRun(location, PCSString.ReadString(this, location), sources);
+            newRun = new PCSRun(location, PCSString.ReadString(this, location, true), sources);
          } else {
             newRun = new NoInfoRun(location, sources);
          }
@@ -633,7 +633,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       public override int GetAddressFromAnchor(int requestSource, string anchor) => Pointer.NULL;
       public override string GetAnchorFromAddress(int requestSource, int destination) => string.Empty;
-      public override IFormattedRun GetNextRun(int dataIndex) => null;
+      public override IFormattedRun GetNextRun(int dataIndex) => NoInfoRun.NullRun;
       public override void ObserveRunWritten(DeltaModel changeToken, IFormattedRun run) { }
       public override void ObserveAnchorWritten(DeltaModel changeToken, int location, string anchorName, string anchorFormat) { }
       public override void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd) { }

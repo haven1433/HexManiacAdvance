@@ -60,6 +60,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public int MaximumScroll => scroll.MaximumScroll;
 
       public ObservableCollection<string> Headers => scroll.Headers;
+      public int DataOffset => scroll.DataIndex;
       public ICommand Scroll => scroll.Scroll;
 
       private void ScrollPropertyChanged(object sender, PropertyChangedEventArgs e) {
@@ -114,6 +115,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       private void SelectionPropertyChanged(object sender, PropertyChangedEventArgs e) {
          if (e.PropertyName == nameof(SelectionEnd)) history.ChangeCompleted();
          NotifyPropertyChanged(e.PropertyName);
+         var dataIndex = scroll.ViewPointToDataIndex(SelectionStart);
+         var run = Model.GetNextRun(dataIndex);
+         if (run.Start < dataIndex && run is PCSRun) Tools.StringTool.Address = run.Start;
       }
 
       #endregion
@@ -302,7 +306,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          var run = Model.GetNextRun(index - 1) ?? new NoInfoRun(int.MaxValue);
          if (run is PCSRun pcs) {
             for (int i = index - 1; i < run.Start + run.Length; i++) Model[i] = 0xFF;
-            var length = PCSString.ReadString(Model, run.Start);
+            var length = PCSString.ReadString(Model, run.Start, true);
             Model.ObserveRunWritten(history.CurrentChange, new PCSRun(run.Start, length, run.PointerSources));
             RefreshBackingData();
          } else if (run.Start <= index - 1 && run.Start + run.Length > index - 1) {
@@ -435,6 +439,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          }
          if (format is PCS pcs) {
             Tools.StringTool.Address = pcs.Source;
+            Tools.SelectedIndex = Enumerable.Range(0, Tools.Count).First(i => Tools[i] is PCSTool);
          }
       }
 
@@ -650,7 +655,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          }
 
          if (format == "\"\"") {
-            var length = PCSString.ReadString(Model, index);
+            var length = PCSString.ReadString(Model, index, true);
             if (length < 0) {
                OnError(this, $"Format was specified as a string, but no string was recognized.");
                format = string.Empty;
@@ -713,7 +718,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             history.CurrentChange.ChangeData(Model, memoryLocation, 0xFF);
             memoryLocation++;
             SilentScroll(memoryLocation);
-            var newRunLength = PCSString.ReadString(Model, run.Start);
+            var newRunLength = PCSString.ReadString(Model, run.Start, true);
             Model.ObserveRunWritten(history.CurrentChange, new PCSRun(run.Start, newRunLength, run.PointerSources));
          }
       }

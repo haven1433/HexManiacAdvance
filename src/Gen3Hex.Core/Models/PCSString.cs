@@ -43,6 +43,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       public static string Convert(IReadOnlyList<byte> data, int startIndex, int length) {
          var result = "\"";
+
          for (int i = 0; i < length; i++) {
             if (PCS[data[startIndex + i]] == null) return null;
             result += PCS[data[startIndex + i]];
@@ -82,10 +83,19 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       /// Figure out the length of a string starting at a given location in the data.
       /// If the data doesn't represent a string, return -1.
       /// </summary>
-      public static int ReadString(IReadOnlyList<byte> data, int start) {
+      public static int ReadString(IReadOnlyList<byte> data, int start, bool allowCharacterRepeates) {
          int length = 0;
+         byte recent = data[start];
+         int count = 0;
          while (start + length < data.Count) {
-            if (PCS[data[start + length]] == null) return -1; // not valid string data
+            if (data[start + length] == recent) {
+               count++;
+            } else {
+               count = 1;
+               recent = data[start + length];
+            }
+            if (count > 3 && !allowCharacterRepeates) return -1; // not a string if it has more than 3 of the same character in a row.
+            if (PCS[recent] == null) return -1; // not valid string data
             if (data[start + length] == 0xFF) return length + 1;  // end of string. Add one extra space for the end-of-stream byte
             if (data[start + length] == Escape) length++;     // escape character, skip the next byte
             length++;

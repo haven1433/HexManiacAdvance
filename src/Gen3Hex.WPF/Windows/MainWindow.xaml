@@ -209,7 +209,7 @@
                            </Style>
                         </StackPanel.Style>
                         <TextBox Text="{Binding StringTool.Address, Converter={StaticResource Hex}}" Margin="5,15"/>
-                        <TextBox FontFamily="Consolas" Text="{Binding StringTool.Content, UpdateSourceTrigger=PropertyChanged}" Margin="5,15" AcceptsReturn="True" MinHeight="50" Width="250" TextWrapping="Wrap"/>
+                        <TextBox FontFamily="Consolas" Text="{Binding StringTool.Content, UpdateSourceTrigger=PropertyChanged}" Margin="5,15" AcceptsReturn="True" MinHeight="50" Width="255" TextWrapping="Wrap"/>
                      </StackPanel>
                   </Grid>
                   <ScrollBar DockPanel.Dock="Right"
