@@ -830,7 +830,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                   var format = run.CreateDataFormat(Model, index);
                   if (run.PointerSources != null && run.Start == index) {
                      var name = Model.GetAnchorFromAddress(-1, run.Start);
-                     format = new Anchor(format, name, string.Empty, run.PointerSources);
+                     format = new Anchor(format, name, run.FormatString, run.PointerSources);
                   }
                   currentView[x, y] = new HexElement(Model[index], format);
                } else {
