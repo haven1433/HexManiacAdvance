@@ -79,7 +79,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             CanExecute = args => true,
             Execute = args => {
                var address = args.ToString();
-               var anchor = model.GetAddressFromAnchor(-1, address);
+               var anchor = model.GetAddressFromAnchor(new DeltaModel(), -1, address);
                if (anchor != Pointer.NULL) {
                   GotoAddress(anchor);
                } else if (int.TryParse(address, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int result)) {

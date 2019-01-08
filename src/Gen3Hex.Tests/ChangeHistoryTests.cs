@@ -270,5 +270,36 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Equal(Pointer.NULL, model.ReadPointer(0x00));
          Assert.Equal("bob", ((Pointer)viewPort[0, 0].Format).DestinationName);
       }
+
+      [Fact]
+      public void UndoWorksAfterMidPointerEdit() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.Edit("<000100>");
+         viewPort.SelectionStart = new Point(1, 0);
+         viewPort.Edit("<000180>");
+         viewPort.Undo.Execute();
+
+         Assert.Equal(0x000100, model.ReadPointer(0));
+      }
+
+      [Fact]
+      public void UndoRedoRestoresUnmappedNames() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.Edit("<bob>");
+         viewPort.SelectionStart = new Point(0, 0);
+         viewPort.Edit("<tom>");
+
+         viewPort.Undo.Execute();
+         Assert.Equal("bob", ((Pointer)viewPort[0, 0].Format).DestinationName);
+
+         viewPort.Redo.Execute();
+         Assert.Equal("tom", ((Pointer)viewPort[0, 0].Format).DestinationName);
+      }
    }
 }

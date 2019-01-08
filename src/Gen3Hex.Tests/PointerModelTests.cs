@@ -283,7 +283,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          var format = (Pointer)viewPort[0, 1].Format;
          Assert.Equal(0x20, format.Destination);
          Assert.Equal(string.Empty, format.DestinationName);
-         var address = model.GetAddressFromAnchor(-1, string.Empty);
+         var address = model.GetAddressFromAnchor(new DeltaModel(), -1, string.Empty);
          Assert.Equal(Pointer.NULL, address);
       }
 
@@ -560,8 +560,5 @@ namespace HavenSoft.Gen3Hex.Tests {
          var format = (UnderEdit)viewPort[0, 0].Format;
          Assert.Equal("^bob", format.CurrentText);
       }
-
-      // TODO undo/redo
-      // TODO file load/save (metadata file / TOML)
    }
 }

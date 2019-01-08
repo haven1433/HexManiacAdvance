@@ -368,7 +368,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                var pointerEnd = cleanedSearchString.IndexOf('>', i);
                if (pointerEnd == -1) { OnError(this, "Search mismatch: no closing >"); return results; }
                var pointerContents = cleanedSearchString.Substring(i + 1, pointerEnd - i - 2);
-               var address = Model.GetAddressFromAnchor(-1, pointerContents);
+               var address = Model.GetAddressFromAnchor(history.CurrentChange, -1, pointerContents);
                if (address != Pointer.NULL) {
                   searchBytes.Add((SearchByte)(address >> 0));
                   searchBytes.Add((SearchByte)(address >> 8));
@@ -531,12 +531,6 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                return true;
             }
 
-            if (input == '<') {
-               // pointer edits are 4 bytes long
-               PrepareForMultiSpaceEdit(point, 4);
-               return true;
-            }
-
             if (innerFormat is PCS) {
                if (input == '"') return true;
                return PCSString.PCS.Any(str => str != null && str.StartsWith(input.ToString()));
@@ -544,6 +538,12 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
             if (innerFormat is EscapedPCS) {
                return AllHexCharacters.Contains(input);
+            }
+
+            if (input == '<') {
+               // pointer edits are 4 bytes long
+               PrepareForMultiSpaceEdit(point, 4);
+               return true;
             }
          } else if (underEdit.CurrentText.StartsWith("<")) {
             return char.IsLetterOrDigit(input) || input == '>';
@@ -634,7 +634,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             while (destination.Length < 6) destination = "0" + destination;
             fullValue = int.Parse(destination, NumberStyles.HexNumber);
          } else {
-            fullValue = Model.GetAddressFromAnchor(index, destination);
+            fullValue = Model.GetAddressFromAnchor(history.CurrentChange, index, destination);
          }
 
          Model.WritePointer(history.CurrentChange, index, fullValue);
