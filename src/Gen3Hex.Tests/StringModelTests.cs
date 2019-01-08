@@ -258,5 +258,23 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Single(results);
          Assert.Equal(9, results[0]);
       }
+
+      [Fact]
+      public void CanNameExistingStringAnchor() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var bytes = PCSString.Convert("Hello World!").ToArray();
+         buffer[0] = 0x08;
+         buffer[1] = 0x00;
+         buffer[2] = 0x00;
+         buffer[3] = 0x08;
+         Array.Copy(bytes, 0, buffer, 0x08, bytes.Length);
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.SelectionStart = new Point(0x08, 0);
+         viewPort.Edit("^bob ");
+
+         Assert.Equal("bob", ((Pointer)viewPort[0, 0].Format).DestinationName);
+      }
    }
 }

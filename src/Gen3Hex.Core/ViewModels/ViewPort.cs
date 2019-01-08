@@ -520,20 +520,6 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             var innerFormat = element.Format;
             if (innerFormat is Anchor anchorFormat) innerFormat = anchorFormat.OriginalFormat;
 
-            if (innerFormat is PCS) {
-               if (input == '"') return true;
-               return PCSString.PCS.Any(str => str != null && str.StartsWith(input.ToString()));
-            }
-
-            if (innerFormat is EscapedPCS) {
-               return AllHexCharacters.Contains(input);
-            }
-
-            if (input == '<') {
-               // pointer edits are 4 bytes long
-               PrepareForMultiSpaceEdit(point, 4);
-               return true;
-            }
             if (input == '^') {
                // anchor edits are actually 0 length
                // but lets give them 4 spaces to work with
@@ -543,6 +529,21 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                   currentView[point.X, point.Y] = new HexElement(element.Value, underEdit);
                }
                return true;
+            }
+
+            if (input == '<') {
+               // pointer edits are 4 bytes long
+               PrepareForMultiSpaceEdit(point, 4);
+               return true;
+            }
+
+            if (innerFormat is PCS) {
+               if (input == '"') return true;
+               return PCSString.PCS.Any(str => str != null && str.StartsWith(input.ToString()));
+            }
+
+            if (innerFormat is EscapedPCS) {
+               return AllHexCharacters.Contains(input);
             }
          } else if (underEdit.CurrentText.StartsWith("<")) {
             return char.IsLetterOrDigit(input) || input == '>';
