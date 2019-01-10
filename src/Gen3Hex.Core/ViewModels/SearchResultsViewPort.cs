@@ -134,7 +134,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
          var child = children[childIndex];
          var parent = child.Parent;
-         parent.Goto.Execute(child.DataOffset.ToString("X6"));
+         var dataOffset = Math.Max(0, child.DataOffset - (y - line) * child.Width);
+         parent.Goto.Execute(dataOffset.ToString("X6"));
          RequestTabChange?.Invoke(this, parent);
       }
 
