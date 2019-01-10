@@ -560,5 +560,56 @@ namespace HavenSoft.Gen3Hex.Tests {
          var format = (UnderEdit)viewPort[0, 0].Format;
          Assert.Equal("^bob", format.CurrentText);
       }
+
+      [Fact]
+      public void AnchorEditTextUpdatesWithSelectionChange() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var model = new PointerAndStringModel(buffer);
+         model.ObserveAnchorWritten(new DeltaModel(), 0x08, "bob", string.Empty);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.SelectionStart = new Point(0x08, 0);
+
+         Assert.True(viewPort.AnchorTextVisible);
+         Assert.Equal("^bob", viewPort.AnchorText);
+      }
+
+      [Fact]
+      public void AnchorEditTextUpdatesWhenTypingAnAnchor() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.Edit("^partialTe"); // in the middle of typing 'partialText'
+
+         Assert.True(viewPort.AnchorTextVisible);
+         Assert.Equal("^partialTe", viewPort.AnchorText);
+      }
+
+      [Fact]
+      public void ModifyingAnchorTextUpdatesTheAnchor() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var model = new PointerAndStringModel(buffer);
+         model.ObserveAnchorWritten(new DeltaModel(), 0x08, "bob", string.Empty);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.SelectionStart = new Point(0x08, 0);
+         viewPort.AnchorText = "^bob\"\"";
+
+         Assert.IsType<PCSRun>(model.GetNextRun(0x08));
+      }
+
+      [Fact]
+      public void AnchorTextAlwaysCoercesToStartWithAnchorCharacter() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var model = new PointerAndStringModel(buffer);
+         model.ObserveAnchorWritten(new DeltaModel(), 0x08, "bob", string.Empty);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.SelectionStart = new Point(0x08, 0);
+         viewPort.AnchorText = "tom\"\"";
+
+         Assert.Equal("^tom\"\"", viewPort.AnchorText); // not that the ^ was added to the front
+      }
    }
 }

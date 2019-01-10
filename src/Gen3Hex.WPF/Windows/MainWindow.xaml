@@ -172,6 +172,9 @@
          <TabControl.ContentTemplate>
             <DataTemplate>
                <DockPanel>
+                  <Grid DockPanel.Dock="Top" Height="18">
+                     <TextBox Text="{Binding AnchorText, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding AnchorTextVisible, Converter={StaticResource BoolToVisibility}}" Margin="60,0,25,0"/>
+                  </Grid>
                   <ItemsControl DockPanel.Dock="Left" Width="60" ItemsSource="{Binding Headers}" Background="{DynamicResource Backlight}">
                      <ItemsControl.ItemTemplate>
                         <DataTemplate>

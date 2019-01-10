@@ -72,6 +72,10 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
       public IToolTrayViewModel Tools => null;
 
+      public string AnchorText => string.Empty;
+
+      public bool AnchorTextVisible => false;
+
 #pragma warning disable 0067 // it's ok if events are never used
       public event EventHandler<string> OnError;
       public event EventHandler Closed;

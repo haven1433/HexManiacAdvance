@@ -18,6 +18,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       int DataOffset { get; }
       ICommand Scroll { get; } // parameter: Direction to scroll
 
+      string AnchorText { get; }
+      bool AnchorTextVisible { get; }
+
       HexElement this[int x, int y] { get; }
       IModel Model { get; }
       bool IsSelected(Point point);

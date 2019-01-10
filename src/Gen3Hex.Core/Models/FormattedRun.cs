@@ -94,8 +94,9 @@ namespace HavenSoft.Gen3Hex.Core.Models {
    }
 
    public class PCSRun : BaseRun {
+      public const char StringDelimeter = '"';
       public override int Length { get; }
-      public override string FormatString => "\"\"";
+      public override string FormatString => StringDelimeter.ToString() + StringDelimeter;
 
       public PCSRun(int start, int length, IReadOnlyList<int> sources = null) : base(start, sources) => Length = length;
 
@@ -106,7 +107,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             return new EscapedPCS(Start, index-Start, fullString, data[index]);
          } else {
             var character = PCSString.Convert(data, index, 1).Substring(1); // trim leading "
-            if (index == Start) character = '"' + character; // include the opening quotation mark, only for the first character
+            if (index == Start) character = StringDelimeter + character; // include the opening quotation mark, only for the first character
             var pcs = new PCS(Start, index - Start, fullString, character);
             return pcs;
          }

@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Input;
 using static HavenSoft.Gen3Hex.Core.ICommandExtensions;
+using static HavenSoft.Gen3Hex.Core.Models.PCSRun;
 
 namespace HavenSoft.Gen3Hex.Core.ViewModels {
    /// <summary>
@@ -17,6 +18,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
    /// </summary>
    public class ViewPort : ViewModelCore, IViewPort {
       private const string AllHexCharacters = "0123456789ABCDEFabcdef";
+      private const char AnchorStart = '^';
+      private const char PointerStart = '<';
+      private const char PointerEnd = '>';
       private static readonly NotifyCollectionChangedEventArgs ResetArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
       private readonly StubCommand
          clear = new StubCommand(),
@@ -101,7 +105,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          if (location.X >= 0 && location.X < scroll.Width && location.Y >= 0 && location.Y < scroll.Height) {
             var element = currentView[location.X, location.Y];
             if (element.Format is UnderEdit underEdit) {
-               if (underEdit.CurrentText.StartsWith("^")) {
+               if (underEdit.CurrentText.StartsWith(AnchorStart.ToString())) {
                   currentView[location.X, location.Y] = new HexElement(element.Value, underEdit.Edit(" "));
                   if (!TryCompleteEdit(location)) ClearEdits(location);
                } else {
@@ -118,6 +122,12 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          var dataIndex = scroll.ViewPointToDataIndex(SelectionStart);
          var run = Model.GetNextRun(dataIndex);
          if (run.Start < dataIndex && run is PCSRun) Tools.StringTool.Address = run.Start;
+         if (this[SelectionStart].Format is Anchor anchor) {
+            TryUpdate(ref anchorText, AnchorStart + anchor.Name + anchor.Format, nameof(AnchorText));
+            AnchorTextVisible = true;
+         } else {
+            AnchorTextVisible = false;
+         }
       }
 
       #endregion
@@ -197,8 +207,30 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public bool HasTools => true;
       public IToolTrayViewModel Tools { get; }
 
+      private bool anchorTextVisible;
+      public bool AnchorTextVisible {
+         get => anchorTextVisible;
+         set => TryUpdate(ref anchorTextVisible, value);
+      }
+
+      private string anchorText;
+      public string AnchorText {
+         get => anchorText;
+         set {
+            if (value == null) value = string.Empty;
+            if (!value.StartsWith(AnchorStart.ToString())) value = AnchorStart + value;
+            if (TryUpdate(ref anchorText, value) && this[SelectionStart].Format is Anchor anchor) {
+               var index = scroll.ViewPointToDataIndex(SelectionStart);
+               OnError?.Invoke(this, string.Empty);
+               if (ApplyAnchor(index, AnchorText)) RefreshBackingData();
+            }
+         }
+      }
+
       public ICommand Copy => copy;
       public ICommand Clear => clear;
+
+      public HexElement this[Point p] => this[p.X, p.Y];
 
       public HexElement this[int x, int y] {
          get {
@@ -347,7 +379,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          var hex = "0123456789ABCDEF";
 
          // precheck: it might be a string with no quotes, we should check for matches for that.
-         if (cleanedSearchString.Length > 3 && !cleanedSearchString.Contains('"')) {
+         if (cleanedSearchString.Length > 3 && !cleanedSearchString.Contains(StringDelimeter)) {
             var pcsBytes = PCSString.Convert(cleanedSearchString);
             searchBytes.AddRange(pcsBytes.Select(b => new PCSSearchByte(b)));
             for (int i = 0; i < Model.Count - searchBytes.Count; i++) {
@@ -383,9 +415,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                i = pointerEnd + 1;
                continue;
             }
-            if (cleanedSearchString[i] == '"') {
-               var endIndex = cleanedSearchString.IndexOf('"', i + 1);
-               while (endIndex > i && cleanedSearchString[endIndex - 1] == '\\') endIndex = cleanedSearchString.IndexOf('"', endIndex + 1);
+            if (cleanedSearchString[i] == StringDelimeter) {
+               var endIndex = cleanedSearchString.IndexOf(StringDelimeter, i + 1);
+               while (endIndex > i && cleanedSearchString[endIndex - 1] == '\\') endIndex = cleanedSearchString.IndexOf(StringDelimeter, endIndex + 1);
                if (endIndex > i) {
                   var pcsBytes = PCSString.Convert(cleanedSearchString.Substring(i, endIndex + 1 - i));
                   i = endIndex + 1;
@@ -520,19 +552,19 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             var innerFormat = element.Format;
             if (innerFormat is Anchor anchorFormat) innerFormat = anchorFormat.OriginalFormat;
 
-            if (input == '^') {
+            if (input == AnchorStart) {
                // anchor edits are actually 0 length
                // but lets give them 4 spaces to work with
                PrepareForMultiSpaceEdit(point, 4);
                if (element.Format is Anchor anchor) {
-                  underEdit = new UnderEdit(anchor, "^" + anchor.Name + anchor.Format);
+                  underEdit = new UnderEdit(anchor, AnchorStart + anchor.Name + anchor.Format);
                   currentView[point.X, point.Y] = new HexElement(element.Value, underEdit);
                }
                return true;
             }
 
             if (innerFormat is PCS) {
-               if (input == '"') return true;
+               if (input == StringDelimeter) return true;
                return PCSString.PCS.Any(str => str != null && str.StartsWith(input.ToString()));
             }
 
@@ -540,22 +572,22 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                return AllHexCharacters.Contains(input);
             }
 
-            if (input == '<') {
+            if (input == PointerStart) {
                // pointer edits are 4 bytes long
                PrepareForMultiSpaceEdit(point, 4);
                return true;
             }
-         } else if (underEdit.CurrentText.StartsWith("<")) {
-            return char.IsLetterOrDigit(input) || input == '>';
-         } else if (underEdit.CurrentText.StartsWith("^")) {
-            return char.IsLetterOrDigit(input) || char.IsWhiteSpace(input) || input == '"';
+         } else if (underEdit.CurrentText.StartsWith(PointerStart.ToString())) {
+            return char.IsLetterOrDigit(input) || input == PointerEnd;
+         } else if (underEdit.CurrentText.StartsWith(AnchorStart.ToString())) {
+            return char.IsLetterOrDigit(input) || char.IsWhiteSpace(input) || input == StringDelimeter;
          } else if (underEdit.OriginalFormat is Anchor anchorFormat && anchorFormat.OriginalFormat is PCS) {
-            if (input == '"') return true;
+            if (input == StringDelimeter) return true;
             var currentText = underEdit.CurrentText;
-            if (currentText.StartsWith("\"")) currentText = currentText.Substring(1);
+            if (currentText.StartsWith(StringDelimeter.ToString())) currentText = currentText.Substring(1);
             return PCSString.PCS.Any(str => str != null && str.StartsWith(currentText + input));
          } else if (underEdit.OriginalFormat is PCS) {
-            if (input == '"') return true;
+            if (input == StringDelimeter) return true;
             return PCSString.PCS.Any(str => str != null && str.StartsWith(underEdit.CurrentText + input));
          }
 
@@ -581,13 +613,18 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          var element = currentView[point.X, point.Y];
          var underEdit = (UnderEdit)element.Format;
 
-         if (underEdit.CurrentText.StartsWith("<")) {
-            if (!underEdit.CurrentText.EndsWith(">")) return false;
+         if (underEdit.CurrentText.StartsWith(PointerStart.ToString())) {
+            if (!underEdit.CurrentText.EndsWith(PointerEnd.ToString())) return false;
             CompletePointerEdit(point);
             return true;
          }
-         if (underEdit.CurrentText.StartsWith("^")) {
-            if (!char.IsWhiteSpace(underEdit.CurrentText[underEdit.CurrentText.Length - 1])) return false;
+         if (underEdit.CurrentText.StartsWith(AnchorStart.ToString())) {
+            TryUpdate(ref anchorText, underEdit.CurrentText, nameof(AnchorText));
+            if (!char.IsWhiteSpace(underEdit.CurrentText[underEdit.CurrentText.Length - 1])) {
+               AnchorTextVisible = true;
+               return false;
+            }
+            AnchorTextVisible = false;
             CompleteAnchorEdit(point);
             return true;
          }
@@ -597,8 +634,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          stringFormat = stringFormat ?? underEdit.OriginalFormat as PCS;
          if (stringFormat != null) {
             var currentText = underEdit.CurrentText;
-            if (currentText.StartsWith("\"")) currentText = currentText.Substring(1);
-            if (stringFormat.Position != 0 && underEdit.CurrentText == "\"") {
+            if (currentText.StartsWith(StringDelimeter.ToString())) currentText = currentText.Substring(1);
+            if (stringFormat.Position != 0 && underEdit.CurrentText == StringDelimeter.ToString()) {
                CompleteStringEdit(point);
                return true;
             } else if (PCSString.PCS.Any(str => str == currentText)) {
@@ -646,21 +683,26 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       private void CompleteAnchorEdit(Point point) {
          var underEdit = (UnderEdit)currentView[point.X, point.Y].Format;
          var index = scroll.ViewPointToDataIndex(point);
-         var name = underEdit.CurrentText.Substring(1).Trim();
+         ApplyAnchor(index, underEdit.CurrentText);
+         ClearEdits(point);
+      }
+
+      private bool ApplyAnchor(int dataIndex, string text) {
+         var name = text.Substring(1).Trim();
          string format = string.Empty;
 
-         if (name.Contains('"')) {
-            var split = name.IndexOf('"');
+         if (name.Contains(StringDelimeter)) {
+            var split = name.IndexOf(StringDelimeter);
             format = name.Substring(split);
             name = name.Substring(0, split);
          }
 
-         if (format == "\"\"") {
-            var length = PCSString.ReadString(Model, index, true);
+         if (format == StringDelimeter.ToString() + StringDelimeter) {
+            var length = PCSString.ReadString(Model, dataIndex, true);
             if (length < 0) {
                OnError(this, $"Format was specified as a string, but no string was recognized.");
                format = string.Empty;
-            } else if (SpanContainsAnchor(index, length)) {
+            } else if (SpanContainsAnchor(dataIndex, length)) {
                OnError(this, $"Format was specified as a string, but a string would overlap the next anchor.");
                format = string.Empty;
             }
@@ -669,19 +711,20 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             format = string.Empty;
          }
 
-         var nextRun = Model.GetNextRun(index);
+         var nextRun = Model.GetNextRun(dataIndex);
 
          if (name.ToLower() == "null") {
             OnError(this, "'null' is a reserved word and cannot be used as an anchor name.");
-         } else if (name == string.Empty && nextRun.Start != index) {
+         } else if (name == string.Empty && nextRun.Start != dataIndex) {
             OnError(this, "An anchor with nothing pointing to it must have a name.");
          } else if (name == string.Empty && nextRun.PointerSources.Count == 0 && format != string.Empty) {
             OnError(this, "An anchor with nothing pointing to it must have a name.");
          } else {
-            Model.ObserveAnchorWritten(history.CurrentChange, index, name, format);
+            Model.ObserveAnchorWritten(history.CurrentChange, dataIndex, name, format);
+            return true;
          }
 
-         ClearEdits(point);
+         return false;
       }
 
       private bool SpanContainsAnchor(int start, int length) {

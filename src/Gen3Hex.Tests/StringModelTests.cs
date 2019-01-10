@@ -298,5 +298,21 @@ namespace HavenSoft.Gen3Hex.Tests {
          var underEdit = (UnderEdit)viewPort[8, 0].Format;
          Assert.Equal("^\"\"", underEdit.CurrentText);
       }
+
+      [Fact]
+      public void UsingTheAnchorEditorToSetStringFormatChangesVisibleData() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var bytes = PCSString.Convert("Hello World!").ToArray();
+         Array.Copy(bytes, 0, buffer, 0x08, bytes.Length);
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         viewPort.SelectionStart = new Point(0x08, 0);
+         viewPort.Edit("^bob ");
+
+         viewPort.AnchorText = "^bob\"\"";
+
+         var anchor = (Anchor)viewPort[8, 0].Format;
+         Assert.IsType<PCS>(anchor.OriginalFormat);
+      }
    }
 }

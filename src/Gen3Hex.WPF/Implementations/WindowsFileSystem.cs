@@ -94,7 +94,12 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
          var metadataName = Path.ChangeExtension(fileName, ".toml");
          if (!File.Exists(metadataName)) return null;
          var lines = File.ReadAllLines(metadataName);
-         return new StoredMetadata(lines);
+
+         try {
+            return new StoredMetadata(lines);
+         } catch (Exception) {
+            return null;
+         }
       }
 
       private static string CreateFilterFromOptions(string[] extensionOptions) {
