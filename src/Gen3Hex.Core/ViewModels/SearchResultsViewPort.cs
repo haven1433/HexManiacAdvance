@@ -72,7 +72,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
       public IToolTrayViewModel Tools => null;
 
-      public string AnchorText => string.Empty;
+      public string AnchorText { get; set; }
 
       public bool AnchorTextVisible => false;
 

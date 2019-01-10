@@ -22,7 +22,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          viewPort.Edit("^bob\"\" \"Some Text\" 00 <000100>");
          var toolProperties = new List<string>();
          viewPort.Tools.PropertyChanged += (sender, e) => toolProperties.Add(e.PropertyName);
-         viewPort.FollowLink(2, 0);
+         viewPort.FollowLink(0, 0);
 
          Assert.Contains("SelectedIndex", toolProperties);
          Assert.IsType<PCSTool>(viewPort.Tools[viewPort.Tools.SelectedIndex]);

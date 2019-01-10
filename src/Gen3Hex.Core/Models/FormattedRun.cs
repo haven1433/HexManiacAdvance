@@ -95,20 +95,28 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
    public class PCSRun : BaseRun {
       public const char StringDelimeter = '"';
+
+      private int cachedIndex = int.MaxValue;
+      private string cachedFullString;
+
       public override int Length { get; }
       public override string FormatString => StringDelimeter.ToString() + StringDelimeter;
 
       public PCSRun(int start, int length, IReadOnlyList<int> sources = null) : base(start, sources) => Length = length;
 
       public override IDataFormat CreateDataFormat(IModel data, int index) {
+         // only read the full string from the data once per pass.
+         // This assumes that we read data starting at the lowest index and working our way up.
+         if (index < cachedIndex) cachedFullString = PCSString.Convert(data, Start, Length);
+         cachedIndex = index;
+
          bool isEscaped = index > Start && data[index - 1] == PCSString.Escape;
-         var fullString = PCSString.Convert(data, Start, Length);
          if (isEscaped) {
-            return new EscapedPCS(Start, index-Start, fullString, data[index]);
+            return new EscapedPCS(Start, index-Start, cachedFullString, data[index]);
          } else {
             var character = PCSString.Convert(data, index, 1).Substring(1); // trim leading "
             if (index == Start) character = StringDelimeter + character; // include the opening quotation mark, only for the first character
-            var pcs = new PCS(Start, index - Start, fullString, character);
+            var pcs = new PCS(Start, index - Start, cachedFullString, character);
             return pcs;
          }
       }

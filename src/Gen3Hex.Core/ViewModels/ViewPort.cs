@@ -121,7 +121,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          NotifyPropertyChanged(e.PropertyName);
          var dataIndex = scroll.ViewPointToDataIndex(SelectionStart);
          var run = Model.GetNextRun(dataIndex);
-         if (run.Start < dataIndex && run is PCSRun) Tools.StringTool.Address = run.Start;
+         if (run.Start <= dataIndex && run is PCSRun) Tools.StringTool.Address = run.Start;
          if (this[SelectionStart].Format is Anchor anchor) {
             TryUpdate(ref anchorText, AnchorStart + anchor.Name + anchor.Format, nameof(AnchorText));
             AnchorTextVisible = true;
@@ -460,6 +460,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
       public void FollowLink(int x, int y) {
          var format = currentView[x, y].Format;
+         if (format is Anchor anchor) format = anchor.OriginalFormat;
          if (format is Pointer pointer) {
             if (pointer.Destination != Pointer.NULL) {
                selection.GotoAddress(pointer.Destination);
