@@ -80,6 +80,25 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
          context.DrawGeometry(null, new Pen(Solarized.Brushes.Blue, 2), Triangle);
       }
 
+      public void Visit(PCS pcs, byte data) {
+         var typeface = new Typeface("Consolas");
+         var text = new FormattedText(
+            pcs.ThisCharacter,
+            CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            typeface,
+            FontSize,
+            Solarized.Brushes.Violet,
+            1.0);
+
+         var xOffset = 1 - pcs.ThisCharacter.Length;
+         context.DrawText(text, new Point(CellTextOffset.X + xOffset, CellTextOffset.Y));
+      }
+
+      public void Visit(EscapedPCS pcs, byte data) {
+         // intentionally draw nothing: this is taken care of by Visit PCS
+      }
+
       private void VerifyNoneVisualCache() {
          if (noneVisualCache.Count != 0) return;
 

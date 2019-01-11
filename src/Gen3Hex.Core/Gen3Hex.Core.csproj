@@ -45,6 +45,9 @@
     <Compile Include="ICommandExtensions.cs" />
     <Compile Include="Models\FormattedRun.cs" />
     <Compile Include="Models\DataFormatModel.cs" />
+    <Compile Include="Models\PCSString.cs" />
+    <Compile Include="Models\SearchByte.cs" />
+    <Compile Include="Models\StoredMetadata.cs" />
     <Compile Include="NumericExtensions.cs" />
     <Compile Include="Models\Enums.cs" />
     <Compile Include="Models\IFileSystem.cs" />
@@ -57,6 +60,7 @@
     <Compile Include="ViewModels\HexElement.cs" />
     <Compile Include="ViewModels\IChildViewPort.cs" />
     <Compile Include="ViewModels\ITabContent.cs" />
+    <Compile Include="ViewModels\IToolViewModel.cs" />
     <Compile Include="ViewModels\IViewPort.cs" />
     <Compile Include="ViewModels\ScrollRegion.cs" />
     <Compile Include="ViewModels\SearchResultsViewPort.cs" />

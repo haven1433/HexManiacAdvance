@@ -16,6 +16,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels.DataFormats {
       void Visit(UnderEdit dataFormat, byte data);
       void Visit(Pointer pointer, byte data);
       void Visit(Anchor anchor, byte data);
+      void Visit(PCS pcs, byte data);
+      void Visit(EscapedPCS pcs, byte data);
    }
 
    /// <summary>
@@ -99,6 +101,38 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels.DataFormats {
       public bool Equals(IDataFormat other) {
          if (!(other is Anchor anchor)) return false;
          return anchor.Name == Name && anchor.Format == Format && anchor.Sources.SequenceEqual(Sources) && anchor.OriginalFormat.Equals(OriginalFormat);
+      }
+
+      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
+   }
+
+   public class PCS : IDataFormat {
+      public int Source { get; }
+      public int Position { get; }
+      public string FullString { get; }
+      public string ThisCharacter { get; }
+
+      public PCS(int source, int position, string full, string character) => (Source, Position, FullString, ThisCharacter) = (source, position, full, character);
+
+      public bool Equals(IDataFormat other) {
+         if (!(other is PCS pcs)) return false;
+         return pcs.Source == Source && pcs.Position == Position && pcs.FullString == FullString && pcs.ThisCharacter == ThisCharacter;
+      }
+
+      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
+   }
+
+   public class EscapedPCS : IDataFormat {
+      public int Source { get; }
+      public int Position { get; }
+      public string FullString { get; }
+      public byte ThisValue { get; }
+
+      public EscapedPCS(int source, int position, string full, byte value) => (Source, Position, FullString, ThisValue) = (source, position, full, value);
+
+      public bool Equals(IDataFormat other) {
+         if (!(other is EscapedPCS pcs)) return false;
+         return pcs.Source == Source && pcs.Position == Position && pcs.FullString == FullString && pcs.ThisValue == ThisValue;
       }
 
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);

@@ -15,7 +15,11 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       int ScrollValue { get; set; }
       int MaximumScroll { get; }
       ObservableCollection<string> Headers { get; }
+      int DataOffset { get; }
       ICommand Scroll { get; } // parameter: Direction to scroll
+
+      string AnchorText { get; }
+      bool AnchorTextVisible { get; }
 
       HexElement this[int x, int y] { get; }
       IModel Model { get; }
@@ -26,5 +30,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       void FollowLink(int x, int y);
       void ConsiderReload(IFileSystem fileSystem);
       void FindAllSources(int x, int y);
+
+      bool HasTools { get; }
+      IToolTrayViewModel Tools { get; }
    }
 }

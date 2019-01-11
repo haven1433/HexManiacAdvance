@@ -178,7 +178,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          open.Execute = arg => {
             var file = arg as LoadedFile ?? fileSystem.OpenFile();
             if (file == null) return;
-            Add(new ViewPort(file, new PointerModel(file.Contents)));
+            var metadata = fileSystem.MetadataFor(file.Name);
+            Add(new ViewPort(file, new PointerAndStringModel(file.Contents, metadata)));
          };
 
          gotoCommand.CanExecute = arg => SelectedTab?.Goto?.CanExecute(arg) ?? false;

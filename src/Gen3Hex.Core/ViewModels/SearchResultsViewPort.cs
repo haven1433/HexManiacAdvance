@@ -46,6 +46,13 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public int MaximumScroll { get => maxScrollValue; private set => TryUpdate(ref maxScrollValue, value); }
       public ObservableCollection<string> Headers { get; } = new ObservableCollection<string>();
       public ICommand Scroll => scroll;
+      public int DataOffset {
+         get {
+            var (childIndex, line) = GetChildLine(0);
+            var child = children[childIndex];
+            return child.Width * line + child.DataOffset;
+         }
+      }
       public string Name { get; }
       public string FileName => string.Empty;
       public ICommand Save => null;
@@ -60,6 +67,14 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public ICommand Close => close;
 
       public IModel Model => null;
+
+      public bool HasTools => false;
+
+      public IToolTrayViewModel Tools => null;
+
+      public string AnchorText { get; set; }
+
+      public bool AnchorTextVisible => false;
 
 #pragma warning disable 0067 // it's ok if events are never used
       public event EventHandler<string> OnError;
@@ -119,7 +134,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
          var child = children[childIndex];
          var parent = child.Parent;
-         parent.ScrollValue = child.ScrollValue - (y - line);
+         var dataOffset = Math.Max(0, child.DataOffset - (y - line) * child.Width);
+         parent.Goto.Execute(dataOffset.ToString("X6"));
          RequestTabChange?.Invoke(this, parent);
       }
 

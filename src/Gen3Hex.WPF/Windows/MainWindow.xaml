@@ -7,9 +7,11 @@
         xmlns:solarized="clr-namespace:Solarized"
         Icon="..\Resources\Snorlax.ico"
         PreviewMouseDown="RunDeferredActions"
-        Title="Gen3Hex" Height="450" Width="820" AllowDrop="True" Background="{DynamicResource Background}">
+        Title="Gen3Hex" Height="450" Width="870" AllowDrop="True" Background="{DynamicResource Background}">
    <Window.Resources>
       <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+      <hsg3hv:IntegerToBooleanViaMatchConverter x:Key="IndexMatch"/>
+      <hsg3hv:IntegerToHexConverter x:Key="Hex"/>
    </Window.Resources>
    <Window.InputBindings>
       <KeyBinding Key="N" Modifiers="Ctrl" Command="{Binding New}" />
@@ -50,6 +52,7 @@
    </Window.CommandBindings>
    <DockPanel>
       <DockPanel DockPanel.Dock="Top">
+         <!-- Goto -->
          <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding GotoControlVisible, Converter={StaticResource BoolToVisibility}}">
             <TextBlock Text="Goto :" Margin="10,0" />
             <TextBox Name="GotoBox" MinWidth="200" IsVisibleChanged="EditBoxVisibilityChanged">
@@ -63,6 +66,7 @@
                </TextBox.InputBindings>
             </TextBox>
          </StackPanel>
+         <!-- Find -->
          <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding FindControlVisible, Converter={StaticResource BoolToVisibility}}">
             <TextBlock Text="Find :" Margin="10,0" />
             <TextBox Name="FindBox" MinWidth="200" IsVisibleChanged="EditBoxVisibilityChanged">
@@ -76,12 +80,14 @@
                </TextBox.InputBindings>
             </TextBox>
          </StackPanel>
+         <!-- Error -->
          <StackPanel Orientation="Horizontal" Background="{DynamicResource Backlight}" DockPanel.Dock="Right" Visibility="{Binding ShowError, Converter={StaticResource BoolToVisibility}}">
             <TextBlock Margin="10,0" VerticalAlignment="Center" Text="{Binding ErrorMessage}" Foreground="{solarized:Theme Red}"/>
             <Button Command="{Binding ClearError}" Width="15">
                <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
             </Button>
          </StackPanel>
+         <!-- Menu -->
          <Menu>
             <MenuItem Header="_File">
                <MenuItem Header="_New" Command="{Binding New}" InputGestureText="Ctrl+N">
@@ -166,6 +172,9 @@
          <TabControl.ContentTemplate>
             <DataTemplate>
                <DockPanel>
+                  <Grid DockPanel.Dock="Top" Height="18">
+                     <TextBox Text="{Binding AnchorText, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding AnchorTextVisible, Converter={StaticResource BoolToVisibility}}" Margin="60,0,25,0"/>
+                  </Grid>
                   <ItemsControl DockPanel.Dock="Left" Width="60" ItemsSource="{Binding Headers}" Background="{DynamicResource Backlight}">
                      <ItemsControl.ItemTemplate>
                         <DataTemplate>
@@ -174,6 +183,38 @@
                      </ItemsControl.ItemTemplate>
                   </ItemsControl>
                   <Line Width="1" DockPanel.Dock="Left" Stroke="{DynamicResource Background}"/>
+                  <StackPanel DockPanel.Dock="Right" Visibility="{Binding HasTools, Converter={StaticResource BoolToVisibility}}">
+                     <Button Content="String" Command="{Binding Tools.StringToolCommand}">
+                        <Button.LayoutTransform>
+                           <RotateTransform Angle="90"/>
+                        </Button.LayoutTransform>
+                     </Button>
+                  </StackPanel>
+                  <Grid DockPanel.Dock="Right" DataContext="{Binding Tools}">
+                     <Grid.Style>
+                        <Style TargetType="Grid">
+                           <Style.Triggers>
+                              <DataTrigger Binding="{Binding SelectedIndex}" Value="-1">
+                                 <Setter Property="Visibility" Value="Collapsed"/>
+                              </DataTrigger>
+                           </Style.Triggers>
+                        </Style>
+                     </Grid.Style>
+                     <StackPanel Name="StringToolPanel">
+                        <StackPanel.Style>
+                           <Style TargetType="StackPanel">
+                              <Setter Property="Visibility" Value="Collapsed"/>
+                              <Style.Triggers>
+                                 <DataTrigger Binding="{Binding SelectedIndex}" Value="0">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                 </DataTrigger>
+                              </Style.Triggers>
+                           </Style>
+                        </StackPanel.Style>
+                        <TextBox Text="{Binding StringTool.Address, Converter={StaticResource Hex}}" Margin="5,15"/>
+                        <TextBox FontFamily="Consolas" Text="{Binding StringTool.Content, UpdateSourceTrigger=PropertyChanged}" Margin="5,15" AcceptsReturn="True" MinHeight="50" Width="255" TextWrapping="Wrap"/>
+                     </StackPanel>
+                  </Grid>
                   <ScrollBar DockPanel.Dock="Right"
                      Minimum="{Binding MinimumScroll}" Maximum="{Binding MaximumScroll}" Value="{Binding ScrollValue}"
                      SmallChange="1" LargeChange="{Binding Height}" />
