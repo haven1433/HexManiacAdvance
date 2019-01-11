@@ -16,27 +16,58 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
    public class ToolTray : ViewModelCore, IToolTrayViewModel {
       private readonly IList<IToolViewModel> tools;
-      private readonly StubCommand stringToolCommand;
+      private readonly StubCommand hideCommand;
+      private readonly StubCommand stringToolCommand, tool2Command, tool3Command;
 
       private int selectedIndex;
       public int SelectedIndex {
          get => selectedIndex;
-         set => TryUpdate(ref selectedIndex, value);
+         set {
+            if (TryUpdate(ref selectedIndex, value)) {
+               hideCommand.CanExecuteChanged.Invoke(hideCommand, EventArgs.Empty);
+            }
+         }
       }
 
       public int Count => tools.Count;
       public IToolViewModel this[int index] => tools[index];
-      public PCSTool StringTool => (PCSTool)tools[0];
+
+      public ICommand HideCommand => hideCommand;
       public ICommand StringToolCommand => stringToolCommand;
+      public ICommand Tool2Command => tool2Command;
+      public ICommand Tool3Command => tool3Command;
+
+      public PCSTool StringTool => (PCSTool)tools[0];
+
+      public IToolViewModel Tool2 => tools[1];
+
+      public IToolViewModel Tool3 => tools[2];
 
       public ToolTray(IModel model, ChangeHistory<DeltaModel> history) {
-         tools = new[] {
+         tools = new IToolViewModel[] {
             new PCSTool(model, history),
+            new FillerTool("Tool2"),
+            new FillerTool("Tool3"),
          };
 
          stringToolCommand = new StubCommand {
             CanExecute = ICommandExtensions.CanAlwaysExecute,
             Execute = arg => SelectedIndex = selectedIndex == 0 ? -1 : 0,
+         };
+
+         tool2Command = new StubCommand {
+            CanExecute = ICommandExtensions.CanAlwaysExecute,
+            Execute = arg => SelectedIndex = selectedIndex == 1 ? -1 : 1,
+         };
+
+         tool3Command = new StubCommand {
+            CanExecute = ICommandExtensions.CanAlwaysExecute,
+            Execute = arg => SelectedIndex = selectedIndex == 2 ? -1 : 2,
+         };
+
+         hideCommand = new StubCommand {
+            CanExecute = arg => SelectedIndex != -1,
+            Execute = arg => SelectedIndex = -1,
          };
 
          SelectedIndex = -1;
@@ -98,5 +129,11 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public event EventHandler<(int originalLocation, int newLocation)> ModelDataMoved;
 
       public PCSTool(IModel model, ChangeHistory<DeltaModel> history) => (this.model, this.history) = (model, history);
+   }
+
+   public class FillerTool : IToolViewModel {
+      public string Name { get; }
+      public FillerTool(string name) { Name = name; }
+      public event PropertyChangedEventHandler PropertyChanged;
    }
 }
