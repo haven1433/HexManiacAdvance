@@ -1,8 +1,10 @@
 ﻿using HavenSoft.Gen3Hex.Core;
 using HavenSoft.Gen3Hex.Core.Models;
 using HavenSoft.Gen3Hex.Core.ViewModels;
+using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
 using HavenSoft.Gen3Hex.WPF.Implementations;
 using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
@@ -122,8 +124,12 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
          downPoint = ControlCoordinatesToModelCoordinates(e);
          if (e.ChangedButton != MouseButton.Left) return;
          Focus();
-         if (e.ClickCount == 2) {
+         if (Keyboard.Modifiers == ModifierKeys.Control) {
             ViewPort.FollowLink(downPoint.X, downPoint.Y);
+            return;
+         }
+         if (e.ClickCount == 2) {
+            ViewPort.ExpandSelection();
             return;
          }
 
@@ -148,7 +154,21 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
          base.OnMouseUp(e);
          if (e.ChangedButton == MouseButton.Right && e.LeftButton == MouseButtonState.Released && !IsMouseCaptured) {
             var p = ControlCoordinatesToModelCoordinates(e);
-            if (ViewPort[p.X, p.Y].Format is Core.ViewModels.DataFormats.Anchor && p.Equals(downPoint)) ShowAnchorMenu(p);
+            var children = new List<FrameworkElement>();
+            var format = ViewPort[p.X, p.Y].Format;
+
+            if (ViewPort is ViewPort editableViewPort) {
+               if (format is Anchor && p.Equals(downPoint)) {
+                  children.AddRange(GetAnchorChildren(p));
+                  format = ((Anchor)format).OriginalFormat;
+               }
+               if (format is PCS pcs) children.AddRange(GetStringChildren(p));
+               if (format is Pointer pointer) children.AddRange(GetPointerChildren(p));
+            } else {
+               children.AddRange(GetSearchChildren(p));
+            }
+
+            ShowMenu(children);
             return;
          }
          if (!IsMouseCaptured) return;
@@ -202,11 +222,92 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
          }
       }
 
-      private void ShowAnchorMenu(Core.Models.Point p) {
-         var anchor = (Core.ViewModels.DataFormats.Anchor)ViewPort[p.X, p.Y].Format;
+      Popup recentMenu;
+
+      private IEnumerable<FrameworkElement> GetAnchorChildren(Core.Models.Point p) {
+         var anchor = (Anchor)ViewPort[p.X, p.Y].Format;
+
+         if (!string.IsNullOrEmpty(anchor.Name)) {
+            yield return new TextBlock {
+               HorizontalAlignment = HorizontalAlignment.Center,
+               Text = anchor.Name,
+               Margin = new Thickness(0, 0, 0, 10),
+            };
+         };
+
+         if (anchor.Sources.Count == 0) {
+            yield return new TextBlock {
+               HorizontalAlignment = HorizontalAlignment.Center,
+               Foreground = Solarized.Theme.Secondary,
+               FontStyle = FontStyles.Italic,
+               Text = "(Nothing points to this.)",
+               Margin = new Thickness(0, 0, 0, 5),
+            };
+         }
+
+         if (anchor.Sources.Count > 1) {
+            yield return new Button {
+               Content = "Show All Sources in new tab"
+            }.SetEvent(ButtonBase.ClickEvent, (sender, e) => {
+               ViewPort.FindAllSources(p.X, p.Y);
+               recentMenu.IsOpen = false;
+            });
+         }
+
+         if (anchor.Sources.Count < 5) {
+            for (int i = 0; i < anchor.Sources.Count; i++) {
+               var source = anchor.Sources[i].ToString("X6");
+               yield return new Button {
+                  Content = source,
+               }.SetEvent(ButtonBase.ClickEvent, (sender, e) => {
+                  ViewPort.Goto.Execute(source);
+                  recentMenu.IsOpen = false;
+               });
+            }
+         } else {
+            yield return new ListBox {
+               MaxHeight = 120,
+               ItemsSource = anchor.Sources.Select(source => source.ToString("X6")).ToList(),
+            }.SetEvent(Selector.SelectionChangedEvent, (sender, e) => {
+               var source = anchor.Sources[((ListBox)sender).SelectedIndex].ToString("X6");
+               ViewPort.Goto.Execute(source);
+               recentMenu.IsOpen = false;
+            });
+         }
+      }
+
+      private IEnumerable<FrameworkElement> GetStringChildren(Core.Models.Point p) {
+         yield return CreateFollowLinkButton("Open In String Tool", p);
+      }
+
+      private IEnumerable<FrameworkElement> GetPointerChildren(Core.Models.Point p) {
+         yield return CreateFollowLinkButton("Follow Pointer", p);
+      }
+
+      private IEnumerable<FrameworkElement> GetSearchChildren(Core.Models.Point p) {
+         yield return CreateFollowLinkButton("Open in main tab", p);
+      }
+
+      private Button CreateFollowLinkButton(string message, Core.Models.Point p) {
+         return new Button {
+            Content = new StackPanel {
+               Orientation = Orientation.Horizontal,
+               Children = {
+                  new TextBlock { Text = message },
+                  new TextBlock { Foreground = Solarized.Theme.Secondary, FontStyle = FontStyles.Italic, Margin = new Thickness(20, 0, 0, 0), Text = "Ctrl+Click" }
+               }
+            },
+         }.SetEvent(ButtonBase.ClickEvent, (sender, e) => {
+            ViewPort.FollowLink(p.X, p.Y);
+            recentMenu.IsOpen = false;
+         });
+      }
+
+      private void ShowMenu(IList<FrameworkElement> children) {
+         if (children.Count == 0) return;
 
          var panel = new StackPanel { Background = Solarized.Theme.Background, MinWidth = 150 };
-         var menu = new Popup {
+         recentMenu = new Popup {
             Placement = PlacementMode.Mouse,
             Child = new Border {
                BorderBrush = Solarized.Brushes.Blue,
@@ -216,55 +317,9 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
             StaysOpen = false,
          };
 
-         if (!string.IsNullOrEmpty(anchor.Name)) {
-            panel.Children.Add(new TextBlock {
-               HorizontalAlignment = HorizontalAlignment.Center,
-               Text = anchor.Name,
-               Margin = new Thickness(0, 0, 0, 10),
-            });
-         };
+         foreach (var child in children) panel.Children.Add(child);
 
-         if (anchor.Sources.Count == 0) {
-            panel.Children.Add(new TextBlock {
-               HorizontalAlignment = HorizontalAlignment.Center,
-               Foreground = Solarized.Theme.Secondary,
-               FontStyle = FontStyles.Italic,
-               Text = "(Nothing points to this.)",
-               Margin = new Thickness(0, 0, 0, 5),
-            });
-         }
-
-         if (anchor.Sources.Count > 1) {
-            panel.Children.Add(new Button {
-               Content = "Show All Sources in new tab"
-            }.SetEvent(ButtonBase.ClickEvent, (sender, e) => {
-               ViewPort.FindAllSources(p.X, p.Y);
-               menu.IsOpen = false;
-            }));
-         }
-
-         if (anchor.Sources.Count < 5) {
-            for (int i = 0; i < anchor.Sources.Count; i++) {
-               var source = anchor.Sources[i].ToString("X6");
-               panel.Children.Add(new Button {
-                  Content = source,
-               }.SetEvent(ButtonBase.ClickEvent, (sender, e) => {
-                  ViewPort.Goto.Execute(source);
-                  menu.IsOpen = false;
-               }));
-            }
-         } else {
-            panel.Children.Add(new ListBox {
-               MaxHeight = 120,
-               ItemsSource = anchor.Sources.Select(source => source.ToString("X6")).ToList(),
-            }.SetEvent(Selector.SelectionChangedEvent, (sender, e) => {
-               var source = anchor.Sources[((ListBox)sender).SelectedIndex].ToString("X6");
-               ViewPort.Goto.Execute(source);
-               menu.IsOpen = false;
-            }));
-         }
-
-         menu.IsOpen = true;
+         recentMenu.IsOpen = true;
       }
 
       private void UpdateViewPortSize() {

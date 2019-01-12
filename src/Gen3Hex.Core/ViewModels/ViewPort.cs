@@ -476,6 +476,14 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          }
       }
 
+      public void ExpandSelection() {
+         var index = scroll.ViewPointToDataIndex(SelectionStart);
+         var run = Model.GetNextRun(index);
+         if (run.Start > index) return;
+         SelectionStart = scroll.DataIndexToViewPoint(run.Start);
+         SelectionEnd = scroll.DataIndexToViewPoint(run.Start + run.Length - 1);
+      }
+
       public void ConsiderReload(IFileSystem fileSystem) {
          if (!history.IsSaved) return; // don't overwrite local changes
 
@@ -512,7 +520,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          var point = GetEditPoint();
          var element = currentView[point.X, point.Y];
 
-         if (!ShouldAcceptInput(point, element, input)) {
+         if (!ShouldAcceptInput(ref point, ref element, input)) {
             ClearEdits(point);
             return;
          }
@@ -540,13 +548,14 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          var selectionStart = scroll.ViewPointToDataIndex(SelectionStart);
          var selectionEnd = scroll.ViewPointToDataIndex(SelectionEnd);
          var leftEdge = Math.Min(selectionStart, selectionEnd);
-         var point = scroll.DataIndexToViewPoint(Math.Min(selectionStart, selectionEnd));
+
+         var point = scroll.DataIndexToViewPoint(leftEdge);
          scroll.ScrollToPoint(ref point);
 
          return point;
       }
 
-      private bool ShouldAcceptInput(Point point, HexElement element, char input) {
+      private bool ShouldAcceptInput(ref Point point, ref HexElement element, char input) {
          var underEdit = element.Format as UnderEdit;
 
          if (underEdit == null) {
@@ -592,7 +601,18 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             return PCSString.PCS.Any(str => str != null && str.StartsWith(underEdit.CurrentText + input));
          }
 
-         return AllHexCharacters.Contains(input);
+         if (AllHexCharacters.Contains(input)) {
+            // if we're trying to write standard data over a pointer, allow that, but you must start at the first byte
+            if (element.Format is Pointer pointer) {
+               point = scroll.DataIndexToViewPoint(scroll.ViewPointToDataIndex(point) - pointer.Position);
+               element = this[point];
+               UpdateSelectionWithoutNotify(point);
+               PrepareForMultiSpaceEdit(point, 4);
+            }
+            return true;
+         }
+
+         return false;
       }
 
       private void PrepareForMultiSpaceEdit(Point point, int length) {
@@ -814,6 +834,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
          var byteValue = byte.Parse(underEdit.CurrentText, NumberStyles.HexNumber);
          var memoryLocation = scroll.ViewPointToDataIndex(point);
+         Model.ClearFormat(history.CurrentChange, memoryLocation, 1);
          history.CurrentChange.ChangeData(Model, memoryLocation, byteValue);
          scroll.DataLength = Model.Count;
          ClearEdits(point);

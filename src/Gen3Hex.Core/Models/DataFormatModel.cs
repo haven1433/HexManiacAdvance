@@ -378,7 +378,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             } else {
                index = ~index;
                if (index < runs.Count) {
-                  runs[index] = kvp.Value;
+                  runs.Insert(index, kvp.Value);
                } else {
                   runs.Add(kvp.Value);
                }
@@ -463,15 +463,19 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             // delete the content, but leave the anchor
             var index = BinarySearch(run.Start);
             changeToken.RemoveRun(run);
-            runs[index] = new NoInfoRun(run.Start, run.PointerSources);
-            changeToken.AddRun(runs[index]);
+            if (run.PointerSources != null) {
+               runs[index] = new NoInfoRun(run.Start, run.PointerSources);
+               changeToken.AddRun(runs[index]);
+            } else {
+               runs.RemoveAt(index);
+            }
          }
       }
 
       private void ClearPointerFormat(DeltaModel changeToken, PointerRun pointerRun) {
          // remove the reference from the anchor we're pointing to as well
          var destination = ReadPointer(pointerRun.Start);
-         if (destination != Pointer.NULL) {
+         if (destination != Pointer.NULL && destination >= 0 && destination < Count) {
             var index = BinarySearch(destination);
             var anchorRun = runs[index];
             var newAnchorRun = anchorRun.RemoveSource(pointerRun.Start);
