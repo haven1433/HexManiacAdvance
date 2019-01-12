@@ -1,4 +1,5 @@
-﻿using HavenSoft.Gen3Hex.Core.Models;
+﻿using HavenSoft.Gen3Hex.Core;
+using HavenSoft.Gen3Hex.Core.Models;
 using HavenSoft.Gen3Hex.Core.ViewModels;
 using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
 using System.Collections.Generic;
@@ -79,6 +80,18 @@ namespace HavenSoft.Gen3Hex.Tests {
          viewPort.Tools.StringTool.Content = "Some "; // removed 'Text' from the end
 
          Assert.Equal(0xFF, model[7]);
+      }
+
+      [Fact]
+      public void HideCommandClosesAnyOpenTools() {
+         var model = new PointerAndStringModel(new byte[0x200]);
+         var history = new ChangeHistory<DeltaModel>(null);
+         var tools = new ToolTray(model, history);
+
+         tools.SelectedIndex = 1;
+         tools.HideCommand.Execute();
+
+         Assert.Equal(-1, tools.SelectedIndex);
       }
    }
 }

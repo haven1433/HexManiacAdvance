@@ -209,5 +209,22 @@ namespace HavenSoft.Gen3Hex.Tests {
 
          Assert.Equal(new Point(0, 2), selection.SelectionEnd);
       }
+
+      [Fact]
+      public void CanExpandSelection() {
+         var data = new byte[0x200];
+         var model = new PointerAndStringModel(data);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", data), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.Edit("<000100>");
+         viewPort.SelectionStart = new Point(1, 0);
+         viewPort.ExpandSelection();
+
+         Assert.True(viewPort.IsSelected(new Point(0, 0)));
+         Assert.True(viewPort.IsSelected(new Point(1, 0)));
+         Assert.True(viewPort.IsSelected(new Point(2, 0)));
+         Assert.True(viewPort.IsSelected(new Point(3, 0)));
+         Assert.False(viewPort.IsSelected(new Point(4, 0)));
+      }
    }
 }
