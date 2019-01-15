@@ -43,6 +43,8 @@
     <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubCommand.cs" />
     <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubDisposable.cs" />
     <Compile Include="ICommandExtensions.cs" />
+    <Compile Include="Models\ArrayRun.cs" />
+    <Compile Include="Models\ErrorInfo.cs" />
     <Compile Include="Models\FormattedRun.cs" />
     <Compile Include="Models\DataFormatModel.cs" />
     <Compile Include="Models\PCSString.cs" />

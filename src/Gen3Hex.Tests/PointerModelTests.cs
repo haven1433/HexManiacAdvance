@@ -186,7 +186,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
          model.WritePointer(token, 16, 12);
          model.ObserveRunWritten(token, new PointerRun(16));
-         model.ObserveAnchorWritten(token, 18, "bob", string.Empty);
+         model.ObserveAnchorWritten(token, "bob", new NoInfoRun(18));
 
          Assert.Equal(18, model.GetNextRun(10).Start);
       }
@@ -516,7 +516,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          var model = new PointerAndStringModel(buffer);
          var token = new DeltaModel();
 
-         model.ObserveAnchorWritten(token, 0x10, "bob", string.Empty);
+         model.ObserveAnchorWritten(token, "bob", new NoInfoRun(0x10));
          model.ClearFormat(token, 0x10, 1);
 
          Assert.Equal(0x10, model.GetNextRun(0x10).Start);
@@ -566,7 +566,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       public void AnchorEditTextUpdatesWithSelectionChange() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          var model = new PointerAndStringModel(buffer);
-         model.ObserveAnchorWritten(new DeltaModel(), 0x08, "bob", string.Empty);
+         model.ObserveAnchorWritten(new DeltaModel(), "bob", new NoInfoRun(0x08));
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.SelectionStart = new Point(0x08, 0);
@@ -591,7 +591,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       public void ModifyingAnchorTextUpdatesTheAnchor() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          var model = new PointerAndStringModel(buffer);
-         model.ObserveAnchorWritten(new DeltaModel(), 0x08, "bob", string.Empty);
+         model.ObserveAnchorWritten(new DeltaModel(), "bob", new NoInfoRun(0x08));
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.SelectionStart = new Point(0x08, 0);
@@ -604,7 +604,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       public void AnchorTextAlwaysCoercesToStartWithAnchorCharacter() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          var model = new PointerAndStringModel(buffer);
-         model.ObserveAnchorWritten(new DeltaModel(), 0x08, "bob", string.Empty);
+         model.ObserveAnchorWritten(new DeltaModel(), "bob", new NoInfoRun(0x08));
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.SelectionStart = new Point(0x08, 0);

@@ -145,6 +145,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          viewPort.Edit("^ ");
          Assert.Equal(NoInfoRun.NullRun, model.GetNextRun(0));
          Assert.Single(errors);
+         Assert.IsType<None>(viewPort[0, 0].Format);
 
          errors.Clear();
 
@@ -185,7 +186,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          // trying to add a string anchor should've failed
          Assert.Single(errors);
          Assert.Equal(0x10, model.GetNextRun(1).Start);
-         Assert.Equal(string.Empty, ((Anchor)viewPort[0, 0].Format).Format);
+         Assert.IsType<None>(viewPort[0, 0].Format);
       }
 
       [Fact]

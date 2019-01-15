@@ -36,6 +36,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
    }
 
    public abstract class BaseRun : IFormattedRun {
+      public const char AnchorStart = '^';
+
       public int Start { get; }
       public abstract int Length { get; }
       public abstract string FormatString { get; }
@@ -77,6 +79,9 @@ namespace HavenSoft.Gen3Hex.Core.Models {
    }
 
    public class PointerRun : BaseRun {
+      public const char PointerStart = '<';
+      public const char PointerEnd = '>';
+
       public override int Length => 4;
       public override string FormatString => string.Empty;
 
@@ -110,16 +115,21 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          if (index < cachedIndex) cachedFullString = PCSString.Convert(data, Start, Length);
          cachedIndex = index;
 
-         bool isEscaped = index > Start && data[index - 1] == PCSString.Escape;
+         return CreatePCSFormat(data, Start, index, cachedFullString);
+      }
+
+      public static IDataFormat CreatePCSFormat(IModel model, int start, int index, string fullString) {
+         bool isEscaped = index > start && model[index - 1] == PCSString.Escape;
          if (isEscaped) {
-            return new EscapedPCS(Start, index-Start, cachedFullString, data[index]);
+            return new EscapedPCS(start, index - start, fullString, model[index]);
          } else {
-            var character = PCSString.Convert(data, index, 1).Substring(1); // trim leading "
-            if (index == Start) character = StringDelimeter + character; // include the opening quotation mark, only for the first character
-            var pcs = new PCS(Start, index - Start, cachedFullString, character);
+            var character = PCSString.Convert(model, index, 1).Substring(1); // trim leading "
+            if (index == start) character = StringDelimeter + character; // include the opening quotation mark, only for the first character
+            var pcs = new PCS(start, index - start, fullString, character);
             return pcs;
          }
       }
+
       protected override IFormattedRun Clone(IReadOnlyList<int> newPointerSources) {
          return new PCSRun(Start, Length, newPointerSources);
       }

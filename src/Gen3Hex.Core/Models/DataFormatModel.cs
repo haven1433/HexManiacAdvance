@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using static HavenSoft.Gen3Hex.Core.Models.BaseRun;
+using static HavenSoft.Gen3Hex.Core.Models.ArrayRun;
+using static HavenSoft.Gen3Hex.Core.Models.PCSRun;
 
 namespace HavenSoft.Gen3Hex.Core.Models {
    public interface IModel : IReadOnlyList<byte> {
@@ -20,7 +23,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       IFormattedRun GetNextRun(int dataIndex);
 
       void ObserveRunWritten(DeltaModel changeToken, IFormattedRun run);
-      void ObserveAnchorWritten(DeltaModel changeToken, int location, string anchorName, string anchorFormat);
+      void ObserveAnchorWritten(DeltaModel changeToken, string anchorName, IFormattedRun run);
       void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd);
       IFormattedRun RelocateForExpansion(DeltaModel changeToken, IFormattedRun run, int minimumLength);
       void ClearFormat(DeltaModel changeToken, int start, int length);
@@ -72,7 +75,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       public virtual void Load(byte[] newData, StoredMetadata metadata) => RawData = newData;
 
-      public abstract void ObserveAnchorWritten(DeltaModel changeToken, int location, string anchorName, string anchorFormat);
+      public abstract void ObserveAnchorWritten(DeltaModel changeToken, string anchorName, IFormattedRun run);
 
       public abstract void ObserveRunWritten(DeltaModel changeToken, IFormattedRun run);
 
@@ -136,7 +139,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          if (metadata == null) return;
 
          foreach (var anchor in metadata.NamedAnchors) {
-            ObserveAnchorWritten(new DeltaModel(), anchor.Address, anchor.Name, anchor.Format);
+            ApplyAnchor(this, new DeltaModel(), anchor.Address, AnchorStart + anchor.Name + anchor.Format);
          }
          foreach (var unmappedPointer in metadata.UnmappedPointers) {
             sourceToUnmappedName[unmappedPointer.Address] = unmappedPointer.Name;
@@ -208,6 +211,76 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       }
 
       #endregion
+
+      public static ErrorInfo ApplyAnchor(IModel model, DeltaModel changeToken, int dataIndex, string text) {
+         var name = text.Substring(1).Trim();
+         string format = string.Empty;
+
+         if (name.Contains(ArrayStart)) {
+            var split = name.IndexOf(ArrayStart);
+            format = name.Substring(split);
+            name = name.Substring(0, split);
+         } else if (name.Contains(StringDelimeter)) {
+            var split = name.IndexOf(StringDelimeter);
+            format = name.Substring(split);
+            name = name.Substring(0, split);
+         }
+
+         IFormattedRun runToWrite = new NoInfoRun(dataIndex);
+
+         if (format == StringDelimeter.ToString() + StringDelimeter) {
+            var length = PCSString.ReadString(model, dataIndex, true);
+            if (length < 0) {
+               return new ErrorInfo($"Format was specified as a string, but no string was recognized.");
+            } else if (SpanContainsAnchor(model, dataIndex, length)) {
+               return new ErrorInfo($"Format was specified as a string, but a string would overlap the next anchor.");
+            }
+            runToWrite = new PCSRun(dataIndex, length);
+         } else if (ArrayRun.TryParse(model, format, dataIndex, null, out var arrayRun)) {
+            runToWrite = arrayRun;
+         } else if (format != string.Empty) {
+            return new ErrorInfo($"Format {format} was not understood.");
+         }
+
+         var nextRun = model.GetNextRun(dataIndex);
+
+         if (name.ToLower() == "null") {
+            return new ErrorInfo("'null' is a reserved word and cannot be used as an anchor name.");
+         } else if (name == string.Empty && nextRun.Start != dataIndex) {
+            return new ErrorInfo("An anchor with nothing pointing to it must have a name.");
+         } else if (name == string.Empty && nextRun.PointerSources.Count == 0 && format != string.Empty) {
+            return new ErrorInfo("An anchor with nothing pointing to it must have a name.");
+         } else {
+            model.ObserveAnchorWritten(changeToken, name, runToWrite);
+            return ErrorInfo.NoError;
+         }
+      }
+
+      public static bool SpanContainsAnchor(IModel model, int start, int length) {
+         var run = model.GetNextRun(start + 1);
+
+         // if we're starting in the middle of a run, get the next one
+         if (run.Start <= start) {
+            length -= run.Length + run.Start - start;
+            start = run.Start + run.Length;
+            run = model.GetNextRun(start);
+         }
+
+         // move start forward to the start of the run
+         length -= run.Start - start;
+         start = run.Start;
+
+         // check all the runs in the range for pointer sources / destination names
+         while (length > 0) {
+            if (run.PointerSources.Count > 0) return true;
+            if (!string.IsNullOrEmpty(model.GetAnchorFromAddress(-1, run.Start))) return true;
+            run = model.GetNextRun(run.Start + run.Length);
+            length -= run.Start - start;
+            start = run.Start;
+         }
+
+         return false;
+      }
 
       public override int GetAddressFromAnchor(DeltaModel changeToken, int requestSource, string anchor) {
          if (addressForAnchor.TryGetValue(anchor, out int address)) {
@@ -305,7 +378,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          }
       }
 
-      public override void ObserveAnchorWritten(DeltaModel changeToken, int location, string anchorName, string anchorFormat) {
+      public override void ObserveAnchorWritten(DeltaModel changeToken, string anchorName, IFormattedRun run) {
+         int location = run.Start;
          int index = BinarySearch(location);
          if (index < 0) ClearFormat(changeToken, location, 1); // no format starts exactly at this anchor, so clear any format that goes over this anchor.
 
@@ -329,13 +403,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          var sources = GetSourcesPointingToNewAnchor(changeToken, anchorName);
 
          index = BinarySearch(location);
-         IFormattedRun newRun;
-         if (anchorFormat == "\"\"") {
-            newRun = new PCSRun(location, PCSString.ReadString(this, location, true), sources);
-         } else {
-            newRun = new NoInfoRun(location, sources);
-         }
-
+         var newRun = run.MergeAnchor(sources);
          ObserveRunWritten(changeToken, newRun);
       }
 
@@ -668,7 +736,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       public override string GetAnchorFromAddress(int requestSource, int destination) => string.Empty;
       public override IFormattedRun GetNextRun(int dataIndex) => NoInfoRun.NullRun;
       public override void ObserveRunWritten(DeltaModel changeToken, IFormattedRun run) { }
-      public override void ObserveAnchorWritten(DeltaModel changeToken, int location, string anchorName, string anchorFormat) { }
+      public override void ObserveAnchorWritten(DeltaModel changeToken, string anchorName, IFormattedRun run) { }
       public override void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd) { }
       public override IFormattedRun RelocateForExpansion(DeltaModel changeToken, IFormattedRun run, int minimumLength) => throw new NotImplementedException();
       public override void ClearFormat(DeltaModel changeToken, int start, int length) { }

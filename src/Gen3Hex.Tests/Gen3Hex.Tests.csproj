@@ -55,6 +55,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ArrayRunTests.cs" />
     <Compile Include="ChangeHistoryTests.cs" />
     <Compile Include="FindTests.cs" />
     <Compile Include="GeneralAppTests.cs" />
