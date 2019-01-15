@@ -152,6 +152,13 @@
                <MenuItem Header="_Toggle Theme" Click="ToggleTheme" InputGestureText="Ctrl+T"/>
                <MenuItem Header="_Clear Error" Command="{Binding ClearError}" InputGestureText="Esc"/>
             </MenuItem>
+            <MenuItem Header="_Tools">
+               <MenuItem Header="_Hide All Tools" Command="{Binding Tools.HideCommand}"/>
+               <Separator/>
+               <MenuItem Header="Toggle _String Tool" Command="{Binding Tools.StringToolCommand}"/>
+               <MenuItem Header="Toggle _Filler Tool" Command="{Binding Tools.Tool2Command}"/>
+               <MenuItem Header="Toggle _Extra Tool" Command="{Binding Tools.Tool3Command}"/>
+            </MenuItem>
             <MenuItem Header="_Help">
                <MenuItem Header="_Wiki" Click="WikiClick"/>
                <MenuItem Header="_Report an Issue" Click="ReportIssueClick"/>
@@ -184,10 +191,47 @@
                   </ItemsControl>
                   <Line Width="1" DockPanel.Dock="Left" Stroke="{DynamicResource Background}"/>
                   <StackPanel DockPanel.Dock="Right" Visibility="{Binding HasTools, Converter={StaticResource BoolToVisibility}}">
-                     <Button Content="String" Command="{Binding Tools.StringToolCommand}">
+                     <Button Content="String" Command="{Binding Tools.StringToolCommand}" Margin="0,2">
                         <Button.LayoutTransform>
                            <RotateTransform Angle="90"/>
                         </Button.LayoutTransform>
+                        <Button.Style>
+                           <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                              <Style.Triggers>
+                                 <DataTrigger Binding="{Binding Tools.SelectedIndex}" Value="0">
+                                    <Setter Property="BorderBrush" Value="{solarized:Theme Blue}"/>
+                                 </DataTrigger>
+                              </Style.Triggers>
+                           </Style>
+                        </Button.Style>
+                     </Button>
+                     <Button Content="Tool2" Command="{Binding Tools.Tool2Command}" Margin="0,2">
+                        <Button.LayoutTransform>
+                           <RotateTransform Angle="90"/>
+                        </Button.LayoutTransform>
+                        <Button.Style>
+                           <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                              <Style.Triggers>
+                                 <DataTrigger Binding="{Binding Tools.SelectedIndex}" Value="1">
+                                    <Setter Property="BorderBrush" Value="{solarized:Theme Blue}"/>
+                                 </DataTrigger>
+                              </Style.Triggers>
+                           </Style>
+                        </Button.Style>
+                     </Button>
+                     <Button Content="Tool3" Command="{Binding Tools.Tool3Command}" Margin="0,2">
+                        <Button.LayoutTransform>
+                           <RotateTransform Angle="90"/>
+                        </Button.LayoutTransform>
+                        <Button.Style>
+                           <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                              <Style.Triggers>
+                                 <DataTrigger Binding="{Binding Tools.SelectedIndex}" Value="2">
+                                    <Setter Property="BorderBrush" Value="{solarized:Theme Blue}"/>
+                                 </DataTrigger>
+                              </Style.Triggers>
+                           </Style>
+                        </Button.Style>
                      </Button>
                   </StackPanel>
                   <Grid DockPanel.Dock="Right" DataContext="{Binding Tools}">
@@ -211,8 +255,36 @@
                               </Style.Triggers>
                            </Style>
                         </StackPanel.Style>
-                        <TextBox Text="{Binding StringTool.Address, Converter={StaticResource Hex}}" Margin="5,15"/>
-                        <TextBox FontFamily="Consolas" Text="{Binding StringTool.Content, UpdateSourceTrigger=PropertyChanged}" Margin="5,15" AcceptsReturn="True" MinHeight="50" Width="255" TextWrapping="Wrap"/>
+                        <TextBlock Text="Address:" Margin="5,15,0,0"/>
+                        <TextBox Text="{Binding StringTool.Address, Converter={StaticResource Hex}}" Margin="5"/>
+                        <TextBlock Text="Content:" Margin="5,30,0,0"/>
+                        <TextBox FontFamily="Consolas" Text="{Binding StringTool.Content, UpdateSourceTrigger=PropertyChanged}" Margin="5,5" AcceptsReturn="True" MinHeight="50" Width="255" TextWrapping="Wrap"/>
+                     </StackPanel>
+                     <StackPanel Name="Tool2Panel">
+                        <StackPanel.Style>
+                           <Style TargetType="StackPanel">
+                              <Setter Property="Visibility" Value="Collapsed"/>
+                              <Style.Triggers>
+                                 <DataTrigger Binding="{Binding SelectedIndex}" Value="1">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                 </DataTrigger>
+                              </Style.Triggers>
+                           </Style>
+                        </StackPanel.Style>
+                        <TextBlock Text="Coming Soon!" Margin="5,15,0,0"/>
+                     </StackPanel>
+                     <StackPanel Name="Tool3Panel">
+                        <StackPanel.Style>
+                           <Style TargetType="StackPanel">
+                              <Setter Property="Visibility" Value="Collapsed"/>
+                              <Style.Triggers>
+                                 <DataTrigger Binding="{Binding SelectedIndex}" Value="2">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                 </DataTrigger>
+                              </Style.Triggers>
+                           </Style>
+                        </StackPanel.Style>
+                        <TextBlock Text="Coming Soon!" Margin="5,15,0,0"/>
                      </StackPanel>
                   </Grid>
                   <ScrollBar DockPanel.Dock="Right"

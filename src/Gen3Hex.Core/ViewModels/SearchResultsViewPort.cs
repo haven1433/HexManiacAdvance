@@ -139,6 +139,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          RequestTabChange?.Invoke(this, parent);
       }
 
+      public void ExpandSelection() { }
+
       public void ConsiderReload(IFileSystem fileSystem) { }
 
       public void FindAllSources(int x, int y) {

@@ -1,4 +1,5 @@
-﻿using HavenSoft.Gen3Hex.Core.Models;
+﻿using HavenSoft.Gen3Hex.Core;
+using HavenSoft.Gen3Hex.Core.Models;
 using HavenSoft.Gen3Hex.Core.ViewModels;
 using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
 using System;
@@ -610,6 +611,48 @@ namespace HavenSoft.Gen3Hex.Tests {
          viewPort.AnchorText = "tom\"\"";
 
          Assert.Equal("^tom\"\"", viewPort.AnchorText); // not that the ^ was added to the front
+      }
+
+      [Fact]
+      public void GivenTwoPointersCanRemoveAndUndoTheFirstWithoutEffectingTheSecond() {
+         var data = new byte[0x200];
+         var model = new PointerAndStringModel(data);
+         model.WritePointer(new DeltaModel(), 0x010, 0x100);
+         model.ObserveRunWritten(new DeltaModel(), new PointerRun(0x010));
+         model.WritePointer(new DeltaModel(), 0x014, 0x120);
+         model.ObserveRunWritten(new DeltaModel(), new PointerRun(0x014));
+         var viewPort = new ViewPort(new LoadedFile("test.txt", data), model) { Width = 0x8, Height = 0x8 };
+
+         viewPort.SelectionStart = new Point(0, 2); // 0x010
+         viewPort.Edit("00"); // this should remove the first pointer
+         viewPort.Undo.Execute();
+
+         Assert.Equal(0x014, model.GetNextRun(0x014).Start);
+      }
+
+      [Fact]
+      public void CreatingAndClearingAPointerOutsideDataLengthWorks() {
+         var data = new byte[0x200];
+         var model = new PointerAndStringModel(data);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", data), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.Edit("<000400>");
+         viewPort.SelectionStart = new Point(2, 0);
+         viewPort.Edit("<000500>");
+
+         // if there were no errors, then we're fine
+      }
+
+      [Fact]
+      public void ClearingAPointerAlsoRemovesItsAnchor() {
+         var data = new byte[0x200];
+         var model = new PointerAndStringModel(data);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", data), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.Edit("<000100>");
+         model.ClearFormat(new DeltaModel(), 0x00, 4);
+
+         Assert.NotInRange(model.GetNextRun(0x00).Start, 0, data.Length);
       }
    }
 }
