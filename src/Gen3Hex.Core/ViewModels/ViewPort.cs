@@ -219,14 +219,17 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          set {
             if (value == null) value = string.Empty;
             if (!value.StartsWith(AnchorStart.ToString())) value = AnchorStart + value;
-            if (TryUpdate(ref anchorText, value) && this[SelectionStart].Format is Anchor anchor) {
+            if (TryUpdate(ref anchorText, value)) {
                var index = scroll.ViewPointToDataIndex(SelectionStart);
-               var errorInfo = PointerAndStringModel.ApplyAnchor(Model, history.CurrentChange, index, AnchorText);
-               if (errorInfo == ErrorInfo.NoError) {
-                  OnError?.Invoke(this, string.Empty);
-                  RefreshBackingData();
-               } else {
-                  OnError?.Invoke(this, errorInfo.ErrorMessage);
+               var run = Model.GetNextRun(index);
+               if (run.Start == index) {
+                  var errorInfo = PointerAndStringModel.ApplyAnchor(Model, history.CurrentChange, index, AnchorText);
+                  if (errorInfo == ErrorInfo.NoError) {
+                     OnError?.Invoke(this, string.Empty);
+                     RefreshBackingData();
+                  } else {
+                     OnError?.Invoke(this, errorInfo.ErrorMessage);
+                  }
                }
             }
          }

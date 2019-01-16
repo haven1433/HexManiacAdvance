@@ -89,5 +89,18 @@ namespace HavenSoft.Gen3Hex.Tests {
 
          Assert.IsType<ArrayRun>(model.GetNextRun(0));
       }
+
+      [Fact]
+      public void ChangingAnchorTextWhileAnchorStartIsOutOfViewWorks() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         viewPort.Edit("^bob[name\"\"16]16 ");
+
+         viewPort.ScrollValue = 2;
+         viewPort.AnchorText = "^bob[name\"\"16]18";
+
+         Assert.Equal(16 * 18, model.GetNextRun(0).Length);
+      }
    }
 }
