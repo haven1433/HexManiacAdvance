@@ -1,4 +1,5 @@
-﻿using HavenSoft.Gen3Hex.Core.Models;
+﻿using HavenSoft.Gen3Hex.Core;
+using HavenSoft.Gen3Hex.Core.Models;
 using HavenSoft.Gen3Hex.Core.ViewModels;
 using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
 using System;
@@ -314,6 +315,26 @@ namespace HavenSoft.Gen3Hex.Tests {
 
          var anchor = (Anchor)viewPort[8, 0].Format;
          Assert.IsType<PCS>(anchor.OriginalFormat);
+      }
+
+      [Fact]
+      public void CanUndoStringTruncate() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var bytes = PCSString.Convert("Hello World!").ToArray();
+         Array.Copy(bytes, 0, buffer, 0x08, bytes.Length);
+         buffer[0] = 0x08;
+         buffer[1] = 0x00;
+         buffer[2] = 0x00;
+         buffer[3] = 0x08;
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.SelectionStart = new Point(0x0C, 0);
+         viewPort.Edit(ConsoleKey.Backspace);
+         viewPort.Undo.Execute();
+
+         Assert.Equal(13, model.GetNextRun(0x08).Length);
+         Assert.Equal("\"Hello World!\"", ((PCS)viewPort[0x0C, 0].Format).FullString);
       }
    }
 }

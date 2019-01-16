@@ -355,10 +355,21 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
          run = Model.GetNextRun(index - 1);
          if (run is PCSRun pcs) {
-            for (int i = index - 1; i < run.Start + run.Length; i++) Model[i] = 0xFF;
+            for (int i = index - 1; i < run.Start + run.Length; i++) history.CurrentChange.ChangeData(Model, i, 0xFF);
             var length = PCSString.ReadString(Model, run.Start, true);
             Model.ObserveRunWritten(history.CurrentChange, new PCSRun(run.Start, length, run.PointerSources));
             RefreshBackingData();
+            SilentScroll(index - 1);
+         } else if (run is ArrayRun array) {
+            var offsets = array.ConvertByteOffsetToArrayOffset(index - 1);
+            if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.PCS) {
+               for (int i = index - 1; i < offsets.SegmentStart + array.ElementContent[offsets.SegmentIndex].Length; i++) history.CurrentChange.ChangeData(Model, i, 0x00);
+               history.CurrentChange.ChangeData(Model, index - 1, 0xFF);
+               RefreshBackingData();
+               SilentScroll(index - 1);
+            } else {
+               throw new NotImplementedException();
+            }
          } else if (run.Start <= index - 1 && run.Start + run.Length > index - 1) {
             // I want to do a backspace at the end of this run
             SelectionStart = scroll.DataIndexToViewPoint(run.Start);
