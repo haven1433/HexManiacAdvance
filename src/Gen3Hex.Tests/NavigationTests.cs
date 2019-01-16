@@ -143,6 +143,13 @@ namespace HavenSoft.Gen3Hex.Tests {
       }
 
       [Fact]
+      public void CannotBackFromSearchTab() {
+         var searchTab = new SearchResultsViewPort("bob");
+         Assert.False(searchTab.Back.CanExecute(null));
+         Assert.False(searchTab.Forward.CanExecute(null));
+      }
+
+      [Fact]
       public void BackRecallsYourLastScrollPosition() {
          var viewPort = new ViewPort(new LoadedFile("test.txt", new byte[0x1000])) { Width = 0x10, Height = 0x10 };
 

@@ -55,15 +55,15 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       }
       public string Name { get; }
       public string FileName => string.Empty;
-      public ICommand Save => null;
-      public ICommand SaveAs => null;
-      public ICommand Undo => null;
-      public ICommand Redo => null;
-      public ICommand Copy => null;
-      public ICommand Clear => null;
-      public ICommand Goto => null;
-      public ICommand Back => null;
-      public ICommand Forward => null;
+      public ICommand Save { get; } = new StubCommand();
+      public ICommand SaveAs { get; } = new StubCommand();
+      public ICommand Undo { get; } = new StubCommand();
+      public ICommand Redo { get; } = new StubCommand();
+      public ICommand Copy { get; } = new StubCommand();
+      public ICommand Clear { get; } = new StubCommand();
+      public ICommand Goto { get; } = new StubCommand();
+      public ICommand Back { get; } = new StubCommand();
+      public ICommand Forward { get; } = new StubCommand();
       public ICommand Close => close;
 
       public IModel Model => null;
