@@ -116,11 +116,13 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public int Address {
          get => address;
          set {
-            if (TryUpdate(ref address, value)) {
-               var run = model.GetNextRun(address) as PCSRun;
-               if (run == null) return;
-               TryUpdate(ref content, PCSString.Convert(model, run.Start, run.Length), nameof(Content));
-               history.ChangeCompleted();
+            var run = model.GetNextRun(value);
+            if (run.Start > value || run.Start + run.Length <= value) return;
+            if (TryUpdate(ref address, run.Start)) {
+               if (run is PCSRun) {
+                  TryUpdate(ref content, PCSString.Convert(model, run.Start, run.Length), nameof(Content));
+                  history.ChangeCompleted();
+               }
             }
          }
       }

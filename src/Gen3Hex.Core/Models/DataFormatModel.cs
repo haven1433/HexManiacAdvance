@@ -761,9 +761,16 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       public int EarliestChange {
          get {
-            var allChanges = oldData.Keys.Concat(addedRuns.Keys).Concat(removedRuns.Keys).ToList();
-            if (allChanges.Count == 0) return -1;
-            return allChanges.Min();
+            if (addedNames.Count > 0) return addedNames.Keys.Min();
+            if (addedRuns.Count > 0) return addedRuns.Keys.Min();
+            if (addedUnmappedPointers.Count > 0) return addedUnmappedPointers.Keys.Min();
+
+            if (removedNames.Count > 0) return removedNames.Keys.Min();
+            if (removedRuns.Count > 0) return removedRuns.Keys.Min();
+            if (removedUnmappedPointers.Count > 0) return removedUnmappedPointers.Keys.Min();
+
+            if (oldData.Count > 0) oldData.Keys.Min();
+            return -1;
          }
       }
 
