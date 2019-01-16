@@ -109,6 +109,8 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
 
          AddConsoleKeyCommand(Key.Back, ConsoleKey.Backspace);
          AddConsoleKeyCommand(Key.Escape, ConsoleKey.Escape);
+         AddConsoleKeyCommand(Key.Enter, ConsoleKey.Enter);
+         AddConsoleKeyCommand(Key.Tab, ConsoleKey.Tab);
       }
 
       protected override void OnMouseDown(MouseButtonEventArgs e) {
