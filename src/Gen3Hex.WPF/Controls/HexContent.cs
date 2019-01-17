@@ -14,14 +14,18 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using ModelPoint = HavenSoft.Gen3Hex.Core.Models.Point;
+using ScreenPoint = System.Windows.Point;
 
 namespace HavenSoft.Gen3Hex.WPF.Controls {
+
    public class HexContent : FrameworkElement {
       public const double CellWidth = 30, CellHeight = 20;
 
       public static readonly Rect CellRect = new Rect(0, 0, CellWidth, CellHeight);
 
-      private Core.Models.Point downPoint;
+      private ModelPoint downPoint;
+      private ModelPoint mouseOverPoint;
 
       #region ViewPort
 
@@ -147,6 +151,11 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
 
       protected override void OnMouseMove(MouseEventArgs e) {
          base.OnMouseMove(e);
+         var newMouseOverPoint = ControlCoordinatesToModelCoordinates(e);
+         if (!newMouseOverPoint.Equals(mouseOverPoint)) {
+            mouseOverPoint = newMouseOverPoint;
+            InvalidateVisual();
+         }
          if (!IsMouseCaptured) return;
 
          ((ViewPort)ViewPort).SelectionEnd = ControlCoordinatesToModelCoordinates(e);
@@ -189,23 +198,23 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
 
          var visitor = new FormatDrawer(drawingContext);
 
-         var topLeft = new System.Windows.Point(0, 0);
-         var topRight = new System.Windows.Point(CellWidth, 0);
-         var bottomLeft = new System.Windows.Point(0, CellHeight);
-         var bottomRight = new System.Windows.Point(CellWidth, CellHeight);
+         var topLeft = new ScreenPoint(0, 0);
+         var topRight = new ScreenPoint(CellWidth, 0);
+         var bottomLeft = new ScreenPoint(0, CellHeight);
+         var bottomRight = new ScreenPoint(CellWidth, CellHeight);
          var borderPen = new Pen(Solarized.Brushes.Green, 1);
 
          // first pass: draw selection
          for (int x = 0; x < ViewPort.Width; x++) {
             for (int y = 0; y < ViewPort.Height; y++) {
-               if (ViewPort.IsSelected(new Core.Models.Point(x, y))) {
+               if (ViewPort.IsSelected(new ModelPoint(x, y))) {
                   var element = ViewPort[x, y];
                   drawingContext.PushTransform(new TranslateTransform(x * CellWidth, y * CellHeight));
                   drawingContext.DrawRectangle(Solarized.Theme.Backlight, null, CellRect);
-                  if (!ViewPort.IsSelected(new Core.Models.Point(x, y - 1))) drawingContext.DrawLine(borderPen, topLeft, topRight);
-                  if (!ViewPort.IsSelected(new Core.Models.Point(x, y + 1))) drawingContext.DrawLine(borderPen, bottomLeft, bottomRight);
-                  if (!ViewPort.IsSelected(new Core.Models.Point(x - 1, y))) drawingContext.DrawLine(borderPen, topLeft, bottomLeft);
-                  if (!ViewPort.IsSelected(new Core.Models.Point(x + 1, y))) drawingContext.DrawLine(borderPen, topRight, bottomRight);
+                  if (!ViewPort.IsSelected(new ModelPoint(x, y - 1))) drawingContext.DrawLine(borderPen, topLeft, topRight);
+                  if (!ViewPort.IsSelected(new ModelPoint(x, y + 1))) drawingContext.DrawLine(borderPen, bottomLeft, bottomRight);
+                  if (!ViewPort.IsSelected(new ModelPoint(x - 1, y))) drawingContext.DrawLine(borderPen, topLeft, bottomLeft);
+                  if (!ViewPort.IsSelected(new ModelPoint(x + 1, y))) drawingContext.DrawLine(borderPen, topRight, bottomRight);
                   drawingContext.Pop();
                }
             }
@@ -214,6 +223,7 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
          // second pass: draw data
          for (int x = 0; x < ViewPort.Width; x++) {
             for (int y = 0; y < ViewPort.Height; y++) {
+               visitor.MouseIsOverCurrentFormat = mouseOverPoint.Equals(new ModelPoint(x, y));
                var element = ViewPort[x, y];
                drawingContext.PushTransform(new TranslateTransform(x * CellWidth, y * CellHeight));
                element.Format.Visit(visitor, element.Value);
@@ -236,7 +246,7 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
 
       Popup recentMenu;
 
-      private IEnumerable<FrameworkElement> GetAnchorChildren(Core.Models.Point p) {
+      private IEnumerable<FrameworkElement> GetAnchorChildren(ModelPoint p) {
          var anchor = (Anchor)ViewPort[p.X, p.Y].Format;
 
          if (!string.IsNullOrEmpty(anchor.Name)) {
@@ -288,19 +298,19 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
          }
       }
 
-      private IEnumerable<FrameworkElement> GetStringChildren(Core.Models.Point p) {
+      private IEnumerable<FrameworkElement> GetStringChildren(ModelPoint p) {
          yield return CreateFollowLinkButton("Open In String Tool", p);
       }
 
-      private IEnumerable<FrameworkElement> GetPointerChildren(Core.Models.Point p) {
+      private IEnumerable<FrameworkElement> GetPointerChildren(ModelPoint p) {
          yield return CreateFollowLinkButton("Follow Pointer", p);
       }
 
-      private IEnumerable<FrameworkElement> GetSearchChildren(Core.Models.Point p) {
+      private IEnumerable<FrameworkElement> GetSearchChildren(ModelPoint p) {
          yield return CreateFollowLinkButton("Open in main tab", p);
       }
 
-      private Button CreateFollowLinkButton(string message, Core.Models.Point p) {
+      private Button CreateFollowLinkButton(string message, ModelPoint p) {
          return new Button {
             Content = new StackPanel {
                Orientation = Orientation.Horizontal,
@@ -339,7 +349,7 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
          ViewPort.Height = (int)(ActualHeight / CellHeight);
       }
 
-      private Core.Models.Point ControlCoordinatesToModelCoordinates(MouseEventArgs e) {
+      private ModelPoint ControlCoordinatesToModelCoordinates(MouseEventArgs e) {
          var point = e.GetPosition(this);
          point = new System.Windows.Point(Math.Max(0, point.X), Math.Max(0, point.Y)); // out of bounds to the left/top clamps to 0 (useful for headers)
          return new Core.Models.Point((int)(point.X / CellWidth), (int)(point.Y / CellHeight));

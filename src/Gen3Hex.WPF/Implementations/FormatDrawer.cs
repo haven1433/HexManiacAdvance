@@ -16,6 +16,8 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
 
       private readonly DrawingContext context;
 
+      public bool MouseIsOverCurrentFormat { get; set; }
+
       public FormatDrawer(DrawingContext drawingContext) => context = drawingContext;
 
       public static void ClearVisualCaches() {
@@ -81,7 +83,9 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
       private static readonly Geometry Triangle = Geometry.Parse("M0,5 L3,0 6,5");
       public void Visit(Anchor anchor, byte data) {
          anchor.OriginalFormat.Visit(this, data);
-         context.DrawGeometry(null, new Pen(Solarized.Brushes.Blue, 2), Triangle);
+         var pen = new Pen(Solarized.Brushes.Blue, 1);
+         if (MouseIsOverCurrentFormat) pen.Thickness = 2;
+         context.DrawGeometry(null, pen, Triangle);
       }
 
       public void Visit(PCS pcs, byte data) {

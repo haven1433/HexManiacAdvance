@@ -218,7 +218,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
          viewPort.Edit("<000100>");
          viewPort.SelectionStart = new Point(1, 0);
-         viewPort.ExpandSelection();
+         viewPort.ExpandSelection(1, 0);
 
          Assert.True(viewPort.IsSelected(new Point(0, 0)));
          Assert.True(viewPort.IsSelected(new Point(1, 0)));
