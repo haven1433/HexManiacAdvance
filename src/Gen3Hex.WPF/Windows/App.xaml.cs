@@ -32,6 +32,7 @@ namespace HavenSoft.Gen3Hex.WPF.Windows {
          };
          Resources.MergedDictionaries.Clear();
          Resources.MergedDictionaries.Add(dict);
+         FormatDrawer.ClearVisualCaches();
       }
 
       private EditorViewModel GetViewModel(string fileName, IFileSystem fileSystem) {

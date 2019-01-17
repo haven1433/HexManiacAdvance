@@ -18,6 +18,10 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
 
       public FormatDrawer(DrawingContext drawingContext) => context = drawingContext;
 
+      public static void ClearVisualCaches() {
+         noneVisualCache.Clear();
+      }
+
       public void Visit(Undefined dataFormat, byte data) {
          // intentionally draw nothing
       }
