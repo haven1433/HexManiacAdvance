@@ -502,7 +502,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          }
       }
 
-      public void ExpandSelection() {
+      public void ExpandSelection(int x, int y) {
          var index = scroll.ViewPointToDataIndex(SelectionStart);
          var run = Model.GetNextRun(index);
          if (run.Start > index) return;

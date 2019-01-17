@@ -101,6 +101,11 @@ namespace HavenSoft.Gen3Hex.WPF.Windows {
 
       #endregion
 
+      private void HeaderMouseDown(object sender, MouseButtonEventArgs e) {
+         var selectedElement = (HexContent)GetChild(Tabs, "HexContent", ViewModel[ViewModel.SelectedIndex]);
+         selectedElement.RaiseEvent(e);
+      }
+
       private void ToggleTheme(object sender, EventArgs e) {
          Solarized.Theme.CurrentVariant = 1 - Solarized.Theme.CurrentVariant;
       }

@@ -182,7 +182,7 @@
                   <Grid DockPanel.Dock="Top" Height="18">
                      <TextBox Text="{Binding AnchorText, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding AnchorTextVisible, Converter={StaticResource BoolToVisibility}}" Margin="60,0,25,0"/>
                   </Grid>
-                  <ItemsControl DockPanel.Dock="Left" Width="60" ItemsSource="{Binding Headers}" Background="{DynamicResource Backlight}">
+                  <ItemsControl DockPanel.Dock="Left" Width="60" ItemsSource="{Binding Headers}" Background="{DynamicResource Backlight}" MouseDown="HeaderMouseDown">
                      <ItemsControl.ItemTemplate>
                         <DataTemplate>
                            <TextBlock Foreground="{DynamicResource Secondary}" Text="{Binding}" FontFamily="Consolas" HorizontalAlignment="Right" Height="{x:Static hsg3hv:HexContent.CellHeight}" Padding="4"/>

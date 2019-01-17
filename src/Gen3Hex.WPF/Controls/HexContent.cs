@@ -131,7 +131,7 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
             return;
          }
          if (e.ClickCount == 2) {
-            ViewPort.ExpandSelection();
+            ViewPort.ExpandSelection(downPoint.X, downPoint.Y);
             return;
          }
 
@@ -331,6 +331,7 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
 
       private Core.Models.Point ControlCoordinatesToModelCoordinates(MouseEventArgs e) {
          var point = e.GetPosition(this);
+         point = new System.Windows.Point(Math.Max(0, point.X), Math.Max(0, point.Y)); // out of bounds to the left/top clamps to 0 (useful for headers)
          return new Core.Models.Point((int)(point.X / CellWidth), (int)(point.Y / CellHeight));
       }
    }

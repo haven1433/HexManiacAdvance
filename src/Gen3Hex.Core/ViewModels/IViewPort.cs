@@ -28,7 +28,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       IReadOnlyList<int> Find(string search);
       IChildViewPort CreateChildView(int offset);
       void FollowLink(int x, int y);
-      void ExpandSelection();
+      void ExpandSelection(int x, int y);
       void ConsiderReload(IFileSystem fileSystem);
       void FindAllSources(int x, int y);
 

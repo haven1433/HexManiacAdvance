@@ -139,7 +139,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          RequestTabChange?.Invoke(this, parent);
       }
 
-      public void ExpandSelection() { }
+      public void ExpandSelection(int x, int y) => FollowLink(x, y);
 
       public void ConsiderReload(IFileSystem fileSystem) { }
 
