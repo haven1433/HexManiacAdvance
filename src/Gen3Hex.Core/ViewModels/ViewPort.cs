@@ -288,10 +288,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
             var left = Math.Min(selectionStart, selectionEnd);
             var right = Math.Max(selectionStart, selectionEnd);
-            for (int i = left; i <= right; i++) {
-               var p = scroll.DataIndexToViewPoint(i);
-               history.CurrentChange.ChangeData(Model, i, 0xFF);
-            }
+            Model.ClearFormat(history.CurrentChange, left, right - left + 1);
             RefreshBackingData();
          };
 

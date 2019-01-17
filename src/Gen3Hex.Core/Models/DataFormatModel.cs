@@ -739,7 +739,9 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       public override void ObserveAnchorWritten(DeltaModel changeToken, string anchorName, IFormattedRun run) { }
       public override void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd) { }
       public override IFormattedRun RelocateForExpansion(DeltaModel changeToken, IFormattedRun run, int minimumLength) => throw new NotImplementedException();
-      public override void ClearFormat(DeltaModel changeToken, int start, int length) { }
+      public override void ClearFormat(DeltaModel changeToken, int start, int length) {
+         for (int i = 0; i < length; i++) changeToken.ChangeData(this, start + i, 0xFF);
+      }
 
       public override string Copy(int start, int length) {
          var bytes = Enumerable.Range(start, length).Select(i => RawData[i]);
@@ -769,7 +771,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             if (removedRuns.Count > 0) return removedRuns.Keys.Min();
             if (removedUnmappedPointers.Count > 0) return removedUnmappedPointers.Keys.Min();
 
-            if (oldData.Count > 0) oldData.Keys.Min();
+            if (oldData.Count > 0) return oldData.Keys.Min();
             return -1;
          }
       }

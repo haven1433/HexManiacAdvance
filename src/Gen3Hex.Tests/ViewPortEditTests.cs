@@ -297,5 +297,18 @@ namespace HavenSoft.Gen3Hex.Tests {
          viewPort.Edit(ConsoleKey.Backspace); // but since I hit backspace, it commits the erasure and starts erasing the next cell
          Assert.Equal(0xFF, viewPort[3, 4].Value);
       }
+
+      [Fact]
+      public void ClearRemovesFormats() {
+         var data = new byte[0x200];
+         var model = new PointerAndStringModel(data);
+         var viewPort = new ViewPort(new LoadedFile("file.txt", data), model);
+
+         viewPort.Edit("<000100>");
+         viewPort.SelectionStart = new Point(2, 0);
+         viewPort.Clear.Execute();
+
+         Assert.Equal(int.MaxValue, model.GetNextRun(0).Start);
+      }
    }
 }
