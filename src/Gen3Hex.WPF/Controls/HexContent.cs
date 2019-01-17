@@ -189,6 +189,12 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
 
          var visitor = new FormatDrawer(drawingContext);
 
+         var topLeft = new System.Windows.Point(0, 0);
+         var topRight = new System.Windows.Point(CellWidth, 0);
+         var bottomLeft = new System.Windows.Point(0, CellHeight);
+         var bottomRight = new System.Windows.Point(CellWidth, CellHeight);
+         var borderPen = new Pen(Solarized.Brushes.Green, 1);
+
          // first pass: draw selection
          for (int x = 0; x < ViewPort.Width; x++) {
             for (int y = 0; y < ViewPort.Height; y++) {
@@ -196,6 +202,10 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
                   var element = ViewPort[x, y];
                   drawingContext.PushTransform(new TranslateTransform(x * CellWidth, y * CellHeight));
                   drawingContext.DrawRectangle(Solarized.Theme.Backlight, null, CellRect);
+                  if (!ViewPort.IsSelected(new Core.Models.Point(x, y - 1))) drawingContext.DrawLine(borderPen, topLeft, topRight);
+                  if (!ViewPort.IsSelected(new Core.Models.Point(x, y + 1))) drawingContext.DrawLine(borderPen, bottomLeft, bottomRight);
+                  if (!ViewPort.IsSelected(new Core.Models.Point(x - 1, y))) drawingContext.DrawLine(borderPen, topLeft, bottomLeft);
+                  if (!ViewPort.IsSelected(new Core.Models.Point(x + 1, y))) drawingContext.DrawLine(borderPen, topRight, bottomRight);
                   drawingContext.Pop();
                }
             }
