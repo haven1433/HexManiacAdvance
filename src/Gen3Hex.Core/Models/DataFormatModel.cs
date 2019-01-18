@@ -455,6 +455,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       }
 
       public override IFormattedRun RelocateForExpansion(DeltaModel changeToken, IFormattedRun run, int minimumLength) {
+         const int SpacerLength = 0x10;
+         minimumLength += 0x100; // make sure there's plenty of room after, so that we're not in the middle of some other data set
          if (minimumLength <= run.Length) return run;
          if (CanSafelyUse(run.Start + run.Length, run.Start + minimumLength)) return run;
          var start = 0x100;
@@ -467,15 +469,16 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
             // if the space we want intersects the current run, then skip past the current run
             if (start + minimumLength > currentRun.Start) {
-               start = currentRun.Start + currentRun.Length + 8;
+               start = currentRun.Start + currentRun.Length + SpacerLength;
                start -= start % 4;
                continue;
             }
 
             // if the space we want already has some data in it that we don't have a run for, skip it
-            var firstConflictingData = Enumerable.Range(start, minimumLength).Cast<int?>().FirstOrDefault<int?>(i => RawData[(int)i] != 0xFF && RawData[(int)i] != 0x00);
-            if (firstConflictingData != null) {
-               start += (int)firstConflictingData + 8;
+            var lastConflictingData = -1;
+            for (int i = start; i < start + minimumLength; i++) if (RawData[i] != 0xFF) lastConflictingData = i;
+            if (lastConflictingData != -1) {
+               start = (int)lastConflictingData + SpacerLength;
                start -= start % 4;
                continue;
             }
