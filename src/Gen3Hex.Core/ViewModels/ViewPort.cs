@@ -824,6 +824,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             // last character edit: might require relocation
             var newRun = Model.RelocateForExpansion(history.CurrentChange, run, run.Length + extraBytesNeeded);
             if (newRun != run) {
+               scroll.DataLength = Model.Count; // possible length change
                var offset = memoryLocation - scroll.DataIndex;
                selection.PropertyChanged -= SelectionPropertyChanged;
                selection.GotoAddress(newRun.Start + pcs.Position - offset);
@@ -889,6 +890,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       }
 
       private void ModelDataMovedByTool(object sender, (int originalLocation, int newLocation) locations) {
+         scroll.DataLength = Model.Count;
          if (scroll.DataIndex <= locations.originalLocation && locations.originalLocation < scroll.ViewPointToDataIndex(new Point(Width - 1, Height - 1))) {
             // data was moved from onscreen: follow it
             int offset = locations.originalLocation - scroll.DataIndex;

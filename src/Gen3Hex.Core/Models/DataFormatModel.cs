@@ -485,17 +485,11 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
             // found a good spot!
             // move the run
-            var newRun = MoveRun(changeToken, run, start);
-            if (anchorForAddress.TryGetValue(run.Start, out var name)) {
-               addressForAnchor[name] = newRun.Start;
-               anchorForAddress.Remove(run.Start);
-               anchorForAddress[newRun.Start] = name;
-               changeToken.RemoveName(run.Start, name);
-               changeToken.AddName(newRun.Start, name);
-            }
-            return newRun;
+            return MoveRun(changeToken, run, start);
          }
-         return null;
+
+         ExpandData(changeToken, RawData.Length + minimumLength);
+         return MoveRun(changeToken, run, RawData.Length - minimumLength);
       }
 
       public override void ClearFormat(DeltaModel changeToken, int originalStart, int length) {
@@ -699,25 +693,35 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             changeToken.ChangeData(this, newStart + i, RawData[run.Start + i]);
             changeToken.ChangeData(this, run.Start + i, 0xFF);
          }
-
+         IFormattedRun newRun;
          if (run is PCSRun pcs) {
-            var newRun = new PCSRun(newStart, run.Length, run.PointerSources);
+            newRun = new PCSRun(newStart, run.Length, run.PointerSources);
             int index = BinarySearch(run.Start);
             changeToken.RemoveRun(runs[index]);
             runs.RemoveAt(index);
             int newIndex = BinarySearch(newStart);
             runs.Insert(~newIndex, newRun);
             changeToken.AddRun(newRun);
-            return newRun;
          } else {
             throw new NotImplementedException();
          }
+
+         if (anchorForAddress.TryGetValue(run.Start, out var name)) {
+            addressForAnchor[name] = newRun.Start;
+            anchorForAddress.Remove(run.Start);
+            anchorForAddress[newRun.Start] = name;
+            changeToken.RemoveName(run.Start, name);
+            changeToken.AddName(newRun.Start, name);
+         }
+
+         return newRun;
       }
 
       private bool CanSafelyUse(int rangeStart, int rangeEnd) {
          // only safe to use if there is no run in that range
          var nextRun = GetNextRun(rangeStart);
          if (nextRun.Start < rangeEnd) return false;
+         if (rangeEnd >= RawData.Length) return false;
 
          // make sure the data is clear
          for (int i = rangeStart; i < rangeEnd; i++) if (RawData[i] != 0xFF && RawData[i] != 0x00) return false;
