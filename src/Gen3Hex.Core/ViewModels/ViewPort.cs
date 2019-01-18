@@ -835,11 +835,13 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
             history.CurrentChange.ChangeData(Model, memoryLocation + 1, 0xFF);
             if (editText == "\\\\") history.CurrentChange.ChangeData(Model, memoryLocation + 2, 0xFF);
-            Model.ObserveRunWritten(history.CurrentChange, new PCSRun(run.Start, run.Length + extraBytesNeeded, run.PointerSources));
+            run = new PCSRun(run.Start, run.Length + extraBytesNeeded, run.PointerSources);
+            Model.ObserveRunWritten(history.CurrentChange, run);
          }
 
          history.CurrentChange.ChangeData(Model, memoryLocation, byteValue);
          RefreshBackingData();
+         Tools.StringTool.DataForCurrentRunChanged(run);
          SilentScroll(memoryLocation + 1);
       }
 

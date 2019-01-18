@@ -93,5 +93,19 @@ namespace HavenSoft.Gen3Hex.Tests {
 
          Assert.Equal(-1, tools.SelectedIndex);
       }
+
+      [Fact]
+      public void StringToolContentUpdatesWhenViewPortChange() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         viewPort.Edit("^bob\"\" \"Some Text\"");
+
+         viewPort.SelectionStart = new Point(3, 0);   // select the 'e' in 'Some'
+         viewPort.FollowLink(3, 0);                   // open the string tool
+         viewPort.Edit("i");                          // change the 'e' to 'i'
+
+         Assert.Equal("Somi Text", viewPort.Tools.StringTool.Content);
+      }
    }
 }

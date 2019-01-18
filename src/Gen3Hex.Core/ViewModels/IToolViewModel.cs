@@ -117,10 +117,10 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          get => address;
          set {
             var run = model.GetNextRun(value);
-            if (run.Start > value || run.Start + run.Length <= value) return;
+            if (run.Start > value) return;
             if (TryUpdate(ref address, run.Start)) {
-               if (run is PCSRun) {
-                  TryUpdate(ref content, PCSString.Convert(model, run.Start, run.Length), nameof(Content));
+               if (run is PCSRun pcsRun) {
+                  DataForCurrentRunChanged(pcsRun);
                   history.ChangeCompleted();
                }
             }
@@ -131,6 +131,18 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public event EventHandler<(int originalLocation, int newLocation)> ModelDataMoved;
 
       public PCSTool(IModel model, ChangeHistory<DeltaModel> history) => (this.model, this.history) = (model, history);
+
+      public void DataForCurrentRunChanged(IFormattedRun run) {
+         if (run is PCSRun) {
+            var newContent = PCSString.Convert(model, run.Start, run.Length);
+            newContent = newContent.Substring(1, newContent.Length - 2); // remove quotes
+
+            TryUpdate(ref content, newContent, nameof(Content));
+            return;
+         }
+
+         throw new NotImplementedException();
+      }
    }
 
    public class FillerTool : IToolViewModel {
