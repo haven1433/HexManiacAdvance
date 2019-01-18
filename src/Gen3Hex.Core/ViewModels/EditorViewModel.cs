@@ -39,7 +39,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          findPrevious = new StubCommand(),
          findNext = new StubCommand(),
          showFind = new StubCommand(),
-         clearError = new StubCommand();
+         hideSearchControls = new StubCommand(),
+         clearError = new StubCommand(),
+         clearMessage = new StubCommand();
 
       private readonly Dictionary<Func<ITabContent, ICommand>, EventHandler> forwardExecuteChangeNotifications;
 
@@ -67,7 +69,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public ICommand FindPrevious => findPrevious; // parameter: target string to search
       public ICommand FindNext => findNext;         // parameter: target string to search
       public ICommand ShowFind => showFind;         // parameter: true for show, false for hide
+      public ICommand HideSearchControls => hideSearchControls;
       public ICommand ClearError => clearError;
+      public ICommand ClearMessage => clearMessage;
 
       private bool gotoControlVisible;
       public bool GotoControlVisible {
@@ -75,6 +79,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          private set {
             if (value) {
                ClearError.Execute();
+               ClearMessage.Execute();
                FindControlVisible = false;
             }
             TryUpdate(ref gotoControlVisible, value);
@@ -87,6 +92,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          private set {
             if (value) {
                ClearError.Execute();
+               ClearMessage.Execute();
                GotoControlVisible = false;
             }
             TryUpdate(ref findControlVisible, value);
@@ -97,6 +103,11 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public bool ShowError {
          get => showError;
          private set {
+            if (value) {
+               GotoControlVisible = false;
+               FindControlVisible = false;
+               ShowMessage = false;
+            }
             if (TryUpdate(ref showError, value)) clearError.CanExecuteChanged.Invoke(clearError, EventArgs.Empty);
          }
       }
@@ -106,6 +117,27 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          get => errorMessage;
          private set {
             if (TryUpdate(ref errorMessage, value)) ShowError = !string.IsNullOrEmpty(ErrorMessage);
+         }
+      }
+
+      private bool showMessage;
+      public bool ShowMessage {
+         get => showMessage;
+         private set {
+            if (value) {
+               GotoControlVisible = false;
+               FindControlVisible = false;
+               ShowError = false;
+            }
+            if (TryUpdate(ref showMessage, value)) clearMessage.CanExecuteChanged.Invoke(clearMessage, EventArgs.Empty);
+         }
+      }
+
+      private string infoMessage;
+      public string InformationMessage {
+         get => infoMessage;
+         private set {
+            if (TryUpdate(ref infoMessage, value)) ShowMessage = !string.IsNullOrEmpty(InformationMessage);
          }
       }
 
@@ -193,8 +225,19 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
          ImplementFindCommands();
 
+         hideSearchControls.CanExecute = CanAlwaysExecute;
+         hideSearchControls.Execute = arg => {
+            GotoControlVisible = false;
+            FindControlVisible = false;
+            ShowError = false;
+            ShowMessage = false;
+         };
+
          clearError.CanExecute = arg => showError;
          clearError.Execute = arg => ErrorMessage = string.Empty;
+
+         clearMessage.CanExecute = arg => showMessage;
+         clearMessage.Execute = arg => InformationMessage = string.Empty;
 
          cut.CanExecute = arg => SelectedTab?.Copy?.CanExecute(arg) ?? false;
          cut.Execute = arg => {
@@ -363,6 +406,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       private void AddContentListeners(ITabContent content) {
          content.Closed += RemoveTab;
          content.OnError += AcceptError;
+         content.OnMessage += AcceptMessage;
+         content.ClearMessage += AcceptMessageClear;
          content.RequestTabChange += TabChangeRequested;
          content.RequestDelayedWork += ForwardDelayedWork;
          content.PropertyChanged += TabPropertyChanged;
@@ -376,6 +421,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       private void RemoveContentListeners(ITabContent content) {
          content.Closed -= RemoveTab;
          content.OnError -= AcceptError;
+         content.OnMessage -= AcceptMessage;
+         content.ClearMessage -= AcceptMessageClear;
          content.RequestTabChange -= TabChangeRequested;
          content.RequestDelayedWork -= ForwardDelayedWork;
          content.PropertyChanged -= TabPropertyChanged;
@@ -399,6 +446,10 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       }
 
       private void AcceptError(object sender, string message) => ErrorMessage = message;
+
+      private void AcceptMessage(object sender, string message) => InformationMessage = message;
+
+      private void AcceptMessageClear(object sender, EventArgs e) => HideSearchControls.Execute();
 
       private void TabChangeRequested(object sender, ITabContent newTab) {
          if (sender != SelectedTab) return;

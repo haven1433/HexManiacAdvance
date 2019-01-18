@@ -252,6 +252,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
 #pragma warning disable 0067 // it's ok if events are never used
       public event EventHandler<string> OnError;
+      public event EventHandler<string> OnMessage;
+      public event EventHandler ClearMessage;
       public event NotifyCollectionChangedEventHandler CollectionChanged;
       public event EventHandler<ITabContent> RequestTabChange;
       public event EventHandler<Action> RequestDelayedWork;
@@ -328,7 +330,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             var offsets = arrayRun2.ConvertByteOffsetToArrayOffset(offset);
             SilentScroll(offsets.SegmentStart + arrayRun2.ElementContent[offsets.SegmentIndex].Length);
          }
-         if (key == ConsoleKey.Escape) ClearEdits(SelectionStart);
+         if (key == ConsoleKey.Escape) { ClearEdits(SelectionStart); ClearMessage?.Invoke(this, EventArgs.Empty); }
          if (key != ConsoleKey.Backspace) return;
 
          var point = GetEditPoint();
@@ -419,6 +421,11 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          var left = results.Where(result => result < offset);
          var right = results.Where(result => result >= offset);
          results = right.Concat(left).ToList();
+         if (results.Count == 1) {
+            OnMessage?.Invoke(this, $"Found only 1 match for '{rawSearch}'.");
+         } else {
+            OnMessage?.Invoke(this, $"Found {results.Count} matches for '{rawSearch}'.");
+         }
          return results;
       }
 

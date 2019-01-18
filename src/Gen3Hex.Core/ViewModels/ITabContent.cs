@@ -20,6 +20,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       ICommand Close { get; }  // parameter: IFileSystem
 
       event EventHandler<string> OnError;
+      event EventHandler<string> OnMessage;
+      event EventHandler ClearMessage;
       event EventHandler Closed;
       event EventHandler<ITabContent> RequestTabChange;
       event EventHandler<Action> RequestDelayedWork;

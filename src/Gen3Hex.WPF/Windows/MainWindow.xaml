@@ -52,6 +52,25 @@
    </Window.CommandBindings>
    <DockPanel>
       <DockPanel DockPanel.Dock="Top">
+         <DockPanel.Resources>
+            <Style TargetType="StackPanel" x:Key="AnimateOnVisibilityChanged">
+               <Setter Property="Orientation" Value="Horizontal"/>
+               <Setter Property="DockPanel.Dock" Value="Right"/>
+               <Setter Property="Background" Value="{DynamicResource Backlight}"/>
+               <Style.Triggers>
+                  <Trigger Property="Visibility" Value="Visible">
+                     <Trigger.EnterActions>
+                        <BeginStoryboard>
+                           <Storyboard>
+                              <ThicknessAnimation Storyboard.TargetProperty="Margin" From="0,0,40,0" To="0,0,0,0" Duration="0:0:0.2"/>
+                              <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.2"/>
+                           </Storyboard>
+                        </BeginStoryboard>
+                     </Trigger.EnterActions>
+                  </Trigger>
+               </Style.Triggers>
+            </Style>
+         </DockPanel.Resources>
          <!-- Goto -->
          <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding GotoControlVisible, Converter={StaticResource BoolToVisibility}}">
             <TextBlock Text="Goto :" Margin="10,0" />
@@ -81,9 +100,16 @@
             </TextBox>
          </StackPanel>
          <!-- Error -->
-         <StackPanel Orientation="Horizontal" Background="{DynamicResource Backlight}" DockPanel.Dock="Right" Visibility="{Binding ShowError, Converter={StaticResource BoolToVisibility}}">
+         <StackPanel Visibility="{Binding ShowError, Converter={StaticResource BoolToVisibility}}" Style="{StaticResource AnimateOnVisibilityChanged}">
             <TextBlock Margin="10,0" VerticalAlignment="Center" Text="{Binding ErrorMessage}" Foreground="{solarized:Theme Red}"/>
             <Button Command="{Binding ClearError}" Width="15">
+               <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+            </Button>
+         </StackPanel>
+         <!-- Message -->
+         <StackPanel Visibility="{Binding ShowMessage, Converter={StaticResource BoolToVisibility}}" Style="{StaticResource AnimateOnVisibilityChanged}">
+            <TextBlock Margin="10,0" VerticalAlignment="Center" Text="{Binding InformationMessage}" Foreground="{solarized:Theme Primary}"/>
+            <Button Command="{Binding ClearMessage}" Width="15">
                <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
             </Button>
          </StackPanel>
@@ -167,6 +193,9 @@
          </Menu>
       </DockPanel>
       <TabControl Name="Tabs" ItemsSource="{Binding}" SelectedIndex="{Binding SelectedIndex}">
+         <TabControl.InputBindings>
+            <KeyBinding Key="Esc" Command="{Binding HideSearchControls}"/>
+         </TabControl.InputBindings>
          <TabControl.ItemTemplate>
             <DataTemplate>
                <TextBlock Name="TabTextBlock" Background="Transparent" Text="{Binding Name}" Foreground="{DynamicResource Primary}" MouseDown="TabMouseDown" MouseMove="TabMouseMove" MouseUp="TabMouseUp">
@@ -179,9 +208,9 @@
          <TabControl.ContentTemplate>
             <DataTemplate>
                <DockPanel>
-                  <Grid DockPanel.Dock="Top" Height="18">
+                  <Border DockPanel.Dock="Top" Height="19" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource Backlight}">
                      <TextBox Text="{Binding AnchorText, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding AnchorTextVisible, Converter={StaticResource BoolToVisibility}}" Margin="60,0,25,0"/>
-                  </Grid>
+                  </Border>
                   <ItemsControl DockPanel.Dock="Left" Width="60" ItemsSource="{Binding Headers}" Background="{DynamicResource Backlight}" MouseDown="HeaderMouseDown">
                      <ItemsControl.ItemTemplate>
                         <DataTemplate>

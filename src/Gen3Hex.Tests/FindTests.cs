@@ -286,5 +286,18 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.True(editor.FindPrevious.CanExecute("text"));
          Assert.True(editor.FindNext.CanExecute("text"));
       }
+
+      [Fact]
+      public void FindRaisesMessageForGoodResults() {
+         var editor = new EditorViewModel(new StubFileSystem());
+         var data = new byte[0x100];
+         var dataToFind = new byte[] { 0x52, 0xDC, 0xFF, 0x79 };
+         dataToFind.CopyTo(data, 0x2);
+         var viewPort = new ViewPort(new LoadedFile("test", data)) { Width = 8, Height = 8 };
+         editor.Add(viewPort);
+         editor.Find.Execute("52 DC FF 79");
+
+         Assert.True(editor.ShowMessage);
+      }
    }
 }

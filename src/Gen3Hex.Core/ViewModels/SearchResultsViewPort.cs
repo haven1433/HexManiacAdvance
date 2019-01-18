@@ -78,6 +78,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
 #pragma warning disable 0067 // it's ok if events are never used
       public event EventHandler<string> OnError;
+      public event EventHandler<string> OnMessage;
+      public event EventHandler ClearMessage;
       public event EventHandler Closed;
       public event NotifyCollectionChangedEventHandler CollectionChanged;
       public event EventHandler<ITabContent> RequestTabChange;
