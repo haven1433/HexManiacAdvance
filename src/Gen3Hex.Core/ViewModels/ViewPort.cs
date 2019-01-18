@@ -387,96 +387,125 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          }
       }
 
-      private byte[] Parse(string content) {
-         var hex = "0123456789ABCDEF";
-         var result = new byte[content.Length / 2];
-         for (int i = 0; i < result.Length; i++) {
-            var thisByte = content.Substring(i * 2, 2);
-            result[i] += (byte)(hex.IndexOf(thisByte[0]) * 0x10);
-            result[i] += (byte)hex.IndexOf(thisByte[1]);
-         }
-         return result;
-      }
+      #region Find
 
       public IReadOnlyList<int> Find(string rawSearch) {
          var results = new List<int>();
          var cleanedSearchString = rawSearch.ToUpper();
          var searchBytes = new List<ISearchByte>();
-         var hex = "0123456789ABCDEF";
 
-         // precheck: it might be a string with no quotes, we should check for matches for that.
-         if (cleanedSearchString.Length > 3 && !cleanedSearchString.Contains(StringDelimeter)) {
+         // it might be a string with no quotes, we should check for matches for that.
+         if (cleanedSearchString.Length > 3 && !cleanedSearchString.Contains(StringDelimeter) && !cleanedSearchString.All(AllHexCharacters.Contains)) {
             var pcsBytes = PCSString.Convert(cleanedSearchString);
             searchBytes.AddRange(pcsBytes.Select(b => new PCSSearchByte(b)));
-            for (int i = 0; i < Model.Count - searchBytes.Count; i++) {
-               for (int j = 0; j < searchBytes.Count; j++) {
-                  if (!searchBytes[j].Match(Model[i + j])) break;
-                  if (j == searchBytes.Count - 1) results.Add(i);
-               }
-            }
-            searchBytes.Clear();
+            results.AddRange(Search(searchBytes));
          }
 
-         for (int i = 0; i < cleanedSearchString.Length;) {
-            if (cleanedSearchString[i] == ' ') {
-               i++;
-               continue;
-            }
-            if (cleanedSearchString[i] == '<') {
-               var pointerEnd = cleanedSearchString.IndexOf('>', i);
-               if (pointerEnd == -1) { OnError(this, "Search mismatch: no closing >"); return results; }
-               var pointerContents = cleanedSearchString.Substring(i + 1, pointerEnd - i - 2);
-               var address = Model.GetAddressFromAnchor(history.CurrentChange, -1, pointerContents);
-               if (address != Pointer.NULL) {
-                  searchBytes.Add((SearchByte)(address >> 0));
-                  searchBytes.Add((SearchByte)(address >> 8));
-                  searchBytes.Add((SearchByte)(address >> 16));
-                  searchBytes.Add((SearchByte)0x08);
-               } else if (pointerContents.All(hex.Contains) && pointerContents.Length <= 6) {
-                  searchBytes.AddRange(Parse(pointerContents).Reverse().Append((byte)0x08).Select(b => (SearchByte)b));
-               } else {
-                  OnError(this, $"Could not parse pointer <{pointerContents}>");
-                  return results;
-               }
-               i = pointerEnd + 1;
-               continue;
-            }
-            if (cleanedSearchString[i] == StringDelimeter) {
-               var endIndex = cleanedSearchString.IndexOf(StringDelimeter, i + 1);
-               while (endIndex > i && cleanedSearchString[endIndex - 1] == '\\') endIndex = cleanedSearchString.IndexOf(StringDelimeter, endIndex + 1);
-               if (endIndex > i) {
-                  var pcsBytes = PCSString.Convert(cleanedSearchString.Substring(i, endIndex + 1 - i));
-                  i = endIndex + 1;
-                  if (i == cleanedSearchString.Length) pcsBytes.RemoveAt(pcsBytes.Count - 1);
-                  searchBytes.AddRange(pcsBytes.Select(b => new PCSSearchByte(b)));
-                  continue;
-               }
-            }
-            if (cleanedSearchString.Length >= i + 2 && cleanedSearchString.Substring(i, 2).All(hex.Contains)) {
-               searchBytes.AddRange(Parse(cleanedSearchString.Substring(i, 2)).Select(b => (SearchByte)b));
-               i += 2;
-               continue;
-            }
-            if (results.Count == 0) {
-               OnError(this, $"Could not parse search term {cleanedSearchString.Substring(i)}");
-            }
-            return results;
+         // it might be a pointer without angle braces
+         if (cleanedSearchString.Length == 6 && cleanedSearchString.All(AllHexCharacters.Contains)) {
+            searchBytes.AddRange(Parse(cleanedSearchString).Reverse().Append((byte)0x08).Select(b => (SearchByte)b));
+            results.AddRange(Search(searchBytes));
          }
 
-         for (int i = 0; i < Model.Count - searchBytes.Count; i++) {
-            for (int j = 0; j < searchBytes.Count; j++) {
-               if (!searchBytes[j].Match(Model[i + j])) break;
-               if (j == searchBytes.Count - 1) results.Add(i);
-            }
-         }
+         // attempt to parse the search string fully
+         if (!TryParseSearchString(searchBytes, cleanedSearchString, errorOnParseError: results.Count == 0)) return results;
+
+         // find matches
+         results.AddRange(Search(searchBytes));
 
          // reorder the list to start at the current cursor position
+         results.Sort();
          var offset = scroll.ViewPointToDataIndex(SelectionStart);
          var left = results.Where(result => result < offset);
          var right = results.Where(result => result >= offset);
          results = right.Concat(left).ToList();
          return results;
       }
+
+      private byte[] Parse(string content) {
+         var result = new byte[content.Length / 2];
+         for (int i = 0; i < result.Length; i++) {
+            var thisByte = content.Substring(i * 2, 2);
+            result[i] += (byte)(AllHexCharacters.IndexOf(thisByte[0]) * 0x10);
+            result[i] += (byte)AllHexCharacters.IndexOf(thisByte[1]);
+         }
+         return result;
+      }
+
+      private IEnumerable<int> Search(IList<ISearchByte> searchBytes) {
+         for (int i = 0; i < Model.Count - searchBytes.Count; i++) {
+            for (int j = 0; j < searchBytes.Count; j++) {
+               if (!searchBytes[j].Match(Model[i + j])) break;
+               if (j == searchBytes.Count - 1) yield return i;
+            }
+         }
+         searchBytes.Clear();
+      }
+
+      private bool TryParseSearchString(List<ISearchByte> searchBytes, string cleanedSearchString, bool errorOnParseError) {
+         for (int i = 0; i < cleanedSearchString.Length;) {
+            if (cleanedSearchString[i] == ' ') {
+               i++;
+               continue;
+            }
+
+            if (cleanedSearchString[i] == PointerStart) {
+               if (!TryParsePointerSearchSegment(searchBytes, cleanedSearchString, ref i)) return false;
+               continue;
+            }
+
+            if (cleanedSearchString[i] == StringDelimeter) {
+               if (TryParseStringSearchSegment(searchBytes, cleanedSearchString, ref i)) continue;
+            }
+
+            if (cleanedSearchString.Length >= i + 2 && cleanedSearchString.Substring(i, 2).All(AllHexCharacters.Contains)) {
+               searchBytes.AddRange(Parse(cleanedSearchString.Substring(i, 2)).Select(b => (SearchByte)b));
+               i += 2;
+               continue;
+            }
+
+            if (errorOnParseError) OnError(this, $"Could not parse search term {cleanedSearchString.Substring(i)}");
+            return false;
+         }
+
+         return true;
+      }
+
+      private bool TryParsePointerSearchSegment(List<ISearchByte> searchBytes, string cleanedSearchString, ref int i) {
+         var pointerEnd = cleanedSearchString.IndexOf(PointerEnd, i);
+         if (pointerEnd == -1) { OnError(this, "Search mismatch: no closing >"); return false; }
+         var pointerContents = cleanedSearchString.Substring(i + 1, pointerEnd - i - 2);
+         var address = Model.GetAddressFromAnchor(history.CurrentChange, -1, pointerContents);
+         if (address != Pointer.NULL) {
+            searchBytes.Add((SearchByte)(address >> 0));
+            searchBytes.Add((SearchByte)(address >> 8));
+            searchBytes.Add((SearchByte)(address >> 16));
+            searchBytes.Add((SearchByte)0x08);
+         } else if (pointerContents.All(AllHexCharacters.Contains) && pointerContents.Length <= 6) {
+            searchBytes.AddRange(Parse(pointerContents).Reverse().Append((byte)0x08).Select(b => (SearchByte)b));
+         } else {
+            OnError(this, $"Could not parse pointer <{pointerContents}>");
+            return false;
+         }
+         i = pointerEnd + 1;
+         return true;
+      }
+
+      private bool TryParseStringSearchSegment(List<ISearchByte> searchBytes, string cleanedSearchString, ref int i) {
+         var endIndex = cleanedSearchString.IndexOf(StringDelimeter, i + 1);
+         while (endIndex > i && cleanedSearchString[endIndex - 1] == '\\') endIndex = cleanedSearchString.IndexOf(StringDelimeter, endIndex + 1);
+         if (endIndex > i) {
+            var pcsBytes = PCSString.Convert(cleanedSearchString.Substring(i, endIndex + 1 - i));
+            i = endIndex + 1;
+            if (i == cleanedSearchString.Length) pcsBytes.RemoveAt(pcsBytes.Count - 1);
+            searchBytes.AddRange(pcsBytes.Select(b => new PCSSearchByte(b)));
+            return true;
+         } else {
+            return false;
+         }
+      }
+
+      #endregion
 
       public IChildViewPort CreateChildView(int offset) {
          var child = new ChildViewPort(this);

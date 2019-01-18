@@ -191,5 +191,17 @@ namespace HavenSoft.Gen3Hex.Tests {
 
          Assert.Equal(new Point(0, 0), viewPort.SelectionStart);
       }
+
+      [Fact]
+      public void SearchFor6BytesAlsoFindsPointers() {
+         var data = new byte[0x1200];
+         var model = new PointerAndStringModel(data);
+         var viewPort = new ViewPort(new LoadedFile("file.txt", data), model);
+
+         viewPort.Edit("<001060>");
+         var results = viewPort.Find("001060");
+
+         Assert.Single(results);
+      }
    }
 }
