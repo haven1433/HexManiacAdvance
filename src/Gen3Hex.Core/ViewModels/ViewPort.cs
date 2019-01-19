@@ -267,9 +267,6 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
          Model = model ?? new BasicModel(file.Contents);
          FileName = file.Name;
-         Tools = new ToolTray(Model, history);
-         Tools.StringTool.ModelDataChanged += ModelChangedByTool;
-         Tools.StringTool.ModelDataMoved += ModelDataMovedByTool;
 
          scroll = new ScrollRegion { DataLength = Model.Count };
          scroll.PropertyChanged += ScrollPropertyChanged;
@@ -278,6 +275,10 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          selection.PropertyChanged += SelectionPropertyChanged;
          selection.PreviewSelectionStartChanged += ClearActiveEditBeforeSelectionChanges;
          selection.OnError += (sender, e) => OnError?.Invoke(this, e);
+
+         Tools = new ToolTray(Model, selection, history);
+         Tools.StringTool.ModelDataChanged += ModelChangedByTool;
+         Tools.StringTool.ModelDataMoved += ModelDataMovedByTool;
 
          ImplementCommands();
          RefreshBackingData();

@@ -43,9 +43,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
       public IToolViewModel Tool3 => tools[2];
 
-      public ToolTray(IModel model, ChangeHistory<DeltaModel> history) {
+      public ToolTray(IModel model, Selection selection, ChangeHistory<DeltaModel> history) {
          tools = new IToolViewModel[] {
-            new PCSTool(model, history),
+            new PCSTool(model, selection, history),
             new FillerTool("Tool2"),
             new FillerTool("Tool3"),
          };
@@ -84,8 +84,25 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
    public class PCSTool : ViewModelCore, IToolViewModel {
       private readonly IModel model;
+      private readonly Selection selection;
       private readonly ChangeHistory<DeltaModel> history;
       public string Name => "String";
+
+      private int contentIndex;
+      public int ContentIndex {
+         get => contentIndex;
+         set {
+            if (TryUpdate(ref contentIndex, value)) UpdateSelectionFromTool();
+         }
+      }
+
+      private int contentSelectionLength;
+      public int ContentSelectionLength {
+         get => contentSelectionLength;
+         set {
+            if (TryUpdate(ref contentSelectionLength, value)) UpdateSelectionFromTool();
+         }
+      }
 
       private string content;
       public string Content {
@@ -130,7 +147,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public event EventHandler<IFormattedRun> ModelDataChanged;
       public event EventHandler<(int originalLocation, int newLocation)> ModelDataMoved;
 
-      public PCSTool(IModel model, ChangeHistory<DeltaModel> history) => (this.model, this.history) = (model, history);
+      public PCSTool(IModel model, Selection selection, ChangeHistory<DeltaModel> history) => (this.model, this.selection, this.history) = (model, selection, history);
 
       public void DataForCurrentRunChanged(IFormattedRun run) {
          if (run is PCSRun) {
@@ -142,6 +159,33 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          }
 
          throw new NotImplementedException();
+      }
+
+      private void UpdateSelectionFromTool() {
+         var run = model.GetNextRun(Address);
+         if (run.Start != Address) return;
+         var content = Content;
+         if (content.Length < contentIndex + contentSelectionLength) return; // transient invalid state
+         var selectionStart = this.contentIndex;
+         var selectionLength = this.contentSelectionLength;
+         selectionLength = Math.Max(PCSString.Convert(content.Substring(selectionStart, selectionLength)).Count - 1, 0);
+         selectionStart = PCSString.Convert(content.Substring(0, selectionStart)).Count + run.Start;
+
+         //while (content.Contains(Environment.NewLine)) {
+         //   var index = content.IndexOf(Environment.NewLine);
+         //   if (index < selectionStart) {
+         //      selectionStart -= Environment.NewLine.Length;
+         //   } else if (index < selectionStart + selectionLength) {
+         //      selectionLength -= Environment.NewLine.Length;
+         //   }
+         //   content = content.Split(new[] { Environment.NewLine }, 2, StringSplitOptions.None).Aggregate(string.Concat);
+         //}
+
+         //selectionStart += run.Start;
+         //selectionLength = Math.Max(0, selectionLength - 1); // if the length is 2, then SelectionEnd should be SelectionStart+1
+
+         selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(selectionStart);
+         selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selectionStart + selectionLength);
       }
    }
 

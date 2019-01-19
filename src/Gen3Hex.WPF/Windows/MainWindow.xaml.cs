@@ -137,5 +137,13 @@ namespace HavenSoft.Gen3Hex.WPF.Windows {
          deferredActions.Clear();
          foreach (var action in copy) action();
       }
+
+      private void StringToolContentSelectionChanged(object sender, RoutedEventArgs e) {
+         var textbox = (TextBox)sender;
+         var tools = (ToolTray)textbox.DataContext;
+         if (tools == null || tools.StringTool == null) return;
+         tools.StringTool.ContentIndex = textbox.SelectionStart;
+         tools.StringTool.ContentSelectionLength = textbox.SelectionLength;
+      }
    }
 }

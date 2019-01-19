@@ -211,6 +211,7 @@
                   <Border DockPanel.Dock="Top" Height="19" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource Backlight}">
                      <TextBox Text="{Binding AnchorText, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding AnchorTextVisible, Converter={StaticResource BoolToVisibility}}" Margin="60,0,25,0"/>
                   </Border>
+                  <!-- Headers -->
                   <ItemsControl DockPanel.Dock="Left" Width="60" ItemsSource="{Binding Headers}" Background="{DynamicResource Backlight}" MouseDown="HeaderMouseDown">
                      <ItemsControl.ItemTemplate>
                         <DataTemplate>
@@ -263,6 +264,7 @@
                         </Button.Style>
                      </Button>
                   </StackPanel>
+                  <!-- Tools -->
                   <Grid DockPanel.Dock="Right" DataContext="{Binding Tools}">
                      <Grid.Style>
                         <Style TargetType="Grid">
@@ -287,7 +289,9 @@
                         <TextBlock Text="Address:" Margin="5,15,0,0"/>
                         <TextBox Text="{Binding StringTool.Address, Converter={StaticResource Hex}}" Margin="5"/>
                         <TextBlock Text="Content:" Margin="5,30,0,0"/>
-                        <TextBox FontFamily="Consolas" Text="{Binding StringTool.Content, UpdateSourceTrigger=PropertyChanged}" Margin="5,5" AcceptsReturn="True" MinHeight="50" Width="255" TextWrapping="Wrap"/>
+                        <TextBox Margin="5,5" AcceptsReturn="True" MinHeight="50" Width="255" TextWrapping="Wrap" FontFamily="Consolas"
+                           SelectionChanged="StringToolContentSelectionChanged"
+                           Text="{Binding StringTool.Content, UpdateSourceTrigger=PropertyChanged}" />
                      </StackPanel>
                      <StackPanel Name="Tool2Panel">
                         <StackPanel.Style>
