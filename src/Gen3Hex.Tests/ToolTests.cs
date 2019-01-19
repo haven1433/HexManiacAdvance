@@ -117,9 +117,9 @@ namespace HavenSoft.Gen3Hex.Tests {
          viewPort.SelectionStart = new Point(3, 0);
          viewPort.FollowLink(3, 0);
 
-         viewPort.Tools.StringTool.ContentIndex = 8;
+         viewPort.Tools.StringTool.ContentIndex = 4;
 
-         Assert.Equal(new Point(8, 0), viewPort.SelectionStart);
+         Assert.Equal(new Point(4, 0), viewPort.SelectionStart);
       }
    }
 }

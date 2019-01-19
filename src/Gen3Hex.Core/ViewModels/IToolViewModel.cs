@@ -168,21 +168,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          if (content.Length < contentIndex + contentSelectionLength) return; // transient invalid state
          var selectionStart = this.contentIndex;
          var selectionLength = this.contentSelectionLength;
-         selectionLength = Math.Max(PCSString.Convert(content.Substring(selectionStart, selectionLength)).Count - 1, 0);
-         selectionStart = PCSString.Convert(content.Substring(0, selectionStart)).Count + run.Start;
-
-         //while (content.Contains(Environment.NewLine)) {
-         //   var index = content.IndexOf(Environment.NewLine);
-         //   if (index < selectionStart) {
-         //      selectionStart -= Environment.NewLine.Length;
-         //   } else if (index < selectionStart + selectionLength) {
-         //      selectionLength -= Environment.NewLine.Length;
-         //   }
-         //   content = content.Split(new[] { Environment.NewLine }, 2, StringSplitOptions.None).Aggregate(string.Concat);
-         //}
-
-         //selectionStart += run.Start;
-         //selectionLength = Math.Max(0, selectionLength - 1); // if the length is 2, then SelectionEnd should be SelectionStart+1
+         selectionLength = Math.Max(PCSString.Convert(content.Substring(selectionStart, selectionLength)).Count - 2, 0); // remove 1 byte since 0xFF was added on and 1 byte since the selection should visually match
+         selectionStart = PCSString.Convert(content.Substring(0, selectionStart)).Count - 1 + run.Start; // remove 1 byte since the 0xFF was added on
 
          selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(selectionStart);
          selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selectionStart + selectionLength);

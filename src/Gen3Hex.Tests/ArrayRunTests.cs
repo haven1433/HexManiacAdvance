@@ -102,5 +102,24 @@ namespace HavenSoft.Gen3Hex.Tests {
 
          Assert.Equal(16 * 18, model.GetNextRun(0).Length);
       }
+
+      [Fact]
+      public void CanAutoFindArrayLength() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         Array.Copy(PCSString.Convert("bob").ToArray(), 0, buffer, 0x00, 4);
+         Array.Copy(PCSString.Convert("tom").ToArray(), 0, buffer, 0x04, 4);
+         Array.Copy(PCSString.Convert("sam").ToArray(), 0, buffer, 0x08, 4);
+         Array.Copy(PCSString.Convert("car").ToArray(), 0, buffer, 0x0C, 4);
+         Array.Copy(PCSString.Convert("pal").ToArray(), 0, buffer, 0x10, 4);
+         Array.Copy(PCSString.Convert("egg").ToArray(), 0, buffer, 0x14, 4);
+
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.Edit("^words[word\"\"4] "); // notice, no length is given
+
+         var run = (ArrayRun)model.GetNextRun(0);
+         Assert.Equal(6, run.ElementCount);
+      }
    }
 }

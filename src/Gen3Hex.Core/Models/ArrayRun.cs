@@ -62,12 +62,16 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          ElementLength = ElementContent.Sum(e => e.Length);
 
          if (length.Length == 0) {
-            // TODO: dynamic length, figure out how long it is based on how the data matches the element format
-            throw new NotImplementedException();
-         }
-
-         // fixed length is easy
-         if (int.TryParse(length, out int result)) {
+            var nextRunStart = owner.GetNextRun(Start).Start;
+            var byteLength = 0;
+            var elementCount = 0;
+            while (Start + byteLength + ElementLength <= nextRunStart && DataMatchesElementFormat(Start + byteLength)) {
+               byteLength += ElementLength;
+               elementCount++;
+            }
+            ElementCount = elementCount;
+         } else if (int.TryParse(length, out int result)) {
+            // fixed length is easy
             ElementCount = result;
          } else {
             LengthFromAnchor = length;
@@ -103,7 +107,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          var offset = byteOffset - Start;
          int elementIndex = offset / ElementLength;
          int elementOffset = offset % ElementLength;
-         int segmentIndex = 0, segmentOffset = elementOffset, segmentStart;
+         int segmentIndex = 0, segmentOffset = elementOffset;
          while (ElementContent[segmentIndex].Length < segmentOffset) {
             segmentOffset -= ElementContent[segmentIndex].Length; segmentIndex++;
          }
@@ -156,6 +160,26 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          }
 
          return run.ElementCount;
+      }
+
+      private bool DataMatchesElementFormat(int start) {
+         foreach (var segment in ElementContent) {
+            if (!DataMatchesSegmentFormat(start, segment)) return false;
+            start += segment.Length;
+         }
+         return true;
+      }
+
+      private bool DataMatchesSegmentFormat(int start, ArrayRunElementSegment segment) {
+         switch (segment.Type) {
+            case ElementContentType.PCS:
+               int readLength = PCSString.ReadString(owner, start, true, segment.Length);
+               if (readLength == -1) return false;
+               if (!Enumerable.Range(start + readLength, segment.Length - readLength).All(i => owner[i] == 0x00)) return false;
+               return true;
+            default:
+               throw new NotImplementedException();
+         }
       }
    }
 }

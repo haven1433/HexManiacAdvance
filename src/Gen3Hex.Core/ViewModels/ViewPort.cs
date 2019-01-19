@@ -400,6 +400,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          // it might be a string with no quotes, we should check for matches for that.
          if (cleanedSearchString.Length > 3 && !cleanedSearchString.Contains(StringDelimeter) && !cleanedSearchString.All(AllHexCharacters.Contains)) {
             var pcsBytes = PCSString.Convert(cleanedSearchString);
+            pcsBytes.RemoveAt(pcsBytes.Count - 1); // remove the 0xFF that was added, since we're searching for a string segment instead of a whole string.
             searchBytes.AddRange(pcsBytes.Select(b => new PCSSearchByte(b)));
             results.AddRange(Search(searchBytes));
          }

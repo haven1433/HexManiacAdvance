@@ -76,6 +76,9 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             index++; // always increment by one, even if the character was not found. This lets us skip past newlines and such.
          }
 
+         // make sure it ends with the 0xFF end-of-string byte
+         if (result.Count == 0 || result[result.Count - 1] != 0xFF) result.Add(0xFF);
+
          return result;
       }
 
@@ -83,11 +86,11 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       /// Figure out the length of a string starting at a given location in the data.
       /// If the data doesn't represent a string, return -1.
       /// </summary>
-      public static int ReadString(IReadOnlyList<byte> data, int start, bool allowCharacterRepeates) {
+      public static int ReadString(IReadOnlyList<byte> data, int start, bool allowCharacterRepeates, int maxLength = int.MaxValue) {
          int length = 0;
          byte recent = data[start];
          int count = 0;
-         while (start + length < data.Count) {
+         while (start + length < data.Count && length <= maxLength) {
             if (data[start + length] == recent) {
                count++;
             } else {
