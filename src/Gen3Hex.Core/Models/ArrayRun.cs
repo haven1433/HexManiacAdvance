@@ -1,6 +1,7 @@
 ﻿using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace HavenSoft.Gen3Hex.Core.Models {
@@ -55,17 +56,18 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          owner = data;
          FormatString = format;
          var closeArray = format.LastIndexOf(ArrayEnd.ToString());
-         if (!format.StartsWith(ArrayStart.ToString()) || closeArray == -1) throw new FormatException($"Array Content must be wrapped in {ArrayStart}{ArrayEnd}");
+         if (!format.StartsWith(ArrayStart.ToString()) || closeArray == -1) throw new FormatException($"Array Content must be wrapped in {ArrayStart}{ArrayEnd}.");
          var segments = format.Substring(1, closeArray - 1);
          var length = format.Substring(closeArray + 1);
          ElementContent = ParseSegments(segments);
+         if (ElementContent.Count == 0) throw new FormatException("Array Content must not be empty.");
          ElementLength = ElementContent.Sum(e => e.Length);
 
          if (length.Length == 0) {
             var nextRunStart = owner.GetNextRun(Start).Start;
             var byteLength = 0;
             var elementCount = 0;
-            while (Start + byteLength + ElementLength <= nextRunStart && DataMatchesElementFormat(Start + byteLength)) {
+            while (Start + byteLength + ElementLength <= nextRunStart && DataMatchesElementFormat(owner, Start + byteLength, ElementContent)) {
                byteLength += ElementLength;
                elementCount++;
             }
@@ -81,6 +83,16 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          Length = ElementLength * ElementCount;
       }
 
+      private ArrayRun(IModel data, string format, int start, int elementCount, IReadOnlyList<ArrayRunElementSegment> segments, IReadOnlyList<int> pointerSources) : base(start, pointerSources) {
+         owner = data;
+         FormatString = format;
+         ElementContent = segments;
+         ElementLength = ElementContent.Sum(e => e.Length);
+         ElementCount = elementCount;
+         LengthFromAnchor = string.Empty;
+         Length = ElementLength * ElementCount;
+      }
+
       public static bool TryParse(IModel data, string format, int start, IReadOnlyList<int> pointerSources, out ArrayRun self) {
          try {
             self = new ArrayRun(data, format, start, pointerSources);
@@ -89,6 +101,50 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             return false;
          }
 
+         return true;
+      }
+
+      public static bool TrySearch(IModel data, string format, out ArrayRun self) {
+         self = null;
+         var closeArray = format.LastIndexOf(ArrayEnd.ToString());
+         if (!format.StartsWith(ArrayStart.ToString()) || closeArray == -1) throw new FormatException($"Array Content must be wrapped in {ArrayStart}{ArrayEnd}");
+         var segments = format.Substring(1, closeArray - 1);
+         var length = format.Substring(closeArray + 1);
+         var elementContent = ParseSegments(segments);
+         if (elementContent.Count == 0) return false;
+         var elementLength = elementContent.Sum(e => e.Length);
+
+         int bestAddress = Pointer.NULL;
+         int bestLength = 0;
+
+         var run = data.GetNextRun(0);
+         for (var nextRun = data.GetNextRun(run.Start+run.Length); run.Start < int.MaxValue; nextRun = data.GetNextRun(nextRun.Start + nextRun.Length)) {
+            if (run is ArrayRun) {
+               run = nextRun;
+               continue;
+            }
+
+            int currentLength = 0;
+            int currentAddress = run.Start;
+            while (true) { // currentAddress < nextRun.Start
+               if (DataMatchesElementFormat(data, currentAddress, elementContent)) {
+                  currentLength++;
+                  currentAddress += elementLength;
+               } else {
+                  break;
+               }
+            }
+            if (bestLength < currentLength) {
+               bestLength = currentLength;
+               bestAddress = run.Start;
+            }
+
+            run = nextRun;
+         }
+
+         if (bestAddress == Pointer.NULL) return false;
+
+         self = new ArrayRun(data, format, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources);
          return true;
       }
 
@@ -115,10 +171,10 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       }
 
       protected override IFormattedRun Clone(IReadOnlyList<int> newPointerSources) {
-         return new ArrayRun(owner, FormatString, Start, newPointerSources);
+         return new ArrayRun(owner, FormatString, Start, ElementCount, ElementContent, newPointerSources);
       }
 
-      private List<ArrayRunElementSegment> ParseSegments(string segments) {
+      private static List<ArrayRunElementSegment> ParseSegments(string segments) {
          var list = new List<ArrayRunElementSegment>();
          segments = segments.Trim();
          while (segments.Length > 0) {
@@ -162,19 +218,20 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          return run.ElementCount;
       }
 
-      private bool DataMatchesElementFormat(int start) {
-         foreach (var segment in ElementContent) {
-            if (!DataMatchesSegmentFormat(start, segment)) return false;
+      private static bool DataMatchesElementFormat(IModel owner, int start, IReadOnlyList<ArrayRunElementSegment> segments) {
+         foreach (var segment in segments) {
+            if (!DataMatchesSegmentFormat(owner, start, segment)) return false;
             start += segment.Length;
          }
          return true;
       }
 
-      private bool DataMatchesSegmentFormat(int start, ArrayRunElementSegment segment) {
+      private static bool DataMatchesSegmentFormat(IModel owner, int start, ArrayRunElementSegment segment) {
          switch (segment.Type) {
             case ElementContentType.PCS:
                int readLength = PCSString.ReadString(owner, start, true, segment.Length);
                if (readLength == -1) return false;
+               if (readLength > segment.Length) return false;
                if (!Enumerable.Range(start + readLength, segment.Length - readLength).All(i => owner[i] == 0x00)) return false;
                return true;
             default:

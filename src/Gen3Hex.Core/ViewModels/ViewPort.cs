@@ -964,6 +964,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          }
 
          public void Visit(EscapedPCS pcs, byte data) => Visit((None)null, data);
+
+         public void Visit(ErrorPCS pcs, byte data) => Visit((None)null, data);
       }
 
       /// <summary>
@@ -998,6 +1000,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          public void Visit(PCS pcs, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
 
          public void Visit(EscapedPCS pcs, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
+
+         public void Visit(ErrorPCS pcs, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
       }
    }
 }

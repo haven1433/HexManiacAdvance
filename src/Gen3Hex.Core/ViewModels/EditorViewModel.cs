@@ -211,7 +211,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             var file = arg as LoadedFile ?? fileSystem.OpenFile();
             if (file == null) return;
             var metadata = fileSystem.MetadataFor(file.Name);
-            Add(new ViewPort(file, new PointerAndStringModel(file.Contents, metadata)));
+            Add(new ViewPort(file, new FirstLoadAutoSearchModel(file.Contents, metadata)));
          };
 
          gotoCommand.CanExecute = arg => SelectedTab?.Goto?.CanExecute(arg) ?? false;

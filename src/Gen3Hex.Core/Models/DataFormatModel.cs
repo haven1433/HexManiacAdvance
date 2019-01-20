@@ -381,7 +381,13 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       public override void ObserveAnchorWritten(DeltaModel changeToken, string anchorName, IFormattedRun run) {
          int location = run.Start;
          int index = BinarySearch(location);
-         if (index < 0) ClearFormat(changeToken, location, 1); // no format starts exactly at this anchor, so clear any format that goes over this anchor.
+         if (index < 0) {
+            // no format starts exactly at this anchor, so clear any format that goes over this anchor.
+            ClearFormat(changeToken, location, 1);
+         } else {
+            // a format starts exactly at this anchor, but this new format may extend further. Clear anything after the start.
+            ClearFormat(changeToken, run.Start + 1, run.Length - 1);
+         }
 
          if (anchorForAddress.TryGetValue(location, out string oldAnchorName)) {
             anchorForAddress.Remove(location);
@@ -732,6 +738,46 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       private int BinarySearch(int start) {
          var index = runs.BinarySearch(new CompareFormattedRun(start), FormattedRunComparer.Instance);
          return index;
+      }
+   }
+
+   public class FirstLoadAutoSearchModel : PointerAndStringModel {
+      public FirstLoadAutoSearchModel(byte[] data, StoredMetadata metadata = null) : base(data, metadata) {
+         if (metadata != null) return;
+
+         const string Ruby = "AXVE";
+         const string Sapphire = "AXPE";
+         const string Emerald = "BPEE";
+         const string FireRed = "BPRE";
+         const string LeafGreen = "BPGE";
+
+         var gameCode = string.Concat(Enumerable.Range(0xAC, 4).Select(i => ((char)data[i]).ToString()));
+
+         // in vanilla emerald, this pointer isn't four-byte aligned
+         // it's at the very front of the ROM, so if there's no metadata we can be pretty sure that the pointer is still there
+         if (gameCode == Emerald && data[0x1C3] == 0x08) ObserveRunWritten(new DeltaModel(), new PointerRun(0x1C0));
+
+            if (TrySearch(this, "[name\"\"11]", out var pokenames)) {
+            ObserveAnchorWritten(new DeltaModel(), "pokenames", pokenames);
+         }
+         if (TrySearch(this, "[name\"\"13]", out var movenames)) {
+            ObserveAnchorWritten(new DeltaModel(), "movenames", movenames);
+         }
+         if (gameCode == Ruby || gameCode == Sapphire || gameCode == Emerald) {
+            if (TrySearch(this, "[name\"\"13]", out var abilitynames)) {
+               ObserveAnchorWritten(new DeltaModel(), "abilitynames", abilitynames);
+            }
+            if (TrySearch(this, "[name\"\"13]", out var trainerclassnames)) {
+               ObserveAnchorWritten(new DeltaModel(), "trainerclassnames", trainerclassnames);
+            }
+         } else {
+            if (TrySearch(this, "[name\"\"13]", out var trainerclassnames)) {
+               ObserveAnchorWritten(new DeltaModel(), "trainerclassnames", trainerclassnames);
+            }
+            if (TrySearch(this, "[name\"\"13]", out var abilitynames)) {
+               ObserveAnchorWritten(new DeltaModel(), "abilitynames", abilitynames);
+            }
+         }
       }
    }
 

@@ -107,6 +107,24 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
          // intentionally draw nothing: this is taken care of by Visit PCS
       }
 
+      public void Visit(ErrorPCS pcs, byte data) {
+         var brush = Solarized.Brushes.Red;
+         var typeface = new Typeface("Consolas");
+
+         var content = data.ToString("X2");
+
+         var text = new FormattedText(
+            content,
+            CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            typeface,
+            FontSize,
+            brush,
+            1.0);
+
+         context.DrawText(text, CellTextOffset);
+      }
+
       private void VerifyNoneVisualCache() {
          if (noneVisualCache.Count != 0) return;
 

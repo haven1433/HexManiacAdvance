@@ -123,7 +123,11 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          if (isEscaped) {
             return new EscapedPCS(start, index - start, fullString, model[index]);
          } else {
-            var character = PCSString.Convert(model, index, 1).Substring(1); // trim leading "
+            var pcsCharacters = PCSString.Convert(model, index, 1);
+            if (pcsCharacters == null) {
+               return new ErrorPCS(start, index - start, fullString, model[index]);
+            }
+            var character = pcsCharacters.Substring(1); // trim leading "
             if (index == start) character = StringDelimeter + character; // include the opening quotation mark, only for the first character
             var pcs = new PCS(start, index - start, fullString, character);
             return pcs;
