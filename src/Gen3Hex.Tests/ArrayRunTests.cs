@@ -121,5 +121,24 @@ namespace HavenSoft.Gen3Hex.Tests {
          var run = (ArrayRun)model.GetNextRun(0);
          Assert.Equal(6, run.ElementCount);
       }
+
+      [Fact]
+      public void WidthRestrictedAfterGotoArrayAnchor() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         Array.Copy(PCSString.Convert("bobb").ToArray(), 0, buffer, 100, 5);
+         Array.Copy(PCSString.Convert("tomm").ToArray(), 0, buffer, 105, 5);
+         Array.Copy(PCSString.Convert("samm").ToArray(), 0, buffer, 110, 5);
+         Array.Copy(PCSString.Convert("carr").ToArray(), 0, buffer, 115, 5);
+         Array.Copy(PCSString.Convert("pall").ToArray(), 0, buffer, 120, 5);
+         Array.Copy(PCSString.Convert("eggg").ToArray(), 0, buffer, 125, 5);
+
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.Edit("^words[word\"\"5] "); // notice, no length is given
+
+         viewPort.Goto.Execute("words");
+         Assert.Equal(0, viewPort.Width % 5);
+      }
    }
 }
