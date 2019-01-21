@@ -34,7 +34,7 @@
       </KeyBinding>
       <KeyBinding Key="F3" Command="{Binding FindNext}" CommandParameter="{Binding Text, ElementName=FindBox}"/>
       <KeyBinding Key="F3" Modifiers="Shift" Command="{Binding FindPrevious}" CommandParameter="{Binding Text, ElementName=FindBox}"/>
-      <KeyBinding Key="G" Modifiers="Ctrl" Command="{Binding ShowGoto}">
+      <KeyBinding Key="G" Modifiers="Ctrl" Command="{Binding GotoViewModel.ShowGoto}">
          <KeyBinding.CommandParameter>
             <sys:Boolean>true</sys:Boolean>
          </KeyBinding.CommandParameter>
@@ -72,18 +72,39 @@
             </Style>
          </DockPanel.Resources>
          <!-- Goto -->
-         <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding GotoControlVisible, Converter={StaticResource BoolToVisibility}}">
+         <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}">
             <TextBlock Text="Goto :" Margin="10,0" />
-            <TextBox Name="GotoBox" MinWidth="200" IsVisibleChanged="EditBoxVisibilityChanged">
+            <TextBox Name="GotoBox" Text="{Binding GotoViewModel.Text, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" IsVisibleChanged="EditBoxVisibilityChanged">
                <TextBox.InputBindings>
-                  <KeyBinding Key="Esc" Command="{Binding ShowGoto}">
+                  <KeyBinding Key="Esc" Command="{Binding GotoViewModel.ShowGoto}">
                      <KeyBinding.CommandParameter>
                         <sys:Boolean>false</sys:Boolean>
                      </KeyBinding.CommandParameter>
                   </KeyBinding>
-                  <KeyBinding Key="Return" Command="{Binding Goto}" CommandParameter="{Binding Text, ElementName=GotoBox}"/>
+                  <KeyBinding Key="Up" Command="{Binding GotoViewModel.MoveAutoCompleteSelectionUp}"/>
+                  <KeyBinding Key="Down" Command="{Binding GotoViewModel.MoveAutoCompleteSelectionDown}"/>
+                  <KeyBinding Key="Return" Command="{Binding GotoViewModel.Goto}"/>
                </TextBox.InputBindings>
             </TextBox>
+            <Popup IsOpen="{Binding GotoViewModel.ShowAutoCompleteOptions}" PlacementTarget="{Binding ElementName=GotoBox}">
+               <ItemsControl ItemsSource="{Binding GotoViewModel.AutoCompleteOptions}" Background="{DynamicResource Backlight}">
+                  <ItemsControl.ItemTemplate>
+                     <DataTemplate>
+                        <Button Content="{Binding CompletionText}" Command="{Binding ElementName=GotoBox, Path=DataContext.GotoViewModel.Goto}" CommandParameter="{Binding CompletionText}">
+                           <Button.Style>
+                              <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                 <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                       <Setter Property="BorderBrush" Value="{solarized:Theme Blue}"/>
+                                    </DataTrigger>
+                                 </Style.Triggers>
+                              </Style>
+                           </Button.Style>
+                        </Button>
+                     </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+               </ItemsControl>
+            </Popup>
          </StackPanel>
          <!-- Find -->
          <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding FindControlVisible, Converter={StaticResource BoolToVisibility}}">
@@ -166,7 +187,7 @@
                </MenuItem>
                <MenuItem Header="Find _Next" Command="{Binding FindNext}" CommandParameter="{Binding Text, ElementName=FindBox}" InputGestureText="F3"/>
                <MenuItem Header="Find _Previous" Command="{Binding FindPrevious}" CommandParameter="{Binding Text, ElementName=FindBox}" InputGestureText="Shift+F3"/>
-               <MenuItem Header="_Goto" Command="{Binding ShowGoto}" InputGestureText="Ctrl+G">
+               <MenuItem Header="_Goto" Command="{Binding GotoViewModel.ShowGoto}" InputGestureText="Ctrl+G">
                   <MenuItem.CommandParameter>
                      <sys:Boolean>true</sys:Boolean>
                   </MenuItem.CommandParameter>

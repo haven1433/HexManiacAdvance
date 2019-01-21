@@ -33,8 +33,6 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
          back = new StubCommand(),
          forward = new StubCommand(),
-         gotoCommand = new StubCommand(),
-         showGoto = new StubCommand(),
          find = new StubCommand(),
          findPrevious = new StubCommand(),
          findNext = new StubCommand(),
@@ -63,8 +61,6 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public ICommand Delete => delete;
       public ICommand Back => back;
       public ICommand Forward => forward;
-      public ICommand Goto => gotoCommand;          // parameter: target destination as string (for example, a hex address)
-      public ICommand ShowGoto => showGoto;         // parameter: true for show, false for hide
       public ICommand Find => find;                 // parameter: target string to search
       public ICommand FindPrevious => findPrevious; // parameter: target string to search
       public ICommand FindNext => findNext;         // parameter: target string to search
@@ -73,16 +69,12 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public ICommand ClearError => clearError;
       public ICommand ClearMessage => clearMessage;
 
-      private bool gotoControlVisible;
-      public bool GotoControlVisible {
-         get => gotoControlVisible;
+      private GotoControlViewModel gotoViewModel = new GotoControlViewModel(null);
+      public GotoControlViewModel GotoViewModel {
+         get => gotoViewModel;
          private set {
-            if (value) {
-               ClearError.Execute();
-               ClearMessage.Execute();
-               FindControlVisible = false;
-            }
-            TryUpdate(ref gotoControlVisible, value);
+            gotoViewModel = value;
+            NotifyPropertyChanged(nameof(GotoViewModel));
          }
       }
 
@@ -93,7 +85,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             if (value) {
                ClearError.Execute();
                ClearMessage.Execute();
-               GotoControlVisible = false;
+               gotoViewModel.ControlVisible = false;
             }
             TryUpdate(ref findControlVisible, value);
          }
@@ -104,7 +96,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          get => showError;
          private set {
             if (value) {
-               GotoControlVisible = false;
+               gotoViewModel.ControlVisible = false;
                FindControlVisible = false;
                ShowMessage = false;
             }
@@ -125,7 +117,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          get => showMessage;
          private set {
             if (value) {
-               GotoControlVisible = false;
+               gotoViewModel.ControlVisible = false;
                FindControlVisible = false;
                ShowError = false;
             }
@@ -160,6 +152,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                if (TryUpdate(ref selectedIndex, value)) {
                   findPrevious.CanExecuteChanged.Invoke(findPrevious, EventArgs.Empty);
                   findNext.CanExecuteChanged.Invoke(findNext, EventArgs.Empty);
+                  GotoViewModel.PropertyChanged -= GotoPropertyChanged;
+                  GotoViewModel = new GotoControlViewModel(SelectedTab);
+                  GotoViewModel.PropertyChanged += GotoPropertyChanged;
                }
             }
          }
@@ -214,20 +209,11 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             Add(new ViewPort(file, new FirstLoadAutoSearchModel(file.Contents, metadata)));
          };
 
-         gotoCommand.CanExecute = arg => SelectedTab?.Goto?.CanExecute(arg) ?? false;
-         gotoCommand.Execute = arg => {
-            SelectedTab?.Goto?.Execute(arg);
-            GotoControlVisible = false;
-         };
-
-         showGoto.CanExecute = CanAlwaysExecute;
-         showGoto.Execute = arg => GotoControlVisible = (bool)arg;
-
          ImplementFindCommands();
 
          hideSearchControls.CanExecute = CanAlwaysExecute;
          hideSearchControls.Execute = arg => {
-            GotoControlVisible = false;
+            gotoViewModel.ControlVisible = false;
             FindControlVisible = false;
             ShowError = false;
             ShowMessage = false;
@@ -445,6 +431,14 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          }
       }
 
+      private void GotoPropertyChanged(object sender, PropertyChangedEventArgs e) {
+         if (e.PropertyName == nameof(gotoViewModel.ControlVisible) && gotoViewModel.ControlVisible) {
+            ClearError.Execute();
+            ClearMessage.Execute();
+            FindControlVisible = false;
+         }
+      }
+
       private void AcceptError(object sender, string message) => ErrorMessage = message;
 
       private void AcceptMessage(object sender, string message) => InformationMessage = message;
@@ -485,5 +479,112 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       }
 
       private void RaiseSaveAllCanExecuteChanged(object sender, EventArgs e) => saveAll.CanExecuteChanged.Invoke(this, e);
+   }
+
+   public class GotoControlViewModel : ViewModelCore {
+      private readonly ViewPort viewPort;
+
+      private bool controlVisible;
+      public bool ControlVisible {
+         get => controlVisible;
+         set {
+            if (TryUpdate(ref controlVisible, value) && value) CompletionIndex = -1;
+         }
+      }
+
+      private string text = string.Empty;
+      public string Text {
+         get => text;
+         set {
+            if (viewPort == null) return;
+            if (TryUpdate(ref text, value)) {
+               var options = viewPort.Model.GetAutoCompleteAnchorNameOptions(text);
+               AutoCompleteOptions = CreateAutoCompleteOptions(options, options.Count);
+               ShowAutoCompleteOptions = AutoCompleteOptions.Count > 0;
+            }
+         }
+      }
+
+      private int completionIndex = -1;
+      public int CompletionIndex {
+         get => completionIndex;
+         set {
+            value = Math.Min(Math.Max(-1, value), autoCompleteOptions.Count - 1);
+            if (TryUpdate(ref completionIndex, value)) {
+               AutoCompleteOptions = CreateAutoCompleteOptions(AutoCompleteOptions.Select(option => option.CompletionText), AutoCompleteOptions.Count);
+            }
+         }
+      }
+
+      private bool showAutoCompleteOptions;
+      public bool ShowAutoCompleteOptions {
+         get => showAutoCompleteOptions;
+         set => TryUpdate(ref showAutoCompleteOptions, value);
+      }
+
+      private IReadOnlyList<AutoCompleteSelectionItem> autoCompleteOptions = new AutoCompleteSelectionItem[0];
+      public IReadOnlyList<AutoCompleteSelectionItem> AutoCompleteOptions {
+         get => autoCompleteOptions;
+         private set {
+            if (autoCompleteOptions == value) return;
+            var oldValue = autoCompleteOptions;
+            autoCompleteOptions = value;
+            NotifyPropertyChanged(oldValue, nameof(AutoCompleteOptions));
+         }
+      }
+
+      public ICommand MoveAutoCompleteSelectionUp { get; }
+      public ICommand MoveAutoCompleteSelectionDown { get; }
+      public ICommand Goto { get; }
+      public ICommand ShowGoto { get; }                        // arg -> true to show, false to hide
+
+      public GotoControlViewModel(ITabContent tabContent) {
+         viewPort = (tabContent as ViewPort);
+         MoveAutoCompleteSelectionUp = new StubCommand {
+            CanExecute = CanAlwaysExecute,
+            Execute = arg => CompletionIndex--,
+         };
+         MoveAutoCompleteSelectionDown = new StubCommand {
+            CanExecute = CanAlwaysExecute,
+            Execute = arg => CompletionIndex++,
+         };
+         Goto = new StubCommand {
+            CanExecute = arg => viewPort != null,
+            Execute = arg => {
+               var text = Text;
+               if (CompletionIndex != -1) text = AutoCompleteOptions[CompletionIndex].CompletionText;
+               if (arg is string) text = (string)arg;
+               viewPort?.Goto?.Execute(text);
+               ControlVisible = false;
+               ShowAutoCompleteOptions = false;
+            },
+         };
+         ShowGoto = new StubCommand {
+            CanExecute = arg => viewPort != null && arg is bool,
+            Execute = arg => ControlVisible = (bool)arg,
+         };
+      }
+
+      private IReadOnlyList<AutoCompleteSelectionItem> CreateAutoCompleteOptions(IEnumerable<string> options, int length) {
+         if (completionIndex >= length) {
+            completionIndex = length - 1;
+            NotifyPropertyChanged(nameof(CompletionIndex));
+         }
+         var list = new List<AutoCompleteSelectionItem>(length);
+
+         int i = 0;
+         foreach (var option in options) {
+            list.Add(new AutoCompleteSelectionItem(option, i == completionIndex));
+            i++;
+         }
+
+         return list;
+      }
+   }
+
+   public class AutoCompleteSelectionItem {
+      public string CompletionText { get; }
+      public bool IsSelected { get; }
+      public AutoCompleteSelectionItem(string text, bool selection) => (CompletionText, IsSelected) = (text, selection);
    }
 }

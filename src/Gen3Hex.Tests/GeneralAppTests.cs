@@ -153,7 +153,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
       [Fact]
       public void OpenCanAddTab() {
-         fileSystem.OpenFile = args => new LoadedFile("chosenFile.txt", new byte[20]);
+         fileSystem.OpenFile = args => new LoadedFile("chosenFile.txt", new byte[0x200]);
 
          editor.Open.Execute();
 
@@ -292,9 +292,9 @@ namespace HavenSoft.Gen3Hex.Tests {
          editor.Add(tab);
 
          tab.OnError.Invoke(tab, "Some Message");
-         editor.ShowGoto.Execute(true);
+         editor.GotoViewModel.ShowGoto.Execute(true);
 
-         Assert.True(editor.GotoControlVisible);
+         Assert.True(editor.GotoViewModel.ControlVisible);
          Assert.False(editor.ShowError);
       }
 
@@ -329,7 +329,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          fileSystem.AddListenerToFile = (fileName, action) => name = fileName;
          var editor = new EditorViewModel(fileSystem);
 
-         editor.Open.Execute(new LoadedFile("InputFile.txt", new byte[20]));
+         editor.Open.Execute(new LoadedFile("InputFile.txt", new byte[0x200]));
 
          Assert.Equal("InputFile.txt", name);
       }
@@ -340,7 +340,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          string name = null;
          fileSystem.RemoveListenerForFile = (fileName, listener) => name = fileName;
          var editor = new EditorViewModel(fileSystem);
-         editor.Open.Execute(new LoadedFile("InputFile.txt", new byte[20]));
+         editor.Open.Execute(new LoadedFile("InputFile.txt", new byte[0x200]));
 
          editor.Close.Execute();
 

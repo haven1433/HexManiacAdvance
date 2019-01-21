@@ -39,6 +39,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       int GetAddressFromAnchor(DeltaModel changeToken, int requestSource, string anchor);
       string GetAnchorFromAddress(int requestSource, int destination);
+      IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial);
       StoredMetadata ExportMetadata();
    }
 
@@ -102,6 +103,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       public int ReadPointer(int index) => ReadValue(index) - 0x08000000;
 
       public void WritePointer(DeltaModel changeToken, int address, int pointerDestination) => WriteValue(changeToken, address, pointerDestination + 0x08000000);
+
+      public virtual IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial) => new string[0];
 
       public virtual StoredMetadata ExportMetadata() => null;
 
@@ -627,6 +630,25 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          anchorForAddress.Clear();
          runs.Clear();
          Initialize(metadata);
+      }
+
+      public override IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial) {
+         partial = partial.ToLower();
+         var mappedNames = addressForAnchor.Keys.Select(name => name.ToLower());
+         var results = new List<string>();
+         foreach (var name in mappedNames) {
+            var unmatchedName = name;
+            int index = -1;
+            foreach (var character in partial) {
+               index = unmatchedName.IndexOf(character);
+               if (index == -1) break;
+               unmatchedName = unmatchedName.Substring(index);
+            }
+            if (index == -1) continue;
+            results.Add(name);
+         }
+
+         return results;
       }
 
       public override StoredMetadata ExportMetadata() {
