@@ -32,7 +32,7 @@
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Delegation, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\HavenSoft.AutoImplement.1.1.0\lib\System.Delegation.dll</HintPath>
+      <HintPath>..\..\packages\HavenSoft.AutoImplement.1.1.1\lib\System.Delegation.dll</HintPath>
     </Reference>
     <Reference Include="System.Xaml" />
     <Reference Include="WindowsBase" />
@@ -78,10 +78,10 @@
     <PreBuildEvent>
 if not exist $(SolutionDir)artifacts\$(AssemblyName)\codegen mkdir $(SolutionDir)artifacts\$(AssemblyName)\codegen
 
-$(SolutionDir)packages\HavenSoft.AutoImplement.1.1.0\AutoImplement "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" ICommand
+$(SolutionDir)packages\HavenSoft.AutoImplement.1.1.1\AutoImplement "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" ICommand
 move /Y StubCommand.cs  $(SolutionDir)artifacts\$(AssemblyName)\codegen
 
-$(SolutionDir)packages\HavenSoft.AutoImplement.1.1.0\AutoImplement "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" IDisposable
+$(SolutionDir)packages\HavenSoft.AutoImplement.1.1.1\AutoImplement "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" IDisposable
 move /Y StubDisposable.cs $(SolutionDir)artifacts\$(AssemblyName)\codegen
 
 del *.cs</PreBuildEvent>

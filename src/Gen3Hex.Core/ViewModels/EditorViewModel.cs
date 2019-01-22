@@ -482,7 +482,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
    }
 
    public class GotoControlViewModel : ViewModelCore {
-      private readonly ViewPort viewPort;
+      private readonly IViewPort viewPort;
+
+      #region NotifyProperties
 
       private bool controlVisible;
       public bool ControlVisible {
@@ -533,13 +535,19 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          }
       }
 
+      #endregion
+
+      #region Commands
+
       public ICommand MoveAutoCompleteSelectionUp { get; }
       public ICommand MoveAutoCompleteSelectionDown { get; }
       public ICommand Goto { get; }
       public ICommand ShowGoto { get; }                        // arg -> true to show, false to hide
 
+      #endregion
+
       public GotoControlViewModel(ITabContent tabContent) {
-         viewPort = (tabContent as ViewPort);
+         viewPort = (tabContent as IViewPort);
          MoveAutoCompleteSelectionUp = new StubCommand {
             CanExecute = CanAlwaysExecute,
             Execute = arg => CompletionIndex--,
@@ -549,7 +557,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             Execute = arg => CompletionIndex++,
          };
          Goto = new StubCommand {
-            CanExecute = arg => viewPort != null,
+            CanExecute = arg => viewPort?.Goto != null,
             Execute = arg => {
                var text = Text;
                if (CompletionIndex != -1) text = AutoCompleteOptions[CompletionIndex].CompletionText;
@@ -560,7 +568,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             },
          };
          ShowGoto = new StubCommand {
-            CanExecute = arg => viewPort != null && arg is bool,
+            CanExecute = arg => viewPort?.Goto != null && arg is bool,
             Execute = arg => ControlVisible = (bool)arg,
          };
       }

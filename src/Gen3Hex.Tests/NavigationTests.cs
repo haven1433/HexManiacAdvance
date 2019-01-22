@@ -1,6 +1,8 @@
 ﻿using HavenSoft.Gen3Hex.Core;
 using HavenSoft.Gen3Hex.Core.Models;
 using HavenSoft.Gen3Hex.Core.ViewModels;
+using System.Collections.Generic;
+using System.Windows.Input;
 using Xunit;
 
 namespace HavenSoft.Gen3Hex.Tests {
@@ -202,6 +204,38 @@ namespace HavenSoft.Gen3Hex.Tests {
          var results = viewPort.Find("001060");
 
          Assert.Single(results);
+      }
+
+      [Fact]
+      public void GotoAutoCompleteNavigationCommandsWork() {
+         var tab = new StubViewPort {
+            Goto = new StubCommand { CanExecute = ICommandExtensions.CanAlwaysExecute },
+            Model = new StubModel { GetAutoCompleteAnchorNameOptions = str => new List<string> {
+               "Option 1",
+               "Option 2",
+               "Option 3",
+            } },
+         };
+         var viewModel = new GotoControlViewModel(tab);
+
+         Assert.False(viewModel.ControlVisible);
+         viewModel.ShowGoto.Execute(true);
+         Assert.True(viewModel.ControlVisible);
+
+         Assert.False(viewModel.ShowAutoCompleteOptions);
+         viewModel.Text = "Something";
+         Assert.True(viewModel.ShowAutoCompleteOptions);
+         Assert.Equal(3, viewModel.AutoCompleteOptions.Count);
+         Assert.All(viewModel.AutoCompleteOptions, option => Assert.False(option.IsSelected));
+
+         viewModel.MoveAutoCompleteSelectionDown.Execute();
+         Assert.True(viewModel.AutoCompleteOptions[0].IsSelected);
+
+         viewModel.MoveAutoCompleteSelectionDown.Execute();
+         Assert.True(viewModel.AutoCompleteOptions[1].IsSelected);
+
+         viewModel.MoveAutoCompleteSelectionUp.Execute();
+         Assert.True(viewModel.AutoCompleteOptions[0].IsSelected);
       }
    }
 }
