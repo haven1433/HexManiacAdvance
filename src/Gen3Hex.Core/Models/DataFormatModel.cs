@@ -526,6 +526,9 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       public override void ClearFormat(DeltaModel changeToken, int originalStart, int length) {
          int start = originalStart;
          for (var run = GetNextRun(start); length > 0 && run != null; run = GetNextRun(start)) {
+            if (start < run.Start) {
+               for (int i = 0; i < length && i < run.Start - start; i++) changeToken.ChangeData(this, start + i, 0xFF);
+            }
             if (run.Start >= start + length) return;
             if (run is PointerRun pointerRun) {
                ClearPointerFormat(changeToken, pointerRun);

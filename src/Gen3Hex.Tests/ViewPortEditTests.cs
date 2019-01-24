@@ -242,7 +242,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CanClearData() {
          var loadedFile = new LoadedFile("test", new byte[1000]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         var viewPort = new ViewPort(loadedFile, new PointerAndStringModel(loadedFile.Contents)) { Width = 5, Height = 5 };
 
          viewPort.SelectionStart = new Point(0, 0);
          viewPort.SelectionEnd = new Point(3, 3);
