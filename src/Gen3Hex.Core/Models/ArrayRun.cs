@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 
 namespace HavenSoft.Gen3Hex.Core.Models {
    public enum ElementContentType {
@@ -15,6 +16,15 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       public ElementContentType Type { get; }
       public int Length { get; }
       public ArrayRunElementSegment(string name, ElementContentType type, int length) => (Name, Type, Length) = (name, type, length);
+
+      public string ToText(IReadOnlyList<byte> rawData, int offset) {
+         switch (Type) {
+            case ElementContentType.PCS:
+               return PCSString.Convert(rawData, offset, Length);
+            default:
+               throw new NotImplementedException();
+         }
+      }
    }
 
    public class ArrayOffset {
@@ -31,6 +41,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
    }
 
    public class ArrayRun : BaseRun {
+      public const char ExtendArray = '+';
       public const char ArrayStart = '[';
       public const char ArrayEnd = ']';
 
@@ -168,6 +179,26 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             segmentOffset -= ElementContent[segmentIndex].Length; segmentIndex++;
          }
          return new ArrayOffset(elementIndex, segmentIndex, byteOffset - segmentOffset, segmentOffset);
+      }
+
+      public ArrayRun Append(int elementCount) {
+         return new ArrayRun(owner, FormatString, Start, ElementCount + elementCount, ElementContent, PointerSources);
+      }
+
+      public void AppendTo(IReadOnlyList<byte> data, StringBuilder text) {
+         for (int i = 0; i < ElementCount; i++) {
+            var offset = Start + i * ElementLength;
+            text.Append(ExtendArray);
+            foreach (var segment in ElementContent) {
+               text.Append(segment.ToText(data, offset));
+               offset += segment.Length;
+            }
+            text.Append(Environment.NewLine);
+         }
+      }
+
+      public IFormattedRun Move(int newStart) {
+         return new ArrayRun(owner, FormatString, newStart, ElementCount, ElementContent, PointerSources);
       }
 
       protected override IFormattedRun Clone(IReadOnlyList<int> newPointerSources) {

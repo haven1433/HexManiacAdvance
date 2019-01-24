@@ -86,7 +86,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
       [Fact]
       public void CanAutoMoveWhenHittingAnchor() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x300).ToArray();
          var model = new PointerAndStringModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
@@ -126,10 +126,10 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Equal(24, run.Length);
 
          // the original data is now cleared
-         Assert.Equal(0xFF, buffer[0]);
-         Assert.Equal(0xFF, buffer[1]);
-         Assert.Equal(0xFF, buffer[2]);
-         Assert.Equal(0xFF, buffer[3]);
+         Assert.Equal(0xFF, model[0]);
+         Assert.Equal(0xFF, model[1]);
+         Assert.Equal(0xFF, model[2]);
+         Assert.Equal(0xFF, model[3]);
 
          // pointer should be updated
          Assert.Equal(run.Start, model.ReadPointer(0xC));

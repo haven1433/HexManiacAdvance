@@ -156,6 +156,17 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
             TryUpdate(ref content, newContent, nameof(Content));
             return;
+         } else if (run is ArrayRun array) {
+            var lines = new string[array.ElementCount];
+            for (int i = 0; i < lines.Length; i++) {
+               var newContent = PCSString.Convert(model, run.Start + i * array.ElementLength, array.ElementLength).Trim();
+               newContent = newContent.Substring(1, newContent.Length - 2); // remove quotes
+               lines[i] = newContent;
+            }
+            if (lines.Length > 0) {
+               TryUpdate(ref content, lines.Aggregate((a, b) => a + Environment.NewLine + b), nameof(Content));
+            }
+            return;
          }
 
          throw new NotImplementedException();

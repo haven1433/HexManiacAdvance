@@ -296,9 +296,9 @@
                            </Style.Triggers>
                         </Style>
                      </Grid.Style>
-                     <StackPanel Name="StringToolPanel">
-                        <StackPanel.Style>
-                           <Style TargetType="StackPanel">
+                     <DockPanel Name="StringToolPanel">
+                        <DockPanel.Style>
+                           <Style TargetType="DockPanel">
                               <Setter Property="Visibility" Value="Collapsed"/>
                               <Style.Triggers>
                                  <DataTrigger Binding="{Binding SelectedIndex}" Value="0">
@@ -306,14 +306,14 @@
                                  </DataTrigger>
                               </Style.Triggers>
                            </Style>
-                        </StackPanel.Style>
-                        <TextBlock Text="Address:" Margin="5,15,0,0"/>
-                        <TextBox Text="{Binding StringTool.Address, Converter={StaticResource Hex}}" Margin="5"/>
-                        <TextBlock Text="Content:" Margin="5,30,0,0"/>
-                        <TextBox Margin="5,5" AcceptsReturn="True" MinHeight="50" Width="255" TextWrapping="Wrap" FontFamily="Consolas"
+                        </DockPanel.Style>
+                        <TextBlock Text="Address:" Margin="5,15,0,0" DockPanel.Dock="Top"/>
+                        <TextBox Text="{Binding StringTool.Address, Converter={StaticResource Hex}}" Margin="5" DockPanel.Dock="Top"/>
+                        <TextBlock Text="Content:" Margin="5,30,0,0" DockPanel.Dock="Top"/>
+                        <TextBox Margin="5,5" AcceptsReturn="True" MinHeight="50" Width="255" TextWrapping="Wrap" FontFamily="Consolas" VerticalScrollBarVisibility="Auto"
                            SelectionChanged="StringToolContentSelectionChanged"
                            Text="{Binding StringTool.Content, UpdateSourceTrigger=PropertyChanged}" />
-                     </StackPanel>
+                     </DockPanel>
                      <StackPanel Name="Tool2Panel">
                         <StackPanel.Style>
                            <Style TargetType="StackPanel">

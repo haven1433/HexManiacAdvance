@@ -1,4 +1,5 @@
-﻿using HavenSoft.Gen3Hex.Core.Models;
+﻿using HavenSoft.Gen3Hex.Core;
+using HavenSoft.Gen3Hex.Core.Models;
 using HavenSoft.Gen3Hex.Core.ViewModels;
 using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
 using System;
@@ -139,6 +140,81 @@ namespace HavenSoft.Gen3Hex.Tests {
 
          viewPort.Goto.Execute("words");
          Assert.Equal(0, viewPort.Width % 5);
+      }
+
+      [Fact]
+      public void CanCopyArray() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         Array.Copy(PCSString.Convert("bobb").ToArray(), 0, buffer, 0, 5);
+         Array.Copy(PCSString.Convert("tomm").ToArray(), 0, buffer, 5, 5);
+         Array.Copy(PCSString.Convert("samm").ToArray(), 0, buffer, 10, 5);
+         Array.Copy(PCSString.Convert("carr").ToArray(), 0, buffer, 15, 5);
+         Array.Copy(PCSString.Convert("pall").ToArray(), 0, buffer, 20, 5);
+         Array.Copy(PCSString.Convert("eggg").ToArray(), 0, buffer, 25, 5);
+         var model = new PointerAndStringModel(buffer);
+         ArrayRun.TryParse(model, "[word\"\"5]", 0, null, out var arrayRun);
+         model.ObserveAnchorWritten(new DeltaModel(), "words", arrayRun);
+
+         var text = model.Copy(0, 0x20);
+
+         Assert.StartsWith("^words[word\"\"5]", text);
+      }
+
+      [Fact]
+      public void CanEditArray() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         Array.Copy(PCSString.Convert("bobb").ToArray(), 0, buffer, 0, 5);
+         Array.Copy(PCSString.Convert("tomm").ToArray(), 0, buffer, 5, 5);
+         Array.Copy(PCSString.Convert("samm").ToArray(), 0, buffer, 10, 5);
+         Array.Copy(PCSString.Convert("carr").ToArray(), 0, buffer, 15, 5);
+         Array.Copy(PCSString.Convert("pall").ToArray(), 0, buffer, 20, 5);
+         Array.Copy(PCSString.Convert("eggg").ToArray(), 0, buffer, 25, 5);
+
+         var model = new PointerAndStringModel(buffer);
+         ArrayRun.TryParse(model, "[word\"\"5]", 0, null, out var arrayRun);
+         model.ObserveAnchorWritten(new DeltaModel(), "words", arrayRun);
+         var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         viewPort.SelectionStart = new Point(6, 0);
+
+         viewPort.Edit("a"); // change "tomm" to "tamm"
+
+         Assert.Equal("a", ((PCS)viewPort[6, 0].Format).ThisCharacter);
+      }
+
+      [Fact]
+      public void CanPasteArray() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.Edit("^strings[name\"\"16] ");
+         viewPort.Edit("+\"bob\" +\"sam\" +\"steve\" +\"kevin\"");
+
+         Assert.Equal(0x40, model.GetNextRun(0).Length);
+         Assert.Equal("\"", ((PCS)viewPort[3, 0].Format).ThisCharacter);
+      }
+
+      [Fact]
+      public void ArrayIsRecognizedByStringTool() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         Array.Copy(PCSString.Convert("bobb").ToArray(), 0, buffer, 100, 5);
+         Array.Copy(PCSString.Convert("tomm").ToArray(), 0, buffer, 105, 5);
+         Array.Copy(PCSString.Convert("samm").ToArray(), 0, buffer, 110, 5);
+         Array.Copy(PCSString.Convert("carr").ToArray(), 0, buffer, 115, 5);
+         Array.Copy(PCSString.Convert("pall").ToArray(), 0, buffer, 120, 5);
+         Array.Copy(PCSString.Convert("eggg").ToArray(), 0, buffer, 125, 5);
+
+         var model = new PointerAndStringModel(buffer);
+         ArrayRun.TryParse(model, "[word\"\"5]", 0, null, out var arrayRun);
+         model.ObserveAnchorWritten(new DeltaModel(), "words", arrayRun);
+         var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.FollowLink(0, 7); // 7*16 = 112, right in the middle of our data
+
+         Assert.Equal(0, viewPort.Tools.SelectedIndex); // string tool is selected
+         Assert.Equal(100, viewPort.Tools.StringTool.Address);
+         var lineCount = viewPort.Tools.StringTool.Content.Split(new[] { Environment.NewLine }, StringSplitOptions.None).Length;
+         Assert.Equal(6, lineCount);
       }
    }
 }

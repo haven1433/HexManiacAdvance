@@ -21,6 +21,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       /// If dataIndex is after the last run, return null;
       /// </summary>
       IFormattedRun GetNextRun(int dataIndex);
+      bool IsAtEndOfArray(int dataIndex, out ArrayRun arrayRun); // is this byte the first one after the end of an array run? (also return true if the array is length 0 and starts right here)
 
       void ObserveRunWritten(DeltaModel changeToken, IFormattedRun run);
       void ObserveAnchorWritten(DeltaModel changeToken, string anchorName, IFormattedRun run);
@@ -73,6 +74,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       public IEnumerator<byte> GetEnumerator() => ((IList<byte>)RawData).GetEnumerator();
 
       public abstract IFormattedRun GetNextRun(int dataIndex);
+
+      public abstract bool IsAtEndOfArray(int dataIndex, out ArrayRun arrayRun);
 
       public virtual void Load(byte[] newData, StoredMetadata metadata) => RawData = newData;
 
@@ -324,6 +327,25 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          return runs[index];
       }
 
+      public override bool IsAtEndOfArray(int dataIndex, out ArrayRun arrayRun) {
+         var index = BinarySearch(dataIndex);
+         if (index >= 0 && runs[index].Length == 0) {
+            arrayRun = runs[index] as ArrayRun;
+            return arrayRun != null;
+         }
+
+         if (index < 0) index = ~index;
+         index -= 1;
+
+         if (index < 0) {
+            arrayRun = null;
+            return false;
+         }
+
+         arrayRun = runs[index] as ArrayRun;
+         return arrayRun != null && runs[index].Start + runs[index].Length == dataIndex;
+      }
+
       public override void ObserveRunWritten(DeltaModel changeToken, IFormattedRun run) {
          var index = BinarySearch(run.Start);
          if (index < 0) {
@@ -465,9 +487,9 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       public override IFormattedRun RelocateForExpansion(DeltaModel changeToken, IFormattedRun run, int minimumLength) {
          const int SpacerLength = 0x10;
-         minimumLength += 0x100; // make sure there's plenty of room after, so that we're not in the middle of some other data set
          if (minimumLength <= run.Length) return run;
          if (CanSafelyUse(run.Start + run.Length, run.Start + minimumLength)) return run;
+         minimumLength += 0x100; // make sure there's plenty of room after, so that we're not in the middle of some other data set
          var start = 0x100;
          var runIndex = 0;
          while (start < RawData.Length - minimumLength) {
@@ -498,7 +520,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          }
 
          ExpandData(changeToken, RawData.Length + minimumLength);
-         return MoveRun(changeToken, run, RawData.Length - minimumLength);
+         return MoveRun(changeToken, run, RawData.Length - minimumLength - 1);
       }
 
       public override void ClearFormat(DeltaModel changeToken, int originalStart, int length) {
@@ -613,6 +635,11 @@ namespace HavenSoft.Gen3Hex.Core.Models {
                text.Append(PCSString.Convert(this, run.Start, run.Length) + " ");
                start += run.Length;
                length -= run.Length;
+            } else if (run is ArrayRun arrayRun) {
+               arrayRun.AppendTo(this, text);
+               text.Append(" ");
+               start += run.Length;
+               length -= run.Length;
             } else {
                throw new NotImplementedException();
             }
@@ -716,24 +743,31 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          foreach (var source in run.PointerSources) {
             WritePointer(changeToken, source, newStart);
          }
+
          // move data
          for (int i = 0; i < run.Length; i++) {
             changeToken.ChangeData(this, newStart + i, RawData[run.Start + i]);
             changeToken.ChangeData(this, run.Start + i, 0xFF);
          }
+
+         // move run
          IFormattedRun newRun;
          if (run is PCSRun pcs) {
             newRun = new PCSRun(newStart, run.Length, run.PointerSources);
-            int index = BinarySearch(run.Start);
-            changeToken.RemoveRun(runs[index]);
-            runs.RemoveAt(index);
-            int newIndex = BinarySearch(newStart);
-            runs.Insert(~newIndex, newRun);
-            changeToken.AddRun(newRun);
+         } else if (run is ArrayRun array) {
+            newRun = array.Move(newStart);
          } else {
             throw new NotImplementedException();
          }
 
+         int index = BinarySearch(run.Start);
+         changeToken.RemoveRun(runs[index]);
+         runs.RemoveAt(index);
+         int newIndex = BinarySearch(newStart);
+         runs.Insert(~newIndex, newRun);
+         changeToken.AddRun(newRun);
+
+         // move anchor
          if (anchorForAddress.TryGetValue(run.Start, out var name)) {
             addressForAnchor[name] = newRun.Start;
             anchorForAddress.Remove(run.Start);
@@ -748,6 +782,12 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       private bool CanSafelyUse(int rangeStart, int rangeEnd) {
          // only safe to use if there is no run in that range
          var nextRun = GetNextRun(rangeStart);
+
+         // ignore a runs of length zero that begin at the requested rangeStart
+         // because space after a run of length zero is obviously safe to use when extending that run.
+         // in this case, we actually care about accidentally butting up against the _next_ run.
+         if (nextRun.Start == rangeStart && nextRun.Length == 0) nextRun = GetNextRun(rangeStart + 1);
+
          if (nextRun.Start < rangeEnd) return false;
          if (rangeEnd >= RawData.Length) return false;
 
@@ -810,6 +850,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       public override int GetAddressFromAnchor(DeltaModel changeToken, int requestSource, string anchor) => Pointer.NULL;
       public override string GetAnchorFromAddress(int requestSource, int destination) => string.Empty;
       public override IFormattedRun GetNextRun(int dataIndex) => NoInfoRun.NullRun;
+      public override bool IsAtEndOfArray(int dataIndex, out ArrayRun arrayRun) { arrayRun = null; return false; }
       public override void ObserveRunWritten(DeltaModel changeToken, IFormattedRun run) { }
       public override void ObserveAnchorWritten(DeltaModel changeToken, string anchorName, IFormattedRun run) { }
       public override void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd) { }

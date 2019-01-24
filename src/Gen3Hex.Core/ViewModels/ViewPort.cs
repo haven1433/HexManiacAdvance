@@ -626,6 +626,11 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             var innerFormat = element.Format;
             if (innerFormat is Anchor anchorFormat) innerFormat = anchorFormat.OriginalFormat;
 
+            if (input == ExtendArray) {
+               var index = scroll.ViewPointToDataIndex(point);
+               return Model.IsAtEndOfArray(index, out var _);
+            }
+
             if (input == AnchorStart) {
                // anchor edits are actually 0 length
                // but lets give them 4 spaces to work with
@@ -713,6 +718,11 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             CompleteAnchorEdit(point);
             return true;
          }
+         var dataIndex = scroll.ViewPointToDataIndex(point);
+         if (underEdit.CurrentText == ExtendArray.ToString() && Model.IsAtEndOfArray(dataIndex, out var arrayRun)) {
+            CompleteArrayExtension(arrayRun);
+            return true;
+         }
 
          PCS stringFormat = null;
          if (underEdit.OriginalFormat is Anchor anchorFormat) stringFormat = anchorFormat.OriginalFormat as PCS;
@@ -738,6 +748,15 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          if (underEdit.CurrentText.Length < 2) return false;
          CompleteHexEdit(point);
          return true;
+      }
+
+      private void CompleteArrayExtension(ArrayRun arrayRun) {
+         var newRun = (ArrayRun)Model.RelocateForExpansion(history.CurrentChange, arrayRun, arrayRun.Length + arrayRun.ElementLength);
+         if (newRun != arrayRun) {
+            ScrollFromRunMove(arrayRun.Start + arrayRun.Length, arrayRun.Length, newRun);
+         }
+         Model.ObserveRunWritten(history.CurrentChange, arrayRun.Append(1));
+         RefreshBackingData();
       }
 
       private void CompletePointerEdit(Point point) {
@@ -794,14 +813,15 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             }
          } else if (run is ArrayRun arrayRun) {
             var offsets = arrayRun.ConvertByteOffsetToArrayOffset(memoryLocation);
+            history.CurrentChange.ChangeData(Model, memoryLocation, 0xFF);
+            memoryLocation++;
             while (offsets.SegmentStart + arrayRun.ElementContent[offsets.SegmentIndex].Length > memoryLocation) {
                history.CurrentChange.ChangeData(Model, memoryLocation, 0x00);
                memoryLocation++;
                SilentScroll(memoryLocation);
-               dataChanged = true;
             }
          }
-         if (dataChanged) RefreshBackingData();
+         RefreshBackingData();
       }
 
       private void CompleteCharacterEdit(Point point) {
@@ -826,11 +846,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             // last character edit: might require relocation
             var newRun = Model.RelocateForExpansion(history.CurrentChange, run, run.Length + extraBytesNeeded);
             if (newRun != run) {
-               scroll.DataLength = Model.Count; // possible length change
-               var offset = memoryLocation - scroll.DataIndex;
-               selection.PropertyChanged -= SelectionPropertyChanged;
-               selection.GotoAddress(newRun.Start + pcs.Position - offset);
-               selection.PropertyChanged += SelectionPropertyChanged;
+               ScrollFromRunMove(memoryLocation, pcs.Position, newRun);
                memoryLocation += newRun.Start - run.Start;
                run = newRun;
             }
@@ -845,6 +861,14 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          RefreshBackingData();
          Tools.StringTool.DataForCurrentRunChanged(run);
          SilentScroll(memoryLocation + 1);
+      }
+
+      private void ScrollFromRunMove(int originalIndexInData, int indexInOldRun, IFormattedRun newRun) {
+         scroll.DataLength = Model.Count; // possible length change
+         var offset = originalIndexInData - scroll.DataIndex;
+         selection.PropertyChanged -= SelectionPropertyChanged;
+         selection.GotoAddress(newRun.Start + indexInOldRun - offset);
+         selection.PropertyChanged += SelectionPropertyChanged;
       }
 
       private void CompleteHexEdit(Point point) {
