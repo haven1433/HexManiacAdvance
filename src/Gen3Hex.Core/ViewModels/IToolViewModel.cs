@@ -136,8 +136,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             var run = model.GetNextRun(value);
             if (run.Start > value) return;
             if (TryUpdate(ref address, run.Start)) {
-               if (run is PCSRun pcsRun) {
-                  DataForCurrentRunChanged(pcsRun);
+               if (run is PCSRun || run is ArrayRun) {
+                  DataForCurrentRunChanged(run);
                   history.ChangeCompleted();
                }
             }

@@ -195,6 +195,20 @@ namespace HavenSoft.Gen3Hex.Tests {
       }
 
       [Fact]
+      public void PastingArrayLeavesArrayFormat() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var model = new PointerAndStringModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.Edit("^pokenames[name\"\"11] +\"??????????\"+\"BULBASAUR\"");
+         viewPort.SelectionStart = new Point(0, 0);
+         viewPort.FollowLink(0, 0);
+
+         Assert.Equal("^pokenames[name\"\"11]", viewPort.AnchorText);
+         Assert.Equal("BULBASAUR", viewPort.Tools.StringTool.Content.Split(new[] { Environment.NewLine }, StringSplitOptions.None).Last());
+      }
+
+      [Fact]
       public void ArrayIsRecognizedByStringTool() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          Array.Copy(PCSString.Convert("bobb").ToArray(), 0, buffer, 100, 5);

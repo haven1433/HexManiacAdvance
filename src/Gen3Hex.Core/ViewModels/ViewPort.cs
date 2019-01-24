@@ -662,12 +662,22 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             return char.IsLetterOrDigit(input) || char.IsWhiteSpace(input) || input == ArrayStart || input == ArrayEnd || input == StringDelimeter;
          } else if (underEdit.OriginalFormat is Anchor anchorFormat && anchorFormat.OriginalFormat is PCS) {
             if (input == StringDelimeter) return true;
+            // if this is the start of a string (as noted by the anchor), crop off the leading " before trying to convert to a byte
             var currentText = underEdit.CurrentText;
             if (currentText.StartsWith(StringDelimeter.ToString())) currentText = currentText.Substring(1);
             return PCSString.PCS.Any(str => str != null && str.StartsWith(currentText + input));
          } else if (underEdit.OriginalFormat is PCS) {
             if (input == StringDelimeter) return true;
-            return PCSString.PCS.Any(str => str != null && str.StartsWith(underEdit.CurrentText + input));
+            var memoryLocation = scroll.ViewPointToDataIndex(point);
+            var currentText = underEdit.CurrentText;
+            // if this is the start of an array string segment, crop off the leading " before trying to convert to a byte
+            if (Model.GetNextRun(memoryLocation) is ArrayRun array) {
+               var offsets = array.ConvertByteOffsetToArrayOffset(memoryLocation);
+               if (offsets.SegmentStart == memoryLocation) {
+                  if (currentText.StartsWith(StringDelimeter.ToString())) currentText = currentText.Substring(1);
+               }
+            }
+            return PCSString.PCS.Any(str => str != null && str.StartsWith(currentText + input));
          }
 
          if (AllHexCharacters.Contains(input)) {
@@ -801,7 +811,6 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          ClearEdits(point);
          var memoryLocation = scroll.ViewPointToDataIndex(point);
          var run = Model.GetNextRun(memoryLocation);
-         bool dataChanged = false;
          if (run is PCSRun pcsRun) {
             while (run.Start + run.Length > memoryLocation) {
                history.CurrentChange.ChangeData(Model, memoryLocation, 0xFF);
@@ -809,12 +818,12 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                SilentScroll(memoryLocation);
                var newRunLength = PCSString.ReadString(Model, run.Start, true);
                Model.ObserveRunWritten(history.CurrentChange, new PCSRun(run.Start, newRunLength, run.PointerSources));
-               dataChanged = true;
             }
          } else if (run is ArrayRun arrayRun) {
             var offsets = arrayRun.ConvertByteOffsetToArrayOffset(memoryLocation);
             history.CurrentChange.ChangeData(Model, memoryLocation, 0xFF);
             memoryLocation++;
+            SilentScroll(memoryLocation);
             while (offsets.SegmentStart + arrayRun.ElementContent[offsets.SegmentIndex].Length > memoryLocation) {
                history.CurrentChange.ChangeData(Model, memoryLocation, 0x00);
                memoryLocation++;
@@ -840,21 +849,31 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             byte.Parse(underEdit.CurrentText, NumberStyles.HexNumber) :
             (byte)Enumerable.Range(0, 0x100).First(i => PCSString.PCS[i] == editText);
 
-         // if its the last character being edited, do some stuff
-         if (pcs != null && run.Length == pcs.Position + 1) {
-            int extraBytesNeeded = editText == "\\\\" ? 2 : 1;
-            // last character edit: might require relocation
-            var newRun = Model.RelocateForExpansion(history.CurrentChange, run, run.Length + extraBytesNeeded);
-            if (newRun != run) {
-               ScrollFromRunMove(memoryLocation, pcs.Position, newRun);
-               memoryLocation += newRun.Start - run.Start;
-               run = newRun;
-            }
+         var position = pcs != null ? pcs.Position : escaped.Position;
 
-            history.CurrentChange.ChangeData(Model, memoryLocation + 1, 0xFF);
-            if (editText == "\\\\") history.CurrentChange.ChangeData(Model, memoryLocation + 2, 0xFF);
-            run = new PCSRun(run.Start, run.Length + extraBytesNeeded, run.PointerSources);
-            Model.ObserveRunWritten(history.CurrentChange, run);
+         // if its the last character being edited, try to expand for strings and truncate for array segments
+         if (run is PCSRun) {
+            if (run.Length == position + 1) {
+               int extraBytesNeeded = editText == "\\\\" ? 2 : 1;
+               // last character edit: might require relocation
+               var newRun = Model.RelocateForExpansion(history.CurrentChange, run, run.Length + extraBytesNeeded);
+               if (newRun != run) {
+                  ScrollFromRunMove(memoryLocation, pcs.Position, newRun);
+                  memoryLocation += newRun.Start - run.Start;
+                  run = newRun;
+               }
+
+               history.CurrentChange.ChangeData(Model, memoryLocation + 1, 0xFF);
+               if (editText == "\\\\") history.CurrentChange.ChangeData(Model, memoryLocation + 2, 0xFF);
+               run = new PCSRun(run.Start, run.Length + extraBytesNeeded, run.PointerSources);
+               Model.ObserveRunWritten(history.CurrentChange, run);
+            }
+         } else if (run is ArrayRun arrayRun) {
+            // don't let them keep appending data if we're at the end of the string segment
+            var offsets = arrayRun.ConvertByteOffsetToArrayOffset(memoryLocation);
+            if (arrayRun.ElementContent[offsets.SegmentIndex].Length == position + 1) {
+               memoryLocation--; // move back one byte and edit that one instead
+            }
          }
 
          history.CurrentChange.ChangeData(Model, memoryLocation, byteValue);
