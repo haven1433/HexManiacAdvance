@@ -16,6 +16,7 @@
       <Image Source="..\Resources\Snorlax.png" DockPanel.Dock="Left" RenderOptions.BitmapScalingMode="Fant"/>
       <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
          <TextBlock Name="Version"/>
+         <TextBlock TextWrapping="Wrap">This is a prerelease debug version: please do not distribute!</TextBlock>
          <TextBlock>
             <Hyperlink Foreground="{solarized:Theme Blue}" NavigateUri="https://github.com/haven1433/gen3hex/blob/master/LICENSE" RequestNavigate="Navigate">MIT License</Hyperlink>
          </TextBlock>
