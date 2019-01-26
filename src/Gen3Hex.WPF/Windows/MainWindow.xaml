@@ -202,7 +202,7 @@
             <MenuItem Header="_Tools">
                <MenuItem Header="_Hide All Tools" Command="{Binding Tools.HideCommand}"/>
                <Separator/>
-               <MenuItem Header="Toggle _String Tool" Command="{Binding Tools.StringToolCommand}"/>
+               <MenuItem Header="Toggle _Text Tool" Command="{Binding Tools.StringToolCommand}"/>
                <MenuItem Header="Toggle _Filler Tool" Command="{Binding Tools.Tool2Command}"/>
                <MenuItem Header="Toggle _Extra Tool" Command="{Binding Tools.Tool3Command}"/>
             </MenuItem>
@@ -242,7 +242,7 @@
                   </ItemsControl>
                   <Line Width="1" DockPanel.Dock="Left" Stroke="{DynamicResource Background}"/>
                   <StackPanel DockPanel.Dock="Right" Visibility="{Binding HasTools, Converter={StaticResource BoolToVisibility}}">
-                     <Button Content="String" Command="{Binding Tools.StringToolCommand}" Margin="0,2">
+                     <Button Content="Text" Command="{Binding Tools.StringToolCommand}" Margin="0,2">
                         <Button.LayoutTransform>
                            <RotateTransform Angle="90"/>
                         </Button.LayoutTransform>
