@@ -24,7 +24,8 @@ namespace HavenSoft.Gen3Hex.WPF.Windows {
          viewModel.RequestDelayedWork += (sender, e) => deferredActions.Add(e);
          DataContext = viewModel;
          viewModel.MoveFocusToFind += (sender, e) => FocusTextBox(FindBox);
-         viewModel.GotoViewModel.MoveFocusToGoto += (sender, e) => FocusTextBox(GotoBox);
+         viewModel.GotoViewModel.MoveFocusToGoto += FocusGotoBox;
+         viewModel.PropertyChanged += ViewModelPropertyChanged;
       }
 
       protected override void OnDrop(DragEventArgs e) {
@@ -130,6 +131,17 @@ namespace HavenSoft.Gen3Hex.WPF.Windows {
             ViewModel.GotoViewModel.ShowAutoCompleteOptions = false;
          }
       }
+
+      // when the ViewModel changes its GotoControlViewModel subsystem, update the event handler
+      private void ViewModelPropertyChanged(object sender, PropertyChangedEventArgs e) {
+         if (e.PropertyName != nameof(ViewModel.GotoViewModel)) return;
+         var args = (ExtendedPropertyChangedEventArgs)e;
+         var old = (GotoControlViewModel)args.OldValue;
+         old.MoveFocusToGoto -= FocusGotoBox;
+         ViewModel.GotoViewModel.MoveFocusToGoto += FocusGotoBox;
+      }
+
+      private void FocusGotoBox(object sender, EventArgs e) => FocusTextBox(GotoBox);
 
       private void FocusTextBox(TextBox textBox) {
          textBox.SelectAll();

@@ -73,8 +73,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public GotoControlViewModel GotoViewModel {
          get => gotoViewModel;
          private set {
+            var old = gotoViewModel;
             gotoViewModel = value;
-            NotifyPropertyChanged(nameof(GotoViewModel));
+            NotifyPropertyChanged(old, nameof(GotoViewModel));
          }
       }
 
