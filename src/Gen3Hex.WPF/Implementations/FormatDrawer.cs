@@ -133,8 +133,8 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
          var text = bytesAsHex.Select(hex => {
             var brush = Solarized.Theme.Emphasis;
             var typeface = new Typeface("Consolas");
-            if (hex == "00" || hex == "FF") {
-               brush = Solarized.Theme.Secondary;
+            if (hex == "00" || hex == "FF") brush = Solarized.Theme.Secondary;
+            if (hex == "FF") {
                typeface = new Typeface(new FontFamily("Consolas"), FontStyles.Italic, FontWeights.Light, FontStretches.Normal);
             }
             return new FormattedText(
