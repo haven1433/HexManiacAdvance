@@ -413,7 +413,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          if (index < 0) {
             // no format starts exactly at this anchor, so clear any format that goes over this anchor.
             ClearFormat(changeToken, location, 1);
-         } else {
+         } else if (!(run is NoInfoRun)) {
             // a format starts exactly at this anchor, but this new format may extend further. Clear everything but the anchor.
             ClearFormat(changeToken, run.Start, run.Length);
          }
