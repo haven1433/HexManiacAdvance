@@ -785,20 +785,31 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
          Model.ExpandData(history.CurrentChange, index + 3);
          scroll.DataLength = Model.Count;
-         Model.ClearFormatAndData(history.CurrentChange, index, 4);
+         if (destination != string.Empty) {
+            Model.ClearFormatAndData(history.CurrentChange, index, 4);
+         } else {
+            Model.ClearFormat(history.CurrentChange, index, 4);
+         }
 
          int fullValue;
-         if (destination.All("0123456789ABCDEFabcdef".Contains) && destination.Length <= 6) {
+         if (destination == string.Empty) {
+            fullValue = Model.ReadPointer(index);
+         } else if (destination.All("0123456789ABCDEFabcdef".Contains) && destination.Length <= 6) {
             while (destination.Length < 6) destination = "0" + destination;
             fullValue = int.Parse(destination, NumberStyles.HexNumber);
          } else {
             fullValue = Model.GetAddressFromAnchor(history.CurrentChange, index, destination);
          }
 
-         Model.WritePointer(history.CurrentChange, index, fullValue);
-         Model.ObserveRunWritten(history.CurrentChange, new PointerRun(index));
-         ClearEdits(point);
-         SilentScroll(index + 4);
+         if (fullValue < Model.Count) {
+            Model.WritePointer(history.CurrentChange, index, fullValue);
+            Model.ObserveRunWritten(history.CurrentChange, new PointerRun(index));
+            ClearEdits(point);
+            SilentScroll(index + 4);
+         } else {
+            OnError?.Invoke(this, $"Address {fullValue.ToString("X2")} is not within the data.");
+            ClearEdits(point);
+         }
       }
 
       private bool CompleteAnchorEdit(Point point) {

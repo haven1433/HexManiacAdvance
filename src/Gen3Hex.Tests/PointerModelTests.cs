@@ -3,6 +3,7 @@ using HavenSoft.Gen3Hex.Core.Models;
 using HavenSoft.Gen3Hex.Core.ViewModels;
 using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -632,18 +633,31 @@ namespace HavenSoft.Gen3Hex.Tests {
       }
 
       [Fact]
-      public void CreatingAndClearingAPointerOutsideDataLengthWorks() {
+      public void CreatingAnOffsetPointerShouldCoerceToTheStartOfExistingPointer() {
          var data = new byte[0x200];
          var model = new PointerAndStringModel(data);
          var viewPort = new ViewPort(new LoadedFile("test.txt", data), model) { Width = 0x10, Height = 0x10 };
 
-         viewPort.Edit("<000400>");
+         viewPort.Edit("<000100>");
          viewPort.SelectionStart = new Point(2, 0);
-         viewPort.Edit("<000500>");
+         viewPort.Edit("<000050>");
 
          // note that the second pointer should be right where the first one was
          // because trying to start a pointer edit mid-pointer should move you to the start of the pointer.
-         Assert.Equal(0x05, data[1]);
+         Assert.Equal(0x50, data[0]);
+      }
+
+      [Fact]
+      public void CreatingAPointerOutsideTheDataRangeErrors() {
+         var errors = new List<string>();
+         var data = new byte[0x200];
+         var model = new PointerAndStringModel(data);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", data), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.OnError += (sender, message) => errors.Add(message);
+         viewPort.Edit("<000400>");
+
+         Assert.Single(errors);
       }
 
       [Fact]
@@ -656,6 +670,19 @@ namespace HavenSoft.Gen3Hex.Tests {
          model.ClearFormat(new DeltaModel(), 0x00, 4);
 
          Assert.NotInRange(model.GetNextRun(0x00).Start, 0, data.Length);
+      }
+
+      [Fact]
+      public void TypingBracesOnDataTriesToInterpretThatDataAsPointer() {
+         var data = new byte[0x200];
+         var model = new PointerAndStringModel(data);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", data), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.Edit("00 01 00 08");
+         viewPort.SelectionStart = new Point(0, 0);
+         viewPort.Edit("<>");   // typing this should interpret the bytes as a pointer and add it.
+
+         Assert.Equal(0x100, ((Pointer)viewPort[0, 0].Format).Destination);
       }
    }
 }
