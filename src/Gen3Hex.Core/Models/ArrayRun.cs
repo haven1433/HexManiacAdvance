@@ -130,7 +130,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
          var run = data.GetNextRun(0);
          for (var nextRun = data.GetNextRun(run.Start+run.Length); run.Start < int.MaxValue; nextRun = data.GetNextRun(nextRun.Start + nextRun.Length)) {
-            if (run is ArrayRun) {
+            if (run is ArrayRun || run.PointerSources == null) {
                run = nextRun;
                continue;
             }
@@ -251,19 +251,22 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       private static bool DataMatchesElementFormat(IModel owner, int start, IReadOnlyList<ArrayRunElementSegment> segments) {
          foreach (var segment in segments) {
-            if (!DataMatchesSegmentFormat(owner, start, segment)) return false;
+            if (start + segment.Length > owner.Count) return false;
+            if (!DataMatchesSegmentFormat(owner, start, segment, segments.Count == 1)) return false;
             start += segment.Length;
          }
          return true;
       }
 
-      private static bool DataMatchesSegmentFormat(IModel owner, int start, ArrayRunElementSegment segment) {
+      private static bool DataMatchesSegmentFormat(IModel owner, int start, ArrayRunElementSegment segment, bool isSingleSegmentRun) {
          switch (segment.Type) {
             case ElementContentType.PCS:
                int readLength = PCSString.ReadString(owner, start, true, segment.Length);
                if (readLength == -1) return false;
                if (readLength > segment.Length) return false;
-               if (!Enumerable.Range(start + readLength, segment.Length - readLength).All(i => owner[i] == 0x00)) return false;
+               if (Enumerable.Range(start, segment.Length).All(i => owner[i] == 0xFF)) return false;
+               if (!Enumerable.Range(start + readLength, segment.Length - readLength).All(i => owner[i] == 0x00 || owner[i] == 0xFF)) return false;
+               if (isSingleSegmentRun && owner.Count > start + segment.Length && owner[start + segment.Length] == 0x00) return false;
                return true;
             default:
                throw new NotImplementedException();

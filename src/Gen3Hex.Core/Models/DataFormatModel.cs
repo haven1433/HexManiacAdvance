@@ -414,8 +414,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             // no format starts exactly at this anchor, so clear any format that goes over this anchor.
             ClearFormat(changeToken, location, 1);
          } else {
-            // a format starts exactly at this anchor, but this new format may extend further. Clear anything after the start.
-            ClearFormat(changeToken, run.Start + 1, run.Length - 1);
+            // a format starts exactly at this anchor, but this new format may extend further. Clear everything but the anchor.
+            ClearFormat(changeToken, run.Start, run.Length);
          }
 
          if (anchorForAddress.TryGetValue(location, out string oldAnchorName)) {
@@ -575,7 +575,10 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             } else {
                foreach (var source in run.PointerSources ?? new int[0]) {
                   var sourceRunIndex = BinarySearch(source);
-                  if (sourceRunIndex >= 0) runs.RemoveAt(sourceRunIndex);
+                  if (sourceRunIndex >= 0) {
+                     changeToken.RemoveRun(runs[sourceRunIndex]);
+                     runs.RemoveAt(sourceRunIndex);
+                  }
                }
             }
             var index = BinarySearch(run.Start);
@@ -849,12 +852,17 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          // it's at the very front of the ROM, so if there's no metadata we can be pretty sure that the pointer is still there
          if (gameCode == Emerald && data[0x1C3] == 0x08) ObserveRunWritten(noChangeDelta, new PointerRun(0x1C0));
 
-            if (TrySearch(this, "[name\"\"11]", out var pokenames)) {
+         // pokenames
+         if (TrySearch(this, "[name\"\"11]", out var pokenames)) {
             ObserveAnchorWritten(noChangeDelta, "pokenames", pokenames);
          }
+
+         // movenames
          if (TrySearch(this, "[name\"\"13]", out var movenames)) {
             ObserveAnchorWritten(noChangeDelta, "movenames", movenames);
          }
+
+         // abilitynames / trainer names
          if (gameCode == Ruby || gameCode == Sapphire || gameCode == Emerald) {
             if (TrySearch(this, "[name\"\"13]", out var abilitynames)) {
                ObserveAnchorWritten(noChangeDelta, "abilitynames", abilitynames);
