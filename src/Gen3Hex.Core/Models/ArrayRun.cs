@@ -155,7 +155,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
          if (bestAddress == Pointer.NULL) return false;
 
-         self = new ArrayRun(data, format, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources);
+         self = new ArrayRun(data, format + bestLength, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources);
          return true;
       }
 
