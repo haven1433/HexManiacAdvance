@@ -336,5 +336,20 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Equal(13, model.GetNextRun(0x08).Length);
          Assert.Equal("\"Hello World!\"", ((PCS)viewPort[0x0C, 0].Format).FullString);
       }
+
+      [Fact]
+      public void PointersPastEndOfDataDoNotCountAsPointers() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         buffer[4] = 0x20;
+         buffer[5] = 0x20;
+         buffer[6] = 0x20;
+         buffer[7] = 0x08;
+
+         // it should realize that the data starting at 4 isn't a pointer
+         // because 202020 is after the end of the data
+         var model = new PointerAndStringModel(buffer);
+
+         Assert.Equal(int.MaxValue, model.GetNextRun(0).Start);
+      }
    }
 }

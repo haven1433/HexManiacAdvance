@@ -163,6 +163,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             if (RawData[i] % 4 != 0) continue;
             var source = i;
             var destination = ReadPointer(i);
+            if (destination >= RawData.Length) continue;
             if (!pointersForDestination.ContainsKey(destination)) pointersForDestination[destination] = new List<int>();
             pointersForDestination[destination].Add(source);
             destinationForSource.Add(source, destination);
