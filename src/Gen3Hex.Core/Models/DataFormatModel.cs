@@ -159,7 +159,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       private void SearchForPointers(Dictionary<int, List<int>> pointersForDestination, SortedList<int, int> destinationForSource) {
          for (int i = 0; i < RawData.Length - 3; i += 4) {
-            if (RawData[i + 3] != 0x08) continue;
+            if (RawData[i + 3] != 0x08 && RawData[i + 3] != 0x09) continue;
             if (RawData[i] % 4 != 0) continue;
             var source = i;
             var destination = ReadPointer(i);
@@ -834,6 +834,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          if (metadata != null) return;
 
          var noChangeDelta = new NoDataChangeDeltaModel();
+
+         ClearFormat(noChangeDelta, -1, 0x101); // starting before the beginning to clear the anchor at the very start
 
          const string Ruby = "AXVE";
          const string Sapphire = "AXPE";
