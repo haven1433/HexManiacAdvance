@@ -219,11 +219,16 @@
          </TabControl.InputBindings>
          <TabControl.ItemTemplate>
             <DataTemplate>
-               <TextBlock Name="TabTextBlock" Background="Transparent" Text="{Binding Name}" Foreground="{DynamicResource Primary}" MouseDown="TabMouseDown" MouseMove="TabMouseMove" MouseUp="TabMouseUp">
-                  <TextBlock.InputBindings>
-                     <MouseBinding MouseAction="MiddleClick" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}"/>
-                  </TextBlock.InputBindings>
-               </TextBlock>
+               <StackPanel Orientation="Horizontal">
+                  <TextBlock Name="TabTextBlock" Background="Transparent" Text="{Binding Name}" Foreground="{DynamicResource Primary}" MouseDown="TabMouseDown" MouseMove="TabMouseMove" MouseUp="TabMouseUp">
+                     <TextBlock.InputBindings>
+                        <MouseBinding MouseAction="MiddleClick" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}"/>
+                     </TextBlock.InputBindings>
+                  </TextBlock>
+                  <Button Command="{Binding Close}" Width="15" Margin="5,0,0,0" VerticalAlignment="Stretch" Background="{DynamicResource Background}" BorderBrush="{DynamicResource Background}">
+                     <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                  </Button>
+               </StackPanel>
             </DataTemplate>
          </TabControl.ItemTemplate>
          <TabControl.ContentTemplate>
