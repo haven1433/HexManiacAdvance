@@ -17,11 +17,17 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       public int EarliestChange {
          get {
             if (addedNames.Count > 0) return addedNames.Keys.Min();
-            if (addedRuns.Count > 0) return addedRuns.Keys.Min();
+
+            var filteredRuns = addedRuns.Values.Where(added => !(added is NoInfoRun)).ToList();
+            if (filteredRuns.Any()) return filteredRuns.Min(added => added.Start);
+
             if (addedUnmappedPointers.Count > 0) return addedUnmappedPointers.Keys.Min();
 
             if (removedNames.Count > 0) return removedNames.Keys.Min();
-            if (removedRuns.Count > 0) return removedRuns.Keys.Min();
+
+            filteredRuns = removedRuns.Values.Where(removed => !(removed is NoInfoRun)).ToList();
+            if (removedRuns.Any()) return filteredRuns.Min(removed => removed.Start);
+
             if (removedUnmappedPointers.Count > 0) return removedUnmappedPointers.Keys.Min();
 
             if (oldData.Count > 0) return oldData.Keys.Min();
