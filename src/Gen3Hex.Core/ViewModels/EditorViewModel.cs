@@ -511,8 +511,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public int CompletionIndex {
          get => completionIndex;
          set {
-            value = Math.Min(Math.Max(-1, value), autoCompleteOptions.Count - 1);
-            if (TryUpdate(ref completionIndex, value)) {
+            if (TryUpdate(ref completionIndex, value.LimitToRange(-1, autoCompleteOptions.Count - 1))) {
                AutoCompleteOptions = CreateAutoCompleteOptions(AutoCompleteOptions.Select(option => option.CompletionText), AutoCompleteOptions.Count);
             }
          }

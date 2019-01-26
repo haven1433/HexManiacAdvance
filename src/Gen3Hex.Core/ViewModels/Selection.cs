@@ -22,7 +22,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       // if we navigate back, then scroll, then navigate forward, we want to remember the scroll if we go back again.
       private readonly Stack<int> backStack = new Stack<int>(), forwardStack = new Stack<int>();
 
-      private int preferredWidth = -1;
+      private int preferredWidth = -1, maxWidth = 4;
 
       private Point selectionStart, selectionEnd;
 
@@ -136,6 +136,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       /// But if we updated the selection using SelectionStart and SelectionEnd, it would auto-scroll.
       /// </summary>
       public void ChangeWidth(int newWidth) {
+         maxWidth = newWidth;
          var start = Scroll.ViewPointToDataIndex(selectionStart);
          var end = Scroll.ViewPointToDataIndex(selectionEnd);
 
@@ -162,8 +163,12 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
          if (model.GetNextRun(address) is ArrayRun array && array.Start == address) {
             preferredWidth = array.ElementLength;
-            ChangeWidth(Scroll.Width);
          }
+         else {
+            preferredWidth = -1;
+         }
+
+         ChangeWidth(maxWidth);
       }
 
       /// <summary>
