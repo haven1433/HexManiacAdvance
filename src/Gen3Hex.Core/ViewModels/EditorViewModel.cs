@@ -203,7 +203,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
          open.CanExecute = CanAlwaysExecute;
          open.Execute = arg => {
-            var file = arg as LoadedFile ?? fileSystem.OpenFile();
+            var file = arg as LoadedFile ?? fileSystem.OpenFile("GameBoy Advanced", "gba");
             if (file == null) return;
             var metadata = fileSystem.MetadataFor(file.Name);
             Add(new ViewPort(file, new FirstLoadAutoSearchModel(file.Contents, metadata)));

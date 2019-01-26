@@ -15,7 +15,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
       public ViewPortSaveTests() {
          fileSystem = new StubFileSystem {
-            RequestNewName = (previousName, extensions) => { name = $"file.txt"; return name; },
+            RequestNewName = (previousName, description, extensions) => { name = $"file.txt"; return name; },
             TrySavePrompt = (loadedFile, md) => { name = loadedFile.Name; return true; },
          };
       }
@@ -218,7 +218,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
       [Fact]
       public void ViewPortTakesNewNameOnSave() {
-         var fileSystem = new StubFileSystem { RequestNewName = (originalName, extensions) => "path/to/newfile.txt", Save = (loadedFile, md) => true };
+         var fileSystem = new StubFileSystem { RequestNewName = (originalName, description, extensions) => "path/to/newfile.txt", Save = (loadedFile, md) => true };
          var viewPort = new ViewPort();
          int nameChangedCount = 0;
          viewPort.PropertyChanged += (sender, e) => { if (e.PropertyName == nameof(viewPort.Name)) nameChangedCount++; };
@@ -262,7 +262,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          var properties = new List<string>();
 
          var fileSystem = new StubFileSystem {
-            RequestNewName = (currentName, extensionOptions) => "file.txt",
+            RequestNewName = (currentName, description, extensionOptions) => "file.txt",
             Save = (file, md) => true,
          };
          var viewPort = new ViewPort();

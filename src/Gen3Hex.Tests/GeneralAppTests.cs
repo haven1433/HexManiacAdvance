@@ -153,7 +153,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
       [Fact]
       public void OpenCanAddTab() {
-         fileSystem.OpenFile = args => new LoadedFile("chosenFile.txt", new byte[0x200]);
+         fileSystem.OpenFile = (description, extensions) => new LoadedFile("chosenFile.txt", new byte[0x200]);
 
          editor.Open.Execute();
 
@@ -162,7 +162,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
       [Fact]
       public void OpenDoesNotAddTabIfUserCancels() {
-         fileSystem.OpenFile = args => null;
+         fileSystem.OpenFile = (description, extensions) => null;
 
          editor.Open.Execute();
 

@@ -183,7 +183,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       }
 
       private void SaveAsExecuted(IFileSystem fileSystem) {
-         var newName = fileSystem.RequestNewName(FileName);
+         var newName = fileSystem.RequestNewName(FileName, "GameBoy Advanced", "gba");
          if (newName == null) return;
 
          var metadata = Model.ExportMetadata();
