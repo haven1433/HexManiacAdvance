@@ -653,7 +653,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
             if (input == PointerStart) {
                // pointer edits are 4 bytes long
-               PrepareForMultiSpaceEdit(point, 4);
+               if(!TryCoerceSelectionToStartOfPointer(ref point, ref element)) PrepareForMultiSpaceEdit(point, 4);
                return true;
             }
          } else if (underEdit.CurrentText.StartsWith(PointerStart.ToString())) {
@@ -682,12 +682,19 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
          if (AllHexCharacters.Contains(input)) {
             // if we're trying to write standard data over a pointer, allow that, but you must start at the first byte
-            if (element.Format is Pointer pointer) {
-               point = scroll.DataIndexToViewPoint(scroll.ViewPointToDataIndex(point) - pointer.Position);
-               element = this[point];
-               UpdateSelectionWithoutNotify(point);
-               PrepareForMultiSpaceEdit(point, 4);
-            }
+            TryCoerceSelectionToStartOfPointer(ref point, ref element);
+            return true;
+         }
+
+         return false;
+      }
+
+      private bool TryCoerceSelectionToStartOfPointer(ref Point point, ref HexElement element) {
+         if (element.Format is Pointer pointer) {
+            point = scroll.DataIndexToViewPoint(scroll.ViewPointToDataIndex(point) - pointer.Position);
+            element = this[point];
+            UpdateSelectionWithoutNotify(point);
+            PrepareForMultiSpaceEdit(point, 4);
             return true;
          }
 

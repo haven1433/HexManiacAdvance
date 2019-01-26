@@ -641,7 +641,9 @@ namespace HavenSoft.Gen3Hex.Tests {
          viewPort.SelectionStart = new Point(2, 0);
          viewPort.Edit("<000500>");
 
-         // if there were no errors, then we're fine
+         // note that the second pointer should be right where the first one was
+         // because trying to start a pointer edit mid-pointer should move you to the start of the pointer.
+         Assert.Equal(0x05, data[1]);
       }
 
       [Fact]
