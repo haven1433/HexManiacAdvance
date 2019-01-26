@@ -88,6 +88,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                gotoViewModel.ControlVisible = false;
             }
             TryUpdate(ref findControlVisible, value);
+            if (value) MoveFocusToFind?.Invoke(this, EventArgs.Empty);
          }
       }
 
@@ -134,6 +135,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       }
 
       public event EventHandler<Action> RequestDelayedWork;
+
+      public event EventHandler MoveFocusToFind;
 
       #region Collection Properties
 
@@ -491,6 +494,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          get => controlVisible;
          set {
             if (TryUpdate(ref controlVisible, value) && value) CompletionIndex = -1;
+            if (value) MoveFocusToGoto?.Invoke(this, EventArgs.Empty);
          }
       }
 
@@ -544,6 +548,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public ICommand ShowGoto { get; }                        // arg -> true to show, false to hide
 
       #endregion
+
+      public event EventHandler MoveFocusToGoto;
 
       public GotoControlViewModel(ITabContent tabContent) {
          viewPort = (tabContent as IViewPort);

@@ -23,6 +23,8 @@ namespace HavenSoft.Gen3Hex.WPF.Windows {
          ViewModel = viewModel;
          viewModel.RequestDelayedWork += (sender, e) => deferredActions.Add(e);
          DataContext = viewModel;
+         viewModel.MoveFocusToFind += (sender, e) => FocusTextBox(FindBox);
+         viewModel.GotoViewModel.MoveFocusToGoto += (sender, e) => FocusTextBox(GotoBox);
       }
 
       protected override void OnDrop(DragEventArgs e) {
@@ -121,14 +123,17 @@ namespace HavenSoft.Gen3Hex.WPF.Windows {
 
       private void EditBoxVisibilityChanged(object sender, DependencyPropertyChangedEventArgs e) {
          var box = (TextBox)sender;
-         if (box.IsVisible) {
-            box.SelectAll();
-            Keyboard.Focus(box);
-         } else {
+         if (!box.IsVisible) {
             if (ViewModel.SelectedIndex == -1) return;
             var selectedElement = (HexContent)GetChild(Tabs, "HexContent", ViewModel[ViewModel.SelectedIndex]);
             Keyboard.Focus(selectedElement);
+            ViewModel.GotoViewModel.ShowAutoCompleteOptions = false;
          }
+      }
+
+      private void FocusTextBox(TextBox textBox) {
+         textBox.SelectAll();
+         Keyboard.Focus(textBox);
       }
 
       private void RunDeferredActions(object sender, MouseButtonEventArgs e) {
