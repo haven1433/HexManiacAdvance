@@ -535,7 +535,16 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             }
          }
          if (format is PCS pcs) {
-            Tools.StringTool.Address = pcs.Source;
+            var byteOffset = scroll.ViewPointToDataIndex(new Point(x, y));
+            var currentRun = Model.GetNextRun(byteOffset);
+            if (currentRun is PCSRun) {
+               Tools.StringTool.Address = currentRun.Start;
+            } else if (currentRun is ArrayRun array) {
+               var offsets = array.ConvertByteOffsetToArrayOffset(byteOffset);
+               Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
+            } else {
+               throw new NotImplementedException();
+            }
             Tools.SelectedIndex = Enumerable.Range(0, Tools.Count).First(i => Tools[i] is PCSTool);
          }
       }

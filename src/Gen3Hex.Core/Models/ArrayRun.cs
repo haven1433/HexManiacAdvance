@@ -75,10 +75,11 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          ElementLength = ElementContent.Sum(e => e.Length);
 
          if (length.Length == 0) {
-            var nextRunStart = owner.GetNextRun(Start).Start;
+            var nextRun = owner.GetNextRun(Start);
+            while (nextRun is NoInfoRun && nextRun.Start < owner.Count) nextRun = owner.GetNextRun(nextRun.Start + 1);
             var byteLength = 0;
             var elementCount = 0;
-            while (Start + byteLength + ElementLength <= nextRunStart && DataMatchesElementFormat(owner, Start + byteLength, ElementContent)) {
+            while (Start + byteLength + ElementLength <= nextRun.Start && DataMatchesElementFormat(owner, Start + byteLength, ElementContent)) {
                byteLength += ElementLength;
                elementCount++;
             }
@@ -137,7 +138,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
             int currentLength = 0;
             int currentAddress = run.Start;
-            while (true) { // currentAddress < nextRun.Start
+            while (true) {
                if (DataMatchesElementFormat(data, currentAddress, elementContent)) {
                   currentLength++;
                   currentAddress += elementLength;

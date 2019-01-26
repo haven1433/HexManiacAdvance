@@ -4,6 +4,7 @@ using HavenSoft.Gen3Hex.Core.ViewModels;
 using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
 using System;
 using System.Linq;
+using System.Text;
 using Xunit;
 
 namespace HavenSoft.Gen3Hex.Tests {
@@ -210,6 +211,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
       [Fact]
       public void ArrayIsRecognizedByStringTool() {
+         var changeToken = new DeltaModel();
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          Array.Copy(PCSString.Convert("bobb").ToArray(), 0, buffer, 100, 5);
          Array.Copy(PCSString.Convert("tomm").ToArray(), 0, buffer, 105, 5);
@@ -219,16 +221,52 @@ namespace HavenSoft.Gen3Hex.Tests {
          Array.Copy(PCSString.Convert("eggg").ToArray(), 0, buffer, 125, 5);
 
          var model = new PointerAndStringModel(buffer);
-         ArrayRun.TryParse(model, "[word\"\"5]", 0, null, out var arrayRun);
+         model.WritePointer(changeToken, 200, 100);
+         model.ObserveRunWritten(changeToken, new PointerRun(200));
+
+         ArrayRun.TryParse(model, "[word\"\"5]", 100, null, out var arrayRun);
          model.ObserveAnchorWritten(new DeltaModel(), "words", arrayRun);
          var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.FollowLink(0, 7); // 7*16 = 112, right in the middle of our data
+         // note that this will change our width to 15, because we're linking to data of width 5 when our maxwidth is 16.
 
          Assert.Equal(0, viewPort.Tools.SelectedIndex); // string tool is selected
          Assert.Equal(100, viewPort.Tools.StringTool.Address);
          var lineCount = viewPort.Tools.StringTool.Content.Split(new[] { Environment.NewLine }, StringSplitOptions.None).Length;
          Assert.Equal(6, lineCount);
+
+         viewPort.Tools.StringTool.ContentIndex = viewPort.Tools.StringTool.Content.IndexOf("pall");
+         Assert.Equal(new Point(120 % 16, 120 / 16), viewPort.SelectionStart);
+      }
+
+      [Fact]
+      public void EditingStringToolEditsArray() {
+         var changeToken = new DeltaModel();
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         Array.Copy(PCSString.Convert("bobb").ToArray(), 0, buffer, 100, 5);
+         Array.Copy(PCSString.Convert("tomm").ToArray(), 0, buffer, 105, 5);
+         Array.Copy(PCSString.Convert("samm").ToArray(), 0, buffer, 110, 5);
+         Array.Copy(PCSString.Convert("carr").ToArray(), 0, buffer, 115, 5);
+         Array.Copy(PCSString.Convert("pall").ToArray(), 0, buffer, 120, 5);
+         Array.Copy(PCSString.Convert("eggg").ToArray(), 0, buffer, 125, 5);
+
+         var model = new PointerAndStringModel(buffer);
+         model.WritePointer(changeToken, 200, 100);
+         model.ObserveRunWritten(changeToken, new PointerRun(200));
+
+         ArrayRun.TryParse(model, "[word\"\"5]", 100, null, out var arrayRun);
+         model.ObserveAnchorWritten(new DeltaModel(), "words", arrayRun);
+         var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.FollowLink(0, 7); // 7*16 = 112, right in the middle of our data
+
+         var writer = new StringBuilder();
+         writer.AppendLine(viewPort.Tools.StringTool.Content);
+         writer.Append("carl");
+         viewPort.Tools.StringTool.Content = writer.ToString();
+
+         Assert.Equal(7 * 5, model.GetNextRun(100).Length);
       }
    }
 }
