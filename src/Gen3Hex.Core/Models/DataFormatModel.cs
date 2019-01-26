@@ -28,6 +28,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd);
       IFormattedRun RelocateForExpansion(DeltaModel changeToken, IFormattedRun run, int minimumLength);
       void ClearFormat(DeltaModel changeToken, int start, int length);
+      void ClearFormatAndData(DeltaModel changeToken, int start, int length);
       string Copy(int start, int length);
 
       void Load(byte[] newData, StoredMetadata metadata);
@@ -56,6 +57,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       public int Count => RawData.Length;
 
       public abstract void ClearFormat(DeltaModel changeToken, int start, int length);
+
+      public abstract void ClearFormatAndData(DeltaModel changeToken, int originalStart, int length);
 
       public abstract string Copy(int start, int length);
 
@@ -526,6 +529,20 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       public override void ClearFormat(DeltaModel changeToken, int originalStart, int length) {
          int start = originalStart;
          for (var run = GetNextRun(start); length > 0 && run != null; run = GetNextRun(start)) {
+            if (run.Start >= start + length) return;
+            if (run is PointerRun pointerRun) {
+               ClearPointerFormat(changeToken, pointerRun);
+            }
+            ClearAnchorFormat(changeToken, originalStart, run);
+
+            length -= run.Length + run.Start - start;
+            start = run.Start + run.Length;
+         }
+      }
+
+      public override void ClearFormatAndData(DeltaModel changeToken, int originalStart, int length) {
+         int start = originalStart;
+         for (var run = GetNextRun(start); length > 0 && run != null; run = GetNextRun(start)) {
             if (start < run.Start) {
                for (int i = 0; i < length && i < run.Start - start; i++) changeToken.ChangeData(this, start + i, 0xFF);
             }
@@ -544,8 +561,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       private void ClearAnchorFormat(DeltaModel changeToken, int originalStart, IFormattedRun run) {
          if (run.Start != originalStart) {
             // delete the anchor
-            foreach (var source in run.PointerSources ?? new int[0]) WriteValue(changeToken, source, 0);
             if (anchorForAddress.TryGetValue(run.Start, out string name)) {
+               foreach (var source in run.PointerSources ?? new int[0]) WriteValue(changeToken, source, 0);
                unmappedNameToSources[anchorForAddress[run.Start]] = new List<int>(run.PointerSources);
                foreach (var source in run.PointerSources) {
                   changeToken.AddUnmappedPointer(source, name);
@@ -554,6 +571,11 @@ namespace HavenSoft.Gen3Hex.Core.Models {
                changeToken.RemoveName(run.Start, name);
                addressForAnchor.Remove(name);
                anchorForAddress.Remove(run.Start);
+            } else {
+               foreach (var source in run.PointerSources ?? new int[0]) {
+                  var sourceRunIndex = BinarySearch(source);
+                  if (sourceRunIndex >= 0) runs.RemoveAt(sourceRunIndex);
+               }
             }
             var index = BinarySearch(run.Start);
             changeToken.RemoveRun(run);
@@ -810,6 +832,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       public FirstLoadAutoSearchModel(byte[] data, StoredMetadata metadata = null) : base(data, metadata) {
          if (metadata != null) return;
 
+         var noChangeDelta = new NoDataChangeDeltaModel();
+
          const string Ruby = "AXVE";
          const string Sapphire = "AXPE";
          const string Emerald = "BPEE";
@@ -820,27 +844,27 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
          // in vanilla emerald, this pointer isn't four-byte aligned
          // it's at the very front of the ROM, so if there's no metadata we can be pretty sure that the pointer is still there
-         if (gameCode == Emerald && data[0x1C3] == 0x08) ObserveRunWritten(new DeltaModel(), new PointerRun(0x1C0));
+         if (gameCode == Emerald && data[0x1C3] == 0x08) ObserveRunWritten(noChangeDelta, new PointerRun(0x1C0));
 
             if (TrySearch(this, "[name\"\"11]", out var pokenames)) {
-            ObserveAnchorWritten(new DeltaModel(), "pokenames", pokenames);
+            ObserveAnchorWritten(noChangeDelta, "pokenames", pokenames);
          }
          if (TrySearch(this, "[name\"\"13]", out var movenames)) {
-            ObserveAnchorWritten(new DeltaModel(), "movenames", movenames);
+            ObserveAnchorWritten(noChangeDelta, "movenames", movenames);
          }
          if (gameCode == Ruby || gameCode == Sapphire || gameCode == Emerald) {
             if (TrySearch(this, "[name\"\"13]", out var abilitynames)) {
-               ObserveAnchorWritten(new DeltaModel(), "abilitynames", abilitynames);
+               ObserveAnchorWritten(noChangeDelta, "abilitynames", abilitynames);
             }
             if (TrySearch(this, "[name\"\"13]", out var trainerclassnames)) {
-               ObserveAnchorWritten(new DeltaModel(), "trainerclassnames", trainerclassnames);
+               ObserveAnchorWritten(noChangeDelta, "trainerclassnames", trainerclassnames);
             }
          } else {
             if (TrySearch(this, "[name\"\"13]", out var trainerclassnames)) {
-               ObserveAnchorWritten(new DeltaModel(), "trainerclassnames", trainerclassnames);
+               ObserveAnchorWritten(noChangeDelta, "trainerclassnames", trainerclassnames);
             }
             if (TrySearch(this, "[name\"\"13]", out var abilitynames)) {
-               ObserveAnchorWritten(new DeltaModel(), "abilitynames", abilitynames);
+               ObserveAnchorWritten(noChangeDelta, "abilitynames", abilitynames);
             }
          }
       }
@@ -858,109 +882,14 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       public override void ObserveAnchorWritten(DeltaModel changeToken, string anchorName, IFormattedRun run) { }
       public override void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd) { }
       public override IFormattedRun RelocateForExpansion(DeltaModel changeToken, IFormattedRun run, int minimumLength) => throw new NotImplementedException();
-      public override void ClearFormat(DeltaModel changeToken, int start, int length) {
+      public override void ClearFormat(DeltaModel changeToken, int start, int length) { }
+      public override void ClearFormatAndData(DeltaModel changeToken, int start, int length) {
          for (int i = 0; i < length; i++) changeToken.ChangeData(this, start + i, 0xFF);
       }
 
       public override string Copy(int start, int length) {
          var bytes = Enumerable.Range(start, length).Select(i => RawData[i]);
          return string.Join(" ", bytes.Select(value => value.ToString("X2")));
-      }
-   }
-
-   public class DeltaModel {
-      private readonly Dictionary<int, byte> oldData = new Dictionary<int, byte>();
-
-      private readonly Dictionary<int, IFormattedRun> addedRuns = new Dictionary<int, IFormattedRun>();
-      private readonly Dictionary<int, IFormattedRun> removedRuns = new Dictionary<int, IFormattedRun>();
-
-      private readonly Dictionary<int, string> addedNames = new Dictionary<int, string>();
-      private readonly Dictionary<int, string> removedNames = new Dictionary<int, string>();
-
-      private readonly Dictionary<int, string> addedUnmappedPointers = new Dictionary<int, string>();
-      private readonly Dictionary<int, string> removedUnmappedPointers = new Dictionary<int, string>();
-
-      public int EarliestChange {
-         get {
-            if (addedNames.Count > 0) return addedNames.Keys.Min();
-            if (addedRuns.Count > 0) return addedRuns.Keys.Min();
-            if (addedUnmappedPointers.Count > 0) return addedUnmappedPointers.Keys.Min();
-
-            if (removedNames.Count > 0) return removedNames.Keys.Min();
-            if (removedRuns.Count > 0) return removedRuns.Keys.Min();
-            if (removedUnmappedPointers.Count > 0) return removedUnmappedPointers.Keys.Min();
-
-            if (oldData.Count > 0) return oldData.Keys.Min();
-            return -1;
-         }
-      }
-
-      public void ChangeData(IModel model, int index, byte data) {
-         if (!oldData.ContainsKey(index)) {
-            if (model.Count <= index) {
-               model.ExpandData(this, index);
-            }
-            oldData[index] = model[index];
-         }
-
-         model[index] = data;
-      }
-
-      public void AddRun(IFormattedRun run) {
-         addedRuns[run.Start] = run;
-      }
-
-      public void RemoveRun(IFormattedRun run) {
-         if (addedRuns.ContainsKey(run.Start)) {
-            addedRuns.Remove(run.Start);
-         } else if (!removedRuns.ContainsKey(run.Start)) {
-            removedRuns[run.Start] = run;
-         }
-      }
-
-      public void AddName(int index, string name) {
-         addedNames[index] = name;
-      }
-
-      public void RemoveName(int index, string name) {
-         if (addedNames.ContainsKey(index)) {
-            addedNames.Remove(index);
-         } else if (!removedNames.ContainsKey(index)) {
-            removedNames[index] = name;
-         }
-      }
-
-      public void AddUnmappedPointer(int index, string name) {
-         addedUnmappedPointers[index] = name;
-      }
-
-      public void RemoveUnmappedPointer(int index, string name) {
-         if (addedUnmappedPointers.ContainsKey(index)) {
-            addedUnmappedPointers.Remove(index);
-         } else if (!removedUnmappedPointers.ContainsKey(index)) {
-            removedUnmappedPointers[index] = name;
-         }
-      }
-
-      public DeltaModel Revert(IModel model) {
-         var reverse = new DeltaModel();
-
-         foreach (var kvp in oldData) {
-            var (index, data) = (kvp.Key, kvp.Value);
-            reverse.oldData[index] = model[index];
-            model[index] = data;
-         }
-
-         foreach (var kvp in addedRuns) reverse.removedRuns[kvp.Key] = kvp.Value;
-         foreach (var kvp in removedRuns) reverse.addedRuns[kvp.Key] = kvp.Value;
-         foreach (var kvp in addedNames) reverse.removedNames[kvp.Key] = kvp.Value;
-         foreach (var kvp in removedNames) reverse.addedNames[kvp.Key] = kvp.Value;
-         foreach (var kvp in addedUnmappedPointers) reverse.removedUnmappedPointers[kvp.Key] = kvp.Value;
-         foreach (var kvp in removedUnmappedPointers) reverse.addedUnmappedPointers[kvp.Key] = kvp.Value;
-
-         model.MassUpdateFromDelta(addedRuns, removedRuns, addedNames, removedNames, addedUnmappedPointers, removedUnmappedPointers);
-
-         return reverse;
       }
    }
 }

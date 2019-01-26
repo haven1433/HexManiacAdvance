@@ -291,7 +291,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
             var left = Math.Min(selectionStart, selectionEnd);
             var right = Math.Max(selectionStart, selectionEnd);
-            Model.ClearFormat(history.CurrentChange, left, right - left + 1);
+            Model.ClearFormatAndData(history.CurrentChange, left, right - left + 1);
             RefreshBackingData();
          };
 
@@ -778,7 +778,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
          Model.ExpandData(history.CurrentChange, index + 3);
          scroll.DataLength = Model.Count;
-         Model.ClearFormat(history.CurrentChange, index, 4);
+         Model.ClearFormatAndData(history.CurrentChange, index, 4);
 
          int fullValue;
          if (destination.All("0123456789ABCDEFabcdef".Contains) && destination.Length <= 6) {

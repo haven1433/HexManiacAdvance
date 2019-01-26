@@ -200,13 +200,13 @@ namespace HavenSoft.Gen3Hex.Tests {
          model.WritePointer(token, 16, 32);
          model.ObserveRunWritten(token, new PointerRun(16));
 
-         model.ClearFormat(token, 30, 4);
+         model.ClearFormat(token, 30, 4);   // this format clear removes the anchor that was auto-generated from the pointer. Which means the data from before must not be a pointer.
          model.WritePointer(token, 30, 64);
          model.ObserveRunWritten(token, new PointerRun(30));
 
-         Assert.Equal(16, model.GetNextRun(10).Start); // original pointer at 16 is still there, but it no longer knows what it's pointing to
-         Assert.Equal(30, model.GetNextRun(24).Start); // next data is the pointer at 30
-         Assert.Equal(64, model.GetNextRun(34).Start); // next data is the reference to the pointer at 30
+         Assert.Equal(30, model.GetNextRun(10).Start); // original pointer at 16 is no longer there. The new first data is the anchor at 30
+         Assert.Equal(32, model.ReadPointer(16));      // but the data at 16 still looks like a pointer: only the format is gone
+         Assert.Equal(64, model.GetNextRun(34).Start); // next data is the anchor from the pointer at 30
       }
 
       [Fact]
@@ -337,7 +337,8 @@ namespace HavenSoft.Gen3Hex.Tests {
          viewPort.Edit("<000020>");
          viewPort.Edit("<000030>");
          viewPort.SelectionStart = new Point(2, 1);
-         viewPort.Edit("<000040>");
+         viewPort.Clear.Execute();  // this should clear the data and formatting of the first pointer
+         viewPort.Edit("<000040>"); // this should remove the second pointer
 
          Assert.Equal(0xFF, viewPort[0, 1].Value);
          Assert.Equal(0xFF, viewPort[1, 1].Value);
