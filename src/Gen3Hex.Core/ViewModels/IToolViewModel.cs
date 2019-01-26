@@ -139,9 +139,18 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                if (run is PCSRun || run is ArrayRun) {
                   DataForCurrentRunChanged(run);
                   history.ChangeCompleted();
+                  Enabled = true;
+               } else {
+                  Enabled = false;
                }
             }
          }
+      }
+
+      private bool enabled;
+      public bool Enabled {
+         get => enabled;
+         private set => TryUpdate(ref enabled, value);
       }
 
       public event EventHandler<IFormattedRun> ModelDataChanged;

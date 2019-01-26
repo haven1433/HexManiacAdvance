@@ -121,5 +121,22 @@ namespace HavenSoft.Gen3Hex.Tests {
 
          Assert.Equal(new Point(4, 0), viewPort.SelectionStart);
       }
+
+      [Fact]
+      public void SelectingAPointerAddressInStringToolDisablesTheTool() {
+         var token = new DeltaModel();
+         var model = new PointerAndStringModel(new byte[0x200]);
+         model.WritePointer(token, 16, 100);
+         model.ObserveRunWritten(token, new PointerRun(16));
+         var tool = new PCSTool(
+            model,
+            new Selection(new ScrollRegion { Width = 0x10, Height = 0x10 }, model),
+            new ChangeHistory<DeltaModel>(dm => dm));
+
+         tool.Address = 18;
+
+         Assert.Equal(16, tool.Address); // coerce to the closest run
+         Assert.False(tool.Enabled);     // run is not one that this tool knows how to edit
+      }
    }
 }

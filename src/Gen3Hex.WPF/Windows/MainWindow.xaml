@@ -312,6 +312,7 @@
                         <TextBlock Text="Content:" Margin="5,30,0,0" DockPanel.Dock="Top"/>
                         <TextBox Margin="5,5" AcceptsReturn="True" MinHeight="50" Width="255" TextWrapping="Wrap" FontFamily="Consolas" VerticalScrollBarVisibility="Auto"
                            SelectionChanged="StringToolContentSelectionChanged"
+                           IsEnabled="{Binding StringTool.Enabled}"
                            Text="{Binding StringTool.Content, UpdateSourceTrigger=PropertyChanged}" />
                      </DockPanel>
                      <StackPanel Name="Tool2Panel">
