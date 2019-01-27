@@ -268,5 +268,51 @@ namespace HavenSoft.Gen3Hex.Tests {
 
          Assert.Equal(7 * 5, model.GetNextRun(100).Length);
       }
+
+      [Fact]
+      public void CanCutPasteArrayToFreeSpace() {
+         // arrange
+         var delta = new DeltaModel();
+         var elements = new[] { "123", "alice", "candy land", "hello world", "fortify" };
+         var buffer = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         for (int i = 0; i < elements.Length; i++) {
+            var content = PCSString.Convert(elements[i]);
+            while (content.Count < 0x10) content.Add(0x00);
+            Array.Copy(content.ToArray(), 0, buffer, 0x10 * i + 0x20, 0x10);
+         }
+         var model = new PointerAndStringModel(buffer);
+         model.WritePointer(delta, 0x00, 0x20);
+         model.ObserveRunWritten(delta, new PointerRun(0x00));
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.Edit("^testdata[name\"\"16]5 ");
+
+         // act -> cut
+         var fileSystem = new StubFileSystem();
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.SelectionEnd = new Point(0xF, 6); // select all 5 elements
+         viewPort.Copy.Execute(fileSystem);
+         viewPort.Clear.Execute();
+         string text = fileSystem.CopyText;
+
+         // act -> paste
+         viewPort.SelectionStart = new Point(0, 8);
+         viewPort.Edit(text);
+
+         // assert -> pointer moved
+         var destination = model.ReadPointer(0x00);
+         Assert.Equal(0x80, destination);
+
+         // assert -> anchor moved
+         var run = model.GetNextRun(0x10);
+         Assert.Equal(0x80, run.Start);
+         Assert.Equal("testdata", model.GetAnchorFromAddress(-1, run.Start));
+         Assert.Equal(5, ((ArrayRun)run).ElementCount);
+         var lines = viewPort.Tools.StringTool.Content.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+         Assert.All(elements, element => Assert.Contains(element, lines));
+
+         // assert -> nothing left behind
+         Assert.All(Enumerable.Range(0x20, 0x50), i => Assert.Equal(0xFF, model[i]));
+      }
    }
 }

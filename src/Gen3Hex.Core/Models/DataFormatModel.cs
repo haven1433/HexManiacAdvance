@@ -441,8 +441,6 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          }
 
          var sources = GetSourcesPointingToNewAnchor(changeToken, anchorName);
-
-         index = BinarySearch(location);
          var newRun = run.MergeAnchor(sources);
          ObserveRunWritten(changeToken, newRun);
       }
