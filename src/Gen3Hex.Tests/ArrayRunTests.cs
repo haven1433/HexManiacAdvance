@@ -3,6 +3,7 @@ using HavenSoft.Gen3Hex.Core.Models;
 using HavenSoft.Gen3Hex.Core.ViewModels;
 using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Xunit;
@@ -313,6 +314,83 @@ namespace HavenSoft.Gen3Hex.Tests {
 
          // assert -> nothing left behind
          Assert.All(Enumerable.Range(0x20, 0x50), i => Assert.Equal(0xFF, model[i]));
+      }
+
+      [Fact]
+      public void CannotCutPasteArrayToMakeItHitAnotherRun() {
+         // arrange
+         var delta = new DeltaModel();
+         var errors = new List<string>();
+         var elements = new[] { "123", "alice", "candy land", "hello world", "fortify" };
+         var buffer = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         for (int i = 0; i < elements.Length; i++) {
+            var content = PCSString.Convert(elements[i]);
+            while (content.Count < 0x10) content.Add(0x00);
+            Array.Copy(content.ToArray(), 0, buffer, 0x10 * i + 0x20, 0x10);
+         }
+         var model = new PointerAndStringModel(buffer);
+         model.WritePointer(delta, 0x00, 0x20);
+         model.ObserveRunWritten(delta, new PointerRun(0x00));
+         model.WritePointer(delta, 0x04, 0x90);
+         model.ObserveRunWritten(delta, new PointerRun(0x04)); // the anchor at 0x90 should prevent a paste overwrite
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.Edit("^testdata[name\"\"16]5 ");
+         viewPort.OnError += (sender, message) => errors.Add(message);
+
+         // act -> cut
+         var fileSystem = new StubFileSystem();
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.SelectionEnd = new Point(0xF, 6); // select all 5 elements
+         viewPort.Copy.Execute(fileSystem);
+         viewPort.Clear.Execute();
+         string text = fileSystem.CopyText;
+
+         // act -> paste
+         viewPort.SelectionStart = new Point(0, 8);
+         viewPort.Edit(text);
+
+         // assert: could not paste
+         Assert.Single(errors);
+      }
+
+      [Fact]
+      public void CanCutPasteArrayOverItself() {
+         // arrange
+         var delta = new DeltaModel();
+         var errors = new List<string>();
+         var elements = new[] { "123", "alice", "candy land", "hello world", "fortify" };
+         var buffer = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         for (int i = 0; i < elements.Length; i++) {
+            var content = PCSString.Convert(elements[i]);
+            while (content.Count < 0x10) content.Add(0x00);
+            Array.Copy(content.ToArray(), 0, buffer, 0x10 * i + 0x20, 0x10);
+         }
+         var model = new PointerAndStringModel(buffer);
+         model.WritePointer(delta, 0x00, 0x20);
+         model.ObserveRunWritten(delta, new PointerRun(0x00));
+         model.WritePointer(delta, 0x04, 0x90);
+         model.ObserveRunWritten(delta, new PointerRun(0x04)); // the anchor at 0x90 should prevent a paste overwrite
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.Edit("^testdata[name\"\"16]5 ");
+         viewPort.OnError += (sender, message) => errors.Add(message);
+
+         // act -> cut
+         var fileSystem = new StubFileSystem();
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.SelectionEnd = new Point(0xF, 6); // select all 5 elements
+         viewPort.Copy.Execute(fileSystem);
+         viewPort.Clear.Execute();
+         string text = fileSystem.CopyText;
+
+         // act -> paste
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.Edit(text);
+
+         // assert: no errors
+         Assert.Empty(errors);
+         Assert.Equal("testdata", model.GetAnchorFromAddress(-1, 0x20));
       }
    }
 }

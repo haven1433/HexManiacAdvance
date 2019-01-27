@@ -660,7 +660,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                // but lets give them 4 spaces to work with
                PrepareForMultiSpaceEdit(point, 4);
                if (element.Format is Anchor anchor) {
-                  underEdit = new UnderEdit(anchor, AnchorStart + anchor.Name + anchor.Format);
+                  underEdit = new UnderEdit(anchor, AnchorStart.ToString());
                   currentView[point.X, point.Y] = new HexElement(element.Value, underEdit);
                }
                return true;

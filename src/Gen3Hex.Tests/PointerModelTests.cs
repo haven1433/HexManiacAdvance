@@ -276,11 +276,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          viewPort.Edit("<bob>");
          viewPort.SelectionStart = new Point(0, 2);
          viewPort.Edit("^bob ");
-         viewPort.Edit("^");
-         viewPort.Edit(ConsoleKey.Backspace);
-         viewPort.Edit(ConsoleKey.Backspace);
-         viewPort.Edit(ConsoleKey.Backspace);
-         viewPort.Edit(" ");
+         viewPort.Edit("^ ");
 
          var format = (Pointer)viewPort[0, 1].Format;
          Assert.Equal(0x20, format.Destination);
@@ -296,11 +292,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.SelectionStart = new Point(0, 2);
-         viewPort.Edit("^bob ^");
-         viewPort.Edit(ConsoleKey.Backspace);
-         viewPort.Edit(ConsoleKey.Backspace);
-         viewPort.Edit(ConsoleKey.Backspace);
-         viewPort.Edit(" ");
+         viewPort.Edit("^bob ^ ");
 
          Assert.Equal(NoInfoRun.NullRun, model.GetNextRun(0));
       }
@@ -552,16 +544,19 @@ namespace HavenSoft.Gen3Hex.Tests {
       }
 
       [Fact]
-      public void StartingAnAnchorOverAnAnchorBringsUpTheExistingAnchorInfo() {
+      public void StartingAnAnchorOverAnAnchorClearsTheExistingAnchorInfo() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          var model = new PointerAndStringModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.Edit("^bob ");
+         Assert.Equal("^bob", viewPort.AnchorText);
+
          viewPort.Edit("^");
 
          var format = (UnderEdit)viewPort[0, 0].Format;
-         Assert.Equal("^bob", format.CurrentText);
+         Assert.Equal("^", format.CurrentText);
+         Assert.Equal("^", viewPort.AnchorText);
       }
 
       [Fact]
