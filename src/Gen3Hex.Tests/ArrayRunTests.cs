@@ -392,5 +392,37 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Empty(errors);
          Assert.Equal("testdata", model.GetAnchorFromAddress(-1, 0x20));
       }
+
+      [Fact]
+      public void AddingToAnArrayWithFixedLengthUpdatesTheAnchorFormat() {
+         // arrange
+         var delta = new DeltaModel();
+         var errors = new List<string>();
+         var elements = new[] { "123", "alice", "candy land", "hello world", "fortify" };
+         var buffer = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         for (int i = 0; i < elements.Length; i++) {
+            var content = PCSString.Convert(elements[i]);
+            while (content.Count < 0x10) content.Add(0x00);
+            Array.Copy(content.ToArray(), 0, buffer, 0x10 * i + 0x20, 0x10);
+         }
+         var model = new PointerAndStringModel(buffer);
+         model.WritePointer(delta, 0x00, 0x20);
+         model.ObserveRunWritten(delta, new PointerRun(0x00));
+         model.WritePointer(delta, 0x04, 0x90);
+         model.ObserveRunWritten(delta, new PointerRun(0x04)); // the anchor at 0x90 should prevent a paste overwrite
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.Edit("^testdata[name\"\"16]5 ");
+         viewPort.OnError += (sender, message) => errors.Add(message);
+
+         // act -> add an element
+         viewPort.SelectionStart = new Point(0, 7);
+         viewPort.Edit("+\"crab\"");
+
+         // assert -> length changed
+         viewPort.SelectionStart = new Point(0, 2);
+         Assert.True(viewPort.AnchorTextVisible);
+         Assert.Equal("^testdata[name\"\"16]6", viewPort.AnchorText);
+      }
    }
 }

@@ -190,7 +190,10 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       }
 
       public ArrayRun Append(int elementCount) {
-         return new ArrayRun(owner, FormatString, Start, ElementCount + elementCount, ElementContent, PointerSources);
+         var lastArrayCharacterIndex = FormatString.LastIndexOf(ArrayEnd);
+         var newFormat = FormatString.Substring(0, lastArrayCharacterIndex + 1);
+         if (newFormat != FormatString) newFormat += ElementCount + elementCount;
+         return new ArrayRun(owner, newFormat, Start, ElementCount + elementCount, ElementContent, PointerSources);
       }
 
       public void AppendTo(IReadOnlyList<byte> data, StringBuilder text) {
