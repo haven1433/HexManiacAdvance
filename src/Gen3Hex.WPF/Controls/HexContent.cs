@@ -73,6 +73,24 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
 
       #endregion
 
+      #region ShowGrid
+
+      public bool ShowGrid {
+         get { return (bool)GetValue(ShowGridProperty); }
+         set { SetValue(ShowGridProperty, value); }
+      }
+
+      public static readonly DependencyProperty ShowGridProperty = DependencyProperty.Register(nameof(ShowGrid), typeof(bool), typeof(HexContent), new FrameworkPropertyMetadata(false, ShowGridChanged));
+
+      private static void ShowGridChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+         var self = (HexContent)d;
+         self.OnShowGridChanged(e);
+      }
+
+      private void OnShowGridChanged(DependencyPropertyChangedEventArgs e) => InvalidateVisual();
+
+      #endregion
+
       public HexContent() {
          ClipToBounds = true;
          Focusable = true;
@@ -203,6 +221,17 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
          var bottomLeft = new ScreenPoint(0, CellHeight);
          var bottomRight = new ScreenPoint(CellWidth, CellHeight);
          var borderPen = new Pen(Solarized.Brushes.Green, 1);
+
+         // draw matrix
+         if (ShowGrid) {
+            var gridPen = new Pen(Solarized.Theme.Backlight, 1);
+            for (int x = 1; x <= ViewPort.Width; x++) {
+               drawingContext.DrawLine(gridPen, new ScreenPoint(CellWidth * x, 0), new ScreenPoint(CellWidth * x, CellHeight * ViewPort.Height));
+            }
+            for (int y = 1; y <= ViewPort.Height; y++) {
+               drawingContext.DrawLine(gridPen, new ScreenPoint(0, CellHeight * y), new ScreenPoint(CellWidth * ViewPort.Width, CellHeight * y));
+            }
+         }
 
          // first pass: draw selection
          for (int x = 0; x < ViewPort.Width; x++) {

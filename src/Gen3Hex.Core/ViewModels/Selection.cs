@@ -22,7 +22,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       // if we navigate back, then scroll, then navigate forward, we want to remember the scroll if we go back again.
       private readonly Stack<int> backStack = new Stack<int>(), forwardStack = new Stack<int>();
 
-      private int preferredWidth = -1, maxWidth = 4;
+      private int preferredWidth = 1, maxWidth = 4;
 
       private Point selectionStart, selectionEnd;
 
@@ -55,6 +55,13 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          }
       }
 
+      public int PreferredWidth {
+         get => preferredWidth;
+         set {
+            if (TryUpdate(ref preferredWidth, value)) ChangeWidth(maxWidth);
+         }
+      }
+
       public ICommand MoveSelectionStart => moveSelectionStart;
       public ICommand MoveSelectionEnd => moveSelectionEnd;
       public ICommand Goto => gotoCommand;
@@ -84,7 +91,6 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          gotoCommand = new StubCommand {
             CanExecute = args => true,
             Execute = args => {
-               preferredWidth = -1;
                var address = args.ToString();
                var anchor = model.GetAddressFromAnchor(new DeltaModel(), -1, address);
                if (anchor != Pointer.NULL) {
@@ -162,13 +168,11 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          while (Scroll.DataIndex < address) Scroll.Scroll.Execute(Direction.Right);
 
          if (model.GetNextRun(address) is ArrayRun array && array.Start == address) {
-            preferredWidth = array.ElementLength;
+            PreferredWidth = array.ElementLength;
          }
          else {
-            preferredWidth = -1;
+            PreferredWidth = 1;
          }
-
-         ChangeWidth(maxWidth);
       }
 
       /// <summary>
@@ -201,11 +205,11 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          if (preferredWidth == -1 || preferredWidth == width) return width;
          if (preferredWidth < width) {
             int multiple = 2;
-            while (preferredWidth * multiple < width) multiple++;
+            while (preferredWidth * multiple <= width) multiple++;
             return preferredWidth * (multiple - 1);
          }
          var divisors = GetDivisors(preferredWidth).Reverse();
-         var newWidth = divisors.First();
+         var newWidth = divisors.FirstOrDefault();
          if (newWidth < 4) return width;
          return newWidth;
       }

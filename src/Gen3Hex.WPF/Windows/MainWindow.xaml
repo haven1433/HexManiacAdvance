@@ -1,6 +1,7 @@
 ﻿<Window x:Class="HavenSoft.Gen3Hex.WPF.Windows.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:hsg3ww="clr-namespace:HavenSoft.Gen3Hex.WPF.Windows"
         xmlns:hsg3hv="clr-namespace:HavenSoft.Gen3Hex.WPF.Controls"
         xmlns:hsv="clr-namespace:HavenSoft.Gen3Hex.WPF.Resources"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
@@ -43,6 +44,7 @@
       <KeyBinding Key="OemMinus" Modifiers="Ctrl+Shift" Command="{Binding Forward}" />
 
       <!-- Stealing this routed command for toggling theme -->
+      <KeyBinding Key="M" Modifiers="Ctrl" Command="{Binding ToggleMatrix}" />
       <KeyBinding Key="T" Modifiers="Ctrl" Command="ToggleBullets" />
 
       <KeyBinding Key="Esc" Command="{Binding ClearError}"/>
@@ -200,6 +202,7 @@
             </MenuItem>
             <MenuItem Header="_View">
                <MenuItem Header="_Toggle Theme" Click="ToggleTheme" InputGestureText="Ctrl+T"/>
+               <MenuItem Header="Toggle Matrix Grid" Command="{Binding ToggleMatrix}" InputGestureText="Ctrl+M"/>
                <MenuItem Header="_Clear Error" Command="{Binding ClearError}" InputGestureText="Esc"/>
             </MenuItem>
             <MenuItem Header="_Tools">
@@ -353,7 +356,7 @@
                   <ScrollBar DockPanel.Dock="Right"
                      Minimum="{Binding MinimumScroll}" Maximum="{Binding MaximumScroll}" Value="{Binding ScrollValue}"
                      SmallChange="1" LargeChange="{Binding Height}" />
-                  <hsg3hv:HexContent Name="HexContent" ViewPort="{Binding}"/>
+                  <hsg3hv:HexContent Name="HexContent" ViewPort="{Binding}" ShowGrid="{Binding DataContext.ShowMatrix, RelativeSource={RelativeSource AncestorType=hsg3ww:MainWindow}}" Margin=".5,.5,0,0"/>
                </DockPanel>
             </DataTemplate>
          </TabControl.ContentTemplate>

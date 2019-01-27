@@ -96,6 +96,11 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          set => selection.SelectionEnd = value;
       }
 
+      public int PreferredWidth {
+         get => selection.PreferredWidth;
+         set => selection.PreferredWidth = value;
+      }
+
       public ICommand MoveSelectionStart => selection.MoveSelectionStart;
       public ICommand MoveSelectionEnd => selection.MoveSelectionEnd;
       public ICommand Goto => selection.Goto;

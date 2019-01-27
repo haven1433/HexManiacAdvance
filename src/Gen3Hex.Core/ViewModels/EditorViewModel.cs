@@ -39,7 +39,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          showFind = new StubCommand(),
          hideSearchControls = new StubCommand(),
          clearError = new StubCommand(),
-         clearMessage = new StubCommand();
+         clearMessage = new StubCommand(),
+         toggleMatrix = new StubCommand();
 
       private readonly Dictionary<Func<ITabContent, ICommand>, EventHandler> forwardExecuteChangeNotifications;
 
@@ -68,6 +69,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public ICommand HideSearchControls => hideSearchControls;
       public ICommand ClearError => clearError;
       public ICommand ClearMessage => clearMessage;
+      public ICommand ToggleMatrix => toggleMatrix;
 
       private GotoControlViewModel gotoViewModel = new GotoControlViewModel(null);
       public GotoControlViewModel GotoViewModel {
@@ -125,6 +127,12 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             }
             if (TryUpdate(ref showMessage, value)) clearMessage.CanExecuteChanged.Invoke(clearMessage, EventArgs.Empty);
          }
+      }
+
+      private bool showMatrix = true;
+      public bool ShowMatrix {
+         get => showMatrix;
+         set => TryUpdate(ref showMatrix, value);
       }
 
       private string infoMessage;
@@ -228,6 +236,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
          clearMessage.CanExecute = arg => showMessage;
          clearMessage.Execute = arg => InformationMessage = string.Empty;
+
+         toggleMatrix.CanExecute = CanAlwaysExecute;
+         toggleMatrix.Execute = arg => ShowMatrix = !ShowMatrix;
 
          cut.CanExecute = arg => SelectedTab?.Copy?.CanExecute(arg) ?? false;
          cut.Execute = arg => {
