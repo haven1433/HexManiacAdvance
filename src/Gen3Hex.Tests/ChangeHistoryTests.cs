@@ -232,9 +232,14 @@ namespace HavenSoft.Gen3Hex.Tests {
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.Edit("^bob\"\" ");
+
+         // move the selection to force a break in the undo history
+         viewPort.SelectionStart = new Point(3, 3);
+         viewPort.SelectionStart = new Point(0, 0);
+
          viewPort.Tools.StringTool.Address = 0;
          viewPort.Tools.StringTool.Content = "Hello World!";
-         viewPort.Undo.Execute();
+         viewPort.Undo.Execute(); // should undo only the tool change, not the name change
 
          Assert.Equal(0xFF, model[0]);
          Assert.True(viewPort.Undo.CanExecute(null));

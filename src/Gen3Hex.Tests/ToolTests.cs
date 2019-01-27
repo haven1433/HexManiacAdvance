@@ -131,7 +131,8 @@ namespace HavenSoft.Gen3Hex.Tests {
          var tool = new PCSTool(
             model,
             new Selection(new ScrollRegion { Width = 0x10, Height = 0x10 }, model),
-            new ChangeHistory<DeltaModel>(dm => dm));
+            new ChangeHistory<DeltaModel>(dm => dm),
+            null);
 
          tool.Address = 18;
 

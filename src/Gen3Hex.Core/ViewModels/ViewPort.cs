@@ -27,6 +27,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          copy = new StubCommand();
 
       private HexElement[,] currentView;
+      private bool exitEditEarly;
 
       public string Name {
          get {
@@ -120,8 +121,19 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          if (e.PropertyName == nameof(SelectionEnd)) history.ChangeCompleted();
          NotifyPropertyChanged(e.PropertyName);
          var dataIndex = scroll.ViewPointToDataIndex(SelectionStart);
+         UpdateToolsFromSelection(dataIndex);
+      }
+
+      private void UpdateToolsFromSelection(int dataIndex) {
          var run = Model.GetNextRun(dataIndex);
+
          if (run.Start <= dataIndex && run is PCSRun) Tools.StringTool.Address = run.Start;
+
+         if (run.Start <= dataIndex && run is ArrayRun array) {
+            var offsets = array.ConvertByteOffsetToArrayOffset(dataIndex);
+            Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
+         }
+
          if (this[SelectionStart].Format is Anchor anchor) {
             TryUpdate(ref anchorText, AnchorStart + anchor.Name + anchor.Format, nameof(AnchorText));
             AnchorTextVisible = true;
@@ -317,7 +329,10 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public bool IsSelected(Point point) => selection.IsSelected(point);
 
       public void Edit(string input) {
-         for (int i = 0; i < input.Length; i++) Edit(input[i]);
+         exitEditEarly = false;
+         using (Tools.DeferUpdates) {
+            for (int i = 0; i < input.Length && !exitEditEarly; i++) Edit(input[i]);
+         }
       }
 
       public void Edit(ConsoleKey key) {
@@ -741,7 +756,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                return false;
             }
 
-            CompleteAnchorEdit(point);
+            if (!CompleteAnchorEdit(point)) exitEditEarly = true;
             return true;
          }
          var dataIndex = scroll.ViewPointToDataIndex(point);
@@ -826,6 +841,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          var index = scroll.ViewPointToDataIndex(point);
          var errorInfo = PointerAndStringModel.ApplyAnchor(Model, history.CurrentChange, index, underEdit.CurrentText);
          ClearEdits(point);
+         UpdateToolsFromSelection(index);
 
          if (errorInfo == ErrorInfo.NoError) return true;
 
@@ -888,6 +904,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                   ScrollFromRunMove(memoryLocation, pcs.Position, newRun);
                   memoryLocation += newRun.Start - run.Start;
                   run = newRun;
+                  UpdateToolsFromSelection(run.Start);
                }
 
                history.CurrentChange.ChangeData(Model, memoryLocation + 1, 0xFF);
@@ -904,9 +921,15 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          }
 
          history.CurrentChange.ChangeData(Model, memoryLocation, byteValue);
-         RefreshBackingData();
-         Tools.StringTool.DataForCurrentRunChanged(run);
-         SilentScroll(memoryLocation + 1);
+         Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
+         if (!SilentScroll(memoryLocation + 1)) {
+            RefreshBackingData(point);
+            if (point.X + 1 < Width) {
+               RefreshBackingData(new Point(point.X + 1, point.Y));
+            } else {
+               RefreshBackingData(new Point(0, point.Y + 1));
+            }
+         }
       }
 
       private void ScrollFromRunMove(int originalIndexInData, int indexInOldRun, IFormattedRun newRun) {
@@ -930,14 +953,17 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          SilentScroll(memoryLocation + 1);
       }
 
-      private void SilentScroll(int memoryLocation) {
+      private bool SilentScroll(int memoryLocation) {
          var nextPoint = scroll.DataIndexToViewPoint(memoryLocation);
+         var didScroll = true;
          if (!scroll.ScrollToPoint(ref nextPoint)) {
             // only need to notify collection change if we didn't auto-scroll after changing cells
             NotifyCollectionChanged(ResetArgs);
+            didScroll = false;
          }
 
          UpdateSelectionWithoutNotify(nextPoint);
+         return didScroll;
       }
 
       /// <summary>
@@ -970,6 +996,19 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             int offset = locations.originalLocation - scroll.DataIndex;
             selection.GotoAddress(locations.newLocation - offset);
          }
+      }
+
+      private void RefreshBackingData(Point p) {
+         var index = scroll.ViewPointToDataIndex(p);
+         if (index < 0 | index >= Model.Count) { currentView[p.X, p.Y] = HexElement.Undefined; return; }
+         var run = Model.GetNextRun(index);
+         if (index < run.Start) { currentView[p.X, p.Y] = new HexElement(Model[index], None.Instance); return; }
+         var format = run.CreateDataFormat(Model, index);
+         if (run.PointerSources != null && run.Start == index) {
+            var name = Model.GetAnchorFromAddress(-1, run.Start);
+            format = new Anchor(format, name, run.FormatString, run.PointerSources);
+         }
+         currentView[p.X, p.Y] = new HexElement(Model[index], format);
       }
 
       private void RefreshBackingData() {

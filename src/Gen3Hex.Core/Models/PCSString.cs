@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 
 namespace HavenSoft.Gen3Hex.Core.Models {
    public class PCSString {
@@ -42,18 +43,22 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       }
 
       public static string Convert(IReadOnlyList<byte> data, int startIndex, int length) {
-         var result = "\"";
+         var result = new StringBuilder("\"", length * 2);
 
          for (int i = 0; i < length; i++) {
-            if (PCS[data[startIndex + i]] == null) return null;
-            result += PCS[data[startIndex + i]];
-            if (Newlines.Contains(data[startIndex + i])) result += Environment.NewLine;
-            if (data[startIndex + i] == Escape) {
-               result += data[startIndex + i + 1].ToString("X2");
+            var currentByte = data[startIndex + i];
+            if (PCS[currentByte] == null) return null;
+            result.Append(PCS[currentByte]);
+
+            // this line optimized for maximum speed. Otherwise would like to use the Newlines array.
+            if (currentByte == 0xFB || currentByte == 0xFE) result.Append(Environment.NewLine);
+
+            if (currentByte == Escape) {
+               result.Append(data[startIndex + i + 1].ToString("X2"));
                i++;
             }
          }
-         return result;
+         return result.ToString();
       }
 
       public static List<byte> Convert(string input) {

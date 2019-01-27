@@ -160,12 +160,19 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          return true;
       }
 
+      private string cachedCurrentString;
+      private int currentCachedStartIndex = -1, currentCachedIndex = -1;
       public override IDataFormat CreateDataFormat(IModel data, int index) {
          var offsets = ConvertByteOffsetToArrayOffset(index);
 
          if (ElementContent[offsets.SegmentIndex].Type == ElementContentType.PCS) {
-            var fullString = PCSString.Convert(data, offsets.SegmentStart, ElementContent[offsets.SegmentIndex].Length);
-            return PCSRun.CreatePCSFormat(data, offsets.SegmentStart, index, fullString);
+            if (currentCachedStartIndex != offsets.SegmentStart || currentCachedIndex > offsets.SegmentOffset) {
+               currentCachedStartIndex = offsets.SegmentStart;
+               currentCachedIndex = offsets.SegmentOffset;
+               cachedCurrentString = PCSString.Convert(data, offsets.SegmentStart, ElementContent[offsets.SegmentIndex].Length);
+            }
+
+            return PCSRun.CreatePCSFormat(data, offsets.SegmentStart, index, cachedCurrentString);
          }
 
          throw new NotImplementedException();
@@ -191,7 +198,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             var offset = Start + i * ElementLength;
             text.Append(ExtendArray);
             foreach (var segment in ElementContent) {
-               text.Append(segment.ToText(data, offset));
+               text.Append(segment.ToText(data, offset).Trim());
                offset += segment.Length;
             }
             text.Append(Environment.NewLine);

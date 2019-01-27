@@ -252,14 +252,19 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             return new ErrorInfo($"Format {format} was not understood.");
          }
 
-         var nextRun = model.GetNextRun(dataIndex);
+         var existingRun = model.GetNextRun(dataIndex);
+         var nextRun = existingRun.Start > dataIndex ? existingRun : model.GetNextRun(existingRun.Start + existingRun.Length);
 
          if (name.ToLower() == "null") {
             return new ErrorInfo("'null' is a reserved word and cannot be used as an anchor name.");
-         } else if (name == string.Empty && nextRun.Start != dataIndex) {
+         } else if (name == string.Empty && existingRun.Start != dataIndex) {
+            // if there isn't already a run here, then clearly there's nothing pointing here
             return new ErrorInfo("An anchor with nothing pointing to it must have a name.");
-         } else if (name == string.Empty && nextRun.PointerSources.Count == 0 && format != string.Empty) {
+         } else if (name == string.Empty && existingRun.PointerSources.Count == 0 && format != string.Empty) {
+            // the next run DOES start here, but nothing points to it
             return new ErrorInfo("An anchor with nothing pointing to it must have a name.");
+         } else if (nextRun.Start < runToWrite.Start + runToWrite.Length) {
+            return new ErrorInfo("An existing anchor starts before the new one ends.");
          } else {
             model.ObserveAnchorWritten(changeToken, name, runToWrite);
             return ErrorInfo.NoError;

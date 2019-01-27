@@ -26,7 +26,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             if (removedNames.Count > 0) return removedNames.Keys.Min();
 
             filteredRuns = removedRuns.Values.Where(removed => !(removed is NoInfoRun)).ToList();
-            if (removedRuns.Any()) return filteredRuns.Min(removed => removed.Start);
+            if (filteredRuns.Any()) return filteredRuns.Min(removed => removed.Start);
 
             if (removedUnmappedPointers.Count > 0) return removedUnmappedPointers.Keys.Min();
 

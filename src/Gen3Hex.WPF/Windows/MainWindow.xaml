@@ -122,6 +122,9 @@
          </StackPanel>
          <!-- Error -->
          <StackPanel Visibility="{Binding ShowError, Converter={StaticResource BoolToVisibility}}" Style="{StaticResource AnimateOnVisibilityChanged}">
+            <StackPanel.InputBindings>
+               <MouseBinding MouseAction="MiddleClick" Command="{Binding ClearError}"/>
+            </StackPanel.InputBindings>
             <TextBlock Margin="10,0" VerticalAlignment="Center" Text="{Binding ErrorMessage}" Foreground="{solarized:Theme Red}"/>
             <Button Command="{Binding ClearError}" Width="15">
                <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>

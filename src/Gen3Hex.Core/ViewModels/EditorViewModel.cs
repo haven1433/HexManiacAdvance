@@ -238,7 +238,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          };
 
          paste.CanExecute = arg => SelectedTab is ViewPort;
-         paste.Execute = arg => (SelectedTab as ViewPort)?.Edit(fileSystem.CopyText);
+         paste.Execute = arg => {
+            (SelectedTab as ViewPort)?.Edit(fileSystem.CopyText);
+         };
       }
 
       private void ImplementFindCommands() {

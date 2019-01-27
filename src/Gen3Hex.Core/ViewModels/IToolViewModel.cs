@@ -4,20 +4,29 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Windows.Input;
 
 namespace HavenSoft.Gen3Hex.Core.ViewModels {
-   public interface IToolTrayViewModel : IReadOnlyList<IToolViewModel>, INotifyPropertyChanged {
+   public interface IToolTrayViewModel : IReadOnlyList<IToolViewModel>, IActionRunner, INotifyPropertyChanged {
       int SelectedIndex { get; set; }
 
       PCSTool StringTool { get; }
+
+      IDisposable DeferUpdates { get; }
+   }
+
+   public interface IActionRunner {
+      void Schedule(Action action);
    }
 
    public class ToolTray : ViewModelCore, IToolTrayViewModel {
       private readonly IList<IToolViewModel> tools;
       private readonly StubCommand hideCommand;
       private readonly StubCommand stringToolCommand, tool2Command, tool3Command;
+      private readonly HashSet<Action> deferredWork = new HashSet<Action>();
 
       private int selectedIndex;
       public int SelectedIndex {
@@ -43,9 +52,24 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
       public IToolViewModel Tool3 => tools[2];
 
+      private StubDisposable currentDeferralToken;
+      public IDisposable DeferUpdates {
+         get {
+            Debug.Assert(currentDeferralToken == null);
+            currentDeferralToken = new StubDisposable {
+               Dispose = () => {
+                  foreach (var action in deferredWork) action();
+                  deferredWork.Clear();
+                  currentDeferralToken = null;
+               }
+            };
+            return currentDeferralToken;
+         }
+      }
+
       public ToolTray(IModel model, Selection selection, ChangeHistory<DeltaModel> history) {
          tools = new IToolViewModel[] {
-            new PCSTool(model, selection, history),
+            new PCSTool(model, selection, history, this),
             new FillerTool("Tool2"),
             new FillerTool("Tool3"),
          };
@@ -73,6 +97,14 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          SelectedIndex = -1;
       }
 
+      public void Schedule(Action action) {
+         if (currentDeferralToken != null) {
+            deferredWork.Add(action);
+         } else {
+            action();
+         }
+      }
+
       public IEnumerator<IToolViewModel> GetEnumerator() => tools.GetEnumerator();
 
       IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -86,6 +118,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       private readonly IModel model;
       private readonly Selection selection;
       private readonly ChangeHistory<DeltaModel> history;
+      private readonly IActionRunner runner;
       public string Name => "String";
 
       private int contentIndex;
@@ -124,8 +157,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             if (run.Start > value) return;
             if (TryUpdate(ref address, run.Start)) {
                if (run is PCSRun || run is ArrayRun) {
-                  DataForCurrentRunChanged(run);
-                  history.ChangeCompleted();
+                  runner.Schedule(DataForCurrentRunChanged);
                   Enabled = true;
                } else {
                   Enabled = false;
@@ -143,9 +175,15 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public event EventHandler<IFormattedRun> ModelDataChanged;
       public event EventHandler<(int originalLocation, int newLocation)> ModelDataMoved;
 
-      public PCSTool(IModel model, Selection selection, ChangeHistory<DeltaModel> history) => (this.model, this.selection, this.history) = (model, selection, history);
+      public PCSTool(IModel model, Selection selection, ChangeHistory<DeltaModel> history, IActionRunner runner) {
+         this.model = model;
+         this.selection = selection;
+         this.history = history;
+         this.runner = runner;
+      }
 
-      public void DataForCurrentRunChanged(IFormattedRun run) {
+      public void DataForCurrentRunChanged() {
+         var run = model.GetNextRun(address);
          if (run is PCSRun) {
             var newContent = PCSString.Convert(model, run.Start, run.Length);
             newContent = newContent.Substring(1, newContent.Length - 2); // remove quotes
@@ -154,13 +192,20 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             return;
          } else if (run is ArrayRun array) {
             var lines = new string[array.ElementCount];
+            var offsets = array.ConvertByteOffsetToArrayOffset(address);
+            var segment = array.ElementContent[offsets.SegmentIndex];
             for (int i = 0; i < lines.Length; i++) {
-               var newContent = PCSString.Convert(model, run.Start + i * array.ElementLength, array.ElementLength).Trim();
+               var newContent = PCSString.Convert(model, offsets.SegmentStart + i * array.ElementLength, segment.Length).Trim();
                newContent = newContent.Substring(1, newContent.Length - 2); // remove quotes
                lines[i] = newContent;
             }
             if (lines.Length > 0) {
-               TryUpdate(ref content, lines.Aggregate((a, b) => a + Environment.NewLine + b), nameof(Content));
+               var builder = new StringBuilder();
+               for(int i = 0; i < lines.Length; i++) {
+                  builder.Append(lines[i]);
+                  if (i != lines.Length - 1) builder.Append(Environment.NewLine);
+               }
+               TryUpdate(ref content, builder.ToString(), nameof(Content));
             }
             return;
          }
@@ -231,6 +276,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          if (newRun.ElementCount != lines.Length) {
             newRun = newRun.Append(lines.Length - newRun.ElementCount);
             model.ObserveRunWritten(history.CurrentChange, newRun);
+            history.CurrentChange.AddRun(newRun);
          }
 
          ModelDataChanged?.Invoke(this, newRun);
@@ -249,8 +295,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          for (int i = 0; i < bytes.Count; i++) history.CurrentChange.ChangeData(model, newRun.Start + i, bytes[i]);
          run = new PCSRun(newRun.Start, bytes.Count, newRun.PointerSources);
          model.ObserveRunWritten(history.CurrentChange, run);
+         history.CurrentChange.AddRun(run);
          ModelDataChanged?.Invoke(this, run);
-         TryUpdate(ref address, newRun.Start, nameof(Address));
+         TryUpdate(ref address, run.Start, nameof(Address));
       }
    }
 
