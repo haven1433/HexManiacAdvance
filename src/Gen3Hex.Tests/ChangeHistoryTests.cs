@@ -194,7 +194,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CanUndoFormatChange() {
          var data = new byte[0x100];
-         var model = new PointerAndStringModel(data);
+         var model = new PokemonModel(data);
          var viewPort = new ViewPort(new LoadedFile("test.txt", data), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.SelectionStart = new Point(4, 0);
@@ -208,7 +208,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CanUndoDataMove() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.SelectionStart = new Point(8, 0);
@@ -228,7 +228,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CanUndoFromToolChange() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.Edit("^bob\"\" ");
@@ -248,7 +248,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void UndoCanHandleNameMove() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          // operation 1
@@ -279,7 +279,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void UndoWorksAfterMidPointerEdit() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.Edit("<000100>");
@@ -293,7 +293,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void UndoRedoRestoresUnmappedNames() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.Edit("<bob>");

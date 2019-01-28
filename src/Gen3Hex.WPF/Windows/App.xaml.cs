@@ -41,7 +41,7 @@ namespace HavenSoft.Gen3Hex.WPF.Windows {
 
          var loadedFile = fileSystem.LoadFile(fileName);
          var metadata = fileSystem.MetadataFor(fileName);
-         var model = new FirstLoadAutoSearchModel(loadedFile.Contents, metadata);
+         var model = new AutoSearchModel(loadedFile.Contents, metadata);
          editor.Add(new ViewPort(loadedFile, model));
          return editor;
       }

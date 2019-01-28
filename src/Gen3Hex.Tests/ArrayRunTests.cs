@@ -1,5 +1,6 @@
 ﻿using HavenSoft.Gen3Hex.Core;
 using HavenSoft.Gen3Hex.Core.Models;
+using HavenSoft.Gen3Hex.Core.Models.Runs;
 using HavenSoft.Gen3Hex.Core.ViewModels;
 using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
 using System;
@@ -12,7 +13,7 @@ namespace HavenSoft.Gen3Hex.Tests {
    public class ArrayRunTests {
       [Fact]
       public void CanParseStringArrayRun() {
-         var model = new PointerAndStringModel(new byte[0x200]);
+         var model = new PokemonModel(new byte[0x200]);
          ArrayRun.TryParse(model, "[name\"\"10]13", 12, null, out var arrayRun);
 
          Assert.Equal(12, arrayRun.Start);
@@ -26,7 +27,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
       [Fact]
       public void ArrayElementsMustHaveNames() {
-         var model = new PointerAndStringModel(new byte[0x200]);
+         var model = new PokemonModel(new byte[0x200]);
          var success = ArrayRun.TryParse(model, "[\"\"10]13", 12, null, out var arrayRun); // no name given for the format member
 
          Assert.False(success);
@@ -34,7 +35,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
       [Fact]
       public void CanParseMultiStringArrayRun() {
-         var model = new PointerAndStringModel(new byte[0x200]);
+         var model = new PokemonModel(new byte[0x200]);
          ArrayRun.TryParse(model, "[name\"\"10 detail\"\"12]13", 20, null, out var arrayRun);
 
          Assert.Equal(20, arrayRun.Start);
@@ -52,9 +53,9 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void ViewModelArrayRunAppearsLikeABunchOfStrings() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          ArrayRun.TryParse(model, "[name\"\"12]13", 12, null, out var arrayRun);
-         model.ObserveRunWritten(new DeltaModel(), arrayRun);
+         model.ObserveRunWritten(new ModelDelta(), arrayRun);
          var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 12, Height = 20 };
 
          // spot checks: it should look like a string that starts where the segment starts
@@ -85,7 +86,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CanParseArrayAnchorAddedFromViewPort() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.Edit("^bob[name\"\"14]12 ");
@@ -96,7 +97,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void ChangingAnchorTextWhileAnchorStartIsOutOfViewWorks() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^bob[name\"\"16]16 ");
 
@@ -116,7 +117,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          Array.Copy(PCSString.Convert("pal").ToArray(), 0, buffer, 0x10, 4);
          Array.Copy(PCSString.Convert("egg").ToArray(), 0, buffer, 0x14, 4);
 
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.Edit("^words[word\"\"4] "); // notice, no length is given
@@ -135,7 +136,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          Array.Copy(PCSString.Convert("pall").ToArray(), 0, buffer, 120, 5);
          Array.Copy(PCSString.Convert("eggg").ToArray(), 0, buffer, 125, 5);
 
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.Edit("^words[word\"\"5] "); // notice, no length is given
@@ -153,9 +154,9 @@ namespace HavenSoft.Gen3Hex.Tests {
          Array.Copy(PCSString.Convert("carr").ToArray(), 0, buffer, 15, 5);
          Array.Copy(PCSString.Convert("pall").ToArray(), 0, buffer, 20, 5);
          Array.Copy(PCSString.Convert("eggg").ToArray(), 0, buffer, 25, 5);
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          ArrayRun.TryParse(model, "[word\"\"5]", 0, null, out var arrayRun);
-         model.ObserveAnchorWritten(new DeltaModel(), "words", arrayRun);
+         model.ObserveAnchorWritten(new ModelDelta(), "words", arrayRun);
 
          var text = model.Copy(0, 0x20);
 
@@ -172,9 +173,9 @@ namespace HavenSoft.Gen3Hex.Tests {
          Array.Copy(PCSString.Convert("pall").ToArray(), 0, buffer, 20, 5);
          Array.Copy(PCSString.Convert("eggg").ToArray(), 0, buffer, 25, 5);
 
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          ArrayRun.TryParse(model, "[word\"\"5]", 0, null, out var arrayRun);
-         model.ObserveAnchorWritten(new DeltaModel(), "words", arrayRun);
+         model.ObserveAnchorWritten(new ModelDelta(), "words", arrayRun);
          var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
          viewPort.SelectionStart = new Point(6, 0);
 
@@ -186,7 +187,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CanPasteArray() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.Edit("^strings[name\"\"16] ");
@@ -199,7 +200,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void PastingArrayLeavesArrayFormat() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.Edit("^pokenames[name\"\"11] +\"??????????\"+\"BULBASAUR\"");
@@ -212,7 +213,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
       [Fact]
       public void ArrayIsRecognizedByStringTool() {
-         var changeToken = new DeltaModel();
+         var changeToken = new ModelDelta();
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          Array.Copy(PCSString.Convert("bobb").ToArray(), 0, buffer, 100, 5);
          Array.Copy(PCSString.Convert("tomm").ToArray(), 0, buffer, 105, 5);
@@ -221,12 +222,12 @@ namespace HavenSoft.Gen3Hex.Tests {
          Array.Copy(PCSString.Convert("pall").ToArray(), 0, buffer, 120, 5);
          Array.Copy(PCSString.Convert("eggg").ToArray(), 0, buffer, 125, 5);
 
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          model.WritePointer(changeToken, 200, 100);
          model.ObserveRunWritten(changeToken, new PointerRun(200));
 
          ArrayRun.TryParse(model, "[word\"\"5]", 100, null, out var arrayRun);
-         model.ObserveAnchorWritten(new DeltaModel(), "words", arrayRun);
+         model.ObserveAnchorWritten(new ModelDelta(), "words", arrayRun);
          var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.FollowLink(0, 7); // 7*16 = 112, right in the middle of our data
@@ -243,7 +244,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
       [Fact]
       public void EditingStringToolEditsArray() {
-         var changeToken = new DeltaModel();
+         var changeToken = new ModelDelta();
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          Array.Copy(PCSString.Convert("bobb").ToArray(), 0, buffer, 100, 5);
          Array.Copy(PCSString.Convert("tomm").ToArray(), 0, buffer, 105, 5);
@@ -252,12 +253,12 @@ namespace HavenSoft.Gen3Hex.Tests {
          Array.Copy(PCSString.Convert("pall").ToArray(), 0, buffer, 120, 5);
          Array.Copy(PCSString.Convert("eggg").ToArray(), 0, buffer, 125, 5);
 
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          model.WritePointer(changeToken, 200, 100);
          model.ObserveRunWritten(changeToken, new PointerRun(200));
 
          ArrayRun.TryParse(model, "[word\"\"5]", 100, null, out var arrayRun);
-         model.ObserveAnchorWritten(new DeltaModel(), "words", arrayRun);
+         model.ObserveAnchorWritten(new ModelDelta(), "words", arrayRun);
          var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.FollowLink(0, 7); // 7*16 = 112, right in the middle of our data
@@ -273,7 +274,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CanCutPasteArrayToFreeSpace() {
          // arrange
-         var delta = new DeltaModel();
+         var delta = new ModelDelta();
          var elements = new[] { "123", "alice", "candy land", "hello world", "fortify" };
          var buffer = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
          for (int i = 0; i < elements.Length; i++) {
@@ -281,7 +282,7 @@ namespace HavenSoft.Gen3Hex.Tests {
             while (content.Count < 0x10) content.Add(0x00);
             Array.Copy(content.ToArray(), 0, buffer, 0x10 * i + 0x20, 0x10);
          }
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          model.WritePointer(delta, 0x00, 0x20);
          model.ObserveRunWritten(delta, new PointerRun(0x00));
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
@@ -319,7 +320,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CannotCutPasteArrayToMakeItHitAnotherRun() {
          // arrange
-         var delta = new DeltaModel();
+         var delta = new ModelDelta();
          var errors = new List<string>();
          var elements = new[] { "123", "alice", "candy land", "hello world", "fortify" };
          var buffer = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
@@ -328,7 +329,7 @@ namespace HavenSoft.Gen3Hex.Tests {
             while (content.Count < 0x10) content.Add(0x00);
             Array.Copy(content.ToArray(), 0, buffer, 0x10 * i + 0x20, 0x10);
          }
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          model.WritePointer(delta, 0x00, 0x20);
          model.ObserveRunWritten(delta, new PointerRun(0x00));
          model.WritePointer(delta, 0x04, 0x90);
@@ -357,7 +358,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CanCutPasteArrayOverItself() {
          // arrange
-         var delta = new DeltaModel();
+         var delta = new ModelDelta();
          var errors = new List<string>();
          var elements = new[] { "123", "alice", "candy land", "hello world", "fortify" };
          var buffer = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
@@ -366,7 +367,7 @@ namespace HavenSoft.Gen3Hex.Tests {
             while (content.Count < 0x10) content.Add(0x00);
             Array.Copy(content.ToArray(), 0, buffer, 0x10 * i + 0x20, 0x10);
          }
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          model.WritePointer(delta, 0x00, 0x20);
          model.ObserveRunWritten(delta, new PointerRun(0x00));
          model.WritePointer(delta, 0x04, 0x90);
@@ -396,7 +397,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void AddingToAnArrayWithFixedLengthUpdatesTheAnchorFormat() {
          // arrange
-         var delta = new DeltaModel();
+         var delta = new ModelDelta();
          var errors = new List<string>();
          var elements = new[] { "123", "alice", "candy land", "hello world", "fortify" };
          var buffer = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
@@ -405,7 +406,7 @@ namespace HavenSoft.Gen3Hex.Tests {
             while (content.Count < 0x10) content.Add(0x00);
             Array.Copy(content.ToArray(), 0, buffer, 0x10 * i + 0x20, 0x10);
          }
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          model.WritePointer(delta, 0x00, 0x20);
          model.ObserveRunWritten(delta, new PointerRun(0x00));
          model.WritePointer(delta, 0x04, 0x90);

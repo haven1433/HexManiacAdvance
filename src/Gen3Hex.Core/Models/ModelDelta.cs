@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using HavenSoft.Gen3Hex.Core.Models.Runs;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace HavenSoft.Gen3Hex.Core.Models {
-   public class DeltaModel {
+   public class ModelDelta {
       private readonly Dictionary<int, byte> oldData = new Dictionary<int, byte>();
 
       private readonly Dictionary<int, IFormattedRun> addedRuns = new Dictionary<int, IFormattedRun>();
@@ -35,7 +36,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          }
       }
 
-      public virtual void ChangeData(IModel model, int index, byte data) {
+      public virtual void ChangeData(IDataModel model, int index, byte data) {
          if (!oldData.ContainsKey(index)) {
             if (model.Count <= index) {
                model.ExpandData(this, index);
@@ -82,8 +83,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          }
       }
 
-      public DeltaModel Revert(IModel model) {
-         var reverse = new DeltaModel();
+      public ModelDelta Revert(IDataModel model) {
+         var reverse = new ModelDelta();
 
          foreach (var kvp in oldData) {
             var (index, data) = (kvp.Key, kvp.Value);
@@ -104,8 +105,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       }
    }
 
-   public class NoDataChangeDeltaModel : DeltaModel {
-      public override void ChangeData(IModel model, int index, byte data) {
+   public class NoDataChangeDeltaModel : ModelDelta {
+      public override void ChangeData(IDataModel model, int index, byte data) {
          throw new System.InvalidOperationException("This operation is not allowed to change model data!");
       }
    }

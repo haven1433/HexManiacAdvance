@@ -1,4 +1,5 @@
 ﻿using HavenSoft.Gen3Hex.Core.Models;
+using HavenSoft.Gen3Hex.Core.ViewModels.Tools;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -22,7 +23,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       bool AnchorTextVisible { get; }
 
       HexElement this[int x, int y] { get; }
-      IModel Model { get; }
+      IDataModel Model { get; }
       bool IsSelected(Point point);
 
       IReadOnlyList<int> Find(string search);

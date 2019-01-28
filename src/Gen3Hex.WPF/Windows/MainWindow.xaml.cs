@@ -1,6 +1,7 @@
 ﻿using HavenSoft.Gen3Hex.Core;
 using HavenSoft.Gen3Hex.Core.Models;
 using HavenSoft.Gen3Hex.Core.ViewModels;
+using HavenSoft.Gen3Hex.Core.ViewModels.Tools;
 using HavenSoft.Gen3Hex.WPF.Controls;
 using System;
 using System.Collections.Generic;

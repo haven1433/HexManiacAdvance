@@ -1,124 +1,15 @@
 ﻿using HavenSoft.Gen3Hex.Core.Models;
+using HavenSoft.Gen3Hex.Core.Models.Runs;
 using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
 using System.Text;
-using System.Windows.Input;
 
-namespace HavenSoft.Gen3Hex.Core.ViewModels {
-   public interface IToolTrayViewModel : IReadOnlyList<IToolViewModel>, IActionRunner, INotifyPropertyChanged {
-      int SelectedIndex { get; set; }
-
-      PCSTool StringTool { get; }
-
-      IDisposable DeferUpdates { get; }
-   }
-
-   public interface IActionRunner {
-      void Schedule(Action action);
-   }
-
-   public class ToolTray : ViewModelCore, IToolTrayViewModel {
-      private readonly IList<IToolViewModel> tools;
-      private readonly StubCommand hideCommand;
-      private readonly StubCommand stringToolCommand, tool2Command, tool3Command;
-      private readonly HashSet<Action> deferredWork = new HashSet<Action>();
-
-      private int selectedIndex;
-      public int SelectedIndex {
-         get => selectedIndex;
-         set {
-            if (TryUpdate(ref selectedIndex, value)) {
-               hideCommand.CanExecuteChanged.Invoke(hideCommand, EventArgs.Empty);
-            }
-         }
-      }
-
-      public int Count => tools.Count;
-      public IToolViewModel this[int index] => tools[index];
-
-      public ICommand HideCommand => hideCommand;
-      public ICommand StringToolCommand => stringToolCommand;
-      public ICommand Tool2Command => tool2Command;
-      public ICommand Tool3Command => tool3Command;
-
-      public PCSTool StringTool => (PCSTool)tools[0];
-
-      public IToolViewModel Tool2 => tools[1];
-
-      public IToolViewModel Tool3 => tools[2];
-
-      private StubDisposable currentDeferralToken;
-      public IDisposable DeferUpdates {
-         get {
-            Debug.Assert(currentDeferralToken == null);
-            currentDeferralToken = new StubDisposable {
-               Dispose = () => {
-                  foreach (var action in deferredWork) action();
-                  deferredWork.Clear();
-                  currentDeferralToken = null;
-               }
-            };
-            return currentDeferralToken;
-         }
-      }
-
-      public ToolTray(IModel model, Selection selection, ChangeHistory<DeltaModel> history) {
-         tools = new IToolViewModel[] {
-            new PCSTool(model, selection, history, this),
-            new FillerTool("Tool2"),
-            new FillerTool("Tool3"),
-         };
-
-         stringToolCommand = new StubCommand {
-            CanExecute = ICommandExtensions.CanAlwaysExecute,
-            Execute = arg => SelectedIndex = selectedIndex == 0 ? -1 : 0,
-         };
-
-         tool2Command = new StubCommand {
-            CanExecute = ICommandExtensions.CanAlwaysExecute,
-            Execute = arg => SelectedIndex = selectedIndex == 1 ? -1 : 1,
-         };
-
-         tool3Command = new StubCommand {
-            CanExecute = ICommandExtensions.CanAlwaysExecute,
-            Execute = arg => SelectedIndex = selectedIndex == 2 ? -1 : 2,
-         };
-
-         hideCommand = new StubCommand {
-            CanExecute = arg => SelectedIndex != -1,
-            Execute = arg => SelectedIndex = -1,
-         };
-
-         SelectedIndex = -1;
-      }
-
-      public void Schedule(Action action) {
-         if (currentDeferralToken != null) {
-            deferredWork.Add(action);
-         } else {
-            action();
-         }
-      }
-
-      public IEnumerator<IToolViewModel> GetEnumerator() => tools.GetEnumerator();
-
-      IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-   }
-
-   public interface IToolViewModel : INotifyPropertyChanged {
-      string Name { get; }
-   }
-
+namespace HavenSoft.Gen3Hex.Core.ViewModels.Tools {
    public class PCSTool : ViewModelCore, IToolViewModel {
-      private readonly IModel model;
+      private readonly IDataModel model;
       private readonly Selection selection;
-      private readonly ChangeHistory<DeltaModel> history;
-      private readonly IActionRunner runner;
+      private readonly ChangeHistory<ModelDelta> history;
+      private readonly IToolTrayViewModel runner;
       public string Name => "String";
 
       private int contentIndex;
@@ -175,7 +66,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public event EventHandler<IFormattedRun> ModelDataChanged;
       public event EventHandler<(int originalLocation, int newLocation)> ModelDataMoved;
 
-      public PCSTool(IModel model, Selection selection, ChangeHistory<DeltaModel> history, IActionRunner runner) {
+      public PCSTool(IDataModel model, Selection selection, ChangeHistory<ModelDelta> history, IToolTrayViewModel runner) {
          this.model = model;
          this.selection = selection;
          this.history = history;
@@ -299,11 +190,5 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          ModelDataChanged?.Invoke(this, run);
          TryUpdate(ref address, run.Start, nameof(Address));
       }
-   }
-
-   public class FillerTool : IToolViewModel {
-      public string Name { get; }
-      public FillerTool(string name) { Name = name; }
-      public event PropertyChangedEventHandler PropertyChanged;
    }
 }

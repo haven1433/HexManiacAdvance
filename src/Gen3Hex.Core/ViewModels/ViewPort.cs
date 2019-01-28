@@ -1,5 +1,7 @@
 ﻿using HavenSoft.Gen3Hex.Core.Models;
+using HavenSoft.Gen3Hex.Core.Models.Runs;
 using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
+using HavenSoft.Gen3Hex.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -10,10 +12,10 @@ using System.IO;
 using System.Linq;
 using System.Windows.Input;
 using static HavenSoft.Gen3Hex.Core.ICommandExtensions;
-using static HavenSoft.Gen3Hex.Core.Models.BaseRun;
-using static HavenSoft.Gen3Hex.Core.Models.PointerRun;
-using static HavenSoft.Gen3Hex.Core.Models.PCSRun;
-using static HavenSoft.Gen3Hex.Core.Models.ArrayRun;
+using static HavenSoft.Gen3Hex.Core.Models.Runs.ArrayRun;
+using static HavenSoft.Gen3Hex.Core.Models.Runs.BaseRun;
+using static HavenSoft.Gen3Hex.Core.Models.Runs.PCSRun;
+using static HavenSoft.Gen3Hex.Core.Models.Runs.PointerRun;
 
 namespace HavenSoft.Gen3Hex.Core.ViewModels {
    /// <summary>
@@ -151,13 +153,13 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
       #region Undo / Redo
 
-      private readonly ChangeHistory<DeltaModel> history;
+      private readonly ChangeHistory<ModelDelta> history;
 
       public ICommand Undo => history.Undo;
 
       public ICommand Redo => history.Redo;
 
-      private DeltaModel RevertChanges(DeltaModel changes) {
+      private ModelDelta RevertChanges(ModelDelta changes) {
          var reverse = changes.Revert(Model);
          var point = scroll.DataIndexToViewPoint(reverse.EarliestChange);
          if (!scroll.ScrollToPoint(ref point)) RefreshBackingData();
@@ -240,7 +242,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                var index = scroll.ViewPointToDataIndex(SelectionStart);
                var run = Model.GetNextRun(index);
                if (run.Start == index) {
-                  var errorInfo = PointerAndStringModel.ApplyAnchor(Model, history.CurrentChange, index, AnchorText);
+                  var errorInfo = PokemonModel.ApplyAnchor(Model, history.CurrentChange, index, AnchorText);
                   if (errorInfo == ErrorInfo.NoError) {
                      OnError?.Invoke(this, string.Empty);
                      RefreshBackingData();
@@ -265,7 +267,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          }
       }
 
-      public IModel Model { get; private set; }
+      public IDataModel Model { get; private set; }
 
 #pragma warning disable 0067 // it's ok if events are never used
       public event EventHandler<string> OnError;
@@ -278,8 +280,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
       public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
 
-      public ViewPort(LoadedFile file, IModel model = null) {
-         history = new ChangeHistory<DeltaModel>(RevertChanges);
+      public ViewPort(LoadedFile file, IDataModel model = null) {
+         history = new ChangeHistory<ModelDelta>(RevertChanges);
          history.PropertyChanged += HistoryPropertyChanged;
 
          Model = model ?? new BasicModel(file.Contents);
@@ -844,7 +846,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       private bool CompleteAnchorEdit(Point point) {
          var underEdit = (UnderEdit)currentView[point.X, point.Y].Format;
          var index = scroll.ViewPointToDataIndex(point);
-         var errorInfo = PointerAndStringModel.ApplyAnchor(Model, history.CurrentChange, index, underEdit.CurrentText);
+         var errorInfo = PokemonModel.ApplyAnchor(Model, history.CurrentChange, index, underEdit.CurrentText);
          ClearEdits(point);
          UpdateToolsFromSelection(index);
 
@@ -1047,12 +1049,12 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       /// Given a data format, decide how to best display that as text
       /// </summary>
       private class ConvertCellToText : IDataFormatVisitor {
-         private readonly IModel buffer;
+         private readonly IDataModel buffer;
          private readonly int index;
 
          public string Result { get; private set; }
 
-         public ConvertCellToText(IModel buffer, int index) {
+         public ConvertCellToText(IDataModel buffer, int index) {
             this.buffer = buffer;
             this.index = index;
          }
@@ -1088,11 +1090,11 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       /// For example, cleared data with no known format gets 0xFF.
       /// </summary>
       private class DataClear : IDataFormatVisitor {
-         private readonly IModel buffer;
-         private readonly DeltaModel currentChange;
+         private readonly IDataModel buffer;
+         private readonly ModelDelta currentChange;
          private readonly int index;
 
-         public DataClear(IModel data, DeltaModel delta, int index) {
+         public DataClear(IDataModel data, ModelDelta delta, int index) {
             buffer = data;
             currentChange = delta;
             this.index = index;

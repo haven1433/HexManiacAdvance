@@ -1,123 +1,16 @@
 ﻿using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using static HavenSoft.Gen3Hex.Core.Models.BaseRun;
-using static HavenSoft.Gen3Hex.Core.Models.ArrayRun;
-using static HavenSoft.Gen3Hex.Core.Models.PCSRun;
+using static HavenSoft.Gen3Hex.Core.Models.Runs.BaseRun;
+using static HavenSoft.Gen3Hex.Core.Models.Runs.ArrayRun;
+using static HavenSoft.Gen3Hex.Core.Models.Runs.PCSRun;
+using HavenSoft.Gen3Hex.Core.Models.Runs;
 
 namespace HavenSoft.Gen3Hex.Core.Models {
-   public interface IModel : IReadOnlyList<byte> {
-      byte[] RawData { get; }
-      new byte this[int index] { get; set; }
-
-      /// <summary>
-      /// If dataIndex is in the middle of a run, returns that run.
-      /// If dataIndex is between runs, returns the next available run.
-      /// If dataIndex is before the first run, return the first run.
-      /// If dataIndex is after the last run, return null;
-      /// </summary>
-      IFormattedRun GetNextRun(int dataIndex);
-      bool IsAtEndOfArray(int dataIndex, out ArrayRun arrayRun); // is this byte the first one after the end of an array run? (also return true if the array is length 0 and starts right here)
-
-      void ObserveRunWritten(DeltaModel changeToken, IFormattedRun run);
-      void ObserveAnchorWritten(DeltaModel changeToken, string anchorName, IFormattedRun run);
-      void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd);
-      IFormattedRun RelocateForExpansion(DeltaModel changeToken, IFormattedRun run, int minimumLength);
-      void ClearFormat(DeltaModel changeToken, int start, int length);
-      void ClearFormatAndData(DeltaModel changeToken, int start, int length);
-      string Copy(int start, int length);
-
-      void Load(byte[] newData, StoredMetadata metadata);
-      void ExpandData(DeltaModel changeToken, int minimumLength);
-
-      void WritePointer(DeltaModel changeToken, int address, int pointerDestination);
-      void WriteValue(DeltaModel changeToken, int address, int value);
-      int ReadPointer(int address);
-      int ReadValue(int address);
-
-      int GetAddressFromAnchor(DeltaModel changeToken, int requestSource, string anchor);
-      string GetAnchorFromAddress(int requestSource, int destination);
-      IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial);
-      StoredMetadata ExportMetadata();
-   }
-
-   public abstract class BaseModel : IModel {
-      public byte[] RawData { get; private set; }
-
-      public BaseModel(byte[] data) => RawData = data;
-
-      public byte this[int index] { get => RawData[index]; set => RawData[index] = value; }
-
-      byte IReadOnlyList<byte>.this[int index] => RawData[index];
-
-      public int Count => RawData.Length;
-
-      public abstract void ClearFormat(DeltaModel changeToken, int start, int length);
-
-      public abstract void ClearFormatAndData(DeltaModel changeToken, int originalStart, int length);
-
-      public abstract string Copy(int start, int length);
-
-      public void ExpandData(DeltaModel changeToken, int minimumIndex) {
-         if (Count > minimumIndex) return;
-
-         var newData = new byte[minimumIndex + 1];
-         Array.Copy(RawData, newData, RawData.Length);
-         RawData = newData;
-      }
-
-      public abstract int GetAddressFromAnchor(DeltaModel changeToken, int requestSource, string anchor);
-
-      public abstract string GetAnchorFromAddress(int requestSource, int destination);
-
-      public IEnumerator<byte> GetEnumerator() => ((IList<byte>)RawData).GetEnumerator();
-
-      public abstract IFormattedRun GetNextRun(int dataIndex);
-
-      public abstract bool IsAtEndOfArray(int dataIndex, out ArrayRun arrayRun);
-
-      public virtual void Load(byte[] newData, StoredMetadata metadata) => RawData = newData;
-
-      public abstract void ObserveAnchorWritten(DeltaModel changeToken, string anchorName, IFormattedRun run);
-
-      public abstract void ObserveRunWritten(DeltaModel changeToken, IFormattedRun run);
-
-      public abstract void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd);
-
-      public abstract IFormattedRun RelocateForExpansion(DeltaModel changeToken, IFormattedRun run, int minimumLength);
-
-      public int ReadValue(int index) {
-         int word = 0;
-         word |= RawData[index + 0] << 0;
-         word |= RawData[index + 1] << 8;
-         word |= RawData[index + 2] << 16;
-         word |= RawData[index + 3] << 24;
-         return word;
-      }
-
-      public void WriteValue(DeltaModel changeToken, int index, int word) {
-         changeToken.ChangeData(this, index + 0, (byte)(word >> 0));
-         changeToken.ChangeData(this, index + 1, (byte)(word >> 8));
-         changeToken.ChangeData(this, index + 2, (byte)(word >> 16));
-         changeToken.ChangeData(this, index + 3, (byte)(word >> 24));
-      }
-
-      public int ReadPointer(int index) => ReadValue(index) - 0x08000000;
-
-      public void WritePointer(DeltaModel changeToken, int address, int pointerDestination) => WriteValue(changeToken, address, pointerDestination + 0x08000000);
-
-      public virtual IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial) => new string[0];
-
-      public virtual StoredMetadata ExportMetadata() => null;
-
-      IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-   }
-
-   public class PointerAndStringModel : BaseModel {
+   public class PokemonModel : BaseModel {
       // list of runs, in sorted address order. Includes no names
       private readonly List<IFormattedRun> runs = new List<IFormattedRun>();
 
@@ -133,7 +26,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       #region Constructor
 
-      public PointerAndStringModel(byte[] data, StoredMetadata metadata = null) : base(data) {
+      public PokemonModel(byte[] data, StoredMetadata metadata = null) : base(data) {
          Initialize(metadata);
       }
 
@@ -148,7 +41,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          if (metadata == null) return;
 
          foreach (var anchor in metadata.NamedAnchors) {
-            ApplyAnchor(this, new DeltaModel(), anchor.Address, AnchorStart + anchor.Name + anchor.Format);
+            ApplyAnchor(this, new ModelDelta(), anchor.Address, AnchorStart + anchor.Name + anchor.Format);
          }
          foreach (var unmappedPointer in metadata.UnmappedPointers) {
             sourceToUnmappedName[unmappedPointer.Address] = unmappedPointer.Name;
@@ -209,7 +102,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             var length = PCSString.ReadString(RawData, destination, false);
             if (length < 2) continue;
             if (GetNextRun(destination + 1).Start < destination + length) continue;
-            ObserveRunWritten(new DeltaModel(), new PCSRun(destination, length, pointersForDestination[destination]));
+            ObserveRunWritten(new ModelDelta(), new PCSRun(destination, length, pointersForDestination[destination]));
          }
       }
 
@@ -222,7 +115,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       #endregion
 
-      public static ErrorInfo ApplyAnchor(IModel model, DeltaModel changeToken, int dataIndex, string text) {
+      public static ErrorInfo ApplyAnchor(IDataModel model, ModelDelta changeToken, int dataIndex, string text) {
          var name = text.Substring(1).Trim();
          string format = string.Empty;
 
@@ -271,7 +164,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          }
       }
 
-      public static bool SpanContainsAnchor(IModel model, int start, int length) {
+      public static bool SpanContainsAnchor(IDataModel model, int start, int length) {
          var run = model.GetNextRun(start + 1);
 
          // if we're starting in the middle of a run, get the next one
@@ -297,7 +190,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          return false;
       }
 
-      public override int GetAddressFromAnchor(DeltaModel changeToken, int requestSource, string anchor) {
+      public override int GetAddressFromAnchor(ModelDelta changeToken, int requestSource, string anchor) {
          if (addressForAnchor.TryGetValue(anchor, out int address)) {
             return address;
          }
@@ -355,7 +248,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          return arrayRun != null && runs[index].Start + runs[index].Length == dataIndex;
       }
 
-      public override void ObserveRunWritten(DeltaModel changeToken, IFormattedRun run) {
+      public override void ObserveRunWritten(ModelDelta changeToken, IFormattedRun run) {
          var index = BinarySearch(run.Start);
          if (index < 0) {
             index = ~index;
@@ -412,7 +305,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          }
       }
 
-      public override void ObserveAnchorWritten(DeltaModel changeToken, string anchorName, IFormattedRun run) {
+      public override void ObserveAnchorWritten(ModelDelta changeToken, string anchorName, IFormattedRun run) {
          int location = run.Start;
          int index = BinarySearch(location);
          if (index < 0) {
@@ -492,7 +385,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          }
       }
 
-      public override IFormattedRun RelocateForExpansion(DeltaModel changeToken, IFormattedRun run, int minimumLength) {
+      public override IFormattedRun RelocateForExpansion(ModelDelta changeToken, IFormattedRun run, int minimumLength) {
          const int SpacerLength = 0x10;
          if (minimumLength <= run.Length) return run;
          if (CanSafelyUse(run.Start + run.Length, run.Start + minimumLength)) return run;
@@ -530,7 +423,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          return MoveRun(changeToken, run, RawData.Length - minimumLength - 1);
       }
 
-      public override void ClearFormat(DeltaModel changeToken, int originalStart, int length) {
+      public override void ClearFormat(ModelDelta changeToken, int originalStart, int length) {
          int start = originalStart;
          for (var run = GetNextRun(start); length > 0 && run != null; run = GetNextRun(start)) {
             if (run.Start >= start + length) return;
@@ -544,7 +437,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          }
       }
 
-      public override void ClearFormatAndData(DeltaModel changeToken, int originalStart, int length) {
+      public override void ClearFormatAndData(ModelDelta changeToken, int originalStart, int length) {
          int start = originalStart;
          for (var run = GetNextRun(start); length > 0 && run != null; run = GetNextRun(start)) {
             if (start < run.Start) {
@@ -562,7 +455,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          }
       }
 
-      private void ClearAnchorFormat(DeltaModel changeToken, int originalStart, IFormattedRun run) {
+      private void ClearAnchorFormat(ModelDelta changeToken, int originalStart, IFormattedRun run) {
          if (run.Start != originalStart) {
             // delete the anchor
             if (anchorForAddress.TryGetValue(run.Start, out string name)) {
@@ -600,7 +493,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          }
       }
 
-      private void ClearPointerFormat(DeltaModel changeToken, PointerRun pointerRun) {
+      private void ClearPointerFormat(ModelDelta changeToken, PointerRun pointerRun) {
          // remove the reference from the anchor we're pointing to as well
          var destination = ReadPointer(pointerRun.Start);
          if (destination != Pointer.NULL && destination >= 0 && destination < Count) {
@@ -727,7 +620,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          return new StoredMetadata(anchors, unmappedPointers);
       }
 
-      private void RemoveAnchorByName(DeltaModel changeToken, string anchorName) {
+      private void RemoveAnchorByName(ModelDelta changeToken, string anchorName) {
          var index = BinarySearch(addressForAnchor[anchorName]);
          var oldAnchor = runs[index];
          changeToken.RemoveRun(oldAnchor);
@@ -753,7 +646,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       /// <returns>
       /// The list of sources that point at the new anchor
       /// </returns>
-      private IReadOnlyList<int> GetSourcesPointingToNewAnchor(DeltaModel changeToken, string anchorName) {
+      private IReadOnlyList<int> GetSourcesPointingToNewAnchor(ModelDelta changeToken, string anchorName) {
          if (!addressForAnchor.TryGetValue(anchorName, out int location)) return new List<int>();     // new anchor is unnamed, so nothing points to it yet
          if (!unmappedNameToSources.TryGetValue(anchorName, out var sources)) return new List<int>(); // no pointer was waiting for this anchor to be created
 
@@ -770,7 +663,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          return sources;
       }
 
-      private IFormattedRun MoveRun(DeltaModel changeToken, IFormattedRun run, int newStart) {
+      private IFormattedRun MoveRun(ModelDelta changeToken, IFormattedRun run, int newStart) {
          // repoint
          foreach (var source in run.PointerSources) {
             WritePointer(changeToken, source, newStart);
@@ -832,78 +725,6 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       private int BinarySearch(int start) {
          var index = runs.BinarySearch(new CompareFormattedRun(start), FormattedRunComparer.Instance);
          return index;
-      }
-   }
-
-   public class FirstLoadAutoSearchModel : PointerAndStringModel {
-      public FirstLoadAutoSearchModel(byte[] data, StoredMetadata metadata = null) : base(data, metadata) {
-         if (metadata != null) return;
-
-         var noChangeDelta = new NoDataChangeDeltaModel();
-
-         ClearFormat(noChangeDelta, -1, 0x101); // starting before the beginning to clear the anchor at the very start
-
-         const string Ruby = "AXVE";
-         const string Sapphire = "AXPE";
-         const string Emerald = "BPEE";
-         const string FireRed = "BPRE";
-         const string LeafGreen = "BPGE";
-
-         var gameCode = string.Concat(Enumerable.Range(0xAC, 4).Select(i => ((char)data[i]).ToString()));
-
-         // in vanilla emerald, this pointer isn't four-byte aligned
-         // it's at the very front of the ROM, so if there's no metadata we can be pretty sure that the pointer is still there
-         if (gameCode == Emerald && data[0x1C3] == 0x08) ObserveRunWritten(noChangeDelta, new PointerRun(0x1C0));
-
-         // pokenames
-         if (TrySearch(this, "[name\"\"11]", out var pokenames)) {
-            ObserveAnchorWritten(noChangeDelta, "pokenames", pokenames);
-         }
-
-         // movenames
-         if (TrySearch(this, "[name\"\"13]", out var movenames)) {
-            ObserveAnchorWritten(noChangeDelta, "movenames", movenames);
-         }
-
-         // abilitynames / trainer names
-         if (gameCode == Ruby || gameCode == Sapphire || gameCode == Emerald) {
-            if (TrySearch(this, "[name\"\"13]", out var abilitynames)) {
-               ObserveAnchorWritten(noChangeDelta, "abilitynames", abilitynames);
-            }
-            if (TrySearch(this, "[name\"\"13]", out var trainerclassnames)) {
-               ObserveAnchorWritten(noChangeDelta, "trainerclassnames", trainerclassnames);
-            }
-         } else {
-            if (TrySearch(this, "[name\"\"13]", out var trainerclassnames)) {
-               ObserveAnchorWritten(noChangeDelta, "trainerclassnames", trainerclassnames);
-            }
-            if (TrySearch(this, "[name\"\"13]", out var abilitynames)) {
-               ObserveAnchorWritten(noChangeDelta, "abilitynames", abilitynames);
-            }
-         }
-      }
-   }
-
-   public class BasicModel : BaseModel {
-
-      public BasicModel(byte[] data) : base(data) { }
-
-      public override int GetAddressFromAnchor(DeltaModel changeToken, int requestSource, string anchor) => Pointer.NULL;
-      public override string GetAnchorFromAddress(int requestSource, int destination) => string.Empty;
-      public override IFormattedRun GetNextRun(int dataIndex) => NoInfoRun.NullRun;
-      public override bool IsAtEndOfArray(int dataIndex, out ArrayRun arrayRun) { arrayRun = null; return false; }
-      public override void ObserveRunWritten(DeltaModel changeToken, IFormattedRun run) { }
-      public override void ObserveAnchorWritten(DeltaModel changeToken, string anchorName, IFormattedRun run) { }
-      public override void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd) { }
-      public override IFormattedRun RelocateForExpansion(DeltaModel changeToken, IFormattedRun run, int minimumLength) => throw new NotImplementedException();
-      public override void ClearFormat(DeltaModel changeToken, int start, int length) { }
-      public override void ClearFormatAndData(DeltaModel changeToken, int start, int length) {
-         for (int i = 0; i < length; i++) changeToken.ChangeData(this, start + i, 0xFF);
-      }
-
-      public override string Copy(int start, int length) {
-         var bytes = Enumerable.Range(start, length).Select(i => RawData[i]);
-         return string.Join(" ", bytes.Select(value => value.ToString("X2")));
       }
    }
 }

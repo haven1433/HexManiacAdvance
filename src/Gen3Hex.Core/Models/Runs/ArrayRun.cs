@@ -1,11 +1,10 @@
 ﻿using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace HavenSoft.Gen3Hex.Core.Models {
+namespace HavenSoft.Gen3Hex.Core.Models.Runs {
    public enum ElementContentType {
       Unknown,
       PCS,
@@ -45,7 +44,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       public const char ArrayStart = '[';
       public const char ArrayEnd = ']';
 
-      private readonly IModel owner;
+      private readonly IDataModel owner;
 
       // length in bytes of the entire array
       public override int Length { get; }
@@ -63,7 +62,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       // composition of each element
       public IReadOnlyList<ArrayRunElementSegment> ElementContent { get; }
 
-      private ArrayRun(IModel data, string format, int start, IReadOnlyList<int> pointerSources) : base(start, pointerSources) {
+      private ArrayRun(IDataModel data, string format, int start, IReadOnlyList<int> pointerSources) : base(start, pointerSources) {
          owner = data;
          FormatString = format;
          var closeArray = format.LastIndexOf(ArrayEnd.ToString());
@@ -95,7 +94,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          Length = ElementLength * ElementCount;
       }
 
-      private ArrayRun(IModel data, string format, int start, int elementCount, IReadOnlyList<ArrayRunElementSegment> segments, IReadOnlyList<int> pointerSources) : base(start, pointerSources) {
+      private ArrayRun(IDataModel data, string format, int start, int elementCount, IReadOnlyList<ArrayRunElementSegment> segments, IReadOnlyList<int> pointerSources) : base(start, pointerSources) {
          owner = data;
          FormatString = format;
          ElementContent = segments;
@@ -105,7 +104,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          Length = ElementLength * ElementCount;
       }
 
-      public static bool TryParse(IModel data, string format, int start, IReadOnlyList<int> pointerSources, out ArrayRun self) {
+      public static bool TryParse(IDataModel data, string format, int start, IReadOnlyList<int> pointerSources, out ArrayRun self) {
          try {
             self = new ArrayRun(data, format, start, pointerSources);
          } catch {
@@ -116,7 +115,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          return true;
       }
 
-      public static bool TrySearch(IModel data, string format, out ArrayRun self) {
+      public static bool TrySearch(IDataModel data, string format, out ArrayRun self) {
          self = null;
          var closeArray = format.LastIndexOf(ArrayEnd.ToString());
          if (!format.StartsWith(ArrayStart.ToString()) || closeArray == -1) throw new FormatException($"Array Content must be wrapped in {ArrayStart}{ArrayEnd}");
@@ -162,7 +161,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       private string cachedCurrentString;
       private int currentCachedStartIndex = -1, currentCachedIndex = -1;
-      public override IDataFormat CreateDataFormat(IModel data, int index) {
+      public override IDataFormat CreateDataFormat(IDataModel data, int index) {
          var offsets = ConvertByteOffsetToArrayOffset(index);
 
          if (ElementContent[offsets.SegmentIndex].Type == ElementContentType.PCS) {
@@ -244,7 +243,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       private int ParseLengthFromAnchor() {
          // length is based on another array
-         int address = owner.GetAddressFromAnchor(new DeltaModel(), -1, LengthFromAnchor);
+         int address = owner.GetAddressFromAnchor(new ModelDelta(), -1, LengthFromAnchor);
          if (address == Pointer.NULL) {
             // the requested name was unknown... length is zero for now
             return 0;
@@ -260,7 +259,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          return run.ElementCount;
       }
 
-      private static bool DataMatchesElementFormat(IModel owner, int start, IReadOnlyList<ArrayRunElementSegment> segments) {
+      private static bool DataMatchesElementFormat(IDataModel owner, int start, IReadOnlyList<ArrayRunElementSegment> segments) {
          foreach (var segment in segments) {
             if (start + segment.Length > owner.Count) return false;
             if (!DataMatchesSegmentFormat(owner, start, segment, segments.Count == 1)) return false;
@@ -269,7 +268,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          return true;
       }
 
-      private static bool DataMatchesSegmentFormat(IModel owner, int start, ArrayRunElementSegment segment, bool isSingleSegmentRun) {
+      private static bool DataMatchesSegmentFormat(IDataModel owner, int start, ArrayRunElementSegment segment, bool isSingleSegmentRun) {
          switch (segment.Type) {
             case ElementContentType.PCS:
                int readLength = PCSString.ReadString(owner, start, true, segment.Length);

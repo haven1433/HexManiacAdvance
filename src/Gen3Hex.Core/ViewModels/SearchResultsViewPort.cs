@@ -1,4 +1,5 @@
 ﻿using HavenSoft.Gen3Hex.Core.Models;
+using HavenSoft.Gen3Hex.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -66,7 +67,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public ICommand Forward { get; } = new StubCommand();
       public ICommand Close => close;
 
-      public IModel Model => null;
+      public IDataModel Model => null;
 
       public bool HasTools => false;
 

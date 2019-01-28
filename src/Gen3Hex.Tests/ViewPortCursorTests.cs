@@ -213,7 +213,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CanExpandSelection() {
          var data = new byte[0x200];
-         var model = new PointerAndStringModel(data);
+         var model = new PokemonModel(data);
          var viewPort = new ViewPort(new LoadedFile("test.txt", data), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.Edit("<000100>");

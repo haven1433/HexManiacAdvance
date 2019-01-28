@@ -1,5 +1,6 @@
 ﻿using HavenSoft.Gen3Hex.Core;
 using HavenSoft.Gen3Hex.Core.Models;
+using HavenSoft.Gen3Hex.Core.Models.Runs;
 using HavenSoft.Gen3Hex.Core.ViewModels;
 using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
 using System;
@@ -12,8 +13,8 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CanRecognizeString() {
          var buffer = new byte[0x100];
-         var model = new PointerAndStringModel(buffer);
-         var token = new DeltaModel();
+         var model = new PokemonModel(buffer);
+         var token = new ModelDelta();
 
          var data = PCSString.Convert("Hello World!").ToArray();
          Array.Copy(data, 0, buffer, 0x10, data.Length);
@@ -26,7 +27,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CanWriteString() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x100).ToArray();
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model);
 
          viewPort.Edit("^bob\"\" \"Hello World!\"");
@@ -40,11 +41,11 @@ namespace HavenSoft.Gen3Hex.Tests {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x100).ToArray();
          var data = PCSString.Convert("Hello World!").ToArray();
          Array.Copy(data, 0, buffer, 0x10, data.Length);
-         var model1 = new PointerAndStringModel(buffer);
-         var token = new DeltaModel();
+         var model1 = new PokemonModel(buffer);
+         var token = new ModelDelta();
          model1.WritePointer(token, 0x00, 0x10);
 
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
 
          Assert.IsType<PCSRun>(model.GetNextRun(0x10));
       }
@@ -52,7 +53,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void TryingToWriteStringFormatToNonStringFormatDataFails() {
          var buffer = new byte[0x100];
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model);
          var editor = new EditorViewModel(new StubFileSystem());
          editor.Add(viewPort);
@@ -64,7 +65,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CanTruncateString() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x100).ToArray();
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.Edit("^bob\"\" \"Hello World!\"");
@@ -87,7 +88,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CanAutoMoveWhenHittingAnchor() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x300).ToArray();
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.SelectionStart = new Point(8, 0);
@@ -112,7 +113,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CanAutoMoveWhenHittingData() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.SelectionStart = new Point(8, 0);
@@ -138,7 +139,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void AnchorWithNoNameIsNotValidIfNothingPointsToIt() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
          var errors = new List<string>();
          viewPort.OnError += (sender, e) => errors.Add(e);
@@ -158,7 +159,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void OpeningStringFormatIncludesOpeningQuote() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.Edit("^bob\"\" \"Hello World!\"");
@@ -171,7 +172,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       public void CannotAddNewStringAnchorUnlessItEndsBeforeNextKnownAnchor() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          for (int i = 0; i < 0x10; i++) buffer[i] = 0x00;
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
          var errors = new List<string>();
          viewPort.OnError += (sender, e) => errors.Add(e);
@@ -194,7 +195,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       public void UsingBackspaceMidStringMakesTheStringEndThere() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          for (int i = 0; i < 0x10; i++) buffer[i] = 0x00;
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          // add an anchor with some data on the 2nd line
@@ -210,7 +211,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       public void UsingEscapeSequencesWorks() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          for (int i = 0; i < 0x10; i++) buffer[i] = 0x00;
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.Edit("^bob\"\" \"Some Content \\\\03More Content\"");
@@ -223,7 +224,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       public void CanCopyStrings() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          for (int i = 0; i < 0x10; i++) buffer[i] = 0x00;
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
          var fileSystem = new StubFileSystem();
 
@@ -239,7 +240,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       public void FindForStringsIsNotCaseSensitive() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          for (int i = 0; i < 0x10; i++) buffer[i] = 0x00;
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^bob\"\" \"Text and BULBASAUR!\"");
 
@@ -252,7 +253,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       public void FindForStringsWorksWithoutQuotes() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          for (int i = 0; i < 0x10; i++) buffer[i] = 0x00;
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^bob\"\" \"Text and BULBASAUR!\"");
 
@@ -270,7 +271,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          buffer[2] = 0x00;
          buffer[3] = 0x08;
          Array.Copy(bytes, 0, buffer, 0x08, bytes.Length);
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.SelectionStart = new Point(0x08, 0);
@@ -289,7 +290,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          buffer[2] = 0x00;
          buffer[3] = 0x08;
          Array.Copy(bytes, 0, buffer, 0x08, bytes.Length);
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.SelectionStart = new Point(0x08, 0);
@@ -304,7 +305,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          var bytes = PCSString.Convert("Hello World!").ToArray();
          Array.Copy(bytes, 0, buffer, 0x08, bytes.Length);
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
          viewPort.SelectionStart = new Point(0x08, 0);
          viewPort.Edit("^bob ");
@@ -324,7 +325,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          buffer[1] = 0x00;
          buffer[2] = 0x00;
          buffer[3] = 0x08;
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
 
          viewPort.SelectionStart = new Point(0x0C, 0);
@@ -345,7 +346,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
          // it should realize that the data starting at 4 isn't a pointer
          // because 202020 is after the end of the data
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
 
          Assert.Equal(int.MaxValue, model.GetNextRun(0).Start);
       }

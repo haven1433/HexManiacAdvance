@@ -356,7 +356,7 @@
                   <ScrollBar DockPanel.Dock="Right"
                      Minimum="{Binding MinimumScroll}" Maximum="{Binding MaximumScroll}" Value="{Binding ScrollValue}"
                      SmallChange="1" LargeChange="{Binding Height}" />
-                  <hsg3hv:HexContent Name="HexContent" ViewPort="{Binding}" ShowGrid="{Binding DataContext.ShowMatrix, RelativeSource={RelativeSource AncestorType=hsg3ww:MainWindow}}" Margin=".5,.5,0,0"/>
+                  <hsg3hv:HexContent x:Name="HexContent" ViewPort="{Binding}" ShowGrid="{Binding DataContext.ShowMatrix, RelativeSource={RelativeSource AncestorType=hsg3ww:MainWindow}}" Margin=".5,.5,0,0"/>
                </DockPanel>
             </DataTemplate>
          </TabControl.ContentTemplate>

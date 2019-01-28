@@ -197,7 +197,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void SearchFor6BytesAlsoFindsPointers() {
          var data = new byte[0x1200];
-         var model = new PointerAndStringModel(data);
+         var model = new PokemonModel(data);
          var viewPort = new ViewPort(new LoadedFile("file.txt", data), model);
 
          viewPort.Edit("<001060>");

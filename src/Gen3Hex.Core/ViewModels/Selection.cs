@@ -1,4 +1,5 @@
 ﻿using HavenSoft.Gen3Hex.Core.Models;
+using HavenSoft.Gen3Hex.Core.Models.Runs;
 using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ using System.Windows.Input;
 namespace HavenSoft.Gen3Hex.Core.ViewModels {
    public class Selection : ViewModelCore {
 
-      private readonly IModel model;
+      private readonly IDataModel model;
 
       private readonly StubCommand
          moveSelectionStart = new StubCommand(),
@@ -78,7 +79,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       /// </summary>
       public event EventHandler<Point> PreviewSelectionStartChanged;
 
-      public Selection(ScrollRegion scrollRegion, IModel model) {
+      public Selection(ScrollRegion scrollRegion, IDataModel model) {
          this.model = model;
          Scroll = scrollRegion;
          Scroll.ScrollChanged += (sender, e) => ShiftSelectionFromScroll(e);
@@ -92,7 +93,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             CanExecute = args => true,
             Execute = args => {
                var address = args.ToString();
-               var anchor = model.GetAddressFromAnchor(new DeltaModel(), -1, address);
+               var anchor = model.GetAddressFromAnchor(new ModelDelta(), -1, address);
                if (anchor != Pointer.NULL) {
                   GotoAddress(anchor);
                } else if (int.TryParse(address, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int result)) {
