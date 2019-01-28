@@ -220,6 +220,7 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
          var topRight = new ScreenPoint(CellWidth, 0);
          var bottomLeft = new ScreenPoint(0, CellHeight);
          var bottomRight = new ScreenPoint(CellWidth, CellHeight);
+         var rectangleGeometry = new RectangleGeometry(new Rect(topLeft, bottomRight));
          var borderPen = new Pen(Solarized.Brushes.Green, 1);
 
          // draw matrix
@@ -255,7 +256,9 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
                visitor.MouseIsOverCurrentFormat = mouseOverPoint.Equals(new ModelPoint(x, y));
                var element = ViewPort[x, y];
                drawingContext.PushTransform(new TranslateTransform(x * CellWidth, y * CellHeight));
+               drawingContext.PushClip(rectangleGeometry);
                element.Format.Visit(visitor, element.Value);
+               drawingContext.Pop();
                drawingContext.Pop();
             }
          }

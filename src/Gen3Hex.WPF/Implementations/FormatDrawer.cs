@@ -55,19 +55,14 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
       public void Visit(Pointer dataFormat, byte data) {
          var brush = Solarized.Brushes.Blue;
          if (dataFormat.Destination == Pointer.NULL) brush = Solarized.Brushes.Red;
-         int startPoint = dataFormat.Position == 0 ? 5 : 0;
-         int endPoint = (int)HexContent.CellWidth - (dataFormat.Position == 3 ? 5 : 0);
-         double y = (int)HexContent.CellHeight - 1.5;
-         context.DrawLine(new Pen(brush, 1), new Point(startPoint, y), new Point(endPoint, y));
-
-         if (dataFormat.Position != 1) return;
+         Underline(brush, dataFormat.Position == 0, dataFormat.Position == 3);
 
          var typeface = new Typeface("Consolas");
          var destination = dataFormat.DestinationName;
          if (string.IsNullOrEmpty(destination)) destination = dataFormat.Destination.ToString("X6");
          if (destination.Length > 11) destination = destination.Substring(0, 10) + "…";
          destination = $"<{destination}>";
-         var xOffset = 21 - destination.Length * 4.2; // centering
+         var xOffset = 51 - (dataFormat.Position * HexContent.CellWidth) - destination.Length * 4.2; // centering
          var text = new FormattedText(
             destination,
             CultureInfo.CurrentCulture,
@@ -123,6 +118,13 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
             1.0);
 
          context.DrawText(text, CellTextOffset);
+      }
+
+      private void Underline(Brush brush, bool isStart, bool isEnd) {
+         int startPoint = isStart ? 5 : 0;
+         int endPoint = (int)HexContent.CellWidth - (isEnd ? 5 : 0);
+         double y = (int)HexContent.CellHeight - 1.5;
+         context.DrawLine(new Pen(brush, 1), new Point(startPoint, y), new Point(endPoint, y));
       }
 
       private void VerifyNoneVisualCache() {
