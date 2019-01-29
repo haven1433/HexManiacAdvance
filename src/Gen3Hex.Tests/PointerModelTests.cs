@@ -518,7 +518,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       }
 
       [Fact]
-      public void ArrowMovementWhileTypingAnchorInsertsAnchor() {
+      public void ArrowMovementWhileTypingAnchorRevertsChange() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
@@ -527,8 +527,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
          viewPort.SelectionStart = new Point(1, 1);
 
-         var format = viewPort[0, 0].Format;
-         Assert.IsType<Anchor>(format);
+         Assert.IsType<None>(viewPort[0, 0].Format);
       }
 
       [Fact]
@@ -679,6 +678,22 @@ namespace HavenSoft.Gen3Hex.Tests {
          viewPort.Edit("<>");   // typing this should interpret the bytes as a pointer and add it.
 
          Assert.Equal(0x100, ((Pointer)viewPort[0, 0].Format).Destination);
+      }
+
+      [Fact]
+      public void StartingPointerEditAndThenMovingClearsAllEditedCells() {
+         var data = new byte[0x200];
+         var model = new PokemonModel(data);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", data), model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.Edit("<");
+         viewPort.SelectionStart = new Point(2, 2);
+
+         for (int x = 0; x < 0x10; x++) {
+            for (int y = 0; y < 0x10; y++) {
+               Assert.IsNotType<UnderEdit>(viewPort[x, y].Format);
+            }
+         }
       }
    }
 }

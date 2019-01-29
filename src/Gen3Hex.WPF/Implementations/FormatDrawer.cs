@@ -14,11 +14,16 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
 
       private static readonly List<FormattedText> noneVisualCache = new List<FormattedText>();
 
+      private readonly int modelWidth, modelHeight;
+
       private readonly DrawingContext context;
+      private readonly Geometry rectangleGeometry = new RectangleGeometry(new Rect(new Point(0, 0), new Point(HexContent.CellWidth, HexContent.CellHeight)));
 
       public bool MouseIsOverCurrentFormat { get; set; }
 
-      public FormatDrawer(DrawingContext drawingContext) => context = drawingContext;
+      public HavenSoft.Gen3Hex.Core.Models.Point Position { get; set; }
+
+      public FormatDrawer(DrawingContext drawingContext, int width, int height) => (context, modelWidth, modelHeight) = (drawingContext, width, height);
 
       public static void ClearVisualCaches() {
          noneVisualCache.Clear();
@@ -72,7 +77,13 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
             brush,
             1.0);
 
-         context.DrawText(text, new Point(CellTextOffset.X + xOffset, CellTextOffset.Y));
+         if (dataFormat.Position < Position.X || Position.X - dataFormat.Position > modelWidth - 4) {
+            context.PushClip(rectangleGeometry);
+            context.DrawText(text, new Point(CellTextOffset.X + xOffset, CellTextOffset.Y));
+            context.Pop();
+         } else if (dataFormat.Position == 2) {
+            context.DrawText(text, new Point(CellTextOffset.X + xOffset, CellTextOffset.Y));
+         }
       }
 
       private static readonly Geometry Triangle = Geometry.Parse("M0,5 L3,0 6,5");

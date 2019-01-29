@@ -214,13 +214,12 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
          if (ViewPort == null) return;
          drawingContext.DrawRectangle(Solarized.Theme.Background, null, new Rect(0, 0, ActualWidth, ActualHeight));
 
-         var visitor = new FormatDrawer(drawingContext);
+         var visitor = new FormatDrawer(drawingContext, ViewPort.Width, ViewPort.Height);
 
          var topLeft = new ScreenPoint(0, 0);
          var topRight = new ScreenPoint(CellWidth, 0);
          var bottomLeft = new ScreenPoint(0, CellHeight);
          var bottomRight = new ScreenPoint(CellWidth, CellHeight);
-         var rectangleGeometry = new RectangleGeometry(new Rect(topLeft, bottomRight));
          var borderPen = new Pen(Solarized.Brushes.Green, 1);
 
          // draw matrix
@@ -256,9 +255,8 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
                visitor.MouseIsOverCurrentFormat = mouseOverPoint.Equals(new ModelPoint(x, y));
                var element = ViewPort[x, y];
                drawingContext.PushTransform(new TranslateTransform(x * CellWidth, y * CellHeight));
-               drawingContext.PushClip(rectangleGeometry);
+               visitor.Position = new ModelPoint(x, y);
                element.Format.Visit(visitor, element.Value);
-               drawingContext.Pop();
                drawingContext.Pop();
             }
          }

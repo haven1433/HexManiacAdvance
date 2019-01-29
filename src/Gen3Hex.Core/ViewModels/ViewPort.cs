@@ -111,16 +111,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
       private void ClearActiveEditBeforeSelectionChanges(object sender, Point location) {
          if (location.X >= 0 && location.X < scroll.Width && location.Y >= 0 && location.Y < scroll.Height) {
-            var element = currentView[location.X, location.Y];
-            if (element.Format is UnderEdit underEdit) {
-               if (underEdit.CurrentText.StartsWith(AnchorStart.ToString())) {
-                  currentView[location.X, location.Y] = new HexElement(element.Value, underEdit.Edit(" "));
-                  if (!TryCompleteEdit(location)) ClearEdits(location);
-               } else {
-                  currentView[location.X, location.Y] = new HexElement(element.Value, underEdit.OriginalFormat);
-                  NotifyCollectionChanged(ResetArgs);
-               }
-            }
+            ClearEdits(location);
          }
       }
 
