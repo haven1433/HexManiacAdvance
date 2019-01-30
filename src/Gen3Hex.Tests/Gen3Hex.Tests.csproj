@@ -55,8 +55,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\artifacts\Gen3Hex.Tests\codegen\StubModel.cs">
-      <Link>StubModel.cs</Link>
+    <Compile Include="..\..\artifacts\Gen3Hex.Tests\codegen\StubDataModel.cs">
+      <Link>StubDataModel.cs</Link>
     </Compile>
     <Compile Include="ArrayRunTests.cs" />
     <Compile Include="ChangeHistoryTests.cs" />
@@ -102,11 +102,11 @@
     <PreBuildEvent>
 if not exist $(SolutionDir)artifacts\$(AssemblyName)\codegen mkdir $(SolutionDir)artifacts\$(AssemblyName)\codegen
 
-$(SolutionDir)packages\HavenSoft.AutoImplement.1.1.1\AutoImplement $(SolutionDir)artifacts\Gen3Hex.Core\bin\$(ConfigurationName)\Gen3Hex.Core.dll ITabContent IFileSystem IViewPort IModel
+$(SolutionDir)packages\HavenSoft.AutoImplement.1.1.1\AutoImplement $(SolutionDir)artifacts\Gen3Hex.Core\bin\$(ConfigurationName)\Gen3Hex.Core.dll ITabContent IFileSystem IViewPort IDataModel
 move /Y StubTabContent.cs $(SolutionDir)artifacts\$(AssemblyName)\codegen
 move /Y StubFileSystem.cs $(SolutionDir)artifacts\$(AssemblyName)\codegen
 move /Y StubViewPort.cs $(SolutionDir)artifacts\$(AssemblyName)\codegen
-move /Y StubModel.cs $(SolutionDir)artifacts\$(AssemblyName)\codegen
+move /Y StubDataModel.cs $(SolutionDir)artifacts\$(AssemblyName)\codegen
 
 del *.cs</PreBuildEvent>
   </PropertyGroup>

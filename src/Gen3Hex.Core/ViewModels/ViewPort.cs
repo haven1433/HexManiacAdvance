@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -891,9 +892,23 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             (byte)Enumerable.Range(0, 0x100).First(i => PCSString.PCS[i] == editText);
 
          var position = pcs != null ? pcs.Position : escaped.Position;
+         HandleLastCharacterChange(ref memoryLocation, editText, pcs, ref run, position);
 
-         // if its the last character being edited, try to expand for strings and truncate for array segments
+         history.CurrentChange.ChangeData(Model, memoryLocation, byteValue);
+         Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
+         if (!SilentScroll(memoryLocation + 1)) {
+            RefreshBackingData(point);
+            if (point.X + 1 < Width) {
+               RefreshBackingData(new Point(point.X + 1, point.Y));
+            } else {
+               RefreshBackingData(new Point(0, point.Y + 1));
+            }
+         }
+      }
+
+      private void HandleLastCharacterChange(ref int memoryLocation, string editText, PCS pcs, ref IFormattedRun run, int position) {
          if (run is PCSRun) {
+            // if its the last character being edited on a normal string, try to expand
             if (run.Length == position + 1) {
                int extraBytesNeeded = editText == "\\\\" ? 2 : 1;
                // last character edit: might require relocation
@@ -911,22 +926,13 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                Model.ObserveRunWritten(history.CurrentChange, run);
             }
          } else if (run is ArrayRun arrayRun) {
-            // don't let them keep appending data if we're at the end of the string segment
+            // if the last characet is being edited for an array, truncate
             var offsets = arrayRun.ConvertByteOffsetToArrayOffset(memoryLocation);
             if (arrayRun.ElementContent[offsets.SegmentIndex].Length == position + 1) {
                memoryLocation--; // move back one byte and edit that one instead
             }
-         }
-
-         history.CurrentChange.ChangeData(Model, memoryLocation, byteValue);
-         Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
-         if (!SilentScroll(memoryLocation + 1)) {
-            RefreshBackingData(point);
-            if (point.X + 1 < Width) {
-               RefreshBackingData(new Point(point.X + 1, point.Y));
-            } else {
-               RefreshBackingData(new Point(0, point.Y + 1));
-            }
+         } else {
+            Debug.Fail("Why are we completing a character edit on something other than a PCSRun or an Array?");
          }
       }
 

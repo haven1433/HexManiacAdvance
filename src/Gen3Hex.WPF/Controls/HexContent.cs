@@ -24,6 +24,15 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
 
       public static readonly Rect CellRect = new Rect(0, 0, CellWidth, CellHeight);
 
+      public static readonly ScreenPoint
+         TopLeft = new ScreenPoint(0, 0),
+         TopRight = new ScreenPoint(CellWidth, 0),
+         BottomLeft = new ScreenPoint(0, CellHeight),
+         BottomRight = new ScreenPoint(CellWidth, CellHeight);
+
+      public static readonly Pen BorderPen = new Pen(Solarized.Brushes.Green, 1);
+
+
       private ModelPoint downPoint;
       private ModelPoint mouseOverPoint;
 
@@ -212,51 +221,56 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
       protected override void OnRender(DrawingContext drawingContext) {
          base.OnRender(drawingContext);
          if (ViewPort == null) return;
-         drawingContext.DrawRectangle(Solarized.Theme.Background, null, new Rect(0, 0, ActualWidth, ActualHeight));
-
          var visitor = new FormatDrawer(drawingContext, ViewPort.Width, ViewPort.Height);
 
-         var topLeft = new ScreenPoint(0, 0);
-         var topRight = new ScreenPoint(CellWidth, 0);
-         var bottomLeft = new ScreenPoint(0, CellHeight);
-         var bottomRight = new ScreenPoint(CellWidth, CellHeight);
-         var borderPen = new Pen(Solarized.Brushes.Green, 1);
+         RenderGrid(drawingContext);
+         RenderSelection(drawingContext);
+         RenderData(drawingContext, visitor);
+      }
 
-         // draw matrix
-         if (ShowGrid) {
-            var gridPen = new Pen(Solarized.Theme.Backlight, 1);
-            for (int x = 1; x <= ViewPort.Width; x++) {
-               drawingContext.DrawLine(gridPen, new ScreenPoint(CellWidth * x, 0), new ScreenPoint(CellWidth * x, CellHeight * ViewPort.Height));
-            }
-            for (int y = 1; y <= ViewPort.Height; y++) {
-               drawingContext.DrawLine(gridPen, new ScreenPoint(0, CellHeight * y), new ScreenPoint(CellWidth * ViewPort.Width, CellHeight * y));
-            }
+      private void RenderGrid(DrawingContext drawingContext) {
+         drawingContext.DrawRectangle(Solarized.Theme.Background, null, new Rect(0, 0, ActualWidth, ActualHeight));
+         if (!ShowGrid) return;
+
+         var gridPen = new Pen(Solarized.Theme.Backlight, 1);
+
+         for (int x = 1; x <= ViewPort.Width; x++) {
+            drawingContext.DrawLine(gridPen, new ScreenPoint(CellWidth * x, 0), new ScreenPoint(CellWidth * x, CellHeight * ViewPort.Height));
          }
 
-         // first pass: draw selection
+         for (int y = 1; y <= ViewPort.Height; y++) {
+            drawingContext.DrawLine(gridPen, new ScreenPoint(0, CellHeight * y), new ScreenPoint(CellWidth * ViewPort.Width, CellHeight * y));
+         }
+      }
+
+      private void RenderSelection(DrawingContext drawingContext) {
          for (int x = 0; x < ViewPort.Width; x++) {
             for (int y = 0; y < ViewPort.Height; y++) {
-               if (ViewPort.IsSelected(new ModelPoint(x, y))) {
-                  var element = ViewPort[x, y];
-                  drawingContext.PushTransform(new TranslateTransform(x * CellWidth, y * CellHeight));
-                  drawingContext.DrawRectangle(Solarized.Theme.Backlight, null, CellRect);
-                  if (!ViewPort.IsSelected(new ModelPoint(x, y - 1))) drawingContext.DrawLine(borderPen, topLeft, topRight);
-                  if (!ViewPort.IsSelected(new ModelPoint(x, y + 1))) drawingContext.DrawLine(borderPen, bottomLeft, bottomRight);
-                  if (!ViewPort.IsSelected(new ModelPoint(x - 1, y))) drawingContext.DrawLine(borderPen, topLeft, bottomLeft);
-                  if (!ViewPort.IsSelected(new ModelPoint(x + 1, y))) drawingContext.DrawLine(borderPen, topRight, bottomRight);
-                  drawingContext.Pop();
-               }
+               if (!ViewPort.IsSelected(new ModelPoint(x, y))) continue;
+               var element = ViewPort[x, y];
+               drawingContext.PushTransform(new TranslateTransform(x * CellWidth, y * CellHeight));
+
+               drawingContext.DrawRectangle(Solarized.Theme.Backlight, null, CellRect);
+               if (!ViewPort.IsSelected(new ModelPoint(x, y - 1))) drawingContext.DrawLine(BorderPen, TopLeft, TopRight);
+               if (!ViewPort.IsSelected(new ModelPoint(x, y + 1))) drawingContext.DrawLine(BorderPen, BottomLeft, BottomRight);
+               if (!ViewPort.IsSelected(new ModelPoint(x - 1, y))) drawingContext.DrawLine(BorderPen, TopLeft, BottomLeft);
+               if (!ViewPort.IsSelected(new ModelPoint(x + 1, y))) drawingContext.DrawLine(BorderPen, TopRight, BottomRight);
+
+               drawingContext.Pop();
             }
          }
+      }
 
-         // second pass: draw data
+      private void RenderData(DrawingContext drawingContext, FormatDrawer visitor) {
          for (int x = 0; x < ViewPort.Width; x++) {
             for (int y = 0; y < ViewPort.Height; y++) {
                visitor.MouseIsOverCurrentFormat = mouseOverPoint.Equals(new ModelPoint(x, y));
                var element = ViewPort[x, y];
                drawingContext.PushTransform(new TranslateTransform(x * CellWidth, y * CellHeight));
+
                visitor.Position = new ModelPoint(x, y);
                element.Format.Visit(visitor, element.Value);
+
                drawingContext.Pop();
             }
          }

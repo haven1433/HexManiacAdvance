@@ -210,7 +210,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       public void GotoAutoCompleteNavigationCommandsWork() {
          var tab = new StubViewPort {
             Goto = new StubCommand { CanExecute = ICommandExtensions.CanAlwaysExecute },
-            Model = new StubModel { GetAutoCompleteAnchorNameOptions = str => new List<string> {
+            Model = new StubDataModel { GetAutoCompleteAnchorNameOptions = str => new List<string> {
                "Option 1",
                "Option 2",
                "Option 3",

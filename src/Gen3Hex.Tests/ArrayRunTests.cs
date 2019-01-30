@@ -110,12 +110,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CanAutoFindArrayLength() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         Array.Copy(PCSString.Convert("bob").ToArray(), 0, buffer, 0x00, 4);
-         Array.Copy(PCSString.Convert("tom").ToArray(), 0, buffer, 0x04, 4);
-         Array.Copy(PCSString.Convert("sam").ToArray(), 0, buffer, 0x08, 4);
-         Array.Copy(PCSString.Convert("car").ToArray(), 0, buffer, 0x0C, 4);
-         Array.Copy(PCSString.Convert("pal").ToArray(), 0, buffer, 0x10, 4);
-         Array.Copy(PCSString.Convert("egg").ToArray(), 0, buffer, 0x14, 4);
+         WriteStrings(buffer, 0x00, "bob", "tom", "sam", "car", "pal", "egg");
 
          var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
@@ -129,12 +124,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void WidthRestrictedAfterGotoArrayAnchor() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         Array.Copy(PCSString.Convert("bobb").ToArray(), 0, buffer, 100, 5);
-         Array.Copy(PCSString.Convert("tomm").ToArray(), 0, buffer, 105, 5);
-         Array.Copy(PCSString.Convert("samm").ToArray(), 0, buffer, 110, 5);
-         Array.Copy(PCSString.Convert("carr").ToArray(), 0, buffer, 115, 5);
-         Array.Copy(PCSString.Convert("pall").ToArray(), 0, buffer, 120, 5);
-         Array.Copy(PCSString.Convert("eggg").ToArray(), 0, buffer, 125, 5);
+         WriteStrings(buffer, 100, "bobb", "tomm", "samm", "carr", "pall", "eggg");
 
          var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
@@ -148,12 +138,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CanCopyArray() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         Array.Copy(PCSString.Convert("bobb").ToArray(), 0, buffer, 0, 5);
-         Array.Copy(PCSString.Convert("tomm").ToArray(), 0, buffer, 5, 5);
-         Array.Copy(PCSString.Convert("samm").ToArray(), 0, buffer, 10, 5);
-         Array.Copy(PCSString.Convert("carr").ToArray(), 0, buffer, 15, 5);
-         Array.Copy(PCSString.Convert("pall").ToArray(), 0, buffer, 20, 5);
-         Array.Copy(PCSString.Convert("eggg").ToArray(), 0, buffer, 25, 5);
+         WriteStrings(buffer, 0, "bobb", "tomm", "samm", "carr", "pall", "eggg");
          var model = new PokemonModel(buffer);
          ArrayRun.TryParse(model, "[word\"\"5]", 0, null, out var arrayRun);
          model.ObserveAnchorWritten(new ModelDelta(), "words", arrayRun);
@@ -166,12 +151,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CanEditArray() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         Array.Copy(PCSString.Convert("bobb").ToArray(), 0, buffer, 0, 5);
-         Array.Copy(PCSString.Convert("tomm").ToArray(), 0, buffer, 5, 5);
-         Array.Copy(PCSString.Convert("samm").ToArray(), 0, buffer, 10, 5);
-         Array.Copy(PCSString.Convert("carr").ToArray(), 0, buffer, 15, 5);
-         Array.Copy(PCSString.Convert("pall").ToArray(), 0, buffer, 20, 5);
-         Array.Copy(PCSString.Convert("eggg").ToArray(), 0, buffer, 25, 5);
+         WriteStrings(buffer, 0, "bobb", "tomm", "samm", "carr", "pall", "eggg");
 
          var model = new PokemonModel(buffer);
          ArrayRun.TryParse(model, "[word\"\"5]", 0, null, out var arrayRun);
@@ -215,12 +195,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       public void ArrayIsRecognizedByStringTool() {
          var changeToken = new ModelDelta();
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         Array.Copy(PCSString.Convert("bobb").ToArray(), 0, buffer, 100, 5);
-         Array.Copy(PCSString.Convert("tomm").ToArray(), 0, buffer, 105, 5);
-         Array.Copy(PCSString.Convert("samm").ToArray(), 0, buffer, 110, 5);
-         Array.Copy(PCSString.Convert("carr").ToArray(), 0, buffer, 115, 5);
-         Array.Copy(PCSString.Convert("pall").ToArray(), 0, buffer, 120, 5);
-         Array.Copy(PCSString.Convert("eggg").ToArray(), 0, buffer, 125, 5);
+         WriteStrings(buffer, 100, "bobb", "tomm", "samm", "carr", "pall", "eggg");
 
          var model = new PokemonModel(buffer);
          model.WritePointer(changeToken, 200, 100);
@@ -246,12 +221,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       public void EditingStringToolEditsArray() {
          var changeToken = new ModelDelta();
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         Array.Copy(PCSString.Convert("bobb").ToArray(), 0, buffer, 100, 5);
-         Array.Copy(PCSString.Convert("tomm").ToArray(), 0, buffer, 105, 5);
-         Array.Copy(PCSString.Convert("samm").ToArray(), 0, buffer, 110, 5);
-         Array.Copy(PCSString.Convert("carr").ToArray(), 0, buffer, 115, 5);
-         Array.Copy(PCSString.Convert("pall").ToArray(), 0, buffer, 120, 5);
-         Array.Copy(PCSString.Convert("eggg").ToArray(), 0, buffer, 125, 5);
+         WriteStrings(buffer, 100, "bobb", "tomm", "samm", "carr", "pall", "eggg");
 
          var model = new PokemonModel(buffer);
          model.WritePointer(changeToken, 200, 100);
@@ -424,6 +394,14 @@ namespace HavenSoft.Gen3Hex.Tests {
          viewPort.SelectionStart = new Point(0, 2);
          Assert.True(viewPort.AnchorTextVisible);
          Assert.Equal("^testdata[name\"\"16]6", viewPort.AnchorText);
+      }
+
+      private static void WriteStrings(byte[] buffer, int start, params string[] content) {
+         foreach (var item in content) {
+            var bytes = PCSString.Convert(item).ToArray();
+            Array.Copy(bytes, 0, buffer, start, bytes.Length);
+            start += bytes.Length;
+         }
       }
    }
 }

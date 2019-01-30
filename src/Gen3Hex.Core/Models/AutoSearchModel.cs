@@ -4,18 +4,19 @@ using static HavenSoft.Gen3Hex.Core.Models.Runs.ArrayRun;
 
 namespace HavenSoft.Gen3Hex.Core.Models {
    public class AutoSearchModel : PokemonModel {
+      public const string
+         Ruby = "AXVE",
+         Sapphire = "AXPE",
+         Emerald = "BPEE",
+         FireRed = "BPRE",
+         LeafGreen = "BPGE";
+
       public AutoSearchModel(byte[] data, StoredMetadata metadata = null) : base(data, metadata) {
          if (metadata != null) return;
 
          var noChangeDelta = new NoDataChangeDeltaModel();
 
          ClearFormat(noChangeDelta, -1, 0x101); // starting before the beginning to clear the anchor at the very start
-
-         const string Ruby = "AXVE";
-         const string Sapphire = "AXPE";
-         const string Emerald = "BPEE";
-         const string FireRed = "BPRE";
-         const string LeafGreen = "BPGE";
 
          var gameCode = string.Concat(Enumerable.Range(0xAC, 4).Select(i => ((char)data[i]).ToString()));
 

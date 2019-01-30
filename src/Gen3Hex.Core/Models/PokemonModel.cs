@@ -1,13 +1,13 @@
-﻿using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
+﻿using HavenSoft.Gen3Hex.Core.Models.Runs;
+using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using static HavenSoft.Gen3Hex.Core.Models.Runs.BaseRun;
 using static HavenSoft.Gen3Hex.Core.Models.Runs.ArrayRun;
+using static HavenSoft.Gen3Hex.Core.Models.Runs.BaseRun;
 using static HavenSoft.Gen3Hex.Core.Models.Runs.PCSRun;
-using HavenSoft.Gen3Hex.Core.Models.Runs;
 
 namespace HavenSoft.Gen3Hex.Core.Models {
    public class PokemonModel : BaseModel {
@@ -116,52 +116,15 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       #endregion
 
       public static ErrorInfo ApplyAnchor(IDataModel model, ModelDelta changeToken, int dataIndex, string text) {
-         var name = text.Substring(1).Trim();
-         string format = string.Empty;
+         var (name, format) = SplitNameAndFormat(text);
 
-         if (name.Contains(ArrayStart)) {
-            var split = name.IndexOf(ArrayStart);
-            format = name.Substring(split);
-            name = name.Substring(0, split);
-         } else if (name.Contains(StringDelimeter)) {
-            var split = name.IndexOf(StringDelimeter);
-            format = name.Substring(split);
-            name = name.Substring(0, split);
-         }
+         var errorInfo = TryParseFormat(model, format, dataIndex, out var runToWrite);
+         if (errorInfo.HasError) return errorInfo;
 
-         IFormattedRun runToWrite = new NoInfoRun(dataIndex);
+         errorInfo = ValidateAnchorNameAndFormat(model, runToWrite, name, format, dataIndex);
+         if (!errorInfo.HasError) model.ObserveAnchorWritten(changeToken, name, runToWrite);
 
-         if (format == StringDelimeter.ToString() + StringDelimeter) {
-            var length = PCSString.ReadString(model, dataIndex, true);
-            if (length < 0) {
-               return new ErrorInfo($"Format was specified as a string, but no string was recognized.");
-            } else if (SpanContainsAnchor(model, dataIndex, length)) {
-               return new ErrorInfo($"Format was specified as a string, but a string would overlap the next anchor.");
-            }
-            runToWrite = new PCSRun(dataIndex, length);
-         } else if (ArrayRun.TryParse(model, format, dataIndex, null, out var arrayRun)) {
-            runToWrite = arrayRun;
-         } else if (format != string.Empty) {
-            return new ErrorInfo($"Format {format} was not understood.");
-         }
-
-         var existingRun = model.GetNextRun(dataIndex);
-         var nextRun = existingRun.Start > dataIndex ? existingRun : model.GetNextRun(existingRun.Start + existingRun.Length);
-
-         if (name.ToLower() == "null") {
-            return new ErrorInfo("'null' is a reserved word and cannot be used as an anchor name.");
-         } else if (name == string.Empty && existingRun.Start != dataIndex) {
-            // if there isn't already a run here, then clearly there's nothing pointing here
-            return new ErrorInfo("An anchor with nothing pointing to it must have a name.");
-         } else if (name == string.Empty && existingRun.PointerSources.Count == 0 && format != string.Empty) {
-            // the next run DOES start here, but nothing points to it
-            return new ErrorInfo("An anchor with nothing pointing to it must have a name.");
-         } else if (nextRun.Start < runToWrite.Start + runToWrite.Length) {
-            return new ErrorInfo("An existing anchor starts before the new one ends.");
-         } else {
-            model.ObserveAnchorWritten(changeToken, name, runToWrite);
-            return ErrorInfo.NoError;
-         }
+         return errorInfo;
       }
 
       public static bool SpanContainsAnchor(IDataModel model, int start, int length) {
@@ -424,32 +387,31 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       }
 
       public override void ClearFormat(ModelDelta changeToken, int originalStart, int length) {
-         int start = originalStart;
-         for (var run = GetNextRun(start); length > 0 && run != null; run = GetNextRun(start)) {
-            if (run.Start >= start + length) return;
-            if (run is PointerRun pointerRun) {
-               ClearPointerFormat(changeToken, pointerRun);
-            }
-            ClearAnchorFormat(changeToken, originalStart, run);
-
-            length -= run.Length + run.Start - start;
-            start = run.Start + run.Length;
-         }
+         ClearFormat(changeToken, originalStart, length, alsoClearData: false);
       }
 
       public override void ClearFormatAndData(ModelDelta changeToken, int originalStart, int length) {
+         ClearFormat(changeToken, originalStart, length, alsoClearData: true);
+      }
+
+      private void ClearFormat(ModelDelta changeToken, int originalStart, int length, bool alsoClearData) {
          int start = originalStart;
          for (var run = GetNextRun(start); length > 0 && run != null; run = GetNextRun(start)) {
-            if (start < run.Start) {
+
+            if (alsoClearData && start < run.Start) {
                for (int i = 0; i < length && i < run.Start - start; i++) changeToken.ChangeData(this, start + i, 0xFF);
             }
+
             if (run.Start >= start + length) return;
             if (run is PointerRun pointerRun) {
                ClearPointerFormat(changeToken, pointerRun);
             }
             ClearAnchorFormat(changeToken, originalStart, run);
 
-            for (int i = 0; i < run.Length; i++) changeToken.ChangeData(this, run.Start + i, 0xFF);
+            if (alsoClearData) {
+               for (int i = 0; i < run.Length; i++) changeToken.ChangeData(this, run.Start + i, 0xFF);
+            }
+
             length -= run.Length + run.Start - start;
             start = run.Start + run.Length;
          }
@@ -618,6 +580,62 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          }
 
          return new StoredMetadata(anchors, unmappedPointers);
+      }
+
+      private static (string, string) SplitNameAndFormat(string text) {
+         var name = text.Substring(1).Trim();
+         string format = string.Empty;
+
+         if (name.Contains(ArrayStart)) {
+            var split = name.IndexOf(ArrayStart);
+            format = name.Substring(split);
+            name = name.Substring(0, split);
+         } else if (name.Contains(StringDelimeter)) {
+            var split = name.IndexOf(StringDelimeter);
+            format = name.Substring(split);
+            name = name.Substring(0, split);
+         }
+
+         return (name, format);
+      }
+
+      private static ErrorInfo TryParseFormat(IDataModel model, string format, int dataIndex, out IFormattedRun run) {
+         run = new NoInfoRun(dataIndex);
+
+         if (format == StringDelimeter.ToString() + StringDelimeter) {
+            var length = PCSString.ReadString(model, dataIndex, true);
+            if (length < 0) {
+               return new ErrorInfo($"Format was specified as a string, but no string was recognized.");
+            } else if (SpanContainsAnchor(model, dataIndex, length)) {
+               return new ErrorInfo($"Format was specified as a string, but a string would overlap the next anchor.");
+            }
+            run = new PCSRun(dataIndex, length);
+         } else if (TryParse(model, format, dataIndex, null, out var arrayRun)) {
+            run = arrayRun;
+         } else if (format != string.Empty) {
+            return new ErrorInfo($"Format {format} was not understood.");
+         }
+
+         return ErrorInfo.NoError;
+      }
+
+      private static ErrorInfo ValidateAnchorNameAndFormat(IDataModel model, IFormattedRun runToWrite, string name, string format, int dataIndex) {
+         var existingRun = model.GetNextRun(dataIndex);
+         var nextRun = existingRun.Start > dataIndex ? existingRun : model.GetNextRun(existingRun.Start + existingRun.Length);
+
+         if (name.ToLower() == "null") {
+            return new ErrorInfo("'null' is a reserved word and cannot be used as an anchor name.");
+         } else if (name == string.Empty && existingRun.Start != dataIndex) {
+            // if there isn't already a run here, then clearly there's nothing pointing here
+            return new ErrorInfo("An anchor with nothing pointing to it must have a name.");
+         } else if (name == string.Empty && existingRun.PointerSources.Count == 0 && format != string.Empty) {
+            // the next run DOES start here, but nothing points to it
+            return new ErrorInfo("An anchor with nothing pointing to it must have a name.");
+         } else if (nextRun.Start < runToWrite.Start + runToWrite.Length) {
+            return new ErrorInfo("An existing anchor starts before the new one ends.");
+         } else {
+            return ErrorInfo.NoError;
+         }
       }
 
       private void RemoveAnchorByName(ModelDelta changeToken, string anchorName) {

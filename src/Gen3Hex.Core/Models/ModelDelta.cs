@@ -3,6 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace HavenSoft.Gen3Hex.Core.Models {
+   /// <summary>
+   /// Represents a single conceptual change in the loaded data, including
+   /// editing data, adding / removing formats / format names,
+   /// and tracking pointers that lead to a name that isn't in the ROM yet.
+   /// </summary>
    public class ModelDelta {
       private readonly Dictionary<int, byte> oldData = new Dictionary<int, byte>();
 
