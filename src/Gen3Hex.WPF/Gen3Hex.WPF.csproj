@@ -7,7 +7,7 @@
     <ProjectGuid>{386DC8E2-BABC-475C-94B6-37B3986F5F4C}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>HavenSoft.Gen3Hex.WPF</RootNamespace>
-    <AssemblyName>Gen3Hex</AssemblyName>
+    <AssemblyName>HexManiacAdvance</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -32,7 +32,7 @@
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>Resources\Snorlax.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\AppIcon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -101,8 +101,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Snorlax.ico" />
-    <Resource Include="Resources\snorlax.png" />
+    <Resource Include="Resources\AppIcon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\AppImage.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -6,9 +6,9 @@
         xmlns:hsv="clr-namespace:HavenSoft.Gen3Hex.WPF.Resources"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:solarized="clr-namespace:Solarized"
-        Icon="..\Resources\Snorlax.ico"
+        Icon="..\Resources\AppIcon.ico"
         PreviewMouseDown="RunDeferredActions"
-        Title="Gen3Hex" Height="450" Width="870" AllowDrop="True" Background="{DynamicResource Background}">
+        Title="Hex Maniac Advance" Height="450" Width="870" AllowDrop="True" Background="{DynamicResource Background}">
    <Window.Resources>
       <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
       <hsg3hv:IntegerToBooleanViaMatchConverter x:Key="IndexMatch"/>

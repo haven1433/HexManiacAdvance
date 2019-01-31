@@ -4,16 +4,16 @@
         xmlns:solarized="clr-namespace:Solarized"
         Background="{DynamicResource Background}"
         WindowStyle="ToolWindow"
-        Title="About Gen3Hex" Height="300" Width="400">
+        Title="About Hex Maniac Advance" Height="300" Width="400">
    <DockPanel Margin="15">
       <TextBlock DockPanel.Dock="Bottom" FontStyle="Italic" TextWrapping="Wrap">
-         Gen3Hex is a non-profit open-source fan-made tool.
+         Hex Maniac Advance is a non-profit open-source fan-made tool.
          Only use it with legally purchased software.
          Pokemon is the property of Nintendo and GameFreak.
          Please support the official release.
       </TextBlock>
-      <TextBlock DockPanel.Dock="Top" VerticalAlignment="Center" FontWeight="Bold" Text="Gen3Hex" FontSize="20"/>
-      <Image Source="..\Resources\Snorlax.png" DockPanel.Dock="Left" RenderOptions.BitmapScalingMode="Fant"/>
+      <TextBlock DockPanel.Dock="Top" VerticalAlignment="Center" FontWeight="Bold" Text="Hex Maniac Advance" FontSize="20"/>
+      <Image Source="..\Resources\AppImage.png" DockPanel.Dock="Left" RenderOptions.BitmapScalingMode="Fant" Width="200"/>
       <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
          <TextBlock Name="Version"/>
          <TextBlock TextWrapping="Wrap">This is a prerelease debug version: please do not distribute!</TextBlock>
