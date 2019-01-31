@@ -53,14 +53,34 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          }
       }
 
+      /// <summary>
+      /// Finds pointers based on Heuristics.
+      /// This is definitely wrong, but it's pretty good.
+      /// </summary>
       private void SearchForPointers(Dictionary<int, List<int>> pointersForDestination, SortedList<int, int> destinationForSource) {
+         // pointers must be 4-byte aligned
          for (int i = 0; i < RawData.Length - 3; i += 4) {
+
+            // pointers must end in 08 or 09
             if (RawData[i + 3] != 0x08 && RawData[i + 3] != 0x09) continue;
+
+            // pointers must point to locations that are 4-byte aligned
             if (RawData[i] % 4 != 0) continue;
             var source = i;
             var destination = ReadPointer(i);
+
+            // pointers must point into the data
             if (destination >= RawData.Length) continue;
+
+            // pointers must not point at the header
             if (destination < EarliestAllowedAnchor) continue;
+
+            // pointers must point at something useful, not just a bunch of FF
+            bool pointsToManyFF = true;
+            for (int j = 0; j < 4 && pointsToManyFF && destination + j < RawData.Length; j++) pointsToManyFF = RawData[destination + j] == 0xFF;
+            if (pointsToManyFF) continue;
+
+            // we found a pointer!
             if (!pointersForDestination.ContainsKey(destination)) pointersForDestination[destination] = new List<int>();
             pointersForDestination[destination].Add(source);
             destinationForSource.Add(source, destination);
