@@ -14,6 +14,7 @@ using System.Linq;
 using System.Windows.Input;
 using static HavenSoft.Gen3Hex.Core.ICommandExtensions;
 using static HavenSoft.Gen3Hex.Core.Models.Runs.ArrayRun;
+using static HavenSoft.Gen3Hex.Core.Models.Runs.AsciiRun;
 using static HavenSoft.Gen3Hex.Core.Models.Runs.BaseRun;
 using static HavenSoft.Gen3Hex.Core.Models.Runs.PCSRun;
 using static HavenSoft.Gen3Hex.Core.Models.Runs.PointerRun;
@@ -674,6 +675,10 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                return AllHexCharacters.Contains(input);
             }
 
+            if (innerFormat is Ascii) {
+               return true;
+            }
+
             if (input == PointerStart) {
                // pointer edits are 4 bytes long
                if(!TryCoerceSelectionToStartOfPointer(ref point, ref element)) PrepareForMultiSpaceEdit(point, 4);
@@ -682,7 +687,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          } else if (underEdit.CurrentText.StartsWith(PointerStart.ToString())) {
             return char.IsLetterOrDigit(input) || input == PointerEnd;
          } else if (underEdit.CurrentText.StartsWith(AnchorStart.ToString())) {
-            return char.IsLetterOrDigit(input) || char.IsWhiteSpace(input) || input == ArrayStart || input == ArrayEnd || input == StringDelimeter;
+            return char.IsLetterOrDigit(input) || char.IsWhiteSpace(input) || input == ArrayStart || input == ArrayEnd || input == StringDelimeter || input == StreamDelimeter;
          } else if (underEdit.OriginalFormat is Anchor anchorFormat && anchorFormat.OriginalFormat is PCS) {
             if (input == StringDelimeter) return true;
             // if this is the start of a string (as noted by the anchor), crop off the leading " before trying to convert to a byte
@@ -764,10 +769,13 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             return true;
          }
 
-         PCS stringFormat = null;
-         if (underEdit.OriginalFormat is Anchor anchorFormat) stringFormat = anchorFormat.OriginalFormat as PCS;
-         stringFormat = stringFormat ?? underEdit.OriginalFormat as PCS;
-         if (stringFormat != null) {
+         var originalFormat = underEdit.OriginalFormat;
+         if (originalFormat is Anchor) originalFormat = ((Anchor)originalFormat).OriginalFormat;
+         if (originalFormat is Ascii) {
+            CompleteAsciiEdit(point, underEdit.CurrentText);
+            return true;
+         }
+         if (originalFormat is PCS stringFormat) {
             var currentText = underEdit.CurrentText;
             if (currentText.StartsWith(StringDelimeter.ToString())) currentText = currentText.Substring(1);
             if (stringFormat.Position != 0 && underEdit.CurrentText == StringDelimeter.ToString()) {
@@ -788,6 +796,17 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          if (underEdit.CurrentText.Length < 2) return false;
          CompleteHexEdit(point);
          return true;
+      }
+
+      private void CompleteAsciiEdit(Point point, string currentText) {
+         var memoryLocation = scroll.ViewPointToDataIndex(point);
+         var editFormat = (UnderEdit)currentView[point.X, point.Y].Format;
+         var asciiFormat = (Ascii)editFormat.OriginalFormat;
+         var content = (byte)currentText[0];
+
+         history.CurrentChange.ChangeData(Model, memoryLocation, content);
+         currentView[point.X, point.Y] = new HexElement(content, new Ascii(asciiFormat.Source, asciiFormat.Position, currentText[0]));
+         SilentScroll(memoryLocation + 1);
       }
 
       private void CompleteArrayExtension(ArrayRun arrayRun) {
@@ -1079,6 +1098,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          public void Visit(EscapedPCS pcs, byte data) => Visit((None)null, data);
 
          public void Visit(ErrorPCS pcs, byte data) => Visit((None)null, data);
+
+         public void Visit(Ascii ascii, byte data) => Result = ((char)data).ToString();
       }
 
       /// <summary>
@@ -1115,6 +1136,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          public void Visit(EscapedPCS pcs, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
 
          public void Visit(ErrorPCS pcs, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
+
+         public void Visit(Ascii ascii, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
       }
    }
 }

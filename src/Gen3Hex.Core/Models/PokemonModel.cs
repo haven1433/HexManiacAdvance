@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using static HavenSoft.Gen3Hex.Core.Models.Runs.ArrayRun;
+using static HavenSoft.Gen3Hex.Core.Models.Runs.AsciiRun;
 using static HavenSoft.Gen3Hex.Core.Models.Runs.BaseRun;
 using static HavenSoft.Gen3Hex.Core.Models.Runs.PCSRun;
 
@@ -23,6 +24,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       // for a pointer pointing to something not actually in the file, what name is it pointing to?
       private readonly Dictionary<string, List<int>> unmappedNameToSources = new Dictionary<string, List<int>>();
       private readonly Dictionary<int, string> sourceToUnmappedName = new Dictionary<int, string>();
+
+      public virtual int EarliestAllowedAnchor => 0;
 
       #region Constructor
 
@@ -57,6 +60,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             var source = i;
             var destination = ReadPointer(i);
             if (destination >= RawData.Length) continue;
+            if (destination < EarliestAllowedAnchor) continue;
             if (!pointersForDestination.ContainsKey(destination)) pointersForDestination[destination] = new List<int>();
             pointersForDestination[destination].Add(source);
             destinationForSource.Add(source, destination);
@@ -585,13 +589,17 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       private static (string, string) SplitNameAndFormat(string text) {
          var name = text.Substring(1).Trim();
          string format = string.Empty;
+         int split = -1;
 
          if (name.Contains(ArrayStart)) {
-            var split = name.IndexOf(ArrayStart);
-            format = name.Substring(split);
-            name = name.Substring(0, split);
+            split = name.IndexOf(ArrayStart);
          } else if (name.Contains(StringDelimeter)) {
-            var split = name.IndexOf(StringDelimeter);
+            split = name.IndexOf(StringDelimeter);
+         } else if (name.Contains(StreamDelimeter)) {
+            split = name.IndexOf(StreamDelimeter);
+         }
+
+         if (split != -1) {
             format = name.Substring(split);
             name = name.Substring(0, split);
          }
@@ -610,6 +618,12 @@ namespace HavenSoft.Gen3Hex.Core.Models {
                return new ErrorInfo($"Format was specified as a string, but a string would overlap the next anchor.");
             }
             run = new PCSRun(dataIndex, length);
+         } else if (format.StartsWith(StreamDelimeter + "asc" + StreamDelimeter)) {
+            if (int.TryParse(format.Substring(5), out var length)) {
+               run = new AsciiRun(dataIndex, length);
+            } else {
+               return new ErrorInfo($"Ascii runs must include a length.");
+            }
          } else if (TryParse(model, format, dataIndex, null, out var arrayRun)) {
             run = arrayRun;
          } else if (format != string.Empty) {

@@ -131,6 +131,20 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
          context.DrawText(text, CellTextOffset);
       }
 
+      public void Visit(Ascii ascii, byte data) {
+         var typeface = new Typeface("Consolas");
+         var text = new FormattedText(
+            ascii.ThisCharacter.ToString(),
+            CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            typeface,
+            FontSize,
+            Solarized.Brushes.Violet,
+            1.0);
+
+         context.DrawText(text, CellTextOffset);
+      }
+
       private void Underline(Brush brush, bool isStart, bool isEnd) {
          int startPoint = isStart ? 5 : 0;
          int endPoint = (int)HexContent.CellWidth - (isEnd ? 5 : 0);
