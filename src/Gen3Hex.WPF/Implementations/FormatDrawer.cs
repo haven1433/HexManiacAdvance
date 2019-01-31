@@ -77,7 +77,7 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
             brush,
             1.0);
 
-         if (dataFormat.Position < Position.X || Position.X - dataFormat.Position > modelWidth - 4) {
+         if (dataFormat.Position > Position.X || Position.X - dataFormat.Position > modelWidth - 4) {
             context.PushClip(rectangleGeometry);
             context.DrawText(text, new Point(CellTextOffset.X + xOffset, CellTextOffset.Y));
             context.Pop();
