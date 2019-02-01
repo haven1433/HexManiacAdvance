@@ -97,7 +97,11 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                if (anchor != Pointer.NULL) {
                   GotoAddress(anchor);
                } else if (int.TryParse(address, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int result)) {
-                  GotoAddress(result);
+                  if (result > Scroll.DataLength || result < 0) {
+                     OnError?.Invoke(this, $"Address {result:X2} is not within the size of the data.");
+                  } else {
+                     GotoAddress(result);
+                  }
                } else {
                   OnError?.Invoke(this, $"Unable to goto address '{address}'");
                }
