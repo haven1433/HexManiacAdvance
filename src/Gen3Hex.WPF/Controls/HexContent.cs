@@ -202,6 +202,7 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
                }
                if (format is PCS pcs) children.AddRange(GetStringChildren(p));
                if (format is Pointer pointer) children.AddRange(GetPointerChildren(p));
+               if (!(format is None || format is Undefined)) children.AddRange(GetClearFormattingChildren(p));
             } else {
                children.AddRange(GetSearchChildren(p));
             }
@@ -352,6 +353,15 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
 
       private IEnumerable<FrameworkElement> GetSearchChildren(ModelPoint p) {
          yield return CreateFollowLinkButton("Open in main tab", p);
+      }
+
+      private IEnumerable<FrameworkElement> GetClearFormattingChildren(ModelPoint p) {
+         yield return new Button {
+            Content = new TextBlock { Text = "Clear Format" },
+         }.SetEvent(ButtonBase.ClickEvent, (sender, e) => {
+            ((ViewPort)ViewPort).ClearFormat(p);
+            recentMenu.IsOpen = false;
+         });
       }
 
       private Button CreateFollowLinkButton(string message, ModelPoint p) {

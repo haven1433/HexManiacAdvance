@@ -700,7 +700,12 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       /// </returns>
       private IReadOnlyList<int> GetSourcesPointingToNewAnchor(ModelDelta changeToken, string anchorName) {
          if (!addressForAnchor.TryGetValue(anchorName, out int location)) return new List<int>();     // new anchor is unnamed, so nothing points to it yet
-         if (!unmappedNameToSources.TryGetValue(anchorName, out var sources)) return new List<int>(); // no pointer was waiting for this anchor to be created
+
+         if (!unmappedNameToSources.TryGetValue(anchorName, out var sources)) {
+            // no pointer was waiting for this anchor to be created
+            // but the user things there's something pointing here
+            return SearchForPointersToAnchor(changeToken, location);
+         }
 
          foreach (var source in sources) {
             var index = BinarySearch(source);
@@ -713,6 +718,27 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          unmappedNameToSources.Remove(anchorName);
 
          return sources;
+      }
+
+      private IReadOnlyList<int> SearchForPointersToAnchor(ModelDelta changeToken, int address) {
+         var results = new List<int>();
+
+         for (int i = 3; i < RawData.Length; i++) {
+            if (RawData[i] != 0x08 && RawData[i] != 0x09) continue;
+            int destination = ReadPointer(i - 3);
+            if (destination != address) continue;
+            var index = BinarySearch(i-3);
+            if (index > 0) continue;
+            index = ~index;
+            if (runs[index].Start <= i) continue;
+            if (index > 0 && runs[index - 1].Start + runs[index - 1].Length > i - 3) continue;
+            var newRun = new PointerRun(i - 3);
+            runs.Insert(index, newRun);
+            changeToken.AddRun(newRun);
+            results.Add(i - 3);
+         }
+
+         return results;
       }
 
       private IFormattedRun MoveRun(ModelDelta changeToken, IFormattedRun run, int newStart) {
@@ -774,6 +800,9 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          return true;
       }
 
+      // if an existing run starts exactly at start, return that index
+      // otherwise, return a number such that ~index would be inserted into the list at the correct index
+      // so ~index - 1 is the previous run, and ~index is the next run
       private int BinarySearch(int start) {
          var index = runs.BinarySearch(new CompareFormattedRun(start), FormattedRunComparer.Instance);
          return index;

@@ -328,6 +328,12 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
       public bool IsSelected(Point point) => selection.IsSelected(point);
 
+      public void ClearFormat(Point point) {
+         var dataIndex = scroll.ViewPointToDataIndex(point);
+         Model.ClearFormat(history.CurrentChange, dataIndex, 1);
+         RefreshBackingData();
+      }
+
       public void Edit(string input) {
          exitEditEarly = false;
          using (Tools.DeferUpdates) {

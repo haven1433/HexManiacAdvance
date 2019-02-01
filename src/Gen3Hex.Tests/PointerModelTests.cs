@@ -695,5 +695,34 @@ namespace HavenSoft.Gen3Hex.Tests {
             }
          }
       }
+
+      [Fact]
+      public void AddingAnchorShouldSearchForPointersToThatLocation() {
+         var data = new byte[0x200];
+         var model = new PokemonModel(data);
+         var change = new ModelDelta();
+         model.WritePointer(change, 0x23, 0x050); // a pointer that isn't 4-byte aligned, pointing to data that is
+         model.WritePointer(change, 0x10, 0x087); // a pointer that is 4-byte aligned, but pointing to something that isn't
+         model.WritePointer(change, 2, 0xA2);    // a pointer that isn't 4-byte aligned, pointing to something not 4-byte aligned
+         var viewPort = new ViewPort(new LoadedFile("test.txt", data), model) { Width = 0x10, Height = 0x10 };
+
+         // got to 50 and write an anchor
+         viewPort.SelectionStart = new Point(0x0, 0x5);
+         viewPort.Edit("^test1 ");
+         Assert.IsType<Pointer>(viewPort[0x3, 0x2].Format);
+         Assert.Single(((Anchor)viewPort[0x0, 0x5].Format).Sources);
+
+         // go to 87 and write an anchor
+         viewPort.SelectionStart = new Point(0x7, 0x8);
+         viewPort.Edit("^test2 ");
+         Assert.IsType<Pointer>(viewPort[0x0, 0x1].Format);
+         Assert.Single(((Anchor)viewPort[0x7, 0x8].Format).Sources);
+
+         // go to A2 and write an anchor
+         viewPort.SelectionStart = new Point(0x2, 0xA);
+         viewPort.Edit("^test3 ");
+         Assert.IsType<Pointer>(viewPort[0x2, 0x0].Format);
+         Assert.Single(((Anchor)viewPort[0x2, 0xA].Format).Sources);
+      }
    }
 }
