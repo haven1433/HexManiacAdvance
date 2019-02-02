@@ -21,8 +21,8 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
 
       public WindowsFileSystem(Dispatcher uiDispatcher) => dispatcher = uiDispatcher;
 
-      public LoadedFile OpenFile(params string[] extensionOptions) {
-         var dialog = new OpenFileDialog { Filter = CreateFilterFromOptions(extensionOptions) };
+      public LoadedFile OpenFile(string extensionDescription = null, params string[] extensionOptions) {
+         var dialog = new OpenFileDialog { Filter = CreateFilterFromOptions(extensionDescription, extensionOptions) };
          var result = dialog.ShowDialog();
          if (result != true) return null;
          return LoadFile(dialog.FileName);
@@ -66,8 +66,8 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
          watchers[fileName].RemoveAt(index);
       }
 
-      public string RequestNewName(string currentName, params string[] extensionOptions) {
-         var dialog = new SaveFileDialog { FileName = currentName, Filter = CreateFilterFromOptions(extensionOptions) };
+      public string RequestNewName(string currentName, string extensionDescription = null, params string[] extensionOptions) {
+         var dialog = new SaveFileDialog { FileName = currentName, Filter = CreateFilterFromOptions(extensionDescription, extensionOptions) };
          var result = dialog.ShowDialog();
          if (result != true) return null;
          return dialog.FileName;
@@ -102,8 +102,10 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
          }
       }
 
-      private static string CreateFilterFromOptions(string[] extensionOptions) {
-         return string.Join(",", extensionOptions.Select(option => $"*.{option}"));
+      private static string CreateFilterFromOptions(string description, string[] extensionOptions) {
+         if (description == null) return string.Empty;
+         var extensions = string.Join(",", extensionOptions.Select(option => $"*.{option}"));
+         return $"{description}|{extensions}|All Files|*.*";
       }
    }
 }

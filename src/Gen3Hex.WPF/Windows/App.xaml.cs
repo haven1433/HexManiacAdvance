@@ -32,6 +32,7 @@ namespace HavenSoft.Gen3Hex.WPF.Windows {
          };
          Resources.MergedDictionaries.Clear();
          Resources.MergedDictionaries.Add(dict);
+         FormatDrawer.ClearVisualCaches();
       }
 
       private EditorViewModel GetViewModel(string fileName, IFileSystem fileSystem) {
@@ -40,7 +41,7 @@ namespace HavenSoft.Gen3Hex.WPF.Windows {
 
          var loadedFile = fileSystem.LoadFile(fileName);
          var metadata = fileSystem.MetadataFor(fileName);
-         var model = new PointerAndStringModel(loadedFile.Contents, metadata);
+         var model = new AutoSearchModel(loadedFile.Contents, metadata);
          editor.Add(new ViewPort(loadedFile, model));
          return editor;
       }

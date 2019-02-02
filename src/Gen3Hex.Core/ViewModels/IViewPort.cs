@@ -1,4 +1,5 @@
 ﻿using HavenSoft.Gen3Hex.Core.Models;
+using HavenSoft.Gen3Hex.Core.ViewModels.Tools;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -22,13 +23,13 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       bool AnchorTextVisible { get; }
 
       HexElement this[int x, int y] { get; }
-      IModel Model { get; }
+      IDataModel Model { get; }
       bool IsSelected(Point point);
 
       IReadOnlyList<int> Find(string search);
       IChildViewPort CreateChildView(int offset);
       void FollowLink(int x, int y);
-      void ExpandSelection();
+      void ExpandSelection(int x, int y);
       void ConsiderReload(IFileSystem fileSystem);
       void FindAllSources(int x, int y);
 

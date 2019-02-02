@@ -32,7 +32,7 @@
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Delegation, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\HavenSoft.AutoImplement.1.1.0\lib\System.Delegation.dll</HintPath>
+      <HintPath>..\..\packages\HavenSoft.AutoImplement.1.1.1\lib\System.Delegation.dll</HintPath>
     </Reference>
     <Reference Include="System.Xaml" />
     <Reference Include="WindowsBase" />
@@ -43,9 +43,16 @@
     <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubCommand.cs" />
     <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubDisposable.cs" />
     <Compile Include="ICommandExtensions.cs" />
-    <Compile Include="Models\FormattedRun.cs" />
-    <Compile Include="Models\DataFormatModel.cs" />
+    <Compile Include="Models\Runs\ArrayRun.cs" />
+    <Compile Include="Models\AutoSearchModel.cs" />
+    <Compile Include="Models\ErrorInfo.cs" />
+    <Compile Include="Models\IDataModel.cs" />
+    <Compile Include="Models\Runs\IFormattedRun.cs" />
+    <Compile Include="Models\ModelDelta.cs" />
+    <Compile Include="Models\Runs\PCSRun.cs" />
     <Compile Include="Models\PCSString.cs" />
+    <Compile Include="Models\Runs\PointerRun.cs" />
+    <Compile Include="Models\PokemonModel.cs" />
     <Compile Include="Models\SearchByte.cs" />
     <Compile Include="Models\StoredMetadata.cs" />
     <Compile Include="NumericExtensions.cs" />
@@ -57,11 +64,14 @@
     <Compile Include="ViewModels\ChildViewPort.cs" />
     <Compile Include="ViewModels\DataFormats.cs" />
     <Compile Include="ViewModels\EditorViewModel.cs" />
+    <Compile Include="ViewModels\GotoControlViewModel.cs" />
     <Compile Include="ViewModels\HexElement.cs" />
     <Compile Include="ViewModels\IChildViewPort.cs" />
     <Compile Include="ViewModels\ITabContent.cs" />
-    <Compile Include="ViewModels\IToolViewModel.cs" />
+    <Compile Include="ViewModels\Tools\IToolTrayViewModel.cs" />
+    <Compile Include="ViewModels\Tools\IToolViewModel.cs" />
     <Compile Include="ViewModels\IViewPort.cs" />
+    <Compile Include="ViewModels\Tools\PCSTool.cs" />
     <Compile Include="ViewModels\ScrollRegion.cs" />
     <Compile Include="ViewModels\SearchResultsViewPort.cs" />
     <Compile Include="ViewModels\Selection.cs" />
@@ -76,10 +86,10 @@
     <PreBuildEvent>
 if not exist $(SolutionDir)artifacts\$(AssemblyName)\codegen mkdir $(SolutionDir)artifacts\$(AssemblyName)\codegen
 
-$(SolutionDir)packages\HavenSoft.AutoImplement.1.1.0\AutoImplement "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" ICommand
+$(SolutionDir)packages\HavenSoft.AutoImplement.1.1.1\AutoImplement "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" ICommand
 move /Y StubCommand.cs  $(SolutionDir)artifacts\$(AssemblyName)\codegen
 
-$(SolutionDir)packages\HavenSoft.AutoImplement.1.1.0\AutoImplement "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" IDisposable
+$(SolutionDir)packages\HavenSoft.AutoImplement.1.1.1\AutoImplement "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" IDisposable
 move /Y StubDisposable.cs $(SolutionDir)artifacts\$(AssemblyName)\codegen
 
 del *.cs</PreBuildEvent>

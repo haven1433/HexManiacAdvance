@@ -364,6 +364,14 @@
                </ControlTemplate>
             </Setter.Value>
          </Setter>
+         <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+               <Setter Property="Background" Value="{DynamicResource Background}"/>
+               <Setter Property="BorderBrush" Value="{solarized:Theme Secondary}"/>
+               <Setter Property="Foreground" Value="{DynamicResource Secondary}"/>
+               <Setter Property="Opacity" Value=".5"/>
+            </Trigger>
+         </Style.Triggers>
       </Style>
 
       <!-- TabContol Styles -->

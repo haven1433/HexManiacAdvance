@@ -15,7 +15,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
       public ViewPortSaveTests() {
          fileSystem = new StubFileSystem {
-            RequestNewName = (previousName, extensions) => { name = $"file.txt"; return name; },
+            RequestNewName = (previousName, description, extensions) => { name = $"file.txt"; return name; },
             TrySavePrompt = (loadedFile, md) => { name = loadedFile.Name; return true; },
          };
       }
@@ -218,7 +218,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
       [Fact]
       public void ViewPortTakesNewNameOnSave() {
-         var fileSystem = new StubFileSystem { RequestNewName = (originalName, extensions) => "path/to/newfile.txt", Save = (loadedFile, md) => true };
+         var fileSystem = new StubFileSystem { RequestNewName = (originalName, description, extensions) => "path/to/newfile.txt", Save = (loadedFile, md) => true };
          var viewPort = new ViewPort();
          int nameChangedCount = 0;
          viewPort.PropertyChanged += (sender, e) => { if (e.PropertyName == nameof(viewPort.Name)) nameChangedCount++; };
@@ -262,7 +262,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          var properties = new List<string>();
 
          var fileSystem = new StubFileSystem {
-            RequestNewName = (currentName, extensionOptions) => "file.txt",
+            RequestNewName = (currentName, description, extensionOptions) => "file.txt",
             Save = (file, md) => true,
          };
          var viewPort = new ViewPort();
@@ -302,7 +302,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CanSaveAndLoadNamesAndFormats() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
          StoredMetadata metadata = null;
          var fileSystem = new StubFileSystem { Save = (file, md) => { metadata = md; return true; } };
@@ -310,7 +310,7 @@ namespace HavenSoft.Gen3Hex.Tests {
          viewPort.Edit("^bob\"\" \"Hello\"");
          viewPort.Save.Execute(fileSystem);
 
-         var model2 = new PointerAndStringModel(buffer, metadata);
+         var model2 = new PokemonModel(buffer, metadata);
          var viewPort2 = new ViewPort(new LoadedFile("test.txt", buffer), model2) { Width = 0x10, Height = 0x10 };
 
          Assert.Equal("bob", ((Anchor)viewPort2[0, 0].Format).Name);

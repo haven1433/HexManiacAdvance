@@ -14,14 +14,27 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using ModelPoint = HavenSoft.Gen3Hex.Core.Models.Point;
+using ScreenPoint = System.Windows.Point;
 
 namespace HavenSoft.Gen3Hex.WPF.Controls {
+
    public class HexContent : FrameworkElement {
       public const double CellWidth = 30, CellHeight = 20;
 
       public static readonly Rect CellRect = new Rect(0, 0, CellWidth, CellHeight);
 
-      private Core.Models.Point downPoint;
+      public static readonly ScreenPoint
+         TopLeft = new ScreenPoint(0, 0),
+         TopRight = new ScreenPoint(CellWidth, 0),
+         BottomLeft = new ScreenPoint(0, CellHeight),
+         BottomRight = new ScreenPoint(CellWidth, CellHeight);
+
+      public static readonly Pen BorderPen = new Pen(Solarized.Brushes.Green, 1);
+
+
+      private ModelPoint downPoint;
+      private ModelPoint mouseOverPoint;
 
       #region ViewPort
 
@@ -69,6 +82,24 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
 
       #endregion
 
+      #region ShowGrid
+
+      public bool ShowGrid {
+         get { return (bool)GetValue(ShowGridProperty); }
+         set { SetValue(ShowGridProperty, value); }
+      }
+
+      public static readonly DependencyProperty ShowGridProperty = DependencyProperty.Register(nameof(ShowGrid), typeof(bool), typeof(HexContent), new FrameworkPropertyMetadata(false, ShowGridChanged));
+
+      private static void ShowGridChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+         var self = (HexContent)d;
+         self.OnShowGridChanged(e);
+      }
+
+      private void OnShowGridChanged(DependencyPropertyChangedEventArgs e) => InvalidateVisual();
+
+      #endregion
+
       public HexContent() {
          ClipToBounds = true;
          Focusable = true;
@@ -109,6 +140,8 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
 
          AddConsoleKeyCommand(Key.Back, ConsoleKey.Backspace);
          AddConsoleKeyCommand(Key.Escape, ConsoleKey.Escape);
+         AddConsoleKeyCommand(Key.Enter, ConsoleKey.Enter);
+         AddConsoleKeyCommand(Key.Tab, ConsoleKey.Tab);
       }
 
       protected override void OnMouseDown(MouseButtonEventArgs e) {
@@ -129,7 +162,7 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
             return;
          }
          if (e.ClickCount == 2) {
-            ViewPort.ExpandSelection();
+            ViewPort.ExpandSelection(downPoint.X, downPoint.Y);
             return;
          }
 
@@ -145,6 +178,11 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
 
       protected override void OnMouseMove(MouseEventArgs e) {
          base.OnMouseMove(e);
+         var newMouseOverPoint = ControlCoordinatesToModelCoordinates(e);
+         if (!newMouseOverPoint.Equals(mouseOverPoint)) {
+            mouseOverPoint = newMouseOverPoint;
+            InvalidateVisual();
+         }
          if (!IsMouseCaptured) return;
 
          ((ViewPort)ViewPort).SelectionEnd = ControlCoordinatesToModelCoordinates(e);
@@ -183,28 +221,56 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
       protected override void OnRender(DrawingContext drawingContext) {
          base.OnRender(drawingContext);
          if (ViewPort == null) return;
+         var visitor = new FormatDrawer(drawingContext, ViewPort.Width, ViewPort.Height);
+
+         RenderGrid(drawingContext);
+         RenderSelection(drawingContext);
+         RenderData(drawingContext, visitor);
+      }
+
+      private void RenderGrid(DrawingContext drawingContext) {
          drawingContext.DrawRectangle(Solarized.Theme.Background, null, new Rect(0, 0, ActualWidth, ActualHeight));
+         if (!ShowGrid) return;
 
-         var visitor = new FormatDrawer(drawingContext);
+         var gridPen = new Pen(Solarized.Theme.Backlight, 1);
 
-         // first pass: draw selection
-         for (int x = 0; x < ViewPort.Width; x++) {
-            for (int y = 0; y < ViewPort.Height; y++) {
-               if (ViewPort.IsSelected(new Core.Models.Point(x, y))) {
-                  var element = ViewPort[x, y];
-                  drawingContext.PushTransform(new TranslateTransform(x * CellWidth, y * CellHeight));
-                  drawingContext.DrawRectangle(Solarized.Theme.Backlight, null, CellRect);
-                  drawingContext.Pop();
-               }
-            }
+         for (int x = 1; x <= ViewPort.Width; x++) {
+            drawingContext.DrawLine(gridPen, new ScreenPoint(CellWidth * x, 0), new ScreenPoint(CellWidth * x, CellHeight * ViewPort.Height));
          }
 
-         // second pass: draw data
+         for (int y = 1; y <= ViewPort.Height; y++) {
+            drawingContext.DrawLine(gridPen, new ScreenPoint(0, CellHeight * y), new ScreenPoint(CellWidth * ViewPort.Width, CellHeight * y));
+         }
+      }
+
+      private void RenderSelection(DrawingContext drawingContext) {
          for (int x = 0; x < ViewPort.Width; x++) {
             for (int y = 0; y < ViewPort.Height; y++) {
+               if (!ViewPort.IsSelected(new ModelPoint(x, y))) continue;
                var element = ViewPort[x, y];
                drawingContext.PushTransform(new TranslateTransform(x * CellWidth, y * CellHeight));
+
+               drawingContext.DrawRectangle(Solarized.Theme.Backlight, null, CellRect);
+               if (!ViewPort.IsSelected(new ModelPoint(x, y - 1))) drawingContext.DrawLine(BorderPen, TopLeft, TopRight);
+               if (!ViewPort.IsSelected(new ModelPoint(x, y + 1))) drawingContext.DrawLine(BorderPen, BottomLeft, BottomRight);
+               if (!ViewPort.IsSelected(new ModelPoint(x - 1, y))) drawingContext.DrawLine(BorderPen, TopLeft, BottomLeft);
+               if (!ViewPort.IsSelected(new ModelPoint(x + 1, y))) drawingContext.DrawLine(BorderPen, TopRight, BottomRight);
+
+               drawingContext.Pop();
+            }
+         }
+      }
+
+      private void RenderData(DrawingContext drawingContext, FormatDrawer visitor) {
+         for (int x = 0; x < ViewPort.Width; x++) {
+            for (int y = 0; y < ViewPort.Height; y++) {
+               visitor.MouseIsOverCurrentFormat = mouseOverPoint.Equals(new ModelPoint(x, y));
+               var element = ViewPort[x, y];
+               drawingContext.PushTransform(new TranslateTransform(x * CellWidth, y * CellHeight));
+
+               visitor.Position = new ModelPoint(x, y);
                element.Format.Visit(visitor, element.Value);
+
                drawingContext.Pop();
             }
          }
@@ -224,7 +290,7 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
 
       Popup recentMenu;
 
-      private IEnumerable<FrameworkElement> GetAnchorChildren(Core.Models.Point p) {
+      private IEnumerable<FrameworkElement> GetAnchorChildren(ModelPoint p) {
          var anchor = (Anchor)ViewPort[p.X, p.Y].Format;
 
          if (!string.IsNullOrEmpty(anchor.Name)) {
@@ -276,19 +342,19 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
          }
       }
 
-      private IEnumerable<FrameworkElement> GetStringChildren(Core.Models.Point p) {
+      private IEnumerable<FrameworkElement> GetStringChildren(ModelPoint p) {
          yield return CreateFollowLinkButton("Open In String Tool", p);
       }
 
-      private IEnumerable<FrameworkElement> GetPointerChildren(Core.Models.Point p) {
+      private IEnumerable<FrameworkElement> GetPointerChildren(ModelPoint p) {
          yield return CreateFollowLinkButton("Follow Pointer", p);
       }
 
-      private IEnumerable<FrameworkElement> GetSearchChildren(Core.Models.Point p) {
+      private IEnumerable<FrameworkElement> GetSearchChildren(ModelPoint p) {
          yield return CreateFollowLinkButton("Open in main tab", p);
       }
 
-      private Button CreateFollowLinkButton(string message, Core.Models.Point p) {
+      private Button CreateFollowLinkButton(string message, ModelPoint p) {
          return new Button {
             Content = new StackPanel {
                Orientation = Orientation.Horizontal,
@@ -327,8 +393,9 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
          ViewPort.Height = (int)(ActualHeight / CellHeight);
       }
 
-      private Core.Models.Point ControlCoordinatesToModelCoordinates(MouseEventArgs e) {
+      private ModelPoint ControlCoordinatesToModelCoordinates(MouseEventArgs e) {
          var point = e.GetPosition(this);
+         point = new System.Windows.Point(Math.Max(0, point.X), Math.Max(0, point.Y)); // out of bounds to the left/top clamps to 0 (useful for headers)
          return new Core.Models.Point((int)(point.X / CellWidth), (int)(point.Y / CellHeight));
       }
    }

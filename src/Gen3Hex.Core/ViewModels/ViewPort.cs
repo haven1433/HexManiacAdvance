@@ -1,16 +1,22 @@
 ﻿using HavenSoft.Gen3Hex.Core.Models;
+using HavenSoft.Gen3Hex.Core.Models.Runs;
 using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
+using HavenSoft.Gen3Hex.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows.Input;
 using static HavenSoft.Gen3Hex.Core.ICommandExtensions;
-using static HavenSoft.Gen3Hex.Core.Models.PCSRun;
+using static HavenSoft.Gen3Hex.Core.Models.Runs.ArrayRun;
+using static HavenSoft.Gen3Hex.Core.Models.Runs.BaseRun;
+using static HavenSoft.Gen3Hex.Core.Models.Runs.PCSRun;
+using static HavenSoft.Gen3Hex.Core.Models.Runs.PointerRun;
 
 namespace HavenSoft.Gen3Hex.Core.ViewModels {
    /// <summary>
@@ -18,15 +24,13 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
    /// </summary>
    public class ViewPort : ViewModelCore, IViewPort {
       private const string AllHexCharacters = "0123456789ABCDEFabcdef";
-      private const char AnchorStart = '^';
-      private const char PointerStart = '<';
-      private const char PointerEnd = '>';
       private static readonly NotifyCollectionChangedEventArgs ResetArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
       private readonly StubCommand
          clear = new StubCommand(),
          copy = new StubCommand();
 
       private HexElement[,] currentView;
+      private bool exitEditEarly;
 
       public string Name {
          get {
@@ -95,6 +99,11 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          set => selection.SelectionEnd = value;
       }
 
+      public int PreferredWidth {
+         get => selection.PreferredWidth;
+         set => selection.PreferredWidth = value;
+      }
+
       public ICommand MoveSelectionStart => selection.MoveSelectionStart;
       public ICommand MoveSelectionEnd => selection.MoveSelectionEnd;
       public ICommand Goto => selection.Goto;
@@ -103,16 +112,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
       private void ClearActiveEditBeforeSelectionChanges(object sender, Point location) {
          if (location.X >= 0 && location.X < scroll.Width && location.Y >= 0 && location.Y < scroll.Height) {
-            var element = currentView[location.X, location.Y];
-            if (element.Format is UnderEdit underEdit) {
-               if (underEdit.CurrentText.StartsWith(AnchorStart.ToString())) {
-                  currentView[location.X, location.Y] = new HexElement(element.Value, underEdit.Edit(" "));
-                  if (!TryCompleteEdit(location)) ClearEdits(location);
-               } else {
-                  currentView[location.X, location.Y] = new HexElement(element.Value, underEdit.OriginalFormat);
-                  NotifyCollectionChanged(ResetArgs);
-               }
-            }
+            ClearEdits(location);
          }
       }
 
@@ -120,8 +120,19 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          if (e.PropertyName == nameof(SelectionEnd)) history.ChangeCompleted();
          NotifyPropertyChanged(e.PropertyName);
          var dataIndex = scroll.ViewPointToDataIndex(SelectionStart);
+         UpdateToolsFromSelection(dataIndex);
+      }
+
+      private void UpdateToolsFromSelection(int dataIndex) {
          var run = Model.GetNextRun(dataIndex);
+
          if (run.Start <= dataIndex && run is PCSRun) Tools.StringTool.Address = run.Start;
+
+         if (run.Start <= dataIndex && run is ArrayRun array) {
+            var offsets = array.ConvertByteOffsetToArrayOffset(dataIndex);
+            Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
+         }
+
          if (this[SelectionStart].Format is Anchor anchor) {
             TryUpdate(ref anchorText, AnchorStart + anchor.Name + anchor.Format, nameof(AnchorText));
             AnchorTextVisible = true;
@@ -134,13 +145,13 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
       #region Undo / Redo
 
-      private readonly ChangeHistory<DeltaModel> history;
+      private readonly ChangeHistory<ModelDelta> history;
 
       public ICommand Undo => history.Undo;
 
       public ICommand Redo => history.Redo;
 
-      private DeltaModel RevertChanges(DeltaModel changes) {
+      private ModelDelta RevertChanges(ModelDelta changes) {
          var reverse = changes.Revert(Model);
          var point = scroll.DataIndexToViewPoint(reverse.EarliestChange);
          if (!scroll.ScrollToPoint(ref point)) RefreshBackingData();
@@ -183,7 +194,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       }
 
       private void SaveAsExecuted(IFileSystem fileSystem) {
-         var newName = fileSystem.RequestNewName(FileName);
+         var newName = fileSystem.RequestNewName(FileName, "GameBoy Advanced", "gba");
          if (newName == null) return;
 
          var metadata = Model.ExportMetadata();
@@ -219,10 +230,18 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          set {
             if (value == null) value = string.Empty;
             if (!value.StartsWith(AnchorStart.ToString())) value = AnchorStart + value;
-            if (TryUpdate(ref anchorText, value) && this[SelectionStart].Format is Anchor anchor) {
+            if (TryUpdate(ref anchorText, value)) {
                var index = scroll.ViewPointToDataIndex(SelectionStart);
-               OnError?.Invoke(this, string.Empty);
-               if (ApplyAnchor(index, AnchorText)) RefreshBackingData();
+               var run = Model.GetNextRun(index);
+               if (run.Start == index) {
+                  var errorInfo = PokemonModel.ApplyAnchor(Model, history.CurrentChange, index, AnchorText);
+                  if (errorInfo == ErrorInfo.NoError) {
+                     OnError?.Invoke(this, string.Empty);
+                     RefreshBackingData();
+                  } else {
+                     OnError?.Invoke(this, errorInfo.ErrorMessage);
+                  }
+               }
             }
          }
       }
@@ -240,10 +259,12 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          }
       }
 
-      public IModel Model { get; private set; }
+      public IDataModel Model { get; private set; }
 
 #pragma warning disable 0067 // it's ok if events are never used
       public event EventHandler<string> OnError;
+      public event EventHandler<string> OnMessage;
+      public event EventHandler ClearMessage;
       public event NotifyCollectionChangedEventHandler CollectionChanged;
       public event EventHandler<ITabContent> RequestTabChange;
       public event EventHandler<Action> RequestDelayedWork;
@@ -251,15 +272,12 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
       public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
 
-      public ViewPort(LoadedFile file, IModel model = null) {
-         history = new ChangeHistory<DeltaModel>(RevertChanges);
+      public ViewPort(LoadedFile file, IDataModel model = null) {
+         history = new ChangeHistory<ModelDelta>(RevertChanges);
          history.PropertyChanged += HistoryPropertyChanged;
 
          Model = model ?? new BasicModel(file.Contents);
          FileName = file.Name;
-         Tools = new ToolTray(Model, history);
-         Tools.StringTool.ModelDataChanged += ModelChangedByTool;
-         Tools.StringTool.ModelDataMoved += ModelDataMovedByTool;
 
          scroll = new ScrollRegion { DataLength = Model.Count };
          scroll.PropertyChanged += ScrollPropertyChanged;
@@ -268,6 +286,10 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          selection.PropertyChanged += SelectionPropertyChanged;
          selection.PreviewSelectionStartChanged += ClearActiveEditBeforeSelectionChanges;
          selection.OnError += (sender, e) => OnError?.Invoke(this, e);
+
+         Tools = new ToolTray(Model, selection, history);
+         Tools.StringTool.ModelDataChanged += ModelChangedByTool;
+         Tools.StringTool.ModelDataMoved += ModelDataMovedByTool;
 
          ImplementCommands();
          RefreshBackingData();
@@ -280,10 +302,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
             var left = Math.Min(selectionStart, selectionEnd);
             var right = Math.Max(selectionStart, selectionEnd);
-            for (int i = left; i <= right; i++) {
-               var p = scroll.DataIndexToViewPoint(i);
-               history.CurrentChange.ChangeData(Model, i, 0xFF);
-            }
+            Model.ClearFormatAndData(history.CurrentChange, left, right - left + 1);
             RefreshBackingData();
          };
 
@@ -309,11 +328,24 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public bool IsSelected(Point point) => selection.IsSelected(point);
 
       public void Edit(string input) {
-         for (int i = 0; i < input.Length; i++) Edit(input[i]);
+         exitEditEarly = false;
+         using (Tools.DeferUpdates) {
+            for (int i = 0; i < input.Length && !exitEditEarly; i++) Edit(input[i]);
+         }
       }
 
       public void Edit(ConsoleKey key) {
-         if (key == ConsoleKey.Escape) ClearEdits(SelectionStart);
+         var offset = scroll.ViewPointToDataIndex(GetEditPoint());
+         var run = Model.GetNextRun(offset);
+         if (key == ConsoleKey.Enter && run is ArrayRun arrayRun1) {
+            var offsets = arrayRun1.ConvertByteOffsetToArrayOffset(offset);
+            SilentScroll(offsets.SegmentStart + arrayRun1.ElementLength);
+         }
+         if (key == ConsoleKey.Tab && run is ArrayRun arrayRun2) {
+            var offsets = arrayRun2.ConvertByteOffsetToArrayOffset(offset);
+            SilentScroll(offsets.SegmentStart + arrayRun2.ElementContent[offsets.SegmentIndex].Length);
+         }
+         if (key == ConsoleKey.Escape) { ClearEdits(SelectionStart); ClearMessage?.Invoke(this, EventArgs.Empty); }
          if (key != ConsoleKey.Backspace) return;
 
          var point = GetEditPoint();
@@ -335,12 +367,23 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             RefreshBackingData();
          }
 
-         var run = Model.GetNextRun(index - 1) ?? new NoInfoRun(int.MaxValue);
+         run = Model.GetNextRun(index - 1);
          if (run is PCSRun pcs) {
-            for (int i = index - 1; i < run.Start + run.Length; i++) Model[i] = 0xFF;
+            for (int i = index - 1; i < run.Start + run.Length; i++) history.CurrentChange.ChangeData(Model, i, 0xFF);
             var length = PCSString.ReadString(Model, run.Start, true);
             Model.ObserveRunWritten(history.CurrentChange, new PCSRun(run.Start, length, run.PointerSources));
             RefreshBackingData();
+            SilentScroll(index - 1);
+         } else if (run is ArrayRun array) {
+            var offsets = array.ConvertByteOffsetToArrayOffset(index - 1);
+            if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.PCS) {
+               for (int i = index - 1; i < offsets.SegmentStart + array.ElementContent[offsets.SegmentIndex].Length; i++) history.CurrentChange.ChangeData(Model, i, 0x00);
+               history.CurrentChange.ChangeData(Model, index - 1, 0xFF);
+               RefreshBackingData();
+               SilentScroll(index - 1);
+            } else {
+               throw new NotImplementedException();
+            }
          } else if (run.Start <= index - 1 && run.Start + run.Length > index - 1) {
             // I want to do a backspace at the end of this run
             SelectionStart = scroll.DataIndexToViewPoint(run.Start);
@@ -361,96 +404,131 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          }
       }
 
-      private byte[] Parse(string content) {
-         var hex = "0123456789ABCDEF";
-         var result = new byte[content.Length / 2];
-         for (int i = 0; i < result.Length; i++) {
-            var thisByte = content.Substring(i * 2, 2);
-            result[i] += (byte)(hex.IndexOf(thisByte[0]) * 0x10);
-            result[i] += (byte)hex.IndexOf(thisByte[1]);
-         }
-         return result;
-      }
+      #region Find
 
       public IReadOnlyList<int> Find(string rawSearch) {
          var results = new List<int>();
          var cleanedSearchString = rawSearch.ToUpper();
          var searchBytes = new List<ISearchByte>();
-         var hex = "0123456789ABCDEF";
 
-         // precheck: it might be a string with no quotes, we should check for matches for that.
-         if (cleanedSearchString.Length > 3 && !cleanedSearchString.Contains(StringDelimeter)) {
+         // it might be a string with no quotes, we should check for matches for that.
+         if (cleanedSearchString.Length > 3 && !cleanedSearchString.Contains(StringDelimeter) && !cleanedSearchString.All(AllHexCharacters.Contains)) {
             var pcsBytes = PCSString.Convert(cleanedSearchString);
+            pcsBytes.RemoveAt(pcsBytes.Count - 1); // remove the 0xFF that was added, since we're searching for a string segment instead of a whole string.
             searchBytes.AddRange(pcsBytes.Select(b => new PCSSearchByte(b)));
-            for (int i = 0; i < Model.Count - searchBytes.Count; i++) {
-               for (int j = 0; j < searchBytes.Count; j++) {
-                  if (!searchBytes[j].Match(Model[i + j])) break;
-                  if (j == searchBytes.Count - 1) results.Add(i);
-               }
-            }
-            searchBytes.Clear();
+            results.AddRange(Search(searchBytes));
          }
 
+         // it might be a pointer without angle braces
+         if (cleanedSearchString.Length == 6 && cleanedSearchString.All(AllHexCharacters.Contains)) {
+            searchBytes.AddRange(Parse(cleanedSearchString).Reverse().Append((byte)0x08).Select(b => (SearchByte)b));
+            results.AddRange(Search(searchBytes));
+         }
+
+         // attempt to parse the search string fully
+         if (!TryParseSearchString(searchBytes, cleanedSearchString, errorOnParseError: results.Count == 0)) return results;
+
+         // find matches
+         results.AddRange(Search(searchBytes));
+
+         // reorder the list to start at the current cursor position
+         results.Sort();
+         var offset = scroll.ViewPointToDataIndex(SelectionStart);
+         var left = results.Where(result => result < offset);
+         var right = results.Where(result => result >= offset);
+         results = right.Concat(left).ToList();
+         if (results.Count == 1) {
+            OnMessage?.Invoke(this, $"Found only 1 match for '{rawSearch}'.");
+         } else {
+            OnMessage?.Invoke(this, $"Found {results.Count} matches for '{rawSearch}'.");
+         }
+         return results;
+      }
+
+      private byte[] Parse(string content) {
+         var result = new byte[content.Length / 2];
+         for (int i = 0; i < result.Length; i++) {
+            var thisByte = content.Substring(i * 2, 2);
+            result[i] += (byte)(AllHexCharacters.IndexOf(thisByte[0]) * 0x10);
+            result[i] += (byte)AllHexCharacters.IndexOf(thisByte[1]);
+         }
+         return result;
+      }
+
+      private IEnumerable<int> Search(IList<ISearchByte> searchBytes) {
+         for (int i = 0; i < Model.Count - searchBytes.Count; i++) {
+            for (int j = 0; j < searchBytes.Count; j++) {
+               if (!searchBytes[j].Match(Model[i + j])) break;
+               if (j == searchBytes.Count - 1) yield return i;
+            }
+         }
+         searchBytes.Clear();
+      }
+
+      private bool TryParseSearchString(List<ISearchByte> searchBytes, string cleanedSearchString, bool errorOnParseError) {
          for (int i = 0; i < cleanedSearchString.Length;) {
             if (cleanedSearchString[i] == ' ') {
                i++;
                continue;
             }
-            if (cleanedSearchString[i] == '<') {
-               var pointerEnd = cleanedSearchString.IndexOf('>', i);
-               if (pointerEnd == -1) { OnError(this, "Search mismatch: no closing >"); return results; }
-               var pointerContents = cleanedSearchString.Substring(i + 1, pointerEnd - i - 2);
-               var address = Model.GetAddressFromAnchor(history.CurrentChange, -1, pointerContents);
-               if (address != Pointer.NULL) {
-                  searchBytes.Add((SearchByte)(address >> 0));
-                  searchBytes.Add((SearchByte)(address >> 8));
-                  searchBytes.Add((SearchByte)(address >> 16));
-                  searchBytes.Add((SearchByte)0x08);
-               } else if (pointerContents.All(hex.Contains) && pointerContents.Length <= 6) {
-                  searchBytes.AddRange(Parse(pointerContents).Reverse().Append((byte)0x08).Select(b => (SearchByte)b));
-               } else {
-                  OnError(this, $"Could not parse pointer <{pointerContents}>");
-                  return results;
-               }
-               i = pointerEnd + 1;
+
+            if (cleanedSearchString[i] == PointerStart) {
+               if (!TryParsePointerSearchSegment(searchBytes, cleanedSearchString, ref i)) return false;
                continue;
             }
+
             if (cleanedSearchString[i] == StringDelimeter) {
-               var endIndex = cleanedSearchString.IndexOf(StringDelimeter, i + 1);
-               while (endIndex > i && cleanedSearchString[endIndex - 1] == '\\') endIndex = cleanedSearchString.IndexOf(StringDelimeter, endIndex + 1);
-               if (endIndex > i) {
-                  var pcsBytes = PCSString.Convert(cleanedSearchString.Substring(i, endIndex + 1 - i));
-                  i = endIndex + 1;
-                  if (i == cleanedSearchString.Length) pcsBytes.RemoveAt(pcsBytes.Count - 1);
-                  searchBytes.AddRange(pcsBytes.Select(b => new PCSSearchByte(b)));
-                  continue;
-               }
+               if (TryParseStringSearchSegment(searchBytes, cleanedSearchString, ref i)) continue;
             }
-            if (cleanedSearchString.Length >= i + 2 && cleanedSearchString.Substring(i, 2).All(hex.Contains)) {
+
+            if (cleanedSearchString.Length >= i + 2 && cleanedSearchString.Substring(i, 2).All(AllHexCharacters.Contains)) {
                searchBytes.AddRange(Parse(cleanedSearchString.Substring(i, 2)).Select(b => (SearchByte)b));
                i += 2;
                continue;
             }
-            if (results.Count == 0) {
-               OnError(this, $"Could not parse search term {cleanedSearchString.Substring(i)}");
-            }
-            return results;
+
+            if (errorOnParseError) OnError(this, $"Could not parse search term {cleanedSearchString.Substring(i)}");
+            return false;
          }
 
-         for (int i = 0; i < Model.Count - searchBytes.Count; i++) {
-            for (int j = 0; j < searchBytes.Count; j++) {
-               if (!searchBytes[j].Match(Model[i + j])) break;
-               if (j == searchBytes.Count - 1) results.Add(i);
-            }
-         }
-
-         // reorder the list to start at the current cursor position
-         var offset = scroll.ViewPointToDataIndex(SelectionStart);
-         var left = results.Where(result => result < offset);
-         var right = results.Where(result => result >= offset);
-         results = right.Concat(left).ToList();
-         return results;
+         return true;
       }
+
+      private bool TryParsePointerSearchSegment(List<ISearchByte> searchBytes, string cleanedSearchString, ref int i) {
+         var pointerEnd = cleanedSearchString.IndexOf(PointerEnd, i);
+         if (pointerEnd == -1) { OnError(this, "Search mismatch: no closing >"); return false; }
+         var pointerContents = cleanedSearchString.Substring(i + 1, pointerEnd - i - 2);
+         var address = Model.GetAddressFromAnchor(history.CurrentChange, -1, pointerContents);
+         if (address != Pointer.NULL) {
+            searchBytes.Add((SearchByte)(address >> 0));
+            searchBytes.Add((SearchByte)(address >> 8));
+            searchBytes.Add((SearchByte)(address >> 16));
+            searchBytes.Add((SearchByte)0x08);
+         } else if (pointerContents.All(AllHexCharacters.Contains) && pointerContents.Length <= 6) {
+            searchBytes.AddRange(Parse(pointerContents).Reverse().Append((byte)0x08).Select(b => (SearchByte)b));
+         } else {
+            OnError(this, $"Could not parse pointer <{pointerContents}>");
+            return false;
+         }
+         i = pointerEnd + 1;
+         return true;
+      }
+
+      private bool TryParseStringSearchSegment(List<ISearchByte> searchBytes, string cleanedSearchString, ref int i) {
+         var endIndex = cleanedSearchString.IndexOf(StringDelimeter, i + 1);
+         while (endIndex > i && cleanedSearchString[endIndex - 1] == '\\') endIndex = cleanedSearchString.IndexOf(StringDelimeter, endIndex + 1);
+         if (endIndex > i) {
+            var pcsBytes = PCSString.Convert(cleanedSearchString.Substring(i, endIndex + 1 - i));
+            i = endIndex + 1;
+            if (i == cleanedSearchString.Length) pcsBytes.RemoveAt(pcsBytes.Count - 1);
+            searchBytes.AddRange(pcsBytes.Select(b => new PCSSearchByte(b)));
+            return true;
+         } else {
+            return false;
+         }
+      }
+
+      #endregion
 
       public IChildViewPort CreateChildView(int offset) {
          var child = new ChildViewPort(this);
@@ -471,12 +549,21 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             }
          }
          if (format is PCS pcs) {
-            Tools.StringTool.Address = pcs.Source;
+            var byteOffset = scroll.ViewPointToDataIndex(new Point(x, y));
+            var currentRun = Model.GetNextRun(byteOffset);
+            if (currentRun is PCSRun) {
+               Tools.StringTool.Address = currentRun.Start;
+            } else if (currentRun is ArrayRun array) {
+               var offsets = array.ConvertByteOffsetToArrayOffset(byteOffset);
+               Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
+            } else {
+               throw new NotImplementedException();
+            }
             Tools.SelectedIndex = Enumerable.Range(0, Tools.Count).First(i => Tools[i] is PCSTool);
          }
       }
 
-      public void ExpandSelection() {
+      public void ExpandSelection(int x, int y) {
          var index = scroll.ViewPointToDataIndex(SelectionStart);
          var run = Model.GetNextRun(index);
          if (run.Start > index) return;
@@ -562,12 +649,17 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             var innerFormat = element.Format;
             if (innerFormat is Anchor anchorFormat) innerFormat = anchorFormat.OriginalFormat;
 
+            if (input == ExtendArray) {
+               var index = scroll.ViewPointToDataIndex(point);
+               return Model.IsAtEndOfArray(index, out var _);
+            }
+
             if (input == AnchorStart) {
                // anchor edits are actually 0 length
                // but lets give them 4 spaces to work with
                PrepareForMultiSpaceEdit(point, 4);
                if (element.Format is Anchor anchor) {
-                  underEdit = new UnderEdit(anchor, AnchorStart + anchor.Name + anchor.Format);
+                  underEdit = new UnderEdit(anchor, AnchorStart.ToString());
                   currentView[point.X, point.Y] = new HexElement(element.Value, underEdit);
                }
                return true;
@@ -584,31 +676,48 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
             if (input == PointerStart) {
                // pointer edits are 4 bytes long
-               PrepareForMultiSpaceEdit(point, 4);
+               if(!TryCoerceSelectionToStartOfPointer(ref point, ref element)) PrepareForMultiSpaceEdit(point, 4);
                return true;
             }
          } else if (underEdit.CurrentText.StartsWith(PointerStart.ToString())) {
             return char.IsLetterOrDigit(input) || input == PointerEnd;
          } else if (underEdit.CurrentText.StartsWith(AnchorStart.ToString())) {
-            return char.IsLetterOrDigit(input) || char.IsWhiteSpace(input) || input == StringDelimeter;
+            return char.IsLetterOrDigit(input) || char.IsWhiteSpace(input) || input == ArrayStart || input == ArrayEnd || input == StringDelimeter;
          } else if (underEdit.OriginalFormat is Anchor anchorFormat && anchorFormat.OriginalFormat is PCS) {
             if (input == StringDelimeter) return true;
+            // if this is the start of a string (as noted by the anchor), crop off the leading " before trying to convert to a byte
             var currentText = underEdit.CurrentText;
             if (currentText.StartsWith(StringDelimeter.ToString())) currentText = currentText.Substring(1);
             return PCSString.PCS.Any(str => str != null && str.StartsWith(currentText + input));
          } else if (underEdit.OriginalFormat is PCS) {
             if (input == StringDelimeter) return true;
-            return PCSString.PCS.Any(str => str != null && str.StartsWith(underEdit.CurrentText + input));
+            var memoryLocation = scroll.ViewPointToDataIndex(point);
+            var currentText = underEdit.CurrentText;
+            // if this is the start of an array string segment, crop off the leading " before trying to convert to a byte
+            if (Model.GetNextRun(memoryLocation) is ArrayRun array) {
+               var offsets = array.ConvertByteOffsetToArrayOffset(memoryLocation);
+               if (offsets.SegmentStart == memoryLocation) {
+                  if (currentText.StartsWith(StringDelimeter.ToString())) currentText = currentText.Substring(1);
+               }
+            }
+            return PCSString.PCS.Any(str => str != null && str.StartsWith(currentText + input));
          }
 
          if (AllHexCharacters.Contains(input)) {
             // if we're trying to write standard data over a pointer, allow that, but you must start at the first byte
-            if (element.Format is Pointer pointer) {
-               point = scroll.DataIndexToViewPoint(scroll.ViewPointToDataIndex(point) - pointer.Position);
-               element = this[point];
-               UpdateSelectionWithoutNotify(point);
-               PrepareForMultiSpaceEdit(point, 4);
-            }
+            TryCoerceSelectionToStartOfPointer(ref point, ref element);
+            return true;
+         }
+
+         return false;
+      }
+
+      private bool TryCoerceSelectionToStartOfPointer(ref Point point, ref HexElement element) {
+         if (element.Format is Pointer pointer) {
+            point = scroll.DataIndexToViewPoint(scroll.ViewPointToDataIndex(point) - pointer.Position);
+            element = this[point];
+            UpdateSelectionWithoutNotify(point);
+            PrepareForMultiSpaceEdit(point, 4);
             return true;
          }
 
@@ -645,8 +754,13 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                AnchorTextVisible = true;
                return false;
             }
-            AnchorTextVisible = false;
-            CompleteAnchorEdit(point);
+
+            if (!CompleteAnchorEdit(point)) exitEditEarly = true;
+            return true;
+         }
+         var dataIndex = scroll.ViewPointToDataIndex(point);
+         if (underEdit.CurrentText == ExtendArray.ToString() && Model.IsAtEndOfArray(dataIndex, out var arrayRun)) {
+            CompleteArrayExtension(arrayRun);
             return true;
          }
 
@@ -676,6 +790,15 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          return true;
       }
 
+      private void CompleteArrayExtension(ArrayRun arrayRun) {
+         var newRun = (ArrayRun)Model.RelocateForExpansion(history.CurrentChange, arrayRun, arrayRun.Length + arrayRun.ElementLength);
+         if (newRun != arrayRun) {
+            ScrollFromRunMove(arrayRun.Start + arrayRun.Length, arrayRun.Length, newRun);
+         }
+         Model.ObserveRunWritten(history.CurrentChange, arrayRun.Append(1));
+         RefreshBackingData();
+      }
+
       private void CompletePointerEdit(Point point) {
          var element = currentView[point.X, point.Y];
          var underEdit = (UnderEdit)element.Format;
@@ -685,92 +808,43 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
          Model.ExpandData(history.CurrentChange, index + 3);
          scroll.DataLength = Model.Count;
-         Model.ClearFormat(history.CurrentChange, index, 4);
+         if (destination != string.Empty) {
+            Model.ClearFormatAndData(history.CurrentChange, index, 4);
+         } else {
+            Model.ClearFormat(history.CurrentChange, index, 4);
+         }
 
          int fullValue;
-         if (destination.All("0123456789ABCDEFabcdef".Contains) && destination.Length <= 6) {
+         if (destination == string.Empty) {
+            fullValue = Model.ReadPointer(index);
+         } else if (destination.All("0123456789ABCDEFabcdef".Contains) && destination.Length <= 6) {
             while (destination.Length < 6) destination = "0" + destination;
             fullValue = int.Parse(destination, NumberStyles.HexNumber);
          } else {
             fullValue = Model.GetAddressFromAnchor(history.CurrentChange, index, destination);
          }
 
-         Model.WritePointer(history.CurrentChange, index, fullValue);
-         Model.ObserveRunWritten(history.CurrentChange, new PointerRun(index));
-         ClearEdits(point);
-         SilentScroll(index + 4);
+         if (fullValue < Model.Count) {
+            Model.WritePointer(history.CurrentChange, index, fullValue);
+            Model.ObserveRunWritten(history.CurrentChange, new PointerRun(index));
+            ClearEdits(point);
+            SilentScroll(index + 4);
+         } else {
+            OnError?.Invoke(this, $"Address {fullValue.ToString("X2")} is not within the data.");
+            ClearEdits(point);
+         }
       }
 
-      private void CompleteAnchorEdit(Point point) {
+      private bool CompleteAnchorEdit(Point point) {
          var underEdit = (UnderEdit)currentView[point.X, point.Y].Format;
          var index = scroll.ViewPointToDataIndex(point);
-         ApplyAnchor(index, underEdit.CurrentText);
+         var errorInfo = PokemonModel.ApplyAnchor(Model, history.CurrentChange, index, underEdit.CurrentText);
          ClearEdits(point);
-      }
+         UpdateToolsFromSelection(index);
 
-      private bool ApplyAnchor(int dataIndex, string text) {
-         var name = text.Substring(1).Trim();
-         string format = string.Empty;
+         if (errorInfo == ErrorInfo.NoError) return true;
 
-         if (name.Contains(StringDelimeter)) {
-            var split = name.IndexOf(StringDelimeter);
-            format = name.Substring(split);
-            name = name.Substring(0, split);
-         }
-
-         if (format == StringDelimeter.ToString() + StringDelimeter) {
-            var length = PCSString.ReadString(Model, dataIndex, true);
-            if (length < 0) {
-               OnError(this, $"Format was specified as a string, but no string was recognized.");
-               format = string.Empty;
-            } else if (SpanContainsAnchor(dataIndex, length)) {
-               OnError(this, $"Format was specified as a string, but a string would overlap the next anchor.");
-               format = string.Empty;
-            }
-         } else if (format != string.Empty) {
-            OnError(this, $"Format {format} was not understood.");
-            format = string.Empty;
-         }
-
-         var nextRun = Model.GetNextRun(dataIndex);
-
-         if (name.ToLower() == "null") {
-            OnError(this, "'null' is a reserved word and cannot be used as an anchor name.");
-         } else if (name == string.Empty && nextRun.Start != dataIndex) {
-            OnError(this, "An anchor with nothing pointing to it must have a name.");
-         } else if (name == string.Empty && nextRun.PointerSources.Count == 0 && format != string.Empty) {
-            OnError(this, "An anchor with nothing pointing to it must have a name.");
-         } else {
-            Model.ObserveAnchorWritten(history.CurrentChange, dataIndex, name, format);
-            return true;
-         }
-
-         return false;
-      }
-
-      private bool SpanContainsAnchor(int start, int length) {
-         var run = Model.GetNextRun(start + 1);
-
-         // if we're starting in the middle of a run, get the next one
-         if (run.Start <= start) {
-            length -= run.Length + run.Start - start;
-            start = run.Start + run.Length;
-            run = Model.GetNextRun(start);
-         }
-
-         // move start forward to the start of the run
-         length -= run.Start - start;
-         start = run.Start;
-
-         // check all the runs in the range for pointer sources / destination names
-         while (length > 0) {
-            if (run.PointerSources.Count > 0) return true;
-            if (!string.IsNullOrEmpty(Model.GetAnchorFromAddress(-1, run.Start))) return true;
-            run = Model.GetNextRun(run.Start + run.Length);
-            length -= run.Start - start;
-            start = run.Start;
-         }
-
+         OnError(this, errorInfo.ErrorMessage);
          return false;
       }
 
@@ -778,14 +852,27 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          // all the bytes are already correct, just move to the next space
          ClearEdits(point);
          var memoryLocation = scroll.ViewPointToDataIndex(point);
-         var run = (PCSRun)Model.GetNextRun(memoryLocation);
-         while (run.Start + run.Length > memoryLocation) {
+         var run = Model.GetNextRun(memoryLocation);
+         if (run is PCSRun pcsRun) {
+            while (run.Start + run.Length > memoryLocation) {
+               history.CurrentChange.ChangeData(Model, memoryLocation, 0xFF);
+               memoryLocation++;
+               SilentScroll(memoryLocation);
+               var newRunLength = PCSString.ReadString(Model, run.Start, true);
+               Model.ObserveRunWritten(history.CurrentChange, new PCSRun(run.Start, newRunLength, run.PointerSources));
+            }
+         } else if (run is ArrayRun arrayRun) {
+            var offsets = arrayRun.ConvertByteOffsetToArrayOffset(memoryLocation);
             history.CurrentChange.ChangeData(Model, memoryLocation, 0xFF);
             memoryLocation++;
             SilentScroll(memoryLocation);
-            var newRunLength = PCSString.ReadString(Model, run.Start, true);
-            Model.ObserveRunWritten(history.CurrentChange, new PCSRun(run.Start, newRunLength, run.PointerSources));
+            while (offsets.SegmentStart + arrayRun.ElementContent[offsets.SegmentIndex].Length > memoryLocation) {
+               history.CurrentChange.ChangeData(Model, memoryLocation, 0x00);
+               memoryLocation++;
+               SilentScroll(memoryLocation);
+            }
          }
+         RefreshBackingData();
       }
 
       private void CompleteCharacterEdit(Point point) {
@@ -804,28 +891,57 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             byte.Parse(underEdit.CurrentText, NumberStyles.HexNumber) :
             (byte)Enumerable.Range(0, 0x100).First(i => PCSString.PCS[i] == editText);
 
-         // if its the last character being edited, do some stuff
-         if (pcs != null && run.Length == pcs.Position + 1) {
-            int extraBytesNeeded = editText == "\\\\" ? 2 : 1;
-            // last character edit: might require relocation
-            var newRun = Model.RelocateForExpansion(history.CurrentChange, run, run.Length + extraBytesNeeded);
-            if (newRun != run) {
-               var offset = memoryLocation - scroll.DataIndex;
-               selection.PropertyChanged -= SelectionPropertyChanged;
-               selection.GotoAddress(newRun.Start + pcs.Position - offset);
-               selection.PropertyChanged += SelectionPropertyChanged;
-               memoryLocation += newRun.Start - run.Start;
-               run = newRun;
-            }
-
-            history.CurrentChange.ChangeData(Model, memoryLocation + 1, 0xFF);
-            if (editText == "\\\\") history.CurrentChange.ChangeData(Model, memoryLocation + 2, 0xFF);
-            Model.ObserveRunWritten(history.CurrentChange, new PCSRun(run.Start, run.Length + extraBytesNeeded, run.PointerSources));
-         }
+         var position = pcs != null ? pcs.Position : escaped.Position;
+         HandleLastCharacterChange(ref memoryLocation, editText, pcs, ref run, position);
 
          history.CurrentChange.ChangeData(Model, memoryLocation, byteValue);
-         RefreshBackingData();
-         SilentScroll(memoryLocation + 1);
+         Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
+         if (!SilentScroll(memoryLocation + 1)) {
+            RefreshBackingData(point);
+            if (point.X + 1 < Width) {
+               RefreshBackingData(new Point(point.X + 1, point.Y));
+            } else {
+               RefreshBackingData(new Point(0, point.Y + 1));
+            }
+         }
+      }
+
+      private void HandleLastCharacterChange(ref int memoryLocation, string editText, PCS pcs, ref IFormattedRun run, int position) {
+         if (run is PCSRun) {
+            // if its the last character being edited on a normal string, try to expand
+            if (run.Length == position + 1) {
+               int extraBytesNeeded = editText == "\\\\" ? 2 : 1;
+               // last character edit: might require relocation
+               var newRun = Model.RelocateForExpansion(history.CurrentChange, run, run.Length + extraBytesNeeded);
+               if (newRun != run) {
+                  ScrollFromRunMove(memoryLocation, pcs.Position, newRun);
+                  memoryLocation += newRun.Start - run.Start;
+                  run = newRun;
+                  UpdateToolsFromSelection(run.Start);
+               }
+
+               history.CurrentChange.ChangeData(Model, memoryLocation + 1, 0xFF);
+               if (editText == "\\\\") history.CurrentChange.ChangeData(Model, memoryLocation + 2, 0xFF);
+               run = new PCSRun(run.Start, run.Length + extraBytesNeeded, run.PointerSources);
+               Model.ObserveRunWritten(history.CurrentChange, run);
+            }
+         } else if (run is ArrayRun arrayRun) {
+            // if the last characet is being edited for an array, truncate
+            var offsets = arrayRun.ConvertByteOffsetToArrayOffset(memoryLocation);
+            if (arrayRun.ElementContent[offsets.SegmentIndex].Length == position + 1) {
+               memoryLocation--; // move back one byte and edit that one instead
+            }
+         } else {
+            Debug.Fail("Why are we completing a character edit on something other than a PCSRun or an Array?");
+         }
+      }
+
+      private void ScrollFromRunMove(int originalIndexInData, int indexInOldRun, IFormattedRun newRun) {
+         scroll.DataLength = Model.Count; // possible length change
+         var offset = originalIndexInData - scroll.DataIndex;
+         selection.PropertyChanged -= SelectionPropertyChanged;
+         selection.GotoAddress(newRun.Start + indexInOldRun - offset);
+         selection.PropertyChanged += SelectionPropertyChanged;
       }
 
       private void CompleteHexEdit(Point point) {
@@ -841,14 +957,17 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          SilentScroll(memoryLocation + 1);
       }
 
-      private void SilentScroll(int memoryLocation) {
+      private bool SilentScroll(int memoryLocation) {
          var nextPoint = scroll.DataIndexToViewPoint(memoryLocation);
+         var didScroll = true;
          if (!scroll.ScrollToPoint(ref nextPoint)) {
             // only need to notify collection change if we didn't auto-scroll after changing cells
             NotifyCollectionChanged(ResetArgs);
+            didScroll = false;
          }
 
          UpdateSelectionWithoutNotify(nextPoint);
+         return didScroll;
       }
 
       /// <summary>
@@ -875,11 +994,25 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       }
 
       private void ModelDataMovedByTool(object sender, (int originalLocation, int newLocation) locations) {
+         scroll.DataLength = Model.Count;
          if (scroll.DataIndex <= locations.originalLocation && locations.originalLocation < scroll.ViewPointToDataIndex(new Point(Width - 1, Height - 1))) {
             // data was moved from onscreen: follow it
             int offset = locations.originalLocation - scroll.DataIndex;
             selection.GotoAddress(locations.newLocation - offset);
          }
+      }
+
+      private void RefreshBackingData(Point p) {
+         var index = scroll.ViewPointToDataIndex(p);
+         if (index < 0 | index >= Model.Count) { currentView[p.X, p.Y] = HexElement.Undefined; return; }
+         var run = Model.GetNextRun(index);
+         if (index < run.Start) { currentView[p.X, p.Y] = new HexElement(Model[index], None.Instance); return; }
+         var format = run.CreateDataFormat(Model, index);
+         if (run.PointerSources != null && run.Start == index) {
+            var name = Model.GetAnchorFromAddress(-1, run.Start);
+            format = new Anchor(format, name, run.FormatString, run.PointerSources);
+         }
+         currentView[p.X, p.Y] = new HexElement(Model[index], format);
       }
 
       private void RefreshBackingData() {
@@ -913,12 +1046,12 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       /// Given a data format, decide how to best display that as text
       /// </summary>
       private class ConvertCellToText : IDataFormatVisitor {
-         private readonly IModel buffer;
+         private readonly IDataModel buffer;
          private readonly int index;
 
          public string Result { get; private set; }
 
-         public ConvertCellToText(IModel buffer, int index) {
+         public ConvertCellToText(IDataModel buffer, int index) {
             this.buffer = buffer;
             this.index = index;
          }
@@ -944,6 +1077,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          }
 
          public void Visit(EscapedPCS pcs, byte data) => Visit((None)null, data);
+
+         public void Visit(ErrorPCS pcs, byte data) => Visit((None)null, data);
       }
 
       /// <summary>
@@ -952,11 +1087,11 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       /// For example, cleared data with no known format gets 0xFF.
       /// </summary>
       private class DataClear : IDataFormatVisitor {
-         private readonly IModel buffer;
-         private readonly DeltaModel currentChange;
+         private readonly IDataModel buffer;
+         private readonly ModelDelta currentChange;
          private readonly int index;
 
-         public DataClear(IModel data, DeltaModel delta, int index) {
+         public DataClear(IDataModel data, ModelDelta delta, int index) {
             buffer = data;
             currentChange = delta;
             this.index = index;
@@ -978,6 +1113,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          public void Visit(PCS pcs, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
 
          public void Visit(EscapedPCS pcs, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
+
+         public void Visit(ErrorPCS pcs, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
       }
    }
 }

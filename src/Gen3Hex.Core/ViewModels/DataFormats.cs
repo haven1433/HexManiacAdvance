@@ -18,6 +18,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels.DataFormats {
       void Visit(Anchor anchor, byte data);
       void Visit(PCS pcs, byte data);
       void Visit(EscapedPCS pcs, byte data);
+      void Visit(ErrorPCS pcs, byte data);
    }
 
    /// <summary>
@@ -129,6 +130,22 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels.DataFormats {
       public byte ThisValue { get; }
 
       public EscapedPCS(int source, int position, string full, byte value) => (Source, Position, FullString, ThisValue) = (source, position, full, value);
+
+      public bool Equals(IDataFormat other) {
+         if (!(other is EscapedPCS pcs)) return false;
+         return pcs.Source == Source && pcs.Position == Position && pcs.FullString == FullString && pcs.ThisValue == ThisValue;
+      }
+
+      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
+   }
+
+   public class ErrorPCS : IDataFormat {
+      public int Source { get; }
+      public int Position { get; }
+      public string FullString { get; }
+      public byte ThisValue { get; }
+
+      public ErrorPCS(int source, int position, string full, byte value) => (Source, Position, FullString, ThisValue) = (source, position, full, value);
 
       public bool Equals(IDataFormat other) {
          if (!(other is EscapedPCS pcs)) return false;

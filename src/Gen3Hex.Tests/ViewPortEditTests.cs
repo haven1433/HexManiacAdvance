@@ -242,7 +242,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void CanClearData() {
          var loadedFile = new LoadedFile("test", new byte[1000]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         var viewPort = new ViewPort(loadedFile, new PokemonModel(loadedFile.Contents)) { Width = 5, Height = 5 };
 
          viewPort.SelectionStart = new Point(0, 0);
          viewPort.SelectionEnd = new Point(3, 3);
@@ -296,6 +296,19 @@ namespace HavenSoft.Gen3Hex.Tests {
          viewPort.Edit(ConsoleKey.Backspace); // if I hit an arrow key now, it'll give up on the edit
          viewPort.Edit(ConsoleKey.Backspace); // but since I hit backspace, it commits the erasure and starts erasing the next cell
          Assert.Equal(0xFF, viewPort[3, 4].Value);
+      }
+
+      [Fact]
+      public void ClearRemovesFormats() {
+         var data = new byte[0x200];
+         var model = new PokemonModel(data);
+         var viewPort = new ViewPort(new LoadedFile("file.txt", data), model);
+
+         viewPort.Edit("<000100>");
+         viewPort.SelectionStart = new Point(2, 0);
+         viewPort.Clear.Execute();
+
+         Assert.Equal(int.MaxValue, model.GetNextRun(0).Start);
       }
    }
 }

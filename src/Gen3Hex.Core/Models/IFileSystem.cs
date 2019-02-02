@@ -20,7 +20,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       /// <returns>
       /// The new name if provided, or null if the operation was canceled by the user.
       /// </returns>
-      string RequestNewName(string currentName, params string[] extensionOptions);
+      string RequestNewName(string currentName, string extensionDescription = null, params string[] extensionOptions);
 
       /// <summary>
       /// Have the filesystem ask the user for an existing file.
@@ -34,7 +34,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       /// If the user chooses a file, that file is loaded and returned.
       /// If the user cancels or selects an unreadable file, returns null.
       /// </returns>
-      LoadedFile OpenFile(params string[] extensionOptions);
+      LoadedFile OpenFile(string extensionDescription = null, params string[] extensionOptions);
 
       /// <summary>
       /// Have the filesystem open a specific file.

@@ -3,13 +3,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace HavenSoft.Gen3Hex.Core.Models {
+namespace HavenSoft.Gen3Hex.Core.Models.Runs {
    public interface IFormattedRun {
       int Start { get; }
       int Length { get; }
       IReadOnlyList<int> PointerSources { get; }
       string FormatString { get; }
-      IDataFormat CreateDataFormat(IModel data, int index);
+      IDataFormat CreateDataFormat(IDataModel data, int index);
       IFormattedRun MergeAnchor(IReadOnlyList<int> sources);
       IFormattedRun RemoveSource(int source);
    }
@@ -30,12 +30,14 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       public CompareFormattedRun(int start) => Start = start;
 
       public IReadOnlyList<int> PointerSources => throw new NotImplementedException();
-      public IDataFormat CreateDataFormat(IModel data, int index) => throw new NotImplementedException();
+      public IDataFormat CreateDataFormat(IDataModel data, int index) => throw new NotImplementedException();
       public IFormattedRun MergeAnchor(IReadOnlyList<int> other) => throw new NotImplementedException();
       public IFormattedRun RemoveSource(int source) => throw new NotImplementedException();
    }
 
    public abstract class BaseRun : IFormattedRun {
+      public const char AnchorStart = '^';
+
       public int Start { get; }
       public abstract int Length { get; }
       public abstract string FormatString { get; }
@@ -46,7 +48,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
          PointerSources = sources;
       }
 
-      public abstract IDataFormat CreateDataFormat(IModel data, int index);
+      public abstract IDataFormat CreateDataFormat(IDataModel data, int index);
 
       public IFormattedRun MergeAnchor(IReadOnlyList<int> sources) {
          if (sources == null) return this;
@@ -70,58 +72,9 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       public NoInfoRun(int start, IReadOnlyList<int> sources = null) : base(start, sources) { }
 
-      public override IDataFormat CreateDataFormat(IModel data, int index) => None.Instance;
+      public override IDataFormat CreateDataFormat(IDataModel data, int index) => None.Instance;
       protected override IFormattedRun Clone(IReadOnlyList<int> newPointerSources) {
          return new NoInfoRun(Start, newPointerSources);
-      }
-   }
-
-   public class PointerRun : BaseRun {
-      public override int Length => 4;
-      public override string FormatString => string.Empty;
-
-      public PointerRun(int start, IReadOnlyList<int> sources = null) : base(start, sources) { }
-
-      public override IDataFormat CreateDataFormat(IModel data, int index) {
-         var destinationAddress = data.ReadPointer(Start);
-         var anchor = data.GetAnchorFromAddress(Start, destinationAddress);
-         var pointer = new Pointer(Start, index - Start, data.ReadPointer(Start), anchor);
-         return pointer;
-      }
-      protected override IFormattedRun Clone(IReadOnlyList<int> newPointerSources) {
-         return new PointerRun(Start, newPointerSources);
-      }
-   }
-
-   public class PCSRun : BaseRun {
-      public const char StringDelimeter = '"';
-
-      private int cachedIndex = int.MaxValue;
-      private string cachedFullString;
-
-      public override int Length { get; }
-      public override string FormatString => StringDelimeter.ToString() + StringDelimeter;
-
-      public PCSRun(int start, int length, IReadOnlyList<int> sources = null) : base(start, sources) => Length = length;
-
-      public override IDataFormat CreateDataFormat(IModel data, int index) {
-         // only read the full string from the data once per pass.
-         // This assumes that we read data starting at the lowest index and working our way up.
-         if (index < cachedIndex) cachedFullString = PCSString.Convert(data, Start, Length);
-         cachedIndex = index;
-
-         bool isEscaped = index > Start && data[index - 1] == PCSString.Escape;
-         if (isEscaped) {
-            return new EscapedPCS(Start, index-Start, cachedFullString, data[index]);
-         } else {
-            var character = PCSString.Convert(data, index, 1).Substring(1); // trim leading "
-            if (index == Start) character = StringDelimeter + character; // include the opening quotation mark, only for the first character
-            var pcs = new PCS(Start, index - Start, cachedFullString, character);
-            return pcs;
-         }
-      }
-      protected override IFormattedRun Clone(IReadOnlyList<int> newPointerSources) {
-         return new PCSRun(Start, Length, newPointerSources);
       }
    }
 }

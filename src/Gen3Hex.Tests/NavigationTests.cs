@@ -1,6 +1,8 @@
 ﻿using HavenSoft.Gen3Hex.Core;
 using HavenSoft.Gen3Hex.Core.Models;
 using HavenSoft.Gen3Hex.Core.ViewModels;
+using System.Collections.Generic;
+using System.Windows.Input;
 using Xunit;
 
 namespace HavenSoft.Gen3Hex.Tests {
@@ -143,6 +145,13 @@ namespace HavenSoft.Gen3Hex.Tests {
       }
 
       [Fact]
+      public void CannotBackFromSearchTab() {
+         var searchTab = new SearchResultsViewPort("bob");
+         Assert.False(searchTab.Back.CanExecute(null));
+         Assert.False(searchTab.Forward.CanExecute(null));
+      }
+
+      [Fact]
       public void BackRecallsYourLastScrollPosition() {
          var viewPort = new ViewPort(new LoadedFile("test.txt", new byte[0x1000])) { Width = 0x10, Height = 0x10 };
 
@@ -183,6 +192,50 @@ namespace HavenSoft.Gen3Hex.Tests {
          viewPort.Goto.Execute("000C00");
 
          Assert.Equal(new Point(0, 0), viewPort.SelectionStart);
+      }
+
+      [Fact]
+      public void SearchFor6BytesAlsoFindsPointers() {
+         var data = new byte[0x1200];
+         var model = new PokemonModel(data);
+         var viewPort = new ViewPort(new LoadedFile("file.txt", data), model);
+
+         viewPort.Edit("<001060>");
+         var results = viewPort.Find("001060");
+
+         Assert.Single(results);
+      }
+
+      [Fact]
+      public void GotoAutoCompleteNavigationCommandsWork() {
+         var tab = new StubViewPort {
+            Goto = new StubCommand { CanExecute = ICommandExtensions.CanAlwaysExecute },
+            Model = new StubDataModel { GetAutoCompleteAnchorNameOptions = str => new List<string> {
+               "Option 1",
+               "Option 2",
+               "Option 3",
+            } },
+         };
+         var viewModel = new GotoControlViewModel(tab);
+
+         Assert.False(viewModel.ControlVisible);
+         viewModel.ShowGoto.Execute(true);
+         Assert.True(viewModel.ControlVisible);
+
+         Assert.False(viewModel.ShowAutoCompleteOptions);
+         viewModel.Text = "Something";
+         Assert.True(viewModel.ShowAutoCompleteOptions);
+         Assert.Equal(3, viewModel.AutoCompleteOptions.Count);
+         Assert.All(viewModel.AutoCompleteOptions, option => Assert.False(option.IsSelected));
+
+         viewModel.MoveAutoCompleteSelectionDown.Execute();
+         Assert.True(viewModel.AutoCompleteOptions[0].IsSelected);
+
+         viewModel.MoveAutoCompleteSelectionDown.Execute();
+         Assert.True(viewModel.AutoCompleteOptions[1].IsSelected);
+
+         viewModel.MoveAutoCompleteSelectionUp.Execute();
+         Assert.True(viewModel.AutoCompleteOptions[0].IsSelected);
       }
    }
 }

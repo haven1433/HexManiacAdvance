@@ -10,7 +10,11 @@ namespace HavenSoft.Gen3Hex.WPF.Controls {
       }
 
       public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {
-         return int.Parse(value.ToString(), NumberStyles.HexNumber);
+         if (int.TryParse(value.ToString(), NumberStyles.HexNumber, null, out int result)) {
+            return result;
+         } else {
+            return -1;
+         }
       }
    }
 }

@@ -1,4 +1,5 @@
 ﻿using HavenSoft.Gen3Hex.Core.Models;
+using HavenSoft.Gen3Hex.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -55,18 +56,18 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       }
       public string Name { get; }
       public string FileName => string.Empty;
-      public ICommand Save => null;
-      public ICommand SaveAs => null;
-      public ICommand Undo => null;
-      public ICommand Redo => null;
-      public ICommand Copy => null;
-      public ICommand Clear => null;
-      public ICommand Goto => null;
-      public ICommand Back => null;
-      public ICommand Forward => null;
+      public ICommand Save { get; } = new StubCommand();
+      public ICommand SaveAs { get; } = new StubCommand();
+      public ICommand Undo { get; } = new StubCommand();
+      public ICommand Redo { get; } = new StubCommand();
+      public ICommand Copy { get; } = new StubCommand();
+      public ICommand Clear { get; } = new StubCommand();
+      public ICommand Goto { get; } = new StubCommand();
+      public ICommand Back { get; } = new StubCommand();
+      public ICommand Forward { get; } = new StubCommand();
       public ICommand Close => close;
 
-      public IModel Model => null;
+      public IDataModel Model => null;
 
       public bool HasTools => false;
 
@@ -78,6 +79,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
 #pragma warning disable 0067 // it's ok if events are never used
       public event EventHandler<string> OnError;
+      public event EventHandler<string> OnMessage;
+      public event EventHandler ClearMessage;
       public event EventHandler Closed;
       public event NotifyCollectionChangedEventHandler CollectionChanged;
       public event EventHandler<ITabContent> RequestTabChange;
@@ -139,7 +142,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          RequestTabChange?.Invoke(this, parent);
       }
 
-      public void ExpandSelection() { }
+      public void ExpandSelection(int x, int y) => FollowLink(x, y);
 
       public void ConsiderReload(IFileSystem fileSystem) { }
 

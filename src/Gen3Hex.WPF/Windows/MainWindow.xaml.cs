@@ -1,6 +1,7 @@
 ﻿using HavenSoft.Gen3Hex.Core;
 using HavenSoft.Gen3Hex.Core.Models;
 using HavenSoft.Gen3Hex.Core.ViewModels;
+using HavenSoft.Gen3Hex.Core.ViewModels.Tools;
 using HavenSoft.Gen3Hex.WPF.Controls;
 using System;
 using System.Collections.Generic;
@@ -23,6 +24,9 @@ namespace HavenSoft.Gen3Hex.WPF.Windows {
          ViewModel = viewModel;
          viewModel.RequestDelayedWork += (sender, e) => deferredActions.Add(e);
          DataContext = viewModel;
+         viewModel.MoveFocusToFind += (sender, e) => FocusTextBox(FindBox);
+         viewModel.GotoViewModel.MoveFocusToGoto += FocusGotoBox;
+         viewModel.PropertyChanged += ViewModelPropertyChanged;
       }
 
       protected override void OnDrop(DragEventArgs e) {
@@ -101,6 +105,11 @@ namespace HavenSoft.Gen3Hex.WPF.Windows {
 
       #endregion
 
+      private void HeaderMouseDown(object sender, MouseButtonEventArgs e) {
+         var selectedElement = (HexContent)GetChild(Tabs, "HexContent", ViewModel[ViewModel.SelectedIndex]);
+         selectedElement.RaiseEvent(e);
+      }
+
       private void ToggleTheme(object sender, EventArgs e) {
          Solarized.Theme.CurrentVariant = 1 - Solarized.Theme.CurrentVariant;
       }
@@ -116,14 +125,28 @@ namespace HavenSoft.Gen3Hex.WPF.Windows {
 
       private void EditBoxVisibilityChanged(object sender, DependencyPropertyChangedEventArgs e) {
          var box = (TextBox)sender;
-         if (box.IsVisible) {
-            box.SelectAll();
-            Keyboard.Focus(box);
-         } else {
+         if (!box.IsVisible) {
             if (ViewModel.SelectedIndex == -1) return;
             var selectedElement = (HexContent)GetChild(Tabs, "HexContent", ViewModel[ViewModel.SelectedIndex]);
             Keyboard.Focus(selectedElement);
+            ViewModel.GotoViewModel.ShowAutoCompleteOptions = false;
          }
+      }
+
+      // when the ViewModel changes its GotoControlViewModel subsystem, update the event handler
+      private void ViewModelPropertyChanged(object sender, PropertyChangedEventArgs e) {
+         if (e.PropertyName != nameof(ViewModel.GotoViewModel)) return;
+         var args = (ExtendedPropertyChangedEventArgs)e;
+         var old = (GotoControlViewModel)args.OldValue;
+         old.MoveFocusToGoto -= FocusGotoBox;
+         ViewModel.GotoViewModel.MoveFocusToGoto += FocusGotoBox;
+      }
+
+      private void FocusGotoBox(object sender, EventArgs e) => FocusTextBox(GotoBox);
+
+      private void FocusTextBox(TextBox textBox) {
+         textBox.SelectAll();
+         Keyboard.Focus(textBox);
       }
 
       private void RunDeferredActions(object sender, MouseButtonEventArgs e) {
@@ -131,6 +154,14 @@ namespace HavenSoft.Gen3Hex.WPF.Windows {
          var copy = deferredActions.ToList();
          deferredActions.Clear();
          foreach (var action in copy) action();
+      }
+
+      private void StringToolContentSelectionChanged(object sender, RoutedEventArgs e) {
+         var textbox = (TextBox)sender;
+         var tools = (ToolTray)textbox.DataContext;
+         if (tools == null || tools.StringTool == null) return;
+         tools.StringTool.ContentIndex = textbox.SelectionStart;
+         tools.StringTool.ContentSelectionLength = textbox.SelectionLength;
       }
    }
 }

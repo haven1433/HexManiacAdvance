@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
+using System.Text;
 
 namespace HavenSoft.Gen3Hex.Core.Models {
    public class PCSString {
@@ -42,18 +42,22 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       }
 
       public static string Convert(IReadOnlyList<byte> data, int startIndex, int length) {
-         var result = "\"";
+         var result = new StringBuilder("\"", length * 2);
 
          for (int i = 0; i < length; i++) {
-            if (PCS[data[startIndex + i]] == null) return null;
-            result += PCS[data[startIndex + i]];
-            if (Newlines.Contains(data[startIndex + i])) result += Environment.NewLine;
-            if (data[startIndex + i] == Escape) {
-               result += data[startIndex + i + 1].ToString("X2");
+            var currentByte = data[startIndex + i];
+            if (PCS[currentByte] == null) return null;
+            result.Append(PCS[currentByte]);
+
+            // this line optimized for maximum speed. Otherwise would like to use the Newlines array.
+            if (currentByte == 0xFB || currentByte == 0xFE) result.Append(Environment.NewLine);
+
+            if (currentByte == Escape) {
+               result.Append(data[startIndex + i + 1].ToString("X2"));
                i++;
             }
          }
-         return result;
+         return result.ToString();
       }
 
       public static List<byte> Convert(string input) {
@@ -67,7 +71,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
                if (!input.Substring(index).StartsWith(PCS[i])) continue;
                result.Add((byte)i);
                index += PCS[i].Length - 1;
-               if (i == Escape) {
+               if (i == Escape && input.Length > index + 2) {
                   result.Add(byte.Parse(input.Substring(index + 1, 2), NumberStyles.HexNumber));
                   index += 2;
                }
@@ -76,6 +80,9 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             index++; // always increment by one, even if the character was not found. This lets us skip past newlines and such.
          }
 
+         // make sure it ends with the 0xFF end-of-string byte
+         if (result.Count == 0 || result[result.Count - 1] != 0xFF) result.Add(0xFF);
+
          return result;
       }
 
@@ -83,11 +90,11 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       /// Figure out the length of a string starting at a given location in the data.
       /// If the data doesn't represent a string, return -1.
       /// </summary>
-      public static int ReadString(IReadOnlyList<byte> data, int start, bool allowCharacterRepeates) {
+      public static int ReadString(IReadOnlyList<byte> data, int start, bool allowCharacterRepeates, int maxLength = int.MaxValue) {
          int length = 0;
          byte recent = data[start];
          int count = 0;
-         while (start + length < data.Count) {
+         while (start + length < data.Count && length <= maxLength) {
             if (data[start + length] == recent) {
                count++;
             } else {

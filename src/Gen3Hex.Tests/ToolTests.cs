@@ -1,7 +1,9 @@
 ﻿using HavenSoft.Gen3Hex.Core;
 using HavenSoft.Gen3Hex.Core.Models;
+using HavenSoft.Gen3Hex.Core.Models.Runs;
 using HavenSoft.Gen3Hex.Core.ViewModels;
 using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
+using HavenSoft.Gen3Hex.Core.ViewModels.Tools;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -18,7 +20,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void StringToolCanOpenOnChosenData() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^bob\"\" \"Some Text\" 00 <000100>");
          var toolProperties = new List<string>();
@@ -32,7 +34,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void StringToolEditsAreReflectedInViewPort() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^bob\"\" \"Some Text\" 00 <000100>");
          viewPort.Tools.StringTool.Address = 0;
@@ -45,7 +47,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void StringToolCanMoveData() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^bob\"\" \"Some Text\" 00 <000100>");
          var toolProperties = new List<string>();
@@ -60,7 +62,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void ViewPortMovesWhenStringToolMovesData() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^bob\"\" \"Some Text\" 00 <000100>");
          viewPort.Tools.StringTool.Address = 0;
@@ -72,7 +74,7 @@ namespace HavenSoft.Gen3Hex.Tests {
       [Fact]
       public void StringToolMultiCharacterDeleteCleansUpUnusedBytes() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PointerAndStringModel(buffer);
+         var model = new PokemonModel(buffer);
          var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^bob\"\" \"Some Text\" 00 <000100>");
          viewPort.Tools.StringTool.Address = 0;
@@ -84,14 +86,60 @@ namespace HavenSoft.Gen3Hex.Tests {
 
       [Fact]
       public void HideCommandClosesAnyOpenTools() {
-         var model = new PointerAndStringModel(new byte[0x200]);
-         var history = new ChangeHistory<DeltaModel>(null);
-         var tools = new ToolTray(model, history);
+         var model = new PokemonModel(new byte[0x200]);
+         var history = new ChangeHistory<ModelDelta>(null);
+         var tools = new ToolTray(model, new Selection(new ScrollRegion(), model), history);
 
          tools.SelectedIndex = 1;
          tools.HideCommand.Execute();
 
          Assert.Equal(-1, tools.SelectedIndex);
+      }
+
+      [Fact]
+      public void StringToolContentUpdatesWhenViewPortChange() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var model = new PokemonModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         viewPort.Edit("^bob\"\" \"Some Text\"");
+
+         viewPort.SelectionStart = new Point(3, 0);   // select the 'e' in 'Some'
+         viewPort.FollowLink(3, 0);                   // open the string tool
+         viewPort.Edit("i");                          // change the 'e' to 'i'
+
+         Assert.Equal("Somi Text", viewPort.Tools.StringTool.Content);
+      }
+
+      [Fact]
+      public void ToolSelectionChangeUpdatesViewPortSelection() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var model = new PokemonModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         viewPort.Edit("^bob\"\" \"Some Text\"");
+         viewPort.SelectionStart = new Point(3, 0);
+         viewPort.FollowLink(3, 0);
+
+         viewPort.Tools.StringTool.ContentIndex = 4;
+
+         Assert.Equal(new Point(4, 0), viewPort.SelectionStart);
+      }
+
+      [Fact]
+      public void SelectingAPointerAddressInStringToolDisablesTheTool() {
+         var token = new ModelDelta();
+         var model = new PokemonModel(new byte[0x200]);
+         model.WritePointer(token, 16, 100);
+         model.ObserveRunWritten(token, new PointerRun(16));
+         var tool = new PCSTool(
+            model,
+            new Selection(new ScrollRegion { Width = 0x10, Height = 0x10 }, model),
+            new ChangeHistory<ModelDelta>(dm => dm),
+            null);
+
+         tool.Address = 18;
+
+         Assert.Equal(16, tool.Address); // coerce to the closest run
+         Assert.False(tool.Enabled);     // run is not one that this tool knows how to edit
       }
    }
 }

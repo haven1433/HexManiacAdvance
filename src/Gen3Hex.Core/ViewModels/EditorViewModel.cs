@@ -33,13 +33,14 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
          back = new StubCommand(),
          forward = new StubCommand(),
-         gotoCommand = new StubCommand(),
-         showGoto = new StubCommand(),
          find = new StubCommand(),
          findPrevious = new StubCommand(),
          findNext = new StubCommand(),
          showFind = new StubCommand(),
-         clearError = new StubCommand();
+         hideSearchControls = new StubCommand(),
+         clearError = new StubCommand(),
+         clearMessage = new StubCommand(),
+         toggleMatrix = new StubCommand();
 
       private readonly Dictionary<Func<ITabContent, ICommand>, EventHandler> forwardExecuteChangeNotifications;
 
@@ -61,23 +62,22 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public ICommand Delete => delete;
       public ICommand Back => back;
       public ICommand Forward => forward;
-      public ICommand Goto => gotoCommand;          // parameter: target destination as string (for example, a hex address)
-      public ICommand ShowGoto => showGoto;         // parameter: true for show, false for hide
       public ICommand Find => find;                 // parameter: target string to search
       public ICommand FindPrevious => findPrevious; // parameter: target string to search
       public ICommand FindNext => findNext;         // parameter: target string to search
       public ICommand ShowFind => showFind;         // parameter: true for show, false for hide
+      public ICommand HideSearchControls => hideSearchControls;
       public ICommand ClearError => clearError;
+      public ICommand ClearMessage => clearMessage;
+      public ICommand ToggleMatrix => toggleMatrix;
 
-      private bool gotoControlVisible;
-      public bool GotoControlVisible {
-         get => gotoControlVisible;
+      private GotoControlViewModel gotoViewModel = new GotoControlViewModel(null);
+      public GotoControlViewModel GotoViewModel {
+         get => gotoViewModel;
          private set {
-            if (value) {
-               ClearError.Execute();
-               FindControlVisible = false;
-            }
-            TryUpdate(ref gotoControlVisible, value);
+            var old = gotoViewModel;
+            gotoViewModel = value;
+            NotifyPropertyChanged(old, nameof(GotoViewModel));
          }
       }
 
@@ -87,9 +87,11 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          private set {
             if (value) {
                ClearError.Execute();
-               GotoControlVisible = false;
+               ClearMessage.Execute();
+               gotoViewModel.ControlVisible = false;
             }
             TryUpdate(ref findControlVisible, value);
+            if (value) MoveFocusToFind?.Invoke(this, EventArgs.Empty);
          }
       }
 
@@ -97,6 +99,11 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public bool ShowError {
          get => showError;
          private set {
+            if (value) {
+               gotoViewModel.ControlVisible = false;
+               FindControlVisible = false;
+               ShowMessage = false;
+            }
             if (TryUpdate(ref showError, value)) clearError.CanExecuteChanged.Invoke(clearError, EventArgs.Empty);
          }
       }
@@ -109,7 +116,36 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          }
       }
 
+      private bool showMessage;
+      public bool ShowMessage {
+         get => showMessage;
+         private set {
+            if (value) {
+               gotoViewModel.ControlVisible = false;
+               FindControlVisible = false;
+               ShowError = false;
+            }
+            if (TryUpdate(ref showMessage, value)) clearMessage.CanExecuteChanged.Invoke(clearMessage, EventArgs.Empty);
+         }
+      }
+
+      private bool showMatrix = true;
+      public bool ShowMatrix {
+         get => showMatrix;
+         set => TryUpdate(ref showMatrix, value);
+      }
+
+      private string infoMessage;
+      public string InformationMessage {
+         get => infoMessage;
+         private set {
+            if (TryUpdate(ref infoMessage, value)) ShowMessage = !string.IsNullOrEmpty(InformationMessage);
+         }
+      }
+
       public event EventHandler<Action> RequestDelayedWork;
+
+      public event EventHandler MoveFocusToFind;
 
       #region Collection Properties
 
@@ -128,6 +164,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
                if (TryUpdate(ref selectedIndex, value)) {
                   findPrevious.CanExecuteChanged.Invoke(findPrevious, EventArgs.Empty);
                   findNext.CanExecuteChanged.Invoke(findNext, EventArgs.Empty);
+                  GotoViewModel.PropertyChanged -= GotoPropertyChanged;
+                  GotoViewModel = new GotoControlViewModel(SelectedTab);
+                  GotoViewModel.PropertyChanged += GotoPropertyChanged;
                }
             }
          }
@@ -176,25 +215,30 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
 
          open.CanExecute = CanAlwaysExecute;
          open.Execute = arg => {
-            var file = arg as LoadedFile ?? fileSystem.OpenFile();
+            var file = arg as LoadedFile ?? fileSystem.OpenFile("GameBoy Advanced", "gba");
             if (file == null) return;
             var metadata = fileSystem.MetadataFor(file.Name);
-            Add(new ViewPort(file, new PointerAndStringModel(file.Contents, metadata)));
+            Add(new ViewPort(file, new AutoSearchModel(file.Contents, metadata)));
          };
-
-         gotoCommand.CanExecute = arg => SelectedTab?.Goto?.CanExecute(arg) ?? false;
-         gotoCommand.Execute = arg => {
-            SelectedTab?.Goto?.Execute(arg);
-            GotoControlVisible = false;
-         };
-
-         showGoto.CanExecute = CanAlwaysExecute;
-         showGoto.Execute = arg => GotoControlVisible = (bool)arg;
 
          ImplementFindCommands();
 
+         hideSearchControls.CanExecute = CanAlwaysExecute;
+         hideSearchControls.Execute = arg => {
+            gotoViewModel.ControlVisible = false;
+            FindControlVisible = false;
+            ShowError = false;
+            ShowMessage = false;
+         };
+
          clearError.CanExecute = arg => showError;
          clearError.Execute = arg => ErrorMessage = string.Empty;
+
+         clearMessage.CanExecute = arg => showMessage;
+         clearMessage.Execute = arg => InformationMessage = string.Empty;
+
+         toggleMatrix.CanExecute = CanAlwaysExecute;
+         toggleMatrix.Execute = arg => ShowMatrix = !ShowMatrix;
 
          cut.CanExecute = arg => SelectedTab?.Copy?.CanExecute(arg) ?? false;
          cut.Execute = arg => {
@@ -205,7 +249,9 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          };
 
          paste.CanExecute = arg => SelectedTab is ViewPort;
-         paste.Execute = arg => (SelectedTab as ViewPort)?.Edit(fileSystem.CopyText);
+         paste.Execute = arg => {
+            (SelectedTab as ViewPort)?.Edit(fileSystem.CopyText);
+         };
       }
 
       private void ImplementFindCommands() {
@@ -363,6 +409,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       private void AddContentListeners(ITabContent content) {
          content.Closed += RemoveTab;
          content.OnError += AcceptError;
+         content.OnMessage += AcceptMessage;
+         content.ClearMessage += AcceptMessageClear;
          content.RequestTabChange += TabChangeRequested;
          content.RequestDelayedWork += ForwardDelayedWork;
          content.PropertyChanged += TabPropertyChanged;
@@ -376,6 +424,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       private void RemoveContentListeners(ITabContent content) {
          content.Closed -= RemoveTab;
          content.OnError -= AcceptError;
+         content.OnMessage -= AcceptMessage;
+         content.ClearMessage -= AcceptMessageClear;
          content.RequestTabChange -= TabChangeRequested;
          content.RequestDelayedWork -= ForwardDelayedWork;
          content.PropertyChanged -= TabPropertyChanged;
@@ -398,7 +448,19 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          }
       }
 
+      private void GotoPropertyChanged(object sender, PropertyChangedEventArgs e) {
+         if (e.PropertyName == nameof(gotoViewModel.ControlVisible) && gotoViewModel.ControlVisible) {
+            ClearError.Execute();
+            ClearMessage.Execute();
+            FindControlVisible = false;
+         }
+      }
+
       private void AcceptError(object sender, string message) => ErrorMessage = message;
+
+      private void AcceptMessage(object sender, string message) => InformationMessage = message;
+
+      private void AcceptMessageClear(object sender, EventArgs e) => HideSearchControls.Execute();
 
       private void TabChangeRequested(object sender, ITabContent newTab) {
          if (sender != SelectedTab) return;

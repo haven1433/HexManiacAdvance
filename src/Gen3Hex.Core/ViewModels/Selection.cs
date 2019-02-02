@@ -1,12 +1,16 @@
 ﻿using HavenSoft.Gen3Hex.Core.Models;
+using HavenSoft.Gen3Hex.Core.Models.Runs;
 using HavenSoft.Gen3Hex.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Windows.Input;
 
 namespace HavenSoft.Gen3Hex.Core.ViewModels {
    public class Selection : ViewModelCore {
+
+      private readonly IDataModel model;
 
       private readonly StubCommand
          moveSelectionStart = new StubCommand(),
@@ -15,23 +19,23 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          forward = new StubCommand(),
          backward = new StubCommand();
 
-      private readonly ScrollRegion scroll;
-
       // these back/forward stacks are not encapsulated in a history object because we want to be able to change a remembered address each time we visit it.
       // if we navigate back, then scroll, then navigate forward, we want to remember the scroll if we go back again.
       private readonly Stack<int> backStack = new Stack<int>(), forwardStack = new Stack<int>();
+
+      private int preferredWidth = 1, maxWidth = 4;
 
       private Point selectionStart, selectionEnd;
 
       public Point SelectionStart {
          get => selectionStart;
          set {
-            var index = scroll.ViewPointToDataIndex(value);
-            value = scroll.DataIndexToViewPoint(index.LimitToRange(0, scroll.DataLength));
+            var index = Scroll.ViewPointToDataIndex(value);
+            value = Scroll.DataIndexToViewPoint(index.LimitToRange(0, Scroll.DataLength));
 
             if (selectionStart.Equals(value)) return;
 
-            if (!scroll.ScrollToPoint(ref value)) {
+            if (!Scroll.ScrollToPoint(ref value)) {
                PreviewSelectionStartChanged?.Invoke(this, selectionStart);
             }
 
@@ -44,11 +48,18 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public Point SelectionEnd {
          get => selectionEnd;
          set {
-            var index = scroll.ViewPointToDataIndex(value);
-            value = scroll.DataIndexToViewPoint(index.LimitToRange(0, scroll.DataLength));
+            var index = Scroll.ViewPointToDataIndex(value);
+            value = Scroll.DataIndexToViewPoint(index.LimitToRange(0, Scroll.DataLength));
 
-            scroll.ScrollToPoint(ref value);
+            Scroll.ScrollToPoint(ref value);
             TryUpdate(ref selectionEnd, value);
+         }
+      }
+
+      public int PreferredWidth {
+         get => preferredWidth;
+         set {
+            if (TryUpdate(ref preferredWidth, value)) ChangeWidth(maxWidth);
          }
       }
 
@@ -58,6 +69,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       public ICommand Forward => forward;
       public ICommand Back => backward;
 
+      public ScrollRegion Scroll { get; }
+
       public event EventHandler<string> OnError;
 
       /// <summary>
@@ -66,9 +79,10 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       /// </summary>
       public event EventHandler<Point> PreviewSelectionStartChanged;
 
-      public Selection(ScrollRegion scrollRegion, IModel model) {
-         scroll = scrollRegion;
-         scroll.ScrollChanged += (sender, e) => ShiftSelectionFromScroll(e);
+      public Selection(ScrollRegion scrollRegion, IDataModel model) {
+         this.model = model;
+         Scroll = scrollRegion;
+         Scroll.ScrollChanged += (sender, e) => ShiftSelectionFromScroll(e);
 
          moveSelectionStart.CanExecute = args => true;
          moveSelectionStart.Execute = args => MoveSelectionStartExecuted((Direction)args);
@@ -79,7 +93,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             CanExecute = args => true,
             Execute = args => {
                var address = args.ToString();
-               var anchor = model.GetAddressFromAnchor(new DeltaModel(), -1, address);
+               var anchor = model.GetAddressFromAnchor(new ModelDelta(), -1, address);
                if (anchor != Pointer.NULL) {
                   GotoAddress(anchor);
                } else if (int.TryParse(address, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int result)) {
@@ -93,7 +107,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             CanExecute = args => backStack.Count > 0,
             Execute = args => {
                if (backStack.Count == 0) return;
-               forwardStack.Push(scroll.DataIndex);
+               forwardStack.Push(Scroll.DataIndex);
                if (forwardStack.Count == 1) forward.CanExecuteChanged.Invoke(forward, EventArgs.Empty);
                GotoAddressHelper(backStack.Pop());
                if (backStack.Count == 0) backward.CanExecuteChanged.Invoke(backward, EventArgs.Empty);
@@ -103,7 +117,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             CanExecute = args => forwardStack.Count > 0,
             Execute = args => {
                if (forwardStack.Count == 0) return;
-               backStack.Push(scroll.DataIndex);
+               backStack.Push(Scroll.DataIndex);
                if (backStack.Count == 1) backward.CanExecuteChanged.Invoke(backward, EventArgs.Empty);
                GotoAddressHelper(forwardStack.Pop());
                if (forwardStack.Count == 0) forward.CanExecuteChanged.Invoke(forward, EventArgs.Empty);
@@ -112,11 +126,11 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       }
 
       public bool IsSelected(Point point) {
-         if (point.X < 0 || point.X >= scroll.Width) return false;
+         if (point.X < 0 || point.X >= Scroll.Width) return false;
 
-         var selectionStart = scroll.ViewPointToDataIndex(SelectionStart);
-         var selectionEnd = scroll.ViewPointToDataIndex(SelectionEnd);
-         var middle = scroll.ViewPointToDataIndex(point);
+         var selectionStart = Scroll.ViewPointToDataIndex(SelectionStart);
+         var selectionEnd = Scroll.ViewPointToDataIndex(SelectionEnd);
+         var middle = Scroll.ViewPointToDataIndex(point);
 
          var leftEdge = Math.Min(selectionStart, selectionEnd);
          var rightEdge = Math.Max(selectionStart, selectionEnd);
@@ -129,17 +143,18 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       /// But if we updated the selection using SelectionStart and SelectionEnd, it would auto-scroll.
       /// </summary>
       public void ChangeWidth(int newWidth) {
-         var start = scroll.ViewPointToDataIndex(selectionStart);
-         var end = scroll.ViewPointToDataIndex(selectionEnd);
+         maxWidth = newWidth;
+         var start = Scroll.ViewPointToDataIndex(selectionStart);
+         var end = Scroll.ViewPointToDataIndex(selectionEnd);
 
-         scroll.Width = newWidth;
+         Scroll.Width = CoerceWidth(newWidth);
 
-         TryUpdate(ref selectionStart, scroll.DataIndexToViewPoint(start));
-         TryUpdate(ref selectionEnd, scroll.DataIndexToViewPoint(end));
+         TryUpdate(ref selectionStart, Scroll.DataIndexToViewPoint(start));
+         TryUpdate(ref selectionEnd, Scroll.DataIndexToViewPoint(end));
       }
 
       public void GotoAddress(int address) {
-         backStack.Push(scroll.DataIndex);
+         backStack.Push(Scroll.DataIndex);
          if (backStack.Count == 1) backward.CanExecuteChanged.Invoke(backward, EventArgs.Empty);
          if (forwardStack.Count > 0) {
             forwardStack.Clear();
@@ -149,9 +164,16 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       }
 
       private void GotoAddressHelper(int address) {
-         SelectionStart = scroll.DataIndexToViewPoint(address);
-         scroll.ScrollValue += selectionStart.Y;
-         while (scroll.DataIndex < address) scroll.Scroll.Execute(Direction.Right);
+         SelectionStart = Scroll.DataIndexToViewPoint(address);
+         Scroll.ScrollValue += selectionStart.Y;
+         while (Scroll.DataIndex < address) Scroll.Scroll.Execute(Direction.Right);
+
+         if (model.GetNextRun(address) is ArrayRun array && array.Start == address) {
+            PreferredWidth = array.ElementLength;
+         }
+         else {
+            PreferredWidth = 1;
+         }
       }
 
       /// <summary>
@@ -160,14 +182,14 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       /// Nothing in this method notifies because any amount of scrolling means we already need a complete redraw.
       /// </summary>
       private void ShiftSelectionFromScroll(int distance) {
-         var start = scroll.ViewPointToDataIndex(selectionStart);
-         var end = scroll.ViewPointToDataIndex(selectionEnd);
+         var start = Scroll.ViewPointToDataIndex(selectionStart);
+         var end = Scroll.ViewPointToDataIndex(selectionEnd);
 
          start -= distance;
          end -= distance;
 
-         selectionStart = scroll.DataIndexToViewPoint(start);
-         selectionEnd = scroll.DataIndexToViewPoint(end);
+         selectionStart = Scroll.DataIndexToViewPoint(start);
+         selectionEnd = Scroll.DataIndexToViewPoint(end);
       }
 
       private void MoveSelectionStartExecuted(Direction direction) {
@@ -178,6 +200,25 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
       private void MoveSelectionEndExecuted(Direction direction) {
          var dif = ScrollRegion.DirectionToDif[direction];
          SelectionEnd += dif;
+      }
+
+      private int CoerceWidth(int width) {
+         if (preferredWidth == -1 || preferredWidth == width) return width;
+         if (preferredWidth < width) {
+            int multiple = 2;
+            while (preferredWidth * multiple <= width) multiple++;
+            return preferredWidth * (multiple - 1);
+         }
+         var divisors = GetDivisors(preferredWidth).Reverse();
+         var newWidth = divisors.FirstOrDefault();
+         if (newWidth < 4) return width;
+         return newWidth;
+      }
+
+      private static IEnumerable<int> GetDivisors(int number) {
+         for (int i = 1; i <= number / 2; i++) {
+            if (number % i == 0) yield return i;
+         }
       }
    }
 }
