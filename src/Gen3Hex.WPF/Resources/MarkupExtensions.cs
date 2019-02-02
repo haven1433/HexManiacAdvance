@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Markup;
 using System.Windows.Media;
@@ -8,9 +9,9 @@ namespace HavenSoft.Gen3Hex.WPF.Resources {
    /// {hs:RotateTransform 60, 0, 0}
    /// </example>
    public class RotateTransformExtension : MarkupExtension {
-      readonly double Angle;
-      readonly double CenterX;
-      readonly double CenterY;
+      public double Angle { get; }
+      public double CenterX { get; }
+      public double CenterY { get; }
 
       public RotateTransformExtension(double angle, double centerX, double centerY) {
          Angle = angle;
@@ -27,12 +28,24 @@ namespace HavenSoft.Gen3Hex.WPF.Resources {
    /// {hs:Geometry 'M0,0 L0,1 1,1 1,0 Z'}
    /// </example>
    public class GeometryExtension : MarkupExtension {
-      readonly string Figures;
+      public string Figures { get; }
 
       public GeometryExtension(string figures) { Figures = figures; }
 
       public override object ProvideValue(IServiceProvider serviceProvider) {
          return Geometry.Parse(Figures);
+      }
+   }
+
+   public class TextGeometryExtension : MarkupExtension {
+      public string Text { get; set; }
+      public Point Location { get; set; }
+      public int Size { get; set; }
+      public TextGeometryExtension() { }
+      public TextGeometryExtension(string text, int x, int y, int size) => (Text, Location, Size) = (text, new Point(x, y), size);
+      public override object ProvideValue(IServiceProvider serviceProvider) {
+         var formattedText = new FormattedText(Text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, new Typeface("Calibri"), Size, Brushes.Black, 1);
+         return formattedText.BuildGeometry(Location);
       }
    }
 
@@ -45,7 +58,7 @@ namespace HavenSoft.Gen3Hex.WPF.Resources {
    /// {hs:Icons Save}
    /// </example>
    public class IconExtension : MarkupExtension {
-      readonly string Name;
+      public string Name { get; }
 
       public IconExtension(string name) { Name = name; }
 

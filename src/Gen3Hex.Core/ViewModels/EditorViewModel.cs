@@ -374,6 +374,11 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
             return;
          }
 
+         if (results.Count > 200) {
+            ErrorMessage = $"Found {results.Count} results: please refine your search.";
+            return;
+         }
+
          var newTab = new SearchResultsViewPort(search);
          foreach (var (tab, offset) in results) {
             newTab.Add(tab.CreateChildView(offset));

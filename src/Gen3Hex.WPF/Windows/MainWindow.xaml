@@ -219,147 +219,159 @@
             </MenuItem>
          </Menu>
       </DockPanel>
-      <TabControl Name="Tabs" ItemsSource="{Binding}" SelectedIndex="{Binding SelectedIndex}">
-         <TabControl.InputBindings>
-            <KeyBinding Key="Esc" Command="{Binding HideSearchControls}"/>
-         </TabControl.InputBindings>
-         <TabControl.ItemTemplate>
-            <DataTemplate>
-               <StackPanel Orientation="Horizontal">
-                  <TextBlock Name="TabTextBlock" Background="Transparent" Text="{Binding Name}" Foreground="{DynamicResource Primary}" MouseDown="TabMouseDown" MouseMove="TabMouseMove" MouseUp="TabMouseUp">
-                     <TextBlock.InputBindings>
-                        <MouseBinding MouseAction="MiddleClick" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}"/>
-                     </TextBlock.InputBindings>
-                  </TextBlock>
-                  <Button Command="{Binding Close}" Width="15" Margin="5,0,0,0" VerticalAlignment="Stretch" Background="{DynamicResource Background}" BorderBrush="{DynamicResource Background}">
-                     <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                  </Button>
-               </StackPanel>
-            </DataTemplate>
-         </TabControl.ItemTemplate>
-         <TabControl.ContentTemplate>
-            <DataTemplate>
-               <DockPanel>
-                  <Border DockPanel.Dock="Top" Height="19" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource Backlight}">
-                     <TextBox Text="{Binding AnchorText, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding AnchorTextVisible, Converter={StaticResource BoolToVisibility}}" Margin="60,0,25,0"/>
-                  </Border>
-                  <!-- Headers -->
-                  <ItemsControl DockPanel.Dock="Left" Width="60" ItemsSource="{Binding Headers}" Background="{DynamicResource Backlight}" MouseDown="HeaderMouseDown">
-                     <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                           <TextBlock Foreground="{DynamicResource Secondary}" Text="{Binding}" FontFamily="Consolas" HorizontalAlignment="Right" Height="{x:Static hsg3hv:HexContent.CellHeight}" Padding="4"/>
-                        </DataTemplate>
-                     </ItemsControl.ItemTemplate>
-                  </ItemsControl>
-                  <Line Width="1" DockPanel.Dock="Left" Stroke="{DynamicResource Background}"/>
-                  <StackPanel DockPanel.Dock="Right" Visibility="{Binding HasTools, Converter={StaticResource BoolToVisibility}}">
-                     <Button Content="Text" Command="{Binding Tools.StringToolCommand}" Margin="0,2">
-                        <Button.LayoutTransform>
-                           <RotateTransform Angle="90"/>
-                        </Button.LayoutTransform>
-                        <Button.Style>
-                           <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                              <Style.Triggers>
-                                 <DataTrigger Binding="{Binding Tools.SelectedIndex}" Value="0">
-                                    <Setter Property="BorderBrush" Value="{solarized:Theme Blue}"/>
-                                 </DataTrigger>
-                              </Style.Triggers>
-                           </Style>
-                        </Button.Style>
-                     </Button>
-                     <Button Content="Tool2" Command="{Binding Tools.Tool2Command}" Margin="0,2">
-                        <Button.LayoutTransform>
-                           <RotateTransform Angle="90"/>
-                        </Button.LayoutTransform>
-                        <Button.Style>
-                           <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                              <Style.Triggers>
-                                 <DataTrigger Binding="{Binding Tools.SelectedIndex}" Value="1">
-                                    <Setter Property="BorderBrush" Value="{solarized:Theme Blue}"/>
-                                 </DataTrigger>
-                              </Style.Triggers>
-                           </Style>
-                        </Button.Style>
-                     </Button>
-                     <Button Content="Tool3" Command="{Binding Tools.Tool3Command}" Margin="0,2">
-                        <Button.LayoutTransform>
-                           <RotateTransform Angle="90"/>
-                        </Button.LayoutTransform>
-                        <Button.Style>
-                           <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                              <Style.Triggers>
-                                 <DataTrigger Binding="{Binding Tools.SelectedIndex}" Value="2">
-                                    <Setter Property="BorderBrush" Value="{solarized:Theme Blue}"/>
-                                 </DataTrigger>
-                              </Style.Triggers>
-                           </Style>
-                        </Button.Style>
+      <Grid>
+         <hsg3hv:StartScreen/>
+         <TabControl Name="Tabs" ItemsSource="{Binding}" SelectedIndex="{Binding SelectedIndex}">
+            <TabControl.Style>
+               <Style TargetType="TabControl" BasedOn="{StaticResource {x:Type TabControl}}">
+                  <Style.Triggers>
+                     <Trigger Property="SelectedIndex" Value="-1">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                     </Trigger>
+                  </Style.Triggers>
+               </Style>
+            </TabControl.Style>
+            <TabControl.InputBindings>
+               <KeyBinding Key="Esc" Command="{Binding HideSearchControls}"/>
+            </TabControl.InputBindings>
+            <TabControl.ItemTemplate>
+               <DataTemplate>
+                  <StackPanel Orientation="Horizontal">
+                     <TextBlock Name="TabTextBlock" Background="Transparent" Text="{Binding Name}" Foreground="{DynamicResource Primary}" MouseDown="TabMouseDown" MouseMove="TabMouseMove" MouseUp="TabMouseUp">
+                        <TextBlock.InputBindings>
+                           <MouseBinding MouseAction="MiddleClick" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}"/>
+                        </TextBlock.InputBindings>
+                     </TextBlock>
+                     <Button Command="{Binding Close}" Width="15" Margin="5,0,0,0" VerticalAlignment="Stretch" Background="{DynamicResource Background}" BorderBrush="{DynamicResource Background}">
+                        <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
                      </Button>
                   </StackPanel>
-                  <!-- Tools -->
-                  <Grid DockPanel.Dock="Right" DataContext="{Binding Tools}">
-                     <Grid.Style>
-                        <Style TargetType="Grid">
-                           <Style.Triggers>
-                              <DataTrigger Binding="{Binding SelectedIndex}" Value="-1">
+               </DataTemplate>
+            </TabControl.ItemTemplate>
+            <TabControl.ContentTemplate>
+               <DataTemplate>
+                  <DockPanel>
+                     <Border DockPanel.Dock="Top" Height="19" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource Backlight}">
+                        <TextBox Text="{Binding AnchorText, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding AnchorTextVisible, Converter={StaticResource BoolToVisibility}}" Margin="60,0,25,0"/>
+                     </Border>
+                     <!-- Headers -->
+                     <ItemsControl DockPanel.Dock="Left" Width="60" ItemsSource="{Binding Headers}" Background="{DynamicResource Backlight}" MouseDown="HeaderMouseDown">
+                        <ItemsControl.ItemTemplate>
+                           <DataTemplate>
+                              <TextBlock Foreground="{DynamicResource Secondary}" Text="{Binding}" FontFamily="Consolas" HorizontalAlignment="Right" Height="{x:Static hsg3hv:HexContent.CellHeight}" Padding="4"/>
+                           </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                     </ItemsControl>
+                     <Line Width="1" DockPanel.Dock="Left" Stroke="{DynamicResource Background}"/>
+                     <StackPanel DockPanel.Dock="Right" Visibility="{Binding HasTools, Converter={StaticResource BoolToVisibility}}">
+                        <Button Content="Text" Command="{Binding Tools.StringToolCommand}" Margin="0,2">
+                           <Button.LayoutTransform>
+                              <RotateTransform Angle="90"/>
+                           </Button.LayoutTransform>
+                           <Button.Style>
+                              <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                 <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Tools.SelectedIndex}" Value="0">
+                                       <Setter Property="BorderBrush" Value="{solarized:Theme Blue}"/>
+                                    </DataTrigger>
+                                 </Style.Triggers>
+                              </Style>
+                           </Button.Style>
+                        </Button>
+                        <Button Content="Tool2" Command="{Binding Tools.Tool2Command}" Margin="0,2">
+                           <Button.LayoutTransform>
+                              <RotateTransform Angle="90"/>
+                           </Button.LayoutTransform>
+                           <Button.Style>
+                              <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                 <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Tools.SelectedIndex}" Value="1">
+                                       <Setter Property="BorderBrush" Value="{solarized:Theme Blue}"/>
+                                    </DataTrigger>
+                                 </Style.Triggers>
+                              </Style>
+                           </Button.Style>
+                        </Button>
+                        <Button Content="Tool3" Command="{Binding Tools.Tool3Command}" Margin="0,2">
+                           <Button.LayoutTransform>
+                              <RotateTransform Angle="90"/>
+                           </Button.LayoutTransform>
+                           <Button.Style>
+                              <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                 <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Tools.SelectedIndex}" Value="2">
+                                       <Setter Property="BorderBrush" Value="{solarized:Theme Blue}"/>
+                                    </DataTrigger>
+                                 </Style.Triggers>
+                              </Style>
+                           </Button.Style>
+                        </Button>
+                     </StackPanel>
+                     <!-- Tools -->
+                     <Grid DockPanel.Dock="Right" DataContext="{Binding Tools}">
+                        <Grid.Style>
+                           <Style TargetType="Grid">
+                              <Style.Triggers>
+                                 <DataTrigger Binding="{Binding SelectedIndex}" Value="-1">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                 </DataTrigger>
+                              </Style.Triggers>
+                           </Style>
+                        </Grid.Style>
+                        <DockPanel Name="StringToolPanel">
+                           <DockPanel.Style>
+                              <Style TargetType="DockPanel">
                                  <Setter Property="Visibility" Value="Collapsed"/>
-                              </DataTrigger>
-                           </Style.Triggers>
-                        </Style>
-                     </Grid.Style>
-                     <DockPanel Name="StringToolPanel">
-                        <DockPanel.Style>
-                           <Style TargetType="DockPanel">
-                              <Setter Property="Visibility" Value="Collapsed"/>
-                              <Style.Triggers>
-                                 <DataTrigger Binding="{Binding SelectedIndex}" Value="0">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                 </DataTrigger>
-                              </Style.Triggers>
-                           </Style>
-                        </DockPanel.Style>
-                        <TextBlock Text="Address:" Margin="5,15,0,0" DockPanel.Dock="Top"/>
-                        <TextBox Text="{Binding StringTool.Address, Converter={StaticResource Hex}}" Margin="5" DockPanel.Dock="Top"/>
-                        <TextBlock Text="Content:" Margin="5,30,0,0" DockPanel.Dock="Top"/>
-                        <TextBox Margin="5,5" AcceptsReturn="True" MinHeight="50" Width="255" TextWrapping="Wrap" FontFamily="Consolas" VerticalScrollBarVisibility="Auto"
-                           SelectionChanged="StringToolContentSelectionChanged"
-                           IsEnabled="{Binding StringTool.Enabled}"
-                           Text="{Binding StringTool.Content, UpdateSourceTrigger=PropertyChanged}" />
-                     </DockPanel>
-                     <StackPanel Name="Tool2Panel">
-                        <StackPanel.Style>
-                           <Style TargetType="StackPanel">
-                              <Setter Property="Visibility" Value="Collapsed"/>
-                              <Style.Triggers>
-                                 <DataTrigger Binding="{Binding SelectedIndex}" Value="1">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                 </DataTrigger>
-                              </Style.Triggers>
-                           </Style>
-                        </StackPanel.Style>
-                        <TextBlock Text="Coming Soon!" Margin="5,15,0,0"/>
-                     </StackPanel>
-                     <StackPanel Name="Tool3Panel">
-                        <StackPanel.Style>
-                           <Style TargetType="StackPanel">
-                              <Setter Property="Visibility" Value="Collapsed"/>
-                              <Style.Triggers>
-                                 <DataTrigger Binding="{Binding SelectedIndex}" Value="2">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                 </DataTrigger>
-                              </Style.Triggers>
-                           </Style>
-                        </StackPanel.Style>
-                        <TextBlock Text="Coming Soon!" Margin="5,15,0,0"/>
-                     </StackPanel>
-                  </Grid>
-                  <ScrollBar DockPanel.Dock="Right"
-                     Minimum="{Binding MinimumScroll}" Maximum="{Binding MaximumScroll}" Value="{Binding ScrollValue}"
-                     SmallChange="1" LargeChange="{Binding Height}" />
-                  <hsg3hv:HexContent x:Name="HexContent" ViewPort="{Binding}" ShowGrid="{Binding DataContext.ShowMatrix, RelativeSource={RelativeSource AncestorType=hsg3ww:MainWindow}}" Margin=".5,.5,0,0"/>
-               </DockPanel>
-            </DataTemplate>
-         </TabControl.ContentTemplate>
-      </TabControl>
+                                 <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedIndex}" Value="0">
+                                       <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                 </Style.Triggers>
+                              </Style>
+                           </DockPanel.Style>
+                           <TextBlock Text="Address:" Margin="5,15,0,0" DockPanel.Dock="Top"/>
+                           <TextBox Text="{Binding StringTool.Address, Converter={StaticResource Hex}}" Margin="5" DockPanel.Dock="Top"/>
+                           <TextBlock Text="Content:" Margin="5,30,0,0" DockPanel.Dock="Top"/>
+                           <TextBox Margin="5,5" AcceptsReturn="True" MinHeight="50" Width="255" TextWrapping="Wrap" FontFamily="Consolas" VerticalScrollBarVisibility="Auto"
+                              SelectionChanged="StringToolContentSelectionChanged"
+                              IsEnabled="{Binding StringTool.Enabled}"
+                              Text="{Binding StringTool.Content, UpdateSourceTrigger=PropertyChanged}" />
+                        </DockPanel>
+                        <StackPanel Name="Tool2Panel">
+                           <StackPanel.Style>
+                              <Style TargetType="StackPanel">
+                                 <Setter Property="Visibility" Value="Collapsed"/>
+                                 <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedIndex}" Value="1">
+                                       <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                 </Style.Triggers>
+                              </Style>
+                           </StackPanel.Style>
+                           <TextBlock Text="Coming Soon!" Margin="5,15,0,0"/>
+                        </StackPanel>
+                        <StackPanel Name="Tool3Panel">
+                           <StackPanel.Style>
+                              <Style TargetType="StackPanel">
+                                 <Setter Property="Visibility" Value="Collapsed"/>
+                                 <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedIndex}" Value="2">
+                                       <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                 </Style.Triggers>
+                              </Style>
+                           </StackPanel.Style>
+                           <TextBlock Text="Coming Soon!" Margin="5,15,0,0"/>
+                        </StackPanel>
+                     </Grid>
+                     <ScrollBar DockPanel.Dock="Right"
+                        Minimum="{Binding MinimumScroll}" Maximum="{Binding MaximumScroll}" Value="{Binding ScrollValue}"
+                        SmallChange="1" LargeChange="{Binding Height}" />
+                     <hsg3hv:HexContent x:Name="HexContent" ViewPort="{Binding}" ShowGrid="{Binding DataContext.ShowMatrix, RelativeSource={RelativeSource AncestorType=hsg3ww:MainWindow}}" Margin=".5,.5,0,0"/>
+                  </DockPanel>
+               </DataTemplate>
+            </TabControl.ContentTemplate>
+         </TabControl>
+      </Grid>
    </DockPanel>
 </Window>

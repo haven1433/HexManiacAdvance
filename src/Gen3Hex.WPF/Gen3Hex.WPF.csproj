@@ -54,6 +54,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="Controls\StartScreen.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Windows\AboutWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -68,6 +72,9 @@
     </Page>
     <Compile Include="Controls\IntegerToBooleanViaMatchConverter.cs" />
     <Compile Include="Controls\IntegerToHexConverter.cs" />
+    <Compile Include="Controls\StartScreen.xaml.cs">
+      <DependentUpon>StartScreen.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Windows\AboutWindow.xaml.cs">
       <DependentUpon>AboutWindow.xaml</DependentUpon>
     </Compile>
