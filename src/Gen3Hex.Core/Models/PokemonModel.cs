@@ -728,9 +728,9 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             int destination = ReadPointer(i - 3);
             if (destination != address) continue;
             var index = BinarySearch(i-3);
-            if (index > 0) continue;
+            if (index >= 0) continue;
             index = ~index;
-            if (runs[index].Start <= i) continue;
+            if (index < runs.Count && runs[index].Start <= i) continue;
             if (index > 0 && runs[index - 1].Start + runs[index - 1].Length > i - 3) continue;
             var newRun = new PointerRun(i - 3);
             runs.Insert(index, newRun);
