@@ -693,7 +693,15 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          } else if (underEdit.CurrentText.StartsWith(PointerStart.ToString())) {
             return char.IsLetterOrDigit(input) || input == PointerEnd;
          } else if (underEdit.CurrentText.StartsWith(AnchorStart.ToString())) {
-            return char.IsLetterOrDigit(input) || char.IsWhiteSpace(input) || input == ArrayStart || input == ArrayEnd || input == StringDelimeter || input == StreamDelimeter;
+            return
+               char.IsLetterOrDigit(input) ||
+               char.IsWhiteSpace(input) ||
+               input == ArrayStart ||
+               input == ArrayEnd ||
+               input == StringDelimeter ||
+               input == StreamDelimeter ||
+               input == SingleByteIntegerFormat ||
+               input == DoubleByteIntegerFormat;
          } else if (underEdit.OriginalFormat is Anchor anchorFormat && anchorFormat.OriginalFormat is PCS) {
             if (input == StringDelimeter) return true;
             // if this is the start of a string (as noted by the anchor), crop off the leading " before trying to convert to a byte
@@ -762,6 +770,12 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          if (underEdit.CurrentText.StartsWith(AnchorStart.ToString())) {
             TryUpdate(ref anchorText, underEdit.CurrentText, nameof(AnchorText));
             if (!char.IsWhiteSpace(underEdit.CurrentText[underEdit.CurrentText.Length - 1])) {
+               AnchorTextVisible = true;
+               return false;
+            }
+
+            // only end the anchor edit if the [] brace count matches
+            if (underEdit.CurrentText.Sum(c => c == '[' ? 1 : c == ']' ? -1 : 0) != 0) {
                AnchorTextVisible = true;
                return false;
             }
@@ -1106,6 +1120,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          public void Visit(ErrorPCS pcs, byte data) => Visit((None)null, data);
 
          public void Visit(Ascii ascii, byte data) => Result = ((char)data).ToString();
+
+         public void Visit(Integer integer, byte data) => Result = integer.Value.ToString();
       }
 
       /// <summary>
@@ -1144,6 +1160,8 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels {
          public void Visit(ErrorPCS pcs, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
 
          public void Visit(Ascii ascii, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
+
+         public void Visit(Integer integer, byte data) => buffer.WriteValue(currentChange, index, 0);
       }
    }
 }

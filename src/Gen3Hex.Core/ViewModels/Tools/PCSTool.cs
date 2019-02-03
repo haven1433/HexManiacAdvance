@@ -82,26 +82,34 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels.Tools {
             TryUpdate(ref content, newContent, nameof(Content));
             return;
          } else if (run is ArrayRun array) {
-            var lines = new string[array.ElementCount];
             var offsets = array.ConvertByteOffsetToArrayOffset(address);
             var segment = array.ElementContent[offsets.SegmentIndex];
-            for (int i = 0; i < lines.Length; i++) {
-               var newContent = PCSString.Convert(model, offsets.SegmentStart + i * array.ElementLength, segment.Length).Trim();
-               newContent = newContent.Substring(1, newContent.Length - 2); // remove quotes
-               lines[i] = newContent;
-            }
-            if (lines.Length > 0) {
-               var builder = new StringBuilder();
-               for(int i = 0; i < lines.Length; i++) {
-                  builder.Append(lines[i]);
-                  if (i != lines.Length - 1) builder.Append(Environment.NewLine);
+            if (segment.Type == ElementContentType.PCS) {
+               var lines = new string[array.ElementCount];
+               for (int i = 0; i < lines.Length; i++) {
+                  var newContent = PCSString.Convert(model, offsets.SegmentStart + i * array.ElementLength, segment.Length).Trim();
+                  newContent = RemoveQuotes(newContent);
+                  lines[i] = newContent;
                }
-               TryUpdate(ref content, builder.ToString(), nameof(Content));
+               if (lines.Length > 0) {
+                  var builder = new StringBuilder();
+                  for (int i = 0; i < lines.Length; i++) {
+                     builder.Append(lines[i]);
+                     if (i != lines.Length - 1) builder.Append(Environment.NewLine);
+                  }
+                  TryUpdate(ref content, builder.ToString(), nameof(Content));
+               }
             }
             return;
          }
 
          throw new NotImplementedException();
+      }
+
+      private string RemoveQuotes(string newContent) {
+         newContent = newContent.Substring(1);
+         if (newContent.EndsWith("\"")) newContent = newContent.Substring(0, newContent.Length - 1);
+         return newContent;
       }
 
       private void UpdateSelectionFromTool() {

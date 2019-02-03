@@ -20,6 +20,7 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels.DataFormats {
       void Visit(EscapedPCS pcs, byte data);
       void Visit(ErrorPCS pcs, byte data);
       void Visit(Ascii ascii, byte data);
+      void Visit(Integer integer, byte data);
    }
 
    /// <summary>
@@ -166,6 +167,21 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels.DataFormats {
       public bool Equals(IDataFormat other) {
          if (!(other is Ascii ascii)) return false;
          return ascii.Source == Source && ascii.Position == Position && ascii.ThisCharacter == ThisCharacter;
+      }
+
+      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
+   }
+
+   public class Integer : IDataFormat {
+      public int Source { get; }
+      public int Position { get; }
+      public int Value { get; }
+
+      public Integer(int source, int position, int value) => (Source, Position, Value) = (source, position, value);
+
+      public bool Equals(IDataFormat other) {
+         if (!(other is Integer that)) return false;
+         return Source == that.Source && Position == that.Position && Value == that.Value;
       }
 
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
