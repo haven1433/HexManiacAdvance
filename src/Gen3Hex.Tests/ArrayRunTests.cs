@@ -434,6 +434,22 @@ namespace HavenSoft.Gen3Hex.Tests {
          Assert.Equal(10, model.GetNextRun(0x80).Length);
       }
 
+      [Fact]
+      public void CanEditIntsInArray() {
+         var buffer = new byte[0x200];
+         var model = new PokemonModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var errors = new List<string>();
+         viewPort.OnError += (sender, e) => errors.Add(e);
+         viewPort.Edit("^sample[code:]8 ");
+
+         viewPort.Edit("1 20 300 4000 50000 6000000 ");
+
+         Assert.Equal(new Point(10, 0), viewPort.SelectionStart);
+         Assert.Single(errors); // should've gotten one error for the 6 digit number
+         Assert.Equal(1, model[5]);
+      }
+
       private static void WriteStrings(byte[] buffer, int start, params string[] content) {
          foreach (var item in content) {
             var bytes = PCSString.Convert(item).ToArray();
