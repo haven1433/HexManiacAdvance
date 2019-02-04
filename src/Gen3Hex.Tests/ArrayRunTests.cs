@@ -445,7 +445,7 @@ namespace HavenSoft.Gen3Hex.Tests {
 
          viewPort.Edit("1 20 300 4000 50000 6000000 ");
 
-         Assert.Equal(new Point(10, 0), viewPort.SelectionStart);
+         Assert.Equal(new Point(12, 0), viewPort.SelectionStart);
          Assert.Single(errors); // should've gotten one error for the 6 digit number
          Assert.Equal(1, model[5]);
       }
