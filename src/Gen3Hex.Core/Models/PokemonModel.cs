@@ -303,6 +303,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             ClearFormat(changeToken, run.Start, run.Length);
          }
 
+         var existingRun = (index >= 0 && index < runs.Count) ? runs[index] : null;
+
          if (anchorForAddress.TryGetValue(location, out string oldAnchorName)) {
             anchorForAddress.Remove(location);
             addressForAnchor.Remove(oldAnchorName);
@@ -320,7 +322,8 @@ namespace HavenSoft.Gen3Hex.Core.Models {
             changeToken.AddName(location, anchorName);
          }
 
-         var sources = GetSourcesPointingToNewAnchor(changeToken, anchorName);
+         var seakPointers = existingRun?.PointerSources == null || existingRun?.Start != location;
+         var sources = GetSourcesPointingToNewAnchor(changeToken, anchorName, seakPointers);
          var newRun = run.MergeAnchor(sources);
          ObserveRunWritten(changeToken, newRun);
       }
@@ -698,13 +701,14 @@ namespace HavenSoft.Gen3Hex.Core.Models {
       /// <returns>
       /// The list of sources that point at the new anchor
       /// </returns>
-      private IReadOnlyList<int> GetSourcesPointingToNewAnchor(ModelDelta changeToken, string anchorName) {
+      private IReadOnlyList<int> GetSourcesPointingToNewAnchor(ModelDelta changeToken, string anchorName, bool seakPointers) {
          if (!addressForAnchor.TryGetValue(anchorName, out int location)) return new List<int>();     // new anchor is unnamed, so nothing points to it yet
 
          if (!unmappedNameToSources.TryGetValue(anchorName, out var sources)) {
             // no pointer was waiting for this anchor to be created
-            // but the user things there's something pointing here
-            return SearchForPointersToAnchor(changeToken, location);
+            // but the user thinks there's something pointing here
+            if (seakPointers) return SearchForPointersToAnchor(changeToken, location);
+            return new List<int>();
          }
 
          foreach (var source in sources) {
