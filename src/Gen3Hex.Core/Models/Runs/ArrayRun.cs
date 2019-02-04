@@ -191,7 +191,7 @@ namespace HavenSoft.Gen3Hex.Core.Models.Runs {
 
          if (currentSegment.Type == ElementContentType.Integer) {
             var value = ArrayRunElementSegment.ToInteger(data, offsets.SegmentStart, currentSegment.Length);
-            return new Integer(offsets.SegmentStart, index, value);
+            return new Integer(offsets.SegmentStart, index, value, currentSegment.Length);
          }
 
          throw new NotImplementedException();

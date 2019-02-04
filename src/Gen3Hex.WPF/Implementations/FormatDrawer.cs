@@ -148,17 +148,22 @@ namespace HavenSoft.Gen3Hex.WPF.Implementations {
       public void Visit(Integer integer, byte data) {
          if (integer.Source != integer.Position) return;
 
+         var stringValue = integer.Value.ToString();
+
          var typeface = new Typeface("Consolas");
          var text = new FormattedText(
-            integer.Value.ToString(),
+            stringValue,
             CultureInfo.CurrentCulture,
             FlowDirection.LeftToRight,
             typeface,
             FontSize,
-            Solarized.Brushes.Violet,
+            Solarized.Brushes.Cyan,
             1.0);
 
-         context.DrawText(text, CellTextOffset);
+         var xOffset = CellTextOffset.X;
+         xOffset += HexContent.CellWidth / 2 * (integer.Length - 1); // adjust based on number of cells to use
+         xOffset -= (stringValue.Length - 2) * 5; // adjust based on width of text
+         context.DrawText(text, new Point(xOffset, CellTextOffset.Y));
       }
 
       private void Underline(Brush brush, bool isStart, bool isEnd) {

@@ -176,12 +176,13 @@ namespace HavenSoft.Gen3Hex.Core.ViewModels.DataFormats {
       public int Source { get; }
       public int Position { get; }
       public int Value { get; }
+      public int Length { get; } // number of bytes used by this integer
 
-      public Integer(int source, int position, int value) => (Source, Position, Value) = (source, position, value);
+      public Integer(int source, int position, int value, int length) => (Source, Position, Value, Length) = (source, position, value, length);
 
       public bool Equals(IDataFormat other) {
          if (!(other is Integer that)) return false;
-         return Source == that.Source && Position == that.Position && Value == that.Value;
+         return Source == that.Source && Position == that.Position && Value == that.Value && Length == that.Length;
       }
 
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
