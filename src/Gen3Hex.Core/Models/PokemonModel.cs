@@ -658,7 +658,7 @@ namespace HavenSoft.Gen3Hex.Core.Models {
 
       private static ErrorInfo ValidateAnchorNameAndFormat(IDataModel model, IFormattedRun runToWrite, string name, string format, int dataIndex) {
          var existingRun = model.GetNextRun(dataIndex);
-         var nextRun = existingRun.Start > dataIndex ? existingRun : model.GetNextRun(existingRun.Start + existingRun.Length);
+         var nextRun = existingRun.Start > dataIndex ? existingRun : model.GetNextRun(existingRun.Start + Math.Max(existingRun.Length, 1));
 
          if (name.ToLower() == "null") {
             return new ErrorInfo("'null' is a reserved word and cannot be used as an anchor name.");
