@@ -410,7 +410,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x100, model.GetNextRun(0).Length);
       }
 
-      [Fact]
+      [Fact(Skip = "Feature not implement yet. Feature is now prioritized beneath array support for pointers.")]
       public void ArrayExtendsIfBasedOnAnotherNameWhichIsExtended() {
          var buffer = new byte[0x200];
          var model = new PokemonModel(buffer);
