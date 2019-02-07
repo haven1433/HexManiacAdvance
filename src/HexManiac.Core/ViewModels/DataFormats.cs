@@ -20,6 +20,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       void Visit(EscapedPCS pcs, byte data);
       void Visit(ErrorPCS pcs, byte data);
       void Visit(Ascii ascii, byte data);
+      void Visit(Integer integer, byte data);
    }
 
    /// <summary>
@@ -166,6 +167,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public bool Equals(IDataFormat other) {
          if (!(other is Ascii ascii)) return false;
          return ascii.Source == Source && ascii.Position == Position && ascii.ThisCharacter == ThisCharacter;
+      }
+
+      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
+   }
+
+   public class Integer : IDataFormat {
+      public int Source { get; }
+      public int Position { get; }
+      public int Value { get; }
+      public int Length { get; } // number of bytes used by this integer
+
+      public Integer(int source, int position, int value, int length) => (Source, Position, Value, Length) = (source, position, value, length);
+
+      public bool Equals(IDataFormat other) {
+         if (!(other is Integer that)) return false;
+         return Source == that.Source && Position == that.Position && Value == that.Value && Length == that.Length;
       }
 
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);

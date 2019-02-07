@@ -651,11 +651,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private bool ShouldAcceptInput(ref Point point, ref HexElement element, char input) {
          var underEdit = element.Format as UnderEdit;
+         var innerFormat = underEdit?.OriginalFormat ?? element.Format;
+         if (innerFormat is Anchor) innerFormat = ((Anchor)innerFormat).OriginalFormat;
 
          if (underEdit == null) {
-            var innerFormat = element.Format;
-            if (innerFormat is Anchor anchorFormat) innerFormat = anchorFormat.OriginalFormat;
-
             if (input == ExtendArray) {
                var index = scroll.ViewPointToDataIndex(point);
                return Model.IsAtEndOfArray(index, out var _);
@@ -673,34 +672,39 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
 
             if (innerFormat is PCS) {
-               if (input == StringDelimeter) return true;
-               return PCSString.PCS.Any(str => str != null && str.StartsWith(input.ToString()));
+               return input == StringDelimeter || PCSString.PCS.Any(str => str != null && str.StartsWith(input.ToString()));
             }
 
-            if (innerFormat is EscapedPCS) {
-               return AllHexCharacters.Contains(input);
-            }
+            if (innerFormat is EscapedPCS) return AllHexCharacters.Contains(input);
 
-            if (innerFormat is Ascii) {
-               return true;
-            }
+            if (innerFormat is Ascii) return true;
+
+            if (innerFormat is Integer) return char.IsNumber(input) || char.IsWhiteSpace(input);
 
             if (input == PointerStart) {
                // pointer edits are 4 bytes long
-               if(!TryCoerceSelectionToStartOfPointer(ref point, ref element)) PrepareForMultiSpaceEdit(point, 4);
+               if (!TryCoerceSelectionToStartOfPointer(ref point, ref element)) PrepareForMultiSpaceEdit(point, 4);
                return true;
             }
          } else if (underEdit.CurrentText.StartsWith(PointerStart.ToString())) {
             return char.IsLetterOrDigit(input) || input == PointerEnd;
          } else if (underEdit.CurrentText.StartsWith(AnchorStart.ToString())) {
-            return char.IsLetterOrDigit(input) || char.IsWhiteSpace(input) || input == ArrayStart || input == ArrayEnd || input == StringDelimeter || input == StreamDelimeter;
-         } else if (underEdit.OriginalFormat is Anchor anchorFormat && anchorFormat.OriginalFormat is PCS) {
+            return
+               char.IsLetterOrDigit(input) ||
+               char.IsWhiteSpace(input) ||
+               input == ArrayStart ||
+               input == ArrayEnd ||
+               input == StringDelimeter ||
+               input == StreamDelimeter ||
+               input == SingleByteIntegerFormat ||
+               input == DoubleByteIntegerFormat;
+         } else if (underEdit.OriginalFormat is Anchor && innerFormat is PCS) {
             if (input == StringDelimeter) return true;
             // if this is the start of a string (as noted by the anchor), crop off the leading " before trying to convert to a byte
             var currentText = underEdit.CurrentText;
             if (currentText.StartsWith(StringDelimeter.ToString())) currentText = currentText.Substring(1);
             return PCSString.PCS.Any(str => str != null && str.StartsWith(currentText + input));
-         } else if (underEdit.OriginalFormat is PCS) {
+         } else if (innerFormat is PCS) {
             if (input == StringDelimeter) return true;
             var memoryLocation = scroll.ViewPointToDataIndex(point);
             var currentText = underEdit.CurrentText;
@@ -712,6 +716,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                }
             }
             return PCSString.PCS.Any(str => str != null && str.StartsWith(currentText + input));
+         } else if (innerFormat is Integer) {
+            return char.IsNumber(input) || char.IsWhiteSpace(input);
          }
 
          if (AllHexCharacters.Contains(input)) {
@@ -766,6 +772,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                return false;
             }
 
+            // only end the anchor edit if the [] brace count matches
+            if (underEdit.CurrentText.Sum(c => c == '[' ? 1 : c == ']' ? -1 : 0) != 0) {
+               AnchorTextVisible = true;
+               return false;
+            }
+
             if (!CompleteAnchorEdit(point)) exitEditEarly = true;
             return true;
          }
@@ -780,8 +792,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (originalFormat is Ascii) {
             CompleteAsciiEdit(point, underEdit.CurrentText);
             return true;
-         }
-         if (originalFormat is PCS stringFormat) {
+         } else if (originalFormat is PCS stringFormat) {
             var currentText = underEdit.CurrentText;
             if (currentText.StartsWith(StringDelimeter.ToString())) currentText = currentText.Substring(1);
             if (stringFormat.Position != 0 && underEdit.CurrentText == StringDelimeter.ToString()) {
@@ -793,15 +804,43 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
 
             return false;
-         } else if (underEdit.OriginalFormat is EscapedPCS escaped) {
+         } else if (originalFormat is EscapedPCS escaped) {
             if (underEdit.CurrentText.Length < 2) return false;
             CompleteCharacterEdit(point);
             return true;
+         } else if (originalFormat is Integer integer) {
+            var currentText = underEdit.CurrentText;
+            if (char.IsWhiteSpace(currentText.Last())) {
+               CompleteIntegerEdit(point, currentText);
+               return true;
+            }
+            return false;
          }
 
          if (underEdit.CurrentText.Length < 2) return false;
          CompleteHexEdit(point);
          return true;
+      }
+
+      private void CompleteIntegerEdit(Point point, string currentText) {
+         var memoryLocation = scroll.ViewPointToDataIndex(point);
+         var editFormat = (UnderEdit)currentView[point.X, point.Y].Format;
+
+         var integer = (Integer)(editFormat.OriginalFormat is Anchor anchor ? anchor.OriginalFormat : editFormat.OriginalFormat);
+         if (!int.TryParse(currentText, out var result)) {
+            OnError?.Invoke(this, $"Could not parse {integer} as a number");
+            return;
+         }
+
+         var run = (ArrayRun)Model.GetNextRun(memoryLocation);
+         var offsets = run.ConvertByteOffsetToArrayOffset(memoryLocation);
+         int length = run.ElementContent[offsets.SegmentIndex].Length;
+         for (int i = 0; i < length; i++) {
+            history.CurrentChange.ChangeData(Model, offsets.SegmentStart + i, (byte)result);
+            result /= 0x100;
+         }
+         if (result != 0) OnError?.Invoke(this, $"Warning: number was too big to fit in the available space.");
+         if (!SilentScroll(offsets.SegmentStart + length)) ClearEdits(point);
       }
 
       private void CompleteAsciiEdit(Point point, string currentText) {
@@ -1106,6 +1145,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          public void Visit(ErrorPCS pcs, byte data) => Visit((None)null, data);
 
          public void Visit(Ascii ascii, byte data) => Result = ((char)data).ToString();
+
+         public void Visit(Integer integer, byte data) => Result = integer.Value.ToString();
       }
 
       /// <summary>
@@ -1144,6 +1185,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          public void Visit(ErrorPCS pcs, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
 
          public void Visit(Ascii ascii, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
+
+         public void Visit(Integer integer, byte data) => buffer.WriteValue(currentChange, index, 0);
       }
    }
 }

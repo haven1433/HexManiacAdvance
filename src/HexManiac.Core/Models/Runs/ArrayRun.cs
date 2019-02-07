@@ -8,6 +8,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    public enum ElementContentType {
       Unknown,
       PCS,
+      Integer,
    }
 
    public class ArrayRunElementSegment {
@@ -20,9 +21,21 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          switch (Type) {
             case ElementContentType.PCS:
                return PCSString.Convert(rawData, offset, Length);
+            case ElementContentType.Integer:
+               return ToInteger(rawData, offset, Length).ToString();
             default:
                throw new NotImplementedException();
          }
+      }
+
+      public static int ToInteger(IReadOnlyList<byte> data, int offset, int length) {
+         int result = 0;
+         int multiplier = 1;
+         for (int i = 0; i < length; i++) {
+            result += data[offset + i] * multiplier;
+            multiplier *= 0x100;
+         }
+         return result;
       }
    }
 
@@ -43,6 +56,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public const char ExtendArray = '+';
       public const char ArrayStart = '[';
       public const char ArrayEnd = ']';
+      public const char SingleByteIntegerFormat = '.';
+      public const char DoubleByteIntegerFormat = ':';
 
       private readonly IDataModel owner;
 
@@ -163,15 +178,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private int currentCachedStartIndex = -1, currentCachedIndex = -1;
       public override IDataFormat CreateDataFormat(IDataModel data, int index) {
          var offsets = ConvertByteOffsetToArrayOffset(index);
-
-         if (ElementContent[offsets.SegmentIndex].Type == ElementContentType.PCS) {
+         var currentSegment = ElementContent[offsets.SegmentIndex];
+         if (currentSegment.Type == ElementContentType.PCS) {
             if (currentCachedStartIndex != offsets.SegmentStart || currentCachedIndex > offsets.SegmentOffset) {
                currentCachedStartIndex = offsets.SegmentStart;
                currentCachedIndex = offsets.SegmentOffset;
-               cachedCurrentString = PCSString.Convert(data, offsets.SegmentStart, ElementContent[offsets.SegmentIndex].Length);
+               cachedCurrentString = PCSString.Convert(data, offsets.SegmentStart, currentSegment.Length);
             }
 
             return PCSRun.CreatePCSFormat(data, offsets.SegmentStart, index, cachedCurrentString);
+         }
+
+         if (currentSegment.Type == ElementContentType.Integer) {
+            var value = ArrayRunElementSegment.ToInteger(data, offsets.SegmentStart, currentSegment.Length);
+            return new Integer(offsets.SegmentStart, index, value, currentSegment.Length);
          }
 
          throw new NotImplementedException();
@@ -232,7 +252,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                formatLength = 2;
                while (formatLength < segments.Length && char.IsDigit(segments[formatLength])) formatLength++;
                segmentLength = int.Parse(segments.Substring(2, formatLength - 2));
+            } else if (segments.StartsWith("::")) {
+               (format, formatLength, segmentLength) = (ElementContentType.Integer, 2, 4);
+            } else if (segments.StartsWith(":.") || segments.StartsWith(".:")) {
+               (format, formatLength, segmentLength) = (ElementContentType.Integer, 2, 3);
+            } else if (segments.StartsWith(":")) {
+               (format, formatLength, segmentLength) = (ElementContentType.Integer, 1, 2);
+            } else if (segments.StartsWith(".")) {
+               (format, formatLength, segmentLength) = (ElementContentType.Integer, 1, 1);
             }
+
             if (format == ElementContentType.Unknown) throw new FormatException($"Could not parse format '{segments}'");
             segments = segments.Substring(formatLength).Trim();
             list.Add(new ArrayRunElementSegment(name, format, segmentLength));
@@ -277,6 +306,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (Enumerable.Range(start, segment.Length).All(i => owner[i] == 0xFF)) return false;
                if (!Enumerable.Range(start + readLength, segment.Length - readLength).All(i => owner[i] == 0x00 || owner[i] == 0xFF)) return false;
                if (isSingleSegmentRun && owner.Count > start + segment.Length && owner[start + segment.Length] == 0x00) return false;
+               return true;
+            case ElementContentType.Integer:
                return true;
             default:
                throw new NotImplementedException();

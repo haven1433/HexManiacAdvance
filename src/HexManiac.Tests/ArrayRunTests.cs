@@ -396,6 +396,60 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("^testdata[name\"\"16]6", viewPort.AnchorText);
       }
 
+      [Fact]
+      public void ArarysSupportIntegers() {
+         var buffer = new byte[0x200];
+         var model = new PokemonModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var errors = new List<string>();
+         viewPort.OnError += (sender, e) => errors.Add(e);
+
+         viewPort.Edit("^sample[initials\"\"5 age. shoeSize: extension. zip:. flog::]16 ");
+
+         Assert.Empty(errors);
+         Assert.Equal(0x100, model.GetNextRun(0).Length);
+      }
+
+      [Fact(Skip = "Feature not implement yet. Feature is now prioritized beneath array support for pointers.")]
+      public void ArrayExtendsIfBasedOnAnotherNameWhichIsExtended() {
+         var buffer = new byte[0x200];
+         var model = new PokemonModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var errors = new List<string>();
+         viewPort.OnError += (sender, e) => errors.Add(e);
+
+         viewPort.Edit("^sample[name\"\"8]8 "); // should cover the first 4 lines
+
+         viewPort.SelectionStart = new Point(0, 8);
+         viewPort.Edit("^derived[index.]sample "); // should be the same length as sample: 8
+
+         // test 1: enbiggen derived should enbiggen sample
+         viewPort.SelectionStart = new Point(8, 8);
+         viewPort.Edit("+");
+         Assert.Equal(8 * 8 + 8, model.GetNextRun(0).Length);
+
+         // test 2: enbiggen sample should enbiggen derived
+         viewPort.SelectionStart = new Point(8, 4);
+         viewPort.Edit("+");
+         Assert.Equal(10, model.GetNextRun(0x80).Length);
+      }
+
+      [Fact]
+      public void CanEditIntsInArray() {
+         var buffer = new byte[0x200];
+         var model = new PokemonModel(buffer);
+         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var errors = new List<string>();
+         viewPort.OnError += (sender, e) => errors.Add(e);
+         viewPort.Edit("^sample[code:]8 ");
+
+         viewPort.Edit("1 20 300 4000 50000 6000000 ");
+
+         Assert.Equal(new Point(12, 0), viewPort.SelectionStart);
+         Assert.Single(errors); // should've gotten one error for the 6 digit number
+         Assert.Equal(1, model[5]);
+      }
+
       private static void WriteStrings(byte[] buffer, int start, params string[] content) {
          foreach (var item in content) {
             var bytes = PCSString.Convert(item).ToArray();
