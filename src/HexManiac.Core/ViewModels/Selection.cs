@@ -169,16 +169,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void GotoAddressHelper(int address) {
-         SelectionStart = Scroll.DataIndexToViewPoint(address);
-         Scroll.ScrollValue += selectionStart.Y;
-         while (Scroll.DataIndex < address) Scroll.Scroll.Execute(Direction.Right);
+         var destinationRun = model.GetNextRun(address) as ArrayRun;
+         var destinationIsArray = destinationRun != null && destinationRun.Start == address;
 
-         if (model.GetNextRun(address) is ArrayRun array && array.Start == address) {
-            PreferredWidth = array.ElementLength;
-         }
-         else {
+         if (destinationIsArray) {
+            PreferredWidth = destinationRun.ElementLength;
+         } else {
             PreferredWidth = DefaultPreferredWidth;
          }
+
+         var startAddress = address;
+         if (!destinationIsArray && PreferredWidth > 1) address -= address % PreferredWidth;
+
+         // first, change the selection and scroll to select the actual requested address
+         SelectionStart = Scroll.DataIndexToViewPoint(startAddress);
+         Scroll.ScrollValue += selectionStart.Y;
+
+         // then, scroll left/right as needed to align everything
+         while (Scroll.DataIndex < address) Scroll.Scroll.Execute(Direction.Right);
+         while (Scroll.DataIndex > address) Scroll.Scroll.Execute(Direction.Left);
       }
 
       /// <summary>
