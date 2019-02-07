@@ -269,6 +269,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event NotifyCollectionChangedEventHandler CollectionChanged;
       public event EventHandler<ITabContent> RequestTabChange;
       public event EventHandler<Action> RequestDelayedWork;
+      public event EventHandler RequestMenuClose;
 #pragma warning restore 0067
 
       public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
@@ -352,7 +353,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var offsets = arrayRun2.ConvertByteOffsetToArrayOffset(offset);
             SilentScroll(offsets.SegmentStart + arrayRun2.ElementContent[offsets.SegmentIndex].Length);
          }
-         if (key == ConsoleKey.Escape) { ClearEdits(SelectionStart); ClearMessage?.Invoke(this, EventArgs.Empty); }
+         if (key == ConsoleKey.Escape) {
+            ClearEdits(SelectionStart);
+            ClearMessage?.Invoke(this, EventArgs.Empty);
+            RequestMenuClose?.Invoke(this, EventArgs.Empty);
+         }
          if (key != ConsoleKey.Backspace) return;
 
          var point = GetEditPoint();

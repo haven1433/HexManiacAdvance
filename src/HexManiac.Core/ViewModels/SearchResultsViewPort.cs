@@ -85,6 +85,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event NotifyCollectionChangedEventHandler CollectionChanged;
       public event EventHandler<ITabContent> RequestTabChange;
       public event EventHandler<Action> RequestDelayedWork;
+      public event EventHandler RequestMenuClose;
 #pragma warning restore 0067
 
       #endregion

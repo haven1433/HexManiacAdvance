@@ -32,7 +32,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       public static readonly Pen BorderPen = new Pen(Solarized.Brushes.Green, 1);
 
-
+      private Popup recentMenu;
       private ModelPoint downPoint;
       private ModelPoint mouseOverPoint;
 
@@ -54,11 +54,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (e.OldValue is IViewPort oldViewPort) {
             oldViewPort.CollectionChanged -= OnViewPortContentChanged;
             oldViewPort.PropertyChanged -= OnViewPortPropertyChanged;
+            oldViewPort.RequestMenuClose -= OnViewPortRequestMenuClose;
          }
 
          if (e.NewValue is IViewPort newViewPort) {
             newViewPort.CollectionChanged += OnViewPortContentChanged;
             newViewPort.PropertyChanged += OnViewPortPropertyChanged;
+            newViewPort.RequestMenuClose += OnViewPortRequestMenuClose;
             UpdateViewPortSize();
          }
 
@@ -78,6 +80,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (propertyChangesThatRequireRedraw.Contains(e.PropertyName)) {
             InvalidateVisual();
          }
+      }
+
+      private void OnViewPortRequestMenuClose(object sender, EventArgs e) {
+         if (recentMenu == null) return;
+         recentMenu.IsOpen = false;
       }
 
       #endregion
@@ -288,8 +295,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             e.Handled = true;
          }
       }
-
-      Popup recentMenu;
 
       private IEnumerable<FrameworkElement> GetAnchorChildren(ModelPoint p) {
          var anchor = (Anchor)ViewPort[p.X, p.Y].Format;
