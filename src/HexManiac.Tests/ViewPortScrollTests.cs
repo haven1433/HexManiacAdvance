@@ -44,7 +44,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void ViewPortScrollingDoesNotAllowEmptyScreen() {
          var loadedFile = new LoadedFile("test", new byte[25]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         var viewPort = new ViewPort(loadedFile) { PreferredWidth = -1, Width = 5, Height = 5 };
 
          Assert.Equal(0, viewPort.MinimumScroll);
          Assert.Equal(4, viewPort.MaximumScroll);
@@ -75,7 +75,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void ChangingWidthUpdatesScrollValueIfNeeded() {
          // ScrollValue=0 is always the line that contains the first byte of the file.
          var loadedFile = new LoadedFile("test", new byte[25]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         var viewPort = new ViewPort(loadedFile) { PreferredWidth = -1, Width = 5, Height = 5 };
 
          viewPort.ScrollValue++; // scroll down one line
          viewPort.Width--;      // decrease the width so that there is data 2 lines above
@@ -97,7 +97,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void ResizingCannotLeaveTotallyBlankLineAtTop() {
          var loadedFile = new LoadedFile("test", new byte[36]);
-         var viewPort = new ViewPort(loadedFile) { Width = 6, Height = 6 };
+         var viewPort = new ViewPort(loadedFile) { PreferredWidth = -1, Width = 6, Height = 6 };
 
          viewPort.ScrollValue++;   // scroll down one line
          viewPort.Width--;         // decrease the width so that there is data 2 lines above
@@ -124,7 +124,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void RequestingOutOfRangeDataReturnsUndefinedFormat() {
          var loadedFile = new LoadedFile("test", new byte[25]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         var viewPort = new ViewPort(loadedFile) { PreferredWidth = -1, Width = 5, Height = 5 };
 
          Assert.Equal(HexElement.Undefined, viewPort[0, -1]);
          Assert.Equal(HexElement.Undefined, viewPort[5, 0]);
@@ -135,7 +135,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void MaximumScrollChangesBasedOnDataOffset() {
          var loadedFile = new LoadedFile("test", new byte[26]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         var viewPort = new ViewPort(loadedFile) { PreferredWidth = -1, Width = 5, Height = 5 };
 
          // initial condition: given 4 data per row, there should be 7 rows (0-6) because 7*4=28
          viewPort.Width--;

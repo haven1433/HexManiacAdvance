@@ -18,7 +18,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void AddressUpdateOnWidthChanged() {
-         var viewPort = new ViewPort(new LoadedFile("test.txt", new byte[0x200])) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort(new LoadedFile("test.txt", new byte[0x200])) { PreferredWidth = -1, Width = 0x10, Height = 0x10 };
          var changeCount = 0;
          viewPort.Headers.CollectionChanged += (sender, e) => changeCount += 1;
 

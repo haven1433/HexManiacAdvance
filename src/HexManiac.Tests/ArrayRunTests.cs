@@ -56,7 +56,7 @@ namespace HavenSoft.HexManiac.Tests {
          var model = new PokemonModel(buffer);
          ArrayRun.TryParse(model, "[name\"\"12]13", 12, null, out var arrayRun);
          model.ObserveRunWritten(new ModelDelta(), arrayRun);
-         var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 12, Height = 20 };
+         var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { PreferredWidth = -1, Width = 12, Height = 20 };
 
          // spot checks: it should look like a string that starts where the segment starts
          var pcs = (PCS)viewPort[0, 4].Format;

@@ -9,6 +9,7 @@ using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
    public class Selection : ViewModelCore {
+      private const int DefaultPreferredWidth = 0x10;
 
       private readonly IDataModel model;
 
@@ -23,7 +24,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       // if we navigate back, then scroll, then navigate forward, we want to remember the scroll if we go back again.
       private readonly Stack<int> backStack = new Stack<int>(), forwardStack = new Stack<int>();
 
-      private int preferredWidth = 1, maxWidth = 4;
+      private int preferredWidth = DefaultPreferredWidth, maxWidth = 4;
 
       private Point selectionStart, selectionEnd;
 
@@ -176,7 +177,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             PreferredWidth = array.ElementLength;
          }
          else {
-            PreferredWidth = 1;
+            PreferredWidth = DefaultPreferredWidth;
          }
       }
 

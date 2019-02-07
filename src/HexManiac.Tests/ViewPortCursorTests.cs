@@ -32,7 +32,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void MovingCursorRightFromRightEdgeMovesToNextLine() {
          var loadedFile = new LoadedFile("test", new byte[25]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         var viewPort = new ViewPort(loadedFile) { PreferredWidth = -1, Width = 5, Height = 5 };
          viewPort.SelectionStart = new Point(4, 0);
 
          viewPort.MoveSelectionStart.Execute(Direction.Right);
@@ -43,7 +43,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void MovingCursorDownFromBottomRowScrolls() {
          var loadedFile = new LoadedFile("test", new byte[25]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 4 };
+         var viewPort = new ViewPort(loadedFile) { PreferredWidth = -1, Width = 5, Height = 4 };
          viewPort.SelectionStart = new Point(0, 3);
 
          viewPort.MoveSelectionStart.Execute(Direction.Down);
@@ -54,7 +54,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void CursorCanMoveOutsideDataRangeButNotOutsideScrollRange() {
          var loadedFile = new LoadedFile("test", new byte[25]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         var viewPort = new ViewPort(loadedFile) { PreferredWidth = -1, Width = 5, Height = 5 };
          viewPort.Scroll.Execute(Direction.Right);
          viewPort.SelectionStart = new Point(0, 0);
 
@@ -140,7 +140,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void ScrollingBeforeStartOfDataMovesSelectionOnlyWhenDataMoves() {
          var loadedFile = new LoadedFile("test", new byte[25]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         var viewPort = new ViewPort(loadedFile) { PreferredWidth = -1, Width = 5, Height = 5 };
 
          viewPort.Scroll.Execute(Direction.Right); // move the first byte out of view
          viewPort.Scroll.Execute(Direction.Up);    // scroll up, so we can see the first byte again
@@ -159,7 +159,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void ChangingWidthKeepsSameDataSelected() {
          var loadedFile = new LoadedFile("test", new byte[25]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         var viewPort = new ViewPort(loadedFile) { PreferredWidth = -1, Width = 5, Height = 5 };
          viewPort.SelectionEnd = new Point(2, 2); // 13 cells selected
          viewPort.Width += 1;
 
@@ -184,7 +184,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void CannotSelectFarAfterLastByte() {
          var loadedFile = new LoadedFile("test", new byte[20]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         var viewPort = new ViewPort(loadedFile) { PreferredWidth = -1, Width = 5, Height = 5 };
 
          viewPort.SelectionStart = new Point(4, 4);
 

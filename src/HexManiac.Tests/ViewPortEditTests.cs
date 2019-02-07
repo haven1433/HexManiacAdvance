@@ -24,7 +24,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void CanEditMultipleBytesInARow() {
          var loadedFile = new LoadedFile("test", new byte[25]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         var viewPort = new ViewPort(loadedFile) { PreferredWidth = -1, Width = 5, Height = 5 };
 
          viewPort.SelectionStart = new Point(2, 2);
          viewPort.Edit("DEADBEEF");
@@ -230,7 +230,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void CanEnterDataAfterLastByte() {
          var loadedFile = new LoadedFile("test", new byte[20]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         var viewPort = new ViewPort(loadedFile) { PreferredWidth = -1, Width = 5, Height = 5 };
 
          viewPort.SelectionStart = new Point(0, 4);
          viewPort.Edit("00");
