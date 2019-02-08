@@ -262,6 +262,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public IDataModel Model { get; private set; }
 
+      public bool FormattedDataIsSelected {
+         get {
+            var (left, right) = (scroll.ViewPointToDataIndex(SelectionStart), scroll.ViewPointToDataIndex(SelectionEnd));
+            if (left > right) (left, right) = (right, left);
+            var nextRun = Model.GetNextRun(left);
+            return nextRun.Start <= right;
+         }
+      }
+
 #pragma warning disable 0067 // it's ok if events are never used
       public event EventHandler<string> OnError;
       public event EventHandler<string> OnMessage;
@@ -329,9 +338,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public bool IsSelected(Point point) => selection.IsSelected(point);
 
-      public void ClearFormat(Point point) {
-         var dataIndex = scroll.ViewPointToDataIndex(point);
-         Model.ClearFormat(history.CurrentChange, dataIndex, 1);
+      public void ClearFormat() {
+         var startDataIndex = scroll.ViewPointToDataIndex(SelectionStart);
+         var endDataIndex = scroll.ViewPointToDataIndex(SelectionEnd);
+         if (startDataIndex > endDataIndex) (startDataIndex, endDataIndex) = (endDataIndex, startDataIndex);
+
+         Model.ClearFormat(history.CurrentChange, startDataIndex, endDataIndex - startDataIndex + 1);
          RefreshBackingData();
       }
 

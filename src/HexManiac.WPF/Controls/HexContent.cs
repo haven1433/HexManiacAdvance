@@ -203,13 +203,14 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             var format = ViewPort[p.X, p.Y].Format;
 
             if (ViewPort is ViewPort editableViewPort) {
+               if (!editableViewPort.IsSelected(p)) editableViewPort.SelectionStart = p;
                if (format is Anchor && p.Equals(downPoint)) {
                   children.AddRange(GetAnchorChildren(p));
                   format = ((Anchor)format).OriginalFormat;
                }
                if (format is PCS pcs) children.AddRange(GetStringChildren(p));
                if (format is Pointer pointer) children.AddRange(GetPointerChildren(p));
-               if (!(format is None || format is Undefined)) children.AddRange(GetClearFormattingChildren(p));
+               if (editableViewPort.FormattedDataIsSelected) children.AddRange(GetClearFormattingChildren(p));
             } else {
                children.AddRange(GetSearchChildren(p));
             }
@@ -364,7 +365,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          yield return new Button {
             Content = new TextBlock { Text = "Clear Format" },
          }.SetEvent(ButtonBase.ClickEvent, (sender, e) => {
-            ((ViewPort)ViewPort).ClearFormat(p);
+            ((ViewPort)ViewPort).ClearFormat();
             recentMenu.IsOpen = false;
          });
       }
