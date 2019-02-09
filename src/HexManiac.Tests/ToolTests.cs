@@ -21,7 +21,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void StringToolCanOpenOnChosenData() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^bob\"\" \"Some Text\" 00 <000100>");
          var toolProperties = new List<string>();
          viewPort.Tools.PropertyChanged += (sender, e) => toolProperties.Add(e.PropertyName);
@@ -35,7 +35,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void StringToolEditsAreReflectedInViewPort() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^bob\"\" \"Some Text\" 00 <000100>");
          viewPort.Tools.StringTool.Address = 0;
 
@@ -48,7 +48,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void StringToolCanMoveData() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^bob\"\" \"Some Text\" 00 <000100>");
          var toolProperties = new List<string>();
          viewPort.Tools.StringTool.PropertyChanged += (sender, e) => toolProperties.Add(e.PropertyName);
@@ -63,7 +63,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void ViewPortMovesWhenStringToolMovesData() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^bob\"\" \"Some Text\" 00 <000100>");
          viewPort.Tools.StringTool.Address = 0;
 
@@ -75,7 +75,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void StringToolMultiCharacterDeleteCleansUpUnusedBytes() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^bob\"\" \"Some Text\" 00 <000100>");
          viewPort.Tools.StringTool.Address = 0;
 
@@ -100,7 +100,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void StringToolContentUpdatesWhenViewPortChange() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^bob\"\" \"Some Text\"");
 
          viewPort.SelectionStart = new Point(3, 0);   // select the 'e' in 'Some'
@@ -114,7 +114,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void ToolSelectionChangeUpdatesViewPortSelection() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^bob\"\" \"Some Text\"");
          viewPort.SelectionStart = new Point(3, 0);
          viewPort.FollowLink(3, 0);

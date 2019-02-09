@@ -214,7 +214,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void CanExpandSelection() {
          var data = new byte[0x200];
          var model = new PokemonModel(data);
-         var viewPort = new ViewPort(new LoadedFile("test.txt", data), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
 
          viewPort.Edit("<000100>");
          viewPort.SelectionStart = new Point(1, 0);

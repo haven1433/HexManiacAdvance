@@ -198,7 +198,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void SearchFor6BytesAlsoFindsPointers() {
          var data = new byte[0x1200];
          var model = new PokemonModel(data);
-         var viewPort = new ViewPort(new LoadedFile("file.txt", data), model);
+         var viewPort = new ViewPort("file.txt", model);
 
          viewPort.Edit("<001060>");
          var results = viewPort.Find("001060");

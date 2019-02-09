@@ -30,6 +30,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       void Load(byte[] newData, StoredMetadata metadata);
       void ExpandData(ModelDelta changeToken, int minimumLength);
 
+      IReadOnlyList<int> SearchForPointersToAnchor(ModelDelta changeToken, int address);
       void WritePointer(ModelDelta changeToken, int address, int pointerDestination);
       void WriteValue(ModelDelta changeToken, int address, int value);
       int ReadPointer(int address);
@@ -86,6 +87,8 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public abstract IFormattedRun RelocateForExpansion(ModelDelta changeToken, IFormattedRun run, int minimumLength);
 
+      public abstract IReadOnlyList<int> SearchForPointersToAnchor(ModelDelta changeToken, int address);
+
       public int ReadValue(int index) {
          int word = 0;
          word |= RawData[index + 0] << 0;
@@ -129,6 +132,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override void ClearFormatAndData(ModelDelta changeToken, int start, int length) {
          for (int i = 0; i < length; i++) changeToken.ChangeData(this, start + i, 0xFF);
       }
+
+      public override IReadOnlyList<int> SearchForPointersToAnchor(ModelDelta changeToken, int address) => throw new NotImplementedException();
 
       public override string Copy(int start, int length) {
          var bytes = Enumerable.Range(start, length).Select(i => RawData[i]);

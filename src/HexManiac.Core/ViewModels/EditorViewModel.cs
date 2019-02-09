@@ -218,7 +218,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var file = arg as LoadedFile ?? fileSystem.OpenFile("GameBoy Advanced", "gba");
             if (file == null) return;
             var metadata = fileSystem.MetadataFor(file.Name);
-            Add(new ViewPort(file, new AutoSearchModel(file.Contents, metadata)));
+            Add(new ViewPort(file.Name, new AutoSearchModel(file.Contents, metadata)));
          };
 
          ImplementFindCommands();

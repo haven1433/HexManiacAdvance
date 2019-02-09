@@ -283,12 +283,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
 
-      public ViewPort(LoadedFile file, IDataModel model = null) {
+      public ViewPort(string fileName, IDataModel model) {
          history = new ChangeHistory<ModelDelta>(RevertChanges);
          history.PropertyChanged += HistoryPropertyChanged;
 
-         Model = model ?? new BasicModel(file.Contents);
-         FileName = file.Name;
+         Model = model;
+         FileName = fileName;
 
          scroll = new ScrollRegion { DataLength = Model.Count };
          scroll.PropertyChanged += ScrollPropertyChanged;
@@ -305,6 +305,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          ImplementCommands();
          RefreshBackingData();
       }
+
+      public ViewPort(LoadedFile file) : this(file.Name, new BasicModel(file.Contents)) { }
 
       private void ImplementCommands() {
          clear.CanExecute = CanAlwaysExecute;
@@ -440,7 +442,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var pcsBytes = PCSString.Convert(cleanedSearchString);
             pcsBytes.RemoveAt(pcsBytes.Count - 1); // remove the 0xFF that was added, since we're searching for a string segment instead of a whole string.
             searchBytes.AddRange(pcsBytes.Select(b => new PCSSearchByte(b)));
-            results.AddRange(Search(searchBytes));
+            var textResults = Search(searchBytes).ToList();
+            ConsiderResultsAsTextRuns(textResults);
+            results.AddRange(textResults);
          }
 
          // it might be a pointer without angle braces
@@ -467,6 +471,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             OnMessage?.Invoke(this, $"Found {results.Count} matches for '{rawSearch}'.");
          }
          return results;
+      }
+
+      // for each of the results, we recognized it as text: see if we need to add a matching string run / pointers
+      private int ConsiderResultsAsTextRuns(IEnumerable<int> searchResults) {
+         int resultsRecognizedAsTextRuns = 0;
+
+         foreach (var result in searchResults) {
+            var nextRun = Model.GetNextRun(result);
+            if (nextRun.Start <= result) continue;
+            var pointers = Model.SearchForPointersToAnchor(history.CurrentChange, result);
+            if (pointers.Count == 0) continue;
+            var newRun = new PCSRun(result, PCSString.ReadString(Model, result, true), pointers);
+            if (newRun.Length < 1) continue;
+            if (newRun.Start + newRun.Length > nextRun.Start) continue;
+            Model.ObserveAnchorWritten(history.CurrentChange, string.Empty, newRun);
+            resultsRecognizedAsTextRuns++;
+         }
+
+         return resultsRecognizedAsTextRuns;
       }
 
       private byte[] Parse(string content) {
@@ -919,13 +942,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private bool CompleteAnchorEdit(Point point) {
          var underEdit = (UnderEdit)currentView[point.X, point.Y].Format;
          var index = scroll.ViewPointToDataIndex(point);
-         var errorInfo = PokemonModel.ApplyAnchor(Model, history.CurrentChange, index, underEdit.CurrentText);
+         ErrorInfo errorInfo;
+
+         // if it's an unnamed text anchor, we have special logic for that
+         if (underEdit.CurrentText == "^\"\" ") {
+            int count = ConsiderResultsAsTextRuns(new[] { index });
+            if (count == 0) {
+               errorInfo = new ErrorInfo("An anchor with nothing pointing to it must have a name.");
+            } else {
+               errorInfo = ErrorInfo.NoError;
+            }
+         } else {
+            errorInfo = PokemonModel.ApplyAnchor(Model, history.CurrentChange, index, underEdit.CurrentText);
+         }
+
          ClearEdits(point);
          UpdateToolsFromSelection(index);
 
          if (errorInfo == ErrorInfo.NoError) return true;
 
-         OnError(this, errorInfo.ErrorMessage);
+         OnError?.Invoke(this, errorInfo.ErrorMessage);
          return false;
       }
 

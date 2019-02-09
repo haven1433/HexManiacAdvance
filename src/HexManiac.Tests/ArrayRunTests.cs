@@ -56,7 +56,7 @@ namespace HavenSoft.HexManiac.Tests {
          var model = new PokemonModel(buffer);
          ArrayRun.TryParse(model, "[name\"\"12]13", 12, null, out var arrayRun);
          model.ObserveRunWritten(new ModelDelta(), arrayRun);
-         var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { PreferredWidth = -1, Width = 12, Height = 20 };
+         var viewPort = new ViewPort("file.txt", model) { PreferredWidth = -1, Width = 12, Height = 20 };
 
          // spot checks: it should look like a string that starts where the segment starts
          var pcs = (PCS)viewPort[0, 4].Format;
@@ -87,7 +87,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void CanParseArrayAnchorAddedFromViewPort() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
 
          viewPort.Edit("^bob[name\"\"14]12 ");
 
@@ -98,7 +98,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void ChangingAnchorTextWhileAnchorStartIsOutOfViewWorks() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^bob[name\"\"16]16 ");
 
          viewPort.ScrollValue = 2;
@@ -113,7 +113,7 @@ namespace HavenSoft.HexManiac.Tests {
          WriteStrings(buffer, 0x00, "bob", "tom", "sam", "car", "pal", "egg");
 
          var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
 
          viewPort.Edit("^words[word\"\"4] "); // notice, no length is given
 
@@ -127,7 +127,7 @@ namespace HavenSoft.HexManiac.Tests {
          WriteStrings(buffer, 100, "bobb", "tomm", "samm", "carr", "pall", "eggg");
 
          var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
 
          viewPort.Edit("^words[word\"\"5] "); // notice, no length is given
 
@@ -156,7 +156,7 @@ namespace HavenSoft.HexManiac.Tests {
          var model = new PokemonModel(buffer);
          ArrayRun.TryParse(model, "[word\"\"5]", 0, null, out var arrayRun);
          model.ObserveAnchorWritten(new ModelDelta(), "words", arrayRun);
-         var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.SelectionStart = new Point(6, 0);
 
          viewPort.Edit("a"); // change "tomm" to "tamm"
@@ -168,7 +168,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void CanPasteArray() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
 
          viewPort.Edit("^strings[name\"\"16] ");
          viewPort.Edit("+\"bob\" +\"sam\" +\"steve\" +\"kevin\"");
@@ -181,7 +181,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void PastingArrayLeavesArrayFormat() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
 
          viewPort.Edit("^pokenames[name\"\"11] +\"??????????\"+\"BULBASAUR\"");
          viewPort.SelectionStart = new Point(0, 0);
@@ -203,7 +203,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          ArrayRun.TryParse(model, "[word\"\"5]", 100, null, out var arrayRun);
          model.ObserveAnchorWritten(new ModelDelta(), "words", arrayRun);
-         var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
 
          viewPort.FollowLink(0, 7); // 7*16 = 112, right in the middle of our data
          // note that this will change our width to 15, because we're linking to data of width 5 when our maxwidth is 16.
@@ -229,7 +229,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          ArrayRun.TryParse(model, "[word\"\"5]", 100, null, out var arrayRun);
          model.ObserveAnchorWritten(new ModelDelta(), "words", arrayRun);
-         var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
 
          viewPort.FollowLink(0, 7); // 7*16 = 112, right in the middle of our data
 
@@ -255,7 +255,7 @@ namespace HavenSoft.HexManiac.Tests {
          var model = new PokemonModel(buffer);
          model.WritePointer(delta, 0x00, 0x20);
          model.ObserveRunWritten(delta, new PointerRun(0x00));
-         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.SelectionStart = new Point(0, 2);
          viewPort.Edit("^testdata[name\"\"16]5 ");
 
@@ -304,7 +304,7 @@ namespace HavenSoft.HexManiac.Tests {
          model.ObserveRunWritten(delta, new PointerRun(0x00));
          model.WritePointer(delta, 0x04, 0x90);
          model.ObserveRunWritten(delta, new PointerRun(0x04)); // the anchor at 0x90 should prevent a paste overwrite
-         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.SelectionStart = new Point(0, 2);
          viewPort.Edit("^testdata[name\"\"16]5 ");
          viewPort.OnError += (sender, message) => errors.Add(message);
@@ -342,7 +342,7 @@ namespace HavenSoft.HexManiac.Tests {
          model.ObserveRunWritten(delta, new PointerRun(0x00));
          model.WritePointer(delta, 0x04, 0x90);
          model.ObserveRunWritten(delta, new PointerRun(0x04)); // the anchor at 0x90 should prevent a paste overwrite
-         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.SelectionStart = new Point(0, 2);
          viewPort.Edit("^testdata[name\"\"16]5 ");
          viewPort.OnError += (sender, message) => errors.Add(message);
@@ -381,7 +381,7 @@ namespace HavenSoft.HexManiac.Tests {
          model.ObserveRunWritten(delta, new PointerRun(0x00));
          model.WritePointer(delta, 0x04, 0x90);
          model.ObserveRunWritten(delta, new PointerRun(0x04)); // the anchor at 0x90 should prevent a paste overwrite
-         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.SelectionStart = new Point(0, 2);
          viewPort.Edit("^testdata[name\"\"16]5 ");
          viewPort.OnError += (sender, message) => errors.Add(message);
@@ -400,7 +400,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void ArarysSupportIntegers() {
          var buffer = new byte[0x200];
          var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          var errors = new List<string>();
          viewPort.OnError += (sender, e) => errors.Add(e);
 
@@ -414,7 +414,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void ArrayExtendsIfBasedOnAnotherNameWhichIsExtended() {
          var buffer = new byte[0x200];
          var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          var errors = new List<string>();
          viewPort.OnError += (sender, e) => errors.Add(e);
 
@@ -438,7 +438,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void CanEditIntsInArray() {
          var buffer = new byte[0x200];
          var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          var errors = new List<string>();
          viewPort.OnError += (sender, e) => errors.Add(e);
          viewPort.Edit("^sample[code:]8 ");

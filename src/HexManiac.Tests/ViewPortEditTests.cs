@@ -242,7 +242,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void CanClearData() {
          var loadedFile = new LoadedFile("test", new byte[1000]);
-         var viewPort = new ViewPort(loadedFile, new PokemonModel(loadedFile.Contents)) { Width = 5, Height = 5 };
+         var viewPort = new ViewPort(loadedFile.Name, new PokemonModel(loadedFile.Contents)) { PreferredWidth = -1, Width = 5, Height = 5 };
 
          viewPort.SelectionStart = new Point(0, 0);
          viewPort.SelectionEnd = new Point(3, 3);
@@ -302,7 +302,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void ClearRemovesFormats() {
          var data = new byte[0x200];
          var model = new PokemonModel(data);
-         var viewPort = new ViewPort(new LoadedFile("file.txt", data), model);
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
 
          viewPort.Edit("<000100>");
          viewPort.SelectionStart = new Point(2, 0);

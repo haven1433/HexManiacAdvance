@@ -609,6 +609,27 @@ namespace HavenSoft.HexManiac.Core.Models {
          return new StoredMetadata(anchors, unmappedPointers);
       }
 
+      public override IReadOnlyList<int> SearchForPointersToAnchor(ModelDelta changeToken, int address) {
+         var results = new List<int>();
+
+         for (int i = 3; i < RawData.Length; i++) {
+            if (RawData[i] != 0x08 && RawData[i] != 0x09) continue;
+            int destination = ReadPointer(i - 3);
+            if (destination != address) continue;
+            var index = BinarySearch(i - 3);
+            if (index >= 0) continue;
+            index = ~index;
+            if (index < runs.Count && runs[index].Start <= i) continue;
+            if (index > 0 && runs[index - 1].Start + runs[index - 1].Length > i - 3) continue;
+            var newRun = new PointerRun(i - 3);
+            runs.Insert(index, newRun);
+            changeToken.AddRun(newRun);
+            results.Add(i - 3);
+         }
+
+         return results;
+      }
+
       private static (string, string) SplitNameAndFormat(string text) {
          var name = text.Substring(1).Trim();
          string format = string.Empty;
@@ -722,27 +743,6 @@ namespace HavenSoft.HexManiac.Core.Models {
          unmappedNameToSources.Remove(anchorName);
 
          return sources;
-      }
-
-      private IReadOnlyList<int> SearchForPointersToAnchor(ModelDelta changeToken, int address) {
-         var results = new List<int>();
-
-         for (int i = 3; i < RawData.Length; i++) {
-            if (RawData[i] != 0x08 && RawData[i] != 0x09) continue;
-            int destination = ReadPointer(i - 3);
-            if (destination != address) continue;
-            var index = BinarySearch(i-3);
-            if (index >= 0) continue;
-            index = ~index;
-            if (index < runs.Count && runs[index].Start <= i) continue;
-            if (index > 0 && runs[index - 1].Start + runs[index - 1].Length > i - 3) continue;
-            var newRun = new PointerRun(i - 3);
-            runs.Insert(index, newRun);
-            changeToken.AddRun(newRun);
-            results.Add(i - 3);
-         }
-
-         return results;
       }
 
       private IFormattedRun MoveRun(ModelDelta changeToken, IFormattedRun run, int newStart) {
