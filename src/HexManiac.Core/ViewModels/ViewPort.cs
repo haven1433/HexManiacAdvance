@@ -24,6 +24,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    /// A range of visible data that should be displayed.
    /// </summary>
    public class ViewPort : ViewModelCore, IViewPort {
+      private const char GotoMarker = '@';
       private const string AllHexCharacters = "0123456789ABCDEFabcdef";
       private static readonly NotifyCollectionChangedEventArgs ResetArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
       private readonly StubCommand
@@ -714,6 +715,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                return true;
             }
 
+            if (input == GotoMarker) {
+               PrepareForMultiSpaceEdit(point, 4);
+               underEdit = new UnderEdit(element.Format, GotoMarker.ToString());
+               currentView[point.X, point.Y] = new HexElement(element.Value, underEdit);
+               return true;
+            }
+
             if (innerFormat is PCS) {
                return input == StringDelimeter || PCSString.PCS.Any(str => str != null && str.StartsWith(input.ToString()));
             }
@@ -731,6 +739,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          } else if (underEdit.CurrentText.StartsWith(PointerStart.ToString())) {
             return char.IsLetterOrDigit(input) || input == PointerEnd;
+         } else if (underEdit.CurrentText.StartsWith(GotoMarker.ToString())) {
+            return char.IsLetterOrDigit(input) || char.IsWhiteSpace(input);
          } else if (underEdit.CurrentText.StartsWith(AnchorStart.ToString())) {
             return
                char.IsLetterOrDigit(input) ||
@@ -807,6 +817,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (!underEdit.CurrentText.EndsWith(PointerEnd.ToString())) return false;
             CompletePointerEdit(point);
             return true;
+         }
+         if (underEdit.CurrentText.StartsWith(GotoMarker.ToString())) {
+            if (char.IsWhiteSpace(underEdit.CurrentText[underEdit.CurrentText.Length - 1])) {
+               var destination = underEdit.CurrentText.Substring(1);
+               ClearEdits(point);
+               Goto.Execute(destination);
+               return true;
+            } else {
+               return false;
+            }
          }
          if (underEdit.CurrentText.StartsWith(AnchorStart.ToString())) {
             TryUpdate(ref anchorText, underEdit.CurrentText, nameof(AnchorText));

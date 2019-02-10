@@ -237,5 +237,15 @@ namespace HavenSoft.HexManiac.Tests {
          viewModel.MoveAutoCompleteSelectionUp.Execute();
          Assert.True(viewModel.AutoCompleteOptions[0].IsSelected);
       }
+
+      [Fact]
+      public void CanGotoUsingAtSymbol() {
+         var model = new PokemonModel(new byte[0x200]);
+         var viewPort = new ViewPort("unnamed.txt", model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.Edit("@100 ");
+
+         Assert.Equal("000100", viewPort.Headers[0]);
+      }
    }
 }
