@@ -251,8 +251,22 @@
             <TabControl.ContentTemplate>
                <DataTemplate>
                   <DockPanel>
+                     <!-- Anchor Editor -->
                      <Border DockPanel.Dock="Top" Height="19" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource Backlight}">
-                        <TextBox Text="{Binding AnchorText, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding AnchorTextVisible, Converter={StaticResource BoolToVisibility}}" Margin="60,0,25,0"/>
+                        <DockPanel Visibility="{Binding AnchorTextVisible, Converter={StaticResource BoolToVisibility}}" >
+                           <TextBlock Width="60" Text="Anchor: " TextAlignment="Right">
+                              <TextBlock.ToolTip>
+                                 <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{solarized:Theme Blue}" BorderThickness="1">
+                                    <TextBlock TextAlignment="Left">
+                                       Anchor metadata improves UI for known data types.
+                                       <LineBreak />
+                                       Modifying it will change how the data is displayed.
+                                    </TextBlock>
+                                 </ToolTip>
+                              </TextBlock.ToolTip>
+                           </TextBlock>
+                           <TextBox Text="{Binding AnchorText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,25,0"/>
+                        </DockPanel>
                      </Border>
                      <!-- Headers -->
                      <ItemsControl DockPanel.Dock="Left" Width="60" ItemsSource="{Binding Headers}" Background="{DynamicResource Backlight}" MouseDown="HeaderMouseDown">
@@ -263,6 +277,7 @@
                         </ItemsControl.ItemTemplate>
                      </ItemsControl>
                      <Line Width="1" DockPanel.Dock="Left" Stroke="{DynamicResource Background}"/>
+                     <!-- Tool Headers -->
                      <StackPanel DockPanel.Dock="Right" Visibility="{Binding HasTools, Converter={StaticResource BoolToVisibility}}">
                         <Button Content="Text" Command="{Binding Tools.StringToolCommand}" Margin="0,2">
                            <Button.LayoutTransform>
