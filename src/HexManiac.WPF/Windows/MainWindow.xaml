@@ -182,7 +182,7 @@
                <Separator />
                <MenuItem Header="Cu_t" Command="{Binding Cut}" InputGestureText="Ctrl+X"/>
                <MenuItem Header="_Copy" Command="{Binding Copy}" InputGestureText="Ctrl+C"/>
-               <MenuItem Header="_Paste" Command="{Binding Paste}" InputGestureText="Ctrl+V"/>
+               <MenuItem Header="_Paste / Replace" Command="{Binding Paste}" InputGestureText="Ctrl+V"/>
                <MenuItem Header="_Delete" Command="{Binding Delete}" InputGestureText="Del"/>
                <Separator />
                <MenuItem Header="_Find" Command="{Binding ShowFind}" InputGestureText="Ctrl+F">

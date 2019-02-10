@@ -164,9 +164,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (TryUpdate(ref selectedIndex, value)) {
                   findPrevious.CanExecuteChanged.Invoke(findPrevious, EventArgs.Empty);
                   findNext.CanExecuteChanged.Invoke(findNext, EventArgs.Empty);
-                  GotoViewModel.PropertyChanged -= GotoPropertyChanged;
-                  GotoViewModel = new GotoControlViewModel(SelectedTab);
-                  GotoViewModel.PropertyChanged += GotoPropertyChanged;
+                  UpdateGotoViewModel();
                }
             }
          }
@@ -407,6 +405,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (selectedIndex == tabs.Count) TryUpdate(ref selectedIndex, tabs.Count - 1, nameof(SelectedIndex));
                CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, tab, index));
             }
+            UpdateGotoViewModel();
             return;
          }
 
@@ -446,6 +445,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (content is IViewPort viewPort && !string.IsNullOrEmpty(viewPort.FileName)) {
             fileSystem.RemoveListenerForFile(viewPort.FileName, viewPort.ConsiderReload);
          }
+      }
+
+      private void UpdateGotoViewModel() {
+         GotoViewModel.PropertyChanged -= GotoPropertyChanged;
+         GotoViewModel = new GotoControlViewModel(SelectedTab);
+         GotoViewModel.PropertyChanged += GotoPropertyChanged;
       }
 
       private void ForwardDelayedWork(object sender, Action e) => RequestDelayedWork?.Invoke(this, e);
