@@ -338,6 +338,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          close.Execute = arg => CloseExecuted((IFileSystem)arg);
       }
 
+      public Point ConvertAddressToViewPoint(int address) => scroll.DataIndexToViewPoint(address);
+
       public bool IsSelected(Point point) => selection.IsSelected(point);
 
       public void ClearFormat() {
@@ -432,8 +434,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #region Find
 
-      public IReadOnlyList<int> Find(string rawSearch) {
-         var results = new List<int>();
+      public IReadOnlyList<(int start, int end)> Find(string rawSearch) {
+         var results = new List<(int start, int end)>();
          var cleanedSearchString = rawSearch.ToUpper();
          var searchBytes = new List<ISearchByte>();
 
@@ -444,26 +446,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             searchBytes.AddRange(pcsBytes.Select(b => new PCSSearchByte(b)));
             var textResults = Search(searchBytes).ToList();
             ConsiderResultsAsTextRuns(textResults);
-            results.AddRange(textResults);
+            results.AddRange(textResults.Select(result => (result, result + pcsBytes.Count - 1)));
          }
 
          // it might be a pointer without angle braces
          if (cleanedSearchString.Length == 6 && cleanedSearchString.All(AllHexCharacters.Contains)) {
             searchBytes.AddRange(Parse(cleanedSearchString).Reverse().Append((byte)0x08).Select(b => (SearchByte)b));
-            results.AddRange(Search(searchBytes));
+            results.AddRange(Search(searchBytes).Select(result => (result, result + 3)));
          }
 
          // attempt to parse the search string fully
          if (!TryParseSearchString(searchBytes, cleanedSearchString, errorOnParseError: results.Count == 0)) return results;
 
          // find matches
-         results.AddRange(Search(searchBytes));
+         results.AddRange(Search(searchBytes).Select(result => (result, result + searchBytes.Count - 1)));
 
          // reorder the list to start at the current cursor position
          results.Sort();
          var offset = scroll.ViewPointToDataIndex(SelectionStart);
-         var left = results.Where(result => result < offset);
-         var right = results.Where(result => result >= offset);
+         var left = results.Where(result => result.start < offset);
+         var right = results.Where(result => result.start >= offset);
          results = right.Concat(left).ToList();
          if (results.Count == 1) {
             OnMessage?.Invoke(this, $"Found only 1 match for '{rawSearch}'.");
@@ -577,9 +579,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #endregion
 
-      public IChildViewPort CreateChildView(int offset) {
+      public IChildViewPort CreateChildView(int startAddress, int endAddress) {
          var child = new ChildViewPort(this);
-         child.Goto.Execute(offset.ToString("X2"));
+         child.Goto.Execute(startAddress.ToString("X2"));
+         child.SelectionEnd = child.ConvertAddressToViewPoint(endAddress);
          return child;
       }
 
@@ -645,7 +648,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          title = "Sources of " + title;
          var newTab = new SearchResultsViewPort(title);
 
-         foreach (var source in anchor.Sources) newTab.Add(CreateChildView(source));
+         foreach (var source in anchor.Sources) newTab.Add(CreateChildView(source, source), source, source);
 
          RequestTabChange(this, newTab);
       }

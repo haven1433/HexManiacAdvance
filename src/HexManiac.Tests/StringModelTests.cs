@@ -244,7 +244,7 @@ namespace HavenSoft.HexManiac.Tests {
          var viewPort = new ViewPort("test.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^bob\"\" \"Text and BULBASAUR!\"");
 
-         var results = viewPort.Find("\"bulbasaur\"");
+         var results = viewPort.Find("\"bulbasaur\"").Select(result => result.start).ToList(); ;
          Assert.Single(results);
          Assert.Equal(9, results[0]);
       }
@@ -257,7 +257,7 @@ namespace HavenSoft.HexManiac.Tests {
          var viewPort = new ViewPort("test.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^bob\"\" \"Text and BULBASAUR!\"");
 
-         var results = viewPort.Find("bulbasaur");
+         var results = viewPort.Find("bulbasaur").Select(result => result.start).ToList();
          Assert.Single(results);
          Assert.Equal(9, results[0]);
       }

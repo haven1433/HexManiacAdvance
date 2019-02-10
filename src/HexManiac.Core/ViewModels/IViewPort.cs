@@ -26,8 +26,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       IDataModel Model { get; }
       bool IsSelected(Point point);
 
-      IReadOnlyList<int> Find(string search);
-      IChildViewPort CreateChildView(int offset);
+      IReadOnlyList<(int start, int end)> Find(string search);
+      IChildViewPort CreateChildView(int startAddress, int endAddress);
       void FollowLink(int x, int y);
       void ExpandSelection(int x, int y);
       void ConsiderReload(IFileSystem fileSystem);
