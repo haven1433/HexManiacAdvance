@@ -1,4 +1,4 @@
-# Gen3Hex
+# Hex Maniac Advance
 
 *A hex editor designed for editing Pokemon GBA games*
 
