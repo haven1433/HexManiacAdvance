@@ -40,9 +40,21 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    }
 
    public class ArrayOffset {
+      /// <summary>
+      /// Ranges from 0 to ElementCount
+      /// </summary>
       public int ElementIndex { get; }
+      /// <summary>
+      /// Ranges from 0 to ElementContent.Count
+      /// </summary>
       public int SegmentIndex { get; }
+      /// <summary>
+      /// The data address where the current segment starts. Ranges from n to n+ElementContent[SegmentIndex].Length.
+      /// </summary>
       public int SegmentStart { get; }
+      /// <summary>
+      /// The index into the current segment. 0 means the start of the segment.
+      /// </summary>
       public int SegmentOffset { get; }
       public ArrayOffset(int elementIndex, int segmentIndex, int segmentStart, int segmentOffset) {
          ElementIndex = elementIndex;
@@ -252,14 +264,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                formatLength = 2;
                while (formatLength < segments.Length && char.IsDigit(segments[formatLength])) formatLength++;
                segmentLength = int.Parse(segments.Substring(2, formatLength - 2));
-            } else if (segments.StartsWith("::")) {
+            } else if (segments.StartsWith(DoubleByteIntegerFormat + string.Empty + DoubleByteIntegerFormat)) {
                (format, formatLength, segmentLength) = (ElementContentType.Integer, 2, 4);
-            } else if (segments.StartsWith(":.") || segments.StartsWith(".:")) {
+            } else if (segments.StartsWith(DoubleByteIntegerFormat + string.Empty + SingleByteIntegerFormat) || segments.StartsWith(".:")) {
                (format, formatLength, segmentLength) = (ElementContentType.Integer, 2, 3);
-            } else if (segments.StartsWith(":")) {
+            } else if (segments.StartsWith(DoubleByteIntegerFormat.ToString())) {
                (format, formatLength, segmentLength) = (ElementContentType.Integer, 1, 2);
-            } else if (segments.StartsWith(".")) {
+            } else if (segments.StartsWith(SingleByteIntegerFormat.ToString())) {
                (format, formatLength, segmentLength) = (ElementContentType.Integer, 1, 1);
+            } else if (segments.StartsWith(PointerRun.PointerStart + string.Empty + PointerRun.PointerEnd)) {
+               (format, formatLength, segmentLength) = (ElementContentType.Pointer, 2, 4);
             }
 
             if (format == ElementContentType.Unknown) throw new FormatException($"Could not parse format '{segments}'");
