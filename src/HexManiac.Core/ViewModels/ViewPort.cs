@@ -968,7 +968,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             fullValue = Model.GetAddressFromAnchor(history.CurrentChange, index, destination);
          }
 
-         if (0 <= fullValue && fullValue < Model.Count) {
+         if (fullValue == Pointer.NULL || (0 <= fullValue && fullValue < Model.Count)) {
             Model.WritePointer(history.CurrentChange, index, fullValue);
             if (!inArray) Model.ObserveRunWritten(history.CurrentChange, new PointerRun(index));
             ClearEdits(point);
