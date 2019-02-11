@@ -732,6 +732,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
             if (innerFormat is Integer) return char.IsNumber(input) || char.IsWhiteSpace(input);
 
+            // for pointers in array, don't accept anything but a pointer start
+            if (innerFormat is Pointer) {
+               var index = scroll.ViewPointToDataIndex(point);
+               var run = Model.GetNextRun(index);
+               if (run.Start <= index && run is ArrayRun array) {
+                  if (input != PointerStart) return false;
+               }
+            }
+
             if (input == PointerStart) {
                // pointer edits are 4 bytes long
                if (!TryCoerceSelectionToStartOfPointer(ref point, ref element)) PrepareForMultiSpaceEdit(point, 4);
@@ -749,6 +758,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                input == ArrayEnd ||
                input == StringDelimeter ||
                input == StreamDelimeter ||
+               input == PointerStart ||
+               input == PointerEnd ||
                input == SingleByteIntegerFormat ||
                input == DoubleByteIntegerFormat;
          } else if (underEdit.OriginalFormat is Anchor && innerFormat is PCS) {
@@ -935,25 +946,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          Model.ExpandData(history.CurrentChange, index + 3);
          scroll.DataLength = Model.Count;
-         if (destination != string.Empty) {
-            Model.ClearFormatAndData(history.CurrentChange, index, 4);
-         } else {
-            Model.ClearFormat(history.CurrentChange, index, 4);
+
+         var currentRun = Model.GetNextRun(index);
+         bool inArray = currentRun.Start <= index && currentRun is ArrayRun;
+
+         if (!inArray) {
+            if (destination != string.Empty) {
+               Model.ClearFormatAndData(history.CurrentChange, index, 4);
+            } else {
+               Model.ClearFormat(history.CurrentChange, index, 4);
+            }
          }
 
          int fullValue;
          if (destination == string.Empty) {
             fullValue = Model.ReadPointer(index);
-         } else if (destination.All("0123456789ABCDEFabcdef".Contains) && destination.Length <= 6) {
+         } else if (destination.All(AllHexCharacters.Contains) && destination.Length <= 7) {
             while (destination.Length < 6) destination = "0" + destination;
             fullValue = int.Parse(destination, NumberStyles.HexNumber);
          } else {
             fullValue = Model.GetAddressFromAnchor(history.CurrentChange, index, destination);
          }
 
-         if (fullValue < Model.Count) {
+         if (0 <= fullValue && fullValue < Model.Count) {
             Model.WritePointer(history.CurrentChange, index, fullValue);
-            Model.ObserveRunWritten(history.CurrentChange, new PointerRun(index));
+            if (!inArray) Model.ObserveRunWritten(history.CurrentChange, new PointerRun(index));
             ClearEdits(point);
             SilentScroll(index + 4);
          } else {

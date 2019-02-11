@@ -450,6 +450,37 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(1, model[5]);
       }
 
+      [Fact]
+      public void ArraysSupportPointers() {
+         var buffer = new byte[0x200];
+         var model = new PokemonModel(buffer);
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var errors = new List<string>();
+         viewPort.OnError += (sender, e) => errors.Add(e);
+
+         viewPort.Edit("^characters[name\"\"8 age. gender. weight: catchphrase<>]16 ");
+
+         Assert.Empty(errors);
+         Assert.Equal(0x100, model.GetNextRun(0).Length);
+      }
+
+      [Fact]
+      public void CanEditPointersInArrays() {
+         var buffer = new byte[0x200];
+         var model = new PokemonModel(buffer);
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var errors = new List<string>();
+         viewPort.OnError += (sender, e) => errors.Add(e);
+         viewPort.Edit("^sample[name<>]8 ");
+
+         viewPort.Edit("<000100> <110> <000120>");
+
+         Assert.Equal(0x20, model.GetNextRun(0).Length); // 4 bytes per pointer * 8 pointers = 8*4 = x10*2 = x20 bytes
+         Assert.Equal(new Point(0xC, 0), viewPort.SelectionStart);
+         Assert.Empty(errors);
+         Assert.Equal(0x120, model.ReadPointer(0x8));
+      }
+
       private static void WriteStrings(byte[] buffer, int start, params string[] content) {
          foreach (var item in content) {
             var bytes = PCSString.Convert(item).ToArray();

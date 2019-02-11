@@ -9,6 +9,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       Unknown,
       PCS,
       Integer,
+      Pointer,
    }
 
    public class ArrayRunElementSegment {
@@ -206,6 +207,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             return new Integer(offsets.SegmentStart, index, value, currentSegment.Length);
          }
 
+         if (currentSegment.Type == ElementContentType.Pointer) {
+            var destination = data.ReadPointer(offsets.SegmentStart);
+            var destinationName = data.GetAnchorFromAddress(offsets.SegmentStart, destination);
+            return new Pointer(offsets.SegmentStart, index - offsets.SegmentStart, destination, destinationName);
+         }
+
          throw new NotImplementedException();
       }
 
@@ -323,6 +330,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                return true;
             case ElementContentType.Integer:
                return true;
+            case ElementContentType.Pointer:
+               var destination = owner.ReadPointer(start);
+               if (destination == Pointer.NULL) return true;
+               return 0 <= destination && destination <= owner.Count;
             default:
                throw new NotImplementedException();
          }
