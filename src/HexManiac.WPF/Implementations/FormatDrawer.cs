@@ -59,7 +59,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
       public void Visit(Pointer dataFormat, byte data) {
          var brush = Solarized.Brushes.Blue;
-         if (dataFormat.Destination == Pointer.NULL) brush = Solarized.Brushes.Red;
+         if (dataFormat.Destination < 0) brush = Solarized.Brushes.Red;
          Underline(brush, dataFormat.Position == 0, dataFormat.Position == 3);
 
          var typeface = new Typeface("Consolas");

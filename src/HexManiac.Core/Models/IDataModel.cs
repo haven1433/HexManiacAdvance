@@ -14,9 +14,17 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// If dataIndex is in the middle of a run, returns that run.
       /// If dataIndex is between runs, returns the next available run.
       /// If dataIndex is before the first run, return the first run.
-      /// If dataIndex is after the last run, return null;
+      /// If dataIndex is after the last run, return a run that starts at int.MaxValue.
       /// </summary>
       IFormattedRun GetNextRun(int dataIndex);
+
+      /// <summary>
+      /// If dataIndex is exactly at the start of an anchor, return that run.
+      /// If dataIndex is between two anchors, return the next anchor.
+      /// If dataIndex is after the last anchor, return an anchor at int.MaxValue.
+      /// </summary>
+      IFormattedRun GetNextAnchor(int dataIndex);
+
       bool IsAtEndOfArray(int dataIndex, out ArrayRun arrayRun); // is this byte the first one after the end of an array run? (also return true if the array is length 0 and starts right here)
 
       void ObserveRunWritten(ModelDelta changeToken, IFormattedRun run);
@@ -40,6 +48,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       string GetAnchorFromAddress(int requestSource, int destination);
       IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial);
       StoredMetadata ExportMetadata();
+      void UpdateArrayPointer(ModelDelta changeToken, int address, int destination);
    }
 
    public abstract class BaseModel : IDataModel {
@@ -75,6 +84,8 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public abstract IFormattedRun GetNextRun(int dataIndex);
 
+      public abstract IFormattedRun GetNextAnchor(int dataIndex);
+
       public abstract bool IsAtEndOfArray(int dataIndex, out ArrayRun arrayRun);
 
       public virtual void Load(byte[] newData, StoredMetadata metadata) => RawData = newData;
@@ -88,6 +99,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public abstract IFormattedRun RelocateForExpansion(ModelDelta changeToken, IFormattedRun run, int minimumLength);
 
       public abstract IReadOnlyList<int> SearchForPointersToAnchor(ModelDelta changeToken, int address);
+
+      public abstract void UpdateArrayPointer(ModelDelta currentChange, int index, int fullValue);
 
       public int ReadValue(int index) {
          int word = 0;
@@ -123,6 +136,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override int GetAddressFromAnchor(ModelDelta changeToken, int requestSource, string anchor) => Pointer.NULL;
       public override string GetAnchorFromAddress(int requestSource, int destination) => string.Empty;
       public override IFormattedRun GetNextRun(int dataIndex) => NoInfoRun.NullRun;
+      public override IFormattedRun GetNextAnchor(int dataIndex) => NoInfoRun.NullRun;
       public override bool IsAtEndOfArray(int dataIndex, out ArrayRun arrayRun) { arrayRun = null; return false; }
       public override void ObserveRunWritten(ModelDelta changeToken, IFormattedRun run) { }
       public override void ObserveAnchorWritten(ModelDelta changeToken, string anchorName, IFormattedRun run) { }
@@ -134,6 +148,10 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override IReadOnlyList<int> SearchForPointersToAnchor(ModelDelta changeToken, int address) => throw new NotImplementedException();
+
+      public override void UpdateArrayPointer(ModelDelta changeToken, int address, int destination) {
+         WritePointer(changeToken, address, destination);
+      }
 
       public override string Copy(int start, int length) {
          var bytes = Enumerable.Range(start, length).Select(i => RawData[i]);

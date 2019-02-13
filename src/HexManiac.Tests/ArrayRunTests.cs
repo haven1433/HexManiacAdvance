@@ -288,7 +288,7 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
-      public void CannotCutPasteArrayToMakeItHitAnotherRun() {
+      public void CannotCutPasteArrayToMakeItHitAnotherAnchor() {
          // arrange
          var delta = new ModelDelta();
          var errors = new List<string>();

@@ -209,7 +209,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
 
          if (currentSegment.Type == ElementContentType.Pointer) {
-            // TODO display the pointer in red if it points to outside the data
             var destination = data.ReadPointer(offsets.SegmentStart);
             var destinationName = data.GetAnchorFromAddress(offsets.SegmentStart, destination);
             return new Pointer(offsets.SegmentStart, index - offsets.SegmentStart, destination, destinationName);
