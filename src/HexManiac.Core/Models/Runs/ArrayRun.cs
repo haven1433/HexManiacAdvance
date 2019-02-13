@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
@@ -94,11 +95,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          owner = data;
          FormatString = format;
          var closeArray = format.LastIndexOf(ArrayEnd.ToString());
-         if (!format.StartsWith(ArrayStart.ToString()) || closeArray == -1) throw new FormatException($"Array Content must be wrapped in {ArrayStart}{ArrayEnd}.");
+         if (!format.StartsWith(ArrayStart.ToString()) || closeArray == -1) throw new ArrayRunParseException($"Array Content must be wrapped in {ArrayStart}{ArrayEnd}.");
          var segments = format.Substring(1, closeArray - 1);
          var length = format.Substring(closeArray + 1);
          ElementContent = ParseSegments(segments);
-         if (ElementContent.Count == 0) throw new FormatException("Array Content must not be empty.");
+         if (ElementContent.Count == 0) throw new ArrayRunParseException("Array Content must not be empty.");
          ElementLength = ElementContent.Sum(e => e.Length);
 
          if (length.Length == 0) {
@@ -132,21 +133,21 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          Length = ElementLength * ElementCount;
       }
 
-      public static bool TryParse(IDataModel data, string format, int start, IReadOnlyList<int> pointerSources, out ArrayRun self) {
+      public static ErrorInfo TryParse(IDataModel data, string format, int start, IReadOnlyList<int> pointerSources, out ArrayRun self) {
          try {
             self = new ArrayRun(data, format, start, pointerSources);
-         } catch {
+         } catch (ArrayRunParseException e) {
             self = null;
-            return false;
+            return new ErrorInfo(e.Message);
          }
 
-         return true;
+         return ErrorInfo.NoError;
       }
 
       public static bool TrySearch(IDataModel data, string format, out ArrayRun self) {
          self = null;
          var closeArray = format.LastIndexOf(ArrayEnd.ToString());
-         if (!format.StartsWith(ArrayStart.ToString()) || closeArray == -1) throw new FormatException($"Array Content must be wrapped in {ArrayStart}{ArrayEnd}");
+         if (!format.StartsWith(ArrayStart.ToString()) || closeArray == -1) throw new ArrayRunParseException($"Array Content must be wrapped in {ArrayStart}{ArrayEnd}");
          var segments = format.Substring(1, closeArray - 1);
          var length = format.Substring(closeArray + 1);
          var elementContent = ParseSegments(segments);
@@ -208,6 +209,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
 
          if (currentSegment.Type == ElementContentType.Pointer) {
+            // TODO display the pointer in red if it points to outside the data
             var destination = data.ReadPointer(offsets.SegmentStart);
             var destinationName = data.GetAnchorFromAddress(offsets.SegmentStart, destination);
             return new Pointer(offsets.SegmentStart, index - offsets.SegmentStart, destination, destinationName);
@@ -261,7 +263,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             int nameEnd = 0;
             while (nameEnd < segments.Length && char.IsLetterOrDigit(segments[nameEnd])) nameEnd++;
             var name = segments.Substring(0, nameEnd);
-            if (name == string.Empty) throw new FormatException("expected name, but none was found: " + segments);
+            if (name == string.Empty) throw new ArrayRunParseException("expected name, but none was found: " + segments);
             segments = segments.Substring(nameEnd);
             var format = ElementContentType.Unknown;
             int formatLength = 0;
@@ -283,7 +285,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                (format, formatLength, segmentLength) = (ElementContentType.Pointer, 2, 4);
             }
 
-            if (format == ElementContentType.Unknown) throw new FormatException($"Could not parse format '{segments}'");
+            if (format == ElementContentType.Unknown) throw new ArrayRunParseException($"Could not parse format '{segments}'");
             segments = segments.Substring(formatLength).Trim();
             list.Add(new ArrayRunElementSegment(name, format, segmentLength));
          }
@@ -338,5 +340,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                throw new NotImplementedException();
          }
       }
+   }
+
+   public class ArrayRunParseException : Exception {
+      public ArrayRunParseException(string message) : base(message) { }
    }
 }

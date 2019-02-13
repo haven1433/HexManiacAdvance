@@ -253,14 +253,6 @@ namespace HavenSoft.HexManiac.Core.Models {
             // replace / merge with existing
             // if the only thing changed was the anchor, then don't change the format, just merge the anchor
             var existingRun = runs[index];
-            if (existingRun is PointerRun pointerRun1) {
-               if (ReadValue(pointerRun1.Start) == 0) {
-                  var name = sourceToUnmappedName[pointerRun1.Start];
-                  sourceToUnmappedName.Remove(pointerRun1.Start);
-                  unmappedNameToSources[name].Remove(pointerRun1.Start);
-               }
-            }
-
             changeToken.RemoveRun(existingRun);
             run = run.MergeAnchor(existingRun.PointerSources);
             runs[index] = run;
@@ -284,6 +276,8 @@ namespace HavenSoft.HexManiac.Core.Models {
                }
             }
          }
+
+         // TODO if run is array run, look for pointers in the array to link
 
          if (run is NoInfoRun && run.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(run.Start)) {
             // this run has no useful information. Remove it.
@@ -434,6 +428,8 @@ namespace HavenSoft.HexManiac.Core.Models {
                ClearPointerFormat(changeToken, pointerRun);
             }
             ClearAnchorFormat(changeToken, originalStart, run);
+
+            // TODO if the run is an array run, look for pointers to unlink
 
             if (alsoClearData) {
                for (int i = 0; i < run.Length; i++) changeToken.ChangeData(this, run.Start + i, 0xFF);
@@ -668,10 +664,13 @@ namespace HavenSoft.HexManiac.Core.Models {
             } else {
                return new ErrorInfo($"Ascii runs must include a length.");
             }
-         } else if (TryParse(model, format, dataIndex, null, out var arrayRun)) {
-            run = arrayRun;
-         } else if (format != string.Empty) {
-            return new ErrorInfo($"Format {format} was not understood.");
+         } else {
+            var errorInfo = TryParse(model, format, dataIndex, null, out var arrayRun);
+            if (errorInfo == ErrorInfo.NoError) {
+               run = arrayRun;
+            } else if (format != string.Empty) {
+               return new ErrorInfo($"Format {format} was not understood.");
+            }
          }
 
          return ErrorInfo.NoError;

@@ -28,9 +28,9 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void ArrayElementsMustHaveNames() {
          var model = new PokemonModel(new byte[0x200]);
-         var success = ArrayRun.TryParse(model, "[\"\"10]13", 12, null, out var arrayRun); // no name given for the format member
+         var errorInfo = ArrayRun.TryParse(model, "[\"\"10]13", 12, null, out var arrayRun); // no name given for the format member
 
-         Assert.False(success);
+         Assert.NotEqual(ErrorInfo.NoError, errorInfo);
       }
 
       [Fact]

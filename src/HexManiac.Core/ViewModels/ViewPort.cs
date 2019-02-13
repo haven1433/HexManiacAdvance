@@ -971,6 +971,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (fullValue == Pointer.NULL || (0 <= fullValue && fullValue < Model.Count)) {
             Model.WritePointer(history.CurrentChange, index, fullValue);
             if (!inArray) Model.ObserveRunWritten(history.CurrentChange, new PointerRun(index));
+            // TODO do something amazing here... we don't need to observe the run being written, but there's still pointer updates to be done
             ClearEdits(point);
             SilentScroll(index + 4);
          } else {
