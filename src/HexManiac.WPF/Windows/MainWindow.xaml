@@ -254,13 +254,19 @@
                      <!-- Anchor Editor -->
                      <Border DockPanel.Dock="Top" Height="19" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource Backlight}">
                         <DockPanel Visibility="{Binding AnchorTextVisible, Converter={StaticResource BoolToVisibility}}" >
-                           <TextBlock Width="60" Text="Anchor: " TextAlignment="Right">
+                           <TextBlock Width="60" Text="Anchor: " TextAlignment="Right" ToolTipService.ShowDuration="15000">
                               <TextBlock.ToolTip>
                                  <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{solarized:Theme Blue}" BorderThickness="1">
                                     <TextBlock TextAlignment="Left">
-                                       Anchor metadata improves UI for known data types.
-                                       <LineBreak />
-                                       Modifying it will change how the data is displayed.
+                                       <Bold>Anchor Editor</Bold> <LineBreak/>
+                                       Anchors can have a name and a format. <LineBreak/>
+                                       <LineBreak/>
+                                       Named anchors persist between sessions. <LineBreak/>
+                                       You can also use names in pointers and with Goto <Italic Foreground="{DynamicResource Secondary}">(Ctrl+G)</Italic>. <LineBreak/>
+                                       <LineBreak/>
+                                       Formats change how the data is displayed and edited. <LineBreak/>
+                                       For example, "" formats data as text. <LineBreak/>
+                                       To learn more about formats, visit the Wiki.
                                     </TextBlock>
                                  </ToolTip>
                               </TextBlock.ToolTip>

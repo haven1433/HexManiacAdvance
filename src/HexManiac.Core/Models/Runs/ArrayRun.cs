@@ -222,7 +222,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          int elementIndex = offset / ElementLength;
          int elementOffset = offset % ElementLength;
          int segmentIndex = 0, segmentOffset = elementOffset;
-         while (ElementContent[segmentIndex].Length < segmentOffset) {
+         while (ElementContent[segmentIndex].Length <= segmentOffset) {
             segmentOffset -= ElementContent[segmentIndex].Length; segmentIndex++;
          }
          return new ArrayOffset(elementIndex, segmentIndex, byteOffset - segmentOffset, segmentOffset);
