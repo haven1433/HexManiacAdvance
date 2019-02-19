@@ -178,7 +178,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override int GetAddressFromAnchor(ModelDelta changeToken, int requestSource, string anchor) {
-         if (addressForAnchor.TryGetValue(anchor, out int address)) {
+
+         if (addressForAnchor.TryGetValueCaseInsensitive(anchor, out int address)) {
             return address;
          }
 
@@ -601,13 +602,13 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public override IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial) {
          partial = partial.ToLower();
-         var mappedNames = addressForAnchor.Keys.Select(name => name.ToLower());
+         var mappedNames = addressForAnchor.Keys;
          var results = new List<string>();
          foreach (var name in mappedNames) {
             var unmatchedName = name;
             int index = -1;
             foreach (var character in partial) {
-               index = unmatchedName.IndexOf(character);
+               index = unmatchedName.IndexOf(character.ToString(), StringComparison.CurrentCultureIgnoreCase);
                if (index == -1) break;
                unmatchedName = unmatchedName.Substring(index);
             }
@@ -845,6 +846,20 @@ namespace HavenSoft.HexManiac.Core.Models {
       private int BinarySearch(int start) {
          var index = runs.BinarySearch(new CompareFormattedRun(start), FormattedRunComparer.Instance);
          return index;
+      }
+   }
+
+   public static class StringDictionaryExtensions {
+      public static bool TryGetValueCaseInsensitive<T>(this IDictionary<string, T> self, string key, out T value) {
+         foreach (var option in self.Keys) {
+            if (key.Equals(option, StringComparison.CurrentCultureIgnoreCase)) {
+               value = self[option];
+               return true;
+            }
+         }
+
+         value = default(T);
+         return false;
       }
    }
 }
