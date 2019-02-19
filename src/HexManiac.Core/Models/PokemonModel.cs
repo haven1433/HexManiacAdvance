@@ -451,7 +451,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (run is PointerRun) ClearPointerFormat(changeToken, run.Start);
             if (run is ArrayRun arrayRun) ModifyAnchorsFromPointerArray(changeToken, arrayRun, ClearPointerFormat);
 
-            ClearAnchorFormat(changeToken, originalStart, run);
+            ClearAnchorFormat(changeToken, originalStart, run, alsoClearData);
 
             if (alsoClearData) {
                for (int i = 0; i < run.Length; i++) changeToken.ChangeData(this, run.Start + i, 0xFF);
@@ -462,11 +462,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      private void ClearAnchorFormat(ModelDelta changeToken, int originalStart, IFormattedRun run) {
+      private void ClearAnchorFormat(ModelDelta changeToken, int originalStart, IFormattedRun run, bool alsoClearData) {
          if (run.Start != originalStart) {
             // delete the anchor
             if (anchorForAddress.TryGetValue(run.Start, out string name)) {
-               foreach (var source in run.PointerSources ?? new int[0]) WriteValue(changeToken, source, 0);
+               if (alsoClearData) {
+                  foreach (var source in run.PointerSources ?? new int[0]) WriteValue(changeToken, source, 0);
+               }
                unmappedNameToSources[anchorForAddress[run.Start]] = new List<int>(run.PointerSources);
                foreach (var source in run.PointerSources) {
                   changeToken.AddUnmappedPointer(source, name);

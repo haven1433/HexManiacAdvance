@@ -107,7 +107,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             while (nextRun is NoInfoRun && nextRun.Start < owner.Count) nextRun = owner.GetNextRun(nextRun.Start + 1);
             var byteLength = 0;
             var elementCount = 0;
-            while (Start + byteLength + ElementLength <= nextRun.Start && DataMatchesElementFormat(owner, Start + byteLength, ElementContent)) {
+            while (Start + byteLength + ElementLength <= nextRun.Start && DataMatchesElementFormat(owner, Start + byteLength, ElementContent, nextRun)) {
                byteLength += ElementLength;
                elementCount++;
             }
@@ -157,17 +157,19 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          int bestAddress = Pointer.NULL;
          int bestLength = 0;
 
-         var run = data.GetNextRun(0);
-         for (var nextRun = data.GetNextRun(run.Start+run.Length); run.Start < int.MaxValue; nextRun = data.GetNextRun(nextRun.Start + nextRun.Length)) {
+         var run = data.GetNextAnchor(0);
+         for (var nextRun = data.GetNextAnchor(run.Start+run.Length); run.Start < int.MaxValue; nextRun = data.GetNextAnchor(nextRun.Start + nextRun.Length)) {
             if (run is ArrayRun || run.PointerSources == null) {
                run = nextRun;
                continue;
             }
+            var nextArray = nextRun;
 
             int currentLength = 0;
             int currentAddress = run.Start;
             while (true) {
-               if (DataMatchesElementFormat(data, currentAddress, elementContent)) {
+               if (nextArray.Start < currentAddress) nextArray = data.GetNextAnchor(nextArray.Start + 1);
+               if (DataMatchesElementFormat(data, currentAddress, elementContent, nextArray)) {
                   currentLength++;
                   currentAddress += elementLength;
                } else {
@@ -310,16 +312,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return run.ElementCount;
       }
 
-      private static bool DataMatchesElementFormat(IDataModel owner, int start, IReadOnlyList<ArrayRunElementSegment> segments) {
+      private static bool DataMatchesElementFormat(IDataModel owner, int start, IReadOnlyList<ArrayRunElementSegment> segments, IFormattedRun nextAnchor) {
          foreach (var segment in segments) {
             if (start + segment.Length > owner.Count) return false;
-            if (!DataMatchesSegmentFormat(owner, start, segment, segments.Count == 1)) return false;
+            if (!DataMatchesSegmentFormat(owner, start, segment, nextAnchor)) return false;
             start += segment.Length;
          }
          return true;
       }
 
-      private static bool DataMatchesSegmentFormat(IDataModel owner, int start, ArrayRunElementSegment segment, bool isSingleSegmentRun) {
+      private static bool DataMatchesSegmentFormat(IDataModel owner, int start, ArrayRunElementSegment segment, IFormattedRun nextAnchor) {
+         if (start + segment.Length > nextAnchor.Start && nextAnchor is ArrayRun) return false; // don't blap over existing arrays
          switch (segment.Type) {
             case ElementContentType.PCS:
                int readLength = PCSString.ReadString(owner, start, true, segment.Length);
@@ -327,7 +330,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (readLength > segment.Length) return false;
                if (Enumerable.Range(start, segment.Length).All(i => owner[i] == 0xFF)) return false;
                if (!Enumerable.Range(start + readLength, segment.Length - readLength).All(i => owner[i] == 0x00 || owner[i] == 0xFF)) return false;
-               if (isSingleSegmentRun && owner.Count > start + segment.Length && owner[start + segment.Length] == 0x00) return false;
                return true;
             case ElementContentType.Integer:
                return true;

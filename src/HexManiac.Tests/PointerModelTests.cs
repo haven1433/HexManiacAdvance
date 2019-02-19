@@ -248,7 +248,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          // as an alternative to being able to delete an anchor from the viewPort,
          // just edit the model directly and then scroll to force the viewPort to refresh
-         model.ClearFormat(token, 0xF, 2);
+         model.ClearFormatAndData(token, 0xF, 2);
          viewPort.ScrollValue = 1;
          viewPort.ScrollValue = 0;
 

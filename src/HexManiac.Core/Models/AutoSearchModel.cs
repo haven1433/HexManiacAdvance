@@ -51,14 +51,14 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private void DecodeNameArrays() {
-         // pokenames
-         if (TrySearch(this, "[name\"\"11]", out var pokenames)) {
-            ObserveAnchorWritten(noChangeDelta, "pokenames", pokenames);
-         }
-
          // movenames
          if (TrySearch(this, "[name\"\"13]", out var movenames)) {
             ObserveAnchorWritten(noChangeDelta, "movenames", movenames);
+         }
+
+         // pokenames
+         if (TrySearch(this, "[name\"\"11]", out var pokenames)) {
+            ObserveAnchorWritten(noChangeDelta, "pokenames", pokenames);
          }
 
          // abilitynames / trainer names
@@ -75,7 +75,6 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
             if (TrySearch(this, "[name\"\"13]", out var abilitynames)) {
                ObserveAnchorWritten(noChangeDelta, "abilitynames", abilitynames);
-               if (gameCode == FireRed) Debug.Assert(abilitynames.ElementCount == 78);
             }
          }
 
