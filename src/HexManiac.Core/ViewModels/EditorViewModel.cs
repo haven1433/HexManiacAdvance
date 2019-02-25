@@ -44,7 +44,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          toggleMatrix = new StubCommand();
 
       private readonly Dictionary<Func<ITabContent, ICommand>, EventHandler> forwardExecuteChangeNotifications;
-      private (IViewPort tab, int)[] recentFindResults = new (IViewPort, int)[0];
+      private (IViewPort tab, int start, int end)[] recentFindResults = new (IViewPort, int start, int end)[0];
       private int currentFindResultIndex;
 
       public ICommand New => newCommand;
@@ -164,9 +164,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (TryUpdate(ref selectedIndex, value)) {
                   findPrevious.CanExecuteChanged.Invoke(findPrevious, EventArgs.Empty);
                   findNext.CanExecuteChanged.Invoke(findNext, EventArgs.Empty);
-                  GotoViewModel.PropertyChanged -= GotoPropertyChanged;
-                  GotoViewModel = new GotoControlViewModel(SelectedTab);
-                  GotoViewModel.PropertyChanged += GotoPropertyChanged;
+                  UpdateGotoViewModel();
                }
             }
          }
@@ -218,7 +216,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var file = arg as LoadedFile ?? fileSystem.OpenFile("GameBoy Advanced", "gba");
             if (file == null) return;
             var metadata = fileSystem.MetadataFor(file.Name);
-            Add(new ViewPort(file, new AutoSearchModel(file.Contents, metadata)));
+            Add(new ViewPort(file.Name, new AutoSearchModel(file.Contents, metadata)));
          };
 
          ImplementFindCommands();
@@ -265,9 +263,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                attemptCount++;
                currentFindResultIndex--;
                if (currentFindResultIndex < 0) currentFindResultIndex += recentFindResults.Length;
-               var (tab, offset) = recentFindResults[currentFindResultIndex];
+               var (tab, start, end) = recentFindResults[currentFindResultIndex];
                if (tab != SelectedTab) continue;
-               tab.Goto.Execute(offset.ToString("X2"));
+               JumpTo(tab, start, end);
                break;
             }
          };
@@ -279,15 +277,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                attemptCount++;
                currentFindResultIndex++;
                if (currentFindResultIndex >= recentFindResults.Length) currentFindResultIndex -= recentFindResults.Length;
-               var (tab, offset) = recentFindResults[currentFindResultIndex];
+               var (tab, start, end) = recentFindResults[currentFindResultIndex];
                if (tab != SelectedTab) continue;
-               tab.Goto.Execute(offset.ToString("X2"));
+               JumpTo(tab, start, end);
                break;
             }
          };
 
          showFind.CanExecute = CanAlwaysExecute;
          showFind.Execute = arg => FindControlVisible = (bool)arg;
+      }
+
+      private static void JumpTo(IViewPort tab, int start, int end) {
+         tab.Goto.Execute(start.ToString("X2"));
+         if (tab is ViewPort viewPort) {
+            viewPort.SelectionEnd = viewPort.ConvertAddressToViewPoint(end);
+         }
       }
 
       public void Add(ITabContent content) {
@@ -351,9 +356,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void FindExecuted(string search) {
-         var results = new List<(IViewPort, int)>();
+         var results = new List<(IViewPort, int start, int end)>();
          foreach (var tab in tabs) {
-            if (tab is IViewPort viewPort) results.AddRange(viewPort.Find(search).Select(offset => (viewPort, offset)));
+            if (tab is IViewPort viewPort) results.AddRange(viewPort.Find(search).Select(offset => (viewPort, offset.start, offset.end)));
          }
 
          FindControlVisible = false;
@@ -368,9 +373,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          findNext.CanExecuteChanged.Invoke(findNext, EventArgs.Empty);
 
          if (results.Count == 1) {
-            var (tab, offset) = results[0];
+            var (tab, start, end) = results[0];
             SelectedIndex = tabs.IndexOf(tab);
-            tab.Goto.Execute(offset.ToString("X2"));
+            tab.Goto.Execute(start.ToString("X2"));
             return;
          }
 
@@ -380,8 +385,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          var newTab = new SearchResultsViewPort(search);
-         foreach (var (tab, offset) in results) {
-            newTab.Add(tab.CreateChildView(offset));
+         foreach (var (tab, start, end) in results) {
+            newTab.Add(tab.CreateChildView(start, end), start, end);
          }
 
          Add(newTab);
@@ -400,6 +405,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (selectedIndex == tabs.Count) TryUpdate(ref selectedIndex, tabs.Count - 1, nameof(SelectedIndex));
                CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, tab, index));
             }
+            UpdateGotoViewModel();
             return;
          }
 
@@ -439,6 +445,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (content is IViewPort viewPort && !string.IsNullOrEmpty(viewPort.FileName)) {
             fileSystem.RemoveListenerForFile(viewPort.FileName, viewPort.ConsiderReload);
          }
+      }
+
+      private void UpdateGotoViewModel() {
+         GotoViewModel.PropertyChanged -= GotoPropertyChanged;
+         GotoViewModel = new GotoControlViewModel(SelectedTab);
+         GotoViewModel.PropertyChanged += GotoPropertyChanged;
       }
 
       private void ForwardDelayedWork(object sender, Action e) => RequestDelayedWork?.Invoke(this, e);

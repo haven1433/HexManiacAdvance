@@ -11,6 +11,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    public class SearchResultsViewPort : ViewModelCore, IViewPort {
       private readonly StubCommand scroll, close;
       private readonly List<IChildViewPort> children = new List<IChildViewPort>();
+      private readonly List<(int start, int end)> childrenSelection = new List<(int, int)>();
       private int width, height, scrollValue, maxScrollValue;
 
       #region Implementing IViewPort
@@ -85,6 +86,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event NotifyCollectionChangedEventHandler CollectionChanged;
       public event EventHandler<ITabContent> RequestTabChange;
       public event EventHandler<Action> RequestDelayedWork;
+      public event EventHandler RequestMenuClose;
 #pragma warning restore 0067
 
       #endregion
@@ -109,17 +111,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          };
       }
 
-      public void Add(IChildViewPort child) {
+      public void Add(IChildViewPort child, int start, int end) {
          children.Add(child);
+         childrenSelection.Add((start, end));
          maxScrollValue += child.Height;
          if (children.Count > 1) maxScrollValue++;
          NotifyCollectionChanged();
       }
 
-      public IChildViewPort CreateChildView(int offset) => throw new NotImplementedException();
+      public IChildViewPort CreateChildView(int startAddress, int endAddress) => throw new NotImplementedException();
 
       // if asked to search the search results... just don't
-      public IReadOnlyList<int> Find(string search) => new int[0];
+      public IReadOnlyList<(int, int)> Find(string search) => new (int, int)[0];
 
       public bool IsSelected(Point point) {
          var (x, y) = (point.X, point.Y);
@@ -139,6 +142,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var parent = child.Parent;
          var dataOffset = Math.Max(0, child.DataOffset - (y - line) * child.Width);
          parent.Goto.Execute(dataOffset.ToString("X6"));
+
+         if (parent is ViewPort viewPort) {
+            viewPort.SelectionStart = viewPort.ConvertAddressToViewPoint(childrenSelection[childIndex].start);
+            viewPort.SelectionEnd = viewPort.ConvertAddressToViewPoint(childrenSelection[childIndex].end);
+         }
+
          RequestTabChange?.Invoke(this, parent);
       }
 

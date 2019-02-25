@@ -2,9 +2,9 @@
 
 [assembly: AssemblyCompany("HavenSoft")]
 [assembly: AssemblyProduct("HavenSoft")]
-[assembly: AssemblyCopyright("Copyright © HavenSoft 2018")]
+[assembly: AssemblyCopyright("Copyright © HavenSoft 2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
-[assembly: AssemblyVersion("0.1.2.0")]
-[assembly: AssemblyFileVersion("0.1.2.0")]
+[assembly: AssemblyVersion("0.1.3.0")]
+[assembly: AssemblyFileVersion("0.1.3.0")]

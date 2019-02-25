@@ -9,6 +9,7 @@ using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
    public class Selection : ViewModelCore {
+      private const int DefaultPreferredWidth = 0x10;
 
       private readonly IDataModel model;
 
@@ -23,7 +24,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       // if we navigate back, then scroll, then navigate forward, we want to remember the scroll if we go back again.
       private readonly Stack<int> backStack = new Stack<int>(), forwardStack = new Stack<int>();
 
-      private int preferredWidth = 1, maxWidth = 4;
+      private int preferredWidth = DefaultPreferredWidth, maxWidth = 4;
 
       private Point selectionStart, selectionEnd;
 
@@ -168,16 +169,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void GotoAddressHelper(int address) {
-         SelectionStart = Scroll.DataIndexToViewPoint(address);
-         Scroll.ScrollValue += selectionStart.Y;
-         while (Scroll.DataIndex < address) Scroll.Scroll.Execute(Direction.Right);
+         var destinationRun = model.GetNextRun(address) as ArrayRun;
+         var destinationIsArray = destinationRun != null && destinationRun.Start == address;
 
-         if (model.GetNextRun(address) is ArrayRun array && array.Start == address) {
-            PreferredWidth = array.ElementLength;
+         if (destinationIsArray) {
+            PreferredWidth = destinationRun.ElementLength;
+         } else {
+            PreferredWidth = DefaultPreferredWidth;
          }
-         else {
-            PreferredWidth = 1;
-         }
+
+         var startAddress = address;
+         if (!destinationIsArray && PreferredWidth > 1) address -= address % PreferredWidth;
+
+         // first, change the selection and scroll to select the actual requested address
+         SelectionStart = Scroll.DataIndexToViewPoint(startAddress);
+         Scroll.ScrollValue += selectionStart.Y;
+
+         // then, scroll left/right as needed to align everything
+         while (Scroll.DataIndex < address) Scroll.Scroll.Execute(Direction.Right);
+         while (Scroll.DataIndex > address) Scroll.Scroll.Execute(Direction.Left);
       }
 
       /// <summary>

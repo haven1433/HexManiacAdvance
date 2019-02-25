@@ -24,6 +24,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    /// A range of visible data that should be displayed.
    /// </summary>
    public class ViewPort : ViewModelCore, IViewPort {
+      private const char GotoMarker = '@';
       private const string AllHexCharacters = "0123456789ABCDEFabcdef";
       private static readonly NotifyCollectionChangedEventArgs ResetArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
       private readonly StubCommand
@@ -262,6 +263,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public IDataModel Model { get; private set; }
 
+      public bool FormattedDataIsSelected {
+         get {
+            var (left, right) = (scroll.ViewPointToDataIndex(SelectionStart), scroll.ViewPointToDataIndex(SelectionEnd));
+            if (left > right) (left, right) = (right, left);
+            var nextRun = Model.GetNextRun(left);
+            return nextRun.Start <= right;
+         }
+      }
+
 #pragma warning disable 0067 // it's ok if events are never used
       public event EventHandler<string> OnError;
       public event EventHandler<string> OnMessage;
@@ -269,16 +279,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event NotifyCollectionChangedEventHandler CollectionChanged;
       public event EventHandler<ITabContent> RequestTabChange;
       public event EventHandler<Action> RequestDelayedWork;
+      public event EventHandler RequestMenuClose;
 #pragma warning restore 0067
 
       public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
 
-      public ViewPort(LoadedFile file, IDataModel model = null) {
+      public ViewPort(string fileName, IDataModel model) {
          history = new ChangeHistory<ModelDelta>(RevertChanges);
          history.PropertyChanged += HistoryPropertyChanged;
 
-         Model = model ?? new BasicModel(file.Contents);
-         FileName = file.Name;
+         Model = model;
+         FileName = fileName;
 
          scroll = new ScrollRegion { DataLength = Model.Count };
          scroll.PropertyChanged += ScrollPropertyChanged;
@@ -295,6 +306,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          ImplementCommands();
          RefreshBackingData();
       }
+
+      public ViewPort(LoadedFile file) : this(file.Name, new BasicModel(file.Contents)) { }
 
       private void ImplementCommands() {
          clear.CanExecute = CanAlwaysExecute;
@@ -326,11 +339,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          close.Execute = arg => CloseExecuted((IFileSystem)arg);
       }
 
+      public Point ConvertAddressToViewPoint(int address) => scroll.DataIndexToViewPoint(address);
+
       public bool IsSelected(Point point) => selection.IsSelected(point);
 
-      public void ClearFormat(Point point) {
-         var dataIndex = scroll.ViewPointToDataIndex(point);
-         Model.ClearFormat(history.CurrentChange, dataIndex, 1);
+      public void ClearFormat() {
+         var startDataIndex = scroll.ViewPointToDataIndex(SelectionStart);
+         var endDataIndex = scroll.ViewPointToDataIndex(SelectionEnd);
+         if (startDataIndex > endDataIndex) (startDataIndex, endDataIndex) = (endDataIndex, startDataIndex);
+
+         Model.ClearFormat(history.CurrentChange, startDataIndex, endDataIndex - startDataIndex + 1);
          RefreshBackingData();
       }
 
@@ -352,7 +370,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var offsets = arrayRun2.ConvertByteOffsetToArrayOffset(offset);
             SilentScroll(offsets.SegmentStart + arrayRun2.ElementContent[offsets.SegmentIndex].Length);
          }
-         if (key == ConsoleKey.Escape) { ClearEdits(SelectionStart); ClearMessage?.Invoke(this, EventArgs.Empty); }
+         if (key == ConsoleKey.Escape) {
+            ClearEdits(SelectionStart);
+            ClearMessage?.Invoke(this, EventArgs.Empty);
+            RequestMenuClose?.Invoke(this, EventArgs.Empty);
+         }
          if (key != ConsoleKey.Backspace) return;
 
          var point = GetEditPoint();
@@ -413,8 +435,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #region Find
 
-      public IReadOnlyList<int> Find(string rawSearch) {
-         var results = new List<int>();
+      public IReadOnlyList<(int start, int end)> Find(string rawSearch) {
+         var results = new List<(int start, int end)>();
          var cleanedSearchString = rawSearch.ToUpper();
          var searchBytes = new List<ISearchByte>();
 
@@ -423,26 +445,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var pcsBytes = PCSString.Convert(cleanedSearchString);
             pcsBytes.RemoveAt(pcsBytes.Count - 1); // remove the 0xFF that was added, since we're searching for a string segment instead of a whole string.
             searchBytes.AddRange(pcsBytes.Select(b => new PCSSearchByte(b)));
-            results.AddRange(Search(searchBytes));
+            var textResults = Search(searchBytes).ToList();
+            ConsiderResultsAsTextRuns(textResults);
+            results.AddRange(textResults.Select(result => (result, result + pcsBytes.Count - 1)));
          }
 
          // it might be a pointer without angle braces
          if (cleanedSearchString.Length == 6 && cleanedSearchString.All(AllHexCharacters.Contains)) {
             searchBytes.AddRange(Parse(cleanedSearchString).Reverse().Append((byte)0x08).Select(b => (SearchByte)b));
-            results.AddRange(Search(searchBytes));
+            results.AddRange(Search(searchBytes).Select(result => (result, result + 3)));
          }
 
          // attempt to parse the search string fully
          if (!TryParseSearchString(searchBytes, cleanedSearchString, errorOnParseError: results.Count == 0)) return results;
 
          // find matches
-         results.AddRange(Search(searchBytes));
+         results.AddRange(Search(searchBytes).Select(result => (result, result + searchBytes.Count - 1)));
 
          // reorder the list to start at the current cursor position
          results.Sort();
          var offset = scroll.ViewPointToDataIndex(SelectionStart);
-         var left = results.Where(result => result < offset);
-         var right = results.Where(result => result >= offset);
+         var left = results.Where(result => result.start < offset);
+         var right = results.Where(result => result.start >= offset);
          results = right.Concat(left).ToList();
          if (results.Count == 1) {
             OnMessage?.Invoke(this, $"Found only 1 match for '{rawSearch}'.");
@@ -450,6 +474,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             OnMessage?.Invoke(this, $"Found {results.Count} matches for '{rawSearch}'.");
          }
          return results;
+      }
+
+      // for each of the results, we recognized it as text: see if we need to add a matching string run / pointers
+      private int ConsiderResultsAsTextRuns(IEnumerable<int> searchResults) {
+         int resultsRecognizedAsTextRuns = 0;
+
+         foreach (var result in searchResults) {
+            var nextRun = Model.GetNextRun(result);
+            if (nextRun.Start <= result) continue;
+            var pointers = Model.SearchForPointersToAnchor(history.CurrentChange, result);
+            if (pointers.Count == 0) continue;
+            var newRun = new PCSRun(result, PCSString.ReadString(Model, result, true), pointers);
+            if (newRun.Length < 1) continue;
+            if (newRun.Start + newRun.Length > nextRun.Start) continue;
+            Model.ObserveAnchorWritten(history.CurrentChange, string.Empty, newRun);
+            resultsRecognizedAsTextRuns++;
+         }
+
+         return resultsRecognizedAsTextRuns;
       }
 
       private byte[] Parse(string content) {
@@ -537,9 +580,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #endregion
 
-      public IChildViewPort CreateChildView(int offset) {
+      public IChildViewPort CreateChildView(int startAddress, int endAddress) {
          var child = new ChildViewPort(this);
-         child.Goto.Execute(offset.ToString("X2"));
+         child.Goto.Execute(startAddress.ToString("X2"));
+         child.SelectionEnd = child.ConvertAddressToViewPoint(endAddress);
          return child;
       }
 
@@ -605,7 +649,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          title = "Sources of " + title;
          var newTab = new SearchResultsViewPort(title);
 
-         foreach (var source in anchor.Sources) newTab.Add(CreateChildView(source));
+         foreach (var source in anchor.Sources) newTab.Add(CreateChildView(source, source), source, source);
 
          RequestTabChange(this, newTab);
       }
@@ -671,6 +715,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                return true;
             }
 
+            if (input == GotoMarker) {
+               PrepareForMultiSpaceEdit(point, 4);
+               underEdit = new UnderEdit(element.Format, GotoMarker.ToString());
+               currentView[point.X, point.Y] = new HexElement(element.Value, underEdit);
+               return true;
+            }
+
             if (innerFormat is PCS) {
                return input == StringDelimeter || PCSString.PCS.Any(str => str != null && str.StartsWith(input.ToString()));
             }
@@ -681,6 +732,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
             if (innerFormat is Integer) return char.IsNumber(input) || char.IsWhiteSpace(input);
 
+            // for pointers in array, don't accept anything but a pointer start
+            if (innerFormat is Pointer) {
+               var index = scroll.ViewPointToDataIndex(point);
+               var run = Model.GetNextRun(index);
+               if (run.Start <= index && run is ArrayRun array) {
+                  if (input != PointerStart) return false;
+               }
+            }
+
             if (input == PointerStart) {
                // pointer edits are 4 bytes long
                if (!TryCoerceSelectionToStartOfPointer(ref point, ref element)) PrepareForMultiSpaceEdit(point, 4);
@@ -688,6 +748,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          } else if (underEdit.CurrentText.StartsWith(PointerStart.ToString())) {
             return char.IsLetterOrDigit(input) || input == PointerEnd;
+         } else if (underEdit.CurrentText.StartsWith(GotoMarker.ToString())) {
+            return char.IsLetterOrDigit(input) || char.IsWhiteSpace(input);
          } else if (underEdit.CurrentText.StartsWith(AnchorStart.ToString())) {
             return
                char.IsLetterOrDigit(input) ||
@@ -696,6 +758,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                input == ArrayEnd ||
                input == StringDelimeter ||
                input == StreamDelimeter ||
+               input == PointerStart ||
+               input == PointerEnd ||
                input == SingleByteIntegerFormat ||
                input == DoubleByteIntegerFormat;
          } else if (underEdit.OriginalFormat is Anchor && innerFormat is PCS) {
@@ -764,6 +828,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (!underEdit.CurrentText.EndsWith(PointerEnd.ToString())) return false;
             CompletePointerEdit(point);
             return true;
+         }
+         if (underEdit.CurrentText.StartsWith(GotoMarker.ToString())) {
+            if (char.IsWhiteSpace(underEdit.CurrentText[underEdit.CurrentText.Length - 1])) {
+               var destination = underEdit.CurrentText.Substring(1);
+               ClearEdits(point);
+               Goto.Execute(destination);
+               return true;
+            } else {
+               return false;
+            }
          }
          if (underEdit.CurrentText.StartsWith(AnchorStart.ToString())) {
             TryUpdate(ref anchorText, underEdit.CurrentText, nameof(AnchorText));
@@ -872,25 +946,36 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          Model.ExpandData(history.CurrentChange, index + 3);
          scroll.DataLength = Model.Count;
-         if (destination != string.Empty) {
-            Model.ClearFormatAndData(history.CurrentChange, index, 4);
-         } else {
-            Model.ClearFormat(history.CurrentChange, index, 4);
+
+         var currentRun = Model.GetNextRun(index);
+         bool inArray = currentRun.Start <= index && currentRun is ArrayRun;
+
+         if (!inArray) {
+            if (destination != string.Empty) {
+               Model.ClearFormatAndData(history.CurrentChange, index, 4);
+            } else {
+               Model.ClearFormat(history.CurrentChange, index, 4);
+            }
          }
 
          int fullValue;
          if (destination == string.Empty) {
             fullValue = Model.ReadPointer(index);
-         } else if (destination.All("0123456789ABCDEFabcdef".Contains) && destination.Length <= 6) {
+         } else if (destination.All(AllHexCharacters.Contains) && destination.Length <= 7) {
             while (destination.Length < 6) destination = "0" + destination;
             fullValue = int.Parse(destination, NumberStyles.HexNumber);
          } else {
             fullValue = Model.GetAddressFromAnchor(history.CurrentChange, index, destination);
          }
 
-         if (fullValue < Model.Count) {
-            Model.WritePointer(history.CurrentChange, index, fullValue);
-            Model.ObserveRunWritten(history.CurrentChange, new PointerRun(index));
+         if (fullValue == Pointer.NULL || (0 <= fullValue && fullValue < Model.Count)) {
+            if (inArray) {
+               Model.UpdateArrayPointer(history.CurrentChange, index, fullValue);
+            } else {
+               Model.WritePointer(history.CurrentChange, index, fullValue);
+               Model.ObserveRunWritten(history.CurrentChange, new PointerRun(index));
+            }
+
             ClearEdits(point);
             SilentScroll(index + 4);
          } else {
@@ -902,13 +987,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private bool CompleteAnchorEdit(Point point) {
          var underEdit = (UnderEdit)currentView[point.X, point.Y].Format;
          var index = scroll.ViewPointToDataIndex(point);
-         var errorInfo = PokemonModel.ApplyAnchor(Model, history.CurrentChange, index, underEdit.CurrentText);
+         ErrorInfo errorInfo;
+
+         // if it's an unnamed text anchor, we have special logic for that
+         if (underEdit.CurrentText == "^\"\" ") {
+            int count = ConsiderResultsAsTextRuns(new[] { index });
+            if (count == 0) {
+               errorInfo = new ErrorInfo("An anchor with nothing pointing to it must have a name.");
+            } else {
+               errorInfo = ErrorInfo.NoError;
+            }
+         } else {
+            errorInfo = PokemonModel.ApplyAnchor(Model, history.CurrentChange, index, underEdit.CurrentText);
+         }
+
          ClearEdits(point);
          UpdateToolsFromSelection(index);
 
          if (errorInfo == ErrorInfo.NoError) return true;
 
-         OnError(this, errorInfo.ErrorMessage);
+         OnError?.Invoke(this, errorInfo.ErrorMessage);
          return false;
       }
 

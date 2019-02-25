@@ -182,7 +182,7 @@
                <Separator />
                <MenuItem Header="Cu_t" Command="{Binding Cut}" InputGestureText="Ctrl+X"/>
                <MenuItem Header="_Copy" Command="{Binding Copy}" InputGestureText="Ctrl+C"/>
-               <MenuItem Header="_Paste" Command="{Binding Paste}" InputGestureText="Ctrl+V"/>
+               <MenuItem Header="_Paste / Replace" Command="{Binding Paste}" InputGestureText="Ctrl+V"/>
                <MenuItem Header="_Delete" Command="{Binding Delete}" InputGestureText="Del"/>
                <Separator />
                <MenuItem Header="_Find" Command="{Binding ShowFind}" InputGestureText="Ctrl+F">
@@ -251,8 +251,28 @@
             <TabControl.ContentTemplate>
                <DataTemplate>
                   <DockPanel>
+                     <!-- Anchor Editor -->
                      <Border DockPanel.Dock="Top" Height="19" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource Backlight}">
-                        <TextBox Text="{Binding AnchorText, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding AnchorTextVisible, Converter={StaticResource BoolToVisibility}}" Margin="60,0,25,0"/>
+                        <DockPanel Visibility="{Binding AnchorTextVisible, Converter={StaticResource BoolToVisibility}}" >
+                           <TextBlock Width="60" Text="Anchor: " TextAlignment="Right" ToolTipService.ShowDuration="15000">
+                              <TextBlock.ToolTip>
+                                 <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{solarized:Theme Blue}" BorderThickness="1">
+                                    <TextBlock TextAlignment="Left">
+                                       <Bold>Anchor Editor</Bold> <LineBreak/>
+                                       Anchors can have a name and a format. <LineBreak/>
+                                       <LineBreak/>
+                                       Named anchors persist between sessions. <LineBreak/>
+                                       You can also use names in pointers and with Goto <Italic Foreground="{DynamicResource Secondary}">(Ctrl+G)</Italic>. <LineBreak/>
+                                       <LineBreak/>
+                                       Formats change how the data is displayed and edited. <LineBreak/>
+                                       For example, "" formats data as text. <LineBreak/>
+                                       To learn more about formats, visit the Wiki.
+                                    </TextBlock>
+                                 </ToolTip>
+                              </TextBlock.ToolTip>
+                           </TextBlock>
+                           <TextBox Text="{Binding AnchorText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,25,0"/>
+                        </DockPanel>
                      </Border>
                      <!-- Headers -->
                      <ItemsControl DockPanel.Dock="Left" Width="60" ItemsSource="{Binding Headers}" Background="{DynamicResource Backlight}" MouseDown="HeaderMouseDown">
@@ -263,6 +283,7 @@
                         </ItemsControl.ItemTemplate>
                      </ItemsControl>
                      <Line Width="1" DockPanel.Dock="Left" Stroke="{DynamicResource Background}"/>
+                     <!-- Tool Headers -->
                      <StackPanel DockPanel.Dock="Right" Visibility="{Binding HasTools, Converter={StaticResource BoolToVisibility}}">
                         <Button Content="Text" Command="{Binding Tools.StringToolCommand}" Margin="0,2">
                            <Button.LayoutTransform>

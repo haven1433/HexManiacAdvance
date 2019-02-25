@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
@@ -16,7 +17,7 @@ namespace HavenSoft.HexManiac.Tests {
          var results = port.Find("84 23 BB 21");
 
          Assert.Single(results);
-         Assert.Equal(0x240, results[0]);
+         Assert.Equal(0x240, results[0].start);
       }
 
       [Fact]
@@ -27,7 +28,7 @@ namespace HavenSoft.HexManiac.Tests {
          searchFor.CopyTo(array, 0xA70);
          var port = new ViewPort(new LoadedFile("test", array));
 
-         var results = port.Find("84 23 BB 21");
+         var results = port.Find("84 23 BB 21").Select(result => result.start).ToList();
 
          Assert.Equal(2, results.Count);
          Assert.Contains(0x240, results);
@@ -39,7 +40,7 @@ namespace HavenSoft.HexManiac.Tests {
          var tab = new StubViewPort();
          var editor = new EditorViewModel(new StubFileSystem()) { tab };
 
-         tab.Find = str => new int[0];
+         tab.Find = str => new (int, int)[0];
          editor.Find.Execute("something");
 
          Assert.True(editor.ShowError);
@@ -52,7 +53,7 @@ namespace HavenSoft.HexManiac.Tests {
          var editor = new EditorViewModel(new StubFileSystem()) { tab };
          string gotoArg = string.Empty;
 
-         tab.Find = str => new[] { 0x54 };
+         tab.Find = str => new[] { (0x54, 0x54) };
          tab.Goto = new StubCommand { CanExecute = arg => true, Execute = arg => gotoArg = (string)arg };
          editor.Find.Execute("something");
 
@@ -66,9 +67,9 @@ namespace HavenSoft.HexManiac.Tests {
          var editor = new EditorViewModel(new StubFileSystem()) { tab };
          var count = 0;
 
-         tab.Find = str => new[] { 0x54, 0x154 };
+         tab.Find = str => new[] { (0x54, 0x54), (0x154, 0x154) };
          tab.Model = new BasicModel(new byte[0x200]);
-         tab.CreateChildView = (int offset) => {
+         tab.CreateChildView = (int startAddress, int endAddress) => {
             var child = new ChildViewPort(tab);
             count++;
             return child;
@@ -86,10 +87,10 @@ namespace HavenSoft.HexManiac.Tests {
          int gotoCount = 0;
          StubViewPort tab = null;
          tab = new StubViewPort {
-            Find = str => new[] { 0x54, 0x154 },
+            Find = str => new[] { (0x54, 0x54), (0x154, 0x154) },
             Model = new BasicModel(new byte[0x200]),
             Goto = new StubCommand { CanExecute = arg => true, Execute = arg => gotoCount++ },
-            CreateChildView = offset => new ChildViewPort(tab),
+            CreateChildView = (start, end) => new ChildViewPort(tab),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
@@ -108,20 +109,20 @@ namespace HavenSoft.HexManiac.Tests {
       public void EditorFindNextDoesNotSwitchTabs() {
          StubViewPort tab1 = null;
          tab1 = new StubViewPort {
-            Find = query => new[] { 0x60 },
+            Find = query => new[] { (0x60, 0x60) },
             Goto = new StubCommand(),
             Model = new BasicModel(new byte[0x200]),
-            CreateChildView = offset => new ChildViewPort(tab1),
+            CreateChildView = (start, end) => new ChildViewPort(tab1),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
          };
          StubViewPort tab2 = null;
          tab2 = new StubViewPort {
-            Find = query => new[] { 0x50, 0x70 },
+            Find = query => new[] { (0x50, 0x50), (0x70, 0x70) },
             Goto = new StubCommand(),
             Model = new BasicModel(new byte[0x200]),
-            CreateChildView = offset => new ChildViewPort(tab2),
+            CreateChildView = (start, end) => new ChildViewPort(tab2),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
@@ -146,10 +147,10 @@ namespace HavenSoft.HexManiac.Tests {
       public void FindResultsHasHeadersAndGaps() {
          StubViewPort tab = null;
          tab = new StubViewPort {
-            Find = query => new[] { 0x50, 0x70 },
+            Find = query => new[] { (0x50, 0x50), (0x70, 0x70) },
             Goto = new StubCommand(),
             Model = new BasicModel(new byte[0x200]),
-            CreateChildView = offset => new ChildViewPort(tab),
+            CreateChildView = (start, end) => new ChildViewPort(tab),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
@@ -167,10 +168,10 @@ namespace HavenSoft.HexManiac.Tests {
       public void FindClosesAfterRun() {
          StubViewPort tab = null;
          tab = new StubViewPort {
-            Find = query => new[] { 0x50, 0x70 },
+            Find = query => new[] { (0x50, 0x50), (0x70, 0x70) },
             Goto = new StubCommand(),
             Model = new BasicModel(new byte[0x200]),
-            CreateChildView = offset => new ChildViewPort(tab),
+            CreateChildView = (start, end) => new ChildViewPort(tab),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
@@ -188,8 +189,8 @@ namespace HavenSoft.HexManiac.Tests {
          var composite = new SearchResultsViewPort("search") { Height = 0x10 };
          var parentData = new byte[0x100];
          var parent = new StubViewPort { Width = 0x10, Height = 0x10, Model = new BasicModel(parentData) };
-         composite.Add(new ChildViewPort(parent));
-         composite.Add(new ChildViewPort(parent));
+         composite.Add(new ChildViewPort(parent), 0, 0);
+         composite.Add(new ChildViewPort(parent), 0, 0);
 
          var bodyChanged = false;
          var headerChanged = false;
@@ -213,7 +214,7 @@ namespace HavenSoft.HexManiac.Tests {
          var viewPort = new ViewPort(new LoadedFile("test", data)) { Width = 8, Height = 8 };
          viewPort.SelectionStart = new Point(0, 2); // select byte 0x10
 
-         var results = viewPort.Find("52 DC FF 79");
+         var results = viewPort.Find("52 DC FF 79").Select(result => result.start).ToList(); ;
 
          // the earliest match is at the end because the search started where the cursor was and looped around.
          Assert.True(results.SequenceEqual(new[] { 0x62, 0xA8, 0xCC, 0x02 }));
@@ -229,7 +230,7 @@ namespace HavenSoft.HexManiac.Tests {
          var tab1 = new StubTabContent();
          var editor = new EditorViewModel(new StubFileSystem()) { tab0, tab1 };
 
-         tab0.Find = query => new[] { 0x50 };
+         tab0.Find = query => new[] { (0x50, 0x50) };
          editor.Find.Execute("search");
 
          Assert.Equal(0, editor.SelectedIndex);
@@ -248,9 +249,9 @@ namespace HavenSoft.HexManiac.Tests {
          var editor = new EditorViewModel(new StubFileSystem());
          StubViewPort tab = null;
          tab = new StubViewPort {
-            Find = query => new[] { 0x50 },
+            Find = query => new[] { (0x50, 0x50) },
             Goto = new StubCommand(),
-            CreateChildView = offset => new ChildViewPort(tab),
+            CreateChildView = (start, end) => new ChildViewPort(tab),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
@@ -268,10 +269,10 @@ namespace HavenSoft.HexManiac.Tests {
          var editor = new EditorViewModel(new StubFileSystem());
          StubViewPort tab = null;
          tab = new StubViewPort {
-            Find = query => new[] { 0x50, 0x70 },
+            Find = query => new[] { (0x50, 0x50), (0x70, 0x70) },
             Goto = new StubCommand(),
             Model = new BasicModel(new byte[0x200]),
-            CreateChildView = offset => new ChildViewPort(tab),
+            CreateChildView = (start, end) => new ChildViewPort(tab),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
@@ -298,6 +299,53 @@ namespace HavenSoft.HexManiac.Tests {
          editor.Find.Execute("52 DC FF 79");
 
          Assert.True(editor.ShowMessage);
+      }
+
+      [Fact]
+      public void SearchResultsHaveFullResultsSelected() {
+         var text = "This is the song that never ends.";
+         var bytes = PCSString.Convert(text).ToArray();
+         var buffer = new byte[0x200];
+         Array.Copy(bytes, 0, buffer, 0x30, bytes.Length);                // two copies of the data
+         Array.Copy(bytes, 0, buffer, 0x60, bytes.Length);                // at reasonable locations
+         var model = new PokemonModel(buffer);
+         var viewPort = new ViewPort("test.gba", model) { Width = 0x10, Height = 0x10 };
+         var editor = new EditorViewModel(new StubFileSystem());
+         editor.Add(viewPort);
+
+         editor.Find.Execute("This is the song");
+         var resultsTab = (IViewPort)editor[editor.SelectedIndex];
+         resultsTab.Width = 0x10;
+         resultsTab.Height = 0x10;
+
+         int selectedCellCount = 0;
+         for (int x = 0; x < resultsTab.Width; x++) {
+            selectedCellCount +=
+               Enumerable.Range(0, resultsTab.Height)
+               .Select(y => new Point(x, y))
+               .Count(resultsTab.IsSelected);
+         }
+
+         Assert.InRange(selectedCellCount, 30, 40);
+      }
+
+      [Fact]
+      public void FollowingASearchResultSelectsEntireResult() {
+         var text = "This is the song that never ends.";
+         var bytes = PCSString.Convert(text).ToArray();
+         var buffer = new byte[0x200];
+         Array.Copy(bytes, 0, buffer, 0x30, bytes.Length);                // two copies of the data
+         Array.Copy(bytes, 0, buffer, 0x60, bytes.Length);                // at reasonable locations
+         var model = new PokemonModel(buffer);
+         var viewPort = new ViewPort("test.gba", model);
+         var editor = new EditorViewModel(new StubFileSystem());
+         editor.Add(viewPort);
+
+         editor.Find.Execute("This is the song");
+         var resultsTab = (IViewPort)editor[editor.SelectedIndex];
+         resultsTab.FollowLink(0, 0);
+
+         Assert.NotEqual(viewPort.SelectionStart, viewPort.SelectionEnd);
       }
    }
 }

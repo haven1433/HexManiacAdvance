@@ -15,7 +15,7 @@ namespace HavenSoft.HexManiac.Tests {
          model[0x12] = (byte)'c';
          model[0x13] = (byte)'d';
 
-         var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.SelectionStart = new Point(0, 1);
          viewPort.Edit("^data`asc`4 ");
 
@@ -34,7 +34,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          model.ObserveRunWritten(new ModelDelta(), new AsciiRun(0x10, 4));
 
-         var viewPort = new ViewPort(new LoadedFile("file.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.SelectionStart = new Point(1, 1);
          viewPort.Edit("3");
 

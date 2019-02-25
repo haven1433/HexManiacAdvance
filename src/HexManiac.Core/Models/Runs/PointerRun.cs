@@ -14,7 +14,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public override IDataFormat CreateDataFormat(IDataModel data, int index) {
          var destinationAddress = data.ReadPointer(Start);
          var anchor = data.GetAnchorFromAddress(Start, destinationAddress);
-         var pointer = new Pointer(Start, index - Start, data.ReadPointer(Start), anchor);
+         var pointer = new Pointer(Start, index - Start, destinationAddress, anchor);
          return pointer;
       }
       protected override IFormattedRun Clone(IReadOnlyList<int> newPointerSources) {

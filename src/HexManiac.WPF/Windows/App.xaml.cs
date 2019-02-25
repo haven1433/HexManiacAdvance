@@ -42,7 +42,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          var loadedFile = fileSystem.LoadFile(fileName);
          var metadata = fileSystem.MetadataFor(fileName);
          var model = new AutoSearchModel(loadedFile.Contents, metadata);
-         editor.Add(new ViewPort(loadedFile, model));
+         editor.Add(new ViewPort(loadedFile.Name, model));
          return editor;
       }
    }

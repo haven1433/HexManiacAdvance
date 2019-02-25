@@ -7,7 +7,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    public class ChildViewPort : ViewPort, IChildViewPort {
       public IViewPort Parent { get; }
 
-      public ChildViewPort(IViewPort viewPort) : base(new Models.LoadedFile(string.Empty, viewPort.Model.RawData), viewPort.Model) {
+      public ChildViewPort(IViewPort viewPort) : base(string.Empty, viewPort.Model) {
          Parent = viewPort;
          Width = Parent.Width;
       }

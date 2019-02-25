@@ -18,7 +18,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void AddressUpdateOnWidthChanged() {
-         var viewPort = new ViewPort(new LoadedFile("test.txt", new byte[0x200])) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort(new LoadedFile("test.txt", new byte[0x200])) { PreferredWidth = -1, Width = 0x10, Height = 0x10 };
          var changeCount = 0;
          viewPort.Headers.CollectionChanged += (sender, e) => changeCount += 1;
 
@@ -198,7 +198,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void SearchFor6BytesAlsoFindsPointers() {
          var data = new byte[0x1200];
          var model = new PokemonModel(data);
-         var viewPort = new ViewPort(new LoadedFile("file.txt", data), model);
+         var viewPort = new ViewPort("file.txt", model);
 
          viewPort.Edit("<001060>");
          var results = viewPort.Find("001060");
@@ -236,6 +236,16 @@ namespace HavenSoft.HexManiac.Tests {
 
          viewModel.MoveAutoCompleteSelectionUp.Execute();
          Assert.True(viewModel.AutoCompleteOptions[0].IsSelected);
+      }
+
+      [Fact]
+      public void CanGotoUsingAtSymbol() {
+         var model = new PokemonModel(new byte[0x200]);
+         var viewPort = new ViewPort("unnamed.txt", model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.Edit("@100 ");
+
+         Assert.Equal("000100", viewPort.Headers[0]);
       }
    }
 }

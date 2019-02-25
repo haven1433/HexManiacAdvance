@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using System.Diagnostics;
 using System.Linq;
 using static HavenSoft.HexManiac.Core.Models.Runs.ArrayRun;
 
@@ -35,6 +36,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (gamesToDecode.Contains(gameCode)) {
             DecodeHeader();
             DecodeNameArrays();
+            DecodeDataArrays();
          }
       }
 
@@ -49,14 +51,14 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private void DecodeNameArrays() {
-         // pokenames
-         if (TrySearch(this, "[name\"\"11]", out var pokenames)) {
-            ObserveAnchorWritten(noChangeDelta, "pokenames", pokenames);
-         }
-
          // movenames
          if (TrySearch(this, "[name\"\"13]", out var movenames)) {
             ObserveAnchorWritten(noChangeDelta, "movenames", movenames);
+         }
+
+         // pokenames
+         if (TrySearch(this, "[name\"\"11]", out var pokenames)) {
+            ObserveAnchorWritten(noChangeDelta, "pokenames", pokenames);
          }
 
          // abilitynames / trainer names
@@ -74,6 +76,17 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (TrySearch(this, "[name\"\"13]", out var abilitynames)) {
                ObserveAnchorWritten(noChangeDelta, "abilitynames", abilitynames);
             }
+         }
+
+         // types[name""7]18
+         // this one is weird, because things actually point to each individual name, as well as being in an array
+      }
+
+      private void DecodeDataArrays() {
+         // abilitydescriptions[description<"">]abilitynames
+
+         if (TrySearch(this, "[name\"\"14 a: b: c: d<> e: f: g<> h: i: j<> k: l:]", out var itemdata)) {
+            ObserveAnchorWritten(noChangeDelta, "items", itemdata);
          }
       }
    }

@@ -25,7 +25,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          set {
             if (viewPort == null) return;
             if (TryUpdate(ref text, value)) {
-               var options = viewPort.Model.GetAutoCompleteAnchorNameOptions(text);
+               var options = viewPort.Model?.GetAutoCompleteAnchorNameOptions(text) ?? new string[0];
                AutoCompleteOptions = CreateAutoCompleteOptions(options, options.Count);
                ShowAutoCompleteOptions = AutoCompleteOptions.Count > 0;
             }

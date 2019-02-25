@@ -25,5 +25,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       event EventHandler Closed;
       event EventHandler<ITabContent> RequestTabChange;
       event EventHandler<Action> RequestDelayedWork;
+      event EventHandler RequestMenuClose;
    }
 }

@@ -303,7 +303,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void CanSaveAndLoadNamesAndFormats() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort(new LoadedFile("test.txt", buffer), model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          StoredMetadata metadata = null;
          var fileSystem = new StubFileSystem { Save = (file, md) => { metadata = md; return true; } };
 
@@ -311,7 +311,7 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Save.Execute(fileSystem);
 
          var model2 = new PokemonModel(buffer, metadata);
-         var viewPort2 = new ViewPort(new LoadedFile("test.txt", buffer), model2) { Width = 0x10, Height = 0x10 };
+         var viewPort2 = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
 
          Assert.Equal("bob", ((Anchor)viewPort2[0, 0].Format).Name);
       }

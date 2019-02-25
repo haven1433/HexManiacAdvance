@@ -32,7 +32,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       public static readonly Pen BorderPen = new Pen(Solarized.Brushes.Green, 1);
 
-
+      private Popup recentMenu;
       private ModelPoint downPoint;
       private ModelPoint mouseOverPoint;
 
@@ -54,11 +54,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (e.OldValue is IViewPort oldViewPort) {
             oldViewPort.CollectionChanged -= OnViewPortContentChanged;
             oldViewPort.PropertyChanged -= OnViewPortPropertyChanged;
+            oldViewPort.RequestMenuClose -= OnViewPortRequestMenuClose;
          }
 
          if (e.NewValue is IViewPort newViewPort) {
             newViewPort.CollectionChanged += OnViewPortContentChanged;
             newViewPort.PropertyChanged += OnViewPortPropertyChanged;
+            newViewPort.RequestMenuClose += OnViewPortRequestMenuClose;
             UpdateViewPortSize();
          }
 
@@ -78,6 +80,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (propertyChangesThatRequireRedraw.Contains(e.PropertyName)) {
             InvalidateVisual();
          }
+      }
+
+      private void OnViewPortRequestMenuClose(object sender, EventArgs e) {
+         if (recentMenu == null) return;
+         recentMenu.IsOpen = false;
       }
 
       #endregion
@@ -196,13 +203,14 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             var format = ViewPort[p.X, p.Y].Format;
 
             if (ViewPort is ViewPort editableViewPort) {
+               if (!editableViewPort.IsSelected(p)) editableViewPort.SelectionStart = p;
                if (format is Anchor && p.Equals(downPoint)) {
                   children.AddRange(GetAnchorChildren(p));
                   format = ((Anchor)format).OriginalFormat;
                }
                if (format is PCS pcs) children.AddRange(GetStringChildren(p));
                if (format is Pointer pointer) children.AddRange(GetPointerChildren(p));
-               if (!(format is None || format is Undefined)) children.AddRange(GetClearFormattingChildren(p));
+               if (editableViewPort.FormattedDataIsSelected) children.AddRange(GetClearFormattingChildren(p));
             } else {
                children.AddRange(GetSearchChildren(p));
             }
@@ -289,8 +297,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          }
       }
 
-      Popup recentMenu;
-
       private IEnumerable<FrameworkElement> GetAnchorChildren(ModelPoint p) {
          var anchor = (Anchor)ViewPort[p.X, p.Y].Format;
 
@@ -359,7 +365,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          yield return new Button {
             Content = new TextBlock { Text = "Clear Format" },
          }.SetEvent(ButtonBase.ClickEvent, (sender, e) => {
-            ((ViewPort)ViewPort).ClearFormat(p);
+            ((ViewPort)ViewPort).ClearFormat();
             recentMenu.IsOpen = false;
          });
       }
