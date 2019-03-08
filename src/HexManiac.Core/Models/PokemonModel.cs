@@ -198,9 +198,24 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override string GetAnchorFromAddress(int requestSource, int address) {
+         // option 1: a known name exists for this address
          if (anchorForAddress.TryGetValue(address, out string anchor)) return anchor;
+
+         // option 2: a known name exists for this source, but the name doesn't actually exist in the file
          if (sourceToUnmappedName.TryGetValue(requestSource, out anchor)) return anchor;
+
+         // option 3: pointing to nothing
          if (address == -0x08000000) return "null";
+
+         // option 4: pointing within an array that supports inner element anchors
+         var containingRun = GetNextRun(address);
+         if (containingRun.Start < address && containingRun is ArrayRun array && array.SupportsPointersToElements) {
+            var arrayName = GetAnchorFromAddress(-1, array.Start);
+            var arrayIndex = (address - array.Start) / array.ElementLength;
+            var indexMod = (address - array.Start) % array.ElementLength;
+            if (indexMod == 0) return $"{arrayName}/{arrayIndex}";
+         }
+
          return string.Empty;
       }
 
@@ -343,6 +358,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          var seakPointers = existingRun?.PointerSources == null || existingRun?.Start != location;
          var sources = GetSourcesPointingToNewAnchor(changeToken, anchorName, seakPointers);
+         if (run is ArrayRun array && array.SupportsPointersToElements) run = array.AddSourcesPointingWithinArray(changeToken);
          var newRun = run.MergeAnchor(sources);
          ObserveRunWritten(changeToken, newRun);
       }
@@ -636,13 +652,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          return new StoredMetadata(anchors, unmappedPointers);
       }
 
-      public override IReadOnlyList<int> SearchForPointersToAnchor(ModelDelta changeToken, int address) {
+      public override IReadOnlyList<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses) {
          var results = new List<int>();
 
          for (int i = 3; i < RawData.Length; i++) {
             if (RawData[i] != 0x08 && RawData[i] != 0x09) continue;
             int destination = ReadPointer(i - 3);
-            if (destination != address) continue;
+            if (!addresses.Contains(destination)) continue;
             var index = BinarySearch(i - 3);
             if (index >= 0) continue;
             index = ~index;

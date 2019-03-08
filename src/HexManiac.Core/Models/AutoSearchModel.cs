@@ -52,42 +52,48 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private void DecodeNameArrays() {
          // movenames
-         if (TrySearch(this, "[name\"\"13]", out var movenames)) {
+         if (TrySearch(this, noChangeDelta, "[name\"\"13]", out var movenames)) {
             ObserveAnchorWritten(noChangeDelta, "movenames", movenames);
          }
 
          // pokenames
-         if (TrySearch(this, "[name\"\"11]", out var pokenames)) {
+         if (TrySearch(this, noChangeDelta, "[name\"\"11]", out var pokenames)) {
             ObserveAnchorWritten(noChangeDelta, "pokenames", pokenames);
          }
 
          // abilitynames / trainer names
          if (gameCode == Ruby || gameCode == Sapphire || gameCode == Emerald) {
-            if (TrySearch(this, "[name\"\"13]", out var abilitynames)) {
+            if (TrySearch(this, noChangeDelta, "[name\"\"13]", out var abilitynames)) {
                ObserveAnchorWritten(noChangeDelta, "abilitynames", abilitynames);
             }
-            if (TrySearch(this, "[name\"\"13]", out var trainerclassnames)) {
+            if (TrySearch(this, noChangeDelta, "[name\"\"13]", out var trainerclassnames)) {
                ObserveAnchorWritten(noChangeDelta, "trainerclassnames", trainerclassnames);
             }
          } else {
-            if (TrySearch(this, "[name\"\"13]", out var trainerclassnames)) {
+            if (TrySearch(this, noChangeDelta, "[name\"\"13]", out var trainerclassnames)) {
                ObserveAnchorWritten(noChangeDelta, "trainerclassnames", trainerclassnames);
             }
-            if (TrySearch(this, "[name\"\"13]", out var abilitynames)) {
+            if (TrySearch(this, noChangeDelta, "[name\"\"13]", out var abilitynames)) {
                ObserveAnchorWritten(noChangeDelta, "abilitynames", abilitynames);
             }
          }
 
-         // types[name""7]18
-         // this one is weird, because things actually point to each individual name, as well as being in an array
+         // types
+         if (TrySearch(this, noChangeDelta, "^[name\"\"7]", out var typenames)) { // the type names are sometimes pointed to directly, instead of in the array
+            ObserveAnchorWritten(noChangeDelta, "types", typenames);
+         }
       }
 
       private void DecodeDataArrays() {
-         // abilitydescriptions[description<"">]abilitynames
-
-         if (TrySearch(this, "[name\"\"14 a: b: c: d<> e: f: g<> h: i: j<> k: l:]", out var itemdata)) {
+         if (TrySearch(this, noChangeDelta, "[name\"\"14 index: price: holdeffect: description<> keyitemvalue. bagkeyitem. pocket. type. fieldeffect<> battleusage:: battleeffect<> battleextra::]", out var itemdata)) {
             ObserveAnchorWritten(noChangeDelta, "items", itemdata);
          }
+
+         // ^pokestats[hp. attack. def. speed. spatk. spdef. catchrate. runrate. a:: b:: c:: d:: e::]pokenames
+
+         // abilitydescriptions[description<"">]abilitynames
+
+         // @3D4294 ^itemicons[image<> palette<>]items
       }
    }
 }

@@ -38,7 +38,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       void Load(byte[] newData, StoredMetadata metadata);
       void ExpandData(ModelDelta changeToken, int minimumLength);
 
-      IReadOnlyList<int> SearchForPointersToAnchor(ModelDelta changeToken, int address);
+      IReadOnlyList<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses);
       void WritePointer(ModelDelta changeToken, int address, int pointerDestination);
       void WriteValue(ModelDelta changeToken, int address, int value);
       int ReadPointer(int address);
@@ -98,7 +98,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public abstract IFormattedRun RelocateForExpansion(ModelDelta changeToken, IFormattedRun run, int minimumLength);
 
-      public abstract IReadOnlyList<int> SearchForPointersToAnchor(ModelDelta changeToken, int address);
+      public abstract IReadOnlyList<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses);
 
       public abstract void UpdateArrayPointer(ModelDelta currentChange, int index, int fullValue);
 
@@ -147,7 +147,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          for (int i = 0; i < length; i++) changeToken.ChangeData(this, start + i, 0xFF);
       }
 
-      public override IReadOnlyList<int> SearchForPointersToAnchor(ModelDelta changeToken, int address) => throw new NotImplementedException();
+      public override IReadOnlyList<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses) => throw new NotImplementedException();
 
       public override void UpdateArrayPointer(ModelDelta changeToken, int address, int destination) {
          WritePointer(changeToken, address, destination);
