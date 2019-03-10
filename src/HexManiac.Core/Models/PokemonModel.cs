@@ -179,7 +179,11 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public override int GetAddressFromAnchor(ModelDelta changeToken, int requestSource, string anchor) {
 
+         var nameparts = anchor.Split('/');
+         anchor = nameparts.First();
+
          if (addressForAnchor.TryGetValueCaseInsensitive(anchor, out int address)) {
+            if (nameparts.Length > 1) address = GetAddressFromAnchor(address, nameparts);
             return address;
          }
 
@@ -194,6 +198,21 @@ namespace HavenSoft.HexManiac.Core.Models {
          sourceToUnmappedName[requestSource] = anchor;
          changeToken.AddUnmappedPointer(requestSource, anchor);
 
+         return Pointer.NULL;
+      }
+
+      private int GetAddressFromAnchor(int startingAddress, string[] nameparts) {
+         var run = GetNextRun(startingAddress);
+
+         // only support indexing into an anchor if the anchor points to an array
+         if (!(run is ArrayRun array)) return Pointer.NULL;
+
+         // support things like items/4
+         if (nameparts.Length == 2 && int.TryParse(nameparts[1], out var index)) {
+            return array.Start + array.ElementLength * index;
+         }
+
+         // not supported
          return Pointer.NULL;
       }
 
@@ -660,10 +679,13 @@ namespace HavenSoft.HexManiac.Core.Models {
             int destination = ReadPointer(i - 3);
             if (!addresses.Contains(destination)) continue;
             var index = BinarySearch(i - 3);
-            if (index >= 0) continue;
+            if (index >= 0) {
+               if (runs[index] is PointerRun) results.Add(i - 3);
+               continue;
+            }
             index = ~index;
-            if (index < runs.Count && runs[index].Start <= i) continue;
-            if (index > 0 && runs[index - 1].Start + runs[index - 1].Length > i - 3) continue;
+            if (index < runs.Count && runs[index].Start <= i) continue; // can't add a pointer run if an existing run starts during the new one
+            if (index > 0 && runs[index - 1].Start + runs[index - 1].Length > i - 3) continue; // can't add a pointer run if the new one starts during an existing one
             var newRun = new PointerRun(i - 3);
             runs.Insert(index, newRun);
             changeToken.AddRun(newRun);

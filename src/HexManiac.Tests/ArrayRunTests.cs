@@ -481,6 +481,70 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x120, model.ReadPointer(0x8));
       }
 
+      [Fact]
+      public void ArraysWithInnerAnchorsRenderAnchors() {
+         var data = new byte[0x200];
+         var changeToken = new ModelDelta();
+
+         // arrange: setup data with a bunch of pointers pointing into an array of strings
+         var model = new PokemonModel(data);
+         model.WritePointer(changeToken, 0x00, 0x80);
+         model.ObserveRunWritten(changeToken, new PointerRun(0x00));
+         model.WritePointer(changeToken, 0x08, 0x84);
+         model.ObserveRunWritten(changeToken, new PointerRun(0x08));
+         model.WritePointer(changeToken, 0x10, 0x88);
+         model.ObserveRunWritten(changeToken, new PointerRun(0x10));
+         model.WritePointer(changeToken, 0x18, 0x8C);
+         model.ObserveRunWritten(changeToken, new PointerRun(0x18));
+
+         // arrange: setup the array of strings
+         WriteStrings(data, 0x80, "cat", "bat", "hat", "sat");
+         var existingAnchor = model.GetNextAnchor(0x80);
+         var error = ArrayRun.TryParse(model, "^[name\"\"4]4", 0x80, existingAnchor.PointerSources, out var arrayRun);
+         model.ObserveAnchorWritten(changeToken, "sample", arrayRun);
+
+         // arrange: create the viewmodel
+         var viewport = new ViewPort("name", model) { Width = 0x10, Height = 0x10 };
+
+         // assert: viewmodel renders anchors within the array
+         // note that the strings are only 4 bytes long
+         Assert.IsType<Anchor>(viewport[0, 8].Format);
+         Assert.IsType<Anchor>(viewport[4, 8].Format);
+         Assert.IsType<Anchor>(viewport[8, 8].Format);
+         Assert.IsType<Anchor>(viewport[12, 8].Format);
+         Assert.IsNotType<Anchor>(viewport[0, 9].Format);
+
+         // assert: viewmodel renders pointers with names into the array
+         Assert.Equal("sample", ((Pointer)viewport[0, 0].Format).DestinationName);
+         Assert.Equal("sample/1", ((Pointer)viewport[8, 0].Format).DestinationName);
+         Assert.Equal("sample/2", ((Pointer)viewport[0, 1].Format).DestinationName);
+         Assert.Equal("sample/3", ((Pointer)viewport[8, 1].Format).DestinationName);
+      }
+
+      [Fact]
+      public void CanGotoIndexInArray() {
+         var data = new byte[0x200];
+         var changeToken = new ModelDelta();
+
+         // arrange: setup data with a bunch of pointers pointing into an array of strings
+         var model = new PokemonModel(data);
+
+         // arrange: setup the array of strings
+         WriteStrings(data, 0x80, "cat", "bat", "hat", "sat");
+         var existingAnchor = model.GetNextAnchor(0x80);
+         var error = ArrayRun.TryParse(model, "[name\"\"4]4", 0x80, existingAnchor.PointerSources, out var arrayRun);
+         model.ObserveAnchorWritten(changeToken, "sample", arrayRun);
+
+         // arrange: create the viewmodel
+         var viewport = new ViewPort("name", model) { Width = 0x10, Height = 0x10 };
+
+         var errorMessages = new List<string>();
+         viewport.OnError += (sender, message) => errorMessages.Add(message);
+         viewport.Goto.Execute("sample/2");
+
+         Assert.Empty(errorMessages);
+      }
+
       private static void WriteStrings(byte[] buffer, int start, params string[] content) {
          foreach (var item in content) {
             var bytes = PCSString.Convert(item).ToArray();

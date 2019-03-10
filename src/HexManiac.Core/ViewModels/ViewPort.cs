@@ -1170,10 +1170,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var run = Model.GetNextRun(index);
          if (index < run.Start) { currentView[p.X, p.Y] = new HexElement(Model[index], None.Instance); return; }
          var format = run.CreateDataFormat(Model, index);
-         if (run.PointerSources != null && run.Start == index) {
-            var name = Model.GetAnchorFromAddress(-1, run.Start);
-            format = new Anchor(format, name, run.FormatString, run.PointerSources);
-         }
+         format = WrapFormat(run, format, index);
          currentView[p.X, p.Y] = new HexElement(Model[index], format);
       }
 
@@ -1188,10 +1185,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   currentView[x, y] = HexElement.Undefined;
                } else if (index >= run.Start) {
                   var format = run.CreateDataFormat(Model, index);
-                  if (run.PointerSources != null && run.Start == index) {
-                     var name = Model.GetAnchorFromAddress(-1, run.Start);
-                     format = new Anchor(format, name, run.FormatString, run.PointerSources);
-                  }
+                  format = WrapFormat(run, format, index);
                   currentView[x, y] = new HexElement(Model[index], format);
                } else {
                   currentView[x, y] = new HexElement(Model[index], None.Instance);
@@ -1200,6 +1194,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          NotifyCollectionChanged(ResetArgs);
+      }
+
+      private IDataFormat WrapFormat(IFormattedRun run, IDataFormat format, int dataIndex) {
+         if (run.PointerSources != null && run.Start == dataIndex) {
+            var name = Model.GetAnchorFromAddress(-1, run.Start);
+            return new Anchor(format, name, run.FormatString, run.PointerSources);
+         }
+
+         if (run is ArrayRun array && array.SupportsPointersToElements && (dataIndex - run.Start) % array.ElementLength == 0) {
+            var arrayIndex = (dataIndex - run.Start) / array.ElementLength;
+            var pointerSources = array.PointerSourcesForInnerElements[arrayIndex];
+            if (pointerSources == null || pointerSources.Count == 0) return format;
+            var name = Model.GetAnchorFromAddress(-1, dataIndex);
+            return new Anchor(format, name, string.Empty, pointerSources);
+         }
+
+         return format;
       }
 
       private void NotifyCollectionChanged(NotifyCollectionChangedEventArgs args) => CollectionChanged?.Invoke(this, args);
