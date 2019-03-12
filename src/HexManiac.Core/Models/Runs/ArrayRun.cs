@@ -72,6 +72,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public const char ArrayEnd = ']';
       public const char SingleByteIntegerFormat = '.';
       public const char DoubleByteIntegerFormat = ':';
+      public const char ArrayAnchorSeparator = '/';
 
       private readonly IDataModel owner;
 
@@ -252,6 +253,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var newFormat = FormatString.Substring(0, lastArrayCharacterIndex + 1);
          if (newFormat != FormatString) newFormat += ElementCount + elementCount;
          return new ArrayRun(owner, newFormat, Start, ElementCount + elementCount, ElementContent, PointerSources, PointerSourcesForInnerElements);
+      }
+
+      public ArrayRun AddSourcePointingWithinArray(int source) {
+         var destination = owner.ReadPointer(source);
+         var index = (destination - Start) / ElementLength;
+         if (index < 0 || index >= ElementCount) throw new IndexOutOfRangeException();
+         if (index == 0) throw new NotImplementedException();
+         var newInnerPointerSources = PointerSourcesForInnerElements.ToList();
+         newInnerPointerSources[index] = newInnerPointerSources[index].Concat(new[] { source }).ToList();
+         return new ArrayRun(owner, FormatString, Start, ElementCount, ElementContent, PointerSources, newInnerPointerSources);
       }
 
       public ArrayRun AddSourcesPointingWithinArray(ModelDelta changeToken) {

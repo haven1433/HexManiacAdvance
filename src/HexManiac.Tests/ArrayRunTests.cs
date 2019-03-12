@@ -588,6 +588,22 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.StartsWith("^", run.FormatString);
       }
 
+      [Fact]
+      public void CanCreateNewPointerUsingArrayNameAndIndex() {
+         var data = new byte[0x200];
+         var changeToken = new ModelDelta();
+         var model = new PokemonModel(data);
+         var viewport = new ViewPort("name", model) { Width = 0x10, Height = 0x10 };
+
+         viewport.Edit("^array^[content\"\"8]8 ");
+
+         viewport.SelectionStart = new Point(0, 6);
+         viewport.Edit("<array/3>");
+
+         var run = (ArrayRun)model.GetNextRun(0);
+         Assert.Single(run.PointerSourcesForInnerElements[3]);
+      }
+
       private static void WriteStrings(byte[] buffer, int start, params string[] content) {
          foreach (var item in content) {
             var bytes = PCSString.Convert(item).ToArray();

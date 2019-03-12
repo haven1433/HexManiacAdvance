@@ -238,7 +238,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var arrayName = GetAnchorFromAddress(-1, array.Start);
             var arrayIndex = (address - array.Start) / array.ElementLength;
             var indexMod = (address - array.Start) % array.ElementLength;
-            if (indexMod == 0) return $"{arrayName}/{arrayIndex}";
+            if (indexMod == 0) return $"{arrayName}{ArrayAnchorSeparator}{arrayIndex}";
          }
 
          return string.Empty;
@@ -337,7 +337,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          var destination = ReadPointer(start);
          if (destination < 0 || destination >= Count) return;
          int index = BinarySearch(destination);
-         if (index < 0) {
+         if (index < 0 && ~index > 0 && runs[~index - 1] is ArrayRun array && array.SupportsPointersToElements && (destination - array.Start) % array.ElementLength == 0) {
+            // the pointer points into an array that supports inner anchors
+            index = ~index - 1;
+            changeToken.RemoveRun(array);
+            runs[index] = array.AddSourcePointingWithinArray(start);
+            changeToken.AddRun(runs[index]);
+         } else if (index < 0) {
             // the pointer is brand new
             index = ~index;
             var newRun = new NoInfoRun(destination, new[] { start });
