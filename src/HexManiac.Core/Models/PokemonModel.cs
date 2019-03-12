@@ -151,7 +151,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var errorInfo = TryParseFormat(model, format, dataIndex, out var runToWrite);
          if (errorInfo.HasError) return errorInfo;
 
-         errorInfo = ValidateAnchorNameAndFormat(model, runToWrite, name, format, dataIndex, allowAnchorOverwrite: true);
+         errorInfo = ValidateAnchorNameAndFormat(model, runToWrite, name, format, dataIndex, allowAnchorOverwrite);
          if (!errorInfo.HasError) model.ObserveAnchorWritten(changeToken, name, runToWrite);
 
          return errorInfo;
