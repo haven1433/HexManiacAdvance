@@ -543,20 +543,12 @@ namespace HavenSoft.HexManiac.Core.Models {
          var destination = ReadPointer(start);
          if (destination >= 0 && destination < Count) {
             var index = BinarySearch(destination);
-            var anchorRun = runs[index];
-            var newAnchorRun = anchorRun.RemoveSource(start);
-            changeToken.RemoveRun(anchorRun);
-            if (newAnchorRun.PointerSources.Count == 0) {
-               var anchorIndex = BinarySearch(anchorRun.Start);
-               runs.RemoveAt(anchorIndex);
-               if (anchorForAddress.ContainsKey(anchorRun.Start)) {
-                  changeToken.RemoveName(anchorRun.Start, anchorForAddress[anchorRun.Start]);
-                  addressForAnchor.Remove(anchorForAddress[anchorRun.Start]);
-                  anchorForAddress.Remove(anchorRun.Start);
-               }
+            if (index >= 0) {
+               ClearPointerFromAnchor(changeToken, start, index);
+            } else if (runs[~index - 1] is ArrayRun array) {
+               ClearPointerWithinArray(changeToken, start, ~index - 1, array);
             } else {
-               runs[index] = newAnchorRun;
-               changeToken.AddRun(newAnchorRun);
+               throw new NotImplementedException();
             }
          } else if (sourceToUnmappedName.TryGetValue(start, out var name)) {
             changeToken.RemoveUnmappedPointer(start, name);
@@ -567,6 +559,31 @@ namespace HavenSoft.HexManiac.Core.Models {
                unmappedNameToSources[name].Remove(start);
             }
          }
+      }
+
+      private void ClearPointerFromAnchor(ModelDelta changeToken, int start, int index) {
+         var anchorRun = runs[index];
+         var newAnchorRun = anchorRun.RemoveSource(start);
+         changeToken.RemoveRun(anchorRun);
+         if (newAnchorRun.PointerSources.Count == 0) {
+            var anchorIndex = BinarySearch(anchorRun.Start);
+            runs.RemoveAt(anchorIndex);
+            if (anchorForAddress.ContainsKey(anchorRun.Start)) {
+               changeToken.RemoveName(anchorRun.Start, anchorForAddress[anchorRun.Start]);
+               addressForAnchor.Remove(anchorForAddress[anchorRun.Start]);
+               anchorForAddress.Remove(anchorRun.Start);
+            }
+         } else {
+            runs[index] = newAnchorRun;
+            changeToken.AddRun(newAnchorRun);
+         }
+      }
+
+      private void ClearPointerWithinArray(ModelDelta changeToken, int start, int index, ArrayRun array) {
+         changeToken.RemoveRun(array);
+         var newArray = array.RemoveSource(start);
+         runs[index] = newArray;
+         changeToken.AddRun(newArray);
       }
 
       public override void UpdateArrayPointer(ModelDelta changeToken, int source, int destination) {

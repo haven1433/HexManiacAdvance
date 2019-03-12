@@ -291,6 +291,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new ArrayRun(owner, FormatString, newStart, ElementCount, ElementContent, PointerSources, PointerSourcesForInnerElements);
       }
 
+      public override IFormattedRun RemoveSource(int source) {
+         if (!SupportsPointersToElements) return base.RemoveSource(source);
+         var newPointerSources = PointerSources.Where(item => item != source).ToList();
+         var newInnerPointerSources = new List<IReadOnlyList<int>>();
+         foreach (var list in PointerSourcesForInnerElements) {
+            newInnerPointerSources.Add(list.Where(item => item != source).ToList());
+         }
+
+         return new ArrayRun(owner, FormatString, Start, ElementCount, ElementContent, newPointerSources, newInnerPointerSources);
+      }
+
       protected override IFormattedRun Clone(IReadOnlyList<int> newPointerSources) {
          // since the inner pointer sources includes the first row, update the first row
          List<IReadOnlyList<int>> newInnerPointerSources = null;

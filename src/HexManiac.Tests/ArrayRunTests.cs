@@ -545,6 +545,36 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Empty(errorMessages);
       }
 
+      [Fact]
+      public void CanRemovePointerToWithinArray() {
+         var data = new byte[0x200];
+         var changeToken = new ModelDelta();
+
+         // arrange: setup data with a bunch of pointers pointing into an array of strings
+         var model = new PokemonModel(data);
+         model.WritePointer(changeToken, 0x00, 0x80);
+         model.ObserveRunWritten(changeToken, new PointerRun(0x00));
+         model.WritePointer(changeToken, 0x08, 0x84);
+         model.ObserveRunWritten(changeToken, new PointerRun(0x08));
+         model.WritePointer(changeToken, 0x10, 0x88);
+         model.ObserveRunWritten(changeToken, new PointerRun(0x10));
+         model.WritePointer(changeToken, 0x18, 0x8C);
+         model.ObserveRunWritten(changeToken, new PointerRun(0x18));
+
+         // arrange: setup the array of strings
+         WriteStrings(data, 0x80, "cat", "bat", "hat", "sat");
+         var existingAnchor = model.GetNextAnchor(0x80);
+         var error = ArrayRun.TryParse(model, "^[name\"\"4]4", 0x80, existingAnchor.PointerSources, out var arrayRun);
+         model.ObserveAnchorWritten(changeToken, "sample", arrayRun);
+
+         // act: clear the pointer
+         model.ClearFormat(changeToken, 0x08, 4);
+
+         // assert: array doesn't have pointer anymore
+         var array = (ArrayRun)model.GetNextAnchor(0x80);
+         Assert.Empty(array.PointerSourcesForInnerElements[1]);
+      }
+
       private static void WriteStrings(byte[] buffer, int start, params string[] content) {
          foreach (var item in content) {
             var bytes = PCSString.Convert(item).ToArray();

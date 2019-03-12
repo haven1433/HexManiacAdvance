@@ -57,7 +57,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return Clone(sources.Concat(PointerSources).Distinct().OrderBy(i => i).ToList());
       }
 
-      public IFormattedRun RemoveSource(int source) {
+      public virtual IFormattedRun RemoveSource(int source) {
          return Clone(PointerSources.Except(new[] { source }).ToList());
       }
 
