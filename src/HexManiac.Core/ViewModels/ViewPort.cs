@@ -749,7 +749,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else if (underEdit.CurrentText.StartsWith(PointerStart.ToString())) {
             return char.IsLetterOrDigit(input) || input == ArrayAnchorSeparator || input == PointerEnd;
          } else if (underEdit.CurrentText.StartsWith(GotoMarker.ToString())) {
-            return char.IsLetterOrDigit(input) || char.IsWhiteSpace(input);
+            return char.IsLetterOrDigit(input) || input == ArrayAnchorSeparator || char.IsWhiteSpace(input);
          } else if (underEdit.CurrentText.StartsWith(AnchorStart.ToString())) {
             return
                char.IsLetterOrDigit(input) ||
