@@ -44,7 +44,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (metadata == null) return;
 
          foreach (var anchor in metadata.NamedAnchors) {
-            ApplyAnchor(this, new ModelDelta(), anchor.Address, AnchorStart + anchor.Name + anchor.Format);
+            // since we're loading metadata, we're pretty sure that the anchors in the metadata are right.
+            // therefore, allow those anchors to overwrite anything we found during the initial quick-search phase.
+            ApplyAnchor(this, new ModelDelta(), anchor.Address, AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
          }
          foreach (var unmappedPointer in metadata.UnmappedPointers) {
             sourceToUnmappedName[unmappedPointer.Address] = unmappedPointer.Name;
@@ -140,12 +142,16 @@ namespace HavenSoft.HexManiac.Core.Models {
       #endregion
 
       public static ErrorInfo ApplyAnchor(IDataModel model, ModelDelta changeToken, int dataIndex, string text) {
+         return ApplyAnchor(model, changeToken, dataIndex, text, allowAnchorOverwrite: false);
+      }
+
+      private static ErrorInfo ApplyAnchor(IDataModel model, ModelDelta changeToken, int dataIndex, string text, bool allowAnchorOverwrite) {
          var (name, format) = SplitNameAndFormat(text);
 
          var errorInfo = TryParseFormat(model, format, dataIndex, out var runToWrite);
          if (errorInfo.HasError) return errorInfo;
 
-         errorInfo = ValidateAnchorNameAndFormat(model, runToWrite, name, format, dataIndex);
+         errorInfo = ValidateAnchorNameAndFormat(model, runToWrite, name, format, dataIndex, allowAnchorOverwrite: true);
          if (!errorInfo.HasError) model.ObserveAnchorWritten(changeToken, name, runToWrite);
 
          return errorInfo;
@@ -764,7 +770,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          return ErrorInfo.NoError;
       }
 
-      private static ErrorInfo ValidateAnchorNameAndFormat(IDataModel model, IFormattedRun runToWrite, string name, string format, int dataIndex) {
+      private static ErrorInfo ValidateAnchorNameAndFormat(IDataModel model, IFormattedRun runToWrite, string name, string format, int dataIndex, bool allowAnchorOverwrite = false) {
          var existingRun = model.GetNextRun(dataIndex);
          var nextAnchor = model.GetNextAnchor(dataIndex + 1); // existingRun.Start > dataIndex ? existingRun : model.GetNextRun(existingRun.Start + Math.Max(existingRun.Length, 1));
 
@@ -776,7 +782,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          } else if (name == string.Empty && existingRun.PointerSources.Count == 0 && format != string.Empty) {
             // the next run DOES start here, but nothing points to it
             return new ErrorInfo("An anchor with nothing pointing to it must have a name.");
-         } else if (nextAnchor.Start < runToWrite.Start + runToWrite.Length) {
+         } else if (!allowAnchorOverwrite && nextAnchor.Start < runToWrite.Start + runToWrite.Length) {
             return new ErrorInfo("An existing anchor starts before the new one ends.");
          } else {
             return ErrorInfo.NoError;
