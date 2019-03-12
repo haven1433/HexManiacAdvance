@@ -717,7 +717,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          string format = string.Empty;
          int split = -1;
 
-         if (name.Contains(ArrayStart)) {
+         if (name.Contains(AnchorStart.ToString() + ArrayStart)) {
+            split = name.IndexOf(AnchorStart);
+         } else if (name.Contains(ArrayStart)) {
             split = name.IndexOf(ArrayStart);
          } else if (name.Contains(StringDelimeter)) {
             split = name.IndexOf(StringDelimeter);

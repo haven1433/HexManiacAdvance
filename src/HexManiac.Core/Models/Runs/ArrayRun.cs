@@ -157,8 +157,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return ErrorInfo.NoError;
       }
 
-      public static bool TrySearch(IDataModel data, ModelDelta changeToken, string format, out ArrayRun self) {
+      public static bool TrySearch(IDataModel data, ModelDelta changeToken, string originalFormat, out ArrayRun self) {
          self = null;
+         var format = originalFormat;
          var allowPointersToEntries = format.StartsWith(AnchorStart.ToString());
          if (allowPointersToEntries) format = format.Substring(1);
          var closeArray = format.LastIndexOf(ArrayEnd.ToString());
@@ -201,7 +202,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          if (bestAddress == Pointer.NULL) return false;
 
-         self = new ArrayRun(data, format + bestLength, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources, null);
+         self = new ArrayRun(data, originalFormat + bestLength, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources, null);
          if (allowPointersToEntries) self = self.AddSourcesPointingWithinArray(changeToken);
          return true;
       }
@@ -262,7 +263,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var sources = owner.SearchForPointersToAnchor(changeToken, destinations);
 
          var results = new List<List<int>>();
-         results.Add(PointerSources.ToList());
+         results.Add(PointerSources?.ToList() ?? new List<int>());
          for (int i = 1; i < ElementCount; i++) results.Add(new List<int>());
 
          foreach (var source in sources) {

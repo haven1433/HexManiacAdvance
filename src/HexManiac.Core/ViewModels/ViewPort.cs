@@ -754,6 +754,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return
                char.IsLetterOrDigit(input) ||
                char.IsWhiteSpace(input) ||
+               input == AnchorStart ||
                input == ArrayStart ||
                input == ArrayEnd ||
                input == StringDelimeter ||

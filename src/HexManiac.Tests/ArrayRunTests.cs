@@ -575,6 +575,19 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Empty(array.PointerSourcesForInnerElements[1]);
       }
 
+      [Fact]
+      public void CanCreateArraySupportingInnerAnchorsFromViewModel() {
+         var data = new byte[0x200];
+         var changeToken = new ModelDelta();
+         var model = new PokemonModel(data);
+         var viewport = new ViewPort("name", model) { Width = 0x10, Height = 0x10 };
+
+         viewport.Edit("^array^[content\"\"16]16 ");
+         var run = (ArrayRun)model.GetNextRun(0);
+
+         Assert.StartsWith("^", run.FormatString);
+      }
+
       private static void WriteStrings(byte[] buffer, int start, params string[] content) {
          foreach (var item in content) {
             var bytes = PCSString.Convert(item).ToArray();
