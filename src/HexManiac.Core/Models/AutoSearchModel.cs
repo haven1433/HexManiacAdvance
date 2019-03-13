@@ -89,7 +89,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             ObserveAnchorWritten(noChangeDelta, "items", itemdata);
          }
 
-         // ^pokestats[hp. attack. def. speed. spatk. spdef. catchrate. runrate. a:: b:: c:: d:: e::]pokenames
+         // ^pokestats[hp. attack. def. speed. spatk. spdef. type1. type2. catchRate. baseExp. evs: item1: item2: genderratio. steps2hatch. basehappiness. growthrate. egg1. egg2. ability1. ability2. runrate. unknown. padding:]pokenames
 
          // abilitydescriptions[description<"">]abilitynames
 

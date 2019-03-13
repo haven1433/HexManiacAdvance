@@ -207,12 +207,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void MoveSelectionStartExecuted(Direction direction) {
-         var dif = ScrollRegion.DirectionToDif[direction];
+         Point dif;
+         if (direction == Direction.PageUp) {
+            dif = new Point(0, -Scroll.Height);
+         } else if (direction == Direction.PageDown) {
+            dif = new Point(0, Scroll.Height);
+         } else {
+            dif = ScrollRegion.DirectionToDif[direction];
+         }
          SelectionStart = SelectionEnd + dif;
       }
 
       private void MoveSelectionEndExecuted(Direction direction) {
-         var dif = ScrollRegion.DirectionToDif[direction];
+         Point dif;
+         if (direction == Direction.PageUp) {
+            dif = new Point(0, -Scroll.Height);
+         } else if (direction == Direction.PageDown) {
+            dif = new Point(0, Scroll.Height);
+         } else {
+            dif = ScrollRegion.DirectionToDif[direction];
+         }
          SelectionEnd += dif;
       }
 
