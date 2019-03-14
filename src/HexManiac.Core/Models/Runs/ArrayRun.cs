@@ -72,6 +72,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public const char ArrayEnd = ']';
       public const char SingleByteIntegerFormat = '.';
       public const char DoubleByteIntegerFormat = ':';
+      public const char ArrayAnchorSeparator = '/';
 
       private readonly IDataModel owner;
 
@@ -88,12 +89,23 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public string LengthFromAnchor { get; }
 
+      public bool SupportsPointersToElements { get; }
+
+      /// <summary>
+      /// For Arrays that support pointers to individual elements within the array,
+      /// This is the set of sources that points to each index of the array.
+      /// The first set of sources (PointerSourcesForInnerElements[0]) should always be the same as PointerSources.
+      /// </summary>
+      public IReadOnlyList<IReadOnlyList<int>> PointerSourcesForInnerElements { get; }
+
       // composition of each element
       public IReadOnlyList<ArrayRunElementSegment> ElementContent { get; }
 
       private ArrayRun(IDataModel data, string format, int start, IReadOnlyList<int> pointerSources) : base(start, pointerSources) {
          owner = data;
          FormatString = format;
+         SupportsPointersToElements = format.StartsWith(AnchorStart.ToString());
+         if (SupportsPointersToElements) format = format.Substring(1);
          var closeArray = format.LastIndexOf(ArrayEnd.ToString());
          if (!format.StartsWith(ArrayStart.ToString()) || closeArray == -1) throw new ArrayRunParseException($"Array Content must be wrapped in {ArrayStart}{ArrayEnd}.");
          var segments = format.Substring(1, closeArray - 1);
@@ -123,7 +135,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          Length = ElementLength * ElementCount;
       }
 
-      private ArrayRun(IDataModel data, string format, int start, int elementCount, IReadOnlyList<ArrayRunElementSegment> segments, IReadOnlyList<int> pointerSources) : base(start, pointerSources) {
+      private ArrayRun(IDataModel data, string format, int start, int elementCount, IReadOnlyList<ArrayRunElementSegment> segments, IReadOnlyList<int> pointerSources, IReadOnlyList<IReadOnlyList<int>> pointerSourcesForInnerElements) : base(start, pointerSources) {
          owner = data;
          FormatString = format;
          ElementContent = segments;
@@ -131,6 +143,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          ElementCount = elementCount;
          LengthFromAnchor = string.Empty;
          Length = ElementLength * ElementCount;
+         SupportsPointersToElements = pointerSourcesForInnerElements != null;
+         PointerSourcesForInnerElements = pointerSourcesForInnerElements;
       }
 
       public static ErrorInfo TryParse(IDataModel data, string format, int start, IReadOnlyList<int> pointerSources, out ArrayRun self) {
@@ -144,8 +158,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return ErrorInfo.NoError;
       }
 
-      public static bool TrySearch(IDataModel data, string format, out ArrayRun self) {
+      public static bool TrySearch(IDataModel data, ModelDelta changeToken, string originalFormat, out ArrayRun self) {
          self = null;
+         var format = originalFormat;
+         var allowPointersToEntries = format.StartsWith(AnchorStart.ToString());
+         if (allowPointersToEntries) format = format.Substring(1);
          var closeArray = format.LastIndexOf(ArrayEnd.ToString());
          if (!format.StartsWith(ArrayStart.ToString()) || closeArray == -1) throw new ArrayRunParseException($"Array Content must be wrapped in {ArrayStart}{ArrayEnd}");
          var segments = format.Substring(1, closeArray - 1);
@@ -186,7 +203,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          if (bestAddress == Pointer.NULL) return false;
 
-         self = new ArrayRun(data, format + bestLength, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources);
+         self = new ArrayRun(data, originalFormat + bestLength, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources, null);
+         if (allowPointersToEntries) self = self.AddSourcesPointingWithinArray(changeToken);
          return true;
       }
 
@@ -234,7 +252,39 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var lastArrayCharacterIndex = FormatString.LastIndexOf(ArrayEnd);
          var newFormat = FormatString.Substring(0, lastArrayCharacterIndex + 1);
          if (newFormat != FormatString) newFormat += ElementCount + elementCount;
-         return new ArrayRun(owner, newFormat, Start, ElementCount + elementCount, ElementContent, PointerSources);
+         return new ArrayRun(owner, newFormat, Start, ElementCount + elementCount, ElementContent, PointerSources, PointerSourcesForInnerElements);
+      }
+
+      public ArrayRun AddSourcePointingWithinArray(int source) {
+         var destination = owner.ReadPointer(source);
+         var index = (destination - Start) / ElementLength;
+         if (index < 0 || index >= ElementCount) throw new IndexOutOfRangeException();
+         if (index == 0) throw new NotImplementedException();
+         var newInnerPointerSources = PointerSourcesForInnerElements.ToList();
+         newInnerPointerSources[index] = newInnerPointerSources[index].Concat(new[] { source }).ToList();
+         return new ArrayRun(owner, FormatString, Start, ElementCount, ElementContent, PointerSources, newInnerPointerSources);
+      }
+
+      public ArrayRun AddSourcesPointingWithinArray(ModelDelta changeToken) {
+         if (ElementCount < 2) return this;
+
+         var destinations = new int[ElementCount - 1];
+         for (int i = 1; i < ElementCount; i++) destinations[i - 1] = Start + ElementLength * i;
+
+         var sources = owner.SearchForPointersToAnchor(changeToken, destinations);
+
+         var results = new List<List<int>>();
+         results.Add(PointerSources?.ToList() ?? new List<int>());
+         for (int i = 1; i < ElementCount; i++) results.Add(new List<int>());
+
+         foreach (var source in sources) {
+            var destination = owner.ReadPointer(source);
+            int destinationIndex = (destination - Start) / ElementLength;
+            results[destinationIndex].Add(source);
+         }
+
+         var pointerSourcesForInnerElements = results.Cast<IReadOnlyList<int>>().ToList();
+         return new ArrayRun(owner, FormatString, Start, ElementCount, ElementContent, PointerSources, pointerSourcesForInnerElements);
       }
 
       public void AppendTo(IReadOnlyList<byte> data, StringBuilder text) {
@@ -250,11 +300,30 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public IFormattedRun Move(int newStart) {
-         return new ArrayRun(owner, FormatString, newStart, ElementCount, ElementContent, PointerSources);
+         return new ArrayRun(owner, FormatString, newStart, ElementCount, ElementContent, PointerSources, PointerSourcesForInnerElements);
+      }
+
+      public override IFormattedRun RemoveSource(int source) {
+         if (!SupportsPointersToElements) return base.RemoveSource(source);
+         var newPointerSources = PointerSources.Where(item => item != source).ToList();
+         var newInnerPointerSources = new List<IReadOnlyList<int>>();
+         foreach (var list in PointerSourcesForInnerElements) {
+            newInnerPointerSources.Add(list.Where(item => item != source).ToList());
+         }
+
+         return new ArrayRun(owner, FormatString, Start, ElementCount, ElementContent, newPointerSources, newInnerPointerSources);
       }
 
       protected override IFormattedRun Clone(IReadOnlyList<int> newPointerSources) {
-         return new ArrayRun(owner, FormatString, Start, ElementCount, ElementContent, newPointerSources);
+         // since the inner pointer sources includes the first row, update the first row
+         List<IReadOnlyList<int>> newInnerPointerSources = null;
+         if (PointerSourcesForInnerElements != null) {
+            newInnerPointerSources = new List<IReadOnlyList<int>>();
+            newInnerPointerSources.Add(newPointerSources);
+            for (int i = 1; i < PointerSourcesForInnerElements.Count; i++) newInnerPointerSources.Add(PointerSourcesForInnerElements[i]);
+         }
+
+         return new ArrayRun(owner, FormatString, Start, ElementCount, ElementContent, newPointerSources, newInnerPointerSources);
       }
 
       private static List<ArrayRunElementSegment> ParseSegments(string segments) {
