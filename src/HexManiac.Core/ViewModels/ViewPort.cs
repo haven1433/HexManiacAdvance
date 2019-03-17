@@ -1257,6 +1257,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          public void Visit(Ascii ascii, byte data) => Result = ((char)data).ToString();
 
          public void Visit(Integer integer, byte data) => Result = integer.Value.ToString();
+
+         public void Visit(IntegerEnum integerEnum, byte data) => Result = integerEnum.Value;
       }
 
       /// <summary>
@@ -1297,6 +1299,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          public void Visit(Ascii ascii, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
 
          public void Visit(Integer integer, byte data) => buffer.WriteValue(currentChange, index, 0);
+
+         public void Visit(IntegerEnum integerEnum, byte data) => buffer.WriteValue(currentChange, index, 0);
       }
    }
 }

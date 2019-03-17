@@ -166,6 +166,27 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          context.DrawText(text, new Point(xOffset, CellTextOffset.Y));
       }
 
+      public void Visit(IntegerEnum integerEnum, byte data) {
+         if (integerEnum.Source != integerEnum.Position) return;
+
+         var stringValue = integerEnum.Value;
+
+         var typeface = new Typeface("Consolas");
+         var text = new FormattedText(
+            stringValue,
+            CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            typeface,
+            FontSize,
+            Solarized.Brushes.Cyan,
+            1.0);
+
+         var xOffset = CellTextOffset.X;
+         xOffset += HexContent.CellWidth / 2 * (integerEnum.Length - 1); // adjust based on number of cells to use
+         xOffset -= (stringValue.Length - 2) * 5; // adjust based on width of text
+         context.DrawText(text, new Point(xOffset, CellTextOffset.Y));
+      }
+
       private void Underline(Brush brush, bool isStart, bool isEnd) {
          int startPoint = isStart ? 5 : 0;
          int endPoint = (int)HexContent.CellWidth - (isEnd ? 5 : 0);

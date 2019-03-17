@@ -604,6 +604,39 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Single(run.PointerSourcesForInnerElements[3]);
       }
 
+      [Fact]
+      public void ArraysSupportEnums() {
+         var data = new byte[0x200];
+         var changeToken = new ModelDelta();
+         var model = new PokemonModel(data);
+
+         // arrange: setup the anchor used for the enums
+         WriteStrings(data, 0x00, "cat", "bat", "hat", "sat");
+         var error = ArrayRun.TryParse(model, "^[name\"\"4]4", 0x00, null, out var arrayRun);
+         model.ObserveAnchorWritten(changeToken, "sample", arrayRun);
+
+         // arrange: setup the anchor with the data
+         error = ArrayRun.TryParse(model, "[option:sample]4", 0x40, null, out arrayRun);
+         model.ObserveAnchorWritten(changeToken, "data", arrayRun);
+
+         changeToken.ChangeData(model, 0x42, 2);
+
+         // act: see that the arrayRun can parse according to the enum
+         arrayRun = (ArrayRun)model.GetNextRun(0x40);
+         Assert.Equal("cat", arrayRun.ElementContent[0].ToText(model, 0x40));
+         Assert.Equal("hat", arrayRun.ElementContent[0].ToText(model, 0x42));
+
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var enumViewModel = (IntegerEnum)((Anchor)viewPort[0, 4].Format).OriginalFormat;
+         Assert.Equal("cat", enumViewModel.Value);
+      }
+
+      // TODO I can edit an enum by typing into the viewmodel
+      // TODO typing an incorrect enum name into a viewmodel makes the viewmodel error
+      // TODO multiple enums with the same name are distinguished with ~2 ~3 etc
+      // TODO typing ~1 / ~2 / ~3 onto an enum works correctly
+      // TODO while typing an enum, the ViewModel provides auto-complete options
+
       private static void WriteStrings(byte[] buffer, int start, params string[] content) {
          foreach (var item in content) {
             var bytes = PCSString.Convert(item).ToArray();

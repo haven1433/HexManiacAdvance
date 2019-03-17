@@ -19,7 +19,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public int Length { get; }
       public ArrayRunElementSegment(string name, ElementContentType type, int length) => (Name, Type, Length) = (name, type, length);
 
-      public string ToText(IReadOnlyList<byte> rawData, int offset) {
+      public virtual string ToText(IDataModel rawData, int offset) {
          switch (Type) {
             case ElementContentType.PCS:
                return PCSString.Convert(rawData, offset, Length);
@@ -38,6 +38,32 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             multiplier *= 0x100;
          }
          return result;
+      }
+   }
+
+   public class ArrayRunEnumSegment : ArrayRunElementSegment {
+      public string EnumName { get; }
+      public ArrayRunEnumSegment(string name, int length, string enumName) : base(name, ElementContentType.Integer, length) => EnumName = enumName;
+      public override string ToText(IDataModel model, int offset) {
+         var noChange = new NoDataChangeDeltaModel();
+         // enum must be the name of an array that starts with a string
+         var address = model.GetAddressFromAnchor(noChange, -1, EnumName);
+         if (address == Pointer.NULL) return base.ToText(model, offset);
+         var enumArray = model.GetNextRun(address) as ArrayRun;
+         if (enumArray == null) return base.ToText(model, offset);
+         if (enumArray.ElementContent.Count == 0) return base.ToText(model, offset);
+         var firstContent = enumArray.ElementContent[0];
+         if (firstContent.Type != ElementContentType.PCS) return base.ToText(model, offset);
+
+         // array must be at least as long as than the current value
+         var resultAsInteger = ToInteger(model, offset, Length);
+         if (enumArray.ElementCount <= resultAsInteger) return base.ToText(model, offset);
+
+         // sweet, we can convert from the integer value to the enum value
+         // TODO use ~2 postfix for a value if an earlier entry in the array has the same string
+         var elementStart = enumArray.Start + enumArray.ElementLength * resultAsInteger;
+         var valueWithQuotes = PCSString.Convert(model, elementStart, firstContent.Length);
+         return valueWithQuotes.Substring(1, valueWithQuotes.Length - 2);
       }
    }
 
@@ -224,8 +250,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
 
          if (currentSegment.Type == ElementContentType.Integer) {
-            var value = ArrayRunElementSegment.ToInteger(data, offsets.SegmentStart, currentSegment.Length);
-            return new Integer(offsets.SegmentStart, index, value, currentSegment.Length);
+            if (currentSegment is ArrayRunEnumSegment enumSegment) {
+               var value = enumSegment.ToText(data, index);
+               return new IntegerEnum(offsets.SegmentStart, index, value, currentSegment.Length);
+            } else {
+               var value = ArrayRunElementSegment.ToInteger(data, offsets.SegmentStart, currentSegment.Length);
+               return new Integer(offsets.SegmentStart, index, value, currentSegment.Length);
+            }
          }
 
          if (currentSegment.Type == ElementContentType.Pointer) {
@@ -287,7 +318,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new ArrayRun(owner, FormatString, Start, ElementCount, ElementContent, PointerSources, pointerSourcesForInnerElements);
       }
 
-      public void AppendTo(IReadOnlyList<byte> data, StringBuilder text) {
+      public void AppendTo(IDataModel data, StringBuilder text) {
          for (int i = 0; i < ElementCount; i++) {
             var offset = Start + i * ElementLength;
             text.Append(ExtendArray);
@@ -355,9 +386,23 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                (format, formatLength, segmentLength) = (ElementContentType.Pointer, 2, 4);
             }
 
-            if (format == ElementContentType.Unknown) throw new ArrayRunParseException($"Could not parse format '{segments}'");
-            segments = segments.Substring(formatLength).Trim();
-            list.Add(new ArrayRunElementSegment(name, format, segmentLength));
+            // check to see if a name or length is part of the format
+            if (format == ElementContentType.Integer && segments.Length > formatLength && segments[formatLength] != ' ') {
+               segments = segments.Substring(formatLength);
+               if (int.TryParse(segments, out var maxValue)) {
+                  throw new NotImplementedException();
+               } else {
+                  var endOfToken = segments.IndexOf(' ');
+                  if (endOfToken == -1) endOfToken = segments.Length;
+                  var enumName = segments.Substring(0, endOfToken);
+                  segments = segments.Substring(endOfToken).Trim();
+                  list.Add(new ArrayRunEnumSegment(name, segmentLength, enumName));
+               }
+            } else {
+               if (format == ElementContentType.Unknown) throw new ArrayRunParseException($"Could not parse format '{segments}'");
+               segments = segments.Substring(formatLength).Trim();
+               list.Add(new ArrayRunElementSegment(name, format, segmentLength));
+            }
          }
 
          return list;
