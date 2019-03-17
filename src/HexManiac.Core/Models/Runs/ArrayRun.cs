@@ -46,6 +46,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public ArrayRunEnumSegment(string name, int length, string enumName) : base(name, ElementContentType.Integer, length) => EnumName = enumName;
       public override string ToText(IDataModel model, int offset) {
          var noChange = new NoDataChangeDeltaModel();
+
          // enum must be the name of an array that starts with a string
          var address = model.GetAddressFromAnchor(noChange, -1, EnumName);
          if (address == Pointer.NULL) return base.ToText(model, offset);
@@ -60,10 +61,73 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (enumArray.ElementCount <= resultAsInteger) return base.ToText(model, offset);
 
          // sweet, we can convert from the integer value to the enum value
-         // TODO use ~2 postfix for a value if an earlier entry in the array has the same string
          var elementStart = enumArray.Start + enumArray.ElementLength * resultAsInteger;
          var valueWithQuotes = PCSString.Convert(model, elementStart, firstContent.Length);
-         return valueWithQuotes.Substring(1, valueWithQuotes.Length - 2);
+         var value = valueWithQuotes.Substring(1, valueWithQuotes.Length - 2);
+
+         // use ~2 postfix for a value if an earlier entry in the array has the same string
+         var elementsUpToHereWithThisName = 1;
+         for (int i = resultAsInteger - 1; i >= 0; i--) {
+            elementStart = enumArray.Start + enumArray.ElementLength * i;
+            var previousValue = PCSString.Convert(model, elementStart, firstContent.Length);
+            if (previousValue == valueWithQuotes) elementsUpToHereWithThisName++;
+         }
+         if (elementsUpToHereWithThisName > 1) value += "~" + elementsUpToHereWithThisName;
+
+         // add quotes around it if it contains a space
+         if (value.Contains(' ')) value = $"\"{value}\"";
+
+         return value;
+      }
+
+      public bool TryParse(IDataModel model, string text, out int value) {
+         value = -1;
+         text = text.Trim();
+         if (text.StartsWith("\"") && text.EndsWith("\"")) text = text.Substring(1, text.Length - 2);
+         var partialMatches = new List<string>();
+         var matches = new List<string>();
+         var noChange = new NoDataChangeDeltaModel();
+
+         // enum must be the name of an array that starts with a string
+         var address = model.GetAddressFromAnchor(noChange, -1, EnumName);
+         if (address == Pointer.NULL) return false;
+         var enumArray = model.GetNextRun(address) as ArrayRun;
+         if (enumArray == null) return false;
+         if (enumArray.ElementContent.Count == 0) return false;
+         var firstContent = enumArray.ElementContent[0];
+         if (firstContent.Type != ElementContentType.PCS) return false;
+
+         // if the ~ character is used, expect that it's saying which match we want
+         var desiredMatch = 1;
+         var splitIndex = text.IndexOf('~');
+         if (splitIndex != -1 && !int.TryParse(text.Substring(splitIndex + 1), out desiredMatch)) return false;
+         if (splitIndex != -1) text = text.Substring(0, splitIndex);
+
+         // ok, so everything lines up... check the array to see if any values match the string entered
+         text = text.ToLower();
+         for (int i = 0; i < enumArray.ElementCount; i++) {
+            var option = PCSString.Convert(model, enumArray.Start + enumArray.ElementLength * i, firstContent.Length).ToLower();
+            option = option.Substring(1, option.Length - 2);
+            // check for exact matches
+            if (option == text) {
+               matches.Add(option);
+               if (matches.Count == desiredMatch) {
+                  value = i;
+                  return true;
+               }
+            }
+            // check for start-of-string matches (for autocomplete)
+            if (option.StartsWith(text)) {
+               partialMatches.Add(option);
+               if(partialMatches.Count==desiredMatch && matches.Count == 0) {
+                  value = i;
+                  return true;
+               }
+            }
+         }
+
+         // we went through the whole array and didn't find it :(
+         return false;
       }
    }
 

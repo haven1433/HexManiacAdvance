@@ -732,6 +732,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
             if (innerFormat is Integer) return char.IsNumber(input) || char.IsWhiteSpace(input);
 
+            if (innerFormat is IntegerEnum) return input == StringDelimeter || char.IsLetter(input);
+
             // for pointers in array, don't accept anything but a pointer start
             if (innerFormat is Pointer) {
                var index = scroll.ViewPointToDataIndex(point);
@@ -783,6 +785,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return PCSString.PCS.Any(str => str != null && str.StartsWith(currentText + input));
          } else if (innerFormat is Integer) {
             return char.IsNumber(input) || char.IsWhiteSpace(input);
+         } else if (innerFormat is IntegerEnum) {
+            return char.IsLetterOrDigit(input) ||
+               input == StringDelimeter ||
+               input == '.' ||
+               input == '~' ||
+               char.IsWhiteSpace(input);
          }
 
          if (AllHexCharacters.Contains(input)) {
@@ -890,6 +898,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                return true;
             }
             return false;
+         } else if (originalFormat is IntegerEnum integerEnum) {
+            var currentText = underEdit.CurrentText;
+            // must end in whitespace, and must have matching quotation marks (ex. "Mr. Mime")
+            if (char.IsWhiteSpace(currentText.Last()) && currentText.Count(c => c == '"') % 2 == 0) {
+               CompleteIntegerEnumEdit(point, currentText);
+               return true;
+            }
+            return false;
          }
 
          if (underEdit.CurrentText.Length < 2) return false;
@@ -916,6 +932,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
          if (result != 0) OnError?.Invoke(this, $"Warning: number was too big to fit in the available space.");
          if (!SilentScroll(offsets.SegmentStart + length)) ClearEdits(point);
+      }
+
+      private void CompleteIntegerEnumEdit(Point point, string currentText) {
+         var memoryLocation = scroll.ViewPointToDataIndex(point);
+         var array = (ArrayRun)Model.GetNextRun(memoryLocation);
+         var offsets = array.ConvertByteOffsetToArrayOffset(memoryLocation);
+         var segment = (ArrayRunEnumSegment)array.ElementContent[offsets.SegmentIndex];
+         if (segment.TryParse(Model, currentText, out int value)) {
+            for (int i = 0; i < segment.Length; i++) {
+               history.CurrentChange.ChangeData(Model, offsets.SegmentStart + i, (byte)value);
+               value /= 0x100;
+            }
+         } else {
+            OnError?.Invoke(this, $"Could not parse {currentText}as an enum from the {segment.EnumName} array");
+         }
       }
 
       private void CompleteAsciiEdit(Point point, string currentText) {

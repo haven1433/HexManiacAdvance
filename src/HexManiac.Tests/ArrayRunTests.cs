@@ -631,10 +631,105 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("cat", enumViewModel.Value);
       }
 
-      // TODO I can edit an enum by typing into the viewmodel
-      // TODO typing an incorrect enum name into a viewmodel makes the viewmodel error
-      // TODO multiple enums with the same name are distinguished with ~2 ~3 etc
-      // TODO typing ~1 / ~2 / ~3 onto an enum works correctly
+      [Fact]
+      public void ArraysSupportEditingEnums() {
+         var data = new byte[0x200];
+         data[0x42] = 2; // hat
+         var changeToken = new ModelDelta();
+         var model = new PokemonModel(data);
+
+         // arrange: setup the anchor used for the enums
+         WriteStrings(data, 0x00, "cat", "bat", "hat", "sat");
+         var error = ArrayRun.TryParse(model, "^[name\"\"4]4", 0x00, null, out var arrayRun);
+         model.ObserveAnchorWritten(changeToken, "sample", arrayRun);
+
+         // arrange: setup the anchor with the data
+         error = ArrayRun.TryParse(model, "[option.sample]4", 0x40, null, out arrayRun);
+         model.ObserveAnchorWritten(changeToken, "data", arrayRun);
+
+         // act: use a viewmodel to change 0x41 to 'bat'
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort.SelectionStart = new Point(1, 4); // select space 0x41
+         viewPort.Edit("bat ");
+
+         Assert.Equal(1, data[0x41]);
+      }
+
+      [Fact]
+      public void ViewModelReturnsErrorWhenEnumIsNotValidValue() {
+         var data = new byte[0x200];
+         data[0x42] = 2; // hat
+         var changeToken = new ModelDelta();
+         var model = new PokemonModel(data);
+
+         // arrange: setup the anchor used for the enums
+         WriteStrings(data, 0x00, "cat", "bat", "hat", "sat");
+         var error = ArrayRun.TryParse(model, "^[name\"\"4]4", 0x00, null, out var arrayRun);
+         model.ObserveAnchorWritten(changeToken, "sample", arrayRun);
+
+         // arrange: setup the anchor with the data
+         error = ArrayRun.TryParse(model, "[option.sample]4", 0x40, null, out arrayRun);
+         model.ObserveAnchorWritten(changeToken, "data", arrayRun);
+
+         // act: use a viewmodel to try to change 41 to 'pat' (invalid)
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort.SelectionStart = new Point(1, 4); // select space 0x41
+         var errors = new List<string>();
+         viewPort.OnError += (sender, e) => errors.Add(e);
+
+         viewPort.Edit("pat ");
+         Assert.Single(errors);
+      }
+
+      [Fact]
+      public void MultipleEnumValuesWithSameContentAreDistinguishable() {
+         var data = new byte[0x200];
+         data[0x42] = 2; // bat~2
+         var changeToken = new ModelDelta();
+         var model = new PokemonModel(data);
+
+         // arrange: setup the anchor used for the enums
+         WriteStrings(data, 0x00, "cat", "bat", "bat", "sat");
+         var error = ArrayRun.TryParse(model, "^[name\"\"4]4", 0x00, null, out var arrayRun);
+         model.ObserveAnchorWritten(changeToken, "sample", arrayRun);
+
+         // arrange: setup the anchor with the data
+         error = ArrayRun.TryParse(model, "[option.sample]4", 0x40, null, out arrayRun);
+         model.ObserveAnchorWritten(changeToken, "data", arrayRun);
+
+         // act: setup a viewmodel
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+
+         // assert: viewmodel should render bat~2 at 0x42
+         var format = (IntegerEnum)viewPort[2, 4].Format;
+         Assert.Equal("bat~2", format.Value);
+      }
+
+      [Fact]
+      public void CanEditToSecondEnumWithSameContent() {
+         var data = new byte[0x200];
+         data[0x42] = 3; // sat
+         var changeToken = new ModelDelta();
+         var model = new PokemonModel(data);
+
+         // arrange: setup the anchor used for the enums
+         WriteStrings(data, 0x00, "cat", "bat", "bat", "sat");
+         var error = ArrayRun.TryParse(model, "^[name\"\"4]4", 0x00, null, out var arrayRun);
+         model.ObserveAnchorWritten(changeToken, "sample", arrayRun);
+
+         // arrange: setup the anchor with the data
+         error = ArrayRun.TryParse(model, "[option.sample]4", 0x40, null, out arrayRun);
+         model.ObserveAnchorWritten(changeToken, "data", arrayRun);
+
+         // act: setup a viewmodel and change 0x41 to bat~2
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort.SelectionStart = new Point(1, 4); // select space 0x41
+         viewPort.Edit("bat~2 ");
+
+         // assert: viewmodel should render bat~2 at 0x42
+         Assert.Equal(2, data[0x41]);
+      }
+
       // TODO while typing an enum, the ViewModel provides auto-complete options
 
       private static void WriteStrings(byte[] buffer, int start, params string[] content) {
