@@ -62,7 +62,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          // sweet, we can convert from the integer value to the enum value
          var elementStart = enumArray.Start + enumArray.ElementLength * resultAsInteger;
-         var valueWithQuotes = PCSString.Convert(model, elementStart, firstContent.Length);
+         var valueWithQuotes = PCSString.Convert(model, elementStart, firstContent.Length).Trim();
          var value = valueWithQuotes.Substring(1, valueWithQuotes.Length - 2);
 
          // use ~2 postfix for a value if an earlier entry in the array has the same string

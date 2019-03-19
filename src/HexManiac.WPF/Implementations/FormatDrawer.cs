@@ -177,14 +177,14 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             CultureInfo.CurrentCulture,
             FlowDirection.LeftToRight,
             typeface,
-            FontSize,
-            Solarized.Brushes.Cyan,
+            FontSize * 3 / 4,
+            Solarized.Brushes.Yellow,
             1.0);
 
-         var xOffset = CellTextOffset.X;
-         xOffset += HexContent.CellWidth / 2 * (integerEnum.Length - 1); // adjust based on number of cells to use
-         xOffset -= (stringValue.Length - 2) * 5; // adjust based on width of text
+         var xOffset = CellTextOffset.X / 2;
+         context.PushClip(new RectangleGeometry(new Rect(0, 0, HexContent.CellWidth * integerEnum.Length, HexContent.CellHeight)));
          context.DrawText(text, new Point(xOffset, CellTextOffset.Y));
+         context.Pop();
       }
 
       private void Underline(Brush brush, bool isStart, bool isEnd) {
