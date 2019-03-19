@@ -213,9 +213,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                byteLength += ElementLength;
                elementCount++;
             }
+            LengthFromAnchor = string.Empty;
             ElementCount = elementCount;
          } else if (int.TryParse(length, out int result)) {
             // fixed length is easy
+            LengthFromAnchor = string.Empty;
             ElementCount = result;
          } else {
             LengthFromAnchor = length;
@@ -231,7 +233,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          ElementContent = segments;
          ElementLength = ElementContent.Sum(e => e.Length);
          ElementCount = elementCount;
-         LengthFromAnchor = string.Empty;
+         var closeArray = format.LastIndexOf(ArrayEnd.ToString());
+         var length = format.Substring(closeArray + 1);
+         LengthFromAnchor = length;
          Length = ElementLength * ElementCount;
          SupportsPointersToElements = pointerSourcesForInnerElements != null;
          PointerSourcesForInnerElements = pointerSourcesForInnerElements;

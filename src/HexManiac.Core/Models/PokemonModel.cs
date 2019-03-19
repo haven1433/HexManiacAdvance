@@ -268,6 +268,36 @@ namespace HavenSoft.HexManiac.Core.Models {
          return NoInfoRun.NullRun;
       }
 
+      public override bool TryGetUsefulHeader(int address, out string header) {
+         header = null;
+         // only produce headers for arrays with length based on other arrays that start with a text member.
+         var run = GetNextRun(address);
+         if (run.Start > address) return false;
+         if (!(run is ArrayRun array)) return false;
+         if ((address - array.Start) % array.ElementLength != 0) return false;
+         var anchor = array.LengthFromAnchor;
+         var source = GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, anchor);
+         if (source == Pointer.NULL) return false;
+         var sourceArray = GetNextRun(source) as ArrayRun;
+         if (sourceArray == null) return false;
+         if (sourceArray.ElementContent[0].Type != ElementContentType.PCS) return false;
+
+         // grab the string from the corrisponding index
+         var index = (address - array.Start) / array.ElementLength;
+         var nameAddress = sourceArray.Start + sourceArray.ElementLength * index;
+         var nameWithQuotes = PCSString.Convert(this, nameAddress, sourceArray.ElementContent[0].Length).Trim();
+
+         // keep the quotes for names with whitespace, since the quotes are needed when the user is typing in the name in that case
+         if (nameWithQuotes.Contains(' ')) {
+            header = nameWithQuotes;
+         } else {
+            var nameWithoutQuotes = nameWithQuotes.Substring(1, nameWithQuotes.Length - 2);
+            header = nameWithoutQuotes;
+         }
+
+         return true;
+      }
+
       public override bool IsAtEndOfArray(int dataIndex, out ArrayRun arrayRun) {
          var index = BinarySearch(dataIndex);
          if (index >= 0 && runs[index].Length == 0) {

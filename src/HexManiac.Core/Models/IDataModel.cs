@@ -25,6 +25,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       IFormattedRun GetNextAnchor(int dataIndex);
 
+      bool TryGetUsefulHeader(int address, out string header);
+
       bool IsAtEndOfArray(int dataIndex, out ArrayRun arrayRun); // is this byte the first one after the end of an array run? (also return true if the array is length 0 and starts right here)
 
       void ObserveRunWritten(ModelDelta changeToken, IFormattedRun run);
@@ -85,6 +87,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public abstract IFormattedRun GetNextRun(int dataIndex);
 
       public abstract IFormattedRun GetNextAnchor(int dataIndex);
+
+      public virtual bool TryGetUsefulHeader(int address, out string header) { header = null; return false; }
 
       public abstract bool IsAtEndOfArray(int dataIndex, out ArrayRun arrayRun);
 

@@ -278,7 +278,7 @@
                         </DockPanel>
                      </Border>
                      <!-- Headers -->
-                     <ItemsControl DockPanel.Dock="Left" Width="60" ItemsSource="{Binding Headers}" Background="{DynamicResource Backlight}" MouseDown="HeaderMouseDown">
+                     <ItemsControl DockPanel.Dock="Left" Width="70" ItemsSource="{Binding Headers}" Background="{DynamicResource Backlight}" MouseDown="HeaderMouseDown">
                         <ItemsControl.ItemTemplate>
                            <DataTemplate>
                               <TextBlock Foreground="{DynamicResource Secondary}" Text="{Binding}" FontFamily="Consolas" HorizontalAlignment="Right" Height="{x:Static hsg3hv:HexContent.CellHeight}" Padding="4"/>

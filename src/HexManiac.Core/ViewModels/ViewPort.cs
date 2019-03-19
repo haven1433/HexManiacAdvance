@@ -291,7 +291,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Model = model;
          FileName = fileName;
 
-         scroll = new ScrollRegion { DataLength = Model.Count };
+         scroll = new ScrollRegion(model.TryGetUsefulHeader) { DataLength = Model.Count };
          scroll.PropertyChanged += ScrollPropertyChanged;
 
          selection = new Selection(scroll, Model);

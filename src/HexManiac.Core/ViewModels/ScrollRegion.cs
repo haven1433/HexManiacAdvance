@@ -5,6 +5,8 @@ using System.Collections.ObjectModel;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
+   public delegate bool TryGetUsefulHeader(int address, out string header);
+
    public class ScrollRegion : ViewModelCore {
       public static readonly IReadOnlyDictionary<Direction, Point> DirectionToDif = new Dictionary<Direction, Point> {
          { Direction.Up,    new Point( 0,-1) },
@@ -14,6 +16,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       };
 
       private readonly StubCommand scroll;
+
+      private readonly TryGetUsefulHeader tryGetUsefulHeader;
 
       private int dataIndex, width, height, scrollValue, maximumScroll, dataLength;
 
@@ -78,7 +82,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public event EventHandler<int> ScrollChanged;
 
-      public ScrollRegion() {
+      public static bool DefaultHeaderStrategy(int address, out string header) { header = null; return false; }
+
+      public ScrollRegion(TryGetUsefulHeader headerStratey = null) {
+         tryGetUsefulHeader = headerStratey ?? DefaultHeaderStrategy;
          width = 4;
          height = 4;
          scroll = new StubCommand {
@@ -154,9 +161,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          while (Headers.Count > Height) Headers.RemoveAt(Headers.Count - 1);
          for (int i = 0; i < Height; i++) {
             var address = dataIndex + i * Width;
-            var hexAddress = address.ToString("X6");
-            if (address >= DataLength) hexAddress = string.Empty;
-            if (address < 0) hexAddress = string.Empty;
+
+            if (!tryGetUsefulHeader(address, out string hexAddress)) {
+               hexAddress = address.ToString("X6");
+               if (address >= DataLength) hexAddress = string.Empty;
+               if (address < 0) hexAddress = string.Empty;
+            }
 
             if (Headers.Count > i) {
                Headers[i] = hexAddress;
