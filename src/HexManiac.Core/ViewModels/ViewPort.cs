@@ -70,6 +70,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public int MaximumScroll => scroll.MaximumScroll;
 
       public ObservableCollection<string> Headers => scroll.Headers;
+      public ObservableCollection<HeaderRow> ColumnHeaders { get; }
       public int DataOffset => scroll.DataIndex;
       public ICommand Scroll => scroll.Scroll;
 
@@ -290,6 +291,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          Model = model;
          FileName = fileName;
+         ColumnHeaders = new ObservableCollection<HeaderRow>();
 
          scroll = new ScrollRegion(model.TryGetUsefulHeader) { DataLength = Model.Count };
          scroll.PropertyChanged += ScrollPropertyChanged;
@@ -1225,7 +1227,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          }
 
+         if (ColumnHeaders.Count == 0 || ColumnHeaders[0].ColumnHeaders.Count != Width) UpdateColumnHeaders();
+
          NotifyCollectionChanged(ResetArgs);
+      }
+
+      private void UpdateColumnHeaders() {
+         var index = scroll.ViewPointToDataIndex(new Point(0, 0));
+         var run = Model.GetNextRun(index) as ArrayRun;
+         if (run != null && run.Start > index) run = null; // only use the run if it starts _before_ the screen
+         var headers = run?.GetColumnHeaders(Width) ?? HeaderRow.GetDefaultColumnHeaders(Width);
+
+         for (int i = 0; i < headers.Count; i++) {
+            if (i < ColumnHeaders.Count) ColumnHeaders[i] = headers[i];
+            else ColumnHeaders.Add(headers[i]);
+         }
+
+         while (ColumnHeaders.Count > headers.Count) ColumnHeaders.RemoveAt(ColumnHeaders.Count - 1);
       }
 
       private IDataFormat WrapFormat(IFormattedRun run, IDataFormat format, int dataIndex) {

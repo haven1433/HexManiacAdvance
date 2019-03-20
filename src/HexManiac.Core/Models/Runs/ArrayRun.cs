@@ -156,6 +156,53 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
    }
 
+   public class ColumnHeader {
+      public string ColumnTitle { get; }
+      public int ByteWidth { get; }
+      public ColumnHeader(string title, int byteWidth = 1) => (ColumnTitle, ByteWidth) = (title, byteWidth);
+   }
+
+   /// <summary>
+   /// Represents a horizontal row of labels.
+   /// Each entry is meant to label a column.
+   /// </summary>
+   public class HeaderRow {
+      public IReadOnlyList<ColumnHeader> ColumnHeaders { get; }
+
+      public HeaderRow(ArrayRun source, int byteStart, int length) {
+         var headers = new List<ColumnHeader>();
+         // we know which 'byte' to start at, but we want to know what 'index' to start at
+         // basically, count off each element to figure out how big it is
+         int currentByte = 0;
+         int startIndex = 0;
+         while (currentByte < byteStart) {
+            currentByte += source.ElementContent[startIndex].Length;
+            startIndex++;
+         }
+         currentByte = 0;
+         for (int i = 0; currentByte < length; i++) {
+            var segment = source.ElementContent[(startIndex + i) % source.ElementContent.Count];
+            headers.Add(new ColumnHeader(segment.Name, segment.Length));
+            currentByte += segment.Length;
+         }
+         ColumnHeaders = headers;
+      }
+
+      public HeaderRow(int start, int length) {
+         var hex = "0123456789ABCDEF";
+         var headers = new ColumnHeader[length];
+         for (int i = 0; i < length; i++) headers[i] = new ColumnHeader(hex[(start + i) % 0x10].ToString());
+         ColumnHeaders = headers;
+      }
+
+      public static IReadOnlyList<HeaderRow> GetDefaultColumnHeaders(int columnCount) {
+         if (columnCount > 0x10 && columnCount % 0x10 != 0) return new List<HeaderRow>();
+         if (columnCount < 0x10 && 0x10 % columnCount != 0) return new List<HeaderRow>();
+         if (columnCount >= 0x10) return new[] { new HeaderRow(0, columnCount) };
+         return Enumerable.Range(0, 0x10 / columnCount).Select(i => new HeaderRow(columnCount * i, columnCount)).ToList();
+      }
+   }
+
    public class ArrayRun : BaseRun {
       public const char ExtendArray = '+';
       public const char ArrayStart = '[';
@@ -384,6 +431,23 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          var pointerSourcesForInnerElements = results.Cast<IReadOnlyList<int>>().ToList();
          return new ArrayRun(owner, FormatString, Start, ElementCount, ElementContent, PointerSources, pointerSourcesForInnerElements);
+      }
+
+      /// <summary>
+      /// Arrays might want custom column headers.
+      /// If so, this method can get them.
+      /// </summary>
+      public IReadOnlyList<HeaderRow> GetColumnHeaders(int columnCount) {
+         // check if it's a multiple of the array width
+         if (columnCount >= ElementLength) {
+            if (columnCount % ElementLength != 0) return null;
+            return new[] { new HeaderRow(this, 0, columnCount) };
+         }
+
+         // check if it's a divisor of the array width
+         if (ElementLength % columnCount != 0) return null;
+         var segments = ElementLength / columnCount;
+         return Enumerable.Range(0, segments).Select(i => new HeaderRow(this, columnCount * i, columnCount)).ToList();
       }
 
       public void AppendTo(IDataModel data, StringBuilder text) {

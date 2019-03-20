@@ -13,6 +13,7 @@
       <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
       <hsg3hv:IntegerToBooleanViaMatchConverter x:Key="IndexMatch"/>
       <hsg3hv:IntegerToHexConverter x:Key="Hex"/>
+      <hsg3hv:MultiplyConverter x:Key="Mult"/>
    </Window.Resources>
    <Window.InputBindings>
       <KeyBinding Key="N" Modifiers="Ctrl" Command="{Binding New}" />
@@ -257,7 +258,7 @@
                      <!-- Anchor Editor -->
                      <Border DockPanel.Dock="Top" Height="19" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource Backlight}">
                         <DockPanel Visibility="{Binding AnchorTextVisible, Converter={StaticResource BoolToVisibility}}" >
-                           <TextBlock Width="60" Text="Anchor: " TextAlignment="Right" ToolTipService.ShowDuration="15000">
+                           <TextBlock Width="70" Text="Anchor: " TextAlignment="Right" ToolTipService.ShowDuration="15000">
                               <TextBlock.ToolTip>
                                  <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{solarized:Theme Blue}" BorderThickness="1">
                                     <TextBlock TextAlignment="Left">
@@ -277,7 +278,38 @@
                            <TextBox Text="{Binding AnchorText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,25,0"/>
                         </DockPanel>
                      </Border>
-                     <!-- Headers -->
+                     <!-- Column Headers -->
+                     <DockPanel DockPanel.Dock="Top">
+                        <TextBlock Width="70" Text="{Binding ArrayName}" DockPanel.Dock="Left"/>
+                        <ItemsControl ItemsSource="{Binding ColumnHeaders}" Background="{DynamicResource Backlight}">
+                           <ItemsControl.ItemTemplate>
+                              <DataTemplate>
+                                 <ItemsControl ItemsSource="{Binding ColumnHeaders}">
+                                    <ItemsControl.ItemsPanel>
+                                       <ItemsPanelTemplate>
+                                          <StackPanel Orientation="Horizontal"/>
+                                       </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                       <DataTemplate>
+                                          <TextBlock Foreground="{DynamicResource Secondary}" Text="{Binding ColumnTitle}" FontFamily="Consolas" HorizontalAlignment="Left" Width="{Binding ByteWidth, Converter={StaticResource Mult}, ConverterParameter={x:Static hsg3hv:HexContent.CellWidth}}">
+                                             <TextBlock.ToolTip>
+                                                <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{solarized:Theme Blue}" BorderThickness="1">
+                                                   <TextBlock TextAlignment="Left" Text="{Binding ColumnTitle}"/>
+                                                </ToolTip>
+                                             </TextBlock.ToolTip>
+                                             <TextBlock.RenderTransform>
+                                                <TranslateTransform X="5"/>
+                                             </TextBlock.RenderTransform>
+                                          </TextBlock>
+                                       </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                 </ItemsControl>
+                              </DataTemplate>
+                           </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                     </DockPanel>
+                     <!-- Row Headers -->
                      <ItemsControl DockPanel.Dock="Left" Width="70" ItemsSource="{Binding Headers}" Background="{DynamicResource Backlight}" MouseDown="HeaderMouseDown">
                         <ItemsControl.ItemTemplate>
                            <DataTemplate>

@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
@@ -77,6 +78,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public string AnchorText { get; set; }
 
       public bool AnchorTextVisible => false;
+
+      public ObservableCollection<HeaderRow> ColumnHeaders { get; }
 
 #pragma warning disable 0067 // it's ok if events are never used
       public event EventHandler<string> OnError;
