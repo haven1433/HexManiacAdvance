@@ -77,12 +77,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void ScrollPropertyChanged(object sender, PropertyChangedEventArgs e) {
          if (e.PropertyName == nameof(scroll.DataIndex)) {
             RefreshBackingData();
+            UpdateColumnHeaders();
          } else if (e.PropertyName != nameof(scroll.DataLength)) {
             NotifyPropertyChanged(e.PropertyName);
          }
 
          if (e.PropertyName == nameof(Width) || e.PropertyName == nameof(Height)) {
             RefreshBackingData();
+            UpdateColumnHeaders();
          }
       }
 
@@ -1227,8 +1229,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          }
 
-         if (ColumnHeaders.Count == 0 || ColumnHeaders[0].ColumnHeaders.Count != Width) UpdateColumnHeaders();
-
          NotifyCollectionChanged(ResetArgs);
       }
 
@@ -1236,7 +1236,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var index = scroll.ViewPointToDataIndex(new Point(0, 0));
          var run = Model.GetNextRun(index) as ArrayRun;
          if (run != null && run.Start > index) run = null; // only use the run if it starts _before_ the screen
-         var headers = run?.GetColumnHeaders(Width) ?? HeaderRow.GetDefaultColumnHeaders(Width);
+         var headers = run?.GetColumnHeaders(Width, index) ?? HeaderRow.GetDefaultColumnHeaders(Width, index);
 
          for (int i = 0; i < headers.Count; i++) {
             if (i < ColumnHeaders.Count) ColumnHeaders[i] = headers[i];

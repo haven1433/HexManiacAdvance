@@ -279,36 +279,7 @@
                         </DockPanel>
                      </Border>
                      <!-- Column Headers -->
-                     <DockPanel DockPanel.Dock="Top">
-                        <TextBlock Width="70" Text="{Binding ArrayName}" DockPanel.Dock="Left"/>
-                        <ItemsControl ItemsSource="{Binding ColumnHeaders}" Background="{DynamicResource Backlight}">
-                           <ItemsControl.ItemTemplate>
-                              <DataTemplate>
-                                 <ItemsControl ItemsSource="{Binding ColumnHeaders}">
-                                    <ItemsControl.ItemsPanel>
-                                       <ItemsPanelTemplate>
-                                          <StackPanel Orientation="Horizontal"/>
-                                       </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                       <DataTemplate>
-                                          <TextBlock Foreground="{DynamicResource Secondary}" Text="{Binding ColumnTitle}" FontFamily="Consolas" HorizontalAlignment="Left" Width="{Binding ByteWidth, Converter={StaticResource Mult}, ConverterParameter={x:Static hsg3hv:HexContent.CellWidth}}">
-                                             <TextBlock.ToolTip>
-                                                <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{solarized:Theme Blue}" BorderThickness="1">
-                                                   <TextBlock TextAlignment="Left" Text="{Binding ColumnTitle}"/>
-                                                </ToolTip>
-                                             </TextBlock.ToolTip>
-                                             <TextBlock.RenderTransform>
-                                                <TranslateTransform X="5"/>
-                                             </TextBlock.RenderTransform>
-                                          </TextBlock>
-                                       </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                 </ItemsControl>
-                              </DataTemplate>
-                           </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                     </DockPanel>
+                     <hsg3hv:HorizontalSlantedTextControl HeaderRows="{Binding ColumnHeaders}" DockPanel.Dock="Top" ColumnWidth="{x:Static hsg3hv:HexContent.CellWidth}"/>
                      <!-- Row Headers -->
                      <ItemsControl DockPanel.Dock="Left" Width="70" ItemsSource="{Binding Headers}" Background="{DynamicResource Backlight}" MouseDown="HeaderMouseDown">
                         <ItemsControl.ItemTemplate>
