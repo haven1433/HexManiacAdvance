@@ -6,6 +6,7 @@
         xmlns:hsv="clr-namespace:HavenSoft.HexManiac.WPF.Resources"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:solarized="clr-namespace:Solarized"
+        xmlns:hsg3hvmtr="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Tools;assembly=HexManiac.Core"
         Icon="..\Resources\AppIcon.ico"
         PreviewMouseDown="RunDeferredActions"
         Title="Hex Maniac Advance" Height="450" Width="870" AllowDrop="True" Background="{DynamicResource Background}">
@@ -143,7 +144,7 @@
                <MenuItem Header="_Hide All Tools" Command="{Binding Tools.HideCommand}"/>
                <Separator/>
                <MenuItem Header="Toggle _Text Tool" Command="{Binding Tools.StringToolCommand}"/>
-               <MenuItem Header="Toggle _Filler Tool" Command="{Binding Tools.Tool2Command}"/>
+               <MenuItem Header="Toggle T_able Tool" Command="{Binding Tools.TableToolCommand}"/>
                <MenuItem Header="Toggle _Extra Tool" Command="{Binding Tools.Tool3Command}"/>
             </MenuItem>
             <MenuItem Header="_Help">
@@ -305,7 +306,7 @@
                               </Style>
                            </Button.Style>
                         </Button>
-                        <Button Content="Tool2" Command="{Binding Tools.Tool2Command}" Margin="0,2">
+                        <Button Content="Table" Command="{Binding Tools.TableToolCommand}" Margin="0,2">
                            <Button.LayoutTransform>
                               <RotateTransform Angle="90"/>
                            </Button.LayoutTransform>
@@ -364,9 +365,9 @@
                               IsEnabled="{Binding StringTool.Enabled}"
                               Text="{Binding StringTool.Content, UpdateSourceTrigger=PropertyChanged}" />
                         </DockPanel>
-                        <StackPanel Name="Tool2Panel">
-                           <StackPanel.Style>
-                              <Style TargetType="StackPanel">
+                        <ScrollViewer Name="TableToolPanel" VerticalScrollBarVisibility="Visible">
+                           <ScrollViewer.Style>
+                              <Style TargetType="ScrollViewer">
                                  <Setter Property="Visibility" Value="Collapsed"/>
                                  <Style.Triggers>
                                     <DataTrigger Binding="{Binding SelectedIndex}" Value="1">
@@ -374,9 +375,35 @@
                                     </DataTrigger>
                                  </Style.Triggers>
                               </Style>
-                           </StackPanel.Style>
-                           <TextBlock Text="Coming Soon!" Margin="5,15,0,0"/>
-                        </StackPanel>
+                           </ScrollViewer.Style>
+                           <ItemsControl Width="265" ItemsSource="{Binding TableTool.Children}" Grid.IsSharedSizeScope="True" ScrollViewer.VerticalScrollBarVisibility="Visible">
+                              <ItemsControl.Resources>
+                                 <DataTemplate DataType="{x:Type hsg3hvmtr:TitleArrayElementViewModel}">
+                                    <TextBlock Text="{Binding Content}"/>
+                                 </DataTemplate>
+                                 <DataTemplate DataType="{x:Type hsg3hvmtr:FieldArrayElementViewModel}">
+                                    <Grid HorizontalAlignment="Stretch" Margin="2">
+                                       <Grid.ColumnDefinitions>
+                                          <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
+                                          <ColumnDefinition Width="*"/>
+                                       </Grid.ColumnDefinitions>
+                                       <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
+                                       <TextBox Text="{Binding Content}" Grid.Column="1"/>
+                                    </Grid>
+                                 </DataTemplate>
+                                 <DataTemplate DataType="{x:Type hsg3hvmtr:ComboBoxArrayElementViewModel}">
+                                    <Grid HorizontalAlignment="Stretch" Margin="2">
+                                       <Grid.ColumnDefinitions>
+                                          <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
+                                          <ColumnDefinition Width="*"/>
+                                       </Grid.ColumnDefinitions>
+                                       <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
+                                       <ComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" Grid.Column="1"/>
+                                    </Grid>
+                                 </DataTemplate>
+                              </ItemsControl.Resources>
+                           </ItemsControl>
+                        </ScrollViewer>
                         <StackPanel Name="Tool3Panel">
                            <StackPanel.Style>
                               <Style TargetType="StackPanel">

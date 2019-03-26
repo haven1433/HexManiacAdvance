@@ -136,6 +136,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (run.Start <= dataIndex && run is ArrayRun array) {
             var offsets = array.ConvertByteOffsetToArrayOffset(dataIndex);
             Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
+            Tools.TableTool.Address = array.Start + array.ElementLength * offsets.ElementIndex;
          }
 
          if (this[SelectionStart].Format is Anchor anchor) {

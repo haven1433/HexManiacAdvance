@@ -234,7 +234,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          // option 4: pointing within an array that supports inner element anchors
          var containingRun = GetNextRun(address);
-         if (containingRun.Start < address && containingRun is ArrayRun array && array.SupportsPointersToElements) {
+         if (containingRun.Start < address && containingRun is ArrayRun array) {
             var arrayName = GetAnchorFromAddress(-1, array.Start);
             var arrayIndex = (address - array.Start) / array.ElementLength;
             var indexMod = (address - array.Start) % array.ElementLength;

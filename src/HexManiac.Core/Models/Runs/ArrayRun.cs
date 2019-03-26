@@ -43,7 +43,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
    public class ArrayRunEnumSegment : ArrayRunElementSegment {
       public string EnumName { get; }
+
       public ArrayRunEnumSegment(string name, int length, string enumName) : base(name, ElementContentType.Integer, length) => EnumName = enumName;
+
       public override string ToText(IDataModel model, int offset) {
          var noChange = new NoDataChangeDeltaModel();
 
@@ -128,6 +130,34 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          // we went through the whole array and didn't find it :(
          return false;
+      }
+
+      public IReadOnlyList<string> GetOptions(IDataModel model) {
+         var noChange = new NoDataChangeDeltaModel();
+
+         // enum must be the name of an array that starts with a string
+         var address = model.GetAddressFromAnchor(noChange, -1, EnumName);
+         if (address == Pointer.NULL) return null;
+         var enumArray = model.GetNextRun(address) as ArrayRun;
+         if (enumArray == null) return null;
+         if (enumArray.ElementContent.Count == 0) return null;
+         var firstContent = enumArray.ElementContent[0];
+         if (firstContent.Type != ElementContentType.PCS) return null;
+
+         // array must be at least as long as than the current value
+         var optionCount = enumArray.ElementCount;
+
+         // sweet, we can convert from the integer value to the enum value
+         var results = new List<string>();
+         for (int i = 0; i < optionCount; i++) {
+            var elementStart = enumArray.Start + enumArray.ElementLength * i;
+            var valueWithQuotes = PCSString.Convert(model, elementStart, firstContent.Length).Trim();
+            var value = valueWithQuotes.Substring(1, valueWithQuotes.Length - 2);
+            if (value.Contains(' ')) value = $"\"{value}\"";
+            results.Add(value);
+         }
+
+         return results;
       }
    }
 

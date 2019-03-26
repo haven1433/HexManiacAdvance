@@ -48,6 +48,7 @@
     <Compile Include="Models\ErrorInfo.cs" />
     <Compile Include="Models\IDataModel.cs" />
     <Compile Include="Models\Runs\AsciiRun.cs" />
+    <Compile Include="ViewModels\Tools\IArrayElementViewModel.cs" />
     <Compile Include="Models\Runs\IFormattedRun.cs" />
     <Compile Include="Models\ModelDelta.cs" />
     <Compile Include="Models\Runs\PCSRun.cs" />
@@ -76,6 +77,7 @@
     <Compile Include="ViewModels\ScrollRegion.cs" />
     <Compile Include="ViewModels\SearchResultsViewPort.cs" />
     <Compile Include="ViewModels\Selection.cs" />
+    <Compile Include="ViewModels\Tools\TableTool.cs" />
     <Compile Include="ViewModels\ViewModelCore.cs" />
     <Compile Include="ViewModels\ViewPort.cs" />
   </ItemGroup>

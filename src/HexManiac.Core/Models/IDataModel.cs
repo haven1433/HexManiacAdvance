@@ -133,6 +133,24 @@ namespace HavenSoft.HexManiac.Core.Models {
       IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
    }
 
+   public static class IDataModelExtensions {
+      public static int ReadMultiByteValue(this IDataModel model, int index, int length) {
+         int word = 0;
+         while (length > 0) {
+            word <<= 8;
+            word += model.RawData[index + length - 1];
+            length--;
+         }
+         return word;
+      }
+      public static void WriteMultiByteValue(this IDataModel model, int index, int length, ModelDelta changeToken, int value) {
+         for (int i = 0; i < length; i++) {
+            changeToken.ChangeData(model, index + i, (byte)value);
+            value >>= 8;
+         }
+      }
+   }
+
    public class BasicModel : BaseModel {
 
       public BasicModel(byte[] data) : base(data) { }
