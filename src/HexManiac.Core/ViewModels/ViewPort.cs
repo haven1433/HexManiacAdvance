@@ -348,6 +348,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public bool IsSelected(Point point) => selection.IsSelected(point);
 
+      public bool IsTable(Point point) {
+         var search = scroll.ViewPointToDataIndex(point);
+         var run = Model.GetNextRun(search);
+         return run.Start <= search && run is ArrayRun;
+      }
+
       public void ClearFormat() {
          var startDataIndex = scroll.ViewPointToDataIndex(SelectionStart);
          var endDataIndex = scroll.ViewPointToDataIndex(SelectionEnd);

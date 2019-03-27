@@ -30,10 +30,12 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (oldCollection != null) oldCollection.CollectionChanged -= HeaderRowsCollectionChanged;
          var newCollection = (ObservableCollection<HeaderRow>)e.NewValue;
          if (newCollection != null) newCollection.CollectionChanged += HeaderRowsCollectionChanged;
+         UpdateDesiredHeight();
          InvalidateVisual();
       }
 
       private void HeaderRowsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
+         UpdateDesiredHeight();
          InvalidateVisual();
       }
 
@@ -61,20 +63,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       #endregion
 
-      public HorizontalSlantedTextControl() {
-         ClipToBounds = true;
-      }
-
-      /// <summary>
-      /// return how much size I want, given the available size
-      /// </summary>
-      protected override Size MeasureOverride(Size availableSize) {
-         var maxLength = HeaderRows.Max(row => row.ColumnHeaders.Max(header => header.ColumnTitle.Length));
-         var sampleWidth = Format(new string('0', maxLength)).Width;
-         var rows = HeaderRows.Count;
-         var heightPerRow = sampleWidth * Math.Sin(SlantAngle * Math.PI / 180);
-         return new Size(availableSize.Width, heightPerRow * rows + 10);
-      }
+      public HorizontalSlantedTextControl() => ClipToBounds = true;
 
       protected override void OnRender(DrawingContext drawingContext) {
          base.OnRender(drawingContext);
@@ -82,18 +71,18 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
          int maxLength = 1;
          if (HeaderRows.Count > 0) maxLength = HeaderRows.Max(row => row.ColumnHeaders.Max(header => header.ColumnTitle.Length));
-         var sampleWidth = Format(new string('0', maxLength)).Width;
-         var heightPerRow = sampleWidth * Math.Sin(SlantAngle * Math.PI / 180);
+         var sampleFormat = Format(new string('0', maxLength));
+         var heightPerRow = Math.Max(sampleFormat.Width * Math.Sin(SlantAngle * Math.PI / 180), sampleFormat.Height);
          var pen = new Pen(Solarized.Theme.Backlight, 1);
 
-         double yOffset = sampleWidth * Math.Sin(SlantAngle * Math.PI / 180);
+         double yOffset = heightPerRow;
 
          for (var i = 0; i < HeaderRows.Count; i++) {
             var row = HeaderRows[i];
             double xOffset = 70.0;
             foreach (var header in row.ColumnHeaders) {
                var theta = (90 - SlantAngle) * Math.PI / 180;
-               var separatorLength = sampleWidth * Math.Cos(SlantAngle * Math.PI / 180) * 2 / 3;
+               var separatorLength = sampleFormat.Width * Math.Cos(SlantAngle * Math.PI / 180) * 2 / 3;
                var height = ActualHeight - (HeaderRows.Count - i - 1) * heightPerRow;
                drawingContext.DrawLine(pen, new Point(xOffset, height), new Point(xOffset + Math.Sin(theta) * separatorLength, height - Math.Cos(theta) * separatorLength));
 
@@ -112,6 +101,15 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             }
             yOffset += heightPerRow;
          }
+      }
+
+      private void UpdateDesiredHeight() {
+         var maxLength = (HeaderRows?.Count ?? 0) == 0 ? 1 : HeaderRows.Max(row => row.ColumnHeaders.Max(header => header.ColumnTitle.Length));
+         var formattedText = Format(new string('0', maxLength));
+         var rows = HeaderRows?.Count ?? 0;
+         var heightPerRow = Math.Max(formattedText.Width * Math.Sin(SlantAngle * Math.PI / 180), formattedText.Height);
+         var finalHeight = Math.Ceiling(heightPerRow * rows) + 10;
+         Height = finalHeight;
       }
 
       private FormattedText Format(string text) {

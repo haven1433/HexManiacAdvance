@@ -7,7 +7,6 @@ using System.Globalization;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public enum ElementContentViewModelType {
-      Title,
       TextField,
       NumericField,
       Address,
@@ -25,18 +24,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       ElementContentViewModelType Type { get; }
       void UpdateModelFromViewModel(FieldArrayElementViewModel viewModel);
       string UpdateViewModelFromModel(FieldArrayElementViewModel viewModel);
-   }
-
-   public class TitleArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
-      public ElementContentViewModelType Type => ElementContentViewModelType.Title;
-
-      public bool IsInError => false;
-
-      public string ErrorText => string.Empty;
-
-      public string Content { get; }
-
-      public TitleArrayElementViewModel(string content) => Content = content;
    }
 
    public class FieldArrayElementViewModel : ViewModelCore, IArrayElementViewModel {

@@ -27,6 +27,9 @@
                      <Trigger SourceName="Border" Property="IsMouseOver" Value="True">
                         <Setter TargetName="Border" Property="BorderBrush" Value="{solarized:Theme Blue}"/>
                      </Trigger>
+                     <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Background" Value="{DynamicResource Background}"/>
+                     </Trigger>
                   </ControlTemplate.Triggers>
                </ControlTemplate>
             </Setter.Value>
@@ -347,6 +350,12 @@
       <!-- TextBlock Style-->
       <Style TargetType="TextBlock">
          <Setter Property="Foreground" Value="{DynamicResource Primary}"/>
+         <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+               <Setter Property="Foreground" Value="{DynamicResource Secondary}"/>
+               <Setter Property="FontStyle" Value="Italic"/>
+            </Trigger>
+         </Style.Triggers>
       </Style>
 
       <!-- TextBox Style -->

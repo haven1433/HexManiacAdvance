@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Windows.Input;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
@@ -10,7 +11,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly Selection selection;
       private readonly ChangeHistory<ModelDelta> history;
       private readonly IToolTrayViewModel toolTray;
+      private ArrayRun currentArray;
+
       public string Name => "Table";
+
+      private string currentElementName;
+      public string CurrentElementName {
+         get => currentElementName;
+         set => TryUpdate(ref currentElementName, value);
+      }
+
+      private readonly StubCommand previous, next;
+      public ICommand Previous => previous;
+      public ICommand Next => next;
+      private void CommandCanExecuteChanged() {
+         previous.CanExecuteChanged.Invoke(previous, EventArgs.Empty);
+         next.CanExecuteChanged.Invoke(previous, EventArgs.Empty);
+      }
 
       public ObservableCollection<IArrayElementViewModel> Children { get; }
 
@@ -20,12 +37,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          get => address;
          set {
             var run = model.GetNextRun(value);
-            if (run.Start > value) {
+            if (run.Start > value || !(run is ArrayRun array)) {
                Enabled = false;
-               return;
-            }
-            if (!(run is ArrayRun array)) {
-               Enabled = false;
+               currentArray = null;
+               CommandCanExecuteChanged();
                return;
             }
 
@@ -33,6 +48,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             value = array.Start + array.ElementLength * offsets.ElementIndex;
             if (TryUpdate(ref address, value)) {
                toolTray.Schedule(DataForCurrentRunChanged);
+               currentArray = array;
+               CommandCanExecuteChanged();
                Enabled = true;
             }
          }
@@ -48,11 +65,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public event EventHandler<(int originalLocation, int newLocation)> ModelDataMoved; // invoke when a new item gets added and the table has to move
 
-      public TableTool(IDataModel model, ChangeHistory<ModelDelta> history, IToolTrayViewModel toolTray) {
+      public TableTool(IDataModel model, Selection selection, ChangeHistory<ModelDelta> history, IToolTrayViewModel toolTray) {
          this.model = model;
+         this.selection = selection;
          this.history = history;
          this.toolTray = toolTray;
          Children = new ObservableCollection<IArrayElementViewModel>();
+
+         previous = new StubCommand {
+            CanExecute = parameter => currentArray != null && currentArray.Start < address,
+            Execute = parameter => {
+               selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(Address - currentArray.ElementLength);
+               selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selection.Scroll.ViewPointToDataIndex(selection.SelectionStart) + currentArray.ElementLength - 1);
+            }
+         };
+
+         next = new StubCommand {
+            CanExecute = parameter => currentArray != null && currentArray.Start + currentArray.Length > address + currentArray.ElementLength,
+            Execute = parameter => {
+               selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(Address + currentArray.ElementLength);
+               selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selection.Scroll.ViewPointToDataIndex(selection.SelectionStart) + currentArray.ElementLength - 1);
+            }
+         };
+
+         CurrentElementName = "The Table tool only works if your cursor is on table data.";
       }
 
       private void DataForCurrentRunChanged() {
@@ -60,11 +96,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          var array = model.GetNextRun(Address) as ArrayRun;
          if (array == null) {
-            Children.Add(new TitleArrayElementViewModel("The Table tool only works if your cursor is on table data."));
+            CurrentElementName = "The Table tool only works if your cursor is on table data.";
             return;
          }
 
-         Children.Add(new TitleArrayElementViewModel(model.GetAnchorFromAddress(-1, Address))); // example: pokestat/Charmander
+         CurrentElementName = model.GetAnchorFromAddress(-1, Address); // example: pokestat/Charmander
 
          int itemAddress = Address;
          foreach (var item in array.ElementContent) {

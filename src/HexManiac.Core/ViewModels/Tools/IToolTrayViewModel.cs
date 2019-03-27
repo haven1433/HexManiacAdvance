@@ -67,7 +67,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ToolTray(IDataModel model, Selection selection, ChangeHistory<ModelDelta> history) {
          tools = new IToolViewModel[] {
             new PCSTool(model, selection, history, this),
-            new TableTool(model, history, this),
+            new TableTool(model, selection, history, this),
             new FillerTool("Tool3"),
          };
 

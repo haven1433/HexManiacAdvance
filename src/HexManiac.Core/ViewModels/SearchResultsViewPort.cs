@@ -136,6 +136,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return children[childIndex].IsSelected(new Point(x, line));
       }
 
+      public bool IsTable(Point point) => false;
+
       public void FollowLink(int x, int y) {
          if (y < 0 || y > height || x < 0 || x > width) return;
          var (childIndex, line) = GetChildLine(y);

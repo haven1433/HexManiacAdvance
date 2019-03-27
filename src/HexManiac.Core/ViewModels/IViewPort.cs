@@ -27,6 +27,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       HexElement this[int x, int y] { get; }
       IDataModel Model { get; }
       bool IsSelected(Point point);
+      bool IsTable(Point point);
 
       IReadOnlyList<(int start, int end)> Find(string search);
       IChildViewPort CreateChildView(int startAddress, int endAddress);
