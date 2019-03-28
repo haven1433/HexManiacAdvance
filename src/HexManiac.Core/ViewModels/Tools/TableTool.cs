@@ -91,7 +91,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          CurrentElementName = "The Table tool only works if your cursor is on table data.";
       }
 
-      private void DataForCurrentRunChanged() {
+      public void DataForCurrentRunChanged() {
+         foreach (var child in Children) child.DataChanged -= ForwardModelChanged;
          Children.Clear();
 
          var array = model.GetNextRun(Address) as ArrayRun;
@@ -104,27 +105,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          int itemAddress = Address;
          foreach (var item in array.ElementContent) {
-            if (item.Type == ElementContentType.Unknown) Children.Add(new FieldArrayElementViewModel(history, model, item.Name, itemAddress, item.Length, new HexFieldStratgy()));
-            else if (item.Type == ElementContentType.PCS) Children.Add(new FieldArrayElementViewModel(history, model, item.Name, itemAddress, item.Length, new TextFieldStratgy()));
-            else if (item.Type == ElementContentType.Pointer) Children.Add(new FieldArrayElementViewModel(history, model, item.Name, itemAddress, item.Length, new AddressFieldStratgy()));
+            IArrayElementViewModel viewModel = null;
+            if (item.Type == ElementContentType.Unknown) viewModel = new FieldArrayElementViewModel(history, model, item.Name, itemAddress, item.Length, new HexFieldStratgy());
+            else if (item.Type == ElementContentType.PCS) viewModel = new FieldArrayElementViewModel(history, model, item.Name, itemAddress, item.Length, new TextFieldStratgy());
+            else if (item.Type == ElementContentType.Pointer) viewModel = new FieldArrayElementViewModel(history, model, item.Name, itemAddress, item.Length, new AddressFieldStratgy());
             else if (item.Type == ElementContentType.Integer) {
                if (item is ArrayRunEnumSegment enumSegment) {
-                  Children.Add(new ComboBoxArrayElementViewModel(history, model, item.Name, itemAddress, item.Length));
+                  viewModel = new ComboBoxArrayElementViewModel(history, model, item.Name, itemAddress, item.Length);
                } else {
-                  Children.Add(new FieldArrayElementViewModel(history, model, item.Name, itemAddress, item.Length, new NumericFieldStrategy()));
+                  viewModel = new FieldArrayElementViewModel(history, model, item.Name, itemAddress, item.Length, new NumericFieldStrategy());
                }
             } else {
                throw new NotImplementedException();
             }
+            Children.Add(viewModel);
+            viewModel.DataChanged += ForwardModelChanged;
             itemAddress += item.Length;
          }
       }
 
-      private void UpdateRun(ArrayRun array) {
-         // TODO update the model based on changes in the configuration.
-         // generally, the formatted won't change.
-         // Instead, the content will change.
-         ModelDataChanged?.Invoke(this, null);
-      }
+      private void ForwardModelChanged(object sender, EventArgs e) => ModelDataChanged?.Invoke(this, currentArray);
    }
 }

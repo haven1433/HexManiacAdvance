@@ -637,7 +637,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override string Copy(int start, int length) {
          var text = new StringBuilder();
          var run = GetNextRun(start);
-         if (run.Start < start) {
+         if (run.Start < start && !(run is ArrayRun)) {
             length += start - run.Start;
             start = run.Start;
          }
@@ -671,10 +671,10 @@ namespace HavenSoft.HexManiac.Core.Models {
                start += run.Length;
                length -= run.Length;
             } else if (run is ArrayRun arrayRun) {
-               arrayRun.AppendTo(this, text);
+               arrayRun.AppendTo(this, text, start, length);
                text.Append(" ");
-               start += run.Length;
-               length -= run.Length;
+               length -= run.Start + run.Length - start;
+               start = run.Start + run.Length;
             } else {
                throw new NotImplementedException();
             }

@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -728,6 +729,56 @@ namespace HavenSoft.HexManiac.Tests {
 
          // assert: viewmodel should render bat~2 at 0x42
          Assert.Equal(2, data[0x41]);
+      }
+
+      [Fact]
+      public void EditingWithTableToolUpdatesMainContent() {
+         var data = new byte[0x200];
+         data[0x42] = 3; // sat
+         var changeToken = new ModelDelta();
+         var model = new PokemonModel(data);
+
+         // arrange: setup the anchor used for the enums
+         WriteStrings(data, 0x00, "cat", "bat", "bat", "sat");
+         var error = ArrayRun.TryParse(model, "^[name\"\"4]4", 0x00, null, out var arrayRun);
+         model.ObserveAnchorWritten(changeToken, "sample", arrayRun);
+
+         // act: setup a viewmodel and show table tool
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort.Tools.SelectedIndex = 1;
+
+         // act: change the table contents
+         viewPort.SelectionStart = new Point(1, 0);
+         var element = (FieldArrayElementViewModel)viewPort.Tools.TableTool.Children[0];
+         element.Content = "dog";
+
+         // assert: main view was updated
+         Assert.Equal("o", ((PCS)viewPort[1, 0].Format).ThisCharacter);
+      }
+
+      [Fact]
+      public void EditingMainContentUpdatesTableTool() {
+         var data = new byte[0x200];
+         data[0x42] = 3; // sat
+         var changeToken = new ModelDelta();
+         var model = new PokemonModel(data);
+
+         // arrange: setup the anchor used for the enums
+         WriteStrings(data, 0x00, "cat", "bat", "bat", "sat");
+         var error = ArrayRun.TryParse(model, "^[name\"\"4]4", 0x00, null, out var arrayRun);
+         model.ObserveAnchorWritten(changeToken, "sample", arrayRun);
+
+         // act: setup a viewmodel and show table tool
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort.Tools.SelectedIndex = 1;
+
+         // act: change the table contents
+         viewPort.SelectionStart = new Point(1, 0);
+         viewPort.Edit("u");
+
+         // assert: main view was updated
+         var element = (FieldArrayElementViewModel)viewPort.Tools.TableTool.Children[0];
+         Assert.Equal("cut", element.Content);
       }
 
       // TODO while typing an enum, the ViewModel provides auto-complete options

@@ -307,6 +307,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Tools = new ToolTray(Model, selection, history);
          Tools.StringTool.ModelDataChanged += ModelChangedByTool;
          Tools.StringTool.ModelDataMoved += ModelDataMovedByTool;
+         Tools.TableTool.ModelDataChanged += ModelChangedByTool;
 
          ImplementCommands();
          RefreshBackingData();
@@ -741,7 +742,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
             if (innerFormat is Ascii) return true;
 
-            if (innerFormat is Integer) return char.IsNumber(input) || char.IsWhiteSpace(input);
+            if (innerFormat is Integer) return char.IsNumber(input);
 
             if (innerFormat is IntegerEnum) return input == StringDelimeter || char.IsLetter(input);
 
@@ -930,7 +931,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var integer = (Integer)(editFormat.OriginalFormat is Anchor anchor ? anchor.OriginalFormat : editFormat.OriginalFormat);
          if (!int.TryParse(currentText, out var result)) {
-            OnError?.Invoke(this, $"Could not parse {integer} as a number");
+            OnError?.Invoke(this, $"Could not parse {currentText} as a number");
             return;
          }
 
@@ -941,6 +942,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             history.CurrentChange.ChangeData(Model, offsets.SegmentStart + i, (byte)result);
             result /= 0x100;
          }
+         Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
          if (result != 0) OnError?.Invoke(this, $"Warning: number was too big to fit in the available space.");
          if (!SilentScroll(offsets.SegmentStart + length)) ClearEdits(point);
       }
@@ -958,6 +960,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else {
             OnError?.Invoke(this, $"Could not parse {currentText}as an enum from the {segment.EnumName} array");
          }
+         Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
       }
 
       private void CompleteAsciiEdit(Point point, string currentText) {
@@ -1014,6 +1017,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (fullValue == Pointer.NULL || (0 <= fullValue && fullValue < Model.Count)) {
             if (inArray) {
                Model.UpdateArrayPointer(history.CurrentChange, index, fullValue);
+               Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
             } else {
                Model.WritePointer(history.CurrentChange, index, fullValue);
                Model.ObserveRunWritten(history.CurrentChange, new PointerRun(index));
@@ -1062,6 +1066,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             while (run.Start + run.Length > memoryLocation) {
                history.CurrentChange.ChangeData(Model, memoryLocation, 0xFF);
                memoryLocation++;
+               Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
                SilentScroll(memoryLocation);
                var newRunLength = PCSString.ReadString(Model, run.Start, true);
                Model.ObserveRunWritten(history.CurrentChange, new PCSRun(run.Start, newRunLength, run.PointerSources));
@@ -1070,6 +1075,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var offsets = arrayRun.ConvertByteOffsetToArrayOffset(memoryLocation);
             history.CurrentChange.ChangeData(Model, memoryLocation, 0xFF);
             memoryLocation++;
+            Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
+            Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
             SilentScroll(memoryLocation);
             while (offsets.SegmentStart + arrayRun.ElementContent[offsets.SegmentIndex].Length > memoryLocation) {
                history.CurrentChange.ChangeData(Model, memoryLocation, 0x00);
@@ -1101,6 +1108,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          history.CurrentChange.ChangeData(Model, memoryLocation, byteValue);
          Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
+         if (run is ArrayRun) Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
          if (!SilentScroll(memoryLocation + 1)) {
             RefreshBackingData(point);
             if (point.X + 1 < Width) {

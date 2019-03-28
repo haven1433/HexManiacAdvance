@@ -22,7 +22,7 @@
       <KeyBinding Key="S" Modifiers="Ctrl" Command="{Binding Save}" />
       <KeyBinding Key="S" Modifiers="Ctrl+Shift" Command="{Binding SaveAs}" />
       <KeyBinding Key="A" Modifiers="Ctrl+Shift" Command="{Binding SaveAll}" />
-      <KeyBinding Key="W" Modifiers="Ctrl" Command="{Binding Close}" />
+      <KeyBinding Key="W" Modifiers="Ctrl" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}" />
 
       <KeyBinding Key="Z" Modifiers="Ctrl" Command="{Binding Undo}" />
       <KeyBinding Key="Y" Modifiers="Ctrl" Command="{Binding Redo}" />
@@ -96,7 +96,7 @@
                <MenuItem Header="Save _As" Command="{Binding SaveAs}" InputGestureText="Ctrl+Shift+S" />
                <MenuItem Header="Save A_ll" Command="{Binding SaveAll}" InputGestureText="Ctrl+Shift+A" />
                <Separator />
-               <MenuItem Header="_Close Current Tab" Command="{Binding Close}" InputGestureText="Ctrl+W" />
+               <MenuItem Header="_Close Current Tab" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}" InputGestureText="Ctrl+W" />
                <MenuItem Header="E_xit" Click="ExitClicked" InputGestureText="Alt+F4">
                   <MenuItem.Icon>
                      <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
@@ -247,7 +247,7 @@
                            <MouseBinding MouseAction="MiddleClick" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}"/>
                         </TextBlock.InputBindings>
                      </TextBlock>
-                     <Button Command="{Binding Close}" Width="15" Margin="5,0,0,0" VerticalAlignment="Stretch" Background="{DynamicResource Background}" BorderBrush="{DynamicResource Background}">
+                     <Button Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}" Width="15" Margin="5,0,0,0" VerticalAlignment="Stretch" Background="{DynamicResource Background}" BorderBrush="{DynamicResource Background}">
                         <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
                      </Button>
                   </StackPanel>

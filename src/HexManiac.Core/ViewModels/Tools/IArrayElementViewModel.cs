@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
@@ -15,7 +16,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    }
 
    public interface IArrayElementViewModel : INotifyPropertyChanged {
-      ElementContentViewModelType Type { get; }
+      event EventHandler DataChanged;
       bool IsInError { get; }
       string ErrorText { get; }
    }
@@ -28,6 +29,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
    public class FieldArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
       private readonly IFieldArrayElementViewModelStrategy strategy;
+
+      public event EventHandler DataChanged;
 
       public ChangeHistory<ModelDelta> History { get; }
       public IDataModel Model { get; }
@@ -53,6 +56,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set {
             if (TryUpdate(ref content, value)) {
                strategy.UpdateModelFromViewModel(this);
+               DataChanged?.Invoke(this, EventArgs.Empty);
             }
          }
       }
@@ -78,7 +82,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public string UpdateViewModelFromModel(FieldArrayElementViewModel viewModel) {
          var text = PCSString.Convert(viewModel.Model, viewModel.Start, viewModel.Length).Trim();
-         text = text.Substring(1, text.Length - 2); // take off quotes
+
+         // take off quotes
+         if (text.StartsWith("\"")) text = text.Substring(1);
+         if (text.EndsWith("\"")) text = text.Substring(0, text.Length - 1);
+
          return text;
       }
    }
@@ -104,9 +112,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ElementContentViewModelType Type => ElementContentViewModelType.Address;
 
       public void UpdateModelFromViewModel(FieldArrayElementViewModel viewModel) {
+         var content = viewModel.Content;
+         if (content.StartsWith("<")) content = content.Substring(1);
+         if (content.EndsWith(">")) content = content.Substring(0, content.Length - 1);
+
          int address;
-         if (!int.TryParse(viewModel.Content, NumberStyles.HexNumber, CultureInfo.CurrentCulture.NumberFormat, out address)) {
-            address = viewModel.Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, viewModel.Content);
+         if (!int.TryParse(content, NumberStyles.HexNumber, CultureInfo.CurrentCulture.NumberFormat, out address)) {
+            address = viewModel.Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, content);
          }
 
          if (address != Pointer.NULL) {
@@ -120,7 +132,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var value = viewModel.Model.ReadPointer(viewModel.Start);
          var text = value.ToString("X2");
          while (text.Length < 6) text = "0" + text;
-         return text;
+         return $"<{text}>";
       }
    }
 
@@ -144,6 +156,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
    public class ComboBoxArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
       private readonly ChangeHistory<ModelDelta> history;
+
+      public event EventHandler DataChanged;
 
       public IDataModel Model { get; }
       public string Name { get; }
@@ -174,6 +188,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var offsets = run.ConvertByteOffsetToArrayOffset(Start);
             var segment = (ArrayRunEnumSegment)run.ElementContent[offsets.SegmentIndex];
             Model.WriteMultiByteValue(Start, Length, history.CurrentChange, value);
+            DataChanged?.Invoke(this, EventArgs.Empty);
          }
       }
 

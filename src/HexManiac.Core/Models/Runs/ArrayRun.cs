@@ -25,6 +25,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                return PCSString.Convert(rawData, offset, Length);
             case ElementContentType.Integer:
                return ToInteger(rawData, offset, Length).ToString();
+            case ElementContentType.Pointer:
+               var address = rawData.ReadPointer(offset);
+               var anchor = rawData.GetAnchorFromAddress(-1, address);
+               if (string.IsNullOrEmpty(anchor)) anchor = address.ToString("X6");
+               return $"<{anchor}>";
             default:
                throw new NotImplementedException();
          }
@@ -484,15 +489,21 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return Enumerable.Range(0, segments).Select(i => new HeaderRow(this, columnCount * i + startingDataIndex - Start, columnCount, startingDataIndex)).ToList();
       }
 
-      public void AppendTo(IDataModel data, StringBuilder text) {
-         for (int i = 0; i < ElementCount; i++) {
+      public void AppendTo(IDataModel data, StringBuilder text, int start, int length) {
+         var offsets = ConvertByteOffsetToArrayOffset(start);
+         length += offsets.SegmentOffset;
+         for (int i = offsets.ElementIndex; i < ElementCount && length > 0; i++) {
             var offset = Start + i * ElementLength;
-            text.Append(ExtendArray);
-            foreach (var segment in ElementContent) {
+            if (offsets.SegmentIndex == 0) text.Append(ExtendArray);
+            for (int j = offsets.SegmentIndex; j < ElementContent.Count && length > 0; j++) {
+               var segment = ElementContent[j];
                text.Append(segment.ToText(data, offset).Trim());
+               text.Append(" ");
                offset += segment.Length;
+               length -= segment.Length;
             }
             text.Append(Environment.NewLine);
+            offsets = new ArrayOffset(0, 0, 0, 0);
          }
       }
 
