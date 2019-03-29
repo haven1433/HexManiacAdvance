@@ -89,7 +89,10 @@ namespace HavenSoft.HexManiac.Core.Models {
             ObserveAnchorWritten(noChangeDelta, "items", itemdata);
          }
 
-         // ^pokestats[hp. attack. def. speed. spatk. spdef. type1.types type2.types catchRate. baseExp. evs: item1:items item2:items genderratio. steps2hatch. basehappiness. growthrate. egg1. egg2. ability1.abilitynames ability2.abilitynames runrate. unknown. padding:]pokenames
+         if (TrySearch(this, noChangeDelta, "[hp. attack. def. speed. spatk. spdef. type1.types type2.types catchRate. baseExp. evs: item1:items item2:items genderratio. steps2hatch. basehappiness. growthrate. egg1. egg2. ability1.abilitynames ability2.abilitynames runrate. unknown. padding:]pokenames", out var pokestatdata)) {
+            ObserveAnchorWritten(noChangeDelta, "pokestats", pokestatdata);
+         }
+
          // 
          // abilitydescriptions[description<"">]abilitynames
 

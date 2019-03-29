@@ -96,6 +96,20 @@ namespace HavenSoft.HexManiac.Tests {
          if (game.Contains("Sapphire"))  Assert.Equal(59, run.ElementCount);
       }
 
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void PokeStatsAreFound(string game) {
+         var model = LoadModel(game);
+         var noChange = new NoDataChangeDeltaModel();
+
+         var address = model.GetAddressFromAnchor(noChange, -1, "pokestats");
+         var run = (ArrayRun)model.GetNextAnchor(address);
+
+         var bulbasaurStats = model.Skip(run.Start + run.ElementLength).Take(6).ToArray();
+         var compareSet = new[] { 45, 49, 49, 45, 65, 65 };
+         for (int i = 0; i < compareSet.Length; i++) Assert.Equal(compareSet[i], bulbasaurStats[i]);
+      }
+
       /// <summary>
       /// Loading the model can take a while.
       /// We want to know that loading the model created the correct arrays,

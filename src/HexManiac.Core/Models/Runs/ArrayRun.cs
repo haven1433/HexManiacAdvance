@@ -53,32 +53,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public override string ToText(IDataModel model, int offset) {
          var noChange = new NoDataChangeDeltaModel();
+         var options = GetOptions(model);
+         if (options == null) return base.ToText(model, offset);
 
-         // enum must be the name of an array that starts with a string
-         var address = model.GetAddressFromAnchor(noChange, -1, EnumName);
-         if (address == Pointer.NULL) return base.ToText(model, offset);
-         var enumArray = model.GetNextRun(address) as ArrayRun;
-         if (enumArray == null) return base.ToText(model, offset);
-         if (enumArray.ElementContent.Count == 0) return base.ToText(model, offset);
-         var firstContent = enumArray.ElementContent[0];
-         if (firstContent.Type != ElementContentType.PCS) return base.ToText(model, offset);
-
-         // array must be at least as long as than the current value
          var resultAsInteger = ToInteger(model, offset, Length);
-         if (enumArray.ElementCount <= resultAsInteger) return base.ToText(model, offset);
-
-         // sweet, we can convert from the integer value to the enum value
-         var elementStart = enumArray.Start + enumArray.ElementLength * resultAsInteger;
-         var valueWithQuotes = PCSString.Convert(model, elementStart, firstContent.Length).Trim();
-         var value = valueWithQuotes.Substring(1, valueWithQuotes.Length - 2);
+         if (resultAsInteger >= options.Count) return base.ToText(model, offset);
+         var value = options[resultAsInteger];
 
          // use ~2 postfix for a value if an earlier entry in the array has the same string
          var elementsUpToHereWithThisName = 1;
          for (int i = resultAsInteger - 1; i >= 0; i--) {
-            elementStart = enumArray.Start + enumArray.ElementLength * i;
-            var previousValue = PCSString.Convert(model, elementStart, firstContent.Length);
-            if (previousValue == valueWithQuotes) elementsUpToHereWithThisName++;
+            var previousValue = options[i];
+            if (previousValue == value) elementsUpToHereWithThisName++;
          }
+         if (value.StartsWith("\"") && value.EndsWith("\"")) value = value.Substring(1, value.Length - 2);
          if (elementsUpToHereWithThisName > 1) value += "~" + elementsUpToHereWithThisName;
 
          // add quotes around it if it contains a space
@@ -137,7 +125,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return false;
       }
 
+      private IReadOnlyList<string> cachedOptions;
       public IReadOnlyList<string> GetOptions(IDataModel model) {
+         if (cachedOptions != null) return cachedOptions;
          var noChange = new NoDataChangeDeltaModel();
 
          // enum must be the name of an array that starts with a string
@@ -162,6 +152,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             results.Add(value);
          }
 
+         cachedOptions = results;
          return results;
       }
    }
@@ -351,11 +342,26 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (elementContent.Count == 0) return false;
          var elementLength = elementContent.Sum(e => e.Length);
 
+         if (string.IsNullOrEmpty(length)) {
+            var bestAddress = StandardSearch(data, elementContent, elementLength, out int bestLength);
+            if (bestAddress == Pointer.NULL) return false;
+            self = new ArrayRun(data, originalFormat + bestLength, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources, null);
+         } else {
+            var bestAddress = KnownLengthSearch(data, elementContent, elementLength, length, out int bestLength);
+            if (bestAddress == Pointer.NULL) return false;
+            self = new ArrayRun(data, originalFormat, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources, null);
+         }
+
+         if (allowPointersToEntries) self = self.AddSourcesPointingWithinArray(changeToken);
+         return true;
+      }
+
+      private static int StandardSearch(IDataModel data, List<ArrayRunElementSegment> elementContent, int elementLength, out int bestLength) {
          int bestAddress = Pointer.NULL;
-         int bestLength = 0;
+         bestLength = 0;
 
          var run = data.GetNextAnchor(0);
-         for (var nextRun = data.GetNextAnchor(run.Start+run.Length); run.Start < int.MaxValue; nextRun = data.GetNextAnchor(nextRun.Start + nextRun.Length)) {
+         for (var nextRun = data.GetNextAnchor(run.Start + run.Length); run.Start < int.MaxValue; nextRun = data.GetNextAnchor(nextRun.Start + nextRun.Length)) {
             if (run is ArrayRun || run.PointerSources == null) {
                run = nextRun;
                continue;
@@ -381,11 +387,43 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             run = nextRun;
          }
 
-         if (bestAddress == Pointer.NULL) return false;
+         return bestAddress;
+      }
 
-         self = new ArrayRun(data, originalFormat + bestLength, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources, null);
-         if (allowPointersToEntries) self = self.AddSourcesPointingWithinArray(changeToken);
-         return true;
+      private static int KnownLengthSearch(IDataModel data, List<ArrayRunElementSegment> elementContent, int elementLength, string lengthToken, out int bestLength) {
+         var noChange = new NoDataChangeDeltaModel();
+         if (!int.TryParse(lengthToken, out bestLength)) {
+            var matchedArrayName = lengthToken;
+            var matchedArrayAddress = data.GetAddressFromAnchor(noChange, -1, matchedArrayName);
+            if (matchedArrayAddress == Pointer.NULL) return Pointer.NULL;
+            var matchedRun = data.GetNextRun(matchedArrayAddress) as ArrayRun;
+            if (matchedRun == null) return Pointer.NULL;
+            bestLength = matchedRun.ElementCount;
+         }
+
+         for (var run = data.GetNextRun(0); run.Start < data.Count; run = data.GetNextRun(run.Start + run.Length + 1)) {
+            if (!(run is PointerRun)) continue;
+            var targetRun = data.GetNextRun(data.ReadPointer(run.Start));
+            if (targetRun is ArrayRun) continue;
+
+            int currentLength = 0;
+            int currentAddress = targetRun.Start;
+            bool earlyExit = false;
+            for (int i = 0; i < bestLength; i++) {
+               var nextArray = data.GetNextAnchor(currentAddress + 1);
+               if (DataMatchesElementFormat(data, currentAddress, elementContent, nextArray)) {
+                  currentLength++;
+                  currentAddress += elementLength;
+               } else {
+                  earlyExit = true;
+                  break;
+               }
+            }
+
+            if (!earlyExit) return targetRun.Start;
+         }
+
+         return Pointer.NULL;
       }
 
       private string cachedCurrentString;
@@ -623,7 +661,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (!Enumerable.Range(start + readLength, segment.Length - readLength).All(i => owner[i] == 0x00 || owner[i] == 0xFF)) return false;
                return true;
             case ElementContentType.Integer:
-               return true;
+               if (segment is ArrayRunEnumSegment enumSegment) {
+                  return owner.ReadMultiByteValue(start, segment.Length) < enumSegment.GetOptions(owner).Count;
+               } else {
+                  return true;
+               }
             case ElementContentType.Pointer:
                var destination = owner.ReadPointer(start);
                if (destination == Pointer.NULL) return true;
