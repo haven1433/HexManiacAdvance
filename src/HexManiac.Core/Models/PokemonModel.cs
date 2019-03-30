@@ -808,7 +808,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private static ErrorInfo ValidateAnchorNameAndFormat(IDataModel model, IFormattedRun runToWrite, string name, string format, int dataIndex, bool allowAnchorOverwrite = false) {
          var existingRun = model.GetNextRun(dataIndex);
-         var nextAnchor = model.GetNextAnchor(dataIndex + 1); // existingRun.Start > dataIndex ? existingRun : model.GetNextRun(existingRun.Start + Math.Max(existingRun.Length, 1));
+         var nextAnchor = model.GetNextAnchor(dataIndex + 1);
 
          if (name.ToLower() == "null") {
             return new ErrorInfo("'null' is a reserved word and cannot be used as an anchor name.");

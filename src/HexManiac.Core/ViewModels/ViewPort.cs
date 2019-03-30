@@ -494,12 +494,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          foreach (var result in searchResults) {
             var nextRun = Model.GetNextRun(result);
-            if (nextRun.Start <= result) continue;
+            if (nextRun.Start < result) continue;
+            if (nextRun.Start == result && !(nextRun is NoInfoRun)) continue;
             var pointers = Model.SearchForPointersToAnchor(history.CurrentChange, result);
             if (pointers.Count == 0) continue;
-            var newRun = new PCSRun(result, PCSString.ReadString(Model, result, true), pointers);
-            if (newRun.Length < 1) continue;
-            if (newRun.Start + newRun.Length > nextRun.Start) continue;
+            var length = PCSString.ReadString(Model, result, true);
+            if (length < 1) continue;
+            if (result + length > nextRun.Start) continue;
+            var newRun = new PCSRun(result, length, pointers);
             Model.ObserveAnchorWritten(history.CurrentChange, string.Empty, newRun);
             resultsRecognizedAsTextRuns++;
          }
