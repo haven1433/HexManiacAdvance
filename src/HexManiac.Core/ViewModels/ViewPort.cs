@@ -960,14 +960,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var offsets = array.ConvertByteOffsetToArrayOffset(memoryLocation);
          var segment = (ArrayRunEnumSegment)array.ElementContent[offsets.SegmentIndex];
          if (segment.TryParse(Model, currentText, out int value)) {
-            for (int i = 0; i < segment.Length; i++) {
-               history.CurrentChange.ChangeData(Model, offsets.SegmentStart + i, (byte)value);
-               value /= 0x100;
-            }
+            Model.WriteMultiByteValue(offsets.SegmentStart, segment.Length, history.CurrentChange, value);
+            Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
+            if (!SilentScroll(offsets.SegmentStart + segment.Length)) ClearEdits(point);
          } else {
             OnError?.Invoke(this, $"Could not parse {currentText}as an enum from the {segment.EnumName} array");
+            ClearEdits(point);
          }
-         Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
       }
 
       private void CompleteAsciiEdit(Point point, string currentText) {
