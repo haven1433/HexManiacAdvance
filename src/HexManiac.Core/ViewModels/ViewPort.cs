@@ -735,6 +735,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
 
             if (innerFormat is PCS) {
+               var memoryLocation = scroll.ViewPointToDataIndex(point);
+               if (Model.GetNextRun(memoryLocation) is ArrayRun array) {
+                  var offsets = array.ConvertByteOffsetToArrayOffset(memoryLocation);
+                  if (offsets.SegmentStart == memoryLocation && input == ' ') return false; // don't let it start with a space unless it's in quotes (for copy/paste)
+               }
                return input == StringDelimeter || PCSString.PCS.Any(str => str != null && str.StartsWith(input.ToString()));
             }
 

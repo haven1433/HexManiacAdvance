@@ -46,7 +46,10 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          for (int i = 0; i < length; i++) {
             var currentByte = data[startIndex + i];
-            if (PCS[currentByte] == null) return null;
+            if (PCS[currentByte] == null) {
+               if (i == 0) return null;
+               if (data[startIndex + i - 1] == 0xFF) return result.ToString();
+            }
             result.Append(PCS[currentByte]);
 
             // this line optimized for maximum speed. Otherwise would like to use the Newlines array.
