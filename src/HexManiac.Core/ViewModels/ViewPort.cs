@@ -971,7 +971,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void CompleteAsciiEdit(Point point, string currentText) {
          var memoryLocation = scroll.ViewPointToDataIndex(point);
          var editFormat = (UnderEdit)currentView[point.X, point.Y].Format;
-         var asciiFormat = (Ascii)editFormat.OriginalFormat;
+         var originalFormat = editFormat.OriginalFormat;
+         var asciiFormat = originalFormat as Ascii ?? (Ascii)((Anchor)originalFormat).OriginalFormat;
          var content = (byte)currentText[0];
 
          history.CurrentChange.ChangeData(Model, memoryLocation, content);
