@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System.Diagnostics;
 using System.Linq;
 using static HavenSoft.HexManiac.Core.Models.Runs.ArrayRun;
@@ -93,10 +94,24 @@ namespace HavenSoft.HexManiac.Core.Models {
             ObserveAnchorWritten(noChangeDelta, "pokestats", pokestatdata);
          }
 
-         // 
-         // abilitydescriptions[description<"">]abilitynames
+         // the first abilityDescriptions pointer is directly after the first abilityNames pointer
+         var abilityNamesAddress = GetAddressFromAnchor(noChangeDelta, -1, "abilitynames");
+         if (abilityNamesAddress != Pointer.NULL) {
+            var firstPointerToAbilityNames = GetNextAnchor(abilityNamesAddress).PointerSources?.FirstOrDefault() ?? Pointer.NULL;
+            if (firstPointerToAbilityNames != Pointer.NULL) {
+               var firstPointerToAbilityDescriptions = firstPointerToAbilityNames + 4;
+               var abilityDescriptionsAddress = ReadPointer(firstPointerToAbilityDescriptions);
+               var existingRun = GetNextAnchor(abilityDescriptionsAddress);
+               if (!(existingRun is ArrayRun) && existingRun.Start == abilityDescriptionsAddress) {
+                  var error = TryParse(this, "[description<>]abilitynames", existingRun.Start, existingRun.PointerSources, out var abilityDescriptions);
+                  if (!error.HasError) ObserveAnchorWritten(noChangeDelta, "abilitydescriptions", abilityDescriptions);
+               }
+            }
+         }
 
          // @3D4294 ^itemicons[image<> palette<>]items
+         // @4886E8 ^movedescriptions[description<>]354
+         // @250C04 ^movedata[effect. power. type.types accuracy. pp. effectAccuracy. target. priority. more::]movenames
       }
    }
 }
