@@ -268,6 +268,32 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       // composition of each element
       public IReadOnlyList<ArrayRunElementSegment> ElementContent { get; }
 
+      private IReadOnlyList<string> cachedElementNames;
+      public IReadOnlyList<string> ElementNames {
+         get {
+            if (cachedElementNames != null) return cachedElementNames;
+
+            var names = new List<string>();
+            var source = owner.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, LengthFromAnchor);
+            if (source == Pointer.NULL) return cachedElementNames = names;
+            var sourceArray = owner.GetNextRun(source) as ArrayRun;
+            if (sourceArray == null) return cachedElementNames = names;
+            if (sourceArray.ElementContent[0].Type != ElementContentType.PCS) return cachedElementNames = names;
+            for (int i = 0; i < ElementCount; i++) {
+               var nameAddress = sourceArray.Start + sourceArray.ElementLength * i;
+               var nameWithQuotes = PCSString.Convert(owner, nameAddress, sourceArray.ElementContent[0].Length).Trim();
+               if (nameWithQuotes.Contains(' ')) {
+                  names.Add(nameWithQuotes);
+               } else {
+                  var nameWithoutQuotes = nameWithQuotes.Substring(1, nameWithQuotes.Length - 2);
+                  names.Add(nameWithoutQuotes);
+               }
+            }
+
+            return cachedElementNames = names;
+         }
+      }
+
       private ArrayRun(IDataModel data, string format, int start, IReadOnlyList<int> pointerSources) : base(start, pointerSources) {
          owner = data;
          FormatString = format;

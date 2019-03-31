@@ -218,6 +218,14 @@ namespace HavenSoft.HexManiac.Core.Models {
             return array.Start + array.ElementLength * index;
          }
 
+         // support things like pokestats/BULBASAUR
+         if (nameparts.Length == 2) {
+            var elementName = nameparts[1].ToLower();
+            for (int i = 0; i < array.ElementNames.Count; i++) {
+               if (array.ElementNames[i].ToLower() == elementName) return array.Start + array.ElementLength * i;
+            }
+         }
+
          // not supported
          return Pointer.NULL;
       }
@@ -275,25 +283,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (run.Start > address) return false;
          if (!(run is ArrayRun array)) return false;
          if ((address - array.Start) % array.ElementLength != 0) return false;
-         var anchor = array.LengthFromAnchor;
-         var source = GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, anchor);
-         if (source == Pointer.NULL) return false;
-         var sourceArray = GetNextRun(source) as ArrayRun;
-         if (sourceArray == null) return false;
-         if (sourceArray.ElementContent[0].Type != ElementContentType.PCS) return false;
 
-         // grab the string from the corrisponding index
          var index = (address - array.Start) / array.ElementLength;
-         var nameAddress = sourceArray.Start + sourceArray.ElementLength * index;
-         var nameWithQuotes = PCSString.Convert(this, nameAddress, sourceArray.ElementContent[0].Length).Trim();
-
-         // keep the quotes for names with whitespace, since the quotes are needed when the user is typing in the name in that case
-         if (nameWithQuotes.Contains(' ')) {
-            header = nameWithQuotes;
-         } else {
-            var nameWithoutQuotes = nameWithQuotes.Substring(1, nameWithQuotes.Length - 2);
-            header = nameWithoutQuotes;
-         }
+         if (array.ElementNames == null || array.ElementNames.Count == 0) return false;
+         header = array.ElementNames[index];
 
          return true;
       }
@@ -699,15 +692,35 @@ namespace HavenSoft.HexManiac.Core.Models {
          var mappedNames = addressForAnchor.Keys;
          var results = new List<string>();
          foreach (var name in mappedNames) {
-            var unmatchedName = name;
+            var address = addressForAnchor[name];
+            var run = GetNextRun(address) as ArrayRun;
             int index = -1;
-            foreach (var character in partial) {
-               index = unmatchedName.IndexOf(character.ToString(), StringComparison.CurrentCultureIgnoreCase);
-               if (index == -1) break;
-               unmatchedName = unmatchedName.Substring(index);
+            if (run == null || !partial.Contains("/")) {
+               var unmatchedName = name;
+               foreach (var character in partial) {
+                  index = unmatchedName.IndexOf(character.ToString(), StringComparison.CurrentCultureIgnoreCase);
+                  if (index == -1) break;
+                  unmatchedName = unmatchedName.Substring(index);
+               }
+               if (index == -1) continue;
+               results.Add(name);
+            } else {
+               var childNames = run.ElementNames;
+               if (childNames == null || childNames.Count == 0) {
+                  index = -1;
+               } else {
+                  foreach(var childName in childNames) {
+                     var unmatchedName = $"{name}/{childName}";
+                     foreach (var character in partial) {
+                        index = unmatchedName.IndexOf(character.ToString(), StringComparison.CurrentCultureIgnoreCase);
+                        if (index == -1) break;
+                        unmatchedName = unmatchedName.Substring(index);
+                     }
+                     if (index == -1) continue;
+                     results.Add($"{name}/{childName}");
+                  }
+               }
             }
-            if (index == -1) continue;
-            results.Add(name);
          }
 
          return results;
