@@ -329,7 +329,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return ErrorInfo.NoError;
       }
 
-      public static bool TrySearch(IDataModel data, ModelDelta changeToken, string originalFormat, out ArrayRun self) {
+      public static bool TrySearch(IDataModel data, ModelDelta changeToken, string originalFormat, out ArrayRun self, Func<IFormattedRun, bool> runFilter = null) {
          self = null;
          var format = originalFormat;
          var allowPointersToEntries = format.StartsWith(AnchorStart.ToString());
@@ -347,7 +347,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (bestAddress == Pointer.NULL) return false;
             self = new ArrayRun(data, originalFormat + bestLength, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources, null);
          } else {
-            var bestAddress = KnownLengthSearch(data, elementContent, elementLength, length, out int bestLength);
+            var bestAddress = KnownLengthSearch(data, elementContent, elementLength, length, out int bestLength, runFilter);
             if (bestAddress == Pointer.NULL) return false;
             self = new ArrayRun(data, originalFormat, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources, null);
          }
@@ -390,7 +390,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return bestAddress;
       }
 
-      private static int KnownLengthSearch(IDataModel data, List<ArrayRunElementSegment> elementContent, int elementLength, string lengthToken, out int bestLength) {
+      private static int KnownLengthSearch(IDataModel data, List<ArrayRunElementSegment> elementContent, int elementLength, string lengthToken, out int bestLength, Func<IFormattedRun, bool> runFilter) {
          var noChange = new NoDataChangeDeltaModel();
          if (!int.TryParse(lengthToken, out bestLength)) {
             var matchedArrayName = lengthToken;
@@ -405,6 +405,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (!(run is PointerRun)) continue;
             var targetRun = data.GetNextRun(data.ReadPointer(run.Start));
             if (targetRun is ArrayRun) continue;
+
+            // some searches allow special conditions on the run. For example, we could only be intersted in runs with >100 pointers leading to it.
+            if (runFilter != null && !runFilter(targetRun)) continue;
 
             int currentLength = 0;
             int currentAddress = targetRun.Start;

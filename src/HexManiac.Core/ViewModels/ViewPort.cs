@@ -456,10 +456,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (cleanedSearchString.Length > 3 && !cleanedSearchString.Contains(StringDelimeter) && !cleanedSearchString.All(AllHexCharacters.Contains)) {
             var pcsBytes = PCSString.Convert(cleanedSearchString);
             pcsBytes.RemoveAt(pcsBytes.Count - 1); // remove the 0xFF that was added, since we're searching for a string segment instead of a whole string.
-            searchBytes.AddRange(pcsBytes.Select(b => new PCSSearchByte(b)));
-            var textResults = Search(searchBytes).ToList();
-            ConsiderResultsAsTextRuns(textResults);
-            results.AddRange(textResults.Select(result => (result, result + pcsBytes.Count - 1)));
+
+            // only search for the string if every character in the search string is allowed
+            if (pcsBytes.Count == cleanedSearchString.Length) {
+               searchBytes.AddRange(pcsBytes.Select(b => new PCSSearchByte(b)));
+               var textResults = Search(searchBytes).ToList();
+               ConsiderResultsAsTextRuns(textResults);
+               results.AddRange(textResults.Select(result => (result, result + pcsBytes.Count - 1)));
+            }
          }
 
          // it might be a pointer without angle braces

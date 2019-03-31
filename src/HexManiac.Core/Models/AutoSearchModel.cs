@@ -109,9 +109,12 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
          }
 
+         if (TrySearch(this, noChangeDelta, "[effect. power. type.types accuracy. pp. effectAccuracy. target. priority. more::]movenames", out var movedata, run => run.PointerSources.Count > 100)) {
+            ObserveAnchorWritten(noChangeDelta, "movedata", movedata);
+         }
+
          // @3D4294 ^itemicons[image<> palette<>]items
          // @4886E8 ^movedescriptions[description<>]354
-         // @250C04 ^movedata[effect. power. type.types accuracy. pp. effectAccuracy. target. priority. more::]movenames
       }
    }
 }
