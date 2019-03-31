@@ -417,7 +417,9 @@
                      <ItemsControl DockPanel.Dock="Left" Width="70" ItemsSource="{Binding Headers}" Background="{DynamicResource Backlight}" MouseDown="HeaderMouseDown">
                         <ItemsControl.ItemTemplate>
                            <DataTemplate>
-                              <TextBlock Foreground="{DynamicResource Secondary}" Text="{Binding}" FontFamily="Consolas" HorizontalAlignment="Right" Height="{x:Static hsg3hv:HexContent.CellHeight}" Padding="4"/>
+                              <Viewbox Height="{x:Static hsg3hv:HexContent.CellHeight}" HorizontalAlignment="Right" Margin="0,0,2,0">
+                                 <TextBlock Foreground="{DynamicResource Secondary}" Text="{Binding}" FontFamily="Consolas" Padding="1"/>
+                              </Viewbox>
                            </DataTemplate>
                         </ItemsControl.ItemTemplate>
                      </ItemsControl>
