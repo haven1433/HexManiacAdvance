@@ -986,12 +986,46 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void CompleteArrayExtension(ArrayRun arrayRun) {
-         var newRun = (ArrayRun)Model.RelocateForExpansion(history.CurrentChange, arrayRun, arrayRun.Length + arrayRun.ElementLength);
-         if (newRun != arrayRun) {
+         var originalArray = arrayRun;
+         var currentArrayName = Model.GetAnchorFromAddress(-1, arrayRun.Start);
+
+         int depth = 0;
+         while (arrayRun.LengthFromAnchor != string.Empty) {
+            depth++;
+            if (depth == 10) {
+               // We kept going up the chain of tables but didn't find a top table. Either the table length definitions are circular or very deep.
+               OnError?.Invoke(this, "Could not extend table safely. Make sure you don't have a circular or deep dependency in your table lengths.");
+               return;
+            }
+            var address = Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, arrayRun.LengthFromAnchor);
+            arrayRun = (ArrayRun)Model.GetNextRun(address);
+         }
+
+         ExtendArrayAndChildren(arrayRun);
+
+         var newRun = (ArrayRun)Model.GetNextRun(Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, currentArrayName));
+         if (newRun.Start != originalArray.Start) {
             ScrollFromRunMove(arrayRun.Start + arrayRun.Length, arrayRun.Length, newRun);
          }
-         Model.ObserveRunWritten(history.CurrentChange, arrayRun.Append(1));
+
          RefreshBackingData();
+      }
+
+      private void ExtendArrayAndChildren(ArrayRun array) {
+         var newRun = (ArrayRun)Model.RelocateForExpansion(history.CurrentChange, array, array.Length + array.ElementLength);
+         newRun = newRun.Append(1);
+         Model.ObserveRunWritten(history.CurrentChange, newRun);
+
+         foreach(var child in GetDependantArrays(newRun)) {
+            ExtendArrayAndChildren(child);
+         }
+      }
+
+      private IEnumerable<ArrayRun> GetDependantArrays(ArrayRun parent) {
+         var anchor = Model.GetAnchorFromAddress(-1, parent.Start);
+         foreach (var array in Model.Arrays) {
+            if (array.LengthFromAnchor == anchor) yield return array;
+         }
       }
 
       private void CompletePointerEdit(Point point) {

@@ -411,9 +411,10 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x100, model.GetNextRun(0).Length);
       }
 
-      [Fact(Skip = "Feature not implement yet. Feature is now prioritized beneath array support for pointers.")]
+      [Fact]
       public void ArrayExtendsIfBasedOnAnotherNameWhichIsExtended() {
          var buffer = new byte[0x200];
+         for (int i = 0; i < buffer.Length; i++) buffer[i] = 0xFF;
          var model = new PokemonModel(buffer);
          var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          var errors = new List<string>();
@@ -427,12 +428,12 @@ namespace HavenSoft.HexManiac.Tests {
          // test 1: enbiggen derived should enbiggen sample
          viewPort.SelectionStart = new Point(8, 8);
          viewPort.Edit("+");
-         Assert.Equal(8 * 8 + 8, model.GetNextRun(0).Length);
+         Assert.Equal(8 * 9, model.GetNextRun(0).Length);
 
          // test 2: enbiggen sample should enbiggen derived
          viewPort.SelectionStart = new Point(8, 4);
          viewPort.Edit("+");
-         Assert.Equal(10, model.GetNextRun(0x80).Length);
+         Assert.Equal(1 * 10, model.GetNextRun(0x80).Length);
       }
 
       [Fact]

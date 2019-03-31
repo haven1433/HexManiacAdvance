@@ -27,6 +27,8 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public virtual int EarliestAllowedAnchor => 0;
 
+      public override IReadOnlyList<ArrayRun> Arrays => runs.OfType<ArrayRun>().ToList();
+
       #region Constructor
 
       public PokemonModel(byte[] data, StoredMetadata metadata = null) : base(data) {
