@@ -155,6 +155,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          cachedOptions = results;
          return results;
       }
+
+      public void ClearCache() { cachedOptions = null; }
    }
 
    public class ArrayOffset {
@@ -578,6 +580,21 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public IFormattedRun Move(int newStart) {
          return new ArrayRun(owner, FormatString, LengthFromAnchor, newStart, ElementCount, ElementContent, PointerSources, PointerSourcesForInnerElements);
+      }
+
+      /// <summary>
+      /// For performance reasons, arrays store copies of strings from arrays that they're based on.
+      /// For example, if the array contains an enum of types, that enum segment will store the list of types.
+      /// For example, if the array is the same length as the pokemon array, the array will store the list of pokemon names.
+      /// Calling this method will clear those caches and force re-evaluation.
+      /// </summary>
+      public void ClearCache() {
+         cachedElementNames = null;
+         foreach (var child in ElementContent) {
+            if (child is ArrayRunEnumSegment enumSegment) {
+               enumSegment.ClearCache();
+            }
+         }
       }
 
       public override IFormattedRun RemoveSource(int source) {

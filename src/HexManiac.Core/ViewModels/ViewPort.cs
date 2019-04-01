@@ -1281,7 +1281,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          for (int y = 0; y < Height; y++) {
             for (int x = 0; x < Width; x++) {
                var index = scroll.ViewPointToDataIndex(new Point(x, y));
-               if (run == null || index >= run.Start + run.Length) run = Model.GetNextRun(index) ?? new NoInfoRun(Model.Count);
+               if (run == null || index >= run.Start + run.Length) {
+                  run = Model.GetNextRun(index) ?? new NoInfoRun(Model.Count);
+                  if (run is ArrayRun array) array.ClearCache();
+               }
                if (index < 0 || index >= Model.Count) {
                   currentView[x, y] = HexElement.Undefined;
                } else if (index >= run.Start) {
