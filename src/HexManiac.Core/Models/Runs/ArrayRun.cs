@@ -376,7 +376,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          } else {
             var bestAddress = KnownLengthSearch(data, elementContent, elementLength, length, out int bestLength, runFilter);
             if (bestAddress == Pointer.NULL) return false;
-            self = new ArrayRun(data, originalFormat, string.Empty, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources, null);
+            var lengthFromAnchor = int.TryParse(length, out var _) ? string.Empty : length;
+            self = new ArrayRun(data, originalFormat, lengthFromAnchor, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources, null);
          }
 
          if (allowPointersToEntries) self = self.AddSourcesPointingWithinArray(changeToken);

@@ -71,6 +71,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          private set => TryUpdate(ref maximumScroll, value);
       }
 
+      private bool useCustomHeaders;
+      public bool UseCustomHeaders {
+         get => useCustomHeaders;
+         set {
+            if (TryUpdate(ref useCustomHeaders, value)) UpdateHeaders();
+         }
+      }
+
       public int DataLength {
          get => dataLength;
          set {
@@ -162,7 +170,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          for (int i = 0; i < Height; i++) {
             var address = dataIndex + i * Width;
 
-            if (!tryGetUsefulHeader(address, out string hexAddress)) {
+            if (!useCustomHeaders || !tryGetUsefulHeader(address, out string hexAddress)) {
                hexAddress = address.ToString("X6");
                if (address >= DataLength) hexAddress = string.Empty;
                if (address < 0) hexAddress = string.Empty;

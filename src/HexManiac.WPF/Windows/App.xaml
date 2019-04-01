@@ -316,7 +316,7 @@
                         <Grid Name="ItemBorder" Background="Transparent">
                            <Grid.ColumnDefinitions>
                               <ColumnDefinition Width="30"/>
-                              <ColumnDefinition Width="130"/>
+                              <ColumnDefinition Width="160"/>
                               <ColumnDefinition Width="100"/>
                            </Grid.ColumnDefinitions>
                            <ContentPresenter Grid.Column="0" Margin="5,5,0,5" ContentSource="Icon" />

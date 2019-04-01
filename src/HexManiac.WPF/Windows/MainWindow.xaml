@@ -45,8 +45,9 @@
       <KeyBinding Key="OemMinus" Modifiers="Ctrl" Command="{Binding Back}" />
       <KeyBinding Key="OemMinus" Modifiers="Ctrl+Shift" Command="{Binding Forward}" />
 
-      <!-- Stealing this routed command for toggling theme -->
       <KeyBinding Key="M" Modifiers="Ctrl" Command="{Binding ToggleMatrix}" />
+      <KeyBinding Key="H" Modifiers="Ctrl" Command="{Binding ToggleTableHeaders}" />
+      <!-- Stealing this routed command for toggling theme -->
       <KeyBinding Key="T" Modifiers="Ctrl" Command="ToggleBullets" />
 
       <KeyBinding Key="Esc" Command="{Binding ClearError}"/>
@@ -137,7 +138,19 @@
             </MenuItem>
             <MenuItem Header="_View">
                <MenuItem Header="_Toggle Theme" Click="ToggleTheme" InputGestureText="Ctrl+T"/>
-               <MenuItem Header="Toggle Matrix Grid" Command="{Binding ToggleMatrix}" InputGestureText="Ctrl+M"/>
+               <MenuItem Header="Toggle _Matrix Grid" Command="{Binding ToggleMatrix}" InputGestureText="Ctrl+M"/>
+               <MenuItem Header="Toggle Custom _Headers" Command="{Binding ToggleTableHeaders}" InputGestureText="Ctrl+H" ToolTipService.ShowDuration="15000">
+                  <MenuItem.ToolTip>
+                     <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{solarized:Theme Blue}" BorderThickness="1">
+                        <TextBlock TextAlignment="Left">
+                           <Bold>Table Headers</Bold> <LineBreak/>
+                           Tables with data can show entry names instead of addresses. <LineBreak/>
+                           By default, tables will show the names of entries when possible. <LineBreak/>
+                           Toggling this will cause the table to show address of entries instead.
+                        </TextBlock>
+                     </ToolTip>
+                  </MenuItem.ToolTip>
+               </MenuItem>
                <MenuItem Header="_Clear Error" Command="{Binding ClearError}" InputGestureText="Esc"/>
             </MenuItem>
             <MenuItem Header="_Tools">

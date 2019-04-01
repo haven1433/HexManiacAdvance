@@ -74,6 +74,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public int DataOffset => scroll.DataIndex;
       public ICommand Scroll => scroll.Scroll;
 
+      public bool UseCustomHeaders {
+         get => scroll.UseCustomHeaders;
+         set => scroll.UseCustomHeaders = value;
+      }
+
       private void ScrollPropertyChanged(object sender, PropertyChangedEventArgs e) {
          if (e.PropertyName == nameof(scroll.DataIndex)) {
             RefreshBackingData();

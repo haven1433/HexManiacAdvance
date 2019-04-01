@@ -287,7 +287,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if ((address - array.Start) % array.ElementLength != 0) return false;
 
          var index = (address - array.Start) / array.ElementLength;
-         if (array.ElementNames == null || array.ElementNames.Count == 0) return false;
+         if (array.ElementNames.Count == 0) return false;
          header = array.ElementNames[index];
 
          return true;
