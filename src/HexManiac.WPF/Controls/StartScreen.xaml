@@ -13,6 +13,18 @@
    </Grid.ColumnDefinitions>
    <TextBlock Grid.Column="0" Foreground="{DynamicResource Primary}" HorizontalAlignment="Center" VerticalAlignment="Center">
       Drag-n-Drop to open a file.
+      <LineBreak/> <LineBreak/>
+      Tip: Try typing these words into Goto <Italic>(Ctrl+G)</Italic>. <LineBreak/>
+      You can jump to tables inside the ROM. <LineBreak/>
+      <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>movenames<LineBreak/>
+      <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>pokenames<LineBreak/>
+      <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>abilitynames<LineBreak/>
+      <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>trainerclassnames<LineBreak/>
+      <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>types<LineBreak/>
+      <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>items<LineBreak/>
+      <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>pokestats<LineBreak/>
+      <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>abilitydescriptions<LineBreak/>
+      <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>movedata<LineBreak/>
    </TextBlock>
    <StackPanel Grid.Column="1" VerticalAlignment="Center" TextBlock.Foreground="{DynamicResource Primary}" >
       <Border Margin="5" Padding="5" Background="{DynamicResource Background}" BorderBrush="{DynamicResource Secondary}" CornerRadius="5,5,5,5" BorderThickness="1" Cursor="Hand" MouseLeftButtonDown="PointerHelp">

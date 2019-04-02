@@ -2,45 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
-   public enum ElementContentType {
-      Unknown,
-      PCS,
-      Integer,
-      Pointer,
-   }
-
-   public class ArrayRunElementSegment {
-      public string Name { get; }
-      public ElementContentType Type { get; }
-      public int Length { get; }
-      public ArrayRunElementSegment(string name, ElementContentType type, int length) => (Name, Type, Length) = (name, type, length);
-
-      public string ToText(IReadOnlyList<byte> rawData, int offset) {
-         switch (Type) {
-            case ElementContentType.PCS:
-               return PCSString.Convert(rawData, offset, Length);
-            case ElementContentType.Integer:
-               return ToInteger(rawData, offset, Length).ToString();
-            default:
-               throw new NotImplementedException();
-         }
-      }
-
-      public static int ToInteger(IReadOnlyList<byte> data, int offset, int length) {
-         int result = 0;
-         int multiplier = 1;
-         for (int i = 0; i < length; i++) {
-            result += data[offset + i] * multiplier;
-            multiplier *= 0x100;
-         }
-         return result;
-      }
-   }
-
    public class ArrayOffset {
       /// <summary>
       /// Ranges from 0 to ElementCount
@@ -101,6 +65,31 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       // composition of each element
       public IReadOnlyList<ArrayRunElementSegment> ElementContent { get; }
 
+      private IReadOnlyList<string> cachedElementNames;
+      public IReadOnlyList<string> ElementNames {
+         get {
+            if (cachedElementNames != null) return cachedElementNames;
+            var names = new List<string>();
+            cachedElementNames = names;
+            if (!owner.TryGetNameArray(LengthFromAnchor, out var sourceArray)) return cachedElementNames;
+
+            for (int i = 0; i < ElementCount; i++) {
+               var nameAddress = sourceArray.Start + sourceArray.ElementLength * i;
+               var nameWithQuotes = PCSString.Convert(owner, nameAddress, sourceArray.ElementContent[0].Length).Trim();
+               if (nameWithQuotes.Contains(' ')) {
+                  names.Add(nameWithQuotes);
+               } else if (nameWithQuotes.Length < 2) { // final name could just be a single closing quote and nothing else
+                  names.Add(nameWithQuotes);
+               } else {
+                  var nameWithoutQuotes = nameWithQuotes.Substring(1, nameWithQuotes.Length - 2);
+                  names.Add(nameWithoutQuotes);
+               }
+            }
+
+            return cachedElementNames;
+         }
+      }
+
       private ArrayRun(IDataModel data, string format, int start, IReadOnlyList<int> pointerSources) : base(start, pointerSources) {
          owner = data;
          FormatString = format;
@@ -123,9 +112,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                byteLength += ElementLength;
                elementCount++;
             }
+            LengthFromAnchor = string.Empty;
             ElementCount = elementCount;
          } else if (int.TryParse(length, out int result)) {
             // fixed length is easy
+            LengthFromAnchor = string.Empty;
             ElementCount = result;
          } else {
             LengthFromAnchor = length;
@@ -135,13 +126,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          Length = ElementLength * ElementCount;
       }
 
-      private ArrayRun(IDataModel data, string format, int start, int elementCount, IReadOnlyList<ArrayRunElementSegment> segments, IReadOnlyList<int> pointerSources, IReadOnlyList<IReadOnlyList<int>> pointerSourcesForInnerElements) : base(start, pointerSources) {
+      private ArrayRun(IDataModel data, string format, string lengthFromAnchor, int start, int elementCount, IReadOnlyList<ArrayRunElementSegment> segments, IReadOnlyList<int> pointerSources, IReadOnlyList<IReadOnlyList<int>> pointerSourcesForInnerElements) : base(start, pointerSources) {
          owner = data;
          FormatString = format;
          ElementContent = segments;
          ElementLength = ElementContent.Sum(e => e.Length);
          ElementCount = elementCount;
-         LengthFromAnchor = string.Empty;
+         var closeArray = format.LastIndexOf(ArrayEnd.ToString());
+         LengthFromAnchor = lengthFromAnchor;
          Length = ElementLength * ElementCount;
          SupportsPointersToElements = pointerSourcesForInnerElements != null;
          PointerSourcesForInnerElements = pointerSourcesForInnerElements;
@@ -158,7 +150,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return ErrorInfo.NoError;
       }
 
-      public static bool TrySearch(IDataModel data, ModelDelta changeToken, string originalFormat, out ArrayRun self) {
+      public static bool TrySearch(IDataModel data, ModelDelta changeToken, string originalFormat, out ArrayRun self, Func<IFormattedRun, bool> runFilter = null) {
          self = null;
          var format = originalFormat;
          var allowPointersToEntries = format.StartsWith(AnchorStart.ToString());
@@ -171,11 +163,27 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (elementContent.Count == 0) return false;
          var elementLength = elementContent.Sum(e => e.Length);
 
+         if (string.IsNullOrEmpty(length)) {
+            var bestAddress = StandardSearch(data, elementContent, elementLength, out int bestLength);
+            if (bestAddress == Pointer.NULL) return false;
+            self = new ArrayRun(data, originalFormat + bestLength, string.Empty, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources, null);
+         } else {
+            var bestAddress = KnownLengthSearch(data, elementContent, elementLength, length, out int bestLength, runFilter);
+            if (bestAddress == Pointer.NULL) return false;
+            var lengthFromAnchor = int.TryParse(length, out var _) ? string.Empty : length;
+            self = new ArrayRun(data, originalFormat, lengthFromAnchor, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources, null);
+         }
+
+         if (allowPointersToEntries) self = self.AddSourcesPointingWithinArray(changeToken);
+         return true;
+      }
+
+      private static int StandardSearch(IDataModel data, List<ArrayRunElementSegment> elementContent, int elementLength, out int bestLength) {
          int bestAddress = Pointer.NULL;
-         int bestLength = 0;
+         bestLength = 0;
 
          var run = data.GetNextAnchor(0);
-         for (var nextRun = data.GetNextAnchor(run.Start+run.Length); run.Start < int.MaxValue; nextRun = data.GetNextAnchor(nextRun.Start + nextRun.Length)) {
+         for (var nextRun = data.GetNextAnchor(run.Start + run.Length); run.Start < int.MaxValue; nextRun = data.GetNextAnchor(nextRun.Start + nextRun.Length)) {
             if (run is ArrayRun || run.PointerSources == null) {
                run = nextRun;
                continue;
@@ -201,11 +209,46 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             run = nextRun;
          }
 
-         if (bestAddress == Pointer.NULL) return false;
+         return bestAddress;
+      }
 
-         self = new ArrayRun(data, originalFormat + bestLength, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources, null);
-         if (allowPointersToEntries) self = self.AddSourcesPointingWithinArray(changeToken);
-         return true;
+      private static int KnownLengthSearch(IDataModel data, List<ArrayRunElementSegment> elementContent, int elementLength, string lengthToken, out int bestLength, Func<IFormattedRun, bool> runFilter) {
+         var noChange = new NoDataChangeDeltaModel();
+         if (!int.TryParse(lengthToken, out bestLength)) {
+            var matchedArrayName = lengthToken;
+            var matchedArrayAddress = data.GetAddressFromAnchor(noChange, -1, matchedArrayName);
+            if (matchedArrayAddress == Pointer.NULL) return Pointer.NULL;
+            var matchedRun = data.GetNextRun(matchedArrayAddress) as ArrayRun;
+            if (matchedRun == null) return Pointer.NULL;
+            bestLength = matchedRun.ElementCount;
+         }
+
+         for (var run = data.GetNextRun(0); run.Start < data.Count; run = data.GetNextRun(run.Start + run.Length + 1)) {
+            if (!(run is PointerRun)) continue;
+            var targetRun = data.GetNextRun(data.ReadPointer(run.Start));
+            if (targetRun is ArrayRun) continue;
+
+            // some searches allow special conditions on the run. For example, we could only be intersted in runs with >100 pointers leading to it.
+            if (runFilter != null && !runFilter(targetRun)) continue;
+
+            int currentLength = 0;
+            int currentAddress = targetRun.Start;
+            bool earlyExit = false;
+            for (int i = 0; i < bestLength; i++) {
+               var nextArray = data.GetNextAnchor(currentAddress + 1);
+               if (DataMatchesElementFormat(data, currentAddress, elementContent, nextArray)) {
+                  currentLength++;
+                  currentAddress += elementLength;
+               } else {
+                  earlyExit = true;
+                  break;
+               }
+            }
+
+            if (!earlyExit) return targetRun.Start;
+         }
+
+         return Pointer.NULL;
       }
 
       private string cachedCurrentString;
@@ -224,8 +267,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
 
          if (currentSegment.Type == ElementContentType.Integer) {
-            var value = ArrayRunElementSegment.ToInteger(data, offsets.SegmentStart, currentSegment.Length);
-            return new Integer(offsets.SegmentStart, index, value, currentSegment.Length);
+            if (currentSegment is ArrayRunEnumSegment enumSegment) {
+               var value = enumSegment.ToText(data, index);
+               return new IntegerEnum(offsets.SegmentStart, index, value, currentSegment.Length);
+            } else {
+               var value = ArrayRunElementSegment.ToInteger(data, offsets.SegmentStart, currentSegment.Length);
+               return new Integer(offsets.SegmentStart, index, value, currentSegment.Length);
+            }
          }
 
          if (currentSegment.Type == ElementContentType.Pointer) {
@@ -252,7 +300,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var lastArrayCharacterIndex = FormatString.LastIndexOf(ArrayEnd);
          var newFormat = FormatString.Substring(0, lastArrayCharacterIndex + 1);
          if (newFormat != FormatString) newFormat += ElementCount + elementCount;
-         return new ArrayRun(owner, newFormat, Start, ElementCount + elementCount, ElementContent, PointerSources, PointerSourcesForInnerElements);
+         return new ArrayRun(owner, newFormat, LengthFromAnchor, Start, ElementCount + elementCount, ElementContent, PointerSources, PointerSourcesForInnerElements);
       }
 
       public ArrayRun AddSourcePointingWithinArray(int source) {
@@ -262,7 +310,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (index == 0) throw new NotImplementedException();
          var newInnerPointerSources = PointerSourcesForInnerElements.ToList();
          newInnerPointerSources[index] = newInnerPointerSources[index].Concat(new[] { source }).ToList();
-         return new ArrayRun(owner, FormatString, Start, ElementCount, ElementContent, PointerSources, newInnerPointerSources);
+         return new ArrayRun(owner, FormatString, LengthFromAnchor, Start, ElementCount, ElementContent, PointerSources, newInnerPointerSources);
       }
 
       public ArrayRun AddSourcesPointingWithinArray(ModelDelta changeToken) {
@@ -284,23 +332,61 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
 
          var pointerSourcesForInnerElements = results.Cast<IReadOnlyList<int>>().ToList();
-         return new ArrayRun(owner, FormatString, Start, ElementCount, ElementContent, PointerSources, pointerSourcesForInnerElements);
+         return new ArrayRun(owner, FormatString, LengthFromAnchor, Start, ElementCount, ElementContent, PointerSources, pointerSourcesForInnerElements);
       }
 
-      public void AppendTo(IReadOnlyList<byte> data, StringBuilder text) {
-         for (int i = 0; i < ElementCount; i++) {
+      /// <summary>
+      /// Arrays might want custom column headers.
+      /// If so, this method can get them.
+      /// </summary>
+      public IReadOnlyList<HeaderRow> GetColumnHeaders(int columnCount, int startingDataIndex) {
+         // check if it's a multiple of the array width
+         if (columnCount >= ElementLength) {
+            if (columnCount % ElementLength != 0) return null;
+            return new[] { new HeaderRow(this, startingDataIndex - Start, columnCount, startingDataIndex) };
+         }
+
+         // check if it's a divisor of the array width
+         if (ElementLength % columnCount != 0) return null;
+         var segments = ElementLength / columnCount;
+         return Enumerable.Range(0, segments).Select(i => new HeaderRow(this, columnCount * i + startingDataIndex - Start, columnCount, startingDataIndex)).ToList();
+      }
+
+      public void AppendTo(IDataModel data, StringBuilder text, int start, int length) {
+         var offsets = ConvertByteOffsetToArrayOffset(start);
+         length += offsets.SegmentOffset;
+         for (int i = offsets.ElementIndex; i < ElementCount && length > 0; i++) {
             var offset = Start + i * ElementLength;
-            text.Append(ExtendArray);
-            foreach (var segment in ElementContent) {
+            if (offsets.SegmentIndex == 0) text.Append(ExtendArray);
+            for (int j = offsets.SegmentIndex; j < ElementContent.Count && length > 0; j++) {
+               var segment = ElementContent[j];
                text.Append(segment.ToText(data, offset).Trim());
+               text.Append(" ");
                offset += segment.Length;
+               length -= segment.Length;
             }
             text.Append(Environment.NewLine);
+            offsets = new ArrayOffset(0, 0, 0, 0);
          }
       }
 
       public IFormattedRun Move(int newStart) {
-         return new ArrayRun(owner, FormatString, newStart, ElementCount, ElementContent, PointerSources, PointerSourcesForInnerElements);
+         return new ArrayRun(owner, FormatString, LengthFromAnchor, newStart, ElementCount, ElementContent, PointerSources, PointerSourcesForInnerElements);
+      }
+
+      /// <summary>
+      /// For performance reasons, arrays store copies of strings from arrays that they're based on.
+      /// For example, if the array contains an enum of types, that enum segment will store the list of types.
+      /// For example, if the array is the same length as the pokemon array, the array will store the list of pokemon names.
+      /// Calling this method will clear those caches and force re-evaluation.
+      /// </summary>
+      public void ClearCache() {
+         cachedElementNames = null;
+         foreach (var child in ElementContent) {
+            if (child is ArrayRunEnumSegment enumSegment) {
+               enumSegment.ClearCache();
+            }
+         }
       }
 
       public override IFormattedRun RemoveSource(int source) {
@@ -311,7 +397,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             newInnerPointerSources.Add(list.Where(item => item != source).ToList());
          }
 
-         return new ArrayRun(owner, FormatString, Start, ElementCount, ElementContent, newPointerSources, newInnerPointerSources);
+         return new ArrayRun(owner, FormatString, LengthFromAnchor, Start, ElementCount, ElementContent, newPointerSources, newInnerPointerSources);
       }
 
       protected override IFormattedRun Clone(IReadOnlyList<int> newPointerSources) {
@@ -323,7 +409,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             for (int i = 1; i < PointerSourcesForInnerElements.Count; i++) newInnerPointerSources.Add(PointerSourcesForInnerElements[i]);
          }
 
-         return new ArrayRun(owner, FormatString, Start, ElementCount, ElementContent, newPointerSources, newInnerPointerSources);
+         return new ArrayRun(owner, FormatString, LengthFromAnchor, Start, ElementCount, ElementContent, newPointerSources, newInnerPointerSources);
       }
 
       private static List<ArrayRunElementSegment> ParseSegments(string segments) {
@@ -355,9 +441,23 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                (format, formatLength, segmentLength) = (ElementContentType.Pointer, 2, 4);
             }
 
-            if (format == ElementContentType.Unknown) throw new ArrayRunParseException($"Could not parse format '{segments}'");
-            segments = segments.Substring(formatLength).Trim();
-            list.Add(new ArrayRunElementSegment(name, format, segmentLength));
+            // check to see if a name or length is part of the format
+            if (format == ElementContentType.Integer && segments.Length > formatLength && segments[formatLength] != ' ') {
+               segments = segments.Substring(formatLength);
+               if (int.TryParse(segments, out var maxValue)) {
+                  throw new NotImplementedException();
+               } else {
+                  var endOfToken = segments.IndexOf(' ');
+                  if (endOfToken == -1) endOfToken = segments.Length;
+                  var enumName = segments.Substring(0, endOfToken);
+                  segments = segments.Substring(endOfToken).Trim();
+                  list.Add(new ArrayRunEnumSegment(name, segmentLength, enumName));
+               }
+            } else {
+               if (format == ElementContentType.Unknown) throw new ArrayRunParseException($"Could not parse format '{segments}'");
+               segments = segments.Substring(formatLength).Trim();
+               list.Add(new ArrayRunElementSegment(name, format, segmentLength));
+            }
          }
 
          return list;
@@ -401,7 +501,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (!Enumerable.Range(start + readLength, segment.Length - readLength).All(i => owner[i] == 0x00 || owner[i] == 0xFF)) return false;
                return true;
             case ElementContentType.Integer:
-               return true;
+               if (segment is ArrayRunEnumSegment enumSegment) {
+                  return owner.ReadMultiByteValue(start, segment.Length) < enumSegment.GetOptions(owner).Count;
+               } else {
+                  return true;
+               }
             case ElementContentType.Pointer:
                var destination = owner.ReadPointer(start);
                if (destination == Pointer.NULL) return true;

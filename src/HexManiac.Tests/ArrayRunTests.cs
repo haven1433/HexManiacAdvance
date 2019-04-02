@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -410,9 +411,10 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x100, model.GetNextRun(0).Length);
       }
 
-      [Fact(Skip = "Feature not implement yet. Feature is now prioritized beneath array support for pointers.")]
+      [Fact]
       public void ArrayExtendsIfBasedOnAnotherNameWhichIsExtended() {
          var buffer = new byte[0x200];
+         for (int i = 0; i < buffer.Length; i++) buffer[i] = 0xFF;
          var model = new PokemonModel(buffer);
          var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          var errors = new List<string>();
@@ -426,12 +428,12 @@ namespace HavenSoft.HexManiac.Tests {
          // test 1: enbiggen derived should enbiggen sample
          viewPort.SelectionStart = new Point(8, 8);
          viewPort.Edit("+");
-         Assert.Equal(8 * 8 + 8, model.GetNextRun(0).Length);
+         Assert.Equal(8 * 9, model.GetNextRun(0).Length);
 
          // test 2: enbiggen sample should enbiggen derived
          viewPort.SelectionStart = new Point(8, 4);
          viewPort.Edit("+");
-         Assert.Equal(10, model.GetNextRun(0x80).Length);
+         Assert.Equal(1 * 10, model.GetNextRun(0x80).Length);
       }
 
       [Fact]
@@ -603,6 +605,207 @@ namespace HavenSoft.HexManiac.Tests {
          var run = (ArrayRun)model.GetNextRun(0);
          Assert.Single(run.PointerSourcesForInnerElements[3]);
       }
+
+      [Fact]
+      public void ArraysSupportEnums() {
+         var data = new byte[0x200];
+         var changeToken = new ModelDelta();
+         var model = new PokemonModel(data);
+
+         // arrange: setup the anchor used for the enums
+         WriteStrings(data, 0x00, "cat", "bat", "hat", "sat");
+         var error = ArrayRun.TryParse(model, "^[name\"\"4]4", 0x00, null, out var arrayRun);
+         model.ObserveAnchorWritten(changeToken, "sample", arrayRun);
+
+         // arrange: setup the anchor with the data
+         error = ArrayRun.TryParse(model, "[option:sample]4", 0x40, null, out arrayRun);
+         model.ObserveAnchorWritten(changeToken, "data", arrayRun);
+
+         changeToken.ChangeData(model, 0x42, 2);
+
+         // act: see that the arrayRun can parse according to the enum
+         arrayRun = (ArrayRun)model.GetNextRun(0x40);
+         Assert.Equal("cat", arrayRun.ElementContent[0].ToText(model, 0x40));
+         Assert.Equal("hat", arrayRun.ElementContent[0].ToText(model, 0x42));
+
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var enumViewModel = (IntegerEnum)((Anchor)viewPort[0, 4].Format).OriginalFormat;
+         Assert.Equal("cat", enumViewModel.Value);
+      }
+
+      [Fact]
+      public void ArraysSupportEditingEnums() {
+         var data = new byte[0x200];
+         data[0x42] = 2; // hat
+         var changeToken = new ModelDelta();
+         var model = new PokemonModel(data);
+
+         // arrange: setup the anchor used for the enums
+         WriteStrings(data, 0x00, "cat", "bat", "hat", "sat");
+         var error = ArrayRun.TryParse(model, "^[name\"\"4]4", 0x00, null, out var arrayRun);
+         model.ObserveAnchorWritten(changeToken, "sample", arrayRun);
+
+         // arrange: setup the anchor with the data
+         error = ArrayRun.TryParse(model, "[option.sample]4", 0x40, null, out arrayRun);
+         model.ObserveAnchorWritten(changeToken, "data", arrayRun);
+
+         // act: use a viewmodel to change 0x41 to 'bat'
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort.SelectionStart = new Point(1, 4); // select space 0x41
+         viewPort.Edit("bat ");
+
+         Assert.Equal(1, data[0x41]);
+      }
+
+      [Fact]
+      public void ViewModelReturnsErrorWhenEnumIsNotValidValue() {
+         var data = new byte[0x200];
+         data[0x42] = 2; // hat
+         var changeToken = new ModelDelta();
+         var model = new PokemonModel(data);
+
+         // arrange: setup the anchor used for the enums
+         WriteStrings(data, 0x00, "cat", "bat", "hat", "sat");
+         var error = ArrayRun.TryParse(model, "^[name\"\"4]4", 0x00, null, out var arrayRun);
+         model.ObserveAnchorWritten(changeToken, "sample", arrayRun);
+
+         // arrange: setup the anchor with the data
+         error = ArrayRun.TryParse(model, "[option.sample]4", 0x40, null, out arrayRun);
+         model.ObserveAnchorWritten(changeToken, "data", arrayRun);
+
+         // act: use a viewmodel to try to change 41 to 'pat' (invalid)
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort.SelectionStart = new Point(1, 4); // select space 0x41
+         var errors = new List<string>();
+         viewPort.OnError += (sender, e) => errors.Add(e);
+
+         viewPort.Edit("pat ");
+         Assert.Single(errors);
+      }
+
+      [Fact]
+      public void MultipleEnumValuesWithSameContentAreDistinguishable() {
+         var data = new byte[0x200];
+         data[0x42] = 2; // bat~2
+         var changeToken = new ModelDelta();
+         var model = new PokemonModel(data);
+
+         // arrange: setup the anchor used for the enums
+         WriteStrings(data, 0x00, "cat", "bat", "bat", "sat");
+         var error = ArrayRun.TryParse(model, "^[name\"\"4]4", 0x00, null, out var arrayRun);
+         model.ObserveAnchorWritten(changeToken, "sample", arrayRun);
+
+         // arrange: setup the anchor with the data
+         error = ArrayRun.TryParse(model, "[option.sample]4", 0x40, null, out arrayRun);
+         model.ObserveAnchorWritten(changeToken, "data", arrayRun);
+
+         // act: setup a viewmodel
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+
+         // assert: viewmodel should render bat~2 at 0x42
+         var format = (IntegerEnum)viewPort[2, 4].Format;
+         Assert.Equal("bat~2", format.Value);
+      }
+
+      [Fact]
+      public void CanEditToSecondEnumWithSameContent() {
+         var data = new byte[0x200];
+         data[0x42] = 3; // sat
+         var changeToken = new ModelDelta();
+         var model = new PokemonModel(data);
+
+         // arrange: setup the anchor used for the enums
+         WriteStrings(data, 0x00, "cat", "bat", "bat", "sat");
+         var error = ArrayRun.TryParse(model, "^[name\"\"4]4", 0x00, null, out var arrayRun);
+         model.ObserveAnchorWritten(changeToken, "sample", arrayRun);
+
+         // arrange: setup the anchor with the data
+         error = ArrayRun.TryParse(model, "[option.sample]4", 0x40, null, out arrayRun);
+         model.ObserveAnchorWritten(changeToken, "data", arrayRun);
+
+         // act: setup a viewmodel and change 0x41 to bat~2
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort.SelectionStart = new Point(1, 4); // select space 0x41
+         viewPort.Edit("bat~2 ");
+
+         // assert: viewmodel should render bat~2 at 0x42
+         Assert.Equal(2, data[0x41]);
+      }
+
+      [Fact]
+      public void EditingWithTableToolUpdatesMainContent() {
+         var data = new byte[0x200];
+         data[0x42] = 3; // sat
+         var changeToken = new ModelDelta();
+         var model = new PokemonModel(data);
+
+         // arrange: setup the anchor used for the enums
+         WriteStrings(data, 0x00, "cat", "bat", "bat", "sat");
+         var error = ArrayRun.TryParse(model, "^[name\"\"4]4", 0x00, null, out var arrayRun);
+         model.ObserveAnchorWritten(changeToken, "sample", arrayRun);
+
+         // act: setup a viewmodel and show table tool
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort.Tools.SelectedIndex = 1;
+
+         // act: change the table contents
+         viewPort.SelectionStart = new Point(1, 0);
+         var element = (FieldArrayElementViewModel)viewPort.Tools.TableTool.Children[0];
+         element.Content = "dog";
+
+         // assert: main view was updated
+         Assert.Equal("o", ((PCS)viewPort[1, 0].Format).ThisCharacter);
+      }
+
+      [Fact]
+      public void EditingMainContentUpdatesTableTool() {
+         var data = new byte[0x200];
+         data[0x42] = 3; // sat
+         var changeToken = new ModelDelta();
+         var model = new PokemonModel(data);
+
+         // arrange: setup the anchor used for the enums
+         WriteStrings(data, 0x00, "cat", "bat", "bat", "sat");
+         var error = ArrayRun.TryParse(model, "^[name\"\"4]4", 0x00, null, out var arrayRun);
+         model.ObserveAnchorWritten(changeToken, "sample", arrayRun);
+
+         // act: setup a viewmodel and show table tool
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort.Tools.SelectedIndex = 1;
+
+         // act: change the table contents
+         viewPort.SelectionStart = new Point(1, 0);
+         viewPort.Edit("u");
+
+         // assert: main view was updated
+         var element = (FieldArrayElementViewModel)viewPort.Tools.TableTool.Children[0];
+         Assert.Equal("cut", element.Content);
+      }
+
+      [Fact]
+      public void CustomHeadersWork() {
+         var data = new byte[0x200];
+         var changeToken = new ModelDelta();
+         var model = new PokemonModel(data);
+
+         // arrange: setup the anchor used for the enums
+         WriteStrings(data, 0x00, "cat", "bat", "bat", "sat");
+         ArrayRun.TryParse(model, "^[name\"\"4]4", 0x00, null, out var parentArray);
+         model.ObserveAnchorWritten(changeToken, "parent", parentArray);
+         ArrayRun.TryParse(model, "[a:: b:: c:: d::]parent", 0x20, null, out var childArray);
+         model.ObserveAnchorWritten(changeToken, "child", childArray);
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+
+         // act/assert: check that the headers are the names when custom headers are turned on
+         viewPort.UseCustomHeaders = true;
+         Assert.Equal("cat", viewPort.Headers[2]);
+
+         // act/assert: check that the headers are normal when custom headers are turned off
+         viewPort.UseCustomHeaders = false;
+         Assert.Equal("000020", viewPort.Headers[2]);
+      }
+
+      // TODO while typing an enum, the ViewModel provides auto-complete options
 
       private static void WriteStrings(byte[] buffer, int start, params string[] content) {
          foreach (var item in content) {

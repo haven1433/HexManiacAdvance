@@ -57,6 +57,17 @@ namespace HavenSoft.HexManiac.Tests {
 
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
+      public void AbilitiyDescriptionsAreFound(string game) {
+         var model = LoadModel(game);
+         var noChange = new NoDataChangeDeltaModel();
+
+         var address = model.GetAddressFromAnchor(noChange, -1, "abilitydescriptions");
+         var run = (ArrayRun)model.GetNextAnchor(address);
+         Assert.Equal(78, run.ElementCount);
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
       public void TypesAreFound(string game) {
          var model = LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
@@ -94,6 +105,34 @@ namespace HavenSoft.HexManiac.Tests {
          if (game.Contains("LeafGreen")) Assert.Equal(108, run.ElementCount);
          if (game.Contains("Ruby"))      Assert.Equal(59, run.ElementCount);
          if (game.Contains("Sapphire"))  Assert.Equal(59, run.ElementCount);
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void PokeStatsAreFound(string game) {
+         var model = LoadModel(game);
+         var noChange = new NoDataChangeDeltaModel();
+
+         var address = model.GetAddressFromAnchor(noChange, -1, "pokestats");
+         var run = (ArrayRun)model.GetNextAnchor(address);
+
+         var bulbasaurStats = model.Skip(run.Start + run.ElementLength).Take(6).ToArray();
+         var compareSet = new[] { 45, 49, 49, 45, 65, 65 };
+         for (int i = 0; i < compareSet.Length; i++) Assert.Equal(compareSet[i], bulbasaurStats[i]);
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void MoveDataFound(string game) {
+         var model = LoadModel(game);
+         var noChange = new NoDataChangeDeltaModel();
+
+         var address = model.GetAddressFromAnchor(noChange, -1, "movedata");
+         var run = (ArrayRun)model.GetNextAnchor(address);
+
+         var poundStats = model.Skip(run.Start + run.ElementLength).Take(8).ToArray();
+         var compareSet = new[] { 0, 40, 0, 100, 35, 0, 0, 0 };
+         for (int i = 0; i < compareSet.Length; i++) Assert.Equal(compareSet[i], poundStats[i]);
       }
 
       /// <summary>

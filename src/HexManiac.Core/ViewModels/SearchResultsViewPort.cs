@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
@@ -78,6 +79,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public bool AnchorTextVisible => false;
 
+      public ObservableCollection<HeaderRow> ColumnHeaders { get; }
+
 #pragma warning disable 0067 // it's ok if events are never used
       public event EventHandler<string> OnError;
       public event EventHandler<string> OnMessage;
@@ -132,6 +135,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          return children[childIndex].IsSelected(new Point(x, line));
       }
+
+      public bool IsTable(Point point) => false;
 
       public void FollowLink(int x, int y) {
          if (y < 0 || y > height || x < 0 || x > width) return;

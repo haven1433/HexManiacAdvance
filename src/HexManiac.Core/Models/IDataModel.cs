@@ -9,6 +9,7 @@ namespace HavenSoft.HexManiac.Core.Models {
    public interface IDataModel : IReadOnlyList<byte> {
       byte[] RawData { get; }
       new byte this[int index] { get; set; }
+      IReadOnlyList<ArrayRun> Arrays { get; }
 
       /// <summary>
       /// If dataIndex is in the middle of a run, returns that run.
@@ -24,6 +25,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// If dataIndex is after the last anchor, return an anchor at int.MaxValue.
       /// </summary>
       IFormattedRun GetNextAnchor(int dataIndex);
+
+      bool TryGetUsefulHeader(int address, out string header);
 
       bool IsAtEndOfArray(int dataIndex, out ArrayRun arrayRun); // is this byte the first one after the end of an array run? (also return true if the array is length 0 and starts right here)
 
@@ -56,6 +59,8 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public BaseModel(byte[] data) => RawData = data;
 
+      public virtual IReadOnlyList<ArrayRun> Arrays { get; } = new List<ArrayRun>();
+
       public byte this[int index] { get => RawData[index]; set => RawData[index] = value; }
 
       byte IReadOnlyList<byte>.this[int index] => RawData[index];
@@ -85,6 +90,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public abstract IFormattedRun GetNextRun(int dataIndex);
 
       public abstract IFormattedRun GetNextAnchor(int dataIndex);
+
+      public virtual bool TryGetUsefulHeader(int address, out string header) { header = null; return false; }
 
       public abstract bool IsAtEndOfArray(int dataIndex, out ArrayRun arrayRun);
 
@@ -127,6 +134,42 @@ namespace HavenSoft.HexManiac.Core.Models {
       public virtual StoredMetadata ExportMetadata() => null;
 
       IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+   }
+
+   public static class IDataModelExtensions {
+      public static int ReadMultiByteValue(this IDataModel model, int index, int length) {
+         int word = 0;
+         while (length > 0) {
+            word <<= 8;
+            word += model.RawData[index + length - 1];
+            length--;
+         }
+         return word;
+      }
+
+      public static void WriteMultiByteValue(this IDataModel model, int index, int length, ModelDelta changeToken, int value) {
+         for (int i = 0; i < length; i++) {
+            changeToken.ChangeData(model, index + i, (byte)value);
+            value >>= 8;
+         }
+      }
+
+      public static bool TryGetNameArray(this IDataModel model, string anchorName, out ArrayRun array) {
+         array = null;
+
+         // anchorName must name an array              enum must be the name of an array that starts with a string
+         var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, anchorName);
+         if (address == Pointer.NULL) return false;
+         array = model.GetNextRun(address) as ArrayRun;
+         if (array == null) return false;
+
+         // the array must start with a text element
+         if (array.ElementContent.Count == 0) return false;
+         var firstContent = array.ElementContent[0];
+         if (firstContent.Type != ElementContentType.PCS) return false;
+
+         return true;
+      }
    }
 
    public class BasicModel : BaseModel {

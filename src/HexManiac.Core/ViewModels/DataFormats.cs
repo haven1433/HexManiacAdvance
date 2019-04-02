@@ -21,6 +21,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       void Visit(ErrorPCS pcs, byte data);
       void Visit(Ascii ascii, byte data);
       void Visit(Integer integer, byte data);
+      void Visit(IntegerEnum integer, byte data);
    }
 
    /// <summary>
@@ -182,6 +183,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
 
       public bool Equals(IDataFormat other) {
          if (!(other is Integer that)) return false;
+         return Source == that.Source && Position == that.Position && Value == that.Value && Length == that.Length;
+      }
+
+      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
+   }
+
+   public class IntegerEnum : IDataFormat {
+      public int Source { get; }
+      public int Position { get; }
+      public string Value { get; }
+      public int Length { get; } // number of bytes used by this integer
+
+      public IntegerEnum(int source, int position, string value, int length) => (Source, Position, Value, Length) = (source, position, value, length);
+
+      public bool Equals(IDataFormat other) {
+         if (!(other is IntegerEnum that)) return false;
          return Source == that.Source && Position == that.Position && Value == that.Value && Length == that.Length;
       }
 

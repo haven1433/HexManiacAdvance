@@ -27,6 +27,8 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public virtual int EarliestAllowedAnchor => 0;
 
+      public override IReadOnlyList<ArrayRun> Arrays => runs.OfType<ArrayRun>().ToList();
+
       #region Constructor
 
       public PokemonModel(byte[] data, StoredMetadata metadata = null) : base(data) {
@@ -218,6 +220,14 @@ namespace HavenSoft.HexManiac.Core.Models {
             return array.Start + array.ElementLength * index;
          }
 
+         // support things like pokestats/BULBASAUR
+         if (nameparts.Length == 2) {
+            var elementName = nameparts[1].ToLower();
+            for (int i = 0; i < array.ElementNames.Count; i++) {
+               if (array.ElementNames[i].ToLower() == elementName) return array.Start + array.ElementLength * i;
+            }
+         }
+
          // not supported
          return Pointer.NULL;
       }
@@ -234,7 +244,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          // option 4: pointing within an array that supports inner element anchors
          var containingRun = GetNextRun(address);
-         if (containingRun.Start < address && containingRun is ArrayRun array && array.SupportsPointersToElements) {
+         if (containingRun.Start < address && containingRun is ArrayRun array) {
             var arrayName = GetAnchorFromAddress(-1, array.Start);
             var arrayIndex = (address - array.Start) / array.ElementLength;
             var indexMod = (address - array.Start) % array.ElementLength;
@@ -266,6 +276,21 @@ namespace HavenSoft.HexManiac.Core.Models {
             return runs[index];
          }
          return NoInfoRun.NullRun;
+      }
+
+      public override bool TryGetUsefulHeader(int address, out string header) {
+         header = null;
+         // only produce headers for arrays with length based on other arrays that start with a text member.
+         var run = GetNextRun(address);
+         if (run.Start > address) return false;
+         if (!(run is ArrayRun array)) return false;
+         if ((address - array.Start) % array.ElementLength != 0) return false;
+
+         var index = (address - array.Start) / array.ElementLength;
+         if (array.ElementNames.Count == 0) return false;
+         header = array.ElementNames[index];
+
+         return true;
       }
 
       public override bool IsAtEndOfArray(int dataIndex, out ArrayRun arrayRun) {
@@ -607,7 +632,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override string Copy(int start, int length) {
          var text = new StringBuilder();
          var run = GetNextRun(start);
-         if (run.Start < start) {
+         if (run.Start < start && !(run is ArrayRun)) {
             length += start - run.Start;
             start = run.Start;
          }
@@ -641,10 +666,10 @@ namespace HavenSoft.HexManiac.Core.Models {
                start += run.Length;
                length -= run.Length;
             } else if (run is ArrayRun arrayRun) {
-               arrayRun.AppendTo(this, text);
+               arrayRun.AppendTo(this, text, start, length);
                text.Append(" ");
-               start += run.Length;
-               length -= run.Length;
+               length -= run.Start + run.Length - start;
+               start = run.Start + run.Length;
             } else {
                throw new NotImplementedException();
             }
@@ -669,15 +694,19 @@ namespace HavenSoft.HexManiac.Core.Models {
          var mappedNames = addressForAnchor.Keys;
          var results = new List<string>();
          foreach (var name in mappedNames) {
-            var unmatchedName = name;
-            int index = -1;
-            foreach (var character in partial) {
-               index = unmatchedName.IndexOf(character.ToString(), StringComparison.CurrentCultureIgnoreCase);
-               if (index == -1) break;
-               unmatchedName = unmatchedName.Substring(index);
+            var address = addressForAnchor[name];
+            var run = GetNextRun(address) as ArrayRun;
+            if (run == null || !partial.Contains(ArrayAnchorSeparator)) {
+               if (IsPartialMatch(name, partial)) results.Add(name);
+            } else {
+               var childNames = run.ElementNames;
+               if (childNames != null && childNames.Count > 0) {
+                  foreach(var childName in childNames) {
+                     var full = $"{name}{ArrayAnchorSeparator}{childName}";
+                     if (IsPartialMatch(full, partial)) results.Add(full);
+                  }
+               }
             }
-            if (index == -1) continue;
-            results.Add(name);
          }
 
          return results;
@@ -722,6 +751,16 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          return results;
+      }
+
+      private static bool IsPartialMatch(string full, string partial) {
+         foreach (var character in partial) {
+            var index = full.IndexOf(character.ToString(), StringComparison.CurrentCultureIgnoreCase);
+            if (index == -1) return false;
+            full = full.Substring(index);
+         }
+
+         return true;
       }
 
       private static (string, string) SplitNameAndFormat(string text) {
@@ -778,7 +817,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private static ErrorInfo ValidateAnchorNameAndFormat(IDataModel model, IFormattedRun runToWrite, string name, string format, int dataIndex, bool allowAnchorOverwrite = false) {
          var existingRun = model.GetNextRun(dataIndex);
-         var nextAnchor = model.GetNextAnchor(dataIndex + 1); // existingRun.Start > dataIndex ? existingRun : model.GetNextRun(existingRun.Start + Math.Max(existingRun.Length, 1));
+         var nextAnchor = model.GetNextAnchor(dataIndex + 1);
 
          if (name.ToLower() == "null") {
             return new ErrorInfo("'null' is a reserved word and cannot be used as an anchor name.");

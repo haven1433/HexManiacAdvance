@@ -70,18 +70,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public int MaximumScroll => scroll.MaximumScroll;
 
       public ObservableCollection<string> Headers => scroll.Headers;
+      public ObservableCollection<HeaderRow> ColumnHeaders { get; }
       public int DataOffset => scroll.DataIndex;
       public ICommand Scroll => scroll.Scroll;
+
+      public bool UseCustomHeaders {
+         get => scroll.UseCustomHeaders;
+         set => scroll.UseCustomHeaders = value;
+      }
 
       private void ScrollPropertyChanged(object sender, PropertyChangedEventArgs e) {
          if (e.PropertyName == nameof(scroll.DataIndex)) {
             RefreshBackingData();
+            UpdateColumnHeaders();
          } else if (e.PropertyName != nameof(scroll.DataLength)) {
             NotifyPropertyChanged(e.PropertyName);
          }
 
          if (e.PropertyName == nameof(Width) || e.PropertyName == nameof(Height)) {
             RefreshBackingData();
+            UpdateColumnHeaders();
          }
       }
 
@@ -133,6 +141,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (run.Start <= dataIndex && run is ArrayRun array) {
             var offsets = array.ConvertByteOffsetToArrayOffset(dataIndex);
             Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
+            Tools.TableTool.Address = array.Start + array.ElementLength * offsets.ElementIndex;
          }
 
          if (this[SelectionStart].Format is Anchor anchor) {
@@ -290,8 +299,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          Model = model;
          FileName = fileName;
+         ColumnHeaders = new ObservableCollection<HeaderRow>();
 
-         scroll = new ScrollRegion { DataLength = Model.Count };
+         scroll = new ScrollRegion(model.TryGetUsefulHeader) { DataLength = Model.Count };
          scroll.PropertyChanged += ScrollPropertyChanged;
 
          selection = new Selection(scroll, Model);
@@ -302,6 +312,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Tools = new ToolTray(Model, selection, history);
          Tools.StringTool.ModelDataChanged += ModelChangedByTool;
          Tools.StringTool.ModelDataMoved += ModelDataMovedByTool;
+         Tools.TableTool.ModelDataChanged += ModelChangedByTool;
 
          ImplementCommands();
          RefreshBackingData();
@@ -342,6 +353,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public Point ConvertAddressToViewPoint(int address) => scroll.DataIndexToViewPoint(address);
 
       public bool IsSelected(Point point) => selection.IsSelected(point);
+
+      public bool IsTable(Point point) {
+         var search = scroll.ViewPointToDataIndex(point);
+         var run = Model.GetNextRun(search);
+         return run.Start <= search && run is ArrayRun;
+      }
 
       public void ClearFormat() {
          var startDataIndex = scroll.ViewPointToDataIndex(SelectionStart);
@@ -444,10 +461,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (cleanedSearchString.Length > 3 && !cleanedSearchString.Contains(StringDelimeter) && !cleanedSearchString.All(AllHexCharacters.Contains)) {
             var pcsBytes = PCSString.Convert(cleanedSearchString);
             pcsBytes.RemoveAt(pcsBytes.Count - 1); // remove the 0xFF that was added, since we're searching for a string segment instead of a whole string.
-            searchBytes.AddRange(pcsBytes.Select(b => new PCSSearchByte(b)));
-            var textResults = Search(searchBytes).ToList();
-            ConsiderResultsAsTextRuns(textResults);
-            results.AddRange(textResults.Select(result => (result, result + pcsBytes.Count - 1)));
+
+            // only search for the string if every character in the search string is allowed
+            if (pcsBytes.Count == cleanedSearchString.Length) {
+               searchBytes.AddRange(pcsBytes.Select(b => new PCSSearchByte(b)));
+               var textResults = Search(searchBytes).ToList();
+               ConsiderResultsAsTextRuns(textResults);
+               results.AddRange(textResults.Select(result => (result, result + pcsBytes.Count - 1)));
+            }
          }
 
          // it might be a pointer without angle braces
@@ -482,12 +503,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          foreach (var result in searchResults) {
             var nextRun = Model.GetNextRun(result);
-            if (nextRun.Start <= result) continue;
+            if (nextRun.Start < result) continue;
+            if (nextRun.Start == result && !(nextRun is NoInfoRun)) continue;
             var pointers = Model.SearchForPointersToAnchor(history.CurrentChange, result);
             if (pointers.Count == 0) continue;
-            var newRun = new PCSRun(result, PCSString.ReadString(Model, result, true), pointers);
-            if (newRun.Length < 1) continue;
-            if (newRun.Start + newRun.Length > nextRun.Start) continue;
+            var length = PCSString.ReadString(Model, result, true);
+            if (length < 1) continue;
+            if (result + length > nextRun.Start) continue;
+            var newRun = new PCSRun(result, length, pointers);
             Model.ObserveAnchorWritten(history.CurrentChange, string.Empty, newRun);
             resultsRecognizedAsTextRuns++;
          }
@@ -723,6 +746,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
 
             if (innerFormat is PCS) {
+               var memoryLocation = scroll.ViewPointToDataIndex(point);
+               if (Model.GetNextRun(memoryLocation) is ArrayRun array) {
+                  var offsets = array.ConvertByteOffsetToArrayOffset(memoryLocation);
+                  if (offsets.SegmentStart == memoryLocation && input == ' ') return false; // don't let it start with a space unless it's in quotes (for copy/paste)
+               }
                return input == StringDelimeter || PCSString.PCS.Any(str => str != null && str.StartsWith(input.ToString()));
             }
 
@@ -730,7 +758,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
             if (innerFormat is Ascii) return true;
 
-            if (innerFormat is Integer) return char.IsNumber(input) || char.IsWhiteSpace(input);
+            if (innerFormat is Integer) return char.IsNumber(input);
+
+            if (innerFormat is IntegerEnum) return char.IsLetter(input) ||
+               input == StringDelimeter ||
+               "?-".Contains(input);
 
             // for pointers in array, don't accept anything but a pointer start
             if (innerFormat is Pointer) {
@@ -783,6 +815,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return PCSString.PCS.Any(str => str != null && str.StartsWith(currentText + input));
          } else if (innerFormat is Integer) {
             return char.IsNumber(input) || char.IsWhiteSpace(input);
+         } else if (innerFormat is IntegerEnum) {
+            return char.IsLetterOrDigit(input) ||
+               input == StringDelimeter ||
+               ".~?-".Contains(input) ||
+               char.IsWhiteSpace(input);
          }
 
          if (AllHexCharacters.Contains(input)) {
@@ -890,6 +927,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                return true;
             }
             return false;
+         } else if (originalFormat is IntegerEnum integerEnum) {
+            var currentText = underEdit.CurrentText;
+            // must end in whitespace, and must have matching quotation marks (ex. "Mr. Mime")
+            if (char.IsWhiteSpace(currentText.Last()) && currentText.Count(c => c == '"') % 2 == 0) {
+               CompleteIntegerEnumEdit(point, currentText);
+               return true;
+            }
+            return false;
          }
 
          if (underEdit.CurrentText.Length < 2) return false;
@@ -903,7 +948,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var integer = (Integer)(editFormat.OriginalFormat is Anchor anchor ? anchor.OriginalFormat : editFormat.OriginalFormat);
          if (!int.TryParse(currentText, out var result)) {
-            OnError?.Invoke(this, $"Could not parse {integer} as a number");
+            OnError?.Invoke(this, $"Could not parse {currentText} as a number");
             return;
          }
 
@@ -914,14 +959,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             history.CurrentChange.ChangeData(Model, offsets.SegmentStart + i, (byte)result);
             result /= 0x100;
          }
+         Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
          if (result != 0) OnError?.Invoke(this, $"Warning: number was too big to fit in the available space.");
          if (!SilentScroll(offsets.SegmentStart + length)) ClearEdits(point);
+      }
+
+      private void CompleteIntegerEnumEdit(Point point, string currentText) {
+         var memoryLocation = scroll.ViewPointToDataIndex(point);
+         var array = (ArrayRun)Model.GetNextRun(memoryLocation);
+         var offsets = array.ConvertByteOffsetToArrayOffset(memoryLocation);
+         var segment = (ArrayRunEnumSegment)array.ElementContent[offsets.SegmentIndex];
+         if (segment.TryParse(Model, currentText, out int value)) {
+            Model.WriteMultiByteValue(offsets.SegmentStart, segment.Length, history.CurrentChange, value);
+            Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
+            if (!SilentScroll(offsets.SegmentStart + segment.Length)) ClearEdits(point);
+         } else {
+            OnError?.Invoke(this, $"Could not parse {currentText}as an enum from the {segment.EnumName} array");
+            ClearEdits(point);
+         }
       }
 
       private void CompleteAsciiEdit(Point point, string currentText) {
          var memoryLocation = scroll.ViewPointToDataIndex(point);
          var editFormat = (UnderEdit)currentView[point.X, point.Y].Format;
-         var asciiFormat = (Ascii)editFormat.OriginalFormat;
+         var originalFormat = editFormat.OriginalFormat;
+         var asciiFormat = originalFormat as Ascii ?? (Ascii)((Anchor)originalFormat).OriginalFormat;
          var content = (byte)currentText[0];
 
          history.CurrentChange.ChangeData(Model, memoryLocation, content);
@@ -930,12 +992,47 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void CompleteArrayExtension(ArrayRun arrayRun) {
-         var newRun = (ArrayRun)Model.RelocateForExpansion(history.CurrentChange, arrayRun, arrayRun.Length + arrayRun.ElementLength);
-         if (newRun != arrayRun) {
+         var originalArray = arrayRun;
+         var currentArrayName = Model.GetAnchorFromAddress(-1, arrayRun.Start);
+
+         var visitedNames = new List<string>();
+         while (arrayRun.LengthFromAnchor != string.Empty) {
+            if (visitedNames.Contains(arrayRun.LengthFromAnchor)){
+               // We kept going up the chain of tables but didn't find a top table. Either the table length definitions are circular or very deep.
+               OnError?.Invoke(this, $"Could not extend table safely. Table length has a circular dependency involving {arrayRun.LengthFromAnchor}.");
+               return;
+            }
+
+            visitedNames.Add(arrayRun.LengthFromAnchor);
+            var address = Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, arrayRun.LengthFromAnchor);
+            arrayRun = (ArrayRun)Model.GetNextRun(address);
+         }
+
+         ExtendArrayAndChildren(arrayRun);
+
+         var newRun = (ArrayRun)Model.GetNextRun(Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, currentArrayName));
+         if (newRun.Start != originalArray.Start) {
             ScrollFromRunMove(arrayRun.Start + arrayRun.Length, arrayRun.Length, newRun);
          }
-         Model.ObserveRunWritten(history.CurrentChange, arrayRun.Append(1));
+
          RefreshBackingData();
+      }
+
+      private void ExtendArrayAndChildren(ArrayRun array) {
+         var newRun = (ArrayRun)Model.RelocateForExpansion(history.CurrentChange, array, array.Length + array.ElementLength);
+         newRun = newRun.Append(1);
+         Model.ObserveRunWritten(history.CurrentChange, newRun);
+
+         foreach(var child in GetDependantArrays(newRun)) {
+            ExtendArrayAndChildren(child);
+         }
+      }
+
+      private IEnumerable<ArrayRun> GetDependantArrays(ArrayRun parent) {
+         var anchor = Model.GetAnchorFromAddress(-1, parent.Start);
+         foreach (var array in Model.Arrays) {
+            if (array.LengthFromAnchor == anchor) yield return array;
+         }
       }
 
       private void CompletePointerEdit(Point point) {
@@ -972,6 +1069,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (fullValue == Pointer.NULL || (0 <= fullValue && fullValue < Model.Count)) {
             if (inArray) {
                Model.UpdateArrayPointer(history.CurrentChange, index, fullValue);
+               Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
             } else {
                Model.WritePointer(history.CurrentChange, index, fullValue);
                Model.ObserveRunWritten(history.CurrentChange, new PointerRun(index));
@@ -1020,6 +1118,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             while (run.Start + run.Length > memoryLocation) {
                history.CurrentChange.ChangeData(Model, memoryLocation, 0xFF);
                memoryLocation++;
+               Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
                SilentScroll(memoryLocation);
                var newRunLength = PCSString.ReadString(Model, run.Start, true);
                Model.ObserveRunWritten(history.CurrentChange, new PCSRun(run.Start, newRunLength, run.PointerSources));
@@ -1028,6 +1127,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var offsets = arrayRun.ConvertByteOffsetToArrayOffset(memoryLocation);
             history.CurrentChange.ChangeData(Model, memoryLocation, 0xFF);
             memoryLocation++;
+            Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
+            Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
             SilentScroll(memoryLocation);
             while (offsets.SegmentStart + arrayRun.ElementContent[offsets.SegmentIndex].Length > memoryLocation) {
                history.CurrentChange.ChangeData(Model, memoryLocation, 0x00);
@@ -1059,6 +1160,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          history.CurrentChange.ChangeData(Model, memoryLocation, byteValue);
          Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
+         if (run is ArrayRun) Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
          if (!SilentScroll(memoryLocation + 1)) {
             RefreshBackingData(point);
             if (point.X + 1 < Width) {
@@ -1181,7 +1283,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          for (int y = 0; y < Height; y++) {
             for (int x = 0; x < Width; x++) {
                var index = scroll.ViewPointToDataIndex(new Point(x, y));
-               if (run == null || index >= run.Start + run.Length) run = Model.GetNextRun(index) ?? new NoInfoRun(Model.Count);
+               if (run == null || index >= run.Start + run.Length) {
+                  run = Model.GetNextRun(index) ?? new NoInfoRun(Model.Count);
+                  if (run is ArrayRun array) Tools.Schedule(array.ClearCache);
+               }
                if (index < 0 || index >= Model.Count) {
                   currentView[x, y] = HexElement.Undefined;
                } else if (index >= run.Start) {
@@ -1195,6 +1300,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          NotifyCollectionChanged(ResetArgs);
+      }
+
+      private void UpdateColumnHeaders() {
+         var index = scroll.ViewPointToDataIndex(new Point(0, 0));
+         var run = Model.GetNextRun(index) as ArrayRun;
+         if (run != null && run.Start > index) run = null; // only use the run if it starts _before_ the screen
+         var headers = run?.GetColumnHeaders(Width, index) ?? HeaderRow.GetDefaultColumnHeaders(Width, index);
+
+         for (int i = 0; i < headers.Count; i++) {
+            if (i < ColumnHeaders.Count) ColumnHeaders[i] = headers[i];
+            else ColumnHeaders.Add(headers[i]);
+         }
+
+         while (ColumnHeaders.Count > headers.Count) ColumnHeaders.RemoveAt(ColumnHeaders.Count - 1);
       }
 
       private IDataFormat WrapFormat(IFormattedRun run, IDataFormat format, int dataIndex) {
@@ -1257,6 +1376,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          public void Visit(Ascii ascii, byte data) => Result = ((char)data).ToString();
 
          public void Visit(Integer integer, byte data) => Result = integer.Value.ToString();
+
+         public void Visit(IntegerEnum integerEnum, byte data) => Result = integerEnum.Value;
       }
 
       /// <summary>
@@ -1297,6 +1418,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          public void Visit(Ascii ascii, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
 
          public void Visit(Integer integer, byte data) => buffer.WriteValue(currentChange, index, 0);
+
+         public void Visit(IntegerEnum integerEnum, byte data) => buffer.WriteValue(currentChange, index, 0);
       }
    }
 }

@@ -70,8 +70,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Compile Include="Controls\HorizontalSlantedTextControl.cs" />
     <Compile Include="Controls\IntegerToBooleanViaMatchConverter.cs" />
     <Compile Include="Controls\IntegerToHexConverter.cs" />
+    <Compile Include="Controls\MultiplyConverter.cs" />
     <Compile Include="Controls\StartScreen.xaml.cs">
       <DependentUpon>StartScreen.xaml</DependentUpon>
     </Compile>

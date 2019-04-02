@@ -117,6 +117,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             InputBindings.Add(keyBinding);
          }
 
+         AddKeyCommand(nameof(Core.ViewModels.ViewPort.MoveSelectionStart), Direction.PageUp, Key.PageUp);
+         AddKeyCommand(nameof(Core.ViewModels.ViewPort.MoveSelectionStart), Direction.PageDown, Key.PageDown);
+         AddKeyCommand(nameof(Core.ViewModels.ViewPort.MoveSelectionEnd), Direction.PageUp, Key.PageUp, ModifierKeys.Shift);
+         AddKeyCommand(nameof(Core.ViewModels.ViewPort.MoveSelectionEnd), Direction.PageDown, Key.PageDown, ModifierKeys.Shift);
+
          AddKeyCommand(nameof(Core.ViewModels.ViewPort.MoveSelectionStart), Direction.Up, Key.Up);
          AddKeyCommand(nameof(Core.ViewModels.ViewPort.MoveSelectionStart), Direction.Down, Key.Down);
          AddKeyCommand(nameof(Core.ViewModels.ViewPort.MoveSelectionStart), Direction.Left, Key.Left);
@@ -209,6 +214,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                   format = ((Anchor)format).OriginalFormat;
                }
                if (format is PCS pcs) children.AddRange(GetStringChildren(p));
+               if (ViewPort.IsTable(p)) children.AddRange(GetTableChildren(p));
                if (format is Pointer pointer) children.AddRange(GetPointerChildren(p));
                if (editableViewPort.FormattedDataIsSelected) children.AddRange(GetClearFormattingChildren(p));
             } else {
@@ -350,11 +356,20 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private IEnumerable<FrameworkElement> GetStringChildren(ModelPoint p) {
-         yield return CreateFollowLinkButton("Open In String Tool", p);
+         yield return CreateFollowLinkButton("Open In Text Tool", p);
       }
 
       private IEnumerable<FrameworkElement> GetPointerChildren(ModelPoint p) {
          yield return CreateFollowLinkButton("Follow Pointer", p);
+      }
+
+      private IEnumerable<FrameworkElement> GetTableChildren(ModelPoint p) {
+         yield return new Button {
+            Content = new TextBlock { Text = "Open in Table Tool" },
+         }.SetEvent(ButtonBase.ClickEvent, (sender, e) => {
+            ((ViewPort)ViewPort).Tools.SelectedIndex = 1;
+            recentMenu.IsOpen = false;
+         });
       }
 
       private IEnumerable<FrameworkElement> GetSearchChildren(ModelPoint p) {

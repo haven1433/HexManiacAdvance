@@ -41,7 +41,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          hideSearchControls = new StubCommand(),
          clearError = new StubCommand(),
          clearMessage = new StubCommand(),
-         toggleMatrix = new StubCommand();
+         toggleMatrix = new StubCommand(),
+         toggleTableHeaders = new StubCommand();
 
       private readonly Dictionary<Func<ITabContent, ICommand>, EventHandler> forwardExecuteChangeNotifications;
       private (IViewPort tab, int start, int end)[] recentFindResults = new (IViewPort, int start, int end)[0];
@@ -70,6 +71,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand ClearError => clearError;
       public ICommand ClearMessage => clearMessage;
       public ICommand ToggleMatrix => toggleMatrix;
+      public ICommand ToggleTableHeaders => toggleTableHeaders;
 
       private GotoControlViewModel gotoViewModel = new GotoControlViewModel(null);
       public GotoControlViewModel GotoViewModel {
@@ -126,6 +128,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                ShowError = false;
             }
             if (TryUpdate(ref showMessage, value)) clearMessage.CanExecuteChanged.Invoke(clearMessage, EventArgs.Empty);
+         }
+      }
+
+      private bool useTableEntryHeaders = true;
+      public bool UseTableEntryHeaders {
+         get => useTableEntryHeaders;
+         set {
+            if (!TryUpdate(ref useTableEntryHeaders, value)) return;
+            foreach(var tab in tabs) {
+               if (tab is ViewPort viewModel) viewModel.UseCustomHeaders = useTableEntryHeaders;
+            }
          }
       }
 
@@ -238,6 +251,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          toggleMatrix.CanExecute = CanAlwaysExecute;
          toggleMatrix.Execute = arg => ShowMatrix = !ShowMatrix;
 
+         toggleTableHeaders.CanExecute = CanAlwaysExecute;
+         toggleTableHeaders.Execute = arg => UseTableEntryHeaders = !UseTableEntryHeaders;
+
          cut.CanExecute = arg => SelectedTab?.Copy?.CanExecute(arg) ?? false;
          cut.Execute = arg => {
             if (SelectedTab != null && SelectedTab.Copy != null && SelectedTab.Clear != null) {
@@ -300,6 +316,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          SelectedIndex = tabs.Count - 1;
          CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, content));
          AddContentListeners(content);
+         if (content is ViewPort viewModel) viewModel.UseCustomHeaders = useTableEntryHeaders;
       }
 
       public void SwapTabs(int a, int b) {

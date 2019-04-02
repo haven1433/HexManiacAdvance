@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -16,6 +17,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       int ScrollValue { get; set; }
       int MaximumScroll { get; }
       ObservableCollection<string> Headers { get; }
+      ObservableCollection<HeaderRow> ColumnHeaders { get; }
       int DataOffset { get; }
       ICommand Scroll { get; } // parameter: Direction to scroll
 
@@ -25,6 +27,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       HexElement this[int x, int y] { get; }
       IDataModel Model { get; }
       bool IsSelected(Point point);
+      bool IsTable(Point point);
 
       IReadOnlyList<(int start, int end)> Find(string search);
       IChildViewPort CreateChildView(int startAddress, int endAddress);

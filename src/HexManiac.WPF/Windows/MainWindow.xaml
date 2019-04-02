@@ -6,6 +6,7 @@
         xmlns:hsv="clr-namespace:HavenSoft.HexManiac.WPF.Resources"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:solarized="clr-namespace:Solarized"
+        xmlns:hsg3hvmtr="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Tools;assembly=HexManiac.Core"
         Icon="..\Resources\AppIcon.ico"
         PreviewMouseDown="RunDeferredActions"
         Title="Hex Maniac Advance" Height="450" Width="870" AllowDrop="True" Background="{DynamicResource Background}">
@@ -13,6 +14,7 @@
       <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
       <hsg3hv:IntegerToBooleanViaMatchConverter x:Key="IndexMatch"/>
       <hsg3hv:IntegerToHexConverter x:Key="Hex"/>
+      <hsg3hv:MultiplyConverter x:Key="Mult"/>
    </Window.Resources>
    <Window.InputBindings>
       <KeyBinding Key="N" Modifiers="Ctrl" Command="{Binding New}" />
@@ -20,7 +22,7 @@
       <KeyBinding Key="S" Modifiers="Ctrl" Command="{Binding Save}" />
       <KeyBinding Key="S" Modifiers="Ctrl+Shift" Command="{Binding SaveAs}" />
       <KeyBinding Key="A" Modifiers="Ctrl+Shift" Command="{Binding SaveAll}" />
-      <KeyBinding Key="W" Modifiers="Ctrl" Command="{Binding Close}" />
+      <KeyBinding Key="W" Modifiers="Ctrl" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}" />
 
       <KeyBinding Key="Z" Modifiers="Ctrl" Command="{Binding Undo}" />
       <KeyBinding Key="Y" Modifiers="Ctrl" Command="{Binding Redo}" />
@@ -43,8 +45,9 @@
       <KeyBinding Key="OemMinus" Modifiers="Ctrl" Command="{Binding Back}" />
       <KeyBinding Key="OemMinus" Modifiers="Ctrl+Shift" Command="{Binding Forward}" />
 
-      <!-- Stealing this routed command for toggling theme -->
       <KeyBinding Key="M" Modifiers="Ctrl" Command="{Binding ToggleMatrix}" />
+      <KeyBinding Key="H" Modifiers="Ctrl" Command="{Binding ToggleTableHeaders}" />
+      <!-- Stealing this routed command for toggling theme -->
       <KeyBinding Key="T" Modifiers="Ctrl" Command="ToggleBullets" />
 
       <KeyBinding Key="Esc" Command="{Binding ClearError}"/>
@@ -55,8 +58,7 @@
    <DockPanel>
       <DockPanel DockPanel.Dock="Top">
          <DockPanel.Resources>
-            <Style TargetType="StackPanel" x:Key="AnimateOnVisibilityChanged">
-               <Setter Property="Orientation" Value="Horizontal"/>
+            <Style TargetType="Panel" x:Key="AnimateOnVisibilityChanged">
                <Setter Property="DockPanel.Dock" Value="Right"/>
                <Setter Property="Background" Value="{DynamicResource Backlight}"/>
                <Style.Triggers>
@@ -73,6 +75,97 @@
                </Style.Triggers>
             </Style>
          </DockPanel.Resources>
+         <!-- Menu -->
+         <Menu DockPanel.Dock="Left">
+            <MenuItem Header="_File">
+               <MenuItem Header="_New" Command="{Binding New}" InputGestureText="Ctrl+N">
+                  <MenuItem.Icon>
+                     <Path Data="{hsv:Icon New}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                  </MenuItem.Icon>
+               </MenuItem>
+               <MenuItem Header="_Open" Command="{Binding Open}" InputGestureText="Ctrl+O">
+                  <MenuItem.Icon>
+                     <Path Data="{hsv:Icon Open}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                  </MenuItem.Icon>
+               </MenuItem>
+               <Separator />
+               <MenuItem Header="_Save" Command="{Binding Save}" InputGestureText="Ctrl+S">
+                  <MenuItem.Icon>
+                     <Path Data="{hsv:Icon Save}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                  </MenuItem.Icon>
+               </MenuItem>
+               <MenuItem Header="Save _As" Command="{Binding SaveAs}" InputGestureText="Ctrl+Shift+S" />
+               <MenuItem Header="Save A_ll" Command="{Binding SaveAll}" InputGestureText="Ctrl+Shift+A" />
+               <Separator />
+               <MenuItem Header="_Close Current Tab" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}" InputGestureText="Ctrl+W" />
+               <MenuItem Header="E_xit" Click="ExitClicked" InputGestureText="Alt+F4">
+                  <MenuItem.Icon>
+                     <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                  </MenuItem.Icon>
+               </MenuItem>
+            </MenuItem>
+            <MenuItem Header="_Edit">
+               <MenuItem Header="_Undo" Command="{Binding Undo}" InputGestureText="Ctrl+Z">
+                  <MenuItem.Icon>
+                     <Path Data="{hsv:Icon UndoArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                  </MenuItem.Icon>
+               </MenuItem>
+               <MenuItem Header="_Redo" Command="{Binding Redo}" InputGestureText="Ctrl+Y">
+                  <MenuItem.Icon>
+                     <Path Data="{hsv:Icon RedoArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                  </MenuItem.Icon>
+               </MenuItem>
+               <Separator />
+               <MenuItem Header="Cu_t" Command="{Binding Cut}" InputGestureText="Ctrl+X"/>
+               <MenuItem Header="_Copy" Command="{Binding Copy}" InputGestureText="Ctrl+C"/>
+               <MenuItem Header="_Paste / Replace" Command="{Binding Paste}" InputGestureText="Ctrl+V"/>
+               <MenuItem Header="_Delete" Command="{Binding Delete}" InputGestureText="Del"/>
+               <Separator />
+               <MenuItem Header="_Find" Command="{Binding ShowFind}" InputGestureText="Ctrl+F">
+                  <MenuItem.CommandParameter>
+                     <sys:Boolean>true</sys:Boolean>
+                  </MenuItem.CommandParameter>
+               </MenuItem>
+               <MenuItem Header="Find _Next" Command="{Binding FindNext}" CommandParameter="{Binding Text, ElementName=FindBox}" InputGestureText="F3"/>
+               <MenuItem Header="Find _Previous" Command="{Binding FindPrevious}" CommandParameter="{Binding Text, ElementName=FindBox}" InputGestureText="Shift+F3"/>
+               <MenuItem Header="_Goto" Command="{Binding GotoViewModel.ShowGoto}" InputGestureText="Ctrl+G">
+                  <MenuItem.CommandParameter>
+                     <sys:Boolean>true</sys:Boolean>
+                  </MenuItem.CommandParameter>
+               </MenuItem>
+               <MenuItem Header="Go _Back" Command="{Binding Back}" InputGestureText="Ctrl+-"/>
+               <MenuItem Header="Go _Forward" Command="{Binding Forward}" InputGestureText="Ctrl+Shift+-"/>
+            </MenuItem>
+            <MenuItem Header="_View">
+               <MenuItem Header="_Toggle Theme" Click="ToggleTheme" InputGestureText="Ctrl+T"/>
+               <MenuItem Header="Toggle _Matrix Grid" Command="{Binding ToggleMatrix}" InputGestureText="Ctrl+M"/>
+               <MenuItem Header="Toggle Custom _Headers" Command="{Binding ToggleTableHeaders}" InputGestureText="Ctrl+H" ToolTipService.ShowDuration="15000">
+                  <MenuItem.ToolTip>
+                     <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{solarized:Theme Blue}" BorderThickness="1">
+                        <TextBlock TextAlignment="Left">
+                           <Bold>Table Headers</Bold> <LineBreak/>
+                           Tables with data can show entry names instead of addresses. <LineBreak/>
+                           By default, tables will show the names of entries when possible. <LineBreak/>
+                           Toggling this will cause the table to show address of entries instead.
+                        </TextBlock>
+                     </ToolTip>
+                  </MenuItem.ToolTip>
+               </MenuItem>
+               <MenuItem Header="_Clear Error" Command="{Binding ClearError}" InputGestureText="Esc"/>
+            </MenuItem>
+            <MenuItem Header="_Tools">
+               <MenuItem Header="_Hide All Tools" Command="{Binding Tools.HideCommand}"/>
+               <Separator/>
+               <MenuItem Header="Toggle _Text Tool" Command="{Binding Tools.StringToolCommand}"/>
+               <MenuItem Header="Toggle T_able Tool" Command="{Binding Tools.TableToolCommand}"/>
+               <MenuItem Header="Toggle _Extra Tool" Command="{Binding Tools.Tool3Command}"/>
+            </MenuItem>
+            <MenuItem Header="_Help">
+               <MenuItem Header="_Wiki" Click="WikiClick"/>
+               <MenuItem Header="_Report an Issue" Click="ReportIssueClick"/>
+               <MenuItem Header="_About" Click="AboutClick"/>
+            </MenuItem>
+         </Menu>
          <!-- Goto -->
          <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}">
             <TextBlock Text="Goto :" Margin="10,0" />
@@ -122,102 +215,27 @@
                </TextBox.InputBindings>
             </TextBox>
          </StackPanel>
-         <!-- Error -->
-         <StackPanel Visibility="{Binding ShowError, Converter={StaticResource BoolToVisibility}}" Style="{StaticResource AnimateOnVisibilityChanged}">
-            <StackPanel.InputBindings>
-               <MouseBinding MouseAction="MiddleClick" Command="{Binding ClearError}"/>
-            </StackPanel.InputBindings>
-            <TextBlock Margin="10,0" VerticalAlignment="Center" Text="{Binding ErrorMessage}" Foreground="{solarized:Theme Red}"/>
-            <Button Command="{Binding ClearError}" Width="15">
-               <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-            </Button>
-         </StackPanel>
          <!-- Message -->
-         <StackPanel Visibility="{Binding ShowMessage, Converter={StaticResource BoolToVisibility}}" Style="{StaticResource AnimateOnVisibilityChanged}">
+         <StackPanel Visibility="{Binding ShowMessage, Converter={StaticResource BoolToVisibility}}" Style="{StaticResource AnimateOnVisibilityChanged}" Orientation="Horizontal">
             <TextBlock Margin="10,0" VerticalAlignment="Center" Text="{Binding InformationMessage}" Foreground="{solarized:Theme Primary}"/>
             <Button Command="{Binding ClearMessage}" Width="15">
                <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
             </Button>
          </StackPanel>
-         <!-- Menu -->
-         <Menu>
-            <MenuItem Header="_File">
-               <MenuItem Header="_New" Command="{Binding New}" InputGestureText="Ctrl+N">
-                  <MenuItem.Icon>
-                     <Path Data="{hsv:Icon New}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                  </MenuItem.Icon>
-               </MenuItem>
-               <MenuItem Header="_Open" Command="{Binding Open}" InputGestureText="Ctrl+O">
-                  <MenuItem.Icon>
-                     <Path Data="{hsv:Icon Open}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                  </MenuItem.Icon>
-               </MenuItem>
-               <Separator />
-               <MenuItem Header="_Save" Command="{Binding Save}" InputGestureText="Ctrl+S">
-                  <MenuItem.Icon>
-                     <Path Data="{hsv:Icon Save}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                  </MenuItem.Icon>
-               </MenuItem>
-               <MenuItem Header="Save _As" Command="{Binding SaveAs}" InputGestureText="Ctrl+Shift+S" />
-               <MenuItem Header="Save A_ll" Command="{Binding SaveAll}" InputGestureText="Ctrl+Shift+A" />
-               <Separator />
-               <MenuItem Header="_Close Current Tab" Command="{Binding Close}" InputGestureText="Ctrl+W" />
-               <MenuItem Header="E_xit" Click="ExitClicked" InputGestureText="Alt+F4">
-                  <MenuItem.Icon>
-                     <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                  </MenuItem.Icon>
-               </MenuItem>
-            </MenuItem>
-            <MenuItem Header="_Edit">
-               <MenuItem Header="_Undo" Command="{Binding Undo}" InputGestureText="Ctrl+Z">
-                  <MenuItem.Icon>
-                     <Path Data="{hsv:Icon UndoArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                  </MenuItem.Icon>
-               </MenuItem>
-               <MenuItem Header="_Redo" Command="{Binding Redo}" InputGestureText="Ctrl+Y">
-                  <MenuItem.Icon>
-                     <Path Data="{hsv:Icon RedoArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                  </MenuItem.Icon>
-               </MenuItem>
-               <Separator />
-               <MenuItem Header="Cu_t" Command="{Binding Cut}" InputGestureText="Ctrl+X"/>
-               <MenuItem Header="_Copy" Command="{Binding Copy}" InputGestureText="Ctrl+C"/>
-               <MenuItem Header="_Paste / Replace" Command="{Binding Paste}" InputGestureText="Ctrl+V"/>
-               <MenuItem Header="_Delete" Command="{Binding Delete}" InputGestureText="Del"/>
-               <Separator />
-               <MenuItem Header="_Find" Command="{Binding ShowFind}" InputGestureText="Ctrl+F">
-                  <MenuItem.CommandParameter>
-                     <sys:Boolean>true</sys:Boolean>
-                  </MenuItem.CommandParameter>
-               </MenuItem>
-               <MenuItem Header="Find _Next" Command="{Binding FindNext}" CommandParameter="{Binding Text, ElementName=FindBox}" InputGestureText="F3"/>
-               <MenuItem Header="Find _Previous" Command="{Binding FindPrevious}" CommandParameter="{Binding Text, ElementName=FindBox}" InputGestureText="Shift+F3"/>
-               <MenuItem Header="_Goto" Command="{Binding GotoViewModel.ShowGoto}" InputGestureText="Ctrl+G">
-                  <MenuItem.CommandParameter>
-                     <sys:Boolean>true</sys:Boolean>
-                  </MenuItem.CommandParameter>
-               </MenuItem>
-               <MenuItem Header="Go _Back" Command="{Binding Back}" InputGestureText="Ctrl+-"/>
-               <MenuItem Header="Go _Forward" Command="{Binding Forward}" InputGestureText="Ctrl+Shift+-"/>
-            </MenuItem>
-            <MenuItem Header="_View">
-               <MenuItem Header="_Toggle Theme" Click="ToggleTheme" InputGestureText="Ctrl+T"/>
-               <MenuItem Header="Toggle Matrix Grid" Command="{Binding ToggleMatrix}" InputGestureText="Ctrl+M"/>
-               <MenuItem Header="_Clear Error" Command="{Binding ClearError}" InputGestureText="Esc"/>
-            </MenuItem>
-            <MenuItem Header="_Tools">
-               <MenuItem Header="_Hide All Tools" Command="{Binding Tools.HideCommand}"/>
-               <Separator/>
-               <MenuItem Header="Toggle _Text Tool" Command="{Binding Tools.StringToolCommand}"/>
-               <MenuItem Header="Toggle _Filler Tool" Command="{Binding Tools.Tool2Command}"/>
-               <MenuItem Header="Toggle _Extra Tool" Command="{Binding Tools.Tool3Command}"/>
-            </MenuItem>
-            <MenuItem Header="_Help">
-               <MenuItem Header="_Wiki" Click="WikiClick"/>
-               <MenuItem Header="_Report an Issue" Click="ReportIssueClick"/>
-               <MenuItem Header="_About" Click="AboutClick"/>
-            </MenuItem>
-         </Menu>
+         <!-- Error -->
+         <Grid Visibility="{Binding ShowError, Converter={StaticResource BoolToVisibility}}" Style="{StaticResource AnimateOnVisibilityChanged}">
+            <Grid.ColumnDefinitions>
+               <ColumnDefinition/>
+               <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid.InputBindings>
+               <MouseBinding MouseAction="MiddleClick" Command="{Binding ClearError}"/>
+            </Grid.InputBindings>
+            <TextBlock Margin="10,0" VerticalAlignment="Center" Text="{Binding ErrorMessage}" TextWrapping="Wrap" TextAlignment="Right" Foreground="{solarized:Theme Red}"/>
+            <Button Command="{Binding ClearError}" Width="15" Grid.Column="1">
+               <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+            </Button>
+         </Grid>
       </DockPanel>
       <Grid>
          <hsg3hv:StartScreen/>
@@ -242,7 +260,7 @@
                            <MouseBinding MouseAction="MiddleClick" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}"/>
                         </TextBlock.InputBindings>
                      </TextBlock>
-                     <Button Command="{Binding Close}" Width="15" Margin="5,0,0,0" VerticalAlignment="Stretch" Background="{DynamicResource Background}" BorderBrush="{DynamicResource Background}">
+                     <Button Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}" Width="15" Margin="5,0,0,0" VerticalAlignment="Stretch" Background="{DynamicResource Background}" BorderBrush="{DynamicResource Background}">
                         <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
                      </Button>
                   </StackPanel>
@@ -251,43 +269,11 @@
             <TabControl.ContentTemplate>
                <DataTemplate>
                   <DockPanel>
-                     <!-- Anchor Editor -->
-                     <Border DockPanel.Dock="Top" Height="19" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource Backlight}">
-                        <DockPanel Visibility="{Binding AnchorTextVisible, Converter={StaticResource BoolToVisibility}}" >
-                           <TextBlock Width="60" Text="Anchor: " TextAlignment="Right" ToolTipService.ShowDuration="15000">
-                              <TextBlock.ToolTip>
-                                 <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{solarized:Theme Blue}" BorderThickness="1">
-                                    <TextBlock TextAlignment="Left">
-                                       <Bold>Anchor Editor</Bold> <LineBreak/>
-                                       Anchors can have a name and a format. <LineBreak/>
-                                       <LineBreak/>
-                                       Named anchors persist between sessions. <LineBreak/>
-                                       You can also use names in pointers and with Goto <Italic Foreground="{DynamicResource Secondary}">(Ctrl+G)</Italic>. <LineBreak/>
-                                       <LineBreak/>
-                                       Formats change how the data is displayed and edited. <LineBreak/>
-                                       For example, "" formats data as text. <LineBreak/>
-                                       To learn more about formats, visit the Wiki.
-                                    </TextBlock>
-                                 </ToolTip>
-                              </TextBlock.ToolTip>
-                           </TextBlock>
-                           <TextBox Text="{Binding AnchorText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,25,0"/>
-                        </DockPanel>
-                     </Border>
-                     <!-- Headers -->
-                     <ItemsControl DockPanel.Dock="Left" Width="60" ItemsSource="{Binding Headers}" Background="{DynamicResource Backlight}" MouseDown="HeaderMouseDown">
-                        <ItemsControl.ItemTemplate>
-                           <DataTemplate>
-                              <TextBlock Foreground="{DynamicResource Secondary}" Text="{Binding}" FontFamily="Consolas" HorizontalAlignment="Right" Height="{x:Static hsg3hv:HexContent.CellHeight}" Padding="4"/>
-                           </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                     </ItemsControl>
-                     <Line Width="1" DockPanel.Dock="Left" Stroke="{DynamicResource Background}"/>
                      <!-- Tool Headers -->
-                     <StackPanel DockPanel.Dock="Right" Visibility="{Binding HasTools, Converter={StaticResource BoolToVisibility}}">
+                     <StackPanel DockPanel.Dock="Left" Visibility="{Binding HasTools, Converter={StaticResource BoolToVisibility}}">
                         <Button Content="Text" Command="{Binding Tools.StringToolCommand}" Margin="0,2">
                            <Button.LayoutTransform>
-                              <RotateTransform Angle="90"/>
+                              <RotateTransform Angle="-90"/>
                            </Button.LayoutTransform>
                            <Button.Style>
                               <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
@@ -299,9 +285,9 @@
                               </Style>
                            </Button.Style>
                         </Button>
-                        <Button Content="Tool2" Command="{Binding Tools.Tool2Command}" Margin="0,2">
+                        <Button Content="Table" Command="{Binding Tools.TableToolCommand}" Margin="0,2">
                            <Button.LayoutTransform>
-                              <RotateTransform Angle="90"/>
+                              <RotateTransform Angle="-90"/>
                            </Button.LayoutTransform>
                            <Button.Style>
                               <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
@@ -315,7 +301,7 @@
                         </Button>
                         <Button Content="Tool3" Command="{Binding Tools.Tool3Command}" Margin="0,2">
                            <Button.LayoutTransform>
-                              <RotateTransform Angle="90"/>
+                              <RotateTransform Angle="-90"/>
                            </Button.LayoutTransform>
                            <Button.Style>
                               <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
@@ -329,7 +315,7 @@
                         </Button>
                      </StackPanel>
                      <!-- Tools -->
-                     <Grid DockPanel.Dock="Right" DataContext="{Binding Tools}">
+                     <Grid DockPanel.Dock="Left" DataContext="{Binding Tools}">
                         <Grid.Style>
                            <Style TargetType="Grid">
                               <Style.Triggers>
@@ -358,9 +344,9 @@
                               IsEnabled="{Binding StringTool.Enabled}"
                               Text="{Binding StringTool.Content, UpdateSourceTrigger=PropertyChanged}" />
                         </DockPanel>
-                        <StackPanel Name="Tool2Panel">
-                           <StackPanel.Style>
-                              <Style TargetType="StackPanel">
+                        <ScrollViewer Width="265" Name="TableToolPanel" VerticalScrollBarVisibility="Visible">
+                           <ScrollViewer.Style>
+                              <Style TargetType="ScrollViewer">
                                  <Setter Property="Visibility" Value="Collapsed"/>
                                  <Style.Triggers>
                                     <DataTrigger Binding="{Binding SelectedIndex}" Value="1">
@@ -368,9 +354,39 @@
                                     </DataTrigger>
                                  </Style.Triggers>
                               </Style>
-                           </StackPanel.Style>
-                           <TextBlock Text="Coming Soon!" Margin="5,15,0,0"/>
-                        </StackPanel>
+                           </ScrollViewer.Style>
+                           <StackPanel>
+                              <TextBlock Text="{Binding TableTool.CurrentElementName}" HorizontalAlignment="Center" Margin="0,2" MaxWidth="200" TextWrapping="Wrap" TextAlignment="Center"/>
+                              <Grid>
+                                 <Button Margin="5" Content="Previous" Command="{Binding TableTool.Previous}" HorizontalAlignment="Left"/>
+                                 <Button Margin="5" Content="Next" Command="{Binding TableTool.Next}" HorizontalAlignment="Right"/>
+                              </Grid>
+                              <ItemsControl ItemsSource="{Binding TableTool.Children}" Grid.IsSharedSizeScope="True">
+                                 <ItemsControl.Resources>
+                                    <DataTemplate DataType="{x:Type hsg3hvmtr:FieldArrayElementViewModel}">
+                                       <Grid HorizontalAlignment="Stretch" Margin="2">
+                                          <Grid.ColumnDefinitions>
+                                             <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
+                                             <ColumnDefinition Width="*"/>
+                                          </Grid.ColumnDefinitions>
+                                          <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
+                                          <TextBox Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1"/>
+                                       </Grid>
+                                    </DataTemplate>
+                                    <DataTemplate DataType="{x:Type hsg3hvmtr:ComboBoxArrayElementViewModel}">
+                                       <Grid HorizontalAlignment="Stretch" Margin="2">
+                                          <Grid.ColumnDefinitions>
+                                             <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
+                                             <ColumnDefinition Width="*"/>
+                                          </Grid.ColumnDefinitions>
+                                          <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
+                                          <ComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" Grid.Column="1"/>
+                                       </Grid>
+                                    </DataTemplate>
+                                 </ItemsControl.Resources>
+                              </ItemsControl>
+                           </StackPanel>
+                        </ScrollViewer>
                         <StackPanel Name="Tool3Panel">
                            <StackPanel.Style>
                               <Style TargetType="StackPanel">
@@ -385,6 +401,42 @@
                            <TextBlock Text="Coming Soon!" Margin="5,15,0,0"/>
                         </StackPanel>
                      </Grid>
+                     <!-- Anchor Editor -->
+                     <Border DockPanel.Dock="Top" Height="19" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource Backlight}">
+                        <DockPanel Visibility="{Binding AnchorTextVisible, Converter={StaticResource BoolToVisibility}}" >
+                           <TextBlock Width="70" Text="Anchor: " TextAlignment="Right" ToolTipService.ShowDuration="15000">
+                              <TextBlock.ToolTip>
+                                 <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{solarized:Theme Blue}" BorderThickness="1">
+                                    <TextBlock TextAlignment="Left">
+                                       <Bold>Anchor Editor</Bold> <LineBreak/>
+                                       Anchors can have a name and a format. <LineBreak/>
+                                       <LineBreak/>
+                                       Named anchors persist between sessions. <LineBreak/>
+                                       You can also use names in pointers and with Goto <Italic Foreground="{DynamicResource Secondary}">(Ctrl+G)</Italic>. <LineBreak/>
+                                       <LineBreak/>
+                                       Formats change how the data is displayed and edited. <LineBreak/>
+                                       For example, "" formats data as text. <LineBreak/>
+                                       To learn more about formats, visit the Wiki.
+                                    </TextBlock>
+                                 </ToolTip>
+                              </TextBlock.ToolTip>
+                           </TextBlock>
+                           <TextBox Text="{Binding AnchorText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,25,0"/>
+                        </DockPanel>
+                     </Border>
+                     <!-- Column Headers -->
+                     <hsg3hv:HorizontalSlantedTextControl HeaderRows="{Binding ColumnHeaders}" DockPanel.Dock="Top" ColumnWidth="{x:Static hsg3hv:HexContent.CellWidth}"/>
+                     <!-- Row Headers -->
+                     <ItemsControl DockPanel.Dock="Left" Width="70" ItemsSource="{Binding Headers}" Background="{DynamicResource Backlight}" MouseDown="HeaderMouseDown">
+                        <ItemsControl.ItemTemplate>
+                           <DataTemplate>
+                              <Viewbox Height="{x:Static hsg3hv:HexContent.CellHeight}" HorizontalAlignment="Right" Margin="0,0,2,0">
+                                 <TextBlock Foreground="{DynamicResource Secondary}" Text="{Binding}" FontFamily="Consolas" Padding="1"/>
+                              </Viewbox>
+                           </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                     </ItemsControl>
+                     <Line Width="1" DockPanel.Dock="Left" Stroke="{DynamicResource Background}"/>
                      <ScrollBar DockPanel.Dock="Right"
                         Minimum="{Binding MinimumScroll}" Maximum="{Binding MaximumScroll}" Value="{Binding ScrollValue}"
                         SmallChange="1" LargeChange="{Binding Height}" />

@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System.Diagnostics;
 using System.Linq;
 using static HavenSoft.HexManiac.Core.Models.Runs.ArrayRun;
@@ -89,11 +90,31 @@ namespace HavenSoft.HexManiac.Core.Models {
             ObserveAnchorWritten(noChangeDelta, "items", itemdata);
          }
 
-         // ^pokestats[hp. attack. def. speed. spatk. spdef. catchrate. runrate. a:: b:: c:: d:: e::]pokenames
+         if (TrySearch(this, noChangeDelta, "[hp. attack. def. speed. spatk. spdef. type1.types type2.types catchRate. baseExp. evs: item1:items item2:items genderratio. steps2hatch. basehappiness. growthrate. egg1. egg2. ability1.abilitynames ability2.abilitynames runrate. unknown. padding:]pokenames", out var pokestatdata)) {
+            ObserveAnchorWritten(noChangeDelta, "pokestats", pokestatdata);
+         }
 
-         // abilitydescriptions[description<"">]abilitynames
+         // the first abilityDescriptions pointer is directly after the first abilityNames pointer
+         var abilityNamesAddress = GetAddressFromAnchor(noChangeDelta, -1, "abilitynames");
+         if (abilityNamesAddress != Pointer.NULL) {
+            var firstPointerToAbilityNames = GetNextAnchor(abilityNamesAddress).PointerSources?.FirstOrDefault() ?? Pointer.NULL;
+            if (firstPointerToAbilityNames != Pointer.NULL) {
+               var firstPointerToAbilityDescriptions = firstPointerToAbilityNames + 4;
+               var abilityDescriptionsAddress = ReadPointer(firstPointerToAbilityDescriptions);
+               var existingRun = GetNextAnchor(abilityDescriptionsAddress);
+               if (!(existingRun is ArrayRun) && existingRun.Start == abilityDescriptionsAddress) {
+                  var error = TryParse(this, "[description<>]abilitynames", existingRun.Start, existingRun.PointerSources, out var abilityDescriptions);
+                  if (!error.HasError) ObserveAnchorWritten(noChangeDelta, "abilitydescriptions", abilityDescriptions);
+               }
+            }
+         }
+
+         if (TrySearch(this, noChangeDelta, "[effect. power. type.types accuracy. pp. effectAccuracy. target. priority. more::]movenames", out var movedata, run => run.PointerSources.Count > 100)) {
+            ObserveAnchorWritten(noChangeDelta, "movedata", movedata);
+         }
 
          // @3D4294 ^itemicons[image<> palette<>]items
+         // @4886E8 ^movedescriptions[description<>]354
       }
    }
 }

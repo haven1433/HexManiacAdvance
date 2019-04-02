@@ -12,6 +12,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       PCSTool StringTool { get; }
 
+      TableTool TableTool { get; }
+
       IDisposable DeferUpdates { get; }
 
       void Schedule(Action action);
@@ -20,7 +22,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class ToolTray : ViewModelCore, IToolTrayViewModel {
       private readonly IList<IToolViewModel> tools;
       private readonly StubCommand hideCommand;
-      private readonly StubCommand stringToolCommand, tool2Command, tool3Command;
+      private readonly StubCommand stringToolCommand, tableToolCommand, tool3Command;
       private readonly HashSet<Action> deferredWork = new HashSet<Action>();
 
       private int selectedIndex;
@@ -38,12 +40,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public ICommand HideCommand => hideCommand;
       public ICommand StringToolCommand => stringToolCommand;
-      public ICommand Tool2Command => tool2Command;
+      public ICommand TableToolCommand => tableToolCommand;
       public ICommand Tool3Command => tool3Command;
 
       public PCSTool StringTool => (PCSTool)tools[0];
 
-      public IToolViewModel Tool2 => tools[1];
+      public TableTool TableTool => (TableTool)tools[1];
 
       public IToolViewModel Tool3 => tools[2];
 
@@ -65,7 +67,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ToolTray(IDataModel model, Selection selection, ChangeHistory<ModelDelta> history) {
          tools = new IToolViewModel[] {
             new PCSTool(model, selection, history, this),
-            new FillerTool("Tool2"),
+            new TableTool(model, selection, history, this),
             new FillerTool("Tool3"),
          };
 
@@ -74,7 +76,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             Execute = arg => SelectedIndex = selectedIndex == 0 ? -1 : 0,
          };
 
-         tool2Command = new StubCommand {
+         tableToolCommand = new StubCommand {
             CanExecute = ICommandExtensions.CanAlwaysExecute,
             Execute = arg => SelectedIndex = selectedIndex == 1 ? -1 : 1,
          };
