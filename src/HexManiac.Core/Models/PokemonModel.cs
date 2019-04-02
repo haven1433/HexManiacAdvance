@@ -697,7 +697,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var address = addressForAnchor[name];
             var run = GetNextRun(address) as ArrayRun;
             if (run == null || !partial.Contains(ArrayAnchorSeparator)) {
-               if (!IsPartialMatch(name, partial)) results.Add(name);
+               if (IsPartialMatch(name, partial)) results.Add(name);
             } else {
                var childNames = run.ElementNames;
                if (childNames != null && childNames.Count > 0) {
