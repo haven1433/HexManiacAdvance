@@ -47,7 +47,9 @@
     <Compile Include="Models\AutoSearchModel.cs" />
     <Compile Include="Models\ErrorInfo.cs" />
     <Compile Include="Models\IDataModel.cs" />
+    <Compile Include="Models\Runs\ArrayRunElementSegment.cs" />
     <Compile Include="Models\Runs\AsciiRun.cs" />
+    <Compile Include="Models\Runs\HeaderRow.cs" />
     <Compile Include="ViewModels\Tools\IArrayElementViewModel.cs" />
     <Compile Include="Models\Runs\IFormattedRun.cs" />
     <Compile Include="Models\ModelDelta.cs" />

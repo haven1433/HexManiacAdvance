@@ -2,163 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
-   public enum ElementContentType {
-      Unknown,
-      PCS,
-      Integer,
-      Pointer,
-   }
-
-   public class ArrayRunElementSegment {
-      public string Name { get; }
-      public ElementContentType Type { get; }
-      public int Length { get; }
-      public ArrayRunElementSegment(string name, ElementContentType type, int length) => (Name, Type, Length) = (name, type, length);
-
-      public virtual string ToText(IDataModel rawData, int offset) {
-         switch (Type) {
-            case ElementContentType.PCS:
-               return PCSString.Convert(rawData, offset, Length);
-            case ElementContentType.Integer:
-               return ToInteger(rawData, offset, Length).ToString();
-            case ElementContentType.Pointer:
-               var address = rawData.ReadPointer(offset);
-               var anchor = rawData.GetAnchorFromAddress(-1, address);
-               if (string.IsNullOrEmpty(anchor)) anchor = address.ToString("X6");
-               return $"<{anchor}>";
-            default:
-               throw new NotImplementedException();
-         }
-      }
-
-      public static int ToInteger(IReadOnlyList<byte> data, int offset, int length) {
-         int result = 0;
-         int multiplier = 1;
-         for (int i = 0; i < length; i++) {
-            result += data[offset + i] * multiplier;
-            multiplier *= 0x100;
-         }
-         return result;
-      }
-   }
-
-   public class ArrayRunEnumSegment : ArrayRunElementSegment {
-      public string EnumName { get; }
-
-      public ArrayRunEnumSegment(string name, int length, string enumName) : base(name, ElementContentType.Integer, length) => EnumName = enumName;
-
-      public override string ToText(IDataModel model, int offset) {
-         var noChange = new NoDataChangeDeltaModel();
-         var options = GetOptions(model);
-         if (options == null) return base.ToText(model, offset);
-
-         var resultAsInteger = ToInteger(model, offset, Length);
-         if (resultAsInteger >= options.Count) return base.ToText(model, offset);
-         var value = options[resultAsInteger];
-
-         // use ~2 postfix for a value if an earlier entry in the array has the same string
-         var elementsUpToHereWithThisName = 1;
-         for (int i = resultAsInteger - 1; i >= 0; i--) {
-            var previousValue = options[i];
-            if (previousValue == value) elementsUpToHereWithThisName++;
-         }
-         if (value.StartsWith("\"") && value.EndsWith("\"")) value = value.Substring(1, value.Length - 2);
-         if (elementsUpToHereWithThisName > 1) value += "~" + elementsUpToHereWithThisName;
-
-         // add quotes around it if it contains a space
-         if (value.Contains(' ')) value = $"\"{value}\"";
-
-         return value;
-      }
-
-      public bool TryParse(IDataModel model, string text, out int value) {
-         value = -1;
-         text = text.Trim();
-         if (text.StartsWith("\"") && text.EndsWith("\"")) text = text.Substring(1, text.Length - 2);
-         var partialMatches = new List<string>();
-         var matches = new List<string>();
-         var noChange = new NoDataChangeDeltaModel();
-
-         // enum must be the name of an array that starts with a string
-         var address = model.GetAddressFromAnchor(noChange, -1, EnumName);
-         if (address == Pointer.NULL) return false;
-         var enumArray = model.GetNextRun(address) as ArrayRun;
-         if (enumArray == null) return false;
-         if (enumArray.ElementContent.Count == 0) return false;
-         var firstContent = enumArray.ElementContent[0];
-         if (firstContent.Type != ElementContentType.PCS) return false;
-
-         // if the ~ character is used, expect that it's saying which match we want
-         var desiredMatch = 1;
-         var splitIndex = text.IndexOf('~');
-         if (splitIndex != -1 && !int.TryParse(text.Substring(splitIndex + 1), out desiredMatch)) return false;
-         if (splitIndex != -1) text = text.Substring(0, splitIndex);
-
-         // ok, so everything lines up... check the array to see if any values match the string entered
-         text = text.ToLower();
-         for (int i = 0; i < enumArray.ElementCount; i++) {
-            var option = PCSString.Convert(model, enumArray.Start + enumArray.ElementLength * i, firstContent.Length).ToLower();
-            option = option.Substring(1, option.Length - 2);
-            // check for exact matches
-            if (option == text) {
-               matches.Add(option);
-               if (matches.Count == desiredMatch) {
-                  value = i;
-                  return true;
-               }
-            }
-            // check for start-of-string matches (for autocomplete)
-            if (option.StartsWith(text)) {
-               partialMatches.Add(option);
-               if(partialMatches.Count==desiredMatch && matches.Count == 0) {
-                  value = i;
-                  return true;
-               }
-            }
-         }
-
-         // we went through the whole array and didn't find it :(
-         return false;
-      }
-
-      private IReadOnlyList<string> cachedOptions;
-      public IReadOnlyList<string> GetOptions(IDataModel model) {
-         if (cachedOptions != null) return cachedOptions;
-         var noChange = new NoDataChangeDeltaModel();
-
-         // enum must be the name of an array that starts with a string
-         var address = model.GetAddressFromAnchor(noChange, -1, EnumName);
-         if (address == Pointer.NULL) return null;
-         var enumArray = model.GetNextRun(address) as ArrayRun;
-         if (enumArray == null) return null;
-         if (enumArray.ElementContent.Count == 0) return null;
-         var firstContent = enumArray.ElementContent[0];
-         if (firstContent.Type != ElementContentType.PCS) return null;
-
-         // array must be at least as long as than the current value
-         var optionCount = enumArray.ElementCount;
-
-         // sweet, we can convert from the integer value to the enum value
-         var results = new List<string>();
-         for (int i = 0; i < optionCount; i++) {
-            var elementStart = enumArray.Start + enumArray.ElementLength * i;
-            var valueWithQuotes = PCSString.Convert(model, elementStart, firstContent.Length).Trim();
-            var value = valueWithQuotes.Substring(1, valueWithQuotes.Length - 2);
-            if (value.Contains(' ')) value = $"\"{value}\"";
-            results.Add(value);
-         }
-
-         cachedOptions = results;
-         return results;
-      }
-
-      public void ClearCache() { cachedOptions = null; }
-   }
-
    public class ArrayOffset {
       /// <summary>
       /// Ranges from 0 to ElementCount
@@ -181,57 +27,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          SegmentIndex = segmentIndex;
          SegmentStart = segmentStart;
          SegmentOffset = segmentOffset;
-      }
-   }
-
-   public class ColumnHeader {
-      public string ColumnTitle { get; }
-      public int ByteWidth { get; }
-      public ColumnHeader(string title, int byteWidth = 1) => (ColumnTitle, ByteWidth) = (title, byteWidth);
-   }
-
-   /// <summary>
-   /// Represents a horizontal row of labels.
-   /// Each entry is meant to label a column.
-   /// </summary>
-   public class HeaderRow {
-      public IReadOnlyList<ColumnHeader> ColumnHeaders { get; }
-
-      public HeaderRow(ArrayRun source, int byteStart, int length, int startingDataIndex) {
-         var headers = new List<ColumnHeader>();
-         // we know which 'byte' to start at, but we want to know what 'index' to start at
-         // basically, count off each element to figure out how big it is
-         int currentByte = 0;
-         int startIndex = 0;
-         while (currentByte < byteStart) {
-            currentByte += source.ElementContent[startIndex % source.ElementContent.Count].Length;
-            startIndex++;
-         }
-         int initialPartialSegmentLength = currentByte - byteStart;
-         if (initialPartialSegmentLength > 0) startIndex--;
-         currentByte = 0;
-         for (int i = 0; currentByte < length; i++) {
-            var segment = source.ElementContent[(startIndex + i) % source.ElementContent.Count];
-            headers.Add(new ColumnHeader(segment.Name, segment.Length - initialPartialSegmentLength));
-            currentByte += segment.Length - initialPartialSegmentLength;
-            initialPartialSegmentLength = 0;
-         }
-         ColumnHeaders = headers;
-      }
-
-      public HeaderRow(int start, int length) {
-         while (start < 0) start += length;
-         var hex = "0123456789ABCDEF";
-         var headers = new ColumnHeader[length];
-         for (int i = 0; i < length; i++) headers[i] = new ColumnHeader(hex[(start + i) % 0x10].ToString());
-         ColumnHeaders = headers;
-      }
-
-      public static IReadOnlyList<HeaderRow> GetDefaultColumnHeaders(int columnCount, int startingDataIndex) {
-         if (columnCount > 0x10 && columnCount % 0x10 != 0) return new List<HeaderRow>();
-         if (columnCount < 0x10 && 0x10 % columnCount != 0) return new List<HeaderRow>();
-         if (columnCount >= 0x10) return new[] { new HeaderRow(startingDataIndex, columnCount) };
-         return Enumerable.Range(0, 0x10 / columnCount).Select(i => new HeaderRow(columnCount * i + startingDataIndex, columnCount)).ToList();
       }
    }
 
@@ -274,13 +69,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public IReadOnlyList<string> ElementNames {
          get {
             if (cachedElementNames != null) return cachedElementNames;
-
             var names = new List<string>();
-            var source = owner.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, LengthFromAnchor);
-            if (source == Pointer.NULL) return cachedElementNames = names;
-            var sourceArray = owner.GetNextRun(source) as ArrayRun;
-            if (sourceArray == null) return cachedElementNames = names;
-            if (sourceArray.ElementContent[0].Type != ElementContentType.PCS) return cachedElementNames = names;
+            cachedElementNames = names;
+            if (!owner.TryGetNameArray(LengthFromAnchor, out var sourceArray)) return cachedElementNames;
+
             for (int i = 0; i < ElementCount; i++) {
                var nameAddress = sourceArray.Start + sourceArray.ElementLength * i;
                var nameWithQuotes = PCSString.Convert(owner, nameAddress, sourceArray.ElementContent[0].Length).Trim();
@@ -294,7 +86,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                }
             }
 
-            return cachedElementNames = names;
+            return cachedElementNames;
          }
       }
 

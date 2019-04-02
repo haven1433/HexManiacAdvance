@@ -994,14 +994,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var originalArray = arrayRun;
          var currentArrayName = Model.GetAnchorFromAddress(-1, arrayRun.Start);
 
-         int depth = 0;
+         var visitedNames = new List<string>();
          while (arrayRun.LengthFromAnchor != string.Empty) {
-            depth++;
-            if (depth == 10) {
+            if (visitedNames.Contains(arrayRun.LengthFromAnchor)){
                // We kept going up the chain of tables but didn't find a top table. Either the table length definitions are circular or very deep.
-               OnError?.Invoke(this, "Could not extend table safely. Make sure you don't have a circular or deep dependency in your table lengths.");
+               OnError?.Invoke(this, $"Could not extend table safely. Table length has a circular dependency involving {arrayRun.LengthFromAnchor}.");
                return;
             }
+
+            visitedNames.Add(arrayRun.LengthFromAnchor);
             var address = Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, arrayRun.LengthFromAnchor);
             arrayRun = (ArrayRun)Model.GetNextRun(address);
          }

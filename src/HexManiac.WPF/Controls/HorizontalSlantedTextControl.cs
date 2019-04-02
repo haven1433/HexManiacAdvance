@@ -18,7 +18,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          set { SetValue(HeaderRowsProperty, value); }
       }
 
-      public static readonly DependencyProperty HeaderRowsProperty = DependencyProperty.Register("HeaderRows", typeof(ObservableCollection<HeaderRow>), typeof(HorizontalSlantedTextControl), new FrameworkPropertyMetadata(null, HeaderRowsChanged));
+      public static readonly DependencyProperty HeaderRowsProperty = DependencyProperty.Register(nameof(HeaderRows), typeof(ObservableCollection<HeaderRow>), typeof(HorizontalSlantedTextControl), new FrameworkPropertyMetadata(null, HeaderRowsChanged));
 
       private static void HeaderRowsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
          var self = (HorizontalSlantedTextControl)d;
@@ -48,7 +48,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          set { SetValue(ColumnWidthProperty, value); }
       }
 
-      public static readonly DependencyProperty ColumnWidthProperty = DependencyProperty.Register("ColumnWidth", typeof(double), typeof(HorizontalSlantedTextControl), new PropertyMetadata(0.0));
+      public static readonly DependencyProperty ColumnWidthProperty = DependencyProperty.Register(nameof(ColumnWidth), typeof(double), typeof(HorizontalSlantedTextControl), new PropertyMetadata(0.0));
 
       #endregion
 
@@ -59,7 +59,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          set { SetValue(SlantAngleProperty, value); }
       }
 
-      public static readonly DependencyProperty SlantAngleProperty = DependencyProperty.Register("SlantAngle", typeof(double), typeof(HorizontalSlantedTextControl), new PropertyMetadata(30.0));
+      public static readonly DependencyProperty SlantAngleProperty = DependencyProperty.Register(nameof(SlantAngle), typeof(double), typeof(HorizontalSlantedTextControl), new PropertyMetadata(30.0));
 
       #endregion
 

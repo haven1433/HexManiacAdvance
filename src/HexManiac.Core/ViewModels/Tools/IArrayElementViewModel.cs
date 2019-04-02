@@ -113,8 +113,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public void UpdateModelFromViewModel(FieldArrayElementViewModel viewModel) {
          var content = viewModel.Content;
-         if (content.StartsWith("<")) content = content.Substring(1);
-         if (content.EndsWith(">")) content = content.Substring(0, content.Length - 1);
+         if (content.StartsWith(PointerRun.PointerStart.ToString())) content = content.Substring(1);
+         if (content.EndsWith(PointerRun.PointerEnd.ToString())) content = content.Substring(0, content.Length - 1);
 
          int address;
          if (!int.TryParse(content, NumberStyles.HexNumber, CultureInfo.CurrentCulture.NumberFormat, out address)) {
@@ -132,7 +132,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var value = viewModel.Model.ReadPointer(viewModel.Start);
          var text = value.ToString("X2");
          while (text.Length < 6) text = "0" + text;
-         return $"<{text}>";
+         return $"{PointerRun.PointerStart}{text}{PointerRun.PointerEnd}";
       }
    }
 

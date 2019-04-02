@@ -146,11 +146,29 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
          return word;
       }
+
       public static void WriteMultiByteValue(this IDataModel model, int index, int length, ModelDelta changeToken, int value) {
          for (int i = 0; i < length; i++) {
             changeToken.ChangeData(model, index + i, (byte)value);
             value >>= 8;
          }
+      }
+
+      public static bool TryGetNameArray(this IDataModel model, string anchorName, out ArrayRun array) {
+         array = null;
+
+         // anchorName must name an array              enum must be the name of an array that starts with a string
+         var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, anchorName);
+         if (address == Pointer.NULL) return false;
+         array = model.GetNextRun(address) as ArrayRun;
+         if (array == null) return false;
+
+         // the array must start with a text element
+         if (array.ElementContent.Count == 0) return false;
+         var firstContent = array.ElementContent[0];
+         if (firstContent.Type != ElementContentType.PCS) return false;
+
+         return true;
       }
    }
 

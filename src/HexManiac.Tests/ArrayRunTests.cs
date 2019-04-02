@@ -782,6 +782,29 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("cut", element.Content);
       }
 
+      [Fact]
+      public void CustomHeadersWork() {
+         var data = new byte[0x200];
+         var changeToken = new ModelDelta();
+         var model = new PokemonModel(data);
+
+         // arrange: setup the anchor used for the enums
+         WriteStrings(data, 0x00, "cat", "bat", "bat", "sat");
+         ArrayRun.TryParse(model, "^[name\"\"4]4", 0x00, null, out var parentArray);
+         model.ObserveAnchorWritten(changeToken, "parent", parentArray);
+         ArrayRun.TryParse(model, "[a:: b:: c:: d::]parent", 0x20, null, out var childArray);
+         model.ObserveAnchorWritten(changeToken, "child", childArray);
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+
+         // act/assert: check that the headers are the names when custom headers are turned on
+         viewPort.UseCustomHeaders = true;
+         Assert.Equal("cat", viewPort.Headers[2]);
+
+         // act/assert: check that the headers are normal when custom headers are turned off
+         viewPort.UseCustomHeaders = false;
+         Assert.Equal("000020", viewPort.Headers[2]);
+      }
+
       // TODO while typing an enum, the ViewModel provides auto-complete options
 
       private static void WriteStrings(byte[] buffer, int start, params string[] content) {

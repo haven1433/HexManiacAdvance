@@ -696,30 +696,14 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var name in mappedNames) {
             var address = addressForAnchor[name];
             var run = GetNextRun(address) as ArrayRun;
-            int index = -1;
-            if (run == null || !partial.Contains("/")) {
-               var unmatchedName = name;
-               foreach (var character in partial) {
-                  index = unmatchedName.IndexOf(character.ToString(), StringComparison.CurrentCultureIgnoreCase);
-                  if (index == -1) break;
-                  unmatchedName = unmatchedName.Substring(index);
-               }
-               if (index == -1) continue;
-               results.Add(name);
+            if (run == null || !partial.Contains(ArrayAnchorSeparator)) {
+               if (!IsPartialMatch(name, partial)) results.Add(name);
             } else {
                var childNames = run.ElementNames;
-               if (childNames == null || childNames.Count == 0) {
-                  index = -1;
-               } else {
+               if (childNames != null && childNames.Count > 0) {
                   foreach(var childName in childNames) {
-                     var unmatchedName = $"{name}/{childName}";
-                     foreach (var character in partial) {
-                        index = unmatchedName.IndexOf(character.ToString(), StringComparison.CurrentCultureIgnoreCase);
-                        if (index == -1) break;
-                        unmatchedName = unmatchedName.Substring(index);
-                     }
-                     if (index == -1) continue;
-                     results.Add($"{name}/{childName}");
+                     var full = $"{name}{ArrayAnchorSeparator}{childName}";
+                     if (IsPartialMatch(full, partial)) results.Add(full);
                   }
                }
             }
@@ -767,6 +751,16 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          return results;
+      }
+
+      private static bool IsPartialMatch(string full, string partial) {
+         foreach (var character in partial) {
+            var index = full.IndexOf(character.ToString(), StringComparison.CurrentCultureIgnoreCase);
+            if (index == -1) return false;
+            full = full.Substring(index);
+         }
+
+         return true;
       }
 
       private static (string, string) SplitNameAndFormat(string text) {

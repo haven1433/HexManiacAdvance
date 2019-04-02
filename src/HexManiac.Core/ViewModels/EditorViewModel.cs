@@ -137,9 +137,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          set {
             if (!TryUpdate(ref useTableEntryHeaders, value)) return;
             foreach(var tab in tabs) {
-               var viewModel = tab as ViewPort;
-               if (viewModel == null) continue;
-               viewModel.UseCustomHeaders = useTableEntryHeaders;
+               if (tab is ViewPort viewModel) viewModel.UseCustomHeaders = useTableEntryHeaders;
             }
          }
       }
