@@ -760,7 +760,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
             if (innerFormat is Integer) return char.IsNumber(input);
 
-            if (innerFormat is IntegerEnum) return input == StringDelimeter || char.IsLetter(input);
+            if (innerFormat is IntegerEnum) return char.IsLetter(input) ||
+               input == StringDelimeter ||
+               "?-".Contains(input);
 
             // for pointers in array, don't accept anything but a pointer start
             if (innerFormat is Pointer) {
@@ -816,8 +818,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else if (innerFormat is IntegerEnum) {
             return char.IsLetterOrDigit(input) ||
                input == StringDelimeter ||
-               input == '.' ||
-               input == '~' ||
+               ".~?-".Contains(input) ||
                char.IsWhiteSpace(input);
          }
 
