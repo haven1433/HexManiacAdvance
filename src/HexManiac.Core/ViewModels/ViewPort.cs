@@ -122,7 +122,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void ClearActiveEditBeforeSelectionChanges(object sender, Point location) {
          if (location.X >= 0 && location.X < scroll.Width && location.Y >= 0 && location.Y < scroll.Height) {
-            ClearEdits(location);
+            var element = currentView[location.X, location.Y];
+            var underEdit = element.Format as UnderEdit;
+            if (underEdit != null) {
+               currentView[location.X, location.Y] = new HexElement(element.Value, underEdit.Edit(" "));
+               if (!TryCompleteEdit(location)) ClearEdits(location);
+            }
          }
       }
 
@@ -337,7 +342,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
             var left = Math.Min(selectionStart, selectionEnd);
             var length = Math.Abs(selectionEnd - selectionStart) + 1;
-            ((IFileSystem)arg).CopyText = Model.Copy(left, length);
+            bool usedHistory = false;
+            ((IFileSystem)arg).CopyText = Model.Copy(() => { usedHistory = true; return history.CurrentChange; }, left, length);
+            RefreshBackingData();
+            if (usedHistory) UpdateToolsFromSelection(left);
          };
 
          save.CanExecute = arg => !history.IsSaved;
@@ -392,10 +400,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             ClearMessage?.Invoke(this, EventArgs.Empty);
             RequestMenuClose?.Invoke(this, EventArgs.Empty);
          }
-         if (key != ConsoleKey.Backspace) return;
-
          var point = GetEditPoint();
-         var underEdit = currentView[point.X, point.Y].Format as UnderEdit;
+         var element = currentView[point.X, point.Y];
+         var underEdit = element.Format as UnderEdit;
+         if (key == ConsoleKey.Enter && underEdit != null) {
+            currentView[point.X, point.Y] = new HexElement(element.Value, underEdit.Edit(" "));
+            TryCompleteEdit(point);
+         }
+         if (key != ConsoleKey.Backspace) return;
 
          if (underEdit != null && underEdit.CurrentText.Length > 0) {
             var newFormat = new UnderEdit(underEdit.OriginalFormat, underEdit.CurrentText.Substring(0, underEdit.CurrentText.Length - 1));
@@ -434,7 +446,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             // I want to do a backspace at the end of this run
             SelectionStart = scroll.DataIndexToViewPoint(run.Start);
             var cellToText = new ConvertCellToText(Model, run.Start);
-            var element = currentView[SelectionStart.X, SelectionStart.Y];
+            element = currentView[SelectionStart.X, SelectionStart.Y];
             element.Format.Visit(cellToText, element.Value);
             var text = cellToText.Result;
             for (int i = 0; i < run.Length; i++) {
@@ -444,7 +456,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          } else {
             SelectionStart = scroll.DataIndexToViewPoint(index - 1);
-            var element = currentView[SelectionStart.X, SelectionStart.Y];
+            element = currentView[SelectionStart.X, SelectionStart.Y];
             var text = element.Value.ToString("X2");
             currentView[SelectionStart.X, SelectionStart.Y] = new HexElement(element.Value, element.Format.Edit(text.Substring(0, text.Length - 1)));
          }
@@ -764,22 +776,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                input == StringDelimeter ||
                "?-".Contains(input);
 
-            // for pointers in array, don't accept anything but a pointer start
-            if (innerFormat is Pointer) {
-               var index = scroll.ViewPointToDataIndex(point);
-               var run = Model.GetNextRun(index);
-               if (run.Start <= index && run is ArrayRun array) {
-                  if (input != PointerStart) return false;
+            if (innerFormat is Pointer || input == PointerStart) {
+               if (input == PointerStart || char.IsLetterOrDigit(input)) {
+                  // pointer edits are 4 bytes long
+                  if (!TryCoerceSelectionToStartOfPointer(ref point, ref element)) PrepareForMultiSpaceEdit(point, 4);
+                  var editText = input.ToString();
+                  // if the user tries to edit the pointer but forgets the opening bracket, add it for them.
+                  if (input != PointerStart) editText = PointerStart + editText;
+                  var newFormat = element.Format.Edit(editText);
+                  currentView[point.X, point.Y] = new HexElement(element.Value, newFormat);
+                  return true;
                }
             }
 
-            if (input == PointerStart) {
-               // pointer edits are 4 bytes long
-               if (!TryCoerceSelectionToStartOfPointer(ref point, ref element)) PrepareForMultiSpaceEdit(point, 4);
-               return true;
-            }
          } else if (underEdit.CurrentText.StartsWith(PointerStart.ToString())) {
-            return char.IsLetterOrDigit(input) || input == ArrayAnchorSeparator || input == PointerEnd;
+            return char.IsLetterOrDigit(input) || input == ArrayAnchorSeparator || input == PointerEnd || input == ' ';
          } else if (underEdit.CurrentText.StartsWith(GotoMarker.ToString())) {
             return char.IsLetterOrDigit(input) || input == ArrayAnchorSeparator || char.IsWhiteSpace(input);
          } else if (underEdit.CurrentText.StartsWith(AnchorStart.ToString())) {
@@ -859,87 +870,93 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private bool TryCompleteEdit(Point point) {
-         var element = currentView[point.X, point.Y];
-         var underEdit = (UnderEdit)element.Format;
+         // wrap this whole method in an anti-recursion clause
+         selection.PreviewSelectionStartChanged -= ClearActiveEditBeforeSelectionChanges;
+         using (new StubDisposable { Dispose = () => selection.PreviewSelectionStartChanged += ClearActiveEditBeforeSelectionChanges }) {
 
-         if (underEdit.CurrentText.StartsWith(PointerStart.ToString())) {
-            if (!underEdit.CurrentText.EndsWith(PointerEnd.ToString())) return false;
-            CompletePointerEdit(point);
-            return true;
-         }
-         if (underEdit.CurrentText.StartsWith(GotoMarker.ToString())) {
-            if (char.IsWhiteSpace(underEdit.CurrentText[underEdit.CurrentText.Length - 1])) {
-               var destination = underEdit.CurrentText.Substring(1);
-               ClearEdits(point);
-               Goto.Execute(destination);
+            var element = currentView[point.X, point.Y];
+            var underEdit = element.Format as UnderEdit;
+            if (underEdit == null) return false; // no edit to complete
+
+            if (underEdit.CurrentText.StartsWith(PointerStart.ToString())) {
+               if (!underEdit.CurrentText.EndsWith(PointerEnd.ToString()) && !underEdit.CurrentText.EndsWith(" ")) return false;
+               CompletePointerEdit(point);
                return true;
-            } else {
-               return false;
             }
-         }
-         if (underEdit.CurrentText.StartsWith(AnchorStart.ToString())) {
-            TryUpdate(ref anchorText, underEdit.CurrentText, nameof(AnchorText));
-            if (!char.IsWhiteSpace(underEdit.CurrentText[underEdit.CurrentText.Length - 1])) {
-               AnchorTextVisible = true;
-               return false;
+            if (underEdit.CurrentText.StartsWith(GotoMarker.ToString())) {
+               if (char.IsWhiteSpace(underEdit.CurrentText[underEdit.CurrentText.Length - 1])) {
+                  var destination = underEdit.CurrentText.Substring(1);
+                  ClearEdits(point);
+                  Goto.Execute(destination);
+                  return true;
+               } else {
+                  return false;
+               }
             }
+            if (underEdit.CurrentText.StartsWith(AnchorStart.ToString())) {
+               TryUpdate(ref anchorText, underEdit.CurrentText, nameof(AnchorText));
+               if (!char.IsWhiteSpace(underEdit.CurrentText[underEdit.CurrentText.Length - 1])) {
+                  AnchorTextVisible = true;
+                  return false;
+               }
 
-            // only end the anchor edit if the [] brace count matches
-            if (underEdit.CurrentText.Sum(c => c == '[' ? 1 : c == ']' ? -1 : 0) != 0) {
-               AnchorTextVisible = true;
-               return false;
-            }
+               // only end the anchor edit if the [] brace count matches
+               if (underEdit.CurrentText.Sum(c => c == '[' ? 1 : c == ']' ? -1 : 0) != 0) {
+                  AnchorTextVisible = true;
+                  return false;
+               }
 
-            if (!CompleteAnchorEdit(point)) exitEditEarly = true;
-            return true;
-         }
-         var dataIndex = scroll.ViewPointToDataIndex(point);
-         if (underEdit.CurrentText == ExtendArray.ToString() && Model.IsAtEndOfArray(dataIndex, out var arrayRun)) {
-            CompleteArrayExtension(arrayRun);
-            return true;
-         }
-
-         var originalFormat = underEdit.OriginalFormat;
-         if (originalFormat is Anchor) originalFormat = ((Anchor)originalFormat).OriginalFormat;
-         if (originalFormat is Ascii) {
-            CompleteAsciiEdit(point, underEdit.CurrentText);
-            return true;
-         } else if (originalFormat is PCS stringFormat) {
-            var currentText = underEdit.CurrentText;
-            if (currentText.StartsWith(StringDelimeter.ToString())) currentText = currentText.Substring(1);
-            if (stringFormat.Position != 0 && underEdit.CurrentText == StringDelimeter.ToString()) {
-               CompleteStringEdit(point);
+               if (!CompleteAnchorEdit(point)) exitEditEarly = true;
                return true;
-            } else if (PCSString.PCS.Any(str => str == currentText)) {
+            }
+            var dataIndex = scroll.ViewPointToDataIndex(point);
+            if (underEdit.CurrentText == ExtendArray.ToString() && Model.IsAtEndOfArray(dataIndex, out var arrayRun)) {
+               CompleteArrayExtension(arrayRun);
+               return true;
+            }
+
+            var originalFormat = underEdit.OriginalFormat;
+            if (originalFormat is Anchor) originalFormat = ((Anchor)originalFormat).OriginalFormat;
+            if (originalFormat is Ascii) {
+               CompleteAsciiEdit(point, underEdit.CurrentText);
+               return true;
+            } else if (originalFormat is PCS stringFormat) {
+               var currentText = underEdit.CurrentText;
+               if (currentText.StartsWith(StringDelimeter.ToString())) currentText = currentText.Substring(1);
+               if (stringFormat.Position != 0 && underEdit.CurrentText == StringDelimeter.ToString()) {
+                  CompleteStringEdit(point);
+                  return true;
+               } else if (PCSString.PCS.Any(str => str == currentText)) {
+                  CompleteCharacterEdit(point);
+                  return true;
+               }
+
+               return false;
+            } else if (originalFormat is EscapedPCS escaped) {
+               if (underEdit.CurrentText.Length < 2) return false;
                CompleteCharacterEdit(point);
                return true;
+            } else if (originalFormat is Integer integer) {
+               var currentText = underEdit.CurrentText;
+               if (char.IsWhiteSpace(currentText.Last())) {
+                  CompleteIntegerEdit(point, currentText);
+                  return true;
+               }
+               return false;
+            } else if (originalFormat is IntegerEnum integerEnum) {
+               var currentText = underEdit.CurrentText;
+               // must end in whitespace, and must have matching quotation marks (ex. "Mr. Mime")
+               if (char.IsWhiteSpace(currentText.Last()) && currentText.Count(c => c == '"') % 2 == 0) {
+                  CompleteIntegerEnumEdit(point, currentText);
+                  return true;
+               }
+               return false;
             }
 
-            return false;
-         } else if (originalFormat is EscapedPCS escaped) {
             if (underEdit.CurrentText.Length < 2) return false;
-            CompleteCharacterEdit(point);
+            CompleteHexEdit(point);
             return true;
-         } else if (originalFormat is Integer integer) {
-            var currentText = underEdit.CurrentText;
-            if (char.IsWhiteSpace(currentText.Last())) {
-               CompleteIntegerEdit(point, currentText);
-               return true;
-            }
-            return false;
-         } else if (originalFormat is IntegerEnum integerEnum) {
-            var currentText = underEdit.CurrentText;
-            // must end in whitespace, and must have matching quotation marks (ex. "Mr. Mime")
-            if (char.IsWhiteSpace(currentText.Last()) && currentText.Count(c => c == '"') % 2 == 0) {
-               CompleteIntegerEnumEdit(point, currentText);
-               return true;
-            }
-            return false;
          }
-
-         if (underEdit.CurrentText.Length < 2) return false;
-         CompleteHexEdit(point);
-         return true;
       }
 
       private void CompleteIntegerEdit(Point point, string currentText) {
@@ -1042,6 +1059,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var index = scroll.ViewPointToDataIndex(point);
          var destination = underEdit.CurrentText.Substring(1, underEdit.CurrentText.Length - 2);
 
+         if (destination.Length == 2 && destination.All(AllHexCharacters.Contains)) {
+            currentView[point.X, point.Y] = new HexElement(element.Value, new UnderEdit(underEdit.OriginalFormat, destination));
+            CompleteHexEdit(point);
+            return;
+         }
+
          Model.ExpandData(history.CurrentChange, index + 3);
          scroll.DataLength = Model.Count;
 
@@ -1083,6 +1106,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      /// <returns>True if it was completed successfully, false if some sort of error occurred and we should abort the remainder of the edit.</returns>
       private bool CompleteAnchorEdit(Point point) {
          var underEdit = (UnderEdit)currentView[point.X, point.Y].Format;
          var index = scroll.ViewPointToDataIndex(point);
@@ -1105,8 +1129,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          if (errorInfo == ErrorInfo.NoError) return true;
 
-         OnError?.Invoke(this, errorInfo.ErrorMessage);
-         return false;
+         if (errorInfo.IsWarning) {
+            OnMessage?.Invoke(this, errorInfo.ErrorMessage);
+         } else {
+            OnError?.Invoke(this, errorInfo.ErrorMessage);
+         }
+
+         return errorInfo.IsWarning;
       }
 
       private void CompleteStringEdit(Point point) {

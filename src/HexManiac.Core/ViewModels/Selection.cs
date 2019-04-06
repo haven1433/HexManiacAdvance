@@ -93,11 +93,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          gotoCommand = new StubCommand {
             CanExecute = args => true,
             Execute = args => {
-               var address = args.ToString();
+               var address = args.ToString().Trim();
+               if (address.StartsWith(PointerRun.PointerStart.ToString())) address = address.Substring(1);
+               if (address.EndsWith(PointerRun.PointerEnd.ToString())) address = address.Substring(0, address.Length - 1);
                var anchor = model.GetAddressFromAnchor(new ModelDelta(), -1, address);
                if (anchor != Pointer.NULL) {
                   GotoAddress(anchor);
                } else if (int.TryParse(address, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int result)) {
+                  if (result >= BaseModel.PointerOffset) result -= BaseModel.PointerOffset;
                   if (result > Scroll.DataLength || result < 0) {
                      OnError?.Invoke(this, $"Address {result:X2} is not within the size of the data.");
                   } else {

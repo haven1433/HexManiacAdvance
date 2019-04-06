@@ -316,7 +316,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(Pointer.NULL, ((Pointer)viewPort[8, 1].Format).Destination);
          Assert.Equal(Pointer.NULL, ((Pointer)viewPort[4, 1].Format).Destination);
          Assert.Equal(0x01, viewPort[0, 1].Value);
-         Assert.Equal(0x02, viewPort[1, 1].Value);
+         Assert.Equal(0x00, viewPort[1, 1].Value); // committed a '0' when the selection moved, because a '0' was all that was left
          Assert.Equal(0xFF, viewPort[2, 1].Value);
          Assert.Equal(0xFF, viewPort[3, 1].Value);
       }
@@ -438,7 +438,7 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
-      public void NewAnchorWithSameNameMovesPointersToNewAnchor() {
+      public void NewAnchorWithSameNameDoesNotMovePointersToNewAnchor() {
          var buffer = new byte[0x200];
          var model = new PokemonModel(buffer);
          var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
@@ -453,12 +453,12 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.SelectionStart = new Point(8, 2);
          viewPort.Edit("^bob ");
 
-         // move them to point to somewhere else
+         // make a new anchor with the same name (should auto-rename)
          viewPort.SelectionStart = new Point(8, 4);
          viewPort.Edit("^bob ");
 
-         Assert.Equal(0x48, ((Pointer)viewPort[4, 1].Format).Destination);
-         Assert.Equal(0x48, ((Pointer)viewPort[4, 3].Format).Destination);
+         Assert.Equal(0x28, ((Pointer)viewPort[4, 1].Format).Destination);
+         Assert.Equal(0x28, ((Pointer)viewPort[4, 3].Format).Destination);
       }
 
       [Fact]
@@ -506,19 +506,20 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
-      public void FormatClearDoesNotClearAnchorIfAnchorIsAtStartOfClear() {
+      public void FormatClearDoesNotClearAnchorIfUnnamedAnchorIsAtStartOfClear() {
          var buffer = new byte[0x200];
          var model = new PokemonModel(buffer);
          var token = new ModelDelta();
 
-         model.ObserveAnchorWritten(token, "bob", new NoInfoRun(0x10));
+         model.WritePointer(token, 0, 0x10);
+         model.ObserveRunWritten(token, new PointerRun(0));
          model.ClearFormat(token, 0x10, 1);
 
          Assert.Equal(0x10, model.GetNextRun(0x10).Start);
       }
 
       [Fact]
-      public void ArrowMovementWhileTypingAnchorRevertsChange() {
+      public void ArrowMovementWhileTypingAnchorCommitsChange() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          var model = new PokemonModel(buffer);
          var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
@@ -527,7 +528,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          viewPort.SelectionStart = new Point(1, 1);
 
-         Assert.IsType<None>(viewPort[0, 0].Format);
+         Assert.IsNotType<None>(viewPort[0, 0].Format);
       }
 
       [Fact]

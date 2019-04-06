@@ -172,16 +172,16 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
-      public void SelectionChangeRevertsChangeWithoutAddingUndoOperation() {
+      public void EscapeRevertsChangeWithoutAddingUndoOperation() {
          var loadedFile = new LoadedFile("test", new byte[30]);
          var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
 
          viewPort.SelectionStart = new Point(0, 2);
          viewPort.Edit("F");
-         viewPort.SelectionStart = new Point(1, 2);
+         viewPort.Edit(ConsoleKey.Escape);
 
          Assert.IsType<None>(viewPort[0, 2].Format);
-         Assert.Equal(new Point(1, 2), viewPort.SelectionStart);
+         Assert.Equal(new Point(0, 2), viewPort.SelectionStart);
          Assert.Equal(0, viewPort[0, 2].Value);
          Assert.False(viewPort.Undo.CanExecute(null));
       }
@@ -198,7 +198,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(1, collectionNotifications);
 
          viewPort.MoveSelectionStart.Execute(Direction.Up);
-         Assert.Equal(2, collectionNotifications); // should have been notified since the visual data changed.
+         Assert.Equal(3, collectionNotifications); // should have been notified since the visual data changed.
       }
 
       [Fact]
@@ -309,6 +309,32 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Clear.Execute();
 
          Assert.Equal(int.MaxValue, model.GetNextRun(0).Start);
+      }
+
+      [Fact]
+      public void TypingIntoPointerAutoInsertsStartOfPointer() {
+         var model = new PokemonModel(new byte[0x200]);
+         var viewModel = new ViewPort(string.Empty, model);
+         viewModel.Edit("<000100>");
+         viewModel.SelectionStart = new Point(0, 0);
+
+         viewModel.Edit("000060");
+         viewModel.Edit(ConsoleKey.Enter);
+
+         Assert.Equal(0x60, model[0]);
+      }
+
+      [Fact]
+      public void TypingTwoHexDigitsIntoPointerWithSpaceCanRemoveFormat() {
+         var model = new PokemonModel(new byte[0x200]);
+         var viewModel = new ViewPort(string.Empty, model);
+         viewModel.Edit("<000100>");
+         viewModel.SelectionStart = new Point(0, 0);
+
+         viewModel.Edit("20 ");
+
+         Assert.Equal(0x20, model[0]);
+         Assert.NotInRange(model.GetNextRun(0).Start, 0, 0x200);
       }
    }
 }

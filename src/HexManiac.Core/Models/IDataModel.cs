@@ -36,7 +36,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       IFormattedRun RelocateForExpansion(ModelDelta changeToken, IFormattedRun run, int minimumLength);
       void ClearFormat(ModelDelta changeToken, int start, int length);
       void ClearFormatAndData(ModelDelta changeToken, int start, int length);
-      string Copy(int start, int length);
+      string Copy(Func<ModelDelta> changeToken, int start, int length);
 
       void Load(byte[] newData, StoredMetadata metadata);
       void ExpandData(ModelDelta changeToken, int minimumLength);
@@ -55,6 +55,8 @@ namespace HavenSoft.HexManiac.Core.Models {
    }
 
    public abstract class BaseModel : IDataModel {
+      public const int PointerOffset = 0x08000000;
+
       public byte[] RawData { get; private set; }
 
       public BaseModel(byte[] data) => RawData = data;
@@ -71,7 +73,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public abstract void ClearFormatAndData(ModelDelta changeToken, int originalStart, int length);
 
-      public abstract string Copy(int start, int length);
+      public abstract string Copy(Func<ModelDelta> changeToken, int start, int length);
 
       public void ExpandData(ModelDelta changeToken, int minimumIndex) {
          if (Count > minimumIndex) return;
@@ -125,9 +127,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          changeToken.ChangeData(this, index + 3, (byte)(word >> 24));
       }
 
-      public int ReadPointer(int index) => ReadValue(index) - 0x08000000;
+      public int ReadPointer(int index) => ReadValue(index) - PointerOffset;
 
-      public void WritePointer(ModelDelta changeToken, int address, int pointerDestination) => WriteValue(changeToken, address, pointerDestination + 0x08000000);
+      public void WritePointer(ModelDelta changeToken, int address, int pointerDestination) => WriteValue(changeToken, address, pointerDestination + PointerOffset);
 
       public virtual IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial) => new string[0];
 
@@ -196,7 +198,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          WritePointer(changeToken, address, destination);
       }
 
-      public override string Copy(int start, int length) {
+      public override string Copy(Func<ModelDelta> changeToken, int start, int length) {
          var bytes = Enumerable.Range(start, length).Select(i => RawData[i]);
          return string.Join(" ", bytes.Select(value => value.ToString("X2")));
       }

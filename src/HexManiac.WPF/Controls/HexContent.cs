@@ -357,6 +357,18 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private IEnumerable<FrameworkElement> GetStringChildren(ModelPoint p) {
          yield return CreateFollowLinkButton("Open In Text Tool", p);
+         yield return new Button {
+            Content = new StackPanel {
+               Orientation = Orientation.Horizontal,
+               Children = {
+                  new TextBlock { Text = "Copy Selection" },
+                  new TextBlock { Foreground = Solarized.Theme.Secondary, FontStyle = FontStyles.Italic, Margin = new Thickness(20, 0, 0, 0), Text = "Ctrl+C" }
+               }
+            },
+         }.SetEvent(ButtonBase.ClickEvent, (sender, e) => {
+            ViewPort.Copy.Execute(Application.Current.MainWindow.Resources["FileSystem"]);
+            recentMenu.IsOpen = false;
+         });
       }
 
       private IEnumerable<FrameworkElement> GetPointerChildren(ModelPoint p) {

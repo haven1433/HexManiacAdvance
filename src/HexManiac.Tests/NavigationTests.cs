@@ -247,5 +247,31 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal("000100", viewPort.Headers[0]);
       }
+
+      [Fact]
+      public void CanGotoAddressWith08Prepended() {
+         var model = new PokemonModel(new byte[0x200]);
+         var viewPort = new ViewPort("unnamed.txt", model) { Width = 0x10, Height = 0x10 };
+         var errors = new List<string>();
+         viewPort.OnError += (sender, e) => errors.Add(e);
+
+         viewPort.Goto.Execute("8000100");
+
+         Assert.Empty(errors);
+         Assert.Equal(0x100, viewPort.DataOffset);
+      }
+
+      [Fact]
+      public void CanGotoAddressWithAngleBraces() {
+         var model = new PokemonModel(new byte[0x200]);
+         var viewPort = new ViewPort("unnamed.txt", model) { Width = 0x10, Height = 0x10 };
+         var errors = new List<string>();
+         viewPort.OnError += (sender, e) => errors.Add(e);
+
+         viewPort.Goto.Execute("<000100>");
+
+         Assert.Empty(errors);
+         Assert.Equal(0x100, viewPort.DataOffset);
+      }
    }
 }

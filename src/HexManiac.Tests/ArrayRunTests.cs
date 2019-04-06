@@ -141,10 +141,11 @@ namespace HavenSoft.HexManiac.Tests {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          WriteStrings(buffer, 0, "bobb", "tomm", "samm", "carr", "pall", "eggg");
          var model = new PokemonModel(buffer);
+         var delta = new ModelDelta();
          ArrayRun.TryParse(model, "[word\"\"5]", 0, null, out var arrayRun);
-         model.ObserveAnchorWritten(new ModelDelta(), "words", arrayRun);
+         model.ObserveAnchorWritten(delta, "words", arrayRun);
 
-         var text = model.Copy(0, 0x20);
+         var text = model.Copy(() => delta, 0, 0x20);
 
          Assert.StartsWith("^words[word\"\"5]", text);
       }

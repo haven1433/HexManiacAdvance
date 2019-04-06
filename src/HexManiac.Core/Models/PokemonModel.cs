@@ -154,9 +154,42 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (errorInfo.HasError) return errorInfo;
 
          errorInfo = ValidateAnchorNameAndFormat(model, runToWrite, name, format, dataIndex, allowAnchorOverwrite);
-         if (!errorInfo.HasError) model.ObserveAnchorWritten(changeToken, name, runToWrite);
+         if (!errorInfo.HasError) {
+            errorInfo = UniquifyName(model, changeToken, dataIndex, ref name);
+            model.ObserveAnchorWritten(changeToken, name, runToWrite);
+         }
 
          return errorInfo;
+      }
+
+      private static ErrorInfo UniquifyName(IDataModel model, ModelDelta changeToken, int desiredAddressForName, ref string name) {
+         var address = model.GetAddressFromAnchor(changeToken, -1, name);
+         if (address == Pointer.NULL || address == desiredAddressForName) return ErrorInfo.NoError;
+
+         var info = new ErrorInfo("Chosen name was in use. The new anchor has been renamed to avoid collisions.", isWarningLevel: true);
+
+         // Append _copy to the end to avoid the collision.
+         if (!name.Contains("_copy")) {
+            name += "_copy";
+            return info;
+         }
+
+         // It already had _copy on the end... fine, append the number '2'.
+         var number = name.Split(new[] { "_copy" }, StringSplitOptions.None).Last();
+         if (number.Length == 0) {
+            name += "2";
+            return info;
+         }
+
+         // It already had a number on the end of the _copy... ok, just increment it by 1.
+         if (int.TryParse(number, out var result)) {
+            name += result;
+            return info;
+         }
+
+         // It wasn't a number? Eh, just throw _copy on the end again, it'll be fine.
+         name += "_copy";
+         return info;
       }
 
       public static bool SpanContainsAnchor(IDataModel model, int start, int length) {
@@ -524,7 +557,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (run is PointerRun) ClearPointerFormat(changeToken, run.Start);
             if (run is ArrayRun arrayRun) ModifyAnchorsFromPointerArray(changeToken, arrayRun, ClearPointerFormat);
 
-            ClearAnchorFormat(changeToken, originalStart, run, alsoClearData);
+            ClearAnchorFormat(changeToken, originalStart, run);
 
             if (alsoClearData) {
                for (int i = 0; i < run.Length; i++) changeToken.ChangeData(this, run.Start + i, 0xFF);
@@ -535,43 +568,54 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      private void ClearAnchorFormat(ModelDelta changeToken, int originalStart, IFormattedRun run, bool alsoClearData) {
+      private void ClearAnchorFormat(ModelDelta changeToken, int originalStart, IFormattedRun run) {
+         int runIndex;
+
+         // case 1: anchor is named
+         // delete the anchor. Clear pointers to it, but keep the names. They're pointers, just not to here anymore.
+         if (anchorForAddress.TryGetValue(run.Start, out string name)) {
+            foreach (var source in run.PointerSources ?? new int[0]) WriteValue(changeToken, source, 0);
+            unmappedNameToSources[name] = new List<int>(run.PointerSources);
+            foreach (var source in run.PointerSources) {
+               changeToken.AddUnmappedPointer(source, name);
+               sourceToUnmappedName[source] = name;
+            }
+            changeToken.RemoveName(run.Start, name);
+            addressForAnchor.Remove(name);
+            anchorForAddress.Remove(run.Start);
+            runIndex = BinarySearch(run.Start);
+            changeToken.RemoveRun(run);
+            runs.RemoveAt(runIndex);
+            return;
+         }
+
+         // case 2: unnamed anchor doesn't start where the delete starts
+         // this anchor shouldn't exist. The things that point to it aren't real pointers.
          if (run.Start != originalStart) {
-            // delete the anchor
-            if (anchorForAddress.TryGetValue(run.Start, out string name)) {
-               if (alsoClearData) {
-                  foreach (var source in run.PointerSources ?? new int[0]) WriteValue(changeToken, source, 0);
-               }
-               unmappedNameToSources[anchorForAddress[run.Start]] = new List<int>(run.PointerSources);
-               foreach (var source in run.PointerSources) {
-                  changeToken.AddUnmappedPointer(source, name);
-                  sourceToUnmappedName[source] = name;
-               }
-               changeToken.RemoveName(run.Start, name);
-               addressForAnchor.Remove(name);
-               anchorForAddress.Remove(run.Start);
-            } else {
-               foreach (var source in run.PointerSources ?? new int[0]) {
-                  var sourceRunIndex = BinarySearch(source);
-                  if (sourceRunIndex >= 0) {
-                     changeToken.RemoveRun(runs[sourceRunIndex]);
-                     runs.RemoveAt(sourceRunIndex);
-                  }
+            // by removing the unnamed anchor here, we're claiming that these were never really pointers to begin with.
+            // as such, we should not change their data, just remove their pointer format
+            foreach (var source in run.PointerSources ?? new int[0]) {
+               var sourceRunIndex = BinarySearch(source);
+               if (sourceRunIndex >= 0) {
+                  changeToken.RemoveRun(runs[sourceRunIndex]);
+                  runs.RemoveAt(sourceRunIndex);
                }
             }
-            var index = BinarySearch(run.Start);
+            runIndex = BinarySearch(run.Start);
             changeToken.RemoveRun(run);
-            runs.RemoveAt(index);
+            runs.RemoveAt(runIndex);
+            return;
+         }
+
+         // case 3: unnamed anchor starts where the delete starts.
+         // delete the content, but leave the anchor and pointers to it: we don't want to lose the pointers that point here.
+         runIndex = BinarySearch(run.Start);
+         changeToken.RemoveRun(run);
+         if (run.PointerSources != null) {
+            runs[runIndex] = new NoInfoRun(run.Start, run.PointerSources);
+            changeToken.AddRun(runs[runIndex]);
          } else {
-            // delete the content, but leave the anchor
-            var index = BinarySearch(run.Start);
-            changeToken.RemoveRun(run);
-            if (run.PointerSources != null) {
-               runs[index] = new NoInfoRun(run.Start, run.PointerSources);
-               changeToken.AddRun(runs[index]);
-            } else {
-               runs.RemoveAt(index);
-            }
+            runs.RemoveAt(runIndex);
          }
       }
 
@@ -629,7 +673,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          AddPointerToAnchor(changeToken, source);
       }
 
-      public override string Copy(int start, int length) {
+      public override string Copy(Func<ModelDelta> changeToken, int start, int length) {
          var text = new StringBuilder();
          var run = GetNextRun(start);
          if (run.Start < start && !(run is ArrayRun)) {
@@ -647,7 +691,13 @@ namespace HavenSoft.HexManiac.Core.Models {
                start += len;
                continue;
             }
-            if (anchorForAddress.TryGetValue(start, out string anchor)) {
+            if (!anchorForAddress.TryGetValue(start, out string anchor)) {
+               if ((run.PointerSources?.Count ?? 0) > 0) {
+                  anchor = GenerateDefaultAnchorName(run);
+                  ObserveAnchorWritten(changeToken(), anchor, run);
+                  text.Append($"^{anchor}{run.FormatString} ");
+               }
+            } else {
                text.Append($"^{anchor}{run.FormatString} ");
             }
             if (run is PointerRun pointerRun) {
@@ -677,6 +727,29 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          text.Remove(text.Length - 1, 1); // remove the trailing space
          return text.ToString();
+      }
+
+      private string GenerateDefaultAnchorName(IFormattedRun run) {
+         var gameCodeText = string.Empty;
+         if (addressForAnchor.TryGetValue("GameCode", out int gameCodeAddress)) {
+            var gameCode = GetNextRun(gameCodeAddress) as AsciiRun;
+            if (gameCode != null) {
+               gameCodeText = new string(Enumerable.Range(0, gameCode.Length).Select(i => (char)this[gameCode.Start + i]).ToArray());
+            }
+         }
+
+         var textSample = string.Empty;
+         if (run is PCSRun) {
+            var text = PCSString.Convert(this, run.Start, run.Length);
+            var words = text.Split(' ');
+            if (words.Length > 3) words = words.Take(3).ToArray();
+            text = string.Concat(words);
+            textSample = new string(text.Where(char.IsLetterOrDigit).ToArray());
+         }
+
+         var initialAddress = run.Start.ToString("X6");
+
+         return textSample + gameCodeText + initialAddress;
       }
 
       public override void Load(byte[] newData, StoredMetadata metadata) {
