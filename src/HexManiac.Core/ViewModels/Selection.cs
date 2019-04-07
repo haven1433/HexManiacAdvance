@@ -175,14 +175,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var destinationRun = model.GetNextRun(address) as ArrayRun;
          var destinationIsArray = destinationRun != null;
 
+         int preferredWidth = 0;
+
          if (destinationIsArray) {
-            PreferredWidth = destinationRun.ElementLength;
+            preferredWidth = destinationRun.ElementLength;
          } else {
-            PreferredWidth = DefaultPreferredWidth;
+            preferredWidth = DefaultPreferredWidth;
          }
 
          var startAddress = address;
-         if (!destinationIsArray && PreferredWidth > 1) address -= address % PreferredWidth;
+         if (!destinationIsArray && preferredWidth > 1) address -= address % preferredWidth;
 
          // first, change the selection and scroll to select the actual requested address
          SelectionStart = Scroll.DataIndexToViewPoint(startAddress);
@@ -191,6 +193,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          // then, scroll left/right as needed to align everything
          while (Scroll.DataIndex < address) Scroll.Scroll.Execute(Direction.Right);
          while (Scroll.DataIndex > address) Scroll.Scroll.Execute(Direction.Left);
+
+         PreferredWidth = preferredWidth;
       }
 
       /// <summary>
@@ -242,13 +246,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
          var divisors = GetDivisors(preferredWidth).Reverse();
          var newWidth = divisors.FirstOrDefault();
-         if (newWidth < 4) return width;
+         if (newWidth < 4) return preferredWidth;
          return newWidth;
       }
 
       private static IEnumerable<int> GetDivisors(int number) {
-         for (int i = 1; i <= number / 2; i++) {
-            if (number % i == 0) yield return i;
+         // only actually allow for divisors if the preferred width is 0x10
+         if (number == 16) {
+            for (int i = 1; i <= number / 2; i++) {
+               if (number % i == 0) yield return i;
+            }
          }
       }
    }

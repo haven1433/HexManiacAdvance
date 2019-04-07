@@ -82,13 +82,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void ScrollPropertyChanged(object sender, PropertyChangedEventArgs e) {
          if (e.PropertyName == nameof(scroll.DataIndex)) {
             RefreshBackingData();
-            UpdateColumnHeaders();
+            if (e is ExtendedPropertyChangedEventArgs ex) {
+               var previous = (int)ex.OldValue;
+               if (Math.Abs(scroll.DataIndex - previous) % Width != 0) UpdateColumnHeaders();
+            }
          } else if (e.PropertyName != nameof(scroll.DataLength)) {
             NotifyPropertyChanged(e.PropertyName);
          }
 
          if (e.PropertyName == nameof(Width) || e.PropertyName == nameof(Height)) {
             RefreshBackingData();
+         }
+
+         if (e.PropertyName == nameof(Width)) {
             UpdateColumnHeaders();
          }
       }
