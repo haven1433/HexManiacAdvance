@@ -139,7 +139,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             FlowDirection.LeftToRight,
             typeface,
             FontSize,
-            Solarized.Brushes.Violet,
+            Solarized.Brushes.Magenta,
             1.0);
 
          context.DrawText(text, CellTextOffset);
