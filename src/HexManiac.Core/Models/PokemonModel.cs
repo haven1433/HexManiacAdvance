@@ -691,14 +691,16 @@ namespace HavenSoft.HexManiac.Core.Models {
                start += len;
                continue;
             }
-            if (!anchorForAddress.TryGetValue(start, out string anchor)) {
-               if ((run.PointerSources?.Count ?? 0) > 0) {
-                  anchor = GenerateDefaultAnchorName(run);
-                  ObserveAnchorWritten(changeToken(), anchor, run);
+            if (run.Start == start) {
+               if (!anchorForAddress.TryGetValue(start, out string anchor)) {
+                  if ((run.PointerSources?.Count ?? 0) > 0) {
+                     anchor = GenerateDefaultAnchorName(run);
+                     ObserveAnchorWritten(changeToken(), anchor, run);
+                     text.Append($"^{anchor}{run.FormatString} ");
+                  }
+               } else {
                   text.Append($"^{anchor}{run.FormatString} ");
                }
-            } else {
-               text.Append($"^{anchor}{run.FormatString} ");
             }
             if (run is PointerRun pointerRun) {
                var destination = ReadPointer(pointerRun.Start);
@@ -812,11 +814,24 @@ namespace HavenSoft.HexManiac.Core.Models {
             var index = BinarySearch(i - 3);
             if (index >= 0) {
                if (runs[index] is PointerRun) results.Add(i - 3);
+               if (runs[index] is ArrayRun arrayRun && arrayRun.ElementContent[0].Type == ElementContentType.Pointer) results.Add(i - 3);
                continue;
             }
             index = ~index;
             if (index < runs.Count && runs[index].Start <= i) continue; // can't add a pointer run if an existing run starts during the new one
-            if (index > 0 && runs[index - 1].Start + runs[index - 1].Length > i - 3) continue; // can't add a pointer run if the new one starts during an existing one
+
+            // can't add a pointer run if the new one starts during an existing one
+            if (index > 0 && runs[index - 1].Start + runs[index - 1].Length > i - 3) {
+               // ah, but if that run is an array and there's already a pointer here...
+               var array = runs[index - 1] as ArrayRun;
+               if (array != null) {
+                  var offsets = array.ConvertByteOffsetToArrayOffset(i);
+                  if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Pointer) {
+                     results.Add(i - 3);
+                  }
+               }
+               continue;
+            }
             var newRun = new PointerRun(i - 3);
             runs.Insert(index, newRun);
             changeToken.AddRun(newRun);

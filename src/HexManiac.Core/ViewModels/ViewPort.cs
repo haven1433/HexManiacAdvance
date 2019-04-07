@@ -521,7 +521,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (pointers.Count == 0) continue;
             var length = PCSString.ReadString(Model, result, true);
             if (length < 1) continue;
-            if (result + length > nextRun.Start) continue;
+            if (result + length > nextRun.Start && nextRun.Start != result) continue;
             var newRun = new PCSRun(result, length, pointers);
             Model.ObserveAnchorWritten(history.CurrentChange, string.Empty, newRun);
             resultsRecognizedAsTextRuns++;

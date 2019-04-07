@@ -806,6 +806,56 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("000020", viewPort.Headers[2]);
       }
 
+      [Fact]
+      public void CanAddTextFormatToAnchorUsedOnlyByAnArrayAtStart() {
+         var data = new byte[0x200];
+         var changeToken = new ModelDelta();
+         var model = new PokemonModel(data);
+         WriteStrings(data, 0x10, "This is a song!");
+         ArrayRun.TryParse(model, "^[content<>]1", 0x00, null, out var array);
+         model.ObserveAnchorWritten(changeToken, "array", array);
+         model.WritePointer(changeToken, 0x00, 0x10);
+
+         // there is a pointer at 0x00 that points to 0x10
+         // but we know about it via an array
+         // at 0x10 is text
+         // but we don't know that it's text
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var errors = new List<string>();
+         viewPort.OnError += (sender, e) => errors.Add(e);
+         viewPort.SelectionStart = new Point(0, 1);
+         viewPort.Edit("^\"\" ");
+
+         // adding the format should've stuck
+         Assert.Empty(errors);
+         Assert.IsType<PCS>(viewPort[1, 1].Format);
+      }
+
+      [Fact]
+      public void CanAddTextFormatToAnchorUsedOnlyByAnArray() {
+         var data = new byte[0x200];
+         var changeToken = new ModelDelta();
+         var model = new PokemonModel(data);
+         WriteStrings(data, 0x10, "This is a song!");
+         ArrayRun.TryParse(model, "^[content<>]4", 0x00, null, out var array);
+         model.ObserveAnchorWritten(changeToken, "array", array);
+         model.WritePointer(changeToken, 0x04, 0x10);
+
+         // there is a pointer at 0x00 that points to 0x10
+         // but we know about it via an array
+         // at 0x10 is text
+         // but we don't know that it's text
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var errors = new List<string>();
+         viewPort.OnError += (sender, e) => errors.Add(e);
+         viewPort.SelectionStart = new Point(0, 1);
+         viewPort.Edit("^\"\" ");
+
+         // adding the format should've stuck
+         Assert.Empty(errors);
+         Assert.IsType<PCS>(viewPort[1, 1].Format);
+      }
+
       // TODO while typing an enum, the ViewModel provides auto-complete options
 
       private static void WriteStrings(byte[] buffer, int start, params string[] content) {
