@@ -413,7 +413,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private IEnumerable<FrameworkElement> GetNoneChildren(ModelPoint p) {
          yield return new Button {
-            Content = new TextBlock { Text = "This is Text" },
+            Content = new TextBlock { Text = "Display as Text" },
          }.SetEvent(ButtonBase.ClickEvent, (sender, e) => {
             ((ViewPort)ViewPort).IsText.Execute();
             recentMenu.IsOpen = false;
