@@ -633,8 +633,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public IChildViewPort CreateChildView(int startAddress, int endAddress) {
          var child = new ChildViewPort(this);
-         child.Goto.Execute(startAddress.ToString("X2"));
-         child.SelectionEnd = child.ConvertAddressToViewPoint(endAddress);
+
+         var run = Model.GetNextRun(startAddress);
+         if (run is ArrayRun array) {
+            var offsets = array.ConvertByteOffsetToArrayOffset(startAddress);
+            var lineStart = array.Start + array.ElementLength * offsets.ElementIndex;
+            child.Goto.Execute(lineStart.ToString("X2"));
+            child.SelectionStart = child.ConvertAddressToViewPoint(startAddress);
+            child.SelectionEnd = child.ConvertAddressToViewPoint(endAddress);
+         } else {
+            child.Goto.Execute(startAddress.ToString("X2"));
+            child.SelectionEnd = child.ConvertAddressToViewPoint(endAddress);
+         }
+
          return child;
       }
 
