@@ -9,7 +9,7 @@
         xmlns:hsg3hvmtr="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Tools;assembly=HexManiac.Core"
         Icon="..\Resources\AppIcon.ico"
         PreviewMouseDown="RunDeferredActions"
-        Title="Hex Maniac Advance" Height="450" Width="870" AllowDrop="True" Background="{DynamicResource Background}">
+        Title="Hex Maniac Advance" Height="450" Width="870" AllowDrop="True" Background="{DynamicResource Backlight}">
    <Window.Resources>
       <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
       <hsg3hv:IntegerToBooleanViaMatchConverter x:Key="IndexMatch"/>
@@ -56,9 +56,10 @@
       <CommandBinding Command="ToggleBullets" Executed="ToggleTheme"/>
    </Window.CommandBindings>
    <DockPanel>
-      <DockPanel DockPanel.Dock="Top">
+      <DockPanel DockPanel.Dock="Top" Background="{DynamicResource Background}">
          <DockPanel.Resources>
             <Style TargetType="Panel" x:Key="AnimateOnVisibilityChanged">
+               <Setter Property="HorizontalAlignment" Value="Right"/>
                <Setter Property="DockPanel.Dock" Value="Right"/>
                <Setter Property="Background" Value="{DynamicResource Backlight}"/>
                <Style.Triggers>
