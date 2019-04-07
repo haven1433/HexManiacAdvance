@@ -803,6 +803,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          return new StoredMetadata(anchors, unmappedPointers);
       }
 
+      /// <summary>
+      /// This method might be called in parallel with the same changeToken
+      /// </summary>
       public override IReadOnlyList<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses) {
          var results = new List<int>();
 
@@ -833,7 +836,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
             var newRun = new PointerRun(i - 3);
             runs.Insert(index, newRun);
-            changeToken.AddRun(newRun);
+            lock (changeToken) changeToken.AddRun(newRun);
             results.Add(i - 3);
          }
 

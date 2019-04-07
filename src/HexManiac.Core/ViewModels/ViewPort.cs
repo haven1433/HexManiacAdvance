@@ -525,13 +525,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private int ConsiderResultsAsTextRuns(IEnumerable<int> searchResults) {
          int resultsRecognizedAsTextRuns = 0;
          var parallelLock = new object();
-
+         var currentChange = history.CurrentChange;
          Parallel.ForEach(searchResults, result => {
-            // foreach (var result in searchResults) {
+         // foreach (var result in searchResults) {
             var nextRun = Model.GetNextRun(result);
             if (nextRun.Start < result) return;
             if (nextRun.Start == result && !(nextRun is NoInfoRun)) return;
-            var pointers = Model.SearchForPointersToAnchor(history.CurrentChange, result);
+            var pointers = Model.SearchForPointersToAnchor(currentChange, result);
             if (pointers.Count == 0) return;
             var length = PCSString.ReadString(Model, result, true);
             if (length < 1) return;
