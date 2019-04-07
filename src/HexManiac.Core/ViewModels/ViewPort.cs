@@ -261,6 +261,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   var errorInfo = PokemonModel.ApplyAnchor(Model, history.CurrentChange, index, AnchorText);
                   if (errorInfo == ErrorInfo.NoError) {
                      OnError?.Invoke(this, string.Empty);
+                     if (run is ArrayRun array) {
+                        // to keep from double-updating the AnchorText
+                        selection.PropertyChanged -= SelectionPropertyChanged;
+                        Goto.Execute(index.ToString("X2"));
+                        selection.PropertyChanged += SelectionPropertyChanged;
+                     }
                      RefreshBackingData();
                   } else {
                      OnError?.Invoke(this, errorInfo.ErrorMessage);
@@ -1189,7 +1195,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          ClearEdits(point);
          UpdateToolsFromSelection(index);
 
-         if (errorInfo == ErrorInfo.NoError) return true;
+         if (errorInfo == ErrorInfo.NoError) {
+            if (Model.GetNextRun(index) is ArrayRun array && array.Start == index) Goto.Execute(index.ToString("X2"));
+            return true;
+         }
 
          if (errorInfo.IsWarning) {
             OnMessage?.Invoke(this, errorInfo.ErrorMessage);
