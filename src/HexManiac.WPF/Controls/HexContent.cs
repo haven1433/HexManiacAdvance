@@ -249,6 +249,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                if (format is PCS pcs) children.AddRange(GetStringChildren(p));
                if (ViewPort.IsTable(p)) children.AddRange(GetTableChildren(p));
                if (format is Pointer pointer) children.AddRange(GetPointerChildren(p));
+               if (format is None none) children.AddRange(GetNoneChildren(p));
                if (editableViewPort.FormattedDataIsSelected) children.AddRange(GetClearFormattingChildren(p));
             } else {
                children.AddRange(GetSearchChildren(p));
@@ -408,6 +409,15 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private IEnumerable<FrameworkElement> GetPointerChildren(ModelPoint p) {
          yield return CreateFollowLinkButton("Follow Pointer", p);
+      }
+
+      private IEnumerable<FrameworkElement> GetNoneChildren(ModelPoint p) {
+         yield return new Button {
+            Content = new TextBlock { Text = "This is Text" },
+         }.SetEvent(ButtonBase.ClickEvent, (sender, e) => {
+            ((ViewPort)ViewPort).IsText.Execute();
+            recentMenu.IsOpen = false;
+         });
       }
 
       private IEnumerable<FrameworkElement> GetTableChildren(ModelPoint p) {

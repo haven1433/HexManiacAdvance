@@ -124,13 +124,12 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private void WriteStringRuns(Dictionary<int, List<int>> pointersForDestination) {
-         var destinations = pointersForDestination.Keys.OrderBy(i => i).GetEnumerator();
-         destinations.MoveNext();
+         var noDataChange = new NoDataChangeDeltaModel();
          foreach (var destination in pointersForDestination.Keys.OrderBy(i => i)) {
             var length = PCSString.ReadString(RawData, destination, false);
             if (length < 2) continue;
             if (GetNextRun(destination + 1).Start < destination + length) continue;
-            ObserveRunWritten(new ModelDelta(), new PCSRun(destination, length, pointersForDestination[destination]));
+            ObserveRunWritten(noDataChange, new PCSRun(destination, length, pointersForDestination[destination]));
          }
       }
 

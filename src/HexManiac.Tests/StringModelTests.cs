@@ -419,5 +419,23 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.NotEqual("anchor", ((Anchor)viewPort[0, 1].Format).Name);
          Assert.Single(messages);
       }
+
+      [Fact]
+      public void CanUseViewPortToAutoFindTextWithoutKnowingAboutPointersToIt() {
+         var text = PCSString.Convert("This is some text.");
+         var buffer = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         text.CopyTo(buffer, 0x10);
+         var model = new PokemonModel(buffer);
+         model.WritePointer(new ModelDelta(), 0x00, 0x10);
+
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort.SelectionStart = new Point(3, 1); // just a random byte in the middle of the text
+         var errors = new List<string>();
+         viewPort.OnError += (sender, e) => errors.Add(e);
+
+         viewPort.IsText.Execute(); // this line should find the start of the text and add a run, even with no pointer to it
+
+         Assert.IsType<PCS>(viewPort[3, 1].Format);
+      }
    }
 }

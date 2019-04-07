@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using static HavenSoft.HexManiac.Core.ICommandExtensions;
 using static HavenSoft.HexManiac.Core.Models.Runs.ArrayRun;
@@ -29,7 +30,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private static readonly NotifyCollectionChangedEventArgs ResetArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
       private readonly StubCommand
          clear = new StubCommand(),
-         copy = new StubCommand();
+         copy = new StubCommand(),
+         isText = new StubCommand();
 
       private HexElement[,] currentView;
       private bool exitEditEarly;
@@ -270,6 +272,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ICommand Copy => copy;
       public ICommand Clear => clear;
+      public ICommand IsText => isText;
 
       public HexElement this[Point p] => this[p.X, p.Y];
 
@@ -353,6 +356,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             RefreshBackingData();
             if (usedHistory) UpdateToolsFromSelection(left);
          };
+
+         isText.CanExecute = CanAlwaysExecute;
+         isText.Execute = IsTextExecuted;
 
          save.CanExecute = arg => !history.IsSaved;
          save.Execute = arg => SaveExecuted((IFileSystem)arg);
@@ -518,20 +524,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       // for each of the results, we recognized it as text: see if we need to add a matching string run / pointers
       private int ConsiderResultsAsTextRuns(IEnumerable<int> searchResults) {
          int resultsRecognizedAsTextRuns = 0;
+         var parallelLock = new object();
 
-         foreach (var result in searchResults) {
+         Parallel.ForEach(searchResults, result => {
+            // foreach (var result in searchResults) {
             var nextRun = Model.GetNextRun(result);
-            if (nextRun.Start < result) continue;
-            if (nextRun.Start == result && !(nextRun is NoInfoRun)) continue;
+            if (nextRun.Start < result) return;
+            if (nextRun.Start == result && !(nextRun is NoInfoRun)) return;
             var pointers = Model.SearchForPointersToAnchor(history.CurrentChange, result);
-            if (pointers.Count == 0) continue;
+            if (pointers.Count == 0) return;
             var length = PCSString.ReadString(Model, result, true);
-            if (length < 1) continue;
-            if (result + length > nextRun.Start && nextRun.Start != result) continue;
+            if (length < 1) return;
+            if (result + length > nextRun.Start && nextRun.Start != result) return;
             var newRun = new PCSRun(result, length, pointers);
-            Model.ObserveAnchorWritten(history.CurrentChange, string.Empty, newRun);
-            resultsRecognizedAsTextRuns++;
-         }
+            lock (parallelLock) {
+               Model.ObserveAnchorWritten(history.CurrentChange, string.Empty, newRun);
+               resultsRecognizedAsTextRuns++;
+            }
+         });
 
          return resultsRecognizedAsTextRuns;
       }
@@ -732,6 +742,35 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          scroll.ScrollToPoint(ref point);
 
          return point;
+      }
+
+      private void IsTextExecuted(object obj) {
+         var selectionStart = scroll.ViewPointToDataIndex(selection.SelectionStart);
+         var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
+         var left = Math.Min(selectionStart, selectionEnd);
+         var length = Math.Abs(selectionEnd - selectionStart) + 1;
+         while (Model[left] != 0xFF && PCSString.PCS[Model[left]] != null) { left--; length++; }
+         left++; length--;
+         while (true) {
+            var run = Model.GetNextRun(left);
+            if (run.Start >= left) break;
+            length -= left - run.Start;
+            left = run.Start + run.Length;
+         }
+         var startPaces = new List<int>();
+         while (length > 0) {
+            startPaces.Add(left);
+            while (Model[left] != 0xFF) { left++; length--; }
+            left++; length--;
+            var run = Model.GetNextRun(left);
+            if (!(run is NoInfoRun)) break;
+         }
+         var foundCount = ConsiderResultsAsTextRuns(startPaces);
+         if (foundCount == 0) {
+            OnError?.Invoke(this, "Failed to automatically find text at that location.");
+         } else {
+            RefreshBackingData();
+         }
       }
 
       private bool ShouldAcceptInput(ref Point point, ref HexElement element, char input) {
