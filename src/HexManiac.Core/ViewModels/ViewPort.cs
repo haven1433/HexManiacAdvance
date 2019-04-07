@@ -669,8 +669,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var index = scroll.ViewPointToDataIndex(SelectionStart);
          var run = Model.GetNextRun(index);
          if (run.Start > index) return;
-         SelectionStart = scroll.DataIndexToViewPoint(run.Start);
-         SelectionEnd = scroll.DataIndexToViewPoint(run.Start + run.Length - 1);
+         if (run is ArrayRun array) {
+            var offsets = array.ConvertByteOffsetToArrayOffset(index);
+            SelectionStart = scroll.DataIndexToViewPoint(offsets.SegmentStart);
+            SelectionEnd = scroll.DataIndexToViewPoint(offsets.SegmentStart + array.ElementContent[offsets.SegmentIndex].Length - 1);
+         } else {
+            SelectionStart = scroll.DataIndexToViewPoint(run.Start);
+            SelectionEnd = scroll.DataIndexToViewPoint(run.Start + run.Length - 1);
+         }
       }
 
       public void ConsiderReload(IFileSystem fileSystem) {
