@@ -1236,6 +1236,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
          if (run is ArrayRun) Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
          if (!SilentScroll(memoryLocation + 1)) {
+            point = scroll.DataIndexToViewPoint(memoryLocation);
             RefreshBackingData(point);
             if (point.X + 1 < Width) {
                RefreshBackingData(new Point(point.X + 1, point.Y));
@@ -1253,6 +1254,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                // last character edit: might require relocation
                var newRun = Model.RelocateForExpansion(history.CurrentChange, run, run.Length + extraBytesNeeded);
                if (newRun != run) {
+                  OnMessage?.Invoke(this, $"Text was automatically moved to {newRun.Start.ToString("X6")}. Pointers were updated.");
                   ScrollFromRunMove(memoryLocation, pcs.Position, newRun);
                   memoryLocation += newRun.Start - run.Start;
                   run = newRun;
@@ -1339,6 +1341,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             int offset = locations.originalLocation - scroll.DataIndex;
             selection.GotoAddress(locations.newLocation - offset);
          }
+         OnMessage?.Invoke(this, $"Text was automatically moved to {locations.newLocation.ToString("X6")}. Pointers were updated.");
       }
 
       private void RefreshBackingData(Point p) {
