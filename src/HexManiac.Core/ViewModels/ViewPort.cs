@@ -1138,12 +1138,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var currentRun = Model.GetNextRun(index);
          bool inArray = currentRun.Start <= index && currentRun is ArrayRun;
+         var sources = currentRun.PointerSources;
 
          if (!inArray) {
             if (destination != string.Empty) {
                Model.ClearFormatAndData(history.CurrentChange, index, 4);
-            } else {
+               sources = null;
+            } else if (!(currentRun is NoInfoRun)) {
                Model.ClearFormat(history.CurrentChange, index, 4);
+               sources = null;
             }
          }
 
@@ -1163,7 +1166,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
             } else {
                Model.WritePointer(history.CurrentChange, index, fullValue);
-               Model.ObserveRunWritten(history.CurrentChange, new PointerRun(index));
+               Model.ObserveRunWritten(history.CurrentChange, new PointerRun(index, sources));
             }
 
             ClearEdits(point);
@@ -1317,7 +1320,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var byteValue = byte.Parse(underEdit.CurrentText, NumberStyles.HexNumber);
          var memoryLocation = scroll.ViewPointToDataIndex(point);
-         Model.ClearFormat(history.CurrentChange, memoryLocation, 1);
+         var run = Model.GetNextRun(memoryLocation);
+         if (!(run is NoInfoRun) || run.Start != memoryLocation) Model.ClearFormat(history.CurrentChange, memoryLocation, 1);
          history.CurrentChange.ChangeData(Model, memoryLocation, byteValue);
          scroll.DataLength = Model.Count;
          ClearEdits(point);
