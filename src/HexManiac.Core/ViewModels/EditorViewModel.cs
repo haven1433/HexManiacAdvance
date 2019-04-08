@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Windows.Input;
 using static HavenSoft.HexManiac.Core.ICommandExtensions;
@@ -227,10 +228,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          open.CanExecute = CanAlwaysExecute;
          open.Execute = arg => {
-            var file = arg as LoadedFile ?? fileSystem.OpenFile("GameBoy Advanced", "gba");
-            if (file == null) return;
-            var metadata = fileSystem.MetadataFor(file.Name);
-            Add(new ViewPort(file.Name, new AutoSearchModel(file.Contents, metadata)));
+            try {
+               var file = arg as LoadedFile ?? fileSystem.OpenFile("GameBoy Advanced", "gba");
+               if (file == null) return;
+               var metadata = fileSystem.MetadataFor(file.Name);
+               Add(new ViewPort(file.Name, new AutoSearchModel(file.Contents, metadata)));
+            } catch (IOException ex) {
+               ErrorMessage = ex.Message;
+            }
          };
 
          ImplementFindCommands();
