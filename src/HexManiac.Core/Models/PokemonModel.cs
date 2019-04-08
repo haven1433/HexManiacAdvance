@@ -645,14 +645,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          var anchorRun = runs[index];
          var newAnchorRun = anchorRun.RemoveSource(start);
          changeToken.RemoveRun(anchorRun);
-         if (newAnchorRun.PointerSources.Count == 0) {
-            var anchorIndex = BinarySearch(anchorRun.Start);
-            runs.RemoveAt(anchorIndex);
-            if (anchorForAddress.ContainsKey(anchorRun.Start)) {
-               changeToken.RemoveName(anchorRun.Start, anchorForAddress[anchorRun.Start]);
-               addressForAnchor.Remove(anchorForAddress[anchorRun.Start]);
-               anchorForAddress.Remove(anchorRun.Start);
-            }
+         if (newAnchorRun.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(newAnchorRun.Start)) {
+            runs.RemoveAt(index);
          } else {
             runs[index] = newAnchorRun;
             changeToken.AddRun(newAnchorRun);
