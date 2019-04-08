@@ -260,6 +260,7 @@ namespace HavenSoft.HexManiac.Tests {
          var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.SelectionStart = new Point(0, 2);
          viewPort.Edit("^testdata[name\"\"16]5 ");
+         viewPort.Goto.Execute("000000");
 
          // act -> cut
          var fileSystem = new StubFileSystem();
@@ -309,6 +310,7 @@ namespace HavenSoft.HexManiac.Tests {
          var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.SelectionStart = new Point(0, 2);
          viewPort.Edit("^testdata[name\"\"16]5 ");
+         viewPort.Goto.Execute("000000");
          viewPort.OnError += (sender, message) => errors.Add(message);
 
          // act -> cut
@@ -347,6 +349,7 @@ namespace HavenSoft.HexManiac.Tests {
          var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.SelectionStart = new Point(0, 2);
          viewPort.Edit("^testdata[name\"\"16]5 ");
+         viewPort.Goto.Execute("000000");
          viewPort.OnError += (sender, message) => errors.Add(message);
 
          // act -> cut
@@ -386,6 +389,7 @@ namespace HavenSoft.HexManiac.Tests {
          var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.SelectionStart = new Point(0, 2);
          viewPort.Edit("^testdata[name\"\"16]5 ");
+         viewPort.Goto.Execute("000000");
          viewPort.OnError += (sender, message) => errors.Add(message);
 
          // act -> add an element
@@ -425,6 +429,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          viewPort.SelectionStart = new Point(0, 8);
          viewPort.Edit("^derived[index.]sample "); // should be the same length as sample: 8
+         viewPort.Goto.Execute("000000");
 
          // test 1: enbiggen derived should enbiggen sample
          viewPort.SelectionStart = new Point(8, 8);
