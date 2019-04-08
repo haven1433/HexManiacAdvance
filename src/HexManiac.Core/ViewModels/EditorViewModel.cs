@@ -114,7 +114,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public string ErrorMessage {
          get => errorMessage;
          private set {
-            if (TryUpdate(ref errorMessage, value)) ShowError = !string.IsNullOrEmpty(ErrorMessage);
+            TryUpdate(ref errorMessage, value);
+            ShowError = !string.IsNullOrEmpty(ErrorMessage);
          }
       }
 

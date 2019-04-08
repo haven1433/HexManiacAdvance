@@ -817,6 +817,15 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (index >= 0) {
                if (runs[index] is PointerRun) results.Add(i - 3);
                if (runs[index] is ArrayRun arrayRun && arrayRun.ElementContent[0].Type == ElementContentType.Pointer) results.Add(i - 3);
+               if (runs[index] is NoInfoRun) {
+                  var pointerRun = new PointerRun(i - 3, runs[index].PointerSources);
+                  lock (changeToken) {
+                     changeToken.RemoveRun(runs[index]);
+                     changeToken.AddRun(pointerRun);
+                  }
+                  runs[index] = pointerRun;
+                  results.Add(i - 3);
+               }
                continue;
             }
             index = ~index;

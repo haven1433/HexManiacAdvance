@@ -14,8 +14,12 @@ namespace HavenSoft.HexManiac.Core.Models {
          var pcs = new string[0x100];
          pcs[0] = " ";
 
+         pcs[0x13] = "\\a"; // align?
+
          pcs[0x1B] = "é";
          pcs[0x2D] = "&";
+
+         pcs[0x48] = "\\r"; // right?
 
          Fill(pcs, "\\pk \\mn \\Po \\Ke \\Bl \\Lo \\Ck", 0x53);
 
