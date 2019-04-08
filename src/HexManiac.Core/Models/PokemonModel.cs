@@ -167,9 +167,14 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          var info = new ErrorInfo("Chosen name was in use. The new anchor has been renamed to avoid collisions.", isWarningLevel: true);
 
+         // so once we've verified that the new name doesn't match the name from the current address,
+         // we'll need to check again for the newly created name.
+         // so do some recursion in each of these return cases.
+
          // Append _copy to the end to avoid the collision.
          if (!name.Contains("_copy")) {
             name += "_copy";
+            UniquifyName(model, changeToken, desiredAddressForName, ref name);
             return info;
          }
 
@@ -177,17 +182,20 @@ namespace HavenSoft.HexManiac.Core.Models {
          var number = name.Split(new[] { "_copy" }, StringSplitOptions.None).Last();
          if (number.Length == 0) {
             name += "2";
+            UniquifyName(model, changeToken, desiredAddressForName, ref name);
             return info;
          }
 
          // It already had a number on the end of the _copy... ok, just increment it by 1.
          if (int.TryParse(number, out var result)) {
             name += result;
+            UniquifyName(model, changeToken, desiredAddressForName, ref name);
             return info;
          }
 
          // It wasn't a number? Eh, just throw _copy on the end again, it'll be fine.
          name += "_copy";
+         UniquifyName(model, changeToken, desiredAddressForName, ref name);
          return info;
       }
 
