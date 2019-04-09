@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using static HavenSoft.HexManiac.Core.ICommandExtensions;
 using static HavenSoft.HexManiac.Core.Models.Runs.ArrayRun;
@@ -29,7 +30,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private static readonly NotifyCollectionChangedEventArgs ResetArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
       private readonly StubCommand
          clear = new StubCommand(),
-         copy = new StubCommand();
+         copy = new StubCommand(),
+         isText = new StubCommand();
 
       private HexElement[,] currentView;
       private bool exitEditEarly;
@@ -82,13 +84,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void ScrollPropertyChanged(object sender, PropertyChangedEventArgs e) {
          if (e.PropertyName == nameof(scroll.DataIndex)) {
             RefreshBackingData();
-            UpdateColumnHeaders();
+            if (e is ExtendedPropertyChangedEventArgs ex) {
+               var previous = (int)ex.OldValue;
+               if (Math.Abs(scroll.DataIndex - previous) % Width != 0) UpdateColumnHeaders();
+            }
          } else if (e.PropertyName != nameof(scroll.DataLength)) {
             NotifyPropertyChanged(e.PropertyName);
          }
 
          if (e.PropertyName == nameof(Width) || e.PropertyName == nameof(Height)) {
             RefreshBackingData();
+         }
+
+         if (e.PropertyName == nameof(Width)) {
             UpdateColumnHeaders();
          }
       }
@@ -122,7 +130,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void ClearActiveEditBeforeSelectionChanges(object sender, Point location) {
          if (location.X >= 0 && location.X < scroll.Width && location.Y >= 0 && location.Y < scroll.Height) {
-            ClearEdits(location);
+            var element = currentView[location.X, location.Y];
+            var underEdit = element.Format as UnderEdit;
+            if (underEdit != null) {
+               currentView[location.X, location.Y] = new HexElement(element.Value, underEdit.Edit(" "));
+               if (!TryCompleteEdit(location)) ClearEdits(location);
+            }
          }
       }
 
@@ -248,6 +261,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   var errorInfo = PokemonModel.ApplyAnchor(Model, history.CurrentChange, index, AnchorText);
                   if (errorInfo == ErrorInfo.NoError) {
                      OnError?.Invoke(this, string.Empty);
+                     if (run is ArrayRun array) {
+                        // to keep from double-updating the AnchorText
+                        selection.PropertyChanged -= SelectionPropertyChanged;
+                        Goto.Execute(index.ToString("X2"));
+                        selection.PropertyChanged += SelectionPropertyChanged;
+                     }
                      RefreshBackingData();
                   } else {
                      OnError?.Invoke(this, errorInfo.ErrorMessage);
@@ -259,6 +278,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ICommand Copy => copy;
       public ICommand Clear => clear;
+      public ICommand IsText => isText;
 
       public HexElement this[Point p] => this[p.X, p.Y];
 
@@ -337,8 +357,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
             var left = Math.Min(selectionStart, selectionEnd);
             var length = Math.Abs(selectionEnd - selectionStart) + 1;
-            ((IFileSystem)arg).CopyText = Model.Copy(left, length);
+            bool usedHistory = false;
+            ((IFileSystem)arg).CopyText = Model.Copy(() => { usedHistory = true; return history.CurrentChange; }, left, length);
+            RefreshBackingData();
+            if (usedHistory) UpdateToolsFromSelection(left);
          };
+
+         isText.CanExecute = CanAlwaysExecute;
+         isText.Execute = IsTextExecuted;
 
          save.CanExecute = arg => !history.IsSaved;
          save.Execute = arg => SaveExecuted((IFileSystem)arg);
@@ -392,10 +418,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             ClearMessage?.Invoke(this, EventArgs.Empty);
             RequestMenuClose?.Invoke(this, EventArgs.Empty);
          }
-         if (key != ConsoleKey.Backspace) return;
-
          var point = GetEditPoint();
-         var underEdit = currentView[point.X, point.Y].Format as UnderEdit;
+         var element = currentView[point.X, point.Y];
+         var underEdit = element.Format as UnderEdit;
+         if (key == ConsoleKey.Enter && underEdit != null) {
+            currentView[point.X, point.Y] = new HexElement(element.Value, underEdit.Edit(" "));
+            TryCompleteEdit(point);
+         }
+         if (key != ConsoleKey.Backspace) return;
 
          if (underEdit != null && underEdit.CurrentText.Length > 0) {
             var newFormat = new UnderEdit(underEdit.OriginalFormat, underEdit.CurrentText.Substring(0, underEdit.CurrentText.Length - 1));
@@ -434,7 +464,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             // I want to do a backspace at the end of this run
             SelectionStart = scroll.DataIndexToViewPoint(run.Start);
             var cellToText = new ConvertCellToText(Model, run.Start);
-            var element = currentView[SelectionStart.X, SelectionStart.Y];
+            element = currentView[SelectionStart.X, SelectionStart.Y];
             element.Format.Visit(cellToText, element.Value);
             var text = cellToText.Result;
             for (int i = 0; i < run.Length; i++) {
@@ -444,7 +474,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          } else {
             SelectionStart = scroll.DataIndexToViewPoint(index - 1);
-            var element = currentView[SelectionStart.X, SelectionStart.Y];
+            element = currentView[SelectionStart.X, SelectionStart.Y];
             var text = element.Value.ToString("X2");
             currentView[SelectionStart.X, SelectionStart.Y] = new HexElement(element.Value, element.Format.Edit(text.Substring(0, text.Length - 1)));
          }
@@ -500,20 +530,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       // for each of the results, we recognized it as text: see if we need to add a matching string run / pointers
       private int ConsiderResultsAsTextRuns(IEnumerable<int> searchResults) {
          int resultsRecognizedAsTextRuns = 0;
-
-         foreach (var result in searchResults) {
+         var parallelLock = new object();
+         var currentChange = history.CurrentChange;
+         Parallel.ForEach(searchResults, result => {
+         // foreach (var result in searchResults) {
             var nextRun = Model.GetNextRun(result);
-            if (nextRun.Start < result) continue;
-            if (nextRun.Start == result && !(nextRun is NoInfoRun)) continue;
-            var pointers = Model.SearchForPointersToAnchor(history.CurrentChange, result);
-            if (pointers.Count == 0) continue;
+            if (nextRun.Start < result) return;
+            if (nextRun.Start == result && !(nextRun is NoInfoRun)) return;
+            var pointers = Model.SearchForPointersToAnchor(currentChange, result);
+            if (pointers.Count == 0) return;
             var length = PCSString.ReadString(Model, result, true);
-            if (length < 1) continue;
-            if (result + length > nextRun.Start) continue;
+            if (length < 1) return;
+            if (result + length > nextRun.Start && nextRun.Start != result) return;
             var newRun = new PCSRun(result, length, pointers);
-            Model.ObserveAnchorWritten(history.CurrentChange, string.Empty, newRun);
-            resultsRecognizedAsTextRuns++;
-         }
+            lock (parallelLock) {
+               Model.ObserveAnchorWritten(history.CurrentChange, string.Empty, newRun);
+               resultsRecognizedAsTextRuns++;
+            }
+         });
 
          return resultsRecognizedAsTextRuns;
       }
@@ -605,8 +639,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public IChildViewPort CreateChildView(int startAddress, int endAddress) {
          var child = new ChildViewPort(this);
-         child.Goto.Execute(startAddress.ToString("X2"));
-         child.SelectionEnd = child.ConvertAddressToViewPoint(endAddress);
+
+         var run = Model.GetNextRun(startAddress);
+         if (run is ArrayRun array) {
+            var offsets = array.ConvertByteOffsetToArrayOffset(startAddress);
+            var lineStart = array.Start + array.ElementLength * offsets.ElementIndex;
+            child.Goto.Execute(lineStart.ToString("X2"));
+            child.SelectionStart = child.ConvertAddressToViewPoint(startAddress);
+            child.SelectionEnd = child.ConvertAddressToViewPoint(endAddress);
+         } else {
+            child.Goto.Execute(startAddress.ToString("X2"));
+            child.SelectionEnd = child.ConvertAddressToViewPoint(endAddress);
+         }
+
          return child;
       }
 
@@ -641,8 +686,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var index = scroll.ViewPointToDataIndex(SelectionStart);
          var run = Model.GetNextRun(index);
          if (run.Start > index) return;
-         SelectionStart = scroll.DataIndexToViewPoint(run.Start);
-         SelectionEnd = scroll.DataIndexToViewPoint(run.Start + run.Length - 1);
+         if (run is ArrayRun array) {
+            var offsets = array.ConvertByteOffsetToArrayOffset(index);
+            SelectionStart = scroll.DataIndexToViewPoint(offsets.SegmentStart);
+            SelectionEnd = scroll.DataIndexToViewPoint(offsets.SegmentStart + array.ElementContent[offsets.SegmentIndex].Length - 1);
+         } else {
+            SelectionStart = scroll.DataIndexToViewPoint(run.Start);
+            SelectionEnd = scroll.DataIndexToViewPoint(run.Start + run.Length - 1);
+         }
       }
 
       public void ConsiderReload(IFileSystem fileSystem) {
@@ -716,6 +767,35 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return point;
       }
 
+      private void IsTextExecuted(object obj) {
+         var selectionStart = scroll.ViewPointToDataIndex(selection.SelectionStart);
+         var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
+         var left = Math.Min(selectionStart, selectionEnd);
+         var length = Math.Abs(selectionEnd - selectionStart) + 1;
+         while (Model[left] != 0xFF && PCSString.PCS[Model[left]] != null) { left--; length++; }
+         left++; length--;
+         while (true) {
+            var run = Model.GetNextRun(left);
+            if (run.Start >= left) break;
+            length -= left - run.Start;
+            left = run.Start + run.Length;
+         }
+         var startPaces = new List<int>();
+         while (length > 0) {
+            startPaces.Add(left);
+            while (Model[left] != 0xFF) { left++; length--; }
+            left++; length--;
+            var run = Model.GetNextRun(left);
+            if (!(run is NoInfoRun)) break;
+         }
+         var foundCount = ConsiderResultsAsTextRuns(startPaces);
+         if (foundCount == 0) {
+            OnError?.Invoke(this, "Failed to automatically find text at that location.");
+         } else {
+            RefreshBackingData();
+         }
+      }
+
       private bool ShouldAcceptInput(ref Point point, ref HexElement element, char input) {
          var underEdit = element.Format as UnderEdit;
          var innerFormat = underEdit?.OriginalFormat ?? element.Format;
@@ -764,22 +844,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                input == StringDelimeter ||
                "?-".Contains(input);
 
-            // for pointers in array, don't accept anything but a pointer start
-            if (innerFormat is Pointer) {
-               var index = scroll.ViewPointToDataIndex(point);
-               var run = Model.GetNextRun(index);
-               if (run.Start <= index && run is ArrayRun array) {
-                  if (input != PointerStart) return false;
+            if (innerFormat is Pointer || input == PointerStart) {
+               if (input == PointerStart || char.IsLetterOrDigit(input)) {
+                  // pointer edits are 4 bytes long
+                  if (!TryCoerceSelectionToStartOfPointer(ref point, ref element)) PrepareForMultiSpaceEdit(point, 4);
+                  var editText = input.ToString();
+                  // if the user tries to edit the pointer but forgets the opening bracket, add it for them.
+                  if (input != PointerStart) editText = PointerStart + editText;
+                  var newFormat = element.Format.Edit(editText);
+                  currentView[point.X, point.Y] = new HexElement(element.Value, newFormat);
+                  return true;
                }
             }
 
-            if (input == PointerStart) {
-               // pointer edits are 4 bytes long
-               if (!TryCoerceSelectionToStartOfPointer(ref point, ref element)) PrepareForMultiSpaceEdit(point, 4);
-               return true;
-            }
          } else if (underEdit.CurrentText.StartsWith(PointerStart.ToString())) {
-            return char.IsLetterOrDigit(input) || input == ArrayAnchorSeparator || input == PointerEnd;
+            return char.IsLetterOrDigit(input) || input == ArrayAnchorSeparator || input == PointerEnd || input == ' ';
          } else if (underEdit.CurrentText.StartsWith(GotoMarker.ToString())) {
             return char.IsLetterOrDigit(input) || input == ArrayAnchorSeparator || char.IsWhiteSpace(input);
          } else if (underEdit.CurrentText.StartsWith(AnchorStart.ToString())) {
@@ -859,87 +938,93 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private bool TryCompleteEdit(Point point) {
-         var element = currentView[point.X, point.Y];
-         var underEdit = (UnderEdit)element.Format;
+         // wrap this whole method in an anti-recursion clause
+         selection.PreviewSelectionStartChanged -= ClearActiveEditBeforeSelectionChanges;
+         using (new StubDisposable { Dispose = () => selection.PreviewSelectionStartChanged += ClearActiveEditBeforeSelectionChanges }) {
 
-         if (underEdit.CurrentText.StartsWith(PointerStart.ToString())) {
-            if (!underEdit.CurrentText.EndsWith(PointerEnd.ToString())) return false;
-            CompletePointerEdit(point);
-            return true;
-         }
-         if (underEdit.CurrentText.StartsWith(GotoMarker.ToString())) {
-            if (char.IsWhiteSpace(underEdit.CurrentText[underEdit.CurrentText.Length - 1])) {
-               var destination = underEdit.CurrentText.Substring(1);
-               ClearEdits(point);
-               Goto.Execute(destination);
+            var element = currentView[point.X, point.Y];
+            var underEdit = element.Format as UnderEdit;
+            if (underEdit == null) return false; // no edit to complete
+
+            if (underEdit.CurrentText.StartsWith(PointerStart.ToString())) {
+               if (!underEdit.CurrentText.EndsWith(PointerEnd.ToString()) && !underEdit.CurrentText.EndsWith(" ")) return false;
+               CompletePointerEdit(point);
                return true;
-            } else {
-               return false;
             }
-         }
-         if (underEdit.CurrentText.StartsWith(AnchorStart.ToString())) {
-            TryUpdate(ref anchorText, underEdit.CurrentText, nameof(AnchorText));
-            if (!char.IsWhiteSpace(underEdit.CurrentText[underEdit.CurrentText.Length - 1])) {
-               AnchorTextVisible = true;
-               return false;
+            if (underEdit.CurrentText.StartsWith(GotoMarker.ToString())) {
+               if (char.IsWhiteSpace(underEdit.CurrentText[underEdit.CurrentText.Length - 1])) {
+                  var destination = underEdit.CurrentText.Substring(1);
+                  ClearEdits(point);
+                  Goto.Execute(destination);
+                  return true;
+               } else {
+                  return false;
+               }
             }
+            if (underEdit.CurrentText.StartsWith(AnchorStart.ToString())) {
+               TryUpdate(ref anchorText, underEdit.CurrentText, nameof(AnchorText));
+               if (!char.IsWhiteSpace(underEdit.CurrentText[underEdit.CurrentText.Length - 1])) {
+                  AnchorTextVisible = true;
+                  return false;
+               }
 
-            // only end the anchor edit if the [] brace count matches
-            if (underEdit.CurrentText.Sum(c => c == '[' ? 1 : c == ']' ? -1 : 0) != 0) {
-               AnchorTextVisible = true;
-               return false;
-            }
+               // only end the anchor edit if the [] brace count matches
+               if (underEdit.CurrentText.Sum(c => c == '[' ? 1 : c == ']' ? -1 : 0) != 0) {
+                  AnchorTextVisible = true;
+                  return false;
+               }
 
-            if (!CompleteAnchorEdit(point)) exitEditEarly = true;
-            return true;
-         }
-         var dataIndex = scroll.ViewPointToDataIndex(point);
-         if (underEdit.CurrentText == ExtendArray.ToString() && Model.IsAtEndOfArray(dataIndex, out var arrayRun)) {
-            CompleteArrayExtension(arrayRun);
-            return true;
-         }
-
-         var originalFormat = underEdit.OriginalFormat;
-         if (originalFormat is Anchor) originalFormat = ((Anchor)originalFormat).OriginalFormat;
-         if (originalFormat is Ascii) {
-            CompleteAsciiEdit(point, underEdit.CurrentText);
-            return true;
-         } else if (originalFormat is PCS stringFormat) {
-            var currentText = underEdit.CurrentText;
-            if (currentText.StartsWith(StringDelimeter.ToString())) currentText = currentText.Substring(1);
-            if (stringFormat.Position != 0 && underEdit.CurrentText == StringDelimeter.ToString()) {
-               CompleteStringEdit(point);
+               if (!CompleteAnchorEdit(point)) exitEditEarly = true;
                return true;
-            } else if (PCSString.PCS.Any(str => str == currentText)) {
+            }
+            var dataIndex = scroll.ViewPointToDataIndex(point);
+            if (underEdit.CurrentText == ExtendArray.ToString() && Model.IsAtEndOfArray(dataIndex, out var arrayRun)) {
+               CompleteArrayExtension(arrayRun);
+               return true;
+            }
+
+            var originalFormat = underEdit.OriginalFormat;
+            if (originalFormat is Anchor) originalFormat = ((Anchor)originalFormat).OriginalFormat;
+            if (originalFormat is Ascii) {
+               CompleteAsciiEdit(point, underEdit.CurrentText);
+               return true;
+            } else if (originalFormat is PCS stringFormat) {
+               var currentText = underEdit.CurrentText;
+               if (currentText.StartsWith(StringDelimeter.ToString())) currentText = currentText.Substring(1);
+               if (stringFormat.Position != 0 && underEdit.CurrentText == StringDelimeter.ToString()) {
+                  CompleteStringEdit(point);
+                  return true;
+               } else if (PCSString.PCS.Any(str => str == currentText)) {
+                  CompleteCharacterEdit(point);
+                  return true;
+               }
+
+               return false;
+            } else if (originalFormat is EscapedPCS escaped) {
+               if (underEdit.CurrentText.Length < 2) return false;
                CompleteCharacterEdit(point);
                return true;
+            } else if (originalFormat is Integer integer) {
+               var currentText = underEdit.CurrentText;
+               if (char.IsWhiteSpace(currentText.Last())) {
+                  CompleteIntegerEdit(point, currentText);
+                  return true;
+               }
+               return false;
+            } else if (originalFormat is IntegerEnum integerEnum) {
+               var currentText = underEdit.CurrentText;
+               // must end in whitespace, and must have matching quotation marks (ex. "Mr. Mime")
+               if (char.IsWhiteSpace(currentText.Last()) && currentText.Count(c => c == '"') % 2 == 0) {
+                  CompleteIntegerEnumEdit(point, currentText);
+                  return true;
+               }
+               return false;
             }
 
-            return false;
-         } else if (originalFormat is EscapedPCS escaped) {
             if (underEdit.CurrentText.Length < 2) return false;
-            CompleteCharacterEdit(point);
+            CompleteHexEdit(point);
             return true;
-         } else if (originalFormat is Integer integer) {
-            var currentText = underEdit.CurrentText;
-            if (char.IsWhiteSpace(currentText.Last())) {
-               CompleteIntegerEdit(point, currentText);
-               return true;
-            }
-            return false;
-         } else if (originalFormat is IntegerEnum integerEnum) {
-            var currentText = underEdit.CurrentText;
-            // must end in whitespace, and must have matching quotation marks (ex. "Mr. Mime")
-            if (char.IsWhiteSpace(currentText.Last()) && currentText.Count(c => c == '"') % 2 == 0) {
-               CompleteIntegerEnumEdit(point, currentText);
-               return true;
-            }
-            return false;
          }
-
-         if (underEdit.CurrentText.Length < 2) return false;
-         CompleteHexEdit(point);
-         return true;
       }
 
       private void CompleteIntegerEdit(Point point, string currentText) {
@@ -1042,17 +1127,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var index = scroll.ViewPointToDataIndex(point);
          var destination = underEdit.CurrentText.Substring(1, underEdit.CurrentText.Length - 2);
 
+         if (destination.Length == 2 && destination.All(AllHexCharacters.Contains)) {
+            currentView[point.X, point.Y] = new HexElement(element.Value, new UnderEdit(underEdit.OriginalFormat, destination));
+            CompleteHexEdit(point);
+            return;
+         }
+
          Model.ExpandData(history.CurrentChange, index + 3);
          scroll.DataLength = Model.Count;
 
          var currentRun = Model.GetNextRun(index);
          bool inArray = currentRun.Start <= index && currentRun is ArrayRun;
+         var sources = currentRun.PointerSources;
 
          if (!inArray) {
             if (destination != string.Empty) {
                Model.ClearFormatAndData(history.CurrentChange, index, 4);
-            } else {
+               sources = null;
+            } else if (!(currentRun is NoInfoRun)) {
                Model.ClearFormat(history.CurrentChange, index, 4);
+               sources = null;
             }
          }
 
@@ -1072,7 +1166,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
             } else {
                Model.WritePointer(history.CurrentChange, index, fullValue);
-               Model.ObserveRunWritten(history.CurrentChange, new PointerRun(index));
+               Model.ObserveRunWritten(history.CurrentChange, new PointerRun(index, sources));
             }
 
             ClearEdits(point);
@@ -1083,6 +1177,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      /// <returns>True if it was completed successfully, false if some sort of error occurred and we should abort the remainder of the edit.</returns>
       private bool CompleteAnchorEdit(Point point) {
          var underEdit = (UnderEdit)currentView[point.X, point.Y].Format;
          var index = scroll.ViewPointToDataIndex(point);
@@ -1103,10 +1198,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          ClearEdits(point);
          UpdateToolsFromSelection(index);
 
-         if (errorInfo == ErrorInfo.NoError) return true;
+         if (errorInfo == ErrorInfo.NoError) {
+            if (Model.GetNextRun(index) is ArrayRun array && array.Start == index) Goto.Execute(index.ToString("X2"));
+            return true;
+         }
 
-         OnError?.Invoke(this, errorInfo.ErrorMessage);
-         return false;
+         if (errorInfo.IsWarning) {
+            OnMessage?.Invoke(this, errorInfo.ErrorMessage);
+         } else {
+            OnError?.Invoke(this, errorInfo.ErrorMessage);
+         }
+
+         return errorInfo.IsWarning;
       }
 
       private void CompleteStringEdit(Point point) {
@@ -1162,6 +1265,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
          if (run is ArrayRun) Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
          if (!SilentScroll(memoryLocation + 1)) {
+            point = scroll.DataIndexToViewPoint(memoryLocation);
             RefreshBackingData(point);
             if (point.X + 1 < Width) {
                RefreshBackingData(new Point(point.X + 1, point.Y));
@@ -1179,6 +1283,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                // last character edit: might require relocation
                var newRun = Model.RelocateForExpansion(history.CurrentChange, run, run.Length + extraBytesNeeded);
                if (newRun != run) {
+                  OnMessage?.Invoke(this, $"Text was automatically moved to {newRun.Start.ToString("X6")}. Pointers were updated.");
                   ScrollFromRunMove(memoryLocation, pcs.Position, newRun);
                   memoryLocation += newRun.Start - run.Start;
                   run = newRun;
@@ -1215,7 +1320,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var byteValue = byte.Parse(underEdit.CurrentText, NumberStyles.HexNumber);
          var memoryLocation = scroll.ViewPointToDataIndex(point);
-         Model.ClearFormat(history.CurrentChange, memoryLocation, 1);
+         var run = Model.GetNextRun(memoryLocation);
+         if (!(run is NoInfoRun) || run.Start != memoryLocation) Model.ClearFormat(history.CurrentChange, memoryLocation, 1);
          history.CurrentChange.ChangeData(Model, memoryLocation, byteValue);
          scroll.DataLength = Model.Count;
          ClearEdits(point);
@@ -1265,6 +1371,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             int offset = locations.originalLocation - scroll.DataIndex;
             selection.GotoAddress(locations.newLocation - offset);
          }
+         OnMessage?.Invoke(this, $"Text was automatically moved to {locations.newLocation.ToString("X6")}. Pointers were updated.");
       }
 
       private void RefreshBackingData(Point p) {

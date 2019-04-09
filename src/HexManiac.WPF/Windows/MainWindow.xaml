@@ -9,7 +9,7 @@
         xmlns:hsg3hvmtr="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Tools;assembly=HexManiac.Core"
         Icon="..\Resources\AppIcon.ico"
         PreviewMouseDown="RunDeferredActions"
-        Title="Hex Maniac Advance" Height="450" Width="870" AllowDrop="True" Background="{DynamicResource Background}">
+        Title="Hex Maniac Advance" Height="450" Width="870" AllowDrop="True" Background="{DynamicResource Backlight}">
    <Window.Resources>
       <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
       <hsg3hv:IntegerToBooleanViaMatchConverter x:Key="IndexMatch"/>
@@ -56,9 +56,10 @@
       <CommandBinding Command="ToggleBullets" Executed="ToggleTheme"/>
    </Window.CommandBindings>
    <DockPanel>
-      <DockPanel DockPanel.Dock="Top">
+      <DockPanel DockPanel.Dock="Top" Background="{DynamicResource Background}">
          <DockPanel.Resources>
             <Style TargetType="Panel" x:Key="AnimateOnVisibilityChanged">
+               <Setter Property="HorizontalAlignment" Value="Right"/>
                <Setter Property="DockPanel.Dock" Value="Right"/>
                <Setter Property="Background" Value="{DynamicResource Backlight}"/>
                <Style.Triggers>
@@ -238,7 +239,18 @@
          </Grid>
       </DockPanel>
       <Grid>
-         <hsg3hv:StartScreen/>
+         <hsg3hv:StartScreen>
+            <hsg3hv:StartScreen.Style>
+               <Style TargetType="FrameworkElement">
+                  <Setter Property="Visibility" Value="Collapsed"/>
+                  <Style.Triggers>
+                     <DataTrigger Binding="{Binding ElementName=Tabs, Path=SelectedIndex}" Value="-1">
+                        <Setter Property="Visibility" Value="Visible"/>
+                     </DataTrigger>
+                  </Style.Triggers>
+               </Style>
+            </hsg3hv:StartScreen.Style>
+         </hsg3hv:StartScreen>
          <TabControl Name="Tabs" ItemsSource="{Binding}" SelectedIndex="{Binding SelectedIndex}">
             <TabControl.Style>
                <Style TargetType="TabControl" BasedOn="{StaticResource {x:Type TabControl}}">
@@ -425,7 +437,7 @@
                         </DockPanel>
                      </Border>
                      <!-- Column Headers -->
-                     <hsg3hv:HorizontalSlantedTextControl HeaderRows="{Binding ColumnHeaders}" DockPanel.Dock="Top" ColumnWidth="{x:Static hsg3hv:HexContent.CellWidth}"/>
+                     <hsg3hv:HorizontalSlantedTextControl DockPanel.Dock="Top" HeaderRows="{Binding ColumnHeaders}" ColumnWidth="{x:Static hsg3hv:HexContent.CellWidth}" HorizontalOffset="{Binding ElementName=HexContent, Path=HorizontalScrollValue}"/>
                      <!-- Row Headers -->
                      <ItemsControl DockPanel.Dock="Left" Width="70" ItemsSource="{Binding Headers}" Background="{DynamicResource Backlight}" MouseDown="HeaderMouseDown">
                         <ItemsControl.ItemTemplate>
@@ -440,6 +452,9 @@
                      <ScrollBar DockPanel.Dock="Right"
                         Minimum="{Binding MinimumScroll}" Maximum="{Binding MaximumScroll}" Value="{Binding ScrollValue}"
                         SmallChange="1" LargeChange="{Binding Height}" />
+                     <ScrollBar DockPanel.Dock="Bottom" Orientation="Horizontal" SmallChange="10" LargeChange="{x:Static hsg3hv:HexContent.CellWidth}"
+                        Minimum="0" Maximum="{Binding HorizontalScrollMaximum, ElementName=HexContent}" Value="{Binding HorizontalScrollValue, ElementName=HexContent}"
+                        Visibility="{Binding ShowHorizontalScroll, ElementName=HexContent, Converter={StaticResource BoolToVisibility}}" />
                      <hsg3hv:HexContent x:Name="HexContent" ViewPort="{Binding}" ShowGrid="{Binding DataContext.ShowMatrix, RelativeSource={RelativeSource AncestorType=hsg3ww:MainWindow}}" Margin=".5,.5,0,0"/>
                   </DockPanel>
                </DataTemplate>

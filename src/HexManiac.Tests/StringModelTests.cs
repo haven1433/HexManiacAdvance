@@ -385,5 +385,57 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x32, model.GetNextRun(0x32).Start);
          Assert.Single(model.GetNextRun(0x32).PointerSources);
       }
+
+      [Fact]
+      public void CopyAnUnnamedStringInsertsAName() {
+         var text = "This is the song that never ends.";
+         var bytes = PCSString.Convert(text).ToArray();
+         var buffer = new byte[0x200];
+         Array.Copy(bytes, 0, buffer, 0x30, bytes.Length);
+         Array.Copy(new byte[] { 0x30, 0, 0, 0x08 }, 0, buffer, 0x10, 4); // the pointer to the data. Pointer is aligned, but data is not.
+         var model = new PokemonModel(buffer);
+         var viewPort = new ViewPort("test.gba", model) { Width = 0x10, Height = 0x10 };
+         var fileSystem = new StubFileSystem();
+
+         viewPort.SelectionStart = new Point(0, 3);
+         viewPort.ExpandSelection(0, 3);
+         viewPort.Copy.Execute(fileSystem);
+
+         Assert.Contains("^This", fileSystem.CopyText);
+         Assert.Contains("\"\" \"This", fileSystem.CopyText); // format, then space, then start of text
+      }
+
+      [Fact]
+      public void AddingNewAnchorWithSameNameRenamesNewAnchorWithMessage() {
+         var model = new PokemonModel(new byte[0x200]);
+         var viewPort = new ViewPort(string.Empty, model) { Width = 0x10, Height = 0x10 };
+         var messages = new List<string>();
+         viewPort.OnMessage += (sender, e) => messages.Add(e);
+
+         viewPort.Edit("^anchor ");
+         viewPort.SelectionStart = new Point(0, 1);
+         viewPort.Edit("^anchor ");
+
+         Assert.NotEqual("anchor", ((Anchor)viewPort[0, 1].Format).Name);
+         Assert.Single(messages);
+      }
+
+      [Fact]
+      public void CanUseViewPortToAutoFindTextWithoutKnowingAboutPointersToIt() {
+         var text = PCSString.Convert("This is some text.");
+         var buffer = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         text.CopyTo(buffer, 0x10);
+         var model = new PokemonModel(buffer);
+         model.WritePointer(new ModelDelta(), 0x00, 0x10);
+
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort.SelectionStart = new Point(3, 1); // just a random byte in the middle of the text
+         var errors = new List<string>();
+         viewPort.OnError += (sender, e) => errors.Add(e);
+
+         viewPort.IsText.Execute(); // this line should find the start of the text and add a run, even with no pointer to it
+
+         Assert.IsType<PCS>(viewPort[3, 1].Format);
+      }
    }
 }

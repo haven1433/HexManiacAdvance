@@ -356,7 +356,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var offsets = ConvertByteOffsetToArrayOffset(start);
          length += offsets.SegmentOffset;
          for (int i = offsets.ElementIndex; i < ElementCount && length > 0; i++) {
-            var offset = Start + i * ElementLength;
+            var offset = offsets.SegmentStart;
             if (offsets.SegmentIndex == 0) text.Append(ExtendArray);
             for (int j = offsets.SegmentIndex; j < ElementContent.Count && length > 0; j++) {
                var segment = ElementContent[j];
@@ -366,7 +366,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                length -= segment.Length;
             }
             text.Append(Environment.NewLine);
-            offsets = new ArrayOffset(0, 0, 0, 0);
+            offsets = new ArrayOffset(0, 0, offset, 0);
          }
       }
 

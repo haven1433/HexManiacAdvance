@@ -52,6 +52,26 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       #endregion
 
+      #region HorizontalOffset
+
+      public double HorizontalOffset {
+         get { return (double)GetValue(HorizontalOffsetProperty); }
+         set { SetValue(HorizontalOffsetProperty, value); }
+      }
+
+      public static readonly DependencyProperty HorizontalOffsetProperty = DependencyProperty.Register("HorizontalOffset", typeof(double), typeof(HorizontalSlantedTextControl), new FrameworkPropertyMetadata(0.0, HorizontalOffsetChanged));
+
+      private static void HorizontalOffsetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+         var self = (HorizontalSlantedTextControl)d;
+         self.OnHorizontalOffsetChanged(e);
+      }
+
+      private void OnHorizontalOffsetChanged(DependencyPropertyChangedEventArgs e) {
+         InvalidateVisual();
+      }
+
+      #endregion
+
       #region SlantAngle
 
       public double SlantAngle {
@@ -68,6 +88,9 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       protected override void OnRender(DrawingContext drawingContext) {
          base.OnRender(drawingContext);
          if (HeaderRows == null) return;
+
+         // handle horizontal scrolling
+         drawingContext.PushTransform(new TranslateTransform(-HorizontalOffset, 0));
 
          int maxLength = 1;
          if (HeaderRows.Count > 0) maxLength = HeaderRows.Max(row => row.ColumnHeaders.Max(header => header.ColumnTitle.Length));
@@ -101,6 +124,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             }
             yOffset += heightPerRow;
          }
+
+         drawingContext.Pop();
       }
 
       private void UpdateDesiredHeight() {

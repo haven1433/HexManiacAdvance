@@ -96,14 +96,47 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          set { SetValue(ShowGridProperty, value); }
       }
 
-      public static readonly DependencyProperty ShowGridProperty = DependencyProperty.Register(nameof(ShowGrid), typeof(bool), typeof(HexContent), new FrameworkPropertyMetadata(false, ShowGridChanged));
+      public static readonly DependencyProperty ShowGridProperty = DependencyProperty.Register(nameof(ShowGrid), typeof(bool), typeof(HexContent), new FrameworkPropertyMetadata(false, RequestInvalidateVisual));
 
-      private static void ShowGridChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+      private static void RequestInvalidateVisual(DependencyObject d, DependencyPropertyChangedEventArgs e) {
          var self = (HexContent)d;
-         self.OnShowGridChanged(e);
+         self.OnRequestInvalidateVisual(e);
       }
 
-      private void OnShowGridChanged(DependencyPropertyChangedEventArgs e) => InvalidateVisual();
+      private void OnRequestInvalidateVisual(DependencyPropertyChangedEventArgs e) => InvalidateVisual();
+
+      #endregion
+
+      #region ShowHorizontalScroll
+
+      public bool ShowHorizontalScroll {
+         get { return (bool)GetValue(ShowHorizontalScrollProperty); }
+         set { SetValue(ShowHorizontalScrollProperty, value); }
+      }
+
+      public static readonly DependencyProperty ShowHorizontalScrollProperty = DependencyProperty.Register("ShowHorizontalScroll", typeof(bool), typeof(HexContent), new FrameworkPropertyMetadata(false, RequestInvalidateVisual));
+
+      #endregion
+
+      #region HorizontalScrollValue
+
+      public double HorizontalScrollValue {
+         get { return (double)GetValue(HorizontalScrollValueProperty); }
+         set { SetValue(HorizontalScrollValueProperty, value); }
+      }
+
+      public static readonly DependencyProperty HorizontalScrollValueProperty = DependencyProperty.Register("HorizontalScrollValue", typeof(double), typeof(HexContent), new FrameworkPropertyMetadata(0.0, RequestInvalidateVisual));
+
+      #endregion
+
+      #region HorizontalScrollMaximum
+
+      public double HorizontalScrollMaximum {
+         get { return (double)GetValue(HorizontalScrollMaximumProperty); }
+         set { SetValue(HorizontalScrollMaximumProperty, value); }
+      }
+
+      public static readonly DependencyProperty HorizontalScrollMaximumProperty = DependencyProperty.Register("HorizontalScrollMaximum", typeof(double), typeof(HexContent), new PropertyMetadata(0.0));
 
       #endregion
 
@@ -216,6 +249,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                if (format is PCS pcs) children.AddRange(GetStringChildren(p));
                if (ViewPort.IsTable(p)) children.AddRange(GetTableChildren(p));
                if (format is Pointer pointer) children.AddRange(GetPointerChildren(p));
+               if (format is None none) children.AddRange(GetNoneChildren(p));
                if (editableViewPort.FormattedDataIsSelected) children.AddRange(GetClearFormattingChildren(p));
             } else {
                children.AddRange(GetSearchChildren(p));
@@ -238,9 +272,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (ViewPort == null) return;
          var visitor = new FormatDrawer(drawingContext, ViewPort.Width, ViewPort.Height);
 
+         if (ShowHorizontalScroll) drawingContext.PushTransform(new TranslateTransform(-HorizontalScrollValue, 0));
          RenderGrid(drawingContext);
          RenderSelection(drawingContext);
          RenderData(drawingContext, visitor);
+         if (ShowHorizontalScroll) drawingContext.Pop();
       }
 
       private void RenderGrid(DrawingContext drawingContext) {
@@ -357,10 +393,31 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private IEnumerable<FrameworkElement> GetStringChildren(ModelPoint p) {
          yield return CreateFollowLinkButton("Open In Text Tool", p);
+         yield return new Button {
+            Content = new StackPanel {
+               Orientation = Orientation.Horizontal,
+               Children = {
+                  new TextBlock { Text = "Copy Selection" },
+                  new TextBlock { Foreground = Solarized.Theme.Secondary, FontStyle = FontStyles.Italic, Margin = new Thickness(20, 0, 0, 0), Text = "Ctrl+C" }
+               }
+            },
+         }.SetEvent(ButtonBase.ClickEvent, (sender, e) => {
+            ViewPort.Copy.Execute(Application.Current.MainWindow.Resources["FileSystem"]);
+            recentMenu.IsOpen = false;
+         });
       }
 
       private IEnumerable<FrameworkElement> GetPointerChildren(ModelPoint p) {
          yield return CreateFollowLinkButton("Follow Pointer", p);
+      }
+
+      private IEnumerable<FrameworkElement> GetNoneChildren(ModelPoint p) {
+         yield return new Button {
+            Content = new TextBlock { Text = "Display as Text" },
+         }.SetEvent(ButtonBase.ClickEvent, (sender, e) => {
+            ((ViewPort)ViewPort).IsText.Execute();
+            recentMenu.IsOpen = false;
+         });
       }
 
       private IEnumerable<FrameworkElement> GetTableChildren(ModelPoint p) {
@@ -422,6 +479,15 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void UpdateViewPortSize() {
          ViewPort.Width = (int)(ActualWidth / CellWidth);
          ViewPort.Height = (int)(ActualHeight / CellHeight);
+
+         var requiredSize = ViewPort.Width * CellWidth;
+         if (requiredSize > ActualWidth) {
+            ShowHorizontalScroll = true;
+            HorizontalScrollMaximum = requiredSize - ActualWidth;
+            HorizontalScrollValue = Math.Min(HorizontalScrollValue, HorizontalScrollMaximum);
+         } else {
+            ShowHorizontalScroll = false;
+         }
       }
 
       private ModelPoint ControlCoordinatesToModelCoordinates(MouseEventArgs e) {

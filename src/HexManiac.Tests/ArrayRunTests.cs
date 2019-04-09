@@ -141,10 +141,11 @@ namespace HavenSoft.HexManiac.Tests {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          WriteStrings(buffer, 0, "bobb", "tomm", "samm", "carr", "pall", "eggg");
          var model = new PokemonModel(buffer);
+         var delta = new ModelDelta();
          ArrayRun.TryParse(model, "[word\"\"5]", 0, null, out var arrayRun);
-         model.ObserveAnchorWritten(new ModelDelta(), "words", arrayRun);
+         model.ObserveAnchorWritten(delta, "words", arrayRun);
 
-         var text = model.Copy(0, 0x20);
+         var text = model.Copy(() => delta, 0, 0x20);
 
          Assert.StartsWith("^words[word\"\"5]", text);
       }
@@ -259,6 +260,7 @@ namespace HavenSoft.HexManiac.Tests {
          var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.SelectionStart = new Point(0, 2);
          viewPort.Edit("^testdata[name\"\"16]5 ");
+         viewPort.Goto.Execute("000000");
 
          // act -> cut
          var fileSystem = new StubFileSystem();
@@ -308,6 +310,7 @@ namespace HavenSoft.HexManiac.Tests {
          var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.SelectionStart = new Point(0, 2);
          viewPort.Edit("^testdata[name\"\"16]5 ");
+         viewPort.Goto.Execute("000000");
          viewPort.OnError += (sender, message) => errors.Add(message);
 
          // act -> cut
@@ -346,6 +349,7 @@ namespace HavenSoft.HexManiac.Tests {
          var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.SelectionStart = new Point(0, 2);
          viewPort.Edit("^testdata[name\"\"16]5 ");
+         viewPort.Goto.Execute("000000");
          viewPort.OnError += (sender, message) => errors.Add(message);
 
          // act -> cut
@@ -385,6 +389,7 @@ namespace HavenSoft.HexManiac.Tests {
          var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.SelectionStart = new Point(0, 2);
          viewPort.Edit("^testdata[name\"\"16]5 ");
+         viewPort.Goto.Execute("000000");
          viewPort.OnError += (sender, message) => errors.Add(message);
 
          // act -> add an element
@@ -424,6 +429,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          viewPort.SelectionStart = new Point(0, 8);
          viewPort.Edit("^derived[index.]sample "); // should be the same length as sample: 8
+         viewPort.Goto.Execute("000000");
 
          // test 1: enbiggen derived should enbiggen sample
          viewPort.SelectionStart = new Point(8, 8);
@@ -803,6 +809,56 @@ namespace HavenSoft.HexManiac.Tests {
          // act/assert: check that the headers are normal when custom headers are turned off
          viewPort.UseCustomHeaders = false;
          Assert.Equal("000020", viewPort.Headers[2]);
+      }
+
+      [Fact]
+      public void CanAddTextFormatToAnchorUsedOnlyByAnArrayAtStart() {
+         var data = new byte[0x200];
+         var changeToken = new ModelDelta();
+         var model = new PokemonModel(data);
+         WriteStrings(data, 0x10, "This is a song!");
+         ArrayRun.TryParse(model, "^[content<>]1", 0x00, null, out var array);
+         model.ObserveAnchorWritten(changeToken, "array", array);
+         model.WritePointer(changeToken, 0x00, 0x10);
+
+         // there is a pointer at 0x00 that points to 0x10
+         // but we know about it via an array
+         // at 0x10 is text
+         // but we don't know that it's text
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var errors = new List<string>();
+         viewPort.OnError += (sender, e) => errors.Add(e);
+         viewPort.SelectionStart = new Point(0, 1);
+         viewPort.Edit("^\"\" ");
+
+         // adding the format should've stuck
+         Assert.Empty(errors);
+         Assert.IsType<PCS>(viewPort[1, 1].Format);
+      }
+
+      [Fact]
+      public void CanAddTextFormatToAnchorUsedOnlyByAnArray() {
+         var data = new byte[0x200];
+         var changeToken = new ModelDelta();
+         var model = new PokemonModel(data);
+         WriteStrings(data, 0x10, "This is a song!");
+         ArrayRun.TryParse(model, "^[content<>]4", 0x00, null, out var array);
+         model.ObserveAnchorWritten(changeToken, "array", array);
+         model.WritePointer(changeToken, 0x04, 0x10);
+
+         // there is a pointer at 0x00 that points to 0x10
+         // but we know about it via an array
+         // at 0x10 is text
+         // but we don't know that it's text
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var errors = new List<string>();
+         viewPort.OnError += (sender, e) => errors.Add(e);
+         viewPort.SelectionStart = new Point(0, 1);
+         viewPort.Edit("^\"\" ");
+
+         // adding the format should've stuck
+         Assert.Empty(errors);
+         Assert.IsType<PCS>(viewPort[1, 1].Format);
       }
 
       // TODO while typing an enum, the ViewModel provides auto-complete options

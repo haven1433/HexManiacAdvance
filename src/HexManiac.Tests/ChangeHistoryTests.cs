@@ -258,6 +258,14 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.SelectionStart = new Point(0, 1);
          viewPort.Edit("^bob ");
 
+         Assert.Equal(0x10, model.ReadPointer(0x00));
+         Assert.Equal("bob", ((Pointer)viewPort[0, 0].Format).DestinationName);
+
+         // undo operation 2
+         viewPort.Undo.Execute();
+         Assert.Equal(Pointer.NULL, model.ReadPointer(0x00));
+         Assert.Equal("bob", ((Pointer)viewPort[0, 0].Format).DestinationName);
+
          // operation 3
          viewPort.SelectionStart = new Point(0, 2);
          viewPort.Edit("^bob ");
@@ -266,11 +274,6 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("bob", ((Pointer)viewPort[0, 0].Format).DestinationName);
 
          // undo operation 3
-         viewPort.Undo.Execute();
-         Assert.Equal(0x10, model.ReadPointer(0x00));
-         Assert.Equal("bob", ((Pointer)viewPort[0, 0].Format).DestinationName);
-
-         // undo operation 2
          viewPort.Undo.Execute();
          Assert.Equal(Pointer.NULL, model.ReadPointer(0x00));
          Assert.Equal("bob", ((Pointer)viewPort[0, 0].Format).DestinationName);

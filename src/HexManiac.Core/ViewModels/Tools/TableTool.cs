@@ -101,7 +101,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             return;
          }
 
-         CurrentElementName = model.GetAnchorFromAddress(-1, Address); // example: pokestat/Charmander
+         var basename = model.GetAnchorFromAddress(-1, array.Start);
+         var index = (Address - array.Start) / array.ElementLength;
+         if (array.ElementNames.Count > index) {
+            CurrentElementName = $"{basename}/{index}" + Environment.NewLine + $"{basename}/{array.ElementNames[index]}";
+         } else {
+            CurrentElementName = $"{basename}/{index}";
+         }
 
          int itemAddress = Address;
          foreach (var item in array.ElementContent) {
