@@ -11,7 +11,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          IsWarning = isWarningLevel;
       }
 
-      public bool Equals(ErrorInfo other) => ErrorMessage == other?.ErrorMessage && IsWarning == (other?.IsWarning ?? false);
+      public bool Equals(ErrorInfo other) => ErrorMessage == other?.ErrorMessage && IsWarning == other?.IsWarning;
 
       public override bool Equals(object obj) => Equals(obj as ErrorInfo);
       public override int GetHashCode() => ErrorMessage?.GetHashCode() ?? 0;

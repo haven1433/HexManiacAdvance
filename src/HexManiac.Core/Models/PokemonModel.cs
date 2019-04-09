@@ -733,26 +733,33 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private string GenerateDefaultAnchorName(IFormattedRun run) {
-         var gameCodeText = string.Empty;
-         if (addressForAnchor.TryGetValue("GameCode", out int gameCodeAddress)) {
-            var gameCode = GetNextRun(gameCodeAddress) as AsciiRun;
-            if (gameCode != null) {
-               gameCodeText = new string(Enumerable.Range(0, gameCode.Length).Select(i => (char)this[gameCode.Start + i]).ToArray());
-            }
-         }
-
-         var textSample = string.Empty;
-         if (run is PCSRun) {
-            var text = PCSString.Convert(this, run.Start, run.Length);
-            var words = text.Split(' ');
-            if (words.Length > 3) words = words.Take(3).ToArray();
-            text = string.Concat(words);
-            textSample = new string(text.Where(char.IsLetterOrDigit).ToArray());
-         }
-
+         var gameCodeText = ReadGameCode();
+         var textSample = GetSampleText(run);
          var initialAddress = run.Start.ToString("X6");
 
          return textSample + gameCodeText + initialAddress;
+      }
+
+      /// <summary>
+      /// If this model recognizes a GameCode AsciiRun, return that code formatted as a name.
+      /// </summary>
+      private string ReadGameCode() {
+         if (!addressForAnchor.TryGetValue("GameCode", out int gameCodeAddress)) return string.Empty;
+         var gameCode = GetNextRun(gameCodeAddress) as AsciiRun;
+         if (gameCode == null || gameCode.Start != gameCodeAddress) return string.Empty;
+         return new string(Enumerable.Range(0, gameCode.Length).Select(i => (char)this[gameCode.Start + i]).ToArray());
+      }
+
+      /// <summary>
+      /// If the run is text, grab the first 3 words and return it formatted as a name.
+      /// </summary>
+      private string GetSampleText(IFormattedRun run) {
+         if (!(run is PCSRun)) return string.Empty;
+         var text = PCSString.Convert(this, run.Start, run.Length);
+         var words = text.Split(' ');
+         if (words.Length > 3) words = words.Take(3).ToArray();
+         text = string.Concat(words);
+         return new string(text.Where(char.IsLetterOrDigit).ToArray());
       }
 
       public override void Load(byte[] newData, StoredMetadata metadata) {
@@ -815,39 +822,40 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (RawData[i] != 0x08 && RawData[i] != 0x09) continue;
             int destination = ReadPointer(i - 3);
             if (!addresses.Contains(destination)) continue;
-            var index = BinarySearch(i - 3);
-            if (index >= 0) {
-               if (runs[index] is PointerRun) results.Add(i - 3);
-               if (runs[index] is ArrayRun arrayRun && arrayRun.ElementContent[0].Type == ElementContentType.Pointer) results.Add(i - 3);
-               if (runs[index] is NoInfoRun) {
-                  var pointerRun = new PointerRun(i - 3, runs[index].PointerSources);
-                  lock (changeToken) {
+            // I have to lock this whole block, because I need to know that 'index' remains consistent until I can call runs.Insert
+            lock (runs) {
+               var index = BinarySearch(i - 3);
+               if (index >= 0) {
+                  if (runs[index] is PointerRun) results.Add(i - 3);
+                  if (runs[index] is ArrayRun arrayRun && arrayRun.ElementContent[0].Type == ElementContentType.Pointer) results.Add(i - 3);
+                  if (runs[index] is NoInfoRun) {
+                     var pointerRun = new PointerRun(i - 3, runs[index].PointerSources);
                      changeToken.RemoveRun(runs[index]);
                      changeToken.AddRun(pointerRun);
-                  }
-                  runs[index] = pointerRun;
-                  results.Add(i - 3);
-               }
-               continue;
-            }
-            index = ~index;
-            if (index < runs.Count && runs[index].Start <= i) continue; // can't add a pointer run if an existing run starts during the new one
-
-            // can't add a pointer run if the new one starts during an existing one
-            if (index > 0 && runs[index - 1].Start + runs[index - 1].Length > i - 3) {
-               // ah, but if that run is an array and there's already a pointer here...
-               var array = runs[index - 1] as ArrayRun;
-               if (array != null) {
-                  var offsets = array.ConvertByteOffsetToArrayOffset(i);
-                  if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Pointer) {
+                     runs[index] = pointerRun;
                      results.Add(i - 3);
                   }
+                  continue;
                }
-               continue;
+               index = ~index;
+               if (index < runs.Count && runs[index].Start <= i) continue; // can't add a pointer run if an existing run starts during the new one
+
+               // can't add a pointer run if the new one starts during an existing one
+               if (index > 0 && runs[index - 1].Start + runs[index - 1].Length > i - 3) {
+                  // ah, but if that run is an array and there's already a pointer here...
+                  var array = runs[index - 1] as ArrayRun;
+                  if (array != null) {
+                     var offsets = array.ConvertByteOffsetToArrayOffset(i);
+                     if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Pointer) {
+                        results.Add(i - 3);
+                     }
+                  }
+                  continue;
+               }
+               var newRun = new PointerRun(i - 3);
+               runs.Insert(index, newRun);
+               changeToken.AddRun(newRun);
             }
-            var newRun = new PointerRun(i - 3);
-            runs.Insert(index, newRun);
-            lock (changeToken) changeToken.AddRun(newRun);
             results.Add(i - 3);
          }
 
