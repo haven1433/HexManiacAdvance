@@ -604,7 +604,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private bool TryParsePointerSearchSegment(List<ISearchByte> searchBytes, string cleanedSearchString, ref int i) {
          var pointerEnd = cleanedSearchString.IndexOf(PointerEnd, i);
          if (pointerEnd == -1) { OnError(this, "Search mismatch: no closing >"); return false; }
-         var pointerContents = cleanedSearchString.Substring(i + 1, pointerEnd - i - 2);
+         var pointerContents = cleanedSearchString.Substring(i + 1, pointerEnd - i - 1);
          var address = Model.GetAddressFromAnchor(history.CurrentChange, -1, pointerContents);
          if (address != Pointer.NULL) {
             searchBytes.Add((SearchByte)(address >> 0));
