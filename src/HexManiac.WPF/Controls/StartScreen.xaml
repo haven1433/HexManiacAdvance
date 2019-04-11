@@ -9,9 +9,11 @@
              d:DesignHeight="450" d:DesignWidth="800">
    <Grid.ColumnDefinitions>
       <ColumnDefinition/>
+      <ColumnDefinition Width="20"/>
       <ColumnDefinition Width="400"/>
+      <ColumnDefinition Width="20"/>
    </Grid.ColumnDefinitions>
-   <TextBlock Grid.Column="0" Foreground="{DynamicResource Primary}" HorizontalAlignment="Center" VerticalAlignment="Center">
+   <TextBlock Grid.Column="0" Foreground="{DynamicResource Primary}" HorizontalAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Center">
       Drag-n-Drop to open a file.
       <LineBreak/> <LineBreak/>
       Tip: Try typing these words into Goto <Italic>(Ctrl+G)</Italic>. <LineBreak/>
@@ -26,7 +28,7 @@
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>abilitydescriptions<LineBreak/>
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>movedata<LineBreak/>
    </TextBlock>
-   <StackPanel Grid.Column="1" VerticalAlignment="Center" TextBlock.Foreground="{DynamicResource Primary}" >
+   <StackPanel Grid.Column="2" VerticalAlignment="Center" TextBlock.Foreground="{DynamicResource Primary}" >
       <Border Margin="5" Padding="5" Background="{DynamicResource Background}" BorderBrush="{DynamicResource Secondary}" CornerRadius="5,5,5,5" BorderThickness="1" Cursor="Hand" MouseLeftButtonDown="PointerHelp">
          <Grid>
             <Grid.RowDefinitions>
