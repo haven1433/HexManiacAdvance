@@ -2,9 +2,11 @@
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows.Input;
 
@@ -73,7 +75,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public bool HasTools => false;
 
-      public IToolTrayViewModel Tools => null;
+      public IToolTrayViewModel Tools { get; } = new SearchResultsTools();
 
       public string AnchorText { get; set; }
 
@@ -200,5 +202,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return (childIndex, line);
       }
 
+   }
+
+   public class SearchResultsTools : IToolTrayViewModel {
+      public ICommand HideCommand { get; } = new StubCommand();
+      public ICommand StringToolCommand { get; } = new StubCommand();
+      public ICommand TableToolCommand { get; } = new StubCommand();
+      public ICommand Tool3Command { get; } = new StubCommand();
+
+      public PCSTool StringTool => null;
+      public TableTool TableTool => null;
+
+      public IDisposable DeferUpdates => new StubDisposable();
+      public event PropertyChangedEventHandler PropertyChanged;
+      public void Schedule(Action action) => action();
+
+      public IToolViewModel this[int index] => null;
+      public int SelectedIndex { get => -1; set { } }
+      public int Count => 0;
+      public IEnumerator<IToolViewModel> GetEnumerator() => new List<IToolViewModel>().GetEnumerator();
+      IEnumerator IEnumerable.GetEnumerator() => new List<IToolViewModel>().GetEnumerator();
    }
 }

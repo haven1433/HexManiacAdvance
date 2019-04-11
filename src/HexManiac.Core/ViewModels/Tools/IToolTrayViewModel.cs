@@ -10,6 +10,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public interface IToolTrayViewModel : IReadOnlyList<IToolViewModel>, INotifyPropertyChanged {
       int SelectedIndex { get; set; }
 
+      ICommand HideCommand { get; }
+      ICommand StringToolCommand { get; }
+      ICommand TableToolCommand { get; }
+      ICommand Tool3Command { get; }
+
       PCSTool StringTool { get; }
 
       TableTool TableTool { get; }

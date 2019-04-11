@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -157,6 +158,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (TryUpdate(ref infoMessage, value)) ShowMessage = !string.IsNullOrEmpty(InformationMessage);
          }
       }
+
+      public IToolTrayViewModel Tools => (SelectedTab as IViewPort)?.Tools;
 
       public event EventHandler<Action> RequestDelayedWork;
 
@@ -474,6 +477,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          GotoViewModel.PropertyChanged -= GotoPropertyChanged;
          GotoViewModel = new GotoControlViewModel(SelectedTab);
          GotoViewModel.PropertyChanged += GotoPropertyChanged;
+         NotifyPropertyChanged(nameof(Tools));
       }
 
       private void ForwardDelayedWork(object sender, Action e) => RequestDelayedWork?.Invoke(this, e);
