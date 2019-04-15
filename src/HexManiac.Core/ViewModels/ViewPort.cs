@@ -772,23 +772,38 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
          var left = Math.Min(selectionStart, selectionEnd);
          var length = Math.Abs(selectionEnd - selectionStart) + 1;
+
+         // part 1: find a previous FF, which is possibly the end of another text
          while (Model[left] != 0xFF && PCSString.PCS[Model[left]] != null) { left--; length++; }
          left++; length--;
+
+         // part 2: jump forward past any known runs that we're interupting
          while (true) {
             var run = Model.GetNextRun(left);
             if (run.Start >= left) break;
             length -= left - run.Start;
             left = run.Start + run.Length;
          }
-         var startPaces = new List<int>();
+
+         // part 3: look for possible starting locations:
+         // (1) places that start directly after FF
+         // (2) places that start with a NoInfoRun
+         var startPlaces = new List<int>();
          while (length > 0) {
-            startPaces.Add(left);
+            startPlaces.Add(left);
+            var run = Model.GetNextRun(left);
+            if (run is NoInfoRun) startPlaces.Add(run.Start);
+            if (!(run is NoInfoRun)) break;
             while (Model[left] != 0xFF) { left++; length--; }
             left++; length--;
-            var run = Model.GetNextRun(left);
-            if (!(run is NoInfoRun)) break;
          }
-         var foundCount = ConsiderResultsAsTextRuns(startPaces);
+
+         // remove duplicates and make sure everything is in order
+         startPlaces.Sort();
+         startPlaces = startPlaces.Distinct().ToList();
+
+         // do the actual search now that we know places to start
+         var foundCount = ConsiderResultsAsTextRuns(startPlaces);
          if (foundCount == 0) {
             OnError?.Invoke(this, "Failed to automatically find text at that location.");
          } else {
