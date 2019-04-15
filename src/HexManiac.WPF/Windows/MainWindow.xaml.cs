@@ -158,7 +158,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
       private void StringToolContentSelectionChanged(object sender, RoutedEventArgs e) {
          var textbox = (TextBox)sender;
-         var tools = (ToolTray)textbox.DataContext;
+         var tools = textbox.DataContext as ToolTray;
          if (tools == null || tools.StringTool == null) return;
          tools.StringTool.ContentIndex = textbox.SelectionStart;
          tools.StringTool.ContentSelectionLength = textbox.SelectionLength;

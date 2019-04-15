@@ -147,6 +147,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var child = children[childIndex];
          var parent = child.Parent;
+         if (child.Model.GetNextRun(child.DataOffset) is ArrayRun array) {
+            // TODO
+         }
          var dataOffset = Math.Max(0, child.DataOffset - (y - line) * child.Width);
          parent.Goto.Execute(dataOffset.ToString("X6"));
 
