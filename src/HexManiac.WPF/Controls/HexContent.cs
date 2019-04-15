@@ -212,7 +212,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          }
 
          if (ViewPort is ViewPort editableViewPort) {
-            if (Keyboard.Modifiers == ModifierKeys.Shift) {
+            var point = e.GetPosition(this);
+            if (point.X < 0) {
+               editableViewPort.SelectionStart = downPoint;
+               editableViewPort.SelectionEnd = new ModelPoint(editableViewPort.Width - 1, downPoint.Y);
+            } else if (Keyboard.Modifiers == ModifierKeys.Shift) {
                editableViewPort.SelectionEnd = downPoint;
             } else {
                editableViewPort.SelectionStart = downPoint;
@@ -229,8 +233,17 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             InvalidateVisual();
          }
          if (!IsMouseCaptured) return;
+         if (!(ViewPort is ViewPort viewPort)) return;
 
-         ((ViewPort)ViewPort).SelectionEnd = ControlCoordinatesToModelCoordinates(e);
+
+         var point = e.GetPosition(this);
+         var modelPoint = ControlCoordinatesToModelCoordinates(e);
+         if (point.X < 0) {
+            viewPort.SelectionEnd = new ModelPoint(viewPort.Width - 1, modelPoint.Y);
+         } else {
+            viewPort.SelectionEnd = modelPoint;
+         }
+
       }
 
       protected override void OnMouseUp(MouseButtonEventArgs e) {
@@ -492,8 +505,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private ModelPoint ControlCoordinatesToModelCoordinates(MouseEventArgs e) {
          var point = e.GetPosition(this);
-         point = new System.Windows.Point(Math.Max(0, point.X), Math.Max(0, point.Y)); // out of bounds to the left/top clamps to 0 (useful for headers)
-         return new Core.Models.Point((int)(point.X / CellWidth), (int)(point.Y / CellHeight));
+         point = new ScreenPoint(Math.Max(0, point.X), Math.Max(0, point.Y)); // out of bounds to the left/top clamps to 0 (useful for headers)
+         return new ModelPoint((int)(point.X / CellWidth), (int)(point.Y / CellHeight));
       }
    }
 
