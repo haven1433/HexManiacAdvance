@@ -95,7 +95,9 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          int maxLength = 1;
          if (HeaderRows.Count > 0) maxLength = HeaderRows.Max(row => row.ColumnHeaders.Max(header => header.ColumnTitle.Length));
          var sampleFormat = Format(new string('0', maxLength));
-         var heightPerRow = Math.Max(sampleFormat.Width * Math.Sin(SlantAngle * Math.PI / 180), sampleFormat.Height);
+         var angle = SlantAngle * Math.PI / 180;
+         var heightPerRow = Math.Max(sampleFormat.Width * Math.Sin(angle) + sampleFormat.Height * Math.Cos(angle), sampleFormat.Height);
+         var angledTextHeight = sampleFormat.Height * Math.Cos(SlantAngle * Math.PI / 180);
          var pen = new Pen(Solarized.Theme.Backlight, 1);
 
          double yOffset = heightPerRow;
@@ -103,18 +105,19 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          for (var i = 0; i < HeaderRows.Count; i++) {
             var row = HeaderRows[i];
             double xOffset = 70.0;
+            var height = ActualHeight - (HeaderRows.Count - i - 1) * heightPerRow;
             foreach (var header in row.ColumnHeaders) {
                var theta = (90 - SlantAngle) * Math.PI / 180;
                var separatorLength = sampleFormat.Width * Math.Cos(SlantAngle * Math.PI / 180) * 2 / 3;
-               var height = ActualHeight - (HeaderRows.Count - i - 1) * heightPerRow;
                drawingContext.DrawLine(pen, new Point(xOffset, height), new Point(xOffset + Math.Sin(theta) * separatorLength, height - Math.Cos(theta) * separatorLength));
 
                xOffset += header.ByteWidth * ColumnWidth / 2;
 
                var text = Format(header.ColumnTitle);
-               var additionalOffsetForTilt = header.ColumnTitle.Length > 1 ? 3 : -2;
+               var additionalXOffsetForTilt = header.ColumnTitle.Length > 1 ? 3 : -2;
+               var additionalYOffsetForTilt = header.ColumnTitle.Length > 1 ? angledTextHeight : sampleFormat.Height;
 
-               drawingContext.PushTransform(new TranslateTransform(xOffset + additionalOffsetForTilt, yOffset));
+               drawingContext.PushTransform(new TranslateTransform(xOffset + additionalXOffsetForTilt, yOffset - additionalYOffsetForTilt));
                if (header.ColumnTitle.Length > 1) drawingContext.PushTransform(new RotateTransform(-SlantAngle));
                drawingContext.DrawText(text, new Point());
                if (header.ColumnTitle.Length > 1) drawingContext.Pop();
@@ -131,9 +134,10 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void UpdateDesiredHeight() {
          var maxLength = (HeaderRows?.Count ?? 0) == 0 ? 1 : HeaderRows.Max(row => row.ColumnHeaders.Max(header => header.ColumnTitle.Length));
          var formattedText = Format(new string('0', maxLength));
-         var rows = HeaderRows?.Count ?? 0;
-         var heightPerRow = Math.Max(formattedText.Width * Math.Sin(SlantAngle * Math.PI / 180), formattedText.Height);
-         var finalHeight = Math.Ceiling(heightPerRow * rows) + 10;
+         var rows = HeaderRows?.Count ?? 1;
+         var angle = SlantAngle * Math.PI / 180;
+         var heightPerRow = Math.Max(formattedText.Width * Math.Sin(angle) + formattedText.Height * Math.Cos(angle), formattedText.Height);
+         var finalHeight = Math.Ceiling(heightPerRow * rows);
          Height = finalHeight;
       }
 

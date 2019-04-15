@@ -148,10 +148,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var child = children[childIndex];
          var parent = child.Parent;
          if (child.Model.GetNextRun(child.DataOffset) is ArrayRun array) {
-            // TODO
+            parent.Goto.Execute(child.DataOffset.ToString("X6"));
+            parent.ScrollValue += line - y + Height - parent.Height;
+            // heuristic: if the parent height matches the search results height, then the parent
+            // probably doesn't have labels yet but is about to get them. We don't know how big the
+            // labels will be, but they will probably push all the data down quite a bit.
+            // compensate by scrolling slightly
+            if (parent.Height == Height) parent.ScrollValue++;
+         } else {
+            var dataOffset = Math.Max(0, child.DataOffset - (y - line) * child.Width);
+            parent.Goto.Execute(dataOffset.ToString("X6"));
          }
-         var dataOffset = Math.Max(0, child.DataOffset - (y - line) * child.Width);
-         parent.Goto.Execute(dataOffset.ToString("X6"));
 
          if (parent is ViewPort viewPort) {
             viewPort.SelectionStart = viewPort.ConvertAddressToViewPoint(childrenSelection[childIndex].start);
@@ -204,7 +211,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
          return (childIndex, line);
       }
-
    }
 
    public class SearchResultsTools : IToolTrayViewModel {
