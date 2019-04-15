@@ -154,7 +154,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             // probably doesn't have labels yet but is about to get them. We don't know how big the
             // labels will be, but they will probably push all the data down quite a bit.
             // compensate by scrolling slightly
-            if (parent.Height == Height) parent.ScrollValue++;
+            if (parent.Height == Height) parent.ScrollValue += 2;
          } else {
             var dataOffset = Math.Max(0, child.DataOffset - (y - line) * child.Width);
             parent.Goto.Execute(dataOffset.ToString("X6"));

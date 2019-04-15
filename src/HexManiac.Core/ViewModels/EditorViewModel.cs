@@ -490,6 +490,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (!string.IsNullOrEmpty(oldName)) fileSystem.RemoveListenerForFile(oldName, viewPort.ConsiderReload);
             if (!string.IsNullOrEmpty(viewPort.FileName)) fileSystem.AddListenerToFile(viewPort.FileName, viewPort.ConsiderReload);
          }
+
+         // when one tab's height updates, update other tabs by the same amount.
+         // this isn't perfect, since tabs shouldn't nessisarily change height at the same pixel.
+         // but it'll keep the tabs that are out of view from getting totally out of sync.
+         if (e.PropertyName == nameof(IViewPort.Height) && sender is IViewPort viewPort2) {
+            var args = (ExtendedPropertyChangedEventArgs)e;
+            var oldHeight = (int)args.OldValue;
+            var height = viewPort2.Height;
+            foreach(var tab in this) {
+               if (tab == viewPort2) continue;
+               if (!(tab is IViewPort viewPort3)) continue;
+               RemoveContentListeners(tab);
+               viewPort3.Height += height - oldHeight;
+               AddContentListeners(tab);
+            }
+         }
       }
 
       private void GotoPropertyChanged(object sender, PropertyChangedEventArgs e) {

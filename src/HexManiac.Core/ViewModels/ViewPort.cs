@@ -89,7 +89,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (Math.Abs(scroll.DataIndex - previous) % Width != 0) UpdateColumnHeaders();
             }
          } else if (e.PropertyName != nameof(scroll.DataLength)) {
-            NotifyPropertyChanged(e.PropertyName);
+            NotifyPropertyChanged(((ExtendedPropertyChangedEventArgs)e).OldValue, e.PropertyName);
          }
 
          if (e.PropertyName == nameof(Width) || e.PropertyName == nameof(Height)) {
