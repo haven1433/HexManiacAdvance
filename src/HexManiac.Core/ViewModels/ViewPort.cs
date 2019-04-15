@@ -855,7 +855,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
             if (innerFormat is Integer) return char.IsNumber(input);
 
-            if (innerFormat is IntegerEnum) return char.IsLetter(input) ||
+            if (innerFormat is IntegerEnum) return char.IsLetterOrDigit(input) ||
                input == StringDelimeter ||
                "?-".Contains(input);
 

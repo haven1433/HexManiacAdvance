@@ -73,8 +73,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public bool TryParse(IDataModel model, string text, out int value) {
-         value = -1;
          text = text.Trim();
+         if (int.TryParse(text, out value)) return true;
          if (text.StartsWith("\"") && text.EndsWith("\"")) text = text.Substring(1, text.Length - 2);
          var partialMatches = new List<string>();
          var matches = new List<string>();

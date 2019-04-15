@@ -176,6 +176,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
+      private bool containsUniqueOption;
       public ObservableCollection<string> Options { get; }
 
       private int selectedIndex;
@@ -187,6 +188,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var run = (ArrayRun)Model.GetNextRun(Start);
             var offsets = run.ConvertByteOffsetToArrayOffset(Start);
             var segment = (ArrayRunEnumSegment)run.ElementContent[offsets.SegmentIndex];
+
+            // special case: the last option might be a weird value that came in, not normally available in the enum
+            if (containsUniqueOption && selectedIndex == Options.Count - 1 && int.TryParse(Options[selectedIndex], out var parsedValue)) {
+               value = parsedValue;
+            }
+
             Model.WriteMultiByteValue(Start, Length, history.CurrentChange, value);
             DataChanged?.Invoke(this, EventArgs.Empty);
          }
@@ -198,7 +205,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var offsets = run.ConvertByteOffsetToArrayOffset(start);
          var segment = (ArrayRunEnumSegment)run.ElementContent[offsets.SegmentIndex];
          Options = new ObservableCollection<string>(segment.GetOptions(model));
-         selectedIndex = model.ReadMultiByteValue(start, length);
+         var value = model.ReadMultiByteValue(start, length);
+         if (value >= Options.Count) {
+            Options.Add(value.ToString());
+            selectedIndex = Options.Count - 1;
+            containsUniqueOption = true;
+         } else {
+            selectedIndex = model.ReadMultiByteValue(start, length);
+         }
       }
    }
 }
