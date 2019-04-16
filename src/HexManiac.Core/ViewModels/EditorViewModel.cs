@@ -129,6 +129,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                gotoViewModel.ControlVisible = false;
                FindControlVisible = false;
                ShowError = false;
+            } else {
+               infoMessage = string.Empty;
             }
             if (TryUpdate(ref showMessage, value)) clearMessage.CanExecuteChanged.Invoke(clearMessage, EventArgs.Empty);
          }
