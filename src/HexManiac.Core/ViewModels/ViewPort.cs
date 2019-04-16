@@ -144,6 +144,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          NotifyPropertyChanged(e.PropertyName);
          var dataIndex = scroll.ViewPointToDataIndex(SelectionStart);
          UpdateToolsFromSelection(dataIndex);
+         SelectedAddress = "Address: " + dataIndex.ToString("X6");
       }
 
       private void UpdateToolsFromSelection(int dataIndex) {
@@ -163,6 +164,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else {
             AnchorTextVisible = false;
          }
+      }
+
+      private string selectedAddress;
+      public string SelectedAddress {
+         get => selectedAddress;
+         set => TryUpdate(ref selectedAddress, value);
       }
 
       #endregion

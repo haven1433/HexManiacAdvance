@@ -281,6 +281,8 @@
             <TabControl.ContentTemplate>
                <DataTemplate>
                   <DockPanel>
+                     <!-- Bottom Bar -->
+                     <TextBlock DockPanel.Dock="Bottom" Text="{Binding SelectedAddress}"/>
                      <!-- Tool Headers -->
                      <StackPanel DockPanel.Dock="Left" Visibility="{Binding HasTools, Converter={StaticResource BoolToVisibility}}">
                         <Button Content="Text" Command="{Binding Tools.StringToolCommand}" Margin="0,2">
