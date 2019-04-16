@@ -9,7 +9,7 @@
         xmlns:hsg3hvmtr="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Tools;assembly=HexManiac.Core"
         Icon="..\Resources\AppIcon.ico"
         PreviewMouseDown="RunDeferredActions"
-        Title="Hex Maniac Advance" Height="450" Width="870" AllowDrop="True" Background="{DynamicResource Backlight}">
+        Title="Hex Maniac Advance" Height="470" Width="880" AllowDrop="True" Background="{DynamicResource Backlight}">
    <Window.Resources>
       <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
       <hsg3hv:IntegerToBooleanViaMatchConverter x:Key="IndexMatch"/>
@@ -55,413 +55,416 @@
    <Window.CommandBindings>
       <CommandBinding Command="ToggleBullets" Executed="ToggleTheme"/>
    </Window.CommandBindings>
-   <DockPanel>
-      <DockPanel DockPanel.Dock="Top" Background="{DynamicResource Background}">
-         <DockPanel.Resources>
-            <Style TargetType="Panel" x:Key="AnimateOnVisibilityChanged">
-               <Setter Property="HorizontalAlignment" Value="Right"/>
-               <Setter Property="DockPanel.Dock" Value="Right"/>
-               <Setter Property="Background" Value="{DynamicResource Backlight}"/>
-               <Style.Triggers>
-                  <Trigger Property="Visibility" Value="Visible">
-                     <Trigger.EnterActions>
-                        <BeginStoryboard>
-                           <Storyboard>
-                              <ThicknessAnimation Storyboard.TargetProperty="Margin" From="0,0,40,0" To="0,0,0,0" Duration="0:0:0.2"/>
-                              <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.2"/>
-                           </Storyboard>
-                        </BeginStoryboard>
-                     </Trigger.EnterActions>
-                  </Trigger>
-               </Style.Triggers>
-            </Style>
-         </DockPanel.Resources>
-         <!-- Menu -->
-         <Menu DockPanel.Dock="Left">
-            <MenuItem Header="_File">
-               <MenuItem Header="_New" Command="{Binding New}" InputGestureText="Ctrl+N">
-                  <MenuItem.Icon>
-                     <Path Data="{hsv:Icon New}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                  </MenuItem.Icon>
-               </MenuItem>
-               <MenuItem Header="_Open" Command="{Binding Open}" InputGestureText="Ctrl+O">
-                  <MenuItem.Icon>
-                     <Path Data="{hsv:Icon Open}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                  </MenuItem.Icon>
-               </MenuItem>
-               <Separator />
-               <MenuItem Header="_Save" Command="{Binding Save}" InputGestureText="Ctrl+S">
-                  <MenuItem.Icon>
-                     <Path Data="{hsv:Icon Save}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                  </MenuItem.Icon>
-               </MenuItem>
-               <MenuItem Header="Save _As" Command="{Binding SaveAs}" InputGestureText="Ctrl+Shift+S" />
-               <MenuItem Header="Save A_ll" Command="{Binding SaveAll}" InputGestureText="Ctrl+Shift+A" />
-               <Separator />
-               <MenuItem Header="_Close Current Tab" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}" InputGestureText="Ctrl+W" />
-               <MenuItem Header="E_xit" Click="ExitClicked" InputGestureText="Alt+F4">
-                  <MenuItem.Icon>
-                     <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                  </MenuItem.Icon>
-               </MenuItem>
-            </MenuItem>
-            <MenuItem Header="_Edit">
-               <MenuItem Header="_Undo" Command="{Binding Undo}" InputGestureText="Ctrl+Z">
-                  <MenuItem.Icon>
-                     <Path Data="{hsv:Icon UndoArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                  </MenuItem.Icon>
-               </MenuItem>
-               <MenuItem Header="_Redo" Command="{Binding Redo}" InputGestureText="Ctrl+Y">
-                  <MenuItem.Icon>
-                     <Path Data="{hsv:Icon RedoArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                  </MenuItem.Icon>
-               </MenuItem>
-               <Separator />
-               <MenuItem Header="Cu_t" Command="{Binding Cut}" InputGestureText="Ctrl+X"/>
-               <MenuItem Header="_Copy" Command="{Binding Copy}" InputGestureText="Ctrl+C"/>
-               <MenuItem Header="_Paste / Replace" Command="{Binding Paste}" InputGestureText="Ctrl+V"/>
-               <MenuItem Header="_Delete" Command="{Binding Delete}" InputGestureText="Del"/>
-               <Separator />
-               <MenuItem Header="_Find" Command="{Binding ShowFind}" InputGestureText="Ctrl+F">
-                  <MenuItem.CommandParameter>
-                     <sys:Boolean>true</sys:Boolean>
-                  </MenuItem.CommandParameter>
-               </MenuItem>
-               <MenuItem Header="Find _Next" Command="{Binding FindNext}" CommandParameter="{Binding Text, ElementName=FindBox}" InputGestureText="F3"/>
-               <MenuItem Header="Find _Previous" Command="{Binding FindPrevious}" CommandParameter="{Binding Text, ElementName=FindBox}" InputGestureText="Shift+F3"/>
-               <MenuItem Header="_Goto" Command="{Binding GotoViewModel.ShowGoto}" InputGestureText="Ctrl+G">
-                  <MenuItem.CommandParameter>
-                     <sys:Boolean>true</sys:Boolean>
-                  </MenuItem.CommandParameter>
-               </MenuItem>
-               <MenuItem Header="Go _Back" Command="{Binding Back}" InputGestureText="Ctrl+-"/>
-               <MenuItem Header="Go _Forward" Command="{Binding Forward}" InputGestureText="Ctrl+Shift+-"/>
-            </MenuItem>
-            <MenuItem Header="_View">
-               <MenuItem Header="_Toggle Theme" Click="ToggleTheme" InputGestureText="Ctrl+T"/>
-               <MenuItem Header="Toggle _Matrix Grid" Command="{Binding ToggleMatrix}" InputGestureText="Ctrl+M"/>
-               <MenuItem Header="Toggle Custom _Headers" Command="{Binding ToggleTableHeaders}" InputGestureText="Ctrl+H" ToolTipService.ShowDuration="15000">
-                  <MenuItem.ToolTip>
-                     <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{solarized:Theme Blue}" BorderThickness="1">
-                        <TextBlock TextAlignment="Left">
-                           <Bold>Table Headers</Bold> <LineBreak/>
-                           Tables with data can show entry names instead of addresses. <LineBreak/>
-                           By default, tables will show the names of entries when possible. <LineBreak/>
-                           Toggling this will cause the table to show address of entries instead.
-                        </TextBlock>
-                     </ToolTip>
-                  </MenuItem.ToolTip>
-               </MenuItem>
-               <MenuItem Header="_Clear Error" Command="{Binding ClearError}" InputGestureText="Esc"/>
-            </MenuItem>
-            <MenuItem Header="_Tools">
-               <MenuItem Header="_Hide All Tools" Command="{Binding Tools.HideCommand}"/>
-               <Separator/>
-               <MenuItem Header="Toggle _Text Tool" Command="{Binding Tools.StringToolCommand}"/>
-               <MenuItem Header="Toggle T_able Tool" Command="{Binding Tools.TableToolCommand}"/>
-               <MenuItem Header="Toggle _Extra Tool" Command="{Binding Tools.Tool3Command}"/>
-            </MenuItem>
-            <MenuItem Header="_Help">
-               <MenuItem Header="_Wiki" Click="WikiClick"/>
-               <MenuItem Header="_Report an Issue" Click="ReportIssueClick"/>
-               <MenuItem Header="_About" Click="AboutClick"/>
-            </MenuItem>
-         </Menu>
-         <!-- Goto -->
-         <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}">
-            <TextBlock Text="Goto :" Margin="10,0" />
-            <TextBox Name="GotoBox" Text="{Binding GotoViewModel.Text, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" IsVisibleChanged="EditBoxVisibilityChanged">
-               <TextBox.InputBindings>
-                  <KeyBinding Key="Esc" Command="{Binding GotoViewModel.ShowGoto}">
-                     <KeyBinding.CommandParameter>
-                        <sys:Boolean>false</sys:Boolean>
-                     </KeyBinding.CommandParameter>
-                  </KeyBinding>
-                  <KeyBinding Key="Up" Command="{Binding GotoViewModel.MoveAutoCompleteSelectionUp}"/>
-                  <KeyBinding Key="Down" Command="{Binding GotoViewModel.MoveAutoCompleteSelectionDown}"/>
-                  <KeyBinding Key="Return" Command="{Binding GotoViewModel.Goto}"/>
-               </TextBox.InputBindings>
-            </TextBox>
-            <Popup IsOpen="{Binding GotoViewModel.ShowAutoCompleteOptions}" PlacementTarget="{Binding ElementName=GotoBox}">
-               <ItemsControl ItemsSource="{Binding GotoViewModel.AutoCompleteOptions}" Background="{DynamicResource Backlight}">
-                  <ItemsControl.ItemTemplate>
-                     <DataTemplate>
-                        <Button Content="{Binding CompletionText}" Command="{Binding ElementName=GotoBox, Path=DataContext.GotoViewModel.Goto}" CommandParameter="{Binding CompletionText}">
-                           <Button.Style>
-                              <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                       <Setter Property="BorderBrush" Value="{solarized:Theme Blue}"/>
-                                    </DataTrigger>
-                                 </Style.Triggers>
-                              </Style>
-                           </Button.Style>
-                        </Button>
-                     </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-               </ItemsControl>
-            </Popup>
-         </StackPanel>
-         <!-- Find -->
-         <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding FindControlVisible, Converter={StaticResource BoolToVisibility}}">
-            <TextBlock Text="Find :" Margin="10,0" />
-            <TextBox Name="FindBox" MinWidth="200" IsVisibleChanged="EditBoxVisibilityChanged">
-               <TextBox.InputBindings>
-                  <KeyBinding Key="Esc" Command="{Binding ShowFind}">
-                     <KeyBinding.CommandParameter>
-                        <sys:Boolean>false</sys:Boolean>
-                     </KeyBinding.CommandParameter>
-                  </KeyBinding>
-                  <KeyBinding Key="Return" Command="{Binding Find}" CommandParameter="{Binding Text, ElementName=FindBox}"/>
-               </TextBox.InputBindings>
-            </TextBox>
-         </StackPanel>
-         <!-- Message -->
-         <StackPanel Visibility="{Binding ShowMessage, Converter={StaticResource BoolToVisibility}}" Style="{StaticResource AnimateOnVisibilityChanged}" Orientation="Horizontal">
-            <TextBlock Margin="10,0" VerticalAlignment="Center" Text="{Binding InformationMessage}" Foreground="{solarized:Theme Primary}"/>
-            <Button Command="{Binding ClearMessage}" Width="15">
-               <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-            </Button>
-         </StackPanel>
-         <!-- Error -->
-         <Grid Visibility="{Binding ShowError, Converter={StaticResource BoolToVisibility}}" Style="{StaticResource AnimateOnVisibilityChanged}">
-            <Grid.ColumnDefinitions>
-               <ColumnDefinition/>
-               <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <Grid.InputBindings>
-               <MouseBinding MouseAction="MiddleClick" Command="{Binding ClearError}"/>
-            </Grid.InputBindings>
-            <TextBlock Margin="10,0" VerticalAlignment="Center" Text="{Binding ErrorMessage}" TextWrapping="Wrap" TextAlignment="Right" Foreground="{solarized:Theme Red}"/>
-            <Button Command="{Binding ClearError}" Width="15" Grid.Column="1">
-               <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-            </Button>
-         </Grid>
-      </DockPanel>
-      <Grid>
-         <hsg3hv:StartScreen>
-            <hsg3hv:StartScreen.Style>
-               <Style TargetType="FrameworkElement">
-                  <Setter Property="Visibility" Value="Collapsed"/>
-                  <Style.Triggers>
-                     <DataTrigger Binding="{Binding ElementName=Tabs, Path=SelectedIndex}" Value="-1">
-                        <Setter Property="Visibility" Value="Visible"/>
-                     </DataTrigger>
-                  </Style.Triggers>
-               </Style>
-            </hsg3hv:StartScreen.Style>
-         </hsg3hv:StartScreen>
-         <TabControl Name="Tabs" ItemsSource="{Binding}" SelectedIndex="{Binding SelectedIndex}">
-            <TabControl.Style>
-               <Style TargetType="TabControl" BasedOn="{StaticResource {x:Type TabControl}}">
-                  <Style.Triggers>
-                     <Trigger Property="SelectedIndex" Value="-1">
-                        <Setter Property="Visibility" Value="Collapsed"/>
+   <Grid>
+      <DockPanel>
+         <DockPanel DockPanel.Dock="Top" Background="{DynamicResource Background}">
+            <DockPanel.Resources>
+               <Style TargetType="Panel" x:Key="AnimateOnVisibilityChanged">
+                  <Setter Property="HorizontalAlignment" Value="Right"/>
+                  <Setter Property="DockPanel.Dock" Value="Right"/>
+                  <Setter Property="Background" Value="{DynamicResource Backlight}"/>
+                  <!--<Style.Triggers>
+                     <Trigger Property="Visibility" Value="Visible">
+                        <Trigger.EnterActions>
+                           <BeginStoryboard>
+                              <Storyboard>
+                                 <ThicknessAnimation Storyboard.TargetProperty="Margin" From="0,0,40,0" To="0,0,0,0" Duration="0:0:0.2"/>
+                                 <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.2"/>
+                              </Storyboard>
+                           </BeginStoryboard>
+                        </Trigger.EnterActions>
                      </Trigger>
-                  </Style.Triggers>
+                  </Style.Triggers>-->
                </Style>
-            </TabControl.Style>
-            <TabControl.InputBindings>
-               <KeyBinding Key="Esc" Command="{Binding HideSearchControls}"/>
-            </TabControl.InputBindings>
-            <TabControl.ItemTemplate>
-               <DataTemplate>
-                  <StackPanel Orientation="Horizontal">
-                     <TextBlock Name="TabTextBlock" Background="Transparent" Text="{Binding Name}" Foreground="{DynamicResource Primary}" MouseDown="TabMouseDown" MouseMove="TabMouseMove" MouseUp="TabMouseUp">
-                        <TextBlock.InputBindings>
-                           <MouseBinding MouseAction="MiddleClick" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}"/>
-                        </TextBlock.InputBindings>
-                     </TextBlock>
-                     <Button Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}" Width="15" Margin="5,0,0,0" VerticalAlignment="Stretch" Background="{DynamicResource Background}" BorderBrush="{DynamicResource Background}">
+            </DockPanel.Resources>
+            <!-- Menu -->
+            <Menu DockPanel.Dock="Left">
+               <MenuItem Header="_File">
+                  <MenuItem Header="_New" Command="{Binding New}" InputGestureText="Ctrl+N">
+                     <MenuItem.Icon>
+                        <Path Data="{hsv:Icon New}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                     </MenuItem.Icon>
+                  </MenuItem>
+                  <MenuItem Header="_Open" Command="{Binding Open}" InputGestureText="Ctrl+O">
+                     <MenuItem.Icon>
+                        <Path Data="{hsv:Icon Open}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                     </MenuItem.Icon>
+                  </MenuItem>
+                  <Separator />
+                  <MenuItem Header="_Save" Command="{Binding Save}" InputGestureText="Ctrl+S">
+                     <MenuItem.Icon>
+                        <Path Data="{hsv:Icon Save}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                     </MenuItem.Icon>
+                  </MenuItem>
+                  <MenuItem Header="Save _As" Command="{Binding SaveAs}" InputGestureText="Ctrl+Shift+S" />
+                  <MenuItem Header="Save A_ll" Command="{Binding SaveAll}" InputGestureText="Ctrl+Shift+A" />
+                  <Separator />
+                  <MenuItem Header="_Close Current Tab" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}" InputGestureText="Ctrl+W" />
+                  <MenuItem Header="E_xit" Click="ExitClicked" InputGestureText="Alt+F4">
+                     <MenuItem.Icon>
                         <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                     </Button>
-                  </StackPanel>
-               </DataTemplate>
-            </TabControl.ItemTemplate>
-            <TabControl.ContentTemplate>
-               <DataTemplate>
-                  <DockPanel>
-                     <!-- Bottom Bar -->
-                     <TextBlock DockPanel.Dock="Bottom" Text="{Binding SelectedAddress}"/>
-                     <!-- Tool Headers -->
-                     <StackPanel DockPanel.Dock="Left" Visibility="{Binding HasTools, Converter={StaticResource BoolToVisibility}}">
-                        <Button Content="Text" Command="{Binding Tools.StringToolCommand}" Margin="0,2">
-                           <Button.LayoutTransform>
-                              <RotateTransform Angle="-90"/>
-                           </Button.LayoutTransform>
-                           <Button.Style>
-                              <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Tools.SelectedIndex}" Value="0">
-                                       <Setter Property="BorderBrush" Value="{solarized:Theme Blue}"/>
-                                    </DataTrigger>
-                                 </Style.Triggers>
-                              </Style>
-                           </Button.Style>
-                        </Button>
-                        <Button Content="Table" Command="{Binding Tools.TableToolCommand}" Margin="0,2">
-                           <Button.LayoutTransform>
-                              <RotateTransform Angle="-90"/>
-                           </Button.LayoutTransform>
-                           <Button.Style>
-                              <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Tools.SelectedIndex}" Value="1">
-                                       <Setter Property="BorderBrush" Value="{solarized:Theme Blue}"/>
-                                    </DataTrigger>
-                                 </Style.Triggers>
-                              </Style>
-                           </Button.Style>
-                        </Button>
-                        <Button Content="Tool3" Command="{Binding Tools.Tool3Command}" Margin="0,2">
-                           <Button.LayoutTransform>
-                              <RotateTransform Angle="-90"/>
-                           </Button.LayoutTransform>
-                           <Button.Style>
-                              <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Tools.SelectedIndex}" Value="2">
-                                       <Setter Property="BorderBrush" Value="{solarized:Theme Blue}"/>
-                                    </DataTrigger>
-                                 </Style.Triggers>
-                              </Style>
-                           </Button.Style>
+                     </MenuItem.Icon>
+                  </MenuItem>
+               </MenuItem>
+               <MenuItem Header="_Edit">
+                  <MenuItem Header="_Undo" Command="{Binding Undo}" InputGestureText="Ctrl+Z">
+                     <MenuItem.Icon>
+                        <Path Data="{hsv:Icon UndoArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                     </MenuItem.Icon>
+                  </MenuItem>
+                  <MenuItem Header="_Redo" Command="{Binding Redo}" InputGestureText="Ctrl+Y">
+                     <MenuItem.Icon>
+                        <Path Data="{hsv:Icon RedoArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                     </MenuItem.Icon>
+                  </MenuItem>
+                  <Separator />
+                  <MenuItem Header="Cu_t" Command="{Binding Cut}" InputGestureText="Ctrl+X"/>
+                  <MenuItem Header="_Copy" Command="{Binding Copy}" InputGestureText="Ctrl+C"/>
+                  <MenuItem Header="_Paste / Replace" Command="{Binding Paste}" InputGestureText="Ctrl+V"/>
+                  <MenuItem Header="_Delete" Command="{Binding Delete}" InputGestureText="Del"/>
+                  <Separator />
+                  <MenuItem Header="_Find" Command="{Binding ShowFind}" InputGestureText="Ctrl+F">
+                     <MenuItem.CommandParameter>
+                        <sys:Boolean>true</sys:Boolean>
+                     </MenuItem.CommandParameter>
+                  </MenuItem>
+                  <MenuItem Header="Find _Next" Command="{Binding FindNext}" CommandParameter="{Binding Text, ElementName=FindBox}" InputGestureText="F3"/>
+                  <MenuItem Header="Find _Previous" Command="{Binding FindPrevious}" CommandParameter="{Binding Text, ElementName=FindBox}" InputGestureText="Shift+F3"/>
+                  <MenuItem Header="_Goto" Command="{Binding GotoViewModel.ShowGoto}" InputGestureText="Ctrl+G">
+                     <MenuItem.CommandParameter>
+                        <sys:Boolean>true</sys:Boolean>
+                     </MenuItem.CommandParameter>
+                  </MenuItem>
+                  <MenuItem Header="Go _Back" Command="{Binding Back}" InputGestureText="Ctrl+-"/>
+                  <MenuItem Header="Go _Forward" Command="{Binding Forward}" InputGestureText="Ctrl+Shift+-"/>
+               </MenuItem>
+               <MenuItem Header="_View">
+                  <MenuItem Header="_Toggle Theme" Click="ToggleTheme" InputGestureText="Ctrl+T"/>
+                  <MenuItem Header="Toggle _Matrix Grid" Command="{Binding ToggleMatrix}" InputGestureText="Ctrl+M"/>
+                  <MenuItem Header="Toggle Custom _Headers" Command="{Binding ToggleTableHeaders}" InputGestureText="Ctrl+H" ToolTipService.ShowDuration="15000">
+                     <MenuItem.ToolTip>
+                        <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{solarized:Theme Blue}" BorderThickness="1">
+                           <TextBlock TextAlignment="Left">
+                              <Bold>Table Headers</Bold> <LineBreak/>
+                              Tables with data can show entry names instead of addresses. <LineBreak/>
+                              By default, tables will show the names of entries when possible. <LineBreak/>
+                              Toggling this will cause the table to show address of entries instead.
+                           </TextBlock>
+                        </ToolTip>
+                     </MenuItem.ToolTip>
+                  </MenuItem>
+                  <MenuItem Header="_Clear Error" Command="{Binding ClearError}" InputGestureText="Esc"/>
+               </MenuItem>
+               <MenuItem Header="_Tools">
+                  <MenuItem Header="_Hide All Tools" Command="{Binding Tools.HideCommand}"/>
+                  <Separator/>
+                  <MenuItem Header="Toggle _Text Tool" Command="{Binding Tools.StringToolCommand}"/>
+                  <MenuItem Header="Toggle T_able Tool" Command="{Binding Tools.TableToolCommand}"/>
+                  <MenuItem Header="Toggle _Extra Tool" Command="{Binding Tools.Tool3Command}"/>
+               </MenuItem>
+               <MenuItem Header="_Help">
+                  <MenuItem Header="_Wiki" Click="WikiClick"/>
+                  <MenuItem Header="_Report an Issue" Click="ReportIssueClick"/>
+                  <MenuItem Header="_About" Click="AboutClick"/>
+               </MenuItem>
+            </Menu>
+            <!-- Goto -->
+            <StackPanel Name="GotoPanel" Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}">
+               <TextBlock Text="Goto :" Margin="10,0" />
+               <TextBox Name="GotoBox" Text="{Binding GotoViewModel.Text, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" IsVisibleChanged="EditBoxVisibilityChanged">
+                  <TextBox.InputBindings>
+                     <KeyBinding Key="Esc" Command="{Binding GotoViewModel.ShowGoto}">
+                        <KeyBinding.CommandParameter>
+                           <sys:Boolean>false</sys:Boolean>
+                        </KeyBinding.CommandParameter>
+                     </KeyBinding>
+                     <KeyBinding Key="Up" Command="{Binding GotoViewModel.MoveAutoCompleteSelectionUp}"/>
+                     <KeyBinding Key="Down" Command="{Binding GotoViewModel.MoveAutoCompleteSelectionDown}"/>
+                     <KeyBinding Key="Return" Command="{Binding GotoViewModel.Goto}"/>
+                  </TextBox.InputBindings>
+               </TextBox>
+               <Popup IsOpen="{Binding GotoViewModel.ShowAutoCompleteOptions}" PlacementTarget="{Binding ElementName=GotoBox}">
+                  <ItemsControl ItemsSource="{Binding GotoViewModel.AutoCompleteOptions}" Background="{DynamicResource Backlight}">
+                     <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                           <Button Content="{Binding CompletionText}" Command="{Binding ElementName=GotoBox, Path=DataContext.GotoViewModel.Goto}" CommandParameter="{Binding CompletionText}">
+                              <Button.Style>
+                                 <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                    <Style.Triggers>
+                                       <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                          <Setter Property="BorderBrush" Value="{solarized:Theme Blue}"/>
+                                       </DataTrigger>
+                                    </Style.Triggers>
+                                 </Style>
+                              </Button.Style>
+                           </Button>
+                        </DataTemplate>
+                     </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+               </Popup>
+            </StackPanel>
+            <!-- Find -->
+            <StackPanel Name="FindPanel" Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding FindControlVisible, Converter={StaticResource BoolToVisibility}}">
+               <TextBlock Text="Find :" Margin="10,0" />
+               <TextBox Name="FindBox" MinWidth="200" IsVisibleChanged="EditBoxVisibilityChanged">
+                  <TextBox.InputBindings>
+                     <KeyBinding Key="Esc" Command="{Binding ShowFind}">
+                        <KeyBinding.CommandParameter>
+                           <sys:Boolean>false</sys:Boolean>
+                        </KeyBinding.CommandParameter>
+                     </KeyBinding>
+                     <KeyBinding Key="Return" Command="{Binding Find}" CommandParameter="{Binding Text, ElementName=FindBox}"/>
+                  </TextBox.InputBindings>
+               </TextBox>
+            </StackPanel>
+            <!-- Message -->
+            <StackPanel Name="MessagePanel" Visibility="{Binding ShowMessage, Converter={StaticResource BoolToVisibility}}" Style="{StaticResource AnimateOnVisibilityChanged}" Orientation="Horizontal">
+               <TextBlock Margin="10,0" VerticalAlignment="Center" Text="{Binding InformationMessage}" Foreground="{solarized:Theme Primary}"/>
+               <Button Command="{Binding ClearMessage}" Width="15">
+                  <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+               </Button>
+            </StackPanel>
+            <!-- Error -->
+            <Grid Name="ErrorPanel" Visibility="{Binding ShowError, Converter={StaticResource BoolToVisibility}}" Style="{StaticResource AnimateOnVisibilityChanged}">
+               <Grid.ColumnDefinitions>
+                  <ColumnDefinition/>
+                  <ColumnDefinition Width="Auto"/>
+               </Grid.ColumnDefinitions>
+               <Grid.InputBindings>
+                  <MouseBinding MouseAction="MiddleClick" Command="{Binding ClearError}"/>
+               </Grid.InputBindings>
+               <TextBlock Margin="10,0" VerticalAlignment="Center" Text="{Binding ErrorMessage}" TextWrapping="Wrap" TextAlignment="Right" Foreground="{solarized:Theme Red}"/>
+               <Button Command="{Binding ClearError}" Width="15" Grid.Column="1">
+                  <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+               </Button>
+            </Grid>
+         </DockPanel>
+         <Grid>
+            <hsg3hv:StartScreen>
+               <hsg3hv:StartScreen.Style>
+                  <Style TargetType="FrameworkElement">
+                     <Setter Property="Visibility" Value="Collapsed"/>
+                     <Style.Triggers>
+                        <DataTrigger Binding="{Binding ElementName=Tabs, Path=SelectedIndex}" Value="-1">
+                           <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                     </Style.Triggers>
+                  </Style>
+               </hsg3hv:StartScreen.Style>
+            </hsg3hv:StartScreen>
+            <TabControl Name="Tabs" ItemsSource="{Binding}" SelectedIndex="{Binding SelectedIndex}">
+               <TabControl.Style>
+                  <Style TargetType="TabControl" BasedOn="{StaticResource {x:Type TabControl}}">
+                     <Style.Triggers>
+                        <Trigger Property="SelectedIndex" Value="-1">
+                           <Setter Property="Visibility" Value="Collapsed"/>
+                        </Trigger>
+                     </Style.Triggers>
+                  </Style>
+               </TabControl.Style>
+               <TabControl.InputBindings>
+                  <KeyBinding Key="Esc" Command="{Binding HideSearchControls}"/>
+               </TabControl.InputBindings>
+               <TabControl.ItemTemplate>
+                  <DataTemplate>
+                     <StackPanel Orientation="Horizontal">
+                        <TextBlock Name="TabTextBlock" Background="Transparent" Text="{Binding Name}" Foreground="{DynamicResource Primary}" MouseDown="TabMouseDown" MouseMove="TabMouseMove" MouseUp="TabMouseUp">
+                           <TextBlock.InputBindings>
+                              <MouseBinding MouseAction="MiddleClick" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}"/>
+                           </TextBlock.InputBindings>
+                        </TextBlock>
+                        <Button Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}" Width="15" Margin="5,0,0,0" VerticalAlignment="Stretch" Background="{DynamicResource Background}" BorderBrush="{DynamicResource Background}">
+                           <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
                         </Button>
                      </StackPanel>
-                     <!-- Tools -->
-                     <Grid DockPanel.Dock="Left" DataContext="{Binding Tools}">
-                        <Grid.Style>
-                           <Style TargetType="Grid">
-                              <Style.Triggers>
-                                 <DataTrigger Binding="{Binding SelectedIndex}" Value="-1">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                 </DataTrigger>
-                              </Style.Triggers>
-                           </Style>
-                        </Grid.Style>
-                        <DockPanel Name="StringToolPanel">
-                           <DockPanel.Style>
-                              <Style TargetType="DockPanel">
-                                 <Setter Property="Visibility" Value="Collapsed"/>
-                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding SelectedIndex}" Value="0">
-                                       <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-                                 </Style.Triggers>
-                              </Style>
-                           </DockPanel.Style>
-                           <TextBlock Text="Address:" Margin="5,15,0,0" DockPanel.Dock="Top"/>
-                           <TextBox Text="{Binding StringTool.Address, Converter={StaticResource Hex}}" Margin="5" DockPanel.Dock="Top"/>
-                           <TextBlock Text="Content:" Margin="5,30,0,0" DockPanel.Dock="Top"/>
-                           <TextBox Margin="5,5" AcceptsReturn="True" MinHeight="50" Width="255" TextWrapping="Wrap" FontFamily="Consolas" VerticalScrollBarVisibility="Auto"
-                              SelectionChanged="StringToolContentSelectionChanged"
-                              IsEnabled="{Binding StringTool.Enabled}"
-                              Text="{Binding StringTool.Content, UpdateSourceTrigger=PropertyChanged}" />
-                        </DockPanel>
-                        <ScrollViewer Width="265" Name="TableToolPanel" VerticalScrollBarVisibility="Visible">
-                           <ScrollViewer.Style>
-                              <Style TargetType="ScrollViewer">
-                                 <Setter Property="Visibility" Value="Collapsed"/>
-                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding SelectedIndex}" Value="1">
-                                       <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-                                 </Style.Triggers>
-                              </Style>
-                           </ScrollViewer.Style>
-                           <StackPanel>
-                              <TextBlock Text="{Binding TableTool.CurrentElementName}" HorizontalAlignment="Center" Margin="0,2" MaxWidth="200" TextWrapping="Wrap" TextAlignment="Center"/>
-                              <Grid>
-                                 <Button Margin="5" Content="Previous" Command="{Binding TableTool.Previous}" HorizontalAlignment="Left"/>
-                                 <Button Margin="5" Content="Next" Command="{Binding TableTool.Next}" HorizontalAlignment="Right"/>
-                              </Grid>
-                              <ItemsControl ItemsSource="{Binding TableTool.Children}" Grid.IsSharedSizeScope="True">
-                                 <ItemsControl.Resources>
-                                    <DataTemplate DataType="{x:Type hsg3hvmtr:FieldArrayElementViewModel}">
-                                       <Grid HorizontalAlignment="Stretch" Margin="2">
-                                          <Grid.ColumnDefinitions>
-                                             <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
-                                             <ColumnDefinition Width="*"/>
-                                          </Grid.ColumnDefinitions>
-                                          <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
-                                          <TextBox Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1"/>
-                                       </Grid>
-                                    </DataTemplate>
-                                    <DataTemplate DataType="{x:Type hsg3hvmtr:ComboBoxArrayElementViewModel}">
-                                       <Grid HorizontalAlignment="Stretch" Margin="2">
-                                          <Grid.ColumnDefinitions>
-                                             <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
-                                             <ColumnDefinition Width="*"/>
-                                          </Grid.ColumnDefinitions>
-                                          <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
-                                          <ComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" Grid.Column="1"/>
-                                       </Grid>
-                                    </DataTemplate>
-                                 </ItemsControl.Resources>
-                              </ItemsControl>
-                           </StackPanel>
-                        </ScrollViewer>
-                        <StackPanel Name="Tool3Panel">
-                           <StackPanel.Style>
-                              <Style TargetType="StackPanel">
-                                 <Setter Property="Visibility" Value="Collapsed"/>
-                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding SelectedIndex}" Value="2">
-                                       <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-                                 </Style.Triggers>
-                              </Style>
-                           </StackPanel.Style>
-                           <TextBlock Text="Coming Soon!" Margin="5,15,0,0"/>
+                  </DataTemplate>
+               </TabControl.ItemTemplate>
+               <TabControl.ContentTemplate>
+                  <DataTemplate>
+                     <DockPanel>
+                        <!-- Bottom Bar -->
+                        <TextBlock DockPanel.Dock="Bottom" Text="{Binding SelectedAddress}"/>
+                        <!-- Tool Headers -->
+                        <StackPanel DockPanel.Dock="Left" Visibility="{Binding HasTools, Converter={StaticResource BoolToVisibility}}">
+                           <Button Content="Text" Command="{Binding Tools.StringToolCommand}" Margin="0,2">
+                              <Button.LayoutTransform>
+                                 <RotateTransform Angle="-90"/>
+                              </Button.LayoutTransform>
+                              <Button.Style>
+                                 <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                    <Style.Triggers>
+                                       <DataTrigger Binding="{Binding Tools.SelectedIndex}" Value="0">
+                                          <Setter Property="BorderBrush" Value="{solarized:Theme Blue}"/>
+                                       </DataTrigger>
+                                    </Style.Triggers>
+                                 </Style>
+                              </Button.Style>
+                           </Button>
+                           <Button Content="Table" Command="{Binding Tools.TableToolCommand}" Margin="0,2">
+                              <Button.LayoutTransform>
+                                 <RotateTransform Angle="-90"/>
+                              </Button.LayoutTransform>
+                              <Button.Style>
+                                 <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                    <Style.Triggers>
+                                       <DataTrigger Binding="{Binding Tools.SelectedIndex}" Value="1">
+                                          <Setter Property="BorderBrush" Value="{solarized:Theme Blue}"/>
+                                       </DataTrigger>
+                                    </Style.Triggers>
+                                 </Style>
+                              </Button.Style>
+                           </Button>
+                           <Button Content="Tool3" Command="{Binding Tools.Tool3Command}" Margin="0,2">
+                              <Button.LayoutTransform>
+                                 <RotateTransform Angle="-90"/>
+                              </Button.LayoutTransform>
+                              <Button.Style>
+                                 <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                    <Style.Triggers>
+                                       <DataTrigger Binding="{Binding Tools.SelectedIndex}" Value="2">
+                                          <Setter Property="BorderBrush" Value="{solarized:Theme Blue}"/>
+                                       </DataTrigger>
+                                    </Style.Triggers>
+                                 </Style>
+                              </Button.Style>
+                           </Button>
                         </StackPanel>
-                     </Grid>
-                     <!-- Anchor Editor -->
-                     <Border DockPanel.Dock="Top" Height="19" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource Backlight}">
-                        <DockPanel Visibility="{Binding AnchorTextVisible, Converter={StaticResource BoolToVisibility}}" >
-                           <TextBlock Width="70" Text="Anchor: " TextAlignment="Right" ToolTipService.ShowDuration="15000">
-                              <TextBlock.ToolTip>
-                                 <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{solarized:Theme Blue}" BorderThickness="1">
-                                    <TextBlock TextAlignment="Left">
-                                       <Bold>Anchor Editor</Bold> <LineBreak/>
-                                       Anchors can have a name and a format. <LineBreak/>
-                                       <LineBreak/>
-                                       Named anchors persist between sessions. <LineBreak/>
-                                       You can also use names in pointers and with Goto <Italic Foreground="{DynamicResource Secondary}">(Ctrl+G)</Italic>. <LineBreak/>
-                                       <LineBreak/>
-                                       Formats change how the data is displayed and edited. <LineBreak/>
-                                       For example, "" formats data as text. <LineBreak/>
-                                       To learn more about formats, visit the Wiki.
-                                    </TextBlock>
-                                 </ToolTip>
-                              </TextBlock.ToolTip>
-                           </TextBlock>
-                           <TextBox Text="{Binding AnchorText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,25,0"/>
-                        </DockPanel>
-                     </Border>
-                     <!-- Column Headers -->
-                     <hsg3hv:HorizontalSlantedTextControl DockPanel.Dock="Top" HeaderRows="{Binding ColumnHeaders}" ColumnWidth="{x:Static hsg3hv:HexContent.CellWidth}" HorizontalOffset="{Binding ElementName=HexContent, Path=HorizontalScrollValue}"/>
-                     <!-- Row Headers -->
-                     <ItemsControl DockPanel.Dock="Left" Width="70" ItemsSource="{Binding Headers}" Background="{DynamicResource Backlight}" MouseDown="HeaderMouseDown">
-                        <ItemsControl.ItemTemplate>
-                           <DataTemplate>
-                              <Viewbox Height="{x:Static hsg3hv:HexContent.CellHeight}" HorizontalAlignment="Right" Margin="0,0,2,0">
-                                 <TextBlock Foreground="{DynamicResource Secondary}" Text="{Binding}" FontFamily="Consolas" Padding="1"/>
-                              </Viewbox>
-                           </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                     </ItemsControl>
-                     <Line Width="1" DockPanel.Dock="Left" Stroke="{DynamicResource Background}"/>
-                     <ScrollBar DockPanel.Dock="Right"
-                        Minimum="{Binding MinimumScroll}" Maximum="{Binding MaximumScroll}" Value="{Binding ScrollValue}"
-                        SmallChange="1" LargeChange="{Binding Height}" />
-                     <ScrollBar DockPanel.Dock="Bottom" Orientation="Horizontal" SmallChange="10" LargeChange="{x:Static hsg3hv:HexContent.CellWidth}"
-                        Minimum="0" Maximum="{Binding HorizontalScrollMaximum, ElementName=HexContent}" Value="{Binding HorizontalScrollValue, ElementName=HexContent}"
-                        Visibility="{Binding ShowHorizontalScroll, ElementName=HexContent, Converter={StaticResource BoolToVisibility}}" />
-                     <hsg3hv:HexContent x:Name="HexContent" ViewPort="{Binding}" ShowGrid="{Binding DataContext.ShowMatrix, RelativeSource={RelativeSource AncestorType=hsg3ww:MainWindow}}" Margin=".5,.5,0,0"/>
-                  </DockPanel>
-               </DataTemplate>
-            </TabControl.ContentTemplate>
-         </TabControl>
-      </Grid>
-   </DockPanel>
+                        <!-- Tools -->
+                        <Grid DockPanel.Dock="Left" DataContext="{Binding Tools}">
+                           <Grid.Style>
+                              <Style TargetType="Grid">
+                                 <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedIndex}" Value="-1">
+                                       <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                 </Style.Triggers>
+                              </Style>
+                           </Grid.Style>
+                           <DockPanel Name="StringToolPanel">
+                              <DockPanel.Style>
+                                 <Style TargetType="DockPanel">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                       <DataTrigger Binding="{Binding SelectedIndex}" Value="0">
+                                          <Setter Property="Visibility" Value="Visible"/>
+                                       </DataTrigger>
+                                    </Style.Triggers>
+                                 </Style>
+                              </DockPanel.Style>
+                              <TextBlock Text="Address:" Margin="5,15,0,0" DockPanel.Dock="Top"/>
+                              <TextBox Text="{Binding StringTool.Address, Converter={StaticResource Hex}}" Margin="5" DockPanel.Dock="Top"/>
+                              <TextBlock Text="Content:" Margin="5,30,0,0" DockPanel.Dock="Top"/>
+                              <TextBox Margin="5,5" AcceptsReturn="True" MinHeight="50" Width="255" TextWrapping="Wrap" FontFamily="Consolas" VerticalScrollBarVisibility="Auto"
+                                 SelectionChanged="StringToolContentSelectionChanged"
+                                 IsEnabled="{Binding StringTool.Enabled}"
+                                 Text="{Binding StringTool.Content, UpdateSourceTrigger=PropertyChanged}" />
+                           </DockPanel>
+                           <ScrollViewer Width="265" Name="TableToolPanel" VerticalScrollBarVisibility="Visible">
+                              <ScrollViewer.Style>
+                                 <Style TargetType="ScrollViewer">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                       <DataTrigger Binding="{Binding SelectedIndex}" Value="1">
+                                          <Setter Property="Visibility" Value="Visible"/>
+                                       </DataTrigger>
+                                    </Style.Triggers>
+                                 </Style>
+                              </ScrollViewer.Style>
+                              <StackPanel>
+                                 <TextBlock Text="{Binding TableTool.CurrentElementName}" HorizontalAlignment="Center" Margin="0,2" MaxWidth="200" TextWrapping="Wrap" TextAlignment="Center"/>
+                                 <Grid>
+                                    <Button Margin="5" Content="Previous" Command="{Binding TableTool.Previous}" HorizontalAlignment="Left"/>
+                                    <Button Margin="5" Content="Next" Command="{Binding TableTool.Next}" HorizontalAlignment="Right"/>
+                                 </Grid>
+                                 <ItemsControl ItemsSource="{Binding TableTool.Children}" Grid.IsSharedSizeScope="True">
+                                    <ItemsControl.Resources>
+                                       <DataTemplate DataType="{x:Type hsg3hvmtr:FieldArrayElementViewModel}">
+                                          <Grid HorizontalAlignment="Stretch" Margin="2">
+                                             <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
+                                                <ColumnDefinition Width="*"/>
+                                             </Grid.ColumnDefinitions>
+                                             <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
+                                             <TextBox Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1"/>
+                                          </Grid>
+                                       </DataTemplate>
+                                       <DataTemplate DataType="{x:Type hsg3hvmtr:ComboBoxArrayElementViewModel}">
+                                          <Grid HorizontalAlignment="Stretch" Margin="2">
+                                             <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
+                                                <ColumnDefinition Width="*"/>
+                                             </Grid.ColumnDefinitions>
+                                             <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
+                                             <ComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" Grid.Column="1"/>
+                                          </Grid>
+                                       </DataTemplate>
+                                    </ItemsControl.Resources>
+                                 </ItemsControl>
+                              </StackPanel>
+                           </ScrollViewer>
+                           <StackPanel Name="Tool3Panel">
+                              <StackPanel.Style>
+                                 <Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                       <DataTrigger Binding="{Binding SelectedIndex}" Value="2">
+                                          <Setter Property="Visibility" Value="Visible"/>
+                                       </DataTrigger>
+                                    </Style.Triggers>
+                                 </Style>
+                              </StackPanel.Style>
+                              <TextBlock Text="Coming Soon!" Margin="5,15,0,0"/>
+                           </StackPanel>
+                        </Grid>
+                        <!-- Anchor Editor -->
+                        <Border DockPanel.Dock="Top" Height="19" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource Backlight}">
+                           <DockPanel Visibility="{Binding AnchorTextVisible, Converter={StaticResource BoolToVisibility}}" >
+                              <TextBlock Width="70" Text="Anchor: " TextAlignment="Right" ToolTipService.ShowDuration="15000">
+                                 <TextBlock.ToolTip>
+                                    <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{solarized:Theme Blue}" BorderThickness="1">
+                                       <TextBlock TextAlignment="Left">
+                                          <Bold>Anchor Editor</Bold> <LineBreak/>
+                                          Anchors can have a name and a format. <LineBreak/>
+                                          <LineBreak/>
+                                          Named anchors persist between sessions. <LineBreak/>
+                                          You can also use names in pointers and with Goto <Italic Foreground="{DynamicResource Secondary}">(Ctrl+G)</Italic>. <LineBreak/>
+                                          <LineBreak/>
+                                          Formats change how the data is displayed and edited. <LineBreak/>
+                                          For example, "" formats data as text. <LineBreak/>
+                                          To learn more about formats, visit the Wiki.
+                                       </TextBlock>
+                                    </ToolTip>
+                                 </TextBlock.ToolTip>
+                              </TextBlock>
+                              <TextBox Text="{Binding AnchorText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,25,0"/>
+                           </DockPanel>
+                        </Border>
+                        <!-- Column Headers -->
+                        <hsg3hv:HorizontalSlantedTextControl DockPanel.Dock="Top" HeaderRows="{Binding ColumnHeaders}" ColumnWidth="{x:Static hsg3hv:HexContent.CellWidth}" HorizontalOffset="{Binding ElementName=HexContent, Path=HorizontalScrollValue}"/>
+                        <!-- Row Headers -->
+                        <ItemsControl DockPanel.Dock="Left" Width="70" ItemsSource="{Binding Headers}" Background="{DynamicResource Backlight}" MouseDown="HeaderMouseDown">
+                           <ItemsControl.ItemTemplate>
+                              <DataTemplate>
+                                 <Viewbox Height="{x:Static hsg3hv:HexContent.CellHeight}" HorizontalAlignment="Right" Margin="0,0,2,0">
+                                    <TextBlock Foreground="{DynamicResource Secondary}" Text="{Binding}" FontFamily="Consolas" Padding="1"/>
+                                 </Viewbox>
+                              </DataTemplate>
+                           </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <Line Width="1" DockPanel.Dock="Left" Stroke="{DynamicResource Background}"/>
+                        <ScrollBar DockPanel.Dock="Right"
+                           Minimum="{Binding MinimumScroll}" Maximum="{Binding MaximumScroll}" Value="{Binding ScrollValue}"
+                           SmallChange="1" LargeChange="{Binding Height}" />
+                        <ScrollBar DockPanel.Dock="Bottom" Orientation="Horizontal" SmallChange="10" LargeChange="{x:Static hsg3hv:HexContent.CellWidth}"
+                           Minimum="0" Maximum="{Binding HorizontalScrollMaximum, ElementName=HexContent}" Value="{Binding HorizontalScrollValue, ElementName=HexContent}"
+                           Visibility="{Binding ShowHorizontalScroll, ElementName=HexContent, Converter={StaticResource BoolToVisibility}}" />
+                        <hsg3hv:HexContent x:Name="HexContent" ViewPort="{Binding}" ShowGrid="{Binding DataContext.ShowMatrix, RelativeSource={RelativeSource AncestorType=hsg3ww:MainWindow}}" Margin=".5,.5,0,0"/>
+                     </DockPanel>
+                  </DataTemplate>
+               </TabControl.ContentTemplate>
+            </TabControl>
+         </Grid>
+      </DockPanel>
+      <Rectangle Name="FocusAnimationElement" StrokeThickness="2" Stroke="{solarized:Theme Blue}" Visibility="Visible" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+   </Grid>
 </Window>

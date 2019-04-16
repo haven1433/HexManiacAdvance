@@ -12,6 +12,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 
 namespace HavenSoft.HexManiac.WPF.Windows {
    partial class MainWindow {
@@ -27,6 +28,11 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          viewModel.MoveFocusToFind += (sender, e) => FocusTextBox(FindBox);
          viewModel.GotoViewModel.MoveFocusToGoto += FocusGotoBox;
          viewModel.PropertyChanged += ViewModelPropertyChanged;
+
+         GotoPanel.IsVisibleChanged += AnimateFocusToCorner;
+         FindPanel.IsVisibleChanged += AnimateFocusToCorner;
+         MessagePanel.IsVisibleChanged += AnimateFocusToCorner;
+         ErrorPanel.IsVisibleChanged += AnimateFocusToCorner;
       }
 
       protected override void OnDrop(DragEventArgs e) {
@@ -162,6 +168,20 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          if (tools == null || tools.StringTool == null) return;
          tools.StringTool.ContentIndex = textbox.SelectionStart;
          tools.StringTool.ContentSelectionLength = textbox.SelectionLength;
+      }
+
+      private void AnimateFocusToCorner(object sender, DependencyPropertyChangedEventArgs e) {
+         var element = (FrameworkElement)sender;
+         if (element.Visibility != Visibility.Visible) return;
+         element.Arrange(new Rect());
+
+         FocusAnimationElement.Visibility = Visibility.Visible;
+         var widthAnimation = new DoubleAnimation(ActualWidth, element.ActualWidth, TimeSpan.FromSeconds(.3));
+         var heightAnimation = new DoubleAnimation(ActualHeight, element.ActualHeight, TimeSpan.FromSeconds(.3));
+         heightAnimation.Completed += (sender1, e1) => FocusAnimationElement.Visibility = Visibility.Collapsed;
+
+         FocusAnimationElement.BeginAnimation(WidthProperty, widthAnimation);
+         FocusAnimationElement.BeginAnimation(HeightProperty, heightAnimation);
       }
    }
 }
