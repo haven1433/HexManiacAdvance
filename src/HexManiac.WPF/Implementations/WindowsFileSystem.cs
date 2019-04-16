@@ -1,10 +1,13 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.WPF.Controls;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Threading;
 
 namespace HavenSoft.HexManiac.WPF.Implementations {
@@ -84,10 +87,81 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
 
       public bool? TrySavePrompt(LoadedFile file, StoredMetadata metadata) {
-         var result = MessageBox.Show($"Would you like to save {file.Name}?", Application.Current.MainWindow.Title, MessageBoxButton.YesNoCancel);
+         var result = ShowCustomMessageBox($"Would you like to save{Environment.NewLine}{file.Name}?");
          if (result == MessageBoxResult.Cancel) return null;
          if (result == MessageBoxResult.No) return false;
          return Save(file, metadata);
+      }
+
+      public MessageBoxResult ShowCustomMessageBox(string message) {
+         var window = new Window {
+            Background = Solarized.Theme.Background,
+            Foreground = Solarized.Theme.Primary,
+            Title = Application.Current.MainWindow.Title,
+            SizeToContent = SizeToContent.WidthAndHeight,
+            WindowStyle = WindowStyle.ToolWindow,
+            Content = new StackPanel {
+               Orientation = Orientation.Vertical,
+               Children = {
+                  new TextBlock { Text = message, Margin = new Thickness(5, 10, 5, 10) },
+                  new StackPanel {
+                     HorizontalAlignment = HorizontalAlignment.Right,
+                     Orientation = Orientation.Horizontal,
+                     Children = {
+                        new Button {
+                           HorizontalContentAlignment = HorizontalAlignment.Center,
+                           Content = new Label { Foreground = Solarized.Theme.Primary, Content = "_Yes" },
+                           MinWidth = 70,
+                           Margin = new Thickness(5)
+                        }.SetEvent(Button.ClickEvent, MessageBoxButtonClick),
+                        new Button {
+                           HorizontalContentAlignment = HorizontalAlignment.Center,
+                           Content = new Label { Foreground = Solarized.Theme.Primary, Content = "_No" },
+                           MinWidth = 70,
+                           Margin = new Thickness(5)
+                        }.SetEvent(Button.ClickEvent, MessageBoxButtonClick),
+                        new Button {
+                           HorizontalContentAlignment = HorizontalAlignment.Center,
+                           Content = new Label { Foreground = Solarized.Theme.Primary, Content = "Cancel" },
+                           MinWidth = 70,
+                           Margin = new Thickness(5)
+                        }.SetEvent(Button.ClickEvent, MessageBoxButtonClick),
+                     }
+                  }
+               }
+            },
+            Owner = Application.Current.MainWindow,
+            Left = Application.Current.MainWindow.Left + Application.Current.MainWindow.Width / 2,
+            Top = Application.Current.MainWindow.Top + Application.Current.MainWindow.Height / 2,
+         }.SetEvent(UIElement.KeyDownEvent, MessageBoxKeyDown);
+
+         passingResult = MessageBoxResult.Cancel;
+         window.ShowDialog();
+         return passingResult;
+      }
+
+      private MessageBoxResult passingResult = MessageBoxResult.Cancel;
+      private void MessageBoxButtonClick(object sender, EventArgs e) {
+         var button = (Button)sender;
+         switch (((Label)button.Content).Content.ToString()) {
+            case "_Yes": passingResult = MessageBoxResult.Yes; break;
+            case "_No": passingResult = MessageBoxResult.No; break;
+            case "Cancel": passingResult = MessageBoxResult.Cancel; break;
+         }
+         var parent = (FrameworkElement)button.Parent;
+         while (parent.Parent is FrameworkElement) parent = (FrameworkElement)parent.Parent;
+         ((Window)parent).Close();
+      }
+
+      private void MessageBoxKeyDown(object sender, EventArgs e) {
+         var window = (Window)sender;
+         var args = (KeyEventArgs)e;
+         switch (args.Key) {
+            case Key.Enter: passingResult = MessageBoxResult.Yes; window.Close(); break;
+            case Key.Y: passingResult = MessageBoxResult.Yes; window.Close(); break;
+            case Key.N: passingResult = MessageBoxResult.No; window.Close(); break;
+            case Key.Escape: passingResult = MessageBoxResult.Cancel; window.Close(); break;
+         }
       }
 
       public StoredMetadata MetadataFor(string fileName) {
