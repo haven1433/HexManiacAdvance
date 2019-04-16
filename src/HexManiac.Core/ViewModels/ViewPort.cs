@@ -133,7 +133,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var element = currentView[location.X, location.Y];
             var underEdit = element.Format as UnderEdit;
             if (underEdit != null) {
-               currentView[location.X, location.Y] = new HexElement(element.Value, underEdit.Edit(" "));
+               var endEdit = " ";
+               if (underEdit.CurrentText.Count(c => c == '"') % 2 == 1) endEdit = "\"";
+               currentView[location.X, location.Y] = new HexElement(element.Value, underEdit.Edit(endEdit));
                if (!TryCompleteEdit(location)) ClearEdits(location);
             }
          }
@@ -1035,11 +1037,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                return false;
             } else if (originalFormat is IntegerEnum integerEnum) {
                var currentText = underEdit.CurrentText;
-               // must end in whitespace, and must have matching quotation marks (ex. "Mr. Mime")
-               if (char.IsWhiteSpace(currentText.Last()) && currentText.Count(c => c == '"') % 2 == 0) {
+
+               // must end in whitespace or must have matching quotation marks (ex. "Mr. Mime")
+               var quoteCount = currentText.Count(c => c == '"');
+               if (quoteCount == 2) {
+                  CompleteIntegerEnumEdit(point, currentText);
+                  return true;
+               } else if (quoteCount == 0 && char.IsWhiteSpace(currentText.Last())) {
                   CompleteIntegerEnumEdit(point, currentText);
                   return true;
                }
+
                return false;
             }
 
