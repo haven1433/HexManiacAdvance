@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections;
@@ -14,6 +15,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    public class SearchResultsViewPort : ViewModelCore, IViewPort {
       private readonly StubCommand scroll, close;
       private readonly List<IChildViewPort> children = new List<IChildViewPort>();
+      private readonly Dictionary<IViewPort, int> firstChildToUseParent = new Dictionary<IViewPort, int>();
       private readonly List<(int start, int end)> childrenSelection = new List<(int, int)>();
       private int width, height, scrollValue, maxScrollValue;
 
@@ -22,6 +24,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public HexElement this[int x, int y] {
          get {
             var (childIndex, line) = GetChildLine(y);
+            if (line < 0 && x == 3 && childIndex < children.Count && firstChildToUseParent[children[childIndex].Parent] == childIndex) {
+               return new HexElement(0, new PCS(-1, 1, string.Empty, "Results from " + children[childIndex].FileName));
+            }
             if (line < 0 || childIndex >= children.Count) return HexElement.Undefined;
 
             return children[childIndex][x, line];
@@ -77,6 +82,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public IToolTrayViewModel Tools { get; } = new SearchResultsTools();
 
+      public string SelectedAddress => string.Empty;
+
       public string AnchorText { get; set; }
 
       public bool AnchorTextVisible => false;
@@ -121,6 +128,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          childrenSelection.Add((start, end));
          maxScrollValue += child.Height;
          if (children.Count > 1) maxScrollValue++;
+         if (!firstChildToUseParent.ContainsKey(child.Parent)) {
+            firstChildToUseParent.Add(child.Parent, children.Count - 1);
+         }
          NotifyCollectionChanged();
       }
 
@@ -204,7 +214,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// based on scrolling in the overall search results and within each individual result.
       /// </returns>
       private (int childIndex, int childLineNumber) GetChildLine(int y) {
-         int line = y + scrollValue; // 0 is the first line in the data
+         int line = y + scrollValue - 1; // 0 is the first line in the data. Include one empty line at the top for the file name
          int childIndex = 0;
          while (childIndex < children.Count && children[childIndex].Height <= line) {
             line -= children[childIndex].Height + 1; childIndex++;
