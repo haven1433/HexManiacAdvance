@@ -421,25 +421,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var name = segments.Substring(0, nameEnd);
             if (name == string.Empty) throw new ArrayRunParseException("expected name, but none was found: " + segments);
             segments = segments.Substring(nameEnd);
-            var format = ElementContentType.Unknown;
-            int formatLength = 0;
-            int segmentLength = 0;
-            if (segments.Length >= 2 && segments.Substring(0, 2) == "\"\"") {
-               format = ElementContentType.PCS;
-               formatLength = 2;
-               while (formatLength < segments.Length && char.IsDigit(segments[formatLength])) formatLength++;
-               segmentLength = int.Parse(segments.Substring(2, formatLength - 2));
-            } else if (segments.StartsWith(DoubleByteIntegerFormat + string.Empty + DoubleByteIntegerFormat)) {
-               (format, formatLength, segmentLength) = (ElementContentType.Integer, 2, 4);
-            } else if (segments.StartsWith(DoubleByteIntegerFormat + string.Empty + SingleByteIntegerFormat) || segments.StartsWith(".:")) {
-               (format, formatLength, segmentLength) = (ElementContentType.Integer, 2, 3);
-            } else if (segments.StartsWith(DoubleByteIntegerFormat.ToString())) {
-               (format, formatLength, segmentLength) = (ElementContentType.Integer, 1, 2);
-            } else if (segments.StartsWith(SingleByteIntegerFormat.ToString())) {
-               (format, formatLength, segmentLength) = (ElementContentType.Integer, 1, 1);
-            } else if (segments.StartsWith(PointerRun.PointerStart + string.Empty + PointerRun.PointerEnd)) {
-               (format, formatLength, segmentLength) = (ElementContentType.Pointer, 2, 4);
-            }
+            var (format, formatLength, segmentLength) = ExtractSingleFormat(segments);
 
             // check to see if a name or length is part of the format
             if (format == ElementContentType.Integer && segments.Length > formatLength && segments[formatLength] != ' ') {
@@ -454,13 +436,39 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   list.Add(new ArrayRunEnumSegment(name, segmentLength, enumName));
                }
             } else {
-               if (format == ElementContentType.Unknown) throw new ArrayRunParseException($"Could not parse format '{segments}'");
                segments = segments.Substring(formatLength).Trim();
+               if (format == ElementContentType.Unknown) {
+                  // default to single byte integer
+                  format = ElementContentType.Integer;
+                  segmentLength = 1;
+               }
                list.Add(new ArrayRunElementSegment(name, format, segmentLength));
             }
          }
 
          return list;
+      }
+
+      private static (ElementContentType format, int formatLength, int segmentLength) ExtractSingleFormat(string segments) {
+         if (segments.Length >= 2 && segments.Substring(0, 2) == "\"\"") {
+            var format = ElementContentType.PCS;
+            var formatLength = 2;
+            while (formatLength < segments.Length && char.IsDigit(segments[formatLength])) formatLength++;
+            var segmentLength = int.Parse(segments.Substring(2, formatLength - 2));
+            return (format, formatLength, segmentLength);
+         } else if (segments.StartsWith(DoubleByteIntegerFormat + string.Empty + DoubleByteIntegerFormat)) {
+            return (ElementContentType.Integer, 2, 4);
+         } else if (segments.StartsWith(DoubleByteIntegerFormat + string.Empty + SingleByteIntegerFormat) || segments.StartsWith(".:")) {
+            return (ElementContentType.Integer, 2, 3);
+         } else if (segments.StartsWith(DoubleByteIntegerFormat.ToString())) {
+            return (ElementContentType.Integer, 1, 2);
+         } else if (segments.StartsWith(SingleByteIntegerFormat.ToString())) {
+            return (ElementContentType.Integer, 1, 1);
+         } else if (segments.StartsWith(PointerRun.PointerStart + string.Empty + PointerRun.PointerEnd)) {
+            return (ElementContentType.Pointer, 2, 4);
+         }
+
+         return (ElementContentType.Unknown, 0, 0);
       }
 
       private int ParseLengthFromAnchor() {

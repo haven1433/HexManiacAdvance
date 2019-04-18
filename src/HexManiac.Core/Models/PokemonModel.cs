@@ -873,7 +873,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private static (string, string) SplitNameAndFormat(string text) {
-         var name = text.Substring(1).Trim();
+         var name = text.Substring(1).Trim(); // lop off leading ^
          string format = string.Empty;
          int split = -1;
 

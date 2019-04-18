@@ -22,6 +22,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       IDisposable DeferUpdates { get; }
 
       void Schedule(Action action);
+      void RefreshContent();
    }
 
    public class ToolTray : ViewModelCore, IToolTrayViewModel {
@@ -105,6 +106,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          } else {
             action();
          }
+      }
+
+      public void RefreshContent() {
+         TableTool.DataForCurrentRunChanged();
       }
 
       public IEnumerator<IToolViewModel> GetEnumerator() => tools.GetEnumerator();

@@ -235,6 +235,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public IDisposable DeferUpdates => new StubDisposable();
       public event PropertyChangedEventHandler PropertyChanged;
       public void Schedule(Action action) => action();
+      public void RefreshContent() { }
 
       public IToolViewModel this[int index] => null;
       public int SelectedIndex { get => -1; set { } }

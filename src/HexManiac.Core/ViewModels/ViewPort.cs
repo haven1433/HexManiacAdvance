@@ -275,6 +275,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                         selection.PropertyChanged -= SelectionPropertyChanged;
                         Goto.Execute(index.ToString("X2"));
                         selection.PropertyChanged += SelectionPropertyChanged;
+                        UpdateColumnHeaders();
+                        Tools.RefreshContent();
                      }
                      RefreshBackingData();
                   } else {

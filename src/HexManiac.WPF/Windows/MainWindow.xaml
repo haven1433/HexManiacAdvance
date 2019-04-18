@@ -273,7 +273,8 @@
                               <MouseBinding MouseAction="MiddleClick" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}"/>
                            </TextBlock.InputBindings>
                         </TextBlock>
-                        <Button Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}" Width="15" Margin="5,0,0,0" VerticalAlignment="Stretch" Background="{DynamicResource Background}" BorderBrush="{DynamicResource Background}">
+                        <Button Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}" Width="15" Margin="5,0,0,0" Background="{DynamicResource Background}" BorderBrush="{DynamicResource Background}"
+                           VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
                            <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
                         </Button>
                      </StackPanel>
