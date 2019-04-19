@@ -111,14 +111,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public abstract void UpdateArrayPointer(ModelDelta currentChange, int index, int fullValue);
 
-      public int ReadValue(int index) {
-         int word = 0;
-         word |= RawData[index + 0] << 0;
-         word |= RawData[index + 1] << 8;
-         word |= RawData[index + 2] << 16;
-         word |= RawData[index + 3] << 24;
-         return word;
-      }
+      public int ReadValue(int index) => BitConverter.ToInt32(RawData, index);
 
       public void WriteValue(ModelDelta changeToken, int index, int word) {
          changeToken.ChangeData(this, index + 0, (byte)(word >> 0));
