@@ -1,10 +1,13 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows.Input;
 
@@ -12,6 +15,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    public class SearchResultsViewPort : ViewModelCore, IViewPort {
       private readonly StubCommand scroll, close;
       private readonly List<IChildViewPort> children = new List<IChildViewPort>();
+      private readonly Dictionary<IViewPort, int> firstChildToUseParent = new Dictionary<IViewPort, int>();
       private readonly List<(int start, int end)> childrenSelection = new List<(int, int)>();
       private int width, height, scrollValue, maxScrollValue;
 
@@ -20,6 +24,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public HexElement this[int x, int y] {
          get {
             var (childIndex, line) = GetChildLine(y);
+            if (line < 0 && x == 3 && childIndex < children.Count && firstChildToUseParent[children[childIndex].Parent] == childIndex) {
+               return new HexElement(0, new PCS(-1, 1, string.Empty, "Results from " + children[childIndex].FileName));
+            }
             if (line < 0 || childIndex >= children.Count) return HexElement.Undefined;
 
             return children[childIndex][x, line];
@@ -73,7 +80,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public bool HasTools => false;
 
-      public IToolTrayViewModel Tools => null;
+      public IToolTrayViewModel Tools { get; } = new SearchResultsTools();
+
+      public string SelectedAddress => string.Empty;
 
       public string AnchorText { get; set; }
 
@@ -119,6 +128,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          childrenSelection.Add((start, end));
          maxScrollValue += child.Height;
          if (children.Count > 1) maxScrollValue++;
+         if (!firstChildToUseParent.ContainsKey(child.Parent)) {
+            firstChildToUseParent.Add(child.Parent, children.Count - 1);
+         }
          NotifyCollectionChanged();
       }
 
@@ -145,8 +157,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var child = children[childIndex];
          var parent = child.Parent;
-         var dataOffset = Math.Max(0, child.DataOffset - (y - line) * child.Width);
-         parent.Goto.Execute(dataOffset.ToString("X6"));
+         if (child.Model.GetNextRun(child.DataOffset) is ArrayRun array) {
+            parent.Goto.Execute(child.DataOffset.ToString("X6"));
+            parent.ScrollValue += line - y + Height - parent.Height;
+            // heuristic: if the parent height matches the search results height, then the parent
+            // probably doesn't have labels yet but is about to get them. We don't know how big the
+            // labels will be, but they will probably push all the data down quite a bit.
+            // compensate by scrolling slightly
+            if (parent.Height == Height) parent.ScrollValue += 2;
+         } else {
+            var dataOffset = Math.Max(0, child.DataOffset - (y - line) * child.Width);
+            parent.Goto.Execute(dataOffset.ToString("X6"));
+         }
 
          if (parent is ViewPort viewPort) {
             viewPort.SelectionStart = viewPort.ConvertAddressToViewPoint(childrenSelection[childIndex].start);
@@ -192,13 +214,33 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// based on scrolling in the overall search results and within each individual result.
       /// </returns>
       private (int childIndex, int childLineNumber) GetChildLine(int y) {
-         int line = y + scrollValue; // 0 is the first line in the data
+         int line = y + scrollValue - 1; // 0 is the first line in the data. Include one empty line at the top for the file name
          int childIndex = 0;
          while (childIndex < children.Count && children[childIndex].Height <= line) {
             line -= children[childIndex].Height + 1; childIndex++;
          }
          return (childIndex, line);
       }
+   }
 
+   public class SearchResultsTools : IToolTrayViewModel {
+      public ICommand HideCommand { get; } = new StubCommand();
+      public ICommand StringToolCommand { get; } = new StubCommand();
+      public ICommand TableToolCommand { get; } = new StubCommand();
+      public ICommand Tool3Command { get; } = new StubCommand();
+
+      public PCSTool StringTool => null;
+      public TableTool TableTool => null;
+
+      public IDisposable DeferUpdates => new StubDisposable();
+      public event PropertyChangedEventHandler PropertyChanged;
+      public void Schedule(Action action) => action();
+      public void RefreshContent() { }
+
+      public IToolViewModel this[int index] => null;
+      public int SelectedIndex { get => -1; set { } }
+      public int Count => 0;
+      public IEnumerator<IToolViewModel> GetEnumerator() => new List<IToolViewModel>().GetEnumerator();
+      IEnumerator IEnumerable.GetEnumerator() => new List<IToolViewModel>().GetEnumerator();
    }
 }

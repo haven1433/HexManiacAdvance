@@ -64,6 +64,7 @@
     <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubDataModel.cs">
       <Link>StubDataModel.cs</Link>
     </Compile>
+    <Compile Include="ArrayColumnHeaderTests.cs" />
     <Compile Include="ArrayRunTests.cs" />
     <Compile Include="AutoSearchTests.cs" />
     <Compile Include="ChangeHistoryTests.cs" />

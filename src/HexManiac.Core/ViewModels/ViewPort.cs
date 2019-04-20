@@ -40,7 +40,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          get {
             var name = Path.GetFileNameWithoutExtension(FileName);
             if (string.IsNullOrEmpty(name)) name = "Untitled";
-            if (!history.IsSaved) name += "*";
+            if (history.HasDataChange) name += "*";
             return name;
          }
       }
@@ -89,7 +89,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (Math.Abs(scroll.DataIndex - previous) % Width != 0) UpdateColumnHeaders();
             }
          } else if (e.PropertyName != nameof(scroll.DataLength)) {
-            NotifyPropertyChanged(e.PropertyName);
+            NotifyPropertyChanged(((ExtendedPropertyChangedEventArgs)e).OldValue, e.PropertyName);
          }
 
          if (e.PropertyName == nameof(Width) || e.PropertyName == nameof(Height)) {
@@ -133,7 +133,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var element = currentView[location.X, location.Y];
             var underEdit = element.Format as UnderEdit;
             if (underEdit != null) {
-               currentView[location.X, location.Y] = new HexElement(element.Value, underEdit.Edit(" "));
+               var endEdit = " ";
+               if (underEdit.CurrentText.Count(c => c == '"') % 2 == 1) endEdit = "\"";
+               currentView[location.X, location.Y] = new HexElement(element.Value, underEdit.Edit(endEdit));
                if (!TryCompleteEdit(location)) ClearEdits(location);
             }
          }
@@ -144,6 +146,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          NotifyPropertyChanged(e.PropertyName);
          var dataIndex = scroll.ViewPointToDataIndex(SelectionStart);
          UpdateToolsFromSelection(dataIndex);
+         SelectedAddress = "Address: " + dataIndex.ToString("X6");
       }
 
       private void UpdateToolsFromSelection(int dataIndex) {
@@ -165,6 +168,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      private string selectedAddress;
+      public string SelectedAddress {
+         get => selectedAddress;
+         set => TryUpdate(ref selectedAddress, value);
+      }
+
       #endregion
 
       #region Undo / Redo
@@ -183,9 +192,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void HistoryPropertyChanged(object sender, PropertyChangedEventArgs e) {
-         if (e.PropertyName != nameof(history.IsSaved)) return;
-         save.CanExecuteChanged.Invoke(save, EventArgs.Empty);
-         NotifyPropertyChanged(nameof(Name));
+         if (e.PropertyName == nameof(history.IsSaved)) save.CanExecuteChanged.Invoke(save, EventArgs.Empty);
+         if (e.PropertyName == nameof(history.HasDataChange)) NotifyPropertyChanged(nameof(Name));
       }
 
       #endregion
@@ -266,6 +274,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                         selection.PropertyChanged -= SelectionPropertyChanged;
                         Goto.Execute(index.ToString("X2"));
                         selection.PropertyChanged += SelectionPropertyChanged;
+                        UpdateColumnHeaders();
+                        Tools.RefreshContent();
                      }
                      RefreshBackingData();
                   } else {
@@ -533,7 +543,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var parallelLock = new object();
          var currentChange = history.CurrentChange;
          Parallel.ForEach(searchResults, result => {
-         // foreach (var result in searchResults) {
             var nextRun = Model.GetNextRun(result);
             if (nextRun.Start < result) return;
             if (nextRun.Start == result && !(nextRun is NoInfoRun)) return;
@@ -604,7 +613,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private bool TryParsePointerSearchSegment(List<ISearchByte> searchBytes, string cleanedSearchString, ref int i) {
          var pointerEnd = cleanedSearchString.IndexOf(PointerEnd, i);
          if (pointerEnd == -1) { OnError(this, "Search mismatch: no closing >"); return false; }
-         var pointerContents = cleanedSearchString.Substring(i + 1, pointerEnd - i - 2);
+         var pointerContents = cleanedSearchString.Substring(i + 1, pointerEnd - i - 1);
          var address = Model.GetAddressFromAnchor(history.CurrentChange, -1, pointerContents);
          if (address != Pointer.NULL) {
             searchBytes.Add((SearchByte)(address >> 0));
@@ -772,23 +781,38 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
          var left = Math.Min(selectionStart, selectionEnd);
          var length = Math.Abs(selectionEnd - selectionStart) + 1;
+
+         // part 1: find a previous FF, which is possibly the end of another text
          while (Model[left] != 0xFF && PCSString.PCS[Model[left]] != null) { left--; length++; }
          left++; length--;
+
+         // part 2: jump forward past any known runs that we're interupting
          while (true) {
             var run = Model.GetNextRun(left);
             if (run.Start >= left) break;
             length -= left - run.Start;
             left = run.Start + run.Length;
          }
-         var startPaces = new List<int>();
+
+         // part 3: look for possible starting locations:
+         // (1) places that start directly after FF
+         // (2) places that start with a NoInfoRun
+         var startPlaces = new List<int>();
          while (length > 0) {
-            startPaces.Add(left);
+            startPlaces.Add(left);
+            var run = Model.GetNextRun(left);
+            if (run is NoInfoRun) startPlaces.Add(run.Start);
+            if (!(run is NoInfoRun)) break;
             while (Model[left] != 0xFF) { left++; length--; }
             left++; length--;
-            var run = Model.GetNextRun(left);
-            if (!(run is NoInfoRun)) break;
          }
-         var foundCount = ConsiderResultsAsTextRuns(startPaces);
+
+         // remove duplicates and make sure everything is in order
+         startPlaces.Sort();
+         startPlaces = startPlaces.Distinct().ToList();
+
+         // do the actual search now that we know places to start
+         var foundCount = ConsiderResultsAsTextRuns(startPlaces);
          if (foundCount == 0) {
             OnError?.Invoke(this, "Failed to automatically find text at that location.");
          } else {
@@ -840,7 +864,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
             if (innerFormat is Integer) return char.IsNumber(input);
 
-            if (innerFormat is IntegerEnum) return char.IsLetter(input) ||
+            if (innerFormat is IntegerEnum) return char.IsLetterOrDigit(input) ||
                input == StringDelimeter ||
                "?-".Contains(input);
 
@@ -1013,11 +1037,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                return false;
             } else if (originalFormat is IntegerEnum integerEnum) {
                var currentText = underEdit.CurrentText;
-               // must end in whitespace, and must have matching quotation marks (ex. "Mr. Mime")
-               if (char.IsWhiteSpace(currentText.Last()) && currentText.Count(c => c == '"') % 2 == 0) {
+
+               // must end in whitespace or must have matching quotation marks (ex. "Mr. Mime")
+               var quoteCount = currentText.Count(c => c == '"');
+               if (quoteCount == 2) {
+                  CompleteIntegerEnumEdit(point, currentText);
+                  return true;
+               } else if (quoteCount == 0 && char.IsWhiteSpace(currentText.Last())) {
                   CompleteIntegerEnumEdit(point, currentText);
                   return true;
                }
+
                return false;
             }
 
@@ -1082,7 +1112,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var visitedNames = new List<string>();
          while (arrayRun.LengthFromAnchor != string.Empty) {
-            if (visitedNames.Contains(arrayRun.LengthFromAnchor)){
+            if (visitedNames.Contains(arrayRun.LengthFromAnchor)) {
                // We kept going up the chain of tables but didn't find a top table. Either the table length definitions are circular or very deep.
                OnError?.Invoke(this, $"Could not extend table safely. Table length has a circular dependency involving {arrayRun.LengthFromAnchor}.");
                return;
@@ -1108,7 +1138,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          newRun = newRun.Append(1);
          Model.ObserveRunWritten(history.CurrentChange, newRun);
 
-         foreach(var child in GetDependantArrays(newRun)) {
+         foreach (var child in GetDependantArrays(newRun)) {
             ExtendArrayAndChildren(child);
          }
       }

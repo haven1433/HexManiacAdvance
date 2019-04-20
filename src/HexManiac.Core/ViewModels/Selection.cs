@@ -174,9 +174,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void GotoAddressHelper(int address) {
          var destinationRun = model.GetNextRun(address) as ArrayRun;
          var destinationIsArray = destinationRun != null;
-
-         int preferredWidth = 0;
-
+         int preferredWidth;
          if (destinationIsArray) {
             preferredWidth = destinationRun.ElementLength;
          } else {

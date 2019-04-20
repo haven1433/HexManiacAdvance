@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using static HavenSoft.HexManiac.Core.Models.Runs.ArrayRun;
 using static HavenSoft.HexManiac.Core.Models.Runs.AsciiRun;
 using static HavenSoft.HexManiac.Core.Models.Runs.BaseRun;
@@ -425,15 +426,19 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override void ObserveAnchorWritten(ModelDelta changeToken, string anchorName, IFormattedRun run) {
          int location = run.Start;
          int index = BinarySearch(location);
-         if (index < 0) {
+
+         var existingRun = (index >= 0 && index < runs.Count) ? runs[index] : null;
+
+         if (existingRun == null) {
             // no format starts exactly at this anchor, so clear any format that goes over this anchor.
             ClearFormat(changeToken, location, run.Length);
          } else if (!(run is NoInfoRun)) {
-            // a format starts exactly at this anchor, but this new format may extend further. Clear everything but the anchor.
-            ClearFormat(changeToken, run.Start, run.Length);
+            // a format starts exactly at this anchor.
+            // but the new format may extend further. If so, clear the existing format.
+            if (existingRun.Length < run.Length) {
+               ClearFormat(changeToken, run.Start, run.Length);
+            }
          }
-
-         var existingRun = (index >= 0 && index < runs.Count) ? runs[index] : null;
 
          if (anchorForAddress.TryGetValue(location, out string oldAnchorName)) {
             anchorForAddress.Remove(location);
@@ -784,7 +789,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             } else {
                var childNames = run.ElementNames;
                if (childNames != null && childNames.Count > 0) {
-                  foreach(var childName in childNames) {
+                  foreach (var childName in childNames) {
                      var full = $"{name}{ArrayAnchorSeparator}{childName}";
                      if (IsPartialMatch(full, partial)) results.Add(full);
                   }
@@ -818,48 +823,62 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override IReadOnlyList<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses) {
          var results = new List<int>();
 
-         for (int i = 3; i < RawData.Length; i++) {
-            if (RawData[i] != 0x08 && RawData[i] != 0x09) continue;
-            int destination = ReadPointer(i - 3);
-            if (!addresses.Contains(destination)) continue;
-            // I have to lock this whole block, because I need to know that 'index' remains consistent until I can call runs.Insert
-            lock (runs) {
-               var index = BinarySearch(i - 3);
-               if (index >= 0) {
-                  if (runs[index] is PointerRun) results.Add(i - 3);
-                  if (runs[index] is ArrayRun arrayRun && arrayRun.ElementContent[0].Type == ElementContentType.Pointer) results.Add(i - 3);
-                  if (runs[index] is NoInfoRun) {
-                     var pointerRun = new PointerRun(i - 3, runs[index].PointerSources);
-                     changeToken.RemoveRun(runs[index]);
-                     changeToken.AddRun(pointerRun);
-                     runs[index] = pointerRun;
-                     results.Add(i - 3);
-                  }
-                  continue;
+         var chunkLength = 0x10000;
+         var groups = (int)Math.Ceiling((double)RawData.Length / chunkLength);
+         Parallel.For(0, groups, group => {
+            var data = RawData;
+            var chunkEnd = chunkLength * (group + 1);
+            chunkEnd = Math.Min(chunkEnd, data.Length);
+            for (int i = chunkLength * group + 3; i < chunkEnd; i++) {
+               if (data[i] != 0x08 && data[i] != 0x09) continue;
+               var destination = ReadPointer(i - 3);
+               if (!addresses.Contains(destination)) continue;
+               if (IsValidResult(changeToken, i)) {
+                  lock (results) results.Add(i - 3);
                }
-               index = ~index;
-               if (index < runs.Count && runs[index].Start <= i) continue; // can't add a pointer run if an existing run starts during the new one
-
-               // can't add a pointer run if the new one starts during an existing one
-               if (index > 0 && runs[index - 1].Start + runs[index - 1].Length > i - 3) {
-                  // ah, but if that run is an array and there's already a pointer here...
-                  var array = runs[index - 1] as ArrayRun;
-                  if (array != null) {
-                     var offsets = array.ConvertByteOffsetToArrayOffset(i);
-                     if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Pointer) {
-                        results.Add(i - 3);
-                     }
-                  }
-                  continue;
-               }
-               var newRun = new PointerRun(i - 3);
-               runs.Insert(index, newRun);
-               changeToken.AddRun(newRun);
             }
-            results.Add(i - 3);
-         }
+         });
 
          return results;
+      }
+
+      private bool IsValidResult(ModelDelta changeToken, int i) {
+         // I have to lock this whole block, because I need to know that 'index' remains consistent until I can call runs.Insert
+         lock (runs) {
+            var index = BinarySearch(i - 3);
+            if (index >= 0) {
+               if (runs[index] is PointerRun) return true;
+               if (runs[index] is ArrayRun arrayRun && arrayRun.ElementContent[0].Type == ElementContentType.Pointer) return true;
+               if (runs[index] is NoInfoRun) {
+                  var pointerRun = new PointerRun(i - 3, runs[index].PointerSources);
+                  changeToken.RemoveRun(runs[index]);
+                  changeToken.AddRun(pointerRun);
+                  runs[index] = pointerRun;
+                  return true;
+               }
+               return false;
+            }
+            index = ~index;
+            if (index < runs.Count && runs[index].Start <= i) return false; // can't add a pointer run if an existing run starts during the new one
+
+            // can't add a pointer run if the new one starts during an existing one
+            if (index > 0 && runs[index - 1].Start + runs[index - 1].Length > i - 3) {
+               // ah, but if that run is an array and there's already a pointer here...
+               var array = runs[index - 1] as ArrayRun;
+               if (array != null) {
+                  var offsets = array.ConvertByteOffsetToArrayOffset(i);
+                  if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Pointer) {
+                     return true;
+                  }
+               }
+               return false;
+            }
+            var newRun = new PointerRun(i - 3);
+            runs.Insert(index, newRun);
+            changeToken.AddRun(newRun);
+         }
+
+         return true;
       }
 
       private static bool IsPartialMatch(string full, string partial) {
@@ -873,7 +892,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private static (string, string) SplitNameAndFormat(string text) {
-         var name = text.Substring(1).Trim();
+         var name = text.Substring(1).Trim(); // lop off leading ^
          string format = string.Empty;
          int split = -1;
 

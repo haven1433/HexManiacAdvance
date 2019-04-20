@@ -224,6 +224,7 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.PropertyChanged += (sender, e) => { if (e.PropertyName == nameof(viewPort.Name)) nameChangedCount++; };
 
          viewPort.Edit("012345");
+         Assert.Equal(1, nameChangedCount);
          viewPort.Save.Execute(fileSystem);
 
          Assert.Equal("newfile", viewPort.Name);
@@ -314,6 +315,36 @@ namespace HavenSoft.HexManiac.Tests {
          var viewPort2 = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
 
          Assert.Equal("bob", ((Anchor)viewPort2[0, 0].Format).Name);
+      }
+
+      [Fact]
+      public void FormattingChangesDoNotMakeFileDirty() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var model = new PokemonModel(buffer);
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var fileSystem = new StubFileSystem();
+
+         viewPort.Edit("^bob ");
+
+         Assert.True(viewPort.Save.CanExecute(fileSystem));
+         Assert.DoesNotContain("*", viewPort.Name);
+      }
+
+      [Fact]
+      public void UndoRedoRestoresSaveStar() {
+         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         var model = new PokemonModel(buffer);
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         int nameChangedCount = 0;
+         viewPort.PropertyChanged += (sender, e) => { if (e.PropertyName == nameof(viewPort.Name)) nameChangedCount++; };
+         var fileSystem = new StubFileSystem();
+
+         viewPort.Edit("AA");       // notify 1 -> adding the star
+         viewPort.Undo.Execute();   // notify 2 -> removing the star
+         viewPort.Redo.Execute();   // notify 3 -> re-adding the star
+
+         Assert.Contains("*", viewPort.Name);
+         Assert.Equal(3, nameChangedCount);
       }
    }
 }

@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -128,6 +129,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                gotoViewModel.ControlVisible = false;
                FindControlVisible = false;
                ShowError = false;
+            } else {
+               infoMessage = string.Empty;
             }
             if (TryUpdate(ref showMessage, value)) clearMessage.CanExecuteChanged.Invoke(clearMessage, EventArgs.Empty);
          }
@@ -138,7 +141,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          get => useTableEntryHeaders;
          set {
             if (!TryUpdate(ref useTableEntryHeaders, value)) return;
-            foreach(var tab in tabs) {
+            foreach (var tab in tabs) {
                if (tab is ViewPort viewModel) viewModel.UseCustomHeaders = useTableEntryHeaders;
             }
          }
@@ -157,6 +160,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (TryUpdate(ref infoMessage, value)) ShowMessage = !string.IsNullOrEmpty(InformationMessage);
          }
       }
+
+      public IToolTrayViewModel Tools => (SelectedTab as IViewPort)?.Tools;
 
       public event EventHandler<Action> RequestDelayedWork;
 
@@ -474,6 +479,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          GotoViewModel.PropertyChanged -= GotoPropertyChanged;
          GotoViewModel = new GotoControlViewModel(SelectedTab);
          GotoViewModel.PropertyChanged += GotoPropertyChanged;
+         NotifyPropertyChanged(nameof(Tools));
       }
 
       private void ForwardDelayedWork(object sender, Action e) => RequestDelayedWork?.Invoke(this, e);
@@ -485,6 +491,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
             if (!string.IsNullOrEmpty(oldName)) fileSystem.RemoveListenerForFile(oldName, viewPort.ConsiderReload);
             if (!string.IsNullOrEmpty(viewPort.FileName)) fileSystem.AddListenerToFile(viewPort.FileName, viewPort.ConsiderReload);
+         }
+
+         // when one tab's height updates, update other tabs by the same amount.
+         // this isn't perfect, since tabs shouldn't nessisarily change height at the same pixel.
+         // but it'll keep the tabs that are out of view from getting totally out of sync.
+         if (e.PropertyName == nameof(IViewPort.Height) && sender is IViewPort viewPort2) {
+            var args = (ExtendedPropertyChangedEventArgs)e;
+            var oldHeight = (int)args.OldValue;
+            var height = viewPort2.Height;
+            foreach (var tab in this) {
+               if (tab == viewPort2) continue;
+               if (!(tab is IViewPort viewPort3)) continue;
+               RemoveContentListeners(tab);
+               viewPort3.Height += height - oldHeight;
+               AddContentListeners(tab);
+            }
          }
       }
 

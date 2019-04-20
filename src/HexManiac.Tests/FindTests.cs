@@ -343,7 +343,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          editor.Find.Execute("This is the song");
          var resultsTab = (IViewPort)editor[editor.SelectedIndex];
-         resultsTab.FollowLink(0, 0);
+         resultsTab.FollowLink(0, 1);
 
          Assert.NotEqual(viewPort.SelectionStart, viewPort.SelectionEnd);
       }

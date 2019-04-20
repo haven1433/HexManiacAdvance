@@ -10,6 +10,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public interface IToolTrayViewModel : IReadOnlyList<IToolViewModel>, INotifyPropertyChanged {
       int SelectedIndex { get; set; }
 
+      ICommand HideCommand { get; }
+      ICommand StringToolCommand { get; }
+      ICommand TableToolCommand { get; }
+      ICommand Tool3Command { get; }
+
       PCSTool StringTool { get; }
 
       TableTool TableTool { get; }
@@ -17,6 +22,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       IDisposable DeferUpdates { get; }
 
       void Schedule(Action action);
+      void RefreshContent();
    }
 
    public class ToolTray : ViewModelCore, IToolTrayViewModel {
@@ -100,6 +106,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          } else {
             action();
          }
+      }
+
+      public void RefreshContent() {
+         TableTool.DataForCurrentRunChanged();
       }
 
       public IEnumerator<IToolViewModel> GetEnumerator() => tools.GetEnumerator();

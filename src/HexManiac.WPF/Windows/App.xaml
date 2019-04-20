@@ -21,7 +21,7 @@
                      BorderThickness="{TemplateBinding BorderThickness}"
                      BorderBrush="{TemplateBinding BorderBrush}"
                      Background="{TemplateBinding Background}">
-                     <ContentPresenter/>
+                     <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                   </Border>
                   <ControlTemplate.Triggers>
                      <Trigger SourceName="Border" Property="IsMouseOver" Value="True">

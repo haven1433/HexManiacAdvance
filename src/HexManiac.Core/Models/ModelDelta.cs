@@ -1,4 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -8,7 +10,7 @@ namespace HavenSoft.HexManiac.Core.Models {
    /// editing data, adding / removing formats / format names,
    /// and tracking pointers that lead to a name that isn't in the ROM yet.
    /// </summary>
-   public class ModelDelta {
+   public class ModelDelta : IChangeToken {
       private readonly Dictionary<int, byte> oldData = new Dictionary<int, byte>();
 
       private readonly Dictionary<int, IFormattedRun> addedRuns = new Dictionary<int, IFormattedRun>();
@@ -19,6 +21,9 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private readonly Dictionary<int, string> addedUnmappedPointers = new Dictionary<int, string>();
       private readonly Dictionary<int, string> removedUnmappedPointers = new Dictionary<int, string>();
+
+      public event EventHandler OnNewDataChange;
+      public bool HasDataChange { get; private set; }
 
       public int EarliestChange {
          get {
@@ -50,6 +55,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          model[index] = data;
+         if (!HasDataChange) {
+            HasDataChange = true;
+            OnNewDataChange?.Invoke(this, EventArgs.Empty);
+         }
       }
 
       public void AddRun(IFormattedRun run) {
@@ -89,7 +98,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public ModelDelta Revert(IDataModel model) {
-         var reverse = new ModelDelta();
+         var reverse = new ModelDelta { HasDataChange = HasDataChange };
 
          foreach (var kvp in oldData) {
             var (index, data) = (kvp.Key, kvp.Value);

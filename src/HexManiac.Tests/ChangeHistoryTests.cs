@@ -8,17 +8,24 @@ using System.Linq;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
+   public class FakeChangeToken : List<int>, IChangeToken {
+      public event EventHandler OnNewDataChange;
+      public bool HasDataChange => Count > 0;
+      public FakeChangeToken() { }
+      public FakeChangeToken(IEnumerable<int> data) : base(data) { }
+   }
+
    public class ChangeHistoryTests {
 
-      private readonly ChangeHistory<List<int>> history;
+      private readonly ChangeHistory<FakeChangeToken> history;
       private int callCount = 0;
       private List<int> recentChanges;
 
       public ChangeHistoryTests() {
-         history = new ChangeHistory<List<int>>(changes => {
+         history = new ChangeHistory<FakeChangeToken>(changes => {
             callCount++;
             recentChanges = changes;
-            return changes.Select(i => -i).ToList();
+            return new FakeChangeToken(changes.Select(i => -i));
          });
       }
 
@@ -146,8 +153,8 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void ThrowExceptionIfChangeStartsDuringUndo() {
          // setup a revert call that tries to access a change during revert
-         ChangeHistory<object> history = null;
-         history = new ChangeHistory<object>(token => history.CurrentChange.ToString());
+         ChangeHistory<FakeChangeToken> history = null;
+         history = new ChangeHistory<FakeChangeToken>(token => history.CurrentChange);
 
          history.CurrentChange.ToString(); // create current change
          Assert.Throws<InvalidOperationException>(() => history.Undo.Execute());
@@ -155,11 +162,11 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void ThrowExceptionIfChangeCompletedDuringUndo() {
-         ChangeHistory<object> history = null;
-         history = new ChangeHistory<object>(token => {
+         ChangeHistory<FakeChangeToken> history = null;
+         history = new ChangeHistory<FakeChangeToken>(token => {
             history.CurrentChange.ToString();
             history.ChangeCompleted();
-            return new object();
+            return new FakeChangeToken();
          });
 
          history.CurrentChange.ToString(); // create current change
