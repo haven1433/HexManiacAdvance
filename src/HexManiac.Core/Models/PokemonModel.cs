@@ -785,7 +785,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             } else {
                var childNames = run.ElementNames;
                if (childNames != null && childNames.Count > 0) {
-                  foreach(var childName in childNames) {
+                  foreach (var childName in childNames) {
                      var full = $"{name}{ArrayAnchorSeparator}{childName}";
                      if (IsPartialMatch(full, partial)) results.Add(full);
                   }

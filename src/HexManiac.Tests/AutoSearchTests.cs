@@ -85,11 +85,11 @@ namespace HavenSoft.HexManiac.Tests {
 
          var address = model.GetAddressFromAnchor(noChange, -1, "items");
          var run = (ArrayRun)model.GetNextAnchor(address);
-         if (game.Contains("Emerald"))   Assert.Equal(377, run.ElementCount);
-         if (game.Contains("FireRed"))   Assert.Equal(375, run.ElementCount);
+         if (game.Contains("Emerald")) Assert.Equal(377, run.ElementCount);
+         if (game.Contains("FireRed")) Assert.Equal(375, run.ElementCount);
          if (game.Contains("LeafGreen")) Assert.Equal(375, run.ElementCount);
-         if (game.Contains("Ruby"))      Assert.Equal(349, run.ElementCount);
-         if (game.Contains("Sapphire"))  Assert.Equal(349, run.ElementCount);
+         if (game.Contains("Ruby")) Assert.Equal(349, run.ElementCount);
+         if (game.Contains("Sapphire")) Assert.Equal(349, run.ElementCount);
       }
 
       [SkippableTheory]
@@ -100,11 +100,11 @@ namespace HavenSoft.HexManiac.Tests {
 
          var address = model.GetAddressFromAnchor(noChange, -1, "trainerclassnames");
          var run = (ArrayRun)model.GetNextAnchor(address);
-         if (game.Contains("Emerald"))   Assert.Equal(67, run.ElementCount);
-         if (game.Contains("FireRed"))   Assert.Equal(108, run.ElementCount);
+         if (game.Contains("Emerald")) Assert.Equal(67, run.ElementCount);
+         if (game.Contains("FireRed")) Assert.Equal(108, run.ElementCount);
          if (game.Contains("LeafGreen")) Assert.Equal(108, run.ElementCount);
-         if (game.Contains("Ruby"))      Assert.Equal(59, run.ElementCount);
-         if (game.Contains("Sapphire"))  Assert.Equal(59, run.ElementCount);
+         if (game.Contains("Ruby")) Assert.Equal(59, run.ElementCount);
+         if (game.Contains("Sapphire")) Assert.Equal(59, run.ElementCount);
       }
 
       [SkippableTheory]

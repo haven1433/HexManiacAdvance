@@ -544,7 +544,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var parallelLock = new object();
          var currentChange = history.CurrentChange;
          Parallel.ForEach(searchResults, result => {
-         // foreach (var result in searchResults) {
             var nextRun = Model.GetNextRun(result);
             if (nextRun.Start < result) return;
             if (nextRun.Start == result && !(nextRun is NoInfoRun)) return;
@@ -1114,7 +1113,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var visitedNames = new List<string>();
          while (arrayRun.LengthFromAnchor != string.Empty) {
-            if (visitedNames.Contains(arrayRun.LengthFromAnchor)){
+            if (visitedNames.Contains(arrayRun.LengthFromAnchor)) {
                // We kept going up the chain of tables but didn't find a top table. Either the table length definitions are circular or very deep.
                OnError?.Invoke(this, $"Could not extend table safely. Table length has a circular dependency involving {arrayRun.LengthFromAnchor}.");
                return;
@@ -1140,7 +1139,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          newRun = newRun.Append(1);
          Model.ObserveRunWritten(history.CurrentChange, newRun);
 
-         foreach(var child in GetDependantArrays(newRun)) {
+         foreach (var child in GetDependantArrays(newRun)) {
             ExtendArrayAndChildren(child);
          }
       }

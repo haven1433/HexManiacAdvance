@@ -141,7 +141,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          get => useTableEntryHeaders;
          set {
             if (!TryUpdate(ref useTableEntryHeaders, value)) return;
-            foreach(var tab in tabs) {
+            foreach (var tab in tabs) {
                if (tab is ViewPort viewModel) viewModel.UseCustomHeaders = useTableEntryHeaders;
             }
          }
@@ -500,7 +500,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var args = (ExtendedPropertyChangedEventArgs)e;
             var oldHeight = (int)args.OldValue;
             var height = viewPort2.Height;
-            foreach(var tab in this) {
+            foreach (var tab in this) {
                if (tab == viewPort2) continue;
                if (!(tab is IViewPort viewPort3)) continue;
                RemoveContentListeners(tab);

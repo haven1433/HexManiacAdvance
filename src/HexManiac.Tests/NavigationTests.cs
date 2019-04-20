@@ -210,11 +210,13 @@ namespace HavenSoft.HexManiac.Tests {
       public void GotoAutoCompleteNavigationCommandsWork() {
          var tab = new StubViewPort {
             Goto = new StubCommand { CanExecute = ICommandExtensions.CanAlwaysExecute },
-            Model = new StubDataModel { GetAutoCompleteAnchorNameOptions = str => new List<string> {
-               "Option 1",
-               "Option 2",
-               "Option 3",
-            } },
+            Model = new StubDataModel {
+               GetAutoCompleteAnchorNameOptions = str => new List<string> {
+                  "Option 1",
+                  "Option 2",
+                  "Option 3",
+               }
+            },
          };
          var viewModel = new GotoControlViewModel(tab);
 
