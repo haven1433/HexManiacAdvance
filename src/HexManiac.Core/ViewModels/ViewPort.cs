@@ -40,7 +40,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          get {
             var name = Path.GetFileNameWithoutExtension(FileName);
             if (string.IsNullOrEmpty(name)) name = "Untitled";
-            if (!history.IsSaved) name += "*";
+            if (history.HasDataChange) name += "*";
             return name;
          }
       }
@@ -192,9 +192,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void HistoryPropertyChanged(object sender, PropertyChangedEventArgs e) {
-         if (e.PropertyName != nameof(history.IsSaved)) return;
-         save.CanExecuteChanged.Invoke(save, EventArgs.Empty);
-         NotifyPropertyChanged(nameof(Name));
+         if (e.PropertyName == nameof(history.IsSaved)) save.CanExecuteChanged.Invoke(save, EventArgs.Empty);
+         if (e.PropertyName == nameof(history.HasDataChange)) NotifyPropertyChanged(nameof(Name));
       }
 
       #endregion

@@ -4,6 +4,11 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
+   public interface IChangeToken {
+      bool HasDataChange { get; }
+      event EventHandler OnNewDataChange;
+   }
+
    /// <summary>
    /// Represents a history of changes that can undo / redo.
    /// The change can be reperesented by any class with an empty constructor.
@@ -17,7 +22,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    /// However, since ChangeHistory is not responsible for saving, you have to tell it whenever the data is saved.
    /// This is accomplished via the TagAsSaved() method.
    /// </remarks>
-   public class ChangeHistory<T> : ViewModelCore where T : class, new() {
+   public class ChangeHistory<T> : ViewModelCore where T : class, IChangeToken, new() {
       private readonly Func<T, T> revert;
       private readonly StubCommand undo, redo;
       private readonly Stack<T>
@@ -43,6 +48,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (currentChange == null) {
                bool notifyIsSavedChanged = IsSaved;
                currentChange = new T();
+               currentChange.OnNewDataChange += OnCurrentTokenDataChanged;
                if (undoStack.Count == 0) undo.CanExecuteChanged.Invoke(undo, EventArgs.Empty);
                if (notifyIsSavedChanged) NotifyPropertyChanged(nameof(IsSaved));
             }
@@ -52,6 +58,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public bool IsSaved => undoStackSizeAtSaveTag == undoStack.Count && currentChange == null;
+
+      public bool HasDataChange {
+         get {
+            if (IsSaved) return false;
+            var addedElements = undoStack.Count - undoStackSizeAtSaveTag;
+            var undoItems = undoStack.ToArray();
+            var redoItems = redoStack.ToArray();
+            for (int i = 0; i < addedElements; i++) {
+               if (undoItems[undoStackSizeAtSaveTag + i].HasDataChange) return true;
+            }
+            for (int i = 0; i < -addedElements; i++) {
+               if (redoItems[redoItems.Length - 1 - i].HasDataChange) return true;
+            }
+            return currentChange?.HasDataChange ?? false;
+         }
+      }
 
       public ChangeHistory(Func<T, T> revertChange) {
          revert = revertChange;
@@ -69,18 +91,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (currentChange == null) return;
          VerifyRevertNotInProgress();
          undoStack.Push(currentChange);
+         currentChange.OnNewDataChange -= OnCurrentTokenDataChanged;
          currentChange = null;
       }
 
       public void TagAsSaved() {
          ChangeCompleted();
-         TryUpdate(ref undoStackSizeAtSaveTag, undoStack.Count, nameof(IsSaved));
+         if(TryUpdate(ref undoStackSizeAtSaveTag, undoStack.Count, nameof(IsSaved))) {
+            NotifyPropertyChanged(nameof(HasDataChange));
+         }
+      }
+
+      private void OnCurrentTokenDataChanged(object sender, EventArgs e) {
+         NotifyPropertyChanged(nameof(HasDataChange));
       }
 
       private void UndoExecuted() {
          ChangeCompleted();
          if (undoStack.Count == 0) return;
          bool previouslyWasSaved = IsSaved;
+         bool previouslyHadDataChanged = HasDataChange;
 
          using (CreateRevertScope()) {
             var originalChange = undoStack.Pop();
@@ -91,11 +121,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          if (previouslyWasSaved != IsSaved) NotifyPropertyChanged(nameof(IsSaved));
+         if (previouslyHadDataChanged != HasDataChange) NotifyPropertyChanged(nameof(HasDataChange));
       }
 
       private void RedoExecuted() {
          if (redoStack.Count == 0) return;
          bool previouslyWasSaved = IsSaved;
+         bool previouslyHadDataChanged = HasDataChange;
          VerifyRevertNotInProgress();
 
          using (CreateRevertScope()) {
@@ -107,6 +139,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          if (previouslyWasSaved != IsSaved) NotifyPropertyChanged(nameof(IsSaved));
+         if (previouslyHadDataChanged != HasDataChange) NotifyPropertyChanged(nameof(HasDataChange));
       }
 
       private void VerifyRevertNotInProgress([CallerMemberName]string caller = null) {

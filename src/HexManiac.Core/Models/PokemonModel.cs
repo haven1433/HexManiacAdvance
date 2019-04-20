@@ -426,15 +426,19 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override void ObserveAnchorWritten(ModelDelta changeToken, string anchorName, IFormattedRun run) {
          int location = run.Start;
          int index = BinarySearch(location);
-         if (index < 0) {
+
+         var existingRun = (index >= 0 && index < runs.Count) ? runs[index] : null;
+
+         if (existingRun == null) {
             // no format starts exactly at this anchor, so clear any format that goes over this anchor.
             ClearFormat(changeToken, location, run.Length);
          } else if (!(run is NoInfoRun)) {
-            // a format starts exactly at this anchor, but this new format may extend further. Clear everything but the anchor.
-            ClearFormat(changeToken, run.Start, run.Length);
+            // a format starts exactly at this anchor.
+            // but the new format may extend further. If so, clear the existing format.
+            if (existingRun.Length < run.Length) {
+               ClearFormat(changeToken, run.Start, run.Length);
+            }
          }
-
-         var existingRun = (index >= 0 && index < runs.Count) ? runs[index] : null;
 
          if (anchorForAddress.TryGetValue(location, out string oldAnchorName)) {
             anchorForAddress.Remove(location);
