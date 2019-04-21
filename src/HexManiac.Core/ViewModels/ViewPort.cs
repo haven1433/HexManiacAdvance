@@ -518,7 +518,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          // attempt to parse the search string fully
-         if (!TryParseSearchString(searchBytes, cleanedSearchString, errorOnParseError: results.Count == 0)) return results;
+         if (!TryParseSearchString(searchBytes, cleanedSearchString, errorOnParseError: results.Count == 0)) {
+            if (results.Count == 1) {
+               OnMessage?.Invoke(this, $"Found only 1 match for '{rawSearch}'.");
+            } else if (results.Count > 1) {
+               OnMessage?.Invoke(this, $"Found {results.Count} matches for '{rawSearch}'.");
+            }
+            return results;
+         }
 
          // find matches
          results.AddRange(Search(searchBytes).Select(result => (result, result + searchBytes.Count - 1)));
