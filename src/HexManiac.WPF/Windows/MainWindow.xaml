@@ -63,18 +63,6 @@
                   <Setter Property="HorizontalAlignment" Value="Right"/>
                   <Setter Property="DockPanel.Dock" Value="Right"/>
                   <Setter Property="Background" Value="{DynamicResource Backlight}"/>
-                  <!--<Style.Triggers>
-                     <Trigger Property="Visibility" Value="Visible">
-                        <Trigger.EnterActions>
-                           <BeginStoryboard>
-                              <Storyboard>
-                                 <ThicknessAnimation Storyboard.TargetProperty="Margin" From="0,0,40,0" To="0,0,0,0" Duration="0:0:0.2"/>
-                                 <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.2"/>
-                              </Storyboard>
-                           </BeginStoryboard>
-                        </Trigger.EnterActions>
-                     </Trigger>
-                  </Style.Triggers>-->
                </Style>
             </DockPanel.Resources>
             <!-- Menu -->
@@ -353,7 +341,9 @@
                                  </Style>
                               </DockPanel.Style>
                               <TextBlock Text="Address:" Margin="5,15,0,0" DockPanel.Dock="Top"/>
-                              <TextBox Text="{Binding StringTool.Address, Converter={StaticResource Hex}}" Margin="5" DockPanel.Dock="Top"/>
+                              <TextBox Text="{Binding StringTool.Address, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5" DockPanel.Dock="Top"/>
+                              <TextBlock DockPanel.Dock="Top" Text="{Binding StringTool.Message}" Width="255" HorizontalAlignment="Center" TextWrapping="Wrap" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
+                              <Button Command="{Binding StringTool.CheckIsText}" Content="Show As Text" HorizontalAlignment="Right" DockPanel.Dock="Top" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
                               <TextBlock Text="Content:" Margin="5,30,0,0" DockPanel.Dock="Top"/>
                               <TextBox Margin="5,5" AcceptsReturn="True" MinHeight="50" Width="255" TextWrapping="Wrap" FontFamily="Consolas" VerticalScrollBarVisibility="Auto"
                                  SelectionChanged="StringToolContentSelectionChanged"

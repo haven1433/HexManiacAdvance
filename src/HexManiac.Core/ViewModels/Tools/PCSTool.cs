@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Text;
+using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class PCSTool : ViewModelCore, IToolViewModel {
@@ -10,6 +11,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly Selection selection;
       private readonly ChangeHistory<ModelDelta> history;
       private readonly IToolTrayViewModel runner;
+      private readonly StubCommand checkIsText = new StubCommand();
       public string Name => "String";
 
       private int contentIndex;
@@ -26,6 +28,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set {
             if (TryUpdate(ref contentSelectionLength, value)) UpdateSelectionFromTool();
          }
+      }
+
+      public ICommand CheckIsText => checkIsText;
+
+      private bool showMessage;
+      public bool ShowMessage {
+         get => showMessage;
+         set {
+            if (TryUpdate(ref showMessage, value)) checkIsText.CanExecuteChanged?.Invoke(checkIsText, EventArgs.Empty);
+         }
+      }
+
+      private string message;
+      public string Message {
+         get => message;
+         set => TryUpdate(ref message, value);
       }
 
       private string content;
@@ -45,13 +63,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          get => address;
          set {
             var run = model.GetNextRun(value);
-            if (run.Start > value) return;
-            if (TryUpdate(ref address, run.Start)) {
+            if (TryUpdate(ref address, value)) {
                if (run is PCSRun || run is ArrayRun) {
                   runner.Schedule(DataForCurrentRunChanged);
                   Enabled = true;
+                  ShowMessage = false;
                } else {
                   Enabled = false;
+                  ShowMessage = true;
+                  Message = $"{address.ToString("X6")} does not appear to be text.";
                }
             }
          }
@@ -60,9 +80,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private bool enabled;
       public bool Enabled {
          get => enabled;
-         private set => TryUpdate(ref enabled, value);
+         private set {
+            if(TryUpdate(ref enabled, value)) {
+               if (!enabled) Content = string.Empty;
+            }
+         }
       }
 
+      public event EventHandler<string> OnError;
       public event EventHandler<IFormattedRun> ModelDataChanged;
       public event EventHandler<(int originalLocation, int newLocation)> ModelDataMoved;
 
@@ -71,6 +96,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          this.selection = selection;
          this.history = history;
          this.runner = runner;
+         checkIsText.CanExecute = arg => ShowMessage;
+         checkIsText.Execute = arg => {
+            var startPlaces = ViewPort.FindPossibleTextStartingPlaces(model, Address, 1);
+            var results = model.ConsiderResultsAsTextRuns(history.CurrentChange, startPlaces);
+            if (results == 0) {
+               OnError?.Invoke(this, $"Could not discover text at {address.ToString("X6")}.");
+            } else {
+               runner.Schedule(DataForCurrentRunChanged);
+               Enabled = true;
+               ShowMessage = false;
+               ModelDataChanged(this, model.GetNextRun(address));
+            }
+         };
       }
 
       public void DataForCurrentRunChanged() {
@@ -115,9 +153,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private void UpdateSelectionFromTool() {
          var run = model.GetNextRun(Address);
          if (!(run is ArrayRun) && !(run is PCSRun)) return;
-
-         // for simple strings, the address must be at the start of the run
-         if (run is PCSRun && run.Start != Address) return;
 
          // for arrays, the address must be at the start of a string segment within the first element of the array
          if (run is ArrayRun arrayRun) {

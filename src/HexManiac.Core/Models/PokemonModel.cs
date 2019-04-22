@@ -557,6 +557,35 @@ namespace HavenSoft.HexManiac.Core.Models {
          ClearFormat(changeToken, originalStart, length, alsoClearData: true);
       }
 
+      // for each of the results, we recognized it as text: see if we need to add a matching string run / pointers
+      public override int ConsiderResultsAsTextRuns(ModelDelta currentChange, IReadOnlyList<int> searchResults) {
+         int resultsRecognizedAsTextRuns = 0;
+         var parallelLock = new object();
+         Parallel.ForEach(searchResults, result => {
+            var run = ConsiderAddressAsText(this, result, currentChange);
+            if (run != null) {
+               lock (parallelLock) {
+                  ObserveAnchorWritten(currentChange, string.Empty, run);
+                  resultsRecognizedAsTextRuns++;
+               }
+            }
+         });
+
+         return resultsRecognizedAsTextRuns;
+      }
+
+      public static PCSRun ConsiderAddressAsText(IDataModel model, int address, ModelDelta currentChange) {
+         var nextRun = model.GetNextRun(address);
+         if (nextRun.Start < address) return null;
+         if (nextRun.Start == address && !(nextRun is NoInfoRun)) return null;
+         var pointers = model.SearchForPointersToAnchor(currentChange, address);
+         if (pointers.Count == 0) return null;
+         var length = PCSString.ReadString(model, address, true);
+         if (length < 1) return null;
+         if (address + length > nextRun.Start && nextRun.Start != address) return null;
+         return new PCSRun(address, length, pointers);
+      }
+
       private void ClearFormat(ModelDelta changeToken, int originalStart, int length, bool alsoClearData) {
          int start = originalStart;
          for (var run = GetNextRun(start); length > 0 && run != null; run = GetNextRun(start)) {

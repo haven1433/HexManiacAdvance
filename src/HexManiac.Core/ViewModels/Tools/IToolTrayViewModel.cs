@@ -21,6 +21,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       IDisposable DeferUpdates { get; }
 
+      event EventHandler<string> OnError;
+
       void Schedule(Action action);
       void RefreshContent();
    }
@@ -70,6 +72,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
+      public event EventHandler<string> OnError;
+
       public ToolTray(IDataModel model, Selection selection, ChangeHistory<ModelDelta> history) {
          tools = new IToolViewModel[] {
             new PCSTool(model, selection, history, this),
@@ -98,6 +102,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          };
 
          SelectedIndex = -1;
+
+         StringTool.OnError += (sender, e) => OnError?.Invoke(this, e);
       }
 
       public void Schedule(Action action) {

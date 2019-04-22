@@ -340,6 +340,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          selection.OnError += (sender, e) => OnError?.Invoke(this, e);
 
          Tools = new ToolTray(Model, selection, history);
+         Tools.OnError += (sender, e) => OnError?.Invoke(this, e);
          Tools.StringTool.ModelDataChanged += ModelChangedByTool;
          Tools.StringTool.ModelDataMoved += ModelDataMovedByTool;
          Tools.TableTool.ModelDataChanged += ModelChangedByTool;
@@ -384,6 +385,38 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          close.CanExecute = CanAlwaysExecute;
          close.Execute = arg => CloseExecuted((IFileSystem)arg);
+      }
+
+      public static List<int> FindPossibleTextStartingPlaces(IDataModel model, int left, int length) {
+         // part 1: find a previous FF, which is possibly the end of another text
+         while (model[left] != 0xFF && PCSString.PCS[model[left]] != null) { left--; length++; }
+         left++; length--;
+
+         // part 2: jump forward past any known runs that we're interupting
+         while (true) {
+            var run = model.GetNextRun(left);
+            if (run.Start >= left) break;
+            length -= left - run.Start;
+            left = run.Start + run.Length;
+         }
+
+         // part 3: look for possible starting locations:
+         // (1) places that start directly after FF
+         // (2) places that start with a NoInfoRun
+         var startPlaces = new List<int>();
+         while (length > 0) {
+            startPlaces.Add(left);
+            var run = model.GetNextRun(left);
+            if (run is NoInfoRun) startPlaces.Add(run.Start);
+            if (!(run is NoInfoRun)) break;
+            while (model[left] != 0xFF) { left++; length--; }
+            left++; length--;
+         }
+
+         // remove duplicates and make sure everything is in order
+         startPlaces.Sort();
+         startPlaces = startPlaces.Distinct().ToList();
+         return startPlaces;
       }
 
       public Point ConvertAddressToViewPoint(int address) => scroll.DataIndexToViewPoint(address);
@@ -506,7 +539,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (pcsBytes.Count == cleanedSearchString.Length) {
                searchBytes.AddRange(pcsBytes.Select(b => new PCSSearchByte(b)));
                var textResults = Search(searchBytes).ToList();
-               ConsiderResultsAsTextRuns(textResults);
+               Model.ConsiderResultsAsTextRuns(history.CurrentChange, textResults);
                results.AddRange(textResults.Select(result => (result, result + pcsBytes.Count - 1)));
             }
          }
@@ -542,30 +575,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             OnMessage?.Invoke(this, $"Found {results.Count} matches for '{rawSearch}'.");
          }
          return results;
-      }
-
-      // for each of the results, we recognized it as text: see if we need to add a matching string run / pointers
-      private int ConsiderResultsAsTextRuns(IEnumerable<int> searchResults) {
-         int resultsRecognizedAsTextRuns = 0;
-         var parallelLock = new object();
-         var currentChange = history.CurrentChange;
-         Parallel.ForEach(searchResults, result => {
-            var nextRun = Model.GetNextRun(result);
-            if (nextRun.Start < result) return;
-            if (nextRun.Start == result && !(nextRun is NoInfoRun)) return;
-            var pointers = Model.SearchForPointersToAnchor(currentChange, result);
-            if (pointers.Count == 0) return;
-            var length = PCSString.ReadString(Model, result, true);
-            if (length < 1) return;
-            if (result + length > nextRun.Start && nextRun.Start != result) return;
-            var newRun = new PCSRun(result, length, pointers);
-            lock (parallelLock) {
-               Model.ObserveAnchorWritten(history.CurrentChange, string.Empty, newRun);
-               resultsRecognizedAsTextRuns++;
-            }
-         });
-
-         return resultsRecognizedAsTextRuns;
       }
 
       private byte[] Parse(string content) {
@@ -788,38 +797,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
          var left = Math.Min(selectionStart, selectionEnd);
          var length = Math.Abs(selectionEnd - selectionStart) + 1;
-
-         // part 1: find a previous FF, which is possibly the end of another text
-         while (Model[left] != 0xFF && PCSString.PCS[Model[left]] != null) { left--; length++; }
-         left++; length--;
-
-         // part 2: jump forward past any known runs that we're interupting
-         while (true) {
-            var run = Model.GetNextRun(left);
-            if (run.Start >= left) break;
-            length -= left - run.Start;
-            left = run.Start + run.Length;
-         }
-
-         // part 3: look for possible starting locations:
-         // (1) places that start directly after FF
-         // (2) places that start with a NoInfoRun
-         var startPlaces = new List<int>();
-         while (length > 0) {
-            startPlaces.Add(left);
-            var run = Model.GetNextRun(left);
-            if (run is NoInfoRun) startPlaces.Add(run.Start);
-            if (!(run is NoInfoRun)) break;
-            while (Model[left] != 0xFF) { left++; length--; }
-            left++; length--;
-         }
-
-         // remove duplicates and make sure everything is in order
-         startPlaces.Sort();
-         startPlaces = startPlaces.Distinct().ToList();
+         var startPlaces = FindPossibleTextStartingPlaces(Model, left, length);
 
          // do the actual search now that we know places to start
-         var foundCount = ConsiderResultsAsTextRuns(startPlaces);
+         var foundCount = Model.ConsiderResultsAsTextRuns(history.CurrentChange, startPlaces);
          if (foundCount == 0) {
             OnError?.Invoke(this, "Failed to automatically find text at that location.");
          } else {
@@ -1222,7 +1203,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          // if it's an unnamed text anchor, we have special logic for that
          if (underEdit.CurrentText == "^\"\" ") {
-            int count = ConsiderResultsAsTextRuns(new[] { index });
+            int count = Model.ConsiderResultsAsTextRuns(history.CurrentChange, new[] { index });
             if (count == 0) {
                errorInfo = new ErrorInfo("An anchor with nothing pointing to it must have a name.");
             } else {

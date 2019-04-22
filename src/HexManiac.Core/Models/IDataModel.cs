@@ -52,6 +52,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial);
       StoredMetadata ExportMetadata();
       void UpdateArrayPointer(ModelDelta changeToken, int address, int destination);
+      int ConsiderResultsAsTextRuns(ModelDelta changeToken, IReadOnlyList<int> startLocations);
    }
 
    public abstract class BaseModel : IDataModel {
@@ -123,6 +124,11 @@ namespace HavenSoft.HexManiac.Core.Models {
       public int ReadPointer(int index) => ReadValue(index) - PointerOffset;
 
       public void WritePointer(ModelDelta changeToken, int address, int pointerDestination) => WriteValue(changeToken, address, pointerDestination + PointerOffset);
+
+      /// <summary>
+      /// Returns the number of new runs found.
+      /// </summary>
+      public virtual int ConsiderResultsAsTextRuns(ModelDelta changeToken, IReadOnlyList<int> startLocations) => 0;
 
       public virtual IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial) => new string[0];
 

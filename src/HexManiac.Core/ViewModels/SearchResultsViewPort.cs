@@ -233,6 +233,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public TableTool TableTool => null;
 
       public IDisposable DeferUpdates => new StubDisposable();
+      public event EventHandler<string> OnError;
       public event PropertyChangedEventHandler PropertyChanged;
       public void Schedule(Action action) => action();
       public void RefreshContent() { }
