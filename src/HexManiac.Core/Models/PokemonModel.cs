@@ -296,6 +296,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override IFormattedRun GetNextRun(int dataIndex) {
+         if (dataIndex == Pointer.NULL) return NoInfoRun.NullRun;
          var index = BinarySearch(dataIndex);
          if (index < 0) {
             index = ~index;

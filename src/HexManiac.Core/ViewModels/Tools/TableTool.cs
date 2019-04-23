@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Windows.Input;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
@@ -11,7 +12,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly Selection selection;
       private readonly ChangeHistory<ModelDelta> history;
       private readonly IToolTrayViewModel toolTray;
-      private ArrayRun currentArray;
 
       public string Name => "Table";
 
@@ -36,21 +36,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public int Address {
          get => address;
          set {
-            var run = model.GetNextRun(value);
-            if (run.Start > value || !(run is ArrayRun array)) {
-               Enabled = false;
-               currentArray = null;
-               CommandCanExecuteChanged();
-               return;
-            }
-
-            var offsets = array.ConvertByteOffsetToArrayOffset(value);
-            value = array.Start + array.ElementLength * offsets.ElementIndex;
             if (TryUpdate(ref address, value)) {
-               toolTray.Schedule(DataForCurrentRunChanged);
-               currentArray = array;
+               var run = model.GetNextRun(value);
+               if (run.Start > value || !(run is ArrayRun array)) {
+                  Enabled = false;
+                  CommandCanExecuteChanged();
+                  return;
+               }
+
                CommandCanExecuteChanged();
                Enabled = true;
+               toolTray.Schedule(DataForCurrentRunChanged);
             }
          }
       }
@@ -73,18 +69,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Children = new ObservableCollection<IArrayElementViewModel>();
 
          previous = new StubCommand {
-            CanExecute = parameter => currentArray != null && currentArray.Start < address,
+            CanExecute = parameter => {
+               var array = model.GetNextRun(address) as ArrayRun;
+               return array != null && array.Start < address;
+            },
             Execute = parameter => {
-               selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(Address - currentArray.ElementLength);
-               selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selection.Scroll.ViewPointToDataIndex(selection.SelectionStart) + currentArray.ElementLength - 1);
+               var array = (ArrayRun)model.GetNextRun(address);
+               selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(Address - array.ElementLength);
+               selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selection.Scroll.ViewPointToDataIndex(selection.SelectionStart) + array.ElementLength - 1);
             }
          };
 
          next = new StubCommand {
-            CanExecute = parameter => currentArray != null && currentArray.Start + currentArray.Length > address + currentArray.ElementLength,
+            CanExecute = parameter => {
+               var array = model.GetNextRun(address) as ArrayRun;
+               return array != null && array.Start + array.Length > address + array.ElementLength;
+            },
             Execute = parameter => {
-               selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(Address + currentArray.ElementLength);
-               selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selection.Scroll.ViewPointToDataIndex(selection.SelectionStart) + currentArray.ElementLength - 1);
+               var array = (ArrayRun)model.GetNextRun(address);
+               selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(Address + array.ElementLength);
+               selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selection.Scroll.ViewPointToDataIndex(selection.SelectionStart) + array.ElementLength - 1);
             }
          };
 
@@ -130,6 +134,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
-      private void ForwardModelChanged(object sender, EventArgs e) => ModelDataChanged?.Invoke(this, currentArray);
+      private void ForwardModelChanged(object sender, EventArgs e) => ModelDataChanged?.Invoke(this, model.GetNextRun(Address));
    }
 }

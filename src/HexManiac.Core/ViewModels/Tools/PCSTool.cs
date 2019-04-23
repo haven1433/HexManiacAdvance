@@ -124,8 +124,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var segment = array.ElementContent[offsets.SegmentIndex];
             if (segment.Type == ElementContentType.PCS) {
                var lines = new string[array.ElementCount];
+               var textStart = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength; // the starting address of the first text element
                for (int i = 0; i < lines.Length; i++) {
-                  var newContent = PCSString.Convert(model, offsets.SegmentStart + i * array.ElementLength, segment.Length).Trim();
+                  var newContent = PCSString.Convert(model, textStart + i * array.ElementLength, segment.Length)?.Trim() ?? string.Empty;
                   newContent = RemoveQuotes(newContent);
                   lines[i] = newContent;
                }
@@ -135,7 +136,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                      builder.Append(lines[i]);
                      if (i != lines.Length - 1) builder.Append(Environment.NewLine);
                   }
-                  TryUpdate(ref content, builder.ToString(), nameof(Content));
+
+                  // guard to prevent selection updates due to data changes from other tools/the main view
+                  ignoreSelectionUpdates = true;
+                  using (new StubDisposable { Dispose = () => ignoreSelectionUpdates = false }) {
+                     TryUpdate(ref content, builder.ToString(), nameof(Content));
+                  }
                }
             }
             return;
@@ -145,12 +151,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private string RemoveQuotes(string newContent) {
+         if (newContent.Length == 0) return newContent;
          newContent = newContent.Substring(1);
          if (newContent.EndsWith("\"")) newContent = newContent.Substring(0, newContent.Length - 1);
          return newContent;
       }
 
+      private bool ignoreSelectionUpdates;
       private void UpdateSelectionFromTool() {
+         if (ignoreSelectionUpdates) return;
          var run = model.GetNextRun(Address);
          if (!(run is ArrayRun) && !(run is PCSRun)) return;
 
@@ -158,8 +167,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (run is ArrayRun arrayRun) {
             var offset = arrayRun.ConvertByteOffsetToArrayOffset(Address);
             if (arrayRun.ElementContent[offset.SegmentIndex].Type != ElementContentType.PCS) return;  // must be a string
-            if (offset.ElementIndex != 0) return;                                                     // must be first element
-            if (offset.SegmentOffset != 0) return;                                                    // must be start of the segment
          }
 
          var content = Content;
@@ -172,12 +179,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             selectionStart = PCSString.Convert(content.Substring(0, selectionStart)).Count - 1 + run.Start; // remove 1 byte since the 0xFF was added on
          } else if (run is ArrayRun array) {
             var offset = array.ConvertByteOffsetToArrayOffset(Address);
+            var textStart = offset.SegmentStart - offset.ElementIndex * array.ElementLength; // the starting address of the first text element
             var leadingLines = content.Substring(0, contentIndex).Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-            selectionStart = offset.SegmentStart + (leadingLines.Length - 1) * array.ElementLength + leadingLines[leadingLines.Length - 1].Length;
+            selectionStart = textStart + (leadingLines.Length - 1) * array.ElementLength + leadingLines[leadingLines.Length - 1].Length;
 
             selectionLength = Math.Max(0, selectionLength - 1); // decrease by one since a selection of 0 and selection of 1 have no difference
             var afterLines = content.Substring(0, contentIndex + selectionLength).Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-            var selectionEnd = offset.SegmentStart + (afterLines.Length - 1) * array.ElementLength + afterLines[afterLines.Length - 1].Length;
+            var selectionEnd = textStart + (afterLines.Length - 1) * array.ElementLength + afterLines[afterLines.Length - 1].Length;
             selectionLength = selectionEnd - selectionStart;
          }
 

@@ -4,6 +4,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -138,8 +139,62 @@ namespace HavenSoft.HexManiac.Tests {
 
          tool.Address = 18;
 
-         Assert.Equal(16, tool.Address); // coerce to the closest run
+         Assert.Equal(18, tool.Address); // address updated correctly
          Assert.False(tool.Enabled);     // run is not one that this tool knows how to edit
+      }
+
+      [Fact]
+      public void TableToolUpdatesWhenTextToolDataChanges() {
+         // Arrange
+         var data = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         var model = new PokemonModel(data);
+         var viewPort = new ViewPort("name.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort.Edit("^array[name\"\"16]3 ");
+         viewPort.SelectionStart = new Point(8, 1);
+
+         // Act: Update via the Text Tool
+         viewPort.Tools.SelectedIndex = Enumerable.Range(0, 10).First(i => viewPort.Tools[i] == viewPort.Tools.StringTool);
+         viewPort.Tools.StringTool.Content = Environment.NewLine + "Larry";
+
+         // Assert: Table Tool is updated
+         viewPort.Tools.SelectedIndex = Enumerable.Range(0, 10).First(i => viewPort.Tools[i] == viewPort.Tools.TableTool);
+         var field = (FieldArrayElementViewModel)viewPort.Tools.TableTool.Children[0];
+         Assert.Equal("Larry", field.Content);
+      }
+
+      [Fact]
+      public void TextToolToolUpdatesWhenTableToolDataChanges() {
+         // Arrange
+         var data = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         var model = new PokemonModel(data);
+         var viewPort = new ViewPort("name.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort.Edit("^array[name\"\"16]3 ");
+         viewPort.SelectionStart = new Point(8, 1);
+
+         // Act: Update via the Table Tool
+         viewPort.Tools.SelectedIndex = Enumerable.Range(0, 10).First(i => viewPort.Tools[i] == viewPort.Tools.TableTool);
+         var field = (FieldArrayElementViewModel)viewPort.Tools.TableTool.Children[0];
+         field.Content = "Larry";
+
+         // Assert: Text Tool is updated
+         viewPort.Tools.SelectedIndex = Enumerable.Range(0, 10).First(i => viewPort.Tools[i] == viewPort.Tools.StringTool);
+         var textToolContent = viewPort.Tools.StringTool.Content.Split(new[] { Environment.NewLine }, StringSplitOptions.None)[1];
+         Assert.Equal("Larry", textToolContent);
+      }
+
+      [Fact]
+      public void TableToolUpdatesIndexOnCursorMove() {
+         // Arrange
+         var data = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         var model = new PokemonModel(data);
+         var viewPort = new ViewPort("name.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort.Edit("^array[name\"\"16]3 ");
+
+         // Act: move the cursor to change the selected table item
+         viewPort.SelectionStart = new Point(8, 1);
+
+         // Assert: table item index 1 is selected
+         Assert.Contains("1", viewPort.Tools.TableTool.CurrentElementName);
       }
    }
 }
