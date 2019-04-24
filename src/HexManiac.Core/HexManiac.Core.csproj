@@ -41,6 +41,7 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="..\SharedAssemblyInfo.cs" />
     <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubCommand.cs" />
+    <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubComparer`1.cs" />
     <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubDisposable.cs" />
     <Compile Include="ICommandExtensions.cs" />
     <Compile Include="Models\Runs\ArrayRun.cs" />
@@ -94,8 +95,9 @@ if not exist $(SolutionDir)artifacts\$(AssemblyName)\codegen mkdir $(SolutionDir
 $(SolutionDir)packages\HavenSoft.AutoImplement.1.1.1\AutoImplement "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" ICommand
 move /Y StubCommand.cs  $(SolutionDir)artifacts\$(AssemblyName)\codegen
 
-$(SolutionDir)packages\HavenSoft.AutoImplement.1.1.1\AutoImplement "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" IDisposable
+$(SolutionDir)packages\HavenSoft.AutoImplement.1.1.1\AutoImplement "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" IDisposable IComparer`1
 move /Y StubDisposable.cs $(SolutionDir)artifacts\$(AssemblyName)\codegen
+move /Y StubComparer`1.cs $(SolutionDir)artifacts\$(AssemblyName)\codegen
 
 del *.cs</PreBuildEvent>
   </PropertyGroup>

@@ -196,5 +196,29 @@ namespace HavenSoft.HexManiac.Tests {
          // Assert: table item index 1 is selected
          Assert.Contains("1", viewPort.Tools.TableTool.CurrentElementName);
       }
+
+      [Fact]
+      public void ContentUpdateFromAnotherToolDoesNotResetCaretInStringTool() {
+         // Arrange
+         var data = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         var model = new PokemonModel(data);
+         var viewPort = new ViewPort("name.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort.Edit("^array[name\"\"16]3 ");
+
+         // mock the view: whenever the stringtool content changes,
+         // reset the cursor to the start position.
+         viewPort.Tools.StringTool.PropertyChanged += (sender, e) => {
+            if (e.PropertyName == "Content") viewPort.Tools.StringTool.ContentIndex = 0;
+         };
+
+         viewPort.SelectionStart = new Point(8, 1);                                                                         // move the cursor
+         viewPort.Tools.SelectedIndex = Enumerable.Range(0, 10).First(i => viewPort.Tools[i] == viewPort.Tools.StringTool); // open the string tool
+         viewPort.Tools.StringTool.ContentIndex = 12;                                                                       // place the cursor somewhere, like the UI would
+         viewPort.Tools.SelectedIndex = Enumerable.Range(0, 10).First(i => viewPort.Tools[i] == viewPort.Tools.TableTool);  // open the table tool
+         var field = (FieldArrayElementViewModel)viewPort.Tools.TableTool.Children[0];
+         field.Content = "Larry";                                                                                           // make a change with the table tool
+
+         Assert.NotEqual(new Point(), viewPort.SelectionStart);
+      }
    }
 }

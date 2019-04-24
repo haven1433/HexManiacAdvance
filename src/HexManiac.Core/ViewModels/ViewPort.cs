@@ -532,16 +532,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          // it might be a string with no quotes, we should check for matches for that.
          if (cleanedSearchString.Length > 3 && !cleanedSearchString.Contains(StringDelimeter) && !cleanedSearchString.All(AllHexCharacters.Contains)) {
-            var pcsBytes = PCSString.Convert(cleanedSearchString);
-            pcsBytes.RemoveAt(pcsBytes.Count - 1); // remove the 0xFF that was added, since we're searching for a string segment instead of a whole string.
-
-            // only search for the string if every character in the search string is allowed
-            if (pcsBytes.Count == cleanedSearchString.Length) {
-               searchBytes.AddRange(pcsBytes.Select(b => new PCSSearchByte(b)));
-               var textResults = Search(searchBytes).ToList();
-               Model.ConsiderResultsAsTextRuns(history.CurrentChange, textResults);
-               results.AddRange(textResults.Select(result => (result, result + pcsBytes.Count - 1)));
-            }
+            results.AddRange(FindUnquotedText(cleanedSearchString, searchBytes));
          }
 
          // it might be a pointer without angle braces
@@ -551,30 +542,73 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          // attempt to parse the search string fully
-         if (!TryParseSearchString(searchBytes, cleanedSearchString, errorOnParseError: results.Count == 0)) {
-            if (results.Count == 1) {
-               OnMessage?.Invoke(this, $"Found only 1 match for '{rawSearch}'.");
-            } else if (results.Count > 1) {
-               OnMessage?.Invoke(this, $"Found {results.Count} matches for '{rawSearch}'.");
-            }
-            return results;
+         if (TryParseSearchString(searchBytes, cleanedSearchString, errorOnParseError: results.Count == 0)) {
+            // find matches
+            results.AddRange(Search(searchBytes).Select(result => (result, result + searchBytes.Count - 1)));
          }
 
-         // find matches
-         results.AddRange(Search(searchBytes).Select(result => (result, result + searchBytes.Count - 1)));
-
          // reorder the list to start at the current cursor position
-         results.Sort();
+         results.Sort(new StubComparer<(int start, int end)> { Compare = (x, y) => x.start.CompareTo(y.start) });
          var offset = scroll.ViewPointToDataIndex(SelectionStart);
          var left = results.Where(result => result.start < offset);
          var right = results.Where(result => result.start >= offset);
          results = right.Concat(left).ToList();
-         if (results.Count == 1) {
-            OnMessage?.Invoke(this, $"Found only 1 match for '{rawSearch}'.");
-         } else {
-            OnMessage?.Invoke(this, $"Found {results.Count} matches for '{rawSearch}'.");
-         }
+         NotifyNumberOfResults(rawSearch, results.Count);
          return results;
+      }
+
+      private IEnumerable<(int start, int end)> FindUnquotedText(string cleanedSearchString, List<ISearchByte> searchBytes) {
+         var pcsBytes = PCSString.Convert(cleanedSearchString);
+         pcsBytes.RemoveAt(pcsBytes.Count - 1); // remove the 0xFF that was added, since we're searching for a string segment instead of a whole string.
+
+         // only search for the string if every character in the search string is allowed
+         if (pcsBytes.Count != cleanedSearchString.Length) yield break;
+
+         searchBytes.AddRange(pcsBytes.Select(b => new PCSSearchByte(b)));
+         var textResults = Search(searchBytes).ToList();
+         Model.ConsiderResultsAsTextRuns(history.CurrentChange, textResults);
+         foreach (var result in textResults) {
+            // if the result is in an array, we care about things that use that array
+            if (Model.GetNextRun(result) is ArrayRun parentArray && parentArray.LengthFromAnchor == string.Empty) {
+               var offsets = parentArray.ConvertByteOffsetToArrayOffset(result);
+               var parentArrayName = Model.GetAnchorFromAddress(-1, parentArray.Start);
+               if (offsets.SegmentIndex == 0 && parentArray.ElementContent[offsets.SegmentIndex].Type == ElementContentType.PCS) {
+                  foreach (var child in Model.Arrays) {
+                     // option 1: another table has a row named after this element
+                     if (child.LengthFromAnchor == parentArrayName) {
+                        var address = child.Start + child.ElementLength * offsets.ElementIndex;
+                        yield return (address, address + child.ElementLength - 1);
+                     }
+
+                     // option 2: another table has an enum named after this element
+                     var segmentOffset = 0;
+                     foreach (var segment in child.ElementContent) {
+                        if (!(segment is ArrayRunEnumSegment enumSegment) || enumSegment.EnumName != parentArrayName) {
+                           segmentOffset += segment.Length;
+                           continue;
+                        }
+                        for (int i = 0; i < child.ElementCount; i++) {
+                           var address = child.Start + child.ElementLength * i + segmentOffset;
+                           var enumValue = Model.ReadMultiByteValue(address, segment.Length);
+                           if (enumValue != offsets.ElementIndex) continue;
+                           yield return (address, address + segment.Length - 1);
+                        }
+                        segmentOffset += segment.Length;
+                     }
+                  }
+               }
+            }
+
+            yield return (result, result + pcsBytes.Count - 1);
+         }
+      }
+
+      private void NotifyNumberOfResults(string rawSearch, int results) {
+         if (results == 1) {
+            OnMessage?.Invoke(this, $"Found only 1 match for '{rawSearch}'.");
+         } else if (results > 1) {
+            OnMessage?.Invoke(this, $"Found {results} matches for '{rawSearch}'.");
+         }
       }
 
       private byte[] Parse(string content) {
@@ -1126,15 +1160,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          newRun = newRun.Append(1);
          Model.ObserveRunWritten(history.CurrentChange, newRun);
 
-         foreach (var child in GetDependantArrays(newRun)) {
+         foreach (var child in Model.GetDependantArrays(newRun)) {
             ExtendArrayAndChildren(child);
-         }
-      }
-
-      private IEnumerable<ArrayRun> GetDependantArrays(ArrayRun parent) {
-         var anchor = Model.GetAnchorFromAddress(-1, parent.Start);
-         foreach (var array in Model.Arrays) {
-            if (array.LengthFromAnchor == anchor) yield return array;
          }
       }
 

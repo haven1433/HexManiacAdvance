@@ -155,6 +155,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
+      /// <summary>
+      /// Returns the array by the given name, if it exists
+      /// </summary>
       public static bool TryGetNameArray(this IDataModel model, string anchorName, out ArrayRun array) {
          array = null;
 
@@ -170,6 +173,16 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (firstContent.Type != ElementContentType.PCS) return false;
 
          return true;
+      }
+
+      /// <summary>
+      /// Returns all arrays from the model with a length that depends on the parent array.
+      /// </summary>
+      public static IEnumerable<ArrayRun> GetDependantArrays(this IDataModel model, ArrayRun parent) {
+         var anchor = model.GetAnchorFromAddress(-1, parent.Start);
+         foreach (var array in model.Arrays) {
+            if (array.LengthFromAnchor == anchor) yield return array;
+         }
       }
    }
 

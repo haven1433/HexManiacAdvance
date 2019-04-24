@@ -139,6 +139,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       // if asked to search the search results... just don't
       public IReadOnlyList<(int, int)> Find(string search) => new (int, int)[0];
 
+      public bool UseCustomHeaders {
+         get => children.FirstOrDefault()?.UseCustomHeaders ?? false;
+         set {
+            children.ForEach(child => child.UseCustomHeaders = value);
+            UpdateHeaders();
+         }
+      }
+
       public bool IsSelected(Point point) {
          var (x, y) = (point.X, point.Y);
          if (y < 0 || y > height || x < 0 || x > width) return false;

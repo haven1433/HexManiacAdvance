@@ -12,7 +12,7 @@ using static HavenSoft.HexManiac.Core.ICommandExtensions;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
    public class EditorViewModel : ViewModelCore, IEnumerable<ITabContent>, INotifyCollectionChanged {
-      private const int MaxReasonableResults = 200; // limit for performance reasons
+      private const int MaxReasonableResults = 400; // limit for performance reasons
 
       private readonly IFileSystem fileSystem;
       private readonly List<ITabContent> tabs;
@@ -327,7 +327,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          SelectedIndex = tabs.Count - 1;
          CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, content));
          AddContentListeners(content);
-         if (content is ViewPort viewModel) viewModel.UseCustomHeaders = useTableEntryHeaders;
+         if (content is IViewPort viewModel) viewModel.UseCustomHeaders = useTableEntryHeaders;
       }
 
       public void SwapTabs(int a, int b) {
