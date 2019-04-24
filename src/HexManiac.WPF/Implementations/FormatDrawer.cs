@@ -43,7 +43,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          var typeface = new Typeface("Consolas");
 
          var content = dataFormat.CurrentText;
-         if (content.Length > 12) content = "…" + content.Substring(content.Length - 11);
+         // if (content.Length > 12) content = "…" + content.Substring(content.Length - 11);
 
          var text = new FormattedText(
             content,
@@ -54,7 +54,17 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             brush,
             1.0);
 
-         context.DrawText(text, CellTextOffset);
+         var offset = CellTextOffset;
+         var widthOverflow = text.Width - HexContent.CellWidth * dataFormat.EditWidth;
+         if (widthOverflow > 0) {
+            // make it right aligned
+            offset.X -= widthOverflow;
+            context.PushClip(new RectangleGeometry(new Rect(new Size(HexContent.CellWidth * dataFormat.EditWidth, HexContent.CellHeight))));
+            context.DrawText(text, new Point(-widthOverflow, CellTextOffset.Y));
+            context.Pop();
+         } else {
+            context.DrawText(text, CellTextOffset);
+         }
       }
 
       public void Visit(Pointer dataFormat, byte data) {

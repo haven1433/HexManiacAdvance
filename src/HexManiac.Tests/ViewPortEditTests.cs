@@ -336,5 +336,24 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x20, model[0]);
          Assert.NotInRange(model.GetNextRun(0).Start, 0, 0x200);
       }
+
+      [Fact]
+      public void UnderEditCellsKnowTheirEditLength() {
+         var model = new PokemonModel(new byte[0x200]);
+         var viewModel = new ViewPort(string.Empty, model) { Width = 0x10, Height = 0x10 };
+         viewModel.Edit("^array[a: b. c. d<>]4 ");
+
+         viewModel.SelectionStart = new Point(0, 0);
+         viewModel.Edit("2");
+         Assert.Equal(2, ((UnderEdit)viewModel[0,0].Format).EditWidth);
+
+         viewModel.SelectionStart = new Point(6, 0);
+         viewModel.Edit("2");
+         Assert.Equal(4, ((UnderEdit)viewModel[4, 0].Format).EditWidth);
+
+         viewModel.SelectionStart = new Point(8, 6);
+         viewModel.Edit("^");
+         Assert.Equal(4, ((UnderEdit)viewModel[8, 6].Format).EditWidth);
+      }
    }
 }

@@ -471,7 +471,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (key != ConsoleKey.Backspace) return;
 
          if (underEdit != null && underEdit.CurrentText.Length > 0) {
-            var newFormat = new UnderEdit(underEdit.OriginalFormat, underEdit.CurrentText.Substring(0, underEdit.CurrentText.Length - 1));
+            var newFormat = new UnderEdit(underEdit.OriginalFormat, underEdit.CurrentText.Substring(0, underEdit.CurrentText.Length - 1), underEdit.EditWidth);
             currentView[point.X, point.Y] = new HexElement(currentView[point.X, point.Y].Value, newFormat);
             NotifyCollectionChanged(ResetArgs);
             return;
@@ -857,16 +857,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                // anchor edits are actually 0 length
                // but lets give them 4 spaces to work with
                PrepareForMultiSpaceEdit(point, 4);
-               if (element.Format is Anchor anchor) {
-                  underEdit = new UnderEdit(anchor, AnchorStart.ToString());
-                  currentView[point.X, point.Y] = new HexElement(element.Value, underEdit);
-               }
+               underEdit = new UnderEdit(element.Format, AnchorStart.ToString(), 4);
+               currentView[point.X, point.Y] = new HexElement(element.Value, underEdit);
                return true;
             }
 
             if (input == GotoMarker) {
                PrepareForMultiSpaceEdit(point, 4);
-               underEdit = new UnderEdit(element.Format, GotoMarker.ToString());
+               underEdit = new UnderEdit(element.Format, GotoMarker.ToString(), 4);
                currentView[point.X, point.Y] = new HexElement(element.Value, underEdit);
                return true;
             }
@@ -884,11 +882,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
             if (innerFormat is Ascii) return true;
 
-            if (innerFormat is Integer) return char.IsNumber(input);
+            if (innerFormat is Integer intFormat) {
+               if (char.IsNumber(input)) {
+                  PrepareForMultiSpaceEdit(point, intFormat.Length);
+                  var original = currentView[point.X, point.Y];
+                  currentView[point.X, point.Y] = new HexElement(original.Value, new UnderEdit(original.Format, input.ToString(), intFormat.Length));
+                  return true;
+               } else {
+                  return false;
+               }
+            }
 
-            if (innerFormat is IntegerEnum) return char.IsLetterOrDigit(input) ||
+            if (innerFormat is IntegerEnum enumFormat) {
+               if(char.IsLetterOrDigit(input) ||
                input == StringDelimeter ||
-               "?-".Contains(input);
+               "?-".Contains(input)) {
+                  PrepareForMultiSpaceEdit(point, enumFormat.Length);
+                  var original = currentView[point.X, point.Y];
+                  currentView[point.X, point.Y] = new HexElement(original.Value, new UnderEdit(original.Format, input.ToString(), enumFormat.Length));
+                  return true;
+               } else {
+                  return false;
+               }
+            }
 
             if (innerFormat is Pointer || input == PointerStart) {
                if (input == PointerStart || char.IsLetterOrDigit(input)) {
@@ -898,6 +914,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   // if the user tries to edit the pointer but forgets the opening bracket, add it for them.
                   if (input != PointerStart) editText = PointerStart + editText;
                   var newFormat = element.Format.Edit(editText);
+                  newFormat = new UnderEdit(newFormat.OriginalFormat, newFormat.CurrentText, 4);
                   currentView[point.X, point.Y] = new HexElement(element.Value, newFormat);
                   return true;
                }
