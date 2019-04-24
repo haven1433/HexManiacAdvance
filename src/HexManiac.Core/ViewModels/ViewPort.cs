@@ -548,7 +548,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          // reorder the list to start at the current cursor position
-         results.Sort(new StubComparer<(int start, int end)> { Compare = (x, y) => x.start.CompareTo(y.start) });
+         results.Sort((a, b) => a.start.CompareTo(b.start));
          var offset = scroll.ViewPointToDataIndex(SelectionStart);
          var left = results.Where(result => result.start < offset);
          var right = results.Where(result => result.start >= offset);

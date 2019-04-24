@@ -60,7 +60,7 @@
     <Compile Include="Models\PokemonModel.cs" />
     <Compile Include="Models\SearchByte.cs" />
     <Compile Include="Models\StoredMetadata.cs" />
-    <Compile Include="NumericExtensions.cs" />
+    <Compile Include="SystemExtensions.cs" />
     <Compile Include="Models\Enums.cs" />
     <Compile Include="Models\IFileSystem.cs" />
     <Compile Include="Models\LoadedFile.cs" />
