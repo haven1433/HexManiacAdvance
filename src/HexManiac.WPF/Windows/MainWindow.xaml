@@ -207,7 +207,7 @@
             </StackPanel>
             <!-- Message -->
             <StackPanel Name="MessagePanel" Visibility="{Binding ShowMessage, Converter={StaticResource BoolToVisibility}}" Style="{StaticResource AnimateOnVisibilityChanged}" Orientation="Horizontal">
-               <TextBlock Margin="10,0" VerticalAlignment="Center" Text="{Binding InformationMessage}" Foreground="{solarized:Theme Primary}"/>
+               <TextBlock Margin="10,0" VerticalAlignment="Center" Text="{Binding InformationMessage}" Foreground="{solarized:Theme Blue}"/>
                <Button Command="{Binding ClearMessage}" Width="15">
                   <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
                </Button>
