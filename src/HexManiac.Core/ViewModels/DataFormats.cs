@@ -1,6 +1,7 @@
 ﻿// Data Formats are simple types that provide limited meta-data that can vary based on the format.
 // Data Formats use the Visitor design pattern to allow things like rendering of the data
 
+using HavenSoft.HexManiac.Core.Models.Runs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -187,22 +188,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          return Source == that.Source && Position == that.Position && Value == that.Value && Length == that.Length;
       }
 
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
+      public virtual bool CanStartWithCharacter(char input) {
+         return char.IsNumber(input);
+      }
+
+      public virtual void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
-   public class IntegerEnum : IDataFormat {
-      public int Source { get; }
-      public int Position { get; }
-      public string Value { get; }
-      public int Length { get; } // number of bytes used by this integer
-
-      public IntegerEnum(int source, int position, string value, int length) => (Source, Position, Value, Length) = (source, position, value, length);
+   public class IntegerEnum : Integer {
+      public new string Value { get; }
+      public IntegerEnum(int source, int position, string value, int length) : base(source, position, -1, length) => Value = value;
 
       public bool Equals(IDataFormat other) {
          if (!(other is IntegerEnum that)) return false;
-         return Source == that.Source && Position == that.Position && Value == that.Value && Length == that.Length;
+         return Value == that.Value && base.Equals(other);
       }
 
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
+      public override bool CanStartWithCharacter(char input) {
+         return char.IsLetterOrDigit(input) ||
+            input == PCSRun.StringDelimeter ||
+            "?-".Contains(input);
+      }
+
+      public override void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 }

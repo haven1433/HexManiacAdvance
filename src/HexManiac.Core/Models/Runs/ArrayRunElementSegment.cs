@@ -127,8 +127,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          for (int i = 0; i < optionCount; i++) {
             var elementStart = enumArray.Start + enumArray.ElementLength * i;
             var valueWithQuotes = PCSString.Convert(model, elementStart, enumArray.ElementContent[0].Length).Trim();
-            var value = valueWithQuotes.Substring(1, valueWithQuotes.Length - 2);
-            if (value.Contains(' ')) value = $"\"{value}\"";
+
+            if (valueWithQuotes.Contains(' ')) {
+               results.Add(valueWithQuotes);
+               continue;
+            }
+
+            var value = valueWithQuotes;
+            if (value.StartsWith("\"")) value = value.Substring(1);
+            if (value.EndsWith("\"")) value = value.Substring(0, value.Length - 1);
             results.Add(value);
          }
 

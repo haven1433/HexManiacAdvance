@@ -266,20 +266,21 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             return PCSRun.CreatePCSFormat(data, offsets.SegmentStart, index, cachedCurrentString);
          }
 
+         var position = index - offsets.SegmentStart;
          if (currentSegment.Type == ElementContentType.Integer) {
             if (currentSegment is ArrayRunEnumSegment enumSegment) {
                var value = enumSegment.ToText(data, index);
-               return new IntegerEnum(offsets.SegmentStart, index, value, currentSegment.Length);
+               return new IntegerEnum(offsets.SegmentStart, position, value, currentSegment.Length);
             } else {
                var value = ArrayRunElementSegment.ToInteger(data, offsets.SegmentStart, currentSegment.Length);
-               return new Integer(offsets.SegmentStart, index, value, currentSegment.Length);
+               return new Integer(offsets.SegmentStart, position, value, currentSegment.Length);
             }
          }
 
          if (currentSegment.Type == ElementContentType.Pointer) {
             var destination = data.ReadPointer(offsets.SegmentStart);
             var destinationName = data.GetAnchorFromAddress(offsets.SegmentStart, destination);
-            return new Pointer(offsets.SegmentStart, index - offsets.SegmentStart, destination, destinationName);
+            return new Pointer(offsets.SegmentStart, position, destination, destinationName);
          }
 
          throw new NotImplementedException();

@@ -156,7 +156,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
 
       public void Visit(Integer integer, byte data) {
-         if (integer.Source != integer.Position) return;
+         if (integer.Position != 0) return;
 
          var stringValue = integer.Value.ToString();
 
@@ -177,7 +177,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
 
       public void Visit(IntegerEnum integerEnum, byte data) {
-         if (integerEnum.Source != integerEnum.Position) return;
+         if (integerEnum.Position != 0) return;
 
          var stringValue = integerEnum.Value;
 

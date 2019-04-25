@@ -902,23 +902,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (innerFormat is Ascii) return true;
 
             if (innerFormat is Integer intFormat) {
-               if (char.IsNumber(input)) {
-                  PrepareForMultiSpaceEdit(point, intFormat.Length);
+               if (intFormat.CanStartWithCharacter(input)) {
+                  if (!TryCoerceSelectionToStartOfElement(ref point, ref element)) PrepareForMultiSpaceEdit(point, intFormat.Length);
                   var original = currentView[point.X, point.Y];
                   currentView[point.X, point.Y] = new HexElement(original.Value, new UnderEdit(original.Format, input.ToString(), intFormat.Length));
-                  return true;
-               } else {
-                  return false;
-               }
-            }
-
-            if (innerFormat is IntegerEnum enumFormat) {
-               if(char.IsLetterOrDigit(input) ||
-               input == StringDelimeter ||
-               "?-".Contains(input)) {
-                  PrepareForMultiSpaceEdit(point, enumFormat.Length);
-                  var original = currentView[point.X, point.Y];
-                  currentView[point.X, point.Y] = new HexElement(original.Value, new UnderEdit(original.Format, input.ToString(), enumFormat.Length));
                   return true;
                } else {
                   return false;
@@ -928,7 +915,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (innerFormat is Pointer || input == PointerStart) {
                if (input == PointerStart || char.IsLetterOrDigit(input)) {
                   // pointer edits are 4 bytes long
-                  if (!TryCoerceSelectionToStartOfPointer(ref point, ref element)) PrepareForMultiSpaceEdit(point, 4);
+                  if (!TryCoerceSelectionToStartOfElement(ref point, ref element)) PrepareForMultiSpaceEdit(point, 4);
                   var editText = input.ToString();
                   // if the user tries to edit the pointer but forgets the opening bracket, add it for them.
                   if (input != PointerStart) editText = PointerStart + editText;
@@ -974,34 +961,35 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                }
             }
             return PCSString.PCS.Any(str => str != null && str.StartsWith(currentText + input));
-         } else if (innerFormat is Integer) {
-            return char.IsNumber(input) || char.IsWhiteSpace(input);
-         } else if (innerFormat is IntegerEnum) {
-            return char.IsLetterOrDigit(input) ||
-               input == StringDelimeter ||
-               ".~?-".Contains(input) ||
+         } else if (innerFormat is IntegerEnum intEnum) {
+            return intEnum.CanStartWithCharacter(input) || 
+               ".~".Contains(input) ||
                char.IsWhiteSpace(input);
+         } else if (innerFormat is Integer integer) {
+            return integer.CanStartWithCharacter(input) || char.IsWhiteSpace(input);
          }
 
          if (AllHexCharacters.Contains(input)) {
             // if we're trying to write standard data over a pointer, allow that, but you must start at the first byte
-            TryCoerceSelectionToStartOfPointer(ref point, ref element);
+            TryCoerceSelectionToStartOfElement(ref point, ref element);
             return true;
          }
 
          return false;
       }
 
-      private bool TryCoerceSelectionToStartOfPointer(ref Point point, ref HexElement element) {
-         if (element.Format is Pointer pointer) {
-            point = scroll.DataIndexToViewPoint(scroll.ViewPointToDataIndex(point) - pointer.Position);
-            element = this[point];
-            UpdateSelectionWithoutNotify(point);
-            PrepareForMultiSpaceEdit(point, 4);
-            return true;
-         }
+      private bool TryCoerceSelectionToStartOfElement(ref Point point, ref HexElement element) {
+         var format = element.Format;
+         var (position, length) = (-1, -1);
+         if (format is Pointer pointer) (position, length) = (pointer.Position, 4);
+         if (format is Integer integer) (position, length) = (integer.Position, integer.Length);
+         if (position == -1) return false;
 
-         return false;
+         point = scroll.DataIndexToViewPoint(scroll.ViewPointToDataIndex(point) - position);
+         element = this[point];
+         UpdateSelectionWithoutNotify(point);
+         PrepareForMultiSpaceEdit(point, length);
+         return true;
       }
 
       private void PrepareForMultiSpaceEdit(Point point, int length) {
@@ -1086,13 +1074,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (underEdit.CurrentText.Length < 2) return false;
                CompleteCharacterEdit(point);
                return true;
-            } else if (originalFormat is Integer integer) {
-               var currentText = underEdit.CurrentText;
-               if (char.IsWhiteSpace(currentText.Last())) {
-                  CompleteIntegerEdit(point, currentText);
-                  return true;
-               }
-               return false;
             } else if (originalFormat is IntegerEnum integerEnum) {
                var currentText = underEdit.CurrentText;
 
@@ -1106,6 +1087,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   return true;
                }
 
+               return false;
+            } else if (originalFormat is Integer integer) {
+               var currentText = underEdit.CurrentText;
+               if (char.IsWhiteSpace(currentText.Last())) {
+                  CompleteIntegerEdit(point, currentText);
+                  return true;
+               }
                return false;
             }
 

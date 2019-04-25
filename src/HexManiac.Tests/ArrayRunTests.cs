@@ -861,6 +861,33 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.IsType<PCS>(viewPort[1, 1].Format);
       }
 
+      [Fact]
+      public void EditingMultibyteTableEntryMovesEditToFirstByte() {
+         // Arrange
+         var data = new byte[0x200];
+         var model = new PokemonModel(data);
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort.Edit("^names[name\"\"8]8 \"bob\" \"sam\" \"john\" \"mike\" \"tommy\"");
+         viewPort.SelectionStart = new Point(0, 5);
+         viewPort.Edit("^table[a: b:names]8 "); // note that making a table like this does an automatic goto for the table
+
+         // Act: try to edit a
+         viewPort.SelectionStart = new Point(1, 0);
+         viewPort.Edit("3");
+
+         // Assert: selection moved
+         Assert.True(viewPort.IsSelected(new Point(0, 0)));
+         Assert.IsType<UnderEdit>(viewPort[0, 0].Format);
+
+         // Act: try to edit b
+         viewPort.SelectionStart = new Point(3, 0);
+         viewPort.Edit("john");
+
+         // Assert: selection moved
+         Assert.True(viewPort.IsSelected(new Point(2, 0)));
+         Assert.IsType<UnderEdit>(viewPort[2, 0].Format);
+      }
+
       // TODO while typing an enum, the ViewModel provides auto-complete options
 
       private static void WriteStrings(byte[] buffer, int start, params string[] content) {
