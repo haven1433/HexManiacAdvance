@@ -308,7 +308,7 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Edit("01 02 03 04");                // 2x4 characters to clear
          viewPort.Edit("<000020>");                   // 8 characters to clear
          viewPort.Edit("<000030>");                   // 8 characters to clear
-         viewPort.SelectionStart = new Point(10, 1);
+         viewPort.SelectionStart = new Point(12, 1);  // just after <000030>
 
          for (int i = 0; i < 21; i++) viewPort.Edit(ConsoleKey.Backspace); // should clear both pointers (16) and 2 bytes (4)
          viewPort.MoveSelectionStart.Execute(Direction.Up);
@@ -330,8 +330,9 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.SelectionStart = new Point(0, 1);
          viewPort.Edit("<000020>");
          viewPort.Edit("<000030>");
-         viewPort.SelectionStart = new Point(2, 1);
+         viewPort.SelectionStart = new Point(2, 1); // note that this will select all four bytes of <000020>
          viewPort.Clear.Execute();  // this should clear the data and formatting of the first pointer
+         viewPort.SelectionStart = new Point(2, 1); // this selects just the one byte
          viewPort.Edit("<000040>"); // this should remove the second pointer
 
          Assert.Equal(0xFF, viewPort[0, 1].Value);

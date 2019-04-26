@@ -226,5 +226,126 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.True(viewPort.IsSelected(new Point(3, 0)));
          Assert.False(viewPort.IsSelected(new Point(4, 0)));
       }
+
+      [Theory]
+      [InlineData(0)]
+      [InlineData(1)]
+      [InlineData(2)]
+      [InlineData(3)]
+      public void SelectingAnyOfAPointerSelectsAllOfAPointer(int index) {
+         var data = new byte[0x200];
+         var model = new PokemonModel(data);
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.Edit("<000100>");
+         viewPort.SelectionStart = new Point(index, 0);
+
+         Assert.True(viewPort.IsSelected(new Point(0, 0)));
+         Assert.True(viewPort.IsSelected(new Point(1, 0)));
+         Assert.True(viewPort.IsSelected(new Point(2, 0)));
+         Assert.True(viewPort.IsSelected(new Point(3, 0)));
+      }
+
+      [Fact]
+      public void SelectLeftSelectsWholePointer() {
+         var data = new byte[0x200];
+         var model = new PokemonModel(data);
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.SelectionStart = new Point(4, 0);
+         viewPort.Edit("<000100>");
+         viewPort.SelectionStart = new Point(8, 0);
+         viewPort.MoveSelectionStart.Execute(Direction.Left);
+
+         Assert.True(viewPort.IsSelected(new Point(4, 0)));
+         Assert.True(viewPort.IsSelected(new Point(5, 0)));
+         Assert.True(viewPort.IsSelected(new Point(6, 0)));
+         Assert.True(viewPort.IsSelected(new Point(7, 0)));
+      }
+
+      [Fact]
+      public void SelectRightSelectsWholePointer() {
+         var data = new byte[0x200];
+         var model = new PokemonModel(data);
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.SelectionStart = new Point(4, 0);
+         viewPort.Edit("<000100>");
+         viewPort.SelectionStart = new Point(3, 0);
+         viewPort.MoveSelectionStart.Execute(Direction.Right);
+
+         Assert.True(viewPort.IsSelected(new Point(4, 0)));
+         Assert.True(viewPort.IsSelected(new Point(5, 0)));
+         Assert.True(viewPort.IsSelected(new Point(6, 0)));
+         Assert.True(viewPort.IsSelected(new Point(7, 0)));
+      }
+
+      [Fact]
+      public void SelectUpSelectsWholePointer() {
+         var data = new byte[0x200];
+         var model = new PokemonModel(data);
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.SelectionStart = new Point(4, 0);
+         viewPort.Edit("<000100>");
+         viewPort.SelectionStart = new Point(5, 1);
+         viewPort.MoveSelectionStart.Execute(Direction.Up);
+
+         Assert.True(viewPort.IsSelected(new Point(4, 0)));
+         Assert.True(viewPort.IsSelected(new Point(5, 0)));
+         Assert.True(viewPort.IsSelected(new Point(6, 0)));
+         Assert.True(viewPort.IsSelected(new Point(7, 0)));
+      }
+
+      [Fact]
+      public void SelectDownSelectsWholePointer() {
+         var data = new byte[0x200];
+         var model = new PokemonModel(data);
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.SelectionStart = new Point(4, 1);
+         viewPort.Edit("<000100>");
+         viewPort.SelectionStart = new Point(5, 0);
+         viewPort.MoveSelectionStart.Execute(Direction.Down);
+
+         Assert.True(viewPort.IsSelected(new Point(4, 1)));
+         Assert.True(viewPort.IsSelected(new Point(5, 1)));
+         Assert.True(viewPort.IsSelected(new Point(6, 1)));
+         Assert.True(viewPort.IsSelected(new Point(7, 1)));
+      }
+
+      [Fact]
+      public void HighlightLeftSelectsWholePointer() {
+         var data = new byte[0x200];
+         var model = new PokemonModel(data);
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.SelectionStart = new Point(4, 1);
+         viewPort.Edit("<000100>");
+         viewPort.SelectionStart = new Point(6, 1);
+         viewPort.SelectionEnd = new Point(2, 1);
+
+         Assert.True(viewPort.IsSelected(new Point(4, 1)));
+         Assert.True(viewPort.IsSelected(new Point(5, 1)));
+         Assert.True(viewPort.IsSelected(new Point(6, 1)));
+         Assert.True(viewPort.IsSelected(new Point(7, 1)));
+      }
+
+      [Fact]
+      public void HighlightRightSelectsWholePointer() {
+         var data = new byte[0x200];
+         var model = new PokemonModel(data);
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+
+         viewPort.SelectionStart = new Point(4, 1);
+         viewPort.Edit("<000100>");
+         viewPort.SelectionStart = new Point(6, 1);
+         viewPort.SelectionEnd = new Point(10, 1);
+
+         Assert.True(viewPort.IsSelected(new Point(4, 1)));
+         Assert.True(viewPort.IsSelected(new Point(5, 1)));
+         Assert.True(viewPort.IsSelected(new Point(6, 1)));
+         Assert.True(viewPort.IsSelected(new Point(7, 1)));
+      }
    }
 }

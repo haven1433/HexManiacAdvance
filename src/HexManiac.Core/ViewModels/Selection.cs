@@ -8,11 +8,13 @@ using System.Linq;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
+   public delegate (Point start, Point end) GetSelectionSpan(Point p);
+
    public class Selection : ViewModelCore {
       private const int DefaultPreferredWidth = 0x10;
 
       private readonly IDataModel model;
-
+      private readonly GetSelectionSpan getSpan;
       private readonly StubCommand
          moveSelectionStart = new StubCommand(),
          moveSelectionEnd = new StubCommand(),
@@ -26,7 +28,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private int preferredWidth = DefaultPreferredWidth, maxWidth = 4;
 
-      private Point selectionStart, selectionEnd;
+      private Point rawSelectionStart; // the actual click point
+      private Point selectionStart;    // the calculated selection start, which may differ depending on the SelectionSpan
+      private Point rawSelectionEnd;   // the actual release point
+      private Point selectionEnd;      // the calculated selection end, which may differ depending on the SelectionSpan
 
       public Point SelectionStart {
          get => selectionStart;
@@ -37,12 +42,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (selectionStart.Equals(value)) return;
 
             if (!Scroll.ScrollToPoint(ref value)) {
-               PreviewSelectionStartChanged?.Invoke(this, selectionStart);
+               PreviewSelectionStartChanged?.Invoke(this, rawSelectionStart);
             }
 
-            if (TryUpdate(ref selectionStart, value)) {
-               SelectionEnd = selectionStart;
-            }
+            rawSelectionStart = value;
+            rawSelectionEnd = value;
+            var (start, end) = getSpan(rawSelectionStart);
+            TryUpdate(ref selectionStart, start);
+            TryUpdate(ref selectionEnd, end, nameof(SelectionEnd));
          }
       }
 
@@ -52,8 +59,35 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var index = Scroll.ViewPointToDataIndex(value);
             value = Scroll.DataIndexToViewPoint(index.LimitToRange(0, Scroll.DataLength));
 
+            if (selectionEnd.Equals(value)) return;
+
             Scroll.ScrollToPoint(ref value);
-            TryUpdate(ref selectionEnd, value);
+
+            rawSelectionEnd = value;
+            var startIndex = Scroll.ViewPointToDataIndex(rawSelectionStart);
+            var endIndex = Scroll.ViewPointToDataIndex(rawSelectionEnd);
+
+            // case 1: start/end are the same
+            if (startIndex == endIndex) {
+               var (start, end) = getSpan(rawSelectionStart);
+               TryUpdate(ref selectionStart, start, nameof(SelectionStart));
+               TryUpdate(ref selectionEnd, end);
+               return;
+            }
+
+            // case 2: start < end
+            if (startIndex < endIndex) {
+               TryUpdate(ref selectionStart, getSpan(rawSelectionStart).start, nameof(SelectionStart));
+               TryUpdate(ref selectionEnd, getSpan(rawSelectionEnd).end);
+               return;
+            }
+
+            // case 3: start > end
+            if (startIndex > endIndex) {
+               TryUpdate(ref selectionEnd, getSpan(rawSelectionEnd).start);
+               TryUpdate(ref selectionStart, getSpan(rawSelectionStart).end, nameof(SelectionStart));
+               return;
+            }
          }
       }
 
@@ -80,8 +114,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// </summary>
       public event EventHandler<Point> PreviewSelectionStartChanged;
 
-      public Selection(ScrollRegion scrollRegion, IDataModel model) {
+      public Selection(ScrollRegion scrollRegion, IDataModel model, GetSelectionSpan getSpan = null) {
          this.model = model;
+         this.getSpan = getSpan ?? GetDefaultSelectionSpan;
          Scroll = scrollRegion;
          Scroll.ScrollChanged += (sender, e) => ShiftSelectionFromScroll(e);
 
@@ -152,13 +187,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// </summary>
       public void ChangeWidth(int newWidth) {
          maxWidth = newWidth;
+         var rawStart = Scroll.ViewPointToDataIndex(rawSelectionStart);
+         var rawEnd = Scroll.ViewPointToDataIndex(rawSelectionEnd);
          var start = Scroll.ViewPointToDataIndex(selectionStart);
          var end = Scroll.ViewPointToDataIndex(selectionEnd);
 
          Scroll.Width = CoerceWidth(newWidth);
 
-         TryUpdate(ref selectionStart, Scroll.DataIndexToViewPoint(start));
-         TryUpdate(ref selectionEnd, Scroll.DataIndexToViewPoint(end));
+         rawSelectionStart = Scroll.DataIndexToViewPoint(rawStart);
+         rawSelectionEnd = Scroll.DataIndexToViewPoint(rawEnd);
+         selectionStart = Scroll.DataIndexToViewPoint(start);
+         selectionEnd = Scroll.DataIndexToViewPoint(end);
       }
 
       public void GotoAddress(int address) {
@@ -170,6 +209,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
          GotoAddressHelper(address);
       }
+
+      private static (Point start, Point end) GetDefaultSelectionSpan(Point p) => (p, p);
 
       private void GotoAddressHelper(int address) {
          var destinationRun = model.GetNextRun(address) as ArrayRun;
@@ -201,16 +242,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// Nothing in this method notifies because any amount of scrolling means we already need a complete redraw.
       /// </summary>
       private void ShiftSelectionFromScroll(int distance) {
+         var rawStart = Scroll.ViewPointToDataIndex(rawSelectionStart);
+         var rawEnd = Scroll.ViewPointToDataIndex(rawSelectionEnd);
          var start = Scroll.ViewPointToDataIndex(selectionStart);
          var end = Scroll.ViewPointToDataIndex(selectionEnd);
 
+         rawStart -= distance;
+         rawEnd -= distance;
          start -= distance;
          end -= distance;
 
+         rawSelectionStart = Scroll.DataIndexToViewPoint(rawStart);
+         rawSelectionEnd = Scroll.DataIndexToViewPoint(rawEnd);
          selectionStart = Scroll.DataIndexToViewPoint(start);
          selectionEnd = Scroll.DataIndexToViewPoint(end);
       }
 
+      // TODO update these two methods to work with rawSelectionStart / rawSelectionEnd
       private void MoveSelectionStartExecuted(Direction direction) {
          Point dif;
          if (direction == Direction.PageUp) {
@@ -220,7 +268,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else {
             dif = ScrollRegion.DirectionToDif[direction];
          }
-         SelectionStart = SelectionEnd + dif;
+
+         var (start, end) = getSpan(rawSelectionEnd);
+         if (dif.X < 0 || dif.Y < 0) {
+            // start from the _front_ of selectionEnd
+            SelectionStart = start + dif;
+         } else {
+            // start from the _back_ of selectionEnd
+            SelectionStart = end + dif;
+         }
       }
 
       private void MoveSelectionEndExecuted(Direction direction) {
@@ -232,7 +288,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else {
             dif = ScrollRegion.DirectionToDif[direction];
          }
-         SelectionEnd += dif;
+
+         var (start, end) = getSpan(rawSelectionEnd);
+         if (dif.X < 0 || dif.Y < 0) {
+            // start from the _front_ of selectionEnd
+            SelectionEnd = start + dif;
+         } else {
+            // start from the _back_ of selectionEnd
+            SelectionEnd = end + dif;
+         }
       }
 
       private int CoerceWidth(int width) {

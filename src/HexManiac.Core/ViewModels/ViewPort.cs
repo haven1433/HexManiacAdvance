@@ -353,7 +353,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          scroll = new ScrollRegion(model.TryGetUsefulHeader) { DataLength = Model.Count };
          scroll.PropertyChanged += ScrollPropertyChanged;
 
-         selection = new Selection(scroll, Model);
+         selection = new Selection(scroll, Model, GetSelectionSpan);
          selection.PropertyChanged += SelectionPropertyChanged;
          selection.PreviewSelectionStartChanged += ClearActiveEditBeforeSelectionChanges;
          selection.OnError += (sender, e) => OnError?.Invoke(this, e);
@@ -505,6 +505,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             RefreshBackingData();
          }
 
+         // TODO rethink backspace handling
+         // should it be changing just _before_ the selection,
+         // or should it be changing the _current_ selection?
+
          run = Model.GetNextRun(index - 1);
          if (run is PCSRun pcs) {
             for (int i = index - 1; i < run.Start + run.Length; i++) history.CurrentChange.ChangeData(Model, i, 0xFF);
@@ -520,6 +524,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                RefreshBackingData();
                SilentScroll(index - 1);
             } else {
+               // TODO
                throw new NotImplementedException();
             }
          } else if (run.Start <= index - 1 && run.Start + run.Length > index - 1) {
@@ -529,11 +534,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             element = currentView[SelectionStart.X, SelectionStart.Y];
             element.Format.Visit(cellToText, element.Value);
             var text = cellToText.Result;
+
+            var editLength = 1;
+            if (element.Format is Pointer pointer) editLength = 4;
+            if (element.Format is Integer integer) editLength = integer.Length;
+
             for (int i = 0; i < run.Length; i++) {
                var p = scroll.DataIndexToViewPoint(run.Start + i);
                string editString = i == 0 ? text.Substring(0, text.Length - 1) : string.Empty;
-               currentView[p.X, p.Y] = new HexElement(currentView[p.X, p.Y].Value, currentView[p.X, p.Y].Format.Edit(editString));
+               currentView[p.X, p.Y] = new HexElement(currentView[p.X, p.Y].Value, new UnderEdit(currentView[p.X, p.Y].Format, editString, editLength));
             }
+
          } else {
             SelectionStart = scroll.DataIndexToViewPoint(index - 1);
             element = currentView[SelectionStart.X, SelectionStart.Y];
@@ -976,6 +987,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          return false;
+      }
+
+      private (Point start, Point end) GetSelectionSpan(Point p) {
+         var index = scroll.ViewPointToDataIndex(p);
+         var run = Model.GetNextRun(index);
+         if (run.Start > index) return (p, p);
+
+         if (run is PointerRun) return (scroll.DataIndexToViewPoint(run.Start), scroll.DataIndexToViewPoint(run.Start + run.Length - 1));
+         if (!(run is ArrayRun array)) return (p, p);
+
+         var offset = array.ConvertByteOffsetToArrayOffset(index);
+         if (array.ElementContent[offset.SegmentIndex].Type == ElementContentType.Pointer || array.ElementContent[offset.SegmentIndex].Type == ElementContentType.Integer) {
+            return (scroll.DataIndexToViewPoint(offset.SegmentStart), scroll.DataIndexToViewPoint(offset.SegmentStart + array.ElementContent[offset.SegmentIndex].Length - 1));
+         }
+
+         return (p, p);
       }
 
       private bool TryCoerceSelectionToStartOfElement(ref Point point, ref HexElement element) {
