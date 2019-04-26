@@ -129,7 +129,7 @@
                <MenuItem Header="_View">
                   <MenuItem Header="_Toggle Theme" Click="ToggleTheme" InputGestureText="Ctrl+T"/>
                   <MenuItem Header="Toggle _Matrix Grid" Command="{Binding ToggleMatrix}" InputGestureText="Ctrl+M"/>
-                  <MenuItem Header="Toggle Custom _Headers" Command="{Binding ToggleTableHeaders}" InputGestureText="Ctrl+H" ToolTipService.ShowDuration="15000">
+                  <!--<MenuItem Header="Toggle Custom _Headers" Command="{Binding ToggleTableHeaders}" InputGestureText="Ctrl+H" ToolTipService.ShowDuration="15000">
                      <MenuItem.ToolTip>
                         <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{solarized:Theme Blue}" BorderThickness="1">
                            <TextBlock TextAlignment="Left">
@@ -140,7 +140,7 @@
                            </TextBlock>
                         </ToolTip>
                      </MenuItem.ToolTip>
-                  </MenuItem>
+                  </MenuItem>-->
                   <MenuItem Header="_Clear Error" Command="{Binding ClearError}" InputGestureText="Esc"/>
                </MenuItem>
                <MenuItem Header="_Tools">
