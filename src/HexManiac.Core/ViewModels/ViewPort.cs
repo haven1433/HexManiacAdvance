@@ -133,10 +133,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var element = currentView[location.X, location.Y];
             var underEdit = element.Format as UnderEdit;
             if (underEdit != null) {
-               var endEdit = " ";
-               if (underEdit.CurrentText.Count(c => c == '"') % 2 == 1) endEdit = "\"";
-               currentView[location.X, location.Y] = new HexElement(element.Value, underEdit.Edit(endEdit));
-               if (!TryCompleteEdit(location)) ClearEdits(location);
+               if (underEdit.CurrentText == string.Empty) {
+                  var index = scroll.ViewPointToDataIndex(location);
+                  var operation = new DataClear(Model, history.CurrentChange, index);
+                  underEdit.OriginalFormat.Visit(operation, Model[index]);
+                  ClearEdits(location);
+               } else {
+                  var endEdit = " ";
+                  if (underEdit.CurrentText.Count(c => c == '"') % 2 == 1) endEdit = "\"";
+                  currentView[location.X, location.Y] = new HexElement(element.Value, underEdit.Edit(endEdit));
+                  if (!TryCompleteEdit(location)) ClearEdits(location);
+               }
             }
          }
       }
@@ -487,8 +494,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             currentView[point.X, point.Y] = new HexElement(element.Value, underEdit.Edit(" "));
             TryCompleteEdit(point);
          }
+
          if (key != ConsoleKey.Backspace) return;
 
+         // backspace in progress with characters left: just clear a character
          if (underEdit != null && underEdit.CurrentText.Length > 0) {
             var newFormat = new UnderEdit(underEdit.OriginalFormat, underEdit.CurrentText.Substring(0, underEdit.CurrentText.Length - 1), underEdit.EditWidth);
             currentView[point.X, point.Y] = new HexElement(currentView[point.X, point.Y].Value, newFormat);
@@ -498,36 +507,56 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var index = scroll.ViewPointToDataIndex(point);
 
-         // if there's an open edit, clear the data from those cells
+         // backspace on an empty element: clear the data from those cells
          if (underEdit != null) {
             var operation = new DataClear(Model, history.CurrentChange, index);
             underEdit.OriginalFormat.Visit(operation, Model[index]);
             RefreshBackingData();
+            SelectionStart = scroll.DataIndexToViewPoint(index - 1);
+            point = GetEditPoint();
+            index = scroll.ViewPointToDataIndex(point);
          }
 
-         // TODO rethink backspace handling
-         // should it be changing just _before_ the selection,
-         // or should it be changing the _current_ selection?
+         run = Model.GetNextRun(index);
 
-         run = Model.GetNextRun(index - 1);
          if (run is PCSRun pcs) {
-            for (int i = index - 1; i < run.Start + run.Length; i++) history.CurrentChange.ChangeData(Model, i, 0xFF);
+            for (int i = index; i < run.Start + run.Length; i++) history.CurrentChange.ChangeData(Model, i, 0xFF);
             var length = PCSString.ReadString(Model, run.Start, true);
             Model.ObserveRunWritten(history.CurrentChange, new PCSRun(run.Start, length, run.PointerSources));
             RefreshBackingData();
-            SilentScroll(index - 1);
-         } else if (run is ArrayRun array) {
-            var offsets = array.ConvertByteOffsetToArrayOffset(index - 1);
+            SelectionStart = scroll.DataIndexToViewPoint(index - 1);
+            return;
+         }
+
+         if (run is ArrayRun array) {
+            var offsets = array.ConvertByteOffsetToArrayOffset(index);
             if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.PCS) {
-               for (int i = index - 1; i < offsets.SegmentStart + array.ElementContent[offsets.SegmentIndex].Length; i++) history.CurrentChange.ChangeData(Model, i, 0x00);
-               history.CurrentChange.ChangeData(Model, index - 1, 0xFF);
+               for (int i = index + 1; i < offsets.SegmentStart + array.ElementContent[offsets.SegmentIndex].Length; i++) history.CurrentChange.ChangeData(Model, i, 0x00);
+               history.CurrentChange.ChangeData(Model, index, 0xFF);
                RefreshBackingData();
-               SilentScroll(index - 1);
+               SelectionStart = scroll.DataIndexToViewPoint(index - 1);
+            } else if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Pointer) {
+               var cell = currentView[point.X, point.Y];
+               PrepareForMultiSpaceEdit(point, 4);
+               var destination = ((Pointer)cell.Format).DestinationAsText;
+               destination = destination.Substring(0, destination.Length - 1);
+               currentView[point.X, point.Y] = new HexElement(cell.Value, new UnderEdit(cell.Format, destination, 4));
+            } else if(array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Integer) {
+               var cell = currentView[point.X, point.Y];
+               var format = (Integer)cell.Format;
+               PrepareForMultiSpaceEdit(point, format.Length);
+               var text = format.Value.ToString();
+               if (format is IntegerEnum intEnum) text = intEnum.Value;
+               text = text.Substring(0, text.Length - 1);
+               currentView[point.X, point.Y] = new HexElement(cell.Value, new UnderEdit(format, text, format.Length));
             } else {
-               // TODO
                throw new NotImplementedException();
             }
-         } else if (run.Start <= index - 1 && run.Start + run.Length > index - 1) {
+            NotifyCollectionChanged(ResetArgs);
+            return;
+         }
+
+         if (run.Start <= index && run.Start + run.Length > index) {
             // I want to do a backspace at the end of this run
             SelectionStart = scroll.DataIndexToViewPoint(run.Start);
             var cellToText = new ConvertCellToText(Model, run.Start);
@@ -537,20 +566,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
             var editLength = 1;
             if (element.Format is Pointer pointer) editLength = 4;
-            if (element.Format is Integer integer) editLength = integer.Length;
+            // if (element.Format is Integer integer) editLength = integer.Length;
 
             for (int i = 0; i < run.Length; i++) {
                var p = scroll.DataIndexToViewPoint(run.Start + i);
                string editString = i == 0 ? text.Substring(0, text.Length - 1) : string.Empty;
+               if (i > 0) editLength = 1;
                currentView[p.X, p.Y] = new HexElement(currentView[p.X, p.Y].Value, new UnderEdit(currentView[p.X, p.Y].Format, editString, editLength));
             }
-
          } else {
-            SelectionStart = scroll.DataIndexToViewPoint(index - 1);
+            SelectionStart = scroll.DataIndexToViewPoint(index);
             element = currentView[SelectionStart.X, SelectionStart.Y];
             var text = element.Value.ToString("X2");
             currentView[SelectionStart.X, SelectionStart.Y] = new HexElement(element.Value, element.Format.Edit(text.Substring(0, text.Length - 1)));
          }
+         NotifyCollectionChanged(ResetArgs);
       }
 
       #region Find

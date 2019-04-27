@@ -73,10 +73,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          Underline(brush, dataFormat.Position == 0, dataFormat.Position == 3);
 
          var typeface = new Typeface("Consolas");
-         var destination = dataFormat.DestinationName;
-         if (string.IsNullOrEmpty(destination)) destination = dataFormat.Destination.ToString("X6");
-         if (destination.Length > 11) destination = destination.Substring(0, 10) + "…";
-         destination = $"<{destination}>";
+         var destination = dataFormat.DestinationAsText;
+         if (destination.Length > 13) destination = destination.Substring(0, 11) + "…>";
          var xOffset = 51 - (dataFormat.Position * HexContent.CellWidth) - destination.Length * 4.2; // centering
          var text = new FormattedText(
             destination,

@@ -80,6 +80,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public int Position { get; }    // 0 through 3
       public int Destination { get; } // 6 hex digits
       public string DestinationName { get; } // null if there is no name for that anchor
+      public string DestinationAsText {
+         get {
+            var destination = DestinationName;
+            if (string.IsNullOrEmpty(destination)) destination = Destination.ToString("X6");
+            return $"<{destination}>";
+         }
+      }
 
       public Pointer(int source, int positionInPointer, int destination, string destinationName) {
          Source = source;

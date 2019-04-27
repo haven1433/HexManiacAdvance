@@ -308,7 +308,7 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Edit("01 02 03 04");                // 2x4 characters to clear
          viewPort.Edit("<000020>");                   // 8 characters to clear
          viewPort.Edit("<000030>");                   // 8 characters to clear
-         viewPort.SelectionStart = new Point(12, 1);  // just after <000030>
+         viewPort.SelectionStart = new Point(10, 1);  // within <000030>
 
          for (int i = 0; i < 21; i++) viewPort.Edit(ConsoleKey.Backspace); // should clear both pointers (16) and 2 bytes (4)
          viewPort.MoveSelectionStart.Execute(Direction.Up);

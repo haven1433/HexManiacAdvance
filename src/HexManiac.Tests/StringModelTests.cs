@@ -204,7 +204,7 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.SelectionStart = new Point(6, 1);
          viewPort.Edit(ConsoleKey.Backspace);
 
-         Assert.Equal("\"Hello\"", PCSString.Convert(model, 0x10, PCSString.ReadString(model, 0x10, true)));
+         Assert.Equal("\"Hello \"", PCSString.Convert(model, 0x10, PCSString.ReadString(model, 0x10, true)));
       }
 
       [Fact]

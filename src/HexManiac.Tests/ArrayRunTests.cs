@@ -888,6 +888,51 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.IsType<UnderEdit>(viewPort[2, 0].Format);
       }
 
+      [Fact]
+      public void CanBackspaceEnum() {
+         // Arrange
+         var data = new byte[0x200];
+         var model = new PokemonModel(data);
+         model[0x51] = 3; // 'john'
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort.Edit("^names[name\"\"8]8 \"bob\" \"sam\" \"john\" \"mike\" \"tommy\"");
+         viewPort.SelectionStart = new Point(0, 5);
+         viewPort.Edit("^table[a:names b:]8 "); // note that making a table like this does an automatic goto for the table
+
+         // Act: try to backspace the a enum
+         viewPort.SelectionStart = new Point(2, 1); // just to the left of "john"
+         viewPort.Edit(ConsoleKey.Backspace);
+         viewPort.Edit(ConsoleKey.Backspace);
+         viewPort.Edit(ConsoleKey.Backspace);
+         viewPort.Edit(ConsoleKey.Backspace);
+         viewPort.Edit(ConsoleKey.Backspace);
+
+         Assert.Equal("bob", ((IntegerEnum)viewPort[0, 1].Format).Value);
+         Assert.True(viewPort.IsSelected(new Point(0xF, 0))); // selection has moved to last row
+         Assert.True(viewPort.IsSelected(new Point(0xE, 0))); // two selected bytes, since the previous entry is 2 bytes long
+      }
+
+      [Fact]
+      public void CanBackspaceInt() {
+         // Arrange
+         var data = new byte[0x200];
+         var model = new PokemonModel(data);
+         model[0x53] = 9;
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort.Edit("^names[name\"\"8]8 \"bob\" \"sam\" \"john\" \"mike\" \"tommy\"");
+         viewPort.SelectionStart = new Point(0, 5);
+         viewPort.Edit("^table[a:names b:]8 "); // note that making a table like this does an automatic goto for the table
+
+         // Act: try to backspace the a int
+         viewPort.SelectionStart = new Point(3, 1); // selected "9"
+         viewPort.Edit(ConsoleKey.Backspace);
+         viewPort.Edit(ConsoleKey.Backspace);
+
+         Assert.Equal(0, ((Integer)viewPort[2, 1].Format).Value);
+         Assert.True(viewPort.IsSelected(new Point(0, 1))); // selection has moved to previous element
+         Assert.True(viewPort.IsSelected(new Point(1, 1))); // two selected bytes, since the previous entry is 2 bytes long
+      }
+
       // TODO while typing an enum, the ViewModel provides auto-complete options
 
       private static void WriteStrings(byte[] buffer, int start, params string[] content) {
