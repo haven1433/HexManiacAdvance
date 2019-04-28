@@ -16,7 +16,7 @@ namespace HavenSoft.HexManiac.Tests {
       public ViewPortSaveTests() {
          fileSystem = new StubFileSystem {
             RequestNewName = (previousName, description, extensions) => { name = $"file.txt"; return name; },
-            TrySavePrompt = (loadedFile, md) => { name = loadedFile.Name; return true; },
+            TrySavePrompt = loadedFile => { name = loadedFile.Name; return true; },
          };
       }
 
@@ -41,7 +41,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void SaveDoesNotRequestNewNameIfFileIsNotNew() {
          var viewPort = new ViewPort(new LoadedFile("input.txt", new byte[0]));
-         fileSystem.Save = (loadedFile, md) => { name = loadedFile.Name; return true; };
+         fileSystem.Save = loadedFile => { name = loadedFile.Name; return true; };
 
          viewPort.Edit("01 23 45");
          viewPort.Save.Execute(fileSystem);
@@ -74,7 +74,7 @@ namespace HavenSoft.HexManiac.Tests {
          bool triedToSave = false;
          var viewPort = new ViewPort();
          viewPort.Edit("ab cd ef");
-         fileSystem.TrySavePrompt = (loadedFile, md) => { triedToSave = true; return true; };
+         fileSystem.TrySavePrompt = loadedFile => { triedToSave = true; return true; };
 
          viewPort.Close.Execute(fileSystem);
 
@@ -85,7 +85,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void NonEditedFileDoesNotPromptForSaveOnExit() {
          bool triedToSave = false;
          var viewPort = new ViewPort(new LoadedFile("input.txt", new byte[10]));
-         fileSystem.TrySavePrompt = (loadedFile, md) => { triedToSave = true; return true; };
+         fileSystem.TrySavePrompt = loadedFile => { triedToSave = true; return true; };
 
          Assert.False(viewPort.Save.CanExecute(fileSystem));
          viewPort.Close.Execute(fileSystem);
@@ -109,7 +109,7 @@ namespace HavenSoft.HexManiac.Tests {
          int closed = 0;
          var viewPort = new ViewPort();
          viewPort.Closed += (sender, e) => closed++;
-         fileSystem.TrySavePrompt = (loadedFile, md) => true;
+         fileSystem.TrySavePrompt = loadedFile => true;
 
          viewPort.Edit("12");
          viewPort.Close.Execute(fileSystem);
@@ -122,7 +122,7 @@ namespace HavenSoft.HexManiac.Tests {
          int closed = 0;
          var viewPort = new ViewPort();
          viewPort.Closed += (sender, e) => closed++;
-         fileSystem.TrySavePrompt = (loadedFile, md) => false;
+         fileSystem.TrySavePrompt = loadedFile => false;
 
          viewPort.Edit("12");
          viewPort.Close.Execute(fileSystem);
@@ -135,7 +135,7 @@ namespace HavenSoft.HexManiac.Tests {
          int closed = 0;
          var viewPort = new ViewPort();
          viewPort.Closed += (sender, e) => closed++;
-         fileSystem.TrySavePrompt = (loadedFile, md) => null;
+         fileSystem.TrySavePrompt = loadedFile => null;
 
          viewPort.Edit("12");
          viewPort.Close.Execute(fileSystem);
@@ -147,7 +147,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void CallingSaveMultipleTimesOnlySavesOnce() {
          int count = 0;
          var viewPort = new ViewPort();
-         fileSystem.Save = (loadedFile, md) => { count++; return true; };
+         fileSystem.Save = loadedFile => { count++; return true; };
 
          viewPort.Edit("00 01 02");
          viewPort.Save.Execute(fileSystem);
@@ -218,7 +218,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void ViewPortTakesNewNameOnSave() {
-         var fileSystem = new StubFileSystem { RequestNewName = (originalName, description, extensions) => "path/to/newfile.txt", Save = (loadedFile, md) => true };
+         var fileSystem = new StubFileSystem { RequestNewName = (originalName, description, extensions) => "path/to/newfile.txt", Save = loadedFile => true };
          var viewPort = new ViewPort();
          int nameChangedCount = 0;
          viewPort.PropertyChanged += (sender, e) => { if (e.PropertyName == nameof(viewPort.Name)) nameChangedCount++; };
@@ -264,7 +264,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          var fileSystem = new StubFileSystem {
             RequestNewName = (currentName, description, extensionOptions) => "file.txt",
-            Save = (file, md) => true,
+            Save = file => true,
          };
          var viewPort = new ViewPort();
          viewPort.PropertyChanged += (sender, e) => properties.Add(e.PropertyName);
@@ -306,7 +306,8 @@ namespace HavenSoft.HexManiac.Tests {
          var model = new PokemonModel(buffer);
          var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          StoredMetadata metadata = null;
-         var fileSystem = new StubFileSystem { Save = (file, md) => { metadata = md; return true; } };
+         var fileSystem = new StubFileSystem { Save = file => true, SaveMetadata = (file, md) => { metadata = new StoredMetadata(md); return true; } };
+
 
          viewPort.Edit("^bob\"\" \"Hello\"");
          viewPort.Save.Execute(fileSystem);

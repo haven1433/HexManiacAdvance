@@ -21,11 +21,13 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <DefineConstants>TRACE</DefineConstants>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -51,6 +53,7 @@
     <Compile Include="Models\Runs\ArrayRunElementSegment.cs" />
     <Compile Include="Models\Runs\AsciiRun.cs" />
     <Compile Include="Models\Runs\HeaderRow.cs" />
+    <Compile Include="ViewModels\Theme.cs" />
     <Compile Include="ViewModels\Tools\IArrayElementViewModel.cs" />
     <Compile Include="Models\Runs\IFormattedRun.cs" />
     <Compile Include="Models\ModelDelta.cs" />

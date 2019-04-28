@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+﻿using HavenSoft.HexManiac.Core.ViewModels;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.WPF.Controls;
 using System.Collections.Generic;
 using System.Globalization;
@@ -39,7 +40,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
 
       public void Visit(UnderEdit dataFormat, byte data) {
-         var brush = Solarized.Theme.Primary;
+         var brush = Brush(nameof(Theme.Primary));
          var typeface = new Typeface("Consolas");
 
          var content = dataFormat.CurrentText;
@@ -68,8 +69,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
 
       public void Visit(Pointer dataFormat, byte data) {
-         var brush = Solarized.Brushes.Blue;
-         if (dataFormat.Destination < 0) brush = Solarized.Brushes.Red;
+         var brush = Brush(nameof(Theme.Accent));
+         if (dataFormat.Destination < 0) brush = Brush(nameof(Theme.Error));
          Underline(brush, dataFormat.Position == 0, dataFormat.Position == 3);
 
          var typeface = new Typeface("Consolas");
@@ -97,7 +98,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       private static readonly Geometry Triangle = Geometry.Parse("M0,5 L3,0 6,5");
       public void Visit(Anchor anchor, byte data) {
          anchor.OriginalFormat.Visit(this, data);
-         var pen = new Pen(Solarized.Brushes.Blue, 1);
+         var pen = new Pen(Brush(nameof(Theme.Accent)), 1);
          if (MouseIsOverCurrentFormat) pen.Thickness = 2;
          context.DrawGeometry(null, pen, Triangle);
       }
@@ -110,7 +111,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             FlowDirection.LeftToRight,
             typeface,
             FontSize,
-            Solarized.Brushes.Violet,
+            Brush(nameof(Theme.Text1)),
             1.0);
 
          var xOffset = 1 - pcs.ThisCharacter.Length;
@@ -122,7 +123,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
 
       public void Visit(ErrorPCS pcs, byte data) {
-         var brush = Solarized.Brushes.Red;
+         var brush = Brush(nameof(Theme.Error));
          var typeface = new Typeface("Consolas");
 
          var content = data.ToString("X2");
@@ -147,7 +148,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             FlowDirection.LeftToRight,
             typeface,
             FontSize,
-            Solarized.Brushes.Magenta,
+            Brush(nameof(Theme.Text2)),
             1.0);
 
          context.DrawText(text, CellTextOffset);
@@ -165,7 +166,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             FlowDirection.LeftToRight,
             typeface,
             FontSize,
-            Solarized.Brushes.Cyan,
+            Brush(nameof(Theme.Data1)),
             1.0);
 
          var xOffset = CellTextOffset.X;
@@ -186,7 +187,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             FlowDirection.LeftToRight,
             typeface,
             FontSize * 3 / 4,
-            Solarized.Brushes.Yellow,
+            Brush(nameof(Theme.Data2)),
             1.0);
 
          var xOffset = CellTextOffset.X / 2;
@@ -208,9 +209,9 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          var bytesAsHex = Enumerable.Range(0, 0x100).Select(i => i.ToString("X2"));
 
          var text = bytesAsHex.Select(hex => {
-            var brush = Solarized.Theme.Emphasis;
+            var brush = Brush(nameof(Theme.Primary));
             var typeface = new Typeface("Consolas");
-            if (hex == "00" || hex == "FF") brush = Solarized.Theme.Secondary;
+            if (hex == "00" || hex == "FF") brush = Brush(nameof(Theme.Secondary));
             if (hex == "FF") {
                typeface = new Typeface(new FontFamily("Consolas"), FontStyles.Italic, FontWeights.Light, FontStretches.Normal);
             }
@@ -225,6 +226,10 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          });
 
          noneVisualCache.AddRange(text);
+      }
+
+      private static SolidColorBrush Brush(string name) {
+         return (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][name];
       }
    }
 }

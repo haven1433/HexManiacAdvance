@@ -1,7 +1,6 @@
 ﻿<Window x:Class="HavenSoft.HexManiac.WPF.Windows.AboutWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:solarized="clr-namespace:Solarized"
         Background="{DynamicResource Background}"
         WindowStyle="ToolWindow"
         Title="About Hex Maniac Advance" Height="300" Width="400">
@@ -18,10 +17,7 @@
          <TextBlock Name="Version"/>
          <TextBlock TextWrapping="Wrap">This is a prerelease debug version: please do not distribute!</TextBlock>
          <TextBlock>
-            <Hyperlink Foreground="{solarized:Theme Blue}" NavigateUri="https://github.com/haven1433/HexManiacAdvance/blob/master/LICENSE" RequestNavigate="Navigate">MIT License</Hyperlink>
-         </TextBlock>
-         <TextBlock>
-            <Hyperlink Foreground="{solarized:Theme Blue}" NavigateUri="https://ethanschoonover.com/solarized" RequestNavigate="Navigate">Solarized</Hyperlink>
+            <Hyperlink Foreground="{DynamicResource Accent}" NavigateUri="https://github.com/haven1433/HexManiacAdvance/blob/master/LICENSE" RequestNavigate="Navigate">MIT License</Hyperlink>
          </TextBlock>
       </StackPanel>
    </DockPanel>

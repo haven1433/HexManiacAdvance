@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.WPF.Implementations;
 using System;
 using System.Collections.ObjectModel;
@@ -98,7 +99,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var angle = SlantAngle * Math.PI / 180;
          var heightPerRow = Math.Max(sampleFormat.Width * Math.Sin(angle) + sampleFormat.Height * Math.Cos(angle), sampleFormat.Height);
          var angledTextHeight = sampleFormat.Height * Math.Cos(SlantAngle * Math.PI / 180);
-         var pen = new Pen(Solarized.Theme.Backlight, 1);
+         var pen = new Pen(Brush(nameof(Theme.Backlight)), 1);
 
          double yOffset = heightPerRow;
 
@@ -131,6 +132,10 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          drawingContext.Pop();
       }
 
+      private static SolidColorBrush Brush(string name) {
+         return (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][name];
+      }
+
       private void UpdateDesiredHeight() {
          var maxLength = (HeaderRows?.Count ?? 0) == 0 ? 1 : HeaderRows.Max(row => row.ColumnHeaders.Max(header => header.ColumnTitle.Length));
          var formattedText = Format(new string('0', maxLength));
@@ -149,7 +154,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             FlowDirection.LeftToRight,
             typeface,
             FormatDrawer.FontSize * 3 / 4,
-            Solarized.Theme.Secondary,
+            Brush(nameof(Theme.Secondary)),
             1.0);
       }
    }

@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.WPF.Controls;
 using Microsoft.Win32;
 using System;
@@ -8,6 +9,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace HavenSoft.HexManiac.WPF.Implementations {
@@ -76,27 +78,31 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          return dialog.FileName;
       }
 
-      public bool Save(LoadedFile file, StoredMetadata metadata) {
+      public bool Save(LoadedFile file) {
          // make sure the required directory exists
          var path = Path.GetDirectoryName(file.Name);
          Directory.CreateDirectory(path);
          File.WriteAllBytes(file.Name, file.Contents);
-         var metadataName = Path.ChangeExtension(file.Name, ".toml");
-         File.WriteAllLines(metadataName, metadata.Serialize());
          return true;
       }
 
-      public bool? TrySavePrompt(LoadedFile file, StoredMetadata metadata) {
+      public bool SaveMetadata(string originalFileName, string[] metadata) {
+         var metadataName = Path.ChangeExtension(originalFileName, ".toml");
+         File.WriteAllLines(metadataName, metadata);
+         return true;
+      }
+
+      public bool? TrySavePrompt(LoadedFile file) {
          var result = ShowCustomMessageBox($"Would you like to save{Environment.NewLine}{file.Name}?");
          if (result == MessageBoxResult.Cancel) return null;
          if (result == MessageBoxResult.No) return false;
-         return Save(file, metadata);
+         return Save(file);
       }
 
       public MessageBoxResult ShowCustomMessageBox(string message) {
          var window = new Window {
-            Background = Solarized.Theme.Background,
-            Foreground = Solarized.Theme.Primary,
+            Background = Brush(nameof(Theme.Background)),
+            Foreground = Brush(nameof(Theme.Primary)),
             Title = Application.Current.MainWindow.Title,
             SizeToContent = SizeToContent.WidthAndHeight,
             WindowStyle = WindowStyle.ToolWindow,
@@ -110,19 +116,19 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                      Children = {
                         new Button {
                            HorizontalContentAlignment = HorizontalAlignment.Center,
-                           Content = new Label { Foreground = Solarized.Theme.Primary, Content = "_Yes" },
+                           Content = new Label { Foreground = Brush(nameof(Theme.Primary)), Content = "_Yes" },
                            MinWidth = 70,
                            Margin = new Thickness(5)
                         }.SetEvent(Button.ClickEvent, MessageBoxButtonClick),
                         new Button {
                            HorizontalContentAlignment = HorizontalAlignment.Center,
-                           Content = new Label { Foreground = Solarized.Theme.Primary, Content = "_No" },
+                           Content = new Label { Foreground = Brush(nameof(Theme.Primary)), Content = "_No" },
                            MinWidth = 70,
                            Margin = new Thickness(5)
                         }.SetEvent(Button.ClickEvent, MessageBoxButtonClick),
                         new Button {
                            HorizontalContentAlignment = HorizontalAlignment.Center,
-                           Content = new Label { Foreground = Solarized.Theme.Primary, Content = "Cancel" },
+                           Content = new Label { Foreground = Brush(nameof(Theme.Primary)), Content = "Cancel" },
                            MinWidth = 70,
                            Margin = new Thickness(5)
                         }.SetEvent(Button.ClickEvent, MessageBoxButtonClick),
@@ -164,16 +170,16 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          }
       }
 
-      public StoredMetadata MetadataFor(string fileName) {
+      public string[] MetadataFor(string fileName) {
          var metadataName = Path.ChangeExtension(fileName, ".toml");
          if (!File.Exists(metadataName)) return null;
          var lines = File.ReadAllLines(metadataName);
 
-         try {
-            return new StoredMetadata(lines);
-         } catch (Exception) {
-            return null;
-         }
+         return lines;
+      }
+
+      private static SolidColorBrush Brush(string name) {
+         return (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][name];
       }
 
       private static string CreateFilterFromOptions(string description, string[] extensionOptions) {

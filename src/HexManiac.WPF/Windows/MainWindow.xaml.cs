@@ -17,6 +17,7 @@ using System.Windows.Media.Animation;
 namespace HavenSoft.HexManiac.WPF.Windows {
    partial class MainWindow {
       private readonly List<Action> deferredActions = new List<Action>();
+      private ThemeSelector themeWindow;
 
       public EditorViewModel ViewModel { get; }
 
@@ -50,7 +51,12 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       protected override void OnClosing(CancelEventArgs e) {
          base.OnClosing(e);
          ViewModel.CloseAll.Execute();
-         if (ViewModel.Count != 0) e.Cancel = true;
+         if (ViewModel.Count != 0) {
+            e.Cancel = true;
+         } else {
+            themeWindow?.Close();
+            ViewModel.WriteAppLevelMetadata();
+         }
       }
 
       private static FrameworkElement GetChild(DependencyObject depObj, string name, object dataContext) {
@@ -117,7 +123,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       }
 
       private void ToggleTheme(object sender, EventArgs e) {
-         Solarized.Theme.CurrentVariant = 1 - Solarized.Theme.CurrentVariant;
+         ViewModel.Theme.LightVariant = !ViewModel.Theme.LightVariant;
       }
 
       private void ExitClicked(object sender, EventArgs e) {
@@ -182,6 +188,13 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
          FocusAnimationElement.BeginAnimation(WidthProperty, widthAnimation);
          FocusAnimationElement.BeginAnimation(HeightProperty, heightAnimation);
+      }
+
+      private void ShowThemeSelector(object sender, RoutedEventArgs e) {
+         if (themeWindow?.Visibility != Visibility.Visible) {
+            themeWindow = new ThemeSelector { DataContext = ViewModel.Theme };
+            themeWindow.Show();
+         }
       }
    }
 }

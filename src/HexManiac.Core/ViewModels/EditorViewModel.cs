@@ -12,6 +12,7 @@ using static HavenSoft.HexManiac.Core.ICommandExtensions;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
    public class EditorViewModel : ViewModelCore, IEnumerable<ITabContent>, INotifyCollectionChanged {
+      public const string ApplicationName = "HexManiac";
       private const int MaxReasonableResults = 400; // limit for performance reasons
 
       private readonly IFileSystem fileSystem;
@@ -153,6 +154,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          set => TryUpdate(ref showMatrix, value);
       }
 
+      public Theme Theme { get; }
+
       private string infoMessage;
       public string InformationMessage {
          get => infoMessage;
@@ -225,6 +228,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             { tab => tab.Back, (sender, e) => back.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.Forward, (sender, e) => forward.CanExecuteChanged.Invoke(this, e) },
          };
+
+         var metadata = fileSystem.MetadataFor(ApplicationName) ?? new string[0];
+         Theme = new Theme(metadata);
+         ShowMatrix = metadata.Contains("ShowMatrixGrid = True");
+      }
+
+      public void WriteAppLevelMetadata() {
+         var metadata = new List<string>();
+         metadata.Add("[GeneralSettings]");
+         metadata.Add($"ShowMatrixGrid = {ShowMatrix}");
+         metadata.Add(string.Empty);
+         metadata.AddRange(Theme.Serialize());
+         fileSystem.SaveMetadata(ApplicationName, metadata.ToArray());
       }
 
       private void ImplementCommands() {
@@ -236,7 +252,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             try {
                var file = arg as LoadedFile ?? fileSystem.OpenFile("GameBoy Advanced", "gba");
                if (file == null) return;
-               var metadata = fileSystem.MetadataFor(file.Name);
+               var metadataText = fileSystem.MetadataFor(file.Name) ?? new string[0];
+               var metadata = new StoredMetadata(metadataText);
                Add(new ViewPort(file.Name, new AutoSearchModel(file.Contents, metadata)));
             } catch (IOException ex) {
                ErrorMessage = ex.Message;

@@ -5,7 +5,6 @@
         xmlns:hsg3hv="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
         xmlns:hsv="clr-namespace:HavenSoft.HexManiac.WPF.Resources"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
-        xmlns:solarized="clr-namespace:Solarized"
         xmlns:hsg3hvmtr="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Tools;assembly=HexManiac.Core"
         Icon="..\Resources\AppIcon.ico"
         PreviewMouseDown="RunDeferredActions"
@@ -141,6 +140,7 @@
                         </ToolTip>
                      </MenuItem.ToolTip>
                   </MenuItem>-->
+                  <MenuItem Header="C_ustomize Theme" Click="ShowThemeSelector"/>
                   <MenuItem Header="_Clear Error" Command="{Binding ClearError}" InputGestureText="Esc"/>
                </MenuItem>
                <MenuItem Header="_Tools">
@@ -180,7 +180,7 @@
                                  <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                                     <Style.Triggers>
                                        <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                          <Setter Property="BorderBrush" Value="{solarized:Theme Blue}"/>
+                                          <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
                                        </DataTrigger>
                                     </Style.Triggers>
                                  </Style>
@@ -207,7 +207,7 @@
             </StackPanel>
             <!-- Message -->
             <StackPanel Name="MessagePanel" Visibility="{Binding ShowMessage, Converter={StaticResource BoolToVisibility}}" Style="{StaticResource AnimateOnVisibilityChanged}" Orientation="Horizontal">
-               <TextBlock Margin="10,0" VerticalAlignment="Center" Text="{Binding InformationMessage}" Foreground="{solarized:Theme Blue}"/>
+               <TextBlock Margin="10,0" VerticalAlignment="Center" Text="{Binding InformationMessage}" Foreground="{DynamicResource Accent}"/>
                <Button Command="{Binding ClearMessage}" Width="15">
                   <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
                </Button>
@@ -221,7 +221,7 @@
                <Grid.InputBindings>
                   <MouseBinding MouseAction="MiddleClick" Command="{Binding ClearError}"/>
                </Grid.InputBindings>
-               <TextBlock Margin="10,0" VerticalAlignment="Center" Text="{Binding ErrorMessage}" TextWrapping="Wrap" TextAlignment="Right" Foreground="{solarized:Theme Red}"/>
+               <TextBlock Margin="10,0" VerticalAlignment="Center" Text="{Binding ErrorMessage}" TextWrapping="Wrap" TextAlignment="Right" Foreground="{DynamicResource Error}"/>
                <Button Command="{Binding ClearError}" Width="15" Grid.Column="1">
                   <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
                </Button>
@@ -283,7 +283,7 @@
                                  <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                                     <Style.Triggers>
                                        <DataTrigger Binding="{Binding Tools.SelectedIndex}" Value="0">
-                                          <Setter Property="BorderBrush" Value="{solarized:Theme Blue}"/>
+                                          <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
                                        </DataTrigger>
                                     </Style.Triggers>
                                  </Style>
@@ -297,7 +297,7 @@
                                  <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                                     <Style.Triggers>
                                        <DataTrigger Binding="{Binding Tools.SelectedIndex}" Value="1">
-                                          <Setter Property="BorderBrush" Value="{solarized:Theme Blue}"/>
+                                          <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
                                        </DataTrigger>
                                     </Style.Triggers>
                                  </Style>
@@ -311,7 +311,7 @@
                                  <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                                     <Style.Triggers>
                                        <DataTrigger Binding="{Binding Tools.SelectedIndex}" Value="2">
-                                          <Setter Property="BorderBrush" Value="{solarized:Theme Blue}"/>
+                                          <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
                                        </DataTrigger>
                                     </Style.Triggers>
                                  </Style>
@@ -412,7 +412,7 @@
                            <DockPanel Visibility="{Binding AnchorTextVisible, Converter={StaticResource BoolToVisibility}}" >
                               <TextBlock Width="70" Text="Anchor: " TextAlignment="Right" ToolTipService.ShowDuration="15000">
                                  <TextBlock.ToolTip>
-                                    <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{solarized:Theme Blue}" BorderThickness="1">
+                                    <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
                                        <TextBlock TextAlignment="Left">
                                           <Bold>Anchor Editor</Bold> <LineBreak/>
                                           Anchors can have a name and a format. <LineBreak/>
@@ -456,6 +456,6 @@
             </TabControl>
          </Grid>
       </DockPanel>
-      <Rectangle Name="FocusAnimationElement" StrokeThickness="2" Stroke="{solarized:Theme Blue}" Visibility="Visible" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+      <Rectangle Name="FocusAnimationElement" StrokeThickness="2" Stroke="{DynamicResource Accent}" Visibility="Visible" HorizontalAlignment="Right" VerticalAlignment="Top"/>
    </Grid>
 </Window>

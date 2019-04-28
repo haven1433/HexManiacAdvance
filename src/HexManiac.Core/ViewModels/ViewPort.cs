@@ -248,7 +248,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          var metadata = Model.ExportMetadata();
-         if (fileSystem.Save(new LoadedFile(FileName, Model.RawData), metadata)) history.TagAsSaved();
+         if (fileSystem.Save(new LoadedFile(FileName, Model.RawData))) {
+            fileSystem.SaveMetadata(FileName, metadata?.Serialize());
+            history.TagAsSaved();
+         }
       }
 
       private void SaveAsExecuted(IFileSystem fileSystem) {
@@ -256,8 +259,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (newName == null) return;
 
          var metadata = Model.ExportMetadata();
-         if (fileSystem.Save(new LoadedFile(newName, Model.RawData), metadata)) {
+         if (fileSystem.Save(new LoadedFile(newName, Model.RawData))) {
             FileName = newName; // don't bother notifying, because tagging the history will cause a notify;
+            fileSystem.SaveMetadata(FileName, metadata?.Serialize());
             history.TagAsSaved();
          }
       }
@@ -265,8 +269,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void CloseExecuted(IFileSystem fileSystem) {
          if (!history.IsSaved) {
             var metadata = Model.ExportMetadata();
-            var result = fileSystem.TrySavePrompt(new LoadedFile(FileName, Model.RawData), metadata);
+            var result = fileSystem.TrySavePrompt(new LoadedFile(FileName, Model.RawData));
             if (result == null) return;
+            if (result == true) {
+               fileSystem.SaveMetadata(FileName, metadata?.Serialize());
+            }
          }
          Closed?.Invoke(this, EventArgs.Empty);
       }
@@ -821,7 +828,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          try {
             var file = fileSystem.LoadFile(FileName);
             if (file == null) return; // asked to load the file, but the file wasn't found... carry on
-            Model.Load(file.Contents, fileSystem.MetadataFor(FileName));
+            var metadata = fileSystem.MetadataFor(FileName);
+            Model.Load(file.Contents, metadata != null ? new StoredMetadata(metadata) : null);
             scroll.DataLength = Model.Count;
             RefreshBackingData();
 

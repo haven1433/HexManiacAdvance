@@ -1,8 +1,7 @@
 ﻿<Application x:Class="HavenSoft.HexManiac.WPF.Windows.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:hsv="clr-namespace:HavenSoft.HexManiac.WPF.Resources"
-             xmlns:solarized="clr-namespace:Solarized">
+             xmlns:hsv="clr-namespace:HavenSoft.HexManiac.WPF.Resources">
    <Application.Resources>
       <!-- Icons accessible using IconExtension -->
       <hsv:Icons x:Key="Icons"/>
@@ -25,7 +24,7 @@
                   </Border>
                   <ControlTemplate.Triggers>
                      <Trigger SourceName="Border" Property="IsMouseOver" Value="True">
-                        <Setter TargetName="Border" Property="BorderBrush" Value="{solarized:Theme Blue}"/>
+                        <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource Accent}"/>
                      </Trigger>
                      <Trigger Property="IsEnabled" Value="False">
                         <Setter Property="Background" Value="{DynamicResource Background}"/>
@@ -36,7 +35,7 @@
          </Setter>
       </Style>
 
-      <!-- Scrollbar style. Based on normal style, but with solarize colors. -->
+      <!-- Scrollbar style. Based on normal style, but with custom colors. -->
       <Style x:Key="FocusVisual">
          <Setter Property="Control.Template">
             <Setter.Value>
@@ -293,9 +292,9 @@
                   <Setter.Value>
                      <ControlTemplate TargetType="{x:Type MenuItem}">
                         <Grid Name="ItemBorder">
-                           <ContentPresenter Margin="10,2" ContentSource="Header" RecognizesAccessKey="True" TextBlock.Foreground="{DynamicResource Emphasis}"/>
+                           <ContentPresenter Margin="10,2" ContentSource="Header" RecognizesAccessKey="True" TextBlock.Foreground="{DynamicResource Primary}"/>
                            <Popup x:Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsSubmenuOpen}" SnapsToDevicePixels="True">
-                              <Border x:Name="SubmenuBorder" BorderThickness="1" Background="{DynamicResource Background}" BorderBrush="{solarized:Theme Blue}">
+                              <Border x:Name="SubmenuBorder" BorderThickness="1" Background="{DynamicResource Background}" BorderBrush="{DynamicResource Accent}">
                                  <StackPanel Name="ItemsPresenter" IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
                               </Border>
                            </Popup>
@@ -320,7 +319,7 @@
                               <ColumnDefinition Width="100"/>
                            </Grid.ColumnDefinitions>
                            <ContentPresenter Grid.Column="0" Margin="5,5,0,5" ContentSource="Icon" />
-                           <ContentPresenter Grid.Column="1" Name="MainContent" Margin="10,5" VerticalAlignment="Center" ContentSource="Header" RecognizesAccessKey="True" TextBlock.Foreground="{DynamicResource Emphasis}" />
+                           <ContentPresenter Grid.Column="1" Name="MainContent" Margin="10,5" VerticalAlignment="Center" ContentSource="Header" RecognizesAccessKey="True" TextBlock.Foreground="{DynamicResource Primary}" />
                            <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{TemplateBinding InputGestureText}" Foreground="{DynamicResource Secondary}" />
                         </Grid>
                         <ControlTemplate.Triggers>
@@ -361,9 +360,9 @@
       <!-- TextBox Style -->
       <Style TargetType="TextBox">
          <Setter Property="Background" Value="{DynamicResource Backlight}"/>
-         <Setter Property="BorderBrush" Value="{solarized:Theme Blue}"/>
+         <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
          <Setter Property="Foreground" Value="{DynamicResource Primary}"/>
-         <Setter Property="SelectionBrush" Value="{solarized:Theme Blue}"/>
+         <Setter Property="SelectionBrush" Value="{DynamicResource Accent}"/>
          <Setter Property="Template">
             <Setter.Value>
                <ControlTemplate TargetType="TextBox">
@@ -376,7 +375,7 @@
          <Style.Triggers>
             <Trigger Property="IsEnabled" Value="False">
                <Setter Property="Background" Value="{DynamicResource Background}"/>
-               <Setter Property="BorderBrush" Value="{solarized:Theme Secondary}"/>
+               <Setter Property="BorderBrush" Value="{DynamicResource Secondary}"/>
                <Setter Property="Foreground" Value="{DynamicResource Secondary}"/>
                <Setter Property="Opacity" Value=".5"/>
             </Trigger>
@@ -411,13 +410,13 @@
                   <ControlTemplate.Triggers>
                      <Trigger Property="IsSelected" Value="True">
                         <Setter TargetName="Border" Property="Background" Value="{DynamicResource Background}"/>
-                        <Setter TargetName="Border" Property="BorderBrush" Value="{solarized:Theme Blue}"/>
-                        <Setter TargetName="InnerBorder" Property="BorderBrush" Value="{solarized:Theme Blue}"/>
+                        <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                        <Setter TargetName="InnerBorder" Property="BorderBrush" Value="{DynamicResource Accent}"/>
                         <Setter TargetName="OuterBorder" Property="BorderBrush" Value="{DynamicResource Background}"/>
                         <Setter TargetName="Border" Property="Panel.ZIndex" Value="10"/>
                      </Trigger>
                      <Trigger Property="IsMouseOver" Value="True">
-                        <Setter TargetName="InnerBorder" Property="BorderBrush" Value="{solarized:Theme Blue}"/>
+                        <Setter TargetName="InnerBorder" Property="BorderBrush" Value="{DynamicResource Accent}"/>
                      </Trigger>
                   </ControlTemplate.Triggers>
                </ControlTemplate>
@@ -429,7 +428,7 @@
          <Border x:Name="Border"
                Grid.ColumnSpan="2"
                Background="{DynamicResource Backlight}"
-               BorderBrush="{solarized:Theme Blue}"
+               BorderBrush="{DynamicResource Accent}"
                BorderThickness="1">
             <Path x:Name="Arrow" Width="20"
                Grid.Column="1"
@@ -570,7 +569,7 @@
                         <Style TargetType="Border">
                            <Style.Triggers>
                               <Trigger Property="IsMouseOver" Value="True">
-                                 <Setter Property="BorderBrush" Value="{solarized:Theme Blue}"/>
+                                 <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
                               </Trigger>
                            </Style.Triggers>
                         </Style>
@@ -581,5 +580,47 @@
             </Setter.Value>
          </Setter>
       </Style>
-   </Application.Resources>
+
+      <!-- Slider Style -->
+      <ControlTemplate x:Key="SliderThumbHorizontalDefault" TargetType="{x:Type Thumb}">
+         <Grid HorizontalAlignment="Center" UseLayoutRounding="True" VerticalAlignment="Center">
+            <Path x:Name="grip" Data="M 0,0 C0,0 11,0 11,0 11,0 11,18 11,18 11,18 0,18 0,18 0,18 0,0 0,0 z" Fill="{TemplateBinding Background}" Stretch="Fill" SnapsToDevicePixels="True" Stroke="{TemplateBinding BorderBrush}" StrokeThickness="1" UseLayoutRounding="True" VerticalAlignment="Center"/>
+         </Grid>
+         <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="true">
+               <Setter Property="Stroke" TargetName="grip" Value="{DynamicResource Accent}"/>
+            </Trigger>
+            <Trigger Property="IsDragging" Value="true">
+               <Setter Property="Fill" TargetName="grip" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Thumb}}}"/>
+            </Trigger>
+         </ControlTemplate.Triggers>
+      </ControlTemplate>
+      
+      <Style TargetType="{x:Type Slider}">
+         <Setter Property="Stylus.IsPressAndHoldEnabled" Value="false"/>
+         <Setter Property="Background" Value="{DynamicResource Backlight}"/>
+         <Setter Property="BorderBrush" Value="{DynamicResource Secondary}"/>
+         <Setter Property="Foreground" Value="{DynamicResource Secondary}"/>
+         <Setter Property="Template">
+            <Setter.Value>
+               <ControlTemplate TargetType="{x:Type Slider}">
+                  <Grid>
+                     <Border x:Name="TrackBackground" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" Background="{TemplateBinding Background}" Height="4.0" Margin="5,0" VerticalAlignment="Center"/>
+                     <Track x:Name="PART_Track">
+                        <Track.DecreaseRepeatButton>
+                           <RepeatButton Command="{x:Static Slider.DecreaseLarge}" Style="{StaticResource RepeatButtonTransparent}"/>
+                        </Track.DecreaseRepeatButton>
+                        <Track.IncreaseRepeatButton>
+                           <RepeatButton Command="{x:Static Slider.IncreaseLarge}" Style="{StaticResource RepeatButtonTransparent}"/>
+                        </Track.IncreaseRepeatButton>
+                        <Track.Thumb>
+                           <Thumb x:Name="Thumb" Focusable="False" Height="18" OverridesDefaultStyle="True" BorderBrush="{TemplateBinding BorderBrush}" Background="{TemplateBinding Background}" Foreground="{TemplateBinding Foreground}" Template="{StaticResource SliderThumbHorizontalDefault}" VerticalAlignment="Center" Width="11"/>
+                        </Track.Thumb>
+                     </Track>
+                  </Grid>
+               </ControlTemplate>
+            </Setter.Value>
+         </Setter>
+      </Style>
+    </Application.Resources>
 </Application>
