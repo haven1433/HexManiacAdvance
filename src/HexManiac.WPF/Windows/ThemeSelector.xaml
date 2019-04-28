@@ -32,7 +32,7 @@
          </StackPanel>
          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
             <TextBlock Text="Accent Brightness:" Foreground="{Binding LightColor}"/>
-            <Slider Minimum="0" Maximum="1" Value="{Binding AccentValue}" Width="150" Margin="5,0"/>
+            <Slider Foreground="{Binding SecondaryDark}" Background="{Binding HighlightDark}" BorderBrush="{Binding SecondaryDark}" Minimum="0" Maximum="1" Value="{Binding AccentValue}" Width="150" Margin="5,0"/>
          </StackPanel>
       </StackPanel>
 
