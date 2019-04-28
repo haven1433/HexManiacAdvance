@@ -231,7 +231,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var metadata = fileSystem.MetadataFor(ApplicationName) ?? new string[0];
          Theme = new Theme(metadata);
-         ShowMatrix = metadata.Contains("ShowMatrixGrid = True");
+         ShowMatrix = !metadata.Contains("ShowMatrixGrid = False");
       }
 
       public void WriteAppLevelMetadata() {

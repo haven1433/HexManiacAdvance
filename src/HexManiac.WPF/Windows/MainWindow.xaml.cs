@@ -191,7 +191,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       }
 
       private void ShowThemeSelector(object sender, RoutedEventArgs e) {
-         if (themeWindow?.Visibility != Visibility.Visible) {
+         if (themeWindow?.IsVisible != true) {
             themeWindow = new ThemeSelector { DataContext = ViewModel.Theme };
             themeWindow.Show();
          }

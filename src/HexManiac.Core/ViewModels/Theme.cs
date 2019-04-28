@@ -5,8 +5,8 @@ using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
    public class Theme : ViewModelCore {
-      private string lightColor = "#EEE", darkColor = "#111";
-      private double hueOffset = 0.3, accentSaturation = 0.6, accentValue = 0.9, highlightBrightness = 0.9;
+      private string lightColor = "#DDDDDD", darkColor = "#080808";
+      private double hueOffset = 0.3, accentSaturation = 0.4, accentValue = 0.7, highlightBrightness = 0.7;
       private bool lightVariant;
 
       public bool LightVariant {
