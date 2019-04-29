@@ -53,6 +53,7 @@
     <Compile Include="Models\Runs\ArrayRunElementSegment.cs" />
     <Compile Include="Models\Runs\AsciiRun.cs" />
     <Compile Include="Models\Runs\HeaderRow.cs" />
+    <Compile Include="ViewModels\AutoCompleteSelectionItem.cs" />
     <Compile Include="ViewModels\Theme.cs" />
     <Compile Include="ViewModels\Tools\IArrayElementViewModel.cs" />
     <Compile Include="Models\Runs\IFormattedRun.cs" />

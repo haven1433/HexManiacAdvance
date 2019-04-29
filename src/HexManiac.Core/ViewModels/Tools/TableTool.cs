@@ -59,7 +59,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public event EventHandler<IFormattedRun> ModelDataChanged;
 
+#pragma warning disable 0067 // it's ok if events are never used after implementing an interface
       public event EventHandler<(int originalLocation, int newLocation)> ModelDataMoved; // invoke when a new item gets added and the table has to move
+#pragma warning restore 0067
 
       public TableTool(IDataModel model, Selection selection, ChangeHistory<ModelDelta> history, IToolTrayViewModel toolTray) {
          this.model = model;

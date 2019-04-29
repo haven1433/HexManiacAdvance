@@ -80,6 +80,7 @@
     <Compile Include="NavigationTests.cs" />
     <Compile Include="StringModelTests.cs" />
     <Compile Include="ToolTests.cs" />
+    <Compile Include="ViewPortAutocompleteEditTests.cs" />
     <Compile Include="ViewPortCursorTests.cs" />
     <Compile Include="ViewPortEditTests.cs" />
     <Compile Include="ViewPortSaveTests.cs" />

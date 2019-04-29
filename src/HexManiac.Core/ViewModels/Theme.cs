@@ -6,7 +6,7 @@ using System.Linq;
 namespace HavenSoft.HexManiac.Core.ViewModels {
    public class Theme : ViewModelCore {
       private string lightColor = "#DDDDDD", darkColor = "#080808";
-      private double hueOffset = 0.3, accentSaturation = 0.4, accentValue = 0.7, highlightBrightness = 0.7;
+      private double hueOffset = 0.1, accentSaturation = 0.9, accentValue = 0.6, highlightBrightness = 0.7;
       private bool lightVariant;
 
       public bool LightVariant {
@@ -106,8 +106,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var accent = new List<(double hue, double sat, double bright)>();
          var saturation = accentSaturation * .8 + .2;
          var accentBrightness = accentValue * .6 + .4;
-         var brightness = hsbLight.bright * accentBrightness + (1 - accentBrightness) * hsbDark.bright;
-         var prototype = (hue: (hueOffset - .5) / 12, sat: saturation, bright: brightness);
+         var prototype = (hue: (hueOffset - .5) / 12, sat: saturation, bright: accentBrightness);
          for (int i = 0; i < 8; i++) {
             accent.Add(prototype);
             prototype.hue += 1 / 8.0;

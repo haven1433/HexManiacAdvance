@@ -25,7 +25,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override int EarliestAllowedAnchor => 0x200;
 
       public AutoSearchModel(byte[] data, StoredMetadata metadata = null) : base(data, metadata) {
-         if (metadata != null) return;
+         if (metadata != null && !metadata.IsEmpty) return;
 
          gameCode = string.Concat(Enumerable.Range(0xAC, 4).Select(i => ((char)data[i]).ToString()));
 

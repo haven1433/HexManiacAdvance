@@ -227,7 +227,8 @@
                </Button>
             </Grid>
          </DockPanel>
-         <Grid>
+         <Border DockPanel.Dock="Top" Height="1" Background="{DynamicResource Backlight}"/>
+         <Grid Background="{DynamicResource Background}">
             <hsg3hv:StartScreen>
                <hsg3hv:StartScreen.Style>
                   <Style TargetType="FrameworkElement">

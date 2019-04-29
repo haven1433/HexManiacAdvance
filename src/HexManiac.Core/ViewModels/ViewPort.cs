@@ -867,7 +867,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          SelectionStart = point;
 
          if (element == currentView[point.X, point.Y]) {
-            var newFormat = element.Format.Edit(input.ToString());
+            UnderEdit newFormat;
+            if (element.Format is UnderEdit underEdit && underEdit.AutocompleteOptions != null) {
+               if (underEdit.CurrentText.StartsWith(PointerStart.ToString())) {
+                  var newText = underEdit.CurrentText + input;
+                  var autocompleteOptions = GetNewPointerAutocompleteOptions(newText);
+                  newFormat = new UnderEdit(underEdit.OriginalFormat, newText, underEdit.EditWidth, autocompleteOptions);
+               } else {
+                  throw new NotImplementedException();
+               }
+            } else {
+               newFormat = element.Format.Edit(input.ToString());
+            }
             currentView[point.X, point.Y] = new HexElement(element.Value, newFormat);
          } else {
             // ShouldAcceptInput already did the work: nothing to change
@@ -969,7 +980,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   // if the user tries to edit the pointer but forgets the opening bracket, add it for them.
                   if (input != PointerStart) editText = PointerStart + editText;
                   var newFormat = element.Format.Edit(editText);
-                  newFormat = new UnderEdit(newFormat.OriginalFormat, newFormat.CurrentText, 4);
+                  var autocompleteOptions = GetNewPointerAutocompleteOptions(editText);
+                  newFormat = new UnderEdit(newFormat.OriginalFormat, newFormat.CurrentText, 4, autocompleteOptions);
                   currentView[point.X, point.Y] = new HexElement(element.Value, newFormat);
                   return true;
                }
@@ -1025,6 +1037,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          return false;
+      }
+
+      private IReadOnlyList<AutoCompleteSelectionItem> GetNewPointerAutocompleteOptions(string text) {
+         if (text.StartsWith(PointerStart.ToString()))text = text.Substring(1);
+         var options = Model.GetAutoCompleteAnchorNameOptions(text);
+         return AutoCompleteSelectionItem.Generate(options, -1);
       }
 
       private (Point start, Point end) GetSelectionSpan(Point p) {

@@ -53,7 +53,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public IDataFormat OriginalFormat { get; }
       public string CurrentText { get; }
       public int EditWidth { get; }
-      public UnderEdit(IDataFormat original, string text, int editWidth = 1) => (OriginalFormat, CurrentText, EditWidth) = (original, text, editWidth);
+      public IReadOnlyList<AutoCompleteSelectionItem> AutocompleteOptions { get; }
+      public UnderEdit(IDataFormat original, string text, int editWidth = 1, IReadOnlyList<AutoCompleteSelectionItem> autocompleteOptions = null) {
+         OriginalFormat = original;
+         CurrentText = text;
+         EditWidth = editWidth;
+         AutocompleteOptions = autocompleteOptions;
+      }
 
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
       public bool Equals(IDataFormat format) {
@@ -61,6 +67,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
 
          if (!OriginalFormat.Equals(that.OriginalFormat)) return false;
          if (EditWidth != that.EditWidth) return false;
+         if (AutocompleteOptions != null ^ that.AutocompleteOptions != null) return false; // if only one is null, not equal
+         if (AutocompleteOptions != null && that.AutocompleteOptions != null && AutocompleteOptions.SequenceEqual(that.AutocompleteOptions)) return false;
          return CurrentText == that.CurrentText;
       }
    }
@@ -190,7 +198,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
 
       public Integer(int source, int position, int value, int length) => (Source, Position, Value, Length) = (source, position, value, length);
 
-      public bool Equals(IDataFormat other) {
+      public virtual bool Equals(IDataFormat other) {
          if (!(other is Integer that)) return false;
          return Source == that.Source && Position == that.Position && Value == that.Value && Length == that.Length;
       }
@@ -206,7 +214,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public new string Value { get; }
       public IntegerEnum(int source, int position, string value, int length) : base(source, position, -1, length) => Value = value;
 
-      public bool Equals(IDataFormat other) {
+      public override bool Equals(IDataFormat other) {
          if (!(other is IntegerEnum that)) return false;
          return Value == that.Value && base.Equals(other);
       }

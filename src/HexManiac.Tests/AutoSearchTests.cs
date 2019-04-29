@@ -148,7 +148,8 @@ namespace HavenSoft.HexManiac.Tests {
             if (modelCache.TryGetValue(name, out var cachedModel)) return cachedModel;
             Skip.IfNot(File.Exists(name));
             var data = File.ReadAllBytes(name);
-            var model = new AutoSearchModel(data);
+            var metadata = new StoredMetadata(new string[0]);
+            var model = new AutoSearchModel(data, metadata);
             modelCache[name] = model;
             return model;
          }

@@ -241,8 +241,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public TableTool TableTool => null;
 
       public IDisposable DeferUpdates => new StubDisposable();
+
+#pragma warning disable 0067 // it's ok if events are never used after implementing an interface
       public event EventHandler<string> OnError;
       public event PropertyChangedEventHandler PropertyChanged;
+#pragma warning restore 0067
+
       public void Schedule(Action action) => action();
       public void RefreshContent() { }
 

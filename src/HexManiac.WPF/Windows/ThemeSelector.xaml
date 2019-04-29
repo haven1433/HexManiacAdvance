@@ -9,7 +9,7 @@
       </Grid.ColumnDefinitions>
       <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,0,0,10">
          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-            <TextBlock Text="White:" Foreground="{Binding DarkColor}"/>
+            <TextBlock Text="Light Background / Text:" Foreground="{Binding DarkColor}"/>
             <TextBox Foreground="{Binding DarkColor}" Background="{Binding HighlightLight}" Text="{Binding LightColor, UpdateSourceTrigger=PropertyChanged}" Width="150" Margin="5,0"/>
          </StackPanel>
          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10">
@@ -23,7 +23,7 @@
       </StackPanel>
       <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top" Grid.Column="1">
          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-            <TextBlock Text="Black:" Foreground="{Binding LightColor}"/>
+            <TextBlock Text="Dark Background / Text:" Foreground="{Binding LightColor}"/>
             <TextBox Foreground="{Binding LightColor}" Background="{Binding HighlightDark}" Text="{Binding DarkColor, UpdateSourceTrigger=PropertyChanged}" Width="150" Margin="5,0"/>
          </StackPanel>
          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10">

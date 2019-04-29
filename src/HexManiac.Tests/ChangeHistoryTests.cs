@@ -9,7 +9,9 @@ using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
    public class FakeChangeToken : List<int>, IChangeToken {
+#pragma warning disable 0067 // it's ok if events are never used after implementing an interface
       public event EventHandler OnNewDataChange;
+#pragma warning restore 0067
       public bool HasDataChange => Count > 0;
       public FakeChangeToken() { }
       public FakeChangeToken(IEnumerable<int> data) : base(data) { }
