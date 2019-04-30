@@ -933,7 +933,23 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.True(viewPort.IsSelected(new Point(1, 1))); // two selected bytes, since the previous entry is 2 bytes long
       }
 
-      // TODO while typing an enum, the ViewModel provides auto-complete options
+      [Fact]
+      public void ArrayLengthUpdatesWhenSourceTableLengthChanges() {
+         // Arrange
+         var data = new byte[0x200];
+         var model = new PokemonModel(data);
+
+         // Act
+         ArrayRun.TryParse(model, "[a: b:]names", 0, null, out var table);
+         model.ObserveAnchorWritten(new ModelDelta(), "table", table);
+         ArrayRun.TryParse(model, "[name\"\"8]8", 0x30, null, out var names);
+         model.ObserveAnchorWritten(new ModelDelta(), "names", names);
+
+         // Assert that the table is now longer based on the names table
+         Assert.Equal(8 * 4, model.GetNextRun(0).Length);
+      }
+
+      // TODO what happens if I change a table's length such that another table now hits an anchor?
 
       private static void WriteStrings(byte[] buffer, int start, params string[] content) {
          foreach (var item in content) {

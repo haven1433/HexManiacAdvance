@@ -376,9 +376,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                return innerCommand.CanExecute(fileSystem);
             },
             Execute = arg => {
-               var innerCommand = commandGetter(tabs[SelectedIndex]);
+               var tab = tabs[SelectedIndex];
+               var innerCommand = commandGetter(tab);
                if (innerCommand == null) return;
-               innerCommand.Execute(fileSystem);
+
+               // special case: for save/save as, remove the file listener
+               // otherwise the filesystem will notify us of our own change
+               if ((innerCommand == tab.Save || innerCommand == tab.SaveAs) && tab is IViewPort viewPort && !string.IsNullOrEmpty(viewPort.FileName)) {
+                  fileSystem.RemoveListenerForFile(viewPort.FileName, viewPort.ConsiderReload);
+                  using (new StubDisposable { Dispose = () => fileSystem.AddListenerToFile(viewPort.FileName, viewPort.ConsiderReload) }) {
+                     innerCommand.Execute(fileSystem);
+                  }
+               } else {
+                  innerCommand.Execute(fileSystem);
+               }
             }
          };
 

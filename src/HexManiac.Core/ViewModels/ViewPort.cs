@@ -1266,10 +1266,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var newRun = (ArrayRun)Model.RelocateForExpansion(history.CurrentChange, array, array.Length + array.ElementLength);
          newRun = newRun.Append(1);
          Model.ObserveRunWritten(history.CurrentChange, newRun);
-
-         foreach (var child in Model.GetDependantArrays(newRun)) {
-            ExtendArrayAndChildren(child);
-         }
       }
 
       private void CompletePointerEdit(Point point) {

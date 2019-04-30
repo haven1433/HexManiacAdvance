@@ -46,10 +46,11 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          if (metadata == null) return;
 
+         // metadata is more important than anything already found
          foreach (var anchor in metadata.NamedAnchors) {
             // since we're loading metadata, we're pretty sure that the anchors in the metadata are right.
             // therefore, allow those anchors to overwrite anything we found during the initial quick-search phase.
-            ApplyAnchor(this, new ModelDelta(), anchor.Address, AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
+            ApplyAnchor(this, new NoDataChangeDeltaModel(), anchor.Address, AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
          }
          foreach (var unmappedPointer in metadata.UnmappedPointers) {
             sourceToUnmappedName[unmappedPointer.Address] = unmappedPointer.Name;
@@ -379,7 +380,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          if (run is PointerRun) AddPointerToAnchor(changeToken, run.Start);
-         if (run is ArrayRun arrayRun) ModifyAnchorsFromPointerArray(changeToken, arrayRun, AddPointerToAnchor);
+         if (run is ArrayRun arrayRun) {
+            ModifyAnchorsFromPointerArray(changeToken, arrayRun, AddPointerToAnchor);
+            UpdateDependantArrayLengths(changeToken, arrayRun);
+         }
 
          if (run is NoInfoRun && run.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(run.Start)) {
             // this run has no useful information. Remove it.
@@ -388,15 +392,33 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      private void ModifyAnchorsFromPointerArray(ModelDelta changeToken, ArrayRun arrayRun, Action<ModelDelta, int> changeAchors) {
+      /// <summary>
+      /// A new array just came in. It might have pointers.
+      /// When we make a new pointer, we need to update anchors to include the new pointer.
+      /// So update all the anchors based on any new pointers in this newly added array.
+      /// </summary>
+      private void ModifyAnchorsFromPointerArray(ModelDelta changeToken, ArrayRun arrayRun, Action<ModelDelta, int> changeAnchors) {
          int segmentOffset = arrayRun.Start;
          for (int i = 0; i < arrayRun.ElementContent.Count; i++) {
             if (arrayRun.ElementContent[i].Type != ElementContentType.Pointer) { segmentOffset += arrayRun.ElementContent[i].Length; continue; }
             for (int j = 0; j < arrayRun.ElementCount; j++) {
                var start = segmentOffset + arrayRun.ElementLength * j;
-               changeAchors(changeToken, start);
+               changeAnchors(changeToken, start);
             }
             segmentOffset += arrayRun.ElementContent[i].Length;
+         }
+      }
+
+      /// <summary>
+      /// This new array may have other arrays who's length depend on it.
+      /// Update those arrays based on this new length.
+      /// (Recursively, since other arrays might depend on those ones).
+      /// </summary>
+      private void UpdateDependantArrayLengths(ModelDelta changeToken, ArrayRun arrayRun) {
+         foreach (var table in this.GetDependantArrays(arrayRun)) {
+            if (arrayRun.ElementCount == table.ElementCount) continue;
+            var newTable = table.Append(arrayRun.ElementCount - table.ElementCount);
+            ObserveRunWritten(changeToken, newTable);
          }
       }
 
@@ -417,6 +439,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             runs.Insert(index, newRun);
             changeToken.AddRun(newRun);
          } else {
+            // the pointer points to a known normal anchor
             var existingRun = runs[index];
             changeToken.RemoveRun(existingRun);
             runs[index] = existingRun.MergeAnchor(new[] { start });
@@ -458,9 +481,12 @@ namespace HavenSoft.HexManiac.Core.Models {
             changeToken.AddName(location, anchorName);
          }
 
-         var seakPointers = existingRun?.PointerSources == null || existingRun?.Start != location;
-         var sources = GetSourcesPointingToNewAnchor(changeToken, anchorName, seakPointers);
+         var seekPointers = existingRun?.PointerSources == null || existingRun?.Start != location;
+         var sources = GetSourcesPointingToNewAnchor(changeToken, anchorName, seekPointers);
+
+         // if we're adding an array, update inner pointers and dependent arrays
          if (run is ArrayRun array && array.SupportsPointersToElements) run = array.AddSourcesPointingWithinArray(changeToken);
+
          var newRun = run.MergeAnchor(sources);
          ObserveRunWritten(changeToken, newRun);
       }
@@ -616,12 +642,12 @@ namespace HavenSoft.HexManiac.Core.Models {
          // case 1: anchor is named
          // delete the anchor. Clear pointers to it, but keep the names. They're pointers, just not to here anymore.
          if (anchorForAddress.TryGetValue(run.Start, out string name)) {
-            foreach (var source in run.PointerSources ?? new int[0]) WriteValue(changeToken, source, 0);
-            unmappedNameToSources[name] = new List<int>(run.PointerSources);
             foreach (var source in run.PointerSources) {
+               WriteValue(changeToken, source, 0);
                changeToken.AddUnmappedPointer(source, name);
                sourceToUnmappedName[source] = name;
             }
+            unmappedNameToSources[name] = new List<int>(run.PointerSources);
             changeToken.RemoveName(run.Start, name);
             addressForAnchor.Remove(name);
             anchorForAddress.Remove(run.Start);
