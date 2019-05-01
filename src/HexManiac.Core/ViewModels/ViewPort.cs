@@ -31,6 +31,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private readonly StubCommand
          clear = new StubCommand(),
          copy = new StubCommand(),
+         copyAddress = new StubCommand(),
          isText = new StubCommand();
 
       private HexElement[,] currentView;
@@ -321,6 +322,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public ICommand Copy => copy;
+      public ICommand CopyAddress => copyAddress;
       public ICommand Clear => clear;
       public ICommand IsText => isText;
 
@@ -406,6 +408,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             ((IFileSystem)arg).CopyText = Model.Copy(() => { usedHistory = true; return history.CurrentChange; }, left, length);
             RefreshBackingData();
             if (usedHistory) UpdateToolsFromSelection(left);
+         };
+
+         copyAddress.CanExecute = CanAlwaysExecute;
+         copyAddress.Execute = arg => {
+            var fileSystem = (IFileSystem)arg;
+            fileSystem.CopyText = scroll.ViewPointToDataIndex(selection.SelectionStart).ToString("X6");
          };
 
          moveSelectionStart.CanExecute = selection.MoveSelectionStart.CanExecute;
@@ -548,6 +556,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          if (key != ConsoleKey.Backspace) return;
          AcceptBackspace(underEdit, run, point);
+      }
+
+      public void Autocomplete(string input) {
+         var point = SelectionStart;
+         var element = currentView[point.X, point.Y];
+         var underEdit = element.Format as UnderEdit;
+         if (underEdit == null) return;
+         var index = underEdit.AutocompleteOptions.Select(option => option.CompletionText).ToList().IndexOf(input);
+         underEdit = new UnderEdit(underEdit.OriginalFormat, underEdit.AutocompleteOptions[index].CompletionText, underEdit.EditWidth);
+         currentView[point.X, point.Y] = new HexElement(element.Value, underEdit);
+         TryCompleteEdit(point);
       }
 
       private void AcceptBackspace(UnderEdit underEdit, IFormattedRun run, Point point) {

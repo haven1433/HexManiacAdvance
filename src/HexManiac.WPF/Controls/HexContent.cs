@@ -340,8 +340,37 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                element.Format.Visit(visitor, element.Value);
 
                drawingContext.Pop();
+
+               if (element.Format is UnderEdit underEdit && underEdit.AutocompleteOptions != null) {
+                  ShowAutocompletePopup(x, y, underEdit.AutocompleteOptions);
+               }
             }
          }
+      }
+
+      private void ShowAutocompletePopup(int x, int y, IReadOnlyList<AutoCompleteSelectionItem> autocompleteOptions) {
+         var children = new List<FrameworkElement>();
+         foreach (var option in autocompleteOptions) {
+            var button = new Button { Content = option.CompletionText };
+            button.Click += (sender, e) => {
+               var text = ((Button)sender).Content.ToString();
+               ((ViewPort)ViewPort).Autocomplete(text);
+               recentMenu.IsOpen = false;
+            };
+            if (option.IsSelected) button.BorderBrush = Brush(nameof(Theme.Accent));
+            children.Add(button);
+         }
+
+         recentMenu = new Popup {
+            Child = FillPopup(children),
+            StaysOpen = false,
+            Placement = PlacementMode.Relative,
+            PlacementTarget = this,
+            VerticalOffset = x * CellWidth,
+            HorizontalOffset = (y + 1) * CellHeight,
+         };
+
+         recentMenu.IsOpen = true;
       }
 
       protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo) {
@@ -477,20 +506,23 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void ShowMenu(IList<FrameworkElement> children) {
          if (children.Count == 0) return;
 
-         var panel = new StackPanel { Background = Brush(nameof(Theme.Background)), MinWidth = 150 };
          recentMenu = new Popup {
             Placement = PlacementMode.Mouse,
-            Child = new Border {
-               BorderBrush = Brush(nameof(Theme.Accent)),
-               BorderThickness = new Thickness(1),
-               Child = panel,
-            },
+            Child = FillPopup(children),
             StaysOpen = false,
          };
 
-         foreach (var child in children) panel.Children.Add(child);
-
          recentMenu.IsOpen = true;
+      }
+
+      private static FrameworkElement FillPopup(IList<FrameworkElement> children) {
+         var panel = new StackPanel { Background = Brush(nameof(Theme.Background)), MinWidth = 150 };
+         foreach (var child in children) panel.Children.Add(child);
+         return new Border {
+            BorderBrush = Brush(nameof(Theme.Accent)),
+            BorderThickness = new Thickness(1),
+            Child = panel,
+         };
       }
 
       private void UpdateViewPortSize() {
