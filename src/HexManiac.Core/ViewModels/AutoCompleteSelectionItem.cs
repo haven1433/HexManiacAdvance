@@ -13,6 +13,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public AutoCompleteSelectionItem(string text, bool selection) => (CompletionText, IsSelected) = (text, selection);
 
+      public static int SelectedIndex(IReadOnlyList<AutoCompleteSelectionItem> options) {
+         for (int i = 0; i < options.Count; i++) {
+            if (options[i].IsSelected) return i;
+         }
+         return -1;
+      }
+
       public static IReadOnlyList<AutoCompleteSelectionItem> Generate(IEnumerable<string> options, int selectionIndex) {
          var list = new List<AutoCompleteSelectionItem>();
 

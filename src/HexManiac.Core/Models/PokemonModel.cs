@@ -836,18 +836,19 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial) {
          partial = partial.ToLower();
          var mappedNames = addressForAnchor.Keys;
+
          var results = new List<string>();
          foreach (var name in mappedNames) {
             var address = addressForAnchor[name];
             var run = GetNextRun(address) as ArrayRun;
             if (run == null || !partial.Contains(ArrayAnchorSeparator)) {
-               if (IsPartialMatch(name, partial)) results.Add(name);
+               if (name.MatchesPartial(partial)) results.Add(name);
             } else {
                var childNames = run.ElementNames;
                if (childNames != null && childNames.Count > 0) {
                   foreach (var childName in childNames) {
                      var full = $"{name}{ArrayAnchorSeparator}{childName}";
-                     if (IsPartialMatch(full, partial)) results.Add(full);
+                     if (full.MatchesPartial(partial)) results.Add(full);
                   }
                }
             }
@@ -932,16 +933,6 @@ namespace HavenSoft.HexManiac.Core.Models {
             var newRun = new PointerRun(i - 3);
             runs.Insert(index, newRun);
             changeToken.AddRun(newRun);
-         }
-
-         return true;
-      }
-
-      private static bool IsPartialMatch(string full, string partial) {
-         foreach (var character in partial) {
-            var index = full.IndexOf(character.ToString(), StringComparison.CurrentCultureIgnoreCase);
-            if (index == -1) return false;
-            full = full.Substring(index);
          }
 
          return true;

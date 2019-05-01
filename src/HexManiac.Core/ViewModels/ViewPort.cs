@@ -121,9 +121,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          get => selection.PreferredWidth;
          set => selection.PreferredWidth = value;
       }
-
-      public ICommand MoveSelectionStart => selection.MoveSelectionStart;
-      public ICommand MoveSelectionEnd => selection.MoveSelectionEnd;
+      private readonly StubCommand moveSelectionStart = new StubCommand(),
+         moveSelectionEnd = new StubCommand();
+      public ICommand MoveSelectionStart => moveSelectionStart;
+      public ICommand MoveSelectionEnd => moveSelectionEnd;
       public ICommand Goto => selection.Goto;
       public ICommand Back => selection.Back;
       public ICommand Forward => selection.Forward;
@@ -407,6 +408,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (usedHistory) UpdateToolsFromSelection(left);
          };
 
+         moveSelectionStart.CanExecute = selection.MoveSelectionStart.CanExecute;
+         moveSelectionStart.Execute = arg => {
+            var direction = (Direction)arg;
+            MoveSelectionStartExecuted(arg, direction);
+         };
+         selection.MoveSelectionStart.CanExecuteChanged += (sender, e) => moveSelectionStart.CanExecuteChanged.Invoke(this, e);
+         moveSelectionEnd.CanExecute = selection.MoveSelectionEnd.CanExecute;
+         moveSelectionEnd.Execute = arg => {
+            selection.MoveSelectionEnd.Execute(arg);
+         };
+         selection.MoveSelectionEnd.CanExecuteChanged += (sender, e) => moveSelectionEnd.CanExecuteChanged.Invoke(this, e);
+
          isText.CanExecute = CanAlwaysExecute;
          isText.Execute = IsTextExecuted;
 
@@ -418,6 +431,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          close.CanExecute = CanAlwaysExecute;
          close.Execute = arg => CloseExecuted((IFileSystem)arg);
+      }
+
+      private void MoveSelectionStartExecuted(object arg, Direction direction) {
+         var format = this[SelectionStart.X, SelectionStart.Y].Format;
+         if (format is UnderEdit underEdit && underEdit.AutocompleteOptions != null && underEdit.AutocompleteOptions.Count > 0) {
+            int index = -1;
+            for (int i = 0; i < underEdit.AutocompleteOptions.Count; i++) if (underEdit.AutocompleteOptions[i].IsSelected) index = i;
+            var options = default(IReadOnlyList<AutoCompleteSelectionItem>);
+            if (direction == Direction.Up) {
+               index -= 1;
+               if (index < -1) index = underEdit.AutocompleteOptions.Count - 1;
+               options = AutoCompleteSelectionItem.Generate(underEdit.AutocompleteOptions.Select(option => option.CompletionText), index);
+            } else if (direction == Direction.Down) {
+               index += 1;
+               if (index == underEdit.AutocompleteOptions.Count) index = -1;
+               options = AutoCompleteSelectionItem.Generate(underEdit.AutocompleteOptions.Select(option => option.CompletionText), index);
+            }
+            if (options != null) {
+               var edit = new UnderEdit(underEdit.OriginalFormat, underEdit.CurrentText, underEdit.EditWidth, options);
+               currentView[SelectionStart.X, SelectionStart.Y] = new HexElement(this[SelectionStart.X, SelectionStart.Y].Value, edit);
+               NotifyCollectionChanged(ResetArgs);
+               return;
+            }
+         }
+         selection.MoveSelectionStart.Execute(arg);
       }
 
       public static List<int> FindPossibleTextStartingPlaces(IDataModel model, int left, int length) {
@@ -498,15 +536,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var element = currentView[point.X, point.Y];
          var underEdit = element.Format as UnderEdit;
          if (key == ConsoleKey.Enter && underEdit != null) {
-            currentView[point.X, point.Y] = new HexElement(element.Value, underEdit.Edit(" "));
+            if (underEdit.AutocompleteOptions != null && underEdit.AutocompleteOptions.Any(option => option.IsSelected)) {
+               var selectedIndex = AutoCompleteSelectionItem.SelectedIndex(underEdit.AutocompleteOptions);
+               underEdit = new UnderEdit(underEdit.OriginalFormat, underEdit.AutocompleteOptions[selectedIndex].CompletionText, underEdit.EditWidth);
+               currentView[point.X, point.Y] = new HexElement(element.Value, underEdit);
+            } else {
+               currentView[point.X, point.Y] = new HexElement(element.Value, underEdit.Edit(" "));
+            }
             TryCompleteEdit(point);
          }
 
          if (key != ConsoleKey.Backspace) return;
+         AcceptBackspace(underEdit, run, point);
+      }
 
+      private void AcceptBackspace(UnderEdit underEdit, IFormattedRun run, Point point) {
          // backspace in progress with characters left: just clear a character
          if (underEdit != null && underEdit.CurrentText.Length > 0) {
-            var newFormat = new UnderEdit(underEdit.OriginalFormat, underEdit.CurrentText.Substring(0, underEdit.CurrentText.Length - 1), underEdit.EditWidth);
+            var newText = underEdit.CurrentText.Substring(0, underEdit.CurrentText.Length - 1);
+            var options = underEdit.AutocompleteOptions;
+            if (options != null) {
+               var selectedIndex = AutoCompleteSelectionItem.SelectedIndex(underEdit.AutocompleteOptions);
+               options = GetAutocompleteOptions(underEdit.OriginalFormat, newText, selectedIndex);
+            }
+            var newFormat = new UnderEdit(underEdit.OriginalFormat, newText, underEdit.EditWidth, options);
             currentView[point.X, point.Y] = new HexElement(currentView[point.X, point.Y].Value, newFormat);
             NotifyCollectionChanged(ResetArgs);
             return;
@@ -548,7 +601,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var destination = ((Pointer)cell.Format).DestinationAsText;
                destination = destination.Substring(0, destination.Length - 1);
                currentView[point.X, point.Y] = new HexElement(cell.Value, new UnderEdit(cell.Format, destination, 4));
-            } else if(array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Integer) {
+            } else if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Integer) {
                var cell = currentView[point.X, point.Y];
                var format = (Integer)cell.Format;
                PrepareForMultiSpaceEdit(point, format.Length);
@@ -567,7 +620,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             // I want to do a backspace at the end of this run
             SelectionStart = scroll.DataIndexToViewPoint(run.Start);
             var cellToText = new ConvertCellToText(Model, run.Start);
-            element = currentView[SelectionStart.X, SelectionStart.Y];
+            var element = currentView[SelectionStart.X, SelectionStart.Y];
             element.Format.Visit(cellToText, element.Value);
             var text = cellToText.Result;
 
@@ -583,7 +636,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          } else {
             SelectionStart = scroll.DataIndexToViewPoint(index);
-            element = currentView[SelectionStart.X, SelectionStart.Y];
+            var element = currentView[SelectionStart.X, SelectionStart.Y];
             var text = element.Value.ToString("X2");
             currentView[SelectionStart.X, SelectionStart.Y] = new HexElement(element.Value, element.Format.Edit(text.Substring(0, text.Length - 1)));
          }
@@ -869,13 +922,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (element == currentView[point.X, point.Y]) {
             UnderEdit newFormat;
             if (element.Format is UnderEdit underEdit && underEdit.AutocompleteOptions != null) {
-               if (underEdit.CurrentText.StartsWith(PointerStart.ToString())) {
-                  var newText = underEdit.CurrentText + input;
-                  var autocompleteOptions = GetNewPointerAutocompleteOptions(newText);
-                  newFormat = new UnderEdit(underEdit.OriginalFormat, newText, underEdit.EditWidth, autocompleteOptions);
-               } else {
-                  throw new NotImplementedException();
-               }
+               var newText = underEdit.CurrentText + input;
+               var autoCompleteOptions = GetAutocompleteOptions(underEdit.OriginalFormat, newText);
+               newFormat = new UnderEdit(underEdit.OriginalFormat, newText, underEdit.EditWidth, autoCompleteOptions);
             } else {
                newFormat = element.Format.Edit(input.ToString());
             }
@@ -887,6 +936,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (!TryCompleteEdit(point)) {
             // only need to notify collection changes if we didn't complete an edit
             NotifyCollectionChanged(ResetArgs);
+         }
+      }
+
+      private IReadOnlyList<AutoCompleteSelectionItem> GetAutocompleteOptions(IDataFormat originalFormat, string newText, int selectedIndex = -1) {
+         if (newText.StartsWith(PointerStart.ToString())) {
+            return GetNewPointerAutocompleteOptions(newText, selectedIndex);
+         } else if (newText.StartsWith(GotoMarker.ToString())) {
+            return GetNewPointerAutocompleteOptions(newText, selectedIndex);
+         } else if (originalFormat is IntegerEnum intEnum) {
+            var array = (ArrayRun)Model.GetNextRun(intEnum.Source);
+            var segment = (ArrayRunEnumSegment)array.ElementContent[array.ConvertByteOffsetToArrayOffset(intEnum.Source).SegmentIndex];
+            var options = segment.GetOptions(Model);
+            return AutoCompleteSelectionItem.Generate(options.Where(option => option.MatchesPartial(newText)), selectedIndex);
+         } else {
+            throw new NotImplementedException();
          }
       }
 
@@ -943,7 +1007,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
             if (input == GotoMarker) {
                PrepareForMultiSpaceEdit(point, 4);
-               underEdit = new UnderEdit(element.Format, GotoMarker.ToString(), 4);
+               underEdit = new UnderEdit(element.Format, GotoMarker.ToString(), 4, new AutoCompleteSelectionItem[0]);
                currentView[point.X, point.Y] = new HexElement(element.Value, underEdit);
                return true;
             }
@@ -965,7 +1029,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (intFormat.CanStartWithCharacter(input)) {
                   if (!TryCoerceSelectionToStartOfElement(ref point, ref element)) PrepareForMultiSpaceEdit(point, intFormat.Length);
                   var original = currentView[point.X, point.Y];
-                  currentView[point.X, point.Y] = new HexElement(original.Value, new UnderEdit(original.Format, input.ToString(), intFormat.Length));
+                  IReadOnlyList<AutoCompleteSelectionItem> autocomplete = null;
+                  if (innerFormat is IntegerEnum intEnum) {
+                     var memoryLocation = scroll.ViewPointToDataIndex(point);
+                     var run = (ArrayRun)Model.GetNextRun(memoryLocation);
+                     var offsets = run.ConvertByteOffsetToArrayOffset(memoryLocation);
+                     var segment = (ArrayRunEnumSegment)run.ElementContent[offsets.SegmentIndex];
+                     var allOptions = segment.GetOptions(Model);
+                     autocomplete = AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(input.ToString())), -1);
+                  }
+                  currentView[point.X, point.Y] = new HexElement(original.Value, new UnderEdit(original.Format, input.ToString(), intFormat.Length, autocomplete));
                   return true;
                } else {
                   return false;
@@ -980,7 +1053,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   // if the user tries to edit the pointer but forgets the opening bracket, add it for them.
                   if (input != PointerStart) editText = PointerStart + editText;
                   var newFormat = element.Format.Edit(editText);
-                  var autocompleteOptions = GetNewPointerAutocompleteOptions(editText);
+                  var autocompleteOptions = GetNewPointerAutocompleteOptions(editText, -1);
                   newFormat = new UnderEdit(newFormat.OriginalFormat, newFormat.CurrentText, 4, autocompleteOptions);
                   currentView[point.X, point.Y] = new HexElement(element.Value, newFormat);
                   return true;
@@ -1039,10 +1112,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return false;
       }
 
-      private IReadOnlyList<AutoCompleteSelectionItem> GetNewPointerAutocompleteOptions(string text) {
-         if (text.StartsWith(PointerStart.ToString()))text = text.Substring(1);
-         var options = Model.GetAutoCompleteAnchorNameOptions(text);
-         return AutoCompleteSelectionItem.Generate(options, -1);
+      private IReadOnlyList<AutoCompleteSelectionItem> GetNewPointerAutocompleteOptions(string text, int selectedIndex) {
+         var options = Model.GetAutoCompleteAnchorNameOptions(text.Substring(1));
+         if (text.StartsWith(PointerStart.ToString())) options = options.Select(option => $"{PointerStart}{option}{PointerEnd}").ToList();
+         if (text.StartsWith(GotoMarker.ToString())) options = options.Select(option => $"{GotoMarker}{option}").ToList();
+         return AutoCompleteSelectionItem.Generate(options, selectedIndex);
       }
 
       private (Point start, Point end) GetSelectionSpan(Point p) {
