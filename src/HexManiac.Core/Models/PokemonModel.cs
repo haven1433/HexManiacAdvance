@@ -794,7 +794,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private string GenerateDefaultAnchorName(IFormattedRun run) {
-         var gameCodeText = ReadGameCode();
+         var gameCodeText = ReadGameCode(this);
          var textSample = GetSampleText(run);
          var initialAddress = run.Start.ToString("X6");
 
@@ -804,11 +804,12 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// <summary>
       /// If this model recognizes a GameCode AsciiRun, return that code formatted as a name.
       /// </summary>
-      private string ReadGameCode() {
-         if (!addressForAnchor.TryGetValue("GameCode", out int gameCodeAddress)) return string.Empty;
-         var gameCode = GetNextRun(gameCodeAddress) as AsciiRun;
-         if (gameCode == null || gameCode.Start != gameCodeAddress) return string.Empty;
-         return new string(Enumerable.Range(0, gameCode.Length).Select(i => (char)this[gameCode.Start + i]).ToArray());
+      public static string ReadGameCode(IDataModel model) {
+         var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, "GameCode");
+         if (address == Pointer.NULL) return string.Empty;
+         var gameCode = model.GetNextRun(address) as AsciiRun;
+         if (gameCode == null || gameCode.Start != address) return string.Empty;
+         return new string(Enumerable.Range(0, gameCode.Length).Select(i => (char)model[gameCode.Start + i]).ToArray());
       }
 
       /// <summary>

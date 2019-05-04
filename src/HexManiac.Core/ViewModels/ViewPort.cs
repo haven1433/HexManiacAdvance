@@ -161,12 +161,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void UpdateToolsFromSelection(int dataIndex) {
          var run = Model.GetNextRun(dataIndex);
 
-         if (run.Start <= dataIndex && run is PCSRun) Tools.StringTool.Address = run.Start;
-
          if (run.Start <= dataIndex && run is ArrayRun array) {
             var offsets = array.ConvertByteOffsetToArrayOffset(dataIndex);
             Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
             Tools.TableTool.Address = array.Start + array.ElementLength * offsets.ElementIndex;
+         } else if (run.Start <= dataIndex && run is PCSRun) {
+            Tools.StringTool.Address = run.Start;
+         } else {
+            Tools.StringTool.Address = dataIndex;
          }
 
          if (this[SelectionStart].Format is Anchor anchor) {

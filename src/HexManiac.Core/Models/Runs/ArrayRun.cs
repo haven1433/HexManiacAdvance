@@ -507,7 +507,19 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (readLength == -1) return false;
                if (readLength > segment.Length) return false;
                if (Enumerable.Range(start, segment.Length).All(i => owner[i] == 0xFF)) return false;
-               if (!Enumerable.Range(start + readLength, segment.Length - readLength).All(i => owner[i] == 0x00 || owner[i] == 0xFF)) return false;
+
+               // TODO test this with Altair
+               // in the initial 5 ROMs, any data after the close quote is either 0x00 or 0xFF
+               // but in fan games, this data may contain leftover junk bytes from what the text 'used' to be.
+               // this is because other popular existing editors don't clean up after themselves.
+               // in order to be compatible with games made with those editors, we have to allow automatic matches
+               // to match arrays with junk PCS characters after the closing quote.
+               if (Enumerable.Range(start + readLength, segment.Length - readLength).Any(i => PCSString.PCS[owner[i]] == null)) return false;
+
+               // require that the overall thing still ends with 'FF' or '00' to avoid finding text of the wrong width.
+               var lastByteInText = owner[start + segment.Length - 1];
+               if (lastByteInText != 0x00 && lastByteInText != 0xFF) return false;
+
                return true;
             case ElementContentType.Integer:
                if (segment is ArrayRunEnumSegment enumSegment) {

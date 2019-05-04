@@ -258,7 +258,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          selectionEnd = Scroll.DataIndexToViewPoint(end);
       }
 
-      // TODO update these two methods to work with rawSelectionStart / rawSelectionEnd
       private void MoveSelectionStartExecuted(Direction direction) {
          Point dif;
          if (direction == Direction.PageUp) {
