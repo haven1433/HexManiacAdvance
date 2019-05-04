@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
@@ -20,6 +21,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       private ThemeSelector themeWindow;
 
       public EditorViewModel ViewModel { get; }
+      public IFileSystem FileSystem => (IFileSystem)Resources["FileSystem"];
 
       public MainWindow(EditorViewModel viewModel) {
          InitializeComponent();
@@ -195,6 +197,22 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             themeWindow = new ThemeSelector { DataContext = ViewModel.Theme };
             themeWindow.Show();
          }
+      }
+
+      private readonly Popup contextMenu = new Popup();
+      private void AddressShowMenu(object sender, MouseButtonEventArgs e) {
+         var element = (FrameworkElement)sender;
+         var viewModel = element.DataContext as ViewPort;
+         if (viewModel == null) return;
+         contextMenu.Child = new Button {
+            Content = "Copy Address"
+         }.SetEvent(Button.ClickEvent, (sender2, e2) => {
+            viewModel.CopyAddress.Execute(FileSystem);
+            contextMenu.IsOpen = false;
+         });
+         contextMenu.PlacementTarget = element;
+         contextMenu.StaysOpen = false;
+         contextMenu.IsOpen = true;
       }
    }
 }
