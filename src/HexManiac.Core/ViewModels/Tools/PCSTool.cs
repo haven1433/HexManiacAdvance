@@ -11,7 +11,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly Selection selection;
       private readonly ChangeHistory<ModelDelta> history;
       private readonly IToolTrayViewModel runner;
-      private readonly StubCommand checkIsText = new StubCommand();
+      private readonly StubCommand
+         checkIsText = new StubCommand(),
+         insertText = new StubCommand();
       public string Name => "String";
 
       private int contentIndex;
@@ -31,12 +33,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public ICommand CheckIsText => checkIsText;
+      public ICommand InsertText => insertText;
 
       private bool showMessage;
       public bool ShowMessage {
          get => showMessage;
          set {
-            if (TryUpdate(ref showMessage, value)) checkIsText.CanExecuteChanged?.Invoke(checkIsText, EventArgs.Empty);
+            if (TryUpdate(ref showMessage, value)) {
+               checkIsText.CanExecuteChanged?.Invoke(checkIsText, EventArgs.Empty);
+               insertText.CanExecuteChanged?.Invoke(checkIsText, EventArgs.Empty);
+            }
          }
       }
 
@@ -52,6 +58,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set {
             if (TryUpdate(ref content, value)) {
                var run = model.GetNextRun(address);
+               if (run.Start > address) return; // wrong run, don't adjust
                if (run is PCSRun pcsRun) UpdateRun(pcsRun);
                if (run is ArrayRun arrayRun) UpdateRun(arrayRun);
             }
@@ -64,7 +71,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set {
             var run = model.GetNextRun(value);
             if (TryUpdate(ref address, value)) {
-               if (run is PCSRun || run is ArrayRun) {
+               if ((run is PCSRun || run is ArrayRun) && run.Start <= value) {
                   runner.Schedule(DataForCurrentRunChanged);
                   Enabled = true;
                   ShowMessage = false;
@@ -108,6 +115,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                ShowMessage = false;
                ModelDataChanged(this, model.GetNextRun(address));
             }
+         };
+         insertText.CanExecute = arg => ShowMessage;
+         insertText.Execute = arg => {
+            if (address < 0 || model.Count <= address || model[address] != 0xFF || model.GetNextRun(address).Start <= address) {
+               OnError?.Invoke(this, $"Could not insert text at {address.ToString("X6")}.{Environment.NewLine}The bytes must be usused (FF).");
+               return;
+            }
+            var gameCode = PokemonModel.ReadGameCode(model);
+            var initialAddress = address.ToString("X6");
+            var newRun = new PCSRun(address, 1, null);
+            history.CurrentChange.AddRun(newRun);
+            model.ObserveAnchorWritten(history.CurrentChange, gameCode + initialAddress, newRun);
+            ModelDataChanged?.Invoke(this, newRun);
+            runner.Schedule(DataForCurrentRunChanged);
+            Enabled = true;
+            ShowMessage = false;
          };
       }
 

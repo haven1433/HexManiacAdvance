@@ -344,7 +344,8 @@
                               <TextBlock Text="Address:" Margin="5,15,0,0" DockPanel.Dock="Top"/>
                               <TextBox Text="{Binding StringTool.Address, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5" DockPanel.Dock="Top"/>
                               <TextBlock DockPanel.Dock="Top" Text="{Binding StringTool.Message}" Width="255" HorizontalAlignment="Center" TextWrapping="Wrap" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
-                              <Button Command="{Binding StringTool.CheckIsText}" Content="Show As Text" HorizontalAlignment="Right" DockPanel.Dock="Top" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
+                              <Button Margin="0,3" Command="{Binding StringTool.CheckIsText}" Content="Show As Text" HorizontalAlignment="Right" DockPanel.Dock="Top" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
+                              <Button Command="{Binding StringTool.InsertText}" Content="Insert New Text" HorizontalAlignment="Right" DockPanel.Dock="Top" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
                               <TextBlock Text="Content:" Margin="5,30,0,0" DockPanel.Dock="Top"/>
                               <TextBox Margin="5,5" AcceptsReturn="True" MinHeight="50" Width="255" TextWrapping="Wrap" FontFamily="Consolas" VerticalScrollBarVisibility="Auto"
                                  SelectionChanged="StringToolContentSelectionChanged"
