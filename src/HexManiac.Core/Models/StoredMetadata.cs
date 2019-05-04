@@ -8,6 +8,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public IReadOnlyList<StoredAnchor> NamedAnchors { get; }
       public IReadOnlyList<StoredUnmappedPointers> UnmappedPointers { get; }
 
+      public bool IsEmpty => NamedAnchors.Count == 0 && UnmappedPointers.Count == 0;
+
       public StoredMetadata(IReadOnlyList<StoredAnchor> anchors, IReadOnlyList<StoredUnmappedPointers> unmappedPointers) {
          NamedAnchors = anchors;
          UnmappedPointers = unmappedPointers;

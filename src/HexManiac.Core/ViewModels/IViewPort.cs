@@ -13,6 +13,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       int Width { get; set; }
       int Height { get; set; }
 
+      bool UseCustomHeaders { get; set; }
       int MinimumScroll { get; }
       int ScrollValue { get; set; }
       int MaximumScroll { get; }

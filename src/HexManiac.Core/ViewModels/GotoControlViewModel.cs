@@ -26,7 +26,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (viewPort == null) return;
             if (TryUpdate(ref text, value)) {
                var options = viewPort.Model?.GetAutoCompleteAnchorNameOptions(text) ?? new string[0];
-               AutoCompleteOptions = CreateAutoCompleteOptions(options, options.Count);
+               AutoCompleteOptions = AutoCompleteSelectionItem.Generate(options, completionIndex);
                ShowAutoCompleteOptions = AutoCompleteOptions.Count > 0;
             }
          }
@@ -37,7 +37,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          get => completionIndex;
          set {
             if (TryUpdate(ref completionIndex, value.LimitToRange(-1, autoCompleteOptions.Count - 1))) {
-               AutoCompleteOptions = CreateAutoCompleteOptions(AutoCompleteOptions.Select(option => option.CompletionText), AutoCompleteOptions.Count);
+               AutoCompleteOptions = AutoCompleteSelectionItem.Generate(AutoCompleteOptions.Select(option => option.CompletionText), completionIndex);
             }
          }
       }
@@ -98,27 +98,5 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             Execute = arg => ControlVisible = (bool)arg,
          };
       }
-
-      private IReadOnlyList<AutoCompleteSelectionItem> CreateAutoCompleteOptions(IEnumerable<string> options, int length) {
-         if (completionIndex >= length) {
-            completionIndex = length - 1;
-            NotifyPropertyChanged(nameof(CompletionIndex));
-         }
-         var list = new List<AutoCompleteSelectionItem>(length);
-
-         int i = 0;
-         foreach (var option in options) {
-            list.Add(new AutoCompleteSelectionItem(option, i == completionIndex));
-            i++;
-         }
-
-         return list;
-      }
-   }
-
-   public class AutoCompleteSelectionItem {
-      public string CompletionText { get; }
-      public bool IsSelected { get; }
-      public AutoCompleteSelectionItem(string text, bool selection) => (CompletionText, IsSelected) = (text, selection);
    }
 }

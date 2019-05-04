@@ -30,7 +30,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          BottomLeft = new ScreenPoint(0, CellHeight),
          BottomRight = new ScreenPoint(CellWidth, CellHeight);
 
-      public static readonly Pen BorderPen = new Pen(Solarized.Brushes.Green, 1);
+      public static readonly Pen BorderPen = new Pen(Brush(nameof(Theme.Stream2)), 1);
 
       private Popup recentMenu;
       private ModelPoint downPoint;
@@ -292,11 +292,15 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (ShowHorizontalScroll) drawingContext.Pop();
       }
 
+      private static SolidColorBrush Brush(string name) {
+         return (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][name];
+      }
+
       private void RenderGrid(DrawingContext drawingContext) {
-         drawingContext.DrawRectangle(Solarized.Theme.Background, null, new Rect(0, 0, ActualWidth, ActualHeight));
+         drawingContext.DrawRectangle(Brush(nameof(Theme.Background)), null, new Rect(0, 0, ActualWidth, ActualHeight));
          if (!ShowGrid) return;
 
-         var gridPen = new Pen(Solarized.Theme.Backlight, 1);
+         var gridPen = new Pen(Brush(nameof(Theme.Backlight)), 1);
 
          for (int x = 1; x <= ViewPort.Width; x++) {
             drawingContext.DrawLine(gridPen, new ScreenPoint(CellWidth * x, 0), new ScreenPoint(CellWidth * x, CellHeight * ViewPort.Height));
@@ -314,7 +318,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                var element = ViewPort[x, y];
                drawingContext.PushTransform(new TranslateTransform(x * CellWidth, y * CellHeight));
 
-               drawingContext.DrawRectangle(Solarized.Theme.Backlight, null, CellRect);
+               drawingContext.DrawRectangle(Brush(nameof(Theme.Backlight)), null, CellRect);
                if (!ViewPort.IsSelected(new ModelPoint(x, y - 1))) drawingContext.DrawLine(BorderPen, TopLeft, TopRight);
                if (!ViewPort.IsSelected(new ModelPoint(x, y + 1))) drawingContext.DrawLine(BorderPen, BottomLeft, BottomRight);
                if (!ViewPort.IsSelected(new ModelPoint(x - 1, y))) drawingContext.DrawLine(BorderPen, TopLeft, BottomLeft);
@@ -336,8 +340,42 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                element.Format.Visit(visitor, element.Value);
 
                drawingContext.Pop();
+
+               if (element.Format is UnderEdit underEdit && underEdit.AutocompleteOptions != null) {
+                  ShowAutocompletePopup(x, y, underEdit.AutocompleteOptions);
+               }
             }
          }
+      }
+
+      private void ShowAutocompletePopup(int x, int y, IReadOnlyList<AutoCompleteSelectionItem> autocompleteOptions) {
+         // close any currently open menu
+         if (autocompleteOptions.Count == 0) {
+            if (recentMenu != null && recentMenu.IsOpen) recentMenu.IsOpen = false;
+            return;
+         }
+
+         var children = new List<FrameworkElement>();
+         foreach (var option in autocompleteOptions) {
+            var button = new Button { Content = option.CompletionText };
+            button.Click += (sender, e) => {
+               var text = ((Button)sender).Content.ToString();
+               ((ViewPort)ViewPort).Autocomplete(text);
+               recentMenu.IsOpen = false;
+            };
+            if (option.IsSelected) button.BorderBrush = Brush(nameof(Theme.Accent));
+            children.Add(button);
+         }
+
+         // reuse existing popup if possible (to prevent flickering)
+         if (recentMenu == null) recentMenu = new Popup();
+         recentMenu.Child = FillPopup(children);
+         recentMenu.StaysOpen = false;
+         recentMenu.Placement = PlacementMode.Relative;
+         recentMenu.PlacementTarget = this;
+         recentMenu.VerticalOffset = (y + 1) * CellHeight;
+         recentMenu.HorizontalOffset = x * CellWidth;
+         recentMenu.IsOpen = true;
       }
 
       protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo) {
@@ -366,7 +404,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (anchor.Sources.Count == 0) {
             yield return new TextBlock {
                HorizontalAlignment = HorizontalAlignment.Center,
-               Foreground = Solarized.Theme.Secondary,
+               Foreground = Brush(nameof(Theme.Secondary)),
                FontStyle = FontStyles.Italic,
                Text = "(Nothing points to this.)",
                Margin = new Thickness(0, 0, 0, 5),
@@ -411,7 +449,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                Orientation = Orientation.Horizontal,
                Children = {
                   new TextBlock { Text = "Copy Selection" },
-                  new TextBlock { Foreground = Solarized.Theme.Secondary, FontStyle = FontStyles.Italic, Margin = new Thickness(20, 0, 0, 0), Text = "Ctrl+C" }
+                  new TextBlock { Foreground = Brush(nameof(Theme.Secondary)), FontStyle = FontStyles.Italic, Margin = new Thickness(20, 0, 0, 0), Text = "Ctrl+C" }
                }
             },
          }.SetEvent(ButtonBase.ClickEvent, (sender, e) => {
@@ -461,7 +499,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                Orientation = Orientation.Horizontal,
                Children = {
                   new TextBlock { Text = message },
-                  new TextBlock { Foreground = Solarized.Theme.Secondary, FontStyle = FontStyles.Italic, Margin = new Thickness(20, 0, 0, 0), Text = "Ctrl+Click" }
+                  new TextBlock { Foreground = Brush(nameof(Theme.Secondary)), FontStyle = FontStyles.Italic, Margin = new Thickness(20, 0, 0, 0), Text = "Ctrl+Click" }
                }
             },
          }.SetEvent(ButtonBase.ClickEvent, (sender, e) => {
@@ -473,20 +511,24 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void ShowMenu(IList<FrameworkElement> children) {
          if (children.Count == 0) return;
 
-         var panel = new StackPanel { Background = Solarized.Theme.Background, MinWidth = 150 };
          recentMenu = new Popup {
             Placement = PlacementMode.Mouse,
-            Child = new Border {
-               BorderBrush = Solarized.Brushes.Blue,
-               BorderThickness = new Thickness(1),
-               Child = panel,
-            },
+            Child = FillPopup(children),
             StaysOpen = false,
          };
 
-         foreach (var child in children) panel.Children.Add(child);
-
          recentMenu.IsOpen = true;
+      }
+
+      private static FrameworkElement FillPopup(IList<FrameworkElement> children) {
+         var panel = new StackPanel { Background = Brush(nameof(Theme.Background)), MinWidth = 150 };
+         foreach (var child in children) panel.Children.Add(child);
+         var scroll = new ScrollViewer { Content = panel, VerticalScrollBarVisibility = ScrollBarVisibility.Visible, MaxHeight = 200 };
+         return new Border {
+            BorderBrush = Brush(nameof(Theme.Accent)),
+            BorderThickness = new Thickness(1),
+            Child = scroll,
+         };
       }
 
       private void UpdateViewPortSize() {

@@ -21,11 +21,13 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <DefineConstants>TRACE</DefineConstants>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -41,6 +43,7 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="..\SharedAssemblyInfo.cs" />
     <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubCommand.cs" />
+    <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubComparer`1.cs" />
     <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubDisposable.cs" />
     <Compile Include="ICommandExtensions.cs" />
     <Compile Include="Models\Runs\ArrayRun.cs" />
@@ -50,6 +53,8 @@
     <Compile Include="Models\Runs\ArrayRunElementSegment.cs" />
     <Compile Include="Models\Runs\AsciiRun.cs" />
     <Compile Include="Models\Runs\HeaderRow.cs" />
+    <Compile Include="ViewModels\AutoCompleteSelectionItem.cs" />
+    <Compile Include="ViewModels\Theme.cs" />
     <Compile Include="ViewModels\Tools\IArrayElementViewModel.cs" />
     <Compile Include="Models\Runs\IFormattedRun.cs" />
     <Compile Include="Models\ModelDelta.cs" />
@@ -59,7 +64,7 @@
     <Compile Include="Models\PokemonModel.cs" />
     <Compile Include="Models\SearchByte.cs" />
     <Compile Include="Models\StoredMetadata.cs" />
-    <Compile Include="NumericExtensions.cs" />
+    <Compile Include="SystemExtensions.cs" />
     <Compile Include="Models\Enums.cs" />
     <Compile Include="Models\IFileSystem.cs" />
     <Compile Include="Models\LoadedFile.cs" />
@@ -94,8 +99,9 @@ if not exist $(SolutionDir)artifacts\$(AssemblyName)\codegen mkdir $(SolutionDir
 $(SolutionDir)packages\HavenSoft.AutoImplement.1.1.1\AutoImplement "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" ICommand
 move /Y StubCommand.cs  $(SolutionDir)artifacts\$(AssemblyName)\codegen
 
-$(SolutionDir)packages\HavenSoft.AutoImplement.1.1.1\AutoImplement "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" IDisposable
+$(SolutionDir)packages\HavenSoft.AutoImplement.1.1.1\AutoImplement "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" IDisposable IComparer`1
 move /Y StubDisposable.cs $(SolutionDir)artifacts\$(AssemblyName)\codegen
+move /Y StubComparer`1.cs $(SolutionDir)artifacts\$(AssemblyName)\codegen
 
 del *.cs</PreBuildEvent>
   </PropertyGroup>

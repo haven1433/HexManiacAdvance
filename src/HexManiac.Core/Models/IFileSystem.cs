@@ -60,7 +60,9 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// In the case of false, the file system would have already dealt with the error.
       /// The return value is just so the program can know if it was written or not.
       /// </returns>
-      bool Save(LoadedFile file, StoredMetadata metadata);
+      bool Save(LoadedFile file);
+
+      bool SaveMetadata(string originalFileName, string[] metadata);
 
       /// <summary>
       /// should prompt the user if they want to save and then save
@@ -72,12 +74,12 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// the FileSystem object will handle the error and potentially notify the user,
       /// the result is only so the program can know if it was written or not.
       /// </returns>
-      bool? TrySavePrompt(LoadedFile file, StoredMetadata metadata);
+      bool? TrySavePrompt(LoadedFile file);
 
       /// <summary>
       /// Look for a metadata object that matches a filename.
       /// Return null if no metadata is found.
       /// </summary>
-      StoredMetadata MetadataFor(string fileName);
+      string[] MetadataFor(string fileName);
    }
 }

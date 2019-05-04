@@ -279,23 +279,23 @@ namespace HavenSoft.HexManiac.Tests {
          var editFormat = (UnderEdit)viewPort[4, 4].Format;
          Assert.Equal(string.Empty, editFormat.CurrentText);
 
-         viewPort.MoveSelectionStart.Execute(Direction.Down); // any movement should revert any in-progress edits
-         Assert.Equal(0x44, viewPort[4, 4].Value);
+         viewPort.MoveSelectionStart.Execute(Direction.Down); // any movement should change the value based on what's left in the cell
+         Assert.Equal(0xFF, viewPort[4, 4].Value); // note that the cell was empty, so it got the 'empty' value of FF
       }
 
       [Fact]
-      public void BackspaceBeforeEditChangesPreviousCell() {
+      public void BackspaceBeforeEditChangesPreviousCurrentCell() {
          var buffer = Enumerable.Range(0, 255).Select(i => (byte)i).ToArray();
          var file = new LoadedFile("file.txt", buffer);
          var viewPort = new ViewPort(file) { Width = 0x10, Height = 0x10 };
 
          viewPort.SelectionStart = new Point(4, 4); // current value: 0x44
          viewPort.Edit(ConsoleKey.Backspace);
-         Assert.Equal(new Point(3, 4), viewPort.SelectionStart);
+         Assert.Equal(new Point(4, 4), viewPort.SelectionStart);
 
-         viewPort.Edit(ConsoleKey.Backspace); // if I hit an arrow key now, it'll give up on the edit
+         viewPort.Edit(ConsoleKey.Backspace); // if I hit an arrow key now, it'll give up on the edit and just make the value something reasonable
          viewPort.Edit(ConsoleKey.Backspace); // but since I hit backspace, it commits the erasure and starts erasing the next cell
-         Assert.Equal(0xFF, viewPort[3, 4].Value);
+         Assert.Equal(0xFF, viewPort[4, 4].Value);
       }
 
       [Fact]
@@ -335,6 +335,25 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(0x20, model[0]);
          Assert.NotInRange(model.GetNextRun(0).Start, 0, 0x200);
+      }
+
+      [Fact]
+      public void UnderEditCellsKnowTheirEditLength() {
+         var model = new PokemonModel(new byte[0x200]);
+         var viewModel = new ViewPort(string.Empty, model) { Width = 0x10, Height = 0x10 };
+         viewModel.Edit("^array[a: b. c. d<>]4 ");
+
+         viewModel.SelectionStart = new Point(0, 0);
+         viewModel.Edit("2");
+         Assert.Equal(2, ((UnderEdit)viewModel[0,0].Format).EditWidth);
+
+         viewModel.SelectionStart = new Point(6, 0);
+         viewModel.Edit("2");
+         Assert.Equal(4, ((UnderEdit)viewModel[4, 0].Format).EditWidth);
+
+         viewModel.SelectionStart = new Point(8, 6);
+         viewModel.Edit("^");
+         Assert.Equal(4, ((UnderEdit)viewModel[8, 6].Format).EditWidth);
       }
    }
 }

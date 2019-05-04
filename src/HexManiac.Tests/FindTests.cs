@@ -347,5 +347,54 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.NotEqual(viewPort.SelectionStart, viewPort.SelectionEnd);
       }
+
+      [Fact]
+      public void SearchCanFindTableRows() {
+         // Arrange two tables, one that depends on the other
+         var data = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         var model = new PokemonModel(data);
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort.Edit("^names[entry\"\"8] +\"bob\" +\"sam\" +\"carl\" +\"steve\" ");
+         viewPort.Edit("@50 ^table[x: y:]names ");
+
+         // Act: do a search that should return a table entry as a result
+         var editor = new EditorViewModel(new StubFileSystem());
+         editor.Add(viewPort);
+         editor.Find.Execute("carl");
+
+         // Assert: there are 2 results, one for the text and one for the table
+         Assert.Contains("2", editor.InformationMessage);
+      }
+
+      [Fact]
+      public void SearchCanFindEnumUsages() {
+         // Arrange two tables, one that depends on the other
+         var data = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         var model = new PokemonModel(data);
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort.Edit("^names[entry\"\"8] +\"bob\" +\"sam\" +\"carl\" +\"steve\" ");
+         viewPort.Edit("@50 ^table[x: y:names]2 12 sam 100 steve ");
+
+         // Act: do a search that should return a table entry as a result
+         var editor = new EditorViewModel(new StubFileSystem());
+         editor.Add(viewPort);
+         editor.Find.Execute("steve");
+
+         // Assert: there are 2 results, one for the text and one for the enum
+         Assert.Contains("2", editor.InformationMessage);
+      }
+
+      [Fact]
+      public void FindingSingleResultHighlightsEntireResult() {
+         var data = Enumerable.Range(0, 0x100).Select(i => (byte)i).ToArray();
+         var model = new PokemonModel(data);
+         var viewPort = new ViewPort("name.txt", model) { Height = 0x10, Width = 0x10 };
+         var editor = new EditorViewModel(new StubFileSystem());
+         editor.Add(viewPort);
+
+         editor.Find.Execute("05 06 07 08");
+
+         Assert.NotEqual(viewPort.SelectionStart, viewPort.SelectionEnd);
+      }
    }
 }

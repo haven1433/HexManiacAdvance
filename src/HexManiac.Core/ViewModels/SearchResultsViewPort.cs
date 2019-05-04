@@ -139,6 +139,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       // if asked to search the search results... just don't
       public IReadOnlyList<(int, int)> Find(string search) => new (int, int)[0];
 
+      public bool UseCustomHeaders {
+         get => children.FirstOrDefault()?.UseCustomHeaders ?? false;
+         set {
+            children.ForEach(child => child.UseCustomHeaders = value);
+            UpdateHeaders();
+         }
+      }
+
       public bool IsSelected(Point point) {
          var (x, y) = (point.X, point.Y);
          if (y < 0 || y > height || x < 0 || x > width) return false;
@@ -171,11 +179,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          if (parent is ViewPort viewPort) {
-            viewPort.SelectionStart = viewPort.ConvertAddressToViewPoint(childrenSelection[childIndex].start);
-            viewPort.SelectionEnd = viewPort.ConvertAddressToViewPoint(childrenSelection[childIndex].end);
+            SelectRange(viewPort, childrenSelection[childIndex]);
          }
 
          RequestTabChange?.Invoke(this, parent);
+      }
+
+      public static void SelectRange(ViewPort viewPort, (int start, int end) range) {
+         viewPort.SelectionStart = viewPort.ConvertAddressToViewPoint(range.start);
+         viewPort.SelectionEnd = viewPort.ConvertAddressToViewPoint(range.end);
       }
 
       public void ExpandSelection(int x, int y) => FollowLink(x, y);
@@ -233,7 +245,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public TableTool TableTool => null;
 
       public IDisposable DeferUpdates => new StubDisposable();
+
+#pragma warning disable 0067 // it's ok if events are never used after implementing an interface
+      public event EventHandler<string> OnError;
       public event PropertyChangedEventHandler PropertyChanged;
+#pragma warning restore 0067
+
       public void Schedule(Action action) => action();
       public void RefreshContent() { }
 

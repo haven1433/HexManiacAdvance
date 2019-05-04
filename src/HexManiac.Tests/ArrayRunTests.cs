@@ -861,7 +861,95 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.IsType<PCS>(viewPort[1, 1].Format);
       }
 
-      // TODO while typing an enum, the ViewModel provides auto-complete options
+      [Fact]
+      public void EditingMultibyteTableEntryMovesEditToFirstByte() {
+         // Arrange
+         var data = new byte[0x200];
+         var model = new PokemonModel(data);
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort.Edit("^names[name\"\"8]8 \"bob\" \"sam\" \"john\" \"mike\" \"tommy\"");
+         viewPort.SelectionStart = new Point(0, 5);
+         viewPort.Edit("^table[a: b:names]8 "); // note that making a table like this does an automatic goto for the table
+
+         // Act: try to edit a
+         viewPort.SelectionStart = new Point(1, 0);
+         viewPort.Edit("3");
+
+         // Assert: selection moved
+         Assert.True(viewPort.IsSelected(new Point(0, 0)));
+         Assert.IsType<UnderEdit>(viewPort[0, 0].Format);
+
+         // Act: try to edit b
+         viewPort.SelectionStart = new Point(3, 0);
+         viewPort.Edit("john");
+
+         // Assert: selection moved
+         Assert.True(viewPort.IsSelected(new Point(2, 0)));
+         Assert.IsType<UnderEdit>(viewPort[2, 0].Format);
+      }
+
+      [Fact]
+      public void CanBackspaceEnum() {
+         // Arrange
+         var data = new byte[0x200];
+         var model = new PokemonModel(data);
+         model[0x51] = 3; // 'john'
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort.Edit("^names[name\"\"8]8 \"bob\" \"sam\" \"john\" \"mike\" \"tommy\"");
+         viewPort.SelectionStart = new Point(0, 5);
+         viewPort.Edit("^table[a:names b:]8 "); // note that making a table like this does an automatic goto for the table
+
+         // Act: try to backspace the a enum
+         viewPort.SelectionStart = new Point(2, 1); // just to the left of "john"
+         viewPort.Edit(ConsoleKey.Backspace);
+         viewPort.Edit(ConsoleKey.Backspace);
+         viewPort.Edit(ConsoleKey.Backspace);
+         viewPort.Edit(ConsoleKey.Backspace);
+         viewPort.Edit(ConsoleKey.Backspace);
+
+         Assert.Equal("bob", ((IntegerEnum)viewPort[0, 1].Format).Value);
+         Assert.True(viewPort.IsSelected(new Point(0xF, 0))); // selection has moved to last row
+         Assert.True(viewPort.IsSelected(new Point(0xE, 0))); // two selected bytes, since the previous entry is 2 bytes long
+      }
+
+      [Fact]
+      public void CanBackspaceInt() {
+         // Arrange
+         var data = new byte[0x200];
+         var model = new PokemonModel(data);
+         model[0x53] = 9;
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort.Edit("^names[name\"\"8]8 \"bob\" \"sam\" \"john\" \"mike\" \"tommy\"");
+         viewPort.SelectionStart = new Point(0, 5);
+         viewPort.Edit("^table[a:names b:]8 "); // note that making a table like this does an automatic goto for the table
+
+         // Act: try to backspace the a int
+         viewPort.SelectionStart = new Point(3, 1); // selected "9"
+         viewPort.Edit(ConsoleKey.Backspace);
+         viewPort.Edit(ConsoleKey.Backspace);
+
+         Assert.Equal(0, ((Integer)viewPort[2, 1].Format).Value);
+         Assert.True(viewPort.IsSelected(new Point(0, 1))); // selection has moved to previous element
+         Assert.True(viewPort.IsSelected(new Point(1, 1))); // two selected bytes, since the previous entry is 2 bytes long
+      }
+
+      [Fact]
+      public void ArrayLengthUpdatesWhenSourceTableLengthChanges() {
+         // Arrange
+         var data = new byte[0x200];
+         var model = new PokemonModel(data);
+
+         // Act
+         ArrayRun.TryParse(model, "[a: b:]names", 0, null, out var table);
+         model.ObserveAnchorWritten(new ModelDelta(), "table", table);
+         ArrayRun.TryParse(model, "[name\"\"8]8", 0x30, null, out var names);
+         model.ObserveAnchorWritten(new ModelDelta(), "names", names);
+
+         // Assert that the table is now longer based on the names table
+         Assert.Equal(8 * 4, model.GetNextRun(0).Length);
+      }
+
+      // TODO what happens if I change a table's length such that another table now hits an anchor?
 
       private static void WriteStrings(byte[] buffer, int start, params string[] content) {
          foreach (var item in content) {

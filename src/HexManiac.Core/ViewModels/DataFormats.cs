@@ -1,6 +1,7 @@
 ﻿// Data Formats are simple types that provide limited meta-data that can vary based on the format.
 // Data Formats use the Visitor design pattern to allow things like rendering of the data
 
+using HavenSoft.HexManiac.Core.Models.Runs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,21 +52,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
    public class UnderEdit : IDataFormat {
       public IDataFormat OriginalFormat { get; }
       public string CurrentText { get; }
-      public UnderEdit(IDataFormat original, string text) => (OriginalFormat, CurrentText) = (original, text);
+      public int EditWidth { get; }
+      public IReadOnlyList<AutoCompleteSelectionItem> AutocompleteOptions { get; }
+      public UnderEdit(IDataFormat original, string text, int editWidth = 1, IReadOnlyList<AutoCompleteSelectionItem> autocompleteOptions = null) {
+         OriginalFormat = original;
+         CurrentText = text;
+         EditWidth = editWidth;
+         AutocompleteOptions = autocompleteOptions;
+      }
 
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
       public bool Equals(IDataFormat format) {
-         var that = format as UnderEdit;
-         if (that == null) return false;
+         if (!(format is UnderEdit that)) return false;
 
          if (!OriginalFormat.Equals(that.OriginalFormat)) return false;
+         if (EditWidth != that.EditWidth) return false;
+         if (AutocompleteOptions != null ^ that.AutocompleteOptions != null) return false; // if only one is null, not equal
+         if (AutocompleteOptions != null && that.AutocompleteOptions != null && AutocompleteOptions.SequenceEqual(that.AutocompleteOptions)) return false;
          return CurrentText == that.CurrentText;
       }
    }
    public static class UnderEditExtensions {
       public static UnderEdit Edit(this IDataFormat format, string text) {
          if (format is UnderEdit underEdit) {
-            return new UnderEdit(underEdit.OriginalFormat, underEdit.CurrentText + text);
+            return new UnderEdit(underEdit.OriginalFormat, underEdit.CurrentText + text, underEdit.EditWidth);
          }
 
          return new UnderEdit(format, text);
@@ -78,6 +88,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public int Position { get; }    // 0 through 3
       public int Destination { get; } // 6 hex digits
       public string DestinationName { get; } // null if there is no name for that anchor
+      public string DestinationAsText {
+         get {
+            var destination = DestinationName;
+            if (string.IsNullOrEmpty(destination)) destination = Destination.ToString("X6");
+            return $"<{destination}>";
+         }
+      }
 
       public Pointer(int source, int positionInPointer, int destination, string destinationName) {
          Source = source;
@@ -181,27 +198,33 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
 
       public Integer(int source, int position, int value, int length) => (Source, Position, Value, Length) = (source, position, value, length);
 
-      public bool Equals(IDataFormat other) {
+      public virtual bool Equals(IDataFormat other) {
          if (!(other is Integer that)) return false;
          return Source == that.Source && Position == that.Position && Value == that.Value && Length == that.Length;
       }
 
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
-   }
-
-   public class IntegerEnum : IDataFormat {
-      public int Source { get; }
-      public int Position { get; }
-      public string Value { get; }
-      public int Length { get; } // number of bytes used by this integer
-
-      public IntegerEnum(int source, int position, string value, int length) => (Source, Position, Value, Length) = (source, position, value, length);
-
-      public bool Equals(IDataFormat other) {
-         if (!(other is IntegerEnum that)) return false;
-         return Source == that.Source && Position == that.Position && Value == that.Value && Length == that.Length;
+      public virtual bool CanStartWithCharacter(char input) {
+         return char.IsNumber(input);
       }
 
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
+      public virtual void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
+   }
+
+   public class IntegerEnum : Integer {
+      public new string Value { get; }
+      public IntegerEnum(int source, int position, string value, int length) : base(source, position, -1, length) => Value = value;
+
+      public override bool Equals(IDataFormat other) {
+         if (!(other is IntegerEnum that)) return false;
+         return Value == that.Value && base.Equals(other);
+      }
+
+      public override bool CanStartWithCharacter(char input) {
+         return char.IsLetterOrDigit(input) ||
+            input == PCSRun.StringDelimeter ||
+            "?-".Contains(input);
+      }
+
+      public override void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 }

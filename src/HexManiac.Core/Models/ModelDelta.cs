@@ -27,6 +27,8 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public int EarliestChange {
          get {
+            if (oldData.Count > 0) return oldData.Keys.Min();
+
             if (addedNames.Count > 0) return addedNames.Keys.Min();
 
             var filteredRuns = addedRuns.Values.Where(added => !(added is NoInfoRun)).ToList();
@@ -41,7 +43,6 @@ namespace HavenSoft.HexManiac.Core.Models {
 
             if (removedUnmappedPointers.Count > 0) return removedUnmappedPointers.Keys.Min();
 
-            if (oldData.Count > 0) return oldData.Keys.Min();
             return -1;
          }
       }

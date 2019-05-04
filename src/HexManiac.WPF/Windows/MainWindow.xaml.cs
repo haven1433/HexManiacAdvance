@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
@@ -17,8 +18,10 @@ using System.Windows.Media.Animation;
 namespace HavenSoft.HexManiac.WPF.Windows {
    partial class MainWindow {
       private readonly List<Action> deferredActions = new List<Action>();
+      private ThemeSelector themeWindow;
 
       public EditorViewModel ViewModel { get; }
+      public IFileSystem FileSystem => (IFileSystem)Resources["FileSystem"];
 
       public MainWindow(EditorViewModel viewModel) {
          InitializeComponent();
@@ -50,7 +53,12 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       protected override void OnClosing(CancelEventArgs e) {
          base.OnClosing(e);
          ViewModel.CloseAll.Execute();
-         if (ViewModel.Count != 0) e.Cancel = true;
+         if (ViewModel.Count != 0) {
+            e.Cancel = true;
+         } else {
+            themeWindow?.Close();
+            ViewModel.WriteAppLevelMetadata();
+         }
       }
 
       private static FrameworkElement GetChild(DependencyObject depObj, string name, object dataContext) {
@@ -117,7 +125,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       }
 
       private void ToggleTheme(object sender, EventArgs e) {
-         Solarized.Theme.CurrentVariant = 1 - Solarized.Theme.CurrentVariant;
+         ViewModel.Theme.LightVariant = !ViewModel.Theme.LightVariant;
       }
 
       private void ExitClicked(object sender, EventArgs e) {
@@ -182,6 +190,29 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
          FocusAnimationElement.BeginAnimation(WidthProperty, widthAnimation);
          FocusAnimationElement.BeginAnimation(HeightProperty, heightAnimation);
+      }
+
+      private void ShowThemeSelector(object sender, RoutedEventArgs e) {
+         if (themeWindow?.IsVisible != true) {
+            themeWindow = new ThemeSelector { DataContext = ViewModel.Theme };
+            themeWindow.Show();
+         }
+      }
+
+      private readonly Popup contextMenu = new Popup();
+      private void AddressShowMenu(object sender, MouseButtonEventArgs e) {
+         var element = (FrameworkElement)sender;
+         var viewModel = element.DataContext as ViewPort;
+         if (viewModel == null) return;
+         contextMenu.Child = new Button {
+            Content = "Copy Address"
+         }.SetEvent(Button.ClickEvent, (sender2, e2) => {
+            viewModel.CopyAddress.Execute(FileSystem);
+            contextMenu.IsOpen = false;
+         });
+         contextMenu.PlacementTarget = element;
+         contextMenu.StaysOpen = false;
+         contextMenu.IsOpen = true;
       }
    }
 }

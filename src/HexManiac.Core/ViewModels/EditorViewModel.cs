@@ -12,7 +12,8 @@ using static HavenSoft.HexManiac.Core.ICommandExtensions;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
    public class EditorViewModel : ViewModelCore, IEnumerable<ITabContent>, INotifyCollectionChanged {
-      private const int MaxReasonableResults = 200; // limit for performance reasons
+      public const string ApplicationName = "HexManiac";
+      private const int MaxReasonableResults = 400; // limit for performance reasons
 
       private readonly IFileSystem fileSystem;
       private readonly List<ITabContent> tabs;
@@ -153,6 +154,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          set => TryUpdate(ref showMatrix, value);
       }
 
+      public Theme Theme { get; }
+
       private string infoMessage;
       public string InformationMessage {
          get => infoMessage;
@@ -225,6 +228,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             { tab => tab.Back, (sender, e) => back.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.Forward, (sender, e) => forward.CanExecuteChanged.Invoke(this, e) },
          };
+
+         var metadata = fileSystem.MetadataFor(ApplicationName) ?? new string[0];
+         Theme = new Theme(metadata);
+         ShowMatrix = !metadata.Contains("ShowMatrixGrid = False");
+      }
+
+      public void WriteAppLevelMetadata() {
+         var metadata = new List<string>();
+         metadata.Add("[GeneralSettings]");
+         metadata.Add($"ShowMatrixGrid = {ShowMatrix}");
+         metadata.Add(string.Empty);
+         metadata.AddRange(Theme.Serialize());
+         fileSystem.SaveMetadata(ApplicationName, metadata.ToArray());
       }
 
       private void ImplementCommands() {
@@ -236,7 +252,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             try {
                var file = arg as LoadedFile ?? fileSystem.OpenFile("GameBoy Advanced", "gba");
                if (file == null) return;
-               var metadata = fileSystem.MetadataFor(file.Name);
+               var metadataText = fileSystem.MetadataFor(file.Name) ?? new string[0];
+               var metadata = new StoredMetadata(metadataText);
                Add(new ViewPort(file.Name, new AutoSearchModel(file.Contents, metadata)));
             } catch (IOException ex) {
                ErrorMessage = ex.Message;
@@ -327,7 +344,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          SelectedIndex = tabs.Count - 1;
          CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, content));
          AddContentListeners(content);
-         if (content is ViewPort viewModel) viewModel.UseCustomHeaders = useTableEntryHeaders;
+         if (content is IViewPort viewModel) viewModel.UseCustomHeaders = useTableEntryHeaders;
       }
 
       public void SwapTabs(int a, int b) {
@@ -359,9 +376,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                return innerCommand.CanExecute(fileSystem);
             },
             Execute = arg => {
-               var innerCommand = commandGetter(tabs[SelectedIndex]);
+               var tab = tabs[SelectedIndex];
+               var innerCommand = commandGetter(tab);
                if (innerCommand == null) return;
-               innerCommand.Execute(fileSystem);
+
+               // special case: for save/save as, remove the file listener
+               // otherwise the filesystem will notify us of our own change
+               if ((innerCommand == tab.Save || innerCommand == tab.SaveAs) && tab is IViewPort viewPort && !string.IsNullOrEmpty(viewPort.FileName)) {
+                  fileSystem.RemoveListenerForFile(viewPort.FileName, viewPort.ConsiderReload);
+                  using (new StubDisposable { Dispose = () => fileSystem.AddListenerToFile(viewPort.FileName, viewPort.ConsiderReload) }) {
+                     innerCommand.Execute(fileSystem);
+                  }
+               } else {
+                  innerCommand.Execute(fileSystem);
+               }
             }
          };
 
@@ -404,6 +432,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var (tab, start, end) = results[0];
             SelectedIndex = tabs.IndexOf(tab);
             tab.Goto.Execute(start.ToString("X2"));
+            if (tab is ViewPort viewPort) SearchResultsViewPort.SelectRange(viewPort, (start, end));
             return;
          }
 
