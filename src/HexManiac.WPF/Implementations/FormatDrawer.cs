@@ -44,7 +44,6 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          var typeface = new Typeface("Consolas");
 
          var content = dataFormat.CurrentText;
-         // if (content.Length > 12) content = "…" + content.Substring(content.Length - 11);
 
          var text = new FormattedText(
             content,
