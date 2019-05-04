@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.WPF.Implementations;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Media;
@@ -13,11 +14,17 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       protected override void OnStartup(StartupEventArgs e) {
          base.OnStartup(e);
 
-         var fileName = e.Args?.Length == 1 ? e.Args[0] : string.Empty;
+         var args = e.Args;
+         var useMetadata = true;
+         if (args.Any(arg => arg == "--no-metadata")) {
+            useMetadata = false;
+            args = args.Where(arg => arg != "--no-metadata").ToArray();
+         }
+         var fileName = args?.Length == 1 ? args[0] : string.Empty;
          var fileSystem = new WindowsFileSystem(Dispatcher);
-         var viewModel = GetViewModel(fileName, fileSystem);
+         var viewModel = GetViewModel(fileName, fileSystem, useMetadata);
          UpdateThemeDictionary(viewModel);
-         viewModel.Theme.PropertyChanged += (sender, args) => UpdateThemeDictionary(viewModel);
+         viewModel.Theme.PropertyChanged += (sender, _) => UpdateThemeDictionary(viewModel);
          MainWindow = new MainWindow(viewModel);
          MainWindow.Resources.Add("FileSystem", fileSystem);
          MainWindow.Show();
@@ -54,15 +61,11 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          }
       }
 
-      private EditorViewModel GetViewModel(string fileName, IFileSystem fileSystem) {
-         var editor = new EditorViewModel(fileSystem);
+      private static EditorViewModel GetViewModel(string fileName, IFileSystem fileSystem, bool useMetadata) {
+         var editor = new EditorViewModel(fileSystem, useMetadata);
          if (!File.Exists(fileName)) return editor;
-
          var loadedFile = fileSystem.LoadFile(fileName);
-         var metadataLines = fileSystem.MetadataFor(fileName);
-         var metadata = metadataLines != null ? new StoredMetadata(metadataLines) : null;
-         var model = new AutoSearchModel(loadedFile.Contents, metadata);
-         editor.Add(new ViewPort(loadedFile.Name, model));
+         editor.Open.Execute(loadedFile);
          return editor;
       }
    }

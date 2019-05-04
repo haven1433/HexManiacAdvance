@@ -388,6 +388,25 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(SomeAction, work);
       }
 
+      /// <summary>
+      /// The first time we open any given file, we have to parse the file
+      /// to see what data it contains. This process takes time.
+      /// This test shows that we save that metadata immediately, even if the user doesn't
+      /// save the file. This makes the second load much faster, even if the user never saved any changes.
+      /// </summary>
+      [Fact]
+      public void FirstFileOpenAutomaticallySavesItsMetadata() {
+         var fileSystem = new StubFileSystem();
+         var editor = new EditorViewModel(fileSystem);
+         var saveCount = 0;
+         fileSystem.SaveMetadata = (fileName, data) => { saveCount += 1; return true; };
+
+         fileSystem.OpenFile = (type, exensions) => new LoadedFile("file.gba", new byte[0x200]);
+         editor.Open.Execute();
+
+         Assert.Equal(1, saveCount);
+      }
+
       private StubTabContent CreateClosableTab() {
          var tab = new StubTabContent();
          var close = new StubCommand { CanExecute = arg => true };

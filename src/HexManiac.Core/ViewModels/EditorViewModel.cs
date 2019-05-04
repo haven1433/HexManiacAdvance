@@ -16,6 +16,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private const int MaxReasonableResults = 400; // limit for performance reasons
 
       private readonly IFileSystem fileSystem;
+      private readonly bool allowLoadingMetadata;
       private readonly List<ITabContent> tabs;
 
       private readonly List<StubCommand> commandsToRefreshOnTabChange = new List<StubCommand>();
@@ -197,8 +198,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #endregion
 
-      public EditorViewModel(IFileSystem fileSystem) {
+      public EditorViewModel(IFileSystem fileSystem, bool allowLoadingMetadata = true) {
          this.fileSystem = fileSystem;
+         this.allowLoadingMetadata = allowLoadingMetadata;
          tabs = new List<ITabContent>();
          selectedIndex = -1;
 
@@ -252,9 +254,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             try {
                var file = arg as LoadedFile ?? fileSystem.OpenFile("GameBoy Advanced", "gba");
                if (file == null) return;
-               var metadataText = fileSystem.MetadataFor(file.Name) ?? new string[0];
+               string[] metadataText = new string[0];
+               if (allowLoadingMetadata) {
+                  metadataText = fileSystem.MetadataFor(file.Name) ?? new string[0];
+               }
                var metadata = new StoredMetadata(metadataText);
-               Add(new ViewPort(file.Name, new AutoSearchModel(file.Contents, metadata)));
+               var viewPort = new ViewPort(file.Name, new AutoSearchModel(file.Contents, metadata));
+               if (metadata.IsEmpty) {
+                  var createdMetadata = viewPort.Model.ExportMetadata().Serialize();
+                  fileSystem.SaveMetadata(file.Name, createdMetadata);
+               }
+               Add(viewPort);
             } catch (IOException ex) {
                ErrorMessage = ex.Message;
             }
