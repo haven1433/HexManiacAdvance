@@ -179,11 +179,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          if (parent is ViewPort viewPort) {
-            viewPort.SelectionStart = viewPort.ConvertAddressToViewPoint(childrenSelection[childIndex].start);
-            viewPort.SelectionEnd = viewPort.ConvertAddressToViewPoint(childrenSelection[childIndex].end);
+            SelectRange(viewPort, childrenSelection[childIndex]);
          }
 
          RequestTabChange?.Invoke(this, parent);
+      }
+
+      public static void SelectRange(ViewPort viewPort, (int start, int end) range) {
+         viewPort.SelectionStart = viewPort.ConvertAddressToViewPoint(range.start);
+         viewPort.SelectionEnd = viewPort.ConvertAddressToViewPoint(range.end);
       }
 
       public void ExpandSelection(int x, int y) => FollowLink(x, y);

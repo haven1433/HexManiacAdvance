@@ -383,5 +383,18 @@ namespace HavenSoft.HexManiac.Tests {
          // Assert: there are 2 results, one for the text and one for the enum
          Assert.Contains("2", editor.InformationMessage);
       }
+
+      [Fact]
+      public void FindingSingleResultHighlightsEntireResult() {
+         var data = Enumerable.Range(0, 0x100).Select(i => (byte)i).ToArray();
+         var model = new PokemonModel(data);
+         var viewPort = new ViewPort("name.txt", model) { Height = 0x10, Width = 0x10 };
+         var editor = new EditorViewModel(new StubFileSystem());
+         editor.Add(viewPort);
+
+         editor.Find.Execute("05 06 07 08");
+
+         Assert.NotEqual(viewPort.SelectionStart, viewPort.SelectionEnd);
+      }
    }
 }
