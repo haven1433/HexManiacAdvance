@@ -2,16 +2,19 @@
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
    public class ViewPortAutocompleteEditTests {
+      private readonly List<string> errors = new List<string>();
       private readonly ViewPort viewPort;
 
       public ViewPortAutocompleteEditTests() {
          var model = new PokemonModel(new byte[0x200]);
          viewPort = new ViewPort("name.txt", model) { Height = 0x10, Width = 0x10 };
+         viewPort.OnError += (sender, e) => errors.Add(e);
 
          viewPort.SelectionStart = new Point(0, 8);
          viewPort.Edit("^label ");
@@ -95,6 +98,15 @@ namespace HavenSoft.HexManiac.Tests {
 
          var format = (UnderEdit)viewPort[0, 0].Format;
          Assert.Equal(2, format.AutocompleteOptions.Count);
+      }
+
+      [Fact]
+      public void NoErrorWhenClickingOffOfAnEmptyPointerEdit() {
+         viewPort.Edit("<");
+         viewPort.SelectionStart = new Point(4, 4);
+
+         Assert.Empty(errors);                                   // no errors
+         Assert.NotEqual(0, viewPort.Model.GetNextRun(0).Start); // no run was added
       }
    }
 }

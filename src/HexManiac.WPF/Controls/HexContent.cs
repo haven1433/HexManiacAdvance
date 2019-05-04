@@ -349,6 +349,12 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void ShowAutocompletePopup(int x, int y, IReadOnlyList<AutoCompleteSelectionItem> autocompleteOptions) {
+         // close any currently open menu
+         if (autocompleteOptions.Count == 0) {
+            if (recentMenu != null && recentMenu.IsOpen) recentMenu.IsOpen = false;
+            return;
+         }
+
          var children = new List<FrameworkElement>();
          foreach (var option in autocompleteOptions) {
             var button = new Button { Content = option.CompletionText };
@@ -361,15 +367,14 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             children.Add(button);
          }
 
-         recentMenu = new Popup {
-            Child = FillPopup(children),
-            StaysOpen = false,
-            Placement = PlacementMode.Relative,
-            PlacementTarget = this,
-            VerticalOffset = x * CellWidth,
-            HorizontalOffset = (y + 1) * CellHeight,
-         };
-
+         // reuse existing popup if possible (to prevent flickering)
+         if (recentMenu == null) recentMenu = new Popup();
+         recentMenu.Child = FillPopup(children);
+         recentMenu.StaysOpen = false;
+         recentMenu.Placement = PlacementMode.Relative;
+         recentMenu.PlacementTarget = this;
+         recentMenu.VerticalOffset = (y + 1) * CellHeight;
+         recentMenu.HorizontalOffset = x * CellWidth;
          recentMenu.IsOpen = true;
       }
 
@@ -518,10 +523,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private static FrameworkElement FillPopup(IList<FrameworkElement> children) {
          var panel = new StackPanel { Background = Brush(nameof(Theme.Background)), MinWidth = 150 };
          foreach (var child in children) panel.Children.Add(child);
+         var scroll = new ScrollViewer { Content = panel, VerticalScrollBarVisibility = ScrollBarVisibility.Visible, MaxHeight = 200 };
          return new Border {
             BorderBrush = Brush(nameof(Theme.Accent)),
             BorderThickness = new Thickness(1),
-            Child = panel,
+            Child = scroll,
          };
       }
 
