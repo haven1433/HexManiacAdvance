@@ -516,6 +516,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                // to match arrays with junk PCS characters after the closing quote.
                if (Enumerable.Range(start + readLength, segment.Length - readLength).Any(i => PCSString.PCS[owner[i]] == null)) return false;
 
+               // require that the overall thing still ends with 'FF' or '00' to avoid finding text of the wrong width.
+               var lastByteInText = owner[start + segment.Length - 1];
+               if (lastByteInText != 0x00 && lastByteInText != 0xFF) return false;
+
                return true;
             case ElementContentType.Integer:
                if (segment is ArrayRunEnumSegment enumSegment) {
