@@ -14,6 +14,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly StubCommand
          checkIsText = new StubCommand(),
          insertText = new StubCommand();
+
+      // if we're in the middle of updating ourselves, we may notify changes to other controls.
+      // while we do, ignore any updates coming from those controls, since we may be in an inconsistent state.
+      private bool ignoreExternalUpdates = false;
+
       public string Name => "String";
 
       private int contentIndex;
@@ -69,6 +74,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public int Address {
          get => address;
          set {
+            if (ignoreExternalUpdates) return;
             var run = model.GetNextRun(value);
             if (TryUpdate(ref address, value)) {
                if ((run is PCSRun || run is ArrayRun) && run.Start <= value) {
@@ -248,6 +254,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void UpdateRun(PCSRun run) {
+         ignoreExternalUpdates = true;
          var bytes = PCSString.Convert(content);
          var newRun = model.RelocateForExpansion(history.CurrentChange, run, bytes.Count);
          if (run.Start != newRun.Start) ModelDataMoved?.Invoke(this, (run.Start, newRun.Start));
@@ -263,6 +270,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          history.CurrentChange.AddRun(run);
          ModelDataChanged?.Invoke(this, run);
          TryUpdate(ref address, run.Start, nameof(Address));
+         ignoreExternalUpdates = false;
       }
    }
 }
