@@ -3,7 +3,6 @@ using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {

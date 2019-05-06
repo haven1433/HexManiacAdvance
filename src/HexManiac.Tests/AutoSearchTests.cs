@@ -15,6 +15,7 @@ namespace HavenSoft.HexManiac.Tests {
    public class AutoSearchTests {
 
       public static IEnumerable<object[]> PokemonGames => new[] {
+         "Altair",
          "Emerald",
          "FireRed",
          "LeafGreen",
@@ -85,6 +86,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          var address = model.GetAddressFromAnchor(noChange, -1, "items");
          var run = (ArrayRun)model.GetNextAnchor(address);
+         if (game.Contains("Altair")) Assert.Equal(377, run.ElementCount);
          if (game.Contains("Emerald")) Assert.Equal(377, run.ElementCount);
          if (game.Contains("FireRed")) Assert.Equal(375, run.ElementCount);
          if (game.Contains("LeafGreen")) Assert.Equal(375, run.ElementCount);
@@ -100,6 +102,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          var address = model.GetAddressFromAnchor(noChange, -1, "trainerclassnames");
          var run = (ArrayRun)model.GetNextAnchor(address);
+         if (game.Contains("Altair")) Assert.Equal(67, run.ElementCount);
          if (game.Contains("Emerald")) Assert.Equal(67, run.ElementCount);
          if (game.Contains("FireRed")) Assert.Equal(108, run.ElementCount);
          if (game.Contains("LeafGreen")) Assert.Equal(108, run.ElementCount);
