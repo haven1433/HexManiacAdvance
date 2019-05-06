@@ -1,45 +1,50 @@
 ﻿<Window x:Class="HavenSoft.HexManiac.WPF.Windows.ThemeSelector"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
+        MouseLeftButtonDown="ClearKeyboardFocus"
         Title="Theme Selector" Height="450" Width="800">
-   <Grid TextBlock.FontSize="15" TextBlock.FontFamily="Consolas">
+   <Grid TextBlock.FontSize="15" TextBlock.FontFamily="Consolas" Background="{Binding BackgroundColor}">
       <Grid.ColumnDefinitions>
          <ColumnDefinition/>
          <ColumnDefinition/>
       </Grid.ColumnDefinitions>
       <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,0,0,10">
          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-            <TextBlock Text="Light Background / Text:" Foreground="{Binding DarkColor}"/>
-            <TextBox Foreground="{Binding DarkColor}" Background="{Binding HighlightLight}" Text="{Binding LightColor, UpdateSourceTrigger=PropertyChanged}" Width="150" Margin="5,0"/>
+            <TextBlock Text="Text Color:" Foreground="{Binding PrimaryColor}"/>
+            <TextBox Name="Primary" Foreground="{Binding PrimaryColor}" Background="{Binding Backlight}" Text="{Binding PrimaryColor, UpdateSourceTrigger=PropertyChanged}" Width="200" Margin="5,0"/>
+            <Popup PlacementTarget="{Binding ElementName=Primary}" Placement="Bottom" HorizontalOffset="-30" IsOpen="{Binding ElementName=Primary, Path=IsKeyboardFocused, Mode=OneWay}">
+               <controls:Swatch Result="{Binding PrimaryColor, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="230" Height="200"/>
+            </Popup>
          </StackPanel>
          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10">
-            <TextBlock Text="Highlight Brightness:" Foreground="{Binding DarkColor}"/>
-            <Slider Foreground="{Binding SecondaryLight}" Background="{Binding HighlightLight}" BorderBrush="{Binding SecondaryLight}" Minimum="0" Maximum="1" Value="{Binding HighlightBrightness}" Width="150" Margin="5,0"/>
+            <TextBlock Text="Highlight Brightness:" Foreground="{Binding PrimaryColor}"/>
+            <Slider Foreground="{Binding Secondary}" Background="{Binding Backlight}" BorderBrush="{Binding Secondary}" Minimum="0" Maximum="1" Value="{Binding HighlightBrightness}" Width="150" Margin="5,0"/>
          </StackPanel>
          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-            <TextBlock Text="Hue Shift:" Foreground="{Binding DarkColor}"/>
-            <Slider Foreground="{Binding SecondaryLight}" Background="{Binding HighlightLight}" BorderBrush="{Binding SecondaryLight}" Minimum="0" Maximum="1" Value="{Binding HueOffset}" Width="150" Margin="5,0"/>
+            <TextBlock Text="Hue Shift:" Foreground="{Binding PrimaryColor}"/>
+            <Slider Foreground="{Binding Secondary}" Background="{Binding Backlight}" BorderBrush="{Binding Secondary}" Minimum="0" Maximum="1" Value="{Binding HueOffset}" Width="150" Margin="5,0"/>
          </StackPanel>
       </StackPanel>
       <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top" Grid.Column="1">
          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-            <TextBlock Text="Dark Background / Text:" Foreground="{Binding LightColor}"/>
-            <TextBox Foreground="{Binding LightColor}" Background="{Binding HighlightDark}" Text="{Binding DarkColor, UpdateSourceTrigger=PropertyChanged}" Width="150" Margin="5,0"/>
+            <TextBlock Text="Background Color:" Foreground="{Binding PrimaryColor}"/>
+            <TextBox Name="Background" Foreground="{Binding Primary}" Background="{Binding Backlight}" Text="{Binding BackgroundColor, UpdateSourceTrigger=PropertyChanged}" Width="200" Margin="5,0"/>
+            <Popup PlacementTarget="{Binding ElementName=Background}" Placement="Bottom" HorizontalOffset="-30" IsOpen="{Binding ElementName=Background, Path=IsKeyboardFocused, Mode=OneWay}">
+               <controls:Swatch Result="{Binding BackgroundColor, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="230" Height="200"/>
+            </Popup>
          </StackPanel>
          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10">
-            <TextBlock Text="Accent Saturation:" Foreground="{Binding LightColor}"/>
-            <Slider Foreground="{Binding SecondaryDark}" Background="{Binding HighlightDark}" BorderBrush="{Binding SecondaryDark}" Minimum="0" Maximum="1" Value="{Binding AccentSaturation}" Width="150" Margin="5,0"/>
+            <TextBlock Text="Accent Saturation:" Foreground="{Binding PrimaryColor}"/>
+            <Slider Foreground="{Binding Secondary}" Background="{Binding Backlight}" BorderBrush="{Binding SecondaryDark}" Minimum="0" Maximum="1" Value="{Binding AccentSaturation}" Width="150" Margin="5,0"/>
          </StackPanel>
          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-            <TextBlock Text="Accent Brightness:" Foreground="{Binding LightColor}"/>
-            <Slider Foreground="{Binding SecondaryDark}" Background="{Binding HighlightDark}" BorderBrush="{Binding SecondaryDark}" Minimum="0" Maximum="1" Value="{Binding AccentValue}" Width="150" Margin="5,0"/>
+            <TextBlock Text="Accent Brightness:" Foreground="{Binding PrimaryColor}"/>
+            <Slider Foreground="{Binding Secondary}" Background="{Binding Backlight}" BorderBrush="{Binding SecondaryDark}" Minimum="0" Maximum="1" Value="{Binding AccentValue}" Width="150" Margin="5,0"/>
          </StackPanel>
       </StackPanel>
 
-      <Rectangle Fill="{Binding LightColor}" Panel.ZIndex="-1"/>
       <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-         <TextBlock Text="Normal Text" Foreground="{Binding DarkColor}"/>
-         <TextBlock Text="Comment Text" Foreground="{Binding SecondaryDark}"/>
          <TextBlock Text="Error" Foreground="{Binding Error}"/>
          <TextBlock Text="Text1" Foreground="{Binding Text1}"/>
          <TextBlock Text="Data1" Foreground="{Binding Data1}"/>
@@ -48,24 +53,13 @@
          <TextBlock Text="Accent" Foreground="{Binding Accent}"/>
          <TextBlock Text="Text2" Foreground="{Binding Text2}"/>
          <TextBlock Text="Stream1" Foreground="{Binding Stream1}"/>
-         <TextBlock Text="Highlighted Normal" Foreground="{Binding DarkColor}" Background="{Binding HighlightLight}"/>
-         <TextBlock Text="Highlighted Secondary" Foreground="{Binding SecondaryDark}" Background="{Binding HighlightLight}"/>
       </StackPanel>
 
-      <Rectangle Grid.Column="1" Fill="{Binding DarkColor}" Panel.ZIndex="-1"/>
       <StackPanel VerticalAlignment="Center" Grid.Column="1" HorizontalAlignment="Center">
-         <TextBlock Text="Normal Text" Foreground="{Binding LightColor}"/>
-         <TextBlock Text="Comment Text" Foreground="{Binding SecondaryLight}"/>
-         <TextBlock Text="Error" Foreground="{Binding Error}"/>
-         <TextBlock Text="Text1" Foreground="{Binding Text1}"/>
-         <TextBlock Text="Data1" Foreground="{Binding Data1}"/>
-         <TextBlock Text="Stream2" Foreground="{Binding Stream2}"/>
-         <TextBlock Text="Data2" Foreground="{Binding Data2}"/>
-         <TextBlock Text="Accent" Foreground="{Binding Accent}"/>
-         <TextBlock Text="Text2" Foreground="{Binding Text2}"/>
-         <TextBlock Text="Stream1" Foreground="{Binding Stream1}"/>
-         <TextBlock Text="Highlighted Normal" Foreground="{Binding LightColor}" Background="{Binding HighlightDark}"/>
-         <TextBlock Text="Highlighted Secondary" Foreground="{Binding SecondaryLight}" Background="{Binding HighlightDark}"/>
+         <TextBlock Text="Normal Text" Foreground="{Binding PrimaryColor}"/>
+         <TextBlock Text="Comment Text" Foreground="{Binding Secondary}"/>
+         <TextBlock Text="Highlighted Normal" Foreground="{Binding PrimaryColor}" Background="{Binding Backlight}"/>
+         <TextBlock Text="Highlighted Secondary" Foreground="{Binding Secondary}" Background="{Binding Backlight}"/>
       </StackPanel>
 
       <StackPanel Grid.ColumnSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center">

@@ -124,10 +124,6 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          selectedElement.RaiseEvent(e);
       }
 
-      private void ToggleTheme(object sender, EventArgs e) {
-         ViewModel.Theme.LightVariant = !ViewModel.Theme.LightVariant;
-      }
-
       private void ExitClicked(object sender, EventArgs e) {
          ViewModel.CloseAll.Execute();
          if (ViewModel.Count == 0) Close();

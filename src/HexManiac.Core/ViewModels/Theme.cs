@@ -5,23 +5,11 @@ using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
    public class Theme : ViewModelCore {
-      private string lightColor = "#DDDDDD", darkColor = "#080808";
-      private double hueOffset = 0.1, accentSaturation = 0.9, accentValue = 0.6, highlightBrightness = 0.7;
-      private bool lightVariant;
+      private string primaryColor = "#DDDDDD", backgroundColor = "#222222";
+      private double hueOffset = 0.1, accentSaturation = 0.7, accentValue = 0.7, highlightBrightness = 0.6;
 
-      public bool LightVariant {
-         get => lightVariant;
-         set {
-            if (TryUpdate(ref lightVariant, value)) {
-               NotifyPropertyChanged(nameof(Primary));
-               NotifyPropertyChanged(nameof(Secondary));
-               NotifyPropertyChanged(nameof(Background));
-               NotifyPropertyChanged(nameof(Backlight));
-            }
-         }
-      }
-      public string LightColor { get => lightColor; set { if (TryUpdate(ref lightColor, value)) UpdateTheme(); } }
-      public string DarkColor { get => darkColor; set { if (TryUpdate(ref darkColor, value)) UpdateTheme(); } }
+      public string PrimaryColor { get => primaryColor; set { if (TryUpdate(ref primaryColor, value)) UpdateTheme(); } }
+      public string BackgroundColor { get => backgroundColor; set { if (TryUpdate(ref backgroundColor, value)) UpdateTheme(); } }
       public double HueOffset { get => hueOffset; set { if (TryUpdate(ref hueOffset, value)) UpdateTheme(); } }
       public double AccentSaturation { get => accentSaturation; set { if (TryUpdate(ref accentSaturation, value)) UpdateTheme(); } }
       public double AccentValue { get => accentValue; set { if (TryUpdate(ref accentValue, value)) UpdateTheme(); } }
@@ -35,13 +23,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (line.Contains("[theme]")) acceptingEntries = true;
             if (!acceptingEntries) continue;
 
-            if (line.StartsWith("lightcolor")) lightColor = line.Split("\"".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Last();
-            if (line.StartsWith("darkcolor")) darkColor = line.Split("\"".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Last();
+            if (line.StartsWith("primarycolor")) primaryColor = line.Split("\"".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Last();
+            if (line.StartsWith("backgroundcolor")) backgroundColor = line.Split("\"".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Last();
             if (line.StartsWith("hueoffset")) double.TryParse(line.Substring(line.IndexOf('=') + 1).Trim(), out hueOffset);
             if (line.StartsWith("accentsaturation")) double.TryParse(line.Substring(line.IndexOf('=') + 1).Trim(), out accentSaturation);
             if (line.StartsWith("accentvalue")) double.TryParse(line.Substring(line.IndexOf('=') + 1).Trim(), out accentValue);
             if (line.StartsWith("highlightbrightness")) double.TryParse(line.Substring(line.IndexOf('=') + 1).Trim(), out highlightBrightness);
-            if (line.StartsWith("lightvariant")) bool.TryParse(line.Substring(line.IndexOf('=') + 1).Trim(), out lightVariant);
          }
          UpdateTheme();
       }
@@ -49,17 +36,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public string[] Serialize() {
          return new[] {
             $"[Theme]",
-            $"LightColor = \"{LightColor}\"",
-            $"DarkColor = \"{DarkColor}\"",
+            $"PrimaryColor = \"{PrimaryColor}\"",
+            $"BackgroundColor = \"{BackgroundColor}\"",
             $"HueOffset= {HueOffset}",
             $"AccentSaturation = {AccentSaturation}",
             $"AccentValue = {AccentValue}",
             $"HighlightBrightness = {HighlightBrightness}",
-            $"LightVariant = {LightVariant}",
          };
       }
 
-      private static bool TryConvertColor(string text, out (byte r, byte g, byte b) color) {
+      public static bool TryConvertColor(string text, out (byte r, byte g, byte b) color) {
          const string hex = "0123456789ABCDEF";
          text = text.ToUpper();
          if (text.StartsWith("#")) text = text.Substring(1);
@@ -80,28 +66,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void UpdateTheme() {
-         if (!TryConvertColor(lightColor, out var uiLight)) return;
-         if (!TryConvertColor(darkColor, out var uiDark)) return;
-         var hsbLight = ToHSB(uiLight.r, uiLight.g, uiLight.b);
-         var hsbDark = ToHSB(uiDark.r, uiDark.g, uiDark.b);
+         if (!TryConvertColor(primaryColor, out var uiPrimary)) return;
+         if (!TryConvertColor(backgroundColor, out var uiBackground)) return;
+         var hsbPrimary = ToHSB(uiPrimary.r, uiPrimary.g, uiPrimary.b);
+         var hsbBackground = ToHSB(uiBackground.r, uiBackground.g, uiBackground.b);
 
-         var hsbHighlightLight = hsbLight;
-         var hsbHighlightDark = hsbDark;
+         var hsbHighlightLight = hsbPrimary;
+         var hsbHighlightDark = hsbBackground;
 
          var brightnessTravel = .6 + .3 * highlightBrightness;
-         hsbHighlightLight.sat *= .8;
-         hsbHighlightLight.bright = brightnessTravel;
          hsbHighlightDark.sat *= .8;
          hsbHighlightDark.bright = 1 - brightnessTravel;
-         HighlightLight = hsbHighlightLight.ToRgb().ToHexString();
-         HighlightDark = hsbHighlightDark.ToRgb().ToHexString();
+         Backlight = hsbHighlightDark.ToRgb().ToHexString();
 
          hsbHighlightLight.sat = 0;
-         hsbHighlightLight.bright = (hsbDark.bright + hsbLight.bright) / 2;
-         hsbHighlightDark.sat = 0;
-         hsbHighlightDark.bright = (hsbDark.bright + hsbLight.bright) / 2;
-         SecondaryLight = hsbHighlightLight.ToRgb().ToHexString();
-         SecondaryDark = hsbHighlightDark.ToRgb().ToHexString();
+         hsbHighlightLight.bright = (hsbBackground.bright + hsbPrimary.bright) / 2;
+         Secondary = hsbHighlightLight.ToRgb().ToHexString();
 
          var accent = new List<(double hue, double sat, double bright)>();
          var saturation = accentSaturation * .8 + .2;
@@ -122,11 +102,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Stream1 = accent[7].ToRgb().ToHexString();
       }
 
-      private string secondaryLight, secondaryDark, highlightLight, highlightDark;
-      public string SecondaryLight { get => secondaryLight; set => TryUpdate(ref secondaryLight, value); }
-      public string SecondaryDark { get => secondaryDark; set => TryUpdate(ref secondaryDark, value); }
-      public string HighlightLight { get => highlightLight; set => TryUpdate(ref highlightLight, value); }
-      public string HighlightDark { get => highlightDark; set => TryUpdate(ref highlightDark, value); }
+      private string secondary, backlight;
+      public string Secondary { get => secondary; set => TryUpdate(ref secondary, value); }
+      public string Backlight { get => backlight; set => TryUpdate(ref backlight, value); }
 
       private string error, text1, text2, data1, data2, accent, stream1, stream2;
       public string Error { get => error; set => TryUpdate(ref error, value); }
@@ -138,10 +116,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public string Stream1 { get => stream1; set => TryUpdate(ref stream1, value); }
       public string Stream2 { get => stream2; set => TryUpdate(ref stream2, value); }
 
-      public string Primary => lightVariant ? DarkColor : LightColor;
-      public string Secondary => lightVariant ? SecondaryDark : SecondaryLight;
-      public string Background => lightVariant ? LightColor : DarkColor;
-      public string Backlight => lightVariant ? HighlightLight : HighlightDark;
+      public string Primary => PrimaryColor;
+      public string Background => BackgroundColor;
 
       public static (byte red, byte green, byte blue) FromHSB(double hue, double sat, double bright) {
          while (hue < 0) hue += 1;

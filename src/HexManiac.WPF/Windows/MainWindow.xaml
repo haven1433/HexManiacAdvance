@@ -46,14 +46,9 @@
 
       <KeyBinding Key="M" Modifiers="Ctrl" Command="{Binding ToggleMatrix}" />
       <KeyBinding Key="H" Modifiers="Ctrl" Command="{Binding ToggleTableHeaders}" />
-      <!-- Stealing this routed command for toggling theme -->
-      <KeyBinding Key="T" Modifiers="Ctrl" Command="ToggleBullets" />
 
       <KeyBinding Key="Esc" Command="{Binding ClearError}"/>
    </Window.InputBindings>
-   <Window.CommandBindings>
-      <CommandBinding Command="ToggleBullets" Executed="ToggleTheme"/>
-   </Window.CommandBindings>
    <Grid>
       <DockPanel>
          <DockPanel DockPanel.Dock="Top" Background="{DynamicResource Background}">
@@ -126,7 +121,6 @@
                   <MenuItem Header="Go _Forward" Command="{Binding Forward}" InputGestureText="Ctrl+Shift+-"/>
                </MenuItem>
                <MenuItem Header="_View">
-                  <MenuItem Header="_Toggle Theme" Click="ToggleTheme" InputGestureText="Ctrl+T"/>
                   <MenuItem Header="Toggle _Matrix Grid" Command="{Binding ToggleMatrix}" InputGestureText="Ctrl+M"/>
                   <!--<MenuItem Header="Toggle Custom _Headers" Command="{Binding ToggleTableHeaders}" InputGestureText="Ctrl+H" ToolTipService.ShowDuration="15000">
                      <MenuItem.ToolTip>
