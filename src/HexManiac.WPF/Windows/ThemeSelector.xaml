@@ -29,8 +29,8 @@
       <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top" Grid.Column="1">
          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
             <TextBlock Text="Background Color:" Foreground="{Binding PrimaryColor}"/>
-            <TextBox Name="Background" Foreground="{Binding Primary}" Background="{Binding Backlight}" Text="{Binding BackgroundColor, UpdateSourceTrigger=PropertyChanged}" Width="200" Margin="5,0"/>
-            <Popup PlacementTarget="{Binding ElementName=Background}" Placement="Bottom" HorizontalOffset="-30" IsOpen="{Binding ElementName=Background, Path=IsKeyboardFocused, Mode=OneWay}">
+            <TextBox Name="BackgroundColorText" Foreground="{Binding Primary}" Background="{Binding Backlight}" Text="{Binding BackgroundColor, UpdateSourceTrigger=PropertyChanged}" Width="200" Margin="5,0"/>
+            <Popup PlacementTarget="{Binding ElementName=BackgroundColorText}" Placement="Bottom" HorizontalOffset="-30" IsOpen="{Binding ElementName=BackgroundColorText, Path=IsKeyboardFocused, Mode=OneWay}">
                <controls:Swatch Result="{Binding BackgroundColor, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="230" Height="200"/>
             </Popup>
          </StackPanel>
