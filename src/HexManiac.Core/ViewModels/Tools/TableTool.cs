@@ -21,12 +21,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set => TryUpdate(ref currentElementName, value);
       }
 
-      private readonly StubCommand previous, next;
+      private readonly StubCommand previous, next, append;
       public ICommand Previous => previous;
       public ICommand Next => next;
+      public ICommand Append => append;
       private void CommandCanExecuteChanged() {
          previous.CanExecuteChanged.Invoke(previous, EventArgs.Empty);
-         next.CanExecuteChanged.Invoke(previous, EventArgs.Empty);
+         next.CanExecuteChanged.Invoke(next, EventArgs.Empty);
+         append.CanExecuteChanged.Invoke(append, EventArgs.Empty);
       }
 
       public ObservableCollection<IArrayElementViewModel> Children { get; }
@@ -58,6 +60,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public event EventHandler<IFormattedRun> ModelDataChanged;
+      public event EventHandler<string> OnError;
 
 #pragma warning disable 0067 // it's ok if events are never used after implementing an interface
       public event EventHandler<(int originalLocation, int newLocation)> ModelDataMoved; // invoke when a new item gets added and the table has to move
@@ -91,6 +94,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                var array = (ArrayRun)model.GetNextRun(address);
                selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(Address + array.ElementLength);
                selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selection.Scroll.ViewPointToDataIndex(selection.SelectionStart) + array.ElementLength - 1);
+            }
+         };
+
+         append = new StubCommand {
+            CanExecute = parameter => {
+               var array = model.GetNextRun(address) as ArrayRun;
+               return array != null && array.Start + array.Length == address + array.ElementLength;
+            },
+            Execute = parameter => {
+               var array = (ArrayRun)model.GetNextRun(address);
+               var originalArray = array;
+               var error = ViewPort.CompleteArrayExtension(model, history.CurrentChange, ref array);
+               if (array.Start != originalArray.Start) {
+                  ModelDataMoved?.Invoke(this, (originalArray.Start, array.Start));
+                  selection.GotoAddress(array.Start + array.Length - array.ElementLength);
+               }
+               if (error.HasError) {
+                  OnError?.Invoke(this, error.ErrorMessage);
+               } else {
+                  ModelDataChanged?.Invoke(this, array);
+                  selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(array.Start + array.Length - array.ElementLength);
+                  selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selection.Scroll.ViewPointToDataIndex(selection.SelectionStart) + array.ElementLength - 1);
+               }
             }
          };
 

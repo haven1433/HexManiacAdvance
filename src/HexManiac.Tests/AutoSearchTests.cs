@@ -107,7 +107,7 @@ namespace HavenSoft.HexManiac.Tests {
          if (game.Contains("Altair")) Assert.Equal(67, run.ElementCount);
          if (game.Contains("Emerald")) Assert.Equal(67, run.ElementCount);
          if (game.Contains("FireRed")) Assert.Equal(108, run.ElementCount);
-         if (game.Contains("DarkRisingKAIZO")) Assert.Equal(108, run.ElementCount);
+         if (game.Contains("DarkRisingKAIZO")) Assert.Equal(107, run.ElementCount);
          if (game.Contains("LeafGreen")) Assert.Equal(108, run.ElementCount);
          if (game.Contains("Ruby")) Assert.Equal(59, run.ElementCount);
          if (game.Contains("Sapphire")) Assert.Equal(59, run.ElementCount);

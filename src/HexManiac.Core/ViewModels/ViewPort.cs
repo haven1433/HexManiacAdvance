@@ -1230,7 +1230,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
             var dataIndex = scroll.ViewPointToDataIndex(point);
             if (underEdit.CurrentText == ExtendArray.ToString() && Model.IsAtEndOfArray(dataIndex, out var arrayRun)) {
-               CompleteArrayExtension(arrayRun);
+               var originalArray = arrayRun;
+               var errorInfo = CompleteArrayExtension(Model, history.CurrentChange, ref arrayRun);
+               if (!errorInfo.HasError) {
+                  if (arrayRun.Start != originalArray.Start) {
+                     ScrollFromRunMove(arrayRun.Start + arrayRun.Length, arrayRun.Length, arrayRun);
+                  }
+                  RefreshBackingData();
+               } else {
+                  OnError?.Invoke(this, errorInfo.ErrorMessage);
+               }
                return true;
             }
 
@@ -1333,16 +1342,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          SilentScroll(memoryLocation + 1);
       }
 
-      private void CompleteArrayExtension(ArrayRun arrayRun) {
-         var originalArray = arrayRun;
+      public static ErrorInfo CompleteArrayExtension(IDataModel Model, ModelDelta changeToken, ref ArrayRun arrayRun) {
          var currentArrayName = Model.GetAnchorFromAddress(-1, arrayRun.Start);
 
          var visitedNames = new List<string>();
          while (arrayRun.LengthFromAnchor != string.Empty) {
             if (visitedNames.Contains(arrayRun.LengthFromAnchor)) {
-               // We kept going up the chain of tables but didn't find a top table. Either the table length definitions are circular or very deep.
-               OnError?.Invoke(this, $"Could not extend table safely. Table length has a circular dependency involving {arrayRun.LengthFromAnchor}.");
-               return;
+               // We kept going up the chain of tables but didn't find a top table. table length definitions are circular.
+               return new ErrorInfo($"Could not extend table safely. Table length has a circular dependency involving {arrayRun.LengthFromAnchor}.");
             }
 
             visitedNames.Add(arrayRun.LengthFromAnchor);
@@ -1350,20 +1357,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             arrayRun = (ArrayRun)Model.GetNextRun(address);
          }
 
-         ExtendArrayAndChildren(arrayRun);
+         ExtendArrayAndChildren(Model, changeToken, arrayRun);
 
-         var newRun = (ArrayRun)Model.GetNextRun(Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, currentArrayName));
-         if (newRun.Start != originalArray.Start) {
-            ScrollFromRunMove(arrayRun.Start + arrayRun.Length, arrayRun.Length, newRun);
-         }
-
-         RefreshBackingData();
+         arrayRun = (ArrayRun)Model.GetNextRun(Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, currentArrayName));
+         return ErrorInfo.NoError;
       }
 
-      private void ExtendArrayAndChildren(ArrayRun array) {
-         var newRun = (ArrayRun)Model.RelocateForExpansion(history.CurrentChange, array, array.Length + array.ElementLength);
+      private static void ExtendArrayAndChildren(IDataModel Model, ModelDelta changeToken, ArrayRun array) {
+         var newRun = (ArrayRun)Model.RelocateForExpansion(changeToken, array, array.Length + array.ElementLength);
          newRun = newRun.Append(1);
-         Model.ObserveRunWritten(history.CurrentChange, newRun);
+         Model.ObserveRunWritten(changeToken, newRun);
       }
 
       private void CompletePointerEdit(Point point) {

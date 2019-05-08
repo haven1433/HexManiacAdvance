@@ -220,5 +220,24 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.NotEqual(new Point(), viewPort.SelectionStart);
       }
+
+      [Fact]
+      public void TableToolCanExtendTable() {
+         // Arrange
+         var data = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         var model = new PokemonModel(data);
+         var viewPort = new ViewPort("name.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort.Edit("^array[name\"\"16]3 ");
+         viewPort.Tools.SelectedIndex = Enumerable.Range(0, viewPort.Tools.Count).Single(i => viewPort.Tools[i] == viewPort.Tools.TableTool);
+         Assert.True(viewPort.Tools.TableTool.Next.CanExecute(null)); // table has 3 entries
+
+         // Act: move to end of table
+         while (viewPort.Tools.TableTool.Next.CanExecute(null)) viewPort.Tools.TableTool.Next.Execute();
+
+         Assert.True(viewPort.Tools.TableTool.Append.CanExecute(null));
+         viewPort.Tools.TableTool.Append.Execute();
+         Assert.Contains("3", viewPort.Tools.TableTool.CurrentElementName);
+         Assert.Equal(16 * 4, model.GetNextRun(0).Length);
+      }
    }
 }

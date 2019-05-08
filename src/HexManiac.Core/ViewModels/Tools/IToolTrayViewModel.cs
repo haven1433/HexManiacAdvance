@@ -104,6 +104,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          SelectedIndex = -1;
 
          StringTool.OnError += (sender, e) => OnError?.Invoke(this, e);
+         TableTool.OnError += (sender, e) => OnError?.Invoke(this, e);
       }
 
       public void Schedule(Action action) {
