@@ -24,9 +24,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    /// <summary>
    /// A range of visible data that should be displayed.
    /// </summary>
-   public class ViewPort : ViewModelCore, IViewPort {
+   public partial class ViewPort : ViewModelCore, IViewPort {
+      public const string AllHexCharacters = "0123456789ABCDEFabcdef";
       private const char GotoMarker = '@';
-      private const string AllHexCharacters = "0123456789ABCDEFabcdef";
       private static readonly NotifyCollectionChangedEventArgs ResetArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
       private readonly StubCommand
          clear = new StubCommand(),
@@ -965,9 +965,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private IReadOnlyList<AutoCompleteSelectionItem> GetAutocompleteOptions(IDataFormat originalFormat, string newText, int selectedIndex = -1) {
          if (newText.StartsWith(PointerStart.ToString())) {
-            return GetNewPointerAutocompleteOptions(newText, selectedIndex);
+            return GetNewPointerAutocompleteOptions(Model, newText, selectedIndex);
          } else if (newText.StartsWith(GotoMarker.ToString())) {
-            return GetNewPointerAutocompleteOptions(newText, selectedIndex);
+            return GetNewPointerAutocompleteOptions(Model, newText, selectedIndex);
          } else if (originalFormat is IntegerEnum intEnum) {
             var array = (ArrayRun)Model.GetNextRun(intEnum.Source);
             var segment = (ArrayRunEnumSegment)array.ElementContent[array.ConvertByteOffsetToArrayOffset(intEnum.Source).SegmentIndex];
@@ -1013,6 +1013,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var underEdit = element.Format as UnderEdit;
          var innerFormat = underEdit?.OriginalFormat ?? element.Format;
          if (innerFormat is Anchor) innerFormat = ((Anchor)innerFormat).OriginalFormat;
+         var memoryLocation = scroll.ViewPointToDataIndex(point);
 
          if (underEdit == null) {
             if (input == ExtendArray) {
@@ -1036,55 +1037,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                return true;
             }
 
-            if (innerFormat is PCS) {
-               var memoryLocation = scroll.ViewPointToDataIndex(point);
-               if (Model.GetNextRun(memoryLocation) is ArrayRun array) {
-                  var offsets = array.ConvertByteOffsetToArrayOffset(memoryLocation);
-                  if (offsets.SegmentStart == memoryLocation && input == ' ') return false; // don't let it start with a space unless it's in quotes (for copy/paste)
-               }
-               return input == StringDelimeter || PCSString.PCS.Any(str => str != null && str.StartsWith(input.ToString()));
+            var startCellEdit = new StartCellEdit(Model, memoryLocation, input);
+            innerFormat.Visit(startCellEdit, element.Value);
+            if (startCellEdit.NewFormat != null) {
+               currentView[point.X, point.Y] = new HexElement(element.Value, startCellEdit.NewFormat);
+               if (startCellEdit.NewFormat.EditWidth > 1) PrepareForMultiSpaceEdit(point, startCellEdit.NewFormat.EditWidth);
             }
+            return startCellEdit.Result;
+         }
 
-            if (innerFormat is EscapedPCS) return AllHexCharacters.Contains(input);
+         //var editor = new ContinueCellEdit();
+         //innerFormat.Visit(editor, element.Value);
+         //return editor.Result;
 
-            if (innerFormat is Ascii) return true;
-
-            if (innerFormat is Integer intFormat) {
-               if (intFormat.CanStartWithCharacter(input)) {
-                  if (!TryCoerceSelectionToStartOfElement(ref point, ref element)) PrepareForMultiSpaceEdit(point, intFormat.Length);
-                  var original = currentView[point.X, point.Y];
-                  IReadOnlyList<AutoCompleteSelectionItem> autocomplete = null;
-                  if (innerFormat is IntegerEnum intEnum) {
-                     var memoryLocation = scroll.ViewPointToDataIndex(point);
-                     var run = (ArrayRun)Model.GetNextRun(memoryLocation);
-                     var offsets = run.ConvertByteOffsetToArrayOffset(memoryLocation);
-                     var segment = (ArrayRunEnumSegment)run.ElementContent[offsets.SegmentIndex];
-                     var allOptions = segment.GetOptions(Model).Select(option => option + " ");
-                     autocomplete = AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(input.ToString())), -1);
-                  }
-                  currentView[point.X, point.Y] = new HexElement(original.Value, new UnderEdit(original.Format, input.ToString(), intFormat.Length, autocomplete));
-                  return true;
-               } else {
-                  return false;
-               }
-            }
-
-            if (innerFormat is Pointer || input == PointerStart) {
-               if (input == PointerStart || char.IsLetterOrDigit(input)) {
-                  // pointer edits are 4 bytes long
-                  if (!TryCoerceSelectionToStartOfElement(ref point, ref element)) PrepareForMultiSpaceEdit(point, 4);
-                  var editText = input.ToString();
-                  // if the user tries to edit the pointer but forgets the opening bracket, add it for them.
-                  if (input != PointerStart) editText = PointerStart + editText;
-                  var newFormat = element.Format.Edit(editText);
-                  var autocompleteOptions = GetNewPointerAutocompleteOptions(editText, -1);
-                  newFormat = new UnderEdit(newFormat.OriginalFormat, newFormat.CurrentText, 4, autocompleteOptions);
-                  currentView[point.X, point.Y] = new HexElement(element.Value, newFormat);
-                  return true;
-               }
-            }
-
-         } else if (underEdit.CurrentText.StartsWith(PointerStart.ToString())) {
+         if (underEdit.CurrentText.StartsWith(PointerStart.ToString())) {
             return char.IsLetterOrDigit(input) || input == ArrayAnchorSeparator || input == PointerEnd || input == ' ';
          } else if (underEdit.CurrentText.StartsWith(GotoMarker.ToString())) {
             return char.IsLetterOrDigit(input) || input == ArrayAnchorSeparator || char.IsWhiteSpace(input);
@@ -1109,7 +1075,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return PCSString.PCS.Any(str => str != null && str.StartsWith(currentText + input));
          } else if (innerFormat is PCS) {
             if (input == StringDelimeter) return true;
-            var memoryLocation = scroll.ViewPointToDataIndex(point);
             var currentText = underEdit.CurrentText;
             // if this is the start of an array string segment, crop off the leading " before trying to convert to a byte
             if (Model.GetNextRun(memoryLocation) is ArrayRun array) {
@@ -1136,7 +1101,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return false;
       }
 
-      private IReadOnlyList<AutoCompleteSelectionItem> GetNewPointerAutocompleteOptions(string text, int selectedIndex) {
+      public static IReadOnlyList<AutoCompleteSelectionItem> GetNewPointerAutocompleteOptions(IDataModel Model, string text, int selectedIndex) {
          var options = Model.GetAutoCompleteAnchorNameOptions(text.Substring(1));
          if (text.StartsWith(PointerStart.ToString())) options = options.Select(option => $"{PointerStart}{option}{PointerEnd}").ToList();
          if (text.StartsWith(GotoMarker.ToString())) options = options.Select(option => $"{GotoMarker}{option} ").ToList();
@@ -1700,92 +1665,151 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void NotifyCollectionChanged(NotifyCollectionChangedEventArgs args) => CollectionChanged?.Invoke(this, args);
+   }
 
-      /// <summary>
-      /// Given a data format, decide how to best display that as text
-      /// </summary>
-      private class ConvertCellToText : IDataFormatVisitor {
-         private readonly IDataModel buffer;
-         private readonly int index;
+   public class StartCellEdit : IDataFormatVisitor {
+      public IDataModel Model { get; }
+      public int MemoryLocation { get; }
+      public char Input { get; }
 
-         public string Result { get; private set; }
+      public UnderEdit NewFormat { get; private set; }
+      public bool Result { get; private set; }
 
-         public ConvertCellToText(IDataModel buffer, int index) {
-            this.buffer = buffer;
-            this.index = index;
+      public StartCellEdit(IDataModel model, int memoryLocation, char input) => (Model, MemoryLocation, Input) = (model, memoryLocation, input);
+
+      // Undefined edits happen when you try to edit the byte after the end of the file.
+      // Treat it the same as a None.
+      public void Visit(Undefined dataFormat, byte data) => Visit((None)null, data);
+
+      public void Visit(None dataFormat, byte data) {
+         // you can write a pointer into a space with no current format
+         if (Input == PointerStart) {
+            var editText = Input.ToString();
+            var autocompleteOptions = ViewPort.GetNewPointerAutocompleteOptions(Model, editText, -1);
+            NewFormat = new UnderEdit(dataFormat, editText, 4, autocompleteOptions);
+            Result = true;
+            return;
          }
 
-         public void Visit(Undefined dataFormat, byte data) { }
-
-         public void Visit(None dataFormat, byte data) => Result = data.ToString("X2");
-
-         public void Visit(UnderEdit dataFormat, byte data) {
-            throw new NotImplementedException();
-         }
-
-         public void Visit(Pointer pointer, byte data) {
-            var destination = pointer.Destination.ToString("X6");
-            Result = $"<{destination}>";
-            if (!string.IsNullOrEmpty(pointer.DestinationName)) Result = $"<{pointer.DestinationName}>";
-         }
-
-         public void Visit(Anchor anchor, byte data) => anchor.OriginalFormat.Visit(this, data);
-
-         public void Visit(PCS pcs, byte data) {
-            Result = pcs.ThisCharacter;
-         }
-
-         public void Visit(EscapedPCS pcs, byte data) => Visit((None)null, data);
-
-         public void Visit(ErrorPCS pcs, byte data) => Visit((None)null, data);
-
-         public void Visit(Ascii ascii, byte data) => Result = ((char)data).ToString();
-
-         public void Visit(Integer integer, byte data) => Result = integer.Value.ToString();
-
-         public void Visit(IntegerEnum integerEnum, byte data) => Result = integerEnum.Value;
+         Result = ViewPort.AllHexCharacters.Contains(Input);
       }
 
-      /// <summary>
-      /// How we clear data depends on what type of data we're clearing.
-      /// For example, cleared pointers get replaced with NULL (0x00000000).
-      /// For example, cleared data with no known format gets 0xFF.
-      /// </summary>
-      private class DataClear : IDataFormatVisitor {
-         private readonly IDataModel buffer;
-         private readonly ModelDelta currentChange;
-         private readonly int index;
+      public void Visit(UnderEdit dataFormat, byte data) {
+         throw new NotImplementedException();
+      }
 
-         public DataClear(IDataModel data, ModelDelta delta, int index) {
-            buffer = data;
-            currentChange = delta;
-            this.index = index;
+      public void Visit(Pointer pointer, byte data) {
+         if (Input != PointerStart && !char.IsLetterOrDigit(Input)) {
+            Result = false;
+            return;
+         }
+         var editText = Input.ToString();
+         // if the user tries to edit the pointer but forgets the opening bracket, add it for them.
+         if (Input != PointerStart) editText = PointerStart + editText;
+         var autocompleteOptions = ViewPort.GetNewPointerAutocompleteOptions(Model, editText, -1);
+         NewFormat = new UnderEdit(pointer, editText, 4, autocompleteOptions);
+         Result = true;
+      }
+
+      public void Visit(Anchor anchor, byte data) {
+         var innerFormat = anchor.OriginalFormat;
+         innerFormat.Visit(this, data);
+         if (NewFormat != null && NewFormat.OriginalFormat == innerFormat) NewFormat = new UnderEdit(anchor, NewFormat.CurrentText, NewFormat.EditWidth, NewFormat.AutocompleteOptions);
+      }
+
+      public void Visit(PCS pcs, byte data) {
+         if (Model.GetNextRun(MemoryLocation) is ArrayRun array) {
+            var offsets = array.ConvertByteOffsetToArrayOffset(MemoryLocation);
+            if (offsets.SegmentStart == MemoryLocation && Input == ' ') {
+               Result = false; // don't let it start with a space unless it's in quotes (for copy/paste)
+               return;
+            }
+         }
+         Result = Input == StringDelimeter || PCSString.PCS.Any(str => str != null && str.StartsWith(Input.ToString()));
+      }
+
+      public void Visit(EscapedPCS pcs, byte data) {
+         Result = ViewPort.AllHexCharacters.Contains(Input);
+      }
+
+      public void Visit(ErrorPCS pcs, byte data) {
+         throw new NotImplementedException();
+      }
+
+      public void Visit(Ascii ascii, byte data) => Result = true;
+
+      public void Visit(Integer intFormat, byte data) {
+         if (!intFormat.CanStartWithCharacter(Input)) {
+            Result = false;
+            return;
          }
 
-         public void Visit(Undefined dataFormat, byte data) { }
+         NewFormat = new UnderEdit(intFormat, Input.ToString(), intFormat.Length, null);
+         Result = true;
+      }
 
-         public void Visit(None dataFormat, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
-
-         public void Visit(UnderEdit dataFormat, byte data) => throw new NotImplementedException();
-
-         public void Visit(Pointer pointer, byte data) {
-            int start = index - pointer.Position;
-            buffer.WriteValue(currentChange, start, 0);
+      public void Visit(IntegerEnum integer, byte data) {
+         if (!integer.CanStartWithCharacter(Input)) {
+            Result = false;
+            return;
          }
 
-         public void Visit(Anchor anchor, byte data) => anchor.OriginalFormat.Visit(this, data);
-
-         public void Visit(PCS pcs, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
-
-         public void Visit(EscapedPCS pcs, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
-
-         public void Visit(ErrorPCS pcs, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
-
-         public void Visit(Ascii ascii, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
-
-         public void Visit(Integer integer, byte data) => buffer.WriteValue(currentChange, index, 0);
-
-         public void Visit(IntegerEnum integerEnum, byte data) => buffer.WriteValue(currentChange, index, 0);
+         var arrayRun = (ArrayRun)Model.GetNextRun(MemoryLocation);
+         var offsets = arrayRun.ConvertByteOffsetToArrayOffset(MemoryLocation);
+         var segment = (ArrayRunEnumSegment)arrayRun.ElementContent[offsets.SegmentIndex];
+         var allOptions = segment.GetOptions(Model).Select(option => option + " ");
+         var autocomplete = AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(Input.ToString())), -1);
+         NewFormat = new UnderEdit(integer, Input.ToString(), integer.Length, autocomplete);
+         Result = true;
       }
    }
+
+   public class ContinueCellEdit : IDataFormatVisitor {
+      public bool Result { get; private set; }
+
+      public void Visit(Undefined dataFormat, byte data) {
+         throw new NotImplementedException();
+      }
+
+      public void Visit(None dataFormat, byte data) {
+         throw new NotImplementedException();
+      }
+
+      public void Visit(UnderEdit dataFormat, byte data) {
+         throw new NotImplementedException();
+      }
+
+      public void Visit(Pointer pointer, byte data) {
+         throw new NotImplementedException();
+      }
+
+      public void Visit(Anchor anchor, byte data) {
+         throw new NotImplementedException();
+      }
+
+      public void Visit(PCS pcs, byte data) {
+         throw new NotImplementedException();
+      }
+
+      public void Visit(EscapedPCS pcs, byte data) {
+         throw new NotImplementedException();
+      }
+
+      public void Visit(ErrorPCS pcs, byte data) {
+         throw new NotImplementedException();
+      }
+
+      public void Visit(Ascii ascii, byte data) {
+         throw new NotImplementedException();
+      }
+
+      public void Visit(Integer integer, byte data) {
+         throw new NotImplementedException();
+      }
+
+      public void Visit(IntegerEnum integer, byte data) {
+         throw new NotImplementedException();
+      }
+   }
+
 }
