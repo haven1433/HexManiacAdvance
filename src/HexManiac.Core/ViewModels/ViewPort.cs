@@ -11,7 +11,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using static HavenSoft.HexManiac.Core.ICommandExtensions;
 using static HavenSoft.HexManiac.Core.Models.Runs.ArrayRun;
@@ -26,6 +25,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    public partial class ViewPort : ViewModelCore, IViewPort {
       public const string AllHexCharacters = "0123456789ABCDEFabcdef";
       public const char GotoMarker = '@';
+
       private static readonly NotifyCollectionChangedEventArgs ResetArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
       private readonly StubCommand
          clear = new StubCommand(),
@@ -466,38 +466,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          }
          selection.MoveSelectionStart.Execute(arg);
-      }
-
-      public static List<int> FindPossibleTextStartingPlaces(IDataModel model, int left, int length) {
-         // part 1: find a previous FF, which is possibly the end of another text
-         while (model[left] != 0xFF && PCSString.PCS[model[left]] != null) { left--; length++; }
-         left++; length--;
-
-         // part 2: jump forward past any known runs that we're interupting
-         while (true) {
-            var run = model.GetNextRun(left);
-            if (run.Start >= left) break;
-            length -= left - run.Start;
-            left = run.Start + run.Length;
-         }
-
-         // part 3: look for possible starting locations:
-         // (1) places that start directly after FF
-         // (2) places that start with a NoInfoRun
-         var startPlaces = new List<int>();
-         while (length > 0) {
-            startPlaces.Add(left);
-            var run = model.GetNextRun(left);
-            if (run is NoInfoRun) startPlaces.Add(run.Start);
-            if (!(run is NoInfoRun)) break;
-            while (model[left] != 0xFF) { left++; length--; }
-            left++; length--;
-         }
-
-         // remove duplicates and make sure everything is in order
-         startPlaces.Sort();
-         startPlaces = startPlaces.Distinct().ToList();
-         return startPlaces;
       }
 
       public Point ConvertAddressToViewPoint(int address) => scroll.DataIndexToViewPoint(address);
@@ -964,9 +932,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private IReadOnlyList<AutoCompleteSelectionItem> GetAutocompleteOptions(IDataFormat originalFormat, string newText, int selectedIndex = -1) {
          if (newText.StartsWith(PointerStart.ToString())) {
-            return GetNewPointerAutocompleteOptions(Model, newText, selectedIndex);
+            return Model.GetNewPointerAutocompleteOptions(newText, selectedIndex);
          } else if (newText.StartsWith(GotoMarker.ToString())) {
-            return GetNewPointerAutocompleteOptions(Model, newText, selectedIndex);
+            return Model.GetNewPointerAutocompleteOptions(newText, selectedIndex);
          } else if (originalFormat is IntegerEnum intEnum) {
             var array = (ArrayRun)Model.GetNextRun(intEnum.Source);
             var segment = (ArrayRunEnumSegment)array.ElementContent[array.ConvertByteOffsetToArrayOffset(intEnum.Source).SegmentIndex];
@@ -997,7 +965,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
          var left = Math.Min(selectionStart, selectionEnd);
          var length = Math.Abs(selectionEnd - selectionStart) + 1;
-         var startPlaces = FindPossibleTextStartingPlaces(Model, left, length);
+         var startPlaces = Model.FindPossibleTextStartingPlaces(left, length);
 
          // do the actual search now that we know places to start
          var foundCount = Model.ConsiderResultsAsTextRuns(history.CurrentChange, startPlaces);
@@ -1039,13 +1007,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (startCellEdit.NewFormat.EditWidth > 1) PrepareForMultiSpaceEdit(point, startCellEdit.NewFormat.EditWidth);
          }
          return startCellEdit.Result;
-      }
-
-      public static IReadOnlyList<AutoCompleteSelectionItem> GetNewPointerAutocompleteOptions(IDataModel Model, string text, int selectedIndex) {
-         var options = Model.GetAutoCompleteAnchorNameOptions(text.Substring(1));
-         if (text.StartsWith(PointerStart.ToString())) options = options.Select(option => $"{PointerStart}{option}{PointerEnd}").ToList();
-         if (text.StartsWith(GotoMarker.ToString())) options = options.Select(option => $"{GotoMarker}{option} ").ToList();
-         return AutoCompleteSelectionItem.Generate(options, selectedIndex);
       }
 
       private (Point start, Point end) GetSelectionSpan(Point p) {
@@ -1137,7 +1098,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var dataIndex = scroll.ViewPointToDataIndex(point);
             if (underEdit.CurrentText == ExtendArray.ToString() && Model.IsAtEndOfArray(dataIndex, out var arrayRun)) {
                var originalArray = arrayRun;
-               var errorInfo = CompleteArrayExtension(Model, history.CurrentChange, ref arrayRun);
+               var errorInfo = Model.CompleteArrayExtension(history.CurrentChange, ref arrayRun);
                if (!errorInfo.HasError) {
                   if (arrayRun.Start != originalArray.Start) {
                      ScrollFromRunMove(arrayRun.Start + arrayRun.Length, arrayRun.Length, arrayRun);
@@ -1246,33 +1207,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          history.CurrentChange.ChangeData(Model, memoryLocation, content);
          currentView[point.X, point.Y] = new HexElement(content, new Ascii(asciiFormat.Source, asciiFormat.Position, currentText[0]));
          SilentScroll(memoryLocation + 1);
-      }
-
-      public static ErrorInfo CompleteArrayExtension(IDataModel Model, ModelDelta changeToken, ref ArrayRun arrayRun) {
-         var currentArrayName = Model.GetAnchorFromAddress(-1, arrayRun.Start);
-
-         var visitedNames = new List<string>();
-         while (arrayRun.LengthFromAnchor != string.Empty) {
-            if (visitedNames.Contains(arrayRun.LengthFromAnchor)) {
-               // We kept going up the chain of tables but didn't find a top table. table length definitions are circular.
-               return new ErrorInfo($"Could not extend table safely. Table length has a circular dependency involving {arrayRun.LengthFromAnchor}.");
-            }
-
-            visitedNames.Add(arrayRun.LengthFromAnchor);
-            var address = Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, arrayRun.LengthFromAnchor);
-            arrayRun = (ArrayRun)Model.GetNextRun(address);
-         }
-
-         ExtendArrayAndChildren(Model, changeToken, arrayRun);
-
-         arrayRun = (ArrayRun)Model.GetNextRun(Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, currentArrayName));
-         return ErrorInfo.NoError;
-      }
-
-      private static void ExtendArrayAndChildren(IDataModel Model, ModelDelta changeToken, ArrayRun array) {
-         var newRun = (ArrayRun)Model.RelocateForExpansion(changeToken, array, array.Length + array.ElementLength);
-         newRun = newRun.Append(1);
-         Model.ObserveRunWritten(changeToken, newRun);
       }
 
       private void CompletePointerEdit(Point point) {
@@ -1544,7 +1478,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var run = Model.GetNextRun(index);
          if (index < run.Start) { currentView[p.X, p.Y] = new HexElement(Model[index], None.Instance); return; }
          var format = run.CreateDataFormat(Model, index);
-         format = WrapFormat(run, format, index);
+         format = Model.WrapFormat(run, format, index);
          currentView[p.X, p.Y] = new HexElement(Model[index], format);
       }
 
@@ -1562,7 +1496,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   currentView[x, y] = HexElement.Undefined;
                } else if (index >= run.Start) {
                   var format = run.CreateDataFormat(Model, index);
-                  format = WrapFormat(run, format, index);
+                  format = Model.WrapFormat(run, format, index);
                   currentView[x, y] = new HexElement(Model[index], format);
                } else {
                   currentView[x, y] = new HexElement(Model[index], None.Instance);
@@ -1585,23 +1519,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          while (ColumnHeaders.Count > headers.Count) ColumnHeaders.RemoveAt(ColumnHeaders.Count - 1);
-      }
-
-      private IDataFormat WrapFormat(IFormattedRun run, IDataFormat format, int dataIndex) {
-         if (run.PointerSources != null && run.Start == dataIndex) {
-            var name = Model.GetAnchorFromAddress(-1, run.Start);
-            return new Anchor(format, name, run.FormatString, run.PointerSources);
-         }
-
-         if (run is ArrayRun array && array.SupportsPointersToElements && (dataIndex - run.Start) % array.ElementLength == 0) {
-            var arrayIndex = (dataIndex - run.Start) / array.ElementLength;
-            var pointerSources = array.PointerSourcesForInnerElements[arrayIndex];
-            if (pointerSources == null || pointerSources.Count == 0) return format;
-            var name = Model.GetAnchorFromAddress(-1, dataIndex);
-            return new Anchor(format, name, string.Empty, pointerSources);
-         }
-
-         return format;
       }
 
       private void NotifyCollectionChanged(NotifyCollectionChangedEventArgs args) => CollectionChanged?.Invoke(this, args);

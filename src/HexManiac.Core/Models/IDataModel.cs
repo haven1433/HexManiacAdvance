@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections;
@@ -173,6 +174,90 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (firstContent.Type != ElementContentType.PCS) return false;
 
          return true;
+      }
+
+      public static List<int> FindPossibleTextStartingPlaces(this IDataModel model, int left, int length) {
+         // part 1: find a previous FF, which is possibly the end of another text
+         while (model[left] != 0xFF && PCSString.PCS[model[left]] != null) { left--; length++; }
+         left++; length--;
+
+         // part 2: jump forward past any known runs that we're interupting
+         while (true) {
+            var run = model.GetNextRun(left);
+            if (run.Start >= left) break;
+            length -= left - run.Start;
+            left = run.Start + run.Length;
+         }
+
+         // part 3: look for possible starting locations:
+         // (1) places that start directly after FF
+         // (2) places that start with a NoInfoRun
+         var startPlaces = new List<int>();
+         while (length > 0) {
+            startPlaces.Add(left);
+            var run = model.GetNextRun(left);
+            if (run is NoInfoRun) startPlaces.Add(run.Start);
+            if (!(run is NoInfoRun)) break;
+            while (model[left] != 0xFF) { left++; length--; }
+            left++; length--;
+         }
+
+         // remove duplicates and make sure everything is in order
+         startPlaces.Sort();
+         startPlaces = startPlaces.Distinct().ToList();
+         return startPlaces;
+      }
+
+      public static IReadOnlyList<AutoCompleteSelectionItem> GetNewPointerAutocompleteOptions(this IDataModel model, string text, int selectedIndex) {
+         var options = model.GetAutoCompleteAnchorNameOptions(text.Substring(1));
+         if (text.StartsWith(PointerRun.PointerStart.ToString())) options = options.Select(option => $"{PointerRun.PointerStart}{option}{PointerRun.PointerEnd}").ToList();
+         if (text.StartsWith(ViewPort.GotoMarker.ToString())) options = options.Select(option => $"{ViewPort.GotoMarker}{option} ").ToList();
+         return AutoCompleteSelectionItem.Generate(options, selectedIndex);
+      }
+
+      // wraps an IDataFormat in an anchor format, if it makes sense
+      public static IDataFormat WrapFormat(this IDataModel model, IFormattedRun run, IDataFormat format, int dataIndex) {
+         if (run.PointerSources != null && run.Start == dataIndex) {
+            var name = model.GetAnchorFromAddress(-1, run.Start);
+            return new Anchor(format, name, run.FormatString, run.PointerSources);
+         }
+
+         if (run is ArrayRun array && array.SupportsPointersToElements && (dataIndex - run.Start) % array.ElementLength == 0) {
+            var arrayIndex = (dataIndex - run.Start) / array.ElementLength;
+            var pointerSources = array.PointerSourcesForInnerElements[arrayIndex];
+            if (pointerSources == null || pointerSources.Count == 0) return format;
+            var name = model.GetAnchorFromAddress(-1, dataIndex);
+            return new Anchor(format, name, string.Empty, pointerSources);
+         }
+
+         return format;
+      }
+
+      public static ErrorInfo CompleteArrayExtension(this IDataModel model, ModelDelta changeToken, ref ArrayRun arrayRun) {
+         var currentArrayName = model.GetAnchorFromAddress(-1, arrayRun.Start);
+
+         var visitedNames = new List<string>();
+         while (arrayRun.LengthFromAnchor != string.Empty) {
+            if (visitedNames.Contains(arrayRun.LengthFromAnchor)) {
+               // We kept going up the chain of tables but didn't find a top table. table length definitions are circular.
+               return new ErrorInfo($"Could not extend table safely. Table length has a circular dependency involving {arrayRun.LengthFromAnchor}.");
+            }
+
+            visitedNames.Add(arrayRun.LengthFromAnchor);
+            var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, arrayRun.LengthFromAnchor);
+            arrayRun = (ArrayRun)model.GetNextRun(address);
+         }
+
+         ExtendArrayAndChildren(model, changeToken, arrayRun);
+
+         arrayRun = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, currentArrayName));
+         return ErrorInfo.NoError;
+      }
+
+      private static void ExtendArrayAndChildren(IDataModel model, ModelDelta changeToken, ArrayRun array) {
+         var newRun = (ArrayRun)model.RelocateForExpansion(changeToken, array, array.Length + array.ElementLength);
+         newRun = newRun.Append(1);
+         model.ObserveRunWritten(changeToken, newRun);
       }
 
       /// <summary>
