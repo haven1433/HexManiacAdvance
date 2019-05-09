@@ -1066,6 +1066,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (underEdit.CurrentText.StartsWith(PointerStart.ToString())) {
                if (!underEdit.CurrentText.EndsWith(PointerEnd.ToString()) && !underEdit.CurrentText.EndsWith(" ")) return false;
                CompletePointerEdit(point);
+               RequestMenuClose?.Invoke(this, EventArgs.Empty);
                return true;
             }
             if (underEdit.CurrentText.StartsWith(GotoMarker.ToString())) {
