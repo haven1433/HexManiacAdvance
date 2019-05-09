@@ -36,7 +36,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          // you can write a pointer into a space with no current format
          if (Input == PointerStart) {
             var editText = Input.ToString();
-            var autocompleteOptions = ViewPort.GetNewPointerAutocompleteOptions(Model, editText, -1);
+            var autocompleteOptions = Model.GetNewPointerAutocompleteOptions(editText, -1);
             NewFormat = new UnderEdit(dataFormat, editText, 4, autocompleteOptions);
             Result = true;
             return;
@@ -75,7 +75,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var editText = Input.ToString();
          // if the user tries to edit the pointer but forgets the opening bracket, add it for them.
          if (Input != PointerStart) editText = PointerStart + editText;
-         var autocompleteOptions = ViewPort.GetNewPointerAutocompleteOptions(Model, editText, -1);
+         var autocompleteOptions = Model.GetNewPointerAutocompleteOptions(editText, -1);
          NewFormat = new UnderEdit(pointer, editText, 4, autocompleteOptions);
          Result = true;
       }

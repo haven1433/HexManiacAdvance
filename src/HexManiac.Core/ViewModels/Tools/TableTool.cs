@@ -105,7 +105,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             Execute = parameter => {
                var array = (ArrayRun)model.GetNextRun(address);
                var originalArray = array;
-               var error = ViewPort.CompleteArrayExtension(model, history.CurrentChange, ref array);
+               var error = model.CompleteArrayExtension(history.CurrentChange, ref array);
                if (array.Start != originalArray.Start) {
                   ModelDataMoved?.Invoke(this, (originalArray.Start, array.Start));
                   selection.GotoAddress(array.Start + array.Length - array.ElementLength);
