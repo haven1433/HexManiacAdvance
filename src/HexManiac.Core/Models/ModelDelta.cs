@@ -24,6 +24,14 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public event EventHandler OnNewDataChange;
       public bool HasDataChange { get; private set; }
+      public bool HasAnyChange =>
+         HasDataChange ||
+         addedRuns.Any() ||
+         removedRuns.Any() ||
+         addedNames.Any() ||
+         removedNames.Any() ||
+         addedUnmappedPointers.Any() ||
+         removedUnmappedPointers.Any();
 
       public int EarliestChange {
          get {

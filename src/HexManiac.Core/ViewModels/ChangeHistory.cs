@@ -6,6 +6,7 @@ using System.Windows.Input;
 namespace HavenSoft.HexManiac.Core.ViewModels {
    public interface IChangeToken {
       bool HasDataChange { get; }
+      bool HasAnyChange { get; }
       event EventHandler OnNewDataChange;
    }
 
@@ -79,7 +80,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          revert = revertChange;
          undo = new StubCommand {
             Execute = arg => UndoExecuted(),
-            CanExecute = arg => undoStack.Count > 0 || currentChange != null,
+            CanExecute = arg => undoStack.Count > 0 || (currentChange != null && currentChange.HasAnyChange),
          };
          redo = new StubCommand {
             Execute = arg => RedoExecuted(),
@@ -89,7 +90,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void ChangeCompleted() {
          if (currentChange == null) return;
+         if (!currentChange.HasAnyChange) { currentChange = null; return; }
          VerifyRevertNotInProgress();
+
          undoStack.Push(currentChange);
          currentChange.OnNewDataChange -= OnCurrentTokenDataChanged;
          currentChange = null;
