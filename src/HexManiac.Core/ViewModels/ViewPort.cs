@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows.Input;
@@ -153,6 +154,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var dataIndex = scroll.ViewPointToDataIndex(SelectionStart);
          UpdateToolsFromSelection(dataIndex);
          UpdateSelectedAddress();
+         RequestMenuClose?.Invoke(this, EventArgs.Empty);
       }
 
       private void UpdateToolsFromSelection(int dataIndex) {
@@ -281,8 +283,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #endregion
 
+      private readonly ToolTray tools;
       public bool HasTools => true;
-      public IToolTrayViewModel Tools { get; }
+      public IToolTrayViewModel Tools => tools;
 
       private bool anchorTextVisible;
       public bool AnchorTextVisible {
@@ -356,6 +359,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler RequestMenuClose;
 #pragma warning restore 0067
 
+      #region Constructors
+
       public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
 
       public ViewPort(string fileName, IDataModel model) {
@@ -374,8 +379,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          selection.PreviewSelectionStartChanged += ClearActiveEditBeforeSelectionChanges;
          selection.OnError += (sender, e) => OnError?.Invoke(this, e);
 
-         Tools = new ToolTray(Model, selection, history);
+         tools = new ToolTray(Model, selection, history);
          Tools.OnError += (sender, e) => OnError?.Invoke(this, e);
+         tools.RequestMenuClose += (sender, e) => RequestMenuClose?.Invoke(this, e);
          Tools.StringTool.ModelDataChanged += ModelChangedByTool;
          Tools.StringTool.ModelDataMoved += ModelDataMovedByTool;
          Tools.TableTool.ModelDataChanged += ModelChangedByTool;
@@ -408,6 +414,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             ((IFileSystem)arg).CopyText = Model.Copy(() => { usedHistory = true; return history.CurrentChange; }, left, length);
             RefreshBackingData();
             if (usedHistory) UpdateToolsFromSelection(left);
+            RequestMenuClose?.Invoke(this, EventArgs.Empty);
          };
 
          copyAddress.CanExecute = CanAlwaysExecute;
@@ -441,6 +448,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          close.Execute = arg => CloseExecuted((IFileSystem)arg);
       }
 
+      #endregion
+
       private void MoveSelectionStartExecuted(object arg, Direction direction) {
          var format = this[SelectionStart.X, SelectionStart.Y].Format;
          if (format is UnderEdit underEdit && underEdit.AutocompleteOptions != null && underEdit.AutocompleteOptions.Count > 0) {
@@ -467,6 +476,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public Point ConvertAddressToViewPoint(int address) => scroll.DataIndexToViewPoint(address);
+
+      public IReadOnlyList<IContextItem> GetContextMenuItems(Point selectionPoint) {
+         Debug.Assert(IsSelected(selectionPoint));
+         var factory = new ContextItemFactory(this);
+         var cell = currentView[SelectionStart.X, SelectionStart.Y];
+         cell.Format.Visit(factory, cell.Value);
+         return factory.Results;
+      }
 
       public bool IsSelected(Point point) => selection.IsSelected(point);
 
@@ -895,6 +912,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          foreach (var source in anchor.Sources) newTab.Add(CreateChildView(source, source), source, source);
 
          RequestTabChange(this, newTab);
+         RequestMenuClose?.Invoke(this, EventArgs.Empty);
       }
 
       private void Edit(char input) {
@@ -958,7 +976,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return point;
       }
 
-      private void IsTextExecuted(object obj) {
+      private void IsTextExecuted(object notUsed) {
          var selectionStart = scroll.ViewPointToDataIndex(selection.SelectionStart);
          var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
          var left = Math.Min(selectionStart, selectionEnd);
@@ -972,6 +990,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else {
             RefreshBackingData();
          }
+
+         RequestMenuClose?.Invoke(this, EventArgs.Empty);
       }
 
       private bool ShouldAcceptInput(Point point, HexElement element, char input) {
@@ -1276,6 +1296,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          }
 
+         RequestMenuClose?.Invoke(this, EventArgs.Empty);
          NotifyCollectionChanged(ResetArgs);
       }
 

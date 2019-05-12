@@ -39,6 +39,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set {
             if (TryUpdate(ref selectedIndex, value)) {
                hideCommand.CanExecuteChanged.Invoke(hideCommand, EventArgs.Empty);
+               RequestMenuClose?.Invoke(this, EventArgs.Empty);
             }
          }
       }
@@ -73,6 +74,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public event EventHandler<string> OnError;
+      public event EventHandler RequestMenuClose;
 
       public ToolTray(IDataModel model, Selection selection, ChangeHistory<ModelDelta> history) {
          tools = new IToolViewModel[] {

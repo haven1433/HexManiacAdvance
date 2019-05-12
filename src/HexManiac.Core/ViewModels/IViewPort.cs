@@ -40,5 +40,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       bool HasTools { get; }
       IToolTrayViewModel Tools { get; }
+
+      IReadOnlyList<IContextItem> GetContextMenuItems(Point point);
    }
 }
