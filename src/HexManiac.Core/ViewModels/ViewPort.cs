@@ -22,7 +22,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    /// <summary>
    /// A range of visible data that should be displayed.
    /// </summary>
-   public partial class ViewPort : ViewModelCore, IViewPort {
+   public class ViewPort : ViewModelCore, IViewPort {
       public const string AllHexCharacters = "0123456789ABCDEFabcdef";
       public const char GotoMarker = '@';
 
