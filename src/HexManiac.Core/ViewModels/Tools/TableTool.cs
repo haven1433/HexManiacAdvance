@@ -59,10 +59,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          private set => TryUpdate(ref enabled, value);
       }
 
+#pragma warning disable 0067 // it's ok if events are never used after implementing an interface
       public event EventHandler<IFormattedRun> ModelDataChanged;
       public event EventHandler<string> OnError;
-
-#pragma warning disable 0067 // it's ok if events are never used after implementing an interface
+      public event EventHandler RequestMenuClose;
       public event EventHandler<(int originalLocation, int newLocation)> ModelDataMoved; // invoke when a new item gets added and the table has to move
 #pragma warning restore 0067
 
@@ -117,6 +117,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(array.Start + array.Length - array.ElementLength);
                   selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selection.Scroll.ViewPointToDataIndex(selection.SelectionStart) + array.ElementLength - 1);
                }
+               RequestMenuClose?.Invoke(this, EventArgs.Empty);
             }
          };
 

@@ -949,6 +949,25 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(8 * 4, model.GetNextRun(0).Length);
       }
 
+      [Fact]
+      public void ArrayLengthRightClickOptionWhenClickingInLastRow() {
+         // Arrange
+         var data = new byte[0x200];
+         var model = new PokemonModel(data);
+         ArrayRun.TryParse(model, "[a: b:]8", 0, null, out var table);
+         model.ObserveAnchorWritten(new ModelDelta(), "table", table);
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+
+         // Act
+         viewPort.SelectionStart = new Point(0xD, 1);
+         var items = viewPort.GetContextMenuItems(viewPort.SelectionStart);
+         var extendItem = items.Single(item => item.Text.Contains("Extend Table"));
+         extendItem.Command.Execute();
+
+         // Assert
+         Assert.Equal(9, ((ArrayRun)model.GetNextRun(0)).ElementCount);
+      }
+
       // TODO what happens if I change a table's length such that another table now hits an anchor?
 
       private static void WriteStrings(byte[] buffer, int start, params string[] content) {

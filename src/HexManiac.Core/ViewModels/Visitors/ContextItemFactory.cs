@@ -58,7 +58,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Results.Add(new ContextItem("Follow Pointer", arg => ViewPort.FollowLink(point.X, point.Y)) { ShortcutText = "Ctrl+Click" });
 
          var arrayRun = ViewPort.Model.GetNextRun(ViewPort.Tools.TableTool.Address) as ArrayRun;
-         if (arrayRun != null) Results.AddRange(GetTableChildren());
+         if (arrayRun != null) Results.AddRange(GetTableChildren(arrayRun));
          else Results.AddRange(GetFormattedChildren());
       }
 
@@ -95,7 +95,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Results.Add(new ContextItem("Copy Selection", ViewPort.Copy.Execute) { ShortcutText = "Ctrl+C" });
 
          var arrayRun = ViewPort.Model.GetNextRun(ViewPort.Tools.TableTool.Address) as ArrayRun;
-         if (arrayRun != null) Results.AddRange(GetTableChildren());
+         if (arrayRun != null) Results.AddRange(GetTableChildren(arrayRun));
          else Results.AddRange(GetFormattedChildren());
       }
 
@@ -106,14 +106,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(Ascii ascii, byte data) { }
 
       public void Visit(Integer integer, byte data) {
-         Results.AddRange(GetTableChildren());
+         var arrayRun = (ArrayRun)ViewPort.Model.GetNextRun(ViewPort.Tools.TableTool.Address);
+         Results.AddRange(GetTableChildren(arrayRun));
       }
 
       public void Visit(IntegerEnum integer, byte data) {
-         Results.AddRange(GetTableChildren());
+         var arrayRun = (ArrayRun)ViewPort.Model.GetNextRun(ViewPort.Tools.TableTool.Address);
+         Results.AddRange(GetTableChildren(arrayRun));
       }
 
-      private IEnumerable<IContextItem> GetTableChildren() {
+      private IEnumerable<IContextItem> GetTableChildren(ArrayRun array) {
+         if (ViewPort.Tools.TableTool.Append.CanExecute(null)) {
+            yield return new ContextItem("Extend Table", ViewPort.Tools.TableTool.Append.Execute);
+         }
+
          yield return new ContextItem("Open in Table Tool", arg => ViewPort.Tools.SelectedIndex = 1);
          foreach (var item in GetFormattedChildren()) yield return item;
       }

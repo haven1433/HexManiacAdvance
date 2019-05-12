@@ -107,6 +107,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          StringTool.OnError += (sender, e) => OnError?.Invoke(this, e);
          TableTool.OnError += (sender, e) => OnError?.Invoke(this, e);
+         TableTool.RequestMenuClose += (sender, e) => RequestMenuClose?.Invoke(this, e);
       }
 
       public void Schedule(Action action) {
