@@ -36,6 +36,15 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          FindPanel.IsVisibleChanged += AnimateFocusToCorner;
          MessagePanel.IsVisibleChanged += AnimateFocusToCorner;
          ErrorPanel.IsVisibleChanged += AnimateFocusToCorner;
+
+         viewModel.PropertyChanged += (sender, e) => {
+            if (e.PropertyName == nameof(viewModel.InformationMessage) &&
+               MessagePanel.IsVisible &&
+               !string.IsNullOrEmpty(viewModel.InformationMessage)
+            ) {
+               AnimateFocusToCorner(MessagePanel, default);
+            }
+         };
       }
 
       protected override void OnDrop(DragEventArgs e) {
@@ -61,7 +70,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          }
       }
 
-      private static FrameworkElement GetChild(DependencyObject depObj, string name, object dataContext) {
+      public static FrameworkElement GetChild(DependencyObject depObj, string name, object dataContext) {
          for (int i = 0; i < VisualTreeHelper.GetChildrenCount(depObj); i++) {
             var child = VisualTreeHelper.GetChild(depObj, i);
             var childContext = child.GetValue(DataContextProperty);
@@ -119,15 +128,6 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
       #endregion
 
-      private void HeaderMouseDown(object sender, MouseButtonEventArgs e) {
-         var selectedElement = (HexContent)GetChild(Tabs, "HexContent", ViewModel[ViewModel.SelectedIndex]);
-         selectedElement.RaiseEvent(e);
-      }
-
-      private void ToggleTheme(object sender, EventArgs e) {
-         ViewModel.Theme.LightVariant = !ViewModel.Theme.LightVariant;
-      }
-
       private void ExitClicked(object sender, EventArgs e) {
          ViewModel.CloseAll.Execute();
          if (ViewModel.Count == 0) Close();
@@ -170,14 +170,6 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          foreach (var action in copy) action();
       }
 
-      private void StringToolContentSelectionChanged(object sender, RoutedEventArgs e) {
-         var textbox = (TextBox)sender;
-         var tools = textbox.DataContext as ToolTray;
-         if (tools == null || tools.StringTool == null) return;
-         tools.StringTool.ContentIndex = textbox.SelectionStart;
-         tools.StringTool.ContentSelectionLength = textbox.SelectionLength;
-      }
-
       private void AnimateFocusToCorner(object sender, DependencyPropertyChangedEventArgs e) {
          var element = (FrameworkElement)sender;
          if (element.Visibility != Visibility.Visible) return;
@@ -197,22 +189,6 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             themeWindow = new ThemeSelector { DataContext = ViewModel.Theme };
             themeWindow.Show();
          }
-      }
-
-      private readonly Popup contextMenu = new Popup();
-      private void AddressShowMenu(object sender, MouseButtonEventArgs e) {
-         var element = (FrameworkElement)sender;
-         var viewModel = element.DataContext as ViewPort;
-         if (viewModel == null) return;
-         contextMenu.Child = new Button {
-            Content = "Copy Address"
-         }.SetEvent(Button.ClickEvent, (sender2, e2) => {
-            viewModel.CopyAddress.Execute(FileSystem);
-            contextMenu.IsOpen = false;
-         });
-         contextMenu.PlacementTarget = element;
-         contextMenu.StaysOpen = false;
-         contextMenu.IsOpen = true;
       }
    }
 }

@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using HavenSoft.HexManiac.WPF.Implementations;
 using System;
 using System.Collections.Generic;
@@ -136,6 +137,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          set { SetValue(HorizontalScrollMaximumProperty, value); }
       }
 
+      public IFileSystem FileSystem => (IFileSystem)Application.Current.MainWindow.Resources["FileSystem"];
+
       public static readonly DependencyProperty HorizontalScrollMaximumProperty = DependencyProperty.Register("HorizontalScrollMaximum", typeof(double), typeof(HexContent), new PropertyMetadata(0.0));
 
       #endregion
@@ -251,28 +254,63 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (e.ChangedButton == MouseButton.Right && e.LeftButton == MouseButtonState.Released && !IsMouseCaptured) {
             var p = ControlCoordinatesToModelCoordinates(e);
             var children = new List<FrameworkElement>();
-            var format = ViewPort[p.X, p.Y].Format;
 
             if (ViewPort is ViewPort editableViewPort) {
                if (!editableViewPort.IsSelected(p)) editableViewPort.SelectionStart = p;
-               if (format is Anchor && p.Equals(downPoint)) {
-                  children.AddRange(GetAnchorChildren(p));
-                  format = ((Anchor)format).OriginalFormat;
-               }
-               if (format is PCS pcs) children.AddRange(GetStringChildren(p));
-               if (ViewPort.IsTable(p)) children.AddRange(GetTableChildren(p));
-               if (format is Pointer pointer) children.AddRange(GetPointerChildren(p));
-               if (format is None none) children.AddRange(GetNoneChildren(p));
-               if (editableViewPort.FormattedDataIsSelected) children.AddRange(GetClearFormattingChildren(p));
-            } else {
-               children.AddRange(GetSearchChildren(p));
             }
+            var items = ViewPort.GetContextMenuItems(p);
+            children.AddRange(BuildContextMenuUI(items));
 
             ShowMenu(children);
             return;
          }
          if (!IsMouseCaptured) return;
          ReleaseMouseCapture();
+      }
+
+      private IEnumerable<FrameworkElement> BuildContextMenuUI(IReadOnlyList<IContextItem> items) {
+         foreach (var item in items) {
+            if (item is IReadOnlyList<IContextItem> composite) {
+               yield return new ListBox {
+                  MaxHeight = 120,
+                  ItemsSource = composite,
+                  DisplayMemberPath = "Text",
+               }.SetEvent(Selector.SelectionChangedEvent, (sender, e) => {
+                  var control = (ListBox)sender;
+                  var command = composite[control.SelectedIndex].Command;
+                  var parameter = composite[control.SelectedIndex].Parameter ?? FileSystem;
+                  command.Execute(parameter);
+               });
+            } else if (item.Command != null) {
+               var button = new Button {
+                  Command = item.Command,
+                  CommandParameter = item.Parameter ?? FileSystem,
+               };
+               if (item.ShortcutText == null) {
+                  button.Content = item.Text;
+               } else {
+                  button.Content = new StackPanel {
+                     Orientation = Orientation.Horizontal,
+                     Children = {
+                        new TextBlock { Text = item.Text },
+                        new TextBlock { Foreground = Brush(nameof(Theme.Secondary)), FontStyle = FontStyles.Italic, Margin = new Thickness(20, 0, 0, 0), Text = item.ShortcutText }
+                     }
+                  };
+               }
+               yield return button;
+            } else {
+               var textBlock = new TextBlock {
+                  Text = item.Text,
+                  HorizontalAlignment = HorizontalAlignment.Center,
+                  Margin = new Thickness(0, 0, 0, 10),
+               };
+               if (textBlock.Text.Contains("(")) {
+                  textBlock.FontStyle = FontStyles.Italic;
+                  textBlock.Foreground = Brush(nameof(Theme.Secondary));
+               }
+               yield return textBlock;
+            }
+         }
       }
 
       protected override void OnMouseWheel(MouseWheelEventArgs e) {
@@ -388,124 +426,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             editableViewPort.Edit(e.Text);
             e.Handled = true;
          }
-      }
-
-      private IEnumerable<FrameworkElement> GetAnchorChildren(ModelPoint p) {
-         var anchor = (Anchor)ViewPort[p.X, p.Y].Format;
-
-         if (!string.IsNullOrEmpty(anchor.Name)) {
-            yield return new TextBlock {
-               HorizontalAlignment = HorizontalAlignment.Center,
-               Text = anchor.Name,
-               Margin = new Thickness(0, 0, 0, 10),
-            };
-         };
-
-         if (anchor.Sources.Count == 0) {
-            yield return new TextBlock {
-               HorizontalAlignment = HorizontalAlignment.Center,
-               Foreground = Brush(nameof(Theme.Secondary)),
-               FontStyle = FontStyles.Italic,
-               Text = "(Nothing points to this.)",
-               Margin = new Thickness(0, 0, 0, 5),
-            };
-         }
-
-         if (anchor.Sources.Count > 1) {
-            yield return new Button {
-               Content = "Show All Sources in new tab"
-            }.SetEvent(ButtonBase.ClickEvent, (sender, e) => {
-               ViewPort.FindAllSources(p.X, p.Y);
-               recentMenu.IsOpen = false;
-            });
-         }
-
-         if (anchor.Sources.Count < 5) {
-            for (int i = 0; i < anchor.Sources.Count; i++) {
-               var source = anchor.Sources[i].ToString("X6");
-               yield return new Button {
-                  Content = source,
-               }.SetEvent(ButtonBase.ClickEvent, (sender, e) => {
-                  ViewPort.Goto.Execute(source);
-                  recentMenu.IsOpen = false;
-               });
-            }
-         } else {
-            yield return new ListBox {
-               MaxHeight = 120,
-               ItemsSource = anchor.Sources.Select(source => source.ToString("X6")).ToList(),
-            }.SetEvent(Selector.SelectionChangedEvent, (sender, e) => {
-               var source = anchor.Sources[((ListBox)sender).SelectedIndex].ToString("X6");
-               ViewPort.Goto.Execute(source);
-               recentMenu.IsOpen = false;
-            });
-         }
-      }
-
-      private IEnumerable<FrameworkElement> GetStringChildren(ModelPoint p) {
-         yield return CreateFollowLinkButton("Open In Text Tool", p);
-         yield return new Button {
-            Content = new StackPanel {
-               Orientation = Orientation.Horizontal,
-               Children = {
-                  new TextBlock { Text = "Copy Selection" },
-                  new TextBlock { Foreground = Brush(nameof(Theme.Secondary)), FontStyle = FontStyles.Italic, Margin = new Thickness(20, 0, 0, 0), Text = "Ctrl+C" }
-               }
-            },
-         }.SetEvent(ButtonBase.ClickEvent, (sender, e) => {
-            ViewPort.Copy.Execute(Application.Current.MainWindow.Resources["FileSystem"]);
-            recentMenu.IsOpen = false;
-         });
-      }
-
-      private IEnumerable<FrameworkElement> GetPointerChildren(ModelPoint p) {
-         yield return CreateFollowLinkButton("Follow Pointer", p);
-      }
-
-      private IEnumerable<FrameworkElement> GetNoneChildren(ModelPoint p) {
-         yield return new Button {
-            Content = new TextBlock { Text = "Display as Text" },
-         }.SetEvent(ButtonBase.ClickEvent, (sender, e) => {
-            ((ViewPort)ViewPort).IsText.Execute();
-            recentMenu.IsOpen = false;
-         });
-      }
-
-      private IEnumerable<FrameworkElement> GetTableChildren(ModelPoint p) {
-         yield return new Button {
-            Content = new TextBlock { Text = "Open in Table Tool" },
-         }.SetEvent(ButtonBase.ClickEvent, (sender, e) => {
-            ((ViewPort)ViewPort).Tools.SelectedIndex = 1;
-            recentMenu.IsOpen = false;
-         });
-      }
-
-      private IEnumerable<FrameworkElement> GetSearchChildren(ModelPoint p) {
-         yield return CreateFollowLinkButton("Open in main tab", p);
-      }
-
-      private IEnumerable<FrameworkElement> GetClearFormattingChildren(ModelPoint p) {
-         yield return new Button {
-            Content = new TextBlock { Text = "Clear Format" },
-         }.SetEvent(ButtonBase.ClickEvent, (sender, e) => {
-            ((ViewPort)ViewPort).ClearFormat();
-            recentMenu.IsOpen = false;
-         });
-      }
-
-      private Button CreateFollowLinkButton(string message, ModelPoint p) {
-         return new Button {
-            Content = new StackPanel {
-               Orientation = Orientation.Horizontal,
-               Children = {
-                  new TextBlock { Text = message },
-                  new TextBlock { Foreground = Brush(nameof(Theme.Secondary)), FontStyle = FontStyles.Italic, Margin = new Thickness(20, 0, 0, 0), Text = "Ctrl+Click" }
-               }
-            },
-         }.SetEvent(ButtonBase.ClickEvent, (sender, e) => {
-            ViewPort.FollowLink(p.X, p.Y);
-            recentMenu.IsOpen = false;
-         });
       }
 
       private void ShowMenu(IList<FrameworkElement> children) {

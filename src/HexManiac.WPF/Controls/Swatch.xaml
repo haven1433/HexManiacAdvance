@@ -1,0 +1,41 @@
+﻿<UserControl x:Class="HavenSoft.HexManiac.WPF.Controls.Swatch"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d"
+             d:DesignHeight="250" d:DesignWidth="280">
+   <DockPanel>
+      <Grid Width="30" DockPanel.Dock="Left" Name="HuePicker" MouseLeftButtonDown="HuePickerDown" MouseMove="HuePickerDown" MouseLeftButtonUp="PickerUp">
+         <Ellipse Stroke="Black" Width="10" Height="10" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,-5,0,0" IsHitTestVisible="False">
+            <Ellipse.RenderTransform>
+               <TranslateTransform x:Name="HueSelector"/>
+            </Ellipse.RenderTransform>
+         </Ellipse>
+      </Grid>
+      <Grid Name="SBPickerContainer">
+         <Rectangle>
+            <Rectangle.Fill>
+               <LinearGradientBrush EndPoint="1,0">
+                  <GradientStop Color="#FFFFFFFF" Offset="0"/>
+                  <GradientStop Color="#00FFFFFF" Offset="1"/>
+               </LinearGradientBrush>
+            </Rectangle.Fill>
+         </Rectangle>
+         <Rectangle>
+            <Rectangle.Fill>
+               <LinearGradientBrush EndPoint="0,1">
+                  <GradientStop Color="#00000000" Offset="0"/>
+                  <GradientStop Color="#FF000000" Offset="1"/>
+               </LinearGradientBrush>
+            </Rectangle.Fill>
+         </Rectangle>
+         <Rectangle Name="SBPicker" Fill="Transparent" MouseLeftButtonDown="SBPickerDown" MouseMove="SBPickerDown" MouseLeftButtonUp="PickerUp"/>
+         <Ellipse Stroke="Black" Width="10" Height="10" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="-5,-5,0,0" IsHitTestVisible="False">
+            <Ellipse.RenderTransform>
+               <TranslateTransform x:Name="SBSelector"/>
+            </Ellipse.RenderTransform>
+         </Ellipse>
+      </Grid>
+   </DockPanel>
+</UserControl>

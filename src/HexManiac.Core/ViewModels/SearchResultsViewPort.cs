@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -202,6 +203,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          children[childIndex].FindAllSources(x, y);
       }
 
+      public IReadOnlyList<IContextItem> GetContextMenuItems(Point selectionPoint) {
+         return new[] { new ContextItem("Open in Main Tab", arg => {
+            FollowLink(selectionPoint.X, selectionPoint.Y);
+            RequestMenuClose?.Invoke(this, EventArgs.Empty);
+         }) { ShortcutText = "Ctrl+Click" } };
+      }
+
       private void NotifyCollectionChanged() {
          if (children.Count == 0) return;
          UpdateHeaders();
@@ -248,6 +256,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
 #pragma warning disable 0067 // it's ok if events are never used after implementing an interface
       public event EventHandler<string> OnError;
+      public event EventHandler<string> OnMessage;
       public event PropertyChangedEventHandler PropertyChanged;
 #pragma warning restore 0067
 

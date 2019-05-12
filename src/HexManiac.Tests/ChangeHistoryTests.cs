@@ -13,6 +13,7 @@ namespace HavenSoft.HexManiac.Tests {
       public event EventHandler OnNewDataChange;
 #pragma warning restore 0067
       public bool HasDataChange => Count > 0;
+      public bool HasAnyChange => true;
       public FakeChangeToken() { }
       public FakeChangeToken(IEnumerable<int> data) : base(data) { }
    }

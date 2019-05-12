@@ -136,11 +136,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   GotoAddress(anchor);
                } else if (int.TryParse(address, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int result)) {
                   if (result >= BaseModel.PointerOffset) result -= BaseModel.PointerOffset;
-                  if (result > Scroll.DataLength || result < 0) {
-                     OnError?.Invoke(this, $"Address {result:X2} is not within the size of the data.");
-                  } else {
-                     GotoAddress(result);
-                  }
+                  GotoAddress(result);
                } else {
                   OnError?.Invoke(this, $"Unable to goto address '{address}'");
                }
@@ -201,6 +197,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void GotoAddress(int address) {
+         if (address > Scroll.DataLength || address < 0) {
+            OnError?.Invoke(this, $"Address {address:X2} is not within the size of the data.");
+            return;
+         }
+
          backStack.Push(Scroll.DataIndex);
          if (backStack.Count == 1) backward.CanExecuteChanged.Invoke(backward, EventArgs.Empty);
          if (forwardStack.Count > 0) {
