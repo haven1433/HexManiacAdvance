@@ -9,7 +9,7 @@ using static HavenSoft.HexManiac.Core.Models.Runs.BaseRun;
 using static HavenSoft.HexManiac.Core.Models.Runs.PCSRun;
 using static HavenSoft.HexManiac.Core.Models.Runs.PointerRun;
 
-namespace HavenSoft.HexManiac.Core.ViewModels {
+namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
    /// <summary>
    /// StartCellEdit is responsible for 2 things.
    /// (1) if Input is a valid change for MemoryLocation, Result should be true after calling the appropriate Visit() method.

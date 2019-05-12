@@ -6,7 +6,7 @@ using System.Linq;
 using System.Windows.Input;
 using static HavenSoft.HexManiac.Core.ICommandExtensions;
 
-namespace HavenSoft.HexManiac.Core.ViewModels {
+namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
    public interface IContextItem {
       string Text { get; }
       ICommand Command { get; }

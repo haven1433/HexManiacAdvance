@@ -2,7 +2,7 @@
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 
-namespace HavenSoft.HexManiac.Core.ViewModels {
+namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
    /// <summary>
    /// How we clear data depends on what type of data we're clearing.
    /// For example, cleared pointers get replaced with NULL (0x00000000).

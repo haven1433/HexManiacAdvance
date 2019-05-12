@@ -8,7 +8,7 @@ using System.Linq;
 using static HavenSoft.HexManiac.Core.Models.Runs.PCSRun;
 using static HavenSoft.HexManiac.Core.Models.Runs.PointerRun;
 
-namespace HavenSoft.HexManiac.Core.ViewModels {
+namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
    internal class CompleteEditOperation : IDataFormatVisitor {
       private readonly IDataModel Model;
       private readonly int memoryLocation;

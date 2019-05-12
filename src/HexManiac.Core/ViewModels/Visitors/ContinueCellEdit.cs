@@ -6,7 +6,7 @@ using static HavenSoft.HexManiac.Core.Models.Runs.ArrayRun;
 using static HavenSoft.HexManiac.Core.Models.Runs.PCSRun;
 using static HavenSoft.HexManiac.Core.Models.Runs.PointerRun;
 
-namespace HavenSoft.HexManiac.Core.ViewModels {
+namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
    /// <summary>
    /// An an existing UnderEdit element is trying to be edited.
    /// This object just needs to set Result to true if the Input is valid for the given cell.
