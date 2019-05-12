@@ -9,7 +9,7 @@ namespace HavenSoft.HexManiac.Core {
          if (upper.CompareTo(value) < 0) return upper;
          return value;
       }
-      public static void Sort<T>(this List<T> list, Func<T,T,int> compare) {
+      public static void Sort<T>(this List<T> list, Func<T, T, int> compare) {
          list.Sort(new StubComparer<T> { Compare = compare });
       }
       public static bool MatchesPartial(this string full, string partial) {

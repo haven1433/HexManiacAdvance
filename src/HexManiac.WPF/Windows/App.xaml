@@ -595,7 +595,7 @@
             </Trigger>
          </ControlTemplate.Triggers>
       </ControlTemplate>
-      
+
       <Style TargetType="{x:Type Slider}">
          <Setter Property="Stylus.IsPressAndHoldEnabled" Value="false"/>
          <Setter Property="Background" Value="{DynamicResource Backlight}"/>
@@ -622,5 +622,5 @@
             </Setter.Value>
          </Setter>
       </Style>
-    </Application.Resources>
+   </Application.Resources>
 </Application>

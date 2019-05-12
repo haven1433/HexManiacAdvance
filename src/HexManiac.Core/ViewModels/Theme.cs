@@ -17,7 +17,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public Theme(string[] file) {
          bool acceptingEntries = false;
-         foreach(var entry in file) {
+         foreach (var entry in file) {
             var line = entry.ToLower();
             if (line.Contains("[")) acceptingEntries = false;
             if (line.Contains("[theme]")) acceptingEntries = true;

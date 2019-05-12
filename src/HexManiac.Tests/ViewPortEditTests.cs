@@ -345,7 +345,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          viewModel.SelectionStart = new Point(0, 0);
          viewModel.Edit("2");
-         Assert.Equal(2, ((UnderEdit)viewModel[0,0].Format).EditWidth);
+         Assert.Equal(2, ((UnderEdit)viewModel[0, 0].Format).EditWidth);
 
          viewModel.SelectionStart = new Point(6, 0);
          viewModel.Edit("2");

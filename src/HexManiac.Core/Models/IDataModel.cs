@@ -238,7 +238,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          var visitedNames = new List<string>() { model.GetAnchorFromAddress(-1, arrayRun.Start) };
          var visitedAddress = new List<int>() { arrayRun.Start };
-         
+
          while (arrayRun.LengthFromAnchor != string.Empty) {
             if (visitedNames.Contains(arrayRun.LengthFromAnchor)) {
                // We kept going up the chain of tables but didn't find a top table. table length definitions are circular.

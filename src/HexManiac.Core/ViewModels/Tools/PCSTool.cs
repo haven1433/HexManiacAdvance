@@ -94,7 +94,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public bool Enabled {
          get => enabled;
          private set {
-            if(TryUpdate(ref enabled, value)) {
+            if (TryUpdate(ref enabled, value)) {
                if (!enabled) Content = string.Empty;
             }
          }

@@ -100,7 +100,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void TagAsSaved() {
          ChangeCompleted();
-         if(TryUpdate(ref undoStackSizeAtSaveTag, undoStack.Count, nameof(IsSaved))) {
+         if (TryUpdate(ref undoStackSizeAtSaveTag, undoStack.Count, nameof(IsSaved))) {
             NotifyPropertyChanged(nameof(HasDataChange));
          }
       }
