@@ -36,6 +36,15 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          FindPanel.IsVisibleChanged += AnimateFocusToCorner;
          MessagePanel.IsVisibleChanged += AnimateFocusToCorner;
          ErrorPanel.IsVisibleChanged += AnimateFocusToCorner;
+
+         viewModel.PropertyChanged += (sender, e) => {
+            if (e.PropertyName == nameof(viewModel.InformationMessage) &&
+               MessagePanel.IsVisible &&
+               !string.IsNullOrEmpty(viewModel.InformationMessage)
+            ) {
+               AnimateFocusToCorner(MessagePanel, default);
+            }
+         };
       }
 
       protected override void OnDrop(DragEventArgs e) {
