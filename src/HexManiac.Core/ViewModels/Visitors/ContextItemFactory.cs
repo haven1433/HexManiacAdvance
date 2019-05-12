@@ -57,8 +57,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          var point = ViewPort.SelectionStart;
          Results.Add(new ContextItem("Follow Pointer", arg => ViewPort.FollowLink(point.X, point.Y)) { ShortcutText = "Ctrl+Click" });
 
-         var arrayRun = ViewPort.Model.GetNextRun(ViewPort.Tools.TableTool.Address) as ArrayRun;
-         if (arrayRun != null) Results.AddRange(GetTableChildren(arrayRun));
+         var address = ViewPort.ConvertViewPointToAddress(point);
+         var arrayRun = ViewPort.Model.GetNextRun(address) as ArrayRun;
+         if (arrayRun != null && arrayRun.Start <= address) Results.AddRange(GetTableChildren(arrayRun));
          else Results.AddRange(GetFormattedChildren());
       }
 
@@ -90,12 +91,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       }
 
       public void Visit(PCS pcs, byte data) {
-         var p = ViewPort.SelectionStart;
-         Results.Add(new ContextItem("Open In Text Tool", arg => ViewPort.FollowLink(p.X, p.Y)) { ShortcutText = "Ctrl+Click" });
+         var point = ViewPort.SelectionStart;
+         Results.Add(new ContextItem("Open In Text Tool", arg => ViewPort.FollowLink(point.X, point.Y)) { ShortcutText = "Ctrl+Click" });
          Results.Add(new ContextItem("Copy Selection", ViewPort.Copy.Execute) { ShortcutText = "Ctrl+C" });
 
-         var arrayRun = ViewPort.Model.GetNextRun(ViewPort.Tools.TableTool.Address) as ArrayRun;
-         if (arrayRun != null) Results.AddRange(GetTableChildren(arrayRun));
+         var address = ViewPort.ConvertViewPointToAddress(point);
+         var arrayRun = ViewPort.Model.GetNextRun(address) as ArrayRun;
+         if (arrayRun != null && arrayRun.Start <= address) Results.AddRange(GetTableChildren(arrayRun));
          else Results.AddRange(GetFormattedChildren());
       }
 

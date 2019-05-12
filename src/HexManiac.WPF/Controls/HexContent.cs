@@ -284,7 +284,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             } else if (item.Command != null) {
                var button = new Button {
                   Command = item.Command,
-                  CommandParameter = item.Parameter,
+                  CommandParameter = item.Parameter ?? FileSystem,
                };
                if (item.ShortcutText == null) {
                   button.Content = item.Text;
@@ -297,6 +297,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                      }
                   };
                }
+               yield return button;
             } else {
                var textBlock = new TextBlock {
                   Text = item.Text,

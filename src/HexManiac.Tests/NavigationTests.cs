@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Input;
 using Xunit;
 
@@ -274,6 +275,20 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Empty(errors);
          Assert.Equal(0x100, viewPort.DataOffset);
+      }
+
+      [Fact]
+      public void GotoBadPointerErrors() {
+         var data = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         var model = new PokemonModel(data);
+         var viewPort = new ViewPort("unnamed.txt", model) { Width = 0x10, Height = 0x10 };
+         var errors = new List<string>();
+         viewPort.OnError += (sender, e) => errors.Add(e);
+
+         viewPort.Edit("^table[p<>]2 ");
+         viewPort.FollowLink(1, 0);
+
+         Assert.Single(errors);
       }
    }
 }

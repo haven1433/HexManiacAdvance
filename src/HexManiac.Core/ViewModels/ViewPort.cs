@@ -382,6 +382,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          tools = new ToolTray(Model, selection, history);
          Tools.OnError += (sender, e) => OnError?.Invoke(this, e);
+         Tools.OnMessage += (sender, e) => OnMessage?.Invoke(this, e);
          tools.RequestMenuClose += (sender, e) => RequestMenuClose?.Invoke(this, e);
          Tools.StringTool.ModelDataChanged += ModelChangedByTool;
          Tools.StringTool.ModelDataMoved += ModelDataMovedByTool;
@@ -477,6 +478,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public Point ConvertAddressToViewPoint(int address) => scroll.DataIndexToViewPoint(address);
+      public int ConvertViewPointToAddress(Point p) => scroll.ViewPointToDataIndex(p);
 
       public IReadOnlyList<IContextItem> GetContextMenuItems(Point selectionPoint) {
          Debug.Assert(IsSelected(selectionPoint));
@@ -1157,10 +1159,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (currentText == ExtendArray.ToString() && Model.IsAtEndOfArray(dataIndex, out var arrayRun)) {
             var originalArray = arrayRun;
             var errorInfo = Model.CompleteArrayExtension(history.CurrentChange, ref arrayRun);
-            if (!errorInfo.HasError) {
+            if (!errorInfo.HasError || errorInfo.IsWarning) {
                if (arrayRun.Start != originalArray.Start) {
                   ScrollFromRunMove(arrayRun.Start + arrayRun.Length, arrayRun.Length, arrayRun);
                }
+               if (errorInfo.IsWarning) OnMessage?.Invoke(this, errorInfo.ErrorMessage);
                RefreshBackingData();
             } else {
                OnError?.Invoke(this, errorInfo.ErrorMessage);

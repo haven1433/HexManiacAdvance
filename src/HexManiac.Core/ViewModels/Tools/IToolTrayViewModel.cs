@@ -22,6 +22,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       IDisposable DeferUpdates { get; }
 
       event EventHandler<string> OnError;
+      event EventHandler<string> OnMessage;
 
       void Schedule(Action action);
       void RefreshContent();
@@ -74,6 +75,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public event EventHandler<string> OnError;
+      public event EventHandler<string> OnMessage;
       public event EventHandler RequestMenuClose;
 
       public ToolTray(IDataModel model, Selection selection, ChangeHistory<ModelDelta> history) {
@@ -107,6 +109,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          StringTool.OnError += (sender, e) => OnError?.Invoke(this, e);
          TableTool.OnError += (sender, e) => OnError?.Invoke(this, e);
+         TableTool.OnMessage += (sender, e) => OnMessage?.Invoke(this, e);
          TableTool.RequestMenuClose += (sender, e) => RequestMenuClose?.Invoke(this, e);
       }
 

@@ -236,22 +236,34 @@ namespace HavenSoft.HexManiac.Core.Models {
       public static ErrorInfo CompleteArrayExtension(this IDataModel model, ModelDelta changeToken, ref ArrayRun arrayRun) {
          var currentArrayName = model.GetAnchorFromAddress(-1, arrayRun.Start);
 
-         var visitedNames = new List<string>();
+         var visitedNames = new List<string>() { model.GetAnchorFromAddress(-1, arrayRun.Start) };
+         var visitedAddress = new List<int>() { arrayRun.Start };
+         
          while (arrayRun.LengthFromAnchor != string.Empty) {
             if (visitedNames.Contains(arrayRun.LengthFromAnchor)) {
                // We kept going up the chain of tables but didn't find a top table. table length definitions are circular.
                return new ErrorInfo($"Could not extend table safely. Table length has a circular dependency involving {arrayRun.LengthFromAnchor}.");
             }
 
-            visitedNames.Add(arrayRun.LengthFromAnchor);
             var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, arrayRun.LengthFromAnchor);
+            visitedNames.Add(arrayRun.LengthFromAnchor);
+            visitedAddress.Add(address);
             arrayRun = (ArrayRun)model.GetNextRun(address);
          }
 
          ExtendArrayAndChildren(model, changeToken, arrayRun);
 
          arrayRun = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, currentArrayName));
-         return ErrorInfo.NoError;
+
+         var changedNames = new List<string>();
+         for (int i = 0; i < visitedNames.Count; i++) {
+            var newAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, visitedNames[i]);
+            if (newAddress != visitedAddress[i]) changedNames.Add(visitedNames[i]);
+         }
+         if (changedNames.Count == 0) return ErrorInfo.NoError;
+         if (changedNames.Count == 1) return new ErrorInfo($"{changedNames[0]} was moved. Pointers have been updated.", isWarningLevel: true);
+         var all = changedNames.Aggregate((a, b) => a + ", " + b);
+         return new ErrorInfo($"Tables {all} were moved. Pointers have been updated.", isWarningLevel: true);
       }
 
       private static void ExtendArrayAndChildren(IDataModel model, ModelDelta changeToken, ArrayRun array) {

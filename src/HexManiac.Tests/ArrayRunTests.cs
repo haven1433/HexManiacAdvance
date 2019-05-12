@@ -968,7 +968,38 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(9, ((ArrayRun)model.GetNextRun(0)).ElementCount);
       }
 
-      // TODO what happens if I change a table's length such that another table now hits an anchor?
+      /// <summary>
+      /// Situation:
+      /// Child data is in ROM directly before parent data.
+      /// When child data is extended, parent data needs to be extended first.
+      /// When parent data is extended, it auto-moves.
+      /// When child data is extended, suddenly there's enough room because of the other move, so it doesn't need to move.
+      /// Notify that the parent data moved.
+      /// </summary>
+      [Fact]
+      public void ParentTableAutoMoveNotifies() {
+         // Arrange
+         var data = Enumerable.Range(0, 0x200).Select(i => (byte)0x42).ToArray();
+         var model = new PokemonModel(data);
+
+         ArrayRun.TryParse(model, "[a: b:]parent", 0x00, null, out var table);
+         model.ObserveAnchorWritten(new ModelDelta(), "child", table);
+
+         ArrayRun.TryParse(model, "[a: b:]8", 0x20, null, out table); // parent table starts directly after child table
+         model.ObserveAnchorWritten(new ModelDelta(), "parent", table);
+
+         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var messages = new List<string>();
+         viewPort.OnMessage += (sender, e) => messages.Add(e);
+
+         // Act
+         viewPort.SelectionStart = new Point(0xD, 1);
+         viewPort.Tools.TableTool.Append.Execute();
+
+         // Assert
+         Assert.Equal(0, model.GetNextRun(0).Start); // the run being edit did not move
+         Assert.Single(messages);                    // user was notified about the other move
+      }
 
       private static void WriteStrings(byte[] buffer, int start, params string[] content) {
          foreach (var item in content) {

@@ -62,6 +62,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 #pragma warning disable 0067 // it's ok if events are never used after implementing an interface
       public event EventHandler<IFormattedRun> ModelDataChanged;
       public event EventHandler<string> OnError;
+      public event EventHandler<string> OnMessage;
       public event EventHandler RequestMenuClose;
       public event EventHandler<(int originalLocation, int newLocation)> ModelDataMoved; // invoke when a new item gets added and the table has to move
 #pragma warning restore 0067
@@ -110,9 +111,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   ModelDataMoved?.Invoke(this, (originalArray.Start, array.Start));
                   selection.GotoAddress(array.Start + array.Length - array.ElementLength);
                }
-               if (error.HasError) {
+               if (error.HasError && !error.IsWarning) {
                   OnError?.Invoke(this, error.ErrorMessage);
                } else {
+                  if (error.IsWarning) OnMessage?.Invoke(this, error.ErrorMessage);
                   ModelDataChanged?.Invoke(this, array);
                   selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(array.Start + array.Length - array.ElementLength);
                   selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selection.Scroll.ViewPointToDataIndex(selection.SelectionStart) + array.ElementLength - 1);

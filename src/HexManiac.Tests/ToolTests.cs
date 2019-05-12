@@ -239,5 +239,24 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Contains("3", viewPort.Tools.TableTool.CurrentElementName);
          Assert.Equal(16 * 4, model.GetNextRun(0).Length);
       }
+
+      [Fact]
+      public void TableToolNotOfferedOnNormalText() {
+         // Arrange
+         var data = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         var model = new PokemonModel(data);
+         var viewPort = new ViewPort("name.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort.Edit("^array[name\"\"16]3 ");
+         viewPort.SelectionStart = new Point(0, 4);
+         viewPort.Edit("^text\"\" Some Text\"");
+
+         // Act
+         viewPort.SelectionStart = new Point(2, 4);
+         var items = viewPort.GetContextMenuItems(viewPort.SelectionStart);
+
+         // Assert
+         var matches = items.Where(item => item.Text.Contains("Table"));
+         Assert.Empty(matches);
+      }
    }
 }
