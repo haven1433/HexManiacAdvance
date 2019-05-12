@@ -261,6 +261,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             var offsets = arrayRun.ConvertByteOffsetToArrayOffset(memoryLocation);
             if (arrayRun.ElementContent[offsets.SegmentIndex].Length == position + 1) {
                memoryLocation--; // move back one byte and edit that one instead
+            } else if (Model[memoryLocation] == 0xFF) {
+               CurrentChange.ChangeData(Model, memoryLocation + 1, 0xFF); // overwrote the closing ", so add a new one after (since there's room)
             }
          } else {
             Debug.Fail("Why are we completing a character edit on something other than a PCSRun or an Array?");

@@ -437,5 +437,18 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.IsType<PCS>(viewPort[3, 1].Format);
       }
+
+      [Fact]
+      public void ChangingTerminalByteInTableTextAddsNewTerminalByteAfter() {
+         var data = new byte[0x200];
+         data[3] = 0xFF;
+         var model = new PokemonModel(data);
+         var viewPort = new ViewPort("file.txt", model);
+         viewPort.Edit("^table[text\"\"8]1 ");
+
+         viewPort.Edit("abcd");
+
+         Assert.Equal(0xFF, data[4]);
+      }
    }
 }
