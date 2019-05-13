@@ -52,6 +52,7 @@
     <Compile Include="Models\IDataModel.cs" />
     <Compile Include="Models\Runs\ArrayRunElementSegment.cs" />
     <Compile Include="Models\Runs\AsciiRun.cs" />
+    <Compile Include="Models\Runs\EggMoveRun.cs" />
     <Compile Include="Models\Runs\HeaderRow.cs" />
     <Compile Include="ViewModels\AutoCompleteSelectionItem.cs" />
     <Compile Include="ViewModels\Visitors\CompleteEditOperation.cs" />

@@ -979,6 +979,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             } else {
                return new ErrorInfo($"Ascii runs must include a length.");
             }
+         } else if (format.StartsWith(StreamDelimeter + "egg" + StreamDelimeter)) {
+            run = new EggMoveRun(model, dataIndex);
          } else {
             var errorInfo = TryParse(model, format, dataIndex, null, out var arrayRun);
             if (errorInfo == ErrorInfo.NoError) {

@@ -132,5 +132,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          NewFormat = new UnderEdit(integer, Input.ToString(), integer.Length, autocomplete);
          Result = true;
       }
+
+      public void Visit(EggSection section, byte data) => throw new NotImplementedException();
+
+      public void Visit(EggItem item, byte data) => throw new NotImplementedException();
    }
 }

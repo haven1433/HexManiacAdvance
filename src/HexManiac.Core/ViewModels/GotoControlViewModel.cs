@@ -86,7 +86,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             CanExecute = arg => viewPort?.Goto != null,
             Execute = arg => {
                var text = Text;
-               if (CompletionIndex != -1) text = AutoCompleteOptions[CompletionIndex].CompletionText;
+               var index = completionIndex.LimitToRange(-1, AutoCompleteOptions.Count - 1);
+               if (index != -1) text = AutoCompleteOptions[index].CompletionText;
                if (arg is string) text = (string)arg;
                viewPort?.Goto?.Execute(text);
                ControlVisible = false;

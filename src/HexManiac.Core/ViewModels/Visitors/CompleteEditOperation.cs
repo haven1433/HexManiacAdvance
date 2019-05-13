@@ -109,6 +109,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
       }
 
+      public void Visit(EggSection section, byte data) => throw new NotImplementedException();
+
+      public void Visit(EggItem item, byte data) => throw new NotImplementedException();
+
       private void CompleteIntegerEdit(Integer integer) {
          if (!int.TryParse(CurrentText, out var result)) {
             ErrorText = $"Could not parse {CurrentText} as a number";

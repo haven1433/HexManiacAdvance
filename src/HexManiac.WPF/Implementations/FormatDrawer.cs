@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.WPF.Controls;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -194,6 +195,10 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          context.DrawText(text, new Point(xOffset, CellTextOffset.Y));
          context.Pop();
       }
+
+      public void Visit(EggSection section, byte data) => throw new NotImplementedException();
+
+      public void Visit(EggItem item, byte data) => throw new NotImplementedException();
 
       private void Underline(Brush brush, bool isStart, bool isEnd) {
          int startPoint = isStart ? 5 : 0;

@@ -117,6 +117,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Results.AddRange(GetTableChildren(arrayRun));
       }
 
+      public void Visit(EggSection section, byte data) => throw new NotImplementedException();
+
+      public void Visit(EggItem item, byte data) => throw new NotImplementedException();
+
       private IEnumerable<IContextItem> GetTableChildren(ArrayRun array) {
          if (ViewPort.Tools.TableTool.Append.CanExecute(null)) {
             yield return new ContextItem("Extend Table", ViewPort.Tools.TableTool.Append.Execute);

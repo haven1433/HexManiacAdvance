@@ -71,5 +71,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             ".~".Contains(Input) ||
             char.IsWhiteSpace(Input);
       }
+
+      public void Visit(EggSection section, byte data) => throw new NotImplementedException();
+
+      public void Visit(EggItem item, byte data) => throw new NotImplementedException();
    }
 }

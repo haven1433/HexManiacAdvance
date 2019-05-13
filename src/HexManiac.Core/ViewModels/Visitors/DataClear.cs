@@ -43,5 +43,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(Integer integer, byte data) => buffer.WriteValue(currentChange, index, 0);
 
       public void Visit(IntegerEnum integerEnum, byte data) => buffer.WriteValue(currentChange, index, 0);
+
+      public void Visit(EggSection section, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
+
+      public void Visit(EggItem item, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
    }
 }

@@ -23,6 +23,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       void Visit(Ascii ascii, byte data);
       void Visit(Integer integer, byte data);
       void Visit(IntegerEnum integer, byte data);
+      void Visit(EggSection section, byte data);
+      void Visit(EggItem item, byte data);
    }
 
    /// <summary>
@@ -226,5 +228,41 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       }
 
       public override void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
+   }
+
+   public class EggSection : IDataFormat {
+      public int Source { get; }
+      public int Position { get; }
+      public int Length { get; }
+      public string SectionName { get; }
+
+      public bool Equals(IDataFormat other) {
+         if (other is EggSection that) {
+            return that.SectionName == SectionName &&
+               that.Source == Source &&
+               that.Length == Length;
+         }
+         return false;
+      }
+
+      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
+   }
+
+   public class EggItem : IDataFormat {
+      public int Source { get; }
+      public int Position { get; }
+      public int Length { get; }
+      public string ItemName { get; }
+      public int Index { get; }
+      public bool Equals(IDataFormat other) {
+         if (other is EggItem that) {
+            return that.ItemName == ItemName &&
+               that.Source == Source &&
+               that.Length == Length;
+         }
+         return false;
+      }
+
+      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 }
