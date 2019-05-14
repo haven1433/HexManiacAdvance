@@ -116,8 +116,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private IReadOnlyList<string> cachedOptions;
       public IReadOnlyList<string> GetOptions(IDataModel model) {
          if (cachedOptions != null) return cachedOptions;
+         cachedOptions = GetOptions(model, EnumName);
+         return cachedOptions;
+      }
 
-         if (!model.TryGetNameArray(EnumName, out var enumArray)) return null;
+      public static IReadOnlyList<string> GetOptions(IDataModel model, string enumName) {
+         if (!model.TryGetNameArray(enumName, out var enumArray)) return null;
 
          // array must be at least as long as than the current value
          var optionCount = enumArray.ElementCount;
@@ -139,7 +143,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             results.Add(value);
          }
 
-         cachedOptions = results;
          return results;
       }
 
