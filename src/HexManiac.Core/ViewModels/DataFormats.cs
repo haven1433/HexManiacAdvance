@@ -233,8 +233,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
    public class EggSection : IDataFormat {
       public int Source { get; }
       public int Position { get; }
-      public int Length { get; }
+      public int Length => 2;
       public string SectionName { get; }
+
+      public EggSection(int source, int position, string name) => (Source, Position, SectionName) = (source, position, name);
 
       public bool Equals(IDataFormat other) {
          if (other is EggSection that) {
@@ -253,7 +255,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public int Position { get; }
       public int Length { get; }
       public string ItemName { get; }
-      public int Index { get; }
+
+      public EggItem(int source, int position, string name) => (Source, Position, ItemName) = (source, position, name);
+
       public bool Equals(IDataFormat other) {
          if (other is EggItem that) {
             return that.ItemName == ItemName &&

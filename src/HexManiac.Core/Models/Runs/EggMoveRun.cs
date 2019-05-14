@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class EggMoveRun : IFormattedRun {
-      private const int MagicNumber = 0x4E20; // anything above this number is a pokemon, anything below it is a move
+      public const int MagicNumber = 0x4E20; // anything above this number is a pokemon, anything below it is a move
       private readonly IDataModel model;
 
       public int Start { get; }
@@ -26,15 +26,29 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
+      private IReadOnlyList<string> cachedPokenames, cachedMovenames;
+      private int lastFormatRequest = int.MinValue;
       public IDataFormat CreateDataFormat(IDataModel data, int dataIndex) {
          Debug.Assert(data == model);
+         if (dataIndex != lastFormatRequest + 1) {
+            cachedPokenames = ArrayRunEnumSegment.GetOptions(model, "pokenames") ?? new List<string>();
+            cachedMovenames = ArrayRunEnumSegment.GetOptions(model, "movenames") ?? new List<string>();
+         }
+         lastFormatRequest = dataIndex;
+
          var position = dataIndex - Start;
          var groupStart = position % 2 == 1 ? position - 1 : position;
          var value = data.ReadMultiByteValue(groupStart, 2);
          if (value >= MagicNumber) {
-            return new EggSection();
+            value -= MagicNumber;
+            string content = cachedPokenames.Count > value ? cachedPokenames[value] : value.ToString();
+            if (value == 0xFFFF - MagicNumber) content = string.Empty;
+            if (content.StartsWith("\"")) content = content.Substring(1);
+            if (content.EndsWith("\"")) content = content.Substring(0, content.Length - 1);
+            return new EggSection(groupStart, position, $"[{content}]");
          } else {
-            return new EggItem();
+            string content = cachedMovenames.Count > value ? cachedMovenames[value] : value.ToString();
+            return new EggItem(groupStart, position, content);
          }
       }
 
@@ -46,7 +60,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public IFormattedRun RemoveSource(int source) {
-         throw new NotImplementedException();
+         var sources = PointerSources.ToList();
+         sources.Remove(source);
+         return new EggMoveRun(model, Start) { PointerSources = sources };
       }
    }
 }
