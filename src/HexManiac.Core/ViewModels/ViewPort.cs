@@ -1035,12 +1035,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var run = Model.GetNextRun(index);
          if (run.Start > index) return (p, p);
 
-         if (run is PointerRun) return (scroll.DataIndexToViewPoint(run.Start), scroll.DataIndexToViewPoint(run.Start + run.Length - 1));
+         (Point, Point) pair(int start, int end) => (scroll.DataIndexToViewPoint(start), scroll.DataIndexToViewPoint(end));
+
+         if (run is PointerRun) return pair(run.Start, run.Start + run.Length - 1);
+         if (run is EggMoveRun) {
+            var even = (index - run.Start) % 2 == 0;
+            if (even) return pair(index, index + 1);
+            return pair(index - 1, index);
+         }
          if (!(run is ArrayRun array)) return (p, p);
 
          var offset = array.ConvertByteOffsetToArrayOffset(index);
-         if (array.ElementContent[offset.SegmentIndex].Type == ElementContentType.Pointer || array.ElementContent[offset.SegmentIndex].Type == ElementContentType.Integer) {
-            return (scroll.DataIndexToViewPoint(offset.SegmentStart), scroll.DataIndexToViewPoint(offset.SegmentStart + array.ElementContent[offset.SegmentIndex].Length - 1));
+         var type = array.ElementContent[offset.SegmentIndex].Type;
+         if (type == ElementContentType.Pointer || type == ElementContentType.Integer) {
+            return pair(offset.SegmentStart, offset.SegmentStart + array.ElementContent[offset.SegmentIndex].Length - 1);
          }
 
          return (p, p);

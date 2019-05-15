@@ -48,5 +48,20 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("Wind", item.ItemName);
          Assert.Equal("[]", endSection.SectionName);
       }
+
+      [Fact]
+      public void SelectionDoneInPairs() {
+         var token = new ModelDelta();
+         model.WriteMultiByteValue(0, 2, token, EggMoveRun.MagicNumber + 2); // Carl
+         model.WriteMultiByteValue(2, 2, token, 3);                          // Wind
+         viewPort.Edit("^eggmoves`egg` ");
+
+         viewPort.SelectionStart = new Point(2, 0); // should select "Wind"
+         Assert.True(viewPort.IsSelected(new Point(3, 0)));
+
+         viewPort.MoveSelectionStart.Execute(Direction.Right); // should select "[]"
+         Assert.True(viewPort.IsSelected(new Point(4, 0)));
+         Assert.True(viewPort.IsSelected(new Point(5, 0)));
+      }
    }
 }
