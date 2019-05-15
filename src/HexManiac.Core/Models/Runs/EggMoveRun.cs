@@ -85,7 +85,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          var position = dataIndex - Start;
          var groupStart = position % 2 == 1 ? position - 1 : position;
-         var value = data.ReadMultiByteValue(groupStart, 2);
+         position -= groupStart;
+         var value = data.ReadMultiByteValue(Start + groupStart, 2);
          if (value >= MagicNumber) {
             value -= MagicNumber;
             string content = cachedPokenames.Count > value ? cachedPokenames[value] : value.ToString();

@@ -46,14 +46,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
          var content = dataFormat.CurrentText;
 
-         var text = new FormattedText(
-            content,
-            CultureInfo.CurrentCulture,
-            FlowDirection.LeftToRight,
-            typeface,
-            FontSize,
-            brush,
-            1.0);
+         var text = CreateText(content, FontSize, brush);
 
          var offset = CellTextOffset;
          var widthOverflow = text.Width - HexContent.CellWidth * dataFormat.EditWidth;
@@ -73,18 +66,10 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          if (dataFormat.Destination < 0) brush = Brush(nameof(Theme.Error));
          Underline(brush, dataFormat.Position == 0, dataFormat.Position == 3);
 
-         var typeface = new Typeface("Consolas");
          var destination = dataFormat.DestinationAsText;
          if (destination.Length > 13) destination = destination.Substring(0, 11) + "…>";
          var xOffset = 51 - (dataFormat.Position * HexContent.CellWidth) - destination.Length * 4.2; // centering
-         var text = new FormattedText(
-            destination,
-            CultureInfo.CurrentCulture,
-            FlowDirection.LeftToRight,
-            typeface,
-            FontSize,
-            brush,
-            1.0);
+         var text = CreateText(destination, FontSize, brush);
 
          if (dataFormat.Position > Position.X || Position.X - dataFormat.Position > modelWidth - 4) {
             context.PushClip(rectangleGeometry);
@@ -104,15 +89,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
 
       public void Visit(PCS pcs, byte data) {
-         var typeface = new Typeface("Consolas");
-         var text = new FormattedText(
-            pcs.ThisCharacter,
-            CultureInfo.CurrentCulture,
-            FlowDirection.LeftToRight,
-            typeface,
-            FontSize,
-            Brush(nameof(Theme.Text1)),
-            1.0);
+         var text = CreateText(pcs.ThisCharacter, FontSize, Brush(nameof(Theme.Text1)));
 
          var xOffset = 1 - pcs.ThisCharacter.Length;
          context.DrawText(text, new Point(CellTextOffset.X + xOffset, CellTextOffset.Y));
@@ -124,33 +101,16 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
       public void Visit(ErrorPCS pcs, byte data) {
          var brush = Brush(nameof(Theme.Error));
-         var typeface = new Typeface("Consolas");
 
          var content = data.ToString("X2");
 
-         var text = new FormattedText(
-            content,
-            CultureInfo.CurrentCulture,
-            FlowDirection.LeftToRight,
-            typeface,
-            FontSize,
-            brush,
-            1.0);
+         var text = CreateText(content, FontSize, brush);
 
          context.DrawText(text, CellTextOffset);
       }
 
       public void Visit(Ascii ascii, byte data) {
-         var typeface = new Typeface("Consolas");
-         var text = new FormattedText(
-            ascii.ThisCharacter.ToString(),
-            CultureInfo.CurrentCulture,
-            FlowDirection.LeftToRight,
-            typeface,
-            FontSize,
-            Brush(nameof(Theme.Text2)),
-            1.0);
-
+         var text = CreateText(ascii.ThisCharacter.ToString(), FontSize, Brush(nameof(Theme.Text2)));
          context.DrawText(text, CellTextOffset);
       }
 
@@ -159,15 +119,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
          var stringValue = integer.Value.ToString();
 
-         var typeface = new Typeface("Consolas");
-         var text = new FormattedText(
-            stringValue,
-            CultureInfo.CurrentCulture,
-            FlowDirection.LeftToRight,
-            typeface,
-            FontSize,
-            Brush(nameof(Theme.Data1)),
-            1.0);
+         var text = CreateText(stringValue, FontSize, Brush(nameof(Theme.Data1)));
 
          var xOffset = CellTextOffset.X;
          xOffset += HexContent.CellWidth / 2 * (integer.Length - 1); // adjust based on number of cells to use
@@ -179,16 +131,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          if (integerEnum.Position != 0) return;
 
          var stringValue = integerEnum.Value;
-
-         var typeface = new Typeface("Consolas");
-         var text = new FormattedText(
-            stringValue,
-            CultureInfo.CurrentCulture,
-            FlowDirection.LeftToRight,
-            typeface,
-            FontSize * 3 / 4,
-            Brush(nameof(Theme.Data2)),
-            1.0);
+         var text = CreateText(stringValue, FontSize * 3 / 4, Brush(nameof(Theme.Data2)));
 
          var xOffset = CellTextOffset.X / 2;
          context.PushClip(new RectangleGeometry(new Rect(0, 0, HexContent.CellWidth * integerEnum.Length, HexContent.CellHeight)));
@@ -196,9 +139,31 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          context.Pop();
       }
 
-      public void Visit(EggSection section, byte data) => throw new NotImplementedException();
+      public void Visit(EggSection section, byte data) {
+         if (section.Position != 0) return;
+         var name = section.SectionName;
 
-      public void Visit(EggItem item, byte data) => throw new NotImplementedException();
+         var text = CreateText(name, FontSize * 3 / 4, Brush(nameof(Theme.Stream1)));
+         var characterWidth = text.Width / name.Length;
+         var xOffset = HexContent.CellWidth - name.Length * characterWidth / 2;
+         if (xOffset < 0) xOffset = 0;
+         context.PushClip(new RectangleGeometry(new Rect(0, 0, HexContent.CellWidth * 2, HexContent.CellHeight)));
+         context.DrawText(text, new Point(xOffset, CellTextOffset.Y + 2));
+         context.Pop();
+      }
+
+      public void Visit(EggItem item, byte data) {
+         if (item.Position != 0) return;
+         var name = item.ItemName;
+
+         var text = CreateText(name, FontSize * 3 / 4, Brush(nameof(Theme.Stream2)));
+         var characterWidth = text.Width / name.Length;
+         var xOffset = HexContent.CellWidth - name.Length * characterWidth / 2;
+         if (xOffset < 0) xOffset = 0;
+         context.PushClip(new RectangleGeometry(new Rect(0, 0, HexContent.CellWidth * 2, HexContent.CellHeight)));
+         context.DrawText(text, new Point(xOffset, CellTextOffset.Y + 2));
+         context.Pop();
+      }
 
       private void Underline(Brush brush, bool isStart, bool isEnd) {
          int startPoint = isStart ? 5 : 0;
@@ -230,6 +195,18 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          });
 
          noneVisualCache.AddRange(text);
+      }
+
+      private static readonly Typeface consolas = new Typeface("Consolas");
+      private static FormattedText CreateText(string text, double size, Brush color) {
+         return new FormattedText(
+            text,
+            CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            consolas,
+            FontSize * 3 / 4,
+            color,
+            1.0);
       }
 
       private static SolidColorBrush Brush(string name) {
