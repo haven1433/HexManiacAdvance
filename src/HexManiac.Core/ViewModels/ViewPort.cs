@@ -1117,6 +1117,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   RefreshBackingData();
                }
                var run = Model.GetNextRun(completeEditOperation.NewDataIndex);
+               if (run.Start > completeEditOperation.NewDataIndex) run = new NoInfoRun(Model.Count);
                if (completeEditOperation.DataMoved) UpdateToolsFromSelection(run.Start);
                if (run is ArrayRun) Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
                if (run is ArrayRun || run is PCSRun) Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);

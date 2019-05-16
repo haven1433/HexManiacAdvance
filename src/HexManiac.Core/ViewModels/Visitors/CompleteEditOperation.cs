@@ -302,7 +302,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                ErrorText = $"Could not parse {CurrentText} as a pokemon name";
                NewDataIndex -= 2;
             } else {
-               Model.WriteMultiByteValue(memoryLocation, 2, CurrentChange, value + EggMoveRun.MagicNumber);
+               WriteNormalEggEdit(run, value + EggMoveRun.MagicNumber);
             }
          } else {
             var text = CurrentText.Trim();
@@ -314,11 +314,32 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                   ErrorText = $"Could not parse {text} as a move name or pokemon name";
                   NewDataIndex -= 2;
                } else {
-                  Model.WriteMultiByteValue(memoryLocation, 2, CurrentChange, value + EggMoveRun.MagicNumber);
+                  WriteNormalEggEdit(run, value + EggMoveRun.MagicNumber);
                }
             } else {
-               Model.WriteMultiByteValue(memoryLocation, 2, CurrentChange, value);
+               WriteNormalEggEdit(run, value);
             }
+         }
+      }
+
+      /// <summary>
+      /// Before we write this change to the model, see if we need to extend the egg run to make it fit.
+      /// </summary>
+      private void WriteNormalEggEdit(EggMoveRun run, int value) {
+         int memoryLocation = this.memoryLocation;
+         var initialItemValue = Model.ReadMultiByteValue(memoryLocation, 2);
+         Model.WriteMultiByteValue(memoryLocation, 2, CurrentChange, value);
+         if (initialItemValue == 0xFFFF) {
+            var newRun = Model.RelocateForExpansion(CurrentChange, run, run.Length + 2);
+            if (newRun.Start != run.Start) {
+               MessageText = $"Egg Moves were automatically moved to {newRun.Start.ToString("X6")}. Pointers were updated.";
+               memoryLocation += newRun.Start - run.Start;
+               NewDataIndex = memoryLocation + 2;
+               DataMoved = true;
+            }
+            // TODO write FFFF from here to the end of the current run
+            Model.WriteMultiByteValue(memoryLocation + 2, 2, CurrentChange, 0xFFFF);
+            Model.ObserveRunWritten(CurrentChange, new EggMoveRun(Model, newRun.Start));            
          }
       }
    }

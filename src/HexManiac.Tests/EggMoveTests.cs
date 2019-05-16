@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -10,6 +11,9 @@ namespace HavenSoft.HexManiac.Tests {
       private readonly byte[] data;
       private readonly PokemonModel model;
       private readonly ViewPort viewPort;
+      private readonly List<string> messages = new List<string>();
+
+      #region Setup
 
       public EggMoveTests() {
          data = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
@@ -23,7 +27,19 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Edit("^movenames[name\"\"8]8 \"Fire\" \"Water\" \"Earth\" \"Wind\" \"Light\" \"Dark\" \"Normal\" \"Magic\"");
 
          viewPort.Goto.Execute("000000");
+
+         viewPort.OnMessage += (sender, e) => messages.Add(e);
       }
+
+      private void CreateSimpleRun() {
+         var token = new ModelDelta();
+         model.WriteMultiByteValue(0, 2, token, EggMoveRun.MagicNumber + 2); // Carl
+         model.WriteMultiByteValue(2, 2, token, 3);                          // Wind
+
+         viewPort.Edit("^eggmoves`egg` ");
+      }
+
+      #endregion
 
       [Fact]
       public void CanCreateEggMoveStream() {
@@ -34,11 +50,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CanSeeEggMoveStreamWithCorrectFormat() {
-         var token = new ModelDelta();
-         model.WriteMultiByteValue(0, 2, token, EggMoveRun.MagicNumber + 2); // Carl
-         model.WriteMultiByteValue(2, 2, token, 3);                          // Wind
-
-         viewPort.Edit("^eggmoves`egg` ");
+         CreateSimpleRun();
 
          Assert.Equal(6, model.GetNextRun(0).Length);
          var section = (EggSection)viewPort[1, 0].Format;
@@ -51,10 +63,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void SelectionDoneInPairs() {
-         var token = new ModelDelta();
-         model.WriteMultiByteValue(0, 2, token, EggMoveRun.MagicNumber + 2); // Carl
-         model.WriteMultiByteValue(2, 2, token, 3);                          // Wind
-         viewPort.Edit("^eggmoves`egg` ");
+         CreateSimpleRun();
 
          viewPort.SelectionStart = new Point(2, 0); // should select "Wind"
          Assert.True(viewPort.IsSelected(new Point(3, 0)));
@@ -66,10 +75,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CanEditEggStreamManually() {
-         var token = new ModelDelta();
-         model.WriteMultiByteValue(0, 2, token, EggMoveRun.MagicNumber + 2); // Carl
-         model.WriteMultiByteValue(2, 2, token, 3);                          // Wind
-         viewPort.Edit("^eggmoves`egg` ");
+         CreateSimpleRun();
 
          viewPort.Edit("Dark ");
          Assert.Equal(5, model[0]);
@@ -80,17 +86,31 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CanCopyPaste() {
+         CreateSimpleRun();
          var fileSystem = new StubFileSystem();
-         var token = new ModelDelta();
-         model.WriteMultiByteValue(0, 2, token, EggMoveRun.MagicNumber + 2); // Carl
-         model.WriteMultiByteValue(2, 2, token, 3);                          // Wind
-         viewPort.Edit("^eggmoves`egg` ");
 
          viewPort.SelectionStart = new Point(0, 0);
          viewPort.SelectionEnd = new Point(2, 0);
          viewPort.Copy.Execute(fileSystem);
 
          Assert.Equal("^eggmoves`egg` [Carl] Wind", fileSystem.CopyText.value);
+      }
+
+      [Fact]
+      public void RunAutoExtends() {
+         viewPort.Edit("^eggmoves`egg` ");
+         viewPort.Edit("[Carl]");
+
+         Assert.Equal(4, model.GetNextRun(0).Length);
+      }
+
+      [Fact]
+      public void RunAutoMoves() {
+         viewPort.Edit("^eggmoves`egg` ");
+         model.WriteMultiByteValue(2, 2, new ModelDelta(), 0x0206);
+         viewPort.Edit("[Carl]");
+
+         Assert.Single(messages);
       }
    }
 }

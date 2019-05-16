@@ -1090,6 +1090,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             newRun = new PCSRun(newStart, run.Length, run.PointerSources);
          } else if (run is ArrayRun array) {
             newRun = array.Move(newStart);
+         } else if (run is EggMoveRun egg) {
+            newRun = new EggMoveRun(this, newStart);
          } else {
             throw new NotImplementedException();
          }
