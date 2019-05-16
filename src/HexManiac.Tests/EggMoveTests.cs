@@ -77,5 +77,20 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Edit("[Bryan]");
          Assert.Equal(EggMoveRun.MagicNumber + 4, model.ReadMultiByteValue(2, 2));
       }
+
+      [Fact]
+      public void CanCopyPaste() {
+         var fileSystem = new StubFileSystem();
+         var token = new ModelDelta();
+         model.WriteMultiByteValue(0, 2, token, EggMoveRun.MagicNumber + 2); // Carl
+         model.WriteMultiByteValue(2, 2, token, 3);                          // Wind
+         viewPort.Edit("^eggmoves`egg` ");
+
+         viewPort.SelectionStart = new Point(0, 0);
+         viewPort.SelectionEnd = new Point(2, 0);
+         viewPort.Copy.Execute(fileSystem);
+
+         Assert.Equal("^eggmoves`egg` [Carl] Wind", fileSystem.CopyText.value);
+      }
    }
 }

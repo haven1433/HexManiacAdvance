@@ -784,6 +784,11 @@ namespace HavenSoft.HexManiac.Core.Models {
                text.Append(" ");
                length -= run.Start + run.Length - start;
                start = run.Start + run.Length;
+            } else if (run is EggMoveRun eggRun) {
+               eggRun.AppendTo(this, text, start, length);
+               text.Append(" ");
+               length -= run.Start + run.Length - start;
+               start = run.Start + run.Length;
             } else {
                throw new NotImplementedException();
             }

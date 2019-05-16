@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class EggMoveRun : IFormattedRun {
@@ -142,6 +143,23 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private static string Dequote(string name) {
          if (!name.StartsWith("\"")) return name;
          return name.Substring(1, name.Length - 2);
+      }
+
+      public void AppendTo(PokemonModel model, StringBuilder text, int start, int length) {
+         while (length > 0 && start < Start + Length) {
+            var value = model.ReadMultiByteValue(start, 2);
+            if (value >= MagicNumber) {
+               value -= MagicNumber;
+               if (value >= cachedPokenames.Count) text.Append($"[{value}]");
+               else text.Append($"[{Dequote(cachedPokenames[value])}]");
+            } else {
+               if (value >= cachedMovenames.Count) text.Append($"{value}");
+               else text.Append($"{cachedMovenames[value]}");
+            }
+            start += 2;
+            length -= 2;
+            if (length > 0 && start < Start + Length) text.Append(" ");
+         }
       }
    }
 }
