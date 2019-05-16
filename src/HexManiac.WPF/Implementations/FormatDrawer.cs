@@ -204,7 +204,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             CultureInfo.CurrentCulture,
             FlowDirection.LeftToRight,
             consolas,
-            FontSize * 3 / 4,
+            size,
             color,
             1.0);
       }
