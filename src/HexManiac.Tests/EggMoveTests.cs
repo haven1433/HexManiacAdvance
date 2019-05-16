@@ -63,5 +63,19 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.True(viewPort.IsSelected(new Point(4, 0)));
          Assert.True(viewPort.IsSelected(new Point(5, 0)));
       }
+
+      [Fact]
+      public void CanEditEggStreamManually() {
+         var token = new ModelDelta();
+         model.WriteMultiByteValue(0, 2, token, EggMoveRun.MagicNumber + 2); // Carl
+         model.WriteMultiByteValue(2, 2, token, 3);                          // Wind
+         viewPort.Edit("^eggmoves`egg` ");
+
+         viewPort.Edit("Dark ");
+         Assert.Equal(5, model[0]);
+
+         viewPort.Edit("[Bryan]");
+         Assert.Equal(EggMoveRun.MagicNumber + 4, model.ReadMultiByteValue(2, 2));
+      }
    }
 }

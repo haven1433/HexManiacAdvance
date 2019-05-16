@@ -19,8 +19,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public int NewDataIndex { get; private set; }    // for completed edits, where should the selection move to?
       public bool DataMoved { get; private set; }
       public string MessageText { get; private set; }  // is there a message to display to the user? For example, when data gets moved.
-      public string ErrorText { get; private set; }    // is there an error to display to the user? For example, invalide pointer
-      public HexElement NewCell { get; private set; }  // if result is true and this is not null, asign this one value back to the one cell
+      public string ErrorText { get; private set; }    // is there an error to display to the user? For example, invalid pointer
+      public HexElement NewCell { get; private set; }  // if result is true and this is not null, assign this one value back to the one cell
                                                        // and refresh the one cell (along with any other UnderEdit cells)
                                                        // if result is true and this _is_ null, then the entire screen needs to be refreshed.
 
@@ -109,9 +109,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
       }
 
-      public void Visit(EggSection section, byte data) => throw new NotImplementedException();
+      public void Visit(EggSection section, byte data) => CompleteEggEdit();
 
-      public void Visit(EggItem item, byte data) => throw new NotImplementedException();
+      public void Visit(EggItem item, byte data) => CompleteEggEdit();
 
       private void CompleteIntegerEdit(Integer integer) {
          if (!int.TryParse(CurrentText, out var result)) {
@@ -282,6 +282,44 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (!(run is NoInfoRun) || run.Start != memoryLocation) Model.ClearFormat(CurrentChange, memoryLocation, 1);
          CurrentChange.ChangeData(Model, memoryLocation, byteValue);
          NewDataIndex = memoryLocation + 1;
+      }
+
+      private void CompleteEggEdit() {
+         var endChar = CurrentText[CurrentText.Length - 1];
+         if ($"] {StringDelimeter}".All(c => endChar != c)) return;
+         if (CurrentText.Count(c => c == StringDelimeter) % 2 != 0) return;
+
+         NewDataIndex = memoryLocation + 2;
+         Result = true;
+         var run = (EggMoveRun)Model.GetNextRun(memoryLocation);
+
+         if (CurrentText == "[]") {
+            Model.WriteMultiByteValue(memoryLocation, 2, CurrentChange, 0xFFFF);
+            // TODO update length
+         } else if (CurrentText.EndsWith("]")) {
+            var value = run.GetPokemonNumber(CurrentText);
+            if (value == -1) {
+               ErrorText = $"Could not parse {CurrentText} as a pokemon name";
+               NewDataIndex -= 2;
+            } else {
+               Model.WriteMultiByteValue(memoryLocation, 2, CurrentChange, value + EggMoveRun.MagicNumber);
+            }
+         } else {
+            var text = CurrentText.Trim();
+            var value = run.GetMoveNumber(text);
+            if (value == -1) {
+               // wasn't a move... try again as a pokemon even though they didn't use the []
+               value = run.GetPokemonNumber(text);
+               if (value == -1) {
+                  ErrorText = $"Could not parse {text} as a move name or pokemon name";
+                  NewDataIndex -= 2;
+               } else {
+                  Model.WriteMultiByteValue(memoryLocation, 2, CurrentChange, value + EggMoveRun.MagicNumber);
+               }
+            } else {
+               Model.WriteMultiByteValue(memoryLocation, 2, CurrentChange, value);
+            }
+         }
       }
    }
 }

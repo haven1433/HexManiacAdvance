@@ -93,10 +93,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (value == 0xFFFF - MagicNumber) content = string.Empty;
             if (content.StartsWith("\"")) content = content.Substring(1);
             if (content.EndsWith("\"")) content = content.Substring(0, content.Length - 1);
-            return new EggSection(groupStart, position, $"[{content}]");
+            return new EggSection(groupStart + Start, position, $"[{content}]");
          } else {
             string content = cachedMovenames.Count > value ? cachedMovenames[value] : value.ToString();
-            return new EggItem(groupStart, position, content);
+            return new EggItem(groupStart + Start, position, content);
          }
       }
 
@@ -111,6 +111,37 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var sources = PointerSources.ToList();
          sources.Remove(source);
          return new EggMoveRun(model, Start) { PointerSources = sources };
+      }
+
+      public int GetPokemonNumber(string input) {
+         if (input.StartsWith("[")) input = input.Substring(1, input.Length - 2);
+         var names = cachedPokenames.Select(name => Dequote(name).ToLower()).ToList();
+         return GetNumber(input.ToLower(), names);
+      }
+
+      public int GetMoveNumber(string input) {
+         input = Dequote(input).ToLower();
+         var names = cachedMovenames.Select(name => Dequote(name).ToLower()).ToList();
+         return GetNumber(input, names);
+      }
+
+      public IEnumerable<string> GetAutoCompleteOptions() {
+         var pokenames = cachedPokenames.Select(name => $"[{name}]");
+         var movenames = cachedMovenames.Select(name => name + " ");
+         return pokenames.Concat(movenames);
+      }
+
+      private static int GetNumber(string input, IList<string> names) {
+         var matchIndex = names.IndexOf(input);
+         if (matchIndex != -1) return matchIndex;
+         var match = names.FirstOrDefault(name => name.Contains(input));
+         if (match == null) return -1;
+         return names.IndexOf(match);
+      }
+
+      private static string Dequote(string name) {
+         if (!name.StartsWith("\"")) return name;
+         return name.Substring(1, name.Length - 2);
       }
    }
 }

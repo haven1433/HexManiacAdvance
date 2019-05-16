@@ -72,8 +72,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             char.IsWhiteSpace(Input);
       }
 
-      public void Visit(EggSection section, byte data) => throw new NotImplementedException();
-
-      public void Visit(EggItem item, byte data) => throw new NotImplementedException();
+      public void Visit(EggSection section, byte data) => VisitEgg();
+      public void Visit(EggItem item, byte data) => VisitEgg();
+      public void VisitEgg() {
+         var specialCharacters = ". '-\\"; // mr. mime, farfetch'd, double-edge, nidoran
+         if (UnderEdit.CurrentText[0] == '[') specialCharacters += ']';
+         if (UnderEdit.CurrentText[0] == StringDelimeter) specialCharacters += StringDelimeter;
+         Result =
+            char.IsLetterOrDigit(Input) ||
+            specialCharacters.Contains(Input) ||
+            char.IsWhiteSpace(Input);
+      }
    }
 }

@@ -11,6 +11,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       void Visit(IDataFormatVisitor visitor, byte data);
    }
 
+   public interface IDataFormatInstance : IDataFormat {
+      int Source { get; }    // the beginning of the run/group that this instance belongs to
+      int Position { get; }  // the index in the run/group that this instance belongs to
+   }
+
    public interface IDataFormatVisitor {
       void Visit(Undefined dataFormat, byte data);
       void Visit(None dataFormat, byte data);
@@ -84,7 +89,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       }
    }
 
-   public class Pointer : IDataFormat {
+   public class Pointer : IDataFormatInstance {
       public const int NULL = -0x08000000;
       public int Source { get; }      // 6 hex digits
       public int Position { get; }    // 0 through 3
@@ -129,7 +134,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
-   public class PCS : IDataFormat {
+   public class PCS : IDataFormatInstance {
       public int Source { get; }
       public int Position { get; }
       public string FullString { get; }
@@ -145,7 +150,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
-   public class EscapedPCS : IDataFormat {
+   public class EscapedPCS : IDataFormatInstance {
       public int Source { get; }
       public int Position { get; }
       public string FullString { get; }
@@ -161,7 +166,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
-   public class ErrorPCS : IDataFormat {
+   public class ErrorPCS : IDataFormatInstance {
       public int Source { get; }
       public int Position { get; }
       public string FullString { get; }
@@ -177,7 +182,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
-   public class Ascii : IDataFormat {
+   public class Ascii : IDataFormatInstance {
       public int Source { get; }
       public int Position { get; }
       public char ThisCharacter { get; }
@@ -192,7 +197,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
-   public class Integer : IDataFormat {
+   public class Integer : IDataFormatInstance {
       public int Source { get; }
       public int Position { get; }
       public int Value { get; }
@@ -230,7 +235,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public override void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
-   public class EggSection : IDataFormat {
+   public class EggSection : IDataFormatInstance {
       public int Source { get; }
       public int Position { get; }
       public int Length => 2;
@@ -250,7 +255,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
-   public class EggItem : IDataFormat {
+   public class EggItem : IDataFormatInstance {
       public int Source { get; }
       public int Position { get; }
       public int Length { get; }

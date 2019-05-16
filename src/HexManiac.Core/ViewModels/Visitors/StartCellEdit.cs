@@ -67,10 +67,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       }
 
       public void Visit(Pointer pointer, byte data) {
-         if (Input != PointerStart && !char.IsLetterOrDigit(Input)) {
-            Result = false;
-            return;
-         }
+         if (Input != PointerStart && !char.IsLetterOrDigit(Input)) return;
 
          var editText = Input.ToString();
          // if the user tries to edit the pointer but forgets the opening bracket, add it for them.
@@ -89,10 +86,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(PCS pcs, byte data) {
          if (Model.GetNextRun(MemoryLocation) is ArrayRun array) {
             var offsets = array.ConvertByteOffsetToArrayOffset(MemoryLocation);
-            if (offsets.SegmentStart == MemoryLocation && Input == ' ') {
-               Result = false; // don't let it start with a space unless it's in quotes (for copy/paste)
-               return;
-            }
+            // don't let it start with a space unless it's in quotes (for copy/paste)
+            if (offsets.SegmentStart == MemoryLocation && Input == ' ') return;
          }
 
          Result = Input == StringDelimeter || PCSString.PCS.Any(str => str != null && str.StartsWith(Input.ToString()));
@@ -109,20 +104,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(Ascii ascii, byte data) => Result = true;
 
       public void Visit(Integer intFormat, byte data) {
-         if (!intFormat.CanStartWithCharacter(Input)) {
-            Result = false;
-            return;
-         }
+         if (!intFormat.CanStartWithCharacter(Input)) return;
 
          NewFormat = new UnderEdit(intFormat, Input.ToString(), intFormat.Length, null);
          Result = true;
       }
 
       public void Visit(IntegerEnum integer, byte data) {
-         if (!integer.CanStartWithCharacter(Input)) {
-            Result = false;
-            return;
-         }
+         if (!integer.CanStartWithCharacter(Input)) return;
 
          var arrayRun = (ArrayRun)Model.GetNextRun(MemoryLocation);
          var offsets = arrayRun.ConvertByteOffsetToArrayOffset(MemoryLocation);
@@ -133,8 +122,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Result = true;
       }
 
-      public void Visit(EggSection section, byte data) => throw new NotImplementedException();
+      public void Visit(EggSection section, byte data) => VisitEgg(section);
+      public void Visit(EggItem item, byte data) => VisitEgg(item);
+      public void VisitEgg(IDataFormat eggFormat) {
+         if (!char.IsLetterOrDigit(Input) && !$"{StringDelimeter}[".Contains(Input)) return;
 
-      public void Visit(EggItem item, byte data) => throw new NotImplementedException();
+         var stream = (EggMoveRun)Model.GetNextRun(MemoryLocation);
+         var allOptions = stream.GetAutoCompleteOptions();
+         var autocomplete = AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(Input.ToString())), -1);
+         NewFormat = new UnderEdit(eggFormat, Input.ToString(), 2, autocomplete);
+         Result = true;
+      }
    }
 }

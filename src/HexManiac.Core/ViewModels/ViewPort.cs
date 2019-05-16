@@ -141,7 +141,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   ClearEdits(location);
                } else {
                   var endEdit = " ";
-                  if (underEdit.CurrentText.Count(c => c == '"') % 2 == 1) endEdit = "\"";
+                  if (underEdit.CurrentText.Count(c => c == StringDelimeter) % 2 == 1) endEdit = StringDelimeter.ToString();
+                  var originalFormat = underEdit.OriginalFormat;
+                  if (originalFormat is Anchor anchor) originalFormat = anchor.OriginalFormat;
+                  if (underEdit.CurrentText.StartsWith("[") && (originalFormat is EggSection || originalFormat is EggItem)) endEdit = "]";
                   currentView[location.X, location.Y] = new HexElement(element.Value, underEdit.Edit(endEdit));
                   if (!TryCompleteEdit(location)) ClearEdits(location);
                }
@@ -950,6 +953,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private IReadOnlyList<AutoCompleteSelectionItem> GetAutocompleteOptions(IDataFormat originalFormat, string newText, int selectedIndex = -1) {
+         if (originalFormat is Anchor anchor) originalFormat = anchor.OriginalFormat;
          if (newText.StartsWith(PointerStart.ToString())) {
             return Model.GetNewPointerAutocompleteOptions(newText, selectedIndex);
          } else if (newText.StartsWith(GotoMarker.ToString())) {
@@ -959,6 +963,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var segment = (ArrayRunEnumSegment)array.ElementContent[array.ConvertByteOffsetToArrayOffset(intEnum.Source).SegmentIndex];
             var options = segment.GetOptions(Model).Select(option => option + " "); // autocomplete needs to complete after selection, so add a space
             return AutoCompleteSelectionItem.Generate(options.Where(option => option.MatchesPartial(newText)), selectedIndex);
+         } else if (originalFormat is EggSection || originalFormat is EggItem) {
+            var eggRun = (EggMoveRun)Model.GetNextRun(((IDataFormatInstance)originalFormat).Source);
+            var allOptions = eggRun.GetAutoCompleteOptions();
+            return AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(newText)), selectedIndex);
          } else {
             throw new NotImplementedException();
          }
