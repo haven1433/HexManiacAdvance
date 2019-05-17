@@ -146,6 +146,16 @@ Fire
 Water";
 
          Assert.Equal(14, model.GetNextRun(0).Length);
+         Assert.Equal(5, model.ReadMultiByteValue(0x188, 4));
+      }
+
+      [Fact]
+      public void FollowLinkOpensTextTool() {
+         CreateSimpleRun();
+         viewPort.SelectionStart = new Point(2, 0);
+         viewPort.FollowLink(2, 0);
+
+         Assert.Equal(0, viewPort.Tools.SelectedIndex);
       }
    }
 }

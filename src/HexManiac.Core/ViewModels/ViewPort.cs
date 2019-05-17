@@ -871,6 +871,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
             Tools.SelectedIndex = Enumerable.Range(0, Tools.Count).First(i => Tools[i] is PCSTool);
          }
+         if (format is EggSection || format is EggItem) {
+            var byteOffset = scroll.ViewPointToDataIndex(new Point(x, y));
+            var currentRun = Model.GetNextRun(byteOffset);
+            Tools.StringTool.Address = currentRun.Start;
+            Tools.SelectedIndex = Enumerable.Range(0, Tools.Count).First(i => Tools[i] is PCSTool);
+         }
       }
 
       public void ExpandSelection(int x, int y) {
