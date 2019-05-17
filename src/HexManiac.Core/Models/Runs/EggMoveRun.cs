@@ -145,7 +145,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return name.Substring(1, name.Length - 2);
       }
 
-      public void AppendTo(PokemonModel model, StringBuilder text, int start, int length) {
+      public void AppendTo(StringBuilder text, int start, int length) {
          while (length > 0 && start < Start + Length) {
             var value = model.ReadMultiByteValue(start, 2);
             if (value == 0xFFFF) {
@@ -162,6 +162,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             length -= 2;
             if (length > 0 && start < Start + Length) text.Append(" ");
          }
+      }
+
+      public bool UpdateLimiter(ModelDelta token) {
+         if (PointerSources.Count != 2) return false;
+         var address = PointerSources.Last() - 4;
+         var limiter = Length / 2 - 2;
+         model.WriteMultiByteValue(address, 4, token, limiter);
+         return true;
       }
    }
 }

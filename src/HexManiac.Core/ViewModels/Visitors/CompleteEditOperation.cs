@@ -299,7 +299,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             for (int i = memoryLocation + 2; i < run.Start + run.Length; i += 2) {
                Model.WriteMultiByteValue(i, 2, CurrentChange, 0xFFFF);
             }
-            Model.ObserveRunWritten(CurrentChange, new EggMoveRun(Model, run.Start));
+            var newRun = new EggMoveRun(Model, run.Start);
+            Model.ObserveRunWritten(CurrentChange, newRun);
+            newRun = (EggMoveRun)Model.GetNextRun(newRun.Start);
+            newRun.UpdateLimiter(CurrentChange);
          } else if (CurrentText.EndsWith("]")) {
             var value = run.GetPokemonNumber(CurrentText);
             if (value == -1) {
@@ -342,7 +345,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                DataMoved = true;
             }
             Model.WriteMultiByteValue(memoryLocation + 2, 2, CurrentChange, 0xFFFF);
-            Model.ObserveRunWritten(CurrentChange, new EggMoveRun(Model, newRun.Start));
+            var eggRun = new EggMoveRun(Model, newRun.Start);
+            Model.ObserveRunWritten(CurrentChange, eggRun);
+            eggRun = (EggMoveRun)Model.GetNextRun(eggRun.Start);
+            eggRun.UpdateLimiter(CurrentChange);
          }
       }
    }

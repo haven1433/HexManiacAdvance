@@ -26,6 +26,9 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Goto.Execute("000100");
          viewPort.Edit("^movenames[name\"\"8]8 \"Fire\" \"Water\" \"Earth\" \"Wind\" \"Light\" \"Dark\" \"Normal\" \"Magic\"");
 
+         viewPort.Goto.Execute("000180");
+         viewPort.Edit("<000000> Dead Beef 01 00 00 00 <000000>"); // limiter is at 188 for an eggrun at 000
+
          viewPort.Goto.Execute("000000");
 
          viewPort.OnMessage += (sender, e) => messages.Add(e);
@@ -98,10 +101,12 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void RunAutoExtends() {
-         viewPort.Edit("^eggmoves`egg` ");
+         CreateSimpleRun();
+         viewPort.SelectionStart = new Point(4, 0);
          viewPort.Edit("[Carl]");
 
-         Assert.Equal(4, model.GetNextRun(0).Length);
+         Assert.Equal(8, model.GetNextRun(0).Length);
+         Assert.Equal(2, model.ReadMultiByteValue(0x188, 4));
       }
 
       [Fact]
@@ -120,6 +125,7 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Edit("[]");
 
          Assert.Equal(4, model.GetNextRun(0).Length);
+         Assert.Equal(0, model.ReadMultiByteValue(0x188, 4));
       }
    }
 }
