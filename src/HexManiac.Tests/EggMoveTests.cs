@@ -157,5 +157,13 @@ Water";
 
          Assert.Equal(0, viewPort.Tools.SelectedIndex);
       }
+
+      [Fact]
+      public void RightClickOptionToOpenTextTool() {
+         CreateSimpleRun();
+         viewPort.SelectionStart = new Point(2, 0);
+         var items = viewPort.GetContextMenuItems(viewPort.SelectionStart);
+         Assert.Contains(items, item => item.ShortcutText == "Ctrl+Click");
+      }
    }
 }

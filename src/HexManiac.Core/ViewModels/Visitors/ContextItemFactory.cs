@@ -117,9 +117,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Results.AddRange(GetTableChildren(arrayRun));
       }
 
-      public void Visit(EggSection section, byte data) { }
+      public void Visit(EggSection section, byte data) {
+         var point = ViewPort.SelectionStart;
+         Results.Add(new ContextItem("Open In Text Tool", arg => ViewPort.FollowLink(point.X, point.Y)) { ShortcutText = "Ctrl+Click" });
+      }
 
-      public void Visit(EggItem item, byte data) { }
+      public void Visit(EggItem item, byte data) {
+         var point = ViewPort.SelectionStart;
+         Results.Add(new ContextItem("Open In Text Tool", arg => ViewPort.FollowLink(point.X, point.Y)) { ShortcutText = "Ctrl+Click" });
+      }
 
       private IEnumerable<IContextItem> GetTableChildren(ArrayRun array) {
          if (ViewPort.Tools.TableTool.Append.CanExecute(null)) {
