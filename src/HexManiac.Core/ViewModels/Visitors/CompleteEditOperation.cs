@@ -295,7 +295,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
          if (CurrentText == "[]") {
             Model.WriteMultiByteValue(memoryLocation, 2, CurrentChange, 0xFFFF);
-            // TODO update length
+            // clear all data after this and shorten the run
+            for (int i = memoryLocation + 2; i < run.Start + run.Length; i += 2) {
+               Model.WriteMultiByteValue(i, 2, CurrentChange, 0xFFFF);
+            }
+            Model.ObserveRunWritten(CurrentChange, new EggMoveRun(Model, run.Start));
          } else if (CurrentText.EndsWith("]")) {
             var value = run.GetPokemonNumber(CurrentText);
             if (value == -1) {
@@ -337,9 +341,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                NewDataIndex = memoryLocation + 2;
                DataMoved = true;
             }
-            // TODO write FFFF from here to the end of the current run
             Model.WriteMultiByteValue(memoryLocation + 2, 2, CurrentChange, 0xFFFF);
-            Model.ObserveRunWritten(CurrentChange, new EggMoveRun(Model, newRun.Start));            
+            Model.ObserveRunWritten(CurrentChange, new EggMoveRun(Model, newRun.Start));
          }
       }
    }

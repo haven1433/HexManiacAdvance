@@ -112,5 +112,14 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Single(messages);
       }
+
+      [Fact]
+      public void RunAutoShortens() {
+         CreateSimpleRun();
+         viewPort.SelectionStart = new Point(2, 0);
+         viewPort.Edit("[]");
+
+         Assert.Equal(4, model.GetNextRun(0).Length);
+      }
    }
 }
