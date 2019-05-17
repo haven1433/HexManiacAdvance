@@ -148,7 +148,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public void AppendTo(PokemonModel model, StringBuilder text, int start, int length) {
          while (length > 0 && start < Start + Length) {
             var value = model.ReadMultiByteValue(start, 2);
-            if (value >= MagicNumber) {
+            if (value == 0xFFFF) {
+               text.Append($"[]");
+            } else if (value >= MagicNumber) {
                value -= MagicNumber;
                if (value >= cachedPokenames.Count) text.Append($"[{value}]");
                else text.Append($"[{Dequote(cachedPokenames[value])}]");

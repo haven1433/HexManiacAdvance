@@ -738,7 +738,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override string Copy(Func<ModelDelta> changeToken, int start, int length) {
          var text = new StringBuilder();
          var run = GetNextRun(start);
-         if (run.Start < start && !(run is ArrayRun)) {
+         if (run.Start < start && !(run is ArrayRun) && !(run is EggMoveRun)) {
             length += start - run.Start;
             start = run.Start;
          }

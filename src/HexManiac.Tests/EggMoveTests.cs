@@ -89,11 +89,11 @@ namespace HavenSoft.HexManiac.Tests {
          CreateSimpleRun();
          var fileSystem = new StubFileSystem();
 
-         viewPort.SelectionStart = new Point(0, 0);
-         viewPort.SelectionEnd = new Point(2, 0);
+         viewPort.SelectionStart = new Point(2, 0);
+         viewPort.SelectionEnd = new Point(4, 0);
          viewPort.Copy.Execute(fileSystem);
 
-         Assert.Equal("^eggmoves`egg` [Carl] Wind", fileSystem.CopyText.value);
+         Assert.Equal("Wind []", fileSystem.CopyText.value);
       }
 
       [Fact]
