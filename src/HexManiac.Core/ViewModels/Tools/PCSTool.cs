@@ -66,6 +66,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                if (run.Start > address) return; // wrong run, don't adjust
                if (run is PCSRun pcsRun) UpdateRun(pcsRun);
                if (run is ArrayRun arrayRun) UpdateRun(arrayRun);
+               if (run is EggMoveRun eggRun) UpdateRun(eggRun);
             }
          }
       }
@@ -77,7 +78,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (ignoreExternalUpdates) return;
             var run = model.GetNextRun(value);
             if (TryUpdate(ref address, value)) {
-               if ((run is PCSRun || run is ArrayRun) && run.Start <= value) {
+               if ((run is PCSRun || run is ArrayRun || run is EggMoveRun) && run.Start <= value) {
                   runner.Schedule(DataForCurrentRunChanged);
                   Enabled = true;
                   ShowMessage = false;
@@ -173,6 +174,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   }
                }
             }
+            return;
+         } else if (run is EggMoveRun egg) {
+            var newContent = egg.SerializeForTool();
+            TryUpdate(ref content, newContent, nameof(Content));
             return;
          }
 
@@ -271,6 +276,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          ModelDataChanged?.Invoke(this, run);
          TryUpdate(ref address, run.Start, nameof(Address));
          ignoreExternalUpdates = false;
+      }
+
+      private void UpdateRun(EggMoveRun run) {
+         var lines = content.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+         var newStart = run.DeserializeFromTool(content, history.CurrentChange);
+         var newRun = new EggMoveRun(model, newStart);
+         if (newRun.Length != run.Length) {
+            model.ObserveRunWritten(history.CurrentChange, newRun);
+            newRun = (EggMoveRun)model.GetNextRun(newRun.Start);
+            history.CurrentChange.AddRun(newRun);
+            newRun.UpdateLimiter(history.CurrentChange);
+         }
+
+         if (run.Start != newRun.Start) ModelDataMoved?.Invoke(this, (run.Start, newRun.Start));
+         ModelDataChanged?.Invoke(this, newRun);
       }
    }
 }

@@ -126,6 +126,47 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return GetNumber(input, names);
       }
 
+      public string SerializeForTool() {
+         var builder = new StringBuilder();
+         for (int i = 0; i < Length - 2; i += 2) {
+            var address = Start + i;
+            var value = model.ReadMultiByteValue(address, 2);
+            if (value >= MagicNumber) {
+               value -= MagicNumber;
+               builder.Append($"[{Dequote(cachedPokenames[value])}]");
+            } else {
+               builder.Append(Dequote(cachedMovenames[value]));
+            }
+            if (i < Length - 4) builder.AppendLine();
+         }
+         return builder.ToString();
+      }
+
+      public int DeserializeFromTool(string content, ModelDelta token) {
+         var data = new List<int>();
+         var pokemonNames = cachedPokenames.Select(name => $"[{Dequote(name).ToLower()}]").ToList();
+         var moveNames = cachedMovenames.Select(name => Dequote(name).ToLower()).ToList();
+         var lines = content.ToLower().Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+         foreach (var line in lines) {
+            var index = pokemonNames.IndexOf(line);
+            if (index != -1) { data.Add(index + MagicNumber); continue; }
+            index = moveNames.IndexOf(line);
+            if (index != -1) { data.Add(index); continue; }
+            var startCount = data.Count;
+            for (int i = 0; i < pokemonNames.Count; i++) {
+               if (pokemonNames[i].Contains(line)) { data.Add(i + MagicNumber); break; }
+            }
+            if (startCount != data.Count) continue;
+            for (int i = 0; i < moveNames.Count; i++) {
+               if (moveNames[i].Contains(line)) { data.Add(i); break; }
+            }
+         }
+         var run = model.RelocateForExpansion(token, this, data.Count * 2 + 2);
+         for (int i = 0; i < data.Count; i++) model.WriteMultiByteValue(run.Start + i * 2, 2, token, data[i]);
+         for (int i = data.Count; i < Length / 2; i++) model.WriteMultiByteValue(run.Start + i * 2, 2, token, 0xFFFF);
+         return run.Start;
+      }
+
       public IEnumerable<string> GetAutoCompleteOptions() {
          var pokenames = cachedPokenames.Select(name => $"[{name}]");
          var movenames = cachedMovenames.Select(name => name + " ");

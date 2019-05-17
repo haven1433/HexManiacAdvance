@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
@@ -126,6 +127,25 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(4, model.GetNextRun(0).Length);
          Assert.Equal(0, model.ReadMultiByteValue(0x188, 4));
+      }
+
+      [Fact]
+      public void CanViewInTextTool() {
+         CreateSimpleRun();
+         viewPort.SelectionStart = new Point(2, 0);
+         viewPort.Tools.StringToolCommand.Execute();
+
+         Assert.Equal(@"[Carl]
+Wind", viewPort.Tools.StringTool.Content);
+
+         viewPort.Tools.StringTool.Content = @"[Carl]
+Earth
+Light
+[Ryan]
+Fire
+Water";
+
+         Assert.Equal(14, model.GetNextRun(0).Length);
       }
    }
 }
