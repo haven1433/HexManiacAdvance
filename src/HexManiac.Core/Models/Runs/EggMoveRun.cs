@@ -152,18 +152,23 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (index != -1) { data.Add(index + MagicNumber); continue; }
             index = moveNames.IndexOf(line);
             if (index != -1) { data.Add(index); continue; }
-            var startCount = data.Count;
+
+            // didn't find an exact match... look for a partial pokemon match
+            var matchFound = false;
             for (int i = 0; i < pokemonNames.Count; i++) {
-               if (pokemonNames[i].Contains(line)) { data.Add(i + MagicNumber); break; }
+               if (pokemonNames[i].Contains(line)) { data.Add(i + MagicNumber); matchFound = true; break; }
             }
-            if (startCount != data.Count) continue;
+            if (matchFound) continue;
+
+            // look for a partial move match
             for (int i = 0; i < moveNames.Count; i++) {
                if (moveNames[i].Contains(line)) { data.Add(i); break; }
             }
          }
          var run = model.RelocateForExpansion(token, this, data.Count * 2 + 2);
          for (int i = 0; i < data.Count; i++) model.WriteMultiByteValue(run.Start + i * 2, 2, token, data[i]);
-         for (int i = data.Count; i < Length / 2; i++) model.WriteMultiByteValue(run.Start + i * 2, 2, token, 0xFFFF);
+         model.WriteMultiByteValue(run.Start + data.Count * 2, 2, token, 0xFFFF); // write the new end token
+         for (int i = data.Count + 2; i < Length / 2; i++) model.WriteMultiByteValue(run.Start + i * 2, 2, token, 0xFFFF); // fill any remaining old space with FF
          return run.Start;
       }
 

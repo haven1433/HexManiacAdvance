@@ -132,7 +132,8 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void CanViewInTextTool() {
          CreateSimpleRun();
-         viewPort.SelectionStart = new Point(2, 0);
+         viewPort.SelectionStart = new Point(2, 2); // select off it
+         viewPort.SelectionStart = new Point(2, 0); // and then back on
          viewPort.Tools.StringToolCommand.Execute();
 
          Assert.Equal(@"[Carl]
