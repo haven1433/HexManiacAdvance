@@ -1,6 +1,7 @@
 ﻿
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -88,12 +89,13 @@ namespace HavenSoft.HexManiac.Tests {
          var address = model.GetAddressFromAnchor(noChange, -1, "items");
          var run = (ArrayRun)model.GetNextAnchor(address);
          if (game.Contains("Altair")) Assert.Equal(377, run.ElementCount);
-         if (game.Contains("Emerald")) Assert.Equal(377, run.ElementCount);
-         if (game.Contains("FireRed")) Assert.Equal(375, run.ElementCount);
-         if (game.Contains("DarkRisingKAIZO")) Assert.Equal(375, run.ElementCount);
-         if (game.Contains("LeafGreen")) Assert.Equal(375, run.ElementCount);
-         if (game.Contains("Ruby")) Assert.Equal(349, run.ElementCount);
-         if (game.Contains("Sapphire")) Assert.Equal(349, run.ElementCount);
+         else if (game.Contains("Emerald")) Assert.Equal(377, run.ElementCount);
+         else if (game.Contains("FireRed")) Assert.Equal(375, run.ElementCount);
+         else if (game.Contains("DarkRisingKAIZO")) Assert.Equal(375, run.ElementCount);
+         else if (game.Contains("LeafGreen")) Assert.Equal(375, run.ElementCount);
+         else if (game.Contains("Ruby")) Assert.Equal(349, run.ElementCount);
+         else if (game.Contains("Sapphire")) Assert.Equal(349, run.ElementCount);
+         else throw new NotImplementedException();
       }
 
       [SkippableTheory]
@@ -105,12 +107,13 @@ namespace HavenSoft.HexManiac.Tests {
          var address = model.GetAddressFromAnchor(noChange, -1, "trainerclassnames");
          var run = (ArrayRun)model.GetNextAnchor(address);
          if (game.Contains("Altair")) Assert.Equal(66, run.ElementCount);
-         if (game.Contains("Emerald")) Assert.Equal(66, run.ElementCount);
-         if (game.Contains("FireRed")) Assert.Equal(107, run.ElementCount);
-         if (game.Contains("DarkRisingKAIZO")) Assert.Equal(107, run.ElementCount);
-         if (game.Contains("LeafGreen")) Assert.Equal(107, run.ElementCount);
-         if (game.Contains("Ruby")) Assert.Equal(58, run.ElementCount);
-         if (game.Contains("Sapphire")) Assert.Equal(58, run.ElementCount);
+         else if (game.Contains("Emerald")) Assert.Equal(66, run.ElementCount);
+         else if (game.Contains("FireRed")) Assert.Equal(107, run.ElementCount);
+         else if (game.Contains("DarkRisingKAIZO")) Assert.Equal(107, run.ElementCount);
+         else if (game.Contains("LeafGreen")) Assert.Equal(107, run.ElementCount);
+         else if (game.Contains("Ruby")) Assert.Equal(58, run.ElementCount);
+         else if (game.Contains("Sapphire")) Assert.Equal(58, run.ElementCount);
+         else throw new NotImplementedException();
       }
 
       [SkippableTheory]
