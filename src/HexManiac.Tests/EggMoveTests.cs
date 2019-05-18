@@ -165,5 +165,16 @@ Water";
          var items = viewPort.GetContextMenuItems(viewPort.SelectionStart);
          Assert.Contains(items, item => item.ShortcutText == "Ctrl+Click");
       }
+
+      [Fact]
+      public void ToolCursorChangesCauseSelectionChanges() {
+         CreateSimpleRun();
+         viewPort.SelectionStart = new Point(2, 0);
+         viewPort.Tools.StringToolCommand.Execute();
+         viewPort.Tools.StringTool.ContentIndex = 5;
+
+         Assert.True(viewPort.IsSelected(new Point(0, 0)));
+         Assert.True(viewPort.IsSelected(new Point(1, 0)));
+      }
    }
 }

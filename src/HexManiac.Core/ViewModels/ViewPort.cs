@@ -168,7 +168,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var offsets = array.ConvertByteOffsetToArrayOffset(dataIndex);
             Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
             Tools.TableTool.Address = array.Start + array.ElementLength * offsets.ElementIndex;
-         } else if (run.Start <= dataIndex && run is PCSRun) {
+         } else if (run.Start <= dataIndex && (run is PCSRun || run is EggMoveRun)) {
             Tools.StringTool.Address = run.Start;
          } else {
             Tools.StringTool.Address = dataIndex;
