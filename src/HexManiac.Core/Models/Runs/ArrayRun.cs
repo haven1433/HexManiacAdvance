@@ -201,7 +201,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   break;
                }
             }
-            if (bestLength < currentLength) {
+
+            // we think we found some data! Make sure it's not just a bunch of 00's and FF's
+            var dataEmpty = true;
+            for (int i = 0; i < currentLength && currentLength > bestLength && dataEmpty; i++) dataEmpty = data[run.Start + i] == 0xFF || data[run.Start + i] == 0x00;
+
+            if (bestLength < currentLength && !dataEmpty) {
                bestLength = currentLength;
                bestAddress = run.Start;
             }
@@ -455,8 +460,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var format = ElementContentType.PCS;
             var formatLength = 2;
             while (formatLength < segments.Length && char.IsDigit(segments[formatLength])) formatLength++;
-            var segmentLength = int.Parse(segments.Substring(2, formatLength - 2));
-            return (format, formatLength, segmentLength);
+            if (int.TryParse(segments.Substring(2, formatLength - 2), out var segmentLength)) {
+               return (format, formatLength, segmentLength);
+            }
          } else if (segments.StartsWith(DoubleByteIntegerFormat + string.Empty + DoubleByteIntegerFormat)) {
             return (ElementContentType.Integer, 2, 4);
          } else if (segments.StartsWith(DoubleByteIntegerFormat + string.Empty + SingleByteIntegerFormat) || segments.StartsWith(".:")) {
@@ -504,11 +510,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          switch (segment.Type) {
             case ElementContentType.PCS:
                int readLength = PCSString.ReadString(owner, start, true, segment.Length);
-               if (readLength == -1) return false;
+               if (readLength < 2) return false;
+               if (owner[start] == 0x00) return false; // don't auto-find text that starts with a space, that's not how text ever starts.
                if (readLength > segment.Length) return false;
                if (Enumerable.Range(start, segment.Length).All(i => owner[i] == 0xFF)) return false;
 
-               // TODO test this with Altair
                // in the initial 5 ROMs, any data after the close quote is either 0x00 or 0xFF
                // but in fan games, this data may contain leftover junk bytes from what the text 'used' to be.
                // this is because other popular existing editors don't clean up after themselves.
