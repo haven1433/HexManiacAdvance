@@ -700,38 +700,60 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var textResults = Search(searchBytes).ToList();
          Model.ConsiderResultsAsTextRuns(history.CurrentChange, textResults);
          foreach (var result in textResults) {
-            // if the result is in an array, we care about things that use that array
             if (Model.GetNextRun(result) is ArrayRun parentArray && parentArray.LengthFromAnchor == string.Empty) {
-               var offsets = parentArray.ConvertByteOffsetToArrayOffset(result);
-               var parentArrayName = Model.GetAnchorFromAddress(-1, parentArray.Start);
-               if (offsets.SegmentIndex == 0 && parentArray.ElementContent[offsets.SegmentIndex].Type == ElementContentType.PCS) {
-                  foreach (var child in Model.Arrays) {
-                     // option 1: another table has a row named after this element
-                     if (child.LengthFromAnchor == parentArrayName) {
-                        var address = child.Start + child.ElementLength * offsets.ElementIndex;
-                        yield return (address, address + child.ElementLength - 1);
-                     }
+               foreach (var dataResult in FindMatchingDataResultsFromArrayElement(parentArray, result)) yield return dataResult;
+            }
 
-                     // option 2: another table has an enum named after this element
-                     var segmentOffset = 0;
-                     foreach (var segment in child.ElementContent) {
-                        if (!(segment is ArrayRunEnumSegment enumSegment) || enumSegment.EnumName != parentArrayName) {
-                           segmentOffset += segment.Length;
-                           continue;
+            yield return (result, result + pcsBytes.Count - 1);
+         }
+      }
+
+      /// <summary>
+      /// When performing a search, sometimes one of the search results is text from a table.
+      /// If so, then we also care about places where that table value is used.
+      /// This function finds uses of an element in a table.
+      /// </summary>
+      private IEnumerable<(int start, int end)> FindMatchingDataResultsFromArrayElement(ArrayRun parentArray, int parentIndex) {
+         var offsets = parentArray.ConvertByteOffsetToArrayOffset(parentIndex);
+         var parentArrayName = Model.GetAnchorFromAddress(-1, parentArray.Start);
+         if (offsets.SegmentIndex == 0 && parentArray.ElementContent[offsets.SegmentIndex].Type == ElementContentType.PCS) {
+            foreach (var child in Model.Arrays) {
+               // option 1: another table has a row named after this element
+               if (child.LengthFromAnchor == parentArrayName) {
+                  var address = child.Start + child.ElementLength * offsets.ElementIndex;
+                  yield return (address, address + child.ElementLength - 1);
+               }
+
+               // option 2: another table has an enum named after this element
+               var segmentOffset = 0;
+               foreach (var segment in child.ElementContent) {
+                  if (!(segment is ArrayRunEnumSegment enumSegment) || enumSegment.EnumName != parentArrayName) {
+                     segmentOffset += segment.Length;
+                     continue;
+                  }
+                  for (int i = 0; i < child.ElementCount; i++) {
+                     var address = child.Start + child.ElementLength * i + segmentOffset;
+                     var enumValue = Model.ReadMultiByteValue(address, segment.Length);
+                     if (enumValue != offsets.ElementIndex) continue;
+                     yield return (address, address + segment.Length - 1);
+                  }
+                  segmentOffset += segment.Length;
+               }
+            }
+            foreach (var child in Model.Streams) {
+               // option 3: a stream uses this as a datatype
+               if (child is EggMoveRun eggRun) {
+                  var groupStart = 0;
+                  if (parentArrayName == EggMoveRun.PokemonNameTable) groupStart = EggMoveRun.MagicNumber;
+                  if (parentArrayName == EggMoveRun.PokemonNameTable || parentArrayName == EggMoveRun.MoveNamesTable) {
+                     for (int i = 0; i < eggRun.Length - 2; i += 2) {
+                        if (Model.ReadMultiByteValue(eggRun.Start + i, 2) == offsets.ElementIndex + groupStart) {
+                           yield return (eggRun.Start + i, eggRun.Start + i + 1);
                         }
-                        for (int i = 0; i < child.ElementCount; i++) {
-                           var address = child.Start + child.ElementLength * i + segmentOffset;
-                           var enumValue = Model.ReadMultiByteValue(address, segment.Length);
-                           if (enumValue != offsets.ElementIndex) continue;
-                           yield return (address, address + segment.Length - 1);
-                        }
-                        segmentOffset += segment.Length;
                      }
                   }
                }
             }
-
-            yield return (result, result + pcsBytes.Count - 1);
          }
       }
 

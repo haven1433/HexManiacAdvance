@@ -177,5 +177,16 @@ Water";
          Assert.True(viewPort.IsSelected(new Point(0, 0)));
          Assert.True(viewPort.IsSelected(new Point(1, 0)));
       }
+
+      [Fact]
+      public void SearchFindsEggMoveData() {
+         CreateSimpleRun();
+
+         var pairs = viewPort.Find("wind");
+         Assert.Contains((2, 3), pairs);
+
+         pairs = viewPort.Find("carl");
+         Assert.Contains((0, 1), pairs);
+      }
    }
 }

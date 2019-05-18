@@ -29,6 +29,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public virtual int EarliestAllowedAnchor => 0;
 
       public override IReadOnlyList<ArrayRun> Arrays => runs.OfType<ArrayRun>().ToList();
+      public override IReadOnlyList<IFormattedRun> Streams => runs.OfType<EggMoveRun>().ToList();
 
       #region Constructor
 

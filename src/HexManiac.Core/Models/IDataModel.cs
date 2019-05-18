@@ -11,6 +11,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       byte[] RawData { get; }
       new byte this[int index] { get; set; }
       IReadOnlyList<ArrayRun> Arrays { get; }
+      IReadOnlyList<IFormattedRun> Streams { get; }
 
       /// <summary>
       /// If dataIndex is in the middle of a run, returns that run.
@@ -64,6 +65,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public BaseModel(byte[] data) => RawData = data;
 
       public virtual IReadOnlyList<ArrayRun> Arrays { get; } = new List<ArrayRun>();
+      public virtual IReadOnlyList<IFormattedRun> Streams { get; } = new List<IFormattedRun>();
 
       public byte this[int index] { get => RawData[index]; set => RawData[index] = value; }
 
