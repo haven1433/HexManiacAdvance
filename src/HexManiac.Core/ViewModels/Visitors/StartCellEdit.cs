@@ -97,9 +97,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Result = ViewPort.AllHexCharacters.Contains(Input);
       }
 
-      public void Visit(ErrorPCS pcs, byte data) {
-         throw new NotImplementedException();
-      }
+      public void Visit(ErrorPCS pcs, byte data) => Visit((PCS)null, data);
 
       public void Visit(Ascii ascii, byte data) => Result = true;
 
