@@ -39,7 +39,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (run is ArrayRun || run is PCSRun || run.PointerSources == null) continue;
 
             // verify expected pointers to this
-            if (run.PointerSources.Count != 2) continue;
+            if (run.PointerSources.Count < 2 || run.PointerSources.Count > 10) continue;
 
             // verify limiter
             var length = data.ReadMultiByteValue(run.PointerSources[1] - 4, 4);

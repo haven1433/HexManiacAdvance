@@ -65,17 +65,17 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          // abilitynames / trainer names
          if (gameCode == Ruby || gameCode == Sapphire || gameCode == Emerald) {
-            if (TrySearch(this, noChangeDelta, "[name\"\"13]", out var abilitynames)) {
+            if (TrySearch(this, noChangeDelta, "[name\"\"13]", out var abilitynames, run => run.PointerSources.FirstOrDefault() < 0x100000)) {
                ObserveAnchorWritten(noChangeDelta, "abilitynames", abilitynames);
             }
-            if (TrySearch(this, noChangeDelta, "[name\"\"13]", out var trainerclassnames)) {
+            if (TrySearch(this, noChangeDelta, "[name\"\"13]", out var trainerclassnames, run => run.PointerSources.Count > 1)) {
                ObserveAnchorWritten(noChangeDelta, "trainerclassnames", trainerclassnames);
             }
          } else {
-            if (TrySearch(this, noChangeDelta, "[name\"\"13]", out var trainerclassnames)) {
+            if (TrySearch(this, noChangeDelta, "[name\"\"13]", out var trainerclassnames, run => run.PointerSources.Count > 1)) {
                ObserveAnchorWritten(noChangeDelta, "trainerclassnames", trainerclassnames);
             }
-            if (TrySearch(this, noChangeDelta, "[name\"\"13]", out var abilitynames)) {
+            if (TrySearch(this, noChangeDelta, "[name\"\"13]", out var abilitynames, run => run.PointerSources.FirstOrDefault() < 0x100000)) {
                ObserveAnchorWritten(noChangeDelta, "abilitynames", abilitynames);
             }
          }

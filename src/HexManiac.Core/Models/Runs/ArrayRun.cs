@@ -164,7 +164,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var elementLength = elementContent.Sum(e => e.Length);
 
          if (string.IsNullOrEmpty(length)) {
-            var bestAddress = StandardSearch(data, elementContent, elementLength, out int bestLength);
+            var bestAddress = StandardSearch(data, elementContent, elementLength, out int bestLength, runFilter);
             if (bestAddress == Pointer.NULL) return false;
             self = new ArrayRun(data, originalFormat + bestLength, string.Empty, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources, null);
          } else {
@@ -178,7 +178,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return true;
       }
 
-      private static int StandardSearch(IDataModel data, List<ArrayRunElementSegment> elementContent, int elementLength, out int bestLength) {
+      private static int StandardSearch(IDataModel data, List<ArrayRunElementSegment> elementContent, int elementLength, out int bestLength, Func<IFormattedRun, bool> runFilter) {
          int bestAddress = Pointer.NULL;
          bestLength = 0;
 
@@ -189,6 +189,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                continue;
             }
             var nextArray = nextRun;
+
+            // some searches allow special conditions on the run. For example, we could only be intersted in runs with >100 pointers leading to it.
+            if (runFilter != null && !runFilter(run)) { run = nextRun; continue; }
 
             int currentLength = 0;
             int currentAddress = run.Start;
@@ -499,13 +502,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private static bool DataMatchesElementFormat(IDataModel owner, int start, IReadOnlyList<ArrayRunElementSegment> segments, IFormattedRun nextAnchor) {
          foreach (var segment in segments) {
             if (start + segment.Length > owner.Count) return false;
-            if (!DataMatchesSegmentFormat(owner, start, segment, nextAnchor)) return false;
+            if (!DataMatchesSegmentFormat(owner, start, segment, segments.Count, nextAnchor)) return false;
             start += segment.Length;
          }
          return true;
       }
 
-      private static bool DataMatchesSegmentFormat(IDataModel owner, int start, ArrayRunElementSegment segment, IFormattedRun nextAnchor) {
+      private static bool DataMatchesSegmentFormat(IDataModel owner, int start, ArrayRunElementSegment segment, int segmentCount, IFormattedRun nextAnchor) {
          if (start + segment.Length > nextAnchor.Start && nextAnchor is ArrayRun) return false; // don't blap over existing arrays
          switch (segment.Type) {
             case ElementContentType.PCS:
@@ -521,6 +524,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                // in order to be compatible with games made with those editors, we have to allow automatic matches
                // to match arrays with junk PCS characters after the closing quote.
                if (Enumerable.Range(start + readLength, segment.Length - readLength).Any(i => PCSString.PCS[owner[i]] == null)) return false;
+
+               // if we end with a space, and the next one starts with a space, we probably have the data width wrong.
+               // We might be the start of a different data segment that is no longer pointed to. (Example: Vega/pokenames)
+               if (segmentCount == 1 && start % 4 == 0 && owner[start + segment.Length - 1] == 0x00 && owner[start + segment.Length] == 0x00) {
+                  // if the next one starts on a 4-byte boundary, then we probably just skipped a few bytes between different data types, and _this_ section is still part of the _last_ run (example, Emerald Ability names)
+                  // if the next one doesn't start on a 4-byte boundary, then we probably have the length wrong
+                  var nextWordStart = (start + segment.Length + 3) / 4 * 4;
+                  if (Enumerable.Range(start + segment.Length, nextWordStart - start - segment.Length).Any(i => owner[i] != 0x00) || owner[nextWordStart] == 0x00) return false;
+               }
 
                // require that the overall thing still ends with 'FF' or '00' to avoid finding text of the wrong width.
                var lastByteInText = owner[start + segment.Length - 1];
