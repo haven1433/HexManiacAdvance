@@ -53,8 +53,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
             // verify content
             bool possibleMatch = true;
+            int lastValue = -1;
             for (int i = 0; i < length - 2; i++) {
                var value = data.ReadMultiByteValue(run.Start + i * 2, 2);
+
+               // if the same byte pairs are repeated multiple times, then this pokemon is listed twice or has the same egg move twice.
+               // that seems unlikely... this is probably the wrong data.
+               if (value == lastValue) { possibleMatch = false; break; }
+               lastValue = value;
+
                if (value == 0xFFFF) break; // early exit, the data was edited, but that's ok. Everything still matches up.
                if (value >= MagicNumber) {
                   value -= MagicNumber;

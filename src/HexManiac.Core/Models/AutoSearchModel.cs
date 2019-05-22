@@ -68,11 +68,11 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (TrySearch(this, noChangeDelta, "[name\"\"13]", out var abilitynames, run => run.PointerSources.FirstOrDefault() < 0x100000)) {
                ObserveAnchorWritten(noChangeDelta, "abilitynames", abilitynames);
             }
-            if (TrySearch(this, noChangeDelta, "[name\"\"13]", out var trainerclassnames, run => run.PointerSources.Count > 1)) {
+            if (TrySearch(this, noChangeDelta, "[name\"\"13]", out var trainerclassnames)) {
                ObserveAnchorWritten(noChangeDelta, "trainerclassnames", trainerclassnames);
             }
          } else {
-            if (TrySearch(this, noChangeDelta, "[name\"\"13]", out var trainerclassnames, run => run.PointerSources.Count > 1)) {
+            if (TrySearch(this, noChangeDelta, "[name\"\"13]", out var trainerclassnames, run => run.PointerSources.Count > 1 && run.PointerSources.Count < 4)) {
                ObserveAnchorWritten(noChangeDelta, "trainerclassnames", trainerclassnames);
             }
             if (TrySearch(this, noChangeDelta, "[name\"\"13]", out var abilitynames, run => run.PointerSources.FirstOrDefault() < 0x100000)) {
@@ -91,7 +91,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             ObserveAnchorWritten(noChangeDelta, "items", itemdata);
          }
 
-         if (TrySearch(this, noChangeDelta, "[hp. attack. def. speed. spatk. spdef. type1.types type2.types catchRate. baseExp. evs: item1:items item2:items genderratio. steps2hatch. basehappiness. growthrate. egg1. egg2. ability1.abilitynames ability2.abilitynames runrate. unknown. padding:]pokenames", out var pokestatdata)) {
+         var format = "[hp. attack. def. speed. spatk. spdef. type1.types type2.types catchRate. baseExp. evs: item1:items item2:items genderratio. steps2hatch. basehappiness. growthrate. egg1. egg2. ability1.abilitynames ability2.abilitynames runrate. unknown. padding:]pokenames";
+         if (TrySearch(this, noChangeDelta, format, out var pokestatdata, run => run.PointerSources.Count > 5)) {
             ObserveAnchorWritten(noChangeDelta, "pokestats", pokestatdata);
          }
 

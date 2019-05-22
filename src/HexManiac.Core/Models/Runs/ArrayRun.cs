@@ -205,6 +205,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                }
             }
 
+            // if what we found is just a text array, then remove any trailing elements starting with a space.
+            if (elementContent.Count == 1 && elementContent[0].Type == ElementContentType.PCS) {
+               while (data[currentAddress - elementLength] == 0x00) {
+                  currentLength--;
+                  currentAddress -= elementLength;
+               }
+            }
+
             // we think we found some data! Make sure it's not just a bunch of 00's and FF's
             var dataEmpty = true;
             for (int i = 0; i < currentLength && currentLength > bestLength && dataEmpty; i++) dataEmpty = data[run.Start + i] == 0xFF || data[run.Start + i] == 0x00;
@@ -514,7 +522,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             case ElementContentType.PCS:
                int readLength = PCSString.ReadString(owner, start, true, segment.Length);
                if (readLength < 2) return false;
-               if (owner[start] == 0x00) return false; // don't auto-find text that starts with a space, that's not how text ever starts.
                if (readLength > segment.Length) return false;
                if (Enumerable.Range(start, segment.Length).All(i => owner[i] == 0xFF)) return false;
 
@@ -535,8 +542,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                }
 
                // require that the overall thing still ends with 'FF' or '00' to avoid finding text of the wrong width.
+               // the width check is less important if we have more complex data, so relax the condition (example: Clover)
                var lastByteInText = owner[start + segment.Length - 1];
-               if (lastByteInText != 0x00 && lastByteInText != 0xFF) return false;
+               var lastByteIsReasonablEnd = lastByteInText == 0x00 || lastByteInText == 0xFF;
+               if (!lastByteIsReasonablEnd && segmentCount == 1) return false;
 
                return true;
             case ElementContentType.Integer:

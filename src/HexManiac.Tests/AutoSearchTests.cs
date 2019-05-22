@@ -23,6 +23,7 @@ namespace HavenSoft.HexManiac.Tests {
          "Emerald",
          "DarkRisingKAIZO", // from FireRed
          "Vega 2019-04-20", // from FireRed
+         "Clover",          // from FireRed
          "Altair",          // from Emerald
       }.Select(game => new object[] { "sampleFiles/Pokemon " + game + ".gba" });
 
@@ -46,6 +47,7 @@ namespace HavenSoft.HexManiac.Tests {
          var address = model.GetAddressFromAnchor(noChange, -1, EggMoveRun.MoveNamesTable);
          var run = (ArrayRun)model.GetNextAnchor(address);
          if (game.Contains("Vega")) Assert.Equal(512, run.ElementCount);
+         else if (game.Contains("Clover")) Assert.Equal(512, run.ElementCount);
          else Assert.Equal(355, run.ElementCount);
       }
 
@@ -57,7 +59,8 @@ namespace HavenSoft.HexManiac.Tests {
 
          var address = model.GetAddressFromAnchor(noChange, -1, "abilitynames");
          var run = (ArrayRun)model.GetNextAnchor(address);
-         Assert.Equal(78, run.ElementCount);
+         if (game.Contains("Clover")) Assert.Equal(156, run.ElementCount);
+         else Assert.Equal(78, run.ElementCount);
       }
 
       [SkippableTheory]
@@ -68,7 +71,8 @@ namespace HavenSoft.HexManiac.Tests {
 
          var address = model.GetAddressFromAnchor(noChange, -1, "abilitydescriptions");
          var run = (ArrayRun)model.GetNextAnchor(address);
-         Assert.Equal(78, run.ElementCount);
+         if (game.Contains("Clover")) Assert.Equal(156, run.ElementCount);
+         else Assert.Equal(78, run.ElementCount);
       }
 
       [SkippableTheory]
@@ -79,7 +83,8 @@ namespace HavenSoft.HexManiac.Tests {
 
          var address = model.GetAddressFromAnchor(noChange, -1, "types");
          var run = (ArrayRun)model.GetNextAnchor(address);
-         Assert.Equal(18, run.ElementCount);
+         if (game.Contains("Clover")) Assert.Equal(24, run.ElementCount);
+         else Assert.Equal(18, run.ElementCount);
       }
 
       [SkippableTheory]
@@ -98,6 +103,7 @@ namespace HavenSoft.HexManiac.Tests {
          else if (game.Contains("Ruby")) Assert.Equal(349, run.ElementCount);
          else if (game.Contains("Sapphire")) Assert.Equal(349, run.ElementCount);
          else if (game.Contains("Vega")) Assert.Equal(375, run.ElementCount);
+         else if (game.Contains("Clover")) Assert.Equal(375, run.ElementCount);
          else throw new NotImplementedException();
       }
 
@@ -129,8 +135,9 @@ namespace HavenSoft.HexManiac.Tests {
          var run = (ArrayRun)model.GetNextAnchor(address);
 
          var firstPokemonStats = model.Skip(run.Start + run.ElementLength).Take(6).ToArray();
-         var compareSet = new[] { 45, 49, 49, 45, 65, 65 }; // bulbasaur
+         var compareSet = new[] { 45, 49, 49, 45, 65, 65 }; // Bulbasaur
          if (game.Contains("Vega")) compareSet = new[] { 42, 53, 40, 70, 63, 40 }; // Nimbleaf
+         if (game.Contains("Clover")) compareSet = new[] { 56, 60, 55, 50, 47, 50 }; // Grasshole
          for (int i = 0; i < compareSet.Length; i++) Assert.Equal(compareSet[i], firstPokemonStats[i]);
       }
 
