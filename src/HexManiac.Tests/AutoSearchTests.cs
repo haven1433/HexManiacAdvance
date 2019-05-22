@@ -24,6 +24,7 @@ namespace HavenSoft.HexManiac.Tests {
          "DarkRisingKAIZO", // from FireRed
          "Vega 2019-04-20", // from FireRed
          "Clover",          // from FireRed
+         "Gaia v3.2",       // from FireRed
          "Altair",          // from Emerald
       }.Select(game => new object[] { "sampleFiles/Pokemon " + game + ".gba" });
 
@@ -36,6 +37,7 @@ namespace HavenSoft.HexManiac.Tests {
          var address = model.GetAddressFromAnchor(noChange, -1, EggMoveRun.PokemonNameTable);
          var run = (ArrayRun)model.GetNextAnchor(address);
          Assert.Equal(412, run.ElementCount);
+         // Gaia: 1110 or 1110 - 75
       }
 
       [SkippableTheory]
