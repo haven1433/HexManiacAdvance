@@ -64,7 +64,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (NewCell != null) NewCell = new HexElement(NewCell.Value, new Anchor(NewCell.Format, anchor.Name, anchor.Format, anchor.Sources));
       }
 
-      public void Visit(PCS pcs, byte data) {
+      public void Visit(PCS pcs, byte data) => VisitPCS(pcs);
+
+      private void VisitPCS(IDataFormatInstance pcs) {
          var currentText = CurrentText;
          if (currentText.StartsWith(StringDelimeter.ToString())) currentText = currentText.Substring(1);
          if (pcs.Position != 0 && CurrentText == StringDelimeter.ToString()) {
@@ -82,7 +84,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Result = true;
       }
 
-      public void Visit(ErrorPCS pcs, byte data) => throw new NotImplementedException();
+      public void Visit(ErrorPCS pcs, byte data) => VisitPCS(pcs);
 
       public void Visit(Ascii ascii, byte data) {
          CompleteAsciiEdit(ascii);
@@ -229,7 +231,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       private void CompleteCharacterEdit(IDataFormat originalFormat) {
          var editText = CurrentText;
          if (editText.StartsWith("\"")) editText = editText.Substring(1);
-         var pcs = originalFormat as PCS;
+         var pcs = originalFormat as IDataFormatInstance;
          var escaped = originalFormat as EscapedPCS;
          var run = Model.GetNextRun(memoryLocation);
 
@@ -237,11 +239,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             byte.Parse(CurrentText, NumberStyles.HexNumber) :
             (byte)Enumerable.Range(0, 0x100).First(i => PCSString.PCS[i] == editText);
 
-         var position = pcs != null ? pcs.Position : escaped.Position;
-         HandleLastCharacterChange(memoryLocation, editText, pcs, run, position, byteValue);
+         var position = pcs == null ? escaped.Position : pcs.Position;
+         HandleLastCharacterChange(memoryLocation, editText, run, position, byteValue);
       }
 
-      private void HandleLastCharacterChange(int memoryLocation, string editText, PCS pcs, IFormattedRun run, int position, byte byteValue) {
+      private void HandleLastCharacterChange(int memoryLocation, string editText, IFormattedRun run, int position, byte byteValue) {
          if (run is PCSRun) {
             // if its the last character being edited on a normal string, try to expand
             if (run.Length == position + 1) {
