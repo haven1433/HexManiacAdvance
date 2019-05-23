@@ -286,14 +286,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       private void CompleteEggEdit() {
          var endChar = CurrentText[CurrentText.Length - 1];
-         if ($"] {StringDelimeter}".All(c => endChar != c)) return;
+         if (!$"{EggMoveRun.GroupEnd} {StringDelimeter}".Contains(endChar)) return;
          if (CurrentText.Count(c => c == StringDelimeter) % 2 != 0) return;
 
          NewDataIndex = memoryLocation + 2;
          Result = true;
          var run = (EggMoveRun)Model.GetNextRun(memoryLocation);
 
-         if (CurrentText == "[]") {
+         if (CurrentText == EggMoveRun.GroupStart + EggMoveRun.GroupEnd) {
             Model.WriteMultiByteValue(memoryLocation, 2, CurrentChange, 0xFFFF);
             // clear all data after this and shorten the run
             for (int i = memoryLocation + 2; i < run.Start + run.Length; i += 2) {
@@ -303,7 +303,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             Model.ObserveRunWritten(CurrentChange, newRun);
             newRun = (EggMoveRun)Model.GetNextRun(newRun.Start);
             newRun.UpdateLimiter(CurrentChange);
-         } else if (CurrentText.EndsWith("]")) {
+         } else if (CurrentText.EndsWith(EggMoveRun.GroupEnd)) {
             var value = run.GetPokemonNumber(CurrentText);
             if (value == -1) {
                ErrorText = $"Could not parse {CurrentText} as a pokemon name";

@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -187,6 +188,47 @@ Water";
 
          pairs = viewPort.Find("carl");
          Assert.Contains((0, 1), pairs);
+      }
+
+      [Fact]
+      public void BackspaceWorks() {
+         CreateSimpleRun();
+
+         viewPort.SelectionStart = new Point(2, 0);
+         viewPort.Edit(ConsoleKey.Backspace);
+
+         var format = (UnderEdit)viewPort[2, 0].Format;
+         Assert.Equal("Win", format.CurrentText); // Wind, but backspaced
+      }
+
+      /// <summary>
+      /// Since egg moves are multiple cells long, we want to know that
+      /// changes get reverted when 'selectionstart' is the rightmost cell
+      /// </summary>
+      [Fact]
+      public void SelectLeftThenBackspaceThenDownCompletesEdits() {
+         CreateSimpleRun();
+
+         viewPort.SelectionStart = new Point(2, 0);
+         viewPort.MoveSelectionStart.Execute(Direction.Left);
+         viewPort.Edit(ConsoleKey.Backspace);
+         viewPort.MoveSelectionStart.Execute(Direction.Down);
+
+         Assert.IsNotType<UnderEdit>(viewPort[1, 0].Format);
+      }
+
+      [Fact]
+      public void CanClearCellContent() {
+         CreateSimpleRun();
+
+         viewPort.SelectionStart = new Point(2, 0);
+         viewPort.Edit(ConsoleKey.Backspace); // d
+         viewPort.Edit(ConsoleKey.Backspace); // n
+         viewPort.Edit(ConsoleKey.Backspace); // i
+         viewPort.Edit(ConsoleKey.Backspace); // W
+
+         var format = (UnderEdit)viewPort[2, 0].Format;
+         Assert.Equal(string.Empty, format.CurrentText);
       }
    }
 }

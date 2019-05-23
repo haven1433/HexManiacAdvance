@@ -8,8 +8,11 @@ using System.Text;
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class EggMoveRun : IFormattedRun {
       public const int MagicNumber = 0x4E20; // anything above this number is a pokemon, anything below it is a move
+      public const int EndStream = 0xFFFF;
       public const string PokemonNameTable = "pokenames";
       public const string MoveNamesTable = "movenames";
+      public const string GroupStart = "[";
+      public const string GroupEnd = "]";
       private readonly IDataModel model;
 
       public int Start { get; }
@@ -49,13 +52,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (run.Start + length * 2 + 3 < 0) continue;
             if (run.Start + length * 2 + 3 > data.Count) continue;
             var endValue = data.ReadMultiByteValue(run.Start + length * 2 + 2, 2);
-            if (endValue != 0xFFFF) continue;
+            if (endValue != EndStream) continue;
 
             // verify content
             bool possibleMatch = true;
             for (int i = 0; i < length - 2; i++) {
                var value = data.ReadMultiByteValue(run.Start + i * 2, 2);
-               if (value == 0xFFFF) break; // early exit, the data was edited, but that's ok. Everything still matches up.
+               if (value == EndStream) break; // early exit, the data was edited, but that's ok. Everything still matches up.
                if (value >= MagicNumber) {
                   value -= MagicNumber;
                   if (value < pokenames.ElementCount) continue;
@@ -91,10 +94,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (value >= MagicNumber) {
             value -= MagicNumber;
             string content = cachedPokenames.Count > value ? cachedPokenames[value] : value.ToString();
-            if (value == 0xFFFF - MagicNumber) content = string.Empty;
+            if (value == EndStream - MagicNumber) content = string.Empty;
             if (content.StartsWith("\"")) content = content.Substring(1);
             if (content.EndsWith("\"")) content = content.Substring(0, content.Length - 1);
-            return new EggSection(groupStart + Start, position, $"[{content}]");
+            return new EggSection(groupStart + Start, position, $"{GroupStart}{content}{GroupEnd}");
          } else {
             string content = cachedMovenames.Count > value ? cachedMovenames[value] : value.ToString();
             return new EggItem(groupStart + Start, position, content);
@@ -115,14 +118,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public int GetPokemonNumber(string input) {
-         if (input.StartsWith("[")) input = input.Substring(1, input.Length - 2);
-         var names = cachedPokenames.Select(name => Dequote(name).ToLower()).ToList();
+         if (input.StartsWith(GroupStart)) input = input.Substring(1, input.Length - 2);
+         var names = cachedPokenames.Select(name => name.Trim('"').ToLower()).ToList();
          return GetNumber(input.ToLower(), names);
       }
 
       public int GetMoveNumber(string input) {
-         input = Dequote(input).ToLower();
-         var names = cachedMovenames.Select(name => Dequote(name).ToLower()).ToList();
+         input = input.Trim('"').ToLower();
+         var names = cachedMovenames.Select(name => name.Trim('"').ToLower()).ToList();
          return GetNumber(input, names);
       }
 
@@ -133,9 +136,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var value = model.ReadMultiByteValue(address, 2);
             if (value >= MagicNumber) {
                value -= MagicNumber;
-               builder.Append($"[{Dequote(cachedPokenames[value])}]");
+               builder.Append($"{GroupStart}{cachedPokenames[value].Trim('"')}{GroupEnd}");
             } else {
-               builder.Append(Dequote(cachedMovenames[value]));
+               builder.Append(cachedMovenames[value].Trim('"'));
             }
             if (i < Length - 4) builder.AppendLine();
          }
@@ -144,8 +147,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public int DeserializeFromTool(string content, ModelDelta token) {
          var data = new List<int>();
-         var pokemonNames = cachedPokenames.Select(name => $"[{Dequote(name).ToLower()}]").ToList();
-         var moveNames = cachedMovenames.Select(name => Dequote(name).ToLower()).ToList();
+         var pokemonNames = cachedPokenames.Select(name => $"{GroupStart}{name.Trim('"').ToLower()}{GroupEnd}").ToList();
+         var moveNames = cachedMovenames.Select(name => name.Trim('"').ToLower()).ToList();
          var lines = content.ToLower().Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
          foreach (var line in lines) {
             var index = pokemonNames.IndexOf(line);
@@ -167,13 +170,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
          var run = model.RelocateForExpansion(token, this, data.Count * 2 + 2);
          for (int i = 0; i < data.Count; i++) model.WriteMultiByteValue(run.Start + i * 2, 2, token, data[i]);
-         model.WriteMultiByteValue(run.Start + data.Count * 2, 2, token, 0xFFFF); // write the new end token
-         for (int i = data.Count + 2; i < Length / 2; i++) model.WriteMultiByteValue(run.Start + i * 2, 2, token, 0xFFFF); // fill any remaining old space with FF
+         model.WriteMultiByteValue(run.Start + data.Count * 2, 2, token, EndStream); // write the new end token
+         for (int i = data.Count + 2; i < Length / 2; i++) model.WriteMultiByteValue(run.Start + i * 2, 2, token, EndStream); // fill any remaining old space with FF
          return run.Start;
       }
 
       public IEnumerable<string> GetAutoCompleteOptions() {
-         var pokenames = cachedPokenames.Select(name => $"[{name}]");
+         var pokenames = cachedPokenames.Select(name => $"{GroupStart}{name}{GroupEnd}");
          var movenames = cachedMovenames.Select(name => name + " ");
          return pokenames.Concat(movenames);
       }
@@ -186,20 +189,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return names.IndexOf(match);
       }
 
-      private static string Dequote(string name) {
-         if (!name.StartsWith("\"")) return name;
-         return name.Substring(1, name.Length - 2);
-      }
-
       public void AppendTo(StringBuilder text, int start, int length) {
          while (length > 0 && start < Start + Length) {
             var value = model.ReadMultiByteValue(start, 2);
-            if (value == 0xFFFF) {
-               text.Append($"[]");
+            if (value == EndStream) {
+               text.Append($"{GroupStart}{GroupEnd}");
             } else if (value >= MagicNumber) {
                value -= MagicNumber;
-               if (value >= cachedPokenames.Count) text.Append($"[{value}]");
-               else text.Append($"[{Dequote(cachedPokenames[value])}]");
+               if (value >= cachedPokenames.Count) text.Append($"{GroupStart}{value}{GroupEnd}");
+               else text.Append($"{GroupStart}{cachedPokenames[value].Trim('"')}{GroupEnd}");
             } else {
                if (value >= cachedMovenames.Count) text.Append($"{value}");
                else text.Append($"{cachedMovenames[value]}");

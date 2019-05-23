@@ -49,7 +49,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       // just continue the existing edit.
       public void Visit(UnderEdit underEdit, byte data) {
          // handle special cases of "anywhere" formats first
-         if (underEdit.CurrentText[0] == ViewPort.GotoMarker) {
+         if (underEdit.CurrentText.StartsWith(ViewPort.GotoMarker.ToString())) {
             Result = char.IsLetterOrDigit(Input) || Input == ArrayAnchorSeparator || char.IsWhiteSpace(Input);
             return;
          } else if (underEdit.CurrentText.StartsWith(AnchorStart.ToString())) {

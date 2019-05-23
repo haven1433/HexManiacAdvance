@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 
@@ -40,12 +41,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(Ascii ascii, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
 
-      public void Visit(Integer integer, byte data) => buffer.WriteValue(currentChange, index, 0);
+      public void Visit(Integer integer, byte data) => buffer.WriteMultiByteValue(index, integer.Length, currentChange, 0);
 
-      public void Visit(IntegerEnum integerEnum, byte data) => buffer.WriteValue(currentChange, index, 0);
+      public void Visit(IntegerEnum integerEnum, byte data) => buffer.WriteMultiByteValue(index, integerEnum.Length, currentChange, 0);
 
-      public void Visit(EggSection section, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
+      public void Visit(EggSection section, byte data) => buffer.WriteMultiByteValue(index, 2, currentChange, EggMoveRun.MagicNumber);
 
-      public void Visit(EggItem item, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
+      public void Visit(EggItem item, byte data) => buffer.WriteMultiByteValue(index, 2, currentChange, 0x0000);
    }
 }
