@@ -141,7 +141,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   ClearEdits(location);
                } else {
                   var endEdit = " ";
-                  if (underEdit.CurrentText.Count(c => c == '"') % 2 == 1) endEdit = "\"";
+                  if (underEdit.CurrentText.Count(c => c == StringDelimeter) % 2 == 1) endEdit = StringDelimeter.ToString();
+                  var originalFormat = underEdit.OriginalFormat;
+                  if (originalFormat is Anchor anchor) originalFormat = anchor.OriginalFormat;
+                  if (underEdit.CurrentText.StartsWith(EggMoveRun.GroupStart) && (originalFormat is EggSection || originalFormat is EggItem)) endEdit = EggMoveRun.GroupEnd;
                   currentView[location.X, location.Y] = new HexElement(element.Value, underEdit.Edit(endEdit));
                   if (!TryCompleteEdit(location)) ClearEdits(location);
                }
@@ -165,7 +168,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var offsets = array.ConvertByteOffsetToArrayOffset(dataIndex);
             Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
             Tools.TableTool.Address = array.Start + array.ElementLength * offsets.ElementIndex;
-         } else if (run.Start <= dataIndex && run is PCSRun) {
+         } else if (run.Start <= dataIndex && (run is PCSRun || run is EggMoveRun)) {
             Tools.StringTool.Address = run.Start;
          } else {
             Tools.StringTool.Address = dataIndex;
@@ -587,6 +590,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          run = Model.GetNextRun(index);
+         var cellToText = new ConvertCellToText(Model, run.Start);
+         var cell = currentView[point.X, point.Y];
 
          if (run is PCSRun pcs) {
             for (int i = index; i < run.Start + run.Length; i++) history.CurrentChange.ChangeData(Model, i, 0xFF);
@@ -605,19 +610,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                RefreshBackingData();
                SelectionStart = scroll.DataIndexToViewPoint(index - 1);
             } else if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Pointer) {
-               var cell = currentView[point.X, point.Y];
                PrepareForMultiSpaceEdit(point, 4);
                var destination = ((Pointer)cell.Format).DestinationAsText;
                destination = destination.Substring(0, destination.Length - 1);
                currentView[point.X, point.Y] = new HexElement(cell.Value, new UnderEdit(cell.Format, destination, 4));
             } else if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Integer) {
-               var cell = currentView[point.X, point.Y];
-               var format = (Integer)cell.Format;
-               PrepareForMultiSpaceEdit(point, format.Length);
-               var text = format.Value.ToString();
-               if (format is IntegerEnum intEnum) text = intEnum.Value;
+               PrepareForMultiSpaceEdit(point, ((Integer)cell.Format).Length);
+               cell.Format.Visit(cellToText, cell.Value);
+               var text = cellToText.Result;
                text = text.Substring(0, text.Length - 1);
-               currentView[point.X, point.Y] = new HexElement(cell.Value, new UnderEdit(format, text, format.Length));
+               currentView[point.X, point.Y] = new HexElement(cell.Value, new UnderEdit(cell.Format, text, ((Integer)cell.Format).Length));
             } else {
                throw new NotImplementedException();
             }
@@ -625,23 +627,32 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return;
          }
 
+         if (run is EggMoveRun eggRun) {
+            PrepareForMultiSpaceEdit(point, 2);
+            cell.Format.Visit(cellToText, cell.Value);
+            var text = cellToText.Result;
+            text = text.Substring(0, text.Length - 1);
+            currentView[point.X, point.Y] = new HexElement(cell.Value, new UnderEdit(cell.Format, text, 2));
+            NotifyCollectionChanged(ResetArgs);
+            return;
+         }
+
          if (run.Start <= index && run.Start + run.Length > index) {
             // I want to do a backspace at the end of this run
             SelectionStart = scroll.DataIndexToViewPoint(run.Start);
-            var cellToText = new ConvertCellToText(Model, run.Start);
             var element = currentView[SelectionStart.X, SelectionStart.Y];
             element.Format.Visit(cellToText, element.Value);
             var text = cellToText.Result;
 
             var editLength = 1;
             if (element.Format is Pointer pointer) editLength = 4;
-            // if (element.Format is Integer integer) editLength = integer.Length;
 
             for (int i = 0; i < run.Length; i++) {
                var p = scroll.DataIndexToViewPoint(run.Start + i);
                string editString = i == 0 ? text.Substring(0, text.Length - 1) : string.Empty;
                if (i > 0) editLength = 1;
-               currentView[p.X, p.Y] = new HexElement(currentView[p.X, p.Y].Value, new UnderEdit(currentView[p.X, p.Y].Format, editString, editLength));
+               var format = new UnderEdit(currentView[p.X, p.Y].Format, editString, editLength);
+               currentView[p.X, p.Y] = new HexElement(currentView[p.X, p.Y].Value, format);
             }
          } else {
             SelectionStart = scroll.DataIndexToViewPoint(index);
@@ -697,38 +708,70 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var textResults = Search(searchBytes).ToList();
          Model.ConsiderResultsAsTextRuns(history.CurrentChange, textResults);
          foreach (var result in textResults) {
-            // if the result is in an array, we care about things that use that array
             if (Model.GetNextRun(result) is ArrayRun parentArray && parentArray.LengthFromAnchor == string.Empty) {
-               var offsets = parentArray.ConvertByteOffsetToArrayOffset(result);
-               var parentArrayName = Model.GetAnchorFromAddress(-1, parentArray.Start);
-               if (offsets.SegmentIndex == 0 && parentArray.ElementContent[offsets.SegmentIndex].Type == ElementContentType.PCS) {
-                  foreach (var child in Model.Arrays) {
-                     // option 1: another table has a row named after this element
-                     if (child.LengthFromAnchor == parentArrayName) {
-                        var address = child.Start + child.ElementLength * offsets.ElementIndex;
-                        yield return (address, address + child.ElementLength - 1);
-                     }
+               foreach (var dataResult in FindMatchingDataResultsFromArrayElement(parentArray, result)) yield return dataResult;
+            }
 
-                     // option 2: another table has an enum named after this element
-                     var segmentOffset = 0;
-                     foreach (var segment in child.ElementContent) {
-                        if (!(segment is ArrayRunEnumSegment enumSegment) || enumSegment.EnumName != parentArrayName) {
-                           segmentOffset += segment.Length;
-                           continue;
-                        }
-                        for (int i = 0; i < child.ElementCount; i++) {
-                           var address = child.Start + child.ElementLength * i + segmentOffset;
-                           var enumValue = Model.ReadMultiByteValue(address, segment.Length);
-                           if (enumValue != offsets.ElementIndex) continue;
-                           yield return (address, address + segment.Length - 1);
-                        }
-                        segmentOffset += segment.Length;
+            yield return (result, result + pcsBytes.Count - 1);
+         }
+      }
+
+      /// <summary>
+      /// When performing a search, sometimes one of the search results is text from a table.
+      /// If so, then we also care about places where that table value is used.
+      /// This function finds uses of an element in a table.
+      /// </summary>
+      private IEnumerable<(int start, int end)> FindMatchingDataResultsFromArrayElement(ArrayRun parentArray, int parentIndex) {
+         var offsets = parentArray.ConvertByteOffsetToArrayOffset(parentIndex);
+         var parentArrayName = Model.GetAnchorFromAddress(-1, parentArray.Start);
+         if (offsets.SegmentIndex == 0 && parentArray.ElementContent[offsets.SegmentIndex].Type == ElementContentType.PCS) {
+            var arrayUses = FindTableUsages(offsets, parentArrayName);
+            var streamUses = FindStreamUsages(offsets, parentArrayName);
+            return arrayUses.Concat(streamUses);
+         }
+         return Enumerable.Empty<(int, int)>();
+      }
+
+      private IEnumerable<(int start, int end)> FindTableUsages(ArrayOffset offsets, string parentArrayName) {
+         foreach (var child in Model.Arrays) {
+            // option 1: another table has a row named after this element
+            if (child.LengthFromAnchor == parentArrayName) {
+               var address = child.Start + child.ElementLength * offsets.ElementIndex;
+               yield return (address, address + child.ElementLength - 1);
+            }
+
+            // option 2: another table has an enum named after this element
+            var segmentOffset = 0;
+            foreach (var segment in child.ElementContent) {
+               if (!(segment is ArrayRunEnumSegment enumSegment) || enumSegment.EnumName != parentArrayName) {
+                  segmentOffset += segment.Length;
+                  continue;
+               }
+               for (int i = 0; i < child.ElementCount; i++) {
+                  var address = child.Start + child.ElementLength * i + segmentOffset;
+                  var enumValue = Model.ReadMultiByteValue(address, segment.Length);
+                  if (enumValue != offsets.ElementIndex) continue;
+                  yield return (address, address + segment.Length - 1);
+               }
+               segmentOffset += segment.Length;
+            }
+         }
+      }
+
+      private IEnumerable<(int start, int end)> FindStreamUsages(ArrayOffset offsets, string parentArrayName) {
+         foreach (var child in Model.Streams) {
+            // option 1: the value is used by egg moves
+            if (child is EggMoveRun eggRun) {
+               var groupStart = 0;
+               if (parentArrayName == EggMoveRun.PokemonNameTable) groupStart = EggMoveRun.MagicNumber;
+               if (parentArrayName == EggMoveRun.PokemonNameTable || parentArrayName == EggMoveRun.MoveNamesTable) {
+                  for (int i = 0; i < eggRun.Length - 2; i += 2) {
+                     if (Model.ReadMultiByteValue(eggRun.Start + i, 2) == offsets.ElementIndex + groupStart) {
+                        yield return (eggRun.Start + i, eggRun.Start + i + 1);
                      }
                   }
                }
             }
-
-            yield return (result, result + pcsBytes.Count - 1);
          }
       }
 
@@ -868,6 +911,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
             Tools.SelectedIndex = Enumerable.Range(0, Tools.Count).First(i => Tools[i] is PCSTool);
          }
+         if (format is EggSection || format is EggItem) {
+            var byteOffset = scroll.ViewPointToDataIndex(new Point(x, y));
+            var currentRun = Model.GetNextRun(byteOffset);
+            Tools.StringTool.Address = currentRun.Start;
+            Tools.SelectedIndex = Enumerable.Range(0, Tools.Count).First(i => Tools[i] is PCSTool);
+         }
       }
 
       public void ExpandSelection(int x, int y) {
@@ -950,6 +999,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private IReadOnlyList<AutoCompleteSelectionItem> GetAutocompleteOptions(IDataFormat originalFormat, string newText, int selectedIndex = -1) {
+         if (originalFormat is Anchor anchor) originalFormat = anchor.OriginalFormat;
          if (newText.StartsWith(PointerStart.ToString())) {
             return Model.GetNewPointerAutocompleteOptions(newText, selectedIndex);
          } else if (newText.StartsWith(GotoMarker.ToString())) {
@@ -959,6 +1009,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var segment = (ArrayRunEnumSegment)array.ElementContent[array.ConvertByteOffsetToArrayOffset(intEnum.Source).SegmentIndex];
             var options = segment.GetOptions(Model).Select(option => option + " "); // autocomplete needs to complete after selection, so add a space
             return AutoCompleteSelectionItem.Generate(options.Where(option => option.MatchesPartial(newText)), selectedIndex);
+         } else if (originalFormat is EggSection || originalFormat is EggItem) {
+            var eggRun = (EggMoveRun)Model.GetNextRun(((IDataFormatInstance)originalFormat).Source);
+            var allOptions = eggRun.GetAutoCompleteOptions();
+            return AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(newText)), selectedIndex);
          } else {
             throw new NotImplementedException();
          }
@@ -1035,12 +1089,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var run = Model.GetNextRun(index);
          if (run.Start > index) return (p, p);
 
-         if (run is PointerRun) return (scroll.DataIndexToViewPoint(run.Start), scroll.DataIndexToViewPoint(run.Start + run.Length - 1));
+         (Point, Point) pair(int start, int end) => (scroll.DataIndexToViewPoint(start), scroll.DataIndexToViewPoint(end));
+
+         if (run is PointerRun) return pair(run.Start, run.Start + run.Length - 1);
+         if (run is EggMoveRun) {
+            var even = (index - run.Start) % 2 == 0;
+            if (even) return pair(index, index + 1);
+            return pair(index - 1, index);
+         }
          if (!(run is ArrayRun array)) return (p, p);
 
          var offset = array.ConvertByteOffsetToArrayOffset(index);
-         if (array.ElementContent[offset.SegmentIndex].Type == ElementContentType.Pointer || array.ElementContent[offset.SegmentIndex].Type == ElementContentType.Integer) {
-            return (scroll.DataIndexToViewPoint(offset.SegmentStart), scroll.DataIndexToViewPoint(offset.SegmentStart + array.ElementContent[offset.SegmentIndex].Length - 1));
+         var type = array.ElementContent[offset.SegmentIndex].Type;
+         if (type == ElementContentType.Pointer || type == ElementContentType.Integer) {
+            return pair(offset.SegmentStart, offset.SegmentStart + array.ElementContent[offset.SegmentIndex].Length - 1);
          }
 
          return (p, p);
@@ -1101,6 +1163,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   RefreshBackingData();
                }
                var run = Model.GetNextRun(completeEditOperation.NewDataIndex);
+               if (run.Start > completeEditOperation.NewDataIndex) run = new NoInfoRun(Model.Count);
                if (completeEditOperation.DataMoved) UpdateToolsFromSelection(run.Start);
                if (run is ArrayRun) Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
                if (run is ArrayRun || run is PCSRun) Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);

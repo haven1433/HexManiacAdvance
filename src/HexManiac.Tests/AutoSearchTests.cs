@@ -30,7 +30,7 @@ namespace HavenSoft.HexManiac.Tests {
          var model = LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
 
-         var address = model.GetAddressFromAnchor(noChange, -1, "pokenames");
+         var address = model.GetAddressFromAnchor(noChange, -1, EggMoveRun.PokemonNameTable);
          var run = (ArrayRun)model.GetNextAnchor(address);
          Assert.Equal(412, run.ElementCount);
       }
@@ -41,7 +41,7 @@ namespace HavenSoft.HexManiac.Tests {
          var model = LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
 
-         var address = model.GetAddressFromAnchor(noChange, -1, "movenames");
+         var address = model.GetAddressFromAnchor(noChange, -1, EggMoveRun.MoveNamesTable);
          var run = (ArrayRun)model.GetNextAnchor(address);
          Assert.Equal(355, run.ElementCount);
       }
@@ -139,6 +139,22 @@ namespace HavenSoft.HexManiac.Tests {
          var poundStats = model.Skip(run.Start + run.ElementLength).Take(8).ToArray();
          var compareSet = new[] { 0, 40, 0, 100, 35, 0, 0, 0 };
          for (int i = 0; i < compareSet.Length; i++) Assert.Equal(compareSet[i], poundStats[i]);
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void EggMoveDataFound(string game) {
+         var model = LoadModel(game);
+         var noChange = new NoDataChangeDeltaModel();
+
+         var address = model.GetAddressFromAnchor(noChange, -1, "eggmoves");
+         var run = (EggMoveRun)model.GetNextAnchor(address);
+
+         Assert.Equal(2, run.PointerSources.Count);
+         var expectedLastElement = model.ReadMultiByteValue(run.PointerSources[1] - 4, 4);
+         var expectedLength = expectedLastElement + 1;
+         var actualLength = run.Length / 2 - 1;  // remove the closing element.
+         Assert.InRange(actualLength, 790, expectedLength);
       }
 
       /// <summary>

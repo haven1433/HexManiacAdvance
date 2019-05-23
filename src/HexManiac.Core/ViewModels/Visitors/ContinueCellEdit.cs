@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Linq;
@@ -69,6 +70,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(IntegerEnum integer, byte data) {
          Result = integer.CanStartWithCharacter(Input) ||
             ".~".Contains(Input) ||
+            char.IsWhiteSpace(Input);
+      }
+
+      public void Visit(EggSection section, byte data) => VisitEgg();
+      public void Visit(EggItem item, byte data) => VisitEgg();
+      public void VisitEgg() {
+         var specialCharacters = ". '-\\"; // mr. mime, farfetch'd, double-edge, nidoran
+         if (UnderEdit.CurrentText.StartsWith(EggMoveRun.GroupStart)) specialCharacters += ']';
+         if (UnderEdit.CurrentText.StartsWith(StringDelimeter.ToString())) specialCharacters += StringDelimeter;
+         Result =
+            char.IsLetterOrDigit(Input) ||
+            specialCharacters.Contains(Input) ||
             char.IsWhiteSpace(Input);
       }
    }

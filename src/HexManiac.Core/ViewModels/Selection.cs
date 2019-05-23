@@ -42,7 +42,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (selectionStart.Equals(value)) return;
 
             if (!Scroll.ScrollToPoint(ref value)) {
-               PreviewSelectionStartChanged?.Invoke(this, rawSelectionStart);
+               PreviewSelectionStartChanged?.Invoke(this, getSpan(rawSelectionStart).start);
             }
 
             rawSelectionStart = value;

@@ -71,6 +71,7 @@
     <Compile Include="AutoSearchTests.cs" />
     <Compile Include="ChangeHistoryTests.cs" />
     <Compile Include="AsciiRunTests.cs" />
+    <Compile Include="EggMoveTests.cs" />
     <Compile Include="FindTests.cs" />
     <Compile Include="GeneralAppTests.cs" />
     <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubFileSystem.cs" />

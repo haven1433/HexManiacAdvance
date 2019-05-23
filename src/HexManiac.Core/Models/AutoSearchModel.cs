@@ -38,6 +38,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             DecodeHeader();
             DecodeNameArrays();
             DecodeDataArrays();
+            DecodeStreams();
          }
       }
 
@@ -54,12 +55,12 @@ namespace HavenSoft.HexManiac.Core.Models {
       private void DecodeNameArrays() {
          // movenames
          if (TrySearch(this, noChangeDelta, "[name\"\"13]", out var movenames)) {
-            ObserveAnchorWritten(noChangeDelta, "movenames", movenames);
+            ObserveAnchorWritten(noChangeDelta, EggMoveRun.MoveNamesTable, movenames);
          }
 
          // pokenames
          if (TrySearch(this, noChangeDelta, "[name\"\"11]", out var pokenames)) {
-            ObserveAnchorWritten(noChangeDelta, "pokenames", pokenames);
+            ObserveAnchorWritten(noChangeDelta, EggMoveRun.PokemonNameTable, pokenames);
          }
 
          // abilitynames / trainer names
@@ -115,6 +116,12 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          // @3D4294 ^itemicons[image<> palette<>]items
          // @4886E8 ^movedescriptions[description<>]354
+      }
+
+      private void DecodeStreams() {
+         if (EggMoveRun.TrySearch(this, noChangeDelta, out var eggmoves)) {
+            ObserveAnchorWritten(noChangeDelta, "eggmoves", eggmoves);
+         }
       }
    }
 }

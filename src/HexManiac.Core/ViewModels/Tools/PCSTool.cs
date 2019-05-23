@@ -66,6 +66,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                if (run.Start > address) return; // wrong run, don't adjust
                if (run is PCSRun pcsRun) UpdateRun(pcsRun);
                if (run is ArrayRun arrayRun) UpdateRun(arrayRun);
+               if (run is EggMoveRun eggRun) UpdateRun(eggRun);
             }
          }
       }
@@ -77,7 +78,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (ignoreExternalUpdates) return;
             var run = model.GetNextRun(value);
             if (TryUpdate(ref address, value)) {
-               if ((run is PCSRun || run is ArrayRun) && run.Start <= value) {
+               if ((run is PCSRun || run is ArrayRun || run is EggMoveRun) && run.Start <= value) {
                   runner.Schedule(DataForCurrentRunChanged);
                   Enabled = true;
                   ShowMessage = false;
@@ -174,6 +175,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                }
             }
             return;
+         } else if (run is EggMoveRun egg) {
+            var newContent = egg.SerializeForTool();
+            ignoreSelectionUpdates = true;
+            using (new StubDisposable { Dispose = () => ignoreSelectionUpdates = false }) {
+               TryUpdate(ref content, newContent, nameof(Content));
+            }
+            return;
          }
 
          throw new NotImplementedException();
@@ -186,11 +194,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          return newContent;
       }
 
+      /// <summary>
+      /// If a selection update is requested due to a change in the Content, ignore it.
+      /// Otherwise, the selection update could send us back to the begining of the run.
+      /// </summary>
       private bool ignoreSelectionUpdates;
       private void UpdateSelectionFromTool() {
          if (ignoreSelectionUpdates) return;
          var run = model.GetNextRun(Address);
-         if (!(run is ArrayRun) && !(run is PCSRun)) return;
+         if (!(run is ArrayRun) && !(run is PCSRun) && !(run is EggMoveRun)) return;
 
          // for arrays, the address must be at the start of a string segment within the first element of the array
          if (run is ArrayRun arrayRun) {
@@ -215,6 +227,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             selectionLength = Math.Max(0, selectionLength - 1); // decrease by one since a selection of 0 and selection of 1 have no difference
             var afterLines = content.Substring(0, contentIndex + selectionLength).Split(new[] { Environment.NewLine }, StringSplitOptions.None);
             var selectionEnd = textStart + (afterLines.Length - 1) * array.ElementLength + afterLines[afterLines.Length - 1].Length;
+            selectionLength = selectionEnd - selectionStart;
+         } else if (run is EggMoveRun egg) {
+            var beforeSelection = content.Substring(0, selectionStart);
+            var beforeLineCount = (beforeSelection.Split(new[] { Environment.NewLine }, StringSplitOptions.None).Length - 1).LimitToRange(0, int.MaxValue);
+            var withSelection = content.Substring(0, selectionStart + selectionLength);
+            var withSelectionLineCount = (withSelection.Split(new[] { Environment.NewLine }, StringSplitOptions.None).Length - 1).LimitToRange(0, int.MaxValue);
+
+            selectionStart = egg.Start + beforeLineCount * 2;
+            var selectionEnd = egg.Start + withSelectionLineCount * 2;
             selectionLength = selectionEnd - selectionStart;
          }
 
@@ -270,6 +291,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          history.CurrentChange.AddRun(run);
          ModelDataChanged?.Invoke(this, run);
          TryUpdate(ref address, run.Start, nameof(Address));
+         ignoreExternalUpdates = false;
+      }
+
+      private void UpdateRun(EggMoveRun run) {
+         ignoreExternalUpdates = true;
+         var newStart = run.DeserializeFromTool(content, history.CurrentChange);
+         var newRun = new EggMoveRun(model, newStart);
+         if (newRun.Length != run.Length) {
+            model.ObserveRunWritten(history.CurrentChange, newRun);
+            newRun = (EggMoveRun)model.GetNextRun(newRun.Start);
+            history.CurrentChange.AddRun(newRun);
+            newRun.UpdateLimiter(history.CurrentChange);
+         }
+
+         if (run.Start != newRun.Start) ModelDataMoved?.Invoke(this, (run.Start, newRun.Start));
+         ModelDataChanged?.Invoke(this, newRun);
          ignoreExternalUpdates = false;
       }
    }

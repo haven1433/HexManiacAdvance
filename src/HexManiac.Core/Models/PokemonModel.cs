@@ -29,6 +29,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public virtual int EarliestAllowedAnchor => 0;
 
       public override IReadOnlyList<ArrayRun> Arrays => runs.OfType<ArrayRun>().ToList();
+      public override IReadOnlyList<IFormattedRun> Streams => runs.OfType<EggMoveRun>().ToList();
 
       #region Constructor
 
@@ -738,7 +739,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override string Copy(Func<ModelDelta> changeToken, int start, int length) {
          var text = new StringBuilder();
          var run = GetNextRun(start);
-         if (run.Start < start && !(run is ArrayRun)) {
+         if (run.Start < start && !(run is ArrayRun) && !(run is EggMoveRun)) {
             length += start - run.Start;
             start = run.Start;
          }
@@ -781,6 +782,11 @@ namespace HavenSoft.HexManiac.Core.Models {
                length -= run.Length;
             } else if (run is ArrayRun arrayRun) {
                arrayRun.AppendTo(this, text, start, length);
+               text.Append(" ");
+               length -= run.Start + run.Length - start;
+               start = run.Start + run.Length;
+            } else if (run is EggMoveRun eggRun) {
+               eggRun.AppendTo(text, start, length);
                text.Append(" ");
                length -= run.Start + run.Length - start;
                start = run.Start + run.Length;
@@ -979,6 +985,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             } else {
                return new ErrorInfo($"Ascii runs must include a length.");
             }
+         } else if (format.StartsWith(StreamDelimeter + "egg" + StreamDelimeter)) {
+            run = new EggMoveRun(model, dataIndex);
          } else {
             var errorInfo = TryParse(model, format, dataIndex, null, out var arrayRun);
             if (errorInfo == ErrorInfo.NoError) {
@@ -1083,6 +1091,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             newRun = new PCSRun(newStart, run.Length, run.PointerSources);
          } else if (run is ArrayRun array) {
             newRun = array.Move(newStart);
+         } else if (run is EggMoveRun egg) {
+            newRun = new EggMoveRun(this, newStart);
          } else {
             throw new NotImplementedException();
          }
