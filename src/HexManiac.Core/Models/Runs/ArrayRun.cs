@@ -103,12 +103,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (ElementContent.Count == 0) throw new ArrayRunParseException("Array Content must not be empty.");
          ElementLength = ElementContent.Sum(e => e.Length);
 
+         FormatMatchFlags flags = default;
+         if (ElementContent.Count == 1) flags |= FormatMatchFlags.IsSingleSegment;
+
          if (length.Length == 0) {
             var nextRun = owner.GetNextRun(Start);
             while (nextRun is NoInfoRun && nextRun.Start < owner.Count) nextRun = owner.GetNextRun(nextRun.Start + 1);
             var byteLength = 0;
             var elementCount = 0;
-            while (Start + byteLength + ElementLength <= nextRun.Start && DataMatchesElementFormat(owner, Start + byteLength, ElementContent, nextRun)) {
+            while (Start + byteLength + ElementLength <= nextRun.Start && DataMatchesElementFormat(owner, Start + byteLength, ElementContent, flags, nextRun)) {
                byteLength += ElementLength;
                elementCount++;
             }
@@ -193,11 +196,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             // some searches allow special conditions on the run. For example, we could only be intersted in runs with >100 pointers leading to it.
             if (runFilter != null && !runFilter(run)) { run = nextRun; continue; }
 
+            FormatMatchFlags flags = default;
+            if (elementContent.Count == 1) flags |= FormatMatchFlags.IsSingleSegment;
+
             int currentLength = 0;
             int currentAddress = run.Start;
             while (true) {
+               if (currentLength > 100) flags |= FormatMatchFlags.AllowJunkAfterText; // we've gone long enough without junk data to be fairly sure that we're looking at something real
                if (nextArray.Start < currentAddress) nextArray = data.GetNextAnchor(nextArray.Start + 1);
-               if (DataMatchesElementFormat(data, currentAddress, elementContent, nextArray)) {
+               if (DataMatchesElementFormat(data, currentAddress, elementContent, flags, nextArray)) {
                   currentLength++;
                   currentAddress += elementLength;
                } else {
@@ -239,6 +246,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             bestLength = matchedRun.ElementCount;
          }
 
+         FormatMatchFlags flags = default;
+         if (elementContent.Count == 1) flags |= FormatMatchFlags.IsSingleSegment;
+
          for (var run = data.GetNextRun(0); run.Start < data.Count; run = data.GetNextRun(run.Start + run.Length + 1)) {
             if (!(run is PointerRun)) continue;
             var targetRun = data.GetNextRun(data.ReadPointer(run.Start));
@@ -252,16 +262,22 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             bool earlyExit = false;
             for (int i = 0; i < bestLength; i++) {
                var nextArray = data.GetNextAnchor(currentAddress + 1);
-               if (DataMatchesElementFormat(data, currentAddress, elementContent, nextArray)) {
+               if (DataMatchesElementFormat(data, currentAddress, elementContent, flags, nextArray)) {
                   currentLength++;
                   currentAddress += elementLength;
                } else {
-                  earlyExit = true;
+                  // as long as this array is at least 80% of the passed in array, we're fine and can say that these are matched.
+                  // (the other one might have bad data at the end that needs to be removed) (example: see Gaia)
+                  earlyExit = bestLength * .8 > currentLength;
                   break;
                }
             }
 
-            if (!earlyExit) return targetRun.Start;
+
+            if (!earlyExit) {
+               bestLength = currentLength;
+               return targetRun.Start;
+            }
          }
 
          return Pointer.NULL;
@@ -507,16 +523,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return run.ElementCount;
       }
 
-      private static bool DataMatchesElementFormat(IDataModel owner, int start, IReadOnlyList<ArrayRunElementSegment> segments, IFormattedRun nextAnchor) {
+      private static bool DataMatchesElementFormat(IDataModel owner, int start, IReadOnlyList<ArrayRunElementSegment> segments, FormatMatchFlags flags, IFormattedRun nextAnchor) {
          foreach (var segment in segments) {
             if (start + segment.Length > owner.Count) return false;
-            if (!DataMatchesSegmentFormat(owner, start, segment, segments.Count, nextAnchor)) return false;
+            if (!DataMatchesSegmentFormat(owner, start, segment, flags, nextAnchor)) return false;
             start += segment.Length;
          }
          return true;
       }
 
-      private static bool DataMatchesSegmentFormat(IDataModel owner, int start, ArrayRunElementSegment segment, int segmentCount, IFormattedRun nextAnchor) {
+      private static bool DataMatchesSegmentFormat(IDataModel owner, int start, ArrayRunElementSegment segment, FormatMatchFlags flags, IFormattedRun nextAnchor) {
          if (start + segment.Length > nextAnchor.Start && nextAnchor is ArrayRun) return false; // don't blap over existing arrays
          switch (segment.Type) {
             case ElementContentType.PCS:
@@ -525,16 +541,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (readLength > segment.Length) return false;
                if (Enumerable.Range(start, segment.Length).All(i => owner[i] == 0xFF)) return false;
 
-               // in the initial 5 ROMs, any data after the close quote is either 0x00 or 0xFF
-               // but in fan games, this data may contain leftover junk bytes from what the text 'used' to be.
-               // this is because other popular existing editors don't clean up after themselves.
-               // in order to be compatible with games made with those editors, we have to allow automatic matches
-               // to match arrays with junk PCS characters after the closing quote.
-               if (Enumerable.Range(start + readLength, segment.Length - readLength).Any(i => PCSString.PCS[owner[i]] == null)) return false;
-
                // if we end with a space, and the next one starts with a space, we probably have the data width wrong.
                // We might be the start of a different data segment that is no longer pointed to. (Example: Vega/pokenames)
-               if (segmentCount == 1 && start % 4 == 0 && owner[start + segment.Length - 1] == 0x00 && owner[start + segment.Length] == 0x00) {
+               // only do this check if the current element seems useful
+               var isBlank = Enumerable.Range(start, segment.Length).All(i => owner[i] == 0x00 || owner[i] == 0xFF);
+               if (!isBlank && flags.HasFlag(FormatMatchFlags.IsSingleSegment) && start % 4 == 0 && owner[start + segment.Length - 1] == 0x00 && owner[start + segment.Length] == 0x00) {
                   // if the next one starts on a 4-byte boundary, then we probably just skipped a few bytes between different data types, and _this_ section is still part of the _last_ run (example, Emerald Ability names)
                   // if the next one doesn't start on a 4-byte boundary, then we probably have the length wrong
                   var nextWordStart = (start + segment.Length + 3) / 4 * 4;
@@ -543,9 +554,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
                // require that the overall thing still ends with 'FF' or '00' to avoid finding text of the wrong width.
                // the width check is less important if we have more complex data, so relax the condition (example: Clover)
+               // the width check is less important if we're already known to be in a long run (example: Gaia moves)
                var lastByteInText = owner[start + segment.Length - 1];
                var lastByteIsReasonablEnd = lastByteInText == 0x00 || lastByteInText == 0xFF;
-               if (!lastByteIsReasonablEnd && segmentCount == 1) return false;
+               if (!flags.HasFlag(FormatMatchFlags.AllowJunkAfterText) && !lastByteIsReasonablEnd && flags.HasFlag(FormatMatchFlags.IsSingleSegment)) return false;
 
                return true;
             case ElementContentType.Integer:
@@ -561,6 +573,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             default:
                throw new NotImplementedException();
          }
+      }
+      
+      [Flags]
+      public enum FormatMatchFlags {
+         IsSingleSegment = 0x01,
+         AllowJunkAfterText = 0x02,
       }
    }
 

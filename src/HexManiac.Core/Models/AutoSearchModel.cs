@@ -91,8 +91,17 @@ namespace HavenSoft.HexManiac.Core.Models {
             ObserveAnchorWritten(noChangeDelta, "items", itemdata);
          }
 
+         // if the stat data doesn't match the pokenames length, use whichever is shorter.
          var format = "[hp. attack. def. speed. spatk. spdef. type1.types type2.types catchRate. baseExp. evs: item1:items item2:items genderratio. steps2hatch. basehappiness. growthrate. egg1. egg2. ability1.abilitynames ability2.abilitynames runrate. unknown. padding:]pokenames";
-         if (TrySearch(this, noChangeDelta, format, out var pokestatdata, run => run.PointerSources.Count > 5)) {
+         var pokenames = GetNextRun(GetAddressFromAnchor(noChangeDelta, -1, EggMoveRun.PokemonNameTable)) as ArrayRun;
+         if (pokenames != null && TrySearch(this, noChangeDelta, format, out var pokestatdata, run => run.PointerSources.Count > 5)) {
+            if (pokestatdata.ElementCount < pokenames.ElementCount) {
+               pokenames = pokenames.Append(pokestatdata.ElementCount - pokenames.ElementCount);
+               ObserveAnchorWritten(noChangeDelta, EggMoveRun.PokemonNameTable, pokenames);
+            } else if (pokestatdata.ElementCount > pokenames.ElementCount) {
+               pokestatdata = pokestatdata.Append(pokenames.ElementCount - pokestatdata.ElementCount);
+            }
+
             ObserveAnchorWritten(noChangeDelta, "pokestats", pokestatdata);
          }
 

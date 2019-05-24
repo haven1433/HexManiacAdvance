@@ -48,11 +48,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var length = data.ReadMultiByteValue(run.PointerSources[1] - 4, 4);
 
             // we just read the 'length' from basically a random byte... verify that it could make sense as a length
-            if (length < 0) continue;
+            if (length < 1000 || length > 7000) continue;
             if (run.Start + length * 2 + 3 < 0) continue;
             if (run.Start + length * 2 + 3 > data.Count) continue;
-            var endValue = data.ReadMultiByteValue(run.Start + length * 2 + 2, 2);
-            if (endValue != EndStream) continue;
 
             // verify content
             bool possibleMatch = true;

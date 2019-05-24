@@ -36,8 +36,8 @@ namespace HavenSoft.HexManiac.Tests {
 
          var address = model.GetAddressFromAnchor(noChange, -1, EggMoveRun.PokemonNameTable);
          var run = (ArrayRun)model.GetNextAnchor(address);
-         Assert.Equal(412, run.ElementCount);
-         // Gaia: 1110 or 1110 - 75
+         if (game.Contains("Gaia")) Assert.Equal(914, run.ElementCount);
+         else Assert.Equal(412, run.ElementCount);
       }
 
       [SkippableTheory]
@@ -50,6 +50,7 @@ namespace HavenSoft.HexManiac.Tests {
          var run = (ArrayRun)model.GetNextAnchor(address);
          if (game.Contains("Vega")) Assert.Equal(512, run.ElementCount);
          else if (game.Contains("Clover")) Assert.Equal(512, run.ElementCount);
+         else if (game.Contains("Gaia")) Assert.Equal(511, run.ElementCount);
          else Assert.Equal(355, run.ElementCount);
       }
 
@@ -62,6 +63,7 @@ namespace HavenSoft.HexManiac.Tests {
          var address = model.GetAddressFromAnchor(noChange, -1, "abilitynames");
          var run = (ArrayRun)model.GetNextAnchor(address);
          if (game.Contains("Clover")) Assert.Equal(156, run.ElementCount);
+         else if (game.Contains("Gaia")) Assert.Equal(188, run.ElementCount);
          else Assert.Equal(78, run.ElementCount);
       }
 
@@ -74,6 +76,7 @@ namespace HavenSoft.HexManiac.Tests {
          var address = model.GetAddressFromAnchor(noChange, -1, "abilitydescriptions");
          var run = (ArrayRun)model.GetNextAnchor(address);
          if (game.Contains("Clover")) Assert.Equal(156, run.ElementCount);
+         else if (game.Contains("Gaia")) Assert.Equal(188, run.ElementCount);
          else Assert.Equal(78, run.ElementCount);
       }
 
@@ -86,6 +89,7 @@ namespace HavenSoft.HexManiac.Tests {
          var address = model.GetAddressFromAnchor(noChange, -1, "types");
          var run = (ArrayRun)model.GetNextAnchor(address);
          if (game.Contains("Clover")) Assert.Equal(24, run.ElementCount);
+         else if (game.Contains("Gaia")) Assert.Equal(24, run.ElementCount);
          else Assert.Equal(18, run.ElementCount);
       }
 
@@ -106,6 +110,7 @@ namespace HavenSoft.HexManiac.Tests {
          else if (game.Contains("Sapphire")) Assert.Equal(349, run.ElementCount);
          else if (game.Contains("Vega")) Assert.Equal(375, run.ElementCount);
          else if (game.Contains("Clover")) Assert.Equal(375, run.ElementCount);
+         else if (game.Contains("Gaia")) Assert.Equal(375, run.ElementCount);
          else throw new NotImplementedException();
       }
 
