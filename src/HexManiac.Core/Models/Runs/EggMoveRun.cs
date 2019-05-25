@@ -42,22 +42,27 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (run is ArrayRun || run is PCSRun || run.PointerSources == null) continue;
 
             // verify expected pointers to this
-            if (run.PointerSources.Count != 2) continue;
+            if (run.PointerSources.Count < 2 || run.PointerSources.Count > 10) continue;
 
             // verify limiter
             var length = data.ReadMultiByteValue(run.PointerSources[1] - 4, 4);
 
             // we just read the 'length' from basically a random byte... verify that it could make sense as a length
-            if (length < 0) continue;
+            if (length < 1000 || length > 7000) continue;
             if (run.Start + length * 2 + 3 < 0) continue;
             if (run.Start + length * 2 + 3 > data.Count) continue;
-            var endValue = data.ReadMultiByteValue(run.Start + length * 2 + 2, 2);
-            if (endValue != EndStream) continue;
 
             // verify content
             bool possibleMatch = true;
+            int lastValue = -1;
             for (int i = 0; i < length - 2; i++) {
                var value = data.ReadMultiByteValue(run.Start + i * 2, 2);
+
+               // if the same byte pairs are repeated multiple times, then this pokemon is listed twice or has the same egg move twice.
+               // that seems unlikely... this is probably the wrong data.
+               if (value == lastValue) { possibleMatch = false; break; }
+               lastValue = value;
+
                if (value == EndStream) break; // early exit, the data was edited, but that's ok. Everything still matches up.
                if (value >= MagicNumber) {
                   value -= MagicNumber;

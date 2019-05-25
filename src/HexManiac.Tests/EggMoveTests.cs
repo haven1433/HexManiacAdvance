@@ -230,5 +230,14 @@ Water";
          var format = (UnderEdit)viewPort[2, 0].Format;
          Assert.Equal(string.Empty, format.CurrentText);
       }
+
+      [Fact]
+      public void CanRemoveEggMoveFormatFromContextMenu() {
+         CreateSimpleRun();
+
+         viewPort.SelectionStart = new Point(2, 0);
+         var items = viewPort.GetContextMenuItems(viewPort.SelectionStart);
+         items.Single(item => item.Text == "Clear Format");
+      }
    }
 }
