@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
+using System.Linq;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
@@ -212,9 +213,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CanExpandSelection() {
-         var data = new byte[0x200];
-         var model = new PokemonModel(data);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         CreateStandardTestSetup(out var viewPort, out var model, out var data);
 
          viewPort.Edit("<000100>");
          viewPort.SelectionStart = new Point(1, 0);
@@ -233,9 +232,7 @@ namespace HavenSoft.HexManiac.Tests {
       [InlineData(2)]
       [InlineData(3)]
       public void SelectingAnyOfAPointerSelectsAllOfAPointer(int index) {
-         var data = new byte[0x200];
-         var model = new PokemonModel(data);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         CreateStandardTestSetup(out var viewPort, out var model, out var data);
 
          viewPort.Edit("<000100>");
          viewPort.SelectionStart = new Point(index, 0);
@@ -248,9 +245,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void SelectLeftSelectsWholePointer() {
-         var data = new byte[0x200];
-         var model = new PokemonModel(data);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         CreateStandardTestSetup(out var viewPort, out var model, out var data);
 
          viewPort.SelectionStart = new Point(4, 0);
          viewPort.Edit("<000100>");
@@ -265,9 +260,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void SelectRightSelectsWholePointer() {
-         var data = new byte[0x200];
-         var model = new PokemonModel(data);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         CreateStandardTestSetup(out var viewPort, out var model, out var data);
 
          viewPort.SelectionStart = new Point(4, 0);
          viewPort.Edit("<000100>");
@@ -282,9 +275,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void SelectUpSelectsWholePointer() {
-         var data = new byte[0x200];
-         var model = new PokemonModel(data);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         CreateStandardTestSetup(out var viewPort, out var model, out var data);
 
          viewPort.SelectionStart = new Point(4, 0);
          viewPort.Edit("<000100>");
@@ -299,9 +290,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void SelectDownSelectsWholePointer() {
-         var data = new byte[0x200];
-         var model = new PokemonModel(data);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         CreateStandardTestSetup(out var viewPort, out var model, out var data);
 
          viewPort.SelectionStart = new Point(4, 1);
          viewPort.Edit("<000100>");
@@ -316,9 +305,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void HighlightLeftSelectsWholePointer() {
-         var data = new byte[0x200];
-         var model = new PokemonModel(data);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         CreateStandardTestSetup(out var viewPort, out var model, out var data);
 
          viewPort.SelectionStart = new Point(4, 1);
          viewPort.Edit("<000100>");
@@ -333,9 +320,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void HighlightRightSelectsWholePointer() {
-         var data = new byte[0x200];
-         var model = new PokemonModel(data);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         CreateStandardTestSetup(out var viewPort, out var model, out var data);
 
          viewPort.SelectionStart = new Point(4, 1);
          viewPort.Edit("<000100>");
@@ -346,6 +331,36 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.True(viewPort.IsSelected(new Point(5, 1)));
          Assert.True(viewPort.IsSelected(new Point(6, 1)));
          Assert.True(viewPort.IsSelected(new Point(7, 1)));
+      }
+
+      [Fact]
+      public void ContextMenuContainsCopyPaste() {
+         CreateStandardTestSetup(out var viewPort, out var model, out var data);
+
+         viewPort.SelectionStart = new Point(2, 2);
+         viewPort.SelectionEnd = new Point(5, 2);
+         var items = viewPort.GetContextMenuItems(viewPort.SelectionStart);
+         items.Single(item => item.Text == "Copy");
+         items.Single(item => item.Text == "Paste");
+
+         viewPort.Edit("<000100>");
+         viewPort.SelectionStart = new Point(3, 2);
+         items = viewPort.GetContextMenuItems(viewPort.SelectionStart);
+         items.Single(item => item.Text == "Copy");
+         items.Single(item => item.Text == "Paste");
+
+         viewPort.Edit("^text\"\" Hello World!\"");
+         viewPort.SelectionStart = new Point(5, 2);
+         viewPort.ExpandSelection(5, 2);
+         items = viewPort.GetContextMenuItems(viewPort.SelectionStart);
+         items.Single(item => item.Text == "Copy");
+         items.Single(item => item.Text == "Paste");
+      }
+
+      private static void CreateStandardTestSetup(out ViewPort viewPort, out PokemonModel model, out byte[] data) {
+         data = new byte[0x200];
+         model = new PokemonModel(data);
+         viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
       }
    }
 }

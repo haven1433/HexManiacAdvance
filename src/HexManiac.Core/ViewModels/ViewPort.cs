@@ -488,7 +488,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var factory = new ContextItemFactory(this);
          var cell = currentView[SelectionStart.X, SelectionStart.Y];
          cell.Format.Visit(factory, cell.Value);
-         return factory.Results;
+         var results = factory.Results.ToList();
+         if (!SelectionStart.Equals(SelectionEnd)) {
+            results.Add(new ContextItem("Copy", Copy.Execute) { ShortcutText = "Ctrl+C" });
+         }
+         results.Add(new ContextItem("Paste", arg => Edit(((IFileSystem)arg).CopyText)) { ShortcutText = "Ctrl+V" });
+         return results;
       }
 
       public bool IsSelected(Point point) => selection.IsSelected(point);
