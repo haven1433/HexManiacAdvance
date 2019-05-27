@@ -78,6 +78,14 @@ namespace HavenSoft.HexManiac.Tests {
          if (game.Contains("Clover")) Assert.Equal(156, run.ElementCount);
          else if (game.Contains("Gaia")) Assert.Equal(188, run.ElementCount);
          else Assert.Equal(78, run.ElementCount);
+
+         if (game.Contains("Gaia")) return; // don't validate description text in Gaia, it's actually invalid.
+
+         for (var i = 0; i < run.ElementCount; i++) {
+            address = model.ReadPointer(run.Start + i * 4);
+            var childRun = model.GetNextRun(address);
+            Assert.IsType<PCSRun>(childRun);
+         }
       }
 
       [SkippableTheory]

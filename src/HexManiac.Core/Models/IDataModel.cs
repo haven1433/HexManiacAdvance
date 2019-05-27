@@ -53,7 +53,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       string GetAnchorFromAddress(int requestSource, int destination);
       IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial);
       StoredMetadata ExportMetadata();
-      void UpdateArrayPointer(ModelDelta changeToken, int address, int destination);
+      void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, int address, int destination);
       int ConsiderResultsAsTextRuns(ModelDelta changeToken, IReadOnlyList<int> startLocations);
    }
 
@@ -113,7 +113,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public abstract IReadOnlyList<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses);
 
-      public abstract void UpdateArrayPointer(ModelDelta currentChange, int index, int fullValue);
+      public abstract void UpdateArrayPointer(ModelDelta currentChange, ArrayRunElementSegment segment, int index, int fullValue);
 
       public int ReadValue(int index) => BitConverter.ToInt32(RawData, index);
 
@@ -305,7 +305,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public override IReadOnlyList<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses) => throw new NotImplementedException();
 
-      public override void UpdateArrayPointer(ModelDelta changeToken, int address, int destination) {
+      public override void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, int address, int destination) {
          WritePointer(changeToken, address, destination);
       }
 

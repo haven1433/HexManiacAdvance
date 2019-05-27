@@ -189,8 +189,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
          if (fullValue == Pointer.NULL || (0 <= fullValue && fullValue < Model.Count)) {
             if (inArray) {
-               Model.UpdateArrayPointer(CurrentChange, memoryLocation, fullValue);
-               // Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
+               UpdateArrayPointer((ArrayRun)currentRun, fullValue);
             } else {
                Model.WritePointer(CurrentChange, memoryLocation, fullValue);
                Model.ObserveRunWritten(CurrentChange, new PointerRun(memoryLocation, sources));
@@ -352,6 +351,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             eggRun = (EggMoveRun)Model.GetNextRun(eggRun.Start);
             eggRun.UpdateLimiter(CurrentChange);
          }
+      }
+
+      private void UpdateArrayPointer(ArrayRun run, int pointerDestination) {
+         var offsets = run.ConvertByteOffsetToArrayOffset(memoryLocation);
+         var segment = run.ElementContent[offsets.SegmentIndex];
+         if (segment is ArrayRunPointerSegment pointerSegment) {
+            if (!pointerSegment.DestinationDataMatchesPointerFormat(Model, CurrentChange, pointerDestination)) {
+               ErrorText = $"This pointer must point to {pointerSegment.InnerFormat} data.";
+               return;
+            }
+         }
+
+         Model.UpdateArrayPointer(CurrentChange, segment, memoryLocation, pointerDestination);
       }
    }
 }
