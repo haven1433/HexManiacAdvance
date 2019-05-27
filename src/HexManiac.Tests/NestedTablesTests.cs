@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System.Collections.Generic;
 using Xunit;
 
@@ -121,6 +122,20 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Edit("^table[description<\"\">]4 "); // adding this tries to add a format at the second line, but realizes that it's the wrong format, so it doesn't.
 
          Assert.IsType<None>(viewPort[1, 1].Format); // no PCS format was added
+      }
+
+      [Fact]
+      public void TableToolAllowsEditingTextContent() {
+         viewPort.Edit("FF"); // have to put the FF first, or trying to create a text run will fail
+         viewPort.MoveSelectionStart.Execute(Direction.Left);
+         viewPort.Edit("^text\"\" Some Text\"");
+
+         viewPort.SelectionStart = new Point(0, 4);
+         viewPort.Edit("^table[description<\"\">]4 <000000>"); // note that this auto-scrolls, since a table was created
+         viewPort.FollowLink(0, 0);
+
+         Assert.Equal(2, viewPort.Tools.TableTool.Children.Count);
+         Assert.IsType<TextStreamArrayElementViewModel>(viewPort.Tools.TableTool.Children[1]);
       }
    }
 }

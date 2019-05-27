@@ -215,4 +215,49 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
    }
+
+   public class TextStreamArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
+      private readonly ChangeHistory<ModelDelta> history;
+      private readonly IDataModel model;
+      private readonly string name;
+      private readonly int start;
+      
+      public bool IsInError => !string.IsNullOrEmpty(ErrorText);
+      public string ErrorText { get; private set; }
+      public event EventHandler DataChanged;
+      public event EventHandler<(int originalStart, int newStart)> DataMoved;
+
+      string content;
+      public string Content {
+         get => content;
+         set {
+            if (TryUpdate(ref content, value)) {
+               var destination = model.ReadPointer(start);
+               var run = model.GetNextRun(destination);
+               var data = PCSString.Convert(content);
+               var newRun = model.RelocateForExpansion(history.CurrentChange, run, data.Count);
+               if (run.Start != newRun.Start) DataMoved?.Invoke(this, (run.Start, newRun.Start));
+               run = newRun;
+               for (int i = 0; i < data.Count; i++) history.CurrentChange.ChangeData(model, run.Start + i, data[i]);
+               for (int i = data.Count; i < run.Length; i++) history.CurrentChange.ChangeData(model, run.Start + i, 0xFF);
+               DataChanged?.Invoke(this, EventArgs.Empty);
+               model.ObserveRunWritten(history.CurrentChange, new PCSRun(run.Start, data.Count));
+            }
+         }
+      }
+
+      public TextStreamArrayElementViewModel(ChangeHistory<ModelDelta> history, IDataModel model, string name, int start) {
+         this.history = history;
+         this.model = model;
+         this.name = name;
+         this.start = start;
+
+         var destination = model.ReadPointer(start);
+
+         // by the time we get this far, we're guaranteed that this will be a PCSRun.
+         // if it's not a PCSRun, we shouldn't have asked to construct this object.
+         var run = (PCSRun)model.GetNextRun(destination);
+         content = PCSString.Convert(model, run.Start, run.Length);
+      }
+   }
 }
