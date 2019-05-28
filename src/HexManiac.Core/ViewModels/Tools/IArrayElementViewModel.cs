@@ -66,6 +66,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          (History, Model, Name, Start, Length) = (history, model, name, start, length);
          content = strategy.UpdateViewModelFromModel(this);
       }
+
+      public void RefreshControlFromModelChange() {
+         TryUpdate(ref content, strategy.UpdateViewModelFromModel(this), nameof(Content));
+      }
    }
 
    public class TextFieldStratgy : IFieldArrayElementViewModelStrategy {
@@ -218,6 +222,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
    public class TextStreamArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
       private readonly ChangeHistory<ModelDelta> history;
+      private readonly FieldArrayElementViewModel matchingField;
       private readonly IDataModel model;
       private readonly string name;
       private readonly int start;
@@ -236,7 +241,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                var run = model.GetNextRun(destination);
                var data = PCSString.Convert(content);
                var newRun = model.RelocateForExpansion(history.CurrentChange, run, data.Count);
-               if (run.Start != newRun.Start) DataMoved?.Invoke(this, (run.Start, newRun.Start));
+               if (run.Start != newRun.Start) {
+                  DataMoved?.Invoke(this, (run.Start, newRun.Start));
+                  matchingField.RefreshControlFromModelChange();
+               }
                run = newRun;
                for (int i = 0; i < data.Count; i++) history.CurrentChange.ChangeData(model, run.Start + i, data[i]);
                for (int i = data.Count; i < run.Length; i++) history.CurrentChange.ChangeData(model, run.Start + i, 0xFF);
@@ -246,8 +254,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
-      public TextStreamArrayElementViewModel(ChangeHistory<ModelDelta> history, IDataModel model, string name, int start) {
+      public TextStreamArrayElementViewModel(ChangeHistory<ModelDelta> history, FieldArrayElementViewModel matchingField, IDataModel model, string name, int start) {
          this.history = history;
+         this.matchingField = matchingField;
          this.model = model;
          this.name = name;
          this.start = start;

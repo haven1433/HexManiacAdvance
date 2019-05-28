@@ -12,12 +12,14 @@ namespace HavenSoft.HexManiac.Tests {
       private readonly PokemonModel model;
       private readonly ModelDelta token = new ModelDelta();
       private readonly byte[] data = new byte[0x200];
+      private readonly List<string> messages = new List<string>();
       private readonly List<string> errors = new List<string>();
 
       public NestedTablesTests() {
          model = new PokemonModel(data);
          viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.OnError += (sender, e) => errors.Add(e);
+         viewPort.OnMessage += (sender, e) => messages.Add(e);
       }
 
       [Fact]
@@ -136,6 +138,26 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(2, viewPort.Tools.TableTool.Children.Count);
          Assert.IsType<TextStreamArrayElementViewModel>(viewPort.Tools.TableTool.Children[1]);
+      }
+
+      [Fact]
+      public void UpdateViaToolStreamFieldThatCausesMoveAlsoUpdatesToolPointerField() {
+         viewPort.Edit("FF 00 23"); // put a valid end, then a spare byte, then some junk. This'll cause a move after adding enough characters.
+         viewPort.SelectionStart = new Point(0, 0);
+         viewPort.Edit("^text\"\" ?\"");
+
+         viewPort.SelectionStart = new Point(0, 4);
+         viewPort.Edit("^table[description<\"\">]4 <000000>"); // note that this auto-scrolls, since a table was created
+         viewPort.SelectionStart = new Point(0, 0);
+         var textViewModel = (TextStreamArrayElementViewModel)viewPort.Tools.TableTool.Children[1];
+
+         // act: use the tool to change the content, forcing a repoint
+         messages.Clear();
+         textViewModel.Content = "Xyz";
+         var pointerViewModel = (FieldArrayElementViewModel)viewPort.Tools.TableTool.Children[0];
+
+         Assert.Single(messages);                               // we repointed
+         Assert.NotEqual("<000000>", pointerViewModel.Content); // other tool field was updated
       }
    }
 }
