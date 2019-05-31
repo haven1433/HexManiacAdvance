@@ -181,6 +181,9 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(1, format.Level);
          Assert.Equal(2, format.Move);
          Assert.Equal("Two", format.MoveName);
+
+         viewPort.SelectionStart = new Point(1, 0);
+         Assert.True(viewPort.IsSelected(new Point(0, 0)));
       }
 
       private void SetupMoveTable(int start) {

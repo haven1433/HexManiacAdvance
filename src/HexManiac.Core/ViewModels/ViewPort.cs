@@ -1097,7 +1097,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          (Point, Point) pair(int start, int end) => (scroll.DataIndexToViewPoint(start), scroll.DataIndexToViewPoint(end));
 
          if (run is PointerRun) return pair(run.Start, run.Start + run.Length - 1);
-         if (run is EggMoveRun) {
+         if (run is EggMoveRun || run is PLMRun) {
             var even = (index - run.Start) % 2 == 0;
             if (even) return pair(index, index + 1);
             return pair(index - 1, index);
