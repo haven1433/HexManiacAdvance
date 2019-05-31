@@ -4,6 +4,7 @@ using System.Collections.Generic;
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class AsciiRun : BaseRun {
       public const char StreamDelimeter = '`';
+      public static readonly string SharedFormatString = AsciiRun.StreamDelimeter + "asc" + AsciiRun.StreamDelimeter;
 
       public override int Length { get; }
 

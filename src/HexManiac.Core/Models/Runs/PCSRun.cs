@@ -4,12 +4,13 @@ using System.Collections.Generic;
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class PCSRun : BaseRun {
       public const char StringDelimeter = '"';
+      public static readonly string SharedFormatString = StringDelimeter + string.Empty + StringDelimeter;
 
       private int cachedIndex = int.MaxValue;
       private string cachedFullString;
 
       public override int Length { get; }
-      public override string FormatString => StringDelimeter.ToString() + StringDelimeter;
+      public override string FormatString => SharedFormatString;
 
       public PCSRun(int start, int length, IReadOnlyList<int> sources = null) : base(start, sources) => Length = length;
 

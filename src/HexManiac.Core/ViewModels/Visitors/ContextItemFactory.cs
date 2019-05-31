@@ -125,6 +125,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Results.AddRange(GetFormattedChildren());
       }
 
+      public void Visit(PlmItem item, byte data) {
+         var point = ViewPort.SelectionStart;
+         Results.Add(new ContextItem("Open In Text Tool", arg => ViewPort.FollowLink(point.X, point.Y)) { ShortcutText = "Ctrl+Click" });
+         Results.AddRange(GetFormattedChildren());
+      }
+
       private IEnumerable<IContextItem> GetTableChildren(ArrayRun array) {
          if (ViewPort.Tools.TableTool.Append.CanExecute(null)) {
             yield return new ContextItem("Extend Table", ViewPort.Tools.TableTool.Append.Execute);

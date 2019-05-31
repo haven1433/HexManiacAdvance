@@ -13,12 +13,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public const string MoveNamesTable = "movenames";
       public const string GroupStart = "[";
       public const string GroupEnd = "]";
+      public static readonly string SharedFormatString = AsciiRun.StreamDelimeter + "egg" + AsciiRun.StreamDelimeter;
       private readonly IDataModel model;
 
       public int Start { get; }
       public int Length { get; }
       public IReadOnlyList<int> PointerSources { get; private set; }
-      public string FormatString => AsciiRun.StreamDelimeter + "egg" + AsciiRun.StreamDelimeter;
+      public string FormatString => SharedFormatString;
 
       public EggMoveRun(IDataModel dataModel, int dataIndex) {
          model = dataModel;
@@ -124,14 +125,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public int GetPokemonNumber(string input) {
          if (input.StartsWith(GroupStart)) input = input.Substring(1, input.Length - 2);
+         input = input.ToLower();
          var names = cachedPokenames.Select(name => name.Trim('"').ToLower()).ToList();
-         return GetNumber(input.ToLower(), names);
+         return names.IndexOfPartial(input);
       }
 
       public int GetMoveNumber(string input) {
          input = input.Trim('"').ToLower();
          var names = cachedMovenames.Select(name => name.Trim('"').ToLower()).ToList();
-         return GetNumber(input, names);
+         return names.IndexOfPartial(input);
       }
 
       public string SerializeForTool() {
@@ -184,14 +186,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var pokenames = cachedPokenames.Select(name => $"{GroupStart}{name}{GroupEnd}");
          var movenames = cachedMovenames.Select(name => name + " ");
          return pokenames.Concat(movenames);
-      }
-
-      private static int GetNumber(string input, IList<string> names) {
-         var matchIndex = names.IndexOf(input);
-         if (matchIndex != -1) return matchIndex;
-         var match = names.FirstOrDefault(name => name.Contains(input));
-         if (match == null) return -1;
-         return names.IndexOf(match);
       }
 
       public void AppendTo(StringBuilder text, int start, int length) {

@@ -165,6 +165,22 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          context.Pop();
       }
 
+      public void Visit(PlmItem item, byte data) {
+         if (item.Position != 0) return;
+         var content = item.ToString();
+
+         var text = CreateText(content, FontSize * 3 / 4, Brush(nameof(Theme.Stream2)));
+
+         // center the text
+         var characterWidth = text.Width / content.Length;
+         var xOffset = HexContent.CellWidth - content.Length * characterWidth / 2;
+         if (xOffset < 0) xOffset = 0;
+
+         context.PushClip(new RectangleGeometry(new Rect(0, 0, HexContent.CellWidth * 2, HexContent.CellHeight)));
+         context.DrawText(text, new Point(xOffset, CellTextOffset.Y + 2));
+         context.Pop();
+      }
+
       private void Underline(Brush brush, bool isStart, bool isEnd) {
          int startPoint = isStart ? 5 : 0;
          int endPoint = (int)HexContent.CellWidth - (isEnd ? 5 : 0);

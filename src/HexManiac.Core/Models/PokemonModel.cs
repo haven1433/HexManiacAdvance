@@ -622,6 +622,20 @@ namespace HavenSoft.HexManiac.Core.Models {
          return resultsRecognizedAsTextRuns;
       }
 
+      // if the destination seems to be a PlmStream, adds the anchor and return true.
+      public static bool ConsiderAsPlmStream(IDataModel model, ModelDelta currentChange, int destination) {
+         var nextRun = model.GetNextRun(destination);
+         if (nextRun.Start < destination) return false;
+         if (nextRun.Start == destination && !(nextRun is NoInfoRun)) return false;
+         var pointers = model.SearchForPointersToAnchor(currentChange, destination);
+         if (pointers.Count == 0) return false;
+         var run = new PLMRun(model, destination);
+         if (run.Length < 6) return false;
+         if (destination + run.Length > nextRun.Start && nextRun.Start != destination) return false;
+         model.ObserveAnchorWritten(currentChange, string.Empty, run.MergeAnchor(pointers));
+         return true;
+      }
+
       public static PCSRun ConsiderAddressAsText(IDataModel model, int address, ModelDelta currentChange) {
          var nextRun = model.GetNextRun(address);
          if (nextRun.Start < address) return null;
@@ -999,14 +1013,16 @@ namespace HavenSoft.HexManiac.Core.Models {
                return new ErrorInfo($"Format was specified as a string, but a string would overlap the next anchor.");
             }
             run = new PCSRun(dataIndex, length);
-         } else if (format.StartsWith(StreamDelimeter + "asc" + StreamDelimeter)) {
+         } else if (format.StartsWith(AsciiRun.SharedFormatString)) {
             if (int.TryParse(format.Substring(5), out var length)) {
                run = new AsciiRun(dataIndex, length);
             } else {
                return new ErrorInfo($"Ascii runs must include a length.");
             }
-         } else if (format.StartsWith(StreamDelimeter + "egg" + StreamDelimeter)) {
+         } else if (format == EggMoveRun.SharedFormatString) {
             run = new EggMoveRun(model, dataIndex);
+         } else if (format == PLMRun.SharedFormatString) {
+            run = new PLMRun(model, dataIndex);
          } else {
             var errorInfo = TryParse(model, format, dataIndex, null, out var arrayRun);
             if (errorInfo == ErrorInfo.NoError) {

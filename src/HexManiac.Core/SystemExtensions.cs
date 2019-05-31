@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HavenSoft.HexManiac.Core {
    public static class SystemExtensions {
@@ -21,8 +22,19 @@ namespace HavenSoft.HexManiac.Core {
 
          return true;
       }
+      public static int IndexOfPartial(this IList<string> names, string input) {
+         // perfect match first
+         var matchIndex = names.IndexOf(input);
+         if (matchIndex != -1) return matchIndex;
+
+         // no perfect match found. How about a partial match?
+         var match = names.FirstOrDefault(name => name.Contains(input));
+         if (match == null) return -1;
+         return names.IndexOf(match);
+      }
       public static void AddRange<T>(this HashSet<T> set, IEnumerable<T> items) {
          foreach (var item in items) set.Add(item);
       }
+      public static int Count<T>(this IEnumerable<T> list, T c) where T : struct => list.Count(ch => ch.Equals(c));
    }
 }

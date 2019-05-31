@@ -159,5 +159,33 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Single(messages);                               // we repointed
          Assert.NotEqual("<000000>", pointerViewModel.Content); // other tool field was updated
       }
+
+      [Fact]
+      public void SupportsUnnamedPlmStreams() {
+         model.WriteMultiByteValue(0x100, 2, new ModelDelta(), 0x0202); // move two at level 1
+         model.WriteMultiByteValue(0x102, 2, new ModelDelta(), 0x1404); // move four at level 10 (8+2, shifted once -> 14)
+         model.WriteMultiByteValue(0x104, 2, new ModelDelta(), 0xFFFF); // end stream
+         viewPort.Edit("<000100>"); // setup something to point at 000100, so we can have an unnamed stream there
+
+         SetupMoveTable(0x20);
+         viewPort.Goto.Execute("000100");
+
+         errors.Clear();
+         viewPort.Edit("^`plm`");
+
+         Assert.Empty(errors);
+         var run = model.GetNextRun(0x100);
+         Assert.IsType<PLMRun>(run);
+         Assert.Equal(6, run.Length);
+         var format = (PlmItem)viewPort[1, 0].Format;
+         Assert.Equal(1, format.Level);
+         Assert.Equal(2, format.Move);
+         Assert.Equal("Two", format.MoveName);
+      }
+
+      private void SetupMoveTable(int start) {
+         viewPort.Goto.Execute(start.ToString("X6"));
+         viewPort.Edit("^" + EggMoveRun.MoveNamesTable + "[name\"\"8]8 Zero\" One\" Two\" Three\" Four\" Five\" Six\" Seven\"");
+      }
    }
 }

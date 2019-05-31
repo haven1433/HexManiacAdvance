@@ -84,5 +84,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             specialCharacters.Contains(Input) ||
             char.IsWhiteSpace(Input);
       }
+
+      public void Visit(PlmItem item, byte data) {
+         var specialCharacters = " -"; // double-edge, Vine Whip
+
+         if (!UnderEdit.CurrentText.Contains(" ")) {
+            // before the space, only numbers are allowed
+            Result = char.IsDigit(Input) || Input == ' ';
+         } else if (UnderEdit.CurrentText.EndsWith(" ") && !UnderEdit.CurrentText.Contains(StringDelimeter)) {
+            // directly after the space, can be a quote, a letter, or a digit.
+            Result = Input == StringDelimeter || char.IsLetterOrDigit(Input);
+         } else if (UnderEdit.CurrentText.Contains(StringDelimeter)) {
+            // if there is a quote, accept lots
+            Result = Input == StringDelimeter || char.IsLetterOrDigit(Input) || specialCharacters.Contains(Input);
+         } else {
+            // if there is no quote, accept lots, but not a quote
+            Result = Input == StringDelimeter || char.IsLetterOrDigit(Input) || specialCharacters.Contains(Input);
+         }
+      }
    }
 }

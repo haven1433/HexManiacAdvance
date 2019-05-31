@@ -131,5 +131,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          NewFormat = new UnderEdit(eggFormat, Input.ToString(), 2, autocomplete);
          Result = true;
       }
+      public void Visit(PlmItem item, byte data) => Result = char.IsDigit(Input);
    }
 }

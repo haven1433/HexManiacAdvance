@@ -115,6 +115,74 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(EggItem item, byte data) => CompleteEggEdit();
 
+      public void Visit(PlmItem item, byte data) {
+         var memoryLocation = this.memoryLocation;
+         var run = (PLMRun)Model.GetNextRun(memoryLocation);
+
+         // part 1: contraction (if they entered the end token)
+         if (CurrentText == EggMoveRun.GroupStart + EggMoveRun.GroupEnd) {
+            for (int i = this.memoryLocation; i < run.Start + run.Length; i += 2) Model.WriteMultiByteValue(i, 2, CurrentChange, 0xFFFF);
+            Model.ObserveRunWritten(CurrentChange, new PLMRun(Model, run.Start));
+            return;
+         }
+
+         // part 2: validation
+         if (!CurrentText.Contains(" ")) return;
+         var quoteCount = CurrentText.Count(c => c == StringDelimeter);
+         if (quoteCount % 2 != 0) return;
+         if (!CurrentText.EndsWith(StringDelimeter.ToString()) && !CurrentText.EndsWith(" ")) return;
+         ErrorText = ValidatePlmText(run, quoteCount, out var level, out var move);
+         if (ErrorText != null) return;
+
+         // part 3: write to the model
+         NewDataIndex = memoryLocation + 2;
+         Result = true;
+         var value = (level << 9) + move;
+         var initialItemValue = Model.ReadMultiByteValue(memoryLocation, 2);
+         Model.WriteMultiByteValue(memoryLocation, 2, CurrentChange, value);
+
+         // part 4: expansion
+         if (initialItemValue == 0xFFFF) {
+            var newRun = Model.RelocateForExpansion(CurrentChange, run, run.Length + 2);
+            if (newRun.Start != run.Start) {
+               MessageText = $"Level Up Moves were automatically moved to {newRun.Start.ToString("X6")}. Pointers were updated.";
+               memoryLocation += newRun.Start - run.Start;
+               NewDataIndex = memoryLocation + 2;
+               DataMoved = true;
+            }
+            Model.WriteMultiByteValue(memoryLocation + 2, 2, CurrentChange, 0xFFFF);
+            var lvlRun = new PLMRun(Model, newRun.Start);
+            Model.ObserveRunWritten(CurrentChange, lvlRun);
+         }
+      }
+
+      /// <summary>
+      /// Parses text in a PLM run to get the level and move.
+      /// returns an error string if the parse fails.
+      /// </summary>
+      private string ValidatePlmText(PLMRun run, int quoteCount, out int level, out int move) {
+         (level, move) = (default, default);
+         if (quoteCount == 0) {
+            var split = CurrentText.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            if (split.Length < 2) return null;
+            if (!int.TryParse(split[0], out level) || level < 1 || level > PLMRun.MaxLearningLevel) {
+               return $"Could not parse '{split[0]}' as a pokemon level.";
+            } else if (!run.TryGetMoveNumber(split[1], out move)) {
+               return $"Could not parse {split[1]} as a pokemon move.";
+            }
+         } else {
+            var rawLevel = CurrentText.Substring(0, CurrentText.IndexOf(' '));
+            var rawMove = CurrentText.Substring(rawLevel.Length + 1);
+            if (!int.TryParse(rawLevel, out level) || level < 1 || level > PLMRun.MaxLearningLevel) {
+               return $"Could not parse '{rawLevel}' as a pokemon level.";
+            } else if (!run.TryGetMoveNumber(rawMove, out move)) {
+               return $"Could not parse {rawMove} as a pokemon move.";
+            }
+         }
+
+         return null;
+      }
+
       private void CompleteIntegerEdit(Integer integer) {
          if (!int.TryParse(CurrentText, out var result)) {
             ErrorText = $"Could not parse {CurrentText} as a number";

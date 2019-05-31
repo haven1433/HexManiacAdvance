@@ -1186,6 +1186,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// Return true if it's a special edit. Result is true if the edit was completed.
       /// </summary>
       private bool TryGeneralCompleteEdit(string currentText, Point point, out bool result) {
+         result = false;
+
          // goto marker
          if (currentText.StartsWith(GotoMarker.ToString())) {
             if (char.IsWhiteSpace(currentText[currentText.Length - 1])) {
@@ -1194,8 +1196,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                Goto.Execute(destination);
                RequestMenuClose?.Invoke(this, EventArgs.Empty);
                result = true;
-            } else {
-               result = false;
             }
 
             return true;
@@ -1204,16 +1204,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          // anchor start
          if (currentText.StartsWith(AnchorStart.ToString())) {
             TryUpdate(ref anchorText, currentText, nameof(AnchorText));
-            if (!char.IsWhiteSpace(currentText[currentText.Length - 1])) {
+            var endingCharacter = currentText[currentText.Length - 1];
+            if (!char.IsWhiteSpace(endingCharacter) && currentText != StringDelimeter + string.Empty + StringDelimeter && currentText.Count(AsciiRun.StreamDelimeter) != 2) {
                AnchorTextVisible = true;
-               result = false;
                return true;
             }
 
             // only end the anchor edit if the [] brace count matches
             if (currentText.Sum(c => c == '[' ? 1 : c == ']' ? -1 : 0) != 0) {
                AnchorTextVisible = true;
-               result = false;
+               return true;
+            }
+
+            // only end the anchor if the "" and `` quote count are even
+            if (currentText.Count(AsciiRun.StreamDelimeter) % 2 != 0 || currentText.Count(StringDelimeter) % 2 != 0) {
+               AnchorTextVisible = true;
                return true;
             }
 
@@ -1240,7 +1245,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return true;
          }
 
-         result = default;
          return false;
       }
 
@@ -1250,10 +1254,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var index = scroll.ViewPointToDataIndex(point);
          ErrorInfo errorInfo;
 
-         // if it's an unnamed text anchor, we have special logic for that
-         if (underEdit.CurrentText == "^\"\" ") {
+         // if it's an unnamed text/stream anchor, we have special logic for that
+         if (underEdit.CurrentText == AnchorStart + PCSRun.SharedFormatString) {
             int count = Model.ConsiderResultsAsTextRuns(history.CurrentChange, new[] { index });
             if (count == 0) {
+               errorInfo = new ErrorInfo("An anchor with nothing pointing to it must have a name.");
+            } else {
+               errorInfo = ErrorInfo.NoError;
+            }
+         } else if (underEdit.CurrentText == AnchorStart + PLMRun.SharedFormatString) {
+            if (!PokemonModel.ConsiderAsPlmStream(Model, history.CurrentChange, index)) {
                errorInfo = new ErrorInfo("An anchor with nothing pointing to it must have a name.");
             } else {
                errorInfo = ErrorInfo.NoError;
