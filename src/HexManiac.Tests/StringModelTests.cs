@@ -18,7 +18,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          var data = PCSString.Convert("Hello World!").ToArray();
          Array.Copy(data, 0, buffer, 0x10, data.Length);
-         model.ObserveRunWritten(token, new PCSRun(0x10, data.Length));
+         model.ObserveRunWritten(token, new PCSRun(model, 0x10, data.Length));
 
          var run = (PCSRun)model.GetNextRun(0);
          Assert.Equal(data.Length, run.Length);

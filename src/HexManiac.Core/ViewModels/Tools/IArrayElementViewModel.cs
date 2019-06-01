@@ -249,7 +249,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                for (int i = 0; i < data.Count; i++) history.CurrentChange.ChangeData(model, run.Start + i, data[i]);
                for (int i = data.Count; i < run.Length; i++) history.CurrentChange.ChangeData(model, run.Start + i, 0xFF);
                DataChanged?.Invoke(this, EventArgs.Empty);
-               model.ObserveRunWritten(history.CurrentChange, new PCSRun(run.Start, data.Count));
+               model.ObserveRunWritten(history.CurrentChange, new PCSRun(model, run.Start, data.Count));
             }
          }
       }

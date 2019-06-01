@@ -3,9 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
-   public class PLMRun : IFormattedRun {
+   public class PLMRun : IStreamRun {
       public const int MaxLearningLevel = 100;
       public static readonly string SharedFormatString = AsciiRun.StreamDelimeter + "plm" + AsciiRun.StreamDelimeter;
       private readonly IDataModel model;
@@ -36,6 +37,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var move = (value & 0x1FF);
          return (level, move);
       }
+
+      public static int CombineToken(int level, int move) => (level << 9) | move;
 
       private IReadOnlyList<string> cachedMovenames;
       private int lastFormatRequest = int.MinValue;
@@ -71,12 +74,55 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public bool TryGetMoveNumber(string moveName, out int move) {
          moveName = moveName.Trim('"').ToLower();
          var names = cachedMovenames.Select(name => name.Trim('"').ToLower()).ToList();
+
+         // perfect match?
+         move = names.IndexOf(moveName);
+         if (move != -1) return true;
+
+         // partial match?
          move = names.IndexOfPartial(moveName);
-         return move != -1;
+
+         // last try: numeric match
+         return move != -1 || int.TryParse(moveName, out move);
       }
 
       public IEnumerable<string> GetAutoCompleteOptions(string header) {
          return cachedMovenames.Select(name => $"{header} {name} "); // autocomplete needs to complete after selection, so add a space
+      }
+
+      public string SerializeRun() {
+         var builder = new StringBuilder();
+         for (int i = 0; i < Length - 2; i += 2) {
+            var address = Start + i;
+            var (level, move) = SplitToken(model.ReadMultiByteValue(address, 2));
+            builder.Append($"{level} {move}");
+            if (i < Length - 4) builder.AppendLine();
+         }
+         return builder.ToString();
+      }
+
+      public IStreamRun DeserializeRun(string content, ModelDelta token) {
+         var data = new List<int>();
+         var moveNames = cachedMovenames.Select(name => name.Trim('"').ToLower()).ToList();
+         var lines = content.ToLower().Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+         foreach (var line in lines) {
+            var parts = line.Split(new[] { ' ' }, 2);
+            if (!int.TryParse(parts[0], out var level)) level = 0;
+            var moveName = parts.Length == 1 ? "0" : parts[1];
+
+            var index = moveNames.IndexOf(line);
+            if (index != -1) { data.Add(CombineToken(level, index)); continue; }
+
+            // look for a partial move match
+            for (int i = 0; i < moveNames.Count; i++) {
+               if (moveNames[i].Contains(line)) { data.Add(CombineToken(level, index)); break; }
+            }
+         }
+         var run = model.RelocateForExpansion(token, this, data.Count * 2 + 2);
+         for (int i = 0; i < data.Count; i++) model.WriteMultiByteValue(run.Start + i * 2, 2, token, data[i]);
+         model.WriteMultiByteValue(run.Start + data.Count * 2, 2, token, EggMoveRun.EndStream); // write the new end token
+         for (int i = data.Count + 2; i < Length / 2; i++) model.WriteMultiByteValue(run.Start + i * 2, 2, token, EggMoveRun.EndStream); // fill any remaining old space with FF
+         return new PLMRun(model, run.Start);
       }
    }
 }

@@ -281,7 +281,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                memoryLocation++;
                NewDataIndex = memoryLocation;
                var newRunLength = PCSString.ReadString(Model, run.Start, true);
-               Model.ObserveRunWritten(CurrentChange, new PCSRun(run.Start, newRunLength, run.PointerSources));
+               Model.ObserveRunWritten(CurrentChange, new PCSRun(Model, run.Start, newRunLength, run.PointerSources));
             }
          } else if (run is ArrayRun arrayRun) {
             var offsets = arrayRun.ConvertByteOffsetToArrayOffset(memoryLocation);
@@ -327,7 +327,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
                CurrentChange.ChangeData(Model, memoryLocation + 1, 0xFF);
                if (editText == "\\\\") CurrentChange.ChangeData(Model, memoryLocation + 2, 0xFF);
-               run = new PCSRun(run.Start, run.Length + extraBytesNeeded, run.PointerSources);
+               run = new PCSRun(Model, run.Start, run.Length + extraBytesNeeded, run.PointerSources);
                Model.ObserveRunWritten(CurrentChange, run);
             }
          } else if (run is ArrayRun arrayRun) {

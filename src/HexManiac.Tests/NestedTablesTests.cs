@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
@@ -216,9 +217,35 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("10 Fou", format.CurrentText);
       }
 
+      [Fact]
+      public void PlmStreamsAppearInTextTool() {
+         SetupMoveTable(0x20);
+         SetupPlmStream(0x70, 4);
+         viewPort.Goto.Execute("000000");
+
+         viewPort.SelectionStart = new Point(2, 7);
+         viewPort.FollowLink(2, 7);
+
+         Assert.Equal(viewPort.Tools.IndexOf(viewPort.Tools.StringTool), viewPort.Tools.SelectedIndex);
+         var itemCount = viewPort.Tools.StringTool.Content.Split(Environment.NewLine).Length;
+         Assert.Equal(4, itemCount);
+      }
+
+      // creates a move table that is 0x40 bytes long
       private void SetupMoveTable(int start) {
          viewPort.Goto.Execute(start.ToString("X6"));
          viewPort.Edit("^" + EggMoveRun.MoveNamesTable + "[name\"\"8]8 Zero\" One\" Two\" Three\" Four\" Five\" Six\" Seven\"");
+      }
+
+      // creates a plm stream named 'stream' that is <0x20 bytes long. Length should be <9.
+      private void SetupPlmStream(int start, int length) {
+         viewPort.Goto.Execute(start.ToString("X6"));
+         viewPort.Edit("FFFF"); // make sure we terminate first. This will move as needed, but it allows us to add the stream cleanly by just editing inline.
+         viewPort.Goto.Execute(start.ToString("X6"));
+         viewPort.Edit("^stream`plm`");
+         for (int i = 0; i < length; i++) {
+            viewPort.Edit($"{i + 1} {i} ");
+         }
       }
    }
 }

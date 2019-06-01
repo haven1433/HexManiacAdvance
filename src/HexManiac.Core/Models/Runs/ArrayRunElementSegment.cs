@@ -182,7 +182,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (length > 2) {
                   // our token will be a no-change token if we're in the middle of exploring the data.
                   // If so, don't actually add the run. It's enough to know that we _can_ add the run.
-                  if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, new PCSRun(destination, length));
+                  if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, new PCSRun(owner, destination, length));
                   return true;
                }
             }

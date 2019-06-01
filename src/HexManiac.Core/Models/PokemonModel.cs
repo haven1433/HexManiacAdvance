@@ -132,7 +132,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var length = PCSString.ReadString(RawData, destination, false);
             if (length < 2) continue;
             if (GetNextRun(destination + 1).Start < destination + length) continue;
-            ObserveRunWritten(noDataChange, new PCSRun(destination, length, pointersForDestination[destination]));
+            ObserveRunWritten(noDataChange, new PCSRun(this, destination, length, pointersForDestination[destination]));
          }
       }
 
@@ -182,7 +182,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          // It already had _copy on the end... fine, append the number '2'.
-         var number = name.Split(new[] { "_copy" }, StringSplitOptions.None).Last();
+         var number = name.Split("_copy").Last();
          if (number.Length == 0) {
             name += "2";
             UniquifyName(model, changeToken, desiredAddressForName, ref name);
@@ -462,7 +462,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (segment == null) return;
          if (segment.InnerFormat == "\"\"") {
             var length = PCSString.ReadString(this, run.Start, true);
-            if (length > 0) run = new PCSRun(run.Start, length, run.PointerSources);
+            if (length > 0) run = new PCSRun(this, run.Start, length, run.PointerSources);
          } else {
             throw new NotImplementedException();
          }
@@ -645,7 +645,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var length = PCSString.ReadString(model, address, true);
          if (length < 1) return null;
          if (address + length > nextRun.Start && nextRun.Start != address) return null;
-         return new PCSRun(address, length, pointers);
+         return new PCSRun(model, address, length, pointers);
       }
 
       private void ClearFormat(ModelDelta changeToken, int originalStart, int length, bool alsoClearData) {
@@ -1005,14 +1005,14 @@ namespace HavenSoft.HexManiac.Core.Models {
       private static ErrorInfo TryParseFormat(IDataModel model, string format, int dataIndex, out IFormattedRun run) {
          run = new NoInfoRun(dataIndex);
 
-         if (format == StringDelimeter.ToString() + StringDelimeter) {
+         if (format == PCSRun.SharedFormatString) {
             var length = PCSString.ReadString(model, dataIndex, true);
             if (length < 0) {
                return new ErrorInfo($"Format was specified as a string, but no string was recognized.");
             } else if (SpanContainsAnchor(model, dataIndex, length)) {
                return new ErrorInfo($"Format was specified as a string, but a string would overlap the next anchor.");
             }
-            run = new PCSRun(dataIndex, length);
+            run = new PCSRun(model, dataIndex, length);
          } else if (format.StartsWith(AsciiRun.SharedFormatString)) {
             if (int.TryParse(format.Substring(5), out var length)) {
                run = new AsciiRun(dataIndex, length);
@@ -1124,7 +1124,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          // move run
          IFormattedRun newRun;
          if (run is PCSRun pcs) {
-            newRun = new PCSRun(newStart, run.Length, run.PointerSources);
+            newRun = new PCSRun(this, newStart, run.Length, run.PointerSources);
          } else if (run is ArrayRun array) {
             newRun = array.Move(newStart);
          } else if (run is EggMoveRun egg) {

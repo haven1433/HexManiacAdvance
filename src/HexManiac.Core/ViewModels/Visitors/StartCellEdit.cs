@@ -84,11 +84,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       }
 
       public void Visit(PCS pcs, byte data) {
-         if (Model.GetNextRun(MemoryLocation) is ArrayRun array) {
+         // don't let it start with a space unless it's in quotes (for copy/paste)
+         var run = Model.GetNextRun(MemoryLocation);
+         if (run is ArrayRun array) {
             var offsets = array.ConvertByteOffsetToArrayOffset(MemoryLocation);
-            // don't let it start with a space unless it's in quotes (for copy/paste)
             if (offsets.SegmentStart == MemoryLocation && Input == ' ') return;
          }
+         if (run is PCSRun && run.Start == MemoryLocation && Input == ' ') return;
 
          Result = Input == StringDelimeter || PCSString.PCS.Any(str => str != null && str.StartsWith(Input.ToString()));
       }

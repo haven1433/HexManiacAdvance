@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
-   public class EggMoveRun : IFormattedRun {
+   public class EggMoveRun : IStreamRun {
       public const int MagicNumber = 0x4E20; // anything above this number is a pokemon, anything below it is a move
       public const int EndStream = 0xFFFF;
       public const string PokemonNameTable = "pokenames";
@@ -136,7 +136,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return names.IndexOfPartial(input);
       }
 
-      public string SerializeForTool() {
+      public string SerializeRun() {
          var builder = new StringBuilder();
          for (int i = 0; i < Length - 2; i += 2) {
             var address = Start + i;
@@ -152,7 +152,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return builder.ToString();
       }
 
-      public int DeserializeFromTool(string content, ModelDelta token) {
+      public IStreamRun DeserializeRun(string content, ModelDelta token) {
          var data = new List<int>();
          var pokemonNames = cachedPokenames.Select(name => $"{GroupStart}{name.Trim('"').ToLower()}{GroupEnd}").ToList();
          var moveNames = cachedMovenames.Select(name => name.Trim('"').ToLower()).ToList();
@@ -179,7 +179,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          for (int i = 0; i < data.Count; i++) model.WriteMultiByteValue(run.Start + i * 2, 2, token, data[i]);
          model.WriteMultiByteValue(run.Start + data.Count * 2, 2, token, EndStream); // write the new end token
          for (int i = data.Count + 2; i < Length / 2; i++) model.WriteMultiByteValue(run.Start + i * 2, 2, token, EndStream); // fill any remaining old space with FF
-         return run.Start;
+         return new EggMoveRun(model, run.Start);
       }
 
       public IEnumerable<string> GetAutoCompleteOptions() {

@@ -64,9 +64,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (TryUpdate(ref content, value)) {
                var run = model.GetNextRun(address);
                if (run.Start > address) return; // wrong run, don't adjust
-               if (run is PCSRun pcsRun) UpdateRun(pcsRun);
+               if (run is IStreamRun streamRun) UpdateRun(streamRun);
                if (run is ArrayRun arrayRun) UpdateRun(arrayRun);
-               if (run is EggMoveRun eggRun) UpdateRun(eggRun);
             }
          }
       }
@@ -78,7 +77,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (ignoreExternalUpdates) return;
             var run = model.GetNextRun(value);
             if (TryUpdate(ref address, value)) {
-               if ((run is PCSRun || run is ArrayRun || run is EggMoveRun) && run.Start <= value) {
+               if ((run is IStreamRun || run is ArrayRun) && run.Start <= value) {
                   runner.Schedule(DataForCurrentRunChanged);
                   Enabled = true;
                   ShowMessage = false;
@@ -131,7 +130,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
             var gameCode = PokemonModel.ReadGameCode(model);
             var initialAddress = address.ToString("X6");
-            var newRun = new PCSRun(address, 1, null);
+            var newRun = new PCSRun(model, address, 1, null);
             history.CurrentChange.AddRun(newRun);
             model.ObserveAnchorWritten(history.CurrentChange, gameCode + initialAddress, newRun);
             ModelDataChanged?.Invoke(this, newRun);
@@ -143,13 +142,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public void DataForCurrentRunChanged() {
          var run = model.GetNextRun(address);
-         if (run is PCSRun) {
-            var newContent = PCSString.Convert(model, run.Start, run.Length);
-            newContent = newContent.Substring(1, newContent.Length - 2); // remove quotes
-
-            TryUpdate(ref content, newContent, nameof(Content));
-            return;
-         } else if (run is ArrayRun array) {
+         if (run is ArrayRun array) {
             var offsets = array.ConvertByteOffsetToArrayOffset(address);
             var segment = array.ElementContent[offsets.SegmentIndex];
             if (segment.Type == ElementContentType.PCS) {
@@ -175,8 +168,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                }
             }
             return;
-         } else if (run is EggMoveRun egg) {
-            var newContent = egg.SerializeForTool();
+         } else if (run is IStreamRun stream) {
+            var newContent = stream.SerializeRun();
             ignoreSelectionUpdates = true;
             using (new StubDisposable { Dispose = () => ignoreSelectionUpdates = false }) {
                TryUpdate(ref content, newContent, nameof(Content));
@@ -221,18 +214,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          } else if (run is ArrayRun array) {
             var offset = array.ConvertByteOffsetToArrayOffset(Address);
             var textStart = offset.SegmentStart - offset.ElementIndex * array.ElementLength; // the starting address of the first text element
-            var leadingLines = content.Substring(0, contentIndex).Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+            var leadingLines = content.Substring(0, contentIndex).Split(Environment.NewLine);
             selectionStart = textStart + (leadingLines.Length - 1) * array.ElementLength + leadingLines[leadingLines.Length - 1].Length;
 
             selectionLength = Math.Max(0, selectionLength - 1); // decrease by one since a selection of 0 and selection of 1 have no difference
-            var afterLines = content.Substring(0, contentIndex + selectionLength).Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+            var afterLines = content.Substring(0, contentIndex + selectionLength).Split(Environment.NewLine);
             var selectionEnd = textStart + (afterLines.Length - 1) * array.ElementLength + afterLines[afterLines.Length - 1].Length;
             selectionLength = selectionEnd - selectionStart;
          } else if (run is EggMoveRun egg) {
             var beforeSelection = content.Substring(0, selectionStart);
-            var beforeLineCount = (beforeSelection.Split(new[] { Environment.NewLine }, StringSplitOptions.None).Length - 1).LimitToRange(0, int.MaxValue);
+            var beforeLineCount = (beforeSelection.Split(Environment.NewLine).Length - 1).LimitToRange(0, int.MaxValue);
             var withSelection = content.Substring(0, selectionStart + selectionLength);
-            var withSelectionLineCount = (withSelection.Split(new[] { Environment.NewLine }, StringSplitOptions.None).Length - 1).LimitToRange(0, int.MaxValue);
+            var withSelectionLineCount = (withSelection.Split(Environment.NewLine).Length - 1).LimitToRange(0, int.MaxValue);
 
             selectionStart = egg.Start + beforeLineCount * 2;
             var selectionEnd = egg.Start + withSelectionLineCount * 2;
@@ -244,7 +237,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void UpdateRun(ArrayRun arrayRun) {
-         var lines = content.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+         var lines = content.Split(Environment.NewLine);
          var arrayByteLength = lines.Length * arrayRun.ElementLength;
          var newRun = (ArrayRun)model.RelocateForExpansion(history.CurrentChange, arrayRun, arrayByteLength);
 
@@ -274,39 +267,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          ModelDataChanged?.Invoke(this, newRun);
       }
 
-      private void UpdateRun(PCSRun run) {
+      private void UpdateRun(IStreamRun run) {
          ignoreExternalUpdates = true;
-         var bytes = PCSString.Convert(content);
-         var newRun = model.RelocateForExpansion(history.CurrentChange, run, bytes.Count);
-         if (run.Start != newRun.Start) ModelDataMoved?.Invoke(this, (run.Start, newRun.Start));
-
-         // clear out excess bytes that are no longer in use
-         if (run.Start == newRun.Start) {
-            for (int i = bytes.Count; i < run.Length; i++) history.CurrentChange.ChangeData(model, run.Start + i, 0xFF);
-         }
-
-         for (int i = 0; i < bytes.Count; i++) history.CurrentChange.ChangeData(model, newRun.Start + i, bytes[i]);
-         run = new PCSRun(newRun.Start, bytes.Count, newRun.PointerSources);
-         model.ObserveRunWritten(history.CurrentChange, run);
-         history.CurrentChange.AddRun(run);
-         ModelDataChanged?.Invoke(this, run);
-         TryUpdate(ref address, run.Start, nameof(Address));
-         ignoreExternalUpdates = false;
-      }
-
-      private void UpdateRun(EggMoveRun run) {
-         ignoreExternalUpdates = true;
-         var newStart = run.DeserializeFromTool(content, history.CurrentChange);
-         var newRun = new EggMoveRun(model, newStart);
+         var newRun = run.DeserializeRun(content, history.CurrentChange);
          if (newRun.Length != run.Length) {
             model.ObserveRunWritten(history.CurrentChange, newRun);
-            newRun = (EggMoveRun)model.GetNextRun(newRun.Start);
+            newRun = (IStreamRun)model.GetNextRun(newRun.Start);
             history.CurrentChange.AddRun(newRun);
-            newRun.UpdateLimiter(history.CurrentChange);
+            if (newRun is EggMoveRun eggRun) eggRun.UpdateLimiter(history.CurrentChange);
          }
 
          if (run.Start != newRun.Start) ModelDataMoved?.Invoke(this, (run.Start, newRun.Start));
          ModelDataChanged?.Invoke(this, newRun);
+         TryUpdate(ref address, newRun.Start, nameof(Address));
          ignoreExternalUpdates = false;
       }
    }

@@ -34,11 +34,11 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
 
             if (cleanLine.StartsWith("Name = '''")) {
-               currentItemName = cleanLine.Split(new[] { "'''" }, StringSplitOptions.None)[1];
+               currentItemName = cleanLine.Split("'''")[1];
             }
 
             if (cleanLine.StartsWith("Format = '''")) {
-               currentItemFormat = cleanLine.Split(new[] { "'''" }, StringSplitOptions.None)[1];
+               currentItemFormat = cleanLine.Split("'''")[1];
             }
          }
 

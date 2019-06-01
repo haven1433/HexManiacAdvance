@@ -178,7 +178,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          // Assert: Text Tool is updated
          viewPort.Tools.SelectedIndex = Enumerable.Range(0, 10).First(i => viewPort.Tools[i] == viewPort.Tools.StringTool);
-         var textToolContent = viewPort.Tools.StringTool.Content.Split(new[] { Environment.NewLine }, StringSplitOptions.None)[1];
+         var textToolContent = viewPort.Tools.StringTool.Content.Split(Environment.NewLine)[1];
          Assert.Equal("Larry", textToolContent);
       }
 

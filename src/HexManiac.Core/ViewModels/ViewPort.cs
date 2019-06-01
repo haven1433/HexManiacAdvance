@@ -168,7 +168,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var offsets = array.ConvertByteOffsetToArrayOffset(dataIndex);
             Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
             Tools.TableTool.Address = array.Start + array.ElementLength * offsets.ElementIndex;
-         } else if (run.Start <= dataIndex && (run is PCSRun || run is EggMoveRun)) {
+         } else if (run.Start <= dataIndex && run is IStreamRun) {
             Tools.StringTool.Address = run.Start;
          } else {
             Tools.StringTool.Address = dataIndex;
@@ -601,7 +601,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (run is PCSRun pcs) {
             for (int i = index; i < run.Start + run.Length; i++) history.CurrentChange.ChangeData(Model, i, 0xFF);
             var length = PCSString.ReadString(Model, run.Start, true);
-            Model.ObserveRunWritten(history.CurrentChange, new PCSRun(run.Start, length, run.PointerSources));
+            Model.ObserveRunWritten(history.CurrentChange, new PCSRun(Model, run.Start, length, run.PointerSources));
             RefreshBackingData();
             SelectionStart = scroll.DataIndexToViewPoint(index - 1);
             return;
@@ -894,6 +894,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void FollowLink(int x, int y) {
          var format = currentView[x, y].Format;
          if (format is Anchor anchor) format = anchor.OriginalFormat;
+
+         // follow pointer
          if (format is Pointer pointer) {
             if (pointer.Destination != Pointer.NULL) {
                selection.GotoAddress(pointer.Destination);
@@ -903,24 +905,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                OnError(this, $"Pointer destination {pointer.DestinationName} not found.");
             }
          }
-         if (format is PCS pcs) {
-            var byteOffset = scroll.ViewPointToDataIndex(new Point(x, y));
-            var currentRun = Model.GetNextRun(byteOffset);
-            if (currentRun is PCSRun) {
-               Tools.StringTool.Address = currentRun.Start;
-            } else if (currentRun is ArrayRun array) {
-               var offsets = array.ConvertByteOffsetToArrayOffset(byteOffset);
-               Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
-            } else {
-               throw new NotImplementedException();
-            }
-            Tools.SelectedIndex = Enumerable.Range(0, Tools.Count).First(i => Tools[i] is PCSTool);
-         }
-         if (format is EggSection || format is EggItem || format is PLMRun) {
-            var byteOffset = scroll.ViewPointToDataIndex(new Point(x, y));
-            var currentRun = Model.GetNextRun(byteOffset);
+
+         // open tool
+         var byteOffset = scroll.ViewPointToDataIndex(new Point(x, y));
+         var currentRun = Model.GetNextRun(byteOffset);
+         if (currentRun is IStreamRun) {
             Tools.StringTool.Address = currentRun.Start;
-            Tools.SelectedIndex = Enumerable.Range(0, Tools.Count).First(i => Tools[i] is PCSTool);
+            Tools.SelectedIndex = Tools.IndexOf(Tools.StringTool);
+         } else if (currentRun is ArrayRun array) {
+            var offsets = array.ConvertByteOffsetToArrayOffset(byteOffset);
+            if (format is PCS) {
+               Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
+               Tools.SelectedIndex = Tools.IndexOf(Tools.StringTool);
+            } else {
+               Tools.TableTool.Address = array.Start + offsets.ElementIndex * array.ElementLength;
+               Tools.SelectedIndex = Tools.IndexOf(Tools.TableTool);
+            }
          }
       }
 
@@ -1216,7 +1216,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             // -> types a whitespace character,
             // -> types a closing quote for the text format ""
             // -> types a closing quote for the plm format `plm`
-            if (!char.IsWhiteSpace(endingCharacter) && currentText != AnchorStart + PCSRun.SharedFormatString && currentText != AnchorStart + PLMRun.SharedFormatString) {
+            if (!char.IsWhiteSpace(endingCharacter) && !currentText.EndsWith(PCSRun.SharedFormatString) && !currentText.EndsWith(PLMRun.SharedFormatString)) {
                AnchorTextVisible = true;
                return true;
             }
