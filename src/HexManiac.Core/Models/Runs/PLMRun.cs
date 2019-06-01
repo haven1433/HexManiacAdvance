@@ -95,7 +95,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          for (int i = 0; i < Length - 2; i += 2) {
             var address = Start + i;
             var (level, move) = SplitToken(model.ReadMultiByteValue(address, 2));
-            builder.Append($"{level} {move}");
+            var moveName = cachedMovenames.Count > move ? cachedMovenames[move] : move.ToString();
+            builder.Append($"{level} {moveName}");
             if (i < Length - 4) builder.AppendLine();
          }
          return builder.ToString();

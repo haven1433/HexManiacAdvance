@@ -229,6 +229,10 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(viewPort.Tools.IndexOf(viewPort.Tools.StringTool), viewPort.Tools.SelectedIndex);
          var itemCount = viewPort.Tools.StringTool.Content.Split(Environment.NewLine).Length;
          Assert.Equal(4, itemCount);
+
+         viewPort.Tools.StringTool.ContentIndex = 17; // third line
+         Assert.True(viewPort.IsSelected(new Point(4, 7)));
+         Assert.True(viewPort.IsSelected(new Point(5, 7)));
       }
 
       // creates a move table that is 0x40 bytes long

@@ -195,7 +195,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private void UpdateSelectionFromTool() {
          if (ignoreSelectionUpdates) return;
          var run = model.GetNextRun(Address);
-         if (!(run is ArrayRun) && !(run is PCSRun) && !(run is EggMoveRun)) return;
+         if (!(run is ArrayRun) && !(run is PCSRun) && !(run is EggMoveRun) && !(run is PLMRun)) return;
 
          // for arrays, the address must be at the start of a string segment within the first element of the array
          if (run is ArrayRun arrayRun) {
@@ -221,14 +221,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var afterLines = content.Substring(0, contentIndex + selectionLength).Split(Environment.NewLine);
             var selectionEnd = textStart + (afterLines.Length - 1) * array.ElementLength + afterLines[afterLines.Length - 1].Length;
             selectionLength = selectionEnd - selectionStart;
-         } else if (run is EggMoveRun egg) {
+         } else if (run is EggMoveRun || run is PLMRun) { // both of these streams format by putting 2 bytes per line.
             var beforeSelection = content.Substring(0, selectionStart);
             var beforeLineCount = (beforeSelection.Split(Environment.NewLine).Length - 1).LimitToRange(0, int.MaxValue);
             var withSelection = content.Substring(0, selectionStart + selectionLength);
             var withSelectionLineCount = (withSelection.Split(Environment.NewLine).Length - 1).LimitToRange(0, int.MaxValue);
 
-            selectionStart = egg.Start + beforeLineCount * 2;
-            var selectionEnd = egg.Start + withSelectionLineCount * 2;
+            selectionStart = run.Start + beforeLineCount * 2;
+            var selectionEnd = run.Start + withSelectionLineCount * 2;
             selectionLength = selectionEnd - selectionStart;
          }
 
