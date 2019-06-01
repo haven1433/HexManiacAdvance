@@ -279,7 +279,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public int Level { get; }
       public int Move { get; }
       public string MoveName { get; }
-      public override string ToString() => $"{Level} {Move}";
+      public override string ToString() => $"{Level} {MoveName}";
 
       public PlmItem(int source, int position, int level, int move, string moveName) {
          (Source, Position) = (source, position);

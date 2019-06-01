@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using System;
 using System.Collections.Generic;
 using Xunit;
 
@@ -184,6 +185,35 @@ namespace HavenSoft.HexManiac.Tests {
 
          viewPort.SelectionStart = new Point(1, 0);
          Assert.True(viewPort.IsSelected(new Point(0, 0)));
+      }
+
+      [Fact]
+      public void PlmStreamAutocomplete() {
+         SetupMoveTable(0x20);
+         viewPort.Goto.Execute("000040");
+
+         viewPort.Edit("FFFF");
+         viewPort.SelectionStart = new Point(0, 0);
+         viewPort.Edit("^stream`plm` 3 T"); // Two, Three
+         var format = (UnderEdit)viewPort[0, 0].Format;
+         Assert.Equal(2, format.AutocompleteOptions.Count);
+      }
+
+      [Fact]
+      public void PlmStreamBackspaceWorks() {
+         model.WriteMultiByteValue(0x100, 2, new ModelDelta(), 0x0202); // move two at level 1
+         model.WriteMultiByteValue(0x102, 2, new ModelDelta(), 0x1404); // move four at level 10 (8+2, shifted once -> 14)
+         model.WriteMultiByteValue(0x104, 2, new ModelDelta(), 0xFFFF); // end stream
+         viewPort.Edit("<000100>"); // setup something to point at 000100, so we can have an unnamed stream there
+         SetupMoveTable(0x20);
+         viewPort.Goto.Execute("000100");
+         errors.Clear();
+         viewPort.Edit("^`plm`");
+
+         viewPort.Goto.Execute("000102");
+         viewPort.Edit(ConsoleKey.Backspace);
+         var format = (UnderEdit)viewPort[2, 0].Format;
+         Assert.Equal("10 Fou", format.CurrentText);
       }
 
       private void SetupMoveTable(int start) {

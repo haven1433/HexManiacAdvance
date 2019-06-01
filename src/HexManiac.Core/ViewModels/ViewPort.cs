@@ -632,7 +632,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return;
          }
 
-         if (run is EggMoveRun eggRun) {
+         if (run is EggMoveRun || run is PLMRun) {
             PrepareForMultiSpaceEdit(point, 2);
             cell.Format.Visit(cellToText, cell.Value);
             var text = cellToText.Result;
@@ -916,7 +916,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
             Tools.SelectedIndex = Enumerable.Range(0, Tools.Count).First(i => Tools[i] is PCSTool);
          }
-         if (format is EggSection || format is EggItem) {
+         if (format is EggSection || format is EggItem || format is PLMRun) {
             var byteOffset = scroll.ViewPointToDataIndex(new Point(x, y));
             var currentRun = Model.GetNextRun(byteOffset);
             Tools.StringTool.Address = currentRun.Start;
@@ -1018,6 +1018,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var eggRun = (EggMoveRun)Model.GetNextRun(((IDataFormatInstance)originalFormat).Source);
             var allOptions = eggRun.GetAutoCompleteOptions();
             return AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(newText)), selectedIndex);
+         } else if (originalFormat is PlmItem) {
+            if (!newText.Contains(" ")) return AutoCompleteSelectionItem.Generate(Enumerable.Empty<string>(), -1);
+            var moveName = newText.Substring(newText.IndexOf(' ')).Trim();
+            if (moveName.Length == 0) return AutoCompleteSelectionItem.Generate(Enumerable.Empty<string>(), -1);
+            var plmRun = (PLMRun)Model.GetNextRun(((IDataFormatInstance)originalFormat).Source);
+            var allOptions = plmRun.GetAutoCompleteOptions(newText.Split(' ')[0]);
+            return AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(moveName)), selectedIndex);
          } else {
             throw new NotImplementedException();
          }
@@ -1205,7 +1212,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (currentText.StartsWith(AnchorStart.ToString())) {
             TryUpdate(ref anchorText, currentText, nameof(AnchorText));
             var endingCharacter = currentText[currentText.Length - 1];
-            if (!char.IsWhiteSpace(endingCharacter) && currentText != StringDelimeter + string.Empty + StringDelimeter && currentText.Count(AsciiRun.StreamDelimeter) != 2) {
+            // anchor format will only end once the user
+            // -> types a whitespace character,
+            // -> types a closing quote for the text format ""
+            // -> types a closing quote for the plm format `plm`
+            if (!char.IsWhiteSpace(endingCharacter) && currentText != AnchorStart + PCSRun.SharedFormatString && currentText != AnchorStart + PLMRun.SharedFormatString) {
                AnchorTextVisible = true;
                return true;
             }

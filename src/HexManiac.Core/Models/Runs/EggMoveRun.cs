@@ -183,8 +183,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public IEnumerable<string> GetAutoCompleteOptions() {
-         var pokenames = cachedPokenames.Select(name => $"{GroupStart}{name}{GroupEnd}");
-         var movenames = cachedMovenames.Select(name => name + " ");
+         var pokenames = cachedPokenames.Select(name => $"{GroupStart}{name}{GroupEnd}"); // closing brace, so no space needed
+         var movenames = cachedMovenames.Select(name => name + " "); // autocomplete needs to complete after selection, so add a space
          return pokenames.Concat(movenames);
       }
 

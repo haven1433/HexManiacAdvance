@@ -132,7 +132,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (quoteCount % 2 != 0) return;
          if (!CurrentText.EndsWith(StringDelimeter.ToString()) && !CurrentText.EndsWith(" ")) return;
          ErrorText = ValidatePlmText(run, quoteCount, out var level, out var move);
-         if (ErrorText != null) return;
+         if (ErrorText != null || move == -1) return;
 
          // part 3: write to the model
          NewDataIndex = memoryLocation + 2;
@@ -164,7 +164,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          (level, move) = (default, default);
          if (quoteCount == 0) {
             var split = CurrentText.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            if (split.Length < 2) return null;
+            if (split.Length < 2) { move = -1; return null; } // user hasn't entered a move yet
+            if (!CurrentText.EndsWith(" ")) { move = -1; return null; } // user is still entering a move
             if (!int.TryParse(split[0], out level) || level < 1 || level > PLMRun.MaxLearningLevel) {
                return $"Could not parse '{split[0]}' as a pokemon level.";
             } else if (!run.TryGetMoveNumber(split[1], out move)) {

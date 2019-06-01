@@ -74,5 +74,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          move = names.IndexOfPartial(moveName);
          return move != -1;
       }
+
+      public IEnumerable<string> GetAutoCompleteOptions(string header) {
+         return cachedMovenames.Select(name => $"{header} {name} "); // autocomplete needs to complete after selection, so add a space
+      }
    }
 }
