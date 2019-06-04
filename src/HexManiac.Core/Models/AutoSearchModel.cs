@@ -114,7 +114,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                var abilityDescriptionsAddress = ReadPointer(firstPointerToAbilityDescriptions);
                var existingRun = GetNextAnchor(abilityDescriptionsAddress);
                if (!(existingRun is ArrayRun) && existingRun.Start == abilityDescriptionsAddress) {
-                  var error = TryParse(this, "[description<\"\">]abilitynames", existingRun.Start, existingRun.PointerSources, out var abilityDescriptions);
+                  var error = TryParse(this, $"[description<{PCSRun.SharedFormatString}>]abilitynames", existingRun.Start, existingRun.PointerSources, out var abilityDescriptions);
                   if (!error.HasError) ObserveAnchorWritten(noChangeDelta, "abilitydescriptions", abilityDescriptions);
                }
             }
