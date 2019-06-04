@@ -116,14 +116,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                elementCount++;
             }
             LengthFromAnchor = string.Empty;
-            ElementCount = elementCount;
+            ElementCount = Math.Max(1, elementCount); // if the user said there's a format here, then there is, even if the format it wrong.
          } else if (int.TryParse(length, out int result)) {
             // fixed length is easy
             LengthFromAnchor = string.Empty;
-            ElementCount = result;
+            ElementCount = Math.Max(1, result);
          } else {
             LengthFromAnchor = length;
-            ElementCount = ParseLengthFromAnchor();
+            ElementCount = Math.Max(1, ParseLengthFromAnchor());
          }
 
          Length = ElementLength * ElementCount;
