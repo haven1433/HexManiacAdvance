@@ -1274,7 +1274,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                errorInfo = ErrorInfo.NoError;
             }
          } else if (underEdit.CurrentText == AnchorStart + PLMRun.SharedFormatString) {
-            if (!PokemonModel.ConsiderAsPlmStream(Model, history.CurrentChange, index)) {
+            if (!PokemonModel.ConsiderAsPlmStream(Model, index, history.CurrentChange)) {
                errorInfo = new ErrorInfo("An anchor with nothing pointing to it must have a name.");
             } else {
                errorInfo = ErrorInfo.NoError;

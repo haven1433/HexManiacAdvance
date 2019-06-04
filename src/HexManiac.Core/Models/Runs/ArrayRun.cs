@@ -472,7 +472,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                var pointerSegment = new ArrayRunPointerSegment(name, segments.Substring(1, formatLength - 2));
                if (!pointerSegment.IsInnerFormatValid) throw new ArrayRunParseException($"pointer format '{pointerSegment.InnerFormat}' was not understood.");
                list.Add(pointerSegment);
-               segments = segments.Substring(formatLength);
+               segments = segments.Substring(formatLength).Trim();
             } else {
                segments = segments.Substring(formatLength).Trim();
                if (format == ElementContentType.Unknown) {

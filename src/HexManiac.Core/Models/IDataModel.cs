@@ -198,7 +198,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          while (length > 0) {
             startPlaces.Add(left);
             var run = model.GetNextRun(left);
-            if (run is NoInfoRun) startPlaces.Add(run.Start);
+            if (run is NoInfoRun && run.Start < left + length) startPlaces.Add(run.Start);
             if (!(run is NoInfoRun)) break;
             while (model[left] != 0xFF) { left++; length--; }
             left++; length--;
