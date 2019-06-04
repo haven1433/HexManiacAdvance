@@ -477,11 +477,10 @@ namespace HavenSoft.HexManiac.Core.Models {
             runs[index] = array.AddSourcePointingWithinArray(start);
             changeToken.AddRun(runs[index]);
          } else if (index < 0) {
-            // the pointer is brand new
-            index = ~index;
             IFormattedRun newRun = new NoInfoRun(destination, new[] { start });
             UpdateNewRunFromPointerFormat(ref newRun, segment as ArrayRunPointerSegment, changeToken);
-            runs.Insert(index, newRun);
+            index = BinarySearch(destination); // runs could've been removed/added during UpdateNewRunFromPointerFormat: search for the index again.
+            runs.Insert(~index, newRun);
             changeToken.AddRun(newRun);
          } else {
             // the pointer points to a known normal anchor
@@ -493,6 +492,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
+      /// <summary>
+      /// If this new FormattedRun is a pointer to a known stream format,
+      /// Update the model so the data we're pointing to is actually that format.
+      /// </summary>
       private void UpdateNewRunFromPointerFormat(ref IFormattedRun run, ArrayRunPointerSegment segment, ModelDelta token) {
          if (segment == null) return;
          if (segment.InnerFormat == PCSRun.SharedFormatString) {
