@@ -190,8 +190,8 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void PlmStreamAutocomplete() {
-         SetupMoveTable(0x20);
-         viewPort.Goto.Execute("000040");
+         SetupMoveTable(0x20); // goes from 20 to 60
+         viewPort.Goto.Execute("000070");
 
          viewPort.Edit("FFFF");
          viewPort.SelectionStart = new Point(0, 0);

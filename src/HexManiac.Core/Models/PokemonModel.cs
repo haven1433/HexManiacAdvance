@@ -136,17 +136,51 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      private void ResolveConflicts() {
+      [Conditional("DEBUG")]
+      protected void ResolveConflicts() {
          for (int i = 0; i < runs.Count - 1; i++) {
+            // for every pointer run, make sure that the thing it points to knows about it
+            if (runs[i] is PointerRun pointerRun) {
+               var destination = ReadPointer(pointerRun.Start);
+               var run = GetNextRun(destination);
+               if (run is ArrayRun arrayRun1 && arrayRun1.SupportsPointersToElements) {
+                  var offsets = arrayRun1.ConvertByteOffsetToArrayOffset(destination);
+                  Debug.Assert(arrayRun1.PointerSourcesForInnerElements[offsets.ElementIndex].Contains(pointerRun.Start));
+                  if (offsets.ElementIndex == 0) Debug.Assert(run.PointerSources.Contains(pointerRun.Start));
+               } else if (run != NoInfoRun.NullRun) {
+                  Debug.Assert(run.PointerSources.Contains(pointerRun.Start));
+               }
+            }
+
+            // for every run with sources, make sure the pointer at that source actually points to it
+            if (runs[i].PointerSources != null) {
+               foreach (var source in runs[i].PointerSources) {
+                  var run = GetNextRun(source);
+                  Debug.Assert(run is PointerRun || run is ArrayRun);
+                  Debug.Assert(ReadPointer(source) == runs[i].Start);
+               }
+            }
+            if (runs[i] is ArrayRun arrayRun2 && arrayRun2.SupportsPointersToElements) {
+               for (int j = 0; j < arrayRun2.ElementCount; j++) {
+                  foreach (var source in arrayRun2.PointerSourcesForInnerElements[j]) {
+                     Debug.Assert(ReadPointer(source) == arrayRun2.Start + arrayRun2.ElementLength * j);
+                  }
+               }
+            }
+
             if (runs[i].Start + runs[i].Length <= runs[i + 1].Start) continue;
-            Debug.Fail("Pointers and Destinations are both 4-byte aligned, and pointers are only 4 bytes long. How the heck did I get a conflict?");
+            var debugRunStart1 = runs[i].Start.ToString("X6");
+            var debugRunStart2 = runs[i + 1].Start.ToString("X6");
+            Debug.Fail("Conflict: there's a run that ends before the next run starts!");
          }
       }
 
       #endregion
 
       public static ErrorInfo ApplyAnchor(IDataModel model, ModelDelta changeToken, int dataIndex, string text) {
-         return ApplyAnchor(model, changeToken, dataIndex, text, allowAnchorOverwrite: false);
+         var errorInfo = ApplyAnchor(model, changeToken, dataIndex, text, allowAnchorOverwrite: false);
+         (model as PokemonModel)?.ResolveConflicts();
+         return errorInfo;
       }
 
       private static ErrorInfo ApplyAnchor(IDataModel model, ModelDelta changeToken, int dataIndex, string text, bool allowAnchorOverwrite) {
