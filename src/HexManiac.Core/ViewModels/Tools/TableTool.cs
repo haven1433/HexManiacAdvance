@@ -164,8 +164,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (item is ArrayRunPointerSegment pointerSegment) {
                var destination = model.ReadPointer(itemAddress);
                if (destination != Pointer.NULL && pointerSegment.DestinationDataMatchesPointerFormat(model, history.CurrentChange, destination)) {
-                  if (pointerSegment.InnerFormat == $"{PCSRun.StringDelimeter}{PCSRun.StringDelimeter}") {
-                     var streamElement = new TextStreamArrayElementViewModel(history, (FieldArrayElementViewModel)viewModel, model, item.Name, itemAddress);
+                  if (pointerSegment.InnerFormat == PCSRun.SharedFormatString || pointerSegment.InnerFormat == PLMRun.SharedFormatString) {
+                     var streamElement = new StreamArrayElementViewModel(history, (FieldArrayElementViewModel)viewModel, model, item.Name, itemAddress);
                      streamElement.DataChanged += ForwardModelChanged;
                      streamElement.DataMoved += ForwardModelDataMoved;
                      Children.Add(streamElement);

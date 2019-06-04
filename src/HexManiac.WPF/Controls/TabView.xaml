@@ -129,7 +129,7 @@
                            <ComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" Grid.Column="1"/>
                         </Grid>
                      </DataTemplate>
-                     <DataTemplate DataType="{x:Type hsg3hvmtr:TextStreamArrayElementViewModel}">
+                     <DataTemplate DataType="{x:Type hsg3hvmtr:StreamArrayElementViewModel}">
                         <TextBox Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Margin="20,2,2,2" AcceptsReturn="True"/>
                      </DataTemplate>
                   </ItemsControl.Resources>
