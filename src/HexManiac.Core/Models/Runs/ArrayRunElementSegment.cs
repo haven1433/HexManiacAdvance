@@ -159,8 +159,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public bool IsInnerFormatValid {
          get {
-            if (InnerFormat == PCSRun.StringDelimeter + string.Empty + PCSRun.StringDelimeter) return true;
-            if (InnerFormat == "`plm`") return true;
+            if (InnerFormat == PCSRun.SharedFormatString) return true;
+            if (InnerFormat == PLMRun.SharedFormatString) return true;
             return false;
          }
       }
@@ -175,8 +175,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (run.Start < destination) return false;
          if (run.Start > destination || (run.Start == destination && run is NoInfoRun)) {
             // hard case: no format found, so check the data
-            if (InnerFormat == PCSRun.StringDelimeter + string.Empty + PCSRun.StringDelimeter) {
-               var maxLength = run.Start > destination ? run.Start - destination : owner.GetNextRun(destination + 1).Start - destination;
+            var maxLength = run.Start > destination ? run.Start - destination : owner.GetNextRun(destination + 1).Start - destination;
+            if (InnerFormat == PCSRun.SharedFormatString) {
                var length = PCSString.ReadString(owner, destination, false, maxLength);
 
                if (length > 2) {
@@ -185,11 +185,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, new PCSRun(owner, destination, length));
                   return true;
                }
+            } else if (InnerFormat == PLMRun.SharedFormatString) {
+               var plmRun = new PLMRun(owner, destination);
+               var length = plmRun.Length;
+               if (length > 2 && length <= maxLength) {
+                  if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, plmRun);
+                  return true;
+               }
             }
          } else {
             // easy case: already have a useful format, just see if it matches
-            if (InnerFormat == PCSRun.StringDelimeter + string.Empty + PCSRun.StringDelimeter) return run is PCSRun;
-            //if (InnerFormat == "`plm`") return run is PokemonLearnableMovesRun;
+            if (InnerFormat == PCSRun.SharedFormatString) return run is PCSRun;
+            if (InnerFormat == PLMRun.SharedFormatString) return run is PLMRun;
          }
          return false;
       }
