@@ -138,7 +138,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       [Conditional("DEBUG")]
       protected void ResolveConflicts() {
-         for (int i = 0; i < runs.Count - 1; i++) {
+         for (int i = 0; i < runs.Count; i++) {
             // for every pointer run, make sure that the thing it points to knows about it
             if (runs[i] is PointerRun pointerRun) {
                var destination = ReadPointer(pointerRun.Start);
@@ -168,7 +168,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                }
             }
 
-            if (runs[i].Start + runs[i].Length <= runs[i + 1].Start) continue;
+            if (i == runs.Count - 1 || runs[i].Start + runs[i].Length <= runs[i + 1].Start) continue;
             var debugRunStart1 = runs[i].Start.ToString("X6");
             var debugRunStart2 = runs[i + 1].Start.ToString("X6");
             Debug.Fail("Conflict: there's a run that ends before the next run starts!");
@@ -410,6 +410,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var existingRun = runs[index];
             changeToken.RemoveRun(existingRun);
             run = run.MergeAnchor(existingRun.PointerSources);
+            if (run is NoInfoRun) run = existingRun.MergeAnchor(run.PointerSources); // when writing an anchor with no format, keep the existing format.
             runs[index] = run;
             changeToken.AddRun(run);
          }
