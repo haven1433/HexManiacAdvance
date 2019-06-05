@@ -178,11 +178,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public bool DestinationDataMatchesPointerFormat(IDataModel owner, ModelDelta token, int destination) {
          if (destination == Pointer.NULL) return true;
-         var run = owner.GetNextRun(destination);
+         var run = owner.GetNextAnchor(destination);
          if (run.Start < destination) return false;
          if (run.Start > destination || (run.Start == destination && run is NoInfoRun)) {
             // hard case: no format found, so check the data
-            var maxLength = run.Start > destination ? run.Start - destination : owner.GetNextRun(destination + 1).Start - destination;
+            var maxLength = run.Start > destination ? run.Start - destination : owner.GetNextAnchor(destination + 1).Start - destination;
             if (InnerFormat == PCSRun.SharedFormatString) {
                var length = PCSString.ReadString(owner, destination, false, maxLength);
 
