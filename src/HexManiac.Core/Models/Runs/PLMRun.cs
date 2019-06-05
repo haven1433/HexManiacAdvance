@@ -15,9 +15,21 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public IReadOnlyList<int> PointerSources { get; private set; }
       public string FormatString => SharedFormatString;
 
-      public PLMRun(IDataModel dataModel, int start) {
+      /// <summary>
+      /// If we're going to make a whole bunch of PLMRuns in a row using the same model,
+      /// We can do it using the factory returned by this method instead of the constructor.
+      /// This lets us reuse the same cache for each new run.
+      /// </summary>
+      public static Func<int, PLMRun>CreateFactory(IDataModel model) {
+         var cachedMoveNames = ArrayRunEnumSegment.GetOptions(model, EggMoveRun.MoveNamesTable) ?? new List<string>();
+         return start => new PLMRun(model, start, cachedMoveNames);
+      }
+
+      public PLMRun(IDataModel dataModel, int start) : this(dataModel, start, null) { }
+
+      private PLMRun(IDataModel dataModel, int start, IReadOnlyList<string> cachedMovenames) {
          model = dataModel;
-         cachedMovenames = ArrayRunEnumSegment.GetOptions(model, EggMoveRun.MoveNamesTable) ?? new List<string>();
+         this.cachedMovenames = cachedMovenames ?? ArrayRunEnumSegment.GetOptions(model, EggMoveRun.MoveNamesTable) ?? new List<string>();
          Start = start;
          for (int i = Start; i < model.Count; i += 2) {
             var value = model.ReadMultiByteValue(i, 2);
@@ -27,8 +39,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
             // validate value
             var (level, move) = SplitToken(value);
-            if (level > 100) break;
-            if (move > cachedMovenames.Count) break;
+            if (level > 100 || level < 1) break;
+            if (move > this.cachedMovenames.Count) break;
          }
       }
 

@@ -275,6 +275,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
 
             if (!earlyExit) {
+               var dataEmpty = Enumerable.Range(targetRun.Start, currentLength * elementLength).Select(i => data[i]).All(d => d == 0xFF || d == 0x00);
+               if (dataEmpty) continue; // don't accept the run if it contains no data
                bestLength = currentLength;
                return targetRun.Start;
             }

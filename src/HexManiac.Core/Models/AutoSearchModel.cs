@@ -87,7 +87,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private void DecodeDataArrays() {
-         if (TrySearch(this, noChangeDelta, "[name\"\"14 index: price: holdeffect: description<> keyitemvalue. bagkeyitem. pocket. type. fieldeffect<> battleusage:: battleeffect<> battleextra::]", out var itemdata)) {
+         if (TrySearch(this, noChangeDelta, $"[name\"\"14 index: price: holdeffect: description<> keyitemvalue. bagkeyitem. pocket. type. fieldeffect<> battleusage:: battleeffect<> battleextra::]", out var itemdata)) {
             ObserveAnchorWritten(noChangeDelta, "items", itemdata);
          }
 
@@ -120,8 +120,12 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
          }
 
-         if (TrySearch(this, noChangeDelta, "[effect. power. type.types accuracy. pp. effectAccuracy. target. priority. more::]movenames", out var movedata, run => run.PointerSources.Count > 100)) {
+         if (TrySearch(this, noChangeDelta, "[effect. power. type.types accuracy. pp. effectAccuracy. target. priority. more::]" + EggMoveRun.MoveNamesTable, out var movedata, run => run.PointerSources.Count > 100)) {
             ObserveAnchorWritten(noChangeDelta, "movedata", movedata);
+         }
+
+         if (TrySearch(this, noChangeDelta, $"[moves<{PLMRun.SharedFormatString}>]" + EggMoveRun.PokemonNameTable, out var lvlMoveData)) {
+            ObserveAnchorWritten(noChangeDelta, "lvlmoves", lvlMoveData);
          }
 
          // @3D4294 ^itemicons[image<> palette<>]items
