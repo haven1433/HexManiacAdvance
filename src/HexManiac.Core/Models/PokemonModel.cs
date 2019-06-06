@@ -411,6 +411,10 @@ namespace HavenSoft.HexManiac.Core.Models {
             changeToken.RemoveRun(existingRun);
             run = run.MergeAnchor(existingRun.PointerSources);
             if (run is NoInfoRun) run = existingRun.MergeAnchor(run.PointerSources); // when writing an anchor with no format, keep the existing format.
+            if (existingRun is ArrayRun arrayRun1) {
+               ModifyAnchorsFromPointerArray(changeToken, arrayRun1, ClearPointerFormat);
+               index = BinarySearch(run.Start); // have to recalculate index, because ClearPointerFormat can removed runs.
+            }
             runs[index] = run;
             changeToken.AddRun(run);
          }
@@ -477,6 +481,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             runs[index] = array.AddSourcePointingWithinArray(start);
             changeToken.AddRun(runs[index]);
          } else if (index < 0) {
+            // the pointer points to a location between existing runs
             IFormattedRun newRun = new NoInfoRun(destination, new[] { start });
             UpdateNewRunFromPointerFormat(ref newRun, segment as ArrayRunPointerSegment, changeToken);
             index = BinarySearch(destination); // runs could've been removed/added during UpdateNewRunFromPointerFormat: search for the index again.
@@ -487,6 +492,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var existingRun = runs[index];
             changeToken.RemoveRun(existingRun);
             UpdateNewRunFromPointerFormat(ref existingRun, segment as ArrayRunPointerSegment, changeToken);
+            index = BinarySearch(destination); // runs could've been removed during UpdateNewRunFromPointerFormat: search for the index again.
             runs[index] = existingRun.MergeAnchor(new[] { start });
             changeToken.AddRun(runs[index]);
          }
@@ -500,7 +506,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (segment == null) return;
          if (segment.InnerFormat == PCSRun.SharedFormatString) {
             var length = PCSString.ReadString(this, run.Start, true);
-            if (length > 0) run = new PCSRun(this, run.Start, length, run.PointerSources);
+            if (length > 0) {
+               var newRun = new PCSRun(this, run.Start, length, run.PointerSources);
+               if (!newRun.Equals(run)) ClearFormat(token, run.Start, run.Length);
+               run = newRun;
+            }
          } else if (segment.InnerFormat == PLMRun.SharedFormatString) {
             var runAttempt = new PLMRun(this, run.Start);
             if (runAttempt.Length > 0) {

@@ -182,11 +182,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (run.Start < destination) return false;
          if (run.Start > destination || (run.Start == destination && run is NoInfoRun)) {
             // hard case: no format found, so check the data
-            var maxLength = run.Start > destination ? run.Start - destination : owner.GetNextAnchor(destination + 1).Start - destination;
             if (InnerFormat == PCSRun.SharedFormatString) {
-               var length = PCSString.ReadString(owner, destination, false, maxLength);
+               var length = PCSString.ReadString(owner, destination, true);
 
-               if (length > 2) {
+               if (length > 0) {
                   // our token will be a no-change token if we're in the middle of exploring the data.
                   // If so, don't actually add the run. It's enough to know that we _can_ add the run.
                   if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, new PCSRun(owner, destination, length));
@@ -195,7 +194,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             } else if (InnerFormat == PLMRun.SharedFormatString) {
                var plmRun = PlmFactory(owner)(destination);
                var length = plmRun.Length;
-               if (length > 2 && length <= maxLength) {
+               if (length > 2) {
                   if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, plmRun);
                   return true;
                }

@@ -1,9 +1,10 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
-   public class PCSRun : BaseRun, IStreamRun {
+   public class PCSRun : BaseRun, IStreamRun, IEquatable<IFormattedRun> {
       public const char StringDelimeter = '"';
       public static readonly string SharedFormatString = StringDelimeter + string.Empty + StringDelimeter;
 
@@ -15,6 +16,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public override string FormatString => SharedFormatString;
 
       public PCSRun(IDataModel model, int start, int length, IReadOnlyList<int> sources = null) : base(start, sources) => (this.model, Length) = (model, length);
+
+      public bool Equals(IFormattedRun run) {
+         if (!(run is PCSRun other)) return false;
+         return Start == other.Start && Length == other.Length && model == other.model;
+      }
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) {
          Debug.Assert(data == model);

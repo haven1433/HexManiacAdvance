@@ -87,7 +87,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private void DecodeDataArrays() {
-         if (TrySearch(this, noChangeDelta, $"[name\"\"14 index: price: holdeffect: description<> keyitemvalue. bagkeyitem. pocket. type. fieldeffect<> battleusage:: battleeffect<> battleextra::]", out var itemdata)) {
+         if (TrySearch(this, noChangeDelta, $"[name\"\"14 index: price: holdeffect: description<{PCSRun.SharedFormatString}> keyitemvalue. bagkeyitem. pocket. type. fieldeffect<> battleusage:: battleeffect<> battleextra::]", out var itemdata)) {
             ObserveAnchorWritten(noChangeDelta, "items", itemdata);
          }
 
