@@ -194,7 +194,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             } else if (InnerFormat == PLMRun.SharedFormatString) {
                var plmRun = PlmFactory(owner)(destination);
                var length = plmRun.Length;
-               if (length > 2) {
+               if (length >= 2) {
                   if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, plmRun);
                   return true;
                }
