@@ -804,7 +804,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          var anchorRun = runs[index];
          var newAnchorRun = anchorRun.RemoveSource(start);
          changeToken.RemoveRun(anchorRun);
-         if (newAnchorRun.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(newAnchorRun.Start)) {
+
+         // the only run that is allowed to exist with nothing pointing to it and no name is a pointer run.
+         // if it's any other kind of run with no name and no pointers to it, remove it.
+         if (newAnchorRun.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(newAnchorRun.Start) && !(newAnchorRun is PointerRun)) {
             runs.RemoveAt(index);
          } else {
             runs[index] = newAnchorRun;

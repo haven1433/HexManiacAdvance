@@ -158,6 +158,17 @@ namespace HavenSoft.HexManiac.Tests {
 
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
+      public void LvlUpMovesAreFound(string game) {
+         var model = LoadModel(game);
+         var noChange = new NoDataChangeDeltaModel();
+
+         var address = model.GetAddressFromAnchor(noChange, -1, "lvlmoves");
+         var run = (ArrayRun)model.GetNextAnchor(address);
+         Assert.NotNull(run);
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
       public void MoveDataFound(string game) {
          var model = LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();

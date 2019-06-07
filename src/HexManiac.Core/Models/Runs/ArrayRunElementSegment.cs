@@ -180,7 +180,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (destination == Pointer.NULL) return true;
          var run = owner.GetNextAnchor(destination);
          if (run.Start < destination) return false;
-         if (run.Start > destination || (run.Start == destination && run is NoInfoRun)) {
+         if (run.Start > destination || (run.Start == destination && (run is NoInfoRun || run is PointerRun))) {
             // hard case: no format found, so check the data
             if (InnerFormat == PCSRun.SharedFormatString) {
                var length = PCSString.ReadString(owner, destination, true);
