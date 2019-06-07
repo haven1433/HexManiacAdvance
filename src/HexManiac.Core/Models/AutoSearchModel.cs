@@ -40,6 +40,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             DecodeDataArrays();
             DecodeStreams();
          }
+
+         ResolveConflicts();
       }
 
       private void DecodeHeader() {

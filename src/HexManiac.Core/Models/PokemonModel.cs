@@ -508,7 +508,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var length = PCSString.ReadString(this, run.Start, true);
             if (length > 0) {
                var newRun = new PCSRun(this, run.Start, length, run.PointerSources);
-               if (!newRun.Equals(run)) ClearFormat(token, run.Start, run.Length);
+               if (!newRun.Equals(run)) ClearFormat(token, newRun.Start, newRun.Length);
                run = newRun;
             }
          } else if (segment.InnerFormat == PLMRun.SharedFormatString) {
