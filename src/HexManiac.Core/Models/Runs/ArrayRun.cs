@@ -445,6 +445,25 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new ArrayRun(owner, FormatString, LengthFromAnchor, Start, ElementCount, ElementContent, newPointerSources, newInnerPointerSources);
       }
 
+      public bool HasSameSegments(ArrayRun other) {
+         if (other == null) return false;
+         if (other.ElementContent.Count != ElementContent.Count) return false;
+         for (int i = 0; i < ElementContent.Count; i++) {
+            var mine = ElementContent[i];
+            var theirs = other.ElementContent[i];
+            if (mine.Type != theirs.Type || mine.Length != theirs.Length) return false;
+            if (mine is ArrayRunEnumSegment enumSegment) {
+               if (!(theirs is ArrayRunEnumSegment enumSegment2)) return false;
+               if (enumSegment.EnumName != enumSegment2.EnumName) return false;
+            }
+            if (mine is ArrayRunPointerSegment pointerSegment) {
+               if (!(theirs is ArrayRunPointerSegment pointerSegment2)) return false;
+               if (pointerSegment.InnerFormat != pointerSegment2.InnerFormat) return false;
+            }
+         }
+         return true;
+      }
+
       protected override IFormattedRun Clone(IReadOnlyList<int> newPointerSources) {
          // since the inner pointer sources includes the first row, update the first row
          List<IReadOnlyList<int>> newInnerPointerSources = null;

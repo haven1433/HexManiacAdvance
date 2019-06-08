@@ -310,11 +310,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   var errorInfo = PokemonModel.ApplyAnchor(Model, history.CurrentChange, index, AnchorText);
                   if (errorInfo == ErrorInfo.NoError) {
                      OnError?.Invoke(this, string.Empty);
-                     if (run is ArrayRun array) {
-                        // to keep from double-updating the AnchorText
-                        selection.PropertyChanged -= SelectionPropertyChanged;
-                        Goto.Execute(index.ToString("X2"));
-                        selection.PropertyChanged += SelectionPropertyChanged;
+                     var newRun = Model.GetNextRun(index);
+                     if (newRun is ArrayRun array) {
+                        // if the format changed (ignoring length), run a goto to update the display width
+                        if (run is ArrayRun array2 && !array.HasSameSegments(array2)) {
+                           selection.PropertyChanged -= SelectionPropertyChanged; // to keep from double-updating the AnchorText
+                           Goto.Execute(index.ToString("X2"));
+                           selection.PropertyChanged += SelectionPropertyChanged;
+                        }
                         UpdateColumnHeaders();
                         Tools.RefreshContent();
                      }
