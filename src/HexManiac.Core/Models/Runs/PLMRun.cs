@@ -20,7 +20,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       /// We can do it using the factory returned by this method instead of the constructor.
       /// This lets us reuse the same cache for each new run.
       /// </summary>
-      public static Func<int, PLMRun>CreateFactory(IDataModel model) {
+      public static Func<int, PLMRun> CreateFactory(IDataModel model) {
          var cachedMoveNames = ArrayRunEnumSegment.GetOptions(model, EggMoveRun.MoveNamesTable) ?? new List<string>();
          return start => new PLMRun(model, start, cachedMoveNames);
       }

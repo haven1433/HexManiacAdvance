@@ -226,7 +226,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly IDataModel model;
       private readonly string name;
       private readonly int start;
-      
+
       public bool IsInError => !string.IsNullOrEmpty(ErrorText);
       public string ErrorText { get; private set; }
       public event EventHandler DataChanged;

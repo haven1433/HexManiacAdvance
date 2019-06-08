@@ -622,7 +622,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                throw new NotImplementedException();
          }
       }
-      
+
       [Flags]
       public enum FormatMatchFlags {
          IsSingleSegment = 0x01,
