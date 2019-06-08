@@ -243,8 +243,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CanGotoUsingAtSymbol() {
-         var model = new PokemonModel(new byte[0x200]);
-         var viewPort = new ViewPort("unnamed.txt", model) { Width = 0x10, Height = 0x10 };
+         StandardSetup(out var data, out var model, out var viewPort);
 
          viewPort.Edit("@100 ");
 
@@ -253,8 +252,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CanGotoAddressWith08Prepended() {
-         var model = new PokemonModel(new byte[0x200]);
-         var viewPort = new ViewPort("unnamed.txt", model) { Width = 0x10, Height = 0x10 };
+         StandardSetup(out var data, out var model, out var viewPort);
          var errors = new List<string>();
          viewPort.OnError += (sender, e) => errors.Add(e);
 
@@ -266,8 +264,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CanGotoAddressWithAngleBraces() {
-         var model = new PokemonModel(new byte[0x200]);
-         var viewPort = new ViewPort("unnamed.txt", model) { Width = 0x10, Height = 0x10 };
+         StandardSetup(out var data, out var model, out var viewPort);
          var errors = new List<string>();
          viewPort.OnError += (sender, e) => errors.Add(e);
 
@@ -279,9 +276,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void GotoBadPointerErrors() {
-         var data = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
-         var model = new PokemonModel(data);
-         var viewPort = new ViewPort("unnamed.txt", model) { Width = 0x10, Height = 0x10 };
+         StandardSetup(out var data, out var model, out var viewPort);
          var errors = new List<string>();
          viewPort.OnError += (sender, e) => errors.Add(e);
 
@@ -289,6 +284,25 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.FollowLink(1, 0);
 
          Assert.Single(errors);
+      }
+
+      [Fact]
+      public void TableLengthChangeShouldNotCauseGoto() {
+         StandardSetup(out var data, out var model, out var viewPort);
+
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.Edit("^bob[data.]10 ");             // auto scroll (table format change)
+         viewPort.Goto.Execute("000000");
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.AnchorText = "^bob[data.]12";       // no auto scroll (table length change)
+
+         Assert.Equal("000000", viewPort.Headers[0]);
+      }
+
+      private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
+         data = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         model = new PokemonModel(data);
+         viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
       }
    }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -26,7 +27,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                var address = rawData.ReadPointer(offset);
                var anchor = rawData.GetAnchorFromAddress(-1, address);
                if (string.IsNullOrEmpty(anchor)) anchor = address.ToString("X6");
-               return $"<{anchor}>";
+               return $"{PointerRun.PointerStart}{anchor}{PointerRun.PointerEnd}";
             default:
                throw new NotImplementedException();
          }
@@ -147,5 +148,63 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public void ClearCache() { cachedOptions = null; }
+   }
+
+   /// <summary>
+   /// For pointers that contain nested formatting instructions.
+   /// For example, pointing to a text stream or a plm (pokemon learnable moves) stream
+   /// </summary>
+   public class ArrayRunPointerSegment : ArrayRunElementSegment {
+      public string InnerFormat { get; }
+
+      public bool IsInnerFormatValid {
+         get {
+            if (InnerFormat == PCSRun.SharedFormatString) return true;
+            if (InnerFormat == PLMRun.SharedFormatString) return true;
+            return false;
+         }
+      }
+
+      public ArrayRunPointerSegment(string name, string innerFormat) : base(name, ElementContentType.Pointer, 4) {
+         InnerFormat = innerFormat;
+      }
+
+      private Func<int, PLMRun> plmFactory;
+      private Func<int, PLMRun> PlmFactory(IDataModel owner) {
+         if (plmFactory != null) return plmFactory;
+         plmFactory = PLMRun.CreateFactory(owner);
+         return plmFactory;
+      }
+
+      public bool DestinationDataMatchesPointerFormat(IDataModel owner, ModelDelta token, int destination) {
+         if (destination == Pointer.NULL) return true;
+         var run = owner.GetNextAnchor(destination);
+         if (run.Start < destination) return false;
+         if (run.Start > destination || (run.Start == destination && (run is NoInfoRun || run is PointerRun))) {
+            // hard case: no format found, so check the data
+            if (InnerFormat == PCSRun.SharedFormatString) {
+               var length = PCSString.ReadString(owner, destination, true);
+
+               if (length > 0) {
+                  // our token will be a no-change token if we're in the middle of exploring the data.
+                  // If so, don't actually add the run. It's enough to know that we _can_ add the run.
+                  if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, new PCSRun(owner, destination, length));
+                  return true;
+               }
+            } else if (InnerFormat == PLMRun.SharedFormatString) {
+               var plmRun = PlmFactory(owner)(destination);
+               var length = plmRun.Length;
+               if (length >= 2) {
+                  if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, plmRun);
+                  return true;
+               }
+            }
+         } else {
+            // easy case: already have a useful format, just see if it matches
+            if (InnerFormat == PCSRun.SharedFormatString) return run is PCSRun;
+            if (InnerFormat == PLMRun.SharedFormatString) return run is PLMRun;
+         }
+         return false;
+      }
    }
 }

@@ -1,19 +1,30 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
-   public class PCSRun : BaseRun {
+   public class PCSRun : BaseRun, IStreamRun, IEquatable<IFormattedRun> {
       public const char StringDelimeter = '"';
+      public static readonly string SharedFormatString = StringDelimeter + string.Empty + StringDelimeter;
 
+      private readonly IDataModel model;
       private int cachedIndex = int.MaxValue;
       private string cachedFullString;
 
       public override int Length { get; }
-      public override string FormatString => StringDelimeter.ToString() + StringDelimeter;
+      public override string FormatString => SharedFormatString;
 
-      public PCSRun(int start, int length, IReadOnlyList<int> sources = null) : base(start, sources) => Length = length;
+      public PCSRun(IDataModel model, int start, int length, IReadOnlyList<int> sources = null) : base(start, sources) => (this.model, Length) = (model, length);
+
+      public bool Equals(IFormattedRun run) {
+         if (!(run is PCSRun other)) return false;
+         return Start == other.Start && Length == other.Length && model == other.model;
+      }
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) {
+         Debug.Assert(data == model);
+
          // only read the full string from the data once per pass.
          // This assumes that we read data starting at the lowest index and working our way up.
          if (index < cachedIndex) cachedFullString = PCSString.Convert(data, Start, Length);
@@ -38,8 +49,27 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
+      public string SerializeRun() {
+         var newContent = PCSString.Convert(model, Start, Length);
+         newContent = newContent.Substring(1, newContent.Length - 2); // remove quotes
+         return newContent;
+      }
+
+      public IStreamRun DeserializeRun(string content, ModelDelta token) {
+         var bytes = PCSString.Convert(content);
+         var newRun = model.RelocateForExpansion(token, this, bytes.Count);
+
+         // clear out excess bytes that are no longer in use
+         if (Start == newRun.Start) {
+            for (int i = bytes.Count; i < Length; i++) token.ChangeData(model, Start + i, 0xFF);
+         }
+
+         for (int i = 0; i < bytes.Count; i++) token.ChangeData(model, newRun.Start + i, bytes[i]);
+         return new PCSRun(model, newRun.Start, bytes.Count, newRun.PointerSources);
+      }
+
       protected override IFormattedRun Clone(IReadOnlyList<int> newPointerSources) {
-         return new PCSRun(Start, Length, newPointerSources);
+         return new PCSRun(model, Start, Length, newPointerSources);
       }
    }
 }

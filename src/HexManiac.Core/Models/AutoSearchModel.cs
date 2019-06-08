@@ -40,6 +40,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             DecodeDataArrays();
             DecodeStreams();
          }
+
+         ResolveConflicts();
       }
 
       private void DecodeHeader() {
@@ -87,7 +89,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private void DecodeDataArrays() {
-         if (TrySearch(this, noChangeDelta, "[name\"\"14 index: price: holdeffect: description<> keyitemvalue. bagkeyitem. pocket. type. fieldeffect<> battleusage:: battleeffect<> battleextra::]", out var itemdata)) {
+         if (TrySearch(this, noChangeDelta, $"[name\"\"14 index: price: holdeffect: description<{PCSRun.SharedFormatString}> keyitemvalue. bagkeyitem. pocket. type. fieldeffect<> battleusage:: battleeffect<> battleextra::]", out var itemdata)) {
             ObserveAnchorWritten(noChangeDelta, "items", itemdata);
          }
 
@@ -114,14 +116,18 @@ namespace HavenSoft.HexManiac.Core.Models {
                var abilityDescriptionsAddress = ReadPointer(firstPointerToAbilityDescriptions);
                var existingRun = GetNextAnchor(abilityDescriptionsAddress);
                if (!(existingRun is ArrayRun) && existingRun.Start == abilityDescriptionsAddress) {
-                  var error = TryParse(this, "[description<>]abilitynames", existingRun.Start, existingRun.PointerSources, out var abilityDescriptions);
+                  var error = TryParse(this, $"[description<{PCSRun.SharedFormatString}>]abilitynames", existingRun.Start, existingRun.PointerSources, out var abilityDescriptions);
                   if (!error.HasError) ObserveAnchorWritten(noChangeDelta, "abilitydescriptions", abilityDescriptions);
                }
             }
          }
 
-         if (TrySearch(this, noChangeDelta, "[effect. power. type.types accuracy. pp. effectAccuracy. target. priority. more::]movenames", out var movedata, run => run.PointerSources.Count > 100)) {
+         if (TrySearch(this, noChangeDelta, "[effect. power. type.types accuracy. pp. effectAccuracy. target. priority. more::]" + EggMoveRun.MoveNamesTable, out var movedata, run => run.PointerSources.Count > 100)) {
             ObserveAnchorWritten(noChangeDelta, "movedata", movedata);
+         }
+
+         if (TrySearch(this, noChangeDelta, $"[moves<{PLMRun.SharedFormatString}>]" + EggMoveRun.PokemonNameTable, out var lvlMoveData)) {
+            ObserveAnchorWritten(noChangeDelta, "lvlmoves", lvlMoveData);
          }
 
          // @3D4294 ^itemicons[image<> palette<>]items

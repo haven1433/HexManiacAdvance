@@ -161,10 +161,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
             Children.Add(viewModel);
             viewModel.DataChanged += ForwardModelChanged;
+            if (item is ArrayRunPointerSegment pointerSegment) {
+               var destination = model.ReadPointer(itemAddress);
+               if (destination != Pointer.NULL && pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), destination)) {
+                  if (pointerSegment.InnerFormat == PCSRun.SharedFormatString || pointerSegment.InnerFormat == PLMRun.SharedFormatString) {
+                     var streamElement = new StreamArrayElementViewModel(history, (FieldArrayElementViewModel)viewModel, model, item.Name, itemAddress);
+                     streamElement.DataChanged += ForwardModelChanged;
+                     streamElement.DataMoved += ForwardModelDataMoved;
+                     Children.Add(streamElement);
+                  } else {
+                     throw new NotImplementedException();
+                  }
+               }
+            }
             itemAddress += item.Length;
          }
       }
 
       private void ForwardModelChanged(object sender, EventArgs e) => ModelDataChanged?.Invoke(this, model.GetNextRun(Address));
+      private void ForwardModelDataMoved(object sender, (int originalStart, int newStart) e) => ModelDataMoved?.Invoke(this, e);
    }
 }

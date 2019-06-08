@@ -139,7 +139,7 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.SelectionStart = new Point(0, 2);
          viewPort.Edit("^bob ");
 
-         Assert.IsType<Core.ViewModels.DataFormats.Anchor>(viewPort[0, 2].Format);
+         Assert.IsType<Anchor>(viewPort[0, 2].Format);
          Assert.Equal(0x8, viewPort[0, 2].Value);
       }
 
@@ -725,6 +725,22 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Edit("^test3 ");
          Assert.IsType<Pointer>(viewPort[0x2, 0x0].Format);
          Assert.Single(((Anchor)viewPort[0x2, 0xA].Format).Sources);
+      }
+
+      [Fact]
+      public void ReplacingAPointerWithAnAnchorKeepsKnowledgeOfThatPointer() {
+         StandardSetup(out var data, out var model, out var viewPort);
+         viewPort.Edit("<000040><000040><000040>");
+         viewPort.Goto.Execute("000004");
+         viewPort.Edit("^bob "); // adding the anchor will remove the pointer
+
+         Assert.Equal(3, model.GetNextRun(0x40).PointerSources.Count); // since the pointer was removed, the anchor should only have 2 things pointing to it.
+      }
+
+      private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
+         data = new byte[0x200];
+         model = new PokemonModel(data);
+         viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
       }
    }
 }

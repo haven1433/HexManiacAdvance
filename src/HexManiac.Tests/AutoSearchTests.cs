@@ -36,7 +36,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          var address = model.GetAddressFromAnchor(noChange, -1, EggMoveRun.PokemonNameTable);
          var run = (ArrayRun)model.GetNextAnchor(address);
-         if (game.Contains("Gaia")) Assert.Equal(914, run.ElementCount);
+         if (game.Contains("Gaia")) Assert.Equal(925, run.ElementCount);
          else Assert.Equal(412, run.ElementCount);
       }
 
@@ -78,6 +78,14 @@ namespace HavenSoft.HexManiac.Tests {
          if (game.Contains("Clover")) Assert.Equal(156, run.ElementCount);
          else if (game.Contains("Gaia")) Assert.Equal(188, run.ElementCount);
          else Assert.Equal(78, run.ElementCount);
+
+         if (game.Contains("Gaia")) return; // don't validate description text in Gaia, it's actually invalid.
+
+         for (var i = 0; i < run.ElementCount; i++) {
+            address = model.ReadPointer(run.Start + i * 4);
+            var childRun = model.GetNextRun(address);
+            Assert.IsType<PCSRun>(childRun);
+         }
       }
 
       [SkippableTheory]
@@ -146,6 +154,17 @@ namespace HavenSoft.HexManiac.Tests {
          if (game.Contains("Vega")) compareSet = new[] { 42, 53, 40, 70, 63, 40 }; // Nimbleaf
          if (game.Contains("Clover")) compareSet = new[] { 56, 60, 55, 50, 47, 50 }; // Grasshole
          for (int i = 0; i < compareSet.Length; i++) Assert.Equal(compareSet[i], firstPokemonStats[i]);
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void LvlUpMovesAreFound(string game) {
+         var model = LoadModel(game);
+         var noChange = new NoDataChangeDeltaModel();
+
+         var address = model.GetAddressFromAnchor(noChange, -1, "lvlmoves");
+         var run = (ArrayRun)model.GetNextAnchor(address);
+         Assert.NotNull(run);
       }
 
       [SkippableTheory]

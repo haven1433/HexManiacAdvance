@@ -14,6 +14,25 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       IFormattedRun RemoveSource(int source);
    }
 
+   /// <summary>
+   /// A run representing a stream.
+   /// Streams usually are variable length, and end with some sort of 'end' token.
+   /// We want to be able to stringify streams, so we can use them with the tools.
+   /// </summary>
+   public interface IStreamRun : IFormattedRun {
+      /// <summary>
+      /// Should not change the data, only creates a string representation of that data.
+      /// </summary>
+      string SerializeRun();
+
+      /// <summary>
+      /// Updates data based on converting content back into the stream.
+      /// Returns the run where the data was placed.
+      /// The run usually starts at the same spot as before, but in the case of repointing it can be different.
+      /// </summary>
+      IStreamRun DeserializeRun(string content, ModelDelta token);
+   }
+
    public class FormattedRunComparer : IComparer<IFormattedRun> {
       public static FormattedRunComparer Instance { get; } = new FormattedRunComparer();
       public int Compare(IFormattedRun a, IFormattedRun b) => a.Start.CompareTo(b.Start);

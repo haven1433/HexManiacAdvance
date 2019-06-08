@@ -116,14 +116,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                elementCount++;
             }
             LengthFromAnchor = string.Empty;
-            ElementCount = elementCount;
+            ElementCount = Math.Max(1, elementCount); // if the user said there's a format here, then there is, even if the format it wrong.
          } else if (int.TryParse(length, out int result)) {
             // fixed length is easy
             LengthFromAnchor = string.Empty;
-            ElementCount = result;
+            ElementCount = Math.Max(1, result);
          } else {
             LengthFromAnchor = length;
-            ElementCount = ParseLengthFromAnchor();
+            ElementCount = Math.Max(1, ParseLengthFromAnchor());
          }
 
          Length = ElementLength * ElementCount;
@@ -257,24 +257,36 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             // some searches allow special conditions on the run. For example, we could only be intersted in runs with >100 pointers leading to it.
             if (runFilter != null && !runFilter(targetRun)) continue;
 
+            // tolerate a few errors in the data. We know what length we're looking for, so if most of the elements match, then
+            // most likely we're just looking at the right collection but with some user-created bugs.
+            int errorsToTolerate = bestLength / 80;
+            int encounterErrors = 0;
+            int lastGoodLength = 0;
             int currentLength = 0;
             int currentAddress = targetRun.Start;
             bool earlyExit = false;
             for (int i = 0; i < bestLength; i++) {
                var nextArray = data.GetNextAnchor(currentAddress + 1);
-               if (DataMatchesElementFormat(data, currentAddress, elementContent, flags, nextArray)) {
-                  currentLength++;
-                  currentAddress += elementLength;
+               bool match = DataMatchesElementFormat(data, currentAddress, elementContent, flags, nextArray);
+               currentLength++;
+               currentAddress += elementLength;
+               if (match) {
+                  lastGoodLength = currentLength;
                } else {
-                  // as long as this array is at least 80% of the passed in array, we're fine and can say that these are matched.
-                  // (the other one might have bad data at the end that needs to be removed) (example: see Gaia)
-                  earlyExit = bestLength * .8 > currentLength;
-                  break;
+                  encounterErrors++;
+                  if (encounterErrors > errorsToTolerate) {
+                     // as long as this array is at least 80% of the passed in array, we're fine and can say that these are matched.
+                     // (the other one might have bad data at the end that needs to be removed) (example: see Gaia)
+                     earlyExit = bestLength * .8 > lastGoodLength;
+                     break;
+                  }
                }
             }
-
+            currentLength = lastGoodLength;
 
             if (!earlyExit) {
+               var dataEmpty = Enumerable.Range(targetRun.Start, currentLength * elementLength).Select(i => data[i]).All(d => d == 0xFF || d == 0x00);
+               if (dataEmpty) continue; // don't accept the run if it contains no data
                bestLength = currentLength;
                return targetRun.Start;
             }
@@ -433,6 +445,25 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new ArrayRun(owner, FormatString, LengthFromAnchor, Start, ElementCount, ElementContent, newPointerSources, newInnerPointerSources);
       }
 
+      public bool HasSameSegments(ArrayRun other) {
+         if (other == null) return false;
+         if (other.ElementContent.Count != ElementContent.Count) return false;
+         for (int i = 0; i < ElementContent.Count; i++) {
+            var mine = ElementContent[i];
+            var theirs = other.ElementContent[i];
+            if (mine.Type != theirs.Type || mine.Length != theirs.Length) return false;
+            if (mine is ArrayRunEnumSegment enumSegment) {
+               if (!(theirs is ArrayRunEnumSegment enumSegment2)) return false;
+               if (enumSegment.EnumName != enumSegment2.EnumName) return false;
+            }
+            if (mine is ArrayRunPointerSegment pointerSegment) {
+               if (!(theirs is ArrayRunPointerSegment pointerSegment2)) return false;
+               if (pointerSegment.InnerFormat != pointerSegment2.InnerFormat) return false;
+            }
+         }
+         return true;
+      }
+
       protected override IFormattedRun Clone(IReadOnlyList<int> newPointerSources) {
          // since the inner pointer sources includes the first row, update the first row
          List<IReadOnlyList<int>> newInnerPointerSources = null;
@@ -468,6 +499,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   segments = segments.Substring(endOfToken).Trim();
                   list.Add(new ArrayRunEnumSegment(name, segmentLength, enumName));
                }
+            } else if (format == ElementContentType.Pointer && formatLength > 2) {
+               var pointerSegment = new ArrayRunPointerSegment(name, segments.Substring(1, formatLength - 2));
+               if (!pointerSegment.IsInnerFormatValid) throw new ArrayRunParseException($"pointer format '{pointerSegment.InnerFormat}' was not understood.");
+               list.Add(pointerSegment);
+               segments = segments.Substring(formatLength).Trim();
             } else {
                segments = segments.Substring(formatLength).Trim();
                if (format == ElementContentType.Unknown) {
@@ -483,7 +519,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       private static (ElementContentType format, int formatLength, int segmentLength) ExtractSingleFormat(string segments) {
-         if (segments.Length >= 2 && segments.Substring(0, 2) == "\"\"") {
+         if (segments.Length >= 2 && segments.Substring(0, 2) == PCSRun.StringDelimeter + string.Empty + PCSRun.StringDelimeter) {
             var format = ElementContentType.PCS;
             var formatLength = 2;
             while (formatLength < segments.Length && char.IsDigit(segments[formatLength])) formatLength++;
@@ -498,8 +534,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             return (ElementContentType.Integer, 1, 2);
          } else if (segments.StartsWith(SingleByteIntegerFormat.ToString())) {
             return (ElementContentType.Integer, 1, 1);
-         } else if (segments.StartsWith(PointerRun.PointerStart + string.Empty + PointerRun.PointerEnd)) {
-            return (ElementContentType.Pointer, 2, 4);
+         } else if (segments.Length > 0 && segments[0] == PointerRun.PointerStart) {
+            var openCount = 1;
+            var endIndex = 1;
+            while (openCount > 0 && endIndex < segments.Length) {
+               if (segments[endIndex] == PointerRun.PointerStart) openCount += 1;
+               else if (segments[endIndex] == PointerRun.PointerEnd) openCount -= 1;
+               endIndex += 1;
+            }
+            if (openCount > 0) return (ElementContentType.Unknown, 0, 0);
+            return (ElementContentType.Pointer, endIndex, 4);
          }
 
          return (ElementContentType.Unknown, 0, 0);
@@ -569,12 +613,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             case ElementContentType.Pointer:
                var destination = owner.ReadPointer(start);
                if (destination == Pointer.NULL) return true;
-               return 0 <= destination && destination <= owner.Count;
+               if (0 > destination || destination > owner.Count) return false;
+               if (segment is ArrayRunPointerSegment pointerSegment) {
+                  if (!pointerSegment.DestinationDataMatchesPointerFormat(owner, new NoDataChangeDeltaModel(), destination)) return false;
+               }
+               return true;
             default:
                throw new NotImplementedException();
          }
       }
-      
+
       [Flags]
       public enum FormatMatchFlags {
          IsSingleSegment = 0x01,

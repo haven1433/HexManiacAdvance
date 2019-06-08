@@ -242,6 +242,8 @@ namespace HavenSoft.HexManiac.Tests {
          var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
 
          viewPort.Edit("^bob\"\" ");
+         var bobRun = model.GetNextRun(0);
+         Assert.Equal(1, bobRun.Length);
 
          // move the selection to force a break in the undo history
          viewPort.SelectionStart = new Point(3, 3);

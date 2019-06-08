@@ -190,7 +190,7 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.FollowLink(0, 0);
 
          Assert.Equal("^pokenames[name\"\"11]", viewPort.AnchorText);
-         Assert.Equal("BULBASAUR", viewPort.Tools.StringTool.Content.Split(new[] { Environment.NewLine }, StringSplitOptions.None).Last());
+         Assert.Equal("BULBASAUR", viewPort.Tools.StringTool.Content.Split(Environment.NewLine).Last());
       }
 
       [Fact]
@@ -212,7 +212,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(0, viewPort.Tools.SelectedIndex); // string tool is selected
          Assert.Equal(100, viewPort.Tools.StringTool.Address);
-         var lineCount = viewPort.Tools.StringTool.Content.Split(new[] { Environment.NewLine }, StringSplitOptions.None).Length;
+         var lineCount = viewPort.Tools.StringTool.Content.Split(Environment.NewLine).Length;
          Assert.Equal(6, lineCount);
 
          viewPort.Tools.StringTool.ContentIndex = viewPort.Tools.StringTool.Content.IndexOf("pall");
@@ -283,7 +283,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x80, run.Start);
          Assert.Equal("testdata", model.GetAnchorFromAddress(-1, run.Start));
          Assert.Equal(5, ((ArrayRun)run).ElementCount);
-         var lines = viewPort.Tools.StringTool.Content.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+         var lines = viewPort.Tools.StringTool.Content.Split(Environment.NewLine);
          Assert.All(elements, element => Assert.Contains(element, lines));
 
          // assert -> nothing left behind

@@ -105,7 +105,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(ErrorPCS pcs, byte data) => Visit((PCS)null, data);
 
-      public void Visit(Ascii ascii, byte data) { }
+      public void Visit(Ascii ascii, byte data) => Results.AddRange(GetFormattedChildren());
 
       public void Visit(Integer integer, byte data) {
          var arrayRun = (ArrayRun)ViewPort.Model.GetNextRun(ViewPort.Tools.TableTool.Address);
@@ -120,6 +120,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(EggSection section, byte data) => Visit((EggItem)null, data);
 
       public void Visit(EggItem item, byte data) {
+         var point = ViewPort.SelectionStart;
+         Results.Add(new ContextItem("Open In Text Tool", arg => ViewPort.FollowLink(point.X, point.Y)) { ShortcutText = "Ctrl+Click" });
+         Results.AddRange(GetFormattedChildren());
+      }
+
+      public void Visit(PlmItem item, byte data) {
          var point = ViewPort.SelectionStart;
          Results.Add(new ContextItem("Open In Text Tool", arg => ViewPort.FollowLink(point.X, point.Y)) { ShortcutText = "Ctrl+Click" });
          Results.AddRange(GetFormattedChildren());

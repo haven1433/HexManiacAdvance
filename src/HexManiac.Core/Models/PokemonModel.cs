@@ -29,7 +29,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public virtual int EarliestAllowedAnchor => 0;
 
       public override IReadOnlyList<ArrayRun> Arrays => runs.OfType<ArrayRun>().ToList();
-      public override IReadOnlyList<IFormattedRun> Streams => runs.OfType<EggMoveRun>().ToList();
+      public override IReadOnlyList<IFormattedRun> Streams => runs.Where(run => run is IStreamRun).ToList();
 
       #region Constructor
 
@@ -132,21 +132,55 @@ namespace HavenSoft.HexManiac.Core.Models {
             var length = PCSString.ReadString(RawData, destination, false);
             if (length < 2) continue;
             if (GetNextRun(destination + 1).Start < destination + length) continue;
-            ObserveRunWritten(noDataChange, new PCSRun(destination, length, pointersForDestination[destination]));
+            ObserveRunWritten(noDataChange, new PCSRun(this, destination, length, pointersForDestination[destination]));
          }
       }
 
-      private void ResolveConflicts() {
-         for (int i = 0; i < runs.Count - 1; i++) {
-            if (runs[i].Start + runs[i].Length <= runs[i + 1].Start) continue;
-            Debug.Fail("Pointers and Destinations are both 4-byte aligned, and pointers are only 4 bytes long. How the heck did I get a conflict?");
+      [Conditional("DEBUG")]
+      protected void ResolveConflicts() {
+         for (int i = 0; i < runs.Count; i++) {
+            // for every pointer run, make sure that the thing it points to knows about it
+            if (runs[i] is PointerRun pointerRun) {
+               var destination = ReadPointer(pointerRun.Start);
+               var run = GetNextRun(destination);
+               if (run is ArrayRun arrayRun1 && arrayRun1.SupportsPointersToElements) {
+                  var offsets = arrayRun1.ConvertByteOffsetToArrayOffset(destination);
+                  Debug.Assert(arrayRun1.PointerSourcesForInnerElements[offsets.ElementIndex].Contains(pointerRun.Start));
+                  if (offsets.ElementIndex == 0) Debug.Assert(run.PointerSources.Contains(pointerRun.Start));
+               } else if (run != NoInfoRun.NullRun) {
+                  Debug.Assert(run.PointerSources.Contains(pointerRun.Start));
+               }
+            }
+
+            // for every run with sources, make sure the pointer at that source actually points to it
+            if (runs[i].PointerSources != null) {
+               foreach (var source in runs[i].PointerSources) {
+                  var run = GetNextRun(source);
+                  Debug.Assert(run is PointerRun || run is ArrayRun);
+                  Debug.Assert(ReadPointer(source) == runs[i].Start);
+               }
+            }
+            if (runs[i] is ArrayRun arrayRun2 && arrayRun2.SupportsPointersToElements) {
+               for (int j = 0; j < arrayRun2.ElementCount; j++) {
+                  foreach (var source in arrayRun2.PointerSourcesForInnerElements[j]) {
+                     Debug.Assert(ReadPointer(source) == arrayRun2.Start + arrayRun2.ElementLength * j);
+                  }
+               }
+            }
+
+            if (i == runs.Count - 1 || runs[i].Start + runs[i].Length <= runs[i + 1].Start) continue;
+            var debugRunStart1 = runs[i].Start.ToString("X6");
+            var debugRunStart2 = runs[i + 1].Start.ToString("X6");
+            Debug.Fail("Conflict: there's a run that ends before the next run starts!");
          }
       }
 
       #endregion
 
       public static ErrorInfo ApplyAnchor(IDataModel model, ModelDelta changeToken, int dataIndex, string text) {
-         return ApplyAnchor(model, changeToken, dataIndex, text, allowAnchorOverwrite: false);
+         var errorInfo = ApplyAnchor(model, changeToken, dataIndex, text, allowAnchorOverwrite: false);
+         (model as PokemonModel)?.ResolveConflicts();
+         return errorInfo;
       }
 
       private static ErrorInfo ApplyAnchor(IDataModel model, ModelDelta changeToken, int dataIndex, string text, bool allowAnchorOverwrite) {
@@ -182,7 +216,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          // It already had _copy on the end... fine, append the number '2'.
-         var number = name.Split(new[] { "_copy" }, StringSplitOptions.None).Last();
+         var number = name.Split("_copy").Last();
          if (number.Length == 0) {
             name += "2";
             UniquifyName(model, changeToken, desiredAddressForName, ref name);
@@ -376,11 +410,16 @@ namespace HavenSoft.HexManiac.Core.Models {
             var existingRun = runs[index];
             changeToken.RemoveRun(existingRun);
             run = run.MergeAnchor(existingRun.PointerSources);
+            if (run is NoInfoRun) run = existingRun.MergeAnchor(run.PointerSources); // when writing an anchor with no format, keep the existing format.
+            if (existingRun is ArrayRun arrayRun1) {
+               ModifyAnchorsFromPointerArray(changeToken, arrayRun1, ClearPointerFormat);
+               index = BinarySearch(run.Start); // have to recalculate index, because ClearPointerFormat can removed runs.
+            }
             runs[index] = run;
             changeToken.AddRun(run);
          }
 
-         if (run is PointerRun) AddPointerToAnchor(changeToken, run.Start);
+         if (run is PointerRun) AddPointerToAnchor(null, changeToken, run.Start);
          if (run is ArrayRun arrayRun) {
             ModifyAnchorsFromPointerArray(changeToken, arrayRun, AddPointerToAnchor);
             UpdateDependantArrayLengths(changeToken, arrayRun);
@@ -398,13 +437,15 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// When we make a new pointer, we need to update anchors to include the new pointer.
       /// So update all the anchors based on any new pointers in this newly added array.
       /// </summary>
-      private void ModifyAnchorsFromPointerArray(ModelDelta changeToken, ArrayRun arrayRun, Action<ModelDelta, int> changeAnchors) {
+      private void ModifyAnchorsFromPointerArray(ModelDelta changeToken, ArrayRun arrayRun, Action<ArrayRunElementSegment, ModelDelta, int> changeAnchors) {
          int segmentOffset = arrayRun.Start;
+         // i loops over the different segments in the array
          for (int i = 0; i < arrayRun.ElementContent.Count; i++) {
             if (arrayRun.ElementContent[i].Type != ElementContentType.Pointer) { segmentOffset += arrayRun.ElementContent[i].Length; continue; }
+            // for a pointer segment, j loops over all the elements in the array
             for (int j = 0; j < arrayRun.ElementCount; j++) {
                var start = segmentOffset + arrayRun.ElementLength * j;
-               changeAnchors(changeToken, start);
+               changeAnchors(arrayRun.ElementContent[i], changeToken, start);
             }
             segmentOffset += arrayRun.ElementContent[i].Length;
          }
@@ -423,7 +464,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      private void AddPointerToAnchor(ModelDelta changeToken, int start) {
+      /// <summary>
+      /// There is a pointer at 'start' that was just added.
+      /// Update anchor at destination to include that pointer.
+      /// </summary>
+      /// <param name="changeToken"></param>
+      /// <param name="start"></param>
+      private void AddPointerToAnchor(ArrayRunElementSegment segment, ModelDelta changeToken, int start) {
          var destination = ReadPointer(start);
          if (destination < 0 || destination >= Count) return;
          int index = BinarySearch(destination);
@@ -434,21 +481,49 @@ namespace HavenSoft.HexManiac.Core.Models {
             runs[index] = array.AddSourcePointingWithinArray(start);
             changeToken.AddRun(runs[index]);
          } else if (index < 0) {
-            // the pointer is brand new
-            index = ~index;
-            var newRun = new NoInfoRun(destination, new[] { start });
-            runs.Insert(index, newRun);
+            // the pointer points to a location between existing runs
+            IFormattedRun newRun = new NoInfoRun(destination, new[] { start });
+            UpdateNewRunFromPointerFormat(ref newRun, segment as ArrayRunPointerSegment, changeToken);
+            index = BinarySearch(destination); // runs could've been removed/added during UpdateNewRunFromPointerFormat: search for the index again.
+            runs.Insert(~index, newRun);
             changeToken.AddRun(newRun);
          } else {
             // the pointer points to a known normal anchor
             var existingRun = runs[index];
             changeToken.RemoveRun(existingRun);
+            UpdateNewRunFromPointerFormat(ref existingRun, segment as ArrayRunPointerSegment, changeToken);
+            index = BinarySearch(destination); // runs could've been removed during UpdateNewRunFromPointerFormat: search for the index again.
             runs[index] = existingRun.MergeAnchor(new[] { start });
             changeToken.AddRun(runs[index]);
          }
       }
 
+      /// <summary>
+      /// If this new FormattedRun is a pointer to a known stream format,
+      /// Update the model so the data we're pointing to is actually that format.
+      /// </summary>
+      private void UpdateNewRunFromPointerFormat(ref IFormattedRun run, ArrayRunPointerSegment segment, ModelDelta token) {
+         if (segment == null) return;
+         if (segment.InnerFormat == PCSRun.SharedFormatString) {
+            var length = PCSString.ReadString(this, run.Start, true);
+            if (length > 0) {
+               var newRun = new PCSRun(this, run.Start, length, run.PointerSources);
+               if (!newRun.Equals(run)) ClearFormat(token, newRun.Start, newRun.Length);
+               run = newRun;
+            }
+         } else if (segment.InnerFormat == PLMRun.SharedFormatString) {
+            var runAttempt = new PLMRun(this, run.Start);
+            if (runAttempt.Length > 0) {
+               run = runAttempt.MergeAnchor(run.PointerSources);
+               ClearFormat(token, run.Start, run.Length);
+            }
+         } else {
+            throw new NotImplementedException();
+         }
+      }
+
       public override void ObserveAnchorWritten(ModelDelta changeToken, string anchorName, IFormattedRun run) {
+         Debug.Assert(run.Length > 0); // writing an anchor of length zero is stupid.
          int location = run.Start;
          int index = BinarySearch(location);
 
@@ -590,7 +665,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          int resultsRecognizedAsTextRuns = 0;
          var parallelLock = new object();
          Parallel.ForEach(searchResults, result => {
-            var run = ConsiderAddressAsText(this, result, currentChange);
+            var run = ConsiderAsTextStream(this, result, currentChange);
             if (run != null) {
                lock (parallelLock) {
                   ObserveAnchorWritten(currentChange, string.Empty, run);
@@ -602,16 +677,30 @@ namespace HavenSoft.HexManiac.Core.Models {
          return resultsRecognizedAsTextRuns;
       }
 
-      public static PCSRun ConsiderAddressAsText(IDataModel model, int address, ModelDelta currentChange) {
+      // if the destination seems to be a PlmStream, adds the anchor and return true.
+      public static bool ConsiderAsPlmStream(IDataModel model, int address, ModelDelta currentChange) {
+         var nextRun = model.GetNextRun(address);
+         if (nextRun.Start < address) return false;
+         if (nextRun.Start == address && !(nextRun is NoInfoRun)) return false;
+         var run = new PLMRun(model, address);
+         if (run.Length < 2) return false;
+         if (address + run.Length > nextRun.Start && nextRun.Start != address) return false;
+         var pointers = model.SearchForPointersToAnchor(currentChange, address);  // this is slow and change the metadata. Only do it if we're sure we want the new PLMRun
+         if (pointers.Count == 0) return false;
+         model.ObserveAnchorWritten(currentChange, string.Empty, run.MergeAnchor(pointers));
+         return true;
+      }
+
+      public static PCSRun ConsiderAsTextStream(IDataModel model, int address, ModelDelta currentChange) {
          var nextRun = model.GetNextRun(address);
          if (nextRun.Start < address) return null;
          if (nextRun.Start == address && !(nextRun is NoInfoRun)) return null;
-         var pointers = model.SearchForPointersToAnchor(currentChange, address);
-         if (pointers.Count == 0) return null;
          var length = PCSString.ReadString(model, address, true);
          if (length < 1) return null;
          if (address + length > nextRun.Start && nextRun.Start != address) return null;
-         return new PCSRun(address, length, pointers);
+         var pointers = model.SearchForPointersToAnchor(currentChange, address); // this is slow and change the metadata. Only do it if we're sure we want the new PCSRun
+         if (pointers.Count == 0) return null;
+         return new PCSRun(model, address, length, pointers);
       }
 
       private void ClearFormat(ModelDelta changeToken, int originalStart, int length, bool alsoClearData) {
@@ -623,7 +712,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
 
             if (run.Start >= start + length) return;
-            if (run is PointerRun) ClearPointerFormat(changeToken, run.Start);
+            if (run is PointerRun) ClearPointerFormat(null, changeToken, run.Start);
             if (run is ArrayRun arrayRun) ModifyAnchorsFromPointerArray(changeToken, arrayRun, ClearPointerFormat);
 
             ClearAnchorFormat(changeToken, originalStart, run);
@@ -688,7 +777,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      private void ClearPointerFormat(ModelDelta changeToken, int start) {
+      private void ClearPointerFormat(ArrayRunElementSegment segment, ModelDelta changeToken, int start) {
          // remove the reference from the anchor we're pointing to as well
          var destination = ReadPointer(start);
          if (destination >= 0 && destination < Count) {
@@ -715,7 +804,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          var anchorRun = runs[index];
          var newAnchorRun = anchorRun.RemoveSource(start);
          changeToken.RemoveRun(anchorRun);
-         if (newAnchorRun.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(newAnchorRun.Start)) {
+
+         // the only run that is allowed to exist with nothing pointing to it and no name is a pointer run.
+         // if it's any other kind of run with no name and no pointers to it, remove it.
+         if (newAnchorRun.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(newAnchorRun.Start) && !(newAnchorRun is PointerRun)) {
             runs.RemoveAt(index);
          } else {
             runs[index] = newAnchorRun;
@@ -730,10 +822,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          changeToken.AddRun(newArray);
       }
 
-      public override void UpdateArrayPointer(ModelDelta changeToken, int source, int destination) {
-         ClearPointerFormat(changeToken, source);
+      public override void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, int source, int destination) {
+         ClearPointerFormat(segment, changeToken, source);
          WritePointer(changeToken, source, destination);
-         AddPointerToAnchor(changeToken, source);
+         AddPointerToAnchor(segment, changeToken, source);
       }
 
       public override string Copy(Func<ModelDelta> changeToken, int start, int length) {
@@ -971,22 +1063,25 @@ namespace HavenSoft.HexManiac.Core.Models {
       private static ErrorInfo TryParseFormat(IDataModel model, string format, int dataIndex, out IFormattedRun run) {
          run = new NoInfoRun(dataIndex);
 
-         if (format == StringDelimeter.ToString() + StringDelimeter) {
+         if (format == PCSRun.SharedFormatString) {
             var length = PCSString.ReadString(model, dataIndex, true);
             if (length < 0) {
                return new ErrorInfo($"Format was specified as a string, but no string was recognized.");
             } else if (SpanContainsAnchor(model, dataIndex, length)) {
                return new ErrorInfo($"Format was specified as a string, but a string would overlap the next anchor.");
             }
-            run = new PCSRun(dataIndex, length);
-         } else if (format.StartsWith(StreamDelimeter + "asc" + StreamDelimeter)) {
+            run = new PCSRun(model, dataIndex, length);
+         } else if (format.StartsWith(AsciiRun.SharedFormatString)) {
             if (int.TryParse(format.Substring(5), out var length)) {
                run = new AsciiRun(dataIndex, length);
             } else {
                return new ErrorInfo($"Ascii runs must include a length.");
             }
-         } else if (format.StartsWith(StreamDelimeter + "egg" + StreamDelimeter)) {
+         } else if (format == EggMoveRun.SharedFormatString) {
             run = new EggMoveRun(model, dataIndex);
+         } else if (format == PLMRun.SharedFormatString) {
+            run = new PLMRun(model, dataIndex);
+            if (run.Length == 0) return new ErrorInfo("Format specified was for pokemon level-up move data, but could not parse that location as level-up move data.");
          } else {
             var errorInfo = TryParse(model, format, dataIndex, null, out var arrayRun);
             if (errorInfo == ErrorInfo.NoError) {
@@ -1088,11 +1183,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          // move run
          IFormattedRun newRun;
          if (run is PCSRun pcs) {
-            newRun = new PCSRun(newStart, run.Length, run.PointerSources);
+            newRun = new PCSRun(this, newStart, run.Length, run.PointerSources);
          } else if (run is ArrayRun array) {
             newRun = array.Move(newStart);
          } else if (run is EggMoveRun egg) {
             newRun = new EggMoveRun(this, newStart);
+         } else if (run is PLMRun plm) {
+            newRun = new PLMRun(this, newStart);
          } else {
             throw new NotImplementedException();
          }

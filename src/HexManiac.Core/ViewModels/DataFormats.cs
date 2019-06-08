@@ -30,6 +30,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       void Visit(IntegerEnum integer, byte data);
       void Visit(EggSection section, byte data);
       void Visit(EggItem item, byte data);
+      void Visit(PlmItem item, byte data);
    }
 
    /// <summary>
@@ -258,19 +259,34 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
    public class EggItem : IDataFormatInstance {
       public int Source { get; }
       public int Position { get; }
-      public int Length { get; }
       public string ItemName { get; }
 
       public EggItem(int source, int position, string name) => (Source, Position, ItemName) = (source, position, name);
 
       public bool Equals(IDataFormat other) {
          if (other is EggItem that) {
-            return that.ItemName == ItemName &&
-               that.Source == Source &&
-               that.Length == Length;
+            return that.ItemName == ItemName && that.Source == Source;
          }
          return false;
       }
+
+      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
+   }
+
+   public class PlmItem : IDataFormatInstance {
+      public int Source { get; }
+      public int Position { get; }
+      public int Level { get; }
+      public int Move { get; }
+      public string MoveName { get; }
+      public override string ToString() => (Level == 0x7F && Move == 0x1FF) ? EggMoveRun.GroupStart + string.Empty + EggMoveRun.GroupEnd : $"{Level} {MoveName}";
+
+      public PlmItem(int source, int position, int level, int move, string moveName) {
+         (Source, Position) = (source, position);
+         (Level, Move, MoveName) = (level, move, moveName);
+      }
+
+      public bool Equals(IDataFormat other) => ToString() == other.ToString();
 
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }

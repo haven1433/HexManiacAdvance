@@ -66,6 +66,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          (History, Model, Name, Start, Length) = (history, model, name, start, length);
          content = strategy.UpdateViewModelFromModel(this);
       }
+
+      public void RefreshControlFromModelChange() {
+         TryUpdate(ref content, strategy.UpdateViewModelFromModel(this), nameof(Content));
+      }
    }
 
    public class TextFieldStratgy : IFieldArrayElementViewModelStrategy {
@@ -213,6 +217,52 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          } else {
             selectedIndex = model.ReadMultiByteValue(start, length);
          }
+      }
+   }
+
+   public class StreamArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
+      private readonly ChangeHistory<ModelDelta> history;
+      private readonly FieldArrayElementViewModel matchingField;
+      private readonly IDataModel model;
+      private readonly string name;
+      private readonly int start;
+
+      public bool IsInError => !string.IsNullOrEmpty(ErrorText);
+      public string ErrorText { get; private set; }
+      public event EventHandler DataChanged;
+      public event EventHandler<(int originalStart, int newStart)> DataMoved;
+
+      string content;
+      public string Content {
+         get => content;
+         set {
+            if (TryUpdate(ref content, value)) {
+               var destination = model.ReadPointer(start);
+               var run = (IStreamRun)model.GetNextRun(destination);
+               var newRun = run.DeserializeRun(content, history.CurrentChange);
+               if (run.Start != newRun.Start) {
+                  DataMoved?.Invoke(this, (run.Start, newRun.Start));
+                  matchingField.RefreshControlFromModelChange();
+               }
+               run = newRun;
+               DataChanged?.Invoke(this, EventArgs.Empty);
+            }
+         }
+      }
+
+      public StreamArrayElementViewModel(ChangeHistory<ModelDelta> history, FieldArrayElementViewModel matchingField, IDataModel model, string name, int start) {
+         this.history = history;
+         this.matchingField = matchingField;
+         this.model = model;
+         this.name = name;
+         this.start = start;
+
+         var destination = model.ReadPointer(start);
+
+         // by the time we get this far, we're guaranteed that this will be a PCSRun.
+         // if it's not a PCSRun, we shouldn't have asked to construct this object.
+         var run = (IStreamRun)model.GetNextRun(destination);
+         content = run.SerializeRun();
       }
    }
 }
