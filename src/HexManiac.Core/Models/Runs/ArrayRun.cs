@@ -257,22 +257,32 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             // some searches allow special conditions on the run. For example, we could only be intersted in runs with >100 pointers leading to it.
             if (runFilter != null && !runFilter(targetRun)) continue;
 
+            // tolerate a few errors in the data. We know what length we're looking for, so if most of the elements match, then
+            // most likely we're just looking at the right collection but with some user-created bugs.
+            int errorsToTolerate = bestLength / 80;
+            int encounterErrors = 0;
+            int lastGoodLength = 0;
             int currentLength = 0;
             int currentAddress = targetRun.Start;
             bool earlyExit = false;
             for (int i = 0; i < bestLength; i++) {
                var nextArray = data.GetNextAnchor(currentAddress + 1);
-               if (DataMatchesElementFormat(data, currentAddress, elementContent, flags, nextArray)) {
-                  currentLength++;
-                  currentAddress += elementLength;
+               bool match = DataMatchesElementFormat(data, currentAddress, elementContent, flags, nextArray);
+               currentLength++;
+               currentAddress += elementLength;
+               if (match) {
+                  lastGoodLength = currentLength;
                } else {
-                  // as long as this array is at least 80% of the passed in array, we're fine and can say that these are matched.
-                  // (the other one might have bad data at the end that needs to be removed) (example: see Gaia)
-                  earlyExit = bestLength * .8 > currentLength;
-                  break;
+                  encounterErrors++;
+                  if (encounterErrors > errorsToTolerate) {
+                     // as long as this array is at least 80% of the passed in array, we're fine and can say that these are matched.
+                     // (the other one might have bad data at the end that needs to be removed) (example: see Gaia)
+                     earlyExit = bestLength * .8 > lastGoodLength;
+                     break;
+                  }
                }
             }
-
+            currentLength = lastGoodLength;
 
             if (!earlyExit) {
                var dataEmpty = Enumerable.Range(targetRun.Start, currentLength * elementLength).Select(i => data[i]).All(d => d == 0xFF || d == 0x00);

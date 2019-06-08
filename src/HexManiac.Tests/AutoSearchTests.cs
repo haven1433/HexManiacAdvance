@@ -36,7 +36,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          var address = model.GetAddressFromAnchor(noChange, -1, EggMoveRun.PokemonNameTable);
          var run = (ArrayRun)model.GetNextAnchor(address);
-         if (game.Contains("Gaia")) Assert.Equal(914, run.ElementCount);
+         if (game.Contains("Gaia")) Assert.Equal(925, run.ElementCount);
          else Assert.Equal(412, run.ElementCount);
       }
 

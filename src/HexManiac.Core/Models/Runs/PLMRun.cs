@@ -39,7 +39,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
             // validate value
             var (level, move) = SplitToken(value);
-            if (level > 100 || level < 1) break;
+            if (level > 101 || level < 1) break;
             if (move > this.cachedMovenames.Count) break;
          }
       }
