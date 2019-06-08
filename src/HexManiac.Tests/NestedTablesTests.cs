@@ -246,7 +246,7 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Edit("<000100><000110><000120><000130><000140><000150><000160><000170>");
 
          // setup data that lvlmoves pointers will point to
-         for (int i = 0x100; i < 0x180; i += 0x10) SetupPlmStream(i, 8, withName: false);
+         for (int i = 0x100; i < 0x180; i += 0x10) SetupPlmStream(i, 6, withName: false);
 
          // add lvlmoves table
          viewPort.Goto.Execute("000000");
@@ -254,6 +254,27 @@ namespace HavenSoft.HexManiac.Tests {
 
          viewPort.Goto.Execute("000110"); // jump to the anchor for Bob's moves
          Assert.EndsWith("| lvlmoves/Bob/data", viewPort.SelectedAddress);
+      }
+
+      [Fact]
+      public void CanSearchForTextWithinPlmStream() {
+         // setup text tables
+         SetupNameTable(0x40);
+         SetupMoveTable(0x80);
+
+         // setup pointers that will eventually be in the lvlmoves table
+         viewPort.Goto.Execute("000000");
+         viewPort.Edit("<000100><000110><000120><000130><000140><000150><000160><000170>");
+
+         // setup data that lvlmoves pointers will point to
+         for (int i = 0x100; i < 0x180; i += 0x10) SetupPlmStream(i, 6, withName: false);
+
+         // add lvlmoves table
+         viewPort.Goto.Execute("000000");
+         viewPort.Edit("^lvlmoves[data<`plm`>]" + EggMoveRun.PokemonNameTable + " ");
+
+         var results = viewPort.Find("Three");
+         Assert.Equal(9, results.Count); // the actual text + entries for the 8 pokemon
       }
 
       // creates a move table that is 0x40 bytes long

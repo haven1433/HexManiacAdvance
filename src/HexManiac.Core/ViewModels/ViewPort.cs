@@ -795,6 +795,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   }
                }
             }
+            // option 2: the value is used by learnable moves
+            if (child is PLMRun plmRun && parentArrayName == EggMoveRun.MoveNamesTable) {
+               for (int i = 0; i < plmRun.Length - 2; i += 2) {
+                  var fullValue = Model.ReadMultiByteValue(plmRun.Start + i, 2);
+                  if (PLMRun.SplitToken(fullValue).move == offsets.ElementIndex) {
+                     yield return (plmRun.Start + i, plmRun.Start + i + 1);
+                  }
+               }
+            }
          }
       }
 

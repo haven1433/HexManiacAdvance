@@ -29,7 +29,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public virtual int EarliestAllowedAnchor => 0;
 
       public override IReadOnlyList<ArrayRun> Arrays => runs.OfType<ArrayRun>().ToList();
-      public override IReadOnlyList<IFormattedRun> Streams => runs.OfType<EggMoveRun>().ToList();
+      public override IReadOnlyList<IFormattedRun> Streams => runs.Where(run => run is EggMoveRun || run is PLMRun).ToList();
 
       #region Constructor
 
@@ -683,7 +683,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (nextRun.Start < address) return false;
          if (nextRun.Start == address && !(nextRun is NoInfoRun)) return false;
          var run = new PLMRun(model, address);
-         if (run.Length < 6) return false;
+         if (run.Length < 2) return false;
          if (address + run.Length > nextRun.Start && nextRun.Start != address) return false;
          var pointers = model.SearchForPointersToAnchor(currentChange, address);  // this is slow and change the metadata. Only do it if we're sure we want the new PLMRun
          if (pointers.Count == 0) return false;
@@ -1188,6 +1188,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             newRun = array.Move(newStart);
          } else if (run is EggMoveRun egg) {
             newRun = new EggMoveRun(this, newStart);
+         } else if (run is PLMRun plm) {
+            newRun = new PLMRun(this, newStart);
          } else {
             throw new NotImplementedException();
          }
