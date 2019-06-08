@@ -105,7 +105,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(ErrorPCS pcs, byte data) => Visit((PCS)null, data);
 
-      public void Visit(Ascii ascii, byte data) { }
+      public void Visit(Ascii ascii, byte data) => Results.AddRange(GetFormattedChildren());
 
       public void Visit(Integer integer, byte data) {
          var arrayRun = (ArrayRun)ViewPort.Model.GetNextRun(ViewPort.Tools.TableTool.Address);

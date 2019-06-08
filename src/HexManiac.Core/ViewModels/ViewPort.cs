@@ -613,17 +613,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          run = Model.GetNextRun(index);
-         var cellToText = new ConvertCellToText(Model, run.Start);
-         var cell = currentView[point.X, point.Y];
 
-         if (run is PCSRun pcs) {
+         if (run is PCSRun || run is AsciiRun) {
             for (int i = index; i < run.Start + run.Length; i++) history.CurrentChange.ChangeData(Model, i, 0xFF);
             var length = PCSString.ReadString(Model, run.Start, true);
-            Model.ObserveRunWritten(history.CurrentChange, new PCSRun(Model, run.Start, length, run.PointerSources));
+            if (run is PCSRun) Model.ObserveRunWritten(history.CurrentChange, new PCSRun(Model, run.Start, length, run.PointerSources));
             RefreshBackingData();
             SelectionStart = scroll.DataIndexToViewPoint(index - 1);
             return;
          }
+
+         var cellToText = new ConvertCellToText(Model, run.Start);
+         var cell = currentView[point.X, point.Y];
 
          if (run is ArrayRun array) {
             var offsets = array.ConvertByteOffsetToArrayOffset(index);
