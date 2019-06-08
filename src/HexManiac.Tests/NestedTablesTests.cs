@@ -235,18 +235,46 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.True(viewPort.IsSelected(new Point(5, 7)));
       }
 
+      [Fact]
+      public void PlmStreamGetsStreamNameInAddressBarAndTextToolIfPointedToFromAMatchedLengthTable() {
+         // setup text tables
+         SetupNameTable(0x40);
+         SetupMoveTable(0x80);
+
+         // setup pointers that will eventually be in the lvlmoves table
+         viewPort.Goto.Execute("000000");
+         viewPort.Edit("<000100><000110><000120><000130><000140><000150><000160><000170>");
+
+         // setup data that lvlmoves pointers will point to
+         for (int i = 0x100; i < 0x180; i += 0x10) SetupPlmStream(i, 8, withName: false);
+
+         // add lvlmoves table
+         viewPort.Goto.Execute("000000");
+         viewPort.Edit("^lvlmoves[data<`plm`>]" + EggMoveRun.PokemonNameTable + " ");
+
+         viewPort.Goto.Execute("000110"); // jump to the anchor for Bob's moves
+         Assert.EndsWith("| lvlmoves/Bob/data", viewPort.SelectedAddress);
+      }
+
       // creates a move table that is 0x40 bytes long
       private void SetupMoveTable(int start) {
          viewPort.Goto.Execute(start.ToString("X6"));
          viewPort.Edit("^" + EggMoveRun.MoveNamesTable + "[name\"\"8]8 Zero\" One\" Two\" Three\" Four\" Five\" Six\" Seven\"");
       }
 
+      // creates a name table that is 0x40 bytes long
+      private void SetupNameTable(int start) {
+         viewPort.Goto.Execute(start.ToString("X6"));
+         viewPort.Edit("^" + EggMoveRun.PokemonNameTable + "[name\"\"8]8 Adam\" Bob\" Carl\" Dave\" Elen\" Fred\" Gary\" Horton\"");
+      }
+
       // creates a plm stream named 'stream' that is <0x20 bytes long. Length should be <9.
-      private void SetupPlmStream(int start, int length) {
+      private void SetupPlmStream(int start, int length, bool withName = true) {
+         // make sure we terminate first. This will move as needed, but it allows us to add the stream cleanly by just editing inline.
+         model.WriteMultiByteValue(start, 2, new ModelDelta(), 0xFFFF);
          viewPort.Goto.Execute(start.ToString("X6"));
-         viewPort.Edit("FFFF"); // make sure we terminate first. This will move as needed, but it allows us to add the stream cleanly by just editing inline.
-         viewPort.Goto.Execute(start.ToString("X6"));
-         viewPort.Edit("^stream`plm`");
+         if (withName) viewPort.Edit("^stream`plm`");
+         else viewPort.Edit("^`plm`");
          for (int i = 0; i < length; i++) {
             viewPort.Edit($"{i + 1} {i} ");
          }

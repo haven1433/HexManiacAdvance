@@ -194,13 +194,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var left = Math.Min(dataIndex1, dataIndex2);
          var result = "Address: " + left.ToString("X6");
 
-         if (Model.GetNextRun(left) is ArrayRun array && array.Start <= left) {
-            var index = array.ConvertByteOffsetToArrayOffset(left).ElementIndex;
-            var basename = Model.GetAnchorFromAddress(-1, array.Start);
-            if (array.ElementNames.Count > index) {
-               result += $" | {basename}/{array.ElementNames[index]}";
+         var run = Model.GetNextRun(left);
+         if (run is ArrayRun array1 && array1.Start <= left) {
+            var index = array1.ConvertByteOffsetToArrayOffset(left).ElementIndex;
+            var basename = Model.GetAnchorFromAddress(-1, array1.Start);
+            if (array1.ElementNames.Count > index) {
+               result += $" | {basename}/{array1.ElementNames[index]}";
             } else {
                result += $" | {basename}/{index}";
+            }
+         } else if (run.PointerSources != null && run.PointerSources.Count > 0 && string.IsNullOrEmpty(Model.GetAnchorFromAddress(-1, run.Start))) {
+            var sourceRun = Model.GetNextRun(run.PointerSources[0]);
+            if (sourceRun is ArrayRun array2) {
+               // we are an anchor that's pointed to from an array
+               var offset = array2.ConvertByteOffsetToArrayOffset(run.PointerSources[0]);
+               var index = offset.ElementIndex;
+               var segment = array2.ElementContent[offset.SegmentIndex];
+               var basename = Model.GetAnchorFromAddress(-1, array2.Start);
+               if (array2.ElementNames.Count > index) {
+                  result += $" | {basename}/{array2.ElementNames[index]}/{segment.Name}";
+               } else {
+                  result += $" | {basename}/{index}/{segment.Name}";
+               }
             }
          }
 
