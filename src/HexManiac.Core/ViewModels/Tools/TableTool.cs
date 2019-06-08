@@ -163,7 +163,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             viewModel.DataChanged += ForwardModelChanged;
             if (item is ArrayRunPointerSegment pointerSegment) {
                var destination = model.ReadPointer(itemAddress);
-               if (destination != Pointer.NULL && pointerSegment.DestinationDataMatchesPointerFormat(model, history.CurrentChange, destination)) {
+               if (destination != Pointer.NULL && pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), destination)) {
                   if (pointerSegment.InnerFormat == PCSRun.SharedFormatString || pointerSegment.InnerFormat == PLMRun.SharedFormatString) {
                      var streamElement = new StreamArrayElementViewModel(history, (FieldArrayElementViewModel)viewModel, model, item.Name, itemAddress);
                      streamElement.DataChanged += ForwardModelChanged;
