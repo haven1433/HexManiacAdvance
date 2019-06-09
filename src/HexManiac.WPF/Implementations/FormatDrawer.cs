@@ -75,14 +75,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          Underline(brush, dataFormat.Position == 0, dataFormat.Position == 3);
 
          var destination = dataFormat.DestinationAsText;
-         var text = CreateText(destination, fontSize, brush);
-         if (text.Width > cellSize.Width * 4) {
-            var unitWidth = text.Width / destination.Length;
-            var desiredLength = destination.Length;
-            while (unitWidth * desiredLength > cellSize.Width * 4) desiredLength--;
-            destination = destination.Substring(0, desiredLength - 2) + "…>";
-            text = CreateText(destination, fontSize, brush);
-         }
+         var text = TruncateText(destination, brush, 4, ">");
          var xOffset = (cellSize.Width * 4 - text.Width) / 2 - (dataFormat.Position * cellSize.Width); // centering
 
          if (dataFormat.Position > Position.X || Position.X - dataFormat.Position > modelWidth - 4) {
@@ -227,6 +220,18 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          });
 
          noneVisualCache.AddRange(text);
+      }
+
+      private FormattedText TruncateText(string destination, Brush brush, int widthInCells, string postText) {
+         var text = CreateText(destination, fontSize, brush);
+         if (text.Width > cellSize.Width * widthInCells) {
+            var unitWidth = text.Width / destination.Length;
+            var desiredLength = destination.Length;
+            while (unitWidth * desiredLength > cellSize.Width * 4) desiredLength--;
+            destination = destination.Substring(0, desiredLength - 1 - postText.Length) + "…" + postText;
+            text = CreateText(destination, fontSize, brush);
+         }
+         return text;
       }
 
       private static readonly Typeface consolas = new Typeface("Consolas");
