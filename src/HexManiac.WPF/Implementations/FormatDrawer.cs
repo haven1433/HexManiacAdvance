@@ -17,15 +17,19 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       private static readonly List<FormattedText> noneVisualCache = new List<FormattedText>();
 
       private readonly int modelWidth, modelHeight;
+      private readonly Size cellSize;
 
       private readonly DrawingContext context;
-      private readonly Geometry rectangleGeometry = new RectangleGeometry(new Rect(new Point(0, 0), new Point(HexContent.CellWidth, HexContent.CellHeight)));
+      private readonly Geometry rectangleGeometry;
 
       public bool MouseIsOverCurrentFormat { get; set; }
 
       public HavenSoft.HexManiac.Core.Models.Point Position { get; set; }
 
-      public FormatDrawer(DrawingContext drawingContext, int width, int height) => (context, modelWidth, modelHeight) = (drawingContext, width, height);
+      public FormatDrawer(DrawingContext drawingContext, int width, int height, double cellWidth, double cellHeight) {
+         (context, modelWidth, modelHeight, cellSize) = (drawingContext, width, height, new Size(cellWidth, cellHeight));
+         rectangleGeometry = new RectangleGeometry(new Rect(new Point(0, 0), cellSize));
+      }
 
       public static void ClearVisualCaches() {
          noneVisualCache.Clear();
@@ -49,11 +53,11 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          var text = CreateText(content, FontSize, brush);
 
          var offset = CellTextOffset;
-         var widthOverflow = text.Width - HexContent.CellWidth * dataFormat.EditWidth;
+         var widthOverflow = text.Width - cellSize.Width * dataFormat.EditWidth;
          if (widthOverflow > 0) {
             // make it right aligned
             offset.X -= widthOverflow;
-            context.PushClip(new RectangleGeometry(new Rect(new Size(HexContent.CellWidth * dataFormat.EditWidth, HexContent.CellHeight))));
+            context.PushClip(new RectangleGeometry(new Rect(new Size(cellSize.Width * dataFormat.EditWidth, cellSize.Height))));
             context.DrawText(text, new Point(-widthOverflow, CellTextOffset.Y));
             context.Pop();
          } else {
@@ -68,7 +72,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
          var destination = dataFormat.DestinationAsText;
          if (destination.Length > 13) destination = destination.Substring(0, 11) + "…>";
-         var xOffset = 51 - (dataFormat.Position * HexContent.CellWidth) - destination.Length * 4.2; // centering
+         var xOffset = 51 - (dataFormat.Position * cellSize.Width) - destination.Length * 4.2; // centering
          var text = CreateText(destination, FontSize, brush);
 
          if (dataFormat.Position > Position.X || Position.X - dataFormat.Position > modelWidth - 4) {
@@ -122,7 +126,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          var text = CreateText(stringValue, FontSize, Brush(nameof(Theme.Data1)));
 
          var xOffset = CellTextOffset.X;
-         xOffset += HexContent.CellWidth / 2 * (integer.Length - 1); // adjust based on number of cells to use
+         xOffset += cellSize.Width / 2 * (integer.Length - 1); // adjust based on number of cells to use
          xOffset -= (stringValue.Length - 2) * 5; // adjust based on width of text
          context.DrawText(text, new Point(xOffset, CellTextOffset.Y));
       }
@@ -134,7 +138,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          var text = CreateText(stringValue, FontSize * 3 / 4, Brush(nameof(Theme.Data2)));
 
          var xOffset = CellTextOffset.X / 2;
-         context.PushClip(new RectangleGeometry(new Rect(0, 0, HexContent.CellWidth * integerEnum.Length, HexContent.CellHeight)));
+         context.PushClip(new RectangleGeometry(new Rect(0, 0, cellSize.Width * integerEnum.Length, cellSize.Height)));
          context.DrawText(text, new Point(xOffset, CellTextOffset.Y));
          context.Pop();
       }
@@ -145,9 +149,9 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
          var text = CreateText(name, FontSize * 3 / 4, Brush(nameof(Theme.Stream1)));
          var characterWidth = text.Width / name.Length;
-         var xOffset = HexContent.CellWidth - name.Length * characterWidth / 2;
+         var xOffset = cellSize.Width - name.Length * characterWidth / 2;
          if (xOffset < 0) xOffset = 0;
-         context.PushClip(new RectangleGeometry(new Rect(0, 0, HexContent.CellWidth * 2, HexContent.CellHeight)));
+         context.PushClip(new RectangleGeometry(new Rect(0, 0, cellSize.Width * 2, cellSize.Height)));
          context.DrawText(text, new Point(xOffset, CellTextOffset.Y + 2));
          context.Pop();
       }
@@ -158,9 +162,9 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
          var text = CreateText(name, FontSize * 3 / 4, Brush(nameof(Theme.Stream2)));
          var characterWidth = text.Width / name.Length;
-         var xOffset = HexContent.CellWidth - name.Length * characterWidth / 2;
+         var xOffset = cellSize.Width - name.Length * characterWidth / 2;
          if (xOffset < 0) xOffset = 0;
-         context.PushClip(new RectangleGeometry(new Rect(0, 0, HexContent.CellWidth * 2, HexContent.CellHeight)));
+         context.PushClip(new RectangleGeometry(new Rect(0, 0, cellSize.Width * 2, cellSize.Height)));
          context.DrawText(text, new Point(xOffset, CellTextOffset.Y + 2));
          context.Pop();
       }
@@ -173,18 +177,18 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
          // center the text
          var characterWidth = text.Width / content.Length;
-         var xOffset = HexContent.CellWidth - content.Length * characterWidth / 2;
+         var xOffset = cellSize.Width - content.Length * characterWidth / 2;
          if (xOffset < 0) xOffset = 0;
 
-         context.PushClip(new RectangleGeometry(new Rect(0, 0, HexContent.CellWidth * 2, HexContent.CellHeight)));
+         context.PushClip(new RectangleGeometry(new Rect(0, 0, cellSize.Width * 2, cellSize.Height)));
          context.DrawText(text, new Point(xOffset, CellTextOffset.Y + 2));
          context.Pop();
       }
 
       private void Underline(Brush brush, bool isStart, bool isEnd) {
          int startPoint = isStart ? 5 : 0;
-         int endPoint = (int)HexContent.CellWidth - (isEnd ? 5 : 0);
-         double y = (int)HexContent.CellHeight - 1.5;
+         int endPoint = (int)cellSize.Width - (isEnd ? 5 : 0);
+         double y = (int)cellSize.Height - 1.5;
          context.DrawLine(new Pen(brush, 1), new Point(startPoint, y), new Point(endPoint, y));
       }
 

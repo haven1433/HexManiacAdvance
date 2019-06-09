@@ -21,16 +21,6 @@ using ScreenPoint = System.Windows.Point;
 namespace HavenSoft.HexManiac.WPF.Controls {
 
    public class HexContent : FrameworkElement {
-      public const double CellWidth = 30, CellHeight = 20;
-
-      public static readonly Rect CellRect = new Rect(0, 0, CellWidth, CellHeight);
-
-      public static readonly ScreenPoint
-         TopLeft = new ScreenPoint(0, 0),
-         TopRight = new ScreenPoint(CellWidth, 0),
-         BottomLeft = new ScreenPoint(0, CellHeight),
-         BottomRight = new ScreenPoint(CellWidth, CellHeight);
-
       public static readonly Pen BorderPen = new Pen(Brush(nameof(Theme.Stream2)), 1);
 
       private Popup recentMenu;
@@ -86,6 +76,24 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void OnViewPortRequestMenuClose(object sender, EventArgs e) {
          if (recentMenu == null) return;
          recentMenu.IsOpen = false;
+      }
+
+      #endregion
+
+      #region CellWidth / Cell Height
+
+      public static readonly DependencyProperty CellWidthProperty = DependencyProperty.Register(nameof(CellWidth), typeof(double), typeof(HexContent), new PropertyMetadata(0.0));
+
+      public double CellWidth {
+         get { return (double)GetValue(CellWidthProperty); }
+         set { SetValue(CellWidthProperty, value); }
+      }
+
+      public static readonly DependencyProperty CellHeightProperty = DependencyProperty.Register(nameof(CellHeight), typeof(double), typeof(HexContent), new PropertyMetadata(0.0));
+
+      public double CellHeight {
+         get { return (double)GetValue(CellHeightProperty); }
+         set { SetValue(CellHeightProperty, value); }
       }
 
       #endregion
@@ -321,7 +329,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       protected override void OnRender(DrawingContext drawingContext) {
          base.OnRender(drawingContext);
          if (ViewPort == null) return;
-         var visitor = new FormatDrawer(drawingContext, ViewPort.Width, ViewPort.Height);
+         var visitor = new FormatDrawer(drawingContext, ViewPort.Width, ViewPort.Height, CellWidth, CellHeight);
 
          if (ShowHorizontalScroll) drawingContext.PushTransform(new TranslateTransform(-HorizontalScrollValue, 0));
          RenderGrid(drawingContext);
@@ -350,17 +358,24 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void RenderSelection(DrawingContext drawingContext) {
+         var cellRect = new Rect(0, 0, CellWidth, CellHeight);
+         ScreenPoint
+            topLeft = new ScreenPoint(0, 0),
+            topRight = new ScreenPoint(CellWidth, 0),
+            bottomLeft = new ScreenPoint(0, CellHeight),
+            bottomRight = new ScreenPoint(CellWidth, CellHeight);
+
          for (int x = 0; x < ViewPort.Width; x++) {
             for (int y = 0; y < ViewPort.Height; y++) {
                if (!ViewPort.IsSelected(new ModelPoint(x, y))) continue;
                var element = ViewPort[x, y];
                drawingContext.PushTransform(new TranslateTransform(x * CellWidth, y * CellHeight));
 
-               drawingContext.DrawRectangle(Brush(nameof(Theme.Backlight)), null, CellRect);
-               if (!ViewPort.IsSelected(new ModelPoint(x, y - 1))) drawingContext.DrawLine(BorderPen, TopLeft, TopRight);
-               if (!ViewPort.IsSelected(new ModelPoint(x, y + 1))) drawingContext.DrawLine(BorderPen, BottomLeft, BottomRight);
-               if (!ViewPort.IsSelected(new ModelPoint(x - 1, y))) drawingContext.DrawLine(BorderPen, TopLeft, BottomLeft);
-               if (!ViewPort.IsSelected(new ModelPoint(x + 1, y))) drawingContext.DrawLine(BorderPen, TopRight, BottomRight);
+               drawingContext.DrawRectangle(Brush(nameof(Theme.Backlight)), null, cellRect);
+               if (!ViewPort.IsSelected(new ModelPoint(x, y - 1))) drawingContext.DrawLine(BorderPen, topLeft, topRight);
+               if (!ViewPort.IsSelected(new ModelPoint(x, y + 1))) drawingContext.DrawLine(BorderPen, bottomLeft, bottomRight);
+               if (!ViewPort.IsSelected(new ModelPoint(x - 1, y))) drawingContext.DrawLine(BorderPen, topLeft, bottomLeft);
+               if (!ViewPort.IsSelected(new ModelPoint(x + 1, y))) drawingContext.DrawLine(BorderPen, topRight, bottomRight);
 
                drawingContext.Pop();
             }
@@ -452,6 +467,9 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void UpdateViewPortSize() {
+         CellWidth = 30;
+         CellHeight = 20;
+
          ViewPort.Width = (int)(ActualWidth / CellWidth);
          ViewPort.Height = (int)(ActualHeight / CellHeight);
 

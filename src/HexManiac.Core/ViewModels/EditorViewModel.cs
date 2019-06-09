@@ -101,6 +101,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      private int zoomLevel = 16;
+      public int ZoomLevel {
+         get => zoomLevel;
+         set => TryUpdate(ref zoomLevel, value);
+      }
+
       private bool showError;
       public bool ShowError {
          get => showError;
@@ -234,12 +240,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var metadata = fileSystem.MetadataFor(ApplicationName) ?? new string[0];
          Theme = new Theme(metadata);
          ShowMatrix = !metadata.Contains("ShowMatrixGrid = False");
+         var zoomLine = metadata.FirstOrDefault(line => line.StartsWith("ZoomLevel ="));
+         if (zoomLine != null && int.TryParse(zoomLine.Split('=').Last().Trim(), out var zoomLevel)) ZoomLevel = zoomLevel;
       }
 
       public void WriteAppLevelMetadata() {
          var metadata = new List<string>();
          metadata.Add("[GeneralSettings]");
          metadata.Add($"ShowMatrixGrid = {ShowMatrix}");
+         metadata.Add($"ZoomLevel = {ZoomLevel}");
          metadata.Add(string.Empty);
          metadata.AddRange(Theme.Serialize());
          fileSystem.SaveMetadata(ApplicationName, metadata.ToArray());
