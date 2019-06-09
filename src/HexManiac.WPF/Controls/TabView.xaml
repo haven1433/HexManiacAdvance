@@ -174,7 +174,11 @@
          </DockPanel>
       </Border>
       <!-- Column Headers -->
-      <hsg3hv:HorizontalSlantedTextControl DockPanel.Dock="Top" HeaderRows="{Binding ColumnHeaders}" ColumnWidth="{Binding CellWidth, ElementName=HexContent}" HorizontalOffset="{Binding ElementName=HexContent, Path=HorizontalScrollValue}"/>
+      <hsg3hv:HorizontalSlantedTextControl DockPanel.Dock="Top"
+         FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=ZoomLevel}"
+         HeaderRows="{Binding ColumnHeaders}"
+         ColumnWidth="{Binding CellWidth, ElementName=HexContent}"
+         HorizontalOffset="{Binding ElementName=HexContent, Path=HorizontalScrollValue}"/>
       <!-- Row Headers -->
       <ItemsControl DockPanel.Dock="Left" Width="70" ItemsSource="{Binding Headers}" Background="{DynamicResource Backlight}" MouseDown="HeaderMouseDown">
          <ItemsControl.ItemTemplate>
@@ -192,6 +196,6 @@
       <ScrollBar DockPanel.Dock="Bottom" Orientation="Horizontal" SmallChange="10" LargeChange="{Binding CellWidth, ElementName=HexContent}"
          Minimum="0" Maximum="{Binding HorizontalScrollMaximum, ElementName=HexContent}" Value="{Binding HorizontalScrollValue, ElementName=HexContent}"
          Visibility="{Binding ShowHorizontalScroll, ElementName=HexContent, Converter={StaticResource BoolToVisibility}}" />
-      <hsg3hv:HexContent x:Name="HexContent" ViewPort="{Binding}" ShowGrid="{Binding DataContext.ShowMatrix, RelativeSource={RelativeSource AncestorType=hsg3ww:MainWindow}}" Margin=".5,.5,0,0"/>
+      <hsg3hv:HexContent x:Name="HexContent" ViewPort="{Binding}" FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=ZoomLevel}"  ShowGrid="{Binding DataContext.ShowMatrix, RelativeSource={RelativeSource AncestorType=hsg3ww:MainWindow}}" Margin=".5,.5,0,0"/>
    </DockPanel>
 </UserControl>

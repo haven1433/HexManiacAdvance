@@ -85,15 +85,36 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       public static readonly DependencyProperty CellWidthProperty = DependencyProperty.Register(nameof(CellWidth), typeof(double), typeof(HexContent), new PropertyMetadata(0.0));
 
       public double CellWidth {
-         get { return (double)GetValue(CellWidthProperty); }
-         set { SetValue(CellWidthProperty, value); }
+         get => (double)GetValue(CellWidthProperty);
+         set => SetValue(CellWidthProperty, value);
       }
 
       public static readonly DependencyProperty CellHeightProperty = DependencyProperty.Register(nameof(CellHeight), typeof(double), typeof(HexContent), new PropertyMetadata(0.0));
 
       public double CellHeight {
-         get { return (double)GetValue(CellHeightProperty); }
-         set { SetValue(CellHeightProperty, value); }
+         get => (double)GetValue(CellHeightProperty);
+         set => SetValue(CellHeightProperty, value);
+      }
+
+      #endregion
+
+      #region FontSize
+
+      public static readonly DependencyProperty FontSizeProperty = DependencyProperty.Register(nameof(FontSize), typeof(int), typeof(HexContent), new FrameworkPropertyMetadata(16, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, FontSizeChanged));
+
+      public int FontSize {
+         get => (int)GetValue(FontSizeProperty);
+         set => SetValue(FontSizeProperty, value);
+      }
+
+      private static void FontSizeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+         var self = (HexContent)d;
+         self.OnFontSizeChanged(e);
+      }
+
+      private void OnFontSizeChanged(DependencyPropertyChangedEventArgs e) {
+         UpdateViewPortSize();
+         InvalidateVisual();
       }
 
       #endregion
@@ -323,13 +344,17 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       protected override void OnMouseWheel(MouseWheelEventArgs e) {
          base.OnMouseWheel(e);
-         ViewPort.ScrollValue -= Math.Sign(e.Delta);
+         if (Keyboard.Modifiers == ModifierKeys.Control) {
+            FontSize = Math.Min(Math.Max(8, FontSize + Math.Sign(e.Delta)), 20);
+         } else {
+            ViewPort.ScrollValue -= Math.Sign(e.Delta);
+         }
       }
 
       protected override void OnRender(DrawingContext drawingContext) {
          base.OnRender(drawingContext);
          if (ViewPort == null) return;
-         var visitor = new FormatDrawer(drawingContext, ViewPort.Width, ViewPort.Height, CellWidth, CellHeight);
+         var visitor = new FormatDrawer(drawingContext, ViewPort.Width, ViewPort.Height, CellWidth, CellHeight, FontSize);
 
          if (ShowHorizontalScroll) drawingContext.PushTransform(new TranslateTransform(-HorizontalScrollValue, 0));
          RenderGrid(drawingContext);

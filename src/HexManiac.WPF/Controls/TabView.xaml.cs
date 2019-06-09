@@ -8,6 +8,18 @@ using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
    public partial class TabView {
+
+      #region ZoomLevel
+
+      public static readonly DependencyProperty ZoomLevelProperty = DependencyProperty.Register(nameof(ZoomLevel), typeof(int), typeof(TabView), new FrameworkPropertyMetadata(16, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+
+      public int ZoomLevel {
+         get => (int)GetValue(ZoomLevelProperty);
+         set => SetValue(ZoomLevelProperty, value);
+      }
+
+      #endregion
+
       public IFileSystem FileSystem => (IFileSystem)Application.Current.MainWindow.Resources["FileSystem"];
       public TabView() => InitializeComponent();
 

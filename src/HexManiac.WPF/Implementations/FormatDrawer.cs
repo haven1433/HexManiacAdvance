@@ -10,10 +10,11 @@ using System.Windows.Media;
 
 namespace HavenSoft.HexManiac.WPF.Implementations {
    public class FormatDrawer : IDataFormatVisitor {
-      public static int FontSize = 16;
+      private readonly int fontSize = 16;
 
       public static readonly Point CellTextOffset = new Point(6, 1);
 
+      private static int noneVisualCacheFontSize;
       private static readonly List<FormattedText> noneVisualCache = new List<FormattedText>();
 
       private readonly int modelWidth, modelHeight;
@@ -26,9 +27,10 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
       public HavenSoft.HexManiac.Core.Models.Point Position { get; set; }
 
-      public FormatDrawer(DrawingContext drawingContext, int width, int height, double cellWidth, double cellHeight) {
+      public FormatDrawer(DrawingContext drawingContext, int width, int height, double cellWidth, double cellHeight, int fontSize) {
          (context, modelWidth, modelHeight, cellSize) = (drawingContext, width, height, new Size(cellWidth, cellHeight));
          rectangleGeometry = new RectangleGeometry(new Rect(new Point(0, 0), cellSize));
+         this.fontSize = fontSize;
       }
 
       public static void ClearVisualCaches() {
@@ -50,7 +52,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
          var content = dataFormat.CurrentText;
 
-         var text = CreateText(content, FontSize, brush);
+         var text = CreateText(content, fontSize, brush);
 
          var offset = CellTextOffset;
          var widthOverflow = text.Width - cellSize.Width * dataFormat.EditWidth;
@@ -73,7 +75,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          var destination = dataFormat.DestinationAsText;
          if (destination.Length > 13) destination = destination.Substring(0, 11) + "…>";
          var xOffset = 51 - (dataFormat.Position * cellSize.Width) - destination.Length * 4.2; // centering
-         var text = CreateText(destination, FontSize, brush);
+         var text = CreateText(destination, fontSize, brush);
 
          if (dataFormat.Position > Position.X || Position.X - dataFormat.Position > modelWidth - 4) {
             context.PushClip(rectangleGeometry);
@@ -93,7 +95,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
 
       public void Visit(PCS pcs, byte data) {
-         var text = CreateText(pcs.ThisCharacter, FontSize, Brush(nameof(Theme.Text1)));
+         var text = CreateText(pcs.ThisCharacter, fontSize, Brush(nameof(Theme.Text1)));
 
          var xOffset = 1 - pcs.ThisCharacter.Length;
          context.DrawText(text, new Point(CellTextOffset.X + xOffset, CellTextOffset.Y));
@@ -108,13 +110,13 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
          var content = data.ToString("X2");
 
-         var text = CreateText(content, FontSize, brush);
+         var text = CreateText(content, fontSize, brush);
 
          context.DrawText(text, CellTextOffset);
       }
 
       public void Visit(Ascii ascii, byte data) {
-         var text = CreateText(ascii.ThisCharacter.ToString(), FontSize, Brush(nameof(Theme.Text2)));
+         var text = CreateText(ascii.ThisCharacter.ToString(), fontSize, Brush(nameof(Theme.Text2)));
          context.DrawText(text, CellTextOffset);
       }
 
@@ -123,7 +125,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
          var stringValue = integer.Value.ToString();
 
-         var text = CreateText(stringValue, FontSize, Brush(nameof(Theme.Data1)));
+         var text = CreateText(stringValue, fontSize, Brush(nameof(Theme.Data1)));
 
          var xOffset = CellTextOffset.X;
          xOffset += cellSize.Width / 2 * (integer.Length - 1); // adjust based on number of cells to use
@@ -135,7 +137,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          if (integerEnum.Position != 0) return;
 
          var stringValue = integerEnum.Value;
-         var text = CreateText(stringValue, FontSize * 3 / 4, Brush(nameof(Theme.Data2)));
+         var text = CreateText(stringValue, fontSize * 3 / 4, Brush(nameof(Theme.Data2)));
 
          var xOffset = CellTextOffset.X / 2;
          context.PushClip(new RectangleGeometry(new Rect(0, 0, cellSize.Width * integerEnum.Length, cellSize.Height)));
@@ -147,7 +149,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          if (section.Position != 0) return;
          var name = section.SectionName;
 
-         var text = CreateText(name, FontSize * 3 / 4, Brush(nameof(Theme.Stream1)));
+         var text = CreateText(name, fontSize * 3 / 4, Brush(nameof(Theme.Stream1)));
          var characterWidth = text.Width / name.Length;
          var xOffset = cellSize.Width - name.Length * characterWidth / 2;
          if (xOffset < 0) xOffset = 0;
@@ -160,7 +162,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          if (item.Position != 0) return;
          var name = item.ItemName;
 
-         var text = CreateText(name, FontSize * 3 / 4, Brush(nameof(Theme.Stream2)));
+         var text = CreateText(name, fontSize * 3 / 4, Brush(nameof(Theme.Stream2)));
          var characterWidth = text.Width / name.Length;
          var xOffset = cellSize.Width - name.Length * characterWidth / 2;
          if (xOffset < 0) xOffset = 0;
@@ -173,7 +175,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          if (item.Position != 0) return;
          var content = item.ToString();
 
-         var text = CreateText(content, FontSize * 3 / 4, Brush(nameof(Theme.Stream2)));
+         var text = CreateText(content, fontSize * 3 / 4, Brush(nameof(Theme.Stream2)));
 
          // center the text
          var characterWidth = text.Width / content.Length;
@@ -193,8 +195,10 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
 
       private void VerifyNoneVisualCache() {
-         if (noneVisualCache.Count != 0) return;
+         if (noneVisualCache.Count != 0 && fontSize == noneVisualCacheFontSize) return;
 
+         noneVisualCacheFontSize = fontSize;
+         noneVisualCache.Clear();
          var bytesAsHex = Enumerable.Range(0, 0x100).Select(i => i.ToString("X2"));
 
          var text = bytesAsHex.Select(hex => {
@@ -209,7 +213,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                CultureInfo.CurrentCulture,
                FlowDirection.LeftToRight,
                typeface,
-               FontSize,
+               fontSize,
                brush,
                1.0);
          });

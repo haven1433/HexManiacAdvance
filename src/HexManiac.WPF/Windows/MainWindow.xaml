@@ -248,7 +248,7 @@
                </TabControl.ItemTemplate>
                <TabControl.ContentTemplate>
                   <DataTemplate>
-                     <hsg3hv:TabView/>
+                     <hsg3hv:TabView ZoomLevel="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.ZoomLevel}"/>
                   </DataTemplate>
                </TabControl.ContentTemplate>
             </TabControl>
