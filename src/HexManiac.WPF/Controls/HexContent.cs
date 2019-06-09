@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -345,7 +346,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       protected override void OnMouseWheel(MouseWheelEventArgs e) {
          base.OnMouseWheel(e);
          if (Keyboard.Modifiers == ModifierKeys.Control) {
-            FontSize = Math.Min(Math.Max(8, FontSize + Math.Sign(e.Delta)), 20);
+            FontSize = Math.Min(Math.Max(8, FontSize + Math.Sign(e.Delta)), 24);
          } else {
             ViewPort.ScrollValue -= Math.Sign(e.Delta);
          }
@@ -492,12 +493,20 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void UpdateViewPortSize() {
-         CellWidth = 30;
-         CellHeight = 20;
+         // calculate the initial 3x2 cell size from the fontsize
+         var sampleElement = new FormattedText("000", CultureInfo.CurrentCulture, FlowDirection.LeftToRight, new Typeface("Consolas"), FontSize, Brushes.Transparent, 1);
+         CellHeight = Math.Ceiling(Math.Max(sampleElement.Height, sampleElement.Width * 2 / 3));
+         CellWidth = Math.Ceiling(CellHeight * 3 / 2);
 
+         // let the ViewPort decide its width based on the available space for cells per line
          ViewPort.Width = (int)(ActualWidth / CellWidth);
          ViewPort.Height = (int)(ActualHeight / CellHeight);
 
+         // add extra width to the cells as able
+         var extraWidth = ActualWidth - ViewPort.Width * CellWidth;
+         if (extraWidth > 0) CellWidth += (int)(extraWidth / ViewPort.Width);
+
+         // add horizontal scrolling if needed
          var requiredSize = ViewPort.Width * CellWidth;
          if (requiredSize > ActualWidth) {
             ShowHorizontalScroll = true;
