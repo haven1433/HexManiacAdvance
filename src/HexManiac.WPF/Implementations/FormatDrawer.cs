@@ -12,7 +12,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
    public class FormatDrawer : IDataFormatVisitor {
       private readonly int fontSize = 16;
 
-      public static readonly Point CellTextOffset = new Point(6, 1);
+      private readonly Point CellTextOffset;
 
       private static int noneVisualCacheFontSize;
       private static readonly List<FormattedText> noneVisualCache = new List<FormattedText>();
@@ -31,6 +31,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          (context, modelWidth, modelHeight, cellSize) = (drawingContext, width, height, new Size(cellWidth, cellHeight));
          rectangleGeometry = new RectangleGeometry(new Rect(new Point(0, 0), cellSize));
          this.fontSize = fontSize;
+         var testText = CreateText("00", fontSize, Brushes.Transparent);
+         CellTextOffset = new Point((cellWidth - testText.Width) / 2, (cellHeight - testText.Height) / 2);
       }
 
       public static void ClearVisualCaches() {
@@ -73,16 +75,22 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          Underline(brush, dataFormat.Position == 0, dataFormat.Position == 3);
 
          var destination = dataFormat.DestinationAsText;
-         if (destination.Length > 13) destination = destination.Substring(0, 11) + "…>";
-         var xOffset = 51 - (dataFormat.Position * cellSize.Width) - destination.Length * 4.2; // centering
          var text = CreateText(destination, fontSize, brush);
+         if (text.Width > cellSize.Width * 4) {
+            var unitWidth = text.Width / destination.Length;
+            var desiredLength = destination.Length;
+            while (unitWidth * desiredLength > cellSize.Width * 4) desiredLength--;
+            destination = destination.Substring(0, desiredLength - 2) + "…>";
+            text = CreateText(destination, fontSize, brush);
+         }
+         var xOffset = (cellSize.Width * 4 - text.Width) / 2 - (dataFormat.Position * cellSize.Width); // centering
 
          if (dataFormat.Position > Position.X || Position.X - dataFormat.Position > modelWidth - 4) {
             context.PushClip(rectangleGeometry);
-            context.DrawText(text, new Point(CellTextOffset.X + xOffset, CellTextOffset.Y));
+            context.DrawText(text, new Point(xOffset, CellTextOffset.Y));
             context.Pop();
-         } else if (dataFormat.Position == 2) {
-            context.DrawText(text, new Point(CellTextOffset.X + xOffset, CellTextOffset.Y));
+         } else if (dataFormat.Position == 1) {
+            context.DrawText(text, new Point(xOffset, CellTextOffset.Y));
          }
       }
 
