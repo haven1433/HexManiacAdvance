@@ -75,15 +75,15 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          Underline(brush, dataFormat.Position == 0, dataFormat.Position == 3);
 
          var destination = dataFormat.DestinationAsText;
-         var text = TruncateText(destination, brush, 4, ">");
-         var xOffset = (cellSize.Width * 4 - text.Width) / 2 - (dataFormat.Position * cellSize.Width); // centering
+         var text = TruncateText(destination, fontSize, brush, 4, ">");
+         var offset = GetCenteredOffset(dataFormat, 4, text);
 
          if (dataFormat.Position > Position.X || Position.X - dataFormat.Position > modelWidth - 4) {
             context.PushClip(rectangleGeometry);
-            context.DrawText(text, new Point(xOffset, CellTextOffset.Y));
+            context.DrawText(text, offset);
             context.Pop();
          } else if (dataFormat.Position == 1) {
-            context.DrawText(text, new Point(xOffset, CellTextOffset.Y));
+            context.DrawText(text, offset);
          }
       }
 
@@ -97,9 +97,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
       public void Visit(PCS pcs, byte data) {
          var text = CreateText(pcs.ThisCharacter, fontSize, Brush(nameof(Theme.Text1)));
-
-         var xOffset = 1 - pcs.ThisCharacter.Length;
-         context.DrawText(text, new Point(CellTextOffset.X + xOffset, CellTextOffset.Y));
+         var offset = GetCenteredOffset(pcs, 1, text);
+         context.DrawText(text, offset);
       }
 
       public void Visit(EscapedPCS pcs, byte data) {
@@ -126,66 +125,46 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
          var stringValue = integer.Value.ToString();
 
-         var text = CreateText(stringValue, fontSize, Brush(nameof(Theme.Data1)));
-
-         var xOffset = CellTextOffset.X;
-         xOffset += cellSize.Width / 2 * (integer.Length - 1); // adjust based on number of cells to use
-         xOffset -= (stringValue.Length - 2) * 5; // adjust based on width of text
-         context.DrawText(text, new Point(xOffset, CellTextOffset.Y));
+         var text = TruncateText(stringValue, fontSize * 3 / 4, Brush(nameof(Theme.Data1)), integer.Length);
+         var offset = GetCenteredOffset(integer, integer.Length, text);
+         context.DrawText(text, offset);
       }
 
       public void Visit(IntegerEnum integerEnum, byte data) {
          if (integerEnum.Position != 0) return;
 
          var stringValue = integerEnum.Value;
-         var text = CreateText(stringValue, fontSize * 3 / 4, Brush(nameof(Theme.Data2)));
 
-         var xOffset = CellTextOffset.X / 2;
-         context.PushClip(new RectangleGeometry(new Rect(0, 0, cellSize.Width * integerEnum.Length, cellSize.Height)));
-         context.DrawText(text, new Point(xOffset, CellTextOffset.Y));
-         context.Pop();
+         var text = TruncateText(stringValue, fontSize * 3 / 4, Brush(nameof(Theme.Data2)), integerEnum.Length);
+         var offset = GetCenteredOffset(integerEnum, integerEnum.Length, text);
+         context.DrawText(text, offset);
       }
 
       public void Visit(EggSection section, byte data) {
          if (section.Position != 0) return;
          var name = section.SectionName;
 
-         var text = CreateText(name, fontSize * 3 / 4, Brush(nameof(Theme.Stream1)));
-         var characterWidth = text.Width / name.Length;
-         var xOffset = cellSize.Width - name.Length * characterWidth / 2;
-         if (xOffset < 0) xOffset = 0;
-         context.PushClip(new RectangleGeometry(new Rect(0, 0, cellSize.Width * 2, cellSize.Height)));
-         context.DrawText(text, new Point(xOffset, CellTextOffset.Y + 2));
-         context.Pop();
+         var text = TruncateText(name, fontSize * 3 / 4, Brush(nameof(Theme.Stream1)), 2);
+         var offset = GetCenteredOffset(section, 2, text);
+         context.DrawText(text, offset);
       }
 
       public void Visit(EggItem item, byte data) {
          if (item.Position != 0) return;
          var name = item.ItemName;
 
-         var text = CreateText(name, fontSize * 3 / 4, Brush(nameof(Theme.Stream2)));
-         var characterWidth = text.Width / name.Length;
-         var xOffset = cellSize.Width - name.Length * characterWidth / 2;
-         if (xOffset < 0) xOffset = 0;
-         context.PushClip(new RectangleGeometry(new Rect(0, 0, cellSize.Width * 2, cellSize.Height)));
-         context.DrawText(text, new Point(xOffset, CellTextOffset.Y + 2));
-         context.Pop();
+         var text = TruncateText(name, fontSize * 3 / 4, Brush(nameof(Theme.Stream2)), 2);
+         var offset = GetCenteredOffset(item, 2, text);
+         context.DrawText(text, offset);
       }
 
       public void Visit(PlmItem item, byte data) {
          if (item.Position != 0) return;
          var content = item.ToString();
 
-         var text = CreateText(content, fontSize * 3 / 4, Brush(nameof(Theme.Stream2)));
-
-         // center the text
-         var characterWidth = text.Width / content.Length;
-         var xOffset = cellSize.Width - content.Length * characterWidth / 2;
-         if (xOffset < 0) xOffset = 0;
-
-         context.PushClip(new RectangleGeometry(new Rect(0, 0, cellSize.Width * 2, cellSize.Height)));
-         context.DrawText(text, new Point(xOffset, CellTextOffset.Y + 2));
-         context.Pop();
+         var text = TruncateText(content, fontSize * 3 / 4, Brush(nameof(Theme.Stream2)), 2);
+         var offset = GetCenteredOffset(item, 2, text);
+         context.DrawText(text, offset);
       }
 
       private void Underline(Brush brush, bool isStart, bool isEnd) {
@@ -222,16 +201,23 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          noneVisualCache.AddRange(text);
       }
 
-      private FormattedText TruncateText(string destination, Brush brush, int widthInCells, string postText) {
+      private FormattedText TruncateText(string destination, double fontSize, Brush brush, int widthInCells, string postText = "") {
          var text = CreateText(destination, fontSize, brush);
          if (text.Width > cellSize.Width * widthInCells) {
             var unitWidth = text.Width / destination.Length;
             var desiredLength = destination.Length;
-            while (unitWidth * desiredLength > cellSize.Width * 4) desiredLength--;
+            while (unitWidth * desiredLength > cellSize.Width * widthInCells) desiredLength--;
             destination = destination.Substring(0, desiredLength - 1 - postText.Length) + "…" + postText;
             text = CreateText(destination, fontSize, brush);
          }
          return text;
+      }
+
+      private Point GetCenteredOffset(IDataFormatInstance dataFormat, int cellWidth, FormattedText text) {
+         var xOffset = (cellSize.Width * cellWidth - text.Width) / 2;
+         if (!(dataFormat is PCS)) xOffset -= (dataFormat.Position * cellSize.Width); // centering
+         var yOffset = (cellSize.Height - text.Height) / 2;
+         return new Point(xOffset, yOffset);
       }
 
       private static readonly Typeface consolas = new Typeface("Consolas");
