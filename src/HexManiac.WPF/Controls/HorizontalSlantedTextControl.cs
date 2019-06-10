@@ -99,6 +99,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void OnFontSizeChanged(DependencyPropertyChangedEventArgs e) {
+         UpdateDesiredHeight();
          InvalidateVisual();
       }
 
