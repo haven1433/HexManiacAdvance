@@ -232,8 +232,11 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             1.0);
       }
 
-      private static SolidColorBrush Brush(string name) {
-         return (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][name];
+      readonly Dictionary<string, SolidColorBrush> cachedBrushes = new Dictionary<string, SolidColorBrush>();
+      private SolidColorBrush Brush(string name) {
+         if (cachedBrushes.TryGetValue(name, out var brush)) return brush;
+         cachedBrushes[name] = (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][name];
+         return cachedBrushes[name];
       }
    }
 }

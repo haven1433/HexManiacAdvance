@@ -459,7 +459,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo) {
          base.OnRenderSizeChanged(sizeInfo);
-         if (ViewPort != null) UpdateViewPortSize();
+         UpdateViewPortSize();
       }
 
       protected override void OnTextInput(TextCompositionEventArgs e) {
@@ -493,6 +493,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void UpdateViewPortSize() {
+         if (ViewPort == null) return;
+
          // calculate the initial 3x2 cell size from the fontsize
          var sampleElement = new FormattedText("000", CultureInfo.CurrentCulture, FlowDirection.LeftToRight, new Typeface("Consolas"), FontSize, Brushes.Transparent, 1);
          CellHeight = Math.Ceiling(Math.Max(sampleElement.Height, sampleElement.Width * 2 / 3));
