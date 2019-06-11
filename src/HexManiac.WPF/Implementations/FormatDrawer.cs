@@ -10,6 +10,15 @@ using System.Windows.Media;
 
 namespace HavenSoft.HexManiac.WPF.Implementations {
    public class FormatDrawer : IDataFormatVisitor {
+
+      private static readonly Typeface consolas = new Typeface("Consolas");
+      private static readonly GlyphTypeface typeface, italicTypeface;
+      static FormatDrawer() {
+         consolas.TryGetGlyphTypeface(out typeface);
+         var consolas2 = new Typeface(new FontFamily("Consolas"), FontStyles.Italic, FontWeights.Light, FontStretches.Normal);
+         consolas2.TryGetGlyphTypeface(out italicTypeface);
+      }
+
       private readonly int fontSize = 16;
 
       private readonly Point CellTextOffset;
@@ -121,7 +130,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          Draw(item.ToString(), nameof(Theme.Stream2), fontSize * 3 / 4, 2, item.Position);
       }
 
-      private void Draw(string content, string brush, double size, int cells, int position, string appendEnd = "", bool italics = false) {
+      private void Draw2(string content, string brush, double size, int cells, int position, string appendEnd = "", bool italics = false) {
          var needsClip = position > Position.X || Position.X - position > modelWidth - cells;
 
          if (!needsClip && position != 0) return;
@@ -130,6 +139,52 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
          if (needsClip) context.PushClip(rectangleGeometry);
          context.DrawText(text, offset);
+         if (needsClip) context.Pop();
+      }
+
+      /// <summary>
+      /// This function is full of dragons. You probably don't want to touch it.
+      /// </summary>
+      private void Draw(string text, string brush, double size, int cells, int position, string appendEnd = "", bool italics = false) {
+         var needsClip = position > Position.X || Position.X - position > modelWidth - cells;
+         if (!needsClip && position != 0) return;
+         appendEnd = "…" + appendEnd;
+
+         var textTypeface = italics ? italicTypeface : typeface;
+
+         // place the glyphs and find the total width
+         var glyphIndexes = new List<ushort>();
+         var advanceWidths = new List<double>();
+         double totalWidth = 0;
+         for (int i = 0; i < text.Length; i++) {
+            ushort glyphIndex = textTypeface.CharacterToGlyphMap[text[i]];
+            glyphIndexes.Add(glyphIndex);
+            double width = textTypeface.AdvanceWidths[glyphIndex] * size;
+            advanceWidths.Add(width);
+            totalWidth += width;
+            if (totalWidth <= cellSize.Width * cells) continue;
+            // too wide: replace the end with the appendEnd
+            for (int j = 0; j < appendEnd.Length + 1; j++) {
+               glyphIndexes.RemoveAt(glyphIndexes.Count - 1);
+               advanceWidths.RemoveAt(advanceWidths.Count - 1);
+            }
+            totalWidth -= width * (appendEnd.Length + 1);
+            text = text.Substring(0, advanceWidths.Count) + appendEnd;
+            i -= appendEnd.Length + 1;
+         }
+
+         // decide where to draw the run
+         var xOffset = (cellSize.Width * cells - totalWidth) / 2;
+         xOffset -= (position * cellSize.Width); // centering
+         var yOffset = (cellSize.Height - textTypeface.Height * size) / 2 + textTypeface.Baseline * size;
+         var origin = new Point(xOffset, yOffset);
+
+         // draw
+         var run = new GlyphRun(textTypeface, 0, false, size, 1.0f, glyphIndexes, origin,
+            advanceWidths, null, text.ToCharArray(), null, null, null, null);
+
+         if (needsClip) context.PushClip(rectangleGeometry);
+         context.DrawGlyphRun(Brush(brush), run);
          if (needsClip) context.Pop();
       }
 
@@ -186,7 +241,6 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          return new Point(xOffset, yOffset);
       }
 
-      private static readonly Typeface consolas = new Typeface("Consolas");
       private FormattedText CreateText(string text, double size, string color, bool italics = false) {
          var formatted = new FormattedText(
             text,
@@ -196,7 +250,10 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             size,
             Brush(color),
             1.0);
-         if (italics) formatted.SetFontStyle(FontStyles.Italic);
+         if (italics) {
+            formatted.SetFontStyle(FontStyles.Italic);
+            formatted.SetFontWeight(FontWeights.Light);
+         }
          return formatted;
       }
 
