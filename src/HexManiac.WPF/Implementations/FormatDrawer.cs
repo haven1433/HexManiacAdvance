@@ -31,7 +31,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          (context, modelWidth, modelHeight, cellSize) = (drawingContext, width, height, new Size(cellWidth, cellHeight));
          rectangleGeometry = new RectangleGeometry(new Rect(new Point(0, 0), cellSize));
          this.fontSize = fontSize;
-         var testText = CreateText("00", fontSize, Brushes.Transparent);
+         var testText = CreateText("00", fontSize, null);
          CellTextOffset = new Point((cellWidth - testText.Width) / 2, (cellHeight - testText.Height) / 2);
       }
 
@@ -44,17 +44,16 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
 
       public void Visit(None dataFormat, byte data) {
-         VerifyNoneVisualCache();
-         context.DrawText(noneVisualCache[data], CellTextOffset);
+         //VerifyNoneVisualCache();
+         //context.DrawText(noneVisualCache[data], CellTextOffset);
+         var brush = data == 0x00 || data == 0xFF ? nameof(Theme.Secondary) : nameof(Theme.Primary);
+         Draw(data.ToString("X2"), brush, fontSize, 1, 0, italics: data == 0xFF);
       }
 
       public void Visit(UnderEdit dataFormat, byte data) {
-         var brush = Brush(nameof(Theme.Primary));
-         var typeface = new Typeface("Consolas");
-
          var content = dataFormat.CurrentText;
 
-         var text = CreateText(content, fontSize, brush);
+         var text = CreateText(content, fontSize, nameof(Theme.Primary));
 
          var offset = CellTextOffset;
          var widthOverflow = text.Width - cellSize.Width * dataFormat.EditWidth;
@@ -70,21 +69,12 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
 
       public void Visit(Pointer dataFormat, byte data) {
-         var brush = Brush(nameof(Theme.Accent));
-         if (dataFormat.Destination < 0) brush = Brush(nameof(Theme.Error));
+         var brush = nameof(Theme.Accent);
+         if (dataFormat.Destination < 0) brush = nameof(Theme.Error);
          Underline(brush, dataFormat.Position == 0, dataFormat.Position == 3);
-
          var destination = dataFormat.DestinationAsText;
-         var text = TruncateText(destination, fontSize, brush, 4, ">");
-         var offset = GetCenteredOffset(dataFormat, 4, text);
 
-         if (dataFormat.Position > Position.X || Position.X - dataFormat.Position > modelWidth - 4) {
-            context.PushClip(rectangleGeometry);
-            context.DrawText(text, offset);
-            context.Pop();
-         } else if (dataFormat.Position == 1) {
-            context.DrawText(text, offset);
-         }
+         Draw(destination, brush, fontSize, 4, dataFormat.Position, ">");
       }
 
       private static readonly Geometry Triangle = Geometry.Parse("M0,5 L3,0 6,5");
@@ -96,9 +86,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
 
       public void Visit(PCS pcs, byte data) {
-         var text = CreateText(pcs.ThisCharacter, fontSize, Brush(nameof(Theme.Text1)));
-         var offset = GetCenteredOffset(pcs, 1, text);
-         context.DrawText(text, offset);
+         Draw(pcs.ThisCharacter, nameof(Theme.Text1), fontSize, 1, 0);
       }
 
       public void Visit(EscapedPCS pcs, byte data) {
@@ -106,72 +94,50 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
 
       public void Visit(ErrorPCS pcs, byte data) {
-         var brush = Brush(nameof(Theme.Error));
-
-         var content = data.ToString("X2");
-
-         var text = CreateText(content, fontSize, brush);
-
-         context.DrawText(text, CellTextOffset);
+         Draw(data.ToString("X2"), nameof(Theme.Error), fontSize, 1, 0);
       }
 
       public void Visit(Ascii ascii, byte data) {
-         var text = CreateText(ascii.ThisCharacter.ToString(), fontSize, Brush(nameof(Theme.Text2)));
-         context.DrawText(text, CellTextOffset);
+         Draw(ascii.ThisCharacter.ToString(), nameof(Theme.Text2), fontSize, 1, 0);
       }
 
       public void Visit(Integer integer, byte data) {
-         if (integer.Position != 0) return;
-
-         var stringValue = integer.Value.ToString();
-
-         var text = TruncateText(stringValue, fontSize * 3 / 4, Brush(nameof(Theme.Data1)), integer.Length);
-         var offset = GetCenteredOffset(integer, integer.Length, text);
-         context.DrawText(text, offset);
+         Draw(integer.Value.ToString(), nameof(Theme.Data1), fontSize, integer.Length, integer.Position);
       }
 
       public void Visit(IntegerEnum integerEnum, byte data) {
-         if (integerEnum.Position != 0) return;
-
-         var stringValue = integerEnum.Value;
-
-         var text = TruncateText(stringValue, fontSize * 3 / 4, Brush(nameof(Theme.Data2)), integerEnum.Length);
-         var offset = GetCenteredOffset(integerEnum, integerEnum.Length, text);
-         context.DrawText(text, offset);
+         Draw(integerEnum.Value, nameof(Theme.Data2), fontSize * 3 / 4, integerEnum.Length, integerEnum.Position);
       }
 
       public void Visit(EggSection section, byte data) {
-         if (section.Position != 0) return;
-         var name = section.SectionName;
-
-         var text = TruncateText(name, fontSize * 3 / 4, Brush(nameof(Theme.Stream1)), 2);
-         var offset = GetCenteredOffset(section, 2, text);
-         context.DrawText(text, offset);
+         Draw(section.SectionName, nameof(Theme.Stream1), fontSize * 3 / 4, 2, section.Position);
       }
 
       public void Visit(EggItem item, byte data) {
-         if (item.Position != 0) return;
-         var name = item.ItemName;
-
-         var text = TruncateText(name, fontSize * 3 / 4, Brush(nameof(Theme.Stream2)), 2);
-         var offset = GetCenteredOffset(item, 2, text);
-         context.DrawText(text, offset);
+         Draw(item.ItemName, nameof(Theme.Stream2), fontSize * 3 / 4, 2, item.Position);
       }
 
       public void Visit(PlmItem item, byte data) {
-         if (item.Position != 0) return;
-         var content = item.ToString();
-
-         var text = TruncateText(content, fontSize * 3 / 4, Brush(nameof(Theme.Stream2)), 2);
-         var offset = GetCenteredOffset(item, 2, text);
-         context.DrawText(text, offset);
+         Draw(item.ToString(), nameof(Theme.Stream2), fontSize * 3 / 4, 2, item.Position);
       }
 
-      private void Underline(Brush brush, bool isStart, bool isEnd) {
+      private void Draw(string content, string brush, double size, int cells, int position, string appendEnd = "", bool italics = false) {
+         var needsClip = position > Position.X || Position.X - position > modelWidth - cells;
+
+         if (!needsClip && position != 0) return;
+         var text = TruncateText(content, size, brush, cells, appendEnd, italics);
+         var offset = GetCenteredOffset(position, cells, text);
+
+         if (needsClip) context.PushClip(rectangleGeometry);
+         context.DrawText(text, offset);
+         if (needsClip) context.Pop();
+      }
+
+      private void Underline(string brush, bool isStart, bool isEnd) {
          int startPoint = isStart ? 5 : 0;
          int endPoint = (int)cellSize.Width - (isEnd ? 5 : 0);
          double y = (int)cellSize.Height - 1.5;
-         context.DrawLine(new Pen(brush, 1), new Point(startPoint, y), new Point(endPoint, y));
+         context.DrawLine(new Pen(Brush(brush), 1), new Point(startPoint, y), new Point(endPoint, y));
       }
 
       private void VerifyNoneVisualCache() {
@@ -201,39 +167,42 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          noneVisualCache.AddRange(text);
       }
 
-      private FormattedText TruncateText(string destination, double fontSize, Brush brush, int widthInCells, string postText = "") {
-         var text = CreateText(destination, fontSize, brush);
+      private FormattedText TruncateText(string destination, double fontSize, string brush, int widthInCells, string postText = "", bool italics = false) {
+         var text = CreateText(destination, fontSize, brush, italics);
          if (text.Width > cellSize.Width * widthInCells) {
             var unitWidth = text.Width / destination.Length;
             var desiredLength = destination.Length;
             while (unitWidth * desiredLength > cellSize.Width * widthInCells) desiredLength--;
             destination = destination.Substring(0, desiredLength - 1 - postText.Length) + "…" + postText;
-            text = CreateText(destination, fontSize, brush);
+            text = CreateText(destination, fontSize, brush, italics);
          }
          return text;
       }
 
-      private Point GetCenteredOffset(IDataFormatInstance dataFormat, int cellWidth, FormattedText text) {
+      private Point GetCenteredOffset(int position, int cellWidth, FormattedText text) {
          var xOffset = (cellSize.Width * cellWidth - text.Width) / 2;
-         if (!(dataFormat is PCS)) xOffset -= (dataFormat.Position * cellSize.Width); // centering
+         xOffset -= (position * cellSize.Width); // centering
          var yOffset = (cellSize.Height - text.Height) / 2;
          return new Point(xOffset, yOffset);
       }
 
       private static readonly Typeface consolas = new Typeface("Consolas");
-      private static FormattedText CreateText(string text, double size, Brush color) {
-         return new FormattedText(
+      private FormattedText CreateText(string text, double size, string color, bool italics = false) {
+         var formatted = new FormattedText(
             text,
             CultureInfo.CurrentCulture,
             FlowDirection.LeftToRight,
             consolas,
             size,
-            color,
+            Brush(color),
             1.0);
+         if (italics) formatted.SetFontStyle(FontStyles.Italic);
+         return formatted;
       }
 
       readonly Dictionary<string, SolidColorBrush> cachedBrushes = new Dictionary<string, SolidColorBrush>();
       private SolidColorBrush Brush(string name) {
+         if (name == null) return null;
          if (cachedBrushes.TryGetValue(name, out var brush)) return brush;
          cachedBrushes[name] = (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][name];
          return cachedBrushes[name];
