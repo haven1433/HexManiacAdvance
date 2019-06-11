@@ -23,8 +23,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
       private readonly Point CellTextOffset;
 
-      private static int noneVisualCacheFontSize;
-      private static readonly List<FormattedText> noneVisualCache = new List<FormattedText>();
+      private static Size noneVisualCacheCellSize;
+      private static readonly List<GlyphRun> noneVisualCache = new List<GlyphRun>();
 
       private readonly int modelWidth, modelHeight;
       private readonly Size cellSize;
@@ -53,10 +53,10 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
 
       public void Visit(None dataFormat, byte data) {
-         //VerifyNoneVisualCache();
-         //context.DrawText(noneVisualCache[data], CellTextOffset);
-         var brush = data == 0x00 || data == 0xFF ? nameof(Theme.Secondary) : nameof(Theme.Primary);
-         Draw(data.ToString("X2"), brush, fontSize, 1, 0, italics: data == 0xFF);
+         VerifyNoneVisualCache();
+         var brush = Brush(nameof(Theme.Primary));
+         if(data==0xFF || data==0x00) brush = Brush(nameof(Theme.Secondary)); ;
+         context.DrawGlyphRun(brush, noneVisualCache[data]);
       }
 
       public void Visit(UnderEdit dataFormat, byte data) {
@@ -130,36 +130,31 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          Draw(item.ToString(), nameof(Theme.Stream2), fontSize * 3 / 4, 2, item.Position);
       }
 
-      private void Draw2(string content, string brush, double size, int cells, int position, string appendEnd = "", bool italics = false) {
-         var needsClip = position > Position.X || Position.X - position > modelWidth - cells;
-
-         if (!needsClip && position != 0) return;
-         var text = TruncateText(content, size, brush, cells, appendEnd, italics);
-         var offset = GetCenteredOffset(position, cells, text);
-
-         if (needsClip) context.PushClip(rectangleGeometry);
-         context.DrawText(text, offset);
-         if (needsClip) context.Pop();
-      }
-
       /// <summary>
       /// This function is full of dragons. You probably don't want to touch it.
       /// </summary>
       private void Draw(string text, string brush, double size, int cells, int position, string appendEnd = "", bool italics = false) {
          var needsClip = position > Position.X || Position.X - position > modelWidth - cells;
          if (!needsClip && position != 0) return;
+         
+         var textTypeface = italics ? italicTypeface : typeface;
+         var run = CreateGlyphRun(textTypeface, size, cells, position, text, appendEnd);
+
+         if (needsClip) context.PushClip(rectangleGeometry);
+         context.DrawGlyphRun(Brush(brush), run);
+         if (needsClip) context.Pop();
+      }
+
+      private GlyphRun CreateGlyphRun(GlyphTypeface typeface, double size, int cells, int position, string text, string appendEnd = "") {
          appendEnd = "…" + appendEnd;
 
-         var textTypeface = italics ? italicTypeface : typeface;
-
-         // place the glyphs and find the total width
-         var glyphIndexes = new List<ushort>();
-         var advanceWidths = new List<double>();
+         var glyphIndexes = new List<ushort>(text.Length);
+         var advanceWidths = new List<double>(text.Length);
          double totalWidth = 0;
          for (int i = 0; i < text.Length; i++) {
-            ushort glyphIndex = textTypeface.CharacterToGlyphMap[text[i]];
+            ushort glyphIndex = typeface.CharacterToGlyphMap[text[i]];
             glyphIndexes.Add(glyphIndex);
-            double width = textTypeface.AdvanceWidths[glyphIndex] * size;
+            double width = typeface.AdvanceWidths[glyphIndex] * size;
             advanceWidths.Add(width);
             totalWidth += width;
             if (totalWidth <= cellSize.Width * cells) continue;
@@ -173,19 +168,13 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             i -= appendEnd.Length + 1;
          }
 
-         // decide where to draw the run
          var xOffset = (cellSize.Width * cells - totalWidth) / 2;
          xOffset -= (position * cellSize.Width); // centering
-         var yOffset = (cellSize.Height - textTypeface.Height * size) / 2 + textTypeface.Baseline * size;
+         var yOffset = (cellSize.Height - typeface.Height * size) / 2 + typeface.Baseline * size;
          var origin = new Point(xOffset, yOffset);
 
-         // draw
-         var run = new GlyphRun(textTypeface, 0, false, size, 1.0f, glyphIndexes, origin,
+         return new GlyphRun(typeface, 0, false, size, 1.0f, glyphIndexes, origin,
             advanceWidths, null, text.ToCharArray(), null, null, null, null);
-
-         if (needsClip) context.PushClip(rectangleGeometry);
-         context.DrawGlyphRun(Brush(brush), run);
-         if (needsClip) context.Pop();
       }
 
       private void Underline(string brush, bool isStart, bool isEnd) {
@@ -194,29 +183,21 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          double y = (int)cellSize.Height - 1.5;
          context.DrawLine(new Pen(Brush(brush), 1), new Point(startPoint, y), new Point(endPoint, y));
       }
-
+      
       private void VerifyNoneVisualCache() {
-         if (noneVisualCache.Count != 0 && fontSize == noneVisualCacheFontSize) return;
+         if (noneVisualCache.Count != 0 && noneVisualCacheCellSize == cellSize) return;
 
-         noneVisualCacheFontSize = fontSize;
+         noneVisualCacheCellSize = cellSize;
          noneVisualCache.Clear();
+
          var bytesAsHex = Enumerable.Range(0, 0x100).Select(i => i.ToString("X2"));
 
          var text = bytesAsHex.Select(hex => {
             var brush = Brush(nameof(Theme.Primary));
-            var typeface = new Typeface("Consolas");
             if (hex == "00" || hex == "FF") brush = Brush(nameof(Theme.Secondary));
-            if (hex == "FF") {
-               typeface = new Typeface(new FontFamily("Consolas"), FontStyles.Italic, FontWeights.Light, FontStretches.Normal);
-            }
-            return new FormattedText(
-               hex,
-               CultureInfo.CurrentCulture,
-               FlowDirection.LeftToRight,
-               typeface,
-               fontSize,
-               brush,
-               1.0);
+            var typeface = FormatDrawer.typeface;
+            if (hex == "FF") typeface = italicTypeface;
+            return CreateGlyphRun(typeface, fontSize, 1, 0, hex);
          });
 
          noneVisualCache.AddRange(text);
