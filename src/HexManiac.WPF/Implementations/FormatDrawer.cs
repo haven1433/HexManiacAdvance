@@ -354,7 +354,11 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          // add to the glyphs and widths
          var sectionWidth = 0.0;
          for (int i = 0; i < text.Length; i++) {
-            ushort glyphIndex = typeface.CharacterToGlyphMap[text[i]];
+            if (!typeface.CharacterToGlyphMap.TryGetValue(text[i], out ushort glyphIndex)) {
+               text = text.Substring(0, i) + text.Substring(i + 1);
+               i--;
+               continue;
+            }
             glyphs.Add(glyphIndex);
             double width = typeface.AdvanceWidths[glyphIndex] * size;
             widths.Add(width);
