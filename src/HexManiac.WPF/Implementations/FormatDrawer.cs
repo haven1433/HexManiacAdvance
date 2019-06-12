@@ -13,10 +13,12 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
       private static readonly Typeface consolas = new Typeface("Consolas");
       private static readonly GlyphTypeface typeface, italicTypeface;
+      private static string[] byteText;
       static FormatDrawer() {
          consolas.TryGetGlyphTypeface(out typeface);
          var consolas2 = new Typeface(new FontFamily("Consolas"), FontStyles.Italic, FontWeights.Light, FontStretches.Normal);
          consolas2.TryGetGlyphTypeface(out italicTypeface);
+         byteText = Enumerable.Range(0, 0x100).Select(i => i.ToString("X2")).ToArray();
       }
 
       private readonly int fontSize = 16;
@@ -30,14 +32,22 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       private readonly Size cellSize;
 
       private readonly DrawingContext context;
+      private readonly IViewPort viewPort;
       private readonly Geometry rectangleGeometry;
 
       public bool MouseIsOverCurrentFormat { get; set; }
 
-      public HavenSoft.HexManiac.Core.Models.Point Position { get; set; }
+      private Core.Models.Point position;
+      public HavenSoft.HexManiac.Core.Models.Point Position {
+         get => position;
+         set {
+            position = value;
+            if (position.X == 0) RenderRow();
+         }
+      }
 
-      public FormatDrawer(DrawingContext drawingContext, int width, int height, double cellWidth, double cellHeight, int fontSize) {
-         (context, modelWidth, modelHeight, cellSize) = (drawingContext, width, height, new Size(cellWidth, cellHeight));
+      public FormatDrawer(DrawingContext drawingContext, IViewPort viewModel, int width, int height, double cellWidth, double cellHeight, int fontSize) {
+         (context, viewPort, modelWidth, modelHeight, cellSize) = (drawingContext, viewModel, width, height, new Size(cellWidth, cellHeight));
          rectangleGeometry = new RectangleGeometry(new Rect(new Point(0, 0), cellSize));
          this.fontSize = fontSize;
          var testText = CreateText("00", fontSize, null);
@@ -48,15 +58,78 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          noneVisualCache.Clear();
       }
 
+      /// <summary>
+      /// Rendering individual cells is too slow!
+      /// For formats that follow the standard method of drawing (truncate and center, one color/size/style),
+      /// we can render every cell of that format in a single pass.
+      /// </summary>
+      public void RenderRow() {
+         var collector = new GlyphCollector(cellSize);
+
+         collector.Initialize<None>(typeface, fontSize);            // actulaly None
+         collector.Initialize<Undefined>(italicTypeface, fontSize); // actually None -> FF
+         collector.Initialize<UnderEdit>(typeface, fontSize);       // actually None -> 00
+         collector.Initialize<ErrorPCS>(typeface, fontSize);        // actually error pointer
+         collector.Initialize<PCS>(typeface, fontSize);
+         collector.Initialize<Ascii>(typeface, fontSize);
+         collector.Initialize<Pointer>(typeface, fontSize);
+         collector.Initialize<PlmItem>(typeface, fontSize * .75);
+         collector.Initialize<EggSection>(typeface, fontSize * .75);
+         collector.Initialize<EggItem>(typeface, fontSize * .75);
+         collector.Initialize<IntegerEnum>(typeface, fontSize * .75);
+         collector.Initialize<Integer>(typeface, fontSize);
+
+         for (int x = 0; x < modelWidth; x++) {
+            var cell = viewPort[x, position.Y];
+            var format = cell.Format;
+            if (format is Anchor anchor) format = anchor.OriginalFormat;
+            if (format is PCS pcs) {
+               collector.Collect<PCS>(x, 1, pcs.ThisCharacter);
+            } else if (format is Pointer pointer && pointer.Position == 0) {
+               if (pointer.Destination < 0) collector.Collect<ErrorPCS>(x, 4, pointer.DestinationAsText);
+               else collector.Collect<Pointer>(x, 4, pointer.DestinationAsText);
+            } else if (format is PlmItem plm && plm.Position == 0) {
+               collector.Collect<PlmItem>(x, 2, plm.ToString());
+            } else if (format is EggItem eggItem && eggItem.Position == 0) {
+               collector.Collect<EggItem>(x, 2, eggItem.ItemName);
+            } else if (format is EggSection eggSection && eggSection.Position == 0) {
+               collector.Collect<EggSection>(x, 2, eggSection.SectionName);
+            } else if (format is IntegerEnum intEnum && intEnum.Position == 0) {
+               collector.Collect<IntegerEnum>(x, intEnum.Length, intEnum.Value);
+            } else if (format is Integer integer && integer.Position == 0) {
+               collector.Collect<Integer>(x, integer.Length, integer.Value.ToString());
+            } else if (format is Ascii asc) {
+               collector.Collect<Ascii>(x, 1, asc.ThisCharacter.ToString());
+            } else if (format is None none) {
+               if (cell.Value == 0x00) collector.Collect<UnderEdit>(x, 1, "00");
+               else if (cell.Value == 0xFF) collector.Collect<Undefined>(x, 1, "FF");
+               else collector.Collect<None>(x, 1, byteText[cell.Value]);
+            }
+         }
+
+         context.DrawGlyphRun(Brush(nameof(Theme.Text1)), collector.Render<PCS>());
+         context.DrawGlyphRun(Brush(nameof(Theme.Accent)), collector.Render<Pointer>());
+         context.DrawGlyphRun(Brush(nameof(Theme.Stream2)), collector.Render<PlmItem>());
+         context.DrawGlyphRun(Brush(nameof(Theme.Stream2)), collector.Render<EggItem>());
+         context.DrawGlyphRun(Brush(nameof(Theme.Stream1)), collector.Render<EggSection>());
+         context.DrawGlyphRun(Brush(nameof(Theme.Data2)), collector.Render<IntegerEnum>());
+         context.DrawGlyphRun(Brush(nameof(Theme.Data1)), collector.Render<Integer>());
+         context.DrawGlyphRun(Brush(nameof(Theme.Text2)), collector.Render<Ascii>());
+         context.DrawGlyphRun(Brush(nameof(Theme.Primary)), collector.Render<None>());
+         context.DrawGlyphRun(Brush(nameof(Theme.Secondary)), collector.Render<UnderEdit>());
+         context.DrawGlyphRun(Brush(nameof(Theme.Secondary)), collector.Render<Undefined>());
+         context.DrawGlyphRun(Brush(nameof(Theme.Error)), collector.Render<ErrorPCS>());
+      }
+
       public void Visit(Undefined dataFormat, byte data) {
          // intentionally draw nothing
       }
 
       public void Visit(None dataFormat, byte data) {
-         VerifyNoneVisualCache();
-         var brush = Brush(nameof(Theme.Primary));
-         if(data==0xFF || data==0x00) brush = Brush(nameof(Theme.Secondary)); ;
-         context.DrawGlyphRun(brush, noneVisualCache[data]);
+         //VerifyNoneVisualCache();
+         //var brush = Brush(nameof(Theme.Primary));
+         //if(data==0xFF || data==0x00) brush = Brush(nameof(Theme.Secondary)); ;
+         //context.DrawGlyphRun(brush, noneVisualCache[data]);
       }
 
       public void Visit(UnderEdit dataFormat, byte data) {
@@ -81,9 +154,9 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          var brush = nameof(Theme.Accent);
          if (dataFormat.Destination < 0) brush = nameof(Theme.Error);
          Underline(brush, dataFormat.Position == 0, dataFormat.Position == 3);
-         var destination = dataFormat.DestinationAsText;
+         //var destination = dataFormat.DestinationAsText;
 
-         Draw(destination, brush, fontSize, 4, dataFormat.Position, ">");
+         //Draw(destination, brush, fontSize, 4, dataFormat.Position, ">");
       }
 
       private static readonly Geometry Triangle = Geometry.Parse("M0,5 L3,0 6,5");
@@ -95,7 +168,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
 
       public void Visit(PCS pcs, byte data) {
-         Draw(pcs.ThisCharacter, nameof(Theme.Text1), fontSize, 1, 0);
+         //Draw(pcs.ThisCharacter, nameof(Theme.Text1), fontSize, 1, 0);
       }
 
       public void Visit(EscapedPCS pcs, byte data) {
@@ -107,27 +180,27 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
 
       public void Visit(Ascii ascii, byte data) {
-         Draw(ascii.ThisCharacter.ToString(), nameof(Theme.Text2), fontSize, 1, 0);
+         //Draw(ascii.ThisCharacter.ToString(), nameof(Theme.Text2), fontSize, 1, 0);
       }
 
       public void Visit(Integer integer, byte data) {
-         Draw(integer.Value.ToString(), nameof(Theme.Data1), fontSize, integer.Length, integer.Position);
+         //Draw(integer.Value.ToString(), nameof(Theme.Data1), fontSize, integer.Length, integer.Position);
       }
 
       public void Visit(IntegerEnum integerEnum, byte data) {
-         Draw(integerEnum.Value, nameof(Theme.Data2), fontSize * 3 / 4, integerEnum.Length, integerEnum.Position);
+         //Draw(integerEnum.Value, nameof(Theme.Data2), fontSize * 3 / 4, integerEnum.Length, integerEnum.Position);
       }
 
       public void Visit(EggSection section, byte data) {
-         Draw(section.SectionName, nameof(Theme.Stream1), fontSize * 3 / 4, 2, section.Position);
+         //Draw(section.SectionName, nameof(Theme.Stream1), fontSize * 3 / 4, 2, section.Position);
       }
 
       public void Visit(EggItem item, byte data) {
-         Draw(item.ItemName, nameof(Theme.Stream2), fontSize * 3 / 4, 2, item.Position);
+         //Draw(item.ItemName, nameof(Theme.Stream2), fontSize * 3 / 4, 2, item.Position);
       }
 
       public void Visit(PlmItem item, byte data) {
-         Draw(item.ToString(), nameof(Theme.Stream2), fontSize * 3 / 4, 2, item.Position);
+         //Draw(item.ToString(), nameof(Theme.Stream2), fontSize * 3 / 4, 2, item.Position);
       }
 
       /// <summary>
@@ -244,6 +317,83 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          if (cachedBrushes.TryGetValue(name, out var brush)) return brush;
          cachedBrushes[name] = (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][name];
          return cachedBrushes[name];
+      }
+   }
+
+   public class GlyphCollector {
+      private readonly Size cellSize;
+      private readonly Dictionary<Type, double> sizes = new Dictionary<Type, double>();
+      private readonly Dictionary<Type, double> initialHorizontalOffsets = new Dictionary<Type, double>();
+      private readonly Dictionary<Type, GlyphTypeface> typefaces = new Dictionary<Type, GlyphTypeface>();
+      private readonly Dictionary<Type, List<double>> widths = new Dictionary<Type, List<double>>();     // the spacing between each character
+      private readonly Dictionary<Type, int> nextCell = new Dictionary<Type, int>();                     // which cell would be next to fill for this run
+      private readonly Dictionary<Type, List<ushort>> glyphs = new Dictionary<Type, List<ushort>>();
+      private readonly Dictionary<Type, List<char>> texts = new Dictionary<Type, List<char>>();
+
+      public GlyphCollector(Size cellSize) => this.cellSize = cellSize;
+
+      public void Initialize<T>(GlyphTypeface typeface, double size) where T : IDataFormat {
+         typefaces[typeof(T)] = typeface;
+         sizes[typeof(T)] = size;
+         glyphs[typeof(T)] = new List<ushort>();
+         widths[typeof(T)] = new List<double>();
+         texts[typeof(T)] = new List<char>();
+      }
+
+      public void Collect<T>(int cellStart, int cellWidth, string text) where T : IDataFormat {
+         if (text == null || text.Length == 0) return;
+         string appendEnd = "…";
+         if (text.EndsWith(">")) appendEnd += ">";
+         double availableSectionWidth = cellSize.Width * cellWidth;
+
+         var typeface = typefaces[typeof(T)];
+         var size = sizes[typeof(T)];
+         var glyphs = this.glyphs[typeof(T)];
+         var widths = this.widths[typeof(T)];
+
+         // add to the glyphs and widths
+         var sectionWidth = 0.0;
+         for (int i = 0; i < text.Length; i++) {
+            ushort glyphIndex = typeface.CharacterToGlyphMap[text[i]];
+            glyphs.Add(glyphIndex);
+            double width = typeface.AdvanceWidths[glyphIndex] * size;
+            widths.Add(width);
+            sectionWidth += width;
+            if (sectionWidth <= availableSectionWidth) continue;
+            // too wide: replace the end with the appendEnd
+            for (int j = 0; j < appendEnd.Length + 1; j++) {
+               glyphs.RemoveAt(glyphs.Count - 1);
+               widths.RemoveAt(widths.Count - 1);
+            }
+            sectionWidth -= width * (appendEnd.Length + 1);
+            i -= appendEnd.Length + 1;
+            text = text.Substring(0, i + 1) + appendEnd;
+         }
+
+         texts[typeof(T)].AddRange(text);
+
+         var sectionPadding = (cellWidth * cellSize.Width - sectionWidth) / 2;
+         double sectionStart = cellStart * cellSize.Width + sectionPadding;
+         widths[widths.Count - 1] += sectionPadding;
+         if (!initialHorizontalOffsets.ContainsKey(typeof(T))) {
+            initialHorizontalOffsets[typeof(T)] = sectionStart;
+         } else {
+            widths[widths.Count - 1 - text.Length] += sectionStart - nextCell[typeof(T)] * cellSize.Width;
+         }
+         nextCell[typeof(T)] = cellStart + cellWidth;
+      }
+
+      public GlyphRun Render<T>() where T : IDataFormat {
+         if (!initialHorizontalOffsets.ContainsKey(typeof(T))) return null;
+         var typeface = typefaces[typeof(T)];
+         var size = sizes[typeof(T)];
+         var glyph = glyphs[typeof(T)];
+         var initialVerticalOffset = (cellSize.Height - typeface.Height * size) / 2 + typeface.Baseline * size;
+         var origin = new Point(initialHorizontalOffsets[typeof(T)], initialVerticalOffset);
+         var width = widths[typeof(T)];
+         var text = texts[typeof(T)];
+         var run = new GlyphRun(typeface, 0, false, size, 1.0f, glyph, origin, width, null, text, null, null, null, null);
+         return run;
       }
    }
 }

@@ -355,7 +355,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       protected override void OnRender(DrawingContext drawingContext) {
          base.OnRender(drawingContext);
          if (ViewPort == null) return;
-         var visitor = new FormatDrawer(drawingContext, ViewPort.Width, ViewPort.Height, CellWidth, CellHeight, FontSize);
+         var visitor = new FormatDrawer(drawingContext, ViewPort, ViewPort.Width, ViewPort.Height, CellWidth, CellHeight, FontSize);
 
          if (ShowHorizontalScroll) drawingContext.PushTransform(new TranslateTransform(-HorizontalScrollValue, 0));
          RenderGrid(drawingContext);
