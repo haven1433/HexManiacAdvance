@@ -152,7 +152,11 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          var advanceWidths = new List<double>(text.Length);
          double totalWidth = 0;
          for (int i = 0; i < text.Length; i++) {
-            ushort glyphIndex = typeface.CharacterToGlyphMap[text[i]];
+            if (!typeface.CharacterToGlyphMap.TryGetValue(text[i], out ushort glyphIndex)) {
+               text = text.Substring(0, i) + text.Substring(i + 1);
+               i--;
+               continue;
+            }
             glyphIndexes.Add(glyphIndex);
             double width = typeface.AdvanceWidths[glyphIndex] * size;
             advanceWidths.Add(width);
