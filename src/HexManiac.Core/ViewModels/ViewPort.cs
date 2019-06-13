@@ -164,14 +164,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void UpdateToolsFromSelection(int dataIndex) {
          var run = Model.GetNextRun(dataIndex);
 
-         if (run.Start <= dataIndex && run is ArrayRun array) {
-            var offsets = array.ConvertByteOffsetToArrayOffset(dataIndex);
-            Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
-            Tools.TableTool.Address = array.Start + array.ElementLength * offsets.ElementIndex;
-         } else if (run.Start <= dataIndex && run is IStreamRun) {
-            Tools.StringTool.Address = run.Start;
-         } else {
-            Tools.StringTool.Address = dataIndex;
+         using (ModelCacheScope.CreateScope(Model)) {
+            if (run.Start <= dataIndex && run is ArrayRun array) {
+               var offsets = array.ConvertByteOffsetToArrayOffset(dataIndex);
+               Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
+               Tools.TableTool.Address = array.Start + array.ElementLength * offsets.ElementIndex;
+            } else if (run.Start <= dataIndex && run is IStreamRun) {
+               Tools.StringTool.Address = run.Start;
+            } else {
+               Tools.StringTool.Address = dataIndex;
+            }
          }
 
          if (this[SelectionStart].Format is Anchor anchor) {
@@ -1398,21 +1400,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void RefreshBackingData() {
          currentView = new HexElement[Width, Height];
          IFormattedRun run = null;
-         for (int y = 0; y < Height; y++) {
-            for (int x = 0; x < Width; x++) {
-               var index = scroll.ViewPointToDataIndex(new Point(x, y));
-               if (run == null || index >= run.Start + run.Length) {
-                  run = Model.GetNextRun(index) ?? new NoInfoRun(Model.Count);
-                  if (run is ArrayRun array) Tools.Schedule(array.ClearCache);
-               }
-               if (index < 0 || index >= Model.Count) {
-                  currentView[x, y] = HexElement.Undefined;
-               } else if (index >= run.Start) {
-                  var format = run.CreateDataFormat(Model, index);
-                  format = Model.WrapFormat(run, format, index);
-                  currentView[x, y] = new HexElement(Model[index], format);
-               } else {
-                  currentView[x, y] = new HexElement(Model[index], None.Instance);
+         using (ModelCacheScope.CreateScope(Model)) {
+            for (int y = 0; y < Height; y++) {
+               for (int x = 0; x < Width; x++) {
+                  var index = scroll.ViewPointToDataIndex(new Point(x, y));
+                  if (run == null || index >= run.Start + run.Length) {
+                     run = Model.GetNextRun(index) ?? new NoInfoRun(Model.Count);
+                     if (run is ArrayRun array) Tools.Schedule(array.ClearCache);
+                  }
+                  if (index < 0 || index >= Model.Count) {
+                     currentView[x, y] = HexElement.Undefined;
+                  } else if (index >= run.Start) {
+                     var format = run.CreateDataFormat(Model, index);
+                     format = Model.WrapFormat(run, format, index);
+                     currentView[x, y] = new HexElement(Model[index], format);
+                  } else {
+                     currentView[x, y] = new HexElement(Model[index], None.Instance);
+                  }
                }
             }
          }

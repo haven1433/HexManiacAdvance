@@ -169,13 +169,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          InnerFormat = innerFormat;
       }
 
-      private Func<int, PLMRun> plmFactory;
-      private Func<int, PLMRun> PlmFactory(IDataModel owner) {
-         if (plmFactory != null) return plmFactory;
-         plmFactory = PLMRun.CreateFactory(owner);
-         return plmFactory;
-      }
-
       public bool DestinationDataMatchesPointerFormat(IDataModel owner, ModelDelta token, int destination) {
          if (destination == Pointer.NULL) return true;
          var run = owner.GetNextAnchor(destination);
@@ -192,7 +185,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   return true;
                }
             } else if (InnerFormat == PLMRun.SharedFormatString) {
-               var plmRun = PlmFactory(owner)(destination);
+               var plmRun = new PLMRun(owner, destination);
                var length = plmRun.Length;
                if (length >= 2) {
                   if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, plmRun);

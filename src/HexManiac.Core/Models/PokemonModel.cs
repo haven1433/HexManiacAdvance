@@ -440,14 +440,16 @@ namespace HavenSoft.HexManiac.Core.Models {
       private void ModifyAnchorsFromPointerArray(ModelDelta changeToken, ArrayRun arrayRun, Action<ArrayRunElementSegment, ModelDelta, int> changeAnchors) {
          int segmentOffset = arrayRun.Start;
          // i loops over the different segments in the array
-         for (int i = 0; i < arrayRun.ElementContent.Count; i++) {
-            if (arrayRun.ElementContent[i].Type != ElementContentType.Pointer) { segmentOffset += arrayRun.ElementContent[i].Length; continue; }
-            // for a pointer segment, j loops over all the elements in the array
-            for (int j = 0; j < arrayRun.ElementCount; j++) {
-               var start = segmentOffset + arrayRun.ElementLength * j;
-               changeAnchors(arrayRun.ElementContent[i], changeToken, start);
+         using (ModelCacheScope.CreateScope(this)) {
+            for (int i = 0; i < arrayRun.ElementContent.Count; i++) {
+               if (arrayRun.ElementContent[i].Type != ElementContentType.Pointer) { segmentOffset += arrayRun.ElementContent[i].Length; continue; }
+               // for a pointer segment, j loops over all the elements in the array
+               for (int j = 0; j < arrayRun.ElementCount; j++) {
+                  var start = segmentOffset + arrayRun.ElementLength * j;
+                  changeAnchors(arrayRun.ElementContent[i], changeToken, start);
+               }
+               segmentOffset += arrayRun.ElementContent[i].Length;
             }
-            segmentOffset += arrayRun.ElementContent[i].Length;
          }
       }
 

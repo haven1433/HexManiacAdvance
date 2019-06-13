@@ -66,9 +66,9 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       public void RenderRow() {
          var collector = new GlyphCollector(cellSize);
 
-         collector.Initialize<None>(typeface, fontSize);            // actulaly None
-         collector.Initialize<Undefined>(italicTypeface, fontSize); // actually None -> FF
-         collector.Initialize<UnderEdit>(typeface, fontSize);       // actually None -> 00
+         //collector.Initialize<None>(typeface, fontSize);            // actulaly None
+         //collector.Initialize<Undefined>(italicTypeface, fontSize); // actually None -> FF
+         //collector.Initialize<UnderEdit>(typeface, fontSize);       // actually None -> 00
          collector.Initialize<ErrorPCS>(typeface, fontSize);        // actually error pointer
          collector.Initialize<PCS>(typeface, fontSize);
          collector.Initialize<Ascii>(typeface, fontSize);
@@ -100,25 +100,25 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                collector.Collect<Integer>(x, integer.Length, integer.Value.ToString());
             } else if (format is Ascii asc) {
                collector.Collect<Ascii>(x, 1, asc.ThisCharacter.ToString());
-            } else if (format is None none) {
-               if (cell.Value == 0x00) collector.Collect<UnderEdit>(x, 1, "00");
-               else if (cell.Value == 0xFF) collector.Collect<Undefined>(x, 1, "FF");
-               else collector.Collect<None>(x, 1, byteText[cell.Value]);
+            //} else if (format is None none) {
+            //   if (cell.Value == 0x00) collector.Collect<UnderEdit>(x, 1, "00");
+            //   else if (cell.Value == 0xFF) collector.Collect<Undefined>(x, 1, "FF");
+            //   else collector.Collect<None>(x, 1, byteText[cell.Value]);
             }
          }
 
-         context.DrawGlyphRun(Brush(nameof(Theme.Text1)), collector.Render<PCS>());
-         context.DrawGlyphRun(Brush(nameof(Theme.Accent)), collector.Render<Pointer>());
-         context.DrawGlyphRun(Brush(nameof(Theme.Stream2)), collector.Render<PlmItem>());
-         context.DrawGlyphRun(Brush(nameof(Theme.Stream2)), collector.Render<EggItem>());
-         context.DrawGlyphRun(Brush(nameof(Theme.Stream1)), collector.Render<EggSection>());
-         context.DrawGlyphRun(Brush(nameof(Theme.Data2)), collector.Render<IntegerEnum>());
-         context.DrawGlyphRun(Brush(nameof(Theme.Data1)), collector.Render<Integer>());
-         context.DrawGlyphRun(Brush(nameof(Theme.Text2)), collector.Render<Ascii>());
-         context.DrawGlyphRun(Brush(nameof(Theme.Primary)), collector.Render<None>());
-         context.DrawGlyphRun(Brush(nameof(Theme.Secondary)), collector.Render<UnderEdit>());
-         context.DrawGlyphRun(Brush(nameof(Theme.Secondary)), collector.Render<Undefined>());
-         context.DrawGlyphRun(Brush(nameof(Theme.Error)), collector.Render<ErrorPCS>());
+         var render = collector.Render<PCS>();if (render != null) context.DrawGlyphRun(Brush(nameof(Theme.Text1)), render);
+         render = collector.Render<Pointer>(); if (render != null) context.DrawGlyphRun(Brush(nameof(Theme.Accent)), render);
+         render = collector.Render<PlmItem>(); if (render != null) context.DrawGlyphRun(Brush(nameof(Theme.Stream2)), render);
+         render = collector.Render<EggItem>(); if (render != null) context.DrawGlyphRun(Brush(nameof(Theme.Stream2)), render);
+         render = collector.Render<EggSection>(); if (render != null) context.DrawGlyphRun(Brush(nameof(Theme.Stream1)), render);
+         render = collector.Render<IntegerEnum>(); if (render != null) context.DrawGlyphRun(Brush(nameof(Theme.Data2)), render);
+         render = collector.Render<Integer>(); if (render != null) context.DrawGlyphRun(Brush(nameof(Theme.Data1)), render);
+         render = collector.Render<Ascii>(); if (render != null) context.DrawGlyphRun(Brush(nameof(Theme.Text2)), render);
+         //context.DrawGlyphRun(Brush(nameof(Theme.Primary)), collector.Render<None>());
+         //context.DrawGlyphRun(Brush(nameof(Theme.Secondary)), collector.Render<UnderEdit>());
+         //context.DrawGlyphRun(Brush(nameof(Theme.Secondary)), collector.Render<Undefined>());
+         render = collector.Render<ErrorPCS>(); if (render != null) context.DrawGlyphRun(Brush(nameof(Theme.Error)), render);
       }
 
       public void Visit(Undefined dataFormat, byte data) {
@@ -126,10 +126,10 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
 
       public void Visit(None dataFormat, byte data) {
-         //VerifyNoneVisualCache();
-         //var brush = Brush(nameof(Theme.Primary));
-         //if(data==0xFF || data==0x00) brush = Brush(nameof(Theme.Secondary)); ;
-         //context.DrawGlyphRun(brush, noneVisualCache[data]);
+         VerifyNoneVisualCache();
+         var brush = Brush(nameof(Theme.Primary));
+         if (data == 0xFF || data == 0x00) brush = Brush(nameof(Theme.Secondary)); ;
+         context.DrawGlyphRun(brush, noneVisualCache[data]);
       }
 
       public void Visit(UnderEdit dataFormat, byte data) {

@@ -166,15 +166,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (elementContent.Count == 0) return false;
          var elementLength = elementContent.Sum(e => e.Length);
 
-         if (string.IsNullOrEmpty(length)) {
-            var bestAddress = StandardSearch(data, elementContent, elementLength, out int bestLength, runFilter);
-            if (bestAddress == Pointer.NULL) return false;
-            self = new ArrayRun(data, originalFormat + bestLength, string.Empty, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources, null);
-         } else {
-            var bestAddress = KnownLengthSearch(data, elementContent, elementLength, length, out int bestLength, runFilter);
-            if (bestAddress == Pointer.NULL) return false;
-            var lengthFromAnchor = int.TryParse(length, out var _) ? string.Empty : length;
-            self = new ArrayRun(data, originalFormat, lengthFromAnchor, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources, null);
+         using (ModelCacheScope.CreateScope(data)) {
+            if (string.IsNullOrEmpty(length)) {
+               var bestAddress = StandardSearch(data, elementContent, elementLength, out int bestLength, runFilter);
+               if (bestAddress == Pointer.NULL) return false;
+               self = new ArrayRun(data, originalFormat + bestLength, string.Empty, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources, null);
+            } else {
+               var bestAddress = KnownLengthSearch(data, elementContent, elementLength, length, out int bestLength, runFilter);
+               if (bestAddress == Pointer.NULL) return false;
+               var lengthFromAnchor = int.TryParse(length, out var _) ? string.Empty : length;
+               self = new ArrayRun(data, originalFormat, lengthFromAnchor, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources, null);
+            }
          }
 
          if (allowPointersToEntries) self = self.AddSourcesPointingWithinArray(changeToken);
