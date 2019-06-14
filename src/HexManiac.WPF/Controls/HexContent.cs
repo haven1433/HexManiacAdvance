@@ -413,12 +413,9 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             for (int y = 0; y < ViewPort.Height; y++) {
                visitor.MouseIsOverCurrentFormat = mouseOverPoint.Equals(new ModelPoint(x, y));
                var element = ViewPort[x, y];
-               drawingContext.PushTransform(new TranslateTransform(x * CellWidth, y * CellHeight));
 
                visitor.Position = new ModelPoint(x, y);
                element.Format.Visit(visitor, element.Value);
-
-               drawingContext.Pop();
 
                if (element.Format is UnderEdit underEdit && underEdit.AutocompleteOptions != null) {
                   ShowAutocompletePopup(x, y, underEdit.AutocompleteOptions);
