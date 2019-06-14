@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -33,6 +34,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly StubCommand hideCommand;
       private readonly StubCommand stringToolCommand, tableToolCommand, tool3Command;
       private readonly HashSet<Action> deferredWork = new HashSet<Action>();
+      private readonly IDataModel model;
 
       private int selectedIndex;
       public int SelectedIndex {
@@ -65,9 +67,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             Debug.Assert(currentDeferralToken == null);
             currentDeferralToken = new StubDisposable {
                Dispose = () => {
-                  foreach (var action in deferredWork) action();
-                  deferredWork.Clear();
-                  currentDeferralToken = null;
+                  using (ModelCacheScope.CreateScope(model)) {
+                     foreach (var action in deferredWork) action();
+                     deferredWork.Clear();
+                     currentDeferralToken = null;
+                  }
                }
             };
             return currentDeferralToken;
@@ -79,6 +83,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public event EventHandler RequestMenuClose;
 
       public ToolTray(IDataModel model, Selection selection, ChangeHistory<ModelDelta> history) {
+         this.model = model;
          tools = new IToolViewModel[] {
             new PCSTool(model, selection, history, this),
             new TableTool(model, selection, history, this),

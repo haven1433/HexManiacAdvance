@@ -47,7 +47,6 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          };
          Resources.MergedDictionaries.Clear();
          Resources.MergedDictionaries.Add(dict);
-         FormatDrawer.ClearVisualCaches();
       }
 
       private static SolidColorBrush Brush(string text) {

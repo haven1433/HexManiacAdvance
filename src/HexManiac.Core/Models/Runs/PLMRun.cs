@@ -15,21 +15,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public IReadOnlyList<int> PointerSources { get; private set; }
       public string FormatString => SharedFormatString;
 
-      /// <summary>
-      /// If we're going to make a whole bunch of PLMRuns in a row using the same model,
-      /// We can do it using the factory returned by this method instead of the constructor.
-      /// This lets us reuse the same cache for each new run.
-      /// </summary>
-      public static Func<int, PLMRun> CreateFactory(IDataModel model) {
-         var cachedMoveNames = ArrayRunEnumSegment.GetOptions(model, EggMoveRun.MoveNamesTable) ?? new List<string>();
-         return start => new PLMRun(model, start, cachedMoveNames);
-      }
-
-      public PLMRun(IDataModel dataModel, int start) : this(dataModel, start, null) { }
-
-      private PLMRun(IDataModel dataModel, int start, IReadOnlyList<string> cachedMovenames) {
+      public PLMRun(IDataModel dataModel, int start) {
          model = dataModel;
-         this.cachedMovenames = cachedMovenames ?? ArrayRunEnumSegment.GetOptions(model, EggMoveRun.MoveNamesTable) ?? new List<string>();
+         var moveNames = ModelCacheScope.GetCache(dataModel).GetOptions(EggMoveRun.MoveNamesTable);
          Start = start;
          for (int i = Start; i < model.Count; i += 2) {
             var value = model.ReadMultiByteValue(i, 2);
@@ -40,7 +28,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             // validate value
             var (level, move) = SplitToken(value);
             if (level > 101 || level < 1) break;
-            if (move > this.cachedMovenames.Count) break;
+            if (move > moveNames.Count) break;
          }
       }
 
@@ -52,21 +40,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public static int CombineToken(int level, int move) => (level << 9) | move;
 
-      private IReadOnlyList<string> cachedMovenames;
-      private int lastFormatRequest = int.MinValue;
       public IDataFormat CreateDataFormat(IDataModel data, int index) {
          Debug.Assert(data == model);
-         if (index != lastFormatRequest + 1) {
-            cachedMovenames = ArrayRunEnumSegment.GetOptions(model, EggMoveRun.MoveNamesTable) ?? new List<string>();
-         }
-         lastFormatRequest = index;
-
+         var moveNames = ModelCacheScope.GetCache(model).GetOptions(EggMoveRun.MoveNamesTable);
          var position = index - Start;
          var groupStart = position % 2 == 1 ? position - 1 : position;
          position -= groupStart;
          var value = data.ReadMultiByteValue(Start + groupStart, 2);
          var (level, move) = SplitToken(value);
-         var moveName = cachedMovenames.Count > move ? cachedMovenames[move] : move.ToString();
+         var moveName = moveNames.Count > move ? moveNames[move] : move.ToString();
          return new PlmItem(groupStart + Start, position, level, move, moveName);
       }
 
@@ -85,7 +67,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public bool TryGetMoveNumber(string moveName, out int move) {
          moveName = moveName.Trim('"').ToLower();
-         var names = cachedMovenames.Select(name => name.Trim('"').ToLower()).ToList();
+         var moveNames = ModelCacheScope.GetCache(model).GetOptions(EggMoveRun.MoveNamesTable);
+         var names = moveNames.Select(name => name.Trim('"').ToLower()).ToList();
 
          // perfect match?
          move = names.IndexOf(moveName);
@@ -99,15 +82,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public IEnumerable<string> GetAutoCompleteOptions(string header) {
-         return cachedMovenames.Select(name => $"{header} {name} "); // autocomplete needs to complete after selection, so add a space
+         var moveNames = ModelCacheScope.GetCache(model).GetOptions(EggMoveRun.MoveNamesTable);
+         return moveNames.Select(name => $"{header} {name} "); // autocomplete needs to complete after selection, so add a space
       }
 
       public string SerializeRun() {
+         var moveNames = ModelCacheScope.GetCache(model).GetOptions(EggMoveRun.MoveNamesTable);
          var builder = new StringBuilder();
          for (int i = 0; i < Length - 2; i += 2) {
             var address = Start + i;
             var (level, move) = SplitToken(model.ReadMultiByteValue(address, 2));
-            var moveName = cachedMovenames.Count > move ? cachedMovenames[move] : move.ToString();
+            var moveName = moveNames.Count > move ? moveNames[move] : move.ToString();
             builder.Append($"{level} {moveName}");
             if (i < Length - 4) builder.AppendLine();
          }
@@ -116,7 +101,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public IStreamRun DeserializeRun(string content, ModelDelta token) {
          var data = new List<int>();
-         var moveNames = cachedMovenames.Select(name => name.Trim('"').ToLower()).ToList();
+         var moveNames = ModelCacheScope.GetCache(model).GetOptions(EggMoveRun.MoveNamesTable);
+         moveNames = moveNames.Select(name => name.Trim('"').ToLower()).ToList();
+
          var lines = content.ToLower().Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
          foreach (var line in lines) {
             var parts = line.Split(new[] { ' ' }, 2);
@@ -131,6 +118,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (moveNames[i].Contains(line)) { data.Add(CombineToken(level, index)); break; }
             }
          }
+
          var run = model.RelocateForExpansion(token, this, data.Count * 2 + 2);
          for (int i = 0; i < data.Count; i++) model.WriteMultiByteValue(run.Start + i * 2, 2, token, data[i]);
          model.WriteMultiByteValue(run.Start + data.Count * 2, 2, token, EggMoveRun.EndStream); // write the new end token

@@ -355,7 +355,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       protected override void OnRender(DrawingContext drawingContext) {
          base.OnRender(drawingContext);
          if (ViewPort == null) return;
-         var visitor = new FormatDrawer(drawingContext, ViewPort.Width, ViewPort.Height, CellWidth, CellHeight, FontSize);
+         var visitor = new FormatDrawer(drawingContext, ViewPort, ViewPort.Width, ViewPort.Height, CellWidth, CellHeight, FontSize);
 
          if (ShowHorizontalScroll) drawingContext.PushTransform(new TranslateTransform(-HorizontalScrollValue, 0));
          RenderGrid(drawingContext);
@@ -413,12 +413,9 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             for (int y = 0; y < ViewPort.Height; y++) {
                visitor.MouseIsOverCurrentFormat = mouseOverPoint.Equals(new ModelPoint(x, y));
                var element = ViewPort[x, y];
-               drawingContext.PushTransform(new TranslateTransform(x * CellWidth, y * CellHeight));
 
                visitor.Position = new ModelPoint(x, y);
                element.Format.Visit(visitor, element.Value);
-
-               drawingContext.Pop();
 
                if (element.Format is UnderEdit underEdit && underEdit.AutocompleteOptions != null) {
                   ShowAutocompletePopup(x, y, underEdit.AutocompleteOptions);
