@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models {
-   public interface IDataModel : IReadOnlyList<byte> {
+   public interface IDataModel : IReadOnlyList<byte>, IEquatable<IDataModel> {
       byte[] RawData { get; }
       new byte this[int index] { get; set; }
       IReadOnlyList<ArrayRun> Arrays { get; }
@@ -138,6 +138,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public virtual StoredMetadata ExportMetadata() => null;
 
       IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+      public bool Equals(IDataModel other) => other == this;
    }
 
    public static class IDataModelExtensions {

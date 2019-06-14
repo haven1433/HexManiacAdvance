@@ -258,9 +258,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
          if (fullValue == Pointer.NULL || (0 <= fullValue && fullValue < Model.Count)) {
             if (inArray) {
-               using (ModelCacheScope.CreateScope(Model)) {
-                  UpdateArrayPointer((ArrayRun)currentRun, fullValue);
-               }
+               UpdateArrayPointer((ArrayRun)currentRun, fullValue);
             } else {
                Model.WritePointer(CurrentChange, memoryLocation, fullValue);
                Model.ObserveRunWritten(CurrentChange, new PointerRun(memoryLocation, sources));

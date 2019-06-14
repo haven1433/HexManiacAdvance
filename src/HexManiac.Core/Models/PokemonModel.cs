@@ -440,16 +440,14 @@ namespace HavenSoft.HexManiac.Core.Models {
       private void ModifyAnchorsFromPointerArray(ModelDelta changeToken, ArrayRun arrayRun, Action<ArrayRunElementSegment, ModelDelta, int> changeAnchors) {
          int segmentOffset = arrayRun.Start;
          // i loops over the different segments in the array
-         using (ModelCacheScope.CreateScope(this)) {
-            for (int i = 0; i < arrayRun.ElementContent.Count; i++) {
-               if (arrayRun.ElementContent[i].Type != ElementContentType.Pointer) { segmentOffset += arrayRun.ElementContent[i].Length; continue; }
-               // for a pointer segment, j loops over all the elements in the array
-               for (int j = 0; j < arrayRun.ElementCount; j++) {
-                  var start = segmentOffset + arrayRun.ElementLength * j;
-                  changeAnchors(arrayRun.ElementContent[i], changeToken, start);
-               }
-               segmentOffset += arrayRun.ElementContent[i].Length;
+         for (int i = 0; i < arrayRun.ElementContent.Count; i++) {
+            if (arrayRun.ElementContent[i].Type != ElementContentType.Pointer) { segmentOffset += arrayRun.ElementContent[i].Length; continue; }
+            // for a pointer segment, j loops over all the elements in the array
+            for (int j = 0; j < arrayRun.ElementCount; j++) {
+               var start = segmentOffset + arrayRun.ElementLength * j;
+               changeAnchors(arrayRun.ElementContent[i], changeToken, start);
             }
+            segmentOffset += arrayRun.ElementContent[i].Length;
          }
       }
 
@@ -566,7 +564,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (run is ArrayRun array && array.SupportsPointersToElements) run = array.AddSourcesPointingWithinArray(changeToken);
 
          var newRun = run.MergeAnchor(sources);
-         ObserveRunWritten(changeToken, newRun);
+         using (ModelCacheScope.CreateScope(this)) {
+            ObserveRunWritten(changeToken, newRun);
+         }
       }
 
       public override void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd) {

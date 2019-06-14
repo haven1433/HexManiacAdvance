@@ -1034,29 +1034,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private IReadOnlyList<AutoCompleteSelectionItem> GetAutocompleteOptions(IDataFormat originalFormat, string newText, int selectedIndex = -1) {
-         if (originalFormat is Anchor anchor) originalFormat = anchor.OriginalFormat;
-         if (newText.StartsWith(PointerStart.ToString())) {
-            return Model.GetNewPointerAutocompleteOptions(newText, selectedIndex);
-         } else if (newText.StartsWith(GotoMarker.ToString())) {
-            return Model.GetNewPointerAutocompleteOptions(newText, selectedIndex);
-         } else if (originalFormat is IntegerEnum intEnum) {
-            var array = (ArrayRun)Model.GetNextRun(intEnum.Source);
-            var segment = (ArrayRunEnumSegment)array.ElementContent[array.ConvertByteOffsetToArrayOffset(intEnum.Source).SegmentIndex];
-            var options = segment.GetOptions(Model).Select(option => option + " "); // autocomplete needs to complete after selection, so add a space
-            return AutoCompleteSelectionItem.Generate(options.Where(option => option.MatchesPartial(newText)), selectedIndex);
-         } else if (originalFormat is EggSection || originalFormat is EggItem) {
-            var eggRun = (EggMoveRun)Model.GetNextRun(((IDataFormatInstance)originalFormat).Source);
-            var allOptions = eggRun.GetAutoCompleteOptions();
-            return AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(newText)), selectedIndex);
-         } else if (originalFormat is PlmItem) {
-            if (!newText.Contains(" ")) return AutoCompleteSelectionItem.Generate(Enumerable.Empty<string>(), -1);
-            var moveName = newText.Substring(newText.IndexOf(' ')).Trim();
-            if (moveName.Length == 0) return AutoCompleteSelectionItem.Generate(Enumerable.Empty<string>(), -1);
-            var plmRun = (PLMRun)Model.GetNextRun(((IDataFormatInstance)originalFormat).Source);
-            var allOptions = plmRun.GetAutoCompleteOptions(newText.Split(' ')[0]);
-            return AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(moveName)), selectedIndex);
-         } else {
-            throw new NotImplementedException();
+         using (ModelCacheScope.CreateScope(Model)) {
+            if (originalFormat is Anchor anchor) originalFormat = anchor.OriginalFormat;
+            if (newText.StartsWith(PointerStart.ToString())) {
+               return Model.GetNewPointerAutocompleteOptions(newText, selectedIndex);
+            } else if (newText.StartsWith(GotoMarker.ToString())) {
+               return Model.GetNewPointerAutocompleteOptions(newText, selectedIndex);
+            } else if (originalFormat is IntegerEnum intEnum) {
+               var array = (ArrayRun)Model.GetNextRun(intEnum.Source);
+               var segment = (ArrayRunEnumSegment)array.ElementContent[array.ConvertByteOffsetToArrayOffset(intEnum.Source).SegmentIndex];
+               var options = segment.GetOptions(Model).Select(option => option + " "); // autocomplete needs to complete after selection, so add a space
+               return AutoCompleteSelectionItem.Generate(options.Where(option => option.MatchesPartial(newText)), selectedIndex);
+            } else if (originalFormat is EggSection || originalFormat is EggItem) {
+               var eggRun = (EggMoveRun)Model.GetNextRun(((IDataFormatInstance)originalFormat).Source);
+               var allOptions = eggRun.GetAutoCompleteOptions();
+               return AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(newText)), selectedIndex);
+            } else if (originalFormat is PlmItem) {
+               if (!newText.Contains(" ")) return AutoCompleteSelectionItem.Generate(Enumerable.Empty<string>(), -1);
+               var moveName = newText.Substring(newText.IndexOf(' ')).Trim();
+               if (moveName.Length == 0) return AutoCompleteSelectionItem.Generate(Enumerable.Empty<string>(), -1);
+               var plmRun = (PLMRun)Model.GetNextRun(((IDataFormatInstance)originalFormat).Source);
+               var allOptions = plmRun.GetAutoCompleteOptions(newText.Split(' ')[0]);
+               return AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(moveName)), selectedIndex);
+            } else {
+               throw new NotImplementedException();
+            }
          }
       }
 
@@ -1195,7 +1197,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             // normal case: whether or not to accept the edit depends on the existing cell format
             var dataIndex = scroll.ViewPointToDataIndex(point);
             var completeEditOperation = new CompleteEditOperation(Model, dataIndex, underEdit.CurrentText, history.CurrentChange);
-            underEdit.OriginalFormat.Visit(completeEditOperation, element.Value);
+            using (ModelCacheScope.CreateScope(Model)) {
+               underEdit.OriginalFormat.Visit(completeEditOperation, element.Value);
+            }
             if (completeEditOperation.Result) {
                if (completeEditOperation.NewCell != null) {
                   currentView[point.X, point.Y] = completeEditOperation.NewCell;
@@ -1296,21 +1300,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          ErrorInfo errorInfo;
 
          // if it's an unnamed text/stream anchor, we have special logic for that
-         if (underEdit.CurrentText == AnchorStart + PCSRun.SharedFormatString) {
-            int count = Model.ConsiderResultsAsTextRuns(history.CurrentChange, new[] { index });
-            if (count == 0) {
-               errorInfo = new ErrorInfo("An anchor with nothing pointing to it must have a name.");
+         using (ModelCacheScope.CreateScope(Model)) {
+            if (underEdit.CurrentText == AnchorStart + PCSRun.SharedFormatString) {
+               int count = Model.ConsiderResultsAsTextRuns(history.CurrentChange, new[] { index });
+               if (count == 0) {
+                  errorInfo = new ErrorInfo("An anchor with nothing pointing to it must have a name.");
+               } else {
+                  errorInfo = ErrorInfo.NoError;
+               }
+            } else if (underEdit.CurrentText == AnchorStart + PLMRun.SharedFormatString) {
+               if (!PokemonModel.ConsiderAsPlmStream(Model, index, history.CurrentChange)) {
+                  errorInfo = new ErrorInfo("An anchor with nothing pointing to it must have a name.");
+               } else {
+                  errorInfo = ErrorInfo.NoError;
+               }
             } else {
-               errorInfo = ErrorInfo.NoError;
+               errorInfo = PokemonModel.ApplyAnchor(Model, history.CurrentChange, index, underEdit.CurrentText);
             }
-         } else if (underEdit.CurrentText == AnchorStart + PLMRun.SharedFormatString) {
-            if (!PokemonModel.ConsiderAsPlmStream(Model, index, history.CurrentChange)) {
-               errorInfo = new ErrorInfo("An anchor with nothing pointing to it must have a name.");
-            } else {
-               errorInfo = ErrorInfo.NoError;
-            }
-         } else {
-            errorInfo = PokemonModel.ApplyAnchor(Model, history.CurrentChange, index, underEdit.CurrentText);
          }
 
          ClearEdits(point);
