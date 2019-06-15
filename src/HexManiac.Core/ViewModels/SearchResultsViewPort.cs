@@ -247,10 +247,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand HideCommand { get; } = new StubCommand();
       public ICommand StringToolCommand { get; } = new StubCommand();
       public ICommand TableToolCommand { get; } = new StubCommand();
-      public ICommand Tool3Command { get; } = new StubCommand();
+      public ICommand CodeToolCommand { get; } = new StubCommand();
 
       public PCSTool StringTool => null;
       public TableTool TableTool => null;
+      public CodeTool CodeTool => null;
 
       public IDisposable DeferUpdates => new StubDisposable();
 
