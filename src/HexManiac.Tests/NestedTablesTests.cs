@@ -277,6 +277,19 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(9, results.Count); // the actual text + entries for the 8 pokemon
       }
 
+      [Fact]
+      public void EditPlmInMainViewUpdatesTextTool() {
+         SetupMoveTable(0x00);
+         SetupPlmStream(0x50, 8);
+
+         viewPort.Goto.Execute("000000");
+         viewPort.SelectionStart = new Point(2, 5); // should select '2 One'
+         viewPort.Edit("3 One ");
+
+         Assert.IsNotType<UnderEdit>(viewPort[2, 5].Format);
+         Assert.Contains("3 One", viewPort.Tools.StringTool.Content);
+      }
+
       // creates a move table that is 0x40 bytes long
       private void SetupMoveTable(int start) {
          viewPort.Goto.Execute(start.ToString("X6"));

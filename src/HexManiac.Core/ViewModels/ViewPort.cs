@@ -1212,7 +1212,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (run.Start > completeEditOperation.NewDataIndex) run = new NoInfoRun(Model.Count);
                if (completeEditOperation.DataMoved) UpdateToolsFromSelection(run.Start);
                if (run is ArrayRun) Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
-               if (run is ArrayRun || run is PCSRun) Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
+               if (run is ArrayRun || run is PCSRun || run is PLMRun || run is EggMoveRun) Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
                if (completeEditOperation.MessageText != null) OnMessage?.Invoke(this, completeEditOperation.MessageText);
                if (completeEditOperation.ErrorText != null) OnError?.Invoke(this, completeEditOperation.ErrorText);
             }
