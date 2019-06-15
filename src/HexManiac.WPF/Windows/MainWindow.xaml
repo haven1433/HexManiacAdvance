@@ -117,6 +117,13 @@
                </MenuItem>
                <MenuItem Header="_View">
                   <MenuItem Header="Toggle _Matrix Grid" Command="{Binding ToggleMatrix}" InputGestureText="Ctrl+M"/>
+                  <MenuItem Header="Reset Zoom" Command="{Binding ResetZoom}">
+                     <MenuItem.ToolTip>
+                        <ToolTip BorderThickness="0" Background="{DynamicResource Backlight}">
+                           <TextBlock Text="You can increase or decrease the size of the text in the cells using Ctrl+Scroll."/>
+                        </ToolTip>
+                     </MenuItem.ToolTip>
+                  </MenuItem>
                   <MenuItem Header="C_ustomize Theme" Click="ShowThemeSelector"/>
                   <MenuItem Header="_Clear Error" Command="{Binding ClearError}" InputGestureText="Esc"/>
                </MenuItem>

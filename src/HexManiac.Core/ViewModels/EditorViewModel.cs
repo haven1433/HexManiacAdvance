@@ -43,6 +43,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          findNext = new StubCommand(),
          showFind = new StubCommand(),
          hideSearchControls = new StubCommand(),
+         resetZoom = new StubCommand(),
          clearError = new StubCommand(),
          clearMessage = new StubCommand(),
          toggleMatrix = new StubCommand(),
@@ -72,6 +73,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand FindNext => findNext;         // parameter: target string to search
       public ICommand ShowFind => showFind;         // parameter: true for show, false for hide
       public ICommand HideSearchControls => hideSearchControls;
+      public ICommand ResetZoom => resetZoom;
       public ICommand ClearError => clearError;
       public ICommand ClearMessage => clearMessage;
       public ICommand ToggleMatrix => toggleMatrix;
@@ -297,6 +299,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          toggleMatrix.CanExecute = CanAlwaysExecute;
          toggleMatrix.Execute = arg => ShowMatrix = !ShowMatrix;
+
+         resetZoom.CanExecute = CanAlwaysExecute;
+         resetZoom.Execute = arg => ZoomLevel = 16;
 
          toggleTableHeaders.CanExecute = CanAlwaysExecute;
          toggleTableHeaders.Execute = arg => UseTableEntryHeaders = !UseTableEntryHeaders;
