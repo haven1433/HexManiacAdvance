@@ -44,12 +44,21 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       #region ColumnWidth
 
+      public static readonly DependencyProperty ColumnWidthProperty = DependencyProperty.Register(nameof(ColumnWidth), typeof(double), typeof(HorizontalSlantedTextControl), new FrameworkPropertyMetadata(0.0, ColumnWidthChanged));
+
       public double ColumnWidth {
          get { return (double)GetValue(ColumnWidthProperty); }
          set { SetValue(ColumnWidthProperty, value); }
       }
 
-      public static readonly DependencyProperty ColumnWidthProperty = DependencyProperty.Register(nameof(ColumnWidth), typeof(double), typeof(HorizontalSlantedTextControl), new PropertyMetadata(0.0));
+      private static void ColumnWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+         var self = (HorizontalSlantedTextControl)d;
+         self.OnColumnWidthChanged(e);
+      }
+
+      private void OnColumnWidthChanged(DependencyPropertyChangedEventArgs e) {
+         InvalidateVisual();
+      }
 
       #endregion
 
