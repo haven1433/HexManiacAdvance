@@ -290,6 +290,39 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Contains("3 One", viewPort.Tools.StringTool.Content);
       }
 
+      [Fact]
+      public void AutoCompletePlmMoveNameContainingSpaceWorksWithNoQuotes() {
+         SetupMoveTable(0x00);
+         viewPort.SelectionStart = new Point(0, 1); // start of move "Two"
+         viewPort.Edit("Bob Par");
+         SetupPlmStream(0x50, 8);
+
+         viewPort.Goto.Execute("000000");
+         viewPort.SelectionStart = new Point(2, 5); // should select '2 One'
+         viewPort.Edit("2 bobpar ");
+
+         Assert.IsNotType<UnderEdit>(viewPort[2, 5].Format);
+         Assert.Contains("2 \"Bob Par\"", viewPort.Tools.StringTool.Content);
+      }
+
+      [Fact]
+      public void ChoosingAutoCompleteOptionClosesPlmEdit() {
+         SetupMoveTable(0x00);
+         viewPort.SelectionStart = new Point(0, 1); // start of move "Two"
+         viewPort.Edit("Bob Par");
+         SetupPlmStream(0x50, 8);
+
+         viewPort.Goto.Execute("000000");
+         viewPort.SelectionStart = new Point(2, 5); // should select '2 One'
+         viewPort.Edit("3 \"Bo");
+
+         var format = (UnderEdit)viewPort[2, 5].Format;
+         viewPort.Autocomplete(format.AutocompleteOptions[0].CompletionText);
+
+         Assert.IsNotType<UnderEdit>(viewPort[2, 5].Format);
+         Assert.Contains("3 \"Bob Par\"", viewPort.Tools.StringTool.Content);
+      }
+
       // creates a move table that is 0x40 bytes long
       private void SetupMoveTable(int start) {
          viewPort.Goto.Execute(start.ToString("X6"));

@@ -83,7 +83,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public IEnumerable<string> GetAutoCompleteOptions(string header) {
          var moveNames = ModelCacheScope.GetCache(model).GetOptions(EggMoveRun.MoveNamesTable);
-         return moveNames.Select(name => $"{header} {name} "); // autocomplete needs to complete after selection, so add a space
+         return moveNames.Select(name => $"{header} {name}" + (name.EndsWith("\"") ? "" : " ")); // autocomplete needs to complete after selection, so add a space if there's no quotes
       }
 
       public string SerializeRun() {
