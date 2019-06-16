@@ -264,6 +264,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Theory]
       [InlineData(0x0000, "lsl r0, r0, #0")]
       [InlineData(0b0001100_010_001_000, "add r0, r1, r2")]
+      [InlineData(0b00000_00100_010_001, "lsl r1, r2, #4")]
       public void ThumbDecompilerTests(int input, string output) {
          var bytes = new[] { (byte)input, (byte)(input >> 8) };
          var result = parser.Parse(bytes, 0, 2).Trim();

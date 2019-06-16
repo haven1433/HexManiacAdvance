@@ -119,7 +119,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
          }
 
-         var totalLength = parts.Sum(part => part.Length);
+         var totalLength = instructionParts.Sum(part => part.Length);
          var remainingLength = 16 - totalLength;
          for(int i = 0; i < instructionParts.Count; i++) {
             if (instructionParts[i].Type != InstructionArgType.Numeric) continue;
