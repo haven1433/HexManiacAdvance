@@ -93,6 +93,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
    }
 
+   [System.Diagnostics.DebuggerDisplay("{template}")]
    public class Instruction {
       private readonly List<InstructionPart> instructionParts = new List<InstructionPart>();
       private readonly string template;
@@ -150,7 +151,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public static ushort GrabBits(ushort value, int start, int length) {
          value >>= start;
-         value &= (ushort)~((1 << length) - 1);
+         var mask = (1 << length) - 1;
+         value &= (ushort)mask;
          return value;
       }
 
@@ -180,13 +182,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                var suffix = conditionCodes.First(code => code.Code == bits).Mnemonic;
                instruction = instruction.Replace("{cond}", suffix);
             } else if (part.Type == InstructionArgType.Numeric) {
-               instruction = instruction.Replace("#", bits.ToString());
+               instruction = instruction.Replace("#", $"#{bits}");
             } else if (part.Type == InstructionArgType.Register) {
                if (highQueue.Count > 0) {
                   if (highQueue[0]) bits += 8;
                   highQueue.RemoveAt(0);
                }
-               instruction.Replace(part.Name, "r" + bits);
+               instruction = instruction.Replace(part.Name, "r" + bits);
             }
          }
          return instruction;

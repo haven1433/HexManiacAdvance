@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
@@ -7,6 +8,7 @@ using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using Xunit;
 
@@ -257,6 +259,20 @@ namespace HavenSoft.HexManiac.Tests {
          // Assert
          var matches = items.Where(item => item.Text.Contains("Table"));
          Assert.Empty(matches);
+      }
+
+      [Theory]
+      [InlineData(0x0000, "lsl r0, r0, #0")]
+      [InlineData(0b0001100_010_001_000, "add r0, r1, r2")]
+      public void ThumbDecompilerTests(int input, string output) {
+         var bytes = new[] { (byte)input, (byte)(input >> 8) };
+         var result = parser.Parse(bytes, 0, 2).Trim();
+         Assert.Equal(output, result);
+      }
+
+      private static readonly ThumbParser parser;
+      static ToolTests(){
+         parser = new ThumbParser(File.ReadAllLines("Models/Code/armReference.txt"));
       }
    }
 }
