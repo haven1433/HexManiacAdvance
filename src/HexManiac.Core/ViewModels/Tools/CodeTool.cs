@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Code;
+using System;
 using System.IO;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
@@ -29,7 +30,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public void UpdateContent() {
          var start = selection.Scroll.ViewPointToDataIndex(selection.SelectionStart);
-         var end = selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd);
+         var end = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd));
          if (start == end) { Content = string.Empty; return; }
 
          Content = parser.Parse(model, start, end - start + 1);
