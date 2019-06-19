@@ -59,7 +59,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       public void RenderRow() {
          var collector = new GlyphCollector(cellSize);
 
-         collector.Initialize<None>(typeface, fontSize);            // actulaly None
+         collector.Initialize<None>(typeface, fontSize);            // actually None
          collector.Initialize<Undefined>(italicTypeface, fontSize); // actually None -> FF
          collector.Initialize<UnderEdit>(typeface, fontSize);       // actually None -> 00
          collector.Initialize<ErrorPCS>(typeface, fontSize);        // actually error pointer
@@ -75,7 +75,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          for (int x = 0; x < modelWidth; x++) {
             var cell = viewPort[x, position.Y];
             var format = cell.Format;
-            if (format is Anchor anchor) format = anchor.OriginalFormat;
+            if (format is Anchor anchor) format = anchor.OriginalFormat; // anchor's have other formats nested inside that we may care about
+
             if (format is PCS pcs) {
                collector.Collect<PCS>(x, 1, pcs.ThisCharacter);
             } else if (format is Pointer pointer && pointer.Position == 0) {
