@@ -262,13 +262,39 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Theory]
-      [InlineData(0x0000, "lsl r0, r0, #0")]
-      [InlineData(0b0001100_010_001_000, "add r0, r1, r2")]
-      [InlineData(0b00000_00100_010_001, "lsl r1, r2, #4")]
+      [InlineData(0x0000, "lsl   r0, r0, #0")]
+      [InlineData(0b0001100_010_001_000, "add   r0, r1, r2")]
+      [InlineData(0b00000_00100_010_001, "lsl   r1, r2, #4")]
+      [InlineData(0b1101_0000_00001010, "beq   <00001C>")] // 1C = 28 (current address is zero)
       public void ThumbDecompilerTests(int input, string output) {
          var bytes = new[] { (byte)input, (byte)(input >> 8) };
-         var result = parser.Parse(bytes, 0, 2).Trim();
+         var result = parser.Parse(bytes, 0, 2).Split(Environment.NewLine)[1].Trim();
          Assert.Equal(output, result);
+      }
+
+      [Fact]
+      public void DecompileThumbRoutineTest() {
+         // sample routine: If r0 is true, return double r1. Else, return 0
+         var code = new ushort[] {
+         // 000000:
+            0b10110101_00001100,    // push  lr, {r4, r5}
+            0b00101_000_00000001,   // cmp   r0, 1
+            0b1101_0001_11111100,   // bne   pc+(-3)*2+8
+            0b0001100_001_000_000,  // add   r0, r1, r1
+         // 000008:
+            0b10111101_00001100,    // pop   pc, {r4, r5}
+         };
+
+         var bytes = code.SelectMany(pair => new[] { (byte)pair, (byte)(pair >> 8) }).ToArray();
+         var lines = parser.Parse(bytes, 0, code.Length).Split(Environment.NewLine);
+         Assert.Equal(7, lines.Length);
+         Assert.Equal("000000:",               lines[0]);
+         Assert.Equal("    push  lr, {r4-r5}", lines[1]);
+         Assert.Equal("    cmp   r0, 1",       lines[2]);
+         Assert.Equal("    bne   <000008>",    lines[3]);
+         Assert.Equal("    add   r0, r1, r1",  lines[4]);
+         Assert.Equal("000008:",               lines[5]);
+         Assert.Equal("    pop   pc, {r4-r5}", lines[6]);
       }
 
       private static readonly ThumbParser parser;

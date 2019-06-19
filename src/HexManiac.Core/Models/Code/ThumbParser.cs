@@ -16,19 +16,40 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       private StringBuilder parseResult = new StringBuilder();
+      private List<string> parsedLines = new List<string>();
       public string Parse(IReadOnlyList<byte> data, int start, int length) {
          parseResult.Clear();
+         parsedLines.Clear();
+         int initialStart = start;
+         var interestingAddresses = new HashSet<int> { start };
+
+         // part 1: convert all the instructions and find all interesting addresses
          while (length >= 2) {
             var compiledCode = Instruction.Convert(data, start);
             var template = instructionTemplates.FirstOrDefault(instruction => instruction.Matches(compiledCode));
             if (template == null) {
-               parseResult.AppendLine(compiledCode.ToString("X4"));
+               parsedLines.Add(compiledCode.ToString("X4"));
             } else {
-               parseResult.AppendLine(template.Disassemble(compiledCode, conditionalCodes));
+               var line = template.Disassemble(start, compiledCode, conditionalCodes);
+               parsedLines.Add(line);
+               if (line.Contains("<") && line.Contains(">")) {
+                  var address = int.Parse(line.Split('<')[1].Split('>')[0], System.Globalization.NumberStyles.HexNumber);
+                  interestingAddresses.Add(address);
+               }
             }
             length -= 2;
             start += 2;
          }
+
+         // part 2: insert all interesting addresses
+         foreach (var address in interestingAddresses.OrderByDescending(i => i)) {
+            var index = (address - initialStart) / 2;
+            if (index >= parsedLines.Count) continue;
+            parsedLines.Insert(index, address.ToString("X6") + ":");
+         }
+
+         // part 3: aggregate / return
+         foreach (var line in parsedLines) parseResult.AppendLine(line);
          return parseResult.ToString();
       }
 
@@ -77,7 +98,15 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       #endregion
    }
 
-   public enum InstructionArgType { OpCode, Register, Numeric, HighRegister, List, Condition }
+   public enum InstructionArgType {
+      OpCode,    // code is the bits for the opcode. They must match exactly.
+      Register,
+      Numeric,   // if code is non-zero, the high 8 bits is a multiplier and the low 8 bits is an addition offset.
+                 // then add that whole thing to the current pc offset and display that
+      HighRegister,
+      List,
+      Condition,
+   }
 
    public struct InstructionPart {
       public InstructionArgType Type { get; }
@@ -109,7 +138,15 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             } else if (part.StartsWith("r")) {
                instructionParts.Add(new InstructionPart(InstructionArgType.Register, 0, 3, part));
             } else if (part.StartsWith("#")) {
-               instructionParts.Add(new InstructionPart(InstructionArgType.Numeric, 0, 0));
+               ushort code = 0;
+               if (script.Contains("#=pc+#*")) {
+                  var encoding = script.Split("#=pc+#*")[1].Split('+');
+                  code = byte.TryParse(encoding[0], out var mult) ? mult : default;
+                  code <<= 8;
+                  code |= byte.TryParse(encoding[1], out var add) ? add : default;
+               }
+               var iPart = new InstructionPart(InstructionArgType.Numeric, code, 0);
+               instructionParts.Add(iPart);
             } else if (part == "h") {
                instructionParts.Add(new InstructionPart(InstructionArgType.HighRegister, 0, 1));
             } else if (part == "list") {
@@ -121,9 +158,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          var totalLength = instructionParts.Sum(part => part.Length);
          var remainingLength = 16 - totalLength;
-         for(int i = 0; i < instructionParts.Count; i++) {
+         for (int i = 0; i < instructionParts.Count; i++) {
             if (instructionParts[i].Type != InstructionArgType.Numeric) continue;
-            instructionParts[i] = new InstructionPart(InstructionArgType.Numeric, 0, remainingLength);
+            instructionParts[i] = new InstructionPart(InstructionArgType.Numeric, instructionParts[i].Code, remainingLength);
          }
 
          template = script.ToLower();
@@ -167,7 +204,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return true;
       }
 
-      public string Disassemble(ushort assembled, IReadOnlyList<ConditionCode> conditionCodes) {
+      public string Disassemble(int pcAddress, ushort assembled, IReadOnlyList<ConditionCode> conditionCodes) {
          var instruction = template;
          var highQueue = new List<bool>();
          var remainingBits = 16;
@@ -182,7 +219,16 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                var suffix = conditionCodes.First(code => code.Code == bits).Mnemonic;
                instruction = instruction.Replace("{cond}", suffix);
             } else if (part.Type == InstructionArgType.Numeric) {
-               instruction = instruction.Replace("#", $"#{bits}");
+               if (part.Code != 0) {
+                  var mult = GrabBits(part.Code, 8, 8);
+                  var add = GrabBits(part.Code, 0, 8);
+                  var address = pcAddress + bits * mult + add;
+                  var end = instruction.EndsWith("]") ? "]" : string.Empty;
+                  instruction = instruction.Split("#=")[0] + "#" + end;
+                  instruction = instruction.Replace("#", $"<{address:X6}>");
+               } else {
+                  instruction = instruction.Replace("#", $"#{bits}");
+               }
             } else if (part.Type == InstructionArgType.Register) {
                if (highQueue.Count > 0) {
                   if (highQueue[0]) bits += 8;
@@ -191,7 +237,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                instruction = instruction.Replace(part.Name, "r" + bits);
             }
          }
-         return instruction;
+         return "    " + instruction;
       }
 
       public bool TryAssemble(string line, IReadOnlyList<ConditionCode> conditionCodes, out ushort result) {
