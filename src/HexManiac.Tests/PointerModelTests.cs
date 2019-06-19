@@ -737,6 +737,23 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(3, model.GetNextRun(0x40).PointerSources.Count); // since the pointer was removed, the anchor should only have 2 things pointing to it.
       }
 
+      [Fact]
+      public void ClearingAnAnchorFormatShouldRemovePointersToTheAnchorButNotPointersToThosePointers() {
+         StandardSetup(out var data, out var model, out var viewPort);
+
+         viewPort.Edit("<000010> <000000>");
+         viewPort.SelectionStart = new Point(0xE, 0);
+         viewPort.Edit("<000020>"); // this overwrites (and removes) the anchor at 000010
+
+         var run = model.GetNextRun(0);
+         Assert.Equal(0, run.Start);    // there should still be an anchor at 000000, even though it's not a pointer anymore
+         Assert.IsType<NoInfoRun>(run);
+
+         run = model.GetNextRun(4);
+         Assert.Equal(4, run.Start);    // there should still be a pointer a 000004 that points to 000000
+         Assert.IsType<PointerRun>(run);
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);
