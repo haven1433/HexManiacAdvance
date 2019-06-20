@@ -222,7 +222,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (part.Code != 0) {
                   var mult = GrabBits(part.Code, 8, 8);
                   var add = GrabBits(part.Code, 0, 8);
-                  var address = pcAddress + bits * mult + add;
+                  var numeric = (sbyte)bits;
+                  var address = pcAddress + numeric * mult + add;
                   var end = instruction.EndsWith("]") ? "]" : string.Empty;
                   instruction = instruction.Split("#=")[0] + "#" + end;
                   instruction = instruction.Replace("#", $"<{address:X6}>");

@@ -279,18 +279,18 @@ namespace HavenSoft.HexManiac.Tests {
          // 000000:
             0b10110101_00001100,    // push  lr, {r4, r5}
             0b00101_000_00000001,   // cmp   r0, 1
-            0b1101_0001_11111100,   // bne   pc+(-3)*2+8
-            0b0001100_001_000_000,  // add   r0, r1, r1
+            0b1101_0001_11111110,   // bne   pc(4)+(-2)*2+8 = 8
+            0b0001100_001_001_000,  // add   r0, r1, r1
          // 000008:
             0b10111101_00001100,    // pop   pc, {r4, r5}
          };
 
          var bytes = code.SelectMany(pair => new[] { (byte)pair, (byte)(pair >> 8) }).ToArray();
-         var lines = parser.Parse(bytes, 0, code.Length).Split(Environment.NewLine);
+         var lines = parser.Parse(bytes, 0, bytes.Length).Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
          Assert.Equal(7, lines.Length);
          Assert.Equal("000000:",               lines[0]);
          Assert.Equal("    push  lr, {r4-r5}", lines[1]);
-         Assert.Equal("    cmp   r0, 1",       lines[2]);
+         Assert.Equal("    cmp   r0, #1",      lines[2]);
          Assert.Equal("    bne   <000008>",    lines[3]);
          Assert.Equal("    add   r0, r1, r1",  lines[4]);
          Assert.Equal("000008:",               lines[5]);
