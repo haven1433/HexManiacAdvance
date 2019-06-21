@@ -265,7 +265,7 @@ namespace HavenSoft.HexManiac.Tests {
       [InlineData(0x0000, "lsl   r0, r0, #0")]
       [InlineData(0b0001100_010_001_000, "add   r0, r1, r2")]
       [InlineData(0b00000_00100_010_001, "lsl   r1, r2, #4")]
-      [InlineData(0b1101_0000_00001010, "beq   <00001C>")] // 1C = 28 (current address is zero)
+      [InlineData(0b1101_0000_00001100, "beq   <00001C>")] // 1C = 28 (current address is zero). 28 = 12*2+4
       public void ThumbDecompilerTests(int input, string output) {
          var bytes = new[] { (byte)input, (byte)(input >> 8) };
          var result = parser.Parse(bytes, 0, 2).Split(Environment.NewLine)[1].Trim();
@@ -277,12 +277,12 @@ namespace HavenSoft.HexManiac.Tests {
          // sample routine: If r0 is true, return double r1. Else, return 0
          var code = new ushort[] {
          // 000000:
-            0b10110101_00001100,    // push  lr, {r4, r5}
+            0b10110101_00110000,    // push  lr, {r4, r5}
             0b00101_000_00000001,   // cmp   r0, 1
-            0b1101_0001_11111110,   // bne   pc(4)+(-2)*2+8 = 8
+            0b1101_0001_00000000,   // bne   pc(4)+(0)*2+4 = 8
             0b0001100_001_001_000,  // add   r0, r1, r1
          // 000008:
-            0b10111101_00001100,    // pop   pc, {r4, r5}
+            0b10111101_00110000,    // pop   pc, {r4, r5}
          };
 
          var bytes = code.SelectMany(pair => new[] { (byte)pair, (byte)(pair >> 8) }).ToArray();

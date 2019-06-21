@@ -79,11 +79,11 @@ ne=1111  @    never
 10111101 list       |     pop   pc, {list}
 11000 rn list       |     stmia rn, {list}     @ *(rn)=Rx, then increment rn by 4. Continue for each x in list. (store array)
 11001 rn list       |     ldmia rn, {list}
-1101 cond #         |     b{cond}   #=pc+#*2+8 @ if(cond) PC = *(PC+#*2) @example: b #10 jumps to the instruction 28 bytes after the current instruction.
+1101 cond #         |     b{cond}   #=pc+#*2+4 @ if(cond) PC = *(PC+#*2) @example: b #10 jumps to the instruction 28 bytes after the current instruction.
 11011111 #          |     swi   #              @ run a bios function
-11100 #             |     b     #              @ PC = *(PC+#*2)
-11110 #             |     bhigh #              @ bhigh must proceed Blx or Bl.
-11111 #             |     bl    #              @ Together, these 2 instructions give you 22 bits for the jump
+11100 #             |     b     #=pc+#*2+4     @ PC = *(PC+#*2)
+11110 #             |     bhigh #              @ bhigh must be followed by blx or bl below.
+11111 #             |     bl    #=pc+#*2+4     @ Together, these 2 instructions give you 22 bits for the jump
                                                @ if I want to branch-link, I need 2 instructions or a register
                                                @ conditional branching does not link
 

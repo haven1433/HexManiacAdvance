@@ -44,7 +44,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          // part 2: insert all interesting addresses
          foreach (var address in interestingAddresses.OrderByDescending(i => i)) {
             var index = (address - initialStart) / 2;
-            if (index >= parsedLines.Count) continue;
+            if (index >= parsedLines.Count || index < 0) continue;
             parsedLines.Insert(index, address.ToString("X6") + ":");
          }
 
@@ -401,19 +401,19 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public static string ParseRegisterList(ushort registerList) {
          var result = string.Empty;
-         for (int bit = 7; bit >= 0; bit--) {
+         for (int bit = 0; bit < 8; bit++) {
             // only write if the current bit is on
             if ((registerList & (1 << bit)) == 0) continue;
             // if there's no previous bit or the previous bit is off
-            if (bit == 7 || (registerList & (1 << (bit + 1))) == 0) {
+            if (bit == 0 || (registerList & (1 << (bit - 1))) == 0) {
                if (result.Length > 0) result += ", ";
-               result += "r" + (7 - bit);
-               if ((registerList & (1 << (bit - 1))) != 0) result += "-";
+               result += "r" + bit;
+               if ((registerList & (1 << (bit + 1))) != 0) result += "-";
                continue;
             }
             // if there is no next bit or the next bit is off
-            if (bit == 0 || (registerList & (1 << (bit - 1))) == 0) {
-               result += "r" + (7 - bit);
+            if (bit == 7 || (registerList & (1 << (bit + 1))) == 0) {
+               result += "r" + bit;
                continue;
             }
          }
