@@ -268,7 +268,8 @@ namespace HavenSoft.HexManiac.Tests {
       [InlineData(0b1101_0000_00001100, "beq   <00001C>")] // 1C = 28 (current address is zero). 28 = 12*2+4
       public void ThumbDecompilerTests(int input, string output) {
          var bytes = new[] { (byte)input, (byte)(input >> 8) };
-         var result = parser.Parse(bytes, 0, 2).Split(Environment.NewLine)[1].Trim();
+         var model = new PokemonModel(bytes);
+         var result = parser.Parse(model, 0, 2).Split(Environment.NewLine)[1].Trim();
          Assert.Equal(output, result);
       }
 
@@ -286,7 +287,8 @@ namespace HavenSoft.HexManiac.Tests {
          };
 
          var bytes = code.SelectMany(pair => new[] { (byte)pair, (byte)(pair >> 8) }).ToArray();
-         var lines = parser.Parse(bytes, 0, bytes.Length).Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+         var model = new PokemonModel(bytes);
+         var lines = parser.Parse(model, 0, bytes.Length).Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
          Assert.Equal(7, lines.Length);
          Assert.Equal("000000:",               lines[0]);
          Assert.Equal("    push  lr, {r4-r5}", lines[1]);
@@ -295,6 +297,34 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("    add   r0, r1, r1",  lines[4]);
          Assert.Equal("000008:",               lines[5]);
          Assert.Equal("    pop   pc, {r4-r5}", lines[6]);
+      }
+
+      [Fact]
+      public void ShowDataTest() {
+         var code = new ushort[] {
+         // 000000: first code part
+            0b01001_000_00000000,  // ldr   r0, pc(0)+(0)*4+4 = 4
+            0b11100_00000000011,   // b     pc(2)+(3)*2+4 = 12
+         // 000004: some data and some skipped bytes
+            0x1234,                // (loaded)
+            0x5678,                // (loaded)
+            0x0000,                // (skipped)
+            0x0000,                // (skipped)
+         // 00000C: more code that uses the data
+            0b010001110_0_000_000  // bx r0
+         };
+
+         var bytes = code.SelectMany(pair => new[] { (byte)pair, (byte)(pair >> 8) }).ToArray();
+         var model = new PokemonModel(bytes);
+         var lines = parser.Parse(model, 0, bytes.Length).Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+         Assert.Equal(7, lines.Length);
+         Assert.Equal("000000:",                      lines[0]);
+         Assert.Equal("    ldr   r0, [pc, <000004>]", lines[1]);
+         Assert.Equal("    b     <00000C>",           lines[2]);
+         Assert.Equal("000004:",                      lines[3]);
+         Assert.Equal("    .word 56781234",           lines[4]);
+         Assert.Equal("00000C:",                      lines[5]);
+         Assert.Equal("    bx    r0",                 lines[6]);
       }
 
       private static readonly ThumbParser parser;

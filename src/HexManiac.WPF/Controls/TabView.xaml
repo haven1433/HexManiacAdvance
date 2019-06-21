@@ -147,7 +147,8 @@
                   </Style.Triggers>
                </Style>
             </DockPanel.Style>
-            <TextBlock Margin="5" Width="255" FontFamily="Consolas" Text="{Binding CodeTool.Content}" />
+            
+            <TextBox Margin="5" Width="255" FontFamily="Consolas" Text="{Binding CodeTool.Content, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True" VerticalScrollBarVisibility="Auto" />
          </DockPanel>
       </Grid>
       <!-- Anchor Editor -->

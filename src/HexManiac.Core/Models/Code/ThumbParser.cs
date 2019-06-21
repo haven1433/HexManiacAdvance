@@ -17,11 +17,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       private StringBuilder parseResult = new StringBuilder();
       private List<string> parsedLines = new List<string>();
-      public string Parse(IReadOnlyList<byte> data, int start, int length) {
+      public string Parse(IDataModel data, int start, int length) {
          parseResult.Clear();
          parsedLines.Clear();
          int initialStart = start;
          var interestingAddresses = new HashSet<int> { start };
+         var wordLocations = new HashSet<int>();
+         var sectionEndLocations = new HashSet<int>();
 
          // part 1: convert all the instructions and find all interesting addresses
          while (length >= 2) {
@@ -32,9 +34,19 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             } else {
                var line = template.Disassemble(start, compiledCode, conditionalCodes);
                parsedLines.Add(line);
+               var tokens = line.ToLower().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+               if (tokens.Length > 0 && (tokens[0] == "b" || tokens[0] == "bl" || tokens[0] == "bx")) {
+                  sectionEndLocations.Add(start);
+               }
+               if (tokens.Length > 1 && tokens[0] == "pop" && tokens[1] == "pc,") {
+                  sectionEndLocations.Add(start);
+               }
                if (line.Contains("<") && line.Contains(">")) {
                   var address = int.Parse(line.Split('<')[1].Split('>')[0], System.Globalization.NumberStyles.HexNumber);
                   interestingAddresses.Add(address);
+                  if (tokens.Length > 1 && tokens[0] == "ldr" && tokens[1].StartsWith("r")) {
+                     wordLocations.Add(address);
+                  }
                }
             }
             length -= 2;
@@ -42,10 +54,26 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
 
          // part 2: insert all interesting addresses
-         foreach (var address in interestingAddresses.OrderByDescending(i => i)) {
+         for (int address = Math.Min(interestingAddresses.Max(), initialStart + parsedLines.Count * 2 - 2); address >= initialStart; address -= 2) {
             var index = (address - initialStart) / 2;
-            if (index >= parsedLines.Count || index < 0) continue;
-            parsedLines.Insert(index, address.ToString("X6") + ":");
+
+            // check if it's a word
+            if (wordLocations.Contains(address)) {
+               parsedLines[index] = $"    .word {data.ReadValue(address):X8}";
+               if (index < parsedLines.Count - 1) parsedLines.RemoveAt(index + 1);
+               // remove anything in this area after the word until the next address of interest (denoted by starting with no spaces)
+               while (index < parsedLines.Count - 1 && parsedLines[index + 1].StartsWith(" ")) parsedLines.RemoveAt(index + 1);
+            }
+
+            // check if it's the end of a section
+            if (sectionEndLocations.Contains(address)) {
+               // remove any code in this area until the next address of interest (denoted by starting with no spaces)
+               while (index < parsedLines.Count - 1 && parsedLines[index + 1].StartsWith(" ")) parsedLines.RemoveAt(index + 1);
+            }
+
+            if (interestingAddresses.Contains(address)) {
+               parsedLines.Insert(index, address.ToString("X6") + ":");
+            }
          }
 
          // part 3: aggregate / return
@@ -143,10 +171,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   var encoding = script.Split("#=pc+#*")[1].Split('+');
                   code = byte.TryParse(encoding[0], out var mult) ? mult : default;
                   code <<= 8;
-                  code |= byte.TryParse(encoding[1], out var add) ? add : default;
+                  code |= byte.TryParse(encoding[1].Trim(']'), out var add) ? add : default;
                }
-               var iPart = new InstructionPart(InstructionArgType.Numeric, code, 0);
-               instructionParts.Add(iPart);
+               instructionParts.Add(new InstructionPart(InstructionArgType.Numeric, code, 0));
             } else if (part == "h") {
                instructionParts.Add(new InstructionPart(InstructionArgType.HighRegister, 0, 1));
             } else if (part == "list") {

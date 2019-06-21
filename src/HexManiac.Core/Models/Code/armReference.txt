@@ -52,7 +52,7 @@ ne=1111  @    never
 01000110 h h rm rd  |     mov   rd, rm        @ rd = rm
 010001110 h rm 000  |     bx    rm            @ Goto rm (normal mode or thumb mode is the lowest bit)
 010001111 h rm 000  |     blx   rm            @ Call rm (normal mode or thumb mode is the lowest bit)
-01001 rd #          |     ldr   rd, [pc, #]   @ rd = *(PC+#*4)
+01001 rd #          |     ldr   rd, [pc, #=pc+#*4+4]   @ rd = *(PC+#*4)
 0101000 rm rn rd    |     str   rd, [rn, rm]  @ *(rn+rm) = rd
 0101001 rm rn rd    |     strh  rd, [rn, rm]  @ *(rn+rm) = rd (half word version?)
 0101010 rm rn rd    |     strb  rd, [rn, rm]  @ *(rn+rm) = rd (byte version?)
