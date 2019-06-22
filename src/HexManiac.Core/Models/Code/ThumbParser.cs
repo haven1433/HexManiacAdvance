@@ -35,11 +35,14 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                var line = template.Disassemble(start, compiledCode, conditionalCodes);
                parsedLines.Add(line);
                var tokens = line.ToLower().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-               if (tokens.Length > 0 && (tokens[0] == "b" || tokens[0] == "bl" || tokens[0] == "bx" || tokens[0] == "blx")) {
+               if (tokens.Length > 0 && (tokens[0] == "b" || tokens[0] == "bx")) {
                   sectionEndLocations.Add(start);
                }
                if (tokens.Length > 1 && tokens[0] == "pop" && tokens[1] == "pc,") {
                   sectionEndLocations.Add(start);
+               }
+               if (tokens.Length > 1 && tokens[0] == "push" && tokens[1] == "lr,") {
+                  interestingAddresses.Add(start); // push lr always signifies the start of a function. That makes it worth noting.
                }
                if (line.Contains("<") && line.Contains(">")) {
                   var address = int.Parse(line.Split('<')[1].Split('>')[0], System.Globalization.NumberStyles.HexNumber);
@@ -133,6 +136,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                  // then add that whole thing to the current pc offset and display that
       HighRegister,
       List,
+      ReverseList,  // used for push
       Condition,
    }
 
@@ -178,6 +182,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                instructionParts.Add(new InstructionPart(InstructionArgType.HighRegister, 0, 1));
             } else if (part == "list") {
                instructionParts.Add(new InstructionPart(InstructionArgType.List, 0, 8));
+            } else if (part == "tsil") {
+               instructionParts.Add(new InstructionPart(InstructionArgType.ReverseList, 0, 8));
             } else if (part == "cond") {
                instructionParts.Add(new InstructionPart(InstructionArgType.Condition, 0, 4));
             }
@@ -242,6 +248,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                highQueue.Add(bits != 0);
             } else if (part.Type == InstructionArgType.List) {
                instruction = instruction.Replace("list", ParseRegisterList(bits));
+            } else if (part.Type == InstructionArgType.ReverseList) {
+               instruction = instruction.Replace("tsil", ParseRegisterReverseList(bits));
             } else if (part.Type == InstructionArgType.Condition) {
                var suffix = conditionCodes.First(code => code.Code == bits).Mnemonic;
                instruction = instruction.Replace("{cond}", suffix);
@@ -441,6 +449,27 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             // if there is no next bit or the next bit is off
             if (bit == 7 || (registerList & (1 << (bit + 1))) == 0) {
                result += "r" + bit;
+               continue;
+            }
+         }
+         return result;
+      }
+
+      public static string ParseRegisterReverseList(ushort registerList) {
+         var result = string.Empty;
+         for (int bit = 7; bit >= 0; bit--) {
+            // only write if the current bit is on
+            if ((registerList & (1 << bit)) == 0) continue;
+            // if there's no previous bit or the previous bit is off
+            if (bit == 7 || (registerList & (1 << (bit + 1))) == 0) {
+               if (result.Length > 0) result += ", ";
+               result += "r" + (7 - bit);
+               if ((registerList & (1 << (bit - 1))) != 0) result += "-";
+               continue;
+            }
+            // if there is no next bit or the next bit is off
+            if (bit == 0 || (registerList & (1 << (bit - 1))) == 0) {
+               result += "r" + (7 - bit);
                continue;
             }
          }

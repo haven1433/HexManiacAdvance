@@ -32,6 +32,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var start = selection.Scroll.ViewPointToDataIndex(selection.SelectionStart);
          var end = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd));
          if (start == end) { Content = string.Empty; return; }
+         if (start > end) (start, end) = (end, start);
 
          Content = parser.Parse(model, start, end - start + 1);
       }
