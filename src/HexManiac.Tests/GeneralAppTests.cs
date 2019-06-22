@@ -407,6 +407,17 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(1, saveCount);
       }
 
+      [Fact]
+      public void ZoomCanReset() {
+         var fileSystem = new StubFileSystem();
+         var editor = new EditorViewModel(fileSystem);
+         editor.ZoomLevel = 24;
+
+         editor.ResetZoom.Execute();
+
+         Assert.Equal(16, editor.ZoomLevel);
+      }
+
       private StubTabContent CreateClosableTab() {
          var tab = new StubTabContent();
          var close = new StubCommand { CanExecute = arg => true };

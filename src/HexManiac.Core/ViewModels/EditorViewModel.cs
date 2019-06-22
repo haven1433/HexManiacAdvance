@@ -43,6 +43,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          findNext = new StubCommand(),
          showFind = new StubCommand(),
          hideSearchControls = new StubCommand(),
+         resetZoom = new StubCommand(),
          clearError = new StubCommand(),
          clearMessage = new StubCommand(),
          toggleMatrix = new StubCommand(),
@@ -72,6 +73,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand FindNext => findNext;         // parameter: target string to search
       public ICommand ShowFind => showFind;         // parameter: true for show, false for hide
       public ICommand HideSearchControls => hideSearchControls;
+      public ICommand ResetZoom => resetZoom;
       public ICommand ClearError => clearError;
       public ICommand ClearMessage => clearMessage;
       public ICommand ToggleMatrix => toggleMatrix;
@@ -99,6 +101,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             TryUpdate(ref findControlVisible, value);
             if (value) MoveFocusToFind?.Invoke(this, EventArgs.Empty);
          }
+      }
+
+      private int zoomLevel = 16;
+      public int ZoomLevel {
+         get => zoomLevel;
+         set => TryUpdate(ref zoomLevel, value);
       }
 
       private bool showError;
@@ -234,12 +242,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var metadata = fileSystem.MetadataFor(ApplicationName) ?? new string[0];
          Theme = new Theme(metadata);
          ShowMatrix = !metadata.Contains("ShowMatrixGrid = False");
+         var zoomLine = metadata.FirstOrDefault(line => line.StartsWith("ZoomLevel ="));
+         if (zoomLine != null && int.TryParse(zoomLine.Split('=').Last().Trim(), out var zoomLevel)) ZoomLevel = zoomLevel;
       }
 
       public void WriteAppLevelMetadata() {
          var metadata = new List<string>();
          metadata.Add("[GeneralSettings]");
          metadata.Add($"ShowMatrixGrid = {ShowMatrix}");
+         metadata.Add($"ZoomLevel = {ZoomLevel}");
          metadata.Add(string.Empty);
          metadata.AddRange(Theme.Serialize());
          fileSystem.SaveMetadata(ApplicationName, metadata.ToArray());
@@ -288,6 +299,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          toggleMatrix.CanExecute = CanAlwaysExecute;
          toggleMatrix.Execute = arg => ShowMatrix = !ShowMatrix;
+
+         resetZoom.CanExecute = CanAlwaysExecute;
+         resetZoom.Execute = arg => ZoomLevel = 16;
 
          toggleTableHeaders.CanExecute = CanAlwaysExecute;
          toggleTableHeaders.Execute = arg => UseTableEntryHeaders = !UseTableEntryHeaders;

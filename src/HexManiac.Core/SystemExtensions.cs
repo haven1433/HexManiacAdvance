@@ -51,8 +51,13 @@ namespace HavenSoft.HexManiac.Core {
 
          // no perfect match found. How about a partial match?
          var match = names.FirstOrDefault(name => name.Contains(input));
-         if (match == null) return -1;
-         return names.IndexOf(match);
+         if (match != null) names.IndexOf(match);
+
+         for (var i = 0; i < names.Count; i++) {
+            if (names[i].MatchesPartial(input)) return i;
+         }
+
+         return -1;
       }
    }
 }

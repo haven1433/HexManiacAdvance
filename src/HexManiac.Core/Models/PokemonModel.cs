@@ -564,7 +564,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (run is ArrayRun array && array.SupportsPointersToElements) run = array.AddSourcesPointingWithinArray(changeToken);
 
          var newRun = run.MergeAnchor(sources);
-         ObserveRunWritten(changeToken, newRun);
+         using (ModelCacheScope.CreateScope(this)) {
+            ObserveRunWritten(changeToken, newRun);
+         }
       }
 
       public override void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd) {

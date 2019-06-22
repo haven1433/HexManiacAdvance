@@ -164,14 +164,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void UpdateToolsFromSelection(int dataIndex) {
          var run = Model.GetNextRun(dataIndex);
 
-         if (run.Start <= dataIndex && run is ArrayRun array) {
-            var offsets = array.ConvertByteOffsetToArrayOffset(dataIndex);
-            Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
-            Tools.TableTool.Address = array.Start + array.ElementLength * offsets.ElementIndex;
-         } else if (run.Start <= dataIndex && run is IStreamRun) {
-            Tools.StringTool.Address = run.Start;
-         } else {
-            Tools.StringTool.Address = dataIndex;
+         using (ModelCacheScope.CreateScope(Model)) {
+            if (run.Start <= dataIndex && run is ArrayRun array) {
+               var offsets = array.ConvertByteOffsetToArrayOffset(dataIndex);
+               Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
+               Tools.TableTool.Address = array.Start + array.ElementLength * offsets.ElementIndex;
+            } else if (run.Start <= dataIndex && run is IStreamRun) {
+               Tools.StringTool.Address = run.Start;
+            } else {
+               Tools.StringTool.Address = dataIndex;
+            }
          }
 
          if (this[SelectionStart].Format is Anchor anchor) {
@@ -1032,29 +1034,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private IReadOnlyList<AutoCompleteSelectionItem> GetAutocompleteOptions(IDataFormat originalFormat, string newText, int selectedIndex = -1) {
-         if (originalFormat is Anchor anchor) originalFormat = anchor.OriginalFormat;
-         if (newText.StartsWith(PointerStart.ToString())) {
-            return Model.GetNewPointerAutocompleteOptions(newText, selectedIndex);
-         } else if (newText.StartsWith(GotoMarker.ToString())) {
-            return Model.GetNewPointerAutocompleteOptions(newText, selectedIndex);
-         } else if (originalFormat is IntegerEnum intEnum) {
-            var array = (ArrayRun)Model.GetNextRun(intEnum.Source);
-            var segment = (ArrayRunEnumSegment)array.ElementContent[array.ConvertByteOffsetToArrayOffset(intEnum.Source).SegmentIndex];
-            var options = segment.GetOptions(Model).Select(option => option + " "); // autocomplete needs to complete after selection, so add a space
-            return AutoCompleteSelectionItem.Generate(options.Where(option => option.MatchesPartial(newText)), selectedIndex);
-         } else if (originalFormat is EggSection || originalFormat is EggItem) {
-            var eggRun = (EggMoveRun)Model.GetNextRun(((IDataFormatInstance)originalFormat).Source);
-            var allOptions = eggRun.GetAutoCompleteOptions();
-            return AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(newText)), selectedIndex);
-         } else if (originalFormat is PlmItem) {
-            if (!newText.Contains(" ")) return AutoCompleteSelectionItem.Generate(Enumerable.Empty<string>(), -1);
-            var moveName = newText.Substring(newText.IndexOf(' ')).Trim();
-            if (moveName.Length == 0) return AutoCompleteSelectionItem.Generate(Enumerable.Empty<string>(), -1);
-            var plmRun = (PLMRun)Model.GetNextRun(((IDataFormatInstance)originalFormat).Source);
-            var allOptions = plmRun.GetAutoCompleteOptions(newText.Split(' ')[0]);
-            return AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(moveName)), selectedIndex);
-         } else {
-            throw new NotImplementedException();
+         using (ModelCacheScope.CreateScope(Model)) {
+            if (originalFormat is Anchor anchor) originalFormat = anchor.OriginalFormat;
+            if (newText.StartsWith(PointerStart.ToString())) {
+               return Model.GetNewPointerAutocompleteOptions(newText, selectedIndex);
+            } else if (newText.StartsWith(GotoMarker.ToString())) {
+               return Model.GetNewPointerAutocompleteOptions(newText, selectedIndex);
+            } else if (originalFormat is IntegerEnum intEnum) {
+               var array = (ArrayRun)Model.GetNextRun(intEnum.Source);
+               var segment = (ArrayRunEnumSegment)array.ElementContent[array.ConvertByteOffsetToArrayOffset(intEnum.Source).SegmentIndex];
+               var options = segment.GetOptions(Model).Select(option => option + " "); // autocomplete needs to complete after selection, so add a space
+               return AutoCompleteSelectionItem.Generate(options.Where(option => option.MatchesPartial(newText)), selectedIndex);
+            } else if (originalFormat is EggSection || originalFormat is EggItem) {
+               var eggRun = (EggMoveRun)Model.GetNextRun(((IDataFormatInstance)originalFormat).Source);
+               var allOptions = eggRun.GetAutoCompleteOptions();
+               return AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(newText)), selectedIndex);
+            } else if (originalFormat is PlmItem) {
+               if (!newText.Contains(" ")) return AutoCompleteSelectionItem.Generate(Enumerable.Empty<string>(), -1);
+               var moveName = newText.Substring(newText.IndexOf(' ')).Trim();
+               if (moveName.Length == 0) return AutoCompleteSelectionItem.Generate(Enumerable.Empty<string>(), -1);
+               var plmRun = (PLMRun)Model.GetNextRun(((IDataFormatInstance)originalFormat).Source);
+               var allOptions = plmRun.GetAutoCompleteOptions(newText.Split(' ')[0]);
+               return AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(moveName)), selectedIndex);
+            } else {
+               throw new NotImplementedException();
+            }
          }
       }
 
@@ -1193,7 +1197,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             // normal case: whether or not to accept the edit depends on the existing cell format
             var dataIndex = scroll.ViewPointToDataIndex(point);
             var completeEditOperation = new CompleteEditOperation(Model, dataIndex, underEdit.CurrentText, history.CurrentChange);
-            underEdit.OriginalFormat.Visit(completeEditOperation, element.Value);
+            using (ModelCacheScope.CreateScope(Model)) {
+               underEdit.OriginalFormat.Visit(completeEditOperation, element.Value);
+            }
             if (completeEditOperation.Result) {
                if (completeEditOperation.NewCell != null) {
                   currentView[point.X, point.Y] = completeEditOperation.NewCell;
@@ -1206,7 +1212,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (run.Start > completeEditOperation.NewDataIndex) run = new NoInfoRun(Model.Count);
                if (completeEditOperation.DataMoved) UpdateToolsFromSelection(run.Start);
                if (run is ArrayRun) Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
-               if (run is ArrayRun || run is PCSRun) Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
+               if (run is ArrayRun || run is PCSRun || run is PLMRun || run is EggMoveRun) Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
                if (completeEditOperation.MessageText != null) OnMessage?.Invoke(this, completeEditOperation.MessageText);
                if (completeEditOperation.ErrorText != null) OnError?.Invoke(this, completeEditOperation.ErrorText);
             }
@@ -1294,21 +1300,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          ErrorInfo errorInfo;
 
          // if it's an unnamed text/stream anchor, we have special logic for that
-         if (underEdit.CurrentText == AnchorStart + PCSRun.SharedFormatString) {
-            int count = Model.ConsiderResultsAsTextRuns(history.CurrentChange, new[] { index });
-            if (count == 0) {
-               errorInfo = new ErrorInfo("An anchor with nothing pointing to it must have a name.");
+         using (ModelCacheScope.CreateScope(Model)) {
+            if (underEdit.CurrentText == AnchorStart + PCSRun.SharedFormatString) {
+               int count = Model.ConsiderResultsAsTextRuns(history.CurrentChange, new[] { index });
+               if (count == 0) {
+                  errorInfo = new ErrorInfo("An anchor with nothing pointing to it must have a name.");
+               } else {
+                  errorInfo = ErrorInfo.NoError;
+               }
+            } else if (underEdit.CurrentText == AnchorStart + PLMRun.SharedFormatString) {
+               if (!PokemonModel.ConsiderAsPlmStream(Model, index, history.CurrentChange)) {
+                  errorInfo = new ErrorInfo("An anchor with nothing pointing to it must have a name.");
+               } else {
+                  errorInfo = ErrorInfo.NoError;
+               }
             } else {
-               errorInfo = ErrorInfo.NoError;
+               errorInfo = PokemonModel.ApplyAnchor(Model, history.CurrentChange, index, underEdit.CurrentText);
             }
-         } else if (underEdit.CurrentText == AnchorStart + PLMRun.SharedFormatString) {
-            if (!PokemonModel.ConsiderAsPlmStream(Model, index, history.CurrentChange)) {
-               errorInfo = new ErrorInfo("An anchor with nothing pointing to it must have a name.");
-            } else {
-               errorInfo = ErrorInfo.NoError;
-            }
-         } else {
-            errorInfo = PokemonModel.ApplyAnchor(Model, history.CurrentChange, index, underEdit.CurrentText);
          }
 
          ClearEdits(point);
@@ -1398,21 +1406,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void RefreshBackingData() {
          currentView = new HexElement[Width, Height];
          IFormattedRun run = null;
-         for (int y = 0; y < Height; y++) {
-            for (int x = 0; x < Width; x++) {
-               var index = scroll.ViewPointToDataIndex(new Point(x, y));
-               if (run == null || index >= run.Start + run.Length) {
-                  run = Model.GetNextRun(index) ?? new NoInfoRun(Model.Count);
-                  if (run is ArrayRun array) Tools.Schedule(array.ClearCache);
-               }
-               if (index < 0 || index >= Model.Count) {
-                  currentView[x, y] = HexElement.Undefined;
-               } else if (index >= run.Start) {
-                  var format = run.CreateDataFormat(Model, index);
-                  format = Model.WrapFormat(run, format, index);
-                  currentView[x, y] = new HexElement(Model[index], format);
-               } else {
-                  currentView[x, y] = new HexElement(Model[index], None.Instance);
+         using (ModelCacheScope.CreateScope(Model)) {
+            for (int y = 0; y < Height; y++) {
+               for (int x = 0; x < Width; x++) {
+                  var index = scroll.ViewPointToDataIndex(new Point(x, y));
+                  if (run == null || index >= run.Start + run.Length) {
+                     run = Model.GetNextRun(index) ?? new NoInfoRun(Model.Count);
+                     if (run is ArrayRun array) Tools.Schedule(array.ClearCache);
+                  }
+                  if (index < 0 || index >= Model.Count) {
+                     currentView[x, y] = HexElement.Undefined;
+                  } else if (index >= run.Start) {
+                     var format = run.CreateDataFormat(Model, index);
+                     format = Model.WrapFormat(run, format, index);
+                     currentView[x, y] = new HexElement(Model[index], format);
+                  } else {
+                     currentView[x, y] = new HexElement(Model[index], None.Instance);
+                  }
                }
             }
          }

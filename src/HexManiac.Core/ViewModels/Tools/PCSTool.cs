@@ -169,10 +169,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
             return;
          } else if (run is IStreamRun stream) {
-            var newContent = stream.SerializeRun();
-            ignoreSelectionUpdates = true;
-            using (new StubDisposable { Dispose = () => ignoreSelectionUpdates = false }) {
-               TryUpdate(ref content, newContent, nameof(Content));
+            using (ModelCacheScope.CreateScope(model)) {
+               var newContent = stream.SerializeRun();
+               ignoreSelectionUpdates = true;
+               using (new StubDisposable { Dispose = () => ignoreSelectionUpdates = false }) {
+                  TryUpdate(ref content, newContent, nameof(Content));
+               }
             }
             return;
          }

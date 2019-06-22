@@ -84,6 +84,27 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       #endregion
 
+      #region FontSize
+
+      public static readonly DependencyProperty FontSizeProperty = DependencyProperty.Register(nameof(FontSize), typeof(int), typeof(HorizontalSlantedTextControl), new FrameworkPropertyMetadata(0, FontSizeChanged));
+
+      public int FontSize {
+         get => (int)GetValue(FontSizeProperty);
+         set => SetValue(FontSizeProperty, value);
+      }
+
+      private static void FontSizeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+         var self = (HorizontalSlantedTextControl)d;
+         self.OnFontSizeChanged(e);
+      }
+
+      private void OnFontSizeChanged(DependencyPropertyChangedEventArgs e) {
+         UpdateDesiredHeight();
+         InvalidateVisual();
+      }
+
+      #endregion
+
       public HorizontalSlantedTextControl() => ClipToBounds = true;
 
       protected override void OnRender(DrawingContext drawingContext) {
@@ -153,7 +174,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             CultureInfo.CurrentCulture,
             FlowDirection.LeftToRight,
             typeface,
-            FormatDrawer.FontSize * 3 / 4,
+            FontSize * 3.0 / 4,
             Brush(nameof(Theme.Secondary)),
             1.0);
       }
