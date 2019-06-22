@@ -262,7 +262,7 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Theory]
-      [InlineData(0x0000, "lsl   r0, r0, #0")]
+      [InlineData(0x0000, "nop")]
       [InlineData(0b0001100_010_001_000, "add   r0, r1, r2")]
       [InlineData(0b00000_00100_010_001, "lsl   r1, r2, #4")]
       [InlineData(0b1101_0000_00001100, "beq   <00001C>")] // 1C = 28 (current address is zero). 28 = 12*2+4
@@ -326,6 +326,32 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("00000C:",                      lines[5]);
          Assert.Equal("    bx    r0",                 lines[6]);
       }
+
+      [Fact]
+      public void LoadRegisterCommmandsLoadWordAligned() {
+         //01101 # rn rd
+         var code = new ushort[] {
+            0b0000_0000_0000_0000,  // nop
+            0b01001_000_00000001,   // ldr #1 <-- 8, not 10
+            0b10111101_00000000,    // pop pc {}
+            0b00000000_00000000,    // nop
+            0xBEEF,  // .word
+            0xDEAD,
+         };
+
+         var bytes = code.SelectMany(pair => new[] { (byte)pair, (byte)(pair >> 8) }).ToArray();
+         var model = new PokemonModel(bytes);
+         var lines = parser.Parse(model, 0, bytes.Length).Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+
+         Assert.Equal(6, lines.Length);
+         Assert.Equal("000000:",                      lines[0]);
+         Assert.Equal("    nop",                      lines[1]);
+         Assert.Equal("    ldr   r0, [pc, <000008>]", lines[2]);
+         Assert.Equal("    pop   pc, {}",             lines[3]);
+         Assert.Equal("000008:",                      lines[4]);
+         Assert.Equal("    .word DEADBEEF",           lines[5]);
+      }
+
 
       private static readonly ThumbParser parser;
       static ToolTests(){

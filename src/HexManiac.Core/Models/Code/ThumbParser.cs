@@ -35,7 +35,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                var line = template.Disassemble(start, compiledCode, conditionalCodes);
                parsedLines.Add(line);
                var tokens = line.ToLower().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-               if (tokens.Length > 0 && (tokens[0] == "b" || tokens[0] == "bl" || tokens[0] == "bx")) {
+               if (tokens.Length > 0 && (tokens[0] == "b" || tokens[0] == "bl" || tokens[0] == "bx" || tokens[0] == "blx")) {
                   sectionEndLocations.Add(start);
                }
                if (tokens.Length > 1 && tokens[0] == "pop" && tokens[1] == "pc,") {
@@ -54,7 +54,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
 
          // part 2: insert all interesting addresses
-         for (int address = Math.Min(interestingAddresses.Max(), initialStart + parsedLines.Count * 2 - 2); address >= initialStart; address -= 2) {
+         for (int address = Math.Min(interestingAddresses.Concat(sectionEndLocations).Max(), initialStart + parsedLines.Count * 2 - 2); address >= initialStart; address -= 2) {
             var index = (address - initialStart) / 2;
 
             // check if it's a word
@@ -250,7 +250,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   var mult = GrabBits(part.Code, 8, 8);
                   var add = GrabBits(part.Code, 0, 8);
                   var numeric = (sbyte)bits;
-                  var address = pcAddress + numeric * mult + add;
+                  var address = pcAddress - (pcAddress % mult) + numeric * mult + add;
                   var end = instruction.EndsWith("]") ? "]" : string.Empty;
                   instruction = instruction.Split("#=")[0] + "#" + end;
                   instruction = instruction.Replace("#", $"<{address:X6}>");
