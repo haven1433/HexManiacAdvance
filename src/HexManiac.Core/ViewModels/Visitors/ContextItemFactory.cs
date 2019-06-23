@@ -131,6 +131,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Results.AddRange(GetFormattedChildren());
       }
 
+      public void Visit(BitArray array, byte data) {
+         var arrayRun = (ArrayRun)ViewPort.Model.GetNextRun(ViewPort.Tools.TableTool.Address);
+         Results.AddRange(GetTableChildren(arrayRun));
+      }
+
       private IEnumerable<IContextItem> GetTableChildren(ArrayRun array) {
          if (ViewPort.Tools.TableTool.Append.CanExecute(null)) {
             yield return new ContextItem("Extend Table", ViewPort.Tools.TableTool.Append.Execute);

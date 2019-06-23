@@ -323,6 +323,32 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Contains("3 \"Bob Par\"", viewPort.Tools.StringTool.Content);
       }
 
+      [Fact]
+      public void CanUseBitArraysInFormats() {
+         SetupMoveTable(0x00);
+         SetupNameTable(0x40);
+
+         // setup a table for 5 tutor moves
+         viewPort.Goto.Execute("000080");
+         viewPort.Edit("^tutormoves[move:movenames]5 One Two Four Five Seven ");
+
+         // create a table that uses tutormoves as a bit array. Note 5 moves should take up 1 byte, so the overall table should by 8 bytes long (because there are 8 pokemon)
+         viewPort.Goto.Execute("0000090");
+         viewPort.Edit("^table[moves|b[]tutormoves]pokenames ");
+         var run = (ArrayRun)model.GetNextRun(0x90);
+         var segment = (ArrayRunBitArraySegment)run.ElementContent[0];
+         Assert.Equal("tutormoves", segment.SourceArrayName);
+         Assert.Equal(8, run.Length);
+
+         var bitList = (BitListArrayElementViewModel)viewPort.Tools.TableTool.Children[0];
+         Assert.Equal("Carl", bitList[2].BitLabel);
+
+         bitList[2].IsChecked = true;      // "Carl" should be able to learn "Four"
+         Assert.Equal(0x04, model[0x90]);  // the third bit up is set because "Four" is the first tutor move
+
+         Assert.IsType<BitArray>(((Anchor)viewPort[0, 0].Format).OriginalFormat);
+      }
+
       // creates a move table that is 0x40 bytes long
       private void SetupMoveTable(int start) {
          viewPort.Goto.Execute(start.ToString("X6"));

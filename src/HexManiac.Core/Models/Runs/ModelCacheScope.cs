@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using System;
 using System.Collections.Generic;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
@@ -30,6 +31,32 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public IReadOnlyList<string> GetOptions(string table) {
          if (!cachedOptions.ContainsKey(table)) cachedOptions[table] = ArrayRunEnumSegment.GetOptions(model, table) ?? new List<string>();
          return cachedOptions[table];
+      }
+
+      public IReadOnlyList<string> GetBitOptions(string enumName) {
+         if (cachedOptions.ContainsKey(enumName)) return cachedOptions[enumName];
+
+         var sourceAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, enumName);
+         if (sourceAddress == Pointer.NULL) return null;
+         var sourceRun = model.GetNextRun(sourceAddress) as ArrayRun;
+         if (sourceRun == null) return null;
+         var sourceSegment = sourceRun.ElementContent[0] as ArrayRunEnumSegment;
+         if (sourceSegment == null) return null;
+         var enumOptions = sourceSegment.GetOptions(model);
+         if (enumOptions == null) return null;
+
+         var results = new List<string>(sourceRun.ElementCount);
+         for (int i = 0; i < sourceRun.ElementCount; i++) {
+            var value = model.ReadMultiByteValue(sourceRun.Start + sourceRun.ElementLength * i, sourceSegment.Length);
+            if (value < enumOptions.Count) {
+               results.Add(enumOptions[value]);
+            } else {
+               results.Add(value.ToString());
+            }
+         }
+
+         cachedOptions[enumName] = results;
+         return results;
       }
    }
 }

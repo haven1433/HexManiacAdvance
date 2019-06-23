@@ -31,6 +31,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       void Visit(EggSection section, byte data);
       void Visit(EggItem item, byte data);
       void Visit(PlmItem item, byte data);
+      void Visit(BitArray array, byte data);
    }
 
    /// <summary>
@@ -289,5 +290,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public bool Equals(IDataFormat other) => ToString() == other.ToString();
 
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
+   }
+
+   public class BitArray : IDataFormatInstance {
+      public int Source { get; }
+
+      public int Position { get; }
+
+      public bool Equals(IDataFormat other) {
+         var that = other as BitArray;
+         if (that == null) return false;
+         return Source == that.Source && Position == that.Position;
+      }
+
+      public void Visit(IDataFormatVisitor visitor, byte data) {
+         visitor.Visit(this, data);
+      }
    }
 }

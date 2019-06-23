@@ -140,5 +140,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             NewFormat = new UnderEdit(item, Input.ToString(), 2, autocomplete);
          }
       }
+      public void Visit(BitArray array, byte data) {
+         // TODO
+      }
    }
 }
