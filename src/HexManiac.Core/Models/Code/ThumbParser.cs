@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,6 +20,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       private StringBuilder parseResult = new StringBuilder();
       private List<string> parsedLines = new List<string>();
       public string Parse(IDataModel data, int start, int length) {
+         if (data.Count < start + length) return string.Empty;
          parseResult.Clear();
          parsedLines.Clear();
          int initialStart = start;
@@ -27,13 +30,14 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          // part 1: convert all the instructions and find all interesting addresses
          while (length >= 2) {
-            var compiledCode = Instruction.Convert(data, start);
-            var template = instructionTemplates.FirstOrDefault(instruction => instruction.Matches(compiledCode));
+            var template = instructionTemplates.FirstOrDefault(instruction => instruction.Matches(data, start));
             if (template == null) {
-               parsedLines.Add(compiledCode.ToString("X4"));
+               parsedLines.Add(data.ReadMultiByteValue(start, 2).ToString("X4"));
+               length -= 2;
+               start += 2;
             } else {
-               var line = template.Disassemble(start, compiledCode, conditionalCodes);
-               parsedLines.Add(line);
+               var line = template.Disassemble(data, start, conditionalCodes);
+               parsedLines.AddRange(line.Split(Environment.NewLine));
                var tokens = line.ToLower().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                if (tokens.Length > 0 && (tokens[0] == "b" || tokens[0] == "bx")) {
                   sectionEndLocations.Add(start);
@@ -45,15 +49,15 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   interestingAddresses.Add(start); // push lr always signifies the start of a function. That makes it worth noting.
                }
                if (line.Contains("<") && line.Contains(">")) {
-                  var address = int.Parse(line.Split('<')[1].Split('>')[0], System.Globalization.NumberStyles.HexNumber);
+                  var address = int.Parse(line.Split('<')[1].Split('>')[0], NumberStyles.HexNumber);
                   interestingAddresses.Add(address);
                   if (tokens.Length > 1 && tokens[0] == "ldr" && tokens[1].StartsWith("r")) {
                      wordLocations.Add(address);
                   }
                }
+               length -= template.ByteLength;
+               start += template.ByteLength;
             }
-            length -= 2;
-            start += 2;
          }
 
          // part 2: insert all interesting addresses
@@ -73,6 +77,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                // remove any code in this area until the next address of interest (denoted by starting with no spaces)
                while (index < parsedLines.Count - 1 && parsedLines[index + 1].StartsWith(" ")) parsedLines.RemoveAt(index + 1);
             }
+
+            // check if it's a blank line
+            if (string.IsNullOrEmpty(parsedLines[index])) parsedLines.RemoveAt(index);
 
             if (interestingAddresses.Contains(address)) {
                parsedLines.Insert(index, address.ToString("X6") + ":");
@@ -159,6 +166,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       private readonly List<InstructionPart> instructionParts = new List<InstructionPart>();
       private readonly string template;
 
+      public int ByteLength { get; } = 2;
+
       #region Constructor
 
       private Instruction(string compiled, string script) {
@@ -177,7 +186,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   code <<= 8;
                   code |= byte.TryParse(encoding[1].Trim(']'), out var add) ? add : default;
                }
-               instructionParts.Add(new InstructionPart(InstructionArgType.Numeric, code, 0));
+               int length = 0;
+               if (part.Length > 1) int.TryParse(part.Substring(1), out length);
+               instructionParts.Add(new InstructionPart(InstructionArgType.Numeric, code, length));
             } else if (part == "h") {
                instructionParts.Add(new InstructionPart(InstructionArgType.HighRegister, 0, 1));
             } else if (part == "list") {
@@ -190,11 +201,15 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
 
          var totalLength = instructionParts.Sum(part => part.Length);
-         var remainingLength = 16 - totalLength;
-         for (int i = 0; i < instructionParts.Count; i++) {
+         if (totalLength > 16) ByteLength = totalLength / 8;
+         var remainingLength = ByteLength * 8 - totalLength;
+         for (int i = 0; i < instructionParts.Count && remainingLength > 0; i++) {
             if (instructionParts[i].Type != InstructionArgType.Numeric) continue;
             instructionParts[i] = new InstructionPart(InstructionArgType.Numeric, instructionParts[i].Code, remainingLength);
+            totalLength += remainingLength;
          }
+
+         if (totalLength % 16 != 0) throw new ArgumentException($"There were {totalLength} bits in the command, but commands must be a multiple of 16 bits long!");
 
          template = script.ToLower();
       }
@@ -205,7 +220,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var parts = line.Split('|');
          if (parts.Length != 2) return false;
 
-         instruction = new Instruction(parts[0].Trim(), parts[1].Trim());
+         try {
+            instruction = new Instruction(parts[0].Trim(), parts[1].Trim());
+         } catch (ArgumentException e) {
+            Debugger.Break();
+            return false;
+         }
+
          return true;
       }
 
@@ -215,19 +236,17 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return (ushort)bits.Aggregate(0, (a, b) => a * 2 + b - '0');
       }
 
-      public static ushort Convert(IReadOnlyList<byte> data, int index) {
-         return (ushort)((data[index + 1] << 8) + data[index]);
-      }
-
-      public static ushort GrabBits(ushort value, int start, int length) {
+      public static ushort GrabBits(uint value, int start, int length) {
          value >>= start;
          var mask = (1 << length) - 1;
          value &= (ushort)mask;
-         return value;
+         return (ushort)value;
       }
 
-      public bool Matches(ushort assembled) {
-         var remainingBits = 16;
+      public bool Matches(IDataModel data, int index) {
+         if (data.Count < index + ByteLength) return false;
+         var remainingBits = ByteLength * 8;
+         var assembled = (uint)data.ReadMultiByteValue(index, ByteLength);
          foreach (var part in instructionParts) {
             remainingBits -= part.Length;
             if (part.Type != InstructionArgType.OpCode) continue;
@@ -237,10 +256,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return true;
       }
 
-      public string Disassemble(int pcAddress, ushort assembled, IReadOnlyList<ConditionCode> conditionCodes) {
+      public string Disassemble(IDataModel data, int pcAddress, IReadOnlyList<ConditionCode> conditionCodes) {
          var instruction = template;
+         var assembled = (uint)data.ReadMultiByteValue(pcAddress, ByteLength);
          var highQueue = new List<bool>();
-         var remainingBits = 16;
+         var remainingBits = ByteLength * 8;
          foreach (var part in instructionParts) {
             remainingBits -= part.Length;
             var bits = GrabBits(assembled, remainingBits, part.Length);
@@ -255,13 +275,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                instruction = instruction.Replace("{cond}", suffix);
             } else if (part.Type == InstructionArgType.Numeric) {
                if (part.Code != 0) {
-                  var mult = GrabBits(part.Code, 8, 8);
-                  var add = GrabBits(part.Code, 0, 8);
-                  var numeric = (sbyte)bits;
-                  var address = pcAddress - (pcAddress % mult) + numeric * mult + add;
-                  var end = instruction.EndsWith("]") ? "]" : string.Empty;
-                  instruction = instruction.Split("#=")[0] + "#" + end;
-                  instruction = instruction.Replace("#", $"<{address:X6}>");
+                  instruction = CalculatePcRelativeAddress(instruction, pcAddress, part, bits);
                } else {
                   instruction = instruction.Replace("#", $"#{bits}");
                }
@@ -273,7 +287,42 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                instruction = instruction.Replace(part.Name, "r" + bits);
             }
          }
+
+         for (int i = 2; i < ByteLength; i += 2) instruction += Environment.NewLine;
          return "    " + instruction;
+      }
+
+      private static string CalculatePcRelativeAddress(string instruction, int pcAddress, InstructionPart part, ushort bits) {
+         var mult = GrabBits(part.Code, 8, 8);
+         var add = GrabBits(part.Code, 0, 8);
+         var numeric = (short)bits;
+         numeric <<= 16 - part.Length;
+         numeric >>= 16 - part.Length; // get all the extra bits set to one so that the numeric value is correct
+         if (instruction.Contains("#")) {
+            // this is the first # in this instruction.
+            var address = pcAddress - (pcAddress % mult) + numeric * mult + add;
+            var end = instruction.EndsWith("]") ? "]" : string.Empty;
+            instruction = instruction.Split("#=")[0] + "#" + end;
+            instruction = instruction.Replace("#", $"<{address:X6}>");
+         } else {
+            // this is an additional # in the same instruction.
+            // decode back from the old one
+            var address = int.Parse(instruction.Split('<')[1].Split('>')[0], NumberStyles.HexNumber);
+            address -= pcAddress - (pcAddress % mult) + add;
+            address /= mult;
+            address = (address & ((1 << part.Length) - 1)); // drop the high bits, keep only the data bits. This makes it lose the sign.
+            // concat the new numeric
+            address += bits << part.Length;   // the new numeric is the higher bits
+            // shift to get arithmetic sign bits
+            address <<= 32 - part.Length * 2;
+            address >>= 32 - part.Length * 2;   // since address is a signed int, C# right-shift will carry 1-bits down if the high bit is set. This is what we want to happen.
+            // encode again
+            address *= mult;
+            address += pcAddress - (pcAddress % mult) + add;
+            instruction = instruction.Split('<')[0] + $"<{address:X6}>" + (instruction + " ").Split('>')[1].Trim(); // extra space / trim let's us get everything after the '>', even if it's empty
+         }
+
+         return instruction;
       }
 
       public bool TryAssemble(string line, IReadOnlyList<ConditionCode> conditionCodes, out ushort result) {

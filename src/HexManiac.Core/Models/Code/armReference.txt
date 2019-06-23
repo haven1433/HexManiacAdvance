@@ -83,8 +83,6 @@ ne=1111  @    never
 1101 cond #         |     b{cond}   #=pc+#*2+4 @ if(cond) PC = *(PC+#*2) @example: b #10 jumps to the instruction 28 bytes after the current instruction.
 11011111 #          |     swi   #              @ run a bios function
 11100 #             |     b     #=pc+#*2+4     @ PC = *(PC+#*2)
-11110 #             |     bhigh #              @ bhigh must be followed by blx or bl.
-11111 #             |     bl    #=pc+#*2+2     @ Together, these 2 instructions give you 22 bits for the jump
-                                               @ if I want to branch-link, I need 2 instructions or a register
-                                               @ conditional branching does not link
-
+11111 #11 11110 #11 |     bl    #=pc+#*2+4     @ The 14 numeric bits go together and act as a single signed 14-bit number
+                                               @ If I want to branch-link, I need the space of 2 instructions, or a register for blx
+                                               @ conditional branching cannot link

@@ -278,12 +278,12 @@ namespace HavenSoft.HexManiac.Tests {
          // sample routine: If r0 is true, return double r1. Else, return 0
          var code = new ushort[] {
          // 000000:
-            0b10110101_00110000,    // push  lr, {r4, r5}
+            0b10110101_00001100,    // push  lr, {r4, r5}         (note that for push, r0-r7 run left-right)
             0b00101_000_00000001,   // cmp   r0, 1
             0b1101_0001_00000000,   // bne   pc(4)+(0)*2+4 = 8
             0b0001100_001_001_000,  // add   r0, r1, r1
          // 000008:
-            0b10111101_00110000,    // pop   pc, {r4, r5}
+            0b10111101_00110000,    // pop   pc, {r4, r5}         (note that for pop, r0-07 run right-left)
          };
 
          var bytes = code.SelectMany(pair => new[] { (byte)pair, (byte)(pair >> 8) }).ToArray();
@@ -352,6 +352,32 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("    .word DEADBEEF",           lines[5]);
       }
 
+      /// <summary>
+      /// bl is two Thumb instructions.
+      /// Other than that, all instructions are 16 bits, no exceptions.
+      /// This test shows that addresses after a 4-byte instruction are still calculated correctly.
+      /// It also shows that 'bl' shows the right inline address.
+      /// </summary>
+      [Fact]
+      public void BranchLinkInstructionsTakeDoubleSpace() {
+         var model = new PokemonModel(new byte[20]);
+         model.WriteValue(new ModelDelta(), 0, unchecked((int)0b11111_00000000100_11110_00000000000)); // bl
+
+         var lines = parser.Parse(model, 0, 20).Split(Environment.NewLine).Where(s => !string.IsNullOrEmpty(s)).ToArray(); // pc(0)+#(4)*2+4 = C
+
+         Assert.Equal(11, lines.Length);
+         Assert.Equal("000000:",            lines[0]);
+         Assert.Equal("    bl    <00000C>", lines[1]);
+         Assert.Equal("    nop",            lines[2]);
+         Assert.Equal("    nop",            lines[3]);
+         Assert.Equal("    nop",            lines[4]);
+         Assert.Equal("    nop",            lines[5]);
+         Assert.Equal("00000C:",            lines[6]);
+         Assert.Equal("    nop",            lines[7]);
+         Assert.Equal("    nop",            lines[8]);
+         Assert.Equal("    nop",            lines[9]);
+         Assert.Equal("    nop",            lines[10]);
+      }
 
       private static readonly ThumbParser parser;
       static ToolTests(){
