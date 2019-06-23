@@ -536,7 +536,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void Edit(string input) {
          exitEditEarly = false;
          using (Tools.DeferUpdates) {
-            for (int i = 0; i < input.Length && !exitEditEarly; i++) Edit(input[i]);
+            using (ModelCacheScope.CreateScope(Model)) {
+               for (int i = 0; i < input.Length && !exitEditEarly; i++) Edit(input[i]);
+            }
          }
       }
 

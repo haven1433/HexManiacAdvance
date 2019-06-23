@@ -457,6 +457,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo) {
          base.OnRenderSizeChanged(sizeInfo);
          UpdateViewPortSize();
+         InvalidateVisual();
       }
 
       protected override void OnTextInput(TextCompositionEventArgs e) {

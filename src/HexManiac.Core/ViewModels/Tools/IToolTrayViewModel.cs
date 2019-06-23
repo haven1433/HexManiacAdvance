@@ -14,11 +14,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       ICommand HideCommand { get; }
       ICommand StringToolCommand { get; }
       ICommand TableToolCommand { get; }
-      ICommand Tool3Command { get; }
+      ICommand CodeToolCommand { get; }
 
       PCSTool StringTool { get; }
 
       TableTool TableTool { get; }
+
+      CodeTool CodeTool { get; }
 
       IDisposable DeferUpdates { get; }
 
@@ -32,7 +34,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class ToolTray : ViewModelCore, IToolTrayViewModel {
       private readonly IList<IToolViewModel> tools;
       private readonly StubCommand hideCommand;
-      private readonly StubCommand stringToolCommand, tableToolCommand, tool3Command;
+      private readonly StubCommand stringToolCommand, tableToolCommand, codeToolCommand;
       private readonly HashSet<Action> deferredWork = new HashSet<Action>();
       private readonly IDataModel model;
 
@@ -53,13 +55,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ICommand HideCommand => hideCommand;
       public ICommand StringToolCommand => stringToolCommand;
       public ICommand TableToolCommand => tableToolCommand;
-      public ICommand Tool3Command => tool3Command;
+      public ICommand CodeToolCommand => codeToolCommand;
 
       public PCSTool StringTool => (PCSTool)tools[0];
 
       public TableTool TableTool => (TableTool)tools[1];
 
-      public IToolViewModel Tool3 => tools[2];
+      public CodeTool CodeTool => (CodeTool)tools[2];
 
       private StubDisposable currentDeferralToken;
       public IDisposable DeferUpdates {
@@ -87,7 +89,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          tools = new IToolViewModel[] {
             new PCSTool(model, selection, history, this),
             new TableTool(model, selection, history, this),
-            new FillerTool("Tool3"),
+            new CodeTool(model, selection),
          };
 
          stringToolCommand = new StubCommand {
@@ -100,7 +102,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             Execute = arg => SelectedIndex = selectedIndex == 1 ? -1 : 1,
          };
 
-         tool3Command = new StubCommand {
+         codeToolCommand = new StubCommand {
             CanExecute = ICommandExtensions.CanAlwaysExecute,
             Execute = arg => SelectedIndex = selectedIndex == 2 ? -1 : 2,
          };

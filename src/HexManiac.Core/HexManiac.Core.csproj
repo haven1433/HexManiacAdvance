@@ -46,6 +46,7 @@
     <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubComparer`1.cs" />
     <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubDisposable.cs" />
     <Compile Include="ICommandExtensions.cs" />
+    <Compile Include="Models\Code\ThumbParser.cs" />
     <Compile Include="Models\Runs\ArrayRun.cs" />
     <Compile Include="Models\AutoSearchModel.cs" />
     <Compile Include="Models\ErrorInfo.cs" />
@@ -57,6 +58,7 @@
     <Compile Include="Models\Runs\ModelCacheScope.cs" />
     <Compile Include="Models\Runs\PLMRun.cs" />
     <Compile Include="ViewModels\AutoCompleteSelectionItem.cs" />
+    <Compile Include="ViewModels\Tools\CodeTool.cs" />
     <Compile Include="ViewModels\Visitors\CompleteEditOperation.cs" />
     <Compile Include="ViewModels\Visitors\ContextItemFactory.cs" />
     <Compile Include="ViewModels\Visitors\ContinueCellEdit.cs" />
@@ -99,6 +101,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Models\Code\armReference.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
