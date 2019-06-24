@@ -129,6 +129,15 @@
                            <ComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" Grid.Column="1"/>
                         </Grid>
                      </DataTemplate>
+                     <DataTemplate DataType="{x:Type hsg3hvmtr:BitListArrayElementViewModel}">
+                        <ItemsControl ItemsSource="{Binding}">
+                           <ItemsControl.ItemTemplate>
+                              <DataTemplate>
+                                 <CheckBox Margin="5,1" IsChecked="{Binding IsChecked}" Content="{Binding BitLabel}"/>
+                              </DataTemplate>
+                           </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                     </DataTemplate>
                      <DataTemplate DataType="{x:Type hsg3hvmtr:StreamArrayElementViewModel}">
                         <TextBox Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Margin="20,2,2,2" AcceptsReturn="True"/>
                      </DataTemplate>
