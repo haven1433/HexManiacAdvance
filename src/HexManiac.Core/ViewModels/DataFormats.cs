@@ -294,8 +294,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
 
    public class BitArray : IDataFormatInstance {
       public int Source { get; }
-
       public int Position { get; }
+      public int Length { get; }
+
+      public BitArray(int source, int position, int length) => (Source, Position, Length) = (source, position, length);
 
       public bool Equals(IDataFormat other) {
          var that = other as BitArray;

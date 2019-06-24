@@ -156,6 +156,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
       }
 
+      public void Visit(BitArray array, byte data) {
+         if (CurrentText.Length < 2) return;
+         var byteValue = byte.Parse(CurrentText, NumberStyles.HexNumber);
+         CurrentChange.ChangeData(Model, memoryLocation, byteValue);
+         NewDataIndex = memoryLocation + 1;
+         Result = true;
+      }
+
       /// <summary>
       /// Parses text in a PLM run to get the level and move.
       /// returns an error string if the parse fails.

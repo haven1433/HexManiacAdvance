@@ -102,5 +102,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             Result = Input == StringDelimeter || char.IsLetterOrDigit(Input) || specialCharacters.Contains(Input);
          }
       }
+
+      public void Visit(BitArray array, byte data) {
+         Result = ViewPort.AllHexCharacters.Contains(Input);
+      }
    }
 }

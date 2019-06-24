@@ -315,6 +315,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public void UpdateModelFromView() {
          var result = children.Select((child, i) => child.IsChecked ? 1 << i : 0).Sum();
          model.WriteMultiByteValue(start, segment.Length, history.CurrentChange, result);
+         DataChanged?.Invoke(this, EventArgs.Empty);
       }
 
       public void UpdateViewFromModel() {

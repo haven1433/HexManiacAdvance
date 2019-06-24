@@ -141,7 +141,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
       }
       public void Visit(BitArray array, byte data) {
-         // TODO
+         Result = ViewPort.AllHexCharacters.Contains(Input);
       }
    }
 }
+
