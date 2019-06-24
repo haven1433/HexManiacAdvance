@@ -99,7 +99,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (!format.StartsWith(ArrayStart.ToString()) || closeArray == -1) throw new ArrayRunParseException($"Array Content must be wrapped in {ArrayStart}{ArrayEnd}.");
          var segments = format.Substring(1, closeArray - 1);
          var length = format.Substring(closeArray + 1);
-         ElementContent = ParseSegments(segments);
+         ElementContent = ParseSegments(segments, data);
          if (ElementContent.Count == 0) throw new ArrayRunParseException("Array Content must not be empty.");
          ElementLength = ElementContent.Sum(e => e.Length);
 
@@ -162,7 +162,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (!format.StartsWith(ArrayStart.ToString()) || closeArray == -1) throw new ArrayRunParseException($"Array Content must be wrapped in {ArrayStart}{ArrayEnd}");
          var segments = format.Substring(1, closeArray - 1);
          var length = format.Substring(closeArray + 1);
-         var elementContent = ParseSegments(segments);
+         var elementContent = ParseSegments(segments, data);
          if (elementContent.Count == 0) return false;
          var elementLength = elementContent.Sum(e => e.Length);
 
@@ -329,6 +329,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             return new Pointer(offsets.SegmentStart, position, destination, destinationName);
          }
 
+         if (currentSegment.Type == ElementContentType.BitArray) {
+            return new BitArray(offsets.SegmentStart, position, currentSegment.Length);
+         }
+
          throw new NotImplementedException();
       }
 
@@ -478,7 +482,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new ArrayRun(owner, FormatString, LengthFromAnchor, Start, ElementCount, ElementContent, newPointerSources, newInnerPointerSources);
       }
 
-      private static List<ArrayRunElementSegment> ParseSegments(string segments) {
+      private static List<ArrayRunElementSegment> ParseSegments(string segments, IDataModel model) {
          var list = new List<ArrayRunElementSegment>();
          segments = segments.Trim();
          while (segments.Length > 0) {
@@ -487,7 +491,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var name = segments.Substring(0, nameEnd);
             if (name == string.Empty) throw new ArrayRunParseException("expected name, but none was found: " + segments);
             segments = segments.Substring(nameEnd);
-            var (format, formatLength, segmentLength) = ExtractSingleFormat(segments);
+            var (format, formatLength, segmentLength) = ExtractSingleFormat(segments, model);
 
             // check to see if a name or length is part of the format
             if (format == ElementContentType.Integer && segments.Length > formatLength && segments[formatLength] != ' ') {
@@ -506,6 +510,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (!pointerSegment.IsInnerFormatValid) throw new ArrayRunParseException($"pointer format '{pointerSegment.InnerFormat}' was not understood.");
                list.Add(pointerSegment);
                segments = segments.Substring(formatLength).Trim();
+            } else if (format == ElementContentType.BitArray) {
+               var sourceName = segments.Substring(BitArray.SharedFormatString.Length, formatLength - BitArray.SharedFormatString.Length);
+               segments = segments.Substring(formatLength).Trim();
+               list.Add(new ArrayRunBitArraySegment(name, segmentLength, sourceName));
             } else {
                segments = segments.Substring(formatLength).Trim();
                if (format == ElementContentType.Unknown) {
@@ -520,8 +528,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return list;
       }
 
-      private static (ElementContentType format, int formatLength, int segmentLength) ExtractSingleFormat(string segments) {
-         if (segments.Length >= 2 && segments.Substring(0, 2) == PCSRun.StringDelimeter + string.Empty + PCSRun.StringDelimeter) {
+      private static (ElementContentType format, int formatLength, int segmentLength) ExtractSingleFormat(string segments, IDataModel model) {
+         if (segments.Length >= 2 && segments.Substring(0, 2) == PCSRun.SharedFormatString) {
             var format = ElementContentType.PCS;
             var formatLength = 2;
             while (formatLength < segments.Length && char.IsDigit(segments[formatLength])) formatLength++;
@@ -546,6 +554,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
             if (openCount > 0) return (ElementContentType.Unknown, 0, 0);
             return (ElementContentType.Pointer, endIndex, 4);
+         } else if (segments.StartsWith(BitArray.SharedFormatString)) {
+            var endIndex = BitArray.SharedFormatString.Length;
+            while (segments.Length > endIndex && char.IsLetterOrDigit(segments[endIndex])) endIndex++;
+            var format = segments.Substring(0, endIndex);
+            var name = format.Substring(BitArray.SharedFormatString.Length);
+            var options = ModelCacheScope.GetCache(model).GetBitOptions(name);
+            var count = options?.Count ?? 8;
+            return (ElementContentType.BitArray, format.Length, (int)Math.Ceiling(count / 8.0));
          }
 
          return (ElementContentType.Unknown, 0, 0);
@@ -620,6 +636,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   if (!pointerSegment.DestinationDataMatchesPointerFormat(owner, new NoDataChangeDeltaModel(), destination)) return false;
                }
                return true;
+            case ElementContentType.BitArray:
+               var bitArraySegment = (ArrayRunBitArraySegment)segment;
+               var bits = bitArraySegment.GetOptions(owner).Count;
+               bits %= 8;
+               if (bits == 0) return true;
+               var finalByte = owner[start + bitArraySegment.Length - 1];
+               finalByte >>= bits;
+               return finalByte == 0; // all the unneeded bits should be set to zero
             default:
                throw new NotImplementedException();
          }

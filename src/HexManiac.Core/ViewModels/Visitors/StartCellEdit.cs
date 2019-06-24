@@ -17,7 +17,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
    ///     if the new UnderEdit is just the character, NewFormat can be left null, and the calling code will create the appropriate new UnderEdit object.
    /// </summary>
    public class StartCellEdit : IDataFormatVisitor {
-      private static readonly char[] SpecialAnchorAllowedCharacters = new[] { AnchorStart, ArrayStart, ArrayEnd, StringDelimeter, StreamDelimeter, PointerStart, PointerEnd, SingleByteIntegerFormat, DoubleByteIntegerFormat };
+      private static readonly char[] SpecialAnchorAllowedCharacters = new[] { AnchorStart, ArrayStart, ArrayEnd, StringDelimeter, StreamDelimeter, PointerStart, PointerEnd, '|', SingleByteIntegerFormat, DoubleByteIntegerFormat };
 
       public IDataModel Model { get; }
       public int MemoryLocation { get; }

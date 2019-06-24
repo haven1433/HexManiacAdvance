@@ -293,6 +293,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
    }
 
    public class BitArray : IDataFormatInstance {
+      public static readonly string SharedFormatString = "|b[]";
+
       public int Source { get; }
       public int Position { get; }
       public int Length { get; }

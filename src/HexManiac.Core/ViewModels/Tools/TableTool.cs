@@ -150,6 +150,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (item.Type == ElementContentType.Unknown) viewModel = new FieldArrayElementViewModel(history, model, item.Name, itemAddress, item.Length, new HexFieldStratgy());
             else if (item.Type == ElementContentType.PCS) viewModel = new FieldArrayElementViewModel(history, model, item.Name, itemAddress, item.Length, new TextFieldStratgy());
             else if (item.Type == ElementContentType.Pointer) viewModel = new FieldArrayElementViewModel(history, model, item.Name, itemAddress, item.Length, new AddressFieldStratgy());
+            else if (item.Type == ElementContentType.BitArray) viewModel = new BitListArrayElementViewModel(history, model, item.Name, itemAddress);
             else if (item.Type == ElementContentType.Integer) {
                if (item is ArrayRunEnumSegment enumSegment) {
                   viewModel = new ComboBoxArrayElementViewModel(history, model, item.Name, itemAddress, item.Length);

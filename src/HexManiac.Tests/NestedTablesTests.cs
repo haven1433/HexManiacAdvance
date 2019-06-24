@@ -341,9 +341,9 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(8, run.Length);
 
          var bitList = (BitListArrayElementViewModel)viewPort.Tools.TableTool.Children[0];
-         Assert.Equal("Carl", bitList[2].BitLabel);
+         Assert.Equal("Four", bitList[2].BitLabel);
 
-         bitList[2].IsChecked = true;      // "Carl" should be able to learn "Four"
+         bitList[2].IsChecked = true;      // "Adam" should be able to learn "Four"
          Assert.Equal(0x04, model[0x90]);  // the third bit up is set because "Four" is the first tutor move
 
          Assert.IsType<BitArray>(((Anchor)viewPort[0, 0].Format).OriginalFormat);
