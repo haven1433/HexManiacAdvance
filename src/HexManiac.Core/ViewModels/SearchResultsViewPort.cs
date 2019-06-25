@@ -26,7 +26,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          get {
             var (childIndex, line) = GetChildLine(y);
             if (line < 0 && x == 3 && childIndex < children.Count && firstChildToUseParent[children[childIndex].Parent] == childIndex) {
-               return new HexElement(0, new PCS(-1, 1, string.Empty, "Results from " + children[childIndex].FileName));
+               return new HexElement(0, new UnderEdit(null, "Results from " + children[childIndex].FileName, width));
             }
             if (line < 0 || childIndex >= children.Count) return HexElement.Undefined;
 
