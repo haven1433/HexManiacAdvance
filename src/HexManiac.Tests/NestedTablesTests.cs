@@ -349,6 +349,24 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.IsType<BitArray>(((Anchor)viewPort[0, 0].Format).OriginalFormat);
       }
 
+      [Fact]
+      public void BitArraySelectionSelectsAllBytesInCurrentBitArray() {
+         SetupMoveTable(0x00);
+         SetupNameTable(0x40);
+
+         // setup a table for 5 tutor moves
+         viewPort.Goto.Execute("000080");
+         viewPort.Edit("^tutormoves[move:movenames]10 One One Two Two Four Four Five Five Seven Seven "); // note that 10 bits takes 2 bytes
+
+         viewPort.Goto.Execute("0000100");
+         viewPort.Edit("^table[moves|b[]tutormoves]pokenames ");
+         var run = (ArrayRun)model.GetNextRun(0x100);
+         Assert.Equal(16, run.Length); // 2 bytes each for 8 pokemon
+
+         viewPort.SelectionStart = new Point(4, 0);
+         Assert.True(viewPort.IsSelected(new Point(5, 0)));
+      }
+
       // creates a move table that is 0x40 bytes long
       private void SetupMoveTable(int start) {
          viewPort.Goto.Execute(start.ToString("X6"));

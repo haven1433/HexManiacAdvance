@@ -1147,7 +1147,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var offset = array.ConvertByteOffsetToArrayOffset(index);
          var type = array.ElementContent[offset.SegmentIndex].Type;
-         if (type == ElementContentType.Pointer || type == ElementContentType.Integer) {
+         if (type == ElementContentType.Pointer || type == ElementContentType.Integer || type == ElementContentType.BitArray) {
             return pair(offset.SegmentStart, offset.SegmentStart + array.ElementContent[offset.SegmentIndex].Length - 1);
          }
 
