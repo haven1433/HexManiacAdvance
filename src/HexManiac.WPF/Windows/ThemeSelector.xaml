@@ -12,7 +12,7 @@
       <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,0,0,10">
          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
             <TextBlock Text="Text Color:" Foreground="{Binding PrimaryColor}"/>
-            <TextBox Name="Primary" Foreground="{Binding PrimaryColor}" Background="{Binding Backlight}" Text="{Binding PrimaryColor, UpdateSourceTrigger=PropertyChanged}" Width="200" Margin="5,0"/>
+            <TextBox Name="Primary" Foreground="{Binding Primary}" Background="{Binding Backlight}" Text="{Binding PrimaryColor, UpdateSourceTrigger=PropertyChanged}" Width="200" Margin="5,0"/>
             <Popup PlacementTarget="{Binding ElementName=Primary}" Placement="Bottom" HorizontalOffset="-30" IsOpen="{Binding ElementName=Primary, Path=IsKeyboardFocused, Mode=OneWay}">
                <controls:Swatch Result="{Binding PrimaryColor, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="230" Height="200"/>
             </Popup>

@@ -77,6 +77,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var brightnessTravel = .6 + .3 * highlightBrightness;
          hsbHighlightDark.sat *= .8;
          hsbHighlightDark.bright = 1 - brightnessTravel;
+         if (hsbPrimary.bright < hsbBackground.bright) hsbHighlightDark.bright = brightnessTravel;
          Backlight = hsbHighlightDark.ToRgb().ToHexString();
 
          hsbHighlightLight.sat = 0;
@@ -100,6 +101,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Accent = accent[5].ToRgb().ToHexString();
          Text2 = accent[6].ToRgb().ToHexString();
          Stream1 = accent[7].ToRgb().ToHexString();
+
+         NotifyPropertyChanged(nameof(Primary));
+         NotifyPropertyChanged(nameof(Background));
       }
 
       private string secondary, backlight;
