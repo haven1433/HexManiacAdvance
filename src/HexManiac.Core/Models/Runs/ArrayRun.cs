@@ -144,7 +144,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public static ErrorInfo TryParse(IDataModel data, string format, int start, IReadOnlyList<int> pointerSources, out ArrayRun self) {
          try {
-            self = new ArrayRun(data, format, start, pointerSources);
+            using (ModelCacheScope.CreateScope(data)) {
+               self = new ArrayRun(data, format, start, pointerSources);
+            }
          } catch (ArrayRunParseException e) {
             self = null;
             return new ErrorInfo(e.Message);

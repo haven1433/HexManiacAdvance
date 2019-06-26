@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using static HavenSoft.HexManiac.Core.Models.Runs.ArrayRun;
@@ -130,8 +131,59 @@ namespace HavenSoft.HexManiac.Core.Models {
             ObserveAnchorWritten(noChangeDelta, "lvlmoves", lvlMoveData);
          }
 
+         FindTutorMoveAnchors();
+
          // @3D4294 ^itemicons[image<> palette<>]items
          // @4886E8 ^movedescriptions[description<>]354
+      }
+
+      private void FindTutorMoveAnchors() {
+         int tutorMoves, tutorCompatibility;
+         if (gameCode == FireRed || gameCode == LeafGreen) {
+            var originalCode = new byte[] {
+               0x00, 0xB5, 0x00, 0x04, 0x00, 0x0C, 0x09, 0x06,
+               0x0A, 0x0E, 0x10, 0x2A, 0x0A, 0xD0, 0x10, 0x2A,  // This is the thumb code for the tutor compatibility check.
+               0x02, 0xDC, 0x0F, 0x2A, 0x03, 0xD0, 0x0B, 0xE0,  // It's the exact same in both FireRed and LeafGreen, but in different places.
+               0x11, 0x2A, 0x06, 0xD0, 0x08, 0xE0, 0x03, 0x28,  // If I find this not tampered with, then it's probably the original.
+               0x14, 0xD0, 0x0E, 0xE0, 0x06, 0x28, 0x11, 0xD0,  // More so, it's bookended by two pointers.
+               0x0B, 0xE0, 0x09, 0x28, 0x0E, 0xD0, 0x08, 0xE0,  // Directly before this is tutormoves.
+               0x05, 0x49, 0x40, 0x00, 0x40, 0x18, 0x00, 0x88,  // Directly after this is tutorcompatibility.
+               0x10, 0x41, 0x01, 0x21, 0x08, 0x40, 0x00, 0x28,
+               0x04, 0xD1, 0x00, 0x20, 0x03, 0xE0, 0x00, 0x00,
+            };
+
+            var list = Find(originalCode, 0x120B00, 0x120C00);
+            tutorMoves = ReadPointer(list[0] - 4);
+            tutorCompatibility = ReadPointer(list[0] + originalCode.Length);
+            if (tutorMoves < 0 || tutorMoves > Count || tutorCompatibility < 0 || tutorCompatibility > Count) return;
+            if (list.Count != 1) return;
+            if (!TryParse(this, "[move:movenames]15", tutorMoves, null, out var tutorMovesRun).HasError) {
+               ObserveAnchorWritten(noChangeDelta, "tutormoves", tutorMovesRun);
+               if (!TryParse(this, "[pokemon|b[]tutormoves]pokenames", tutorCompatibility, null, out var tutorCompatibilityRun).HasError) {
+                  ObserveAnchorWritten(noChangeDelta, "tutorcompatibility", tutorCompatibilityRun);
+               }
+            }
+         } else if (gameCode == Emerald) {
+            // these two addresses are supposed to have pointers to tutormoves / tutorcompatibility
+            tutorMoves = ReadPointer(0x1B236C);
+            tutorCompatibility = ReadPointer(0x1B2390);
+            if (tutorMoves < 0 || tutorMoves > Count || tutorCompatibility < 0 || tutorCompatibility > Count) return;
+            if (!TryParse(this, "[move:movenames]30", tutorMoves, null, out var tutorMovesRun).HasError) {
+               ObserveAnchorWritten(noChangeDelta, "tutormoves", tutorMovesRun);
+               if (!TryParse(this, "[pokemon|b[]tutormoves]pokenames", tutorCompatibility, null, out var tutorCompatibilityRun).HasError) {
+                  ObserveAnchorWritten(noChangeDelta, "tutorcompatibility", tutorCompatibilityRun);
+               }
+            }
+         }
+      }
+
+      private IList<int> Find(byte[] subset, int start, int end) {
+         var results = new List<int>();
+         for (int i = start; i < end; i++) {
+            bool match = Enumerable.Range(0, subset.Length).All(j => this[i + j] == subset[j]);
+            if (match) results.Add(i);
+         }
+         return results;
       }
 
       private void DecodeStreams() {

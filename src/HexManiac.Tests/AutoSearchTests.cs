@@ -1,6 +1,7 @@
 ﻿
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -196,6 +197,32 @@ namespace HavenSoft.HexManiac.Tests {
          var expectedLength = expectedLastElement + 1;
          var actualLength = run.Length / 2 - 1;  // remove the closing element.
          Assert.InRange(actualLength, 790, expectedLength);
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void TutorsAreFound(string game) {
+         var model = LoadModel(game);
+         var noChange = new NoDataChangeDeltaModel();
+
+         var movesLocation = model.GetAddressFromAnchor(noChange, -1, "tutormoves");
+         var compatibilityLocation = model.GetAddressFromAnchor(noChange, -1, "tutorcompatibility");
+
+         // ruby and sapphire have no tutors
+         if (game.Contains("Ruby") || game.Contains("Sapphire")) {
+            Assert.Equal(Pointer.NULL, movesLocation);
+            Assert.Equal(Pointer.NULL, compatibilityLocation);
+            return;
+         }
+
+         var moves = (ArrayRun)model.GetNextRun(movesLocation);
+         var compatibility = (ArrayRun)model.GetNextRun(compatibilityLocation);
+
+         var expectedMoves = game.Contains("Emerald") || game.Contains("Altair") ? 30 : 15;
+         var compatibilityElementLength = (int)Math.Ceiling(expectedMoves / 8.0);
+
+         Assert.Equal(expectedMoves, moves.ElementCount);
+         Assert.Equal(compatibilityElementLength, compatibility.ElementContent[0].Length);
       }
 
       /// <summary>
