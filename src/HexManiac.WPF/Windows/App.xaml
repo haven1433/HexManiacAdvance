@@ -629,14 +629,16 @@
          <Setter Property="Template">
             <Setter.Value>
                <ControlTemplate TargetType="{x:Type CheckBox}">
-                  <BulletDecorator Background="Transparent">
+                  <BulletDecorator Background="Transparent" Width="{TemplateBinding Width}" Height="15">
                      <BulletDecorator.Bullet>
                         <Border x:Name="Border" 
                            Width="13" 
                            Height="13" 
+                           Margin="1"
                            CornerRadius="0" 
                            Background="{DynamicResource Background}"
                            BorderThickness="1"
+                           VerticalAlignment="Center"
                            BorderBrush="{DynamicResource Secondary}">
                            <Path 
                               Width="7" Height="7" 
@@ -647,10 +649,9 @@
                               Data="M 0 0 L 7 7 M 0 7 L 7 0" />
                         </Border>
                      </BulletDecorator.Bullet>
-                     <ContentPresenter Margin="4,0,0,0"
-                        VerticalAlignment="Center"
-                        HorizontalAlignment="Left"
-                        RecognizesAccessKey="True"/>
+                     <Viewbox Margin="3,0,0,0" HorizontalAlignment="Left">
+                        <ContentPresenter RecognizesAccessKey="True"/>
+                     </Viewbox>
                   </BulletDecorator>
                   <ControlTemplate.Triggers>
                      <Trigger Property="IsChecked" Value="false">
