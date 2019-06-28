@@ -78,7 +78,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public bool UseCustomHeaders {
          get => scroll.UseCustomHeaders;
-         set => scroll.UseCustomHeaders = value;
+         set { using (ModelCacheScope.CreateScope(Model)) scroll.UseCustomHeaders = value; }
       }
 
       private void ScrollPropertyChanged(object sender, PropertyChangedEventArgs e) {
@@ -134,19 +134,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var element = currentView[location.X, location.Y];
             var underEdit = element.Format as UnderEdit;
             if (underEdit != null) {
-               if (underEdit.CurrentText == string.Empty) {
-                  var index = scroll.ViewPointToDataIndex(location);
-                  var operation = new DataClear(Model, history.CurrentChange, index);
-                  underEdit.OriginalFormat.Visit(operation, Model[index]);
-                  ClearEdits(location);
-               } else {
-                  var endEdit = " ";
-                  if (underEdit.CurrentText.Count(c => c == StringDelimeter) % 2 == 1) endEdit = StringDelimeter.ToString();
-                  var originalFormat = underEdit.OriginalFormat;
-                  if (originalFormat is Anchor anchor) originalFormat = anchor.OriginalFormat;
-                  if (underEdit.CurrentText.StartsWith(EggMoveRun.GroupStart) && (originalFormat is EggSection || originalFormat is EggItem)) endEdit = EggMoveRun.GroupEnd;
-                  currentView[location.X, location.Y] = new HexElement(element.Value, underEdit.Edit(endEdit));
-                  if (!TryCompleteEdit(location)) ClearEdits(location);
+               using (ModelCacheScope.CreateScope(Model)) {
+                  if (underEdit.CurrentText == string.Empty) {
+                     var index = scroll.ViewPointToDataIndex(location);
+                     var operation = new DataClear(Model, history.CurrentChange, index);
+                     underEdit.OriginalFormat.Visit(operation, Model[index]);
+                     ClearEdits(location);
+                  } else {
+                     var endEdit = " ";
+                     if (underEdit.CurrentText.Count(c => c == StringDelimeter) % 2 == 1) endEdit = StringDelimeter.ToString();
+                     var originalFormat = underEdit.OriginalFormat;
+                     if (originalFormat is Anchor anchor) originalFormat = anchor.OriginalFormat;
+                     if (underEdit.CurrentText.StartsWith(EggMoveRun.GroupStart) && (originalFormat is EggSection || originalFormat is EggItem)) endEdit = EggMoveRun.GroupEnd;
+                     currentView[location.X, location.Y] = new HexElement(element.Value, underEdit.Edit(endEdit));
+                     if (!TryCompleteEdit(location)) ClearEdits(location);
+                  }
                }
             }
          }
@@ -156,8 +158,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (e.PropertyName == nameof(SelectionEnd)) history.ChangeCompleted();
          NotifyPropertyChanged(e.PropertyName);
          var dataIndex = scroll.ViewPointToDataIndex(SelectionStart);
-         UpdateToolsFromSelection(dataIndex);
-         UpdateSelectedAddress();
+         using (ModelCacheScope.CreateScope(Model)) {
+            UpdateToolsFromSelection(dataIndex);
+            UpdateSelectedAddress();
+         }
          RequestMenuClose?.Invoke(this, EventArgs.Empty);
       }
 
@@ -1418,7 +1422,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   var index = scroll.ViewPointToDataIndex(new Point(x, y));
                   if (run == null || index >= run.Start + run.Length) {
                      run = Model.GetNextRun(index) ?? new NoInfoRun(Model.Count);
-                     if (run is ArrayRun array) Tools.Schedule(array.ClearCache);
                   }
                   if (index < 0 || index >= Model.Count) {
                      currentView[x, y] = HexElement.Undefined;

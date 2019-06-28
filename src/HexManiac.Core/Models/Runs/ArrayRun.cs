@@ -65,28 +65,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       // composition of each element
       public IReadOnlyList<ArrayRunElementSegment> ElementContent { get; }
 
-      private IReadOnlyList<string> cachedElementNames;
       public IReadOnlyList<string> ElementNames {
          get {
-            if (cachedElementNames != null) return cachedElementNames;
-            var names = new List<string>();
-            cachedElementNames = names;
-            if (!owner.TryGetNameArray(LengthFromAnchor, out var sourceArray)) return cachedElementNames;
-
-            for (int i = 0; i < ElementCount; i++) {
-               var nameAddress = sourceArray.Start + sourceArray.ElementLength * i;
-               var nameWithQuotes = PCSString.Convert(owner, nameAddress, sourceArray.ElementContent[0].Length).Trim();
-               if (nameWithQuotes.Contains(' ')) {
-                  names.Add(nameWithQuotes);
-               } else if (nameWithQuotes.Length < 2) { // final name could just be a single closing quote and nothing else
-                  names.Add(nameWithQuotes);
-               } else {
-                  var nameWithoutQuotes = nameWithQuotes.Substring(1, nameWithQuotes.Length - 2);
-                  names.Add(nameWithoutQuotes);
-               }
-            }
-
-            return cachedElementNames;
+            var cache = ModelCacheScope.GetCache(owner);
+            return cache.GetOptions(LengthFromAnchor);
          }
       }
 
@@ -425,21 +407,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public IFormattedRun Move(int newStart) {
          return new ArrayRun(owner, FormatString, LengthFromAnchor, newStart, ElementCount, ElementContent, PointerSources, PointerSourcesForInnerElements);
-      }
-
-      /// <summary>
-      /// For performance reasons, arrays store copies of strings from arrays that they're based on.
-      /// For example, if the array contains an enum of types, that enum segment will store the list of types.
-      /// For example, if the array is the same length as the pokemon array, the array will store the list of pokemon names.
-      /// Calling this method will clear those caches and force re-evaluation.
-      /// </summary>
-      public void ClearCache() {
-         cachedElementNames = null;
-         foreach (var child in ElementContent) {
-            if (child is ArrayRunEnumSegment enumSegment) {
-               enumSegment.ClearCache();
-            }
-         }
       }
 
       public override IFormattedRun RemoveSource(int source) {

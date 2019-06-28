@@ -857,54 +857,56 @@ namespace HavenSoft.HexManiac.Core.Models {
             start = run.Start;
          }
 
-         while (length > 0) {
-            run = GetNextRun(start);
-            if (run.Start > start) {
-               var len = Math.Min(length, run.Start - start);
-               var bytes = Enumerable.Range(start, len).Select(i => RawData[i].ToString("X2"));
-               text.Append(string.Join(" ", bytes) + " ");
-               length -= len;
-               start += len;
-               continue;
-            }
-            if (run.Start == start) {
-               if (!anchorForAddress.TryGetValue(start, out string anchor)) {
-                  if ((run.PointerSources?.Count ?? 0) > 0) {
-                     anchor = GenerateDefaultAnchorName(run);
-                     ObserveAnchorWritten(changeToken(), anchor, run);
+         using (ModelCacheScope.CreateScope(this)) {
+            while (length > 0) {
+               run = GetNextRun(start);
+               if (run.Start > start) {
+                  var len = Math.Min(length, run.Start - start);
+                  var bytes = Enumerable.Range(start, len).Select(i => RawData[i].ToString("X2"));
+                  text.Append(string.Join(" ", bytes) + " ");
+                  length -= len;
+                  start += len;
+                  continue;
+               }
+               if (run.Start == start) {
+                  if (!anchorForAddress.TryGetValue(start, out string anchor)) {
+                     if ((run.PointerSources?.Count ?? 0) > 0) {
+                        anchor = GenerateDefaultAnchorName(run);
+                        ObserveAnchorWritten(changeToken(), anchor, run);
+                        text.Append($"^{anchor}{run.FormatString} ");
+                     }
+                  } else {
                      text.Append($"^{anchor}{run.FormatString} ");
                   }
-               } else {
-                  text.Append($"^{anchor}{run.FormatString} ");
                }
-            }
-            if (run is PointerRun pointerRun) {
-               var destination = ReadPointer(pointerRun.Start);
-               var anchorName = GetAnchorFromAddress(run.Start, destination);
-               if (string.IsNullOrEmpty(anchorName)) anchorName = destination.ToString("X6");
-               text.Append($"<{anchorName}> ");
-               start += 4;
-               length -= 4;
-            } else if (run is NoInfoRun noInfoRun) {
-               text.Append(RawData[run.Start].ToString("X2") + " ");
-               start += 1;
-               length -= 1;
-            } else if (run is PCSRun pcsRun) {
-               text.Append(PCSString.Convert(this, run.Start, run.Length) + " ");
-               start += run.Length;
-               length -= run.Length;
-            } else if (run is ArrayRun arrayRun) {
-               arrayRun.AppendTo(this, text, start, length);
-               text.Append(" ");
-               length -= run.Start + run.Length - start;
-               start = run.Start + run.Length;
-            } else if (run is EggMoveRun eggRun) {
-               eggRun.AppendTo(text, start, length);
-               text.Append(" ");
-               length -= run.Start + run.Length - start;
-               start = run.Start + run.Length;
-            } else {
-               throw new NotImplementedException();
+               if (run is PointerRun pointerRun) {
+                  var destination = ReadPointer(pointerRun.Start);
+                  var anchorName = GetAnchorFromAddress(run.Start, destination);
+                  if (string.IsNullOrEmpty(anchorName)) anchorName = destination.ToString("X6");
+                  text.Append($"<{anchorName}> ");
+                  start += 4;
+                  length -= 4;
+               } else if (run is NoInfoRun noInfoRun) {
+                  text.Append(RawData[run.Start].ToString("X2") + " ");
+                  start += 1;
+                  length -= 1;
+               } else if (run is PCSRun pcsRun) {
+                  text.Append(PCSString.Convert(this, run.Start, run.Length) + " ");
+                  start += run.Length;
+                  length -= run.Length;
+               } else if (run is ArrayRun arrayRun) {
+                  arrayRun.AppendTo(this, text, start, length);
+                  text.Append(" ");
+                  length -= run.Start + run.Length - start;
+                  start = run.Start + run.Length;
+               } else if (run is EggMoveRun eggRun) {
+                  eggRun.AppendTo(text, start, length);
+                  text.Append(" ");
+                  length -= run.Start + run.Length - start;
+                  start = run.Start + run.Length;
+               } else {
+                  throw new NotImplementedException();
+               }
             }
          }
 
