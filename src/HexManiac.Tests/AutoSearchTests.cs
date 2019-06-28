@@ -209,7 +209,8 @@ namespace HavenSoft.HexManiac.Tests {
          var compatibilityLocation = model.GetAddressFromAnchor(noChange, -1, "tutorcompatibility");
 
          // ruby and sapphire have no tutors
-         if (game.Contains("Ruby") || game.Contains("Sapphire")) {
+         // Gaia has move tutors, but it does a bunch of custom stuff (multiple tables) so I don't feel bad about not supporting it by default.
+         if (game.Contains("Ruby") || game.Contains("Sapphire") || game.Contains("Gaia")) {
             Assert.Equal(Pointer.NULL, movesLocation);
             Assert.Equal(Pointer.NULL, compatibilityLocation);
             return;

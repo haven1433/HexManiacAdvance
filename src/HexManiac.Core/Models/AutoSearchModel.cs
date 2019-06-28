@@ -153,6 +153,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             };
 
             var list = Find(originalCode, 0x120B00, 0x120C00);
+            if (list.Count == 0) return;
             tutorMoves = ReadPointer(list[0] - 4);
             tutorCompatibility = ReadPointer(list[0] + originalCode.Length);
             if (tutorMoves < 0 || tutorMoves > Count || tutorCompatibility < 0 || tutorCompatibility > Count) return;

@@ -329,14 +329,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      OnError?.Invoke(this, string.Empty);
                      var newRun = Model.GetNextRun(index);
                      if (newRun is ArrayRun array) {
-                        // if the format changed (ignoring length), run a goto to update the display width
-                        if (run is ArrayRun array2 && !array.HasSameSegments(array2)) {
-                           selection.PropertyChanged -= SelectionPropertyChanged; // to keep from double-updating the AnchorText
-                           Goto.Execute(index.ToString("X2"));
-                           selection.PropertyChanged += SelectionPropertyChanged;
+                        using (ModelCacheScope.CreateScope(Model)) {
+                           // if the format changed (ignoring length), run a goto to update the display width
+                           if (run is ArrayRun array2 && !array.HasSameSegments(array2)) {
+                              selection.PropertyChanged -= SelectionPropertyChanged; // to keep from double-updating the AnchorText
+                              Goto.Execute(index.ToString("X2"));
+                              selection.PropertyChanged += SelectionPropertyChanged;
+                           }
+                           UpdateColumnHeaders();
+                           Tools.RefreshContent();
                         }
-                        UpdateColumnHeaders();
-                        Tools.RefreshContent();
                      }
                      RefreshBackingData();
                   } else {
@@ -941,17 +943,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          // open tool
          var byteOffset = scroll.ViewPointToDataIndex(new Point(x, y));
          var currentRun = Model.GetNextRun(byteOffset);
-         if (currentRun is IStreamRun) {
-            Tools.StringTool.Address = currentRun.Start;
-            Tools.SelectedIndex = Tools.IndexOf(Tools.StringTool);
-         } else if (currentRun is ArrayRun array) {
-            var offsets = array.ConvertByteOffsetToArrayOffset(byteOffset);
-            if (format is PCS) {
-               Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
+         using (ModelCacheScope.CreateScope(Model)) {
+            if (currentRun is IStreamRun) {
+               Tools.StringTool.Address = currentRun.Start;
                Tools.SelectedIndex = Tools.IndexOf(Tools.StringTool);
-            } else {
-               Tools.TableTool.Address = array.Start + offsets.ElementIndex * array.ElementLength;
-               Tools.SelectedIndex = Tools.IndexOf(Tools.TableTool);
+            } else if (currentRun is ArrayRun array) {
+               var offsets = array.ConvertByteOffsetToArrayOffset(byteOffset);
+               if (format is PCS) {
+                  Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
+                  Tools.SelectedIndex = Tools.IndexOf(Tools.StringTool);
+               } else {
+                  Tools.TableTool.Address = array.Start + offsets.ElementIndex * array.ElementLength;
+                  Tools.SelectedIndex = Tools.IndexOf(Tools.TableTool);
+               }
             }
          }
       }

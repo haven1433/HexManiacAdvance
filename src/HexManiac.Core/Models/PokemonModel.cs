@@ -749,6 +749,17 @@ namespace HavenSoft.HexManiac.Core.Models {
             return;
          }
 
+         // case 1.5: unnamed anchor doesn't start where the delete starts, but the pointer to it lives in an array
+         // this anchor is real, but the format is wrong. Keep the anchor, lose the format.
+         if (run.Start != originalStart && run.PointerSources != null && run.PointerSources.Any(source => GetNextRun(source) is ArrayRun)) {
+            var newRun = new NoInfoRun(run.Start, run.PointerSources);
+            runIndex = BinarySearch(run.Start);
+            changeToken.RemoveRun(run);
+            changeToken.AddRun(newRun);
+            runs[runIndex] = newRun;
+            return;
+         }
+
          // case 2: unnamed anchor doesn't start where the delete starts
          // this anchor shouldn't exist. The things that point to it aren't real pointers.
          if (run.Start != originalStart) {
@@ -797,7 +808,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             } else if (runs[~index - 1] is ArrayRun array) {
                ClearPointerWithinArray(changeToken, start, ~index - 1, array);
             } else {
-               throw new NotImplementedException();
+               Debug.Fail($"Trying to clear a pointer that starts at {start:X6}, but the run in that area seems to be not be a pointer run.");
             }
          } else if (sourceToUnmappedName.TryGetValue(start, out var name)) {
             changeToken.RemoveUnmappedPointer(start, name);

@@ -262,10 +262,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          var destination = model.ReadPointer(start);
 
-         // by the time we get this far, we're guaranteed that this will be a PCSRun.
-         // if it's not a PCSRun, we shouldn't have asked to construct this object.
+         // by the time we get this far, we're nearly guaranteed that this will be a IStreamRun.
+         // if it's not an IStreamRun, it's because the pointer in the array doesn't actually point to a valid stream.
+         // at which point, we don't want to display any content.
          var run = (IStreamRun)model.GetNextRun(destination);
-         content = run.SerializeRun();
+         content = run.SerializeRun() ?? string.Empty;
       }
    }
 

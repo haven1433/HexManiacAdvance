@@ -241,8 +241,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Model.ExpandData(CurrentChange, memoryLocation + 3);
 
          var currentRun = Model.GetNextRun(memoryLocation);
-         bool inArray = currentRun.Start <= memoryLocation && currentRun is ArrayRun;
-         var sources = currentRun.PointerSources;
+         if (currentRun.Start > memoryLocation) currentRun = null;
+         bool inArray = currentRun is ArrayRun && currentRun.Start <= memoryLocation;
+         var sources = currentRun?.PointerSources;
 
          if (!inArray) {
             if (destination != string.Empty) {
