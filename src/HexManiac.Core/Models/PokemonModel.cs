@@ -757,8 +757,16 @@ namespace HavenSoft.HexManiac.Core.Models {
             foreach (var source in run.PointerSources ?? new int[0]) {
                var sourceRunIndex = BinarySearch(source);
                if (sourceRunIndex >= 0) {
-                  changeToken.RemoveRun(runs[sourceRunIndex]);
-                  runs.RemoveAt(sourceRunIndex);
+                  var pointerRun = runs[sourceRunIndex];
+                  changeToken.RemoveRun(pointerRun);
+                  if (pointerRun.PointerSources == null) {
+                     runs.RemoveAt(sourceRunIndex);
+                  } else {
+                     // remove the pointer, but keep any anchors to that location.
+                     var newRun = new NoInfoRun(pointerRun.Start, pointerRun.PointerSources);
+                     changeToken.AddRun(newRun);
+                     runs[sourceRunIndex] = newRun;
+                  }
                }
             }
             runIndex = BinarySearch(run.Start);

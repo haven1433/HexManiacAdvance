@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
@@ -7,6 +8,7 @@ using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using Xunit;
 
@@ -257,6 +259,129 @@ namespace HavenSoft.HexManiac.Tests {
          // Assert
          var matches = items.Where(item => item.Text.Contains("Table"));
          Assert.Empty(matches);
+      }
+
+      [Theory]
+      [InlineData(0x0000, "nop")]
+      [InlineData(0b0001100_010_001_000, "add   r0, r1, r2")]
+      [InlineData(0b00000_00100_010_001, "lsl   r1, r2, #4")]
+      [InlineData(0b1101_0000_00001100, "beq   <00001C>")] // 1C = 28 (current address is zero). 28 = 12*2+4
+      public void ThumbDecompilerTests(int input, string output) {
+         var bytes = new[] { (byte)input, (byte)(input >> 8) };
+         var model = new PokemonModel(bytes);
+         var result = parser.Parse(model, 0, 2).Split(Environment.NewLine)[1].Trim();
+         Assert.Equal(output, result);
+      }
+
+      [Fact]
+      public void DecompileThumbRoutineTest() {
+         // sample routine: If r0 is true, return double r1. Else, return 0
+         var code = new ushort[] {
+         // 000000:
+            0b10110101_00001100,    // push  lr, {r4, r5}         (note that for push, r0-r7 run left-right)
+            0b00101_000_00000001,   // cmp   r0, 1
+            0b1101_0001_00000000,   // bne   pc(4)+(0)*2+4 = 8
+            0b0001100_001_001_000,  // add   r0, r1, r1
+         // 000008:
+            0b10111101_00110000,    // pop   pc, {r4, r5}         (note that for pop, r0-07 run right-left)
+         };
+
+         var bytes = code.SelectMany(pair => new[] { (byte)pair, (byte)(pair >> 8) }).ToArray();
+         var model = new PokemonModel(bytes);
+         var lines = parser.Parse(model, 0, bytes.Length).Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+         Assert.Equal(7, lines.Length);
+         Assert.Equal("000000:",               lines[0]);
+         Assert.Equal("    push  lr, {r4-r5}", lines[1]);
+         Assert.Equal("    cmp   r0, #1",      lines[2]);
+         Assert.Equal("    bne   <000008>",    lines[3]);
+         Assert.Equal("    add   r0, r1, r1",  lines[4]);
+         Assert.Equal("000008:",               lines[5]);
+         Assert.Equal("    pop   pc, {r4-r5}", lines[6]);
+      }
+
+      [Fact]
+      public void ShowDataTest() {
+         var code = new ushort[] {
+         // 000000: first code part
+            0b01001_000_00000000,  // ldr   r0, pc(0)+(0)*4+4 = 4
+            0b11100_00000000011,   // b     pc(2)+(3)*2+4 = 12
+         // 000004: some data and some skipped bytes
+            0x1234,                // (loaded)
+            0x5678,                // (loaded)
+            0x0000,                // (skipped)
+            0x0000,                // (skipped)
+         // 00000C: more code that uses the data
+            0b010001110_0_000_000  // bx r0
+         };
+
+         var bytes = code.SelectMany(pair => new[] { (byte)pair, (byte)(pair >> 8) }).ToArray();
+         var model = new PokemonModel(bytes);
+         var lines = parser.Parse(model, 0, bytes.Length).Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+         Assert.Equal(7, lines.Length);
+         Assert.Equal("000000:",                      lines[0]);
+         Assert.Equal("    ldr   r0, [pc, <000004>]", lines[1]);
+         Assert.Equal("    b     <00000C>",           lines[2]);
+         Assert.Equal("000004:",                      lines[3]);
+         Assert.Equal("    .word 56781234",           lines[4]);
+         Assert.Equal("00000C:",                      lines[5]);
+         Assert.Equal("    bx    r0",                 lines[6]);
+      }
+
+      [Fact]
+      public void LoadRegisterCommmandsLoadWordAligned() {
+         //01101 # rn rd
+         var code = new ushort[] {
+            0b0000_0000_0000_0000,  // nop
+            0b01001_000_00000001,   // ldr #1 <-- 8, not 10
+            0b10111101_00000000,    // pop pc {}
+            0b00000000_00000000,    // nop
+            0xBEEF,  // .word
+            0xDEAD,
+         };
+
+         var bytes = code.SelectMany(pair => new[] { (byte)pair, (byte)(pair >> 8) }).ToArray();
+         var model = new PokemonModel(bytes);
+         var lines = parser.Parse(model, 0, bytes.Length).Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+
+         Assert.Equal(6, lines.Length);
+         Assert.Equal("000000:",                      lines[0]);
+         Assert.Equal("    nop",                      lines[1]);
+         Assert.Equal("    ldr   r0, [pc, <000008>]", lines[2]);
+         Assert.Equal("    pop   pc, {}",             lines[3]);
+         Assert.Equal("000008:",                      lines[4]);
+         Assert.Equal("    .word DEADBEEF",           lines[5]);
+      }
+
+      /// <summary>
+      /// bl is two Thumb instructions.
+      /// Other than that, all instructions are 16 bits, no exceptions.
+      /// This test shows that addresses after a 4-byte instruction are still calculated correctly.
+      /// It also shows that 'bl' shows the right inline address.
+      /// </summary>
+      [Fact]
+      public void BranchLinkInstructionsTakeDoubleSpace() {
+         var model = new PokemonModel(new byte[20]);
+         model.WriteValue(new ModelDelta(), 0, unchecked((int)0b11111_00000000100_11110_00000000000)); // bl
+
+         var lines = parser.Parse(model, 0, 20).Split(Environment.NewLine).Where(s => !string.IsNullOrEmpty(s)).ToArray(); // pc(0)+#(4)*2+4 = C
+
+         Assert.Equal(11, lines.Length);
+         Assert.Equal("000000:",            lines[0]);
+         Assert.Equal("    bl    <00000C>", lines[1]);
+         Assert.Equal("    nop",            lines[2]);
+         Assert.Equal("    nop",            lines[3]);
+         Assert.Equal("    nop",            lines[4]);
+         Assert.Equal("    nop",            lines[5]);
+         Assert.Equal("00000C:",            lines[6]);
+         Assert.Equal("    nop",            lines[7]);
+         Assert.Equal("    nop",            lines[8]);
+         Assert.Equal("    nop",            lines[9]);
+         Assert.Equal("    nop",            lines[10]);
+      }
+
+      private static readonly ThumbParser parser;
+      static ToolTests(){
+         parser = new ThumbParser(File.ReadAllLines("Models/Code/armReference.txt"));
       }
    }
 }

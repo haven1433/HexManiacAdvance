@@ -41,7 +41,7 @@
                </Style>
             </Button.Style>
          </Button>
-         <Button Content="Tool3" Command="{Binding Tools.Tool3Command}" Margin="0,2">
+         <Button Content="Code" Command="{Binding Tools.CodeToolCommand}" Margin="0,2">
             <Button.LayoutTransform>
                <RotateTransform Angle="-90"/>
             </Button.LayoutTransform>
@@ -136,9 +136,9 @@
                </ItemsControl>
             </StackPanel>
          </ScrollViewer>
-         <StackPanel Name="Tool3Panel">
-            <StackPanel.Style>
-               <Style TargetType="StackPanel">
+         <DockPanel Name="CodeToolPanel">
+            <DockPanel.Style>
+               <Style TargetType="DockPanel">
                   <Setter Property="Visibility" Value="Collapsed"/>
                   <Style.Triggers>
                      <DataTrigger Binding="{Binding SelectedIndex}" Value="2">
@@ -146,9 +146,10 @@
                      </DataTrigger>
                   </Style.Triggers>
                </Style>
-            </StackPanel.Style>
-            <TextBlock Text="Coming Soon!" Margin="5,15,0,0"/>
-         </StackPanel>
+            </DockPanel.Style>
+            
+            <TextBox Margin="5" Width="255" FontFamily="Consolas" Text="{Binding CodeTool.Content, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True" VerticalScrollBarVisibility="Auto" />
+         </DockPanel>
       </Grid>
       <!-- Anchor Editor -->
       <Border DockPanel.Dock="Top" Height="19" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource Backlight}">
