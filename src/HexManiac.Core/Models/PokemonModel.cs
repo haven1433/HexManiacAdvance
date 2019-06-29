@@ -62,6 +62,16 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (!unmappedNameToSources.ContainsKey(unmappedPointer.Name)) unmappedNameToSources[unmappedPointer.Name] = new List<int>();
             unmappedNameToSources[unmappedPointer.Name].Add(unmappedPointer.Address);
          }
+         foreach (var word in metadata.MatchedWords) {
+            if (!matchedWords.ContainsKey(word.Name)) matchedWords.Add(word.Name, new List<int>());
+            matchedWords[word.Name].Add(word.Address);
+            var index = BinarySearch(word.Address);
+            if (index > 0) {
+               runs[index] = new WordRun(word.Address, word.Name, runs[index].PointerSources);
+            } else {
+               runs.Insert(~index, new WordRun(word.Address, word.Name));
+            }
+         }
       }
 
       /// <summary>
