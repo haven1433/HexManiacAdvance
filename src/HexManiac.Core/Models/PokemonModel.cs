@@ -748,6 +748,10 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (run.Start >= start + length) return;
             if (run is PointerRun) ClearPointerFormat(null, changeToken, run.Start);
             if (run is ArrayRun arrayRun) ModifyAnchorsFromPointerArray(changeToken, arrayRun, ClearPointerFormat);
+            if (run is WordRun wordRun) {
+               changeToken.RemoveMatchedWord(wordRun.Start, wordRun.SourceArrayName);
+               matchedWords[wordRun.SourceArrayName].Remove(wordRun.Start);
+            }
 
             ClearAnchorFormat(changeToken, originalStart, run);
 

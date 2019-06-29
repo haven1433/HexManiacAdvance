@@ -1024,6 +1024,30 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(5, length);
       }
 
+      [Fact]
+      public void CanRemoveLooseWordRuns() {
+         StandardSetup(out var data, out var model, out var viewPort);
+         viewPort.Edit("^table[a:: b::]4 "); // 0x20 bytes
+
+         // add the format
+         viewPort.SelectionStart = new Point(0, 5);
+         viewPort.Edit("::table ");                  // should create a new 4-byte run that stays in sync with the table
+
+         // remove the format
+         var items = viewPort.GetContextMenuItems(new Point(0, 5));
+         var contextItem = items.Single(item => item.Text == "Clear Format");
+         contextItem.Command.Execute();
+
+         // extend the table
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.Edit("+");
+
+         // verify that the table was extended, but the value at 0x50 was NOT (no longer tied together)
+         Assert.Equal(5, ((ArrayRun)model.GetNextRun(0)).ElementCount);
+         var length = model.ReadValue(0x50);
+         Assert.Equal(4, length);
+      }
+
       private static void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);
