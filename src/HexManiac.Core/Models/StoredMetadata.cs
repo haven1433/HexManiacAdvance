@@ -6,24 +6,27 @@ using System.Linq;
 namespace HavenSoft.HexManiac.Core.Models {
    public class StoredMetadata {
       public IReadOnlyList<StoredAnchor> NamedAnchors { get; }
-      public IReadOnlyList<StoredUnmappedPointers> UnmappedPointers { get; }
+      public IReadOnlyList<StoredUnmappedPointer> UnmappedPointers { get; }
+      public IReadOnlyList<StoredMatchedWord> MatchedWords { get; }
 
       public bool IsEmpty => NamedAnchors.Count == 0 && UnmappedPointers.Count == 0;
 
-      public StoredMetadata(IReadOnlyList<StoredAnchor> anchors, IReadOnlyList<StoredUnmappedPointers> unmappedPointers) {
+      public StoredMetadata(IReadOnlyList<StoredAnchor> anchors, IReadOnlyList<StoredUnmappedPointer> unmappedPointers, IReadOnlyList<StoredMatchedWord> matchedWords) {
          NamedAnchors = anchors;
          UnmappedPointers = unmappedPointers;
+         MatchedWords = matchedWords;
       }
 
       public StoredMetadata(string[] lines) {
          var anchors = new List<StoredAnchor>();
-         var pointers = new List<StoredUnmappedPointers>();
+         var pointers = new List<StoredUnmappedPointer>();
+         var matchedWords = new List<StoredMatchedWord>();
 
          foreach (var line in lines) {
             var cleanLine = line.Split('#').First().Trim();
             if (cleanLine == string.Empty) continue;
             if (cleanLine.StartsWith("[")) {
-               CloseCurrentItem(anchors, pointers);
+               CloseCurrentItem(anchors, pointers, matchedWords);
                currentItem = cleanLine;
                continue;
             }
@@ -42,10 +45,11 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
          }
 
-         CloseCurrentItem(anchors, pointers);
+         CloseCurrentItem(anchors, pointers, matchedWords);
 
          NamedAnchors = anchors;
          UnmappedPointers = pointers;
+         MatchedWords = matchedWords;
       }
 
       public string[] Serialize() {
@@ -68,23 +72,38 @@ namespace HavenSoft.HexManiac.Core.Models {
             lines.Add(string.Empty);
          }
 
+         lines.Add("#################################");
+
+         foreach (var word in MatchedWords) {
+            lines.Add("[[MatchedWords]]");
+            lines.Add($"Name = '''{word.Name}'''");
+            lines.Add($"Address = 0x{word.Address.ToString("X6")}");
+            lines.Add(string.Empty);
+         }
+
          return lines.ToArray();
       }
 
       string currentItem, currentItemName, currentItemFormat;
       int currentItemAddress = -1;
 
-      private void CloseCurrentItem(IList<StoredAnchor> anchors, IList<StoredUnmappedPointers> pointers) {
+      private void CloseCurrentItem(IList<StoredAnchor> anchors, IList<StoredUnmappedPointer> pointers, IList<StoredMatchedWord> matchedWords) {
          if (currentItem == "[[UnmappedPointers]]") {
             if (currentItemName == null) throw new ArgumentNullException("The Metadata file has an UnmappedPointer that didn't specify a name!");
             if (currentItemAddress == -1) throw new ArgumentOutOfRangeException("The Metadata file has an UnmappedPointer that didn't specify an Address!");
-            pointers.Add(new StoredUnmappedPointers(currentItemAddress, currentItemName));
+            pointers.Add(new StoredUnmappedPointer(currentItemAddress, currentItemName));
          }
 
          if (currentItem == "[[NamedAnchors]]") {
             if (currentItemName == null) throw new ArgumentNullException("The Metadata file has a NamedAnchor that didn't specify a name!");
             if (currentItemAddress == -1) throw new ArgumentOutOfRangeException("The Metadata file has a NamedAnchor that didn't specify an Address!");
             anchors.Add(new StoredAnchor(currentItemAddress, currentItemName, currentItemFormat));
+         }
+
+         if (currentItem == "[[MatchedWords]]") {
+            if (currentItemName == null) throw new ArgumentNullException("The Metadata file has an UnmappedPointer that didn't specify a name!");
+            if (currentItemAddress == -1) throw new ArgumentOutOfRangeException("The Metadata file has an UnmappedPointer that didn't specify an Address!");
+            matchedWords.Add(new StoredMatchedWord(currentItemAddress, currentItemName));
          }
 
          currentItem = null;
@@ -94,11 +113,11 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
    }
 
-   public class StoredUnmappedPointers {
+   public class StoredUnmappedPointer {
       public int Address { get; }
       public string Name { get; }
 
-      public StoredUnmappedPointers(int address, string name) {
+      public StoredUnmappedPointer(int address, string name) {
          Address = address;
          Name = name;
       }
@@ -114,5 +133,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          Name = name;
          Format = format;
       }
+   }
+
+   public class StoredMatchedWord {
+      public int Address { get; }
+      public string Name { get; }
+      public StoredMatchedWord(int address, string name) => (Address, Name) = (address, name);
    }
 }

@@ -1023,13 +1023,21 @@ namespace HavenSoft.HexManiac.Core.Models {
             anchors.Add(new StoredAnchor(address, name, format));
          }
 
-         var unmappedPointers = new List<StoredUnmappedPointers>();
+         var unmappedPointers = new List<StoredUnmappedPointer>();
          foreach (var kvp in sourceToUnmappedName) {
             var (address, name) = (kvp.Key, kvp.Value);
-            unmappedPointers.Add(new StoredUnmappedPointers(address, name));
+            unmappedPointers.Add(new StoredUnmappedPointer(address, name));
          }
 
-         return new StoredMetadata(anchors, unmappedPointers);
+         var matchedWords = new List<StoredMatchedWord>();
+         foreach (var kvp in this.matchedWords) {
+            var name = kvp.Key;
+            foreach (var address in kvp.Value) {
+               matchedWords.Add(new StoredMatchedWord(address, name));
+            }
+         }
+
+         return new StoredMetadata(anchors, unmappedPointers, matchedWords);
       }
 
       /// <summary>

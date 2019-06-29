@@ -1048,6 +1048,23 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(4, length);
       }
 
+      [Fact]
+      public void CanSaveLooseWordRuns() {
+         var fileSystem = new StubFileSystem();
+         string[] metadata = null;
+         fileSystem.Save = file => true;
+         fileSystem.SaveMetadata = (file, lines) => { metadata = lines; return true; };
+         StandardSetup(out var data, out var model, out var viewPort);
+
+         viewPort.Edit("::test ");
+         viewPort.Save.Execute(fileSystem);
+
+         var storedMetadata = new StoredMetadata(metadata);
+         var matchedWord = storedMetadata.MatchedWords.First();
+         Assert.Equal(0, matchedWord.Address);
+         Assert.Equal("test", matchedWord.Name);
+      }
+
       private static void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);
