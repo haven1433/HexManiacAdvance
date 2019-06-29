@@ -72,6 +72,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          collector.Initialize<IntegerEnum>(typeface, fontSize * .75);
          collector.Initialize<Integer>(typeface, fontSize);
          collector.Initialize<BitArray>(typeface, fontSize);
+         collector.Initialize<MatchedWord>(typeface, fontSize * .75);
 
          for (int x = 0; x < modelWidth; x++) {
             var cell = viewPort[x, position.Y];
@@ -101,6 +102,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                else collector.Collect<None>(x, 1, byteText[cell.Value]);
             } else if (format is BitArray array) {
                collector.Collect<BitArray>(x, 1, byteText[cell.Value]);
+            } else if (format is MatchedWord word) {
+               collector.Collect<MatchedWord>(x, 4, word.Name);
             }
          }
 
@@ -119,6 +122,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          collector.Render<Undefined>(context, Brush(nameof(Theme.Secondary)));
          collector.Render<ErrorPCS>(context, Brush(nameof(Theme.Error)));
          collector.Render<BitArray>(context, Brush(nameof(Theme.Data1)));
+         collector.Render<MatchedWord>(context, Brush(nameof(Theme.Data1)));
 
          context.Pop();
       }
@@ -192,6 +196,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       public void Visit(PlmItem item, byte data) { }
 
       public void Visit(BitArray array, byte data) { }
+
+      public void Visit(MatchedWord word, byte data) { }
 
       /// <summary>
       /// This function is full of dragons. You probably don't want to touch it.

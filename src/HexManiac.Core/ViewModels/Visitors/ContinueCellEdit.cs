@@ -30,6 +30,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             return;
          }
 
+         if (UnderEdit.CurrentText[0] == ':') {
+            if (UnderEdit.CurrentText.Length == 1) {
+               Result = Input == ':';
+            } else {
+               Result = char.IsLetterOrDigit(Input) || Input == ' ';
+            }
+            return;
+         }
+
          Result = ViewPort.AllHexCharacters.Contains(Input);
       }
 
@@ -106,5 +115,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(BitArray array, byte data) {
          Result = ViewPort.AllHexCharacters.Contains(Input);
       }
+
+      public void Visit(MatchedWord word, byte data) => Visit((None)null, data);
    }
 }

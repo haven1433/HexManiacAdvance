@@ -56,7 +56,7 @@ namespace HavenSoft.HexManiac.Tests {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          var model = new PokemonModel(buffer);
          ArrayRun.TryParse(model, "[name\"\"12]13", 12, null, out var arrayRun);
-         model.ObserveRunWritten(new ModelDelta(), arrayRun);
+         model.ObserveAnchorWritten(new ModelDelta(), "table", arrayRun);
          var viewPort = new ViewPort("file.txt", model) { PreferredWidth = -1, Width = 12, Height = 20 };
 
          // spot checks: it should look like a string that starts where the segment starts
@@ -999,6 +999,35 @@ namespace HavenSoft.HexManiac.Tests {
          // Assert
          Assert.Equal(0, model.GetNextRun(0).Start); // the run being edit did not move
          Assert.Single(messages);                    // user was notified about the other move
+      }
+
+      [Fact]
+      public void CanHaveLooseWordRunsReferingToTables() {
+         StandardSetup(out var data, out var model, out var viewPort);
+
+         viewPort.Edit("^table[a:: b::]4 "); // 0x20 bytes
+         viewPort.SelectionStart = new Point(0, 5);
+         viewPort.Edit("::table ");                  // should create a new 4-byte run that stays in sync with the table
+
+         var run = model.GetNextRun(0x50);
+         Assert.IsType<WordRun>(run);
+         Assert.IsType<MatchedWord>(viewPort[1, 5].Format);
+
+         var length = model.ReadValue(0x50);
+         Assert.Equal(4, length);
+
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.Edit("+");                         // should add a new element to the table
+
+         Assert.Equal(5, ((ArrayRun)model.GetNextRun(0)).ElementCount);
+         length = model.ReadValue(0x50);
+         Assert.Equal(5, length);
+      }
+
+      private static void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
+         data = new byte[0x200];
+         model = new PokemonModel(data);
+         viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
       }
 
       private static void WriteStrings(byte[] buffer, int start, params string[] content) {

@@ -26,6 +26,10 @@ namespace HavenSoft.HexManiac.Core.Models {
       private readonly Dictionary<string, List<int>> unmappedNameToSources = new Dictionary<string, List<int>>();
       private readonly Dictionary<int, string> sourceToUnmappedName = new Dictionary<int, string>();
 
+      // for a name of a table (which may not actually be in the file),
+      // get the list of addresses in the file that want to store a number that matches the length of the table.
+      private readonly Dictionary<string, List<int>> matchedWords = new Dictionary<string, List<int>>();
+
       public virtual int EarliestAllowedAnchor => 0;
 
       public override IReadOnlyList<ArrayRun> Arrays => runs.OfType<ArrayRun>().ToList();
@@ -391,6 +395,14 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override void ObserveRunWritten(ModelDelta changeToken, IFormattedRun run) {
+         if (run is ArrayRun array) {
+            // update any words who's length matches this array's name
+            var anchorName = anchorForAddress[run.Start];
+            if (matchedWords.TryGetValue(anchorName, out var words)) {
+               foreach (var address in words) WriteValue(changeToken, address, array.ElementCount);
+            }
+         }
+
          var index = BinarySearch(run.Start);
          if (index < 0) {
             index = ~index;
@@ -423,6 +435,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (run is ArrayRun arrayRun) {
             ModifyAnchorsFromPointerArray(changeToken, arrayRun, AddPointerToAnchor);
             UpdateDependantArrayLengths(changeToken, arrayRun);
+         }
+
+         if (run is WordRun word) {
+            if (!matchedWords.ContainsKey(word.SourceArrayName)) matchedWords[word.SourceArrayName] = new List<int>();
+            matchedWords[word.SourceArrayName].Add(word.Start);
          }
 
          if (run is NoInfoRun && run.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(run.Start)) {
@@ -560,8 +577,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          var seekPointers = existingRun?.PointerSources == null || existingRun?.Start != location;
          var sources = GetSourcesPointingToNewAnchor(changeToken, anchorName, seekPointers);
 
-         // if we're adding an array, update inner pointers and dependent arrays
-         if (run is ArrayRun array && array.SupportsPointersToElements) run = array.AddSourcesPointingWithinArray(changeToken);
+         // if we're adding an array, a few extra updates
+         if (run is ArrayRun array) {
+            // update inner pointers and dependent arrays
+            if (array.SupportsPointersToElements) run = array.AddSourcesPointingWithinArray(changeToken);
+         }
 
          var newRun = run.MergeAnchor(sources);
          using (ModelCacheScope.CreateScope(this)) {
@@ -569,7 +589,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public override void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd) {
+      public override void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd, IReadOnlyDictionary<int, string> matchedWordsToRemove, IReadOnlyDictionary<int, string> matchedWordsToAdd) {
          foreach (var kvp in namesToRemove) {
             var (address, name) = (kvp.Key, kvp.Value);
             addressForAnchor.Remove(name);
@@ -594,6 +614,18 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (!unmappedNameToSources.ContainsKey(name)) unmappedNameToSources[name] = new List<int>();
             unmappedNameToSources[name].Add(address);
             sourceToUnmappedName[address] = name;
+         }
+
+         foreach (var kvp in matchedWordsToRemove) {
+            var (address, name) = (kvp.Key, kvp.Value);
+            matchedWords[name].Remove(address);
+            if (matchedWords[name].Count == 0) matchedWords.Remove(name);
+         }
+
+         foreach (var kvp in matchedWordsToAdd) {
+            var (address, name) = (kvp.Key, kvp.Value);
+            if (!matchedWords.ContainsKey(name)) matchedWords[name] = new List<int>();
+            matchedWords[name].Add(address);
          }
 
          foreach (var kvp in runsToRemove) {

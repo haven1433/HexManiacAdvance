@@ -57,6 +57,7 @@
     <Compile Include="Models\Runs\HeaderRow.cs" />
     <Compile Include="Models\Runs\ModelCacheScope.cs" />
     <Compile Include="Models\Runs\PLMRun.cs" />
+    <Compile Include="Models\Runs\WordRun.cs" />
     <Compile Include="ViewModels\AutoCompleteSelectionItem.cs" />
     <Compile Include="ViewModels\Tools\CodeTool.cs" />
     <Compile Include="ViewModels\Visitors\CompleteEditOperation.cs" />

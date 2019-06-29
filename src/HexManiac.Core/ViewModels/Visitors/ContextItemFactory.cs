@@ -136,6 +136,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Results.AddRange(GetTableChildren(arrayRun));
       }
 
+      public void Visit(MatchedWord word, byte data) => Results.AddRange(GetFormattedChildren());
+
       private IEnumerable<IContextItem> GetTableChildren(ArrayRun array) {
          if (ViewPort.Tools.TableTool.Append.CanExecute(null)) {
             yield return new ContextItem("Extend Table", ViewPort.Tools.TableTool.Append.Execute);

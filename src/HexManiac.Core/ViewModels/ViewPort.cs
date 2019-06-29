@@ -1066,6 +1066,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var plmRun = (PLMRun)Model.GetNextRun(((IDataFormatInstance)originalFormat).Source);
                var allOptions = plmRun.GetAutoCompleteOptions(newText.Split(' ')[0]);
                return AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(moveName)), selectedIndex);
+            } else if (newText.StartsWith(":")) {
+               return Model.GetNewWordAutocompleteOptions(newText, selectedIndex);
             } else {
                throw new NotImplementedException();
             }

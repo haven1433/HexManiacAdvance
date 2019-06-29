@@ -42,6 +42,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             return;
          }
 
+         if (Input == ':') {
+            var editText = Input.ToString();
+            var autocompleteOptions = Model.GetNewWordAutocompleteOptions("::", -1);
+            NewFormat = new UnderEdit(dataFormat, editText, 4, autocompleteOptions);
+            Result = true;
+            return;
+         }
+
          Result = ViewPort.AllHexCharacters.Contains(Input);
       }
 
@@ -143,6 +151,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(BitArray array, byte data) {
          Result = ViewPort.AllHexCharacters.Contains(Input);
       }
+      public void Visit(MatchedWord word, byte data) => Visit((None)null, data);
    }
 }
 

@@ -34,7 +34,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       void ObserveRunWritten(ModelDelta changeToken, IFormattedRun run);
       void ObserveAnchorWritten(ModelDelta changeToken, string anchorName, IFormattedRun run);
-      void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd);
+      void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd, IReadOnlyDictionary<int, string> matchedWordsToRemove, IReadOnlyDictionary<int, string> matchedWordsToAdd);
       IFormattedRun RelocateForExpansion(ModelDelta changeToken, IFormattedRun run, int minimumLength);
       void ClearFormat(ModelDelta changeToken, int start, int length);
       void ClearFormatAndData(ModelDelta changeToken, int start, int length);
@@ -107,7 +107,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public abstract void ObserveRunWritten(ModelDelta changeToken, IFormattedRun run);
 
-      public abstract void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd);
+      public abstract void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd, IReadOnlyDictionary<int, string> matchedWordsToRemove, IReadOnlyDictionary<int, string> matchedWordsToAdd);
 
       public abstract IFormattedRun RelocateForExpansion(ModelDelta changeToken, IFormattedRun run, int minimumLength);
 
@@ -219,6 +219,12 @@ namespace HavenSoft.HexManiac.Core.Models {
          return AutoCompleteSelectionItem.Generate(options, selectedIndex);
       }
 
+      public static IReadOnlyList<AutoCompleteSelectionItem> GetNewWordAutocompleteOptions(this IDataModel model, string text, int selectedIndex) {
+         var options = model.GetAutoCompleteAnchorNameOptions(text.Substring(2));
+         options = options.Select(option => $"::{option} ").ToList();
+         return AutoCompleteSelectionItem.Generate(options, selectedIndex);
+      }
+
       // wraps an IDataFormat in an anchor format, if it makes sense
       public static IDataFormat WrapFormat(this IDataModel model, IFormattedRun run, IDataFormat format, int dataIndex) {
          if (run.PointerSources != null && run.Start == dataIndex) {
@@ -298,7 +304,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override bool IsAtEndOfArray(int dataIndex, out ArrayRun arrayRun) { arrayRun = null; return false; }
       public override void ObserveRunWritten(ModelDelta changeToken, IFormattedRun run) { }
       public override void ObserveAnchorWritten(ModelDelta changeToken, string anchorName, IFormattedRun run) { }
-      public override void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd) { }
+      public override void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd, IReadOnlyDictionary<int, string> matchedWordsToRemove, IReadOnlyDictionary<int, string> matchedWordsToAdd) { }
       public override IFormattedRun RelocateForExpansion(ModelDelta changeToken, IFormattedRun run, int minimumLength) => throw new NotImplementedException();
       public override void ClearFormat(ModelDelta changeToken, int start, int length) { }
       public override void ClearFormatAndData(ModelDelta changeToken, int start, int length) {
