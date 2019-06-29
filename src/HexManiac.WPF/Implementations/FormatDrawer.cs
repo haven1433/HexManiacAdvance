@@ -102,7 +102,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                else collector.Collect<None>(x, 1, byteText[cell.Value]);
             } else if (format is BitArray array) {
                collector.Collect<BitArray>(x, 1, byteText[cell.Value]);
-            } else if (format is MatchedWord word) {
+            } else if (format is MatchedWord word && word.Position == 0) {
                collector.Collect<MatchedWord>(x, 4, word.Name);
             }
          }

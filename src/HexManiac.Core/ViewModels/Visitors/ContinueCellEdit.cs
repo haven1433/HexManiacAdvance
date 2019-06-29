@@ -25,18 +25,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(Undefined dataFormat, byte data) => Visit((None)null, data);
 
       public void Visit(None dataFormat, byte data) {
-         if (UnderEdit.CurrentText[0] == PointerStart) {
-            Result = char.IsLetterOrDigit(Input) || Input == ArrayAnchorSeparator || Input == PointerEnd || Input == ' ';
-            return;
-         }
-
-         if (UnderEdit.CurrentText[0] == ':') {
-            if (UnderEdit.CurrentText.Length == 1) {
-               Result = Input == ':';
-            } else {
-               Result = char.IsLetterOrDigit(Input) || Input == ' ';
+         if (UnderEdit.CurrentText.Length > 0) {
+            if (UnderEdit.CurrentText[0] == PointerStart) {
+               Result = char.IsLetterOrDigit(Input) || Input == ArrayAnchorSeparator || Input == PointerEnd || Input == ' ';
+               return;
             }
-            return;
+
+            if (UnderEdit.CurrentText[0] == ':') {
+               if (UnderEdit.CurrentText.Length == 1) {
+                  Result = Input == ':';
+               } else {
+                  Result = char.IsLetterOrDigit(Input) || Input == ' ';
+               }
+               return;
+            }
          }
 
          Result = ViewPort.AllHexCharacters.Contains(Input);

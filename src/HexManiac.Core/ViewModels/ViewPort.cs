@@ -54,12 +54,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public int Width {
          get => scroll.Width;
-         set => selection.ChangeWidth(value);
+         set {
+            using (ModelCacheScope.CreateScope(Model)) selection.ChangeWidth(value);
+         }
       }
 
       public int Height {
          get => scroll.Height;
-         set => scroll.Height = value;
+         set {
+            using (ModelCacheScope.CreateScope(Model)) scroll.Height = value;
+         }
       }
 
       public int MinimumScroll => scroll.MinimumScroll;
@@ -933,21 +937,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var format = currentView[x, y].Format;
          if (format is Anchor anchor) format = anchor.OriginalFormat;
 
-         // follow pointer
-         if (format is Pointer pointer) {
-            if (pointer.Destination != Pointer.NULL) {
-               selection.GotoAddress(pointer.Destination);
-            } else if (string.IsNullOrEmpty(pointer.DestinationName)) {
-               OnError(this, $"null pointers point to nothing, so going to their source isn't possible.");
-            } else {
-               OnError(this, $"Pointer destination {pointer.DestinationName} not found.");
-            }
-         }
-
-         // open tool
-         var byteOffset = scroll.ViewPointToDataIndex(new Point(x, y));
-         var currentRun = Model.GetNextRun(byteOffset);
          using (ModelCacheScope.CreateScope(Model)) {
+            // follow pointer
+            if (format is Pointer pointer) {
+               if (pointer.Destination != Pointer.NULL) {
+                  selection.GotoAddress(pointer.Destination);
+               } else if (string.IsNullOrEmpty(pointer.DestinationName)) {
+                  OnError(this, $"null pointers point to nothing, so going to their source isn't possible.");
+               } else {
+                  OnError(this, $"Pointer destination {pointer.DestinationName} not found.");
+               }
+            }
+
+            // follow word value source
+            if (format is MatchedWord word) {
+               var address = Model.GetAddressFromAnchor(history.CurrentChange, -1, word.Name.Substring(2));
+               if (address == Pointer.NULL) {
+                  OnError(this, $"No table with name '{word.Name.Substring(2)}' was found.");
+               } else {
+                  selection.GotoAddress(address);
+               }
+            }
+
+            // open tool
+            var byteOffset = scroll.ViewPointToDataIndex(new Point(x, y));
+            var currentRun = Model.GetNextRun(byteOffset);
             if (currentRun is IStreamRun) {
                Tools.StringTool.Address = currentRun.Start;
                Tools.SelectedIndex = Tools.IndexOf(Tools.StringTool);
@@ -1069,7 +1083,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             } else if (newText.StartsWith(":")) {
                return Model.GetNewWordAutocompleteOptions(newText, selectedIndex);
             } else {
-               throw new NotImplementedException();
+               return null;
             }
          }
       }
@@ -1147,7 +1161,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          (Point, Point) pair(int start, int end) => (scroll.DataIndexToViewPoint(start), scroll.DataIndexToViewPoint(end));
 
-         if (run is PointerRun) return pair(run.Start, run.Start + run.Length - 1);
+         if (run is PointerRun || run is WordRun) return pair(run.Start, run.Start + run.Length - 1);
          if (run is EggMoveRun || run is PLMRun) {
             var even = (index - run.Start) % 2 == 0;
             if (even) return pair(index, index + 1);

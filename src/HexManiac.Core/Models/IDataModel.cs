@@ -220,7 +220,9 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public static IReadOnlyList<AutoCompleteSelectionItem> GetNewWordAutocompleteOptions(this IDataModel model, string text, int selectedIndex) {
-         var options = model.GetAutoCompleteAnchorNameOptions(text.Substring(2));
+         if (text.Length >= 2) text = text.Substring(2);
+         else return null;
+         var options = model.GetAutoCompleteAnchorNameOptions(text);
          options = options.Select(option => $"::{option} ").ToList();
          return AutoCompleteSelectionItem.Generate(options, selectedIndex);
       }
