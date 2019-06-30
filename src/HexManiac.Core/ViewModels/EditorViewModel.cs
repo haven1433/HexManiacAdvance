@@ -368,7 +368,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          SelectedIndex = tabs.Count - 1;
          CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, content));
          AddContentListeners(content);
-         if (content is IViewPort viewModel) viewModel.UseCustomHeaders = useTableEntryHeaders;
+         if (content is IViewPort viewModel) {
+            viewModel.UseCustomHeaders = useTableEntryHeaders;
+            viewModel.ValidateMatchedWords();
+         }
       }
 
       public void SwapTabs(int a, int b) {

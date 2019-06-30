@@ -1026,6 +1026,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          RequestMenuClose?.Invoke(this, EventArgs.Empty);
       }
 
+      public void ValidateMatchedWords() {
+         // TODO if this is too slow, add a method to the model to get the set of only MatchedWordRuns.
+         for (var run = Model.GetNextRun(0); run != NoInfoRun.NullRun; run = Model.GetNextRun(run.Start + run.Length)) {
+            if (!(run is WordRun wordRun)) continue;
+            var address = Model.GetAddressFromAnchor(history.CurrentChange, -1, wordRun.SourceArrayName);
+            if (address == Pointer.NULL) continue;
+            var array = Model.GetNextRun(address) as ArrayRun;
+            if (array == null) continue;
+            var actualValue = Model.ReadValue(wordRun.Start);
+            if (array.ElementCount == actualValue) continue;
+            OnMessage?.Invoke(this, $"MatchedWord at {wordRun.Start:X6} was expected to have value {array.ElementCount}, but was {actualValue}.");
+            Goto.Execute(wordRun.Start.ToString("X6"));
+            break;
+         }
+      }
+
       private void Edit(char input) {
          var point = GetEditPoint();
          var element = currentView[point.X, point.Y];

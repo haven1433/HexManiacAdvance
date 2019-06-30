@@ -203,6 +203,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          children[childIndex].FindAllSources(x, y);
       }
 
+      public void ValidateMatchedWords() { }
+
       public IReadOnlyList<IContextItem> GetContextMenuItems(Point selectionPoint) {
          return new[] { new ContextItem("Open in Main Tab", arg => {
             FollowLink(selectionPoint.X, selectionPoint.Y);

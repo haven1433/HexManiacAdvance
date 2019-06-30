@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System.Collections.Generic;
@@ -346,6 +347,31 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Contains("*", viewPort.Name);
          Assert.Equal(3, nameChangedCount);
+      }
+
+      [Fact]
+      public void ViewPortWarnsIfLoadedMatchedWordValueDoesNotMatch() {
+         // Arrange
+         var data = new byte[0x200];
+         var model = new PokemonModel(data);
+         var change = new ModelDelta();
+         ArrayRun.TryParse(model, "[a:]8", 0x10, null, out var table);
+         model.ObserveAnchorWritten(change, "table", table);
+         change.AddMatchedWord(model, 0, "table");
+         model.ObserveRunWritten(change, new WordRun(0, "table"));
+
+         fileSystem.MetadataFor = name => model.ExportMetadata().Serialize();
+         fileSystem.OpenFile = (name, extensions) => new LoadedFile(name, data);
+         var editor = new EditorViewModel(fileSystem);
+
+         // change the data so that the viewPort will notice something weird
+         change.ChangeData(model, 0, 4);
+
+         // Act
+         editor.Open.Execute("text.gba");
+
+         // Assert
+         Assert.True(editor.ShowMessage);
       }
    }
 }
