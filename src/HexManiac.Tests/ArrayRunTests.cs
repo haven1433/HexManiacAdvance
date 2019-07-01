@@ -1012,6 +1012,7 @@ namespace HavenSoft.HexManiac.Tests {
          var run = model.GetNextRun(0x50);
          Assert.IsType<WordRun>(run);
          Assert.IsType<MatchedWord>(viewPort[1, 5].Format);
+         Assert.Equal(new Point(4, 5), viewPort.SelectionStart);
 
          var length = model.ReadValue(0x50);
          Assert.Equal(4, length);

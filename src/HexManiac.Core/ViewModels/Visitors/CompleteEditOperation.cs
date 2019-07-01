@@ -291,6 +291,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Model.ClearFormat(CurrentChange, memoryLocation, 4);
          CurrentChange.AddMatchedWord(Model, memoryLocation, parentName);
          Model.ObserveRunWritten(CurrentChange, new WordRun(memoryLocation, parentName));
+         NewDataIndex = memoryLocation + 4;
       }
 
       private void CompleteStringEdit() {
