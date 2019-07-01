@@ -1035,6 +1035,7 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Edit("::table ");                  // should create a new 4-byte run that stays in sync with the table
 
          // remove the format
+         viewPort.SelectionStart = new Point(0, 5);
          var items = viewPort.GetContextMenuItems(new Point(0, 5));
          var contextItem = items.Single(item => item.Text == "Clear Format");
          contextItem.Command.Execute();

@@ -32,7 +32,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       // Treat it the same as a None.
       public void Visit(Undefined dataFormat, byte data) => Visit((None)null, data);
 
-      public void Visit(None dataFormat, byte data) {
+      public void Visit(None dataFormat, byte data) => BasicVisit(dataFormat, data);
+
+      private void BasicVisit(IDataFormat dataFormat, byte data) {
          // you can write a pointer into a space with no current format
          if (Input == PointerStart) {
             var editText = Input.ToString();
@@ -75,6 +77,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       }
 
       public void Visit(Pointer pointer, byte data) {
+         if (Input == ':') { BasicVisit(pointer, data); return; }
          if (Input != PointerStart && !char.IsLetterOrDigit(Input)) return;
 
          var editText = Input.ToString();
@@ -151,7 +154,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(BitArray array, byte data) {
          Result = ViewPort.AllHexCharacters.Contains(Input);
       }
-      public void Visit(MatchedWord word, byte data) => Visit((None)null, data);
+      public void Visit(MatchedWord word, byte data) => BasicVisit(word, data);
    }
 }
 

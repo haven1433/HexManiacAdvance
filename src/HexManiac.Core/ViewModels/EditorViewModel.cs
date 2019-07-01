@@ -175,6 +175,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public IToolTrayViewModel Tools => (SelectedTab as IViewPort)?.Tools;
 
+      public IReadOnlyList<IQuickEditItem> QuickEdits { get; } = new List<IQuickEditItem> {
+         new MakeTutorsExpandable(),
+      };
+
       public event EventHandler<Action> RequestDelayedWork;
 
       public event EventHandler MoveFocusToFind;
@@ -245,6 +249,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var zoomLine = metadata.FirstOrDefault(line => line.StartsWith("ZoomLevel ="));
          if (zoomLine != null && int.TryParse(zoomLine.Split('=').Last().Trim(), out var zoomLevel)) ZoomLevel = zoomLevel;
       }
+
+      public static ICommand Wrap(IQuickEditItem quickEdit) => new StubCommand {
+         CanExecute = arg => quickEdit.CanRun((IViewPort)arg),
+         Execute = arg => quickEdit.Run((IViewPort)arg),
+      };
 
       public void WriteAppLevelMetadata() {
          var metadata = new List<string>();

@@ -238,6 +238,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private readonly ChangeHistory<ModelDelta> history;
 
+      public ModelDelta CurrentChange => history.CurrentChange;
+
       public ICommand Undo => history.Undo;
 
       public ICommand Redo => history.Redo;

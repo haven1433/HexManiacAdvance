@@ -1,6 +1,7 @@
 ﻿
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
@@ -16,7 +17,7 @@ namespace HavenSoft.HexManiac.Tests {
    /// </summary>
    public class AutoSearchTests {
 
-      public static IEnumerable<object[]> PokemonGames => new[] {
+      public static IEnumerable<object[]> PokemonGames { get; } = new[] {
          "Ruby",
          "Sapphire",
          "FireRed",
@@ -226,6 +227,41 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(compatibilityElementLength, compatibility.ElementContent[0].Length);
       }
 
+      // this one actually changes the data, so I can't use the same shared model as everone else.
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void ExpandableTutorsWorks(string game) {
+         var fileSystem = new StubFileSystem();
+         var model = LoadModelNoCache(game);
+         var editor = new EditorViewModel(fileSystem, false);
+         var viewPort = new ViewPort(game, model);
+         editor.Add(viewPort);
+         var expandTutors = editor.QuickEdits.Single(edit => edit.Name == "Make Tutors Expandable");
+
+         // ruby/sapphire/gaia do not support this quick-edit
+         var canRun = expandTutors.CanRun(viewPort);
+         if (game.Contains("Ruby") || game.Contains("Sapphire") || game.Contains("Gaia")) {
+            Assert.False(canRun);
+            return;
+         } else {
+            Assert.True(canRun);
+         }
+
+         // run the actual quick-edit
+         expandTutors.Run(viewPort);
+
+         // extend the table
+         var table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, "tutormoves"));
+         viewPort.Goto.Execute((table.Start + table.Length).ToString("X6"));
+         viewPort.Edit("+");
+
+         // the 4 bytes after the last pointer to tutor-compatibility should store the length of tutormoves
+         table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, "tutormoves"));
+         var tutorCompatibilityPointerSources = model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, "tutorcompatibility")).PointerSources;
+         var word = (WordRun)model.GetNextRun(tutorCompatibilityPointerSources.Last() + 4);
+         Assert.Equal(table.ElementCount, model.ReadValue(word.Start));
+      }
+
       /// <summary>
       /// Loading the model can take a while.
       /// We want to know that loading the model created the correct arrays,
@@ -233,17 +269,21 @@ namespace HavenSoft.HexManiac.Tests {
       /// Go ahead and cache a model loaded from a file the first time,
       /// so each individual test doesn't have to do it again.
       /// </summary>
-      private static IDictionary<string, AutoSearchModel> modelCache = new Dictionary<string, AutoSearchModel>();
+      private static IDictionary<string, Lazy<AutoSearchModel>> modelCache = new Dictionary<string, Lazy<AutoSearchModel>>();
       private static AutoSearchModel LoadModel(string name) {
          lock (modelCache) {
-            if (modelCache.TryGetValue(name, out var cachedModel)) return cachedModel;
-            Skip.IfNot(File.Exists(name));
-            var data = File.ReadAllBytes(name);
-            var metadata = new StoredMetadata(new string[0]);
-            var model = new AutoSearchModel(data, metadata);
-            modelCache[name] = model;
-            return model;
+            if (!modelCache.ContainsKey(name)) modelCache[name] = new Lazy<AutoSearchModel>(() => LoadModelNoCache(name));
          }
+
+         return modelCache[name].Value;
+      }
+
+      private static AutoSearchModel LoadModelNoCache(string name) {
+         Skip.IfNot(File.Exists(name));
+         var data = File.ReadAllBytes(name);
+         var metadata = new StoredMetadata(new string[0]);
+         var model = new AutoSearchModel(data, metadata);
+         return model;
       }
    }
 }
