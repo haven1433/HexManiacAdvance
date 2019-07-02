@@ -486,7 +486,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       private void UpdateDependantArrayLengths(ModelDelta changeToken, ArrayRun arrayRun) {
          foreach (var table in this.GetDependantArrays(arrayRun)) {
             if (arrayRun.ElementCount == table.ElementCount) continue;
-            var newTable = table.Append(arrayRun.ElementCount - table.ElementCount);
+            var newTable = (ArrayRun)RelocateForExpansion(changeToken, table, arrayRun.ElementCount * table.ElementLength);
+            newTable = newTable.Append(arrayRun.ElementCount - table.ElementCount);
             ObserveRunWritten(changeToken, newTable);
          }
       }
@@ -519,9 +520,14 @@ namespace HavenSoft.HexManiac.Core.Models {
             var existingRun = runs[index];
             changeToken.RemoveRun(existingRun);
             UpdateNewRunFromPointerFormat(ref existingRun, segment as ArrayRunPointerSegment, changeToken);
+            existingRun = existingRun.MergeAnchor(new[] { start });
             index = BinarySearch(destination); // runs could've been removed during UpdateNewRunFromPointerFormat: search for the index again.
-            runs[index] = existingRun.MergeAnchor(new[] { start });
-            changeToken.AddRun(runs[index]);
+            if (index < 0) {
+               runs.Insert(~index, existingRun);
+            } else {
+               runs[index] = existingRun;
+            }
+            changeToken.AddRun(existingRun);
          }
       }
 

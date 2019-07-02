@@ -979,14 +979,14 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void ParentTableAutoMoveNotifies() {
          // Arrange
-         var data = Enumerable.Range(0, 0x200).Select(i => (byte)0x42).ToArray();
+         var data = Enumerable.Range(0, 0x200).Select(i => (byte)0x42).ToArray(); // fill with 'stuff' so that the parent table will have to move.
          var model = new PokemonModel(data);
 
-         ArrayRun.TryParse(model, "[a: b:]parent", 0x00, null, out var table);
-         model.ObserveAnchorWritten(new ModelDelta(), "child", table);
-
-         ArrayRun.TryParse(model, "[a: b:]8", 0x20, null, out table); // parent table starts directly after child table
+         ArrayRun.TryParse(model, "[a: b:]8", 0x20, null, out var table); // parent table starts directly after child table
          model.ObserveAnchorWritten(new ModelDelta(), "parent", table);
+
+         ArrayRun.TryParse(model, "[a: b:]parent", 0x00, null, out table);
+         model.ObserveAnchorWritten(new ModelDelta(), "child", table);
 
          var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          var messages = new List<string>();
@@ -994,6 +994,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          // Act
          viewPort.SelectionStart = new Point(0xD, 1);
+         viewPort.Tools.SelectedIndex = viewPort.Tools.IndexOf(viewPort.Tools.TableTool);
          viewPort.Tools.TableTool.Append.Execute();
 
          // Assert
@@ -1065,6 +1066,21 @@ namespace HavenSoft.HexManiac.Tests {
          var matchedWord = storedMetadata.MatchedWords.First();
          Assert.Equal(0, matchedWord.Address);
          Assert.Equal("test", matchedWord.Name);
+      }
+
+      [Fact]
+      public void AppendToTableMovesTableIfConflictingWithAnchor() {
+         StandardSetup(out var data, out var model, out var viewPort);
+         viewPort.Edit("@0 ^table[data:]parent ");
+         viewPort.Edit("@10 ^stuff @20 ^parent[data:]8 ");
+
+         // try to extend table via tool
+         viewPort.SelectionStart = new Point(0xF, 0);
+         viewPort.Tools.SelectedIndex = viewPort.Tools.IndexOf(viewPort.Tools.TableTool);
+         viewPort.Tools.TableTool.Append.Execute();
+
+         // assert that the run moved
+         Assert.NotEqual(0, model.GetNextRun(0).Start);
       }
 
       private static void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {

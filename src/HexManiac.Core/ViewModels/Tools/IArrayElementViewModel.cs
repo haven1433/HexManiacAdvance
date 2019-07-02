@@ -240,15 +240,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          get => content;
          set {
             if (TryUpdate(ref content, value)) {
-               var destination = model.ReadPointer(start);
-               var run = (IStreamRun)model.GetNextRun(destination);
-               var newRun = run.DeserializeRun(content, history.CurrentChange);
-               if (run.Start != newRun.Start) {
-                  DataMoved?.Invoke(this, (run.Start, newRun.Start));
-                  matchingField.RefreshControlFromModelChange();
+               using (ModelCacheScope.CreateScope(model)) {
+                  var destination = model.ReadPointer(start);
+                  var run = (IStreamRun)model.GetNextRun(destination);
+                  var newRun = run.DeserializeRun(content, history.CurrentChange);
+                  model.ObserveRunWritten(history.CurrentChange, newRun);
+                  if (run.Start != newRun.Start) {
+                     DataMoved?.Invoke(this, (run.Start, newRun.Start));
+                     matchingField.RefreshControlFromModelChange();
+                  }
+                  DataChanged?.Invoke(this, EventArgs.Empty);
                }
-               run = newRun;
-               DataChanged?.Invoke(this, EventArgs.Empty);
             }
          }
       }
