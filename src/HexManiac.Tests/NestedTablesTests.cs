@@ -367,6 +367,22 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.True(viewPort.IsSelected(new Point(5, 0)));
       }
 
+      [Fact]
+      public void CanExpandBitArrays() {
+         // Arrange a table with 8 elements
+         // and a second table that uses those elements as bits
+         SetupMoveTable(0x00);
+         viewPort.Edit($"@40 ^mymoves[move:{EggMoveRun.MoveNamesTable}]8 "); // setup a table that uses 'movenames' as an enum
+         viewPort.Edit($"@60 ^table[data|b[]mymoves]4 @61 FF "); // set all 8 name bits to true for the table[1]    // 60 - 64
+
+         // Act: expand the enum table to have 9 entries
+         viewPort.Edit("@50 +");
+
+         // Assert that the 8 true bits moved based on the expansion, and the new table uses 2 bytes per element.
+         Assert.Equal(0xFF, data[0x62]);
+         Assert.Equal(8, model.GetNextRun(0x60).Length);
+      }
+
       // creates a move table that is 0x40 bytes long
       private void SetupMoveTable(int start) {
          viewPort.Goto.Execute(start.ToString("X6"));

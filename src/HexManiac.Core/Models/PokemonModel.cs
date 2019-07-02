@@ -484,11 +484,43 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// (Recursively, since other arrays might depend on those ones).
       /// </summary>
       private void UpdateDependantArrayLengths(ModelDelta changeToken, ArrayRun arrayRun) {
-         foreach (var table in this.GetDependantArrays(arrayRun)) {
-            if (arrayRun.ElementCount == table.ElementCount) continue;
-            var newTable = (ArrayRun)RelocateForExpansion(changeToken, table, arrayRun.ElementCount * table.ElementLength);
-            newTable = newTable.Append(arrayRun.ElementCount - table.ElementCount);
-            ObserveRunWritten(changeToken, newTable);
+         if (!anchorForAddress.TryGetValue(arrayRun.Start, out string anchor)) return;
+         foreach (var table in this.GetDependantArrays(anchor)) {
+            var newTable = table;
+            if (anchor.Equals(table.LengthFromAnchor)) {
+               if (arrayRun.ElementCount == table.ElementCount) continue;
+               newTable = (ArrayRun)RelocateForExpansion(changeToken, table, arrayRun.ElementCount * table.ElementLength);
+               newTable = newTable.Append(arrayRun.ElementCount - table.ElementCount);
+               ObserveRunWritten(changeToken, newTable);
+            }
+            var requiredByteLength = (int)Math.Ceiling(arrayRun.ElementCount / 8.0);
+            for (int segmentIndex = 0; segmentIndex < newTable.ElementContent.Count; segmentIndex++) {
+               if (!(newTable.ElementContent[segmentIndex] is ArrayRunBitArraySegment bitSegment)) continue;
+               if (bitSegment.Length == requiredByteLength) continue;
+               newTable = (ArrayRun)RelocateForExpansion(changeToken, table, arrayRun.ElementCount * (newTable.ElementLength - bitSegment.Length + requiredByteLength));
+               // within the new table, shift all the data to fit the new data width
+               for (int elementIndex = newTable.ElementCount - 1; elementIndex >= 0; elementIndex--) {
+                  var sourceIndex = newTable.Start + newTable.ElementLength * elementIndex;
+                  var destinationIndex = newTable.Start + (newTable.ElementLength - bitSegment.Length + requiredByteLength) * elementIndex;
+                  for (int movingSegmentIndex = 0; movingSegmentIndex < newTable.ElementContent.Count; movingSegmentIndex++) {
+                     // move the source data to the destination point
+                     for (var byteIndex = 0; byteIndex < newTable.ElementContent[movingSegmentIndex].Length; byteIndex++) {
+                        changeToken.ChangeData(this, destinationIndex, RawData[sourceIndex]);
+                        sourceIndex++;
+                        destinationIndex++;
+                     }
+                     // if we're at the segment that's expanding, expand it by filling with 0's
+                     if (movingSegmentIndex == segmentIndex) {
+                        for (var byteIndex = 0; byteIndex < requiredByteLength - bitSegment.Length; byteIndex++) {
+                           changeToken.ChangeData(this, destinationIndex, 0);
+                           destinationIndex++;
+                        }
+                     }
+                  }
+               }
+               newTable = newTable.GrowBitArraySegment(segmentIndex, requiredByteLength - bitSegment.Length);
+               ObserveRunWritten(changeToken, newTable);
+            }
          }
       }
 

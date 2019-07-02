@@ -338,6 +338,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new ArrayRun(owner, newFormat, LengthFromAnchor, Start, ElementCount + elementCount, ElementContent, PointerSources, PointerSourcesForInnerElements);
       }
 
+      public ArrayRun GrowBitArraySegment(int bitSegmentIndex, int additionalBytes) {
+         // all the data has been moved already
+         // just return a new ArrayRun with the desired change.
+         var content = ElementContent.ToList();
+         var oldSegment = (ArrayRunBitArraySegment)content[bitSegmentIndex];
+         content[bitSegmentIndex] = new ArrayRunBitArraySegment(oldSegment.Name, oldSegment.Length + additionalBytes, oldSegment.SourceArrayName);
+         return new ArrayRun(owner, FormatString, LengthFromAnchor, Start, ElementCount, content, PointerSources, PointerSourcesForInnerElements);
+      }
+
       public ArrayRun AddSourcePointingWithinArray(int source) {
          var destination = owner.ReadPointer(source);
          var index = (destination - Start) / ElementLength;

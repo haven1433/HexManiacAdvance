@@ -286,11 +286,16 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       /// <summary>
       /// Returns all arrays from the model with a length that depends on the parent array.
+      /// Also returns any array with a BitArraySegment that depends on the parent array.
       /// </summary>
-      public static IEnumerable<ArrayRun> GetDependantArrays(this IDataModel model, ArrayRun parent) {
-         var anchor = model.GetAnchorFromAddress(-1, parent.Start);
+      public static IEnumerable<ArrayRun> GetDependantArrays(this IDataModel model, string anchor) {
          foreach (var array in model.Arrays) {
             if (array.LengthFromAnchor == anchor) yield return array;
+            foreach (var segment in array.ElementContent) {
+               if (segment is ArrayRunBitArraySegment bitSegment) {
+                  if (bitSegment.SourceArrayName == anchor) yield return array;
+               }
+            }
          }
       }
    }
