@@ -106,7 +106,17 @@
                   <Button Margin="5" Content="Previous" Command="{Binding TableTool.Previous}" HorizontalAlignment="Left"/>
                   <Button Margin="5" Content="Next" Command="{Binding TableTool.Next}" HorizontalAlignment="Right"/>
                </Grid>
-               <Button Margin="5" Content="Append" Command="{Binding TableTool.Append}" HorizontalAlignment="Right"/>
+               <Border Margin="5" HorizontalAlignment="Right">
+                  <Border.ToolTip>
+                     <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                        <TextBlock TextAlignment="Left">
+                           Select the last element of the table <LineBreak/>
+                           and press this to extend the table.
+                        </TextBlock>
+                     </ToolTip>
+                  </Border.ToolTip>
+                  <Button Content="Add New" Command="{Binding TableTool.Append}"/>
+               </Border>
                <ItemsControl ItemsSource="{Binding TableTool.Children}" Grid.IsSharedSizeScope="True">
                   <ItemsControl.Resources>
                      <DataTemplate DataType="{x:Type hsg3hvmtr:FieldArrayElementViewModel}">

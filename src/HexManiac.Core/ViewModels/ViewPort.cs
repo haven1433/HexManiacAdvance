@@ -70,7 +70,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public int ScrollValue {
          get => scroll.ScrollValue;
-         set => scroll.ScrollValue = value;
+         set { using (ModelCacheScope.CreateScope(Model)) scroll.ScrollValue = value; }
       }
 
       public int MaximumScroll => scroll.MaximumScroll;

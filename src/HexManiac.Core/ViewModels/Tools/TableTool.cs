@@ -104,22 +104,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                return array != null && array.Start + array.Length == address + array.ElementLength;
             },
             Execute = parameter => {
-               var array = (ArrayRun)model.GetNextRun(address);
-               var originalArray = array;
-               var error = model.CompleteArrayExtension(history.CurrentChange, ref array);
-               if (array.Start != originalArray.Start) {
-                  ModelDataMoved?.Invoke(this, (originalArray.Start, array.Start));
-                  selection.GotoAddress(array.Start + array.Length - array.ElementLength);
+               using (ModelCacheScope.CreateScope(model)) {
+                  var array = (ArrayRun)model.GetNextRun(address);
+                  var originalArray = array;
+                  var error = model.CompleteArrayExtension(history.CurrentChange, ref array);
+                  if (array.Start != originalArray.Start) {
+                     ModelDataMoved?.Invoke(this, (originalArray.Start, array.Start));
+                     selection.GotoAddress(array.Start + array.Length - array.ElementLength);
+                  }
+                  if (error.HasError && !error.IsWarning) {
+                     OnError?.Invoke(this, error.ErrorMessage);
+                  } else {
+                     if (error.IsWarning) OnMessage?.Invoke(this, error.ErrorMessage);
+                     ModelDataChanged?.Invoke(this, array);
+                     selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(array.Start + array.Length - array.ElementLength);
+                     selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selection.Scroll.ViewPointToDataIndex(selection.SelectionStart) + array.ElementLength - 1);
+                  }
+                  RequestMenuClose?.Invoke(this, EventArgs.Empty);
                }
-               if (error.HasError && !error.IsWarning) {
-                  OnError?.Invoke(this, error.ErrorMessage);
-               } else {
-                  if (error.IsWarning) OnMessage?.Invoke(this, error.ErrorMessage);
-                  ModelDataChanged?.Invoke(this, array);
-                  selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(array.Start + array.Length - array.ElementLength);
-                  selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selection.Scroll.ViewPointToDataIndex(selection.SelectionStart) + array.ElementLength - 1);
-               }
-               RequestMenuClose?.Invoke(this, EventArgs.Empty);
             }
          };
 

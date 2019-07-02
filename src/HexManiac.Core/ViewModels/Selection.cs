@@ -225,18 +225,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             preferredWidth = DefaultPreferredWidth;
          }
 
-         var startAddress = address;
-         if (!destinationIsArray && preferredWidth > 1) address -= address % preferredWidth;
+         using (ModelCacheScope.CreateScope(model)) {
+            var startAddress = address;
+            if (!destinationIsArray && preferredWidth > 1) address -= address % preferredWidth;
 
-         // first, change the selection and scroll to select the actual requested address
-         SelectionStart = Scroll.DataIndexToViewPoint(startAddress);
-         Scroll.ScrollValue += selectionStart.Y;
+            // first, change the selection and scroll to select the actual requested address
+            SelectionStart = Scroll.DataIndexToViewPoint(startAddress);
+            Scroll.ScrollValue += selectionStart.Y;
 
-         // then, scroll left/right as needed to align everything
-         while (Scroll.DataIndex < address) Scroll.Scroll.Execute(Direction.Right);
-         while (Scroll.DataIndex > address) Scroll.Scroll.Execute(Direction.Left);
+            // then, scroll left/right as needed to align everything
+            while (Scroll.DataIndex < address) Scroll.Scroll.Execute(Direction.Right);
+            while (Scroll.DataIndex > address) Scroll.Scroll.Execute(Direction.Left);
 
-         PreferredWidth = preferredWidth;
+            PreferredWidth = preferredWidth;
+         }
       }
 
       /// <summary>
