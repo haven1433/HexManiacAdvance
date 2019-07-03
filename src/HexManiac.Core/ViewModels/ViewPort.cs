@@ -247,7 +247,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private ModelDelta RevertChanges(ModelDelta changes) {
          var reverse = changes.Revert(Model);
          var point = scroll.DataIndexToViewPoint(reverse.EarliestChange);
-         if (!scroll.ScrollToPoint(ref point)) RefreshBackingData();
+         using (ModelCacheScope.CreateScope(Model)) {
+            if (!scroll.ScrollToPoint(ref point)) RefreshBackingData();
+         }
          return reverse;
       }
 
