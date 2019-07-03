@@ -45,6 +45,69 @@ namespace HavenSoft.HexManiac.WPF.Windows {
                AnimateFocusToCorner(MessagePanel, default);
             }
          };
+
+         FillQuickEditMenu();
+      }
+
+      private void FillQuickEditMenu() {
+         foreach (var edit in ViewModel.QuickEdits) {
+            QuickEdits.Items.Add(new MenuItem {
+               Header = edit.Name,
+               Command = new StubCommand {
+                  CanExecute = arg => edit.CanRun(ViewModel[ViewModel.SelectedIndex] as IViewPort),
+                  Execute = arg => {
+                     Window window = default;
+                     window = new Window {
+                        Title = edit.Name,
+                        Background = (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][nameof(Theme.Background)],
+                        SizeToContent = SizeToContent.WidthAndHeight,
+                        WindowStyle = WindowStyle.ToolWindow,
+                        Content = new Grid {
+                           Width = 300,
+                           Height = 100,
+                           Children = {
+                              new TextBlock {
+                                 Margin = new Thickness(5),
+                                 FontSize = 14,
+                                 Text = edit.Description,
+                                 TextWrapping = TextWrapping.Wrap,
+                              },
+                              new StackPanel {
+                                 Orientation = Orientation.Horizontal,
+                                 VerticalAlignment = VerticalAlignment.Bottom,
+                                 HorizontalAlignment = HorizontalAlignment.Right,
+                                 Children = {
+                                    new Button {
+                                       Content = "Run",
+                                       Margin = new Thickness(5),
+                                       Command = new StubCommand {
+                                          CanExecute = arg1 => true,
+                                          Execute = arg1 => {
+                                             var error = edit.Run(ViewModel[ViewModel.SelectedIndex] as IViewPort);
+                                             // TODO do something with the error?
+                                             window.Close();
+                                          }
+                                       },
+                                    },
+                                    new Button {
+                                       Content = "Cancel",
+                                       IsCancel = true,
+                                       Margin = new Thickness(5),
+                                       Command = new StubCommand {
+                                          CanExecute = arg1 => true,
+                                          Execute = arg1 => window.Close(),
+                                       },
+                                    },
+                                 },
+                              },
+                           },
+                        },
+                     };
+                     window.ShowDialog();
+                  },
+               },
+            });
+         }
       }
 
       protected override void OnDrop(DragEventArgs e) {
