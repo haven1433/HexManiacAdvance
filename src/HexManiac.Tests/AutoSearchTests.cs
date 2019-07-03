@@ -206,8 +206,8 @@ namespace HavenSoft.HexManiac.Tests {
          var model = LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
 
-         var movesLocation = model.GetAddressFromAnchor(noChange, -1, "tutormoves");
-         var compatibilityLocation = model.GetAddressFromAnchor(noChange, -1, "tutorcompatibility");
+         var movesLocation = model.GetAddressFromAnchor(noChange, -1, AutoSearchModel.MoveTutors);
+         var compatibilityLocation = model.GetAddressFromAnchor(noChange, -1, AutoSearchModel.TutorCompatibility);
 
          // ruby and sapphire have no tutors
          // Gaia has move tutors, but it does a bunch of custom stuff (multiple tables) so I don't feel bad about not supporting it by default.
@@ -251,13 +251,13 @@ namespace HavenSoft.HexManiac.Tests {
          expandTutors.Run(viewPort);
 
          // extend the table
-         var table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, "tutormoves"));
+         var table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, AutoSearchModel.MoveTutors));
          viewPort.Goto.Execute((table.Start + table.Length).ToString("X6"));
          viewPort.Edit("+");
 
          // the 4 bytes after the last pointer to tutor-compatibility should store the length of tutormoves
-         table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, "tutormoves"));
-         var tutorCompatibilityPointerSources = model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, "tutorcompatibility")).PointerSources;
+         table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, AutoSearchModel.MoveTutors));
+         var tutorCompatibilityPointerSources = model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, AutoSearchModel.TutorCompatibility)).PointerSources;
          var word = (WordRun)model.GetNextRun(tutorCompatibilityPointerSources.Last() + 4);
          Assert.Equal(table.ElementCount, model.ReadValue(word.Start));
       }

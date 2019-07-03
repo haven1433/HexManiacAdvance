@@ -3,6 +3,8 @@ using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Linq;
 
+using static HavenSoft.HexManiac.Core.Models.AutoSearchModel;
+
 namespace HavenSoft.HexManiac.Core.ViewModels {
    public interface IQuickEditItem {
       string Name { get; }
@@ -27,8 +29,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (getTutorMove < 0 || canPokemonLearnTutorMove < 0) return false;
 
          // require that this data has a tutormoves and tutorcompatibility table, since we're messing with those
-         var tutormoves = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, "tutormoves");
-         var tutorcompatibility = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, "tutorcompatibility");
+         var tutormoves = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, MoveTutors);
+         var tutorcompatibility = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, TutorCompatibility);
          if (tutormoves == Pointer.NULL || tutorcompatibility == Pointer.NULL) {
             return false;
          }
@@ -42,8 +44,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var viewPort = (ViewPort)viewPortInterface;
          var model = viewPort.Model;
          var (getTutorMove, canPokemonLearnTutorMove, getTutorMove_Length, canPokemonLearnTutorMove_Length) = GetOffsets(viewPort);
-         var tutormoves = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, "tutormoves");
-         var tutorcompatibility = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, "tutorcompatibility");
+         var tutormoves = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, MoveTutors);
+         var tutorcompatibility = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, TutorCompatibility);
 
          InsertRoutine_GetTutorMove(viewPort, getTutorMove, getTutorMove_Length);
          InsertRoutine_CanPokemonLearnTutorMove(viewPort, canPokemonLearnTutorMove, canPokemonLearnTutorMove_Length);
@@ -54,11 +56,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public static (int getTutorMove, int canPokemonLearnTutorMove, int getTutorMove_Length, int canPokemonLearnTutorMove_Length) GetOffsets(ViewPort viewPort) {
          var model = viewPort.Model;
          var gameCode = new string(Enumerable.Range(0xAC, 4).Select(i => ((char)model[i])).ToArray());
-         if (gameCode == "BPRE") {
+         if (gameCode == FireRed) {
             return (0x120BA8, 0x120BE8, 0x40, 0x54);
-         } else if (gameCode == "BPGE") {
+         } else if (gameCode == LeafGreen) {
             return (0x120B80, 0x120BC0, 0x40, 0x54);
-         } else if (gameCode == "BPEE") {
+         } else if (gameCode == Emerald) {
             return (0x1B2360, 0x1B2370, 0x10, 0x2C);
          } else {
             return (-1, -1, 0, 0);
@@ -76,7 +78,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
              .word <tutormoves>
          */
 
-         viewPort.Edit($"@{address:X6} 40 00 01 49 40 5A 70 47 <tutormoves> "); // new data only 0xC long
+         viewPort.Edit($"@{address:X6} 40 00 01 49 40 5A 70 47 <{MoveTutors}> "); // new data only 0xC long
          for (int i = 0x0C; i < originalLength; i++) viewPort.Edit("00 ");
       }
 
@@ -105,7 +107,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          viewPort.Edit($"@{address:X6} ");
          viewPort.Edit("07 4A 07 32 D2 08 50 43 CA 08 80 18 07 22 11 40 ");
          viewPort.Edit("02 4A 10 5C C8 40 01 22 10 40 70 47 ");
-         viewPort.Edit("<tutorcompatibility> ::tutormoves ");  // new data only 0x24 long
+         viewPort.Edit($"<{TutorCompatibility}> ::{MoveTutors} ");  // new data only 0x24 long
          for (int i = 0x24; i < originalLength; i++) viewPort.Edit("00 ");
       }
    }

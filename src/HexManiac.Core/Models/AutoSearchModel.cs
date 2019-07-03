@@ -14,6 +14,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          FireRed = "BPRE",
          LeafGreen = "BPGE";
 
+      public const string
+         MoveTutors = "tutormoves",
+         TutorCompatibility = "tutorcompatibility";
+
       private readonly string gameCode;
       private readonly ModelDelta noChangeDelta = new NoDataChangeDeltaModel();
 
@@ -158,10 +162,10 @@ namespace HavenSoft.HexManiac.Core.Models {
             tutorCompatibility = ReadPointer(list[0] + originalCode.Length);
             if (tutorMoves < 0 || tutorMoves > Count || tutorCompatibility < 0 || tutorCompatibility > Count) return;
             if (list.Count != 1) return;
-            if (!TryParse(this, "[move:movenames]15", tutorMoves, null, out var tutorMovesRun).HasError) {
-               ObserveAnchorWritten(noChangeDelta, "tutormoves", tutorMovesRun);
-               if (!TryParse(this, "[pokemon|b[]tutormoves]pokenames", tutorCompatibility, null, out var tutorCompatibilityRun).HasError) {
-                  ObserveAnchorWritten(noChangeDelta, "tutorcompatibility", tutorCompatibilityRun);
+            if (!TryParse(this, $"[move:{EggMoveRun.MoveNamesTable}]15", tutorMoves, null, out var tutorMovesRun).HasError) {
+               ObserveAnchorWritten(noChangeDelta, MoveTutors, tutorMovesRun);
+               if (!TryParse(this, $"[pokemon|b[]{MoveTutors}]{EggMoveRun.PokemonNameTable}", tutorCompatibility, null, out var tutorCompatibilityRun).HasError) {
+                  ObserveAnchorWritten(noChangeDelta, TutorCompatibility, tutorCompatibilityRun);
                }
             }
          } else if (gameCode == Emerald) {
@@ -169,10 +173,10 @@ namespace HavenSoft.HexManiac.Core.Models {
             tutorMoves = ReadPointer(0x1B236C);
             tutorCompatibility = ReadPointer(0x1B2390);
             if (tutorMoves < 0 || tutorMoves > Count || tutorCompatibility < 0 || tutorCompatibility > Count) return;
-            if (!TryParse(this, "[move:movenames]30", tutorMoves, null, out var tutorMovesRun).HasError) {
-               ObserveAnchorWritten(noChangeDelta, "tutormoves", tutorMovesRun);
-               if (!TryParse(this, "[pokemon|b[]tutormoves]pokenames", tutorCompatibility, null, out var tutorCompatibilityRun).HasError) {
-                  ObserveAnchorWritten(noChangeDelta, "tutorcompatibility", tutorCompatibilityRun);
+            if (!TryParse(this, $"[move:{EggMoveRun.MoveNamesTable}]30", tutorMoves, null, out var tutorMovesRun).HasError) {
+               ObserveAnchorWritten(noChangeDelta, MoveTutors, tutorMovesRun);
+               if (!TryParse(this, $"[pokemon|b[]{MoveTutors}]{EggMoveRun.PokemonNameTable}", tutorCompatibility, null, out var tutorCompatibilityRun).HasError) {
+                  ObserveAnchorWritten(noChangeDelta, TutorCompatibility, tutorCompatibilityRun);
                }
             }
          }
