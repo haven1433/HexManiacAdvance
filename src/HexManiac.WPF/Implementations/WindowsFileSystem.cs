@@ -82,7 +82,12 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          // make sure the required directory exists
          var path = Path.GetDirectoryName(file.Name);
          Directory.CreateDirectory(path);
-         File.WriteAllBytes(file.Name, file.Contents);
+         try {
+            File.WriteAllBytes(file.Name, file.Contents);
+         } catch (IOException) {
+            ShowCustomMessageBox("Could not save. The file might be ReadOnly or in use by another application.", showYesNoCancel: false);
+            return false;
+         }
          return true;
       }
 
@@ -99,7 +104,43 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          return Save(file);
       }
 
-      public MessageBoxResult ShowCustomMessageBox(string message) {
+      public MessageBoxResult ShowCustomMessageBox(string message, bool showYesNoCancel = true) {
+         var choices = showYesNoCancel ? new StackPanel {
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Orientation = Orientation.Horizontal,
+            Children = {
+               new Button {
+                  HorizontalContentAlignment = HorizontalAlignment.Center,
+                  Content = new Label { Foreground = Brush(nameof(Theme.Primary)), Content = "_Yes" },
+                  MinWidth = 70,
+                  Margin = new Thickness(5)
+               }.SetEvent(Button.ClickEvent, MessageBoxButtonClick),
+               new Button {
+                  HorizontalContentAlignment = HorizontalAlignment.Center,
+                  Content = new Label { Foreground = Brush(nameof(Theme.Primary)), Content = "_No" },
+                  MinWidth = 70,
+                  Margin = new Thickness(5)
+               }.SetEvent(Button.ClickEvent, MessageBoxButtonClick),
+               new Button {
+                  HorizontalContentAlignment = HorizontalAlignment.Center,
+                  Content = new Label { Foreground = Brush(nameof(Theme.Primary)), Content = "Cancel" },
+                  MinWidth = 70,
+                  Margin = new Thickness(5)
+               }.SetEvent(Button.ClickEvent, MessageBoxButtonClick),
+            }
+         } : new StackPanel {
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Orientation = Orientation.Horizontal,
+            Children = {
+               new Button {
+                  HorizontalContentAlignment = HorizontalAlignment.Center,
+                  Content = new Label { Foreground = Brush(nameof(Theme.Primary)), Content = "OK" },
+                  MinWidth = 70,
+                  Margin = new Thickness(5)
+               }.SetEvent(Button.ClickEvent, MessageBoxButtonClick),
+            }
+         };
+
          var window = new Window {
             Background = Brush(nameof(Theme.Background)),
             Foreground = Brush(nameof(Theme.Primary)),
@@ -110,30 +151,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                Orientation = Orientation.Vertical,
                Children = {
                   new TextBlock { Text = message, Margin = new Thickness(5, 10, 5, 10) },
-                  new StackPanel {
-                     HorizontalAlignment = HorizontalAlignment.Right,
-                     Orientation = Orientation.Horizontal,
-                     Children = {
-                        new Button {
-                           HorizontalContentAlignment = HorizontalAlignment.Center,
-                           Content = new Label { Foreground = Brush(nameof(Theme.Primary)), Content = "_Yes" },
-                           MinWidth = 70,
-                           Margin = new Thickness(5)
-                        }.SetEvent(Button.ClickEvent, MessageBoxButtonClick),
-                        new Button {
-                           HorizontalContentAlignment = HorizontalAlignment.Center,
-                           Content = new Label { Foreground = Brush(nameof(Theme.Primary)), Content = "_No" },
-                           MinWidth = 70,
-                           Margin = new Thickness(5)
-                        }.SetEvent(Button.ClickEvent, MessageBoxButtonClick),
-                        new Button {
-                           HorizontalContentAlignment = HorizontalAlignment.Center,
-                           Content = new Label { Foreground = Brush(nameof(Theme.Primary)), Content = "Cancel" },
-                           MinWidth = 70,
-                           Margin = new Thickness(5)
-                        }.SetEvent(Button.ClickEvent, MessageBoxButtonClick),
-                     }
-                  }
+                  choices,
                }
             },
             Owner = Application.Current.MainWindow,
@@ -153,6 +171,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             case "_Yes": passingResult = MessageBoxResult.Yes; break;
             case "_No": passingResult = MessageBoxResult.No; break;
             case "Cancel": passingResult = MessageBoxResult.Cancel; break;
+            case "OK": passingResult = MessageBoxResult.OK; break;
          }
          var parent = (FrameworkElement)button.Parent;
          while (parent.Parent is FrameworkElement) parent = (FrameworkElement)parent.Parent;
