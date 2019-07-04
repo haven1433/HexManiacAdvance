@@ -487,17 +487,19 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (!anchorForAddress.TryGetValue(arrayRun.Start, out string anchor)) return;
          foreach (var table in this.GetDependantArrays(anchor)) {
             var newTable = table;
+            // option 1: this table's length is based on the given table
             if (anchor.Equals(table.LengthFromAnchor)) {
                if (arrayRun.ElementCount == table.ElementCount) continue;
                newTable = (ArrayRun)RelocateForExpansion(changeToken, table, arrayRun.ElementCount * table.ElementLength);
                newTable = newTable.Append(arrayRun.ElementCount - table.ElementCount);
                ObserveRunWritten(changeToken, newTable);
             }
+            // option 2: this table includes a bit-array based on the given table
             var requiredByteLength = (int)Math.Ceiling(arrayRun.ElementCount / 8.0);
             for (int segmentIndex = 0; segmentIndex < newTable.ElementContent.Count; segmentIndex++) {
                if (!(newTable.ElementContent[segmentIndex] is ArrayRunBitArraySegment bitSegment)) continue;
                if (bitSegment.Length == requiredByteLength) continue;
-               newTable = (ArrayRun)RelocateForExpansion(changeToken, table, arrayRun.ElementCount * (newTable.ElementLength - bitSegment.Length + requiredByteLength));
+               newTable = (ArrayRun)RelocateForExpansion(changeToken, table, newTable.ElementCount * (newTable.ElementLength - bitSegment.Length + requiredByteLength));
                // within the new table, shift all the data to fit the new data width
                for (int elementIndex = newTable.ElementCount - 1; elementIndex >= 0; elementIndex--) {
                   var sourceIndex = newTable.Start + newTable.ElementLength * elementIndex;
@@ -700,7 +702,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          const int SpacerLength = 0x10;
          if (minimumLength <= run.Length) return run;
          if (CanSafelyUse(run.Start + run.Length, run.Start + minimumLength)) return run;
-         minimumLength += 0x100; // make sure there's plenty of room after, so that we're not in the middle of some other data set
+         minimumLength += 0x140; // make sure there's plenty of room after, so that we're not in the middle of some other data set
          var start = 0x100;
          var runIndex = 0;
          while (start < RawData.Length - minimumLength) {
