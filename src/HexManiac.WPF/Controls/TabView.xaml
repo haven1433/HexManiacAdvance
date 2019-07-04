@@ -106,7 +106,17 @@
                   <Button Margin="5" Content="Previous" Command="{Binding TableTool.Previous}" HorizontalAlignment="Left"/>
                   <Button Margin="5" Content="Next" Command="{Binding TableTool.Next}" HorizontalAlignment="Right"/>
                </Grid>
-               <Button Margin="5" Content="Append" Command="{Binding TableTool.Append}" HorizontalAlignment="Right"/>
+               <Border Margin="5" HorizontalAlignment="Right">
+                  <Border.ToolTip>
+                     <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                        <TextBlock TextAlignment="Left">
+                           Select the last element of the table <LineBreak/>
+                           and press this to extend the table.
+                        </TextBlock>
+                     </ToolTip>
+                  </Border.ToolTip>
+                  <Button Content="Add New" Command="{Binding TableTool.Append}"/>
+               </Border>
                <ItemsControl ItemsSource="{Binding TableTool.Children}" Grid.IsSharedSizeScope="True">
                   <ItemsControl.Resources>
                      <DataTemplate DataType="{x:Type hsg3hvmtr:FieldArrayElementViewModel}">
@@ -128,6 +138,20 @@
                            <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
                            <ComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" Grid.Column="1"/>
                         </Grid>
+                     </DataTemplate>
+                     <DataTemplate DataType="{x:Type hsg3hvmtr:BitListArrayElementViewModel}">
+                        <ItemsControl ItemsSource="{Binding}">
+                           <ItemsControl.ItemsPanel>
+                              <ItemsPanelTemplate>
+                                 <WrapPanel/>
+                              </ItemsPanelTemplate>
+                           </ItemsControl.ItemsPanel>
+                           <ItemsControl.ItemTemplate>
+                              <DataTemplate>
+                                 <CheckBox Margin="5,1,0,1" Width="115" IsChecked="{Binding IsChecked}" Content="{Binding BitLabel}"/>
+                              </DataTemplate>
+                           </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                      </DataTemplate>
                      <DataTemplate DataType="{x:Type hsg3hvmtr:StreamArrayElementViewModel}">
                         <TextBox Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Margin="20,2,2,2" AcceptsReturn="True"/>

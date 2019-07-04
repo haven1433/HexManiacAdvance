@@ -104,22 +104,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                return array != null && array.Start + array.Length == address + array.ElementLength;
             },
             Execute = parameter => {
-               var array = (ArrayRun)model.GetNextRun(address);
-               var originalArray = array;
-               var error = model.CompleteArrayExtension(history.CurrentChange, ref array);
-               if (array.Start != originalArray.Start) {
-                  ModelDataMoved?.Invoke(this, (originalArray.Start, array.Start));
-                  selection.GotoAddress(array.Start + array.Length - array.ElementLength);
+               using (ModelCacheScope.CreateScope(model)) {
+                  var array = (ArrayRun)model.GetNextRun(address);
+                  var originalArray = array;
+                  var error = model.CompleteArrayExtension(history.CurrentChange, ref array);
+                  if (array.Start != originalArray.Start) {
+                     ModelDataMoved?.Invoke(this, (originalArray.Start, array.Start));
+                     selection.GotoAddress(array.Start + array.Length - array.ElementLength);
+                  }
+                  if (error.HasError && !error.IsWarning) {
+                     OnError?.Invoke(this, error.ErrorMessage);
+                  } else {
+                     if (error.IsWarning) OnMessage?.Invoke(this, error.ErrorMessage);
+                     ModelDataChanged?.Invoke(this, array);
+                     selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(array.Start + array.Length - array.ElementLength);
+                     selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selection.Scroll.ViewPointToDataIndex(selection.SelectionStart) + array.ElementLength - 1);
+                  }
+                  RequestMenuClose?.Invoke(this, EventArgs.Empty);
                }
-               if (error.HasError && !error.IsWarning) {
-                  OnError?.Invoke(this, error.ErrorMessage);
-               } else {
-                  if (error.IsWarning) OnMessage?.Invoke(this, error.ErrorMessage);
-                  ModelDataChanged?.Invoke(this, array);
-                  selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(array.Start + array.Length - array.ElementLength);
-                  selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selection.Scroll.ViewPointToDataIndex(selection.SelectionStart) + array.ElementLength - 1);
-               }
-               RequestMenuClose?.Invoke(this, EventArgs.Empty);
             }
          };
 
@@ -150,6 +152,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (item.Type == ElementContentType.Unknown) viewModel = new FieldArrayElementViewModel(history, model, item.Name, itemAddress, item.Length, new HexFieldStratgy());
             else if (item.Type == ElementContentType.PCS) viewModel = new FieldArrayElementViewModel(history, model, item.Name, itemAddress, item.Length, new TextFieldStratgy());
             else if (item.Type == ElementContentType.Pointer) viewModel = new FieldArrayElementViewModel(history, model, item.Name, itemAddress, item.Length, new AddressFieldStratgy());
+            else if (item.Type == ElementContentType.BitArray) viewModel = new BitListArrayElementViewModel(history, model, item.Name, itemAddress);
             else if (item.Type == ElementContentType.Integer) {
                if (item is ArrayRunEnumSegment enumSegment) {
                   viewModel = new ComboBoxArrayElementViewModel(history, model, item.Name, itemAddress, item.Length);
@@ -163,7 +166,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             viewModel.DataChanged += ForwardModelChanged;
             if (item is ArrayRunPointerSegment pointerSegment) {
                var destination = model.ReadPointer(itemAddress);
-               if (destination != Pointer.NULL && pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), destination)) {
+               if (destination != Pointer.NULL && model.GetNextRun(destination) is IStreamRun && pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), destination)) {
                   if (pointerSegment.InnerFormat == PCSRun.SharedFormatString || pointerSegment.InnerFormat == PLMRun.SharedFormatString) {
                      var streamElement = new StreamArrayElementViewModel(history, (FieldArrayElementViewModel)viewModel, model, item.Name, itemAddress);
                      streamElement.DataChanged += ForwardModelChanged;

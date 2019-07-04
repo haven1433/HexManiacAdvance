@@ -243,46 +243,50 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var arrayByteLength = lines.Length * arrayRun.ElementLength;
          var newRun = (ArrayRun)model.RelocateForExpansion(history.CurrentChange, arrayRun, arrayByteLength);
 
-         TryUpdate(ref address, address + newRun.Start - arrayRun.Start, nameof(Address));
+         using (ModelCacheScope.CreateScope(model)) {
+            TryUpdate(ref address, address + newRun.Start - arrayRun.Start, nameof(Address));
 
-         var offsets = newRun.ConvertByteOffsetToArrayOffset(address);
-         if (arrayRun.Start != newRun.Start) ModelDataMoved?.Invoke(this, (arrayRun.Start, newRun.Start));
-         var segmentLength = newRun.ElementContent[offsets.SegmentIndex].Length;
-         for (int i = 0; i < lines.Length; i++) {
-            var bytes = PCSString.Convert(lines[i]);
-            if (bytes.Count > segmentLength) bytes[segmentLength - 1] = 0xFF; // truncate and always end with an endstring character
-            for (int j = 0; j < segmentLength; j++) {
-               if (j < bytes.Count) {
-                  history.CurrentChange.ChangeData(model, offsets.SegmentStart + i * newRun.ElementLength + j, bytes[j]);
-               } else {
-                  history.CurrentChange.ChangeData(model, offsets.SegmentStart + i * newRun.ElementLength + j, 0x00);
+            var offsets = newRun.ConvertByteOffsetToArrayOffset(address);
+            if (arrayRun.Start != newRun.Start) ModelDataMoved?.Invoke(this, (arrayRun.Start, newRun.Start));
+            var segmentLength = newRun.ElementContent[offsets.SegmentIndex].Length;
+            for (int i = 0; i < lines.Length; i++) {
+               var bytes = PCSString.Convert(lines[i]);
+               if (bytes.Count > segmentLength) bytes[segmentLength - 1] = 0xFF; // truncate and always end with an endstring character
+               for (int j = 0; j < segmentLength; j++) {
+                  if (j < bytes.Count) {
+                     history.CurrentChange.ChangeData(model, offsets.SegmentStart + i * newRun.ElementLength + j, bytes[j]);
+                  } else {
+                     history.CurrentChange.ChangeData(model, offsets.SegmentStart + i * newRun.ElementLength + j, 0x00);
+                  }
                }
             }
-         }
 
-         if (newRun.ElementCount != lines.Length) {
-            newRun = newRun.Append(lines.Length - newRun.ElementCount);
-            model.ObserveRunWritten(history.CurrentChange, newRun);
-            history.CurrentChange.AddRun(newRun);
-         }
+            if (newRun.ElementCount != lines.Length) {
+               newRun = newRun.Append(lines.Length - newRun.ElementCount);
+               model.ObserveRunWritten(history.CurrentChange, newRun);
+               history.CurrentChange.AddRun(newRun);
+            }
 
-         ModelDataChanged?.Invoke(this, newRun);
+            ModelDataChanged?.Invoke(this, newRun);
+         }
       }
 
       private void UpdateRun(IStreamRun run) {
          ignoreExternalUpdates = true;
-         var newRun = run.DeserializeRun(content, history.CurrentChange);
-         if (newRun.Length != run.Length) {
-            model.ObserveRunWritten(history.CurrentChange, newRun);
-            newRun = (IStreamRun)model.GetNextRun(newRun.Start);
-            history.CurrentChange.AddRun(newRun);
-            if (newRun is EggMoveRun eggRun) eggRun.UpdateLimiter(history.CurrentChange);
-         }
+         using (ModelCacheScope.CreateScope(model)) {
+            var newRun = run.DeserializeRun(content, history.CurrentChange);
+            if (newRun.Length != run.Length) {
+               model.ObserveRunWritten(history.CurrentChange, newRun);
+               newRun = (IStreamRun)model.GetNextRun(newRun.Start);
+               history.CurrentChange.AddRun(newRun);
+               if (newRun is EggMoveRun eggRun) eggRun.UpdateLimiter(history.CurrentChange);
+            }
 
-         if (run.Start != newRun.Start) ModelDataMoved?.Invoke(this, (run.Start, newRun.Start));
-         ModelDataChanged?.Invoke(this, newRun);
-         TryUpdate(ref address, newRun.Start, nameof(Address));
-         ignoreExternalUpdates = false;
+            if (run.Start != newRun.Start) ModelDataMoved?.Invoke(this, (run.Start, newRun.Start));
+            ModelDataChanged?.Invoke(this, newRun);
+            TryUpdate(ref address, newRun.Start, nameof(Address));
+            ignoreExternalUpdates = false;
+         }
       }
    }
 }

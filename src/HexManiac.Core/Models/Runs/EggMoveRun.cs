@@ -83,15 +83,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return false;
       }
 
-      private IReadOnlyList<string> cachedPokenames, cachedMovenames;
-      private int lastFormatRequest = int.MinValue;
       public IDataFormat CreateDataFormat(IDataModel data, int dataIndex) {
          Debug.Assert(data == model);
-         if (dataIndex != lastFormatRequest + 1) {
-            cachedPokenames = ArrayRunEnumSegment.GetOptions(model, PokemonNameTable) ?? new List<string>();
-            cachedMovenames = ArrayRunEnumSegment.GetOptions(model, MoveNamesTable) ?? new List<string>();
-         }
-         lastFormatRequest = dataIndex;
+
+         var cache = ModelCacheScope.GetCache(data);
+         var cachedPokenames = cache.GetOptions(PokemonNameTable);
+         var cachedMovenames = cache.GetOptions(MoveNamesTable);
 
          var position = dataIndex - Start;
          var groupStart = position % 2 == 1 ? position - 1 : position;
@@ -124,6 +121,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public int GetPokemonNumber(string input) {
+         var cache = ModelCacheScope.GetCache(model);
+         var cachedPokenames = cache.GetOptions(PokemonNameTable);
+
          if (input.StartsWith(GroupStart)) input = input.Substring(1, input.Length - 2);
          input = input.ToLower();
          var names = cachedPokenames.Select(name => name.Trim('"').ToLower()).ToList();
@@ -131,12 +131,19 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public int GetMoveNumber(string input) {
+         var cache = ModelCacheScope.GetCache(model);
+         var cachedMovenames = cache.GetOptions(MoveNamesTable);
+
          input = input.Trim('"').ToLower();
          var names = cachedMovenames.Select(name => name.Trim('"').ToLower()).ToList();
          return names.IndexOfPartial(input);
       }
 
       public string SerializeRun() {
+         var cache = ModelCacheScope.GetCache(model);
+         var cachedPokenames = cache.GetOptions(PokemonNameTable);
+         var cachedMovenames = cache.GetOptions(MoveNamesTable);
+
          var builder = new StringBuilder();
          for (int i = 0; i < Length - 2; i += 2) {
             var address = Start + i;
@@ -153,6 +160,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public IStreamRun DeserializeRun(string content, ModelDelta token) {
+         var cache = ModelCacheScope.GetCache(model);
+         var cachedPokenames = cache.GetOptions(PokemonNameTable);
+         var cachedMovenames = cache.GetOptions(MoveNamesTable);
+
          var data = new List<int>();
          var pokemonNames = cachedPokenames.Select(name => $"{GroupStart}{name.Trim('"').ToLower()}{GroupEnd}").ToList();
          var moveNames = cachedMovenames.Select(name => name.Trim('"').ToLower()).ToList();
@@ -183,12 +194,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public IEnumerable<string> GetAutoCompleteOptions() {
+         var cache = ModelCacheScope.GetCache(model);
+         var cachedPokenames = cache.GetOptions(PokemonNameTable);
+         var cachedMovenames = cache.GetOptions(MoveNamesTable);
+
          var pokenames = cachedPokenames.Select(name => $"{GroupStart}{name}{GroupEnd}"); // closing brace, so no space needed
          var movenames = cachedMovenames.Select(name => name + " "); // autocomplete needs to complete after selection, so add a space
          return pokenames.Concat(movenames);
       }
 
       public void AppendTo(StringBuilder text, int start, int length) {
+         var cache = ModelCacheScope.GetCache(model);
+         var cachedPokenames = cache.GetOptions(PokemonNameTable);
+         var cachedMovenames = cache.GetOptions(MoveNamesTable);
+
          while (length > 0 && start < Start + Length) {
             var value = model.ReadMultiByteValue(start, 2);
             if (value == EndStream) {

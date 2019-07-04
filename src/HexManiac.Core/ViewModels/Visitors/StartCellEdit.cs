@@ -17,7 +17,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
    ///     if the new UnderEdit is just the character, NewFormat can be left null, and the calling code will create the appropriate new UnderEdit object.
    /// </summary>
    public class StartCellEdit : IDataFormatVisitor {
-      private static readonly char[] SpecialAnchorAllowedCharacters = new[] { AnchorStart, ArrayStart, ArrayEnd, StringDelimeter, StreamDelimeter, PointerStart, PointerEnd, SingleByteIntegerFormat, DoubleByteIntegerFormat };
+      private static readonly char[] SpecialAnchorAllowedCharacters = new[] { AnchorStart, ArrayStart, ArrayEnd, StringDelimeter, StreamDelimeter, PointerStart, PointerEnd, '|', SingleByteIntegerFormat, DoubleByteIntegerFormat };
 
       public IDataModel Model { get; }
       public int MemoryLocation { get; }
@@ -32,11 +32,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       // Treat it the same as a None.
       public void Visit(Undefined dataFormat, byte data) => Visit((None)null, data);
 
-      public void Visit(None dataFormat, byte data) {
+      public void Visit(None dataFormat, byte data) => BasicVisit(dataFormat, data);
+
+      private void BasicVisit(IDataFormat dataFormat, byte data) {
          // you can write a pointer into a space with no current format
          if (Input == PointerStart) {
             var editText = Input.ToString();
             var autocompleteOptions = Model.GetNewPointerAutocompleteOptions(editText, -1);
+            NewFormat = new UnderEdit(dataFormat, editText, 4, autocompleteOptions);
+            Result = true;
+            return;
+         }
+
+         if (Input == ':') {
+            var editText = Input.ToString();
+            var autocompleteOptions = Model.GetNewWordAutocompleteOptions("::", -1);
             NewFormat = new UnderEdit(dataFormat, editText, 4, autocompleteOptions);
             Result = true;
             return;
@@ -67,6 +77,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       }
 
       public void Visit(Pointer pointer, byte data) {
+         if (Input == ':') { BasicVisit(pointer, data); return; }
          if (Input != PointerStart && !char.IsLetterOrDigit(Input)) return;
 
          var editText = Input.ToString();
@@ -140,5 +151,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             NewFormat = new UnderEdit(item, Input.ToString(), 2, autocomplete);
          }
       }
+      public void Visit(BitArray array, byte data) {
+         Result = ViewPort.AllHexCharacters.Contains(Input);
+      }
+      public void Visit(MatchedWord word, byte data) => BasicVisit(word, data);
    }
 }
+

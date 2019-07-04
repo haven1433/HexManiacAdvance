@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public enum ElementContentType {
@@ -9,6 +10,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       PCS,
       Integer,
       Pointer,
+      BitArray,
    }
 
    public class ArrayRunElementSegment {
@@ -148,6 +150,28 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public void ClearCache() { cachedOptions = null; }
+   }
+
+   public class ArrayRunBitArraySegment : ArrayRunElementSegment {
+      public string SourceArrayName { get; }
+
+      public ArrayRunBitArraySegment(string name, int length, string bitSourceName) : base(name, ElementContentType.BitArray, length) {
+         SourceArrayName = bitSourceName;
+      }
+
+      public override string ToText(IDataModel rawData, int offset) {
+         var result = new StringBuilder(Length * 3);
+         for (int i = 0; i < Length; i++) {
+            result.Append(rawData[offset + i].ToString("X2"));
+            result.Append(" ");
+         }
+         return result.ToString();
+      }
+
+      public IReadOnlyList<string> GetOptions(IDataModel model) {
+         var cache = ModelCacheScope.GetCache(model);
+         return cache.GetBitOptions(SourceArrayName);
+      }
    }
 
    /// <summary>

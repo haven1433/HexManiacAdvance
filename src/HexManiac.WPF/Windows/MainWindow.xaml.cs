@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.WPF.Controls;
+using HavenSoft.HexManiac.WPF.Implementations;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -21,7 +22,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       private ThemeSelector themeWindow;
 
       public EditorViewModel ViewModel { get; }
-      public IFileSystem FileSystem => (IFileSystem)Resources["FileSystem"];
+      public WindowsFileSystem FileSystem => (WindowsFileSystem)Resources["FileSystem"];
 
       public MainWindow(EditorViewModel viewModel) {
          InitializeComponent();
@@ -45,6 +46,81 @@ namespace HavenSoft.HexManiac.WPF.Windows {
                AnimateFocusToCorner(MessagePanel, default);
             }
          };
+
+         Application.Current.DispatcherUnhandledException += (sender, e) => {
+            File.AppendAllText("crash.log", e.Exception.Message + Environment.NewLine + e.Exception.StackTrace);
+            FileSystem.ShowCustomMessageBox("An unhandled error occured. Please report it on Discord or open an issue on GitHub." + Environment.NewLine +
+               "HexManiac might be in a bad state. You should close as soon as possible." + Environment.NewLine +
+               "The error has been logged to crash.log", showYesNoCancel: false);
+            e.Handled = true;
+         };
+
+         FillQuickEditMenu();
+      }
+
+      private void FillQuickEditMenu() {
+         foreach (var edit in ViewModel.QuickEdits) {
+            var command = new StubCommand {
+               CanExecute = arg => ViewModel.SelectedIndex >= 0 && edit.CanRun(ViewModel[ViewModel.SelectedIndex] as IViewPort),
+               Execute = arg => {
+                  Window window = default;
+                  window = new Window {
+                     Title = edit.Name,
+                     Background = (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][nameof(Theme.Background)],
+                     SizeToContent = SizeToContent.WidthAndHeight,
+                     WindowStyle = WindowStyle.ToolWindow,
+                     Content = new Grid {
+                        Width = 300,
+                        Height = 100,
+                        Children = {
+                              new TextBlock {
+                                 Margin = new Thickness(5),
+                                 FontSize = 14,
+                                 Text = edit.Description,
+                                 TextWrapping = TextWrapping.Wrap,
+                              },
+                              new StackPanel {
+                                 Orientation = Orientation.Horizontal,
+                                 VerticalAlignment = VerticalAlignment.Bottom,
+                                 HorizontalAlignment = HorizontalAlignment.Right,
+                                 Children = {
+                                    new Button {
+                                       Content = "Run",
+                                       Margin = new Thickness(5),
+                                       Command = new StubCommand {
+                                          CanExecute = arg1 => true,
+                                          Execute = arg1 => {
+                                             var error = edit.Run(ViewModel[ViewModel.SelectedIndex] as IViewPort);
+                                             // TODO do something with the error?
+                                             window.Close();
+                                          }
+                                       },
+                                    },
+                                    new Button {
+                                       Content = "Cancel",
+                                       IsCancel = true,
+                                       Margin = new Thickness(5),
+                                       Command = new StubCommand {
+                                          CanExecute = arg1 => true,
+                                          Execute = arg1 => window.Close(),
+                                       },
+                                    },
+                                 },
+                              },
+                           },
+                     },
+                  };
+                  window.ShowDialog();
+               },
+            };
+
+            edit.CanRunChanged += (sender, e) => command.CanExecuteChanged.Invoke(command, EventArgs.Empty);
+
+            QuickEdits.Items.Add(new MenuItem {
+               Header = edit.Name,
+               Command = command,
+            });
+         }
       }
 
       protected override void OnDrop(DragEventArgs e) {

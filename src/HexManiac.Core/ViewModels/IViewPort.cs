@@ -38,6 +38,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       void ExpandSelection(int x, int y);
       void ConsiderReload(IFileSystem fileSystem);
       void FindAllSources(int x, int y);
+      void ValidateMatchedWords(); // should raise OnMessage if a MatchedWord's value does not match expected.
 
       bool HasTools { get; }
       IToolTrayViewModel Tools { get; }

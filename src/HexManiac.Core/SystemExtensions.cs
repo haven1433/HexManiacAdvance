@@ -26,7 +26,7 @@ namespace HavenSoft.HexManiac.Core {
 
       public static int IndexOf<T>(this IReadOnlyList<T> list, T element) where T : class {
          for (int i = 0; i < list.Count; i++) {
-            if (list[i] == element) return i;
+            if (list[i].Equals(element)) return i;
          }
          return -1;
       }

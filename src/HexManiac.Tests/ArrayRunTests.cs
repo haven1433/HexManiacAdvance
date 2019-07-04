@@ -56,7 +56,7 @@ namespace HavenSoft.HexManiac.Tests {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          var model = new PokemonModel(buffer);
          ArrayRun.TryParse(model, "[name\"\"12]13", 12, null, out var arrayRun);
-         model.ObserveRunWritten(new ModelDelta(), arrayRun);
+         model.ObserveAnchorWritten(new ModelDelta(), "table", arrayRun);
          var viewPort = new ViewPort("file.txt", model) { PreferredWidth = -1, Width = 12, Height = 20 };
 
          // spot checks: it should look like a string that starts where the segment starts
@@ -979,14 +979,14 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void ParentTableAutoMoveNotifies() {
          // Arrange
-         var data = Enumerable.Range(0, 0x200).Select(i => (byte)0x42).ToArray();
+         var data = Enumerable.Range(0, 0x200).Select(i => (byte)0x42).ToArray(); // fill with 'stuff' so that the parent table will have to move.
          var model = new PokemonModel(data);
 
-         ArrayRun.TryParse(model, "[a: b:]parent", 0x00, null, out var table);
-         model.ObserveAnchorWritten(new ModelDelta(), "child", table);
-
-         ArrayRun.TryParse(model, "[a: b:]8", 0x20, null, out table); // parent table starts directly after child table
+         ArrayRun.TryParse(model, "[a: b:]8", 0x20, null, out var table); // parent table starts directly after child table
          model.ObserveAnchorWritten(new ModelDelta(), "parent", table);
+
+         ArrayRun.TryParse(model, "[a: b:]parent", 0x00, null, out table);
+         model.ObserveAnchorWritten(new ModelDelta(), "child", table);
 
          var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          var messages = new List<string>();
@@ -994,11 +994,99 @@ namespace HavenSoft.HexManiac.Tests {
 
          // Act
          viewPort.SelectionStart = new Point(0xD, 1);
+         viewPort.Tools.SelectedIndex = viewPort.Tools.IndexOf(viewPort.Tools.TableTool);
          viewPort.Tools.TableTool.Append.Execute();
 
          // Assert
          Assert.Equal(0, model.GetNextRun(0).Start); // the run being edit did not move
          Assert.Single(messages);                    // user was notified about the other move
+      }
+
+      [Fact]
+      public void CanHaveLooseWordRunsReferingToTables() {
+         StandardSetup(out var data, out var model, out var viewPort);
+
+         viewPort.Edit("^table[a:: b::]4 "); // 0x20 bytes
+         viewPort.SelectionStart = new Point(0, 5);
+         viewPort.Edit("::table ");                  // should create a new 4-byte run that stays in sync with the table
+
+         var run = model.GetNextRun(0x50);
+         Assert.IsType<WordRun>(run);
+         Assert.IsType<MatchedWord>(viewPort[1, 5].Format);
+         Assert.Equal(new Point(4, 5), viewPort.SelectionStart);
+
+         var length = model.ReadValue(0x50);
+         Assert.Equal(4, length);
+
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.Edit("+");                         // should add a new element to the table
+
+         Assert.Equal(5, ((ArrayRun)model.GetNextRun(0)).ElementCount);
+         length = model.ReadValue(0x50);
+         Assert.Equal(5, length);
+      }
+
+      [Fact]
+      public void CanRemoveLooseWordRuns() {
+         StandardSetup(out var data, out var model, out var viewPort);
+         viewPort.Edit("^table[a:: b::]4 "); // 0x20 bytes
+
+         // add the format
+         viewPort.SelectionStart = new Point(0, 5);
+         viewPort.Edit("::table ");                  // should create a new 4-byte run that stays in sync with the table
+
+         // remove the format
+         viewPort.SelectionStart = new Point(0, 5);
+         var items = viewPort.GetContextMenuItems(new Point(0, 5));
+         var contextItem = items.Single(item => item.Text == "Clear Format");
+         contextItem.Command.Execute();
+
+         // extend the table
+         viewPort.SelectionStart = new Point(0, 2);
+         viewPort.Edit("+");
+
+         // verify that the table was extended, but the value at 0x50 was NOT (no longer tied together)
+         Assert.Equal(5, ((ArrayRun)model.GetNextRun(0)).ElementCount);
+         var length = model.ReadValue(0x50);
+         Assert.Equal(4, length);
+      }
+
+      [Fact]
+      public void CanSaveLooseWordRuns() {
+         var fileSystem = new StubFileSystem();
+         string[] metadata = null;
+         fileSystem.Save = file => true;
+         fileSystem.SaveMetadata = (file, lines) => { metadata = lines; return true; };
+         StandardSetup(out var data, out var model, out var viewPort);
+
+         viewPort.Edit("::test ");
+         viewPort.Save.Execute(fileSystem);
+
+         var storedMetadata = new StoredMetadata(metadata);
+         var matchedWord = storedMetadata.MatchedWords.First();
+         Assert.Equal(0, matchedWord.Address);
+         Assert.Equal("test", matchedWord.Name);
+      }
+
+      [Fact]
+      public void AppendToTableMovesTableIfConflictingWithAnchor() {
+         StandardSetup(out var data, out var model, out var viewPort);
+         viewPort.Edit("@0 ^table[data:]parent ");
+         viewPort.Edit("@10 ^stuff @20 ^parent[data:]8 ");
+
+         // try to extend table via tool
+         viewPort.SelectionStart = new Point(0xF, 0);
+         viewPort.Tools.SelectedIndex = viewPort.Tools.IndexOf(viewPort.Tools.TableTool);
+         viewPort.Tools.TableTool.Append.Execute();
+
+         // assert that the run moved
+         Assert.NotEqual(0, model.GetNextRun(0).Start);
+      }
+
+      private static void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
+         data = new byte[0x200];
+         model = new PokemonModel(data);
+         viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
       }
 
       private static void WriteStrings(byte[] buffer, int start, params string[] content) {

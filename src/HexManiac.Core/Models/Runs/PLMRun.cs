@@ -110,12 +110,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (!int.TryParse(parts[0], out var level)) level = 0;
             var moveName = parts.Length == 1 ? "0" : parts[1];
 
-            var index = moveNames.IndexOf(line);
+            var index = moveNames.IndexOf(moveName);
             if (index != -1) { data.Add(CombineToken(level, index)); continue; }
 
             // look for a partial move match
             for (int i = 0; i < moveNames.Count; i++) {
-               if (moveNames[i].Contains(line)) { data.Add(CombineToken(level, index)); break; }
+               if (moveNames[i].MatchesPartial(moveName)) { data.Add(CombineToken(level, i)); break; }
             }
          }
 

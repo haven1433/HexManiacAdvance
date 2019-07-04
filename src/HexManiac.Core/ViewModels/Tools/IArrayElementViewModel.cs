@@ -2,9 +2,12 @@
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
+using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public enum ElementContentViewModelType {
@@ -237,15 +240,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          get => content;
          set {
             if (TryUpdate(ref content, value)) {
-               var destination = model.ReadPointer(start);
-               var run = (IStreamRun)model.GetNextRun(destination);
-               var newRun = run.DeserializeRun(content, history.CurrentChange);
-               if (run.Start != newRun.Start) {
-                  DataMoved?.Invoke(this, (run.Start, newRun.Start));
-                  matchingField.RefreshControlFromModelChange();
+               using (ModelCacheScope.CreateScope(model)) {
+                  var destination = model.ReadPointer(start);
+                  var run = (IStreamRun)model.GetNextRun(destination);
+                  var newRun = run.DeserializeRun(content, history.CurrentChange);
+                  model.ObserveRunWritten(history.CurrentChange, newRun);
+                  if (run.Start != newRun.Start) {
+                     DataMoved?.Invoke(this, (run.Start, newRun.Start));
+                     matchingField.RefreshControlFromModelChange();
+                  }
+                  DataChanged?.Invoke(this, EventArgs.Empty);
                }
-               run = newRun;
-               DataChanged?.Invoke(this, EventArgs.Empty);
             }
          }
       }
@@ -259,10 +264,88 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          var destination = model.ReadPointer(start);
 
-         // by the time we get this far, we're guaranteed that this will be a PCSRun.
-         // if it's not a PCSRun, we shouldn't have asked to construct this object.
+         // by the time we get this far, we're nearly guaranteed that this will be a IStreamRun.
+         // if it's not an IStreamRun, it's because the pointer in the array doesn't actually point to a valid stream.
+         // at which point, we don't want to display any content.
          var run = (IStreamRun)model.GetNextRun(destination);
-         content = run.SerializeRun();
+         content = run.SerializeRun() ?? string.Empty;
+      }
+   }
+
+   public class BitListArrayElementViewModel : ViewModelCore, IReadOnlyList<BitElement>, IArrayElementViewModel {
+      private readonly ChangeHistory<ModelDelta> history;
+      private readonly IDataModel model;
+      private readonly string name;
+      private readonly int start;
+      private readonly List<BitElement> children = new List<BitElement>();
+      private readonly ArrayRunBitArraySegment segment;
+
+      public bool IsInError => !string.IsNullOrEmpty(ErrorText);
+      public string ErrorText { get; private set; }
+
+      public event EventHandler DataChanged;
+
+      public BitListArrayElementViewModel(ChangeHistory<ModelDelta> history, IDataModel model, string name, int start) {
+         this.history = history;
+         this.model = model;
+         this.name = name;
+         this.start = start;
+
+         var array = (ArrayRun)model.GetNextRun(start);
+         var offset = array.ConvertByteOffsetToArrayOffset(start);
+         segment = (ArrayRunBitArraySegment)array.ElementContent[offset.SegmentIndex];
+         var bits = model.ReadMultiByteValue(start, segment.Length);
+         var names = segment.GetOptions(model);
+         for (int i = 0; i < names.Count; i++) {
+            var element = new BitElement {
+               BitLabel = names[i],
+               IsChecked = ((bits >> i) & 1) != 0,
+            };
+            children.Add(element);
+            element.PropertyChanged += ChildChanged;
+         }
+      }
+
+      #region IReadOnlyList<BitElement> Implementation
+
+      public int Count => children.Count;
+      public BitElement this[int index] => children[index];
+      public IEnumerator<BitElement> GetEnumerator() => children.GetEnumerator();
+      IEnumerator IEnumerable.GetEnumerator() => children.GetEnumerator();
+
+      #endregion
+
+      public void UpdateModelFromView() {
+         var result = children.Select((child, i) => child.IsChecked ? 1 << i : 0).Sum();
+         model.WriteMultiByteValue(start, segment.Length, history.CurrentChange, result);
+         DataChanged?.Invoke(this, EventArgs.Empty);
+      }
+
+      public void UpdateViewFromModel() {
+         var bits = model.ReadMultiByteValue(start, segment.Length);
+         for (int i = 0; i < children.Count; i++) {
+            children[i].PropertyChanged -= ChildChanged;
+            children[i].IsChecked = ((bits >> i) & 1) != 0;
+            children[i].PropertyChanged += ChildChanged;
+         }
+      }
+
+      private void ChildChanged(object sender, PropertyChangedEventArgs e) {
+         UpdateModelFromView();
+      }
+   }
+
+   public class BitElement : ViewModelCore {
+      private string bitLabel;
+      public string BitLabel {
+         get => bitLabel;
+         set => TryUpdate(ref bitLabel, value);
+      }
+
+      private bool isChecked;
+      public bool IsChecked {
+         get => isChecked;
+         set => TryUpdate(ref isChecked, value);
       }
    }
 }

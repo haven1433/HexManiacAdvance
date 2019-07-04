@@ -26,6 +26,10 @@ namespace HavenSoft.HexManiac.Core.Models {
       private readonly Dictionary<string, List<int>> unmappedNameToSources = new Dictionary<string, List<int>>();
       private readonly Dictionary<int, string> sourceToUnmappedName = new Dictionary<int, string>();
 
+      // for a name of a table (which may not actually be in the file),
+      // get the list of addresses in the file that want to store a number that matches the length of the table.
+      private readonly Dictionary<string, List<int>> matchedWords = new Dictionary<string, List<int>>();
+
       public virtual int EarliestAllowedAnchor => 0;
 
       public override IReadOnlyList<ArrayRun> Arrays => runs.OfType<ArrayRun>().ToList();
@@ -57,6 +61,16 @@ namespace HavenSoft.HexManiac.Core.Models {
             sourceToUnmappedName[unmappedPointer.Address] = unmappedPointer.Name;
             if (!unmappedNameToSources.ContainsKey(unmappedPointer.Name)) unmappedNameToSources[unmappedPointer.Name] = new List<int>();
             unmappedNameToSources[unmappedPointer.Name].Add(unmappedPointer.Address);
+         }
+         foreach (var word in metadata.MatchedWords) {
+            if (!matchedWords.ContainsKey(word.Name)) matchedWords.Add(word.Name, new List<int>());
+            matchedWords[word.Name].Add(word.Address);
+            var index = BinarySearch(word.Address);
+            if (index > 0) {
+               runs[index] = new WordRun(word.Address, word.Name, runs[index].PointerSources);
+            } else {
+               runs.Insert(~index, new WordRun(word.Address, word.Name));
+            }
          }
       }
 
@@ -391,6 +405,14 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override void ObserveRunWritten(ModelDelta changeToken, IFormattedRun run) {
+         if (run is ArrayRun array) {
+            // update any words who's length matches this array's name
+            var anchorName = anchorForAddress[run.Start];
+            if (matchedWords.TryGetValue(anchorName, out var words)) {
+               foreach (var address in words) WriteValue(changeToken, address, array.ElementCount);
+            }
+         }
+
          var index = BinarySearch(run.Start);
          if (index < 0) {
             index = ~index;
@@ -425,6 +447,11 @@ namespace HavenSoft.HexManiac.Core.Models {
             UpdateDependantArrayLengths(changeToken, arrayRun);
          }
 
+         if (run is WordRun word) {
+            if (!matchedWords.ContainsKey(word.SourceArrayName)) matchedWords[word.SourceArrayName] = new List<int>();
+            matchedWords[word.SourceArrayName].Add(word.Start);
+         }
+
          if (run is NoInfoRun && run.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(run.Start)) {
             // this run has no useful information. Remove it.
             changeToken.RemoveRun(runs[index]);
@@ -457,10 +484,45 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// (Recursively, since other arrays might depend on those ones).
       /// </summary>
       private void UpdateDependantArrayLengths(ModelDelta changeToken, ArrayRun arrayRun) {
-         foreach (var table in this.GetDependantArrays(arrayRun)) {
-            if (arrayRun.ElementCount == table.ElementCount) continue;
-            var newTable = table.Append(arrayRun.ElementCount - table.ElementCount);
-            ObserveRunWritten(changeToken, newTable);
+         if (!anchorForAddress.TryGetValue(arrayRun.Start, out string anchor)) return;
+         foreach (var table in this.GetDependantArrays(anchor)) {
+            var newTable = table;
+            // option 1: this table's length is based on the given table
+            if (anchor.Equals(table.LengthFromAnchor)) {
+               if (arrayRun.ElementCount == table.ElementCount) continue;
+               newTable = (ArrayRun)RelocateForExpansion(changeToken, table, arrayRun.ElementCount * table.ElementLength);
+               newTable = newTable.Append(arrayRun.ElementCount - table.ElementCount);
+               ObserveRunWritten(changeToken, newTable);
+            }
+            // option 2: this table includes a bit-array based on the given table
+            var requiredByteLength = (int)Math.Ceiling(arrayRun.ElementCount / 8.0);
+            for (int segmentIndex = 0; segmentIndex < newTable.ElementContent.Count; segmentIndex++) {
+               if (!(newTable.ElementContent[segmentIndex] is ArrayRunBitArraySegment bitSegment)) continue;
+               if (bitSegment.Length == requiredByteLength) continue;
+               newTable = (ArrayRun)RelocateForExpansion(changeToken, table, newTable.ElementCount * (newTable.ElementLength - bitSegment.Length + requiredByteLength));
+               // within the new table, shift all the data to fit the new data width
+               for (int elementIndex = newTable.ElementCount - 1; elementIndex >= 0; elementIndex--) {
+                  var sourceIndex = newTable.Start + newTable.ElementLength * elementIndex;
+                  var destinationIndex = newTable.Start + (newTable.ElementLength - bitSegment.Length + requiredByteLength) * elementIndex;
+                  for (int movingSegmentIndex = 0; movingSegmentIndex < newTable.ElementContent.Count; movingSegmentIndex++) {
+                     // move the source data to the destination point
+                     for (var byteIndex = 0; byteIndex < newTable.ElementContent[movingSegmentIndex].Length; byteIndex++) {
+                        changeToken.ChangeData(this, destinationIndex, RawData[sourceIndex]);
+                        sourceIndex++;
+                        destinationIndex++;
+                     }
+                     // if we're at the segment that's expanding, expand it by filling with 0's
+                     if (movingSegmentIndex == segmentIndex) {
+                        for (var byteIndex = 0; byteIndex < requiredByteLength - bitSegment.Length; byteIndex++) {
+                           changeToken.ChangeData(this, destinationIndex, 0);
+                           destinationIndex++;
+                        }
+                     }
+                  }
+               }
+               newTable = newTable.GrowBitArraySegment(segmentIndex, requiredByteLength - bitSegment.Length);
+               ObserveRunWritten(changeToken, newTable);
+            }
          }
       }
 
@@ -492,9 +554,14 @@ namespace HavenSoft.HexManiac.Core.Models {
             var existingRun = runs[index];
             changeToken.RemoveRun(existingRun);
             UpdateNewRunFromPointerFormat(ref existingRun, segment as ArrayRunPointerSegment, changeToken);
+            existingRun = existingRun.MergeAnchor(new[] { start });
             index = BinarySearch(destination); // runs could've been removed during UpdateNewRunFromPointerFormat: search for the index again.
-            runs[index] = existingRun.MergeAnchor(new[] { start });
-            changeToken.AddRun(runs[index]);
+            if (index < 0) {
+               runs.Insert(~index, existingRun);
+            } else {
+               runs[index] = existingRun;
+            }
+            changeToken.AddRun(existingRun);
          }
       }
 
@@ -560,8 +627,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          var seekPointers = existingRun?.PointerSources == null || existingRun?.Start != location;
          var sources = GetSourcesPointingToNewAnchor(changeToken, anchorName, seekPointers);
 
-         // if we're adding an array, update inner pointers and dependent arrays
-         if (run is ArrayRun array && array.SupportsPointersToElements) run = array.AddSourcesPointingWithinArray(changeToken);
+         // if we're adding an array, a few extra updates
+         if (run is ArrayRun array) {
+            // update inner pointers and dependent arrays
+            if (array.SupportsPointersToElements) run = array.AddSourcesPointingWithinArray(changeToken);
+         }
 
          var newRun = run.MergeAnchor(sources);
          using (ModelCacheScope.CreateScope(this)) {
@@ -569,7 +639,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public override void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd) {
+      public override void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd, IReadOnlyDictionary<int, string> matchedWordsToRemove, IReadOnlyDictionary<int, string> matchedWordsToAdd) {
          foreach (var kvp in namesToRemove) {
             var (address, name) = (kvp.Key, kvp.Value);
             addressForAnchor.Remove(name);
@@ -596,6 +666,18 @@ namespace HavenSoft.HexManiac.Core.Models {
             sourceToUnmappedName[address] = name;
          }
 
+         foreach (var kvp in matchedWordsToRemove) {
+            var (address, name) = (kvp.Key, kvp.Value);
+            matchedWords[name].Remove(address);
+            if (matchedWords[name].Count == 0) matchedWords.Remove(name);
+         }
+
+         foreach (var kvp in matchedWordsToAdd) {
+            var (address, name) = (kvp.Key, kvp.Value);
+            if (!matchedWords.ContainsKey(name)) matchedWords[name] = new List<int>();
+            matchedWords[name].Add(address);
+         }
+
          foreach (var kvp in runsToRemove) {
             var index = BinarySearch(kvp.Key);
             if (index >= 0) runs.RemoveAt(index);
@@ -620,7 +702,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          const int SpacerLength = 0x10;
          if (minimumLength <= run.Length) return run;
          if (CanSafelyUse(run.Start + run.Length, run.Start + minimumLength)) return run;
-         minimumLength += 0x100; // make sure there's plenty of room after, so that we're not in the middle of some other data set
+         minimumLength += 0x140; // make sure there's plenty of room after, so that we're not in the middle of some other data set
          var start = 0x100;
          var runIndex = 0;
          while (start < RawData.Length - minimumLength) {
@@ -716,6 +798,10 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (run.Start >= start + length) return;
             if (run is PointerRun) ClearPointerFormat(null, changeToken, run.Start);
             if (run is ArrayRun arrayRun) ModifyAnchorsFromPointerArray(changeToken, arrayRun, ClearPointerFormat);
+            if (run is WordRun wordRun) {
+               changeToken.RemoveMatchedWord(wordRun.Start, wordRun.SourceArrayName);
+               matchedWords[wordRun.SourceArrayName].Remove(wordRun.Start);
+            }
 
             ClearAnchorFormat(changeToken, originalStart, run);
 
@@ -746,6 +832,17 @@ namespace HavenSoft.HexManiac.Core.Models {
             runIndex = BinarySearch(run.Start);
             changeToken.RemoveRun(run);
             runs.RemoveAt(runIndex);
+            return;
+         }
+
+         // case 1.5: unnamed anchor doesn't start where the delete starts, but the pointer to it lives in an array
+         // this anchor is real, but the format is wrong. Keep the anchor, lose the format.
+         if (run.Start != originalStart && run.PointerSources != null && run.PointerSources.Any(source => GetNextRun(source) is ArrayRun)) {
+            var newRun = new NoInfoRun(run.Start, run.PointerSources);
+            runIndex = BinarySearch(run.Start);
+            changeToken.RemoveRun(run);
+            changeToken.AddRun(newRun);
+            runs[runIndex] = newRun;
             return;
          }
 
@@ -797,7 +894,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             } else if (runs[~index - 1] is ArrayRun array) {
                ClearPointerWithinArray(changeToken, start, ~index - 1, array);
             } else {
-               throw new NotImplementedException();
+               Debug.Fail($"Trying to clear a pointer that starts at {start:X6}, but the run in that area seems to be not be a pointer run.");
             }
          } else if (sourceToUnmappedName.TryGetValue(start, out var name)) {
             changeToken.RemoveUnmappedPointer(start, name);
@@ -846,54 +943,56 @@ namespace HavenSoft.HexManiac.Core.Models {
             start = run.Start;
          }
 
-         while (length > 0) {
-            run = GetNextRun(start);
-            if (run.Start > start) {
-               var len = Math.Min(length, run.Start - start);
-               var bytes = Enumerable.Range(start, len).Select(i => RawData[i].ToString("X2"));
-               text.Append(string.Join(" ", bytes) + " ");
-               length -= len;
-               start += len;
-               continue;
-            }
-            if (run.Start == start) {
-               if (!anchorForAddress.TryGetValue(start, out string anchor)) {
-                  if ((run.PointerSources?.Count ?? 0) > 0) {
-                     anchor = GenerateDefaultAnchorName(run);
-                     ObserveAnchorWritten(changeToken(), anchor, run);
+         using (ModelCacheScope.CreateScope(this)) {
+            while (length > 0) {
+               run = GetNextRun(start);
+               if (run.Start > start) {
+                  var len = Math.Min(length, run.Start - start);
+                  var bytes = Enumerable.Range(start, len).Select(i => RawData[i].ToString("X2"));
+                  text.Append(string.Join(" ", bytes) + " ");
+                  length -= len;
+                  start += len;
+                  continue;
+               }
+               if (run.Start == start) {
+                  if (!anchorForAddress.TryGetValue(start, out string anchor)) {
+                     if ((run.PointerSources?.Count ?? 0) > 0) {
+                        anchor = GenerateDefaultAnchorName(run);
+                        ObserveAnchorWritten(changeToken(), anchor, run);
+                        text.Append($"^{anchor}{run.FormatString} ");
+                     }
+                  } else {
                      text.Append($"^{anchor}{run.FormatString} ");
                   }
-               } else {
-                  text.Append($"^{anchor}{run.FormatString} ");
                }
-            }
-            if (run is PointerRun pointerRun) {
-               var destination = ReadPointer(pointerRun.Start);
-               var anchorName = GetAnchorFromAddress(run.Start, destination);
-               if (string.IsNullOrEmpty(anchorName)) anchorName = destination.ToString("X6");
-               text.Append($"<{anchorName}> ");
-               start += 4;
-               length -= 4;
-            } else if (run is NoInfoRun noInfoRun) {
-               text.Append(RawData[run.Start].ToString("X2") + " ");
-               start += 1;
-               length -= 1;
-            } else if (run is PCSRun pcsRun) {
-               text.Append(PCSString.Convert(this, run.Start, run.Length) + " ");
-               start += run.Length;
-               length -= run.Length;
-            } else if (run is ArrayRun arrayRun) {
-               arrayRun.AppendTo(this, text, start, length);
-               text.Append(" ");
-               length -= run.Start + run.Length - start;
-               start = run.Start + run.Length;
-            } else if (run is EggMoveRun eggRun) {
-               eggRun.AppendTo(text, start, length);
-               text.Append(" ");
-               length -= run.Start + run.Length - start;
-               start = run.Start + run.Length;
-            } else {
-               throw new NotImplementedException();
+               if (run is PointerRun pointerRun) {
+                  var destination = ReadPointer(pointerRun.Start);
+                  var anchorName = GetAnchorFromAddress(run.Start, destination);
+                  if (string.IsNullOrEmpty(anchorName)) anchorName = destination.ToString("X6");
+                  text.Append($"<{anchorName}> ");
+                  start += 4;
+                  length -= 4;
+               } else if (run is NoInfoRun noInfoRun) {
+                  text.Append(RawData[run.Start].ToString("X2") + " ");
+                  start += 1;
+                  length -= 1;
+               } else if (run is PCSRun pcsRun) {
+                  text.Append(PCSString.Convert(this, run.Start, run.Length) + " ");
+                  start += run.Length;
+                  length -= run.Length;
+               } else if (run is ArrayRun arrayRun) {
+                  arrayRun.AppendTo(this, text, start, length);
+                  text.Append(" ");
+                  length -= run.Start + run.Length - start;
+                  start = run.Start + run.Length;
+               } else if (run is EggMoveRun eggRun) {
+                  eggRun.AppendTo(text, start, length);
+                  text.Append(" ");
+                  length -= run.Start + run.Length - start;
+                  start = run.Start + run.Length;
+               } else {
+                  throw new NotImplementedException();
+               }
             }
          }
 
@@ -974,13 +1073,21 @@ namespace HavenSoft.HexManiac.Core.Models {
             anchors.Add(new StoredAnchor(address, name, format));
          }
 
-         var unmappedPointers = new List<StoredUnmappedPointers>();
+         var unmappedPointers = new List<StoredUnmappedPointer>();
          foreach (var kvp in sourceToUnmappedName) {
             var (address, name) = (kvp.Key, kvp.Value);
-            unmappedPointers.Add(new StoredUnmappedPointers(address, name));
+            unmappedPointers.Add(new StoredUnmappedPointer(address, name));
          }
 
-         return new StoredMetadata(anchors, unmappedPointers);
+         var matchedWords = new List<StoredMatchedWord>();
+         foreach (var kvp in this.matchedWords) {
+            var name = kvp.Key;
+            foreach (var address in kvp.Value) {
+               matchedWords.Add(new StoredMatchedWord(address, name));
+            }
+         }
+
+         return new StoredMetadata(anchors, unmappedPointers, matchedWords);
       }
 
       /// <summary>

@@ -22,6 +22,9 @@ namespace HavenSoft.HexManiac.Core.Models {
       private readonly Dictionary<int, string> addedUnmappedPointers = new Dictionary<int, string>();
       private readonly Dictionary<int, string> removedUnmappedPointers = new Dictionary<int, string>();
 
+      private readonly Dictionary<int, string> addedMatchedWords = new Dictionary<int, string>();
+      private readonly Dictionary<int, string> removedMatchedWords = new Dictionary<int, string>();
+
       public event EventHandler OnNewDataChange;
       public bool HasDataChange { get; private set; }
       public bool HasAnyChange =>
@@ -30,6 +33,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          removedRuns.Any() ||
          addedNames.Any() ||
          removedNames.Any() ||
+         addedMatchedWords.Any() ||
+         removedMatchedWords.Any() ||
          addedUnmappedPointers.Any() ||
          removedUnmappedPointers.Any();
 
@@ -121,10 +126,24 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var kvp in removedNames) reverse.addedNames[kvp.Key] = kvp.Value;
          foreach (var kvp in addedUnmappedPointers) reverse.removedUnmappedPointers[kvp.Key] = kvp.Value;
          foreach (var kvp in removedUnmappedPointers) reverse.addedUnmappedPointers[kvp.Key] = kvp.Value;
+         foreach (var kvp in addedMatchedWords) reverse.removedMatchedWords[kvp.Key] = kvp.Value;
+         foreach (var kvp in removedMatchedWords) reverse.addedMatchedWords[kvp.Key] = kvp.Value;
 
-         model.MassUpdateFromDelta(addedRuns, removedRuns, addedNames, removedNames, addedUnmappedPointers, removedUnmappedPointers);
+         model.MassUpdateFromDelta(addedRuns, removedRuns, addedNames, removedNames, addedUnmappedPointers, removedUnmappedPointers, addedMatchedWords, removedMatchedWords);
 
          return reverse;
+      }
+
+      public void AddMatchedWord(IDataModel model, int memoryLocation, string parentName) {
+         var parentAddress = model.GetAddressFromAnchor(this, -1, parentName);
+         var parent = model.GetNextRun(parentAddress) as ArrayRun;
+         model.WriteValue(this, memoryLocation, parent?.ElementCount ?? default);
+         addedMatchedWords[memoryLocation] = parentName;
+      }
+
+      public void RemoveMatchedWord(int memoryLocation, string parentName) {
+         if (addedMatchedWords.ContainsKey(memoryLocation)) addedMatchedWords.Remove(memoryLocation);
+         else removedMatchedWords[memoryLocation] = parentName;
       }
    }
 

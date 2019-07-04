@@ -40,6 +40,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             if (CurrentText.Last() != PointerEnd && CurrentText.Last() != ' ') return;
             CompletePointerEdit();
             Result = true;
+         } else if (CurrentText.StartsWith("::")) {
+            if (CurrentText.Last() != ' ') return;
+            CompleteWordEdit();
+            Result = true;
          } else {
             if (CurrentText.Length < 2) return;
             CompleteHexEdit(CurrentText);
@@ -156,6 +160,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
       }
 
+      public void Visit(BitArray array, byte data) {
+         if (CurrentText.Length < 2) return;
+         var byteValue = byte.Parse(CurrentText, NumberStyles.HexNumber);
+         CurrentChange.ChangeData(Model, memoryLocation, byteValue);
+         NewDataIndex = memoryLocation + 1;
+         Result = true;
+      }
+
+      public void Visit(MatchedWord word, byte data) => Visit((None)null, data);
+
       /// <summary>
       /// Parses text in a PLM run to get the level and move.
       /// returns an error string if the parse fails.
@@ -233,8 +247,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Model.ExpandData(CurrentChange, memoryLocation + 3);
 
          var currentRun = Model.GetNextRun(memoryLocation);
-         bool inArray = currentRun.Start <= memoryLocation && currentRun is ArrayRun;
-         var sources = currentRun.PointerSources;
+         if (currentRun.Start > memoryLocation) currentRun = null;
+         bool inArray = currentRun is ArrayRun && currentRun.Start <= memoryLocation;
+         var sources = currentRun?.PointerSources;
 
          if (!inArray) {
             if (destination != string.Empty) {
@@ -268,6 +283,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          } else {
             ErrorText = $"Address {fullValue.ToString("X2")} is not within the data.";
          }
+      }
+
+      private void CompleteWordEdit() {
+         var parentName = CurrentText.Substring(2).Trim();
+         Model.ExpandData(CurrentChange, memoryLocation + 3);
+         Model.ClearFormat(CurrentChange, memoryLocation, 4);
+         CurrentChange.AddMatchedWord(Model, memoryLocation, parentName);
+         Model.ObserveRunWritten(CurrentChange, new WordRun(memoryLocation, parentName));
+         NewDataIndex = memoryLocation + 4;
       }
 
       private void CompleteStringEdit() {

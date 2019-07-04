@@ -323,6 +323,66 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Contains("3 \"Bob Par\"", viewPort.Tools.StringTool.Content);
       }
 
+      [Fact]
+      public void CanUseBitArraysInFormats() {
+         SetupMoveTable(0x00);
+         SetupNameTable(0x40);
+
+         // setup a table for 5 tutor moves
+         viewPort.Goto.Execute("000080");
+         viewPort.Edit("^tutormoves[move:movenames]5 One Two Four Five Seven ");
+
+         // create a table that uses tutormoves as a bit array. Note 5 moves should take up 1 byte, so the overall table should by 8 bytes long (because there are 8 pokemon)
+         viewPort.Goto.Execute("0000090");
+         viewPort.Edit("^table[moves|b[]tutormoves]pokenames ");
+         var run = (ArrayRun)model.GetNextRun(0x90);
+         var segment = (ArrayRunBitArraySegment)run.ElementContent[0];
+         Assert.Equal("tutormoves", segment.SourceArrayName);
+         Assert.Equal(8, run.Length);
+
+         var bitList = (BitListArrayElementViewModel)viewPort.Tools.TableTool.Children[0];
+         Assert.Equal("Four", bitList[2].BitLabel);
+
+         bitList[2].IsChecked = true;      // "Adam" should be able to learn "Four"
+         Assert.Equal(0x04, model[0x90]);  // the third bit up is set because "Four" is the first tutor move
+
+         Assert.IsType<BitArray>(((Anchor)viewPort[0, 0].Format).OriginalFormat);
+      }
+
+      [Fact]
+      public void BitArraySelectionSelectsAllBytesInCurrentBitArray() {
+         SetupMoveTable(0x00);
+         SetupNameTable(0x40);
+
+         // setup a table for 5 tutor moves
+         viewPort.Goto.Execute("000080");
+         viewPort.Edit("^tutormoves[move:movenames]10 One One Two Two Four Four Five Five Seven Seven "); // note that 10 bits takes 2 bytes
+
+         viewPort.Goto.Execute("0000100");
+         viewPort.Edit("^table[moves|b[]tutormoves]pokenames ");
+         var run = (ArrayRun)model.GetNextRun(0x100);
+         Assert.Equal(16, run.Length); // 2 bytes each for 8 pokemon
+
+         viewPort.SelectionStart = new Point(4, 0);
+         Assert.True(viewPort.IsSelected(new Point(5, 0)));
+      }
+
+      [Fact]
+      public void CanExpandBitArrays() {
+         // Arrange a table with 8 elements
+         // and a second table that uses those elements as bits
+         SetupMoveTable(0x00);
+         viewPort.Edit($"@40 ^mymoves[move:{EggMoveRun.MoveNamesTable}]8 "); // setup a table that uses 'movenames' as an enum
+         viewPort.Edit($"@60 ^table[data|b[]mymoves]4 @61 FF "); // set all 8 name bits to true for the table[1]    // 60 - 64
+
+         // Act: expand the enum table to have 9 entries
+         viewPort.Edit("@50 +");
+
+         // Assert that the 8 true bits moved based on the expansion, and the new table uses 2 bytes per element.
+         Assert.Equal(0xFF, data[0x62]);
+         Assert.Equal(8, model.GetNextRun(0x60).Length);
+      }
+
       // creates a move table that is 0x40 bytes long
       private void SetupMoveTable(int start) {
          viewPort.Goto.Execute(start.ToString("X6"));

@@ -622,5 +622,60 @@
             </Setter.Value>
          </Setter>
       </Style>
+
+      <Style TargetType="{x:Type CheckBox}">
+         <Setter Property="SnapsToDevicePixels" Value="true"/>
+         <Setter Property="OverridesDefaultStyle" Value="true"/>
+         <Setter Property="Template">
+            <Setter.Value>
+               <ControlTemplate TargetType="{x:Type CheckBox}">
+                  <BulletDecorator Background="Transparent" Width="{TemplateBinding Width}" Height="15">
+                     <BulletDecorator.Bullet>
+                        <Border x:Name="Border" 
+                           Width="13" 
+                           Height="13" 
+                           Margin="1"
+                           CornerRadius="0" 
+                           Background="{DynamicResource Background}"
+                           BorderThickness="1"
+                           VerticalAlignment="Center"
+                           BorderBrush="{DynamicResource Secondary}">
+                           <Path 
+                              Width="7" Height="7" 
+                              x:Name="CheckMark"
+                              SnapsToDevicePixels="False" 
+                              Stroke="{DynamicResource Accent}"
+                              StrokeThickness="2"
+                              Data="M 0 0 L 7 7 M 0 7 L 7 0" />
+                        </Border>
+                     </BulletDecorator.Bullet>
+                     <Viewbox Margin="3,0,0,0" HorizontalAlignment="Left">
+                        <ContentPresenter RecognizesAccessKey="True"/>
+                     </Viewbox>
+                  </BulletDecorator>
+                  <ControlTemplate.Triggers>
+                     <Trigger Property="IsChecked" Value="false">
+                        <Setter TargetName="CheckMark" Property="Visibility" Value="Collapsed"/>
+                     </Trigger>
+                     <Trigger Property="IsChecked" Value="{x:Null}">
+                        <Setter TargetName="CheckMark" Property="Data" Value="M 0 7 L 7 0" />
+                     </Trigger>
+                     <Trigger Property="IsMouseOver" Value="true">
+                        <Setter TargetName="Border" Property="Background" Value="{DynamicResource Backlight}" />
+                     </Trigger>
+                     <Trigger Property="IsPressed" Value="true">
+                        <Setter TargetName="Border" Property="Background" Value="{DynamicResource Backlight}" />
+                        <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource Primary}" />
+                     </Trigger>
+                     <Trigger Property="IsEnabled" Value="false">
+                        <Setter TargetName="Border" Property="Opacity" Value=".8" />
+                        <Setter TargetName="Border" Property="Opacity" Value=".8" />
+                        <Setter Property="Foreground" Value="{DynamicResource Secondary}"/>
+                     </Trigger>
+                  </ControlTemplate.Triggers>
+               </ControlTemplate>
+            </Setter.Value>
+         </Setter>
+      </Style>
    </Application.Resources>
 </Application>

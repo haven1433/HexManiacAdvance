@@ -54,19 +54,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public int Width {
          get => scroll.Width;
-         set => selection.ChangeWidth(value);
+         set {
+            using (ModelCacheScope.CreateScope(Model)) selection.ChangeWidth(value);
+         }
       }
 
       public int Height {
          get => scroll.Height;
-         set => scroll.Height = value;
+         set {
+            using (ModelCacheScope.CreateScope(Model)) scroll.Height = value;
+         }
       }
 
       public int MinimumScroll => scroll.MinimumScroll;
 
       public int ScrollValue {
          get => scroll.ScrollValue;
-         set => scroll.ScrollValue = value;
+         set { using (ModelCacheScope.CreateScope(Model)) scroll.ScrollValue = value; }
       }
 
       public int MaximumScroll => scroll.MaximumScroll;
@@ -78,7 +82,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public bool UseCustomHeaders {
          get => scroll.UseCustomHeaders;
-         set => scroll.UseCustomHeaders = value;
+         set { using (ModelCacheScope.CreateScope(Model)) scroll.UseCustomHeaders = value; }
       }
 
       private void ScrollPropertyChanged(object sender, PropertyChangedEventArgs e) {
@@ -134,19 +138,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var element = currentView[location.X, location.Y];
             var underEdit = element.Format as UnderEdit;
             if (underEdit != null) {
-               if (underEdit.CurrentText == string.Empty) {
-                  var index = scroll.ViewPointToDataIndex(location);
-                  var operation = new DataClear(Model, history.CurrentChange, index);
-                  underEdit.OriginalFormat.Visit(operation, Model[index]);
-                  ClearEdits(location);
-               } else {
-                  var endEdit = " ";
-                  if (underEdit.CurrentText.Count(c => c == StringDelimeter) % 2 == 1) endEdit = StringDelimeter.ToString();
-                  var originalFormat = underEdit.OriginalFormat;
-                  if (originalFormat is Anchor anchor) originalFormat = anchor.OriginalFormat;
-                  if (underEdit.CurrentText.StartsWith(EggMoveRun.GroupStart) && (originalFormat is EggSection || originalFormat is EggItem)) endEdit = EggMoveRun.GroupEnd;
-                  currentView[location.X, location.Y] = new HexElement(element.Value, underEdit.Edit(endEdit));
-                  if (!TryCompleteEdit(location)) ClearEdits(location);
+               using (ModelCacheScope.CreateScope(Model)) {
+                  if (underEdit.CurrentText == string.Empty) {
+                     var index = scroll.ViewPointToDataIndex(location);
+                     var operation = new DataClear(Model, history.CurrentChange, index);
+                     underEdit.OriginalFormat.Visit(operation, Model[index]);
+                     ClearEdits(location);
+                  } else {
+                     var endEdit = " ";
+                     if (underEdit.CurrentText.Count(c => c == StringDelimeter) % 2 == 1) endEdit = StringDelimeter.ToString();
+                     var originalFormat = underEdit.OriginalFormat;
+                     if (originalFormat is Anchor anchor) originalFormat = anchor.OriginalFormat;
+                     if (underEdit.CurrentText.StartsWith(EggMoveRun.GroupStart) && (originalFormat is EggSection || originalFormat is EggItem)) endEdit = EggMoveRun.GroupEnd;
+                     currentView[location.X, location.Y] = new HexElement(element.Value, underEdit.Edit(endEdit));
+                     if (!TryCompleteEdit(location)) ClearEdits(location);
+                  }
                }
             }
          }
@@ -156,8 +162,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (e.PropertyName == nameof(SelectionEnd)) history.ChangeCompleted();
          NotifyPropertyChanged(e.PropertyName);
          var dataIndex = scroll.ViewPointToDataIndex(SelectionStart);
-         UpdateToolsFromSelection(dataIndex);
-         UpdateSelectedAddress();
+         using (ModelCacheScope.CreateScope(Model)) {
+            UpdateToolsFromSelection(dataIndex);
+            UpdateSelectedAddress();
+         }
          RequestMenuClose?.Invoke(this, EventArgs.Empty);
       }
 
@@ -230,6 +238,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private readonly ChangeHistory<ModelDelta> history;
 
+      public ModelDelta CurrentChange => history.CurrentChange;
+
       public ICommand Undo => history.Undo;
 
       public ICommand Redo => history.Redo;
@@ -237,7 +247,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private ModelDelta RevertChanges(ModelDelta changes) {
          var reverse = changes.Revert(Model);
          var point = scroll.DataIndexToViewPoint(reverse.EarliestChange);
-         if (!scroll.ScrollToPoint(ref point)) RefreshBackingData();
+         using (ModelCacheScope.CreateScope(Model)) {
+            if (!scroll.ScrollToPoint(ref point)) RefreshBackingData();
+         }
          return reverse;
       }
 
@@ -329,14 +341,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      OnError?.Invoke(this, string.Empty);
                      var newRun = Model.GetNextRun(index);
                      if (newRun is ArrayRun array) {
-                        // if the format changed (ignoring length), run a goto to update the display width
-                        if (run is ArrayRun array2 && !array.HasSameSegments(array2)) {
-                           selection.PropertyChanged -= SelectionPropertyChanged; // to keep from double-updating the AnchorText
-                           Goto.Execute(index.ToString("X2"));
-                           selection.PropertyChanged += SelectionPropertyChanged;
+                        using (ModelCacheScope.CreateScope(Model)) {
+                           // if the format changed (ignoring length), run a goto to update the display width
+                           if (run is ArrayRun array2 && !array.HasSameSegments(array2)) {
+                              selection.PropertyChanged -= SelectionPropertyChanged; // to keep from double-updating the AnchorText
+                              Goto.Execute(index.ToString("X2"));
+                              selection.PropertyChanged += SelectionPropertyChanged;
+                           }
+                           UpdateColumnHeaders();
+                           Tools.RefreshContent();
                         }
-                        UpdateColumnHeaders();
-                        Tools.RefreshContent();
                      }
                      RefreshBackingData();
                   } else {
@@ -927,31 +941,43 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var format = currentView[x, y].Format;
          if (format is Anchor anchor) format = anchor.OriginalFormat;
 
-         // follow pointer
-         if (format is Pointer pointer) {
-            if (pointer.Destination != Pointer.NULL) {
-               selection.GotoAddress(pointer.Destination);
-            } else if (string.IsNullOrEmpty(pointer.DestinationName)) {
-               OnError(this, $"null pointers point to nothing, so going to their source isn't possible.");
-            } else {
-               OnError(this, $"Pointer destination {pointer.DestinationName} not found.");
+         using (ModelCacheScope.CreateScope(Model)) {
+            // follow pointer
+            if (format is Pointer pointer) {
+               if (pointer.Destination != Pointer.NULL) {
+                  selection.GotoAddress(pointer.Destination);
+               } else if (string.IsNullOrEmpty(pointer.DestinationName)) {
+                  OnError(this, $"null pointers point to nothing, so going to their source isn't possible.");
+               } else {
+                  OnError(this, $"Pointer destination {pointer.DestinationName} not found.");
+               }
             }
-         }
 
-         // open tool
-         var byteOffset = scroll.ViewPointToDataIndex(new Point(x, y));
-         var currentRun = Model.GetNextRun(byteOffset);
-         if (currentRun is IStreamRun) {
-            Tools.StringTool.Address = currentRun.Start;
-            Tools.SelectedIndex = Tools.IndexOf(Tools.StringTool);
-         } else if (currentRun is ArrayRun array) {
-            var offsets = array.ConvertByteOffsetToArrayOffset(byteOffset);
-            if (format is PCS) {
-               Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
+            // follow word value source
+            if (format is MatchedWord word) {
+               var address = Model.GetAddressFromAnchor(history.CurrentChange, -1, word.Name.Substring(2));
+               if (address == Pointer.NULL) {
+                  OnError(this, $"No table with name '{word.Name.Substring(2)}' was found.");
+               } else {
+                  selection.GotoAddress(address);
+               }
+            }
+
+            // open tool
+            var byteOffset = scroll.ViewPointToDataIndex(new Point(x, y));
+            var currentRun = Model.GetNextRun(byteOffset);
+            if (currentRun is IStreamRun) {
+               Tools.StringTool.Address = currentRun.Start;
                Tools.SelectedIndex = Tools.IndexOf(Tools.StringTool);
-            } else {
-               Tools.TableTool.Address = array.Start + offsets.ElementIndex * array.ElementLength;
-               Tools.SelectedIndex = Tools.IndexOf(Tools.TableTool);
+            } else if (currentRun is ArrayRun array) {
+               var offsets = array.ConvertByteOffsetToArrayOffset(byteOffset);
+               if (format is PCS) {
+                  Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
+                  Tools.SelectedIndex = Tools.IndexOf(Tools.StringTool);
+               } else {
+                  Tools.TableTool.Address = array.Start + offsets.ElementIndex * array.ElementLength;
+                  Tools.SelectedIndex = Tools.IndexOf(Tools.TableTool);
+               }
             }
          }
       }
@@ -1002,6 +1028,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          RequestTabChange(this, newTab);
          RequestMenuClose?.Invoke(this, EventArgs.Empty);
+      }
+
+      public void ValidateMatchedWords() {
+         // TODO if this is too slow, add a method to the model to get the set of only MatchedWordRuns.
+         for (var run = Model.GetNextRun(0); run != NoInfoRun.NullRun; run = Model.GetNextRun(run.Start + run.Length)) {
+            if (!(run is WordRun wordRun)) continue;
+            var address = Model.GetAddressFromAnchor(history.CurrentChange, -1, wordRun.SourceArrayName);
+            if (address == Pointer.NULL) continue;
+            var array = Model.GetNextRun(address) as ArrayRun;
+            if (array == null) continue;
+            var actualValue = Model.ReadValue(wordRun.Start);
+            if (array.ElementCount == actualValue) continue;
+            OnMessage?.Invoke(this, $"MatchedWord at {wordRun.Start:X6} was expected to have value {array.ElementCount}, but was {actualValue}.");
+            Goto.Execute(wordRun.Start.ToString("X6"));
+            break;
+         }
       }
 
       private void Edit(char input) {
@@ -1058,8 +1100,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var plmRun = (PLMRun)Model.GetNextRun(((IDataFormatInstance)originalFormat).Source);
                var allOptions = plmRun.GetAutoCompleteOptions(newText.Split(' ')[0]);
                return AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(moveName)), selectedIndex);
+            } else if (newText.StartsWith(":")) {
+               return Model.GetNewWordAutocompleteOptions(newText, selectedIndex);
             } else {
-               throw new NotImplementedException();
+               return null;
             }
          }
       }
@@ -1137,7 +1181,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          (Point, Point) pair(int start, int end) => (scroll.DataIndexToViewPoint(start), scroll.DataIndexToViewPoint(end));
 
-         if (run is PointerRun) return pair(run.Start, run.Start + run.Length - 1);
+         if (run is PointerRun || run is WordRun) return pair(run.Start, run.Start + run.Length - 1);
          if (run is EggMoveRun || run is PLMRun) {
             var even = (index - run.Start) % 2 == 0;
             if (even) return pair(index, index + 1);
@@ -1147,7 +1191,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var offset = array.ConvertByteOffsetToArrayOffset(index);
          var type = array.ElementContent[offset.SegmentIndex].Type;
-         if (type == ElementContentType.Pointer || type == ElementContentType.Integer) {
+         if (type == ElementContentType.Pointer || type == ElementContentType.Integer || type == ElementContentType.BitArray) {
             return pair(offset.SegmentStart, offset.SegmentStart + array.ElementContent[offset.SegmentIndex].Length - 1);
          }
 
@@ -1414,7 +1458,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   var index = scroll.ViewPointToDataIndex(new Point(x, y));
                   if (run == null || index >= run.Start + run.Length) {
                      run = Model.GetNextRun(index) ?? new NoInfoRun(Model.Count);
-                     if (run is ArrayRun array) Tools.Schedule(array.ClearCache);
                   }
                   if (index < 0 || index >= Model.Count) {
                      currentView[x, y] = HexElement.Undefined;
