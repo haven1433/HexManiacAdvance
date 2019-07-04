@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.WPF.Controls;
+using HavenSoft.HexManiac.WPF.Implementations;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -21,7 +22,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       private ThemeSelector themeWindow;
 
       public EditorViewModel ViewModel { get; }
-      public IFileSystem FileSystem => (IFileSystem)Resources["FileSystem"];
+      public WindowsFileSystem FileSystem => (WindowsFileSystem)Resources["FileSystem"];
 
       public MainWindow(EditorViewModel viewModel) {
          InitializeComponent();
@@ -44,6 +45,14 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             ) {
                AnimateFocusToCorner(MessagePanel, default);
             }
+         };
+
+         Application.Current.DispatcherUnhandledException += (sender, e) => {
+            File.AppendAllText("crash.log", e.Exception.Message + Environment.NewLine + e.Exception.StackTrace);
+            FileSystem.ShowCustomMessageBox("An unhandled error occured. Please report it on Discord or open an issue on GitHub." + Environment.NewLine +
+               "HexManiac might be in a bad state. You should close as soon as possible." + Environment.NewLine +
+               "The error has been logged to crash.log", showYesNoCancel: false);
+            e.Handled = true;
          };
 
          FillQuickEditMenu();
