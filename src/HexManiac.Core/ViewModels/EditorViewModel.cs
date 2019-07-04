@@ -201,6 +201,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   findPrevious.CanExecuteChanged.Invoke(findPrevious, EventArgs.Empty);
                   findNext.CanExecuteChanged.Invoke(findNext, EventArgs.Empty);
                   UpdateGotoViewModel();
+                  foreach (var edit in QuickEdits) edit.TabChanged();
                }
             }
          }

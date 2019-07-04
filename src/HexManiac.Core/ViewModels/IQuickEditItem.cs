@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Linq;
@@ -10,14 +11,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       string Name { get; }
       string Description { get; }
 
+      event EventHandler CanRunChanged;
       bool CanRun(IViewPort viewPort);
       ErrorInfo Run(IViewPort viewPort);
+      void TabChanged();
    }
 
    public class MakeTutorsExpandable : IQuickEditItem {
       public string Name => "Make Tutors Expandable";
       public string Description => "The initial games limited to have exactly 18 (FireRed) or no more than 32 (Emerald) tutors." +
                Environment.NewLine + "This change will allow you to freely add new tutors, up to 256.";
+
+      public event EventHandler CanRunChanged;
 
       public bool CanRun(IViewPort viewPortInterface) {
          // require that I have a tab with real data, not a search tab or a diff tab or something
@@ -36,7 +41,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          // if the patch has already been applied, you can't apply it again
-         if (viewPort.Model.GetNextRun(canPokemonLearnTutorMove + 0x20) is MatchedWord) return false;
+         if (viewPort.Model.GetNextRun(canPokemonLearnTutorMove + 0x20) is WordRun) return false;
          return true;
       }
 
@@ -50,8 +55,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          InsertRoutine_GetTutorMove(viewPort, getTutorMove, getTutorMove_Length);
          InsertRoutine_CanPokemonLearnTutorMove(viewPort, canPokemonLearnTutorMove, canPokemonLearnTutorMove_Length);
 
+         CanRunChanged?.Invoke(this, EventArgs.Empty);
+
          return ErrorInfo.NoError;
       }
+
+      public void TabChanged() => CanRunChanged?.Invoke(this, EventArgs.Empty);
 
       public static (int getTutorMove, int canPokemonLearnTutorMove, int getTutorMove_Length, int canPokemonLearnTutorMove_Length) GetOffsets(ViewPort viewPort) {
          var model = viewPort.Model;

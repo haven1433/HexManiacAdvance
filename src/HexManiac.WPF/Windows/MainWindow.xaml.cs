@@ -51,21 +51,19 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
       private void FillQuickEditMenu() {
          foreach (var edit in ViewModel.QuickEdits) {
-            QuickEdits.Items.Add(new MenuItem {
-               Header = edit.Name,
-               Command = new StubCommand {
-                  CanExecute = arg => edit.CanRun(ViewModel[ViewModel.SelectedIndex] as IViewPort),
-                  Execute = arg => {
-                     Window window = default;
-                     window = new Window {
-                        Title = edit.Name,
-                        Background = (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][nameof(Theme.Background)],
-                        SizeToContent = SizeToContent.WidthAndHeight,
-                        WindowStyle = WindowStyle.ToolWindow,
-                        Content = new Grid {
-                           Width = 300,
-                           Height = 100,
-                           Children = {
+            var command = new StubCommand {
+               CanExecute = arg => ViewModel.SelectedIndex >= 0 && edit.CanRun(ViewModel[ViewModel.SelectedIndex] as IViewPort),
+               Execute = arg => {
+                  Window window = default;
+                  window = new Window {
+                     Title = edit.Name,
+                     Background = (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][nameof(Theme.Background)],
+                     SizeToContent = SizeToContent.WidthAndHeight,
+                     WindowStyle = WindowStyle.ToolWindow,
+                     Content = new Grid {
+                        Width = 300,
+                        Height = 100,
+                        Children = {
                               new TextBlock {
                                  Margin = new Thickness(5),
                                  FontSize = 14,
@@ -101,11 +99,17 @@ namespace HavenSoft.HexManiac.WPF.Windows {
                                  },
                               },
                            },
-                        },
-                     };
-                     window.ShowDialog();
-                  },
+                     },
+                  };
+                  window.ShowDialog();
                },
+            };
+
+            edit.CanRunChanged += (sender, e) => command.CanExecuteChanged.Invoke(command, EventArgs.Empty);
+
+            QuickEdits.Items.Add(new MenuItem {
+               Header = edit.Name,
+               Command = command,
             });
          }
       }
