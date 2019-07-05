@@ -465,12 +465,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          moveSelectionStart.CanExecute = selection.MoveSelectionStart.CanExecute;
          moveSelectionStart.Execute = arg => {
             var direction = (Direction)arg;
-            MoveSelectionStartExecuted(arg, direction);
+            using (ModelCacheScope.CreateScope(Model)) {
+               MoveSelectionStartExecuted(arg, direction);
+            }
          };
          selection.MoveSelectionStart.CanExecuteChanged += (sender, e) => moveSelectionStart.CanExecuteChanged.Invoke(this, e);
          moveSelectionEnd.CanExecute = selection.MoveSelectionEnd.CanExecute;
          moveSelectionEnd.Execute = arg => {
-            selection.MoveSelectionEnd.Execute(arg);
+            using (ModelCacheScope.CreateScope(Model)) {
+               selection.MoveSelectionEnd.Execute(arg);
+            }
          };
          selection.MoveSelectionEnd.CanExecuteChanged += (sender, e) => moveSelectionEnd.CanExecuteChanged.Invoke(this, e);
 
