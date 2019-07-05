@@ -15,6 +15,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          LeafGreen = "BPGE";
 
       public const string
+         TmMoves = "tmmoves",
+         TmCompatibility = "tmcompatibility",
          MoveTutors = "tutormoves",
          TutorCompatibility = "tutorcompatibility";
 
@@ -136,6 +138,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          FindTutorMoveAnchors();
+         FindTmMoveAnchors();
 
          // @3D4294 ^itemicons[image<> palette<>]items
          // @4886E8 ^movedescriptions[description<>]354
@@ -178,6 +181,42 @@ namespace HavenSoft.HexManiac.Core.Models {
                if (!TryParse(this, $"[pokemon|b[]{MoveTutors}]{EggMoveRun.PokemonNameTable}", tutorCompatibility, null, out var tutorCompatibilityRun).HasError) {
                   ObserveAnchorWritten(noChangeDelta, TutorCompatibility, tutorCompatibilityRun);
                }
+            }
+         }
+      }
+
+      private void FindTmMoveAnchors() {
+         // get tmCompatibility location
+         var originalCode = new byte[] {
+            0x00, 0x04, 0x01, 0x0C, 0x0B, 0x1C, 0xCE, 0x20,
+            0x40, 0x00, 0x81, 0x42, 0x01, 0xD1, 0x00, 0x20,
+            0x15, 0xE0, 0x1F, 0x2C, 0x0C, 0xD9, 0x20, 0x1C,
+            0x20, 0x38, 0x01, 0x22, 0x82, 0x40, 0x03, 0x48,
+            0xC9, 0x00, 0x04, 0x30, 0x09, 0x18, 0x08, 0x68,
+            0x10, 0x40, 0x08, 0xE0,
+         };
+         var list = Find(originalCode, 0x40000, 0x70000);
+         if (list.Count != 1) return;
+         var tmCompatibility = ReadPointer(list[0] + originalCode.Length);
+         if (tmCompatibility < 0 || tmCompatibility > Count) return;
+
+         // get tmMoves location
+         originalCode = new byte[] {
+            0x00, 0xB5, 0x00, 0x04, 0x02, 0x0C, 0x00, 0x21,
+            0x04, 0x4B, 0x08, 0x1C, 0x32, 0x30, 0x40, 0x00,
+            0xC0, 0x18, 0x00, 0x88, 0x90, 0x42, 0x03, 0xD1,
+            0x01, 0x20, 0x07, 0xE0,
+         };
+         list = Find(originalCode, 0x06F700, 0x1B7000);
+         if (list.Count != 1) return;
+         var tmMoves = ReadPointer(list[0] + originalCode.Length);
+         if (tmMoves< 0 || tmMoves > Count) return;
+
+         // add tm locations into the metadata
+         if (!TryParse(this, $"[move:{EggMoveRun.MoveNamesTable}]58", tmMoves, null, out var tmMovesRun).HasError) {
+            ObserveAnchorWritten(noChangeDelta, TmMoves, tmMovesRun);
+            if (!TryParse(this, $"[pokemon|b[]{TmMoves}]{EggMoveRun.PokemonNameTable}", tmCompatibility, null, out var tmCompatibilityRun).HasError) {
+               ObserveAnchorWritten(noChangeDelta, TmCompatibility, tmCompatibilityRun);
             }
          }
       }

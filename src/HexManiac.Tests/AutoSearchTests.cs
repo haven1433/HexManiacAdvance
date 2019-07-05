@@ -227,6 +227,32 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(compatibilityElementLength, compatibility.ElementContent[0].Length);
       }
 
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void TmsAreFound(string game) {
+         var model = LoadModel(game);
+         var noChange = new NoDataChangeDeltaModel();
+
+         var movesLocation = model.GetAddressFromAnchor(noChange, -1, AutoSearchModel.TmMoves);
+         var compatibilityLocation = model.GetAddressFromAnchor(noChange, -1, AutoSearchModel.TmCompatibility);
+
+         // Clover changes the code to make HM Moves forgettable, so finding doesn't work automatically.
+         if (game.Contains("Clover")) {
+            Assert.Equal(Pointer.NULL, movesLocation);
+            Assert.Equal(Pointer.NULL, compatibilityLocation);
+            return;
+         }
+
+         var moves = (ArrayRun)model.GetNextRun(movesLocation);
+         var compatibility = (ArrayRun)model.GetNextRun(compatibilityLocation);
+
+         var expectedMoves = 58;
+         var compatibilityElementLength = 8; // (int)Math.Ceiling(expectedMoves / 8.0);
+
+         Assert.Equal(expectedMoves, moves.ElementCount);
+         Assert.Equal(compatibilityElementLength, compatibility.ElementContent[0].Length);
+      }
+
       // this one actually changes the data, so I can't use the same shared model as everone else.
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
