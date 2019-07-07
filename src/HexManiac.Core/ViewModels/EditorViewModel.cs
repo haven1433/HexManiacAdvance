@@ -177,6 +177,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public IReadOnlyList<IQuickEditItem> QuickEdits { get; } = new List<IQuickEditItem> {
          new MakeTutorsExpandable(),
+         new MakeTmsExpandable(),
       };
 
       public event EventHandler<Action> RequestDelayedWork;

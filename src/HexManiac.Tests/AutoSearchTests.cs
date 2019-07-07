@@ -288,6 +288,41 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(table.ElementCount, model.ReadValue(word.Start));
       }
 
+      // this one actually changes the data, so I can't use the same shared model as everone else.
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void ExpandableTMsWorks(string game) {
+         var fileSystem = new StubFileSystem();
+         var model = LoadModelNoCache(game);
+         var editor = new EditorViewModel(fileSystem, false);
+         var viewPort = new ViewPort(game, model);
+         editor.Add(viewPort);
+         var expandTMs = editor.QuickEdits.Single(edit => edit.Name == "Make TMs Expandable");
+
+         // Clover makes changes that prevent us from finding tmmoves/tmcompatibility. Don't support Clover.
+         var canRun = expandTMs.CanRun(viewPort);
+         if (game.Contains("Clover")) {
+            Assert.False(canRun);
+            return;
+         } else {
+            Assert.True(canRun);
+         }
+
+         // run the actual quick-edit
+         expandTMs.Run(viewPort);
+
+         // extend the table
+         var table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, AutoSearchModel.TmMoves));
+         viewPort.Goto.Execute((table.Start + table.Length).ToString("X6"));
+         viewPort.Edit("+");
+
+         // the 4 bytes after the last pointer to tm-compatibility should store the length of tmmoves
+         table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, AutoSearchModel.TmMoves));
+         var tmCompatibilityPointerSources = model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, AutoSearchModel.TmCompatibility)).PointerSources;
+         var word = (WordRun)model.GetNextRun(tmCompatibilityPointerSources.First() + 4);
+         Assert.Equal(table.ElementCount, model.ReadValue(word.Start));
+      }
+
       /// <summary>
       /// Loading the model can take a while.
       /// We want to know that loading the model created the correct arrays,

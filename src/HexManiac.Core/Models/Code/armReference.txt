@@ -74,15 +74,15 @@ ne=1111  @    never
 10101 rd #          |     add   rd, sp, #      @ rd = sp + #*4
 101100000 #         |     add   sp, #          @ sp += #*4
 101100001 #         |     sub   sp, #          @ sp -= #*4
-10110100 tsil       |     push  {tsil}
-10110101 tsil       |     push  lr, {tsil}     @ note: 'tsil' is a reverse 'list'. The bits are stored in the opposite order.
+10110100 list       |     push  {list}
+10110101 list       |     push  lr, {list}     @ note: 'tsil' is a reverse 'list'. The bits are stored in the opposite order.
 10111100 list       |     pop   {list}
 10111101 list       |     pop   pc, {list}
-11000 rn tsil       |     stmia rn, {tsil}     @ *(rn)=Rx, then increment rn by 4. Continue for each x in list. (store array)
+11000 rn list       |     stmia rn, {list}     @ *(rn)=Rx, then increment rn by 4. Continue for each x in list. (store array)
 11001 rn list       |     ldmia rn, {list}
 1101 cond #         |     b{cond}   #=pc+#*2+4 @ if(cond) PC = *(PC+#*2) @example: b #10 jumps to the instruction 28 bytes after the current instruction.
 11011111 #          |     swi   #              @ run a bios function
 11100 #             |     b     #=pc+#*2+4     @ PC = *(PC+#*2)
-11111 #11 11110 #11 |     bl    #=pc+#*2+4     @ The 14 numeric bits go together and act as a single signed 14-bit number
+11111 #11 11110 #11 |     bl    #=pc+#*2+4     @ The 22 numeric bits go together and act as a single signed 22-bit number
                                                @ If I want to branch-link, I need the space of 2 instructions, or a register for blx
                                                @ conditional branching cannot link

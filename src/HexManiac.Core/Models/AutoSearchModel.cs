@@ -141,7 +141,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          FindTmMoveAnchors();
 
          // @3D4294 ^itemicons[image<> palette<>]items
-         // @4886E8 ^movedescriptions[description<>]354
+         // @4886E8 ^movedescriptions[description<>]354 <- note that there is no description for move 0
       }
 
       private void FindTutorMoveAnchors() {

@@ -278,7 +278,7 @@ namespace HavenSoft.HexManiac.Tests {
          // sample routine: If r0 is true, return double r1. Else, return 0
          var code = new ushort[] {
          // 000000:
-            0b10110101_00001100,    // push  lr, {r4, r5}         (note that for push, r0-r7 run left-right)
+            0b10110101_00110000,    // push  lr, {r4, r5}         (note that for push, r0-r7 run right-left)
             0b00101_000_00000001,   // cmp   r0, 1
             0b1101_0001_00000000,   // bne   pc(4)+(0)*2+4 = 8
             0b0001100_001_001_000,  // add   r0, r1, r1
