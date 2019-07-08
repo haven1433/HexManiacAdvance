@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
@@ -25,9 +26,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          set {
             if (viewPort == null) return;
             if (TryUpdate(ref text, value)) {
-               var options = viewPort.Model?.GetAutoCompleteAnchorNameOptions(text) ?? new string[0];
-               AutoCompleteOptions = AutoCompleteSelectionItem.Generate(options, completionIndex);
-               ShowAutoCompleteOptions = AutoCompleteOptions.Count > 0;
+               using (ModelCacheScope.CreateScope(viewPort.Model)) {
+                  var options = viewPort.Model?.GetAutoCompleteAnchorNameOptions(text) ?? new string[0];
+                  AutoCompleteOptions = AutoCompleteSelectionItem.Generate(options, completionIndex);
+                  ShowAutoCompleteOptions = AutoCompleteOptions.Count > 0;
+               }
             }
          }
       }
