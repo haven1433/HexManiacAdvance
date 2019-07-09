@@ -316,17 +316,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       #endregion
 
       public void UpdateModelFromView() {
-         var result = children.Select((child, i) => child.IsChecked ? 1 << i : 0).Sum();
-         model.WriteMultiByteValue(start, segment.Length, history.CurrentChange, result);
+         for (int i = 0; i < segment.Length; i++) {
+            byte result = 0;
+            for (int j = 0; j < 8 && children.Count > i * 8 + j; j++) result += (byte)(children[i * 8 + j].IsChecked ? (1 << j) : 0);
+            history.CurrentChange.ChangeData(model, start + i, result);
+         }
          DataChanged?.Invoke(this, EventArgs.Empty);
       }
 
       public void UpdateViewFromModel() {
-         var bits = model.ReadMultiByteValue(start, segment.Length);
-         for (int i = 0; i < children.Count; i++) {
-            children[i].PropertyChanged -= ChildChanged;
-            children[i].IsChecked = ((bits >> i) & 1) != 0;
-            children[i].PropertyChanged += ChildChanged;
+         for (int i = 0; i < segment.Length; i++) {
+            var bits = model[start + i];
+            for (int j = 0; j < 8; j++) {
+               if (children.Count < i * 8 + j) break;
+               children[i * 8 + j].PropertyChanged -= ChildChanged;
+               children[i * 8 + j].IsChecked = ((bits >> j) & 1) != 0;
+               children[i * 8 + j].PropertyChanged += ChildChanged;
+            }
          }
       }
 
