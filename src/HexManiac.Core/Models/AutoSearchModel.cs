@@ -98,6 +98,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       private void DecodeDataArrays() {
          if (TrySearch(this, noChangeDelta, $"[name\"\"14 index: price: holdeffect: description<{PCSRun.SharedFormatString}> keyitemvalue. bagkeyitem. pocket. type. fieldeffect<> battleusage:: battleeffect<> battleextra::]", out var itemdata)) {
             ObserveAnchorWritten(noChangeDelta, "items", itemdata);
+            FindItemImages(itemdata);
          }
 
          // if the stat data doesn't match the pokenames length, use whichever is shorter.
@@ -219,6 +220,25 @@ namespace HavenSoft.HexManiac.Core.Models {
                ObserveAnchorWritten(noChangeDelta, TmCompatibility, tmCompatibilityRun);
             }
          }
+      }
+
+      private void FindItemImages(ArrayRun itemsTable) {
+         var originalCode = new byte[] {
+            0x88, 0x00, 0xD9, 0x00, 0x40, 0x18, 0x80, 0x18,
+            0x00, 0x68, 0x02, 0xBC, 0x08, 0x47, 0x00, 0x00,
+         };
+         var list = Find(originalCode, 0x98950, 0x1B0050);
+         if (list.Count != 1) return;
+
+         var lengthOffset = gameCode == Emerald ? -0x10 : originalCode.Length;
+         var pointerOffset = gameCode == Emerald ? originalCode.Length : originalCode.Length + 4;
+
+         var imagesStart = ReadPointer(list[0] + pointerOffset);
+         if (!TryParse(this, $"[image<> palette<>]items", imagesStart, null, out var itemImages).HasError) {
+            ObserveAnchorWritten(noChangeDelta, "itemimages", itemImages);
+         }
+
+         // TODO @{lengthOffset:X6} ::itemimages-1
       }
 
       private IList<int> Find(byte[] subset, int start, int end) {

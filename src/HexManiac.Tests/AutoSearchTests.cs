@@ -126,6 +126,23 @@ namespace HavenSoft.HexManiac.Tests {
 
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
+      public void ItemImagesAreFound(string game) {
+         var model = LoadModel(game);
+         var noChange = new NoDataChangeDeltaModel();
+
+         var address = model.GetAddressFromAnchor(noChange, -1, "itemimages");
+         if (game.Contains("Ruby") || game.Contains("Sapphire")) {
+            Assert.Equal(Pointer.NULL, address);
+            return;
+         }
+
+         var run = (ArrayRun)model.GetNextAnchor(address);
+         if (game.Contains("Altair") || game.Contains("Emerald")) Assert.Equal(377, run.ElementCount);
+         else Assert.Equal(375, run.ElementCount);
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
       public void TrainerClassNamesAreFound(string game) {
          var model = LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
