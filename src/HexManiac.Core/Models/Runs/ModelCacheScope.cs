@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class ModelCacheScope : IDisposable {
@@ -25,7 +26,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      public static ModelCacheScope GetCache(IDataModel model) => activeScopes.TryGetValue(model, out var scope) ? scope : null;
+      public static ModelCacheScope GetCache(IDataModel model) {
+         if (activeScopes.TryGetValue(model, out var scope)) {
+            return scope;
+         } else {
+            Debug.Fail("Requested a scoped cache, we're not currently in a scope!");
+            return new ModelCacheScope(model);
+         }
+      }
 
       private readonly Dictionary<string, IReadOnlyList<string>> cachedOptions = new Dictionary<string, IReadOnlyList<string>>();
       public IReadOnlyList<string> GetOptions(string table) {
