@@ -340,6 +340,33 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(table.ElementCount, model.ReadValue(word.Start));
       }
 
+      // this one actually changes the data, so I can't use the same shared model as everone else.
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void ExpandableItemsWorks(string game) {
+         var fileSystem = new StubFileSystem();
+         var model = LoadModelNoCache(game);
+         var editor = new EditorViewModel(fileSystem, false);
+         var viewPort = new ViewPort(game, model);
+         editor.Add(viewPort);
+         var expandTMs = editor.QuickEdits.Single(edit => edit.Name == "Make Items Expandable");
+
+         // run the actual quick-edit
+         expandTMs.Run(viewPort);
+
+         // extend the table
+         var table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, "items"));
+         viewPort.Goto.Execute((table.Start + table.Length).ToString("X6"));
+         viewPort.Edit("+");
+
+         // 0x14 bytes after the start of the change should store the length of items
+         var gameCode = new string(Enumerable.Range(0xAC, 4).Select(i => ((char)model[i])).ToArray());
+         var editStart = MakeItemsExpandable.GetPrimaryEditAddress(gameCode);
+         table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, "items")); // note that since we changed the table, we have to get the run again.
+         var word = (WordRun)model.GetNextRun(editStart + 0x14);
+         Assert.Equal(table.ElementCount, model.ReadValue(word.Start));
+      }
+
       /// <summary>
       /// Loading the model can take a while.
       /// We want to know that loading the model created the correct arrays,
