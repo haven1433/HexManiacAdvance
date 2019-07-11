@@ -561,39 +561,41 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void Edit(ConsoleKey key) {
-         var offset = scroll.ViewPointToDataIndex(GetEditPoint());
-         var run = Model.GetNextRun(offset);
-         var point = GetEditPoint();
-         var element = currentView[point.X, point.Y];
-         var underEdit = element.Format as UnderEdit;
-         if (key == ConsoleKey.Enter && underEdit != null) {
-            if (underEdit.AutocompleteOptions != null && underEdit.AutocompleteOptions.Any(option => option.IsSelected)) {
-               var selectedIndex = AutoCompleteSelectionItem.SelectedIndex(underEdit.AutocompleteOptions);
-               underEdit = new UnderEdit(underEdit.OriginalFormat, underEdit.AutocompleteOptions[selectedIndex].CompletionText, underEdit.EditWidth);
-               currentView[point.X, point.Y] = new HexElement(element.Value, underEdit);
-               RequestMenuClose?.Invoke(this, EventArgs.Empty);
-            } else {
-               currentView[point.X, point.Y] = new HexElement(element.Value, underEdit.Edit(" "));
+         using (ModelCacheScope.CreateScope(Model)) {
+            var offset = scroll.ViewPointToDataIndex(GetEditPoint());
+            var run = Model.GetNextRun(offset);
+            var point = GetEditPoint();
+            var element = currentView[point.X, point.Y];
+            var underEdit = element.Format as UnderEdit;
+            if (key == ConsoleKey.Enter && underEdit != null) {
+               if (underEdit.AutocompleteOptions != null && underEdit.AutocompleteOptions.Any(option => option.IsSelected)) {
+                  var selectedIndex = AutoCompleteSelectionItem.SelectedIndex(underEdit.AutocompleteOptions);
+                  underEdit = new UnderEdit(underEdit.OriginalFormat, underEdit.AutocompleteOptions[selectedIndex].CompletionText, underEdit.EditWidth);
+                  currentView[point.X, point.Y] = new HexElement(element.Value, underEdit);
+                  RequestMenuClose?.Invoke(this, EventArgs.Empty);
+               } else {
+                  currentView[point.X, point.Y] = new HexElement(element.Value, underEdit.Edit(" "));
+               }
+               TryCompleteEdit(point);
+               return;
             }
-            TryCompleteEdit(point);
-            return;
-         }
-         if (key == ConsoleKey.Enter && run is ArrayRun arrayRun1) {
-            var offsets = arrayRun1.ConvertByteOffsetToArrayOffset(offset);
-            SilentScroll(offsets.SegmentStart + arrayRun1.ElementLength);
-         }
-         if (key == ConsoleKey.Tab && run is ArrayRun arrayRun2) {
-            var offsets = arrayRun2.ConvertByteOffsetToArrayOffset(offset);
-            SilentScroll(offsets.SegmentStart + arrayRun2.ElementContent[offsets.SegmentIndex].Length);
-         }
-         if (key == ConsoleKey.Escape) {
-            ClearEdits(SelectionStart);
-            ClearMessage?.Invoke(this, EventArgs.Empty);
-            RequestMenuClose?.Invoke(this, EventArgs.Empty);
-         }
+            if (key == ConsoleKey.Enter && run is ArrayRun arrayRun1) {
+               var offsets = arrayRun1.ConvertByteOffsetToArrayOffset(offset);
+               SilentScroll(offsets.SegmentStart + arrayRun1.ElementLength);
+            }
+            if (key == ConsoleKey.Tab && run is ArrayRun arrayRun2) {
+               var offsets = arrayRun2.ConvertByteOffsetToArrayOffset(offset);
+               SilentScroll(offsets.SegmentStart + arrayRun2.ElementContent[offsets.SegmentIndex].Length);
+            }
+            if (key == ConsoleKey.Escape) {
+               ClearEdits(SelectionStart);
+               ClearMessage?.Invoke(this, EventArgs.Empty);
+               RequestMenuClose?.Invoke(this, EventArgs.Empty);
+            }
 
-         if (key != ConsoleKey.Backspace) return;
-         AcceptBackspace(underEdit, run, point);
+            if (key != ConsoleKey.Backspace) return;
+            AcceptBackspace(underEdit, run, point);
+         }
       }
 
       public void Autocomplete(string input) {
