@@ -297,13 +297,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var bits = model.ReadMultiByteValue(start, segment.Length);
          var names = segment.GetOptions(model);
          for (int i = 0; i < names.Count; i++) {
-            var element = new BitElement {
-               BitLabel = names[i],
-               IsChecked = ((bits >> i) & 1) != 0,
-            };
+            var element = new BitElement { BitLabel = names[i] };
             children.Add(element);
             element.PropertyChanged += ChildChanged;
          }
+
+         UpdateViewFromModel();
       }
 
       #region IReadOnlyList<BitElement> Implementation
@@ -328,7 +327,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          for (int i = 0; i < segment.Length; i++) {
             var bits = model[start + i];
             for (int j = 0; j < 8; j++) {
-               if (children.Count < i * 8 + j) break;
+               if (children.Count <= i * 8 + j) break;
                children[i * 8 + j].PropertyChanged -= ChildChanged;
                children[i * 8 + j].IsChecked = ((bits >> j) & 1) != 0;
                children[i * 8 + j].PropertyChanged += ChildChanged;
