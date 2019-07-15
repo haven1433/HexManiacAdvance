@@ -88,13 +88,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Goto = new StubCommand {
             CanExecute = arg => viewPort?.Goto != null,
             Execute = arg => {
-               var text = Text;
-               var index = completionIndex.LimitToRange(-1, AutoCompleteOptions.Count - 1);
-               if (index != -1) text = AutoCompleteOptions[index].CompletionText;
-               if (arg is string) text = (string)arg;
-               viewPort?.Goto?.Execute(text);
-               ControlVisible = false;
-               ShowAutoCompleteOptions = false;
+               using (ModelCacheScope.CreateScope(viewPort.Model)) {
+                  var text = Text;
+                  var index = completionIndex.LimitToRange(-1, AutoCompleteOptions.Count - 1);
+                  if (index != -1) text = AutoCompleteOptions[index].CompletionText;
+                  if (arg is string) text = (string)arg;
+                  viewPort?.Goto?.Execute(text);
+                  ControlVisible = false;
+                  ShowAutoCompleteOptions = false;
+               }
             },
          };
          ShowGoto = new StubCommand {
