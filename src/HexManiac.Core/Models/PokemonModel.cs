@@ -503,27 +503,38 @@ namespace HavenSoft.HexManiac.Core.Models {
                if (bitSegment.Length == requiredByteLength) continue;
                newTable = (ArrayRun)RelocateForExpansion(changeToken, table, newTable.ElementCount * (newTable.ElementLength - bitSegment.Length + requiredByteLength));
                // within the new table, shift all the data to fit the new data width
-               for (int elementIndex = newTable.ElementCount - 1; elementIndex >= 0; elementIndex--) {
-                  var sourceIndex = newTable.Start + newTable.ElementLength * elementIndex;
-                  var destinationIndex = newTable.Start + (newTable.ElementLength - bitSegment.Length + requiredByteLength) * elementIndex;
-                  for (int movingSegmentIndex = 0; movingSegmentIndex < newTable.ElementContent.Count; movingSegmentIndex++) {
-                     // move the source data to the destination point
-                     for (var byteIndex = 0; byteIndex < newTable.ElementContent[movingSegmentIndex].Length; byteIndex++) {
-                        changeToken.ChangeData(this, destinationIndex, RawData[sourceIndex]);
-                        sourceIndex++;
-                        destinationIndex++;
-                     }
-                     // if we're at the segment that's expanding, expand it by filling with 0's
-                     if (movingSegmentIndex == segmentIndex) {
-                        for (var byteIndex = 0; byteIndex < requiredByteLength - bitSegment.Length; byteIndex++) {
-                           changeToken.ChangeData(this, destinationIndex, 0);
-                           destinationIndex++;
-                        }
-                     }
-                  }
-               }
+               ShiftTableBytesForGrowingSegment(changeToken, newTable, requiredByteLength, segmentIndex);
                newTable = newTable.GrowBitArraySegment(segmentIndex, requiredByteLength - bitSegment.Length);
                ObserveRunWritten(changeToken, newTable);
+            }
+         }
+      }
+
+      /// <summary>
+      /// A segment within a table is growing to include an extra byte.
+      /// Shift all the bytes within the table to make room within each element for the new byte at the end of the chosen segment.
+      /// </summary>
+      private void ShiftTableBytesForGrowingSegment(ModelDelta changeToken, ArrayRun table, int newLength, int segmentIndex) {
+         var segment = table.ElementContent[segmentIndex];
+         // since we're moving data in-place, start at the end and work our way to the front to avoid overwriting anything we haven't read yet.
+         var (oldElementWidth, newElementWidth) = (table.ElementLength, table.ElementLength - segment.Length + newLength);
+         for (int elementIndex = table.ElementCount - 1; elementIndex >= 0; elementIndex--) {
+            var sourceIndex = table.Start + oldElementWidth * (elementIndex + 1) - 1;
+            var destinationIndex = table.Start + newElementWidth * (elementIndex + 1) - 1;
+            foreach (var movingSegment in table.ElementContent.Reverse()) {
+               // if we're at the segment that's expanding, expand it by filling with 0's
+               if (movingSegment == segment) {
+                  foreach (var _ in Enumerable.Range(0, newLength - segment.Length)) {
+                     changeToken.ChangeData(this, destinationIndex, 0);
+                     destinationIndex--;
+                  }
+               }
+               // move the source data to the destination point
+               foreach (var _ in Enumerable.Range(0, movingSegment.Length)) {
+                  changeToken.ChangeData(this, destinationIndex, RawData[sourceIndex]);
+                  sourceIndex--;
+                  destinationIndex--;
+               }
             }
          }
       }
