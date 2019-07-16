@@ -146,7 +146,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public static int GetGetMonDataStart(IDataModel model) {
          var gameCode = new string(Enumerable.Range(0xAC, 4).Select(i => ((char)model[i])).ToArray());
          if (gameCode == FireRed || gameCode == LeafGreen) {
-            return 0x03FDE8;
+            return 0x03FBE8;
          } else if (gameCode == Ruby || gameCode == Sapphire) {
             return 0x03CB60;
          } else if (gameCode == Emerald) {
@@ -200,19 +200,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
              push  lr, {r1}              @ 10110101_00000010    B502
              mov   r1, #65               @ 00100_001_01000001   2141
              mov   r2, #0                @ 00100_010_00000000   2200
-             bl    <03FBE8>              @ 11111_xxxxxxxxxxx_11110_xxxxxxxxxxx
+             bl    <GetMonData>          @ 11111_xxxxxxxxxxx_11110_xxxxxxxxxxx
              pop   {r2}                  @ 10111100_00000100    BC04
              mov   r1, r0                @ 0001110000_000_001   1C01
              mov   r0, #0                @ 00100_000_00000000   2000
              mov   r3, #103              @ 00100_011_01100111   2367
              lsl   r3, r3, #2            @ 00000_00010_011_011  009B
-             cmp   r1, r3                @ 01000101_00_011_001  4519
+             cmp   r1, r3                @ 0100001010_011_001   4299
              beq   end                   @ 1101_0000_00001100   D00C
              ldr   r0, =tm_compatibility @ 01001_000_00000110   4806
              ldr   r3, =tm_count         @ 01001_011_00000111   4B07
              add   r3, #7                @ 00110_011_00000111   3307
              lsr   r3, r3, #3            @ 00001_00011_011_011  08DB
-             mul   r1, r2                @ 0100001101_010_001   4351
+             mul   r1, r3                @ 0100001101_011_001   4359
              lsr   r3, r2, #3            @ 00001_00011_010_011  08D3
              add   r1, r1, r3            @ 0001100_011_001_001  18C9
              ldrb  r0, [r0, r1]          @ 0101110_001_000_000  5C40
@@ -224,7 +224,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          end:
              pop   pc                    @ 10111101_00000000    BD00
          tm_compatibility:
-             .word 08252BC8
+             .word <tmcompatibility>
          tm_count:
              .word ::tmmoves
          */
@@ -244,9 +244,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          };
 
          viewPort.Edit($"@{address:X6} ");
-         viewPort.Edit($"02 B5 41 21 00 22 {bl[0]} {bl[1]} {bl[2]} {bl[3]} 04 BC 01 1C 00 20 ");
-         viewPort.Edit($"65 23 9B 00 19 45 0C D0 06 48 07 4B 07 33 DB 08 ");
-         viewPort.Edit($"51 43 D3 08 C9 18 80 5C 07 21 11 40 01 22 8A 40 ");
+         viewPort.Edit($"02 B5 41 21 00 22 {bl[0]:X2} {bl[1]:X2} {bl[2]:X2} {bl[3]:X2} 04 BC 01 1C 00 20 ");
+         viewPort.Edit($"67 23 9B 00 99 42 0C D0 06 48 07 4B 07 33 DB 08 ");
+         viewPort.Edit($"59 43 D3 08 C9 18 40 5C 07 21 11 40 01 22 8A 40 ");
          viewPort.Edit($"10 40 00 BD <{TmCompatibility}> ::{TmMoves} ");  // new data only 0x3C long
          for (int i = 0x3C; i < originalLength; i++) viewPort.Edit("00 ");
       }
@@ -295,6 +295,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else if (gameCode == Emerald) {
             viewPort.Edit("@1B0014 ::items ");
          }
+
+         CanRunChanged?.Invoke(this, EventArgs.Empty);
 
          return ErrorInfo.NoError;
       }
