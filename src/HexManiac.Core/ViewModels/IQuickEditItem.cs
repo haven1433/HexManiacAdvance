@@ -130,7 +130,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public event EventHandler CanRunChanged;
 
-      public static (int canPokemonLearnTmMove_start, int canPokemonLearnTmMove_Length) GetCanPokemonLearnTmMoveOffsets(IDataModel model) {
+      public static (int start, int length) GetCanPokemonLearnTmMoveOffsets(IDataModel model) {
          var gameCode = new string(Enumerable.Range(0xAC, 4).Select(i => ((char)model[i])).ToArray());
          if (gameCode == FireRed || gameCode == LeafGreen) {
             return (0x043C2C, 0x58);
@@ -180,12 +180,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ErrorInfo Run(IViewPort viewPortInterface) {
          var viewPort = (ViewPort)viewPortInterface;
          var model = viewPort.Model;
-         var (canPokemonLearnTmMove_start, canPokemonLearnTmMove_Length) = GetCanPokemonLearnTmMoveOffsets(model);
+         var (start, length) = GetCanPokemonLearnTmMoveOffsets(model);
          var getMonData_start = GetGetMonDataStart(model);
          var tmmoves = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, TmMoves);
          var tmcompatibility = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, TmCompatibility);
 
-         InsertRoutine_CanPokemonLearnTmMove(viewPort, canPokemonLearnTmMove_start, canPokemonLearnTmMove_Length, getMonData_start);
+         InsertRoutine_CanPokemonLearnTmMove(viewPort, start, length, getMonData_start);
 
          CanRunChanged?.Invoke(this, EventArgs.Empty);
 
