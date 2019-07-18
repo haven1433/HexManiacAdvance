@@ -54,12 +54,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private IReadOnlyList<AutoCompleteSelectionItem> autoCompleteOptions = new AutoCompleteSelectionItem[0];
       public IReadOnlyList<AutoCompleteSelectionItem> AutoCompleteOptions {
          get => autoCompleteOptions;
-         private set {
-            if (autoCompleteOptions == value) return;
-            var oldValue = autoCompleteOptions;
-            autoCompleteOptions = value;
-            NotifyPropertyChanged(oldValue, nameof(AutoCompleteOptions));
-         }
+         private set => TryUpdateSequence<IReadOnlyList<AutoCompleteSelectionItem>, AutoCompleteSelectionItem>(ref autoCompleteOptions, value);
       }
 
       #endregion
