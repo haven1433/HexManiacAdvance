@@ -251,6 +251,7 @@ namespace HavenSoft.HexManiac.Tests {
          var noChange = new NoDataChangeDeltaModel();
 
          var movesLocation = model.GetAddressFromAnchor(noChange, -1, AutoSearchModel.TmMoves);
+         var hmLocation = model.GetAddressFromAnchor(noChange, -1, AutoSearchModel.HmMoves);
          var compatibilityLocation = model.GetAddressFromAnchor(noChange, -1, AutoSearchModel.TmCompatibility);
 
          // Clover changes the code to make HM Moves forgettable, so finding doesn't work automatically.
@@ -260,13 +261,16 @@ namespace HavenSoft.HexManiac.Tests {
             return;
          }
 
-         var moves = (ArrayRun)model.GetNextRun(movesLocation);
+         var tmMoves = (ArrayRun)model.GetNextRun(movesLocation);
+         var hmMoves = (ArrayRun)model.GetNextRun(hmLocation);
          var compatibility = (ArrayRun)model.GetNextRun(compatibilityLocation);
 
-         var expectedMoves = 58;
-         var compatibilityElementLength = 8; // (int)Math.Ceiling(expectedMoves / 8.0);
+         var expectedTmMoves = 58;
+         var expectedHmMoves = 8;
+         var compatibilityElementLength = 8;
 
-         Assert.Equal(expectedMoves, moves.ElementCount);
+         Assert.Equal(expectedTmMoves, tmMoves.ElementCount);
+         Assert.Equal(expectedHmMoves, hmMoves.ElementCount);
          Assert.Equal(compatibilityElementLength, compatibility.ElementContent[0].Length);
       }
 

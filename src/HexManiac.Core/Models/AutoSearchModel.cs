@@ -16,6 +16,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public const string
          TmMoves = "tmmoves",
+         HmMoves = "hmmoves",
          TmCompatibility = "tmcompatibility",
          MoveTutors = "tutormoves",
          TutorCompatibility = "tutorcompatibility";
@@ -213,12 +214,30 @@ namespace HavenSoft.HexManiac.Core.Models {
          var tmMoves = ReadPointer(list[0] + originalCode.Length);
          if (tmMoves< 0 || tmMoves > Count) return;
 
+         // get hmMoves location
+         originalCode = new byte[] {
+            0x10, 0xB5, 0x00, 0x04, 0x03, 0x0C, 0x07, 0x4A,
+            0x10, 0x88, 0x07, 0x49, 0x88, 0x42, 0x10, 0xD0,
+            0x0C, 0x1C, 0x11, 0x1C, 0x10, 0x88, 0x02, 0x31,
+            0x02, 0x32, 0x98, 0x42, 0x06, 0xD1, 0x01, 0x20,
+            0x08, 0xE0, 0x00, 0x00,
+         };
+         list = Find(originalCode, 0x40A00, 0x6E834);
+         if (list.Count != 1) return;
+         var hmMoves = ReadPointer(list[0] + originalCode.Length);
+         if (hmMoves < 0 || hmMoves > Count) return;
+
          // add tm locations into the metadata
          if (!TryParse(this, $"[move:{EggMoveRun.MoveNamesTable}]58", tmMoves, null, out var tmMovesRun).HasError) {
             ObserveAnchorWritten(noChangeDelta, TmMoves, tmMovesRun);
             if (!TryParse(this, $"[pokemon|b[]{TmMoves}]{EggMoveRun.PokemonNameTable}", tmCompatibility, null, out var tmCompatibilityRun).HasError) {
                ObserveAnchorWritten(noChangeDelta, TmCompatibility, tmCompatibilityRun);
             }
+         }
+
+         // add hm locations into the metadata
+         if (!TryParse(this, $"[move:{EggMoveRun.MoveNamesTable}]8", hmMoves, null, out var hmMovesRun).HasError) {
+            ObserveAnchorWritten(noChangeDelta, HmMoves, hmMovesRun);
          }
       }
 

@@ -122,11 +122,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    }
 
    // TODO for Emerald, update CanSpeciesLearnTmHm also
+   /// <summary>
+   /// The default implementation of converting a TM item ID to a TM move ID is to use an item offset.
+   /// This means that all the TM and HM moves are stored in a single list, and all the TM/HM items must be sequential.
+   ///
+   /// MakingTmsExpandable will change the implementation to be based on item names instead.
+   /// So 'TM30' will use the 30th move in the tmmove table, no matter which item number it is.
+   /// To make this work for arbitrary numbers of TMs and HMs, HM moves/compatibility are split out into a separate table.
+   /// This requires updating 2 tables and 6 functions.
+   /// </summary>
    public class MakeTmsExpandable : IQuickEditItem {
+      public const string HmCompatibility = "hmcompatibility";
+
       public string Name => "Make TMs Expandable";
 
       public string Description => "The initial games are limited to have no more than 64 TMs+HMs." +
-         Environment.NewLine + "This change will allow you to freely add new TMs, up to 256.";
+         Environment.NewLine + "This change will allow you to freely add new TMs, up to 256." +
+         Environment.NewLine + "It will also split TMs and HMs into separate lists, making them easier to manage." +
+         Environment.NewLine + "After this change, TM moves are based on the name given to the TM/HM instead of the item index." +
+         Environment.NewLine + "For example, an item named 'TM30' will use the 30th move in the 'tmmoves' table.";
 
       public event EventHandler CanRunChanged;
 
@@ -159,37 +173,85 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public bool CanRun(IViewPort viewPortInterface) {
          // require that I have a tab with real data, not a search tab or a diff tab or something
          if (!(viewPortInterface is ViewPort viewPort)) return false;
-
-         // require that this data actually supports this change
          var model = viewPort.Model;
-         var (canPokemonLearnTmMove_start, canPokemonLearnTmMove_Length) = GetCanPokemonLearnTmMoveOffsets(model);
-         if (canPokemonLearnTmMove_start < 0) return false;
 
-         // require that this data has a tmmoves and tmcompatibility table, since we're messing with those
+         // require that this data has a tmmoves / hmmoves / tmcompatibility table, since we're messing with those
          var tmmoves = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, TmMoves);
+         var hmmoves = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, HmMoves);
          var tmcompatibility = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, TmCompatibility);
-         if (tmmoves == Pointer.NULL || tmcompatibility == Pointer.NULL) {
-            return false;
-         }
+         if (tmmoves == Pointer.NULL || hmmoves == Pointer.NULL || tmcompatibility == Pointer.NULL) return false;
+         // also require that their length is 58/8, since that being false means something else has already messed with them.
+         if ((model.GetNextRun(tmmoves) as ArrayRun)?.ElementCount != 58) return false;
+         if ((model.GetNextRun(hmmoves) as ArrayRun)?.ElementCount != 8) return false;
 
-         // if the patch has already been applied, you can't apply it again
-         if (viewPort.Model.GetNextRun(canPokemonLearnTmMove_start + 0x38) is WordRun) return false;
+         // TODO detect if any of the 6 functions to change have been modified
          return true;
       }
 
       public ErrorInfo Run(IViewPort viewPortInterface) {
          var viewPort = (ViewPort)viewPortInterface;
-         var model = viewPort.Model;
-         var (start, length) = GetCanPokemonLearnTmMoveOffsets(model);
-         var getMonData_start = GetGetMonDataStart(model);
-         var tmmoves = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, TmMoves);
-         var tmcompatibility = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, TmCompatibility);
 
-         InsertRoutine_CanPokemonLearnTmMove(viewPort, start, length, getMonData_start);
+         //var model = viewPort.Model;
+         //var (start, length) = GetCanPokemonLearnTmMoveOffsets(model);
+         //var getMonData_start = GetGetMonDataStart(model);
+         //var tmmoves = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, TmMoves);
+         //var tmcompatibility = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, TmCompatibility);
+         //InsertRoutine_CanPokemonLearnTmMove(viewPort, start, length, getMonData_start);
+
+         SplitTmsHms(viewPort);
 
          CanRunChanged?.Invoke(this, EventArgs.Empty);
-
          return ErrorInfo.NoError;
+      }
+
+      /// <summary>
+      /// Before we do any code changes, split the TMs and HMs into two separate lists.
+      /// </summary>
+      private void SplitTmsHms(ViewPort viewPort) {
+         var model = viewPort.Model;
+         var token = viewPort.CurrentChange;
+         var compatibilityAddress = model.GetAddressFromAnchor(token, -1, TmCompatibility);
+         var tmMovesAddress = model.GetAddressFromAnchor(token, -1, TmMoves);
+         var table = (ArrayRun)model.GetNextRun(compatibilityAddress);
+         
+         // clear the existing format
+         model.ClearFormat(token, table.Start, table.Length);
+
+         // extract all the HM compatibilies to a separate list
+         var newTableData = new byte[table.ElementCount];
+         for (int i = 0; i < table.ElementCount; i++) {
+            var index = table.Start + 6 + i * table.ElementLength;
+            var hmCompatibility = model.ReadMultiByteValue(index, 2) >> 2;
+            newTableData[i] = (byte)hmCompatibility;
+            var lowValue = (byte)(model[index] & 3); // only keep the bottom 2 bits: TM49 and TM50
+            token.ChangeData(model, index, lowValue);
+            token.ChangeData(model, index + 1, 0);
+         }
+
+         // condense all the TM compatibilities by 1 byte
+         for (int i = 1; i < table.ElementCount; i++) {
+            var a = table.Start + i * (table.ElementLength - 1);
+            var b = table.Start + i * table.ElementLength;
+            for (int j = 0; j < table.ElementLength - 1; j++) {
+               token.ChangeData(model, a + j, model[b + j]);
+            }
+         }
+
+         // place all the HM compatibilities after the TM compatibilities
+         var hmStart = table.Start + table.Length - table.ElementCount;
+         for (int i = 0; i < table.ElementCount; i++) {
+            token.ChangeData(model, hmStart + i, newTableData[i]);
+         }
+
+         // clear HMs from the TmMove table
+         table = (ArrayRun)model.GetNextRun(tmMovesAddress);
+         table = table.Append(-8);
+         model.ObserveAnchorWritten(token, TmMoves, table);
+         for (int i = 0; i < 8; i++) model.WriteMultiByteValue(table.Start + table.Length + i * 2, 2, token, 0);
+
+         // add new tmcompatibility and hmcompatibility formats
+         viewPort.Edit($"@{compatibilityAddress:X6} ^{TmCompatibility}[pokemon|b[]{TmMoves}]{EggMoveRun.PokemonNameTable} ");
+         viewPort.Edit($"@{hmStart:X6} ^{HmCompatibility}[pokemon|b[]{HmMoves}]{EggMoveRun.PokemonNameTable} ");
       }
 
       public void TabChanged() => CanRunChanged?.Invoke(this, EventArgs.Empty);
