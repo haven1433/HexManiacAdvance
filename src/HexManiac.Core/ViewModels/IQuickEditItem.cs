@@ -348,15 +348,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var gameCode = new string(Enumerable.Range(0xAC, 4).Select(i => ((char)model[i])).ToArray());
          var start = GetPrimaryEditAddress(gameCode);
 
+         // IsItemIDValid(itemID)
          viewPort.Edit($"@{start:X6} 00 B5 00 04 00 0C 03 49 08 45 00 DB 00 20 02 BC 08 47 00 00 ::items ");
 
          if (gameCode == FireRed) {
+            // DB: comparison was 'less or same'. Make it 'less than'.
+            //     then update the constant after the code to just be the number of items.
             viewPort.Edit("@098983 DB @098998 ::items ");
          } else if (gameCode == LeafGreen) {
+            // DB: comparison was 'less or same'. Make it 'less than'.
+            //     then update the constant after the code to just be the number of items.
             viewPort.Edit("@098967 DB @09896C ::items ");
          } else if (gameCode == Emerald) {
+            // Emerald code already uses the number of items specifically. Just add the
+            //    format so we can update the constant whenever the user adds new items.
             viewPort.Edit("@1B0014 ::items ");
          }
+         // note that we make no updates for Ruby/Sapphire... that's because I don't
+         //    know where the item image tables are stored in those games :(
 
          CanRunChanged?.Invoke(this, EventArgs.Empty);
 
