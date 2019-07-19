@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using static HavenSoft.HexManiac.Core.Models.AutoSearchModel;
@@ -133,6 +134,36 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    /// </summary>
    public class MakeTmsExpandable : IQuickEditItem {
       public const string HmCompatibility = "hmcompatibility";
+
+      // 0x58
+      private readonly Dictionary<string, int> CanPokemonLearnTmOrHmMove = new Dictionary<string, int> {
+         [FireRed] = 0x043C2C,
+      };
+
+      // 0x3C
+      private readonly Dictionary<string, int> IsMoveHmMove2 = new Dictionary<string, int> {
+         [FireRed] = 0x0441B8,
+      };
+
+      // 0x4C
+      private readonly Dictionary<string, int> Special0x196 = new Dictionary<string, int> {
+         [FireRed] = 0x0CC8CC,
+      };
+
+      // 0x18
+      private readonly Dictionary<string, int> GetTmHmMoveId = new Dictionary<string, int> {
+         [FireRed] = 0x125A78,
+      };
+
+      // 0x30
+      private readonly Dictionary<string, int> IsMoveHmMove1 = new Dictionary<string, int> {
+         [FireRed] = 0x125A90,
+      };
+
+      // 0xD0
+      private readonly Dictionary<string, int> BufferTmHmNameForMenu = new Dictionary<string, int> {
+         [FireRed] = 0x131D48,
+      };
 
       public string Name => "Make TMs Expandable";
 
