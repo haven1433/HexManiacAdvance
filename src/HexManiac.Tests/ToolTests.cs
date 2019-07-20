@@ -379,6 +379,20 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("    nop",            lines[10]);
       }
 
+      [Theory]
+      [InlineData("add   r0, r1, r2", 0b0001100_010_001_000)]
+      [InlineData("lsl   r1, r2, #4", 0b00000_00100_010_001)]
+      [InlineData("bls   <000120>", 0b1101_1001_00001110)]
+      public void ThumbCompilerTests(string input, int output) {
+         var bytes = new[] { (byte)output, (byte)(output >> 8) };
+         var model = new PokemonModel(new byte[0x200]);
+         var result = parser.Compile(model, 0x100, new string[] { input });
+
+         Assert.Equal(2, bytes.Length);
+         Assert.Equal(bytes[0], result[0]);
+         Assert.Equal(bytes[1], result[1]);
+      }
+
       private static readonly ThumbParser parser;
       static ToolTests(){
          parser = new ThumbParser(File.ReadAllLines("Models/Code/armReference.txt"));
