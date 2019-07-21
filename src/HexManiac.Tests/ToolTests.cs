@@ -383,14 +383,57 @@ namespace HavenSoft.HexManiac.Tests {
       [InlineData("add   r0, r1, r2", 0b0001100_010_001_000)]
       [InlineData("lsl   r1, r2, #4", 0b00000_00100_010_001)]
       [InlineData("bls   <000120>", 0b1101_1001_00001110)]
-      public void ThumbCompilerTests(string input, int output) {
-         var bytes = new[] { (byte)output, (byte)(output >> 8) };
+      [InlineData("push  lr, {}", 0b10110101_00000000)]
+      [InlineData("bl    <000120>", 0b11111_00000001110_11110_00000000000)]
+      public void ThumbCompilerTests(string input, uint output) {
+         var bytes = new List<byte> { (byte)output, (byte)(output >> 8) };
          var model = new PokemonModel(new byte[0x200]);
          var result = parser.Compile(model, 0x100, new string[] { input });
 
-         Assert.Equal(2, bytes.Length);
          Assert.Equal(bytes[0], result[0]);
          Assert.Equal(bytes[1], result[1]);
+
+         if (result.Count > 2) {
+            bytes.Add((byte)(output >> 16));
+            bytes.Add((byte)(output >> 24));
+            Assert.Equal(bytes[2], result[2]);
+            Assert.Equal(bytes[3], result[3]);
+         }
+      }
+
+      [Fact]
+      public void ThumbCompilerLabelTest() {
+         var model = new PokemonModel(new byte[0x200]);
+         model.ObserveAnchorWritten(new ModelDelta(), "DoStuff", new NoInfoRun(0x40));
+         var result = parser.Compile(model, 0x100
+            // sums all numbers from 1 to 10 in a loop
+            // then calls the routine at "DoStuff"
+            // then returns
+            , "push lr, {}"
+            , "mov r1, #1"
+            , "mov r0, #0"
+            , "Loop:"
+            , "add r0, r0, r1"
+            , "cmp r1, #10"
+            , "bne <loop>"
+            , "bl <DoStuff>"
+            , "pop pc, {}"
+            );
+
+         var expected = new byte[] {
+            0x00, 0b10110101,
+            0x01, 0b00100_001,
+            0x00, 0b00100_000,
+            // loop
+            0b01_000_000, 0b0001100_0,  // 0001100_001_000_000
+            0x0A, 0b00101_001,
+            0xFC, 0b1101_0001,
+            0xFF, 0b11110_111, 0x98, 0b11111_111,  // (sbyte)0x98 = -68
+            0x00, 0b10111101,
+         };
+
+         Assert.Equal(expected.Length, result.Count);
+         for (int i = 0; i < expected.Length; i++) Assert.Equal(expected[i], result[i]);
       }
 
       private static readonly ThumbParser parser;
