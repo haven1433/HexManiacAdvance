@@ -20,12 +20,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
    public class ThumbParser {
       private readonly List<ConditionCode> conditionalCodes = new List<ConditionCode>();
-      private readonly List<Instruction> instructionTemplates = new List<Instruction>(); 
+      private readonly List<IInstruction> instructionTemplates = new List<IInstruction>(); 
       public ThumbParser(string[] engineLines) {
          foreach(var line in engineLines) {
             if (ConditionCode.TryLoadConditionCode(line, out var condition)) conditionalCodes.Add(condition);
             else if (Instruction.TryLoadInstruction(line, out var instruction)) instructionTemplates.Add(instruction);
          }
+         instructionTemplates.Add(new WordInstruction());
       }
 
       private StringBuilder parseResult = new StringBuilder();
@@ -195,8 +196,15 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
    }
 
+   public interface IInstruction {
+      int ByteLength { get; }
+      bool Matches(IDataModel data, int index);
+      string Disassemble(IDataModel data, int address, IReadOnlyList<ConditionCode> conditionalCodes);
+      bool TryAssemble(string line, IReadOnlyList<ConditionCode> conditionCodes, int address, LabelLibrary labels, out byte[] results);
+   }
+
    [System.Diagnostics.DebuggerDisplay("{template}")]
-   public class Instruction {
+   public class Instruction : IInstruction {
       private readonly List<InstructionPart> instructionParts = new List<InstructionPart>();
       private readonly string template;
 
@@ -439,6 +447,14 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          list = 0;
          while (line.Length > 0) {
             // make sure that the basic format matches where it should
+            if (template[0] == ' ') {
+               template = template.Substring(1);
+               continue;
+            }
+            if (line[0] == ' ') {
+               line = line.Substring(1);
+               continue;
+            }
             if (template[0] == ',') {
                if (line[0] != ',') return false;
                template = template.Substring(1);
@@ -448,20 +464,12 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             if (template[0] == '[') {
                if (line[0] != '[') return false;
                template = template.Substring(1);
-               line = line.Substring(0);
+               line = line.Substring(1);
                continue;
             }
             if (template[0] == ']') {
                if (line[0] != ']') return false;
                template = template.Substring(1);
-               line = line.Substring(0);
-               continue;
-            }
-            if (template[0] == ' ') {
-               template = template.Substring(1);
-               continue;
-            }
-            if (line[0] == ' ') {
                line = line.Substring(1);
                continue;
             }
@@ -592,6 +600,35 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
          }
          return result;
+      }
+   }
+
+   public class WordInstruction : IInstruction {
+      public int ByteLength => 4;
+
+      public string Disassemble(IDataModel data, int address, IReadOnlyList<ConditionCode> conditionalCodes) => throw new NotImplementedException();
+
+      public bool Matches(IDataModel data, int index) => false;
+
+      public bool TryAssemble(string line, IReadOnlyList<ConditionCode> conditionCodes, int address, LabelLibrary labels, out byte[] results) {
+         line = line.Replace(".word", " ").Trim();
+         int result;
+         results = default;
+         if (line.StartsWith("<") && line.EndsWith(">")) {
+            line = line.Substring(1, line.Length - 2);
+            result = labels.ResolveLabel(line);
+            if (result == Pointer.NULL && !int.TryParse(line, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out result)) return false;
+            result -= Pointer.NULL;
+         } else {
+            if (!int.TryParse(line, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out result)) return false;
+         }
+         results = new[] {
+            (byte)result,
+            (byte)(result>>8),
+            (byte)(result>>16),
+            (byte)(result>>24),
+         };
+         return true;
       }
    }
 }

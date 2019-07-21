@@ -385,9 +385,14 @@ namespace HavenSoft.HexManiac.Tests {
       [InlineData("bls   <000120>", 0b1101_1001_00001110)]
       [InlineData("push  lr, {}", 0b10110101_00000000)]
       [InlineData("bl    <000120>", 0b11111_00000001110_11110_00000000000)]
+      [InlineData(".word 00004000", 0b0000_0000_0000_0000_0100_0000_0000_0000)]
+      [InlineData(".word <004000>", 0b0000_1000_0000_0000_0100_0000_0000_0000)]
+      [InlineData(".word <bob>", 0b0000_1000_0000_0000_0000_0000_1000_0000)] // test that we can use anchors to get pointer locations
+      [InlineData("ldr   r0, [pc, <bob>]", 0b01001_000_11011111)]  //  -33*4+4=-128
       public void ThumbCompilerTests(string input, uint output) {
          var bytes = new List<byte> { (byte)output, (byte)(output >> 8) };
          var model = new PokemonModel(new byte[0x200]);
+         model.ObserveAnchorWritten(new ModelDelta(), "bob", new NoInfoRun(0x80)); // random anchor so we can test stuff that points to anchors
          var result = parser.Compile(model, 0x100, new string[] { input });
 
          Assert.Equal(bytes[0], result[0]);
