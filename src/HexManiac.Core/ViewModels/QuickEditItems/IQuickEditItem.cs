@@ -7,7 +7,7 @@ using System.Linq;
 
 using static HavenSoft.HexManiac.Core.Models.AutoSearchModel;
 
-namespace HavenSoft.HexManiac.Core.ViewModels {
+namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
    public interface IQuickEditItem {
       string Name { get; }
       string Description { get; }
