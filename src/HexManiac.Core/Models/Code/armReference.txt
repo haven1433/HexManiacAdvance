@@ -1,3 +1,8 @@
+@ quick reference special registers:
+@ sp = r13
+@ lr = r14
+@ pc = r15
+
 @ possible compare results
 eq=0000  @ == equal
 ne=0001  @ != not equal

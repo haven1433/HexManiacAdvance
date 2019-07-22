@@ -61,6 +61,9 @@
     <Compile Include="Models\Runs\WordRun.cs" />
     <Compile Include="ViewModels\AutoCompleteSelectionItem.cs" />
     <Compile Include="ViewModels\QuickEditItems\IQuickEditItem.cs" />
+    <Compile Include="ViewModels\QuickEditItems\MakeItemsExpandable.cs" />
+    <Compile Include="ViewModels\QuickEditItems\MakeTmsExpandable.cs" />
+    <Compile Include="ViewModels\QuickEditItems\MakeTutorsExpandable.cs" />
     <Compile Include="ViewModels\Tools\CodeTool.cs" />
     <Compile Include="ViewModels\Visitors\CompleteEditOperation.cs" />
     <Compile Include="ViewModels\Visitors\ContextItemFactory.cs" />
