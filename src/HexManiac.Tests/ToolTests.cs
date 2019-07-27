@@ -389,6 +389,7 @@ namespace HavenSoft.HexManiac.Tests {
       [InlineData(".word <004000>", 0b0000_1000_0000_0000_0100_0000_0000_0000)]
       [InlineData(".word <bob>", 0b0000_1000_0000_0000_0000_0000_1000_0000)] // test that we can use anchors to get pointer locations
       [InlineData("ldr   r0, [pc, <bob>]", 0b01001_000_11011111)]  //  -33*4+4=-128
+      [InlineData("ldrb  r1, [r1, r2]", 0b0101110_010_001_001)]
       public void ThumbCompilerTests(string input, uint output) {
          var bytes = new List<byte> { (byte)output, (byte)(output >> 8) };
          var model = new PokemonModel(new byte[0x200]);
@@ -438,6 +439,34 @@ namespace HavenSoft.HexManiac.Tests {
          };
 
          Assert.Equal(expected.Length, result.Count);
+         for (int i = 0; i < expected.Length; i++) Assert.Equal(expected[i], result[i]);
+      }
+
+      [Fact]
+      public void ThumbCompilerLoadRegisterOffsetTest() {
+         var model = new PokemonModel(new byte[0x200]);
+         var result = parser.Compile(model, 0x100,
+                  "    ldr  r0, [pc, <abc>]",
+                  "    ldr  r1, [pc, <def>]",
+                  "    ldr  r2, [pc, <ghi>]",
+                  "    ldr  r3, [pc, <jkl>]",
+                  "abc:",
+                  "    .word 1234",
+                  "def:",
+                  "    .word 5678",
+                  "ghi:",
+                  "    .word 9abc",
+                  "jkl:",
+                  "    .word def0"
+            );
+
+         var expected = new byte[] {
+            0x01, 0b01001_000,
+            0x02, 0b01001_001,
+            0x02, 0b01001_010,
+            0x03, 0b01001_011,
+         };
+
          for (int i = 0; i < expected.Length; i++) Assert.Equal(expected[i], result[i]);
       }
 

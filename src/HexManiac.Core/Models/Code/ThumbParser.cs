@@ -118,7 +118,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (!labels.ContainsKey(label)) labels.Add(label, position);
             } else {
                position += 2;
-               if (line.StartsWith("bl ")) position += 2; // branch-links are double-wide
+               if (line.StartsWith("bl ")) position += 2;   // branch-links are double-wide
+               if (line.StartsWith(".word")) position += 2; // .word elements are double-wide
             }
          }
 
@@ -418,7 +419,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (part.Code != 0 && firstNumeric) {
                   var mult = (byte)(part.Code >> 8);
                   var add = (byte)part.Code;
-                  numeric -= add + codeLocation - codeLocation % mult;
+                  numeric -= codeLocation - codeLocation % mult;  // offset based on code starting point
+                  numeric -= add;                                 // offset from bias
                   numeric /= mult;
                   firstNumeric = false;
                }
@@ -480,7 +482,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                var name = "r" + template[1];
                var instruction = instructionParts.Single(i => i.Name == name);
                var index = instructionParts.IndexOf(instruction);
-               if (int.TryParse(line.Split(',')[0].Substring(1), out int value)) {
+               if (int.TryParse(line.Split(',', ']')[0].Substring(1), out int value)) {
                   registerValues[index] = value;
                }
                template = template.Substring(2);

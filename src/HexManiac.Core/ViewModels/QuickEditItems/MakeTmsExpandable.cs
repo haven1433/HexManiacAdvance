@@ -21,9 +21,34 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
    public class MakeTmsExpandable : IQuickEditItem {
       public const string HmCompatibility = "hmcompatibility";
 
+      #region FunctionLocations
+
+      // helper function used by Special0x196
+      private readonly Dictionary<string, int> SetText = new Dictionary<string, int> {
+         [FireRed] = 0x008D84,
+      };
+
+      // helper function used by CanPokemonLearnTmOrHmMove
+      private readonly Dictionary<string, int> ReadPokeData = new Dictionary<string, int> {
+         [FireRed] = 0x03FBE8,
+         [LeafGreen] = 0x03FBE8,
+         [Ruby] = 0x03CB60,
+         [Sapphire] = 0x03CB60,
+         [Emerald] = 0x06A518,
+      };
+
+      // magic strings needed for doing menu text buffering
+      private readonly Dictionary<string, int[]> MagicBufferStrings = new Dictionary<string, int[]> {
+         [FireRed] = new[] { 0x4166FF, 0x463178, 0x416226, 0x46317C, 0x416703 },
+      };
+
       // 0x58
       private readonly Dictionary<string, int> CanPokemonLearnTmOrHmMove = new Dictionary<string, int> {
          [FireRed] = 0x043C2C,
+         [LeafGreen] = 0x043C2C,
+         [Ruby] = 0x040374,
+         [Sapphire] = 0x040374,
+         [Emerald] = 0x06E00C,
       };
 
       // 0x3C
@@ -37,7 +62,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       };
 
       // 0x18
-      private readonly Dictionary<string, int> GetTmHmMoveId = new Dictionary<string, int> {
+      private readonly Dictionary<string, int> GetBattleMoveFromItemNumber = new Dictionary<string, int> {
          [FireRed] = 0x125A78,
       };
 
@@ -51,11 +76,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          [FireRed] = 0x131D48,
       };
 
-      // helper functions that I need to use
-      private readonly Dictionary<string, int> SetText = new Dictionary<string, int> {
-         [FireRed] = 0x008D84,
-      };
+      // newly created functions
+      private readonly Dictionary<string, int> ConvertItemPointerToTmHmBattleMoveId, IsItemTmHm, ParseNumber, ReadBitArray;
 
+      #endregion
 
       public string Name => "Make TMs Expandable";
 
@@ -67,30 +91,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
       public event EventHandler CanRunChanged;
 
-      public static (int start, int length) GetCanPokemonLearnTmMoveOffsets(IDataModel model) {
-         var gameCode = new string(Enumerable.Range(0xAC, 4).Select(i => ((char)model[i])).ToArray());
-         if (gameCode == FireRed || gameCode == LeafGreen) {
-            return (0x043C2C, 0x58);
-         } else if (gameCode == Ruby || gameCode == Sapphire) {
-            return (0x040374, 0x58);
-         } else if (gameCode == Emerald) {
-            return (0x06E00C, 0x58);
-         } else {
-            return (-1, 0);
-         }
-      }
+      public MakeTmsExpandable() {
+         ConvertItemPointerToTmHmBattleMoveId = new Dictionary<string, int>();
+         IsItemTmHm = new Dictionary<string, int>();
+         ParseNumber = new Dictionary<string, int>();
+         ReadBitArray = new Dictionary<string, int>();
 
-      public static int GetGetMonDataStart(IDataModel model) {
-         var gameCode = new string(Enumerable.Range(0xAC, 4).Select(i => ((char)model[i])).ToArray());
-         if (gameCode == FireRed || gameCode == LeafGreen) {
-            return 0x03FBE8;
-         } else if (gameCode == Ruby || gameCode == Sapphire) {
-            return 0x03CB60;
-         } else if (gameCode == Emerald) {
-            return 0x06A518;
-         } else {
-            return -1;
-         }
+         // ReadBitArray fits after IsMoveHmMove2
+         foreach (var pair in IsMoveHmMove2) ReadBitArray.Add(pair.Key, pair.Value + 0x24);
+
+         // ParseNumber goes after Special196
+         foreach (var pair in Special0x196) ParseNumber.Add(pair.Key, pair.Value + 0x30);
+
+         // IsItemTmHm goes after IsMoveHmMove1
+         foreach (var pair in IsMoveHmMove1) IsItemTmHm.Add(pair.Key, pair.Value + 0x8);
+
+         // ConvertItemPointerToTmHmBattleMoveId goes after BufferTmHmNameForMenu
+         foreach (var pair in BufferTmHmNameForMenu) ConvertItemPointerToTmHmBattleMoveId.Add(pair.Key, pair.Value + 0x68);
       }
 
       public bool CanRun(IViewPort viewPortInterface) {
@@ -107,15 +124,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          if ((model.GetNextRun(tmmoves) as ArrayRun)?.ElementCount != 58) return false;
          if ((model.GetNextRun(hmmoves) as ArrayRun)?.ElementCount != 8) return false;
 
-         // TODO detect if any of the 6 functions to change have been modified
+         // TODO detect if any of the functions to change have been modified
          return true;
       }
 
       public ErrorInfo Run(IViewPort viewPortInterface) {
          var viewPort = (ViewPort)viewPortInterface;
+         var model = viewPort.Model;
+         var gameCode = new string(Enumerable.Range(0xAC, 4).Select(i => ((char)model[i])).ToArray());
 
          SplitTmsHms(viewPort);
-
+         InsertCanPokemonLearnTmOrHmMove(viewPort, gameCode);
+         InsertIsMoveHmMove2(viewPort, gameCode);
+         InsertReadBitArray(viewPort, gameCode);
+         InsertSpecial196(viewPort, gameCode);
+         InsertParseNumber(viewPort, gameCode);
+         InsertGetBattleMoveFromItemNumber(viewPort, gameCode);
+         InsertIsMoveHmMove1(viewPort, gameCode);
+         InsertIsItemTmHm(viewPort, gameCode);
+         InsertBufferTmHmNameForMenu(viewPort, gameCode);
+         InsertConvertItemPointerToTmHmBattleMoveId(viewPort, gameCode);
 
          CanRunChanged?.Invoke(this, EventArgs.Empty);
          return ErrorInfo.NoError;
@@ -171,7 +199,67 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          viewPort.Edit($"@{hmStart:X6} ^{HmCompatibility}[pokemon|b[]{HmMoves}]{EggMoveRun.PokemonNameTable} ");
       }
 
-      // original-new   ->   3C-24
+      // original-new   ->   58-58
+      private void InsertCanPokemonLearnTmOrHmMove(ViewPort viewPort, string game) {
+         var model = viewPort.Model;
+         var start = CanPokemonLearnTmOrHmMove[game];
+         var length = 0x58;
+         model.ClearFormat(viewPort.CurrentChange, start, length);
+         var code = $@"
+CanPokemonLearnTmOrHmMove:
+    push lr, {{r4-r5}}
+    mov  r4, r1
+    mov  r1, #65
+    mov  r2, #0
+    bl   <{ReadPokeData[game]:X6}>
+    add  r4, #250
+    add  r4, #39
+    mov  r2, #210
+    add  r2, #202
+    cmp  r0, r2
+    beq  <Fail>
+    mov  r5, r0
+    mov  r0, r4
+    bl   <{IsItemTmHm[game]:X6}>
+    cmp  r1, #0
+    beq  <Fail>
+    mov  r4, r1
+    add  r0, #2
+    bl   <{ParseNumber[game]:X6}>
+    sub  r0, #1
+    mov  r1, r5
+    cmp  r4, #1
+    beq  <CheckTmCompatibility>
+CheckHmCompatibility:
+    ldr  r2, [pc, <HmCompatibilityTable>]
+    ldr  r3, [pc, <HmMoveCount>]
+    b    <UseTables>
+CheckTmCompatibility:
+    ldr  r2, [pc, <TmCompatibilityTable>]
+    ldr  r3, [pc, <TmMoveCount>]
+UseTables:
+    bl   <{ReadBitArray[game]:X6}>
+    b    <End>
+Fail:
+    mov   r0, #0
+End:
+    pop   pc, {{r4-r5}}
+HmCompatibilityTable:
+    .word <hmcompatibility>
+HmMoveCount:
+    .word 00
+TmCompatibilityTable:
+    .word <tmcompatibility>
+TmMoveCount:
+    .word 00
+"        .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+         var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
+         for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
+         viewPort.Edit($"@{(start + bytes.Count - 4 * 3):X6} ::hmmoves ");
+         viewPort.Edit($"@{(start + bytes.Count - 4):X6} ::tmmoves ");
+      }
+
+      // original-new   ->   3C-24*
       private void InsertIsMoveHmMove2(ViewPort viewPort, string game) {
          var start = IsMoveHmMove2[game];
          var length = 0x3C;
@@ -183,31 +271,53 @@ IsMoveHmMove2:
     ldr   r3, [pc, <numberOfMoves>]
     lsl   r3, r3, #1
     add   r3, r3, r1
-loop:
+Loop:
     cmp   r1, r3
-    beq   <fail>
+    beq   <Fail>
     ldrh  r2, [r1, #0]
     add   r1, #2
     cmp   r0, r2
-    bne   loop
+    bne   <Loop>
     mov   r0, #1
-    b     <end>
-fail:
+    b     <End>
+Fail:
     mov   r0, #0
-end:
+End:
     bx    r14
 table:
     .word <hmmoves>
 numberOfMoves:
     .word 00
-"        .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+".Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
          var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
          for (int i = 0; i < bytes.Count - 4; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
          viewPort.Edit($"@{(start + bytes.Count - 4):X6} ::hmmoves ");
-         for (int i = bytes.Count; i < length; i++) viewPort.CurrentChange.ChangeData(model, start + i, 0x00);
       }
 
-      // original-new   ->   4C-44
+      // added          ->   3C-3C (+18)
+      private void InsertReadBitArray(ViewPort viewPort, string game) {
+         var start = ReadBitArray[game];
+         var model = viewPort.Model;
+         var code = @"
+ReadBitArray:
+    add   r3, #7
+    lsr   r3, r3, #3
+    mul   r1, r3
+    lsr   r3, r0, #3
+    add   r1, r1, r3
+    ldrb  r1, [r1, r2]
+    mov   r2, #7
+    and   r2, r0
+    mov   r0, #1
+    lsl   r0, r2
+    and   r0, r1
+    bx    r14
+".Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+         var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
+         for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
+      }
+
+      // original-new   ->   4C-30*
       private void InsertSpecial196(ViewPort viewPort, string game) {
          var start = Special0x196[game];
          var length = 0x4C;
@@ -218,20 +328,9 @@ Special196:
     push  lr, {{}}
     ldr   r0, [pc, <itemIDLocation>]
     ldrh  r0, [r0, #0]
-    mov   r1, #44
-    mul   r1, r0
-    ldr   r2, [pc, <itemTable>]
-    add   r1, r1, r2
-    ldrb  r2, [r1, #0]
-    ldrb  r3, [r1, #1]
-    cmp   r3, #199
-    bne   <fail>
-    cmp   r2, #206
-    beq   <itemIsTmHm>
-    cmp   r2, #194
-    bne   <fail>
-itemIsTmHm:
-    bl    <{GetTmHmMoveId[game]:X6}>
+    bl    <{GetBattleMoveFromItemNumber[game]:X6}>
+    cmp   r0, #0
+    beq   <Fail>
     mov   r1, #13
     mul   r1, r0
     ldr   r0, [pc, <movenamesTable>]
@@ -239,31 +338,73 @@ itemIsTmHm:
     ldr   r0, [pc, <bufferLocation>]
     bl    <{SetText[game]:X6}>
     mov   r0, #1
-    b     <end>
-fail:
+    b     <End>
+Fail:
     mov   r0, #0
-end:
+End:
     pop   pc, {{}}
-itemTable:
-    <items>
 movenamesTable:
-    <movenames>
+    .word <movenames>
 itemIDLocation:
-    020370C0
+    .word 020370C0
 bufferLocation:
-    02021CD0
+    .word 02021CD0
 "        .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
          var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
          for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
          for (int i = bytes.Count; i < length; i++) viewPort.CurrentChange.ChangeData(model, start + i, 0x00);
       }
 
-      // original-new   ->   18-
-      private void InsertGetTmHmMoveId(ViewPort viewPort, string game) {
-         // TODO working here
+      // added          ->   4C-48 (+18)
+      private void InsertParseNumber(ViewPort viewPort, string game) {
+         var start = ParseNumber[game];
+         var model = viewPort.Model;
+         var code = $@"
+ParseNumber:
+    mov  r2, #0
+    mov  r3, #10
+Loop:
+    ldrb r1, [r0, #0]
+    cmp  r1, #255
+    beq  <Done>
+    sub  r1, #161
+    mul  r2, r3
+    add  r2, r2, r1
+    add  r0, #1
+    b    <Loop>
+Done:
+    mov  r0, r2
+    bx   r14
+"        .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+         var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
+         for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
       }
 
-      // original-new   ->   30-08
+      // original-new   ->   18-14
+      private void InsertGetBattleMoveFromItemNumber(ViewPort viewPort, string game) {
+         var start = GetBattleMoveFromItemNumber[game];
+         var length = 0x18;
+         var model = viewPort.Model;
+         model.ClearFormat(viewPort.CurrentChange, start, length);
+         var code = $@"
+GetBattleMoveFromItemNumber:
+    push  lr, {{}}
+    bl    <{IsItemTmHm[game]:X6}>
+    cmp   r1, #0
+    beq   <Fail>
+    bl    <{ConvertItemPointerToTmHmBattleMoveId[game]:X6}>
+    b     <End>
+Fail:
+    mov   r0, #0
+End:
+    pop   pc, {{}}
+".Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+         var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
+         for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
+         for (int i = bytes.Count; i < length; i++) viewPort.CurrentChange.ChangeData(model, start + i, 0x00);
+      }
+
+      // original-new   ->   30-08*
       private void InsertIsMoveHmMove1(ViewPort viewPort, string game) {
          var model = viewPort.Model;
          var start = IsMoveHmMove1[game];
@@ -281,65 +422,131 @@ mainroutine:
          for (int i = bytes.Count; i < length; i++) viewPort.CurrentChange.ChangeData(model, start + i, 0x00);
       }
 
+      // added          ->   30-30 (+28)
+      private void InsertIsItemTmHm(ViewPort viewPort, string game) {
+         var start = IsItemTmHm[game];
+         var model = viewPort.Model;
+         var code = $@"
+IsItemTmHm:
+    mov  r1, #44
+    mul  r0, r1
+    ldr  r1, [pc, <ItemsTable>]
+    add  r0, r0, r1
+    ldr  r2, [r0, #1]
+    cmp  r2, #199
+    bne  <Fail>
+    ldr  r2, [r0, #0]
+    cmp  r2, #206
+    beq  <IsTm>
+    cmp  r2, #194
+    bne  <Fail>
+IsHm:
+    mov  r1, #2
+    b    <End>
+IsTm:
+    mov  r1, #1
+    b    <End>
+Fail:
+    mov  r1, #0
+End:
+    bx   r14
+ItemsTable:
+    .word <items>
+"        .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+         var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
+         for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
+      }
 
+      // original-new   ->   D0-68*
+      private void InsertBufferTmHmNameForMenu(ViewPort viewPort, string game) {
+         var model = viewPort.Model;
+         var start = BufferTmHmNameForMenu[game];
+         var length = 0xD0;
+         model.ClearFormat(viewPort.CurrentChange, start, length);
+         var code = $@"
+BufferTmHmNameForMenu(address, itemID):  @ 0x68 bytes long
+    push lr, {{r4-r5}}
+    mov  r4, r1
+    ldr  r5, [pc, <ItemsTable>]
+    ldr  r1 [pc, <MagicString0>]
+    bl   <{SetText[game]:X6}>
+    mov  r2, 44
+    mul  r2, r4
+    add  r5, r5, r2
+    ldr  r2, [r5, #0]
+    cmp  r2, #206
+    beq  CaseTm
+    ldr  r1, [pc, <MagicString1>]
+    bl   <{SetText[game]:X6}>
+CaseTm:
+    ldr  r1, [pc, <MagicString2>]
+    bl   <{SetText[game]:X6}>
+    add  r1, r5, #2
+    bl   <{SetText[game]:X6}>
+    ldr  r1, [pc, <MagicString3>]
+    bl   <{SetText[game]:X6}>
+    ldr  r1, [pc, <MagicString4>]
+    bl   <{SetText[game]:X6}>
+    mov  r5, r0
+    mov  r0, r4
+    bl   <{GetBattleMoveFromItemNumber[game]:X6}>
+    mov  r1, #13
+    mul  r0, r1
+    ldr  r1, [pc, <MovesTable>]
+    add  r1, r1, r0
+    mov  r0, r5
+    bl   <{SetText[game]:X6}>
+ItemsTable:
+    .word <items>
+MagicString0:
+    .word <{MagicBufferStrings[game][0]:X6}>
+MagicString1:
+    .word <{MagicBufferStrings[game][1]:X6}>
+MagicString2:
+    .word <{MagicBufferStrings[game][2]:X6}>
+MagicString3:
+    .word <{MagicBufferStrings[game][3]:X6}>
+MagicString4:
+    .word <{MagicBufferStrings[game][4]:X6}>
+MovesTable:
+    .word <movenames>
+"        .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+         var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
+         for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
+         for (int i = bytes.Count; i < length; i++) viewPort.CurrentChange.ChangeData(model, start + i, 0x00);
+      }
+
+      // added          ->    D0-8C (+24)
+      private void InsertConvertItemPointerToTmHmBattleMoveId(ViewPort viewPort, string game) {
+         var model = viewPort.Model;
+         var start = ConvertItemPointerToTmHmBattleMoveId[game];
+         var code = $@"
+ConvertItemPointerToTmHmBattleMoveId:
+    push  lr, {{r4}}
+    cmp   r1, #1
+    beq   <LoadTmTable>
+LoadHmTable:
+    ldr   r4, [pc, <HmMovesTable>]
+    b     <DoParse>
+LoadTmTable:
+    ldr   r4, [pc, <TmMovesTable>]
+DoParse:
+    add   r0, #2
+    bl    <{ParseNumber[game]:X6}>
+    sub   r0, #1
+    lsl   r0, r0, #1
+    ldrh  r0, [r4, r0]
+    pop   pc, {{r4}}
+    nop
+TmMovesTable:
+    .word <tmmoves>
+HmMovesTable:
+    .word <hmmoves>
+".Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+         var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
+         for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
+      }
 
       public void TabChanged() => CanRunChanged?.Invoke(this, EventArgs.Empty);
-
-      private void InsertRoutine_CanPokemonLearnTmMove(ViewPort viewPort, int address, int originalLength, int subroutineLocation) {
-         /*
-         CanPokemonLearnTmHm(pokemonData, tm_move)
-             push  lr, {r1}              @ 10110101_00000010    B502
-             mov   r1, #65               @ 00100_001_01000001   2141
-             mov   r2, #0                @ 00100_010_00000000   2200
-             bl    <GetMonData>          @ 11111_xxxxxxxxxxx_11110_xxxxxxxxxxx
-             pop   {r2}                  @ 10111100_00000100    BC04
-             mov   r1, r0                @ 0001110000_000_001   1C01
-             mov   r0, #0                @ 00100_000_00000000   2000
-             mov   r3, #103              @ 00100_011_01100111   2367
-             lsl   r3, r3, #2            @ 00000_00010_011_011  009B
-             cmp   r1, r3                @ 0100001010_011_001   4299
-             beq   end                   @ 1101_0000_00001100   D00C
-             ldr   r0, =tm_compatibility @ 01001_000_00000110   4806
-             ldr   r3, =tm_count         @ 01001_011_00000111   4B07
-             add   r3, #7                @ 00110_011_00000111   3307
-             lsr   r3, r3, #3            @ 00001_00011_011_011  08DB
-             mul   r1, r3                @ 0100001101_011_001   4359
-             lsr   r3, r2, #3            @ 00001_00011_010_011  08D3
-             add   r1, r1, r3            @ 0001100_011_001_001  18C9
-             ldrb  r0, [r0, r1]          @ 0101110_001_000_000  5C40
-             mov   r1, #7                @ 00100_001_00000111   2107
-             and   r1, r2                @ 0100000000_010_001   4011
-             mov   r2, #1                @ 00100_010_0000001    2201
-             lsl   r2, r1                @ 0100000010_001_010   408A
-             and   r0, r2                @ 0100000000_010_000   4010
-         end:
-             pop   pc                    @ 10111101_00000000    BD00
-         tm_compatibility:
-             .word <tmcompatibility>
-         tm_count:
-             .word ::tmmoves
-         */
-
-         // subroutine = pc+#*2+4
-         // (subroutine-pc-4)/2 = #
-         // pc = address + 6
-         var number = (subroutineLocation - address - 10) / 2;
-         uint branchlink = 0b_11111_00000000000_11110_00000000000;
-         branchlink |= (uint)(number & 0b_11111111111_00000000000) >> 11;
-         branchlink |= (uint)(number & 0b_11111111111) << 16;
-         var bl = new byte[] {
-            (byte)branchlink,
-            (byte)(branchlink >> 8),
-            (byte)(branchlink >> 16),
-            (byte)(branchlink >> 24),
-         };
-
-         viewPort.Edit($"@{ address:X6} ");
-         viewPort.Edit($"02 B5 41 21 00 22 {bl[0]:X2} {bl[1]:X2} {bl[2]:X2} {bl[3]:X2} 04 BC 01 1C 00 20 ");
-         viewPort.Edit($"67 23 9B 00 99 42 0C D0 06 48 07 4B 07 33 DB 08 ");
-         viewPort.Edit($"59 43 D3 08 C9 18 40 5C 07 21 11 40 01 22 8A 40 ");
-         viewPort.Edit($"10 40 00 BD <{TmCompatibility}> ::{TmMoves} ");  // new data only 0x3C long
-         for (int i = 0x3C; i < originalLength; i++) viewPort.Edit("00 ");
-      }
    }
 }
