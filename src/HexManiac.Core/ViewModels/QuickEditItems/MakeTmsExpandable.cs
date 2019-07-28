@@ -107,7 +107,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          foreach (var pair in IsMoveHmMove1) IsItemTmHm.Add(pair.Key, pair.Value + 0x8);
 
          // ConvertItemPointerToTmHmBattleMoveId goes after BufferTmHmNameForMenu
-         foreach (var pair in BufferTmHmNameForMenu) ConvertItemPointerToTmHmBattleMoveId.Add(pair.Key, pair.Value + 0x68);
+         foreach (var pair in BufferTmHmNameForMenu) ConvertItemPointerToTmHmBattleMoveId.Add(pair.Key, pair.Value + 0x6C);
       }
 
       public bool CanRun(IViewPort viewPortInterface) {
@@ -457,25 +457,25 @@ ItemsTable:
          for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
       }
 
-      // original-new   ->   D0-68*
+      // original-new   ->   D0-6C*
       private void InsertBufferTmHmNameForMenu(ViewPort viewPort, string game) {
          var model = viewPort.Model;
          var start = BufferTmHmNameForMenu[game];
          var length = 0xD0;
          model.ClearFormat(viewPort.CurrentChange, start, length);
          var code = $@"
-BufferTmHmNameForMenu(address, itemID):  @ 0x68 bytes long
+BufferTmHmNameForMenu(address, itemID):
     push lr, {{r4-r5}}
     mov  r4, r1
     ldr  r5, [pc, <ItemsTable>]
-    ldr  r1 [pc, <MagicString0>]
+    ldr  r1, [pc, <MagicString0>]
     bl   <{SetText[game]:X6}>
-    mov  r2, 44
+    mov  r2, #44
     mul  r2, r4
     add  r5, r5, r2
     ldr  r2, [r5, #0]
     cmp  r2, #206
-    beq  CaseTm
+    beq  <CaseTm>
     ldr  r1, [pc, <MagicString1>]
     bl   <{SetText[game]:X6}>
 CaseTm:
@@ -496,6 +496,8 @@ CaseTm:
     add  r1, r1, r0
     mov  r0, r5
     bl   <{SetText[game]:X6}>
+    pop  pc, {{r4-r5}}
+    nop
 ItemsTable:
     .word <items>
 MagicString0:
@@ -516,7 +518,7 @@ MovesTable:
          for (int i = bytes.Count; i < length; i++) viewPort.CurrentChange.ChangeData(model, start + i, 0x00);
       }
 
-      // added          ->    D0-8C (+24)
+      // added          ->    D0-90 (+24)
       private void InsertConvertItemPointerToTmHmBattleMoveId(ViewPort viewPort, string game) {
          var model = viewPort.Model;
          var start = ConvertItemPointerToTmHmBattleMoveId[game];
