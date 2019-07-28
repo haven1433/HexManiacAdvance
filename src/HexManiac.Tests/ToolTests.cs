@@ -391,6 +391,7 @@ namespace HavenSoft.HexManiac.Tests {
       [InlineData("ldr   r0, [pc, <bob>]", 0b01001_000_11011111)]  //  -33*4+4=-128
       [InlineData("ldrb  r1, [r1, r2]", 0b0101110_010_001_001)]
       [InlineData("ldrh  r2, [r1, #0]", 0b10001_00000_001010)]
+      [InlineData("lsl   r1, r2", 0b0100000010_010_001)]
       public void ThumbCompilerTests(string input, uint output) {
          var bytes = new List<byte> { (byte)output, (byte)(output >> 8) };
          var model = new PokemonModel(new byte[0x200]);

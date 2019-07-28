@@ -533,7 +533,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             return false;
          }
 
-         return true;
+         // Completed parsing the line. Should've used the entire template.
+         return template.Length == 0;
       }
 
       private static ushort ParseList(string list) {
