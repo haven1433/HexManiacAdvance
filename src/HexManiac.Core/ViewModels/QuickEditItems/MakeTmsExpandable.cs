@@ -260,8 +260,7 @@ TmMoveCount:
 "        .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
          var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
          for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
-         viewPort.Edit($"@{(start + bytes.Count - 4 * 3):X6} ::hmmoves ");
-         viewPort.Edit($"@{(start + bytes.Count - 4):X6} ::tmmoves ");
+         viewPort.Edit($"@{(start + bytes.Count - 4 * 4):X6} <> ::hmmoves <> ::tmmoves ");
       }
 
       // original-new   ->   3C-24*
@@ -296,7 +295,7 @@ numberOfMoves:
 ".Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
          var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
          for (int i = 0; i < bytes.Count - 4; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
-         viewPort.Edit($"@{(start + bytes.Count - 4):X6} ::hmmoves ");
+         viewPort.Edit($"@{(start + bytes.Count - 4 * 2):X6} <> ::hmmoves ");
       }
 
       // added          ->   3C-3C (+18)
@@ -358,6 +357,7 @@ bufferLocation:
          var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
          for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
          for (int i = bytes.Count; i < length; i++) viewPort.CurrentChange.ChangeData(model, start + i, 0x00);
+         viewPort.Edit($"@{(start + bytes.Count - 4 * 3):X6} <> ");
       }
 
       // added          ->   4C-48 (+18)
@@ -460,6 +460,7 @@ ItemsTable:
 "        .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
          var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
          for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
+         viewPort.Edit($"@{(start + bytes.Count - 4 * 1):X6} <> ");
       }
 
       // original-new   ->   D0-6C*
@@ -521,6 +522,8 @@ MovesTable:
          var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
          for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
          for (int i = bytes.Count; i < length; i++) viewPort.CurrentChange.ChangeData(model, start + i, 0x00);
+         viewPort.Edit($"@{(start + bytes.Count - 4 * 7):X6} <> ");
+         viewPort.Edit($"@{(start + bytes.Count - 4 * 1):X6} <> ");
       }
 
       // added          ->    D0-90 (+24)
@@ -552,6 +555,7 @@ HmMovesTable:
 ".Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
          var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
          for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
+         viewPort.Edit($"@{(start + bytes.Count - 4 * 2):X6} <> <> ");
       }
 
       public void TabChanged() => CanRunChanged?.Invoke(this, EventArgs.Empty);
