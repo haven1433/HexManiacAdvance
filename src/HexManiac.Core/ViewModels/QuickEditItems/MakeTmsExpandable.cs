@@ -54,26 +54,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       // 0x3C
       private readonly Dictionary<string, int> IsMoveHmMove2 = new Dictionary<string, int> {
          [FireRed] = 0x0441B8,
+         [Emerald] = 0x06E804,
       };
 
       // 0x4C
       private readonly Dictionary<string, int> Special0x196 = new Dictionary<string, int> {
          [FireRed] = 0x0CC8CC,
+         [Emerald] = 0x1398C0,
       };
 
       // 0x18
       private readonly Dictionary<string, int> GetBattleMoveFromItemNumber = new Dictionary<string, int> {
          [FireRed] = 0x125A78,
+         [Emerald] = 0x1B6CFC,
       };
 
       // 0x30
       private readonly Dictionary<string, int> IsMoveHmMove1 = new Dictionary<string, int> {
          [FireRed] = 0x125A90,
+         [Emerald] = 0x1B6D14,
       };
 
       // 0xD0
       private readonly Dictionary<string, int> BufferTmHmNameForMenu = new Dictionary<string, int> {
          [FireRed] = 0x131D48,
+         // [Emerald] = null,
       };
 
       // newly created functions
@@ -432,10 +437,10 @@ IsItemTmHm:
     mul  r0, r1
     ldr  r1, [pc, <ItemsTable>]
     add  r0, r0, r1
-    ldr  r2, [r0, #1]
+    ldrb r2, [r0, #1]
     cmp  r2, #199
     bne  <Fail>
-    ldr  r2, [r0, #0]
+    ldrb r2, [r0, #0]
     cmp  r2, #206
     beq  <IsTm>
     cmp  r2, #194
