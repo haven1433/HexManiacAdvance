@@ -505,7 +505,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             // read a number
             if (template[0] == '#') {
                if (line[0] != '#') return false;
-               if (!int.TryParse(line.Substring(1), out numeric)) return false;
+               if (!int.TryParse(line.Split(',', ']')[0].Substring(1), out numeric)) return false;
                template = template.Substring(1);
                line = line.Substring(("#" + numeric).Length);
                continue;

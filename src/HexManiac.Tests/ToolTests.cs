@@ -390,6 +390,7 @@ namespace HavenSoft.HexManiac.Tests {
       [InlineData(".word <bob>", 0b0000_1000_0000_0000_0000_0000_1000_0000)] // test that we can use anchors to get pointer locations
       [InlineData("ldr   r0, [pc, <bob>]", 0b01001_000_11011111)]  //  -33*4+4=-128
       [InlineData("ldrb  r1, [r1, r2]", 0b0101110_010_001_001)]
+      [InlineData("ldrh  r2, [r1, #0]", 0b10001_00000_001010)]
       public void ThumbCompilerTests(string input, uint output) {
          var bytes = new List<byte> { (byte)output, (byte)(output >> 8) };
          var model = new PokemonModel(new byte[0x200]);
