@@ -82,7 +82,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       };
 
       // newly created functions
-      private readonly Dictionary<string, int> ConvertItemPointerToTmHmBattleMoveId, IsItemTmHm, ParseNumber, ReadBitArray;
+      private readonly Dictionary<string, int> ConvertItemPointerToTmHmBattleMoveId, IsItemTmHm, ParseNumber, ReadBitArray, IsItemTmHm2;
 
       #endregion
 
@@ -113,6 +113,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
          // ConvertItemPointerToTmHmBattleMoveId goes after BufferTmHmNameForMenu
          foreach (var pair in BufferTmHmNameForMenu) ConvertItemPointerToTmHmBattleMoveId.Add(pair.Key, pair.Value + 0x6C);
+
+         // IsItemTmHm2 goes after ConvertItemPointerToTmHmBattleMoveId
+         foreach (var pair in ConvertItemPointerToTmHmBattleMoveId) IsItemTmHm2.Add(pair.Key, pair.Value + 0x24);
       }
 
       public bool CanRun(IViewPort viewPortInterface) {
@@ -149,6 +152,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          InsertIsItemTmHm(viewPort, gameCode);
          InsertBufferTmHmNameForMenu(viewPort, gameCode);
          InsertConvertItemPointerToTmHmBattleMoveId(viewPort, gameCode);
+         InsertIsItemTmHm2(viewPort, gameCode);
+         PatchItemRemovalFunctions(viewPort, gameCode);
 
          CanRunChanged?.Invoke(this, EventArgs.Empty);
          return ErrorInfo.NoError;
@@ -526,7 +531,7 @@ MovesTable:
          viewPort.Edit($"@{(start + bytes.Count - 4 * 1):X6} <> ");
       }
 
-      // added          ->    D0-90 (+24)
+      // added          ->   D0-90*(+24)
       private void InsertConvertItemPointerToTmHmBattleMoveId(ViewPort viewPort, string game) {
          var model = viewPort.Model;
          var start = ConvertItemPointerToTmHmBattleMoveId[game];
@@ -556,6 +561,53 @@ HmMovesTable:
          var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
          for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
          viewPort.Edit($"@{(start + bytes.Count - 4 * 2):X6} <> <> ");
+      }
+
+      // added          ->   D0-98 (+8)
+      private void InsertIsItemTmHm2(ViewPort viewPort, string game) {
+         // does the same thing as IsItemTmHm, but leaves r0 alone.
+         // r1 is {0,1,2} for {none,tm,hm} and r0 is the itemID.
+         var model = viewPort.Model;
+         var start = IsItemTmHm2[game];
+         var code = $@"
+InsertIsItemTmHm2:
+    push  lr, {{r0}}
+    bl    <{ParseNumber[game]:X6}>
+    pop   pc, {{r0}}
+"        .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+         var bytes = viewPort.Tools.CodeTool.Parser.Compile(model, start, code);
+         for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
+      }
+
+      private void PatchItemRemovalFunctions(ViewPort viewPort, string game) {
+         var model = viewPort.Model;
+         var deleteLocation = 0x09A1D8; // ReduceItemCount[game]
+         var start = 0x124F6A; // ItemRemoval1[game];
+         var length = 9 * 2;
+         var code = $@"
+    ldrh  r0, [r7, #0]
+    bl    <{IsItemTmHm[game]:X6}>
+    cmp   r1, #2
+    beq   <{(start + length):X6}>
+    ldrh  r0, [r7, #0]
+    mov   r1, #1
+    bl    <{deleteLocation:X6}>
+"        .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+         var bytes = viewPort.Tools.CodeTool.Parser.Compile(model, start, code);
+         for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
+
+         start = 0x125C74; // ItemRemoval2[game];
+         length = 8 * 2;
+         code = $@"
+    mov   r0, r4
+    bl    <{IsItemTmHm2[game]:X6}>
+    cmp   r1, #2
+    beq   <{(start + length):X6}>
+    mov   r1, #1
+    bl    <{deleteLocation:X6}>
+"        .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+         bytes = viewPort.Tools.CodeTool.Parser.Compile(model, start, code);
+         for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
       }
 
       public void TabChanged() => CanRunChanged?.Invoke(this, EventArgs.Empty);
