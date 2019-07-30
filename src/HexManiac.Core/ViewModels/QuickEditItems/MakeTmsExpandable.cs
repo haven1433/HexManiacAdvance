@@ -485,7 +485,7 @@ BufferTmHmNameForMenu(address, itemID):
     mov  r2, #44
     mul  r2, r4
     add  r5, r5, r2
-    ldr  r2, [r5, #0]
+    ldrb r2, [r5, #0]
     cmp  r2, #206
     beq  <CaseTm>
     ldr  r1, [pc, <MagicString1>]
