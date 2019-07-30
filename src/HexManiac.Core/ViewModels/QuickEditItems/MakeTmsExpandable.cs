@@ -101,6 +101,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          IsItemTmHm = new Dictionary<string, int>();
          ParseNumber = new Dictionary<string, int>();
          ReadBitArray = new Dictionary<string, int>();
+         IsItemTmHm2 = new Dictionary<string, int>();
 
          // ReadBitArray fits after IsMoveHmMove2
          foreach (var pair in IsMoveHmMove2) ReadBitArray.Add(pair.Key, pair.Value + 0x24);
