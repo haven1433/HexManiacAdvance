@@ -437,6 +437,9 @@ mainroutine:
       private void InsertIsItemTmHm(ViewPort viewPort, string game) {
          var start = IsItemTmHm[game];
          var model = viewPort.Model;
+         // input:  r0 = itemID
+         // result: r0 = pointer to the item
+         //         r1 = {0,1,2} for {none, isTm, isHm}
          var code = $@"
 IsItemTmHm:
     mov  r1, #44
@@ -571,9 +574,9 @@ HmMovesTable:
          var model = viewPort.Model;
          var start = IsItemTmHm2[game];
          var code = $@"
-InsertIsItemTmHm2:
+IsItemTmHm2:
     push  lr, {{r0}}
-    bl    <{ParseNumber[game]:X6}>
+    bl    <{IsItemTmHm[game]:X6}>
     pop   pc, {{r0}}
 "        .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
          var bytes = viewPort.Tools.CodeTool.Parser.Compile(model, start, code);
