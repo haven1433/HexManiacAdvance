@@ -15,6 +15,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          LeafGreen = "BPGE";
 
       public const string
+         TmMoves = "tmmoves",
+         HmMoves = "hmmoves",
+         TmCompatibility = "tmcompatibility",
          MoveTutors = "tutormoves",
          TutorCompatibility = "tutorcompatibility";
 
@@ -96,6 +99,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       private void DecodeDataArrays() {
          if (TrySearch(this, noChangeDelta, $"[name\"\"14 index: price: holdeffect: description<{PCSRun.SharedFormatString}> keyitemvalue. bagkeyitem. pocket. type. fieldeffect<> battleusage:: battleeffect<> battleextra::]", out var itemdata)) {
             ObserveAnchorWritten(noChangeDelta, "items", itemdata);
+            FindItemImages(itemdata);
          }
 
          // if the stat data doesn't match the pokenames length, use whichever is shorter.
@@ -136,9 +140,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          FindTutorMoveAnchors();
+         FindTmMoveAnchors();
 
          // @3D4294 ^itemicons[image<> palette<>]items
-         // @4886E8 ^movedescriptions[description<>]354
+         // @4886E8 ^movedescriptions[description<>]354 <- note that there is no description for move 0
       }
 
       private void FindTutorMoveAnchors() {
@@ -180,6 +185,79 @@ namespace HavenSoft.HexManiac.Core.Models {
                }
             }
          }
+      }
+
+      private void FindTmMoveAnchors() {
+         // get tmCompatibility location
+         var originalCode = new byte[] {
+            0x00, 0x04, 0x01, 0x0C, 0x0B, 0x1C, 0xCE, 0x20,
+            0x40, 0x00, 0x81, 0x42, 0x01, 0xD1, 0x00, 0x20,
+            0x15, 0xE0, 0x1F, 0x2C, 0x0C, 0xD9, 0x20, 0x1C,
+            0x20, 0x38, 0x01, 0x22, 0x82, 0x40, 0x03, 0x48,
+            0xC9, 0x00, 0x04, 0x30, 0x09, 0x18, 0x08, 0x68,
+            0x10, 0x40, 0x08, 0xE0,
+         };
+         var list = Find(originalCode, 0x40000, 0x70000);
+         if (list.Count != 1) return;
+         var tmCompatibility = ReadPointer(list[0] + originalCode.Length);
+         if (tmCompatibility < 0 || tmCompatibility > Count) return;
+
+         // get tmMoves location
+         originalCode = new byte[] {
+            0x00, 0xB5, 0x00, 0x04, 0x02, 0x0C, 0x00, 0x21,
+            0x04, 0x4B, 0x08, 0x1C, 0x32, 0x30, 0x40, 0x00,
+            0xC0, 0x18, 0x00, 0x88, 0x90, 0x42, 0x03, 0xD1,
+            0x01, 0x20, 0x07, 0xE0,
+         };
+         list = Find(originalCode, 0x06F700, 0x1B7000);
+         if (list.Count != 1) return;
+         var tmMoves = ReadPointer(list[0] + originalCode.Length);
+         if (tmMoves< 0 || tmMoves > Count) return;
+
+         // get hmMoves location
+         originalCode = new byte[] {
+            0x10, 0xB5, 0x00, 0x04, 0x03, 0x0C, 0x07, 0x4A,
+            0x10, 0x88, 0x07, 0x49, 0x88, 0x42, 0x10, 0xD0,
+            0x0C, 0x1C, 0x11, 0x1C, 0x10, 0x88, 0x02, 0x31,
+            0x02, 0x32, 0x98, 0x42, 0x06, 0xD1, 0x01, 0x20,
+            0x08, 0xE0, 0x00, 0x00,
+         };
+         list = Find(originalCode, 0x40A00, 0x6E834);
+         if (list.Count != 1) return;
+         var hmMoves = ReadPointer(list[0] + originalCode.Length);
+         if (hmMoves < 0 || hmMoves > Count) return;
+
+         // add tm locations into the metadata
+         if (!TryParse(this, $"[move:{EggMoveRun.MoveNamesTable}]58", tmMoves, null, out var tmMovesRun).HasError) {
+            ObserveAnchorWritten(noChangeDelta, TmMoves, tmMovesRun);
+            if (!TryParse(this, $"[pokemon|b[]{TmMoves}]{EggMoveRun.PokemonNameTable}", tmCompatibility, null, out var tmCompatibilityRun).HasError) {
+               ObserveAnchorWritten(noChangeDelta, TmCompatibility, tmCompatibilityRun);
+            }
+         }
+
+         // add hm locations into the metadata
+         if (!TryParse(this, $"[move:{EggMoveRun.MoveNamesTable}]8", hmMoves, null, out var hmMovesRun).HasError) {
+            ObserveAnchorWritten(noChangeDelta, HmMoves, hmMovesRun);
+         }
+      }
+
+      private void FindItemImages(ArrayRun itemsTable) {
+         var originalCode = new byte[] {
+            0x88, 0x00, 0xD9, 0x00, 0x40, 0x18, 0x80, 0x18,
+            0x00, 0x68, 0x02, 0xBC, 0x08, 0x47, 0x00, 0x00,
+         };
+         var list = Find(originalCode, 0x98950, 0x1B0050);
+         if (list.Count != 1) return;
+
+         var lengthOffset = gameCode == Emerald ? -0x10 : originalCode.Length;
+         var pointerOffset = gameCode == Emerald ? originalCode.Length : originalCode.Length + 4;
+
+         var imagesStart = ReadPointer(list[0] + pointerOffset);
+         if (!TryParse(this, $"[image<> palette<>]items", imagesStart, null, out var itemImages).HasError) {
+            ObserveAnchorWritten(noChangeDelta, "itemimages", itemImages);
+         }
+
+         // TODO @{lengthOffset:X6} ::itemimages-1
       }
 
       private IList<int> Find(byte[] subset, int start, int end) {

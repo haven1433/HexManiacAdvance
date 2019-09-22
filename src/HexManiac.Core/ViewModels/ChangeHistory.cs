@@ -66,6 +66,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var addedElements = undoStack.Count - undoStackSizeAtSaveTag;
             var undoItems = undoStack.ToArray();
             var redoItems = redoStack.ToArray();
+            if (undoStackSizeAtSaveTag == -1) return true;
             for (int i = 0; i < addedElements; i++) {
                if (undoItems[undoStackSizeAtSaveTag + i].HasDataChange) return true;
             }

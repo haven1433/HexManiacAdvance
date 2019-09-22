@@ -1,6 +1,8 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using System;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -21,7 +23,10 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       #endregion
 
       public IFileSystem FileSystem => (IFileSystem)Application.Current.MainWindow.Resources["FileSystem"];
-      public TabView() => InitializeComponent();
+      public TabView() {
+         InitializeComponent();
+         CodeModeSelector.ItemsSource = Enum.GetValues(typeof(CodeMode)).Cast<CodeMode>();
+      }
 
       private void StringToolContentSelectionChanged(object sender, RoutedEventArgs e) {
          var textbox = (TextBox)sender;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
@@ -25,9 +26,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          set {
             if (viewPort == null) return;
             if (TryUpdate(ref text, value)) {
-               var options = viewPort.Model?.GetAutoCompleteAnchorNameOptions(text) ?? new string[0];
-               AutoCompleteOptions = AutoCompleteSelectionItem.Generate(options, completionIndex);
-               ShowAutoCompleteOptions = AutoCompleteOptions.Count > 0;
+               using (ModelCacheScope.CreateScope(viewPort.Model)) {
+                  var options = viewPort.Model?.GetAutoCompleteAnchorNameOptions(text) ?? new string[0];
+                  AutoCompleteOptions = AutoCompleteSelectionItem.Generate(options, completionIndex);
+                  ShowAutoCompleteOptions = AutoCompleteOptions.Count > 0;
+               }
             }
          }
       }
@@ -51,12 +54,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private IReadOnlyList<AutoCompleteSelectionItem> autoCompleteOptions = new AutoCompleteSelectionItem[0];
       public IReadOnlyList<AutoCompleteSelectionItem> AutoCompleteOptions {
          get => autoCompleteOptions;
-         private set {
-            if (autoCompleteOptions == value) return;
-            var oldValue = autoCompleteOptions;
-            autoCompleteOptions = value;
-            NotifyPropertyChanged(oldValue, nameof(AutoCompleteOptions));
-         }
+         private set => TryUpdateSequence<IReadOnlyList<AutoCompleteSelectionItem>, AutoCompleteSelectionItem>(ref autoCompleteOptions, value);
       }
 
       #endregion
@@ -85,13 +83,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Goto = new StubCommand {
             CanExecute = arg => viewPort?.Goto != null,
             Execute = arg => {
-               var text = Text;
-               var index = completionIndex.LimitToRange(-1, AutoCompleteOptions.Count - 1);
-               if (index != -1) text = AutoCompleteOptions[index].CompletionText;
-               if (arg is string) text = (string)arg;
-               viewPort?.Goto?.Execute(text);
-               ControlVisible = false;
-               ShowAutoCompleteOptions = false;
+               using (ModelCacheScope.CreateScope(viewPort.Model)) {
+                  var text = Text;
+                  var index = completionIndex.LimitToRange(-1, AutoCompleteOptions.Count - 1);
+                  if (index != -1) text = AutoCompleteOptions[index].CompletionText;
+                  if (arg is string) text = (string)arg;
+                  viewPort?.Goto?.Execute(text);
+                  ControlVisible = false;
+                  ShowAutoCompleteOptions = false;
+               }
             },
          };
          ShowGoto = new StubCommand {

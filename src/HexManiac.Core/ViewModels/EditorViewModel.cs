@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.ViewModels.QuickEditItems;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections;
@@ -177,6 +178,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public IReadOnlyList<IQuickEditItem> QuickEdits { get; } = new List<IQuickEditItem> {
          new MakeTutorsExpandable(),
+         // new MakeTmsExpandable(),   // expanding TMs requires further research.
+         // new MakeItemsExpandable(),
       };
 
       public event EventHandler<Action> RequestDelayedWork;

@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.QuickEditItems;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -126,6 +127,23 @@ namespace HavenSoft.HexManiac.Tests {
 
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
+      public void ItemImagesAreFound(string game) {
+         var model = LoadModel(game);
+         var noChange = new NoDataChangeDeltaModel();
+
+         var address = model.GetAddressFromAnchor(noChange, -1, "itemimages");
+         if (game.Contains("Ruby") || game.Contains("Sapphire")) {
+            Assert.Equal(Pointer.NULL, address);
+            return;
+         }
+
+         var run = (ArrayRun)model.GetNextAnchor(address);
+         if (game.Contains("Altair") || game.Contains("Emerald")) Assert.Equal(377, run.ElementCount);
+         else Assert.Equal(375, run.ElementCount);
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
       public void TrainerClassNamesAreFound(string game) {
          var model = LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
@@ -227,6 +245,36 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(compatibilityElementLength, compatibility.ElementContent[0].Length);
       }
 
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void TmsAreFound(string game) {
+         var model = LoadModel(game);
+         var noChange = new NoDataChangeDeltaModel();
+
+         var movesLocation = model.GetAddressFromAnchor(noChange, -1, AutoSearchModel.TmMoves);
+         var hmLocation = model.GetAddressFromAnchor(noChange, -1, AutoSearchModel.HmMoves);
+         var compatibilityLocation = model.GetAddressFromAnchor(noChange, -1, AutoSearchModel.TmCompatibility);
+
+         // Clover changes the code to make HM Moves forgettable, so finding doesn't work automatically.
+         if (game.Contains("Clover")) {
+            Assert.Equal(Pointer.NULL, movesLocation);
+            Assert.Equal(Pointer.NULL, compatibilityLocation);
+            return;
+         }
+
+         var tmMoves = (ArrayRun)model.GetNextRun(movesLocation);
+         var hmMoves = (ArrayRun)model.GetNextRun(hmLocation);
+         var compatibility = (ArrayRun)model.GetNextRun(compatibilityLocation);
+
+         var expectedTmMoves = 58;
+         var expectedHmMoves = 8;
+         var compatibilityElementLength = 8;
+
+         Assert.Equal(expectedTmMoves, tmMoves.ElementCount);
+         Assert.Equal(expectedHmMoves, hmMoves.ElementCount);
+         Assert.Equal(compatibilityElementLength, compatibility.ElementContent[0].Length);
+      }
+
       // this one actually changes the data, so I can't use the same shared model as everone else.
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
@@ -259,6 +307,68 @@ namespace HavenSoft.HexManiac.Tests {
          table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, AutoSearchModel.MoveTutors));
          var tutorCompatibilityPointerSources = model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, AutoSearchModel.TutorCompatibility)).PointerSources;
          var word = (WordRun)model.GetNextRun(tutorCompatibilityPointerSources.Last() + 4);
+         Assert.Equal(table.ElementCount, model.ReadValue(word.Start));
+      }
+
+      // this one actually changes the data, so I can't use the same shared model as everone else.
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void ExpandableTMsWorks(string game) {
+         var fileSystem = new StubFileSystem();
+         var model = LoadModelNoCache(game);
+         var editor = new EditorViewModel(fileSystem, false);
+         var viewPort = new ViewPort(game, model);
+         editor.Add(viewPort);
+         var expandTMs = editor.QuickEdits.Single(edit => edit.Name == "Make TMs Expandable");
+
+         // Clover makes changes that prevent us from finding tmmoves/tmcompatibility. Don't support Clover.
+         var canRun = expandTMs.CanRun(viewPort);
+         if (game.Contains("Clover")) {
+            Assert.False(canRun);
+            return;
+         } else {
+            Assert.True(canRun);
+         }
+
+         // run the actual quick-edit
+         expandTMs.Run(viewPort);
+
+         // extend the table
+         var table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, AutoSearchModel.TmMoves));
+         viewPort.Goto.Execute((table.Start + table.Length).ToString("X6"));
+         viewPort.Edit("+");
+
+         // the 4 bytes after the last pointer to tm-compatibility should store the length of tmmoves
+         table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, AutoSearchModel.TmMoves));
+         var tmCompatibilityPointerSources = model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, AutoSearchModel.TmCompatibility)).PointerSources;
+         var word = (WordRun)model.GetNextRun(tmCompatibilityPointerSources.First() + 4);
+         Assert.Equal(table.ElementCount, model.ReadValue(word.Start));
+      }
+
+      // this one actually changes the data, so I can't use the same shared model as everone else.
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void ExpandableItemsWorks(string game) {
+         var fileSystem = new StubFileSystem();
+         var model = LoadModelNoCache(game);
+         var editor = new EditorViewModel(fileSystem, false);
+         var viewPort = new ViewPort(game, model);
+         editor.Add(viewPort);
+         var expandTMs = editor.QuickEdits.Single(edit => edit.Name == "Make Items Expandable");
+
+         // run the actual quick-edit
+         expandTMs.Run(viewPort);
+
+         // extend the table
+         var table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, "items"));
+         viewPort.Goto.Execute((table.Start + table.Length).ToString("X6"));
+         viewPort.Edit("+");
+
+         // 0x14 bytes after the start of the change should store the length of items
+         var gameCode = new string(Enumerable.Range(0xAC, 4).Select(i => ((char)model[i])).ToArray());
+         var editStart = MakeItemsExpandable.GetPrimaryEditAddress(gameCode);
+         table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, "items")); // note that since we changed the table, we have to get the run again.
+         var word = (WordRun)model.GetNextRun(editStart + 0x14);
          Assert.Equal(table.ElementCount, model.ReadValue(word.Start));
       }
 

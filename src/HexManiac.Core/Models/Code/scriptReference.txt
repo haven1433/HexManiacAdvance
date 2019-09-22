@@ -1,0 +1,313 @@
+﻿# conditions:
+# 00 A < B
+# 01 A = B
+# 02 A > B
+# 03 A <= B
+# 04 A >= B
+# 05 A != B
+
+# memory banks:
+# there are only 4 banks. Each can store a byte (see setbyte2) or a pointer (see loadpointer)
+
+# buffers:
+# the only buffers are 0, 1, and 2. They can hold strings.
+
+# variables:
+# possibly from 8000 to 800F. They can hold numbers, probably 1 byte, possibly more.
+# variable reference: https://github.com/pret/pokeemerald/blob/3cc68031560b3efcbe3c838a180fe5cad924060b/include/constants/vars.h
+
+# RAM:
+# you can write individual bytes into set locations in the RAM. Examples?
+
+
+00 nop                                       # does nothing
+01 nop1                                      # does nothing
+02 end                                       # ends the script
+03 return                                    # pops back to the last calling command used.
+04 call pointer<>                            # Continues script execution from another point. Can be returned to.
+05 goto pointer<>                            # Continues script execution from another point. Cannot return.
+06 if1 condition. pointer<>                  # if the last comparison returned a certian value, "goto" to another script
+07 if2 condition. pointer<>                  # if the last comparison returned a certian value, "call" to another script
+08 gotostd function.                         # goto a built-in function
+09 callstd function.                         # call a built-in function
+0A gotostdif condition. function.            # goto a built in function if the condition is met
+0B callstdif condition. function.            # call a built in function if the condition is met
+0C jumpram                                   # executes a script from the default RAM location (???)
+0D killscript                                # kill the script, reset script RAM
+0E setbyte byte.                             # sets a predefined address to the specified byte value
+0F loadpointer bank.4 pointer<>              # loads a pointer into script RAM so other commands can use it
+10 setbyte2 bank.4 value.                    # sets a memory bank to the specified byte value.
+11 writebytetooffset value. offset<>         # store the byte 'value' at the RAM address 'offset'
+12 loadbytefrompointer bank.4 pointer<>      # load a byte value from a RAM address into the specified memory bank
+13 setfarbyte bank.4 pointer<>               # stores the least-significant byte in the bank to a RAM address
+14 copyscriptbanks destination.4 source.4    # copies the value in source to destination
+15 copybyte destination<> source<>           # copies the value from the source RAM address to the destination RAM address
+16 setvar variable: value:                   # sets the given variable to the given value
+17 addvar variable: value:                   # variable+=value
+18 subvar variable: value:                   # variable-=value
+19 copyvar destination: source:              # destination = source
+1A copyvarifnotzero destination: source:     # destination = source (or) destination = *source
+                                             # (if source isn't a valid variable, it's read as a value)
+1B comparebanks bankA.4 bankB.4              # sets the condition variable based on the values in the two banks
+1C comparebanktobyte bank.4 value.           # sets the condition variable
+1D compareBankTofarbyte bank.4 pointer<>     # compares the bank value to the value stored in the RAM address
+1E compareFarByteToBank pointer<> bank.4     # opposite of 1D
+1F compareFarByteToByte pointer<> value.     # compares the value at the RAM address to the value
+20 compareFarBytes a<> b<>                   # compares the two values at the two RAM addresses
+21 compare variable: value:
+22 comparevars var1: var2:
+23 callasm code<>
+24 setcode pointer<>                         # puts a pointer to some assembly code at a specific place in RAM
+25 special function:                         # calls a piece of ASM code from a table located at <15FD60>
+26 special variable: function:               # calls a special and puts the ASM's return value in the variable you listed
+27 waitstate                                 # blocks the script until it gets unblocked by a command or some ASM code.
+28 pause time:                               # blocks the script for 'time' ticks
+29 setflag flag:                             # flag = 1
+2A clearflag flag:                           # flag = 0
+2B checkflag flag:                           # compares the flag to the value of 1. Used with !=(5) or =(1) compare values
+2C nop2C                                     # considered dangerous, probably does nothing
+2D checkdailyflags                           # nop in firered. Does some flag checking in R/S/E based on real-time-clock
+2E resetvars                                 # sets x8000, x8001, and x8002 to 0
+2F sound number:                             # 0000 mutes the music
+30 waitsound                                 # blocks script execution until any playing sounds finish
+31 fanfare song:                             # plays a song from the song list as a fanfare
+32 waitfanfare                               # blocks script execution until any playing fanfair finishes
+33 playsong song: unknown.                   # last byte is apparently supposed to be 00
+34 playsong2 song:                           # seems buggy?
+35 fadedefault                               # fades the music back to the default song
+36 fadesong song:                            # fades the music into the given song
+37 fadeout speed.                            # fades out the current song to silent
+38 fadein speed.                             # fades in the current song from silent
+39 warp mapbank. map. warp. x: y:            # sends player to mapbank/map at tile 'warp'. If warp is FF, uses x/y instead
+                                             # does it terminate script execution?
+3A warpmuted mapbank. map. warp. x: y:       # same as warp, but doesn't play sappy song 0009
+3B warpwalk  mapbank. map. warp. x: y:       # same as warp, but with a walking effect
+3C warphole  mapbank. map.                   # hole effect. Sends player to same X/Y as on the map they started on?
+3D warpteleport mapbank. map. warp. x: y:    # teleport effect on a warp. Seems to only work in R/S/E
+3E warp3 mapbank. map. warp. x: y:           # seems to be an unused clone of warp
+3F setwarpplace mapbank. map. warp. x: y:    # sets a variable position. Go to it with warp 7F 7F 7F 0000 0000
+40 warp4 mapbank. map. warp. x: y:           # probably shouldn't use
+41 warp5 mapbank. map. warp. x: y:           # probably shouldn't use
+42 getplayerpos varX: varY:                  # stores the current player position into varX and varY
+43 countPokemon                              # stores number of pokemon in your party into LASTRESULT (800D)
+44 additem item: quantity:                   # item/quantity can both be either a literal or a variable.
+                                             # if the operation was succcessful, LASTRESULT (variable 800D) is set to 1.
+45 removeitem item: quantity:                # opposite of additem. 800D is set to 0 if the removal cannot happen
+46 checkitemroom item: quantity:             # 800D is set to 1 if additem would succeed
+47 checkitem item: quantity:                 # 800D is set to 1 if removeitem would succeed
+48 checkitemtype item:                       # 800D is set to the bag pocket number of the item
+49 addpcitem item: quantity:                 # adds 'quantity' of 'item' into the PC
+4A checkpcitem item: quantity:               # 800D is set to 1 if the PC has at least 'quantity' of 'item'
+4B adddecoration decoration:                 # adds a decoration to the player's PC in FR/LG, this is a NOP
+                                             # decoration can be either a literal or a variable
+4C removedecoration decoration:              # removes a decoration to the player's PC in FR/LG, this is a NOP
+4D testdecoration decoration:                # 800D is set to 1 if the PC could store at least 1 more of that decoration
+4E checkdecoration decoration:               # 800D is set to 1 if the PC has at least 1 of that decoration
+4F applymovement npc: data<>                 # has character 'npc' move according to movement data 'data'
+                                             # npc can be a character number or a variable.
+                                             # FF is the player, 7F is the camera.
+                                             # WARNING running this command from a Script event will crash the game unless
+                                             #    that script event's 'unknown' field in 0003 and its
+                                             #    "var number" refers to a valid script variable.
+50 applymovement2 npc: data<>                # like applymovement, but only uses variables, not literals
+51 waitmovement npc:                         # block further script execution until the npc movement is completed
+52 waitmovementpos npc: x. y.                # seems bugged. x/y do nothing, only works for FF (the player). Do not use.
+53 hidesprite npc:                           # hides an NPC, but only if they have a Person ID. Doesn't work on the player.
+54 hidespritepos npc: x. y.                  # do not use
+55 showsprite npc:                           # opposite of hidesprite
+56 showspritepos npc: x. y.                  # shows a previously hidden sprite, then moves it to (x,y)
+57 movesprite npc: x. y.
+58 spritevisible npc: bank. map.             # shows the sprite on the given map
+59 spriteinvisible npc: bank. map.           # hides the sprite on the given map
+5A faceplayer                                # if the script was called by a person event, make that person face the player
+5B spriteface npc: direction.
+
+5C trainerbattle 0. trainer: 0: start<> playerwin<>
+5C trainerbattle 1. trainer: 0: start<> playerwin<> winscript<>            # doesn't play encounter music
+5C trainerbattle 2. trainer: 0: start<> playerwin<> winscript<>            # plays encounter music
+5C trainerbattle 3. trainer: 0: start<>                                    # continues caller
+5C trainerbattle 4. trainer: 0: start<> playerwin<> needmorepokemonText<>  # double battles
+5C trainerbattle 5. trainer: 0: start<> playerwin<>                        # clone of 0, but with rematch potential
+5C trainerbattle 6. trainer: 0: start<> playerwin<> needmorepokemonText<> unknown<> # double battles
+5C trainerbattle 7. trainer: 0: start<> playerwin<> needmorepokemonText<>  # clone of 4, but with rematch potential
+5C trainerbattle 8. trainer: 0: start<> playerwin<> needmorepokemonText<> unknown<> # clone of 6
+5C trainerbattle 9. trainer: 0: start<> playerwin<> # tutorial battle (can't lose)
+5C trainerbattle 9. trainer: 3: start<> playerwin<> # tutorial battle with oak's naration
+5C trainerbattle *. trainer: 0: start<> playerwin<> # same as 0
+                                             # trainer battle takes different parameters depending on the
+                                             # 'type', or the first parameter.
+                                             # 'trainer' is the ID of the trainer battle
+                                             # start is the text that the character says at the start of the battle
+                                             # playerwin is the text that the character says when the player wins
+                                             # rematches are weird. Look into them later.
+
+5D repeattrainerbattle                       # do the last trainer battle again
+5E endtrainerbattle                          # returns from the trainerbattle screen without starting message
+5F endtrainerbattle2                         # same as 5E?
+60 checktrainerflag trainer:                 # if flag 0x500+trainer is 1, then the trainer has been defeated, set 800D to 1
+61 cleartrainerflag trainer:                 # set flag 0x500+trainer to 1. That trainer now counts as defeated.
+62 settrainerflag trainer:                   # set flag 0x500+trainer to 0. That trainer now counts as active.
+63 movesprite2 npc: x: y:                    # permanently move the npc to the x/y location
+64 moveoffscreen ncp:                        # moves the npc to just above the left-top corner of the screen
+65 spritebehave npc: behavior.               # ???
+66 waitmsg                                   # block script execution until box/text is fully drawn
+67 preparemsg text<>                         # text can be a pointer to a text pointer, or just a pointer to text
+                                             # starts displaying text in a textbox. Does not block. Call waitmsg to block.
+68 closeonkeypress                           # keeps the current textbox open until the player presses a button.
+69 lockall                                   # don't let characters move
+6A lock                                      # stop the movement of the person that called the script
+6B releaseall                                # closes open textboxes and lets characters move freely
+6C release                                   # allow the movement of the person that called the script
+6D waitkeypress                              # blocks script execution until the player pushes a button
+6E yesnobox x. y.                            # shows a yes/no dialog, 800D stores 1 if YES was selected.
+6F multichoice x. y. list. allowCancel.      # player selection stored in 800D. If they backed out, 800D=7F
+70 multichoice2 x. y. list. default. canCancel. # like multichoice, but you can choose which option is selected at the start
+71 multichoice3 x. y. list. per_row. canCancel. # like multichoice, but shows multiple columns.
+72 showbox x. y. width. height.
+73 hidebox x. y. width. height.              # ruby/sapphire only
+74 clearbox x. y. width. height.             # clear only a part of a custom box
+75 showpokepic species: x. y.                # show the pokemon in a box. Can be a literal or a variable.
+76 hidepokepic                               # hides all shown pokepics
+77 showcontestwinner contest.                # nop in FireRed. Shows the painting of a wenner of the given contest.
+78 braille text<>                            # displays a message in braille. The text must be formatted to use braille.
+79 givePokemon species: level. item: filler:: filler:: filler.
+                                             # gives the player one of that pokemon. the last 9 bytes are all 00.
+                                             # 800D=0 if it was added to the party
+                                             # 800D=1 if it was put in the PC
+                                             # 800D=2 if there was no room
+                                             # 4037=? number of the PC box the pokemon was sent to, if it was boxed?
+7A giveEgg species:
+7B setpkmnpp pokemonSlot. attackSlot. ppAmount: # set a given pokemon in your party to have a 'ppAmount' pp for a move
+7C checkattack move:                         # 800D=n, where n is the index of the pokemon that knows the move.
+                                             # 800D=6, if no pokemon in your party knows the move
+                                             # if successful, 8004 is set to the pokemon species
+7D bufferPokemon buffer.3 species:           # species can be a literal or variable. Store the name in the given buffer
+7E bufferfirstPokemon buffer.3               # name of your first pokemon gets stored in the given buffer
+7F bufferpartyPokemon buffer.3 party.        # name of pokemon 'party' from your party gets stored in the buffer
+80 bufferitem buffer.3 item:                 # stores an item name in a buffer
+81 bufferdecoration buffer.3 decoration:
+82 bufferattack buffer.3 move:               # species, party, item, decoration, and move can all be literals or variables
+83 buffernumber buffer.3 number:             # literal or variable gets converted to a string and put in the buffer.
+84 bufferstd buffer.3 index:                 # gets one of the standard strings and pushes it into a buffer
+85 bufferstring buffer.3 pointer<>           # copies the string into the buffer.
+86 pokemart products<>                       # products is a list of 2-byte items, terminated with 0000
+87 pokemart2 products<>                      # clone
+88 pokemart3 products<>                      # clone
+89 pokecasino index:
+8A nop8A                                     # does nothing
+8B choosecontextpkmn                         # in FireRed, 03000EA8 = '1'. In R/S/E, prompt for a pokemon to enter contest
+8C startcontest                              # nop in FireRed. Starts a contest.
+8D showcontestresults                        # nop in FireRed. Shows contest results.
+8E contestlinktransfer                       # nop in FR. In Emerald, starts a wireless connection contest
+8F random high:                              # returns 0<=number<high, stored in 800D (LASTRESULT)
+90 givemoney money:: check.                  # if check is 0, gives the player money
+91 paymoney money:: check.                   # if check is 0, takes money from the player
+92 checkmoney money:: check.                 # if check is 0, checks if the player has at least that much money. if so, 800D=1
+93 showmoney x. y.                           # shows how much money the player has in a separate box
+94 hidemoney x. y.
+95 updatemoney x. y.                         # updates the amount of money shown after a money change
+96 nop96
+97 fadescreen effect.                        # 00 fades in, 01 fades out
+98 fadescreendelay effect. delay.
+99 darken flashSize:                         # makes the screen go dark. Related to flash? Call from a level script.
+9A lighten flashSize.                        # lightens an area around the player?
+9B preparemsg2 pointer<>                     # unknown
+9C doanimation animation:                    # executes field move animation
+9D setanimation animation. slot:             # which party pokemon to use for the next field animation?
+9E checkanimation animation:                 # if the given animation is playing, pause the script until the animation completes
+9F sethealingplace flightspot:               # where does the player warp when they die?
+A0 checkgender                               # if male, 800D=0. If female, 800D=1
+A1 cry species: effect:                      # plays that pokemon's cry. Can use a variable or a literal. what's effect do?
+A2 setmaptile x: y: tile: attribute:         # sets the tile at x/y to be the given tile: with the attribute.
+                                             # what does attribute do? It's usually 0 or 1.
+A3 resetweather                              # queues a weather change to the map's default weather
+A4 setweather type:                          #
+A5 doweather                                 # actually does the weather change from resetweather or setweather
+A6 changewalktile method.                    # used with ash-grass(1), breaking ice(4), and crumbling floor (7). Complicated.
+A7 setmapfooter footer:                      # updates the current map's footer.
+A8 spritelevelup npc: bank. map. unknown.    # the chosen npc goes 'up one level'
+A9 restorespritelevel ncp: bank. map.        # the chosen npc is restored to its original level
+AA createsprite sprite. virtualNPC. x: y: behavior. facing.
+AB spriteface2 virtualNPC. facing.
+AC setdooropened x: y:                       # queues the animation, but doesn't do it
+AD setdoorclosed x: y:                       # queues the animation, but doesn't do it
+AE doorchange                                # runs the animation from the queue
+AF setdooropened2 x: y:                      # clone
+B0 setdoorclosed2 x: y:                      # clone
+B1 nopB1
+B2 nopB2
+B3 checkcoins output:                        # your number of coins is stored to the given variable
+B4 givecoins count:
+B5 removecoins count:
+B6 setwildbattle species: level. item:
+B7 dowildbattle                              # runs a battle setup with setwildbattle
+B8 setvirtualaddress value::                 # some kind of jump? Complicated.
+B9 virtualgoto destination<>                 # ???
+BA virtualcall destination<>
+BB virtualgotoif condition. destination<>
+BC virtualcallif condition. destination<>
+BD virtualmsgbox text<>
+BE virtualloadpointer text<>
+BF virtualbuffer buffer.3 text<>             # stores text in a buffer
+C0 showcoins x. y.
+C1 hidecoins x. y.
+C2 updatecoins x. y.
+C3 incrementhiddenvalue a.                   # example: pokecenter nurse uses variable 0xF after you pick yes
+C4 warp6 mapbank. map. warp. x: y:           # clone of warp. sometimes does nothing.
+C5 waitcry                                   # used after cry, it pauses the script
+C6 bufferboxname buffer.3 box:               # box can be a variable or a literal
+C7 textcolor color.                          # 00=blue, 01=red, FF=default, XX=black. Only in FR/LG
+C8 helptext pointer<>                        # something with helptext? Does some tile loading, which can glitch textboxes
+C9 helptext2                                 # related to help-text box that appears in the opened Main Menu
+CA signmsg                                   # makes message boxes look like signposts
+CB normalmsg                                 # ends the effect of signmsg. Textboxes look like normal textboxes.
+CC comparehiddenvar a. value::               # compares a hidden value to a given value.
+CD setobedience slot:                        # a pokemon in your party becomes obedient (no longer disobeys)
+CE checkobedience slot:                      # if the pokemon is disobedient, 800D=1. If obedient (or empty), 800D=0
+CF executeram                                # weird. Shouldn't use. Script execution jumps to another location sometimes
+D0 setworldmapflag flag:                     # This lets the player fly to a given map, if the map has a flight spot
+D1 warpteleport2 bank. map. exit. x: y:      # clone of warpteleport, only used in FR/LG and only with specials
+D2 setcatchlocation slot: location.          # changes the catch location of a pokemon in your party (0-5)
+D3 braillelength pointer<>                   # sets variable 8004 based on th ebraille string's length
+                                             # call this, then special 0x1B2 to make a cursor appear at the end of the text
+D4 bufferitems buffer.3 item: quantity:      # buffers the item name, but possibly pluralized if quantity is 2 or more
+D5 nopD5
+D6 cmdD6                                     # unknown
+D7 warp7 mapbank. map. warp. x: y:           # unknown
+D8 cmdD8                                     # unknown
+D9 cmdD9                                     # unknown
+DA hidebox2                                  # hides a displayed textbox. Only for Emerald
+DB preparemsg3 pointer<>                     # unknown
+DC fadescreen3 unknown.                      # fades the screen in or out. Emerald only.
+DD buffertrainerclass buffer.3 class:        # stores a trainer class into a specific buffer (Emerald only)
+DE buffertrainername buffer.3 trainer:       # stores a trainer name into a specific buffer  (Emerald only)
+DF pokenavcall pointer<>                     # displays a pokenav call. (Emerald only)
+E0 warp8 bank. map. exit. x: y:              # unknown
+E1 buffercontesttype buffer.3 contest:       # stores the contest type name in a buffer. (Emerald Only)
+E2 bufferitems2 buffer.3 item: quantity:     # stores pluralized item name in a buffer. (Emerald Only)
+
+
+# XX msgbox text<> type.                       # multicommand, 8 bytes total
+# XX message text<> type.
+# XX giveitem item: quantity: message.         # multicommand, 12 bytes total
+# XX giveitem2 item: quantity: song:           # multicommand, 17 bytes total (like giveitem, but with fanfare)
+# XX giveitem3 decoration:                     # multicommand, 7 bytes
+# XX wildbattle species: level. item:          # multicommand, 7 bytes
+#    setwildbattle species: level. item:
+#    dowildbattle
+# XX wildbattle2 species: level. item: style.  # multicommand, 10 bytes
+#    setwildbattle species: level. item:
+#    (3 bytes?)
+#    dowildbattle
+# XX registernav trainer:                      #multicommand, 7 bytes (Emerald Only)
+
+
+# givemoney/paymoney/checkmoney/showmoney/hidemoney/updatemoney
+#    verify which of these have the execution check flag, and which don't
+
+# darken/lighten: flashSize different lengths?
+
+
+
+
+

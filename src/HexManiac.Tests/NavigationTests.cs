@@ -216,7 +216,8 @@ namespace HavenSoft.HexManiac.Tests {
                   "Option 1",
                   "Option 2",
                   "Option 3",
-               }
+               },
+               Equals = arg => arg is StubDataModel,
             },
          };
          var viewModel = new GotoControlViewModel(tab);

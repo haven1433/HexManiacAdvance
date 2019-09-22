@@ -278,7 +278,7 @@ namespace HavenSoft.HexManiac.Tests {
          // sample routine: If r0 is true, return double r1. Else, return 0
          var code = new ushort[] {
          // 000000:
-            0b10110101_00001100,    // push  lr, {r4, r5}         (note that for push, r0-r7 run left-right)
+            0b10110101_00110000,    // push  lr, {r4, r5}         (note that for push, r0-r7 run right-left)
             0b00101_000_00000001,   // cmp   r0, 1
             0b1101_0001_00000000,   // bne   pc(4)+(0)*2+4 = 8
             0b0001100_001_001_000,  // add   r0, r1, r1
@@ -377,6 +377,99 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("    nop",            lines[8]);
          Assert.Equal("    nop",            lines[9]);
          Assert.Equal("    nop",            lines[10]);
+      }
+
+      [Theory]
+      [InlineData("add   r0, r1, r2", 0b0001100_010_001_000)]
+      [InlineData("lsl   r1, r2, #4", 0b00000_00100_010_001)]
+      [InlineData("bls   <000120>", 0b1101_1001_00001110)]
+      [InlineData("push  lr, {}", 0b10110101_00000000)]
+      [InlineData("bl    <000120>", 0b11111_00000001110_11110_00000000000)]
+      [InlineData(".word 00004000", 0b0000_0000_0000_0000_0100_0000_0000_0000)]
+      [InlineData(".word <004000>", 0b0000_1000_0000_0000_0100_0000_0000_0000)]
+      [InlineData(".word <bob>", 0b0000_1000_0000_0000_0000_0000_1000_0000)] // test that we can use anchors to get pointer locations
+      [InlineData("ldr   r0, [pc, <bob>]", 0b01001_000_11011111)]  //  -33*4+4=-128
+      [InlineData("ldrb  r1, [r1, r2]", 0b0101110_010_001_001)]
+      [InlineData("ldrh  r2, [r1, #0]", 0b10001_00000_001010)]
+      [InlineData("lsl   r1, r2", 0b0100000010_010_001)]
+      public void ThumbCompilerTests(string input, uint output) {
+         var bytes = new List<byte> { (byte)output, (byte)(output >> 8) };
+         var model = new PokemonModel(new byte[0x200]);
+         model.ObserveAnchorWritten(new ModelDelta(), "bob", new NoInfoRun(0x80)); // random anchor so we can test stuff that points to anchors
+         var result = parser.Compile(model, 0x100, new string[] { input });
+
+         Assert.Equal(bytes[0], result[0]);
+         Assert.Equal(bytes[1], result[1]);
+
+         if (result.Count > 2) {
+            bytes.Add((byte)(output >> 16));
+            bytes.Add((byte)(output >> 24));
+            Assert.Equal(bytes[2], result[2]);
+            Assert.Equal(bytes[3], result[3]);
+         }
+      }
+
+      [Fact]
+      public void ThumbCompilerLabelTest() {
+         var model = new PokemonModel(new byte[0x200]);
+         model.ObserveAnchorWritten(new ModelDelta(), "DoStuff", new NoInfoRun(0x40));
+         var result = parser.Compile(model, 0x100
+            // sums all numbers from 1 to 10 in a loop
+            // then calls the routine at "DoStuff"
+            // then returns
+            , "push lr, {}"
+            , "mov r1, #1"
+            , "mov r0, #0"
+            , "Loop:"
+            , "add r0, r0, r1"
+            , "cmp r1, #10"
+            , "bne <loop>"
+            , "bl <DoStuff>"
+            , "pop pc, {}"
+            );
+
+         var expected = new byte[] {
+            0x00, 0b10110101,
+            0x01, 0b00100_001,
+            0x00, 0b00100_000,
+            // loop
+            0b01_000_000, 0b0001100_0,  // 0001100_001_000_000
+            0x0A, 0b00101_001,
+            0xFC, 0b1101_0001,
+            0xFF, 0b11110_111, 0x98, 0b11111_111,  // (sbyte)0x98 = -68
+            0x00, 0b10111101,
+         };
+
+         Assert.Equal(expected.Length, result.Count);
+         for (int i = 0; i < expected.Length; i++) Assert.Equal(expected[i], result[i]);
+      }
+
+      [Fact]
+      public void ThumbCompilerLoadRegisterOffsetTest() {
+         var model = new PokemonModel(new byte[0x200]);
+         var result = parser.Compile(model, 0x100,
+                  "    ldr  r0, [pc, <abc>]",
+                  "    ldr  r1, [pc, <def>]",
+                  "    ldr  r2, [pc, <ghi>]",
+                  "    ldr  r3, [pc, <jkl>]",
+                  "abc:",
+                  "    .word 1234",
+                  "def:",
+                  "    .word 5678",
+                  "ghi:",
+                  "    .word 9abc",
+                  "jkl:",
+                  "    .word def0"
+            );
+
+         var expected = new byte[] {
+            0x01, 0b01001_000,
+            0x02, 0b01001_001,
+            0x02, 0b01001_010,
+            0x03, 0b01001_011,
+         };
+
+         for (int i = 0; i < expected.Length; i++) Assert.Equal(expected[i], result[i]);
       }
 
       private static readonly ThumbParser parser;

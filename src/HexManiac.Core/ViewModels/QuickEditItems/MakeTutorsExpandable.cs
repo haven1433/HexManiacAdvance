@@ -6,17 +6,7 @@ using System.Linq;
 
 using static HavenSoft.HexManiac.Core.Models.AutoSearchModel;
 
-namespace HavenSoft.HexManiac.Core.ViewModels {
-   public interface IQuickEditItem {
-      string Name { get; }
-      string Description { get; }
-
-      event EventHandler CanRunChanged;
-      bool CanRun(IViewPort viewPort);
-      ErrorInfo Run(IViewPort viewPort);
-      void TabChanged();
-   }
-
+namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
    public class MakeTutorsExpandable : IQuickEditItem {
       public string Name => "Make Tutors Expandable";
       public string Description => "The initial games limited to have exactly 18 (FireRed) or no more than 32 (Emerald) tutors." +

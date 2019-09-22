@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -7,14 +8,25 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace HavenSoft.HexManiac.Core.Models.Code {
+   public class LabelLibrary {
+      private readonly IDataModel model;
+      private readonly IDictionary<string, int> labels;
+      public LabelLibrary(IDataModel data, IDictionary<string, int> additionalLabels) => (model, labels) = (data, additionalLabels);
+      public int ResolveLabel(string label) {
+         if (labels.TryGetValue(label, out int result)) return result;
+         return model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, label);
+      }
+   }
+
    public class ThumbParser {
       private readonly List<ConditionCode> conditionalCodes = new List<ConditionCode>();
-      private readonly List<Instruction> instructionTemplates = new List<Instruction>(); 
+      private readonly List<IInstruction> instructionTemplates = new List<IInstruction>(); 
       public ThumbParser(string[] engineLines) {
          foreach(var line in engineLines) {
             if (ConditionCode.TryLoadConditionCode(line, out var condition)) conditionalCodes.Add(condition);
             else if (Instruction.TryLoadInstruction(line, out var instruction)) instructionTemplates.Add(instruction);
          }
+         instructionTemplates.Add(new WordInstruction());
       }
 
       private StringBuilder parseResult = new StringBuilder();
@@ -91,15 +103,39 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return parseResult.ToString();
       }
 
-      public IReadOnlyList<byte> Compile(string[] lines) {
+      private static readonly IReadOnlyCollection<byte> nop = new byte[] { 0, 0 };
+      public IReadOnlyList<byte> Compile(IDataModel model, int start, params string[] lines) {
          var result = new List<byte>();
+         lines = lines.Select(line => line.ToLower().Trim()).ToArray();
+
+         // first pass: look for labels
+         var labels = new Dictionary<string, int>();
+         int position = start;
          foreach (var line in lines) {
+            if (line == string.Empty) continue;
+            if (line.EndsWith(":")) {
+               var label = line.Substring(0, line.Length - 1);
+               if (!labels.ContainsKey(label)) labels.Add(label, position);
+            } else {
+               position += 2;
+               if (line.StartsWith("bl ")) position += 2;   // branch-links are double-wide
+               if (line.StartsWith(".word")) position += 2; // .word elements are double-wide
+            }
+         }
+
+         var labelLibrary = new LabelLibrary(model, labels);
+
+         foreach (var line in lines) {
+            if (line == string.Empty) continue; // don't compile blank lines
+            if (line.EndsWith(":")) continue;   // don't compile labels
+            bool foundMatch = false;
             foreach (var instruction in instructionTemplates) {
-               if (!instruction.TryAssemble(line, conditionalCodes, out ushort code)) continue;
-               result.Add((byte)code);
-               result.Add((byte)(code >> 8));
+               if (!instruction.TryAssemble(line, conditionalCodes, start + result.Count, labelLibrary, out byte[] code)) continue;
+               result.AddRange(code);
+               foundMatch = true;
                break;
             }
+            if (!foundMatch) result.AddRange(nop);
          }
          return result;
       }
@@ -161,8 +197,15 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
    }
 
+   public interface IInstruction {
+      int ByteLength { get; }
+      bool Matches(IDataModel data, int index);
+      string Disassemble(IDataModel data, int address, IReadOnlyList<ConditionCode> conditionalCodes);
+      bool TryAssemble(string line, IReadOnlyList<ConditionCode> conditionCodes, int address, LabelLibrary labels, out byte[] results);
+   }
+
    [System.Diagnostics.DebuggerDisplay("{template}")]
-   public class Instruction {
+   public class Instruction : IInstruction {
       private readonly List<InstructionPart> instructionParts = new List<InstructionPart>();
       private readonly string template;
 
@@ -181,6 +224,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             } else if (part.StartsWith("#")) {
                ushort code = 0;
                if (script.Contains("#=pc+#*")) {
+                  // Code contains 2 8-bit sections: the number to multiply by, followed by the number to add.
+                  // Note that the number to multiply by also gives us a number to mod by.
                   var encoding = script.Split("#=pc+#*")[1].Split('+');
                   code = byte.TryParse(encoding[0], out var mult) ? mult : default;
                   code <<= 8;
@@ -212,6 +257,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          if (totalLength % 16 != 0) throw new ArgumentException($"There were {totalLength} bits in the command, but commands must be a multiple of 16 bits long!");
 
          template = script.ToLower();
+         if (template.StartsWith("bl ")) ByteLength = 4;
       }
 
       public static bool TryLoadInstruction(string line, out Instruction instruction) {
@@ -242,6 +288,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          value &= (ushort)mask;
          return (ushort)value;
       }
+
+      public override string ToString() => template;
 
       public bool Matches(IDataModel data, int index) {
          if (data.Count < index + ByteLength) return false;
@@ -325,9 +373,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return instruction;
       }
 
-      public bool TryAssemble(string line, IReadOnlyList<ConditionCode> conditionCodes, out ushort result) {
+      public bool TryAssemble(string line, IReadOnlyList<ConditionCode> conditionCodes, int codeLocation, LabelLibrary labels, out byte[] results) {
          line = line.ToLower();
-         result = 0;
+         uint result = 0;
+         results = new byte[ByteLength];
          var thisTemplate = template;
 
          // setup ConditionCode if there is one
@@ -350,11 +399,12 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          thisTemplate = thisTemplate.Substring(commandToken.Length);
 
          var registersValues = new SortedList<int, int>();
-         if (!MatchLinePartsToTemplateParts(line, thisTemplate, registersValues, out var numeric, out var list)) return false;
+         if (!MatchLinePartsToTemplateParts(line, thisTemplate, registersValues, labels, out var numeric, out var list)) return false;
 
-         var remainingBits = 16;
+         var remainingBits = ByteLength * 8;
          var registerListForHighCheck = registersValues.ToList();
          var registerListForRegisters = registersValues.ToList();
+         bool firstNumeric = true;
          foreach (var part in instructionParts) {
             remainingBits -= part.Length;
             result <<= part.Length;
@@ -366,8 +416,17 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (registerListForHighCheck[0].Value > 7) result |= 1;
                registerListForHighCheck.RemoveAt(0);
             } else if (part.Type == InstructionArgType.Numeric) {
+               if (part.Code != 0 && firstNumeric) {
+                  var mult = (byte)(part.Code >> 8);
+                  var add = (byte)part.Code;
+                  numeric -= codeLocation - codeLocation % mult;  // offset based on code starting point
+                  numeric -= add;                                 // offset from bias
+                  numeric /= mult;
+                  firstNumeric = false;
+               }
                var mask = (1 << part.Length) - 1;
                result |= (ushort)(numeric & mask);
+               numeric >>= part.Length;
             } else if (part.Type == InstructionArgType.Register) {
                result |= (ushort)(registerListForRegisters[0].Value & 7);
                registerListForRegisters.RemoveAt(0);
@@ -375,37 +434,44 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                result |= list;
             }
          }
+
+         results[0] = (byte)result;
+         results[1] = (byte)(result >> 8);
+         if (results.Length == 4) {
+            results[2] = (byte)(result >> 16);
+            results[3] = (byte)(result >> 24);
+         }
          return true;
       }
 
-      private bool MatchLinePartsToTemplateParts(string line, string template, SortedList<int, int> registerValues, out int numeric, out ushort list) {
+      private bool MatchLinePartsToTemplateParts(string line, string template, SortedList<int, int> registerValues, LabelLibrary labels, out int numeric, out ushort list) {
          numeric = 0;
          list = 0;
          while (line.Length > 0) {
             // make sure that the basic format matches where it should
-            if (template[0] == ',') {
-               if (line[0] != ',') return false;
-               template = template.Substring(1);
-               line = line.Substring(0);
-               continue;
-            }
-            if (template[0] == '[') {
-               if (line[0] != '[') return false;
-               template = template.Substring(1);
-               line = line.Substring(0);
-               continue;
-            }
-            if (template[0] == ']') {
-               if (line[0] != ']') return false;
-               template = template.Substring(1);
-               line = line.Substring(0);
-               continue;
-            }
             if (template[0] == ' ') {
                template = template.Substring(1);
                continue;
             }
             if (line[0] == ' ') {
+               line = line.Substring(1);
+               continue;
+            }
+            if (template[0] == ',') {
+               if (line[0] != ',') return false;
+               template = template.Substring(1);
+               line = line.Substring(1);
+               continue;
+            }
+            if (template[0] == '[') {
+               if (line[0] != '[') return false;
+               template = template.Substring(1);
+               line = line.Substring(1);
+               continue;
+            }
+            if (template[0] == ']') {
+               if (line[0] != ']') return false;
+               template = template.Substring(1);
                line = line.Substring(1);
                continue;
             }
@@ -416,7 +482,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                var name = "r" + template[1];
                var instruction = instructionParts.Single(i => i.Name == name);
                var index = instructionParts.IndexOf(instruction);
-               if (int.TryParse(line.Substring(1), out int value)) {
+               if (int.TryParse(line.Split(',', ']')[0].Substring(1), out int value)) {
                   registerValues[index] = value;
                }
                template = template.Substring(2);
@@ -424,10 +490,22 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                continue;
             }
 
+            // read a pointer
+            if (template.StartsWith("#=pc")) {
+               if (line[0] != '<') return false;
+               var content = line.Substring(1).Split('>')[0];
+               numeric = labels.ResolveLabel(content);
+               if (numeric == Pointer.NULL && !int.TryParse(content, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out numeric)) return false;
+               line = line.Substring(content.Length + 2);
+               template = template.Substring(template.IndexOf('+') + 1);
+               template = template.Substring(template.IndexOf('+') + 2);
+               continue;
+            }
+
             // read a number
             if (template[0] == '#') {
                if (line[0] != '#') return false;
-               if (!int.TryParse(line.Substring(1), out numeric)) return false;
+               if (!int.TryParse(line.Split(',', ']')[0].Substring(1), out numeric)) return false;
                template = template.Substring(1);
                line = line.Substring(("#" + numeric).Length);
                continue;
@@ -441,10 +519,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                list = ParseList(line.Substring(1, listEnd - 1));
                line = line.Substring(listEnd + 1);
                template = template.Substring(6);
+               continue;
             }
 
             // read fixed register
-            if (template.Substring(2) == line.Substring(2)) {
+            if (template.Length >= 2 && line.Length >= 2 && template.Substring(0, 2) == line.Substring(0, 2)) {
                template = template.Substring(2);
                line = line.Substring(2);
                continue;
@@ -454,7 +533,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             return false;
          }
 
-         return true;
+         // Completed parsing the line. Should've used the entire template.
+         return template.Length == 0;
       }
 
       private static ushort ParseList(string list) {
@@ -523,6 +603,35 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
          }
          return result;
+      }
+   }
+
+   public class WordInstruction : IInstruction {
+      public int ByteLength => 4;
+
+      public string Disassemble(IDataModel data, int address, IReadOnlyList<ConditionCode> conditionalCodes) => throw new NotImplementedException();
+
+      public bool Matches(IDataModel data, int index) => false;
+
+      public bool TryAssemble(string line, IReadOnlyList<ConditionCode> conditionCodes, int address, LabelLibrary labels, out byte[] results) {
+         line = line.Replace(".word", " ").Trim();
+         int result;
+         results = default;
+         if (line.StartsWith("<") && line.EndsWith(">")) {
+            line = line.Substring(1, line.Length - 2);
+            result = labels.ResolveLabel(line);
+            if (result == Pointer.NULL && !int.TryParse(line, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out result)) return false;
+            result -= Pointer.NULL;
+         } else {
+            if (!int.TryParse(line, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out result)) return false;
+         }
+         results = new[] {
+            (byte)result,
+            (byte)(result>>8),
+            (byte)(result>>16),
+            (byte)(result>>24),
+         };
+         return true;
       }
    }
 }
