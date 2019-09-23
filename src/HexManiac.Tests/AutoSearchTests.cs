@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
@@ -16,7 +17,7 @@ namespace HavenSoft.HexManiac.Tests {
    /// These tests are skippable, so that they'll work even if you don't have the ROMs on your system.
    /// This is important, since the ROMs aren't part of the repository.
    /// </summary>
-   public class AutoSearchTests {
+   public class AutoSearchTests : IClassFixture<AutoSearchFixture>{
 
       public static IEnumerable<object[]> PokemonGames { get; } = new[] {
          "Ruby",
@@ -31,10 +32,14 @@ namespace HavenSoft.HexManiac.Tests {
          "Altair",          // from Emerald
       }.Select(game => new object[] { "sampleFiles/Pokemon " + game + ".gba" });
 
+      private readonly AutoSearchFixture fixture;
+
+      public AutoSearchTests(AutoSearchFixture fixture) => this.fixture = fixture;
+
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
       public void PokemonNamesAreFound(string game) {
-         var model = LoadModel(game);
+         var model = fixture.LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
 
          var address = model.GetAddressFromAnchor(noChange, -1, EggMoveRun.PokemonNameTable);
@@ -46,7 +51,7 @@ namespace HavenSoft.HexManiac.Tests {
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
       public void MovesNamesAreFound(string game) {
-         var model = LoadModel(game);
+         var model = fixture.LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
 
          var address = model.GetAddressFromAnchor(noChange, -1, EggMoveRun.MoveNamesTable);
@@ -60,7 +65,7 @@ namespace HavenSoft.HexManiac.Tests {
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
       public void AbilitiyNamesAreFound(string game) {
-         var model = LoadModel(game);
+         var model = fixture.LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
 
          var address = model.GetAddressFromAnchor(noChange, -1, "abilitynames");
@@ -73,7 +78,7 @@ namespace HavenSoft.HexManiac.Tests {
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
       public void AbilitiyDescriptionsAreFound(string game) {
-         var model = LoadModel(game);
+         var model = fixture.LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
 
          var address = model.GetAddressFromAnchor(noChange, -1, "abilitydescriptions");
@@ -94,7 +99,7 @@ namespace HavenSoft.HexManiac.Tests {
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
       public void TypesAreFound(string game) {
-         var model = LoadModel(game);
+         var model = fixture.LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
 
          var address = model.GetAddressFromAnchor(noChange, -1, "types");
@@ -107,7 +112,7 @@ namespace HavenSoft.HexManiac.Tests {
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
       public void ItemsAreFound(string game) {
-         var model = LoadModel(game);
+         var model = fixture.LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
 
          var address = model.GetAddressFromAnchor(noChange, -1, "items");
@@ -128,7 +133,7 @@ namespace HavenSoft.HexManiac.Tests {
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
       public void ItemImagesAreFound(string game) {
-         var model = LoadModel(game);
+         var model = fixture.LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
 
          var address = model.GetAddressFromAnchor(noChange, -1, "itemimages");
@@ -145,7 +150,7 @@ namespace HavenSoft.HexManiac.Tests {
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
       public void TrainerClassNamesAreFound(string game) {
-         var model = LoadModel(game);
+         var model = fixture.LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
 
          var address = model.GetAddressFromAnchor(noChange, -1, "trainerclassnames");
@@ -163,7 +168,7 @@ namespace HavenSoft.HexManiac.Tests {
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
       public void PokeStatsAreFound(string game) {
-         var model = LoadModel(game);
+         var model = fixture.LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
 
          var address = model.GetAddressFromAnchor(noChange, -1, "pokestats");
@@ -179,7 +184,7 @@ namespace HavenSoft.HexManiac.Tests {
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
       public void LvlUpMovesAreFound(string game) {
-         var model = LoadModel(game);
+         var model = fixture.LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
 
          var address = model.GetAddressFromAnchor(noChange, -1, "lvlmoves");
@@ -190,7 +195,7 @@ namespace HavenSoft.HexManiac.Tests {
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
       public void MoveDataFound(string game) {
-         var model = LoadModel(game);
+         var model = fixture.LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
 
          var address = model.GetAddressFromAnchor(noChange, -1, "movedata");
@@ -204,7 +209,7 @@ namespace HavenSoft.HexManiac.Tests {
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
       public void EggMoveDataFound(string game) {
-         var model = LoadModel(game);
+         var model = fixture.LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
 
          var address = model.GetAddressFromAnchor(noChange, -1, "eggmoves");
@@ -221,7 +226,7 @@ namespace HavenSoft.HexManiac.Tests {
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
       public void TutorsAreFound(string game) {
-         var model = LoadModel(game);
+         var model = fixture.LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
 
          var movesLocation = model.GetAddressFromAnchor(noChange, -1, AutoSearchModel.MoveTutors);
@@ -248,7 +253,7 @@ namespace HavenSoft.HexManiac.Tests {
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
       public void TmsAreFound(string game) {
-         var model = LoadModel(game);
+         var model = fixture.LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
 
          var movesLocation = model.GetAddressFromAnchor(noChange, -1, AutoSearchModel.TmMoves);
@@ -280,7 +285,7 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void ExpandableTutorsWorks(string game) {
          var fileSystem = new StubFileSystem();
-         var model = LoadModelNoCache(game);
+         var model = fixture.LoadModelNoCache(game);
          var editor = new EditorViewModel(fileSystem, false);
          var viewPort = new ViewPort(game, model);
          editor.Add(viewPort);
@@ -315,7 +320,7 @@ namespace HavenSoft.HexManiac.Tests {
       // [MemberData(nameof(PokemonGames))]
       private void ExpandableTMsWorks(string game) {
          var fileSystem = new StubFileSystem();
-         var model = LoadModelNoCache(game);
+         var model = fixture.LoadModelNoCache(game);
          var editor = new EditorViewModel(fileSystem, false);
          var viewPort = new ViewPort(game, model);
          editor.Add(viewPort);
@@ -350,7 +355,7 @@ namespace HavenSoft.HexManiac.Tests {
       // [MemberData(nameof(PokemonGames))]
       private void ExpandableItemsWorks(string game) {
          var fileSystem = new StubFileSystem();
-         var model = LoadModelNoCache(game);
+         var model = fixture.LoadModelNoCache(game);
          var editor = new EditorViewModel(fileSystem, false);
          var viewPort = new ViewPort(game, model);
          editor.Add(viewPort);
@@ -371,28 +376,46 @@ namespace HavenSoft.HexManiac.Tests {
          var word = (WordRun)model.GetNextRun(editStart + 0x14);
          Assert.Equal(table.ElementCount, model.ReadValue(word.Start));
       }
+   }
 
-      /// <summary>
-      /// Loading the model can take a while.
-      /// We want to know that loading the model created the correct arrays,
-      /// But loading the same file into a model multiple times just wastes time.
-      /// Go ahead and cache a model loaded from a file the first time,
-      /// so each individual test doesn't have to do it again.
-      /// </summary>
-      private static IDictionary<string, Lazy<AutoSearchModel>> modelCache = new Dictionary<string, Lazy<AutoSearchModel>>();
-      private static AutoSearchModel LoadModel(string name) {
-         lock (modelCache) {
-            if (!modelCache.ContainsKey(name)) modelCache[name] = new Lazy<AutoSearchModel>(() => LoadModelNoCache(name));
-         }
+   /// <summary>
+   /// Loading the model can take a while.
+   /// We want to know that loading the model created the correct arrays,
+   /// But loading the same file into a model multiple times just wastes time.
+   /// Go ahead and cache a model loaded from a file the first time,
+   /// so each individual test doesn't have to do it again.
+   ///
+   /// This is done as a Fixture instead of a Lazy because all the tests in question
+   /// are part of the same Test Collection (because they're in the same class)
+   /// </summary>
+   public class AutoSearchFixture {
+      private IDictionary<string, AutoSearchModel> modelCache = new Dictionary<string, AutoSearchModel>();
 
-         return modelCache[name].Value;
+      public AutoSearchFixture() {
+         Parallel.ForEach(AutoSearchTests.PokemonGames.Select(array => (string)array[0]), name => {
+            if (!File.Exists(name)) return;
+            var data = File.ReadAllBytes(name);
+            var metadata = new StoredMetadata(new string[0]);
+            var model = new AutoSearchModel(data, metadata);
+            lock (modelCache) modelCache[name] = model;
+         });
       }
 
-      private static AutoSearchModel LoadModelNoCache(string name) {
+      public AutoSearchModel LoadModel(string name) {
+         Skip.IfNot(modelCache.ContainsKey(name));
+         return modelCache[name];
+      }
+
+      /// <summary>
+      /// Make a copy of one of the existing models, but quickly, instead of doing a full load from file.
+      /// </summary>
+      /// <param name="name"></param>
+      /// <returns></returns>
+      public IDataModel LoadModelNoCache(string name) {
          Skip.IfNot(File.Exists(name));
-         var data = File.ReadAllBytes(name);
-         var metadata = new StoredMetadata(new string[0]);
-         var model = new AutoSearchModel(data, metadata);
+         var template = modelCache[name];
+         var metadata = template.ExportMetadata();
+         var model = new PokemonModel(template.RawData.ToArray(), metadata);
          return model;
       }
    }
