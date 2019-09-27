@@ -115,7 +115,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       }
 
       public void Visit(BitArray array, byte data) {
-         Result = ViewPort.AllHexCharacters.Contains(Input);
+         Result = ViewPort.AllHexCharacters.Contains(Input) || Input == ' ';
       }
 
       public void Visit(MatchedWord word, byte data) => Visit((None)null, data);

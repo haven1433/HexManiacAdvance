@@ -7,353 +7,309 @@ using System.Linq;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
-   public class ViewPortEditTests {
+   public class ViewPortEditTests : BaseViewModelTestClass {
       [Fact]
       public void CanEditData() {
-         var loadedFile = new LoadedFile("test", new byte[25]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         ViewPort.SelectionStart = new Point(2, 2);
+         ViewPort.Edit("A");
+         ViewPort.Edit("D");
 
-         viewPort.SelectionStart = new Point(2, 2);
-         viewPort.Edit("A");
-         viewPort.Edit("D");
-
-         Assert.Equal(0xAD, viewPort[2, 2].Value);
-         Assert.Equal(new Point(3, 2), viewPort.SelectionStart);
+         Assert.Equal(0xAD, ViewPort[2, 2].Value);
+         Assert.Equal(new Point(3, 2), ViewPort.SelectionStart);
       }
 
       [Fact]
       public void CanEditMultipleBytesInARow() {
-         var loadedFile = new LoadedFile("test", new byte[25]);
-         var viewPort = new ViewPort(loadedFile) { PreferredWidth = -1, Width = 5, Height = 5 };
+         ViewPort.SelectionStart = new Point(2, 2);
+         ViewPort.Edit("DEADBEEF");
 
-         viewPort.SelectionStart = new Point(2, 2);
-         viewPort.Edit("DEADBEEF");
-
-         Assert.Equal(0xDE, viewPort[2, 2].Value);
-         Assert.Equal(0xAD, viewPort[3, 2].Value);
-         Assert.Equal(0xBE, viewPort[4, 2].Value);
-         Assert.Equal(0xEF, viewPort[0, 3].Value);
+         Assert.Equal(0xDE, ViewPort[2, 2].Value);
+         Assert.Equal(0xAD, ViewPort[3, 2].Value);
+         Assert.Equal(0xBE, ViewPort[4, 2].Value);
+         Assert.Equal(0xEF, ViewPort[5, 2].Value);
       }
 
       [Fact]
       public void CanUndoEdit() {
-         var loadedFile = new LoadedFile("test", new byte[25]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         ViewPort.SelectionStart = new Point(2, 2);
+         ViewPort.Edit("AD");
+         ViewPort.Undo.Execute();
 
-         viewPort.SelectionStart = new Point(2, 2);
-         viewPort.Edit("AD");
-         viewPort.Undo.Execute();
-
-         Assert.Equal(0x00, viewPort[2, 2].Value);
+         Assert.Equal(0x00, ViewPort[2, 2].Value);
       }
 
       [Fact]
       public void UndoCanReverseMultipleByteChanges() {
-         var loadedFile = new LoadedFile("test", new byte[25]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         ViewPort.SelectionStart = new Point(2, 2);
+         ViewPort.Edit("DEADBEEF");
+         ViewPort.Undo.Execute();
 
-         viewPort.SelectionStart = new Point(2, 2);
-         viewPort.Edit("DEADBEEF");
-         viewPort.Undo.Execute();
-
-         Assert.Equal(0x00, viewPort[2, 2].Value);
-         Assert.Equal(0x00, viewPort[2, 3].Value);
-         Assert.Equal(0x00, viewPort[2, 4].Value);
-         Assert.Equal(0x00, viewPort[3, 0].Value);
+         Assert.Equal(0x00, ViewPort[2, 2].Value);
+         Assert.Equal(0x00, ViewPort[2, 3].Value);
+         Assert.Equal(0x00, ViewPort[2, 4].Value);
+         Assert.Equal(0x00, ViewPort[2, 5].Value);
       }
 
       [Fact]
       public void MovingBetweenChangesCausesSeparateUndo() {
-         var loadedFile = new LoadedFile("test", new byte[25]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         ViewPort.SelectionStart = new Point(2, 2);
+         ViewPort.Edit("01");
+         ViewPort.SelectionStart = new Point(2, 3);
+         ViewPort.Edit("02");
+         ViewPort.Undo.Execute();
 
-         viewPort.SelectionStart = new Point(2, 2);
-         viewPort.Edit("01");
-         viewPort.SelectionStart = new Point(2, 3);
-         viewPort.Edit("02");
-         viewPort.Undo.Execute();
-
-         Assert.Equal(0x01, viewPort[2, 2].Value);
-         Assert.Equal(0x00, viewPort[2, 3].Value);
+         Assert.Equal(0x01, ViewPort[2, 2].Value);
+         Assert.Equal(0x00, ViewPort[2, 3].Value);
       }
 
       [Fact]
       public void CanRedo() {
-         var loadedFile = new LoadedFile("test", new byte[25]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         ViewPort.Edit("DEADBEEF");
+         Assert.False(ViewPort.Redo.CanExecute(null));
 
-         viewPort.Edit("DEADBEEF");
-         Assert.False(viewPort.Redo.CanExecute(null));
+         ViewPort.Undo.Execute();
+         Assert.True(ViewPort.Redo.CanExecute(null));
 
-         viewPort.Undo.Execute();
-         Assert.True(viewPort.Redo.CanExecute(null));
-
-         viewPort.Redo.Execute();
-         Assert.False(viewPort.Redo.CanExecute(null));
+         ViewPort.Redo.Execute();
+         Assert.False(ViewPort.Redo.CanExecute(null));
       }
 
       [Fact]
       public void UndoFixesCorrectDataAfterScroll() {
-         var loadedFile = new LoadedFile("test", new byte[30]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
-         viewPort.SelectionStart = new Point(2, 2);
-         viewPort.Edit("FF");
+         ViewPort.SelectionStart = new Point(2, 2);
+         ViewPort.Edit("FF");
 
-         viewPort.SelectionStart = new Point(2, 2);
-         viewPort.Edit("EE");
-         viewPort.Scroll.Execute(Direction.Down);
-         viewPort.Undo.Execute();
+         ViewPort.SelectionStart = new Point(2, 2);
+         ViewPort.Edit("EE");
+         ViewPort.Scroll.Execute(Direction.Down);
+         ViewPort.Undo.Execute();
 
-         Assert.Equal(1, viewPort.ScrollValue);
-         Assert.Equal(0xFF, viewPort[2, 1].Value);
+         Assert.Equal(1, ViewPort.ScrollValue);
+         Assert.Equal(0xFF, ViewPort[2, 1].Value);
       }
 
       [Fact]
       public void EditMovesSelection() {
-         var loadedFile = new LoadedFile("test", new byte[30]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         ViewPort.SelectionStart = new Point(2, 2);
+         ViewPort.Edit("FF");
 
-         viewPort.SelectionStart = new Point(2, 2);
-         viewPort.Edit("FF");
-
-         Assert.Equal(new Point(3, 2), viewPort.SelectionStart);
+         Assert.Equal(new Point(3, 2), ViewPort.SelectionStart);
       }
 
       [Fact]
       public void UndoDoesNotMoveSelection() {
-         var loadedFile = new LoadedFile("test", new byte[30]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         ViewPort.SelectionStart = new Point(2, 2);
+         ViewPort.Edit("FF");
+         ViewPort.Undo.Execute();
 
-         viewPort.SelectionStart = new Point(2, 2);
-         viewPort.Edit("FF");
-         viewPort.Undo.Execute();
-
-         Assert.Equal(new Point(3, 2), viewPort.SelectionStart);
+         Assert.Equal(new Point(3, 2), ViewPort.SelectionStart);
       }
 
       [Fact]
       public void UndoCanCauseScrolling() {
-         var loadedFile = new LoadedFile("test", new byte[30]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         ViewPort.SelectionStart = new Point(0, 0);
+         ViewPort.Edit("FF");
+         ViewPort.Scroll.Execute(Direction.Down);
+         ViewPort.Undo.Execute();
 
-         viewPort.SelectionStart = new Point(0, 0);
-         viewPort.Edit("FF");
-         viewPort.Scroll.Execute(Direction.Down);
-         viewPort.Undo.Execute();
-
-         Assert.Equal(0, viewPort.ScrollValue);
+         Assert.Equal(0, ViewPort.ScrollValue);
       }
 
       [Fact]
       public void SingleCharacterEditChangesToUnderEditFormat() {
-         var loadedFile = new LoadedFile("test", new byte[30]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         ViewPort.SelectionStart = new Point(0, 2);
+         ViewPort.Edit("F");
 
-         viewPort.SelectionStart = new Point(0, 2);
-         viewPort.Edit("F");
-
-         Assert.IsType<UnderEdit>(viewPort[0, 2].Format);
-         Assert.Equal("F", ((UnderEdit)viewPort[0, 2].Format).CurrentText);
+         Assert.IsType<UnderEdit>(ViewPort[0, 2].Format);
+         Assert.Equal("F", ((UnderEdit)ViewPort[0, 2].Format).CurrentText);
       }
 
       [Fact]
       public void UnsupportedCharacterRevertsChangeWithoutAddingUndoOperation() {
-         var loadedFile = new LoadedFile("test", new byte[30]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         ViewPort.SelectionStart = new Point(0, 2);
+         ViewPort.Edit("F");
+         ViewPort.Edit("|");
 
-         viewPort.SelectionStart = new Point(0, 2);
-         viewPort.Edit("F");
-         viewPort.Edit("|");
-
-         Assert.IsType<None>(viewPort[0, 2].Format);
-         Assert.Equal(new Point(0, 2), viewPort.SelectionStart);
-         Assert.Equal(0, viewPort[0, 2].Value);
-         Assert.False(viewPort.Undo.CanExecute(null));
+         Assert.IsType<None>(ViewPort[0, 2].Format);
+         Assert.Equal(new Point(0, 2), ViewPort.SelectionStart);
+         Assert.Equal(0, ViewPort[0, 2].Value);
+         Assert.False(ViewPort.Undo.CanExecute(null));
       }
 
       [Fact]
       public void EscapeRevertsChangeWithoutAddingUndoOperation() {
-         var loadedFile = new LoadedFile("test", new byte[30]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         ViewPort.SelectionStart = new Point(0, 2);
+         ViewPort.Edit("F");
+         ViewPort.Edit(ConsoleKey.Escape);
 
-         viewPort.SelectionStart = new Point(0, 2);
-         viewPort.Edit("F");
-         viewPort.Edit(ConsoleKey.Escape);
-
-         Assert.IsType<None>(viewPort[0, 2].Format);
-         Assert.Equal(new Point(0, 2), viewPort.SelectionStart);
-         Assert.Equal(0, viewPort[0, 2].Value);
-         Assert.False(viewPort.Undo.CanExecute(null));
+         Assert.IsType<None>(ViewPort[0, 2].Format);
+         Assert.Equal(new Point(0, 2), ViewPort.SelectionStart);
+         Assert.Equal(0, ViewPort[0, 2].Value);
+         Assert.False(ViewPort.Undo.CanExecute(null));
       }
 
       [Fact]
       public void SelectionChangeDuringEditNotifiesCollectionChange() {
-         var loadedFile = new LoadedFile("test", new byte[30]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
          int collectionNotifications = 0;
-         viewPort.CollectionChanged += (sender, e) => collectionNotifications++;
+         ViewPort.CollectionChanged += (sender, e) => collectionNotifications++;
 
-         viewPort.SelectionStart = new Point(4, 4);
-         viewPort.Edit("F");
+         ViewPort.SelectionStart = new Point(4, 4);
+         ViewPort.Edit("F");
          Assert.Equal(1, collectionNotifications);
 
-         viewPort.MoveSelectionStart.Execute(Direction.Up);
+         ViewPort.MoveSelectionStart.Execute(Direction.Up);
          Assert.Equal(3, collectionNotifications); // should have been notified since the visual data changed.
       }
 
       [Fact]
       public void UndoNotifiesCollectionChange() {
-         var loadedFile = new LoadedFile("test", new byte[30]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
          int collectionNotifications = 0;
-         viewPort.CollectionChanged += (sender, e) => collectionNotifications++;
+         ViewPort.CollectionChanged += (sender, e) => collectionNotifications++;
 
-         viewPort.Edit("0102030405");
+         ViewPort.Edit("0102030405");
          collectionNotifications = 0;
-         viewPort.Undo.Execute();
+         ViewPort.Undo.Execute();
 
          Assert.Equal(1, collectionNotifications);
       }
 
       [Fact]
       public void UndoRestoresOriginalDataFormat() {
-         var loadedFile = new LoadedFile("test", new byte[30]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         var originalFormat = ViewPort[0, 0].Format;
+         ViewPort.Edit("ff");
+         ViewPort.Undo.Execute();
 
-         var originalFormat = viewPort[0, 0].Format;
-         viewPort.Edit("ff");
-         viewPort.Undo.Execute();
-
-         Assert.IsType(originalFormat.GetType(), viewPort[0, 0].Format);
+         Assert.IsType(originalFormat.GetType(), ViewPort[0, 0].Format);
       }
 
       [Fact]
       public void CanEnterDataAfterLastByte() {
-         var loadedFile = new LoadedFile("test", new byte[20]);
-         var viewPort = new ViewPort(loadedFile) { PreferredWidth = -1, Width = 5, Height = 5 };
+         ViewPort.SelectionStart = new Point(0, 4);
+         ViewPort.Edit("00");
 
-         viewPort.SelectionStart = new Point(0, 4);
-         viewPort.Edit("00");
-
-         Assert.NotEqual(Undefined.Instance, viewPort[0, 4].Format);
-         Assert.Equal(new Point(1, 4), viewPort.SelectionStart);
+         Assert.NotEqual(Undefined.Instance, ViewPort[0, 4].Format);
+         Assert.Equal(new Point(1, 4), ViewPort.SelectionStart);
       }
 
       [Fact]
       public void CanClearData() {
-         var loadedFile = new LoadedFile("test", new byte[1000]);
-         var viewPort = new ViewPort(loadedFile.Name, new PokemonModel(loadedFile.Contents)) { PreferredWidth = -1, Width = 5, Height = 5 };
+         ViewPort.SelectionStart = new Point(0, 0);
+         ViewPort.SelectionEnd = new Point(3, 3);
+         ViewPort.Clear.Execute();
 
-         viewPort.SelectionStart = new Point(0, 0);
-         viewPort.SelectionEnd = new Point(3, 3);
-         viewPort.Clear.Execute();
-
-         Assert.Equal(0xFF, viewPort[2, 2].Value);
-         Assert.True(viewPort.Save.CanExecute(new StubFileSystem()));
+         Assert.Equal(0xFF, ViewPort[2, 2].Value);
+         Assert.True(ViewPort.Save.CanExecute(new StubFileSystem()));
       }
 
       [Fact]
       public void CanCopyData() {
-         var loadedFile = new LoadedFile("test", new byte[1000]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
          var fileSystem = new StubFileSystem();
 
-         viewPort.Edit("Cafe Babe");
-         viewPort.SelectionStart = new Point(0, 0);
-         viewPort.SelectionEnd = new Point(3, 0);
-         viewPort.Copy.Execute(fileSystem);
+         ViewPort.Edit("Cafe Babe");
+         ViewPort.SelectionStart = new Point(0, 0);
+         ViewPort.SelectionEnd = new Point(3, 0);
+         ViewPort.Copy.Execute(fileSystem);
 
          Assert.Equal("CA FE BA BE", fileSystem.CopyText);
       }
 
       [Fact]
       public void CanBackspaceOnEdits() {
-         var buffer = Enumerable.Range(0, 255).Select(i => (byte)i).ToArray();
-         var file = new LoadedFile("file.txt", buffer);
-         var viewPort = new ViewPort(file) { Width = 0x10, Height = 0x10 };
+         for (byte i = 0; i < 255; i++) Data[i] = i;
 
-         viewPort.SelectionStart = new Point(4, 4); // current value: 0x44
-         viewPort.Edit("C");
-         viewPort.Edit(ConsoleKey.Backspace);
+         ViewPort.SelectionStart = new Point(4, 4); // current value: 0x44
+         ViewPort.Edit("C");
+         ViewPort.Edit(ConsoleKey.Backspace);
 
-         var editFormat = (UnderEdit)viewPort[4, 4].Format;
+         var editFormat = (UnderEdit)ViewPort[4, 4].Format;
          Assert.Equal(string.Empty, editFormat.CurrentText);
 
-         viewPort.MoveSelectionStart.Execute(Direction.Down); // any movement should change the value based on what's left in the cell
-         Assert.Equal(0xFF, viewPort[4, 4].Value); // note that the cell was empty, so it got the 'empty' value of FF
+         ViewPort.MoveSelectionStart.Execute(Direction.Down); // any movement should change the value based on what's left in the cell
+         Assert.Equal(0xFF, ViewPort[4, 4].Value); // note that the cell was empty, so it got the 'empty' value of FF
       }
 
       [Fact]
       public void BackspaceBeforeEditChangesPreviousCurrentCell() {
-         var buffer = Enumerable.Range(0, 255).Select(i => (byte)i).ToArray();
-         var file = new LoadedFile("file.txt", buffer);
-         var viewPort = new ViewPort(file) { Width = 0x10, Height = 0x10 };
+         for (byte i = 0; i < 255; i++) Data[i] = i;
 
-         viewPort.SelectionStart = new Point(4, 4); // current value: 0x44
-         viewPort.Edit(ConsoleKey.Backspace);
-         Assert.Equal(new Point(4, 4), viewPort.SelectionStart);
+         ViewPort.SelectionStart = new Point(4, 4); // current value: 0x44
+         ViewPort.Edit(ConsoleKey.Backspace);
+         Assert.Equal(new Point(4, 4), ViewPort.SelectionStart);
 
-         viewPort.Edit(ConsoleKey.Backspace); // if I hit an arrow key now, it'll give up on the edit and just make the value something reasonable
-         viewPort.Edit(ConsoleKey.Backspace); // but since I hit backspace, it commits the erasure and starts erasing the next cell
-         Assert.Equal(0xFF, viewPort[4, 4].Value);
+         ViewPort.Edit(ConsoleKey.Backspace); // if I hit an arrow key now, it'll give up on the edit and just make the value something reasonable
+         ViewPort.Edit(ConsoleKey.Backspace); // but since I hit backspace, it commits the erasure and starts erasing the next cell
+         Assert.Equal(0xFF, ViewPort[4, 4].Value);
       }
 
       [Fact]
       public void ClearRemovesFormats() {
-         var data = new byte[0x200];
-         var model = new PokemonModel(data);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         ViewPort.Edit("<000100>");
+         ViewPort.SelectionStart = new Point(2, 0);
+         ViewPort.Clear.Execute();
 
-         viewPort.Edit("<000100>");
-         viewPort.SelectionStart = new Point(2, 0);
-         viewPort.Clear.Execute();
-
-         Assert.Equal(int.MaxValue, model.GetNextRun(0).Start);
+         Assert.Equal(int.MaxValue, Model.GetNextRun(0).Start);
       }
 
       [Fact]
       public void TypingIntoPointerAutoInsertsStartOfPointer() {
-         var model = new PokemonModel(new byte[0x200]);
-         var viewModel = new ViewPort(string.Empty, model);
-         viewModel.Edit("<000100>");
-         viewModel.SelectionStart = new Point(0, 0);
+         ViewPort.Edit("<000100>");
+         ViewPort.SelectionStart = new Point(0, 0);
 
-         viewModel.Edit("000060");
-         viewModel.Edit(ConsoleKey.Enter);
+         ViewPort.Edit("000060");
+         ViewPort.Edit(ConsoleKey.Enter);
 
-         Assert.Equal(0x60, model[0]);
+         Assert.Equal(0x60, Model[0]);
       }
 
       [Fact]
       public void TypingTwoHexDigitsIntoPointerWithSpaceCanRemoveFormat() {
-         var model = new PokemonModel(new byte[0x200]);
-         var viewModel = new ViewPort(string.Empty, model);
-         viewModel.Edit("<000100>");
-         viewModel.SelectionStart = new Point(0, 0);
+         ViewPort.Edit("<000100>");
+         ViewPort.SelectionStart = new Point(0, 0);
 
-         viewModel.Edit("20 ");
+         ViewPort.Edit("20 ");
 
-         Assert.Equal(0x20, model[0]);
-         Assert.NotInRange(model.GetNextRun(0).Start, 0, 0x200);
+         Assert.Equal(0x20, Model[0]);
+         Assert.NotInRange(Model.GetNextRun(0).Start, 0, 0x200);
       }
 
       [Fact]
       public void UnderEditCellsKnowTheirEditLength() {
-         var model = new PokemonModel(new byte[0x200]);
-         var viewModel = new ViewPort(string.Empty, model) { Width = 0x10, Height = 0x10 };
-         viewModel.Edit("^array[a: b. c. d<>]4 ");
+         ViewPort.Edit("^array[a: b. c. d<>]4 ");
 
-         viewModel.SelectionStart = new Point(0, 0);
-         viewModel.Edit("2");
-         Assert.Equal(2, ((UnderEdit)viewModel[0, 0].Format).EditWidth);
+         ViewPort.SelectionStart = new Point(0, 0);
+         ViewPort.Edit("2");
+         Assert.Equal(2, ((UnderEdit)ViewPort[0, 0].Format).EditWidth);
 
-         viewModel.SelectionStart = new Point(6, 0);
-         viewModel.Edit("2");
-         Assert.Equal(4, ((UnderEdit)viewModel[4, 0].Format).EditWidth);
+         ViewPort.SelectionStart = new Point(6, 0);
+         ViewPort.Edit("2");
+         Assert.Equal(4, ((UnderEdit)ViewPort[4, 0].Format).EditWidth);
 
-         viewModel.SelectionStart = new Point(8, 6);
-         viewModel.Edit("^");
-         Assert.Equal(4, ((UnderEdit)viewModel[8, 6].Format).EditWidth);
+         ViewPort.SelectionStart = new Point(8, 6);
+         ViewPort.Edit("^");
+         Assert.Equal(4, ((UnderEdit)ViewPort[8, 6].Format).EditWidth);
+      }
+
+      [Fact]
+      public void CanCopyPasteBitArray() {
+         var fileSystem = new StubFileSystem();
+         CreateTextTable("names", 0x10, "Adam", "Bob", "Carl", "David", "Evan", "Fred", "Greg", "Holly", "Iggy", "Jay", "Kelly", "Lucy", "Mary", "Nate", "Ogre", "Phil"); // 0x60
+         CreateEnumTable("enums", 0x80, "names", Enumerable.Range(0, 12).ToArray());
+         CreateBitArrayTable("bitArray", 0xB0, "enums", 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80);
+
+         // verify that copy works
+         ViewPort.Goto.Execute("00");
+         ViewPort.SelectionStart = new Point(0x4, 0xB);
+         ViewPort.Copy.Execute(fileSystem);
+         Assert.Contains("04 00", fileSystem.CopyText);
+
+         // verify that direct entry works
+         ViewPort.Edit("0100");
+         Assert.Equal(new Point(0x6, 0xB), ViewPort.SelectionStart);
+         Assert.Equal(0x0001, Model.ReadMultiByteValue(0xB4, 2));
+
+         // verify that direct entry works with spaces
+         ViewPort.Edit("02 03");
+         Assert.Equal(0x0302, Model.ReadMultiByteValue(0xB6, 2));
       }
    }
 }

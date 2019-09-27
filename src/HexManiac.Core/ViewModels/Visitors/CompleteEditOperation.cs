@@ -161,10 +161,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       }
 
       public void Visit(BitArray array, byte data) {
-         if (CurrentText.Length < 2) return;
-         var byteValue = byte.Parse(CurrentText, NumberStyles.HexNumber);
-         CurrentChange.ChangeData(Model, memoryLocation, byteValue);
-         NewDataIndex = memoryLocation + 1;
+         var currentText = CurrentText.Replace(" ", "");
+         if (currentText.Length < array.Length * 2) return;
+         Result = true;
+         var parseArray = new byte[array.Length];
+
+         for (int i = 0; i < array.Length; i++) {
+            if (!byte.TryParse(currentText.Substring(i * 2, 2), NumberStyles.HexNumber, CultureInfo.CurrentCulture.NumberFormat, out var result)) {
+               ErrorText = $"Could not parse {CurrentText} as a bit-array.";
+               return;
+            }
+            parseArray[i] = result;
+         }
+         for (int i = 0; i < array.Length; i++) CurrentChange.ChangeData(Model, memoryLocation + i, parseArray[i]);
+
+         NewDataIndex = memoryLocation + array.Length;
          Result = true;
       }
 
