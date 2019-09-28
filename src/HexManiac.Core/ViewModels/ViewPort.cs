@@ -1365,9 +1365,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   errorInfo = new ErrorInfo("An anchor with nothing pointing to it must have a name.");
                } else {
                   errorInfo = ErrorInfo.NoError;
+                  Tools.StringTool.RefreshContentAtAddress();
                }
             } else {
                errorInfo = PokemonModel.ApplyAnchor(Model, history.CurrentChange, index, underEdit.CurrentText);
+               Tools.StringTool.RefreshContentAtAddress();
             }
          }
 

@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
@@ -310,6 +311,43 @@ namespace HavenSoft.HexManiac.Tests {
          // verify that direct entry works with spaces
          ViewPort.Edit("02 03");
          Assert.Equal(0x0302, Model.ReadMultiByteValue(0xB6, 2));
+      }
+
+      [Fact]
+      public void PlmRunsContainingNamesWithSpacesCanBeCorrectlyEditedWithTheTextTool() {
+         var tool = ViewPort.Tools.StringTool;
+         var delta = new ModelDelta();
+         CreateTextTable(EggMoveRun.MoveNamesTable, 0x00, "Option0", "Option1", "Option2 More", "Option3 More", "Option4");
+         for (int i = 0; i < 4; i++) Model.WriteMultiByteValue(0x50 + i * 2, 2, delta, 0x0201);
+         Model.WriteMultiByteValue(0x58, 2, new ModelDelta(), 0xFFFF);
+         ViewPort.Goto.Execute("50");
+         ViewPort.Edit("^sample`plm` ");
+
+         Assert.Equal(
+@"1 Option1
+1 Option1
+1 Option1
+1 Option1", tool.Content);
+
+         tool.Content =
+@"1 Option1
+2 ""Option2 More""
+2 Option4
+2 Option4";
+
+         Assert.Equal(
+@"1 Option1
+2 ""Option2 More""
+2 Option4
+2 Option4", tool.Content);
+
+         var plm = (PLMRun)Model.GetNextRun(0x50);
+         Assert.Equal(10, plm.Length);
+
+         Assert.Equal(0x0201, Model.ReadMultiByteValue(0x50, 2));
+         Assert.Equal(0x0402, Model.ReadMultiByteValue(0x52, 2));
+         Assert.Equal(0x0404, Model.ReadMultiByteValue(0x54, 2));
+         Assert.Equal(0x0404, Model.ReadMultiByteValue(0x56, 2));
       }
    }
 }

@@ -30,7 +30,7 @@ namespace HavenSoft.HexManiac.Tests {
       /// Each entry is X bytes long, which is just a single field of text.
       /// </summary>
       public void CreateTextTable(string tableName, int address, params string[] entries) {
-         var length = entries.Max(name => name.Length);
+         var length = entries.Max(name => name.Length) + 1; // +1 for the end-string character
          ViewPort.Goto.Execute(address.ToString("X2"));
          ViewPort.Edit($"^{tableName}[name\"\"{length}]{entries.Length} ");
          foreach (var entry in entries) ViewPort.Edit(entry + "\"");
