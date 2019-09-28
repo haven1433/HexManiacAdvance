@@ -1251,22 +1251,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var completeEditOperation = new CompleteEditOperation(Model, dataIndex, underEdit.CurrentText, history.CurrentChange);
             using (ModelCacheScope.CreateScope(Model)) {
                underEdit.OriginalFormat.Visit(completeEditOperation, element.Value);
-            }
-            if (completeEditOperation.Result) {
-               if (completeEditOperation.NewCell != null) {
-                  currentView[point.X, point.Y] = completeEditOperation.NewCell;
+
+               if (completeEditOperation.Result) {
+                  if (completeEditOperation.NewCell != null) {
+                     currentView[point.X, point.Y] = completeEditOperation.NewCell;
+                  }
+                  if (completeEditOperation.DataMoved || completeEditOperation.NewDataIndex > scroll.DataLength) scroll.DataLength = Model.Count;
+                  if (!SilentScroll(completeEditOperation.NewDataIndex) && completeEditOperation.NewCell == null) {
+                     RefreshBackingData();
+                  }
+                  var run = Model.GetNextRun(completeEditOperation.NewDataIndex);
+                  if (run.Start > completeEditOperation.NewDataIndex) run = new NoInfoRun(Model.Count);
+                  if (completeEditOperation.DataMoved) UpdateToolsFromSelection(run.Start);
+                  if (run is ArrayRun) Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
+                  if (run is ArrayRun || run is PCSRun || run is PLMRun || run is EggMoveRun) Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
+                  if (completeEditOperation.MessageText != null) OnMessage?.Invoke(this, completeEditOperation.MessageText);
+                  if (completeEditOperation.ErrorText != null) OnError?.Invoke(this, completeEditOperation.ErrorText);
                }
-               if (completeEditOperation.DataMoved || completeEditOperation.NewDataIndex > scroll.DataLength) scroll.DataLength = Model.Count;
-               if (!SilentScroll(completeEditOperation.NewDataIndex) && completeEditOperation.NewCell == null) {
-                  RefreshBackingData();
-               }
-               var run = Model.GetNextRun(completeEditOperation.NewDataIndex);
-               if (run.Start > completeEditOperation.NewDataIndex) run = new NoInfoRun(Model.Count);
-               if (completeEditOperation.DataMoved) UpdateToolsFromSelection(run.Start);
-               if (run is ArrayRun) Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
-               if (run is ArrayRun || run is PCSRun || run is PLMRun || run is EggMoveRun) Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
-               if (completeEditOperation.MessageText != null) OnMessage?.Invoke(this, completeEditOperation.MessageText);
-               if (completeEditOperation.ErrorText != null) OnError?.Invoke(this, completeEditOperation.ErrorText);
             }
 
             return completeEditOperation.Result;
