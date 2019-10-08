@@ -90,6 +90,16 @@
                Text="{Binding StringTool.Content, UpdateSourceTrigger=PropertyChanged}" />
          </DockPanel>
          <DockPanel Width="265" Name="TableToolPanel">
+            <DockPanel.Style>
+               <Style TargetType="DockPanel">
+                  <Setter Property="Visibility" Value="Collapsed"/>
+                  <Style.Triggers>
+                     <DataTrigger Binding="{Binding SelectedIndex}" Value="1">
+                        <Setter Property="Visibility" Value="Visible"/>
+                     </DataTrigger>
+                  </Style.Triggers>
+               </Style>
+            </DockPanel.Style>
             <TextBlock Text="{Binding TableTool.CurrentElementName}" HorizontalAlignment="Center" Margin="0,2" MaxWidth="200" TextWrapping="Wrap" TextAlignment="Center" DockPanel.Dock="Top"/>
             <Grid DockPanel.Dock="Top">
                <Button Margin="5" Content="Previous" Command="{Binding TableTool.Previous}" HorizontalAlignment="Left"/>
@@ -107,16 +117,6 @@
                <Button Content="Add New" Command="{Binding TableTool.Append}"/>
             </Border>
             <ScrollViewer VerticalScrollBarVisibility="Visible">
-               <ScrollViewer.Style>
-                  <Style TargetType="ScrollViewer">
-                     <Setter Property="Visibility" Value="Collapsed"/>
-                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding SelectedIndex}" Value="1">
-                           <Setter Property="Visibility" Value="Visible"/>
-                        </DataTrigger>
-                     </Style.Triggers>
-                  </Style>
-               </ScrollViewer.Style>
                <StackPanel>
                   <ItemsControl ItemsSource="{Binding TableTool.Children}" Grid.IsSharedSizeScope="True">
                      <ItemsControl.Resources>
