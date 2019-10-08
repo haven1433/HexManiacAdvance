@@ -84,7 +84,7 @@
             <Button Margin="0,3" Command="{Binding StringTool.CheckIsText}" Content="Show As Text" HorizontalAlignment="Right" DockPanel.Dock="Top" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
             <Button Command="{Binding StringTool.InsertText}" Content="Insert New Text" HorizontalAlignment="Right" DockPanel.Dock="Top" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
             <TextBlock Text="Content:" Margin="5,30,0,0" DockPanel.Dock="Top"/>
-            <TextBox Margin="5,5" AcceptsReturn="True" MinHeight="50" Width="255" TextWrapping="Wrap" FontFamily="Consolas" VerticalScrollBarVisibility="Auto"
+            <TextBox Margin="5,5" AcceptsReturn="True" MinHeight="50" Width="255" TextWrapping="Wrap" FontFamily="Consolas" VerticalScrollBarVisibility="Auto" UndoLimit="0"
                SelectionChanged="StringToolContentSelectionChanged"
                IsEnabled="{Binding StringTool.Enabled}"
                Text="{Binding StringTool.Content, UpdateSourceTrigger=PropertyChanged}" />
@@ -130,7 +130,7 @@
                                  <ColumnDefinition Width="*"/>
                               </Grid.ColumnDefinitions>
                               <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
-                              <TextBox Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1"/>
+                              <TextBox UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1"/>
                            </Grid>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:ComboBoxArrayElementViewModel}">
@@ -158,7 +158,7 @@
                            </ItemsControl>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:StreamArrayElementViewModel}">
-                           <TextBox Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Margin="20,2,2,2" AcceptsReturn="True"/>
+                           <TextBox UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Margin="20,2,2,2" AcceptsReturn="True"/>
                         </DataTemplate>
                      </ItemsControl.Resources>
                   </ItemsControl>
@@ -184,7 +184,7 @@
                <TextBlock Text="Code Type" Margin="5,0" Grid.Column="0"/>
                <ComboBox Grid.Column="1" Name="CodeModeSelector" SelectedItem="{Binding CodeTool.Mode}"/>
             </Grid>
-            <TextBox Margin="5" Width="255" FontFamily="Consolas" Text="{Binding CodeTool.Content, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True" VerticalScrollBarVisibility="Auto" />
+            <TextBox UndoLimit="0" Margin="5" Width="255" FontFamily="Consolas" Text="{Binding CodeTool.Content, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True" VerticalScrollBarVisibility="Auto" />
          </DockPanel>
       </Grid>
       <!-- Anchor Editor -->
@@ -207,7 +207,7 @@
                   </ToolTip>
                </TextBlock.ToolTip>
             </TextBlock>
-            <TextBox Text="{Binding AnchorText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,25,0"/>
+            <TextBox UndoLimit="0" Text="{Binding AnchorText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,25,0"/>
          </DockPanel>
       </Border>
       <!-- Column Headers -->

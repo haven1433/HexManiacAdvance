@@ -321,5 +321,19 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Redo.Execute();
          Assert.Equal("tom", ((Pointer)viewPort[0, 0].Format).DestinationName);
       }
+
+      [Fact]
+      public void CanOverrideChangeCompletion() {
+         // arrange: change, then "don't" complete, then change
+         history.CurrentChange.Add(1);
+         using (history.ContinueCurrentTransaction()) history.ChangeCompleted();
+         history.CurrentChange.Add(2);
+
+         // act: undo
+         history.Undo.Execute();
+
+         // assert: that was the only thing in the undo stack
+         Assert.False(history.Undo.CanExecute(null));
+      }
    }
 }
