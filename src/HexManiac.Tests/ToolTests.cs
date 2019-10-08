@@ -475,6 +475,14 @@ namespace HavenSoft.HexManiac.Tests {
          for (int i = 0; i < expected.Length; i++) Assert.Equal(expected[i], result[i]);
       }
 
+      [Fact]
+      public void RawCodeToolWorks() {
+         var viewPort = new ViewPort(new LoadedFile("file.txt", new byte[100]));
+         viewPort.Tools.CodeTool.Mode = CodeMode.Raw;
+         viewPort.SelectionEnd = new Point(3, 0);
+         Assert.Equal("00 00 00 00", viewPort.Tools.CodeTool.Content.Trim());
+      }
+
       private static readonly ThumbParser parser;
       static ToolTests(){
          parser = new ThumbParser(File.ReadAllLines("Models/Code/armReference.txt"));
