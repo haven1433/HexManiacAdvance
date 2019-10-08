@@ -418,6 +418,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(16, editor.ZoomLevel);
       }
 
+      [Fact]
+      public void ThemeCanReset() {
+         var editor = new EditorViewModel(new StubFileSystem());
+         var defaultValue = editor.Theme.AccentValue;
+
+         editor.Theme.AccentValue += 1;
+         Assert.Equal(defaultValue + 1, editor.Theme.AccentValue);
+
+         editor.ResetTheme.Execute();
+         Assert.Equal(defaultValue, editor.Theme.AccentValue);
+      }
+
       private StubTabContent CreateClosableTab() {
          var tab = new StubTabContent();
          var close = new StubCommand { CanExecute = arg => true };

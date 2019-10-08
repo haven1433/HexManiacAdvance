@@ -46,6 +46,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          hideSearchControls = new StubCommand(),
          resetZoom = new StubCommand(),
          resetAlignment = new StubCommand(),
+         resetTheme = new StubCommand(),
          clearError = new StubCommand(),
          clearMessage = new StubCommand(),
          toggleMatrix = new StubCommand(),
@@ -77,6 +78,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand HideSearchControls => hideSearchControls;
       public ICommand ResetZoom => resetZoom;
       public ICommand ResetAlignment => resetAlignment;
+      public ICommand ResetTheme => resetTheme;
       public ICommand ClearError => clearError;
       public ICommand ClearMessage => clearMessage;
       public ICommand ToggleMatrix => toggleMatrix;
@@ -319,6 +321,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          resetZoom.CanExecute = CanAlwaysExecute;
          resetZoom.Execute = arg => ZoomLevel = 16;
+
+         resetTheme.CanExecute = CanAlwaysExecute;
+         resetTheme.Execute = arg => Theme.Reset();
 
          toggleTableHeaders.CanExecute = CanAlwaysExecute;
          toggleTableHeaders.Execute = arg => UseTableEntryHeaders = !UseTableEntryHeaders;
