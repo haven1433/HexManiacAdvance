@@ -106,7 +106,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       private static readonly IReadOnlyCollection<byte> nop = new byte[] { 0, 0 };
       public IReadOnlyList<byte> Compile(IDataModel model, int start, params string[] lines) {
          var result = new List<byte>();
-         lines = lines.Select(line => line.ToLower().Trim()).ToArray();
+         lines = lines.Select(line => line.ToLower().Split('@')[0].Trim()).ToArray();
 
          // first pass: look for labels
          var labels = new Dictionary<string, int>();
