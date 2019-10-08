@@ -307,13 +307,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public string Disassemble(IDataModel data, int pcAddress, IReadOnlyList<ConditionCode> conditionCodes) {
          var instruction = template;
          var assembled = (uint)data.ReadMultiByteValue(pcAddress, ByteLength);
-         var highQueue = new List<bool>();
+         var highStack = new List<bool>();
          var remainingBits = ByteLength * 8;
          foreach (var part in instructionParts) {
             remainingBits -= part.Length;
             var bits = GrabBits(assembled, remainingBits, part.Length);
             if (part.Type == InstructionArgType.HighRegister) {
-               highQueue.Add(bits != 0);
+               highStack.Add(bits != 0);
             } else if (part.Type == InstructionArgType.List) {
                instruction = instruction.Replace("list", ParseRegisterList(bits));
             } else if (part.Type == InstructionArgType.ReverseList) {
@@ -328,9 +328,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   instruction = instruction.Replace("#", $"#{bits}");
                }
             } else if (part.Type == InstructionArgType.Register) {
-               if (highQueue.Count > 0) {
-                  if (highQueue[0]) bits += 8;
-                  highQueue.RemoveAt(0);
+               if (highStack.Count > 0) {
+                  if (highStack.Last()) bits += 8;
+                  highStack.RemoveAt(highStack.Count - 1);
                }
                instruction = instruction.Replace(part.Name, "r" + bits);
             }
@@ -413,8 +413,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             } else if (part.Type == InstructionArgType.Condition) {
                result |= ccode.Code;
             } else if (part.Type == InstructionArgType.HighRegister) {
-               if (registerListForHighCheck[0].Value > 7) result |= 1;
-               registerListForHighCheck.RemoveAt(0);
+               if (registerListForHighCheck.Last().Value > 7) result |= 1;
+               registerListForHighCheck.RemoveAt(registerListForHighCheck.Count - 1);
             } else if (part.Type == InstructionArgType.Numeric) {
                if (part.Code != 0 && firstNumeric) {
                   var mult = (byte)(part.Code >> 8);
@@ -484,6 +484,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                var index = instructionParts.IndexOf(instruction);
                if (int.TryParse(line.Split(',', ']')[0].Substring(1), out int value)) {
                   registerValues[index] = value;
+                  if (value > 7 && !instructionParts.Any(part => part.Type == InstructionArgType.HighRegister)) return false;
                }
                template = template.Substring(2);
                line = line.Substring(("r" + value).Length);
