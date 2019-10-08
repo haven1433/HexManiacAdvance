@@ -132,6 +132,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand Goto => selection.Goto;
       public ICommand Back => selection.Back;
       public ICommand Forward => selection.Forward;
+      public ICommand ResetAlignment => selection.ResetAlignment;
 
       private void ClearActiveEditBeforeSelectionChanges(object sender, Point location) {
          if (location.X >= 0 && location.X < scroll.Width && location.Y >= 0 && location.Y < scroll.Height) {

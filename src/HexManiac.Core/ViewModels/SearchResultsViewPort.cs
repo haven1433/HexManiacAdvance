@@ -73,6 +73,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand Copy { get; } = new StubCommand();
       public ICommand Clear { get; } = new StubCommand();
       public ICommand Goto { get; } = new StubCommand();
+      public ICommand ResetAlignment { get; } = new StubCommand();
       public ICommand Back { get; } = new StubCommand();
       public ICommand Forward { get; } = new StubCommand();
       public ICommand Close => close;

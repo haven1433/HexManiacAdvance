@@ -300,6 +300,22 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("000000", viewPort.Headers[0]);
       }
 
+      [Fact]
+      public void CanResetAlignment() {
+         var fileSystem = new StubFileSystem();
+         StandardSetup(out var data, out var model, out var viewPort);
+         var editor = new EditorViewModel(fileSystem);
+         editor.Add(viewPort);
+
+         viewPort.Goto.Execute("10");
+         viewPort.Edit("^moves[name\"\"8]8 Adam\" Bob\" Carl\" Dave\" Elen\" Fred\" Gary\" Horton\"");
+         viewPort.Width = 25;
+         Assert.Equal(24, viewPort.Width); // closest smaller multiple of 8
+
+         editor.ResetAlignment.Execute();
+         Assert.Equal(16, viewPort.Width); // closest smaller multiple of 16
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
          model = new PokemonModel(data);

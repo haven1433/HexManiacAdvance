@@ -124,6 +124,7 @@
                         </ToolTip>
                      </MenuItem.ToolTip>
                   </MenuItem>
+                  <MenuItem Header="Reset Alignment" Command="{Binding ResetAlignment}" />
                   <MenuItem Header="C_ustomize Theme" Click="ShowThemeSelector"/>
                   <MenuItem Header="_Clear Error" Command="{Binding ClearError}" InputGestureText="Esc"/>
                </MenuItem>
