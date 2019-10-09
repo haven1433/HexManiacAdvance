@@ -75,17 +75,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          get => address;
          set {
             if (ignoreExternalUpdates) return;
-            var run = model.GetNextRun(value);
             if (TryUpdate(ref address, value)) {
-               if ((run is IStreamRun || run is ArrayRun) && run.Start <= value) {
-                  runner.Schedule(DataForCurrentRunChanged);
-                  Enabled = true;
-                  ShowMessage = false;
-               } else {
-                  Enabled = false;
-                  ShowMessage = true;
-                  Message = $"{address.ToString("X6")} does not appear to be text.";
-               }
+               RefreshContentAtAddress();
             }
          }
       }
@@ -138,6 +129,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             Enabled = true;
             ShowMessage = false;
          };
+      }
+
+      public void RefreshContentAtAddress() {
+         var run = model.GetNextRun(address);
+         if ((run is IStreamRun || run is ArrayRun) && run.Start <= address) {
+            runner.Schedule(DataForCurrentRunChanged);
+            Enabled = true;
+            ShowMessage = false;
+         } else {
+            Enabled = false;
+            ShowMessage = true;
+            Message = $"{address.ToString("X6")} does not appear to be text.";
+         }
       }
 
       public void DataForCurrentRunChanged() {

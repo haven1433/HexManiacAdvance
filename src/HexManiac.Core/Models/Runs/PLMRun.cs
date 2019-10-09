@@ -6,6 +6,9 @@ using System.Linq;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
+   /// <summary>
+   /// PLMRuns have a hard-coded dependency on a table named 'movenames', which it uses to... get the names of the moves.
+   /// </summary>
    public class PLMRun : IStreamRun {
       public const int MaxLearningLevel = 100;
       public static readonly string SharedFormatString = AsciiRun.StreamDelimeter + "plm" + AsciiRun.StreamDelimeter;
@@ -109,6 +112,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var parts = line.Split(new[] { ' ' }, 2);
             if (!int.TryParse(parts[0], out var level)) level = 0;
             var moveName = parts.Length == 1 ? "0" : parts[1];
+            moveName = moveName.Trim().Trim('"');
 
             var index = moveNames.IndexOf(moveName);
             if (index != -1) { data.Add(CombineToken(level, index)); continue; }

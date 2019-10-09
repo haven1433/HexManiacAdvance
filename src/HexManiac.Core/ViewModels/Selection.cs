@@ -43,7 +43,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (selectionStart.Equals(value)) return;
 
             if (!Scroll.ScrollToPoint(ref value)) {
-               PreviewSelectionStartChanged?.Invoke(this, getSpan(rawSelectionStart).start);
+               PreviewSelectionStartChanged?.Invoke(this, selectionStart);
             }
 
             rawSelectionStart = value;
@@ -113,6 +113,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// <summary>
       /// The owner may have something special going on with the selected point.
       /// Warn the owner before the selection changes, in case they need to do cleanup.
+      /// Note that this function is expected to pass the _old_ selection value
       /// </summary>
       public event EventHandler<Point> PreviewSelectionStartChanged;
 
@@ -221,7 +222,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void GotoAddressHelper(int address) {
          var destinationRun = model.GetNextRun(address) as ArrayRun;
-         var destinationIsArray = destinationRun != null;
+         var destinationIsArray = destinationRun != null && destinationRun.Start <= address;
          int preferredWidth;
          if (destinationIsArray) {
             preferredWidth = destinationRun.ElementLength;
