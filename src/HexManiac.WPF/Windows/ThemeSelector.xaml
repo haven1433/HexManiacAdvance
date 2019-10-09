@@ -36,11 +36,11 @@
          </StackPanel>
          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10">
             <TextBlock Text="Accent Saturation:" Foreground="{Binding PrimaryColor}"/>
-            <Slider Foreground="{Binding Secondary}" Background="{Binding Backlight}" BorderBrush="{Binding SecondaryDark}" Minimum="0" Maximum="1" Value="{Binding AccentSaturation}" Width="150" Margin="5,0"/>
+            <Slider Foreground="{Binding Secondary}" Background="{Binding Backlight}" BorderBrush="{Binding Secondary}" Minimum="0" Maximum="1" Value="{Binding AccentSaturation}" Width="150" Margin="5,0"/>
          </StackPanel>
          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
             <TextBlock Text="Accent Brightness:" Foreground="{Binding PrimaryColor}"/>
-            <Slider Foreground="{Binding Secondary}" Background="{Binding Backlight}" BorderBrush="{Binding SecondaryDark}" Minimum="0" Maximum="1" Value="{Binding AccentValue}" Width="150" Margin="5,0"/>
+            <Slider Foreground="{Binding Secondary}" Background="{Binding Backlight}" BorderBrush="{Binding Secondary}" Minimum="0" Maximum="1" Value="{Binding AccentValue}" Width="150" Margin="5,0"/>
          </StackPanel>
       </StackPanel>
 

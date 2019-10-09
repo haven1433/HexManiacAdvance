@@ -5,8 +5,8 @@ using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
    public class Theme : ViewModelCore {
-      private string primaryColor = "#DDDDDD", backgroundColor = "#222222";
-      private double hueOffset = 0.1, accentSaturation = 0.7, accentValue = 0.7, highlightBrightness = 0.6;
+      private string primaryColor, backgroundColor;
+      private double hueOffset, accentSaturation, accentValue, highlightBrightness;
 
       public string PrimaryColor { get => primaryColor; set { if (TryUpdate(ref primaryColor, value)) UpdateTheme(); } }
       public string BackgroundColor { get => backgroundColor; set { if (TryUpdate(ref backgroundColor, value)) UpdateTheme(); } }
@@ -16,6 +16,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public double HighlightBrightness { get => highlightBrightness; set { if (TryUpdate(ref highlightBrightness, value)) UpdateTheme(); } }
 
       public Theme(string[] file) {
+         Reset();
          bool acceptingEntries = false;
          foreach (var entry in file) {
             var line = entry.ToLower();
@@ -44,6 +45,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             $"HighlightBrightness = {HighlightBrightness}",
          };
       }
+
+      public void Reset() {
+         TryUpdate(ref primaryColor, "#DDDDDD", nameof(PrimaryColor));
+         TryUpdate(ref backgroundColor, "#222222", nameof(BackgroundColor));
+         TryUpdate(ref hueOffset, 0.1, nameof(HueOffset));
+         TryUpdate(ref accentSaturation, 0.7, nameof(AccentSaturation));
+         TryUpdate(ref accentValue , 0.7, nameof(AccentValue));
+         TryUpdate(ref highlightBrightness, 0.6, nameof(HighlightBrightness));
+         UpdateTheme();
+   }
 
       public static bool TryConvertColor(string text, out (byte r, byte g, byte b) color) {
          const string hex = "0123456789ABCDEF";

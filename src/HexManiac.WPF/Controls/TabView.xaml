@@ -84,14 +84,14 @@
             <Button Margin="0,3" Command="{Binding StringTool.CheckIsText}" Content="Show As Text" HorizontalAlignment="Right" DockPanel.Dock="Top" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
             <Button Command="{Binding StringTool.InsertText}" Content="Insert New Text" HorizontalAlignment="Right" DockPanel.Dock="Top" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
             <TextBlock Text="Content:" Margin="5,30,0,0" DockPanel.Dock="Top"/>
-            <TextBox Margin="5,5" AcceptsReturn="True" MinHeight="50" Width="255" TextWrapping="Wrap" FontFamily="Consolas" VerticalScrollBarVisibility="Auto"
+            <TextBox Margin="5,5" AcceptsReturn="True" MinHeight="50" Width="255" TextWrapping="Wrap" FontFamily="Consolas" VerticalScrollBarVisibility="Auto" UndoLimit="0"
                SelectionChanged="StringToolContentSelectionChanged"
                IsEnabled="{Binding StringTool.Enabled}"
                Text="{Binding StringTool.Content, UpdateSourceTrigger=PropertyChanged}" />
          </DockPanel>
-         <ScrollViewer Width="265" Name="TableToolPanel" VerticalScrollBarVisibility="Visible">
-            <ScrollViewer.Style>
-               <Style TargetType="ScrollViewer">
+         <DockPanel Width="265" Name="TableToolPanel">
+            <DockPanel.Style>
+               <Style TargetType="DockPanel">
                   <Setter Property="Visibility" Value="Collapsed"/>
                   <Style.Triggers>
                      <DataTrigger Binding="{Binding SelectedIndex}" Value="1">
@@ -99,67 +99,72 @@
                      </DataTrigger>
                   </Style.Triggers>
                </Style>
-            </ScrollViewer.Style>
-            <StackPanel>
-               <TextBlock Text="{Binding TableTool.CurrentElementName}" HorizontalAlignment="Center" Margin="0,2" MaxWidth="200" TextWrapping="Wrap" TextAlignment="Center"/>
-               <Grid>
-                  <Button Margin="5" Content="Previous" Command="{Binding TableTool.Previous}" HorizontalAlignment="Left"/>
-                  <Button Margin="5" Content="Next" Command="{Binding TableTool.Next}" HorizontalAlignment="Right"/>
-               </Grid>
-               <Border Margin="5" HorizontalAlignment="Right">
-                  <Border.ToolTip>
-                     <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
-                        <TextBlock TextAlignment="Left">
+            </DockPanel.Style>
+            <TextBlock Text="{Binding TableTool.CurrentElementName}" HorizontalAlignment="Center" Margin="0,2" MaxWidth="200" TextWrapping="Wrap" TextAlignment="Center" DockPanel.Dock="Top"/>
+            <Grid DockPanel.Dock="Top">
+               <Button Margin="5" Content="Previous" Command="{Binding TableTool.Previous}" HorizontalAlignment="Left"/>
+               <Button Margin="5" Content="Next" Command="{Binding TableTool.Next}" HorizontalAlignment="Right"/>
+            </Grid>
+            <Border Margin="5" HorizontalAlignment="Right" DockPanel.Dock="Top">
+               <Border.ToolTip>
+                  <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                     <TextBlock TextAlignment="Left">
                            Select the last element of the table <LineBreak/>
                            and press this to extend the table.
-                        </TextBlock>
-                     </ToolTip>
-                  </Border.ToolTip>
-                  <Button Content="Add New" Command="{Binding TableTool.Append}"/>
-               </Border>
-               <ItemsControl ItemsSource="{Binding TableTool.Children}" Grid.IsSharedSizeScope="True">
-                  <ItemsControl.Resources>
-                     <DataTemplate DataType="{x:Type hsg3hvmtr:FieldArrayElementViewModel}">
-                        <Grid HorizontalAlignment="Stretch" Margin="2">
-                           <Grid.ColumnDefinitions>
-                              <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
-                              <ColumnDefinition Width="*"/>
-                           </Grid.ColumnDefinitions>
-                           <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
-                           <TextBox Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1"/>
-                        </Grid>
-                     </DataTemplate>
-                     <DataTemplate DataType="{x:Type hsg3hvmtr:ComboBoxArrayElementViewModel}">
-                        <Grid HorizontalAlignment="Stretch" Margin="2">
-                           <Grid.ColumnDefinitions>
-                              <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
-                              <ColumnDefinition Width="*"/>
-                           </Grid.ColumnDefinitions>
-                           <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
-                           <ComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" Grid.Column="1"/>
-                        </Grid>
-                     </DataTemplate>
-                     <DataTemplate DataType="{x:Type hsg3hvmtr:BitListArrayElementViewModel}">
-                        <ItemsControl ItemsSource="{Binding}">
-                           <ItemsControl.ItemsPanel>
-                              <ItemsPanelTemplate>
-                                 <WrapPanel/>
-                              </ItemsPanelTemplate>
-                           </ItemsControl.ItemsPanel>
-                           <ItemsControl.ItemTemplate>
-                              <DataTemplate>
-                                 <CheckBox Margin="5,1,0,1" Width="115" IsChecked="{Binding IsChecked}" Content="{Binding BitLabel}"/>
-                              </DataTemplate>
-                           </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                     </DataTemplate>
-                     <DataTemplate DataType="{x:Type hsg3hvmtr:StreamArrayElementViewModel}">
-                        <TextBox Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Margin="20,2,2,2" AcceptsReturn="True"/>
-                     </DataTemplate>
-                  </ItemsControl.Resources>
-               </ItemsControl>
-            </StackPanel>
-         </ScrollViewer>
+                     </TextBlock>
+                  </ToolTip>
+               </Border.ToolTip>
+               <Button Content="Add New" Command="{Binding TableTool.Append}"/>
+            </Border>
+            <ScrollViewer VerticalScrollBarVisibility="Visible">
+               <StackPanel>
+                  <ItemsControl ItemsSource="{Binding TableTool.Children}" Grid.IsSharedSizeScope="True">
+                     <ItemsControl.Resources>
+                        <DataTemplate DataType="{x:Type hsg3hvmtr:SplitterArrayElementViewModel}">
+                           <TextBlock Text="{Binding SectionName}" Margin="5" Grid.Column="0" FontSize="20"/>
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type hsg3hvmtr:FieldArrayElementViewModel}">
+                           <Grid HorizontalAlignment="Stretch" Margin="2">
+                              <Grid.ColumnDefinitions>
+                                 <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
+                                 <ColumnDefinition Width="*"/>
+                              </Grid.ColumnDefinitions>
+                              <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
+                              <TextBox UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1"/>
+                           </Grid>
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type hsg3hvmtr:ComboBoxArrayElementViewModel}">
+                           <Grid HorizontalAlignment="Stretch" Margin="2">
+                              <Grid.ColumnDefinitions>
+                                 <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
+                                 <ColumnDefinition Width="*"/>
+                              </Grid.ColumnDefinitions>
+                              <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
+                              <ComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" Grid.Column="1"/>
+                           </Grid>
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type hsg3hvmtr:BitListArrayElementViewModel}">
+                           <ItemsControl ItemsSource="{Binding}">
+                              <ItemsControl.ItemsPanel>
+                                 <ItemsPanelTemplate>
+                                    <WrapPanel/>
+                                 </ItemsPanelTemplate>
+                              </ItemsControl.ItemsPanel>
+                              <ItemsControl.ItemTemplate>
+                                 <DataTemplate>
+                                    <CheckBox Margin="5,1,0,1" Width="115" IsChecked="{Binding IsChecked}" Content="{Binding BitLabel}"/>
+                                 </DataTemplate>
+                              </ItemsControl.ItemTemplate>
+                           </ItemsControl>
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type hsg3hvmtr:StreamArrayElementViewModel}">
+                           <TextBox UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Margin="20,2,2,2" AcceptsReturn="True"/>
+                        </DataTemplate>
+                     </ItemsControl.Resources>
+                  </ItemsControl>
+               </StackPanel>
+            </ScrollViewer>
+         </DockPanel>
          <DockPanel Name="CodeToolPanel">
             <DockPanel.Style>
                <Style TargetType="DockPanel">
@@ -179,7 +184,7 @@
                <TextBlock Text="Code Type" Margin="5,0" Grid.Column="0"/>
                <ComboBox Grid.Column="1" Name="CodeModeSelector" SelectedItem="{Binding CodeTool.Mode}"/>
             </Grid>
-            <TextBox Margin="5" Width="255" FontFamily="Consolas" Text="{Binding CodeTool.Content, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True" VerticalScrollBarVisibility="Auto" />
+            <TextBox UndoLimit="0" Margin="5" Width="255" FontFamily="Consolas" Text="{Binding CodeTool.Content, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True" VerticalScrollBarVisibility="Auto" />
          </DockPanel>
       </Grid>
       <!-- Anchor Editor -->
@@ -202,7 +207,7 @@
                   </ToolTip>
                </TextBlock.ToolTip>
             </TextBlock>
-            <TextBox Text="{Binding AnchorText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,25,0"/>
+            <TextBox UndoLimit="0" Text="{Binding AnchorText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,25,0"/>
          </DockPanel>
       </Border>
       <!-- Column Headers -->

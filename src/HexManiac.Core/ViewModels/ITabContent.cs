@@ -15,6 +15,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       ICommand Copy { get; }   // parameter: IFileSystem
       ICommand Clear { get; }
       ICommand Goto { get; }   // parameter: target destination as string (example, a hex address)
+      ICommand ResetAlignment { get; }
       ICommand Back { get; }
       ICommand Forward { get; }
       ICommand Close { get; }  // parameter: IFileSystem

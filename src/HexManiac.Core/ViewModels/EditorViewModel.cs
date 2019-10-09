@@ -45,6 +45,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          showFind = new StubCommand(),
          hideSearchControls = new StubCommand(),
          resetZoom = new StubCommand(),
+         resetAlignment = new StubCommand(),
+         resetTheme = new StubCommand(),
          clearError = new StubCommand(),
          clearMessage = new StubCommand(),
          toggleMatrix = new StubCommand(),
@@ -75,6 +77,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand ShowFind => showFind;         // parameter: true for show, false for hide
       public ICommand HideSearchControls => hideSearchControls;
       public ICommand ResetZoom => resetZoom;
+      public ICommand ResetAlignment => resetAlignment;
+      public ICommand ResetTheme => resetTheme;
       public ICommand ClearError => clearError;
       public ICommand ClearMessage => clearMessage;
       public ICommand ToggleMatrix => toggleMatrix;
@@ -231,6 +235,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          redo = CreateWrapperForSelected(tab => tab.Redo);
          back = CreateWrapperForSelected(tab => tab.Back);
          forward = CreateWrapperForSelected(tab => tab.Forward);
+         resetAlignment = CreateWrapperForSelected(tab => tab.ResetAlignment);
 
          saveAll = CreateWrapperForAll(tab => tab.Save);
          closeAll = CreateWrapperForAll(tab => tab.Close);
@@ -245,6 +250,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             { tab => tab.Redo, (sender, e) => redo.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.Back, (sender, e) => back.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.Forward, (sender, e) => forward.CanExecuteChanged.Invoke(this, e) },
+            { tab => tab.ResetAlignment, (sender, e) => resetAlignment.CanExecuteChanged.Invoke(this, e) },
          };
 
          var metadata = fileSystem.MetadataFor(ApplicationName) ?? new string[0];
@@ -315,6 +321,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          resetZoom.CanExecute = CanAlwaysExecute;
          resetZoom.Execute = arg => ZoomLevel = 16;
+
+         resetTheme.CanExecute = CanAlwaysExecute;
+         resetTheme.Execute = arg => Theme.Reset();
 
          toggleTableHeaders.CanExecute = CanAlwaysExecute;
          toggleTableHeaders.Execute = arg => UseTableEntryHeaders = !UseTableEntryHeaders;

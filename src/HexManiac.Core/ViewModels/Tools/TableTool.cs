@@ -146,8 +146,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             CurrentElementName = $"{basename}/{index}";
          }
 
-         int itemAddress = Address;
-         foreach (var item in array.ElementContent) {
+         if (!string.IsNullOrEmpty(array.LengthFromAnchor)) basename = array.LengthFromAnchor; // basename is now a 'parent table' name, if there is one
+
+         AddChildrenFromTable(array, index);
+         foreach(var currentArray in model.Arrays) {
+            if (currentArray == array) continue;
+            var currentArrayName = model.GetAnchorFromAddress(-1, currentArray.Start);
+            if (currentArray.LengthFromAnchor == basename || currentArrayName == basename) {
+               Children.Add(new SplitterArrayElementViewModel(currentArrayName));
+               AddChildrenFromTable(currentArray, index);
+            }
+         }
+      }
+
+      private void AddChildrenFromTable(ArrayRun table, int index) {
+         var itemAddress = table.Start + table.ElementLength * index;
+         foreach (var item in table.ElementContent) {
             IArrayElementViewModel viewModel = null;
             if (item.Type == ElementContentType.Unknown) viewModel = new FieldArrayElementViewModel(history, model, item.Name, itemAddress, item.Length, new HexFieldStratgy());
             else if (item.Type == ElementContentType.PCS) viewModel = new FieldArrayElementViewModel(history, model, item.Name, itemAddress, item.Length, new TextFieldStratgy());

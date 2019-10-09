@@ -238,8 +238,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             selectionLength = selectionEnd - selectionStart;
          }
 
-         selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(selectionStart);
-         selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selectionStart + selectionLength);
+         using (history.ContinueCurrentTransaction()) {
+            selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(selectionStart);
+            selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selectionStart + selectionLength);
+         }
       }
 
       private void UpdateRun(ArrayRun arrayRun) {

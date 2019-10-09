@@ -93,6 +93,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (currentChange == null) return;
          if (!currentChange.HasAnyChange) { currentChange = null; return; }
          VerifyRevertNotInProgress();
+         if (continueCurrentTransaction) return;
 
          undoStack.Push(currentChange);
          currentChange.OnNewDataChange -= OnCurrentTokenDataChanged;
@@ -104,6 +105,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (TryUpdate(ref undoStackSizeAtSaveTag, undoStack.Count, nameof(IsSaved))) {
             NotifyPropertyChanged(nameof(HasDataChange));
          }
+      }
+
+      private bool continueCurrentTransaction;
+      public IDisposable ContinueCurrentTransaction() {
+         continueCurrentTransaction = true;
+         return new StubDisposable { Dispose = () => continueCurrentTransaction = false };
       }
 
       private void OnCurrentTokenDataChanged(object sender, EventArgs e) {

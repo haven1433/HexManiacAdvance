@@ -19,6 +19,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          moveSelectionStart = new StubCommand(),
          moveSelectionEnd = new StubCommand(),
          gotoCommand = new StubCommand(),
+         resetAlignmentCommand = new StubCommand(),
          forward = new StubCommand(),
          backward = new StubCommand();
 
@@ -101,6 +102,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand MoveSelectionStart => moveSelectionStart;
       public ICommand MoveSelectionEnd => moveSelectionEnd;
       public ICommand Goto => gotoCommand;
+      public ICommand ResetAlignment => resetAlignmentCommand;
       public ICommand Forward => forward;
       public ICommand Back => backward;
 
@@ -125,6 +127,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          moveSelectionStart.Execute = args => MoveSelectionStartExecuted((Direction)args);
          moveSelectionEnd.CanExecute = args => true;
          moveSelectionEnd.Execute = args => MoveSelectionEndExecuted((Direction)args);
+         resetAlignmentCommand.CanExecute = args => true;
+         resetAlignmentCommand.Execute = args => GotoAddressAndAlign(Scroll.DataIndex, 0x10);
 
          gotoCommand = new StubCommand {
             CanExecute = args => true,
@@ -225,7 +229,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else {
             preferredWidth = DefaultPreferredWidth;
          }
+         GotoAddressAndAlign(address, preferredWidth, destinationIsArray);
+      }
 
+      private void GotoAddressAndAlign(int address, int preferredWidth, bool destinationIsArray = false) {
          using (ModelCacheScope.CreateScope(model)) {
             var startAddress = address;
             if (!destinationIsArray && preferredWidth > 1) address -= address % preferredWidth;

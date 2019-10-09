@@ -24,6 +24,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       string ErrorText { get; }
    }
 
+   public class SplitterArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
+      public event EventHandler DataChanged;
+      public bool IsInError => !string.IsNullOrEmpty(ErrorText);
+      public string ErrorText { get; private set; }
+      public string SectionName { get; }
+      public SplitterArrayElementViewModel(string sectionName) => SectionName = sectionName;
+   }
+   
    public interface IFieldArrayElementViewModelStrategy {
       ElementContentViewModelType Type { get; }
       void UpdateModelFromViewModel(FieldArrayElementViewModel viewModel);

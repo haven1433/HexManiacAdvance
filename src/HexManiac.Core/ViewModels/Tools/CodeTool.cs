@@ -2,9 +2,10 @@
 using HavenSoft.HexManiac.Core.Models.Code;
 using System;
 using System.IO;
+using System.Text;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
-   public enum CodeMode { Thumb, Script }
+   public enum CodeMode { Thumb, Script, Raw }
 
    public class CodeTool : ViewModelCore, IToolViewModel {
       public string Name => "Code Tool";
@@ -45,14 +46,34 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public void UpdateContent() {
          var start = selection.Scroll.ViewPointToDataIndex(selection.SelectionStart);
          var end = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd));
+
+         if (mode == CodeMode.Raw) {
+            Content = RawParse(model, start, end - start + 1);
+            return;
+         }
+
          if (start == end) { Content = string.Empty; return; }
          if (start > end) (start, end) = (end, start);
 
          if (mode == CodeMode.Script) {
             Content = script.Parse(model, start, end - start + 1);
-         } else {
+         } else if (mode == CodeMode.Thumb) {
             Content = thumb.Parse(model, start, end - start + 1);
+         } else {
+            throw new NotImplementedException();
          }
+      }
+
+      private string RawParse(IDataModel model, int start, int length) {
+         var builder = new StringBuilder();
+         while (length > 0) {
+            builder.Append(model[start].ToString("X2"));
+            builder.Append(" ");
+            length--;
+            start++;
+            if (start % 16 == 0) builder.AppendLine();
+         }
+         return builder.ToString();
       }
    }
 }

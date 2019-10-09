@@ -263,9 +263,10 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Theory]
       [InlineData(0x0000, "nop")]
-      [InlineData(0b0001100_010_001_000, "add   r0, r1, r2")]
-      [InlineData(0b00000_00100_010_001, "lsl   r1, r2, #4")]
-      [InlineData(0b1101_0000_00001100, "beq   <00001C>")] // 1C = 28 (current address is zero). 28 = 12*2+4
+      [InlineData(0b0001100_010_001_000,  "add   r0, r1, r2")]
+      [InlineData(0b00000_00100_010_001,  "lsl   r1, r2, #4")]
+      [InlineData(0b1101_0000_00001100,   "beq   <00001C>")] // 1C = 28 (current address is zero). 28 = 12*2+4
+      [InlineData(0b01000110_0_1_000_111, "mov   r7, r8")]
       public void ThumbDecompilerTests(int input, string output) {
          var bytes = new[] { (byte)input, (byte)(input >> 8) };
          var model = new PokemonModel(bytes);
@@ -392,6 +393,8 @@ namespace HavenSoft.HexManiac.Tests {
       [InlineData("ldrb  r1, [r1, r2]", 0b0101110_010_001_001)]
       [InlineData("ldrh  r2, [r1, #0]", 0b10001_00000_001010)]
       [InlineData("lsl   r1, r2", 0b0100000010_010_001)]
+      [InlineData("lsl   r1, r2 @ comment", 0b0100000010_010_001)]
+      [InlineData("mov   r7, r8", 0b01000110_0_1_000_111)]
       public void ThumbCompilerTests(string input, uint output) {
          var bytes = new List<byte> { (byte)output, (byte)(output >> 8) };
          var model = new PokemonModel(new byte[0x200]);
@@ -470,6 +473,14 @@ namespace HavenSoft.HexManiac.Tests {
          };
 
          for (int i = 0; i < expected.Length; i++) Assert.Equal(expected[i], result[i]);
+      }
+
+      [Fact]
+      public void RawCodeToolWorks() {
+         var viewPort = new ViewPort(new LoadedFile("file.txt", new byte[100]));
+         viewPort.Tools.CodeTool.Mode = CodeMode.Raw;
+         viewPort.SelectionEnd = new Point(3, 0);
+         Assert.Equal("00 00 00 00", viewPort.Tools.CodeTool.Content.Trim());
       }
 
       private static readonly ThumbParser parser;
