@@ -349,5 +349,57 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x0404, Model.ReadMultiByteValue(0x54, 2));
          Assert.Equal(0x0404, Model.ReadMultiByteValue(0x56, 2));
       }
+
+      /// <summary>
+      /// when you copy the start of a table, it also copies the table's anchor
+      /// if you paste this somewhere else, it will change the anchor name to be something new
+      /// if you cut/paste, then the original anchor name is no longer in use, so the original name is used in the new spot.
+      /// if you copy/paste at the original location, it should be a no-op.
+      /// normally, copying from a table includes the + operator, in case you're wanting to paste into a shorter table.
+      /// But the first element shouldn't have the +, to avoid possible conflicts with tables ending directly before the new table starts.
+      /// </summary>
+      [Fact]
+      public void CopyFirstTableElementDoesNotIncludeAppendCharacter() {
+         var fileSystem = new StubFileSystem();
+         CreateTextTable("names", 0x10, "Adam", "Bob", "Carl", "David", "Evan", "Fred", "Greg", "Holly", "Iggy", "Jay", "Kelly", "Lucy", "Mary", "Nate", "Ogre", "Phil"); // 0x60
+
+         // copy
+         ViewPort.Goto.Execute("00");
+         ViewPort.SelectionStart = new Point(0, 1);
+         ViewPort.SelectionEnd = new Point(5, 1); // select the first entry
+         ViewPort.Copy.Execute(fileSystem);
+
+         // check
+         Assert.DoesNotContain("+", fileSystem.CopyText);
+      }
+
+      /// <summary>
+      /// A bit array's length is based on two other tables:
+      /// (1) the table of entries, for example the pokemon
+      /// (2) the table of bits, for example a TM list
+      /// If the first changes, you need one more entry, possible a few bytes.
+      /// If the second changes, you need to extend EACH entry, possibly 1 byte per entry.
+      ///
+      /// Verify that changing (1) does not extend the bits.
+      /// </summary>
+      [Fact]
+      public void ExtendingPokemonNameArrayDoesNotChangeBitsInBitArray() {
+         CreateTextTable("names", 0x0, "ABCDEFGHIJKLMNOP".ToCharArray().Select(c => c.ToString()).ToArray()); // 16 entries, 2 bytes each
+         CreateEnumTable("enums", 0x40, "names", 0, 1, 2, 3); // note that the enum uses 4 bits
+         ViewPort.Goto.Execute("80");
+         ViewPort.Edit("^bits[pokemon|b[]enums]names "); // each entry is 1 byte long, 16 entries.
+
+         // precondition
+         var bitArray = (ArrayRunBitArraySegment)((ArrayRun)Model.GetNextRun(0x80)).ElementContent[0];
+         Assert.Equal(1, bitArray.Length);
+
+         // extend the name table with a new entry
+         ViewPort.Goto.Execute("20");
+         ViewPort.Edit("+");
+
+         // postcondition
+         bitArray = (ArrayRunBitArraySegment)((ArrayRun)Model.GetNextRun(0x80)).ElementContent[0];
+         Assert.Equal(1, bitArray.Length);
+      }
    }
 }

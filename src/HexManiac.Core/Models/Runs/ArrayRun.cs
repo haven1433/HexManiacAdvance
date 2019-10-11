@@ -401,7 +401,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          length += offsets.SegmentOffset;
          for (int i = offsets.ElementIndex; i < ElementCount && length > 0; i++) {
             var offset = offsets.SegmentStart;
-            if (offsets.SegmentIndex == 0) text.Append(ExtendArray);
+            if (offsets.SegmentIndex == 0 && offsets.ElementIndex > 0) text.Append(ExtendArray);
             for (int j = offsets.SegmentIndex; j < ElementContent.Count && length > 0; j++) {
                var segment = ElementContent[j];
                text.Append(segment.ToText(data, offset).Trim());

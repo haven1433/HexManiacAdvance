@@ -500,6 +500,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var requiredByteLength = (int)Math.Ceiling(arrayRun.ElementCount / 8.0);
             for (int segmentIndex = 0; segmentIndex < newTable.ElementContent.Count; segmentIndex++) {
                if (!(newTable.ElementContent[segmentIndex] is ArrayRunBitArraySegment bitSegment)) continue;
+               if (bitSegment.SourceArrayName != anchor) continue;
                if (bitSegment.Length == requiredByteLength) continue;
                newTable = (ArrayRun)RelocateForExpansion(changeToken, table, newTable.ElementCount * (newTable.ElementLength - bitSegment.Length + requiredByteLength));
                // within the new table, shift all the data to fit the new data width
