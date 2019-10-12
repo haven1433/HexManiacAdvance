@@ -170,8 +170,15 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (runs[i].PointerSources != null) {
                foreach (var source in runs[i].PointerSources) {
                   var run = GetNextRun(source);
-                  Debug.Assert(run is PointerRun || run is ArrayRun);
-                  Debug.Assert(ReadPointer(source) == runs[i].Start);
+                  if (run is PointerRun) {
+                     Debug.Assert(run.Start == source);
+                     Debug.Assert(ReadPointer(source) == runs[i].Start);
+                  } else if (run is ArrayRun) {
+                     Debug.Assert(run.Start <= source);
+                     Debug.Assert(ReadPointer(source) == runs[i].Start);
+                  } else {
+                     Debug.Fail("Pointer must be a PointerRun or live within an ArrayRun");
+                  }
                }
             }
             if (runs[i] is ArrayRun arrayRun2 && arrayRun2.SupportsPointersToElements) {
@@ -477,6 +484,37 @@ namespace HavenSoft.HexManiac.Core.Models {
                changeAnchors(arrayRun.ElementContent[i], changeToken, start);
             }
             segmentOffset += arrayRun.ElementContent[i].Length;
+         }
+      }
+
+      /// <summary>
+      /// An array was moved.
+      /// If that array pointed to stuff, that stuff needs to know that its sources moved.
+      /// Remove the sources that match the array's original location.
+      /// Add new sources corresponding to the array's new location.
+      /// </summary>
+      private void UpdateAnchorsFromArrayMove(ModelDelta changeToken, ArrayRun original, ArrayRun moved) {
+         int originalOffset = original.Start;
+         int segmentOffset = moved.Start;
+         // i loops over the different segments in the array
+         for (int i = 0; i < moved.ElementContent.Count; i++) {
+            if (moved.ElementContent[i].Type != ElementContentType.Pointer) { segmentOffset += moved.ElementContent[i].Length; continue; }
+            // for a pointer segment, j loops over all the elements in the array
+            for (int j = 0; j < moved.ElementCount; j++) {
+               var originalStart = originalOffset + original.ElementLength * j;
+               var movedStart = segmentOffset + moved.ElementLength * j;
+               var destination = ReadPointer(movedStart);
+               if (destination < 0 || destination >= RawData.Length) continue;
+               var destinationRun = GetNextRun(destination);
+               changeToken.RemoveRun(destinationRun);
+               destinationRun = destinationRun.RemoveSource(originalStart);
+               destinationRun = destinationRun.MergeAnchor(new[] { movedStart });
+               changeToken.AddRun(destinationRun);
+               var runIndex = BinarySearch(destinationRun.Start);
+               runs[runIndex] = destinationRun;
+            }
+            originalOffset += original.ElementContent[i].Length;
+            segmentOffset += moved.ElementContent[i].Length;
          }
       }
 
@@ -1316,7 +1354,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (run is PCSRun pcs) {
             newRun = new PCSRun(this, newStart, run.Length, run.PointerSources);
          } else if (run is ArrayRun array) {
-            newRun = array.Move(newStart);
+            var array1 = array.Move(newStart);
+            UpdateAnchorsFromArrayMove(changeToken, array, array1);
+            newRun = array1;
          } else if (run is EggMoveRun egg) {
             newRun = new EggMoveRun(this, newStart);
          } else if (run is PLMRun plm) {
