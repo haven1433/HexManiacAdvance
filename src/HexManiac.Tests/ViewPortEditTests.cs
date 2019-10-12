@@ -401,5 +401,14 @@ namespace HavenSoft.HexManiac.Tests {
          bitArray = (ArrayRunBitArraySegment)((ArrayRun)Model.GetNextRun(0x80)).ElementContent[0];
          Assert.Equal(1, bitArray.Length);
       }
+
+      [Fact]
+      public void ClearTableClearsCurrentItemOnly() {
+         CreateTextTable("table", 0, "A B C D E F G".Split(' '));
+         ViewPort.SelectionStart = new Point(4, 0);
+         ViewPort.Clear.Execute();
+
+         Assert.IsType<PCS>(ViewPort[2, 0].Format);
+      }
    }
 }
