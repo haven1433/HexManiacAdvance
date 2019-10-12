@@ -450,5 +450,16 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(0xFF, data[4]);
       }
+
+      [Fact]
+      public void CopyTextArrayEntryDoesNotCopyMultipleEndOfStreams() {
+         var model = new PokemonModel(Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray());
+         ArrayRun.TryParse(model, "[name\"\"6]4", 0, null, out var run);
+         model.ObserveAnchorWritten(new ModelDelta(), "table", run);
+
+         var text = model.Copy(() => new ModelDelta(), 6, 6).Trim();
+
+         Assert.Equal("+\"\"", text);
+      }
    }
 }

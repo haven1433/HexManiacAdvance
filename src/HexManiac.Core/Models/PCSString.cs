@@ -63,6 +63,8 @@ namespace HavenSoft.HexManiac.Core.Models {
                result.Append(data[startIndex + i + 1].ToString("X2"));
                i++;
             }
+
+            if (currentByte == 0xFF) break;
          }
          return result.ToString();
       }
