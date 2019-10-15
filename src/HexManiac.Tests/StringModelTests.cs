@@ -453,7 +453,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CopyTextArrayEntryDoesNotCopyMultipleEndOfStreams() {
-         var model = new PokemonModel(Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray());
+         var model = new PokemonModel(Enumerable.Repeat((byte)0xFF, 0x200).ToArray());
          ArrayRun.TryParse(model, "[name\"\"6]4", 0, null, out var run);
          model.ObserveAnchorWritten(new ModelDelta(), "table", run);
 
