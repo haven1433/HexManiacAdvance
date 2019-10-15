@@ -440,7 +440,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
             var left = Math.Min(selectionStart, selectionEnd);
             var right = Math.Max(selectionStart, selectionEnd);
-            Model.ClearFormatAndData(history.CurrentChange, left, right - left + 1);
+            var startRun = Model.GetNextRun(left);
+            var endRun = Model.GetNextRun(right);
+            if (startRun == endRun && startRun.Start <= left && (startRun.Start < left || startRun.Start + startRun.Length - 1 > right) && startRun is ArrayRun arrayRun) {
+               for (int i = 0; i < arrayRun.ElementCount; i++) {
+                  var start = arrayRun.Start + arrayRun.ElementLength * i;
+                  if (start + arrayRun.ElementLength <= left) continue;
+                  if (start > right) break;
+                  for (int j = 0; j < arrayRun.ElementLength; j++) history.CurrentChange.ChangeData(Model, start + j, 0xFF);
+               }
+            } else {
+               Model.ClearFormatAndData(history.CurrentChange, left, right - left + 1);
+            }
             RefreshBackingData();
          };
 
