@@ -1083,6 +1083,29 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.NotEqual(0, model.GetNextRun(0).Start);
       }
 
+      [Fact]
+      public void PlmPointersMoveWhenPlmTableSourceMoves() {
+         var source = new BaseViewModelTestClass();
+         source.CreateTextTable(EggMoveRun.MoveNamesTable, 0x100, "A B C D E F G".Split(' '));
+
+         // Arrange: write the data for a table @0 pointing to PLM run @4.
+         source.Model.WriteMultiByteValue(4, 2, new ModelDelta(), 0x0404); // learn E at level 2
+         source.Model.WriteMultiByteValue(6, 2, new ModelDelta(), 0xFFFF); // end of stream
+         source.Model.WritePointer(new ModelDelta(), 0, 4);                // @0 <000004>
+         source.ViewPort.Goto.Execute("00");
+         source.ViewPort.Edit($"^lvlmoves[moves<{PLMRun.SharedFormatString}>]1 ");
+
+         // Act: extend the PLM table. Note that this will automatically move it to avoid hitting the data @4.
+         source.ViewPort.Goto.Execute("04");
+         source.ViewPort.Edit("+");
+
+         // Assert: the PLMRun at 04 should not have moved. There should be one thing pointing to it.
+         var newTableStart = source.Model.GetAddressFromAnchor(new ModelDelta(), -1, "lvlmoves");
+         var plmRun = (PLMRun)source.Model.GetNextRun(4);
+         Assert.Single(plmRun.PointerSources);
+         Assert.Equal(newTableStart, plmRun.PointerSources[0]);
+      }
+
       private static void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);

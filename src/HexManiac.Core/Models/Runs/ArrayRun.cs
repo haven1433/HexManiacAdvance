@@ -414,7 +414,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      public IFormattedRun Move(int newStart) {
+      public ArrayRun Move(int newStart) {
          return new ArrayRun(owner, FormatString, LengthFromAnchor, newStart, ElementCount, ElementContent, PointerSources, PointerSourcesForInnerElements);
       }
 
