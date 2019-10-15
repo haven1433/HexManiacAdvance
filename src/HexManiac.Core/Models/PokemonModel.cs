@@ -177,7 +177,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                      Debug.Assert(run.Start <= source);
                      Debug.Assert(ReadPointer(source) == runs[i].Start);
                   } else {
-                     Debug.Fail("Pointer must be a PointerRun or live within an ArrayRun");
+                     Debug.Fail($"Pointer must be a {nameof(PointerRun)} or live within an {nameof(ArrayRun)}");
                   }
                }
             }
