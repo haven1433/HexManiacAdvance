@@ -67,7 +67,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          // movenames
          switch (gameCode) {
             case FireRed: case LeafGreen: case Emerald: source = 0x000148; break;
-            case Ruby: case Sapphire:                   source = 0x02E180; break;
+            case Ruby: case Sapphire:                   source = 0x02E18C; break;
          }
          AddTable(source, EggMoveRun.MoveNamesTable, "[name\"\"13]");
 

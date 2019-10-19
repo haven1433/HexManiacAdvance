@@ -90,7 +90,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          if (length.Length == 0) {
             var nextRun = owner.GetNextAnchor(Start + ElementLength);
-            while (nextRun.Start < owner.Count && (nextRun.Start - Start) % ElementLength == 0 && !(nextRun is ArrayRun)) nextRun = owner.GetNextAnchor(nextRun.Start + nextRun.Length);
+            for (; true; nextRun = owner.GetNextAnchor(nextRun.Start + nextRun.Length)) {
+               if (nextRun.Start > owner.Count) break;
+               var anchorName = owner.GetAnchorFromAddress(-1, nextRun.Start);
+               if (string.IsNullOrEmpty(anchorName)) continue;
+               if ((nextRun.Start - Start) % ElementLength != 0) break;
+            }
             var byteLength = 0;
             var elementCount = 0;
             while (Start + byteLength + ElementLength <= nextRun.Start && DataMatchesElementFormat(owner, Start + byteLength, ElementContent, flags, nextRun)) {

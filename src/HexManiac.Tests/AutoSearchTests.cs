@@ -155,14 +155,14 @@ namespace HavenSoft.HexManiac.Tests {
 
          var address = model.GetAddressFromAnchor(noChange, -1, "trainerclassnames");
          var run = (ArrayRun)model.GetNextAnchor(address);
-         if (game.Contains("Altair")) Assert.Equal(66, run.ElementCount);
-         else if (game.Contains("Emerald")) Assert.Equal(66, run.ElementCount);
-         else if (game.Contains("FireRed")) Assert.Equal(107, run.ElementCount);
-         else if (game.Contains("DarkRisingKAIZO")) Assert.Equal(107, run.ElementCount);
-         else if (game.Contains("LeafGreen")) Assert.Equal(107, run.ElementCount);
-         else if (game.Contains("Ruby")) Assert.Equal(58, run.ElementCount);
-         else if (game.Contains("Sapphire")) Assert.Equal(58, run.ElementCount);
-         else if (game.Contains("Vega")) Assert.Equal(107, run.ElementCount);
+         if (game.Contains("Altair")) Assert.Equal(67, run.ElementCount);
+         else if (game.Contains("Emerald")) Assert.Equal(67, run.ElementCount);
+         else if (game.Contains("FireRed")) Assert.Equal(108, run.ElementCount);
+         else if (game.Contains("DarkRisingKAIZO")) Assert.Equal(108, run.ElementCount);
+         else if (game.Contains("LeafGreen")) Assert.Equal(108, run.ElementCount);
+         else if (game.Contains("Ruby")) Assert.Equal(59, run.ElementCount);
+         else if (game.Contains("Sapphire")) Assert.Equal(59, run.ElementCount);
+         else if (game.Contains("Vega")) Assert.Equal(108, run.ElementCount);
       }
 
       [SkippableTheory]
@@ -311,7 +311,7 @@ namespace HavenSoft.HexManiac.Tests {
          // the 4 bytes after the last pointer to tutor-compatibility should store the length of tutormoves
          table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, AutoSearchModel.MoveTutors));
          var tutorCompatibilityPointerSources = model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, AutoSearchModel.TutorCompatibility)).PointerSources;
-         var word = (WordRun)model.GetNextRun(tutorCompatibilityPointerSources.Last() + 4);
+         var word = (WordRun)model.GetNextRun(tutorCompatibilityPointerSources.First() + 4);
          Assert.Equal(table.ElementCount, model.ReadValue(word.Start));
       }
 
