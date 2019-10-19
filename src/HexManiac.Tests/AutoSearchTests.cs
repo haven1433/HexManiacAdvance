@@ -389,19 +389,19 @@ namespace HavenSoft.HexManiac.Tests {
    /// are part of the same Test Collection (because they're in the same class)
    /// </summary>
    public class AutoSearchFixture {
-      private IDictionary<string, AutoSearchModel> modelCache = new Dictionary<string, AutoSearchModel>();
+      private IDictionary<string, PokemonModel> modelCache = new Dictionary<string, PokemonModel>();
 
       public AutoSearchFixture() {
          Parallel.ForEach(AutoSearchTests.PokemonGames.Select(array => (string)array[0]), name => {
             if (!File.Exists(name)) return;
             var data = File.ReadAllBytes(name);
             var metadata = new StoredMetadata(new string[0]);
-            var model = new AutoSearchModel(data, metadata);
+            var model = new HardcodeTablesModel(data, metadata);
             lock (modelCache) modelCache[name] = model;
          });
       }
 
-      public AutoSearchModel LoadModel(string name) {
+      public PokemonModel LoadModel(string name) {
          Skip.IfNot(modelCache.ContainsKey(name));
          return modelCache[name];
       }

@@ -89,8 +89,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (ElementContent.Count == 1) flags |= FormatMatchFlags.IsSingleSegment;
 
          if (length.Length == 0) {
-            var nextRun = owner.GetNextRun(Start);
-            while (nextRun is NoInfoRun && nextRun.Start < owner.Count) nextRun = owner.GetNextRun(nextRun.Start + 1);
+            var nextRun = owner.GetNextAnchor(Start + ElementLength);
+            while (nextRun.Start < owner.Count && (nextRun.Start - Start) % ElementLength == 0 && !(nextRun is ArrayRun)) nextRun = owner.GetNextAnchor(nextRun.Start + nextRun.Length);
             var byteLength = 0;
             var elementCount = 0;
             while (Start + byteLength + ElementLength <= nextRun.Start && DataMatchesElementFormat(owner, Start + byteLength, ElementContent, flags, nextRun)) {

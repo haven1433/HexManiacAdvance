@@ -6,6 +6,9 @@ using System.Linq;
 using static HavenSoft.HexManiac.Core.Models.Runs.ArrayRun;
 
 namespace HavenSoft.HexManiac.Core.Models {
+   /// <summary>
+   /// Attempt to search through the rom to find tables that we expect to be in there.
+   /// </summary>
    public class AutoSearchModel : PokemonModel {
       public const string
          Ruby = "AXVE",
