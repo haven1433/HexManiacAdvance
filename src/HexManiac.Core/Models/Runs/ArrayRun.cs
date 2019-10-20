@@ -105,6 +105,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
             LengthFromAnchor = string.Empty;
             ElementCount = Math.Max(1, elementCount); // if the user said there's a format here, then there is, even if the format it wrong.
+            FormatString += ElementCount;
          } else if (int.TryParse(length, out int result)) {
             // fixed length is easy
             LengthFromAnchor = string.Empty;
