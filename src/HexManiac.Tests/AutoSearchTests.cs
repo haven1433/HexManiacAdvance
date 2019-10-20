@@ -158,7 +158,7 @@ namespace HavenSoft.HexManiac.Tests {
          if (game.Contains("Altair")) Assert.Equal(67, run.ElementCount);
          else if (game.Contains("Emerald")) Assert.Equal(67, run.ElementCount);
          else if (game.Contains("FireRed")) Assert.Equal(108, run.ElementCount);
-         else if (game.Contains("DarkRisingKAIZO")) Assert.Equal(108, run.ElementCount);
+         else if (game.Contains("DarkRisingKAIZO")) Assert.Equal(107, run.ElementCount);
          else if (game.Contains("LeafGreen")) Assert.Equal(108, run.ElementCount);
          else if (game.Contains("Ruby")) Assert.Equal(59, run.ElementCount);
          else if (game.Contains("Sapphire")) Assert.Equal(59, run.ElementCount);
@@ -259,13 +259,6 @@ namespace HavenSoft.HexManiac.Tests {
          var movesLocation = model.GetAddressFromAnchor(noChange, -1, AutoSearchModel.TmMoves);
          var hmLocation = model.GetAddressFromAnchor(noChange, -1, AutoSearchModel.HmMoves);
          var compatibilityLocation = model.GetAddressFromAnchor(noChange, -1, AutoSearchModel.TmCompatibility);
-
-         // Clover changes the code to make HM Moves forgettable, so finding doesn't work automatically.
-         if (game.Contains("Clover")) {
-            Assert.Equal(Pointer.NULL, movesLocation);
-            Assert.Equal(Pointer.NULL, compatibilityLocation);
-            return;
-         }
 
          var tmMoves = (ArrayRun)model.GetNextRun(movesLocation);
          var hmMoves = (ArrayRun)model.GetNextRun(hmLocation);
