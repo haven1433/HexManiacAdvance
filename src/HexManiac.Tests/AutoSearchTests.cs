@@ -44,7 +44,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          var address = model.GetAddressFromAnchor(noChange, -1, EggMoveRun.PokemonNameTable);
          var run = (ArrayRun)model.GetNextAnchor(address);
-         if (game.Contains("Gaia")) Assert.Equal(925, run.ElementCount);
+         if (game.Contains("Gaia")) Assert.Equal(1111, run.ElementCount);
          else Assert.Equal(412, run.ElementCount);
       }
 
@@ -105,7 +105,7 @@ namespace HavenSoft.HexManiac.Tests {
          var address = model.GetAddressFromAnchor(noChange, -1, "types");
          var run = (ArrayRun)model.GetNextAnchor(address);
          if (game.Contains("Clover")) Assert.Equal(24, run.ElementCount);
-         else if (game.Contains("Gaia")) Assert.Equal(24, run.ElementCount);
+         else if (game.Contains("Gaia")) Assert.Equal(25, run.ElementCount);
          else Assert.Equal(18, run.ElementCount);
       }
 
@@ -155,14 +155,14 @@ namespace HavenSoft.HexManiac.Tests {
 
          var address = model.GetAddressFromAnchor(noChange, -1, "trainerclassnames");
          var run = (ArrayRun)model.GetNextAnchor(address);
-         if (game.Contains("Altair")) Assert.Equal(66, run.ElementCount);
-         else if (game.Contains("Emerald")) Assert.Equal(66, run.ElementCount);
-         else if (game.Contains("FireRed")) Assert.Equal(107, run.ElementCount);
+         if (game.Contains("Altair")) Assert.Equal(67, run.ElementCount);
+         else if (game.Contains("Emerald")) Assert.Equal(67, run.ElementCount);
+         else if (game.Contains("FireRed")) Assert.Equal(108, run.ElementCount);
          else if (game.Contains("DarkRisingKAIZO")) Assert.Equal(107, run.ElementCount);
-         else if (game.Contains("LeafGreen")) Assert.Equal(107, run.ElementCount);
-         else if (game.Contains("Ruby")) Assert.Equal(58, run.ElementCount);
-         else if (game.Contains("Sapphire")) Assert.Equal(58, run.ElementCount);
-         else if (game.Contains("Vega")) Assert.Equal(107, run.ElementCount);
+         else if (game.Contains("LeafGreen")) Assert.Equal(108, run.ElementCount);
+         else if (game.Contains("Ruby")) Assert.Equal(59, run.ElementCount);
+         else if (game.Contains("Sapphire")) Assert.Equal(59, run.ElementCount);
+         else if (game.Contains("Vega")) Assert.Equal(108, run.ElementCount);
       }
 
       [SkippableTheory]
@@ -233,8 +233,7 @@ namespace HavenSoft.HexManiac.Tests {
          var compatibilityLocation = model.GetAddressFromAnchor(noChange, -1, AutoSearchModel.TutorCompatibility);
 
          // ruby and sapphire have no tutors
-         // Gaia has move tutors, but it does a bunch of custom stuff (multiple tables) so I don't feel bad about not supporting it by default.
-         if (game.Contains("Ruby") || game.Contains("Sapphire") || game.Contains("Gaia")) {
+         if (game.Contains("Ruby") || game.Contains("Sapphire")) {
             Assert.Equal(Pointer.NULL, movesLocation);
             Assert.Equal(Pointer.NULL, compatibilityLocation);
             return;
@@ -260,13 +259,6 @@ namespace HavenSoft.HexManiac.Tests {
          var hmLocation = model.GetAddressFromAnchor(noChange, -1, AutoSearchModel.HmMoves);
          var compatibilityLocation = model.GetAddressFromAnchor(noChange, -1, AutoSearchModel.TmCompatibility);
 
-         // Clover changes the code to make HM Moves forgettable, so finding doesn't work automatically.
-         if (game.Contains("Clover")) {
-            Assert.Equal(Pointer.NULL, movesLocation);
-            Assert.Equal(Pointer.NULL, compatibilityLocation);
-            return;
-         }
-
          var tmMoves = (ArrayRun)model.GetNextRun(movesLocation);
          var hmMoves = (ArrayRun)model.GetNextRun(hmLocation);
          var compatibility = (ArrayRun)model.GetNextRun(compatibilityLocation);
@@ -291,9 +283,9 @@ namespace HavenSoft.HexManiac.Tests {
          editor.Add(viewPort);
          var expandTutors = editor.QuickEdits.Single(edit => edit.Name == "Make Tutors Expandable");
 
-         // ruby/sapphire/gaia do not support this quick-edit
+         // ruby/sapphire do not support this quick-edit
          var canRun = expandTutors.CanRun(viewPort);
-         if (game.Contains("Ruby") || game.Contains("Sapphire") || game.Contains("Gaia")) {
+         if (game.Contains("Ruby") || game.Contains("Sapphire")) {
             Assert.False(canRun);
             return;
          } else {
@@ -311,7 +303,7 @@ namespace HavenSoft.HexManiac.Tests {
          // the 4 bytes after the last pointer to tutor-compatibility should store the length of tutormoves
          table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, AutoSearchModel.MoveTutors));
          var tutorCompatibilityPointerSources = model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, AutoSearchModel.TutorCompatibility)).PointerSources;
-         var word = (WordRun)model.GetNextRun(tutorCompatibilityPointerSources.Last() + 4);
+         var word = (WordRun)model.GetNextRun(tutorCompatibilityPointerSources.First() + 4);
          Assert.Equal(table.ElementCount, model.ReadValue(word.Start));
       }
 
@@ -389,19 +381,19 @@ namespace HavenSoft.HexManiac.Tests {
    /// are part of the same Test Collection (because they're in the same class)
    /// </summary>
    public class AutoSearchFixture {
-      private IDictionary<string, AutoSearchModel> modelCache = new Dictionary<string, AutoSearchModel>();
+      private IDictionary<string, PokemonModel> modelCache = new Dictionary<string, PokemonModel>();
 
       public AutoSearchFixture() {
          Parallel.ForEach(AutoSearchTests.PokemonGames.Select(array => (string)array[0]), name => {
             if (!File.Exists(name)) return;
             var data = File.ReadAllBytes(name);
             var metadata = new StoredMetadata(new string[0]);
-            var model = new AutoSearchModel(data, metadata);
+            var model = new HardcodeTablesModel(data, metadata);
             lock (modelCache) modelCache[name] = model;
          });
       }
 
-      public AutoSearchModel LoadModel(string name) {
+      public PokemonModel LoadModel(string name) {
          Skip.IfNot(modelCache.ContainsKey(name));
          return modelCache[name];
       }

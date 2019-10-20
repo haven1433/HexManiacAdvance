@@ -133,7 +133,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var results = new List<string>();
          for (int i = 0; i < optionCount; i++) {
             var elementStart = enumArray.Start + enumArray.ElementLength * i;
-            var valueWithQuotes = PCSString.Convert(model, elementStart, enumArray.ElementContent[0].Length).Trim();
+            var valueWithQuotes = PCSString.Convert(model, elementStart, enumArray.ElementContent[0].Length)?.Trim() ?? string.Empty;
 
             if (valueWithQuotes.Contains(' ')) {
                results.Add(valueWithQuotes);

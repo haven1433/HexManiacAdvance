@@ -96,7 +96,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public string UpdateViewModelFromModel(FieldArrayElementViewModel viewModel) {
-         var text = PCSString.Convert(viewModel.Model, viewModel.Start, viewModel.Length).Trim();
+         var text = PCSString.Convert(viewModel.Model, viewModel.Start, viewModel.Length)?.Trim() ?? string.Empty;
 
          // take off quotes
          if (text.StartsWith("\"")) text = text.Substring(1);

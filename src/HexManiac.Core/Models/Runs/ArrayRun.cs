@@ -89,16 +89,23 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (ElementContent.Count == 1) flags |= FormatMatchFlags.IsSingleSegment;
 
          if (length.Length == 0) {
-            var nextRun = owner.GetNextRun(Start);
-            while (nextRun is NoInfoRun && nextRun.Start < owner.Count) nextRun = owner.GetNextRun(nextRun.Start + 1);
+            var nextRun = owner.GetNextAnchor(Start + ElementLength);
+            for (; true; nextRun = owner.GetNextAnchor(nextRun.Start + nextRun.Length)) {
+               if (nextRun.Start > owner.Count) break;
+               var anchorName = owner.GetAnchorFromAddress(-1, nextRun.Start);
+               if (string.IsNullOrEmpty(anchorName)) continue;
+               if ((nextRun.Start - Start) % ElementLength != 0) break;
+            }
             var byteLength = 0;
             var elementCount = 0;
             while (Start + byteLength + ElementLength <= nextRun.Start && DataMatchesElementFormat(owner, Start + byteLength, ElementContent, flags, nextRun)) {
                byteLength += ElementLength;
                elementCount++;
+               if (elementCount == 100) flags |= FormatMatchFlags.AllowJunkAfterText;
             }
             LengthFromAnchor = string.Empty;
             ElementCount = Math.Max(1, elementCount); // if the user said there's a format here, then there is, even if the format it wrong.
+            FormatString += ElementCount;
          } else if (int.TryParse(length, out int result)) {
             // fixed length is easy
             LengthFromAnchor = string.Empty;
