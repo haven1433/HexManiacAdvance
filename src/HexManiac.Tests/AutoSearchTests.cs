@@ -44,7 +44,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          var address = model.GetAddressFromAnchor(noChange, -1, EggMoveRun.PokemonNameTable);
          var run = (ArrayRun)model.GetNextAnchor(address);
-         if (game.Contains("Gaia")) Assert.Equal(925, run.ElementCount);
+         if (game.Contains("Gaia")) Assert.Equal(1111, run.ElementCount);
          else Assert.Equal(412, run.ElementCount);
       }
 
@@ -105,7 +105,7 @@ namespace HavenSoft.HexManiac.Tests {
          var address = model.GetAddressFromAnchor(noChange, -1, "types");
          var run = (ArrayRun)model.GetNextAnchor(address);
          if (game.Contains("Clover")) Assert.Equal(24, run.ElementCount);
-         else if (game.Contains("Gaia")) Assert.Equal(24, run.ElementCount);
+         else if (game.Contains("Gaia")) Assert.Equal(25, run.ElementCount);
          else Assert.Equal(18, run.ElementCount);
       }
 
@@ -233,8 +233,7 @@ namespace HavenSoft.HexManiac.Tests {
          var compatibilityLocation = model.GetAddressFromAnchor(noChange, -1, AutoSearchModel.TutorCompatibility);
 
          // ruby and sapphire have no tutors
-         // Gaia has move tutors, but it does a bunch of custom stuff (multiple tables) so I don't feel bad about not supporting it by default.
-         if (game.Contains("Ruby") || game.Contains("Sapphire") || game.Contains("Gaia")) {
+         if (game.Contains("Ruby") || game.Contains("Sapphire")) {
             Assert.Equal(Pointer.NULL, movesLocation);
             Assert.Equal(Pointer.NULL, compatibilityLocation);
             return;
@@ -284,9 +283,9 @@ namespace HavenSoft.HexManiac.Tests {
          editor.Add(viewPort);
          var expandTutors = editor.QuickEdits.Single(edit => edit.Name == "Make Tutors Expandable");
 
-         // ruby/sapphire/gaia do not support this quick-edit
+         // ruby/sapphire do not support this quick-edit
          var canRun = expandTutors.CanRun(viewPort);
-         if (game.Contains("Ruby") || game.Contains("Sapphire") || game.Contains("Gaia")) {
+         if (game.Contains("Ruby") || game.Contains("Sapphire")) {
             Assert.False(canRun);
             return;
          } else {
