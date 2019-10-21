@@ -106,7 +106,7 @@
                <Button Margin="5" Content="Previous" Command="{Binding TableTool.Previous}" HorizontalAlignment="Left"/>
                <Button Margin="5" Content="Next" Command="{Binding TableTool.Next}" HorizontalAlignment="Right"/>
             </Grid>
-            <Border Margin="5" HorizontalAlignment="Right" DockPanel.Dock="Top">
+            <Border Margin="5" HorizontalAlignment="Right" DockPanel.Dock="Top" ToolTipService.InitialShowDelay="0">
                <Border.ToolTip>
                   <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
                      <TextBlock TextAlignment="Left">
