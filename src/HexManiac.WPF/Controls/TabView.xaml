@@ -100,6 +100,7 @@
                   </Style.Triggers>
                </Style>
             </DockPanel.Style>
+            <ComboBox ItemsSource="{Binding TableTool.TableList}" SelectedIndex="{Binding TableTool.SelectedTableIndex}" HorizontalAlignment="Center" MaxWidth="200" DockPanel.Dock="Top"/>
             <TextBlock Text="{Binding TableTool.CurrentElementName}" HorizontalAlignment="Center" Margin="0,2" MaxWidth="200" TextWrapping="Wrap" TextAlignment="Center" DockPanel.Dock="Top"/>
             <Grid DockPanel.Dock="Top">
                <Button Margin="5" Content="Previous" Command="{Binding TableTool.Previous}" HorizontalAlignment="Left"/>

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Windows.Input;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
@@ -14,6 +16,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly IToolTrayViewModel toolTray;
 
       public string Name => "Table";
+
+      public IEnumerable<string> TableList => model.Arrays.Select(array => model.GetAnchorFromAddress(-1, array.Start));
+
+      private int selectedTableIndex;
+      public int SelectedTableIndex {
+         get => selectedTableIndex;
+         set {
+            if (TryUpdate(ref selectedTableIndex, value)) {
+               if (selectedTableIndex == -1) return;
+               var array = model.Arrays.Skip(selectedTableIndex).First();
+               selection.GotoAddress(array.Start);
+               Address = array.Start;
+            }
+         }
+      }
 
       private string currentElementName;
       public string CurrentElementName {
@@ -137,6 +154,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             CurrentElementName = "The Table tool only works if your cursor is on table data.";
             return;
          }
+
+         NotifyPropertyChanged(nameof(TableList));
+         TryUpdate(ref selectedTableIndex, model.Arrays.IndexOf(array), nameof(SelectedTableIndex));
 
          var basename = model.GetAnchorFromAddress(-1, array.Start);
          var index = (Address - array.Start) / array.ElementLength;
