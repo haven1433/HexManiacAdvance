@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
-   public class EggMoveRun : IStreamRun {
+   public class EggMoveRun : BaseRun, IStreamRun {
       public const int MagicNumber = 0x4E20; // anything above this number is a pokemon, anything below it is a move
       public const int EndStream = 0xFFFF;
       public const string PokemonNameTable = "pokenames";
@@ -16,14 +16,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public static readonly string SharedFormatString = AsciiRun.StreamDelimeter + "egg" + AsciiRun.StreamDelimeter;
       private readonly IDataModel model;
 
-      public int Start { get; }
-      public int Length { get; }
-      public IReadOnlyList<int> PointerSources { get; private set; }
-      public string FormatString => SharedFormatString;
+      public override int Length { get; }
+      public override string FormatString => SharedFormatString;
 
-      public EggMoveRun(IDataModel dataModel, int dataIndex) {
+      public EggMoveRun(IDataModel dataModel, int dataIndex, IReadOnlyList<int> pointerSources = null) : base(dataIndex, pointerSources) {
          model = dataModel;
-         Start = dataIndex;
          Length = 0;
          for (int i = Start; i < model.Count; i += 2) {
             if (model[i] == 0xFF && model[i + 1] == 0xFF) {
@@ -83,7 +80,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return false;
       }
 
-      public IDataFormat CreateDataFormat(IDataModel data, int dataIndex) {
+      public override IDataFormat CreateDataFormat(IDataModel data, int dataIndex) {
          Debug.Assert(data == model);
 
          var cache = ModelCacheScope.GetCache(data);
@@ -107,18 +104,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      public IFormattedRun MergeAnchor(IReadOnlyList<int> sources) {
-         var newSources = new HashSet<int>();
-         if (sources != null) newSources.AddRange(sources);
-         if (PointerSources != null) newSources.AddRange(PointerSources);
-         return new EggMoveRun(model, Start) { PointerSources = newSources.ToList() };
-      }
-
-      public IFormattedRun RemoveSource(int source) {
-         var sources = PointerSources.ToList();
-         sources.Remove(source);
-         return new EggMoveRun(model, Start) { PointerSources = sources };
-      }
+      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new EggMoveRun(model, Start, newPointerSources);
 
       public int GetPokemonNumber(string input) {
          var cache = ModelCacheScope.GetCache(model);
@@ -227,7 +213,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public bool UpdateLimiter(ModelDelta token) {
-         if (PointerSources.Count != 2) return false;
+         if (PointerSources?.Count != 2) return false;
          var address = PointerSources.Last() - 4;
          var limiter = Length / 2 - 2;
          model.WriteMultiByteValue(address, 4, token, limiter);

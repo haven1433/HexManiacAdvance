@@ -57,9 +57,36 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          var point = ViewPort.SelectionStart;
          Results.Add(new ContextItem("Follow Pointer", arg => ViewPort.FollowLink(point.X, point.Y)) { ShortcutText = "Ctrl+Click" });
 
-         var address = ViewPort.ConvertViewPointToAddress(point);
-         var arrayRun = ViewPort.Model.GetNextRun(address) as ArrayRun;
-         if (arrayRun != null && arrayRun.Start <= address) Results.AddRange(GetTableChildren(arrayRun));
+         var pointerAddress = ViewPort.ConvertViewPointToAddress(point);
+         var destination = ViewPort.Model.GetNextRun(ViewPort.Model.ReadPointer(pointerAddress));
+         if (!(destination is NoInfoRun)) {
+            Results.Add(new ContextItem("Repoint to New Copy", arg => {
+               if (destination.PointerSources.Count < 2) {
+                  ViewPort.RaiseError("This is the only pointer, no need to make a new copy.");
+                  return;
+               }
+
+               if (destination is ArrayRun) {
+                  ViewPort.RaiseError("Cannot automatically duplicate a table. This operation is unsafe.");
+                  return;
+               }
+
+               var newDestination = ViewPort.Model.FindFreeSpace(destination.Start, destination.Length);
+               if (newDestination == -1) {
+                  newDestination = ViewPort.Model.Count;
+                  ViewPort.Model.ExpandData(ViewPort.CurrentChange, ViewPort.Model.Count + destination.Length);
+               }
+               Array.Copy(ViewPort.Model.RawData, destination.Start, ViewPort.Model.RawData, newDestination, destination.Length);
+               ViewPort.Model.WritePointer(ViewPort.CurrentChange, pointerAddress, newDestination); // point to the new destination
+               ViewPort.Model.ObserveRunWritten(ViewPort.CurrentChange, destination.RemoveSource(pointerAddress)); // remove this source from the old destination
+               ViewPort.Model.ObserveRunWritten(ViewPort.CurrentChange, destination.Duplicate(newDestination, pointerAddress)); // create a new run at the new destination
+               ViewPort.RaiseMessage("New Copy added at " + newDestination.ToString("X6"));
+               ViewPort.Refresh();
+            }));
+         }
+
+         var arrayRun = ViewPort.Model.GetNextRun(pointerAddress) as ArrayRun;
+         if (arrayRun != null && arrayRun.Start <= pointerAddress) Results.AddRange(GetTableChildren(arrayRun));
          else Results.AddRange(GetFormattedChildren());
       }
 

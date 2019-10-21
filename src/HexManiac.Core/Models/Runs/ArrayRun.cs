@@ -455,7 +455,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return true;
       }
 
-      protected override IFormattedRun Clone(IReadOnlyList<int> newPointerSources) {
+      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) {
          // since the inner pointer sources includes the first row, update the first row
          List<IReadOnlyList<int>> newInnerPointerSources = null;
          if (PointerSourcesForInnerElements != null) {

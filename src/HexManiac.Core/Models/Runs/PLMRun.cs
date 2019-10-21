@@ -9,19 +9,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    /// <summary>
    /// PLMRuns have a hard-coded dependency on a table named 'movenames', which it uses to... get the names of the moves.
    /// </summary>
-   public class PLMRun : IStreamRun {
+   public class PLMRun : BaseRun, IStreamRun {
       public const int MaxLearningLevel = 100;
       public static readonly string SharedFormatString = AsciiRun.StreamDelimeter + "plm" + AsciiRun.StreamDelimeter;
       private readonly IDataModel model;
-      public int Start { get; }
-      public int Length { get; }
-      public IReadOnlyList<int> PointerSources { get; private set; }
-      public string FormatString => SharedFormatString;
+      public override int Length { get; }
+      public override string FormatString => SharedFormatString;
 
-      public PLMRun(IDataModel dataModel, int start) {
+      public PLMRun(IDataModel dataModel, int start, IReadOnlyList<int> pointerSources = null) : base(start, pointerSources) {
          model = dataModel;
          var moveNames = ModelCacheScope.GetCache(dataModel).GetOptions(EggMoveRun.MoveNamesTable);
-         Start = start;
          for (int i = Start; i < model.Count; i += 2) {
             var value = model.ReadMultiByteValue(i, 2);
             if (value == 0xFFFF) {
@@ -43,7 +40,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public static int CombineToken(int level, int move) => (level << 9) | move;
 
-      public IDataFormat CreateDataFormat(IDataModel data, int index) {
+      public override IDataFormat CreateDataFormat(IDataModel data, int index) {
          Debug.Assert(data == model);
          var moveNames = ModelCacheScope.GetCache(model).GetOptions(EggMoveRun.MoveNamesTable);
          var position = index - Start;
@@ -55,18 +52,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new PlmItem(groupStart + Start, position, level, move, moveName);
       }
 
-      public IFormattedRun MergeAnchor(IReadOnlyList<int> sources) {
-         var newSources = new HashSet<int>();
-         if (sources != null) newSources.AddRange(sources);
-         if (PointerSources != null) newSources.AddRange(PointerSources);
-         return new PLMRun(model, Start) { PointerSources = newSources.ToList() };
-      }
-
-      public IFormattedRun RemoveSource(int source) {
-         var sources = PointerSources.ToList();
-         sources.Remove(source);
-         return new PLMRun(model, Start) { PointerSources = sources };
-      }
+      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new PLMRun(model, Start, newPointerSources);
 
       public bool TryGetMoveNumber(string moveName, out int move) {
          moveName = moveName.Trim('"').ToLower();

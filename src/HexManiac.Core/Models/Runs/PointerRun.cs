@@ -17,7 +17,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var pointer = new Pointer(Start, index - Start, destinationAddress, anchor);
          return pointer;
       }
-      protected override IFormattedRun Clone(IReadOnlyList<int> newPointerSources) {
+      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) {
          return new PointerRun(Start, newPointerSources);
       }
    }

@@ -554,6 +554,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return run.Start <= search && run is ArrayRun;
       }
 
+      public void Refresh() => RefreshBackingData();
+
+      public void RaiseError(string text) => OnError?.Invoke(this, text);
+
+      public void RaiseMessage(string text) => OnMessage?.Invoke(this, text);
+
       public void ClearFormat() {
          var startDataIndex = scroll.ViewPointToDataIndex(SelectionStart);
          var endDataIndex = scroll.ViewPointToDataIndex(SelectionEnd);

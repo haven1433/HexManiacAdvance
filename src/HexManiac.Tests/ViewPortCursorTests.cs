@@ -1,5 +1,8 @@
-﻿using HavenSoft.HexManiac.Core.Models;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -215,7 +218,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void CanExpandSelection() {
          CreateStandardTestSetup(out var viewPort, out var model, out var data);
 
-         viewPort.Edit("<000100>");
+         viewPort.Edit("FF @00 ^word\"\" \"bob\"");
          viewPort.SelectionStart = new Point(1, 0);
          viewPort.ExpandSelection(1, 0);
 
@@ -349,12 +352,29 @@ namespace HavenSoft.HexManiac.Tests {
          items.Single(item => item.Text == "Copy");
          items.Single(item => item.Text == "Paste");
 
+         viewPort.ClearFormat();
+         viewPort.Model.WriteMultiByteValue(0x22, 4, new ModelDelta(), 0x000000FF);
          viewPort.Edit("^text\"\" Hello World!\"");
          viewPort.SelectionStart = new Point(5, 2);
          viewPort.ExpandSelection(5, 2);
          items = viewPort.GetContextMenuItems(viewPort.SelectionStart);
          items.Single(item => item.Text == "Copy");
          items.Single(item => item.Text == "Paste");
+      }
+
+      [Fact]
+      public void CanForkData() {
+         CreateStandardTestSetup(out var viewPort, out var model, out var data);
+         viewPort.Edit("<000008> <000008> FF @08 ^text\"\" Test\" @00");
+         viewPort.SelectionStart = new Point();
+         var items = viewPort.GetContextMenuItems(new Point());
+
+         items.Single(item => item.Text.StartsWith("Repoint")).Command.Execute();
+
+         Assert.NotEqual(0x08, model.ReadPointer(0));
+         var originalRun = (PCSRun)model.GetNextRun(8);
+         var newRun = (PCSRun)model.GetNextRun(model.ReadPointer(0));
+         Assert.Equal(originalRun.SerializeRun(), newRun.SerializeRun());
       }
 
       private static void CreateStandardTestSetup(out ViewPort viewPort, out PokemonModel model, out byte[] data) {

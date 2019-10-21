@@ -16,8 +16,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new Ascii(Start, index - Start, (char)data[index]);
       }
 
-      protected override IFormattedRun Clone(IReadOnlyList<int> newPointerSources) {
-         return new AsciiRun(Start, Length, newPointerSources);
-      }
+      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new AsciiRun(Start, Length, newPointerSources);
    }
 }

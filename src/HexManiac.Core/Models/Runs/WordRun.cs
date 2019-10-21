@@ -13,6 +13,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) => new MatchedWord(Start, index - Start, "::" + SourceArrayName);
 
-      protected override IFormattedRun Clone(IReadOnlyList<int> newPointerSources) => new WordRun(Start, SourceArrayName, newPointerSources);
+      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new WordRun(Start, SourceArrayName, newPointerSources);
    }
 }

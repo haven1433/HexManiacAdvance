@@ -751,17 +751,26 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override IFormattedRun RelocateForExpansion(ModelDelta changeToken, IFormattedRun run, int minimumLength) {
-         const int SpacerLength = 0x10;
          if (minimumLength <= run.Length) return run;
          if (CanSafelyUse(run.Start + run.Length, run.Start + minimumLength)) return run;
+
+         var freeSpace = FindFreeSpace(0x100, minimumLength);
+         if (freeSpace >= 0) {
+            return MoveRun(changeToken, run, freeSpace);
+         } else {
+            ExpandData(changeToken, RawData.Length + minimumLength);
+            return MoveRun(changeToken, run, RawData.Length - minimumLength - 1);
+         }
+      }
+
+      public override int FindFreeSpace(int start, int minimumLength) {
+         const int SpacerLength = 0x10;
          minimumLength += 0x140; // make sure there's plenty of room after, so that we're not in the middle of some other data set
-         var start = 0x100;
          var runIndex = 0;
          while (start < RawData.Length - minimumLength) {
             // catch the currentRun up to where we are
             while (runIndex < runs.Count && runs[runIndex].Start < start) runIndex++;
             var currentRun = runIndex < runs.Count ? runs[runIndex] : NoInfoRun.NullRun;
-            if (currentRun == run) { runIndex++; continue; } // special case: if the found run is our current run, ignore it, since it'll be moving.
 
             // if the space we want intersects the current run, then skip past the current run
             if (start + minimumLength > currentRun.Start) {
@@ -781,11 +790,10 @@ namespace HavenSoft.HexManiac.Core.Models {
 
             // found a good spot!
             // move the run
-            return MoveRun(changeToken, run, start);
+            return start;
          }
 
-         ExpandData(changeToken, RawData.Length + minimumLength);
-         return MoveRun(changeToken, run, RawData.Length - minimumLength - 1);
+         return -1;
       }
 
       public override void ClearFormat(ModelDelta changeToken, int originalStart, int length) {
