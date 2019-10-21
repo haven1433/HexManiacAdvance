@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
-using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public enum ElementContentViewModelType {
@@ -25,7 +24,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    }
 
    public class SplitterArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
-      public event EventHandler DataChanged;
+      event EventHandler IArrayElementViewModel.DataChanged { add { } remove { } }
+
       public bool IsInError => !string.IsNullOrEmpty(ErrorText);
       public string ErrorText { get; private set; }
       public string SectionName { get; }
