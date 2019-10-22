@@ -1,6 +1,7 @@
 ﻿<UserControl x:Class="HavenSoft.HexManiac.WPF.Controls.TabView"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:hsv="clr-namespace:HavenSoft.HexManiac.WPF.Resources"
       xmlns:hsg3hvmtr="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Tools;assembly=HexManiac.Core"
       xmlns:hsg3ww="clr-namespace:HavenSoft.HexManiac.WPF.Windows"
       xmlns:hsg3hv="clr-namespace:HavenSoft.HexManiac.WPF.Controls">
@@ -139,24 +140,56 @@
                               <Grid.ColumnDefinitions>
                                  <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
                                  <ColumnDefinition Width="*"/>
+                                 <ColumnDefinition Width="Auto"/>
                               </Grid.ColumnDefinitions>
                               <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
-                              <ComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" Grid.Column="1"/>
+                              <ComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" Margin="0,0,2,0" Grid.Column="1"/>
+                              <Button Grid.Column="2" Command="{Binding GotoSource}" Width="20" Height="20">
+                                 <Button.ToolTip>
+                                    <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                                       <TextBlock TextAlignment="Left">
+                                          Jump to the table used as<LineBreak/>
+                                          a source for the options.
+                                       </TextBlock>
+                                    </ToolTip>
+                                 </Button.ToolTip>
+                                 <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                              </Button>
                            </Grid>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:BitListArrayElementViewModel}">
-                           <ItemsControl ItemsSource="{Binding}">
-                              <ItemsControl.ItemsPanel>
-                                 <ItemsPanelTemplate>
-                                    <WrapPanel/>
-                                 </ItemsPanelTemplate>
-                              </ItemsControl.ItemsPanel>
-                              <ItemsControl.ItemTemplate>
-                                 <DataTemplate>
-                                    <CheckBox Margin="5,1,0,1" Width="115" IsChecked="{Binding IsChecked}" Content="{Binding BitLabel}"/>
-                                 </DataTemplate>
-                              </ItemsControl.ItemTemplate>
-                           </ItemsControl>
+                           <StackPanel>
+                              <Grid HorizontalAlignment="Stretch" Margin="2">
+                                 <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
+                                    <ColumnDefinition Width="*"/>
+                                 </Grid.ColumnDefinitions>
+                                 <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
+                                 <Button Grid.Column="1" HorizontalAlignment="Right" Command="{Binding LinkCommand}" Width="20" Height="20">
+                                    <Button.ToolTip>
+                                       <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                                          <TextBlock TextAlignment="Left">
+                                             Jump to the table used as<LineBreak/>
+                                             a source for the options.
+                                          </TextBlock>
+                                       </ToolTip>
+                                    </Button.ToolTip>
+                                    <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                                 </Button>
+                              </Grid>
+                              <ItemsControl ItemsSource="{Binding}">
+                                 <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                       <WrapPanel/>
+                                    </ItemsPanelTemplate>
+                                 </ItemsControl.ItemsPanel>
+                                 <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                       <CheckBox Margin="5,1,0,1" Width="115" IsChecked="{Binding IsChecked}" Content="{Binding BitLabel}"/>
+                                    </DataTemplate>
+                                 </ItemsControl.ItemTemplate>
+                              </ItemsControl>
+                           </StackPanel>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:StreamArrayElementViewModel}">
                            <TextBox UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Margin="20,2,2,2" AcceptsReturn="True"/>

@@ -150,7 +150,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var compatibilityPointer = GetNextRun(AllSourcesToSameDestination(source).Last() + 4);
             while (!(compatibilityPointer is PointerRun) && compatibilityPointer.Start < Count) compatibilityPointer = GetNextRun(compatibilityPointer.Start + compatibilityPointer.Length);
             source = compatibilityPointer.Start;
-            format = $"[pokemon|b[]{MoveTutors}]{EggMoveRun.PokemonNameTable}";
+            format = $"[moves|b[]{MoveTutors}]{EggMoveRun.PokemonNameTable}";
             AddTable(source, TutorCompatibility, format);
          }
 
@@ -169,7 +169,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             case Emerald:                               source = 0x06E048; break;
             case Ruby: case Sapphire:                   source = 0x0403B0; break;
          }
-         AddTable(source, TmCompatibility, $"[pokemon|b[]{TmMoves}]{EggMoveRun.PokemonNameTable}");
+         AddTable(source, TmCompatibility, $"[moves|b[]{TmMoves}]{EggMoveRun.PokemonNameTable}");
 
          // hmmoves
          switch (gameCode) {
