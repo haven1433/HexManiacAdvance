@@ -494,6 +494,23 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("000030", test.ViewPort.Headers[0]);
       }
 
+      [Fact]
+      public void TextToolSearchTest() {
+         var test = new BaseViewModelTestClass();
+         test.ViewPort.Edit("FF @00 ^text\"\" Hello World Worble!");
+         test.ViewPort.SelectionStart = new Point();
+         var tool = test.ViewPort.Tools.StringTool;
+
+         tool.SearchText = "wor";
+         tool.Search.Execute();
+         Assert.Equal(6, tool.ContentIndex);
+         Assert.Equal(3, tool.ContentSelectionLength);
+
+         tool.Search.Execute();
+         Assert.Equal(12, tool.ContentIndex);
+         Assert.Equal(3, tool.ContentSelectionLength);
+      }
+
       private static readonly ThumbParser parser;
       static ToolTests(){
          parser = new ThumbParser(File.ReadAllLines("Models/Code/armReference.txt"));

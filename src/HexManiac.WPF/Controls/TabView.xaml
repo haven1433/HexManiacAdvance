@@ -4,7 +4,8 @@
       xmlns:hsv="clr-namespace:HavenSoft.HexManiac.WPF.Resources"
       xmlns:hsg3hvmtr="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Tools;assembly=HexManiac.Core"
       xmlns:hsg3ww="clr-namespace:HavenSoft.HexManiac.WPF.Windows"
-      xmlns:hsg3hv="clr-namespace:HavenSoft.HexManiac.WPF.Controls">
+      xmlns:hsg3hv="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
+      DataContextChanged="HandleDataContextChanged">
    <UserControl.Resources>
       <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
       <hsg3hv:IntegerToHexConverter x:Key="Hex"/>
@@ -85,10 +86,26 @@
             <Button Margin="0,3" Command="{Binding StringTool.CheckIsText}" Content="Show As Text" HorizontalAlignment="Right" DockPanel.Dock="Top" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
             <Button Command="{Binding StringTool.InsertText}" Content="Insert New Text" HorizontalAlignment="Right" DockPanel.Dock="Top" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
             <TextBlock Text="Content:" Margin="5,30,0,0" DockPanel.Dock="Top"/>
-            <TextBox Margin="5,5" AcceptsReturn="True" MinHeight="50" Width="255" TextWrapping="Wrap" FontFamily="Consolas" VerticalScrollBarVisibility="Auto" UndoLimit="0"
-               SelectionChanged="StringToolContentSelectionChanged"
-               IsEnabled="{Binding StringTool.Enabled}"
-               Text="{Binding StringTool.Content, UpdateSourceTrigger=PropertyChanged}" />
+
+            <Button Command="{Binding StringTool.Search}" Margin="5,0" Content="Search" HorizontalAlignment="Right" DockPanel.Dock="Bottom" />
+            <TextBox Margin="5,0" Width="255" FontFamily="Consolas" Text="{Binding StringTool.SearchText, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding StringTool.Enabled}" DockPanel.Dock="Bottom">
+               <TextBox.InputBindings>
+                  <KeyBinding Key="Return" Command="{Binding StringTool.Search}"/>
+                  <KeyBinding Key="F3" Command="{Binding StringTool.Search}"/>
+               </TextBox.InputBindings>
+            </TextBox>
+            <TextBlock Text="Search:" Margin="5,0" DockPanel.Dock="Bottom"/>
+
+            <Grid Margin="5,5" MinHeight="50" Width="255">
+               <TextBox Name="StringToolTextBox" AcceptsReturn="True" TextWrapping="Wrap" FontFamily="Consolas" VerticalScrollBarVisibility="Auto" UndoLimit="0"
+                  SelectionChanged="StringToolContentSelectionChanged"
+                  LostFocus="ShowManualSelection"
+                  GotFocus="HideManualSelection"
+                  ScrollViewer.ScrollChanged="UpdateManualSelectionFromScroll"
+                  IsEnabled="{Binding StringTool.Enabled}"
+                  Text="{Binding StringTool.Content, UpdateSourceTrigger=PropertyChanged}" />
+               <Rectangle Name="ManualHighlight" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="14" Fill="{DynamicResource Accent}" Opacity=".4"/>
+            </Grid>
          </DockPanel>
          <DockPanel Width="265" Name="TableToolPanel">
             <DockPanel.Style>

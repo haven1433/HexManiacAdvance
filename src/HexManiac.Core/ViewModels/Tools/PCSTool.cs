@@ -13,6 +13,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly IToolTrayViewModel runner;
       private readonly StubCommand
          checkIsText = new StubCommand(),
+         search = new StubCommand(),
          insertText = new StubCommand();
 
       // if we're in the middle of updating ourselves, we may notify changes to other controls.
@@ -37,16 +38,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
+      private string searchText;
+      public string SearchText {
+         get => searchText;
+         set => TryUpdate(ref searchText, value);
+      }
+
       public ICommand CheckIsText => checkIsText;
+      public ICommand Search => search;
       public ICommand InsertText => insertText;
 
-      private bool showMessage;
+      private bool showMessage = true;
       public bool ShowMessage {
          get => showMessage;
          set {
             if (TryUpdate(ref showMessage, value)) {
                checkIsText.CanExecuteChanged?.Invoke(checkIsText, EventArgs.Empty);
                insertText.CanExecuteChanged?.Invoke(checkIsText, EventArgs.Empty);
+               search.CanExecuteChanged?.Invoke(checkIsText, EventArgs.Empty);
             }
          }
       }
@@ -128,6 +137,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             runner.Schedule(DataForCurrentRunChanged);
             Enabled = true;
             ShowMessage = false;
+         };
+         search.CanExecute = arg => !ShowMessage;
+         search.Execute = arg => {
+            var target = searchText.ToLower();
+            if (target.Length == 0) return;
+            var content = Content.ToLower();
+            var start = Math.Min(Content.Length - target.Length, contentIndex);
+
+            var index = content.Substring(start + 1).IndexOf(target);
+            if (index < 0) index = content.IndexOf(target);
+            else index += start + 1;
+
+            if (index < 0) return;
+            ContentIndex = index;
+            ContentSelectionLength = target.Length;
          };
       }
 
