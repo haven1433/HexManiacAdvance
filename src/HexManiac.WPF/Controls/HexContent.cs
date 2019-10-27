@@ -57,20 +57,24 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          }
 
          InvalidateVisual();
+         CursorNeedsUpdate?.Invoke(this, EventArgs.Empty);
       }
 
       private void OnViewPortContentChanged(object sender, NotifyCollectionChangedEventArgs e) {
          InvalidateVisual();
+         CursorNeedsUpdate?.Invoke(this, EventArgs.Empty);
       }
 
       private void OnViewPortPropertyChanged(object sender, PropertyChangedEventArgs e) {
          var propertyChangesThatRequireRedraw = new[] {
             nameof(Core.ViewModels.ViewPort.SelectionStart),
             nameof(Core.ViewModels.ViewPort.SelectionEnd),
+            nameof(Core.ViewModels.ViewPort.ScrollValue),
          };
 
          if (propertyChangesThatRequireRedraw.Contains(e.PropertyName)) {
             InvalidateVisual();
+            CursorNeedsUpdate?.Invoke(this, EventArgs.Empty);
          }
       }
 
@@ -99,6 +103,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       #endregion
 
+      public event EventHandler CursorNeedsUpdate;
+
       #region FontSize
 
       public static readonly DependencyProperty FontSizeProperty = DependencyProperty.Register(nameof(FontSize), typeof(int), typeof(HexContent), new FrameworkPropertyMetadata(16, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, FontSizeChanged));
@@ -116,6 +122,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void OnFontSizeChanged(DependencyPropertyChangedEventArgs e) {
          UpdateViewPortSize();
          InvalidateVisual();
+         CursorNeedsUpdate?.Invoke(this, EventArgs.Empty);
       }
 
       #endregion
@@ -134,7 +141,10 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          self.OnRequestInvalidateVisual(e);
       }
 
-      private void OnRequestInvalidateVisual(DependencyPropertyChangedEventArgs e) => InvalidateVisual();
+      private void OnRequestInvalidateVisual(DependencyPropertyChangedEventArgs e) {
+         InvalidateVisual();
+         CursorNeedsUpdate?.Invoke(this, EventArgs.Empty);
+      }
 
       #endregion
 
@@ -172,6 +182,14 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       public static readonly DependencyProperty HorizontalScrollMaximumProperty = DependencyProperty.Register("HorizontalScrollMaximum", typeof(double), typeof(HexContent), new PropertyMetadata(0.0));
 
       #endregion
+
+      public ScreenPoint CursorLocation {
+         get {
+            if (!(ViewPort is ViewPort viewPort)) return new ScreenPoint(-1, -1);
+            var selection = viewPort.SelectionStart;
+            return new ScreenPoint(selection.X * CellWidth - HorizontalScrollValue, selection.Y * CellHeight);
+         }
+      }
 
       public HexContent() {
          ClipToBounds = true;
@@ -458,6 +476,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          base.OnRenderSizeChanged(sizeInfo);
          UpdateViewPortSize();
          InvalidateVisual();
+         CursorNeedsUpdate?.Invoke(this, EventArgs.Empty);
       }
 
       protected override void OnTextInput(TextCompositionEventArgs e) {

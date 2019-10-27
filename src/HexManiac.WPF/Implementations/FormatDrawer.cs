@@ -133,10 +133,24 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
       public void Visit(None dataFormat, byte data) { }
 
+      public static double CalculateTextOffset(string text, int fontSize, double cellWidth, UnderEdit edit) {
+         var defaultText = CreateText("00", fontSize, null);
+         var baseTextOffset = (cellWidth - defaultText.Width) / 2;
+
+         var actualText = CreateText(text, fontSize, null);
+         var widthOverflow = actualText.Width - cellWidth * (edit?.EditWidth ?? 1);
+
+         if (widthOverflow > 0) {
+            return -widthOverflow + actualText.Width;
+         } else {
+            return baseTextOffset + actualText.Width;
+         }
+      }
+
       public void Visit(UnderEdit dataFormat, byte data) {
          var content = dataFormat.CurrentText;
 
-         var text = CreateText(content, fontSize, nameof(Theme.Primary));
+         var text = CreateText(content, fontSize, Brush(nameof(Theme.Primary)));
 
          var offset = CellTextOffset;
          var widthOverflow = text.Width - cellSize.Width * dataFormat.EditWidth;
@@ -260,13 +274,13 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
       
       private FormattedText TruncateText(string destination, double fontSize, string brush, int widthInCells, string postText = "", bool italics = false) {
-         var text = CreateText(destination, fontSize, brush, italics);
+         var text = CreateText(destination, fontSize, Brush(brush), italics);
          if (text.Width > cellSize.Width * widthInCells) {
             var unitWidth = text.Width / destination.Length;
             var desiredLength = destination.Length;
             while (unitWidth * desiredLength > cellSize.Width * widthInCells) desiredLength--;
             destination = destination.Substring(0, desiredLength - 1 - postText.Length) + "…" + postText;
-            text = CreateText(destination, fontSize, brush, italics);
+            text = CreateText(destination, fontSize, Brush(brush), italics);
          }
          return text;
       }
@@ -278,14 +292,14 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          return new Point(xOffset, yOffset);
       }
 
-      private FormattedText CreateText(string text, double size, string color, bool italics = false) {
+      private static FormattedText CreateText(string text, double size, SolidColorBrush color, bool italics = false) {
          var formatted = new FormattedText(
             text,
             CultureInfo.CurrentCulture,
             FlowDirection.LeftToRight,
             consolas,
             size,
-            Brush(color),
+            color,
             1.0);
          if (italics) {
             formatted.SetFontStyle(FontStyles.Italic);

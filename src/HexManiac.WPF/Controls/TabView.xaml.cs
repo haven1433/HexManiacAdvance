@@ -1,14 +1,19 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using HavenSoft.HexManiac.WPF.Implementations;
 using System;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
    public partial class TabView {
@@ -28,6 +33,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       public TabView() {
          InitializeComponent();
          CodeModeSelector.ItemsSource = Enum.GetValues(typeof(CodeMode)).Cast<CodeMode>();
+         timer = new DispatcherTimer(TimeSpan.FromSeconds(.6), DispatcherPriority.ApplicationIdle, BlinkCursor, Dispatcher);
+         timer.Stop();
       }
 
       #region Manual Selection Code
@@ -90,6 +97,55 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var horizontalStart = selectionStart * fontWidth + 2;
          var width = tool.ContentSelectionLength * fontWidth;
          ManualHighlight.Margin = new Thickness(horizontalStart, verticalStart, StringToolTextBox.ActualWidth - horizontalStart - width, 0);
+      }
+
+      #endregion
+
+      #region Blink Cursor Code
+
+      private readonly DispatcherTimer timer;
+
+      private static SolidColorBrush Brush(string name) {
+         return (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][name];
+      }
+
+      private void UpdateBlinkyCursor(object sender, EventArgs e) {
+         var screenPosition = HexContent.CursorLocation;
+         if (screenPosition.X >= 0 && screenPosition.X < HexContent.ActualWidth && screenPosition.Y >= 0 && screenPosition.Y < HexContent.ActualHeight) {
+            var dataPosition = ((ViewPort)HexContent.ViewPort).SelectionStart;
+            var format = HexContent.ViewPort[dataPosition.X, dataPosition.Y].Format;
+            double offset;
+            if (format is UnderEdit edit) {
+               offset = FormatDrawer.CalculateTextOffset(edit.CurrentText, HexContent.FontSize, HexContent.CellWidth, edit);
+            } else {
+               offset = FormatDrawer.CalculateTextOffset(string.Empty, HexContent.FontSize, HexContent.CellWidth, null);
+            }
+            BlinkyCursor.Margin = new Thickness(screenPosition.X + offset, screenPosition.Y, 0, 0);
+            BlinkyCursor.Height = HexContent.CellHeight;
+            BlinkyCursor.Visibility = Visibility.Visible;
+         } else {
+            BlinkyCursor.Visibility = Visibility.Collapsed;
+         }
+      }
+
+      private void ShowCursor(object sender, RoutedEventArgs e) {
+         if (!(HexContent.ViewPort is ViewPort)) return;
+         BlinkyCursor.Fill = Brush(nameof(Theme.Secondary));
+         timer.Start();
+      }
+
+      private void HideCursor(object sender, RoutedEventArgs e) {
+         if (!(HexContent.ViewPort is ViewPort)) return;
+         timer.Stop();
+         BlinkyCursor.Fill = Brushes.Transparent;
+      }
+
+      private void BlinkCursor(object sender, EventArgs e) {
+         if (BlinkyCursor.Fill == Brushes.Transparent) {
+            BlinkyCursor.Fill = Brush(nameof(Theme.Secondary));
+         } else {
+            BlinkyCursor.Fill = Brushes.Transparent;
+         }
       }
 
       #endregion

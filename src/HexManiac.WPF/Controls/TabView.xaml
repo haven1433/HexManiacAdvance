@@ -284,6 +284,9 @@
       <ScrollBar DockPanel.Dock="Bottom" Orientation="Horizontal" SmallChange="10" LargeChange="{Binding CellWidth, ElementName=HexContent}"
          Minimum="0" Maximum="{Binding HorizontalScrollMaximum, ElementName=HexContent}" Value="{Binding HorizontalScrollValue, ElementName=HexContent}"
          Visibility="{Binding ShowHorizontalScroll, ElementName=HexContent, Converter={StaticResource BoolToVisibility}}" />
-      <hsg3hv:HexContent x:Name="HexContent" ViewPort="{Binding}" FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=ZoomLevel}"  ShowGrid="{Binding DataContext.ShowMatrix, RelativeSource={RelativeSource AncestorType=hsg3ww:MainWindow}}" Margin=".5,.5,0,0"/>
+      <Grid Margin=".5,.5,0,0">
+         <hsg3hv:HexContent x:Name="HexContent" GotFocus="ShowCursor" LostFocus="HideCursor" ViewPort="{Binding}" FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=ZoomLevel}"  ShowGrid="{Binding DataContext.ShowMatrix, RelativeSource={RelativeSource AncestorType=hsg3ww:MainWindow}}" CursorNeedsUpdate="UpdateBlinkyCursor"/>
+         <Rectangle Width="1" Fill="{DynamicResource Secondary}" Visibility="Collapsed" IsHitTestVisible="False" Name="BlinkyCursor" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+      </Grid>
    </DockPanel>
 </UserControl>
