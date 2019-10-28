@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class ModelCacheScope : IDisposable {
@@ -37,7 +38,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       private readonly Dictionary<string, IReadOnlyList<string>> cachedOptions = new Dictionary<string, IReadOnlyList<string>>();
       public IReadOnlyList<string> GetOptions(string table) {
-         if (!cachedOptions.ContainsKey(table)) cachedOptions[table] = ArrayRunEnumSegment.GetOptions(model, table) ?? new List<string>();
+         if (!cachedOptions.ContainsKey(table)) cachedOptions[table] = GetOptions(model, table) ?? new List<string>();
          return cachedOptions[table];
       }
 
@@ -64,6 +65,32 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
 
          cachedOptions[enumName] = results;
+         return results;
+      }
+
+      private static IReadOnlyList<string> GetOptions(IDataModel model, string enumName) {
+         if (!model.TryGetNameArray(enumName, out var enumArray)) return new string[0];
+
+         // array must be at least as long as than the current value
+         var optionCount = enumArray.ElementCount;
+
+         // sweet, we can convert from the integer value to the enum value
+         var results = new List<string>();
+         for (int i = 0; i < optionCount; i++) {
+            var elementStart = enumArray.Start + enumArray.ElementLength * i;
+            var valueWithQuotes = PCSString.Convert(model, elementStart, enumArray.ElementContent[0].Length)?.Trim() ?? string.Empty;
+
+            if (valueWithQuotes.Contains(' ')) {
+               results.Add(valueWithQuotes);
+               continue;
+            }
+
+            var value = valueWithQuotes;
+            if (value.StartsWith("\"")) value = value.Substring(1);
+            if (value.EndsWith("\"")) value = value.Substring(0, value.Length - 1);
+            results.Add(value);
+         }
+
          return results;
       }
    }

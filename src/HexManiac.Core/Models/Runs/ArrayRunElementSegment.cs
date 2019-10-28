@@ -53,26 +53,28 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public override string ToText(IDataModel model, int offset) {
          var noChange = new NoDataChangeDeltaModel();
-         var options = GetOptions(model);
-         if (options == null) return base.ToText(model, offset);
+         using (ModelCacheScope.CreateScope(model)) {
+            var options = GetOptions(model);
+            if (options == null) return base.ToText(model, offset);
 
-         var resultAsInteger = ToInteger(model, offset, Length);
-         if (resultAsInteger >= options.Count) return base.ToText(model, offset);
-         var value = options[resultAsInteger];
+            var resultAsInteger = ToInteger(model, offset, Length);
+            if (resultAsInteger >= options.Count) return base.ToText(model, offset);
+            var value = options[resultAsInteger];
 
-         // use ~2 postfix for a value if an earlier entry in the array has the same string
-         var elementsUpToHereWithThisName = 1;
-         for (int i = resultAsInteger - 1; i >= 0; i--) {
-            var previousValue = options[i];
-            if (previousValue == value) elementsUpToHereWithThisName++;
+            // use ~2 postfix for a value if an earlier entry in the array has the same string
+            var elementsUpToHereWithThisName = 1;
+            for (int i = resultAsInteger - 1; i >= 0; i--) {
+               var previousValue = options[i];
+               if (previousValue == value) elementsUpToHereWithThisName++;
+            }
+            if (value.StartsWith("\"") && value.EndsWith("\"")) value = value.Substring(1, value.Length - 2);
+            if (elementsUpToHereWithThisName > 1) value += "~" + elementsUpToHereWithThisName;
+
+            // add quotes around it if it contains a space
+            if (value.Contains(' ')) value = $"\"{value}\"";
+
+            return value;
          }
-         if (value.StartsWith("\"") && value.EndsWith("\"")) value = value.Substring(1, value.Length - 2);
-         if (elementsUpToHereWithThisName > 1) value += "~" + elementsUpToHereWithThisName;
-
-         // add quotes around it if it contains a space
-         if (value.Contains(' ')) value = $"\"{value}\"";
-
-         return value;
       }
 
       public bool TryParse(IDataModel model, string text, out int value) {
@@ -116,40 +118,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return false;
       }
 
-      private IReadOnlyList<string> cachedOptions;
       public IReadOnlyList<string> GetOptions(IDataModel model) {
-         if (cachedOptions != null) return cachedOptions;
-         cachedOptions = GetOptions(model, EnumName);
-         return cachedOptions;
+         if (int.TryParse(EnumName, out var result)) return Enumerable.Range(0, result).Select(i => i.ToString()).ToList();
+         return ModelCacheScope.GetCache(model).GetOptions(EnumName);
       }
-
-      public static IReadOnlyList<string> GetOptions(IDataModel model, string enumName) {
-         if (!model.TryGetNameArray(enumName, out var enumArray)) return new string[0];
-
-         // array must be at least as long as than the current value
-         var optionCount = enumArray.ElementCount;
-
-         // sweet, we can convert from the integer value to the enum value
-         var results = new List<string>();
-         for (int i = 0; i < optionCount; i++) {
-            var elementStart = enumArray.Start + enumArray.ElementLength * i;
-            var valueWithQuotes = PCSString.Convert(model, elementStart, enumArray.ElementContent[0].Length)?.Trim() ?? string.Empty;
-
-            if (valueWithQuotes.Contains(' ')) {
-               results.Add(valueWithQuotes);
-               continue;
-            }
-
-            var value = valueWithQuotes;
-            if (value.StartsWith("\"")) value = value.Substring(1);
-            if (value.EndsWith("\"")) value = value.Substring(0, value.Length - 1);
-            results.Add(value);
-         }
-
-         return results;
-      }
-
-      public void ClearCache() { cachedOptions = null; }
    }
 
    public class ArrayRunBitArraySegment : ArrayRunElementSegment {

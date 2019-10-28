@@ -192,7 +192,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             case Emerald:                               source = 0x03587C; break;
             case Ruby: case Sapphire:                   source = 0x00D890; break;
          }
-         AddTable(source, "trainerdata", "[structType. class.trainerclassnames introMusic. sprite. name\"\"12 item1:items item2:items item3:items item4:items doubleBattle:: ai:: pokemonCount:: pokemon<>]");
+         AddTable(source, "trainerdata", "[structType.4 class.trainerclassnames introMusic. sprite. name\"\"12 item1:items item2:items item3:items item4:items doubleBattle:: ai:: pokemonCount:: pokemon<>]");
       }
 
       private void DecodeStreams() {

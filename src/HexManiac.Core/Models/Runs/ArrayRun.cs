@@ -482,7 +482,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (format == ElementContentType.Integer && segments.Length > formatLength && segments[formatLength] != ' ') {
                segments = segments.Substring(formatLength);
                if (int.TryParse(segments, out var maxValue)) {
-                  throw new NotImplementedException();
+                  list.Add(new ArrayRunEnumSegment(name, segmentLength, segments));
                } else {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
