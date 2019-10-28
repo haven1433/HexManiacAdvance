@@ -147,9 +147,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
             format = $"[move:{EggMoveRun.MoveNamesTable}]" + (gameCode == Emerald ? 30 : 15);
             AddTable(source, MoveTutors, format);
-            var compatibilityPointer = GetNextRun(AllSourcesToSameDestination(source).Last() + 4);
-            while (!(compatibilityPointer is PointerRun) && compatibilityPointer.Start < Count) compatibilityPointer = GetNextRun(compatibilityPointer.Start + compatibilityPointer.Length);
-            source = compatibilityPointer.Start;
+            source += gameCode == Emerald ? 0x24 : 0x4C;
             format = $"[moves|b[]{MoveTutors}]{EggMoveRun.PokemonNameTable}";
             AddTable(source, TutorCompatibility, format);
          }
