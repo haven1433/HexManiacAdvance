@@ -187,6 +187,14 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
          source = GetNextRun(source).Start;
          AddTable(source, "itemimages", "[image<> palette<>]items");
+
+         // trainer teams
+         switch (gameCode) {
+            case FireRed: case LeafGreen:               source = 0x00FC00; break;
+            case Emerald:                               source = 0x03587C; break;
+            case Ruby: case Sapphire:                   source = 0x00D890; break;
+         }
+         AddTable(source, "trainerdata", "[structType. class.trainerclassnames introMusic. sprite. name\"\"12 item1:items item2:items item3:items item4:items doubleBattle:: ai:: pokemonCount:: pokemon<>]");
       }
 
       private void DecodeStreams() {
@@ -212,6 +220,15 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (source < 0 || source > RawData.Length) return;
          var destination = ReadPointer(source);
          if (destination < 0 || destination > RawData.Length) return;
+
+         var interruptingRun = GetNextRun(destination);
+         if (interruptingRun.Start < destination && interruptingRun is ArrayRun array) {
+            var elementLength = array.ElementLength;
+            var elementCount = (destination - array.Start) / array.ElementLength;
+            array = array.Append(elementCount - array.ElementCount);
+            ObserveAnchorWritten(noChangeDelta, GetAnchorFromAddress(-1, array.Start), array);
+         }
+
          var errorInfo = ArrayRun.TryParse(this, format, destination, null, out var arrayRun);
          if (!errorInfo.HasError) {
             ObserveAnchorWritten(noChangeDelta, name, arrayRun);

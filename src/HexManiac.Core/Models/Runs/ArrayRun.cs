@@ -584,7 +584,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          switch (segment.Type) {
             case ElementContentType.PCS:
                int readLength = PCSString.ReadString(owner, start, true, segment.Length);
-               if (readLength < 2) return false;
+               if (readLength < 1) return false;
                if (readLength > segment.Length) return false;
                if (Enumerable.Range(start, segment.Length).All(i => owner[i] == 0xFF)) return false;
 
