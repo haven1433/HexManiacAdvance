@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
-using System.Linq;
+using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public enum ElementContentViewModelType {
@@ -25,13 +25,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    }
 
    public class SplitterArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
-      public event EventHandler DataChanged;
+      event EventHandler IArrayElementViewModel.DataChanged { add { } remove { } }
+
       public bool IsInError => !string.IsNullOrEmpty(ErrorText);
-      public string ErrorText { get; private set; }
+      public string ErrorText { get; }
       public string SectionName { get; }
       public SplitterArrayElementViewModel(string sectionName) => SectionName = sectionName;
    }
-   
+
    public interface IFieldArrayElementViewModelStrategy {
       ElementContentViewModelType Type { get; }
       void UpdateModelFromViewModel(FieldArrayElementViewModel viewModel);
@@ -178,6 +179,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public string Name { get; }
       public int Start { get; }
       public int Length { get; }
+      public ICommand GotoSource { get; }
 
       public ElementContentViewModelType Type => ElementContentViewModelType.ComboBox;
 
@@ -214,11 +216,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
-      public ComboBoxArrayElementViewModel(ChangeHistory<ModelDelta> history, IDataModel model, string name, int start, int length) {
+      public ComboBoxArrayElementViewModel(Selection selection, ChangeHistory<ModelDelta> history, IDataModel model, string name, int start, int length) {
          (this.history, Model, Name, Start, Length) = (history, model, name, start, length);
          var run = (ArrayRun)Model.GetNextRun(Start);
          var offsets = run.ConvertByteOffsetToArrayOffset(start);
          var segment = (ArrayRunEnumSegment)run.ElementContent[offsets.SegmentIndex];
+         var optionSource = model.GetAddressFromAnchor(history.CurrentChange, -1, segment.EnumName);
          Options = new ObservableCollection<string>(segment.GetOptions(model));
          var value = model.ReadMultiByteValue(start, length);
          if (value >= Options.Count) {
@@ -228,6 +231,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          } else {
             selectedIndex = model.ReadMultiByteValue(start, length);
          }
+         GotoSource = new StubCommand {
+            CanExecute = arg => optionSource != Pointer.NULL,
+            Execute = arg => selection.GotoAddress(optionSource),
+         };
       }
    }
 
@@ -283,25 +290,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class BitListArrayElementViewModel : ViewModelCore, IReadOnlyList<BitElement>, IArrayElementViewModel {
       private readonly ChangeHistory<ModelDelta> history;
       private readonly IDataModel model;
-      private readonly string name;
       private readonly int start;
       private readonly List<BitElement> children = new List<BitElement>();
       private readonly ArrayRunBitArraySegment segment;
 
+      public string Name { get; }
+
       public bool IsInError => !string.IsNullOrEmpty(ErrorText);
       public string ErrorText { get; private set; }
 
+      public ICommand LinkCommand { get; }
+
       public event EventHandler DataChanged;
 
-      public BitListArrayElementViewModel(ChangeHistory<ModelDelta> history, IDataModel model, string name, int start) {
+      public BitListArrayElementViewModel(Selection selection, ChangeHistory<ModelDelta> history, IDataModel model, string name, int start) {
          this.history = history;
          this.model = model;
-         this.name = name;
+         Name = name;
          this.start = start;
 
          var array = (ArrayRun)model.GetNextRun(start);
          var offset = array.ConvertByteOffsetToArrayOffset(start);
          segment = (ArrayRunBitArraySegment)array.ElementContent[offset.SegmentIndex];
+         var optionSource = model.GetAddressFromAnchor(history.CurrentChange, -1, segment.SourceArrayName);
          var bits = model.ReadMultiByteValue(start, segment.Length);
          var names = segment.GetOptions(model);
          for (int i = 0; i < names.Count; i++) {
@@ -309,6 +320,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             children.Add(element);
             element.PropertyChanged += ChildChanged;
          }
+
+         LinkCommand = new StubCommand {
+            CanExecute = arg => optionSource != Pointer.NULL,
+            Execute = arg => selection.GotoAddress(optionSource),
+         };
 
          UpdateViewFromModel();
       }

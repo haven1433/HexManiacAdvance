@@ -483,6 +483,34 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("00 00 00 00", viewPort.Tools.CodeTool.Content.Trim());
       }
 
+      [Fact]
+      public void TableToolContainsListOfAllTables() {
+         var test = new BaseViewModelTestClass();
+
+         test.ViewPort.Edit("^table1[data\"\"6]4 @30 ^table2[data\"\"6]4 ");
+         Assert.Equal(2, test.ViewPort.Tools.TableTool.TableList.Count());
+
+         test.ViewPort.Tools.TableTool.SelectedTableIndex = 1;
+         Assert.Equal("000030", test.ViewPort.Headers[0]);
+      }
+
+      [Fact]
+      public void TextToolSearchTest() {
+         var test = new BaseViewModelTestClass();
+         test.ViewPort.Edit("FF @00 ^text\"\" Hello World Worble!");
+         test.ViewPort.SelectionStart = new Point();
+         var tool = test.ViewPort.Tools.StringTool;
+
+         tool.SearchText = "wor";
+         tool.Search.Execute();
+         Assert.Equal(6, tool.ContentIndex);
+         Assert.Equal(3, tool.ContentSelectionLength);
+
+         tool.Search.Execute();
+         Assert.Equal(12, tool.ContentIndex);
+         Assert.Equal(3, tool.ContentSelectionLength);
+      }
+
       private static readonly ThumbParser parser;
       static ToolTests(){
          parser = new ThumbParser(File.ReadAllLines("Models/Code/armReference.txt"));

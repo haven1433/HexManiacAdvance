@@ -12,6 +12,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       IDataFormat CreateDataFormat(IDataModel data, int index);
       IFormattedRun MergeAnchor(IReadOnlyList<int> sources);
       IFormattedRun RemoveSource(int source);
+      IFormattedRun Duplicate(int start, params int[] pointerSources);
    }
 
    /// <summary>
@@ -52,12 +53,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public IDataFormat CreateDataFormat(IDataModel data, int index) => throw new NotImplementedException();
       public IFormattedRun MergeAnchor(IReadOnlyList<int> other) => throw new NotImplementedException();
       public IFormattedRun RemoveSource(int source) => throw new NotImplementedException();
+
+      public IFormattedRun Duplicate(int start, params int[] pointerSources) => throw new NotImplementedException();
    }
 
    public abstract class BaseRun : IFormattedRun {
       public const char AnchorStart = '^';
 
-      public int Start { get; }
+      public int Start { get; private set; }
       public abstract int Length { get; }
       public abstract string FormatString { get; }
       public IReadOnlyList<int> PointerSources { get; private set; }
@@ -80,7 +83,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return Clone(PointerSources.Except(new[] { source }).ToList());
       }
 
-      protected abstract IFormattedRun Clone(IReadOnlyList<int> newPointerSources);
+      public IFormattedRun Duplicate(int start, params int[] pointerSources) {
+         var copy = Clone(pointerSources);
+         copy.Start = start;
+         return copy;
+      }
+
+      protected abstract BaseRun Clone(IReadOnlyList<int> newPointerSources);
    }
 
    public class NoInfoRun : BaseRun {
@@ -92,7 +101,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public NoInfoRun(int start, IReadOnlyList<int> sources = null) : base(start, sources) { }
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) => None.Instance;
-      protected override IFormattedRun Clone(IReadOnlyList<int> newPointerSources) {
+      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) {
          return new NoInfoRun(Start, newPointerSources);
       }
    }

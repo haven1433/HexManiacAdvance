@@ -554,6 +554,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return run.Start <= search && run is ArrayRun;
       }
 
+      public void Refresh() => RefreshBackingData();
+
+      public void RaiseError(string text) => OnError?.Invoke(this, text);
+
+      public void RaiseMessage(string text) => OnMessage?.Invoke(this, text);
+
       public void ClearFormat() {
          var startDataIndex = scroll.ViewPointToDataIndex(SelectionStart);
          var endDataIndex = scroll.ViewPointToDataIndex(SelectionEnd);
@@ -1006,8 +1012,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (run.Start > index) return;
          if (run is ArrayRun array) {
             var offsets = array.ConvertByteOffsetToArrayOffset(index);
-            SelectionStart = scroll.DataIndexToViewPoint(offsets.SegmentStart);
-            SelectionEnd = scroll.DataIndexToViewPoint(offsets.SegmentStart + array.ElementContent[offsets.SegmentIndex].Length - 1);
+            if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Pointer) {
+               FollowLink(x, y);
+            } else {
+               SelectionStart = scroll.DataIndexToViewPoint(offsets.SegmentStart);
+               SelectionEnd = scroll.DataIndexToViewPoint(offsets.SegmentStart + array.ElementContent[offsets.SegmentIndex].Length - 1);
+            }
+         } else if (run is PointerRun pointer) {
+            FollowLink(x, y);
          } else {
             SelectionStart = scroll.DataIndexToViewPoint(run.Start);
             SelectionEnd = scroll.DataIndexToViewPoint(run.Start + run.Length - 1);

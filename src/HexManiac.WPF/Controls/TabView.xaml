@@ -1,9 +1,11 @@
 ﻿<UserControl x:Class="HavenSoft.HexManiac.WPF.Controls.TabView"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:hsv="clr-namespace:HavenSoft.HexManiac.WPF.Resources"
       xmlns:hsg3hvmtr="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Tools;assembly=HexManiac.Core"
       xmlns:hsg3ww="clr-namespace:HavenSoft.HexManiac.WPF.Windows"
-      xmlns:hsg3hv="clr-namespace:HavenSoft.HexManiac.WPF.Controls">
+      xmlns:hsg3hv="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
+      DataContextChanged="HandleDataContextChanged">
    <UserControl.Resources>
       <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
       <hsg3hv:IntegerToHexConverter x:Key="Hex"/>
@@ -84,10 +86,26 @@
             <Button Margin="0,3" Command="{Binding StringTool.CheckIsText}" Content="Show As Text" HorizontalAlignment="Right" DockPanel.Dock="Top" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
             <Button Command="{Binding StringTool.InsertText}" Content="Insert New Text" HorizontalAlignment="Right" DockPanel.Dock="Top" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
             <TextBlock Text="Content:" Margin="5,30,0,0" DockPanel.Dock="Top"/>
-            <TextBox Margin="5,5" AcceptsReturn="True" MinHeight="50" Width="255" TextWrapping="Wrap" FontFamily="Consolas" VerticalScrollBarVisibility="Auto" UndoLimit="0"
-               SelectionChanged="StringToolContentSelectionChanged"
-               IsEnabled="{Binding StringTool.Enabled}"
-               Text="{Binding StringTool.Content, UpdateSourceTrigger=PropertyChanged}" />
+
+            <Button Command="{Binding StringTool.Search}" Margin="5,0" Content="Search" HorizontalAlignment="Right" DockPanel.Dock="Bottom" />
+            <TextBox Margin="5,0" Width="255" FontFamily="Consolas" Text="{Binding StringTool.SearchText, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding StringTool.Enabled}" DockPanel.Dock="Bottom">
+               <TextBox.InputBindings>
+                  <KeyBinding Key="Return" Command="{Binding StringTool.Search}"/>
+                  <KeyBinding Key="F3" Command="{Binding StringTool.Search}"/>
+               </TextBox.InputBindings>
+            </TextBox>
+            <TextBlock Text="Search:" Margin="5,0" DockPanel.Dock="Bottom"/>
+
+            <Grid Margin="5,5" MinHeight="50" Width="255">
+               <TextBox Name="StringToolTextBox" AcceptsReturn="True" TextWrapping="Wrap" FontFamily="Consolas" VerticalScrollBarVisibility="Auto" UndoLimit="0"
+                  SelectionChanged="StringToolContentSelectionChanged"
+                  LostFocus="ShowManualSelection"
+                  GotFocus="HideManualSelection"
+                  ScrollViewer.ScrollChanged="UpdateManualSelectionFromScroll"
+                  IsEnabled="{Binding StringTool.Enabled}"
+                  Text="{Binding StringTool.Content, UpdateSourceTrigger=PropertyChanged}" />
+               <Rectangle Name="ManualHighlight" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="14" Fill="{DynamicResource Accent}" Opacity=".4"/>
+            </Grid>
          </DockPanel>
          <DockPanel Width="265" Name="TableToolPanel">
             <DockPanel.Style>
@@ -100,12 +118,13 @@
                   </Style.Triggers>
                </Style>
             </DockPanel.Style>
+            <ComboBox ItemsSource="{Binding TableTool.TableList}" SelectedIndex="{Binding TableTool.SelectedTableIndex}" HorizontalAlignment="Center" MaxWidth="200" DockPanel.Dock="Top"/>
             <TextBlock Text="{Binding TableTool.CurrentElementName}" HorizontalAlignment="Center" Margin="0,2" MaxWidth="200" TextWrapping="Wrap" TextAlignment="Center" DockPanel.Dock="Top"/>
             <Grid DockPanel.Dock="Top">
                <Button Margin="5" Content="Previous" Command="{Binding TableTool.Previous}" HorizontalAlignment="Left"/>
                <Button Margin="5" Content="Next" Command="{Binding TableTool.Next}" HorizontalAlignment="Right"/>
             </Grid>
-            <Border Margin="5" HorizontalAlignment="Right" DockPanel.Dock="Top">
+            <Border Margin="5" HorizontalAlignment="Right" DockPanel.Dock="Top" ToolTipService.InitialShowDelay="0">
                <Border.ToolTip>
                   <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
                      <TextBlock TextAlignment="Left">
@@ -138,24 +157,56 @@
                               <Grid.ColumnDefinitions>
                                  <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
                                  <ColumnDefinition Width="*"/>
+                                 <ColumnDefinition Width="Auto"/>
                               </Grid.ColumnDefinitions>
                               <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
-                              <ComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" Grid.Column="1"/>
+                              <ComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" Margin="0,0,2,0" Grid.Column="1"/>
+                              <Button Grid.Column="2" Command="{Binding GotoSource}" Width="20" Height="20">
+                                 <Button.ToolTip>
+                                    <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                                       <TextBlock TextAlignment="Left">
+                                          Jump to the table used as<LineBreak/>
+                                          a source for the options.
+                                       </TextBlock>
+                                    </ToolTip>
+                                 </Button.ToolTip>
+                                 <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                              </Button>
                            </Grid>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:BitListArrayElementViewModel}">
-                           <ItemsControl ItemsSource="{Binding}">
-                              <ItemsControl.ItemsPanel>
-                                 <ItemsPanelTemplate>
-                                    <WrapPanel/>
-                                 </ItemsPanelTemplate>
-                              </ItemsControl.ItemsPanel>
-                              <ItemsControl.ItemTemplate>
-                                 <DataTemplate>
-                                    <CheckBox Margin="5,1,0,1" Width="115" IsChecked="{Binding IsChecked}" Content="{Binding BitLabel}"/>
-                                 </DataTemplate>
-                              </ItemsControl.ItemTemplate>
-                           </ItemsControl>
+                           <StackPanel>
+                              <Grid HorizontalAlignment="Stretch" Margin="2">
+                                 <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
+                                    <ColumnDefinition Width="*"/>
+                                 </Grid.ColumnDefinitions>
+                                 <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
+                                 <Button Grid.Column="1" HorizontalAlignment="Right" Command="{Binding LinkCommand}" Width="20" Height="20">
+                                    <Button.ToolTip>
+                                       <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                                          <TextBlock TextAlignment="Left">
+                                             Jump to the table used as<LineBreak/>
+                                             a source for the options.
+                                          </TextBlock>
+                                       </ToolTip>
+                                    </Button.ToolTip>
+                                    <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                                 </Button>
+                              </Grid>
+                              <ItemsControl ItemsSource="{Binding}">
+                                 <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                       <WrapPanel/>
+                                    </ItemsPanelTemplate>
+                                 </ItemsControl.ItemsPanel>
+                                 <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                       <CheckBox Margin="5,1,0,1" Width="115" IsChecked="{Binding IsChecked}" Content="{Binding BitLabel}"/>
+                                    </DataTemplate>
+                                 </ItemsControl.ItemTemplate>
+                              </ItemsControl>
+                           </StackPanel>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:StreamArrayElementViewModel}">
                            <TextBox UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Margin="20,2,2,2" AcceptsReturn="True"/>
@@ -233,6 +284,9 @@
       <ScrollBar DockPanel.Dock="Bottom" Orientation="Horizontal" SmallChange="10" LargeChange="{Binding CellWidth, ElementName=HexContent}"
          Minimum="0" Maximum="{Binding HorizontalScrollMaximum, ElementName=HexContent}" Value="{Binding HorizontalScrollValue, ElementName=HexContent}"
          Visibility="{Binding ShowHorizontalScroll, ElementName=HexContent, Converter={StaticResource BoolToVisibility}}" />
-      <hsg3hv:HexContent x:Name="HexContent" ViewPort="{Binding}" FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=ZoomLevel}"  ShowGrid="{Binding DataContext.ShowMatrix, RelativeSource={RelativeSource AncestorType=hsg3ww:MainWindow}}" Margin=".5,.5,0,0"/>
+      <Grid Margin=".5,.5,0,0">
+         <hsg3hv:HexContent x:Name="HexContent" GotFocus="ShowCursor" LostFocus="HideCursor" ViewPort="{Binding}" FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=ZoomLevel}"  ShowGrid="{Binding DataContext.ShowMatrix, RelativeSource={RelativeSource AncestorType=hsg3ww:MainWindow}}" CursorNeedsUpdate="UpdateBlinkyCursor"/>
+         <Rectangle Width="1" Fill="{DynamicResource Secondary}" Visibility="Collapsed" IsHitTestVisible="False" Name="BlinkyCursor" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+      </Grid>
    </DockPanel>
 </UserControl>

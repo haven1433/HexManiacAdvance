@@ -455,7 +455,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return true;
       }
 
-      protected override IFormattedRun Clone(IReadOnlyList<int> newPointerSources) {
+      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) {
          // since the inner pointer sources includes the first row, update the first row
          List<IReadOnlyList<int>> newInnerPointerSources = null;
          if (PointerSourcesForInnerElements != null) {
@@ -584,7 +584,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          switch (segment.Type) {
             case ElementContentType.PCS:
                int readLength = PCSString.ReadString(owner, start, true, segment.Length);
-               if (readLength < 2) return false;
+               if (readLength < 1) return false;
                if (readLength > segment.Length) return false;
                if (Enumerable.Range(start, segment.Length).All(i => owner[i] == 0xFF)) return false;
 
