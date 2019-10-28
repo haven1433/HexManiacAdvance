@@ -249,6 +249,13 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(compatibilityElementLength, compatibility.ElementContent[0].Length);
       }
 
+      [SkippableFact]
+      public void TutorsCompatibilityContainsCorrectDataFireRed() {
+         var model = fixture.LoadModel((string)PokemonGames.Select(array=>(string)array[0]).Single(game => game.Contains("FireRed")));
+         var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, AutoSearchModel.TutorCompatibility);
+         Assert.Equal(0x409A, model.ReadMultiByteValue(address + 2, 2));
+      }
+
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
       public void TmsAreFound(string game) {
