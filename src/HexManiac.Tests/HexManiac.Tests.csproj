@@ -126,6 +126,11 @@ move /Y StubViewPort.cs $(SolutionDir)artifacts\$(AssemblyName)\codegen
 move /Y StubDataModel.cs $(SolutionDir)artifacts\$(AssemblyName)\codegen
 
 del *.cs</PreBuildEvent>
+    <PostBuildEvent>
+mkdir "$(TargetDir)resources"
+copy "$(TargetDir)Models\Code\*.txt" "$(TargetDir)resources"
+del "$(TargetDir)Models\Code\*.txt"
+    </PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\..\packages\xunit.core.2.4.1\build\xunit.core.targets" Condition="Exists('..\..\packages\xunit.core.2.4.1\build\xunit.core.targets')" />
 </Project>

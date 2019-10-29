@@ -513,7 +513,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       private static readonly ThumbParser parser;
       static ToolTests(){
-         parser = new ThumbParser(File.ReadAllLines("Models/Code/armReference.txt"));
+         parser = new ThumbParser(File.ReadAllLines("resources/armReference.txt"));
       }
    }
 }

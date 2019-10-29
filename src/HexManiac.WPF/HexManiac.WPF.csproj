@@ -138,4 +138,17 @@
     <Resource Include="Resources\AppImage.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+mkdir "$(TargetDir)resources"
+copy "$(TargetDir)*.dll" "$(TargetDir)resources"
+del "$(TargetDir)*.dll"
+copy "$(TargetDir)*.xml" "$(TargetDir)resources"
+del "$(TargetDir)*.xml"
+copy "$(TargetDir)*.pdb" "$(TargetDir)resources"
+del "$(TargetDir)*.pdb"
+copy "$(TargetDir)Models\Code\*.txt" "$(TargetDir)resources"
+del "$(TargetDir)Models\Code\*.txt"
+    </PostBuildEvent>
+  </PropertyGroup>
 </Project>
