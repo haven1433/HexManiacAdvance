@@ -292,7 +292,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly IDataModel model;
       private readonly int start;
       private readonly List<BitElement> children = new List<BitElement>();
-      private readonly ArrayRunBitArraySegment segment;
+      private readonly ArrayRunElementSegment segment;
+      private readonly ArrayRun rotatedBitArray;
 
       public string Name { get; }
 
@@ -310,21 +311,49 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          this.start = start;
 
          var array = (ArrayRun)model.GetNextRun(start);
+         var anchor = model.GetAnchorFromAddress(-1, array.Start);
          var offset = array.ConvertByteOffsetToArrayOffset(start);
-         segment = (ArrayRunBitArraySegment)array.ElementContent[offset.SegmentIndex];
-         var optionSource = model.GetAddressFromAnchor(history.CurrentChange, -1, segment.SourceArrayName);
-         var bits = model.ReadMultiByteValue(start, segment.Length);
-         var names = segment.GetOptions(model);
-         for (int i = 0; i < names.Count; i++) {
-            var element = new BitElement { BitLabel = names[i] };
-            children.Add(element);
-            element.PropertyChanged += ChildChanged;
-         }
+         segment = array.ElementContent[offset.SegmentIndex];
+         if (segment is ArrayRunBitArraySegment bitSegment) {
+            // get all the bits of this segment and turn them into BitElements
+            var optionSource = model.GetAddressFromAnchor(history.CurrentChange, -1, bitSegment.SourceArrayName);
+            var bits = model.ReadMultiByteValue(start, bitSegment.Length);
+            var names = bitSegment.GetOptions(model);
+            for (int i = 0; i < names.Count; i++) {
+               var element = new BitElement { BitLabel = names[i] };
+               children.Add(element);
+               element.PropertyChanged += ChildChanged;
+            }
 
-         LinkCommand = new StubCommand {
-            CanExecute = arg => optionSource != Pointer.NULL,
-            Execute = arg => selection.GotoAddress(optionSource),
-         };
+            LinkCommand = new StubCommand {
+               CanExecute = arg => optionSource != Pointer.NULL,
+               Execute = arg => selection.GotoAddress(optionSource),
+            };
+         } else if (segment is ArrayRunEnumSegment enumSegment) {
+            // get 1 bit of each segment and turn them into BitElements
+            foreach (var option in model.Arrays) {
+               if (option.ElementNames.Count != option.ElementCount) continue;
+               var segment = option.ElementContent[0];
+               if (segment is ArrayRunBitArraySegment match && match.SourceArrayName == anchor && option.ElementContent.Count == 1) {
+                  rotatedBitArray = option;
+                  for (int i = 0; i < option.ElementCount; i++) {
+                     var element = new BitElement { BitLabel = option.ElementNames[i] };
+                     children.Add(element);
+                     element.PropertyChanged += ChildChanged;
+                  }
+                  break;
+               }
+               if (rotatedBitArray != null) break;
+            }
+            if (rotatedBitArray == null) throw new NotImplementedException();
+
+            LinkCommand = new StubCommand {
+               CanExecute = arg => true,
+               Execute = arg => selection.GotoAddress(rotatedBitArray.Start),
+            };
+         } else {
+            throw new NotImplementedException();
+         }
 
          UpdateViewFromModel();
       }
@@ -339,22 +368,53 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       #endregion
 
       public void UpdateModelFromView() {
-         for (int i = 0; i < segment.Length; i++) {
-            byte result = 0;
-            for (int j = 0; j < 8 && children.Count > i * 8 + j; j++) result += (byte)(children[i * 8 + j].IsChecked ? (1 << j) : 0);
-            history.CurrentChange.ChangeData(model, start + i, result);
+         if (rotatedBitArray == null) {
+            for (int i = 0; i < segment.Length; i++) {
+               byte result = 0;
+               for (int j = 0; j < 8 && children.Count > i * 8 + j; j++) result += (byte)(children[i * 8 + j].IsChecked ? (1 << j) : 0);
+               history.CurrentChange.ChangeData(model, start + i, result);
+            }
+         } else {
+            var array = (ArrayRun)model.GetNextRun(start);
+            var offset = array.ConvertByteOffsetToArrayOffset(start);
+            var bitIndex = offset.ElementIndex;
+            var (byteShift, bitShift) = (bitIndex / 8, bitIndex % 8);
+            for (int i = 0; i < rotatedBitArray.ElementCount; i++) {
+               var elementStart = rotatedBitArray.Start + rotatedBitArray.ElementLength * i + byteShift;
+               var bits = model[elementStart];
+               if (children[i].IsChecked) {
+                  bits |= (byte)(1 << bitShift);
+               } else {
+                  bits &= (byte)~(1 << bitShift);
+               }
+               if (bits != model[elementStart]) history.CurrentChange.ChangeData(model, elementStart, bits);
+            }
          }
          DataChanged?.Invoke(this, EventArgs.Empty);
       }
 
       public void UpdateViewFromModel() {
-         for (int i = 0; i < segment.Length; i++) {
-            var bits = model[start + i];
-            for (int j = 0; j < 8; j++) {
-               if (children.Count <= i * 8 + j) break;
-               children[i * 8 + j].PropertyChanged -= ChildChanged;
-               children[i * 8 + j].IsChecked = ((bits >> j) & 1) != 0;
-               children[i * 8 + j].PropertyChanged += ChildChanged;
+         if (rotatedBitArray == null) {
+            for (int i = 0; i < segment.Length; i++) {
+               var bits = model[start + i];
+               for (int j = 0; j < 8; j++) {
+                  if (children.Count <= i * 8 + j) break;
+                  children[i * 8 + j].PropertyChanged -= ChildChanged;
+                  children[i * 8 + j].IsChecked = ((bits >> j) & 1) != 0;
+                  children[i * 8 + j].PropertyChanged += ChildChanged;
+               }
+            }
+         } else {
+            var array = (ArrayRun)model.GetNextRun(start);
+            var offset = array.ConvertByteOffsetToArrayOffset(start);
+            var bitIndex = offset.ElementIndex;
+            var (byteShift, bitShift) = (bitIndex / 8, bitIndex % 8);
+            for (int i = 0; i < rotatedBitArray.ElementCount; i++) {
+               var elementStart = rotatedBitArray.Start + rotatedBitArray.ElementLength * i + byteShift;
+               var bits = model[elementStart];
+               children[i].PropertyChanged -= ChildChanged;
+               children[i].IsChecked = ((bits >> bitShift) & 1) != 0;
+               children[i].PropertyChanged += ChildChanged;
             }
          }
       }
