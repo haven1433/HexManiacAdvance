@@ -1217,7 +1217,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (even) return pair(index, index + 1);
             return pair(index - 1, index);
          }
-         if (!(run is ArrayRun array)) return (p, p);
+         if (!(run is ITableRun array)) return (p, p);
 
          var offset = array.ConvertByteOffsetToArrayOffset(index);
          var type = array.ElementContent[offset.SegmentIndex].Type;
