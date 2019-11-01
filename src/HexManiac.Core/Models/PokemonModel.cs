@@ -192,7 +192,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (i == runs.Count - 1 || runs[i].Start + runs[i].Length <= runs[i + 1].Start) continue;
             var debugRunStart1 = runs[i].Start.ToString("X6");
             var debugRunStart2 = runs[i + 1].Start.ToString("X6");
-            Debug.Fail("Conflict: there's a run that ends before the next run starts!");
+            Debug.Fail("Conflict: there's a run that ends after the next run starts!");
          }
       }
 
@@ -605,8 +605,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             // the pointer points to a known normal anchor
             var existingRun = runs[index];
             changeToken.RemoveRun(existingRun);
-            UpdateNewRunFromPointerFormat(ref existingRun, segment as ArrayRunPointerSegment, changeToken);
             existingRun = existingRun.MergeAnchor(new[] { start });
+            UpdateNewRunFromPointerFormat(ref existingRun, segment as ArrayRunPointerSegment, changeToken);
             index = BinarySearch(destination); // runs could've been removed during UpdateNewRunFromPointerFormat: search for the index again.
             if (index < 0) {
                runs.Insert(~index, existingRun);
@@ -638,7 +638,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
          } else if (segment.InnerFormat == TrainerPokemonTeamRun.SharedFormatString) {
             var runAttempt = new TrainerPokemonTeamRun(this, run.Start, run.PointerSources);
-            ClearFormat(token, run.Start, run.Length);
+            ClearFormat(token, run.Start, runAttempt.Length);
             run = runAttempt;
          } else {
             throw new NotImplementedException();
