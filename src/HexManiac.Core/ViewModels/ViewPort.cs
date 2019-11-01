@@ -847,6 +847,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   }
                }
             }
+            // option 3: the value is a move used by trainer teams
+            if (child is TrainerPokemonTeamRun team) {
+               foreach (var result in team.Search(parentArrayName, offsets.ElementIndex)) {
+                  yield return (result, result + 1);
+               }
+            }
          }
       }
 

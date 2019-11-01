@@ -9,11 +9,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public const int TrainerFormat_StructTypeOffset = 0;
       public const int TrainerFormat_PokemonCountOffset = 32;
       public const int TrainerFormat_PointerOffset = 36;
+      public const byte INCLUDE_MOVES = 1;
+      public const byte INCLUDE_ITEM = 2;
+
+      public const int PokemonFormat_FixedIVStart = 0;
+      public const int PokemonFormat_LevelStart = 2;
+      public const int PokemonFormat_PokemonStart = 4;
+      public const int PokemonFormat_MoveStart = 6;
 
       public static readonly string SharedFormatString = AsciiRun.StreamDelimeter + "tpt" + AsciiRun.StreamDelimeter;
 
-      private const byte INCLUDE_MOVES = 1;
-      private const byte INCLUDE_ITEM = 2;
       private readonly IDataModel model;
 
       public byte StructType { get; }
@@ -47,6 +52,27 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          ElementContent = segments;
          ElementLength = ElementContent.Sum(segment => segment.Length);
+      }
+
+      public IEnumerable<int> Search(string parentArrayName, int id) {
+         for (int i = 0; i < ElementCount; i++) {
+            int start = Start + i * ElementLength;
+            if (parentArrayName == EggMoveRun.MoveNamesTable && (StructType & INCLUDE_MOVES) != 0) {
+               for (int j = 0; j < 4; j++) {
+                  var index = start + PokemonFormat_MoveStart + j * 2;
+                  var moveID = model.ReadMultiByteValue(index, 2);
+                  if (moveID == id) yield return index;
+               }
+            } else if (parentArrayName == EggMoveRun.PokemonNameTable) {
+               var index = start + PokemonFormat_PokemonStart;
+               var pokemonID = model.ReadMultiByteValue(index, 2);
+               if (pokemonID == id) yield return index;
+            } else if (parentArrayName == HardcodeTablesModel.ItemsTableName && (StructType & INCLUDE_ITEM) != 0) {
+               var index = start + ElementLength - 2;
+               var itemID = model.ReadMultiByteValue(index, 2);
+               if (itemID == id) yield return index;
+            }
+         }
       }
 
       #region BaseRun
