@@ -110,10 +110,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          var pokenames = GetNextRun(GetAddressFromAnchor(noChangeDelta, -1, EggMoveRun.PokemonNameTable)) as ArrayRun;
          if (pokenames != null && TrySearch(this, noChangeDelta, format, out var pokestatdata, run => run.PointerSources.Count > 5)) {
             if (pokestatdata.ElementCount < pokenames.ElementCount) {
-               pokenames = pokenames.Append(pokestatdata.ElementCount - pokenames.ElementCount);
+               pokenames = pokenames.Append(noChangeDelta, pokestatdata.ElementCount - pokenames.ElementCount);
                ObserveAnchorWritten(noChangeDelta, EggMoveRun.PokemonNameTable, pokenames);
             } else if (pokestatdata.ElementCount > pokenames.ElementCount) {
-               pokestatdata = pokestatdata.Append(pokenames.ElementCount - pokestatdata.ElementCount);
+               pokestatdata = pokestatdata.Append(noChangeDelta, pokenames.ElementCount - pokestatdata.ElementCount);
             }
 
             ObserveAnchorWritten(noChangeDelta, "pokestats", pokestatdata);

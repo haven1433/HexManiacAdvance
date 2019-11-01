@@ -44,7 +44,7 @@ namespace HavenSoft.HexManiac.Core {
 
          return true;
       }
-      public static int IndexOfPartial(this IList<string> names, string input) {
+      public static int IndexOfPartial(this IReadOnlyList<string> names, string input) {
          // perfect match first
          var matchIndex = names.IndexOf(input);
          if (matchIndex != -1) return matchIndex;

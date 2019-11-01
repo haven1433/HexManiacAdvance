@@ -174,7 +174,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var run = Model.GetNextRun(dataIndex);
 
          using (ModelCacheScope.CreateScope(Model)) {
-            if (run.Start <= dataIndex && run is ArrayRun array) {
+            if (run.Start <= dataIndex && run is ITableRun array) {
                var offsets = array.ConvertByteOffsetToArrayOffset(dataIndex);
                Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
                Tools.TableTool.Address = array.Start + array.ElementLength * offsets.ElementIndex;

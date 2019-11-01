@@ -394,10 +394,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          return true;
       }
 
-      public override bool IsAtEndOfArray(int dataIndex, out ArrayRun arrayRun) {
+      public override bool IsAtEndOfArray(int dataIndex, out ITableRun arrayRun) {
          var index = BinarySearch(dataIndex);
          if (index >= 0 && runs[index].Length == 0) {
-            arrayRun = runs[index] as ArrayRun;
+            arrayRun = runs[index] as ITableRun;
             return arrayRun != null;
          }
 
@@ -409,7 +409,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             return false;
          }
 
-         arrayRun = runs[index] as ArrayRun;
+         arrayRun = runs[index] as ITableRun;
          return arrayRun != null && runs[index].Start + runs[index].Length == dataIndex;
       }
 
@@ -531,7 +531,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (anchor.Equals(table.LengthFromAnchor)) {
                if (arrayRun.ElementCount == table.ElementCount) continue;
                newTable = (ArrayRun)RelocateForExpansion(changeToken, table, arrayRun.ElementCount * table.ElementLength);
-               newTable = newTable.Append(arrayRun.ElementCount - table.ElementCount);
+               newTable = newTable.Append(changeToken, arrayRun.ElementCount - table.ElementCount);
                ObserveRunWritten(changeToken, newTable);
             }
             // option 2: this table includes a bit-array based on the given table
@@ -636,6 +636,10 @@ namespace HavenSoft.HexManiac.Core.Models {
                run = runAttempt.MergeAnchor(run.PointerSources);
                ClearFormat(token, run.Start, run.Length);
             }
+         } else if (segment.InnerFormat == TrainerPokemonTeamRun.SharedFormatString) {
+            var runAttempt = new TrainerPokemonTeamRun(this, run.Start, run.PointerSources);
+            ClearFormat(token, run.Start, run.Length);
+            run = runAttempt;
          } else {
             throw new NotImplementedException();
          }
@@ -1239,6 +1243,8 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private static ErrorInfo TryParseFormat(IDataModel model, string format, int dataIndex, out IFormattedRun run) {
          run = new NoInfoRun(dataIndex);
+         var existingRun = model.GetNextRun(dataIndex);
+         if (existingRun.Start == run.Start) run = run.MergeAnchor(existingRun.PointerSources);
 
          if (format == PCSRun.SharedFormatString) {
             var length = PCSString.ReadString(model, dataIndex, true);
@@ -1259,6 +1265,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          } else if (format == PLMRun.SharedFormatString) {
             run = new PLMRun(model, dataIndex);
             if (run.Length == 0) return new ErrorInfo("Format specified was for pokemon level-up move data, but could not parse that location as level-up move data.");
+         } else if (format == TrainerPokemonTeamRun.SharedFormatString) {
+            run = new TrainerPokemonTeamRun(model, dataIndex, run.PointerSources);
          } else {
             var errorInfo = TryParse(model, format, dataIndex, null, out var arrayRun);
             if (errorInfo == ErrorInfo.NoError) {

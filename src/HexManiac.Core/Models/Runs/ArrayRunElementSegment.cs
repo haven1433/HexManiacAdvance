@@ -157,6 +157,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          get {
             if (InnerFormat == PCSRun.SharedFormatString) return true;
             if (InnerFormat == PLMRun.SharedFormatString) return true;
+            if (InnerFormat == TrainerPokemonTeamRun.SharedFormatString) return true;
             return false;
          }
       }
@@ -165,7 +166,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          InnerFormat = innerFormat;
       }
 
-      public bool DestinationDataMatchesPointerFormat(IDataModel owner, ModelDelta token, int destination) {
+      public bool DestinationDataMatchesPointerFormat(IDataModel owner, ModelDelta token, int source, int destination) {
          if (destination == Pointer.NULL) return true;
          var run = owner.GetNextAnchor(destination);
          if (run.Start < destination) return false;
@@ -187,11 +188,19 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, plmRun);
                   return true;
                }
+            } else if (InnerFormat == TrainerPokemonTeamRun.SharedFormatString) {
+               var teamRun = new TrainerPokemonTeamRun(owner, destination, new[] { source });
+               var length = teamRun.Length;
+               if (length >= 2) {
+                  if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, teamRun);
+                  return true;
+               }
             }
          } else {
             // easy case: already have a useful format, just see if it matches
             if (InnerFormat == PCSRun.SharedFormatString) return run is PCSRun;
             if (InnerFormat == PLMRun.SharedFormatString) return run is PLMRun;
+            if (InnerFormat == TrainerPokemonTeamRun.SharedFormatString) return run is TrainerPokemonTeamRun;
          }
          return false;
       }
