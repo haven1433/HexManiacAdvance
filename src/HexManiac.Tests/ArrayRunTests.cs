@@ -1106,6 +1106,17 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(newTableStart, plmRun.PointerSources[0]);
       }
 
+      [Fact]
+      public void CanExtendTableWithInnerPointers() {
+         var test = new BaseViewModelTestClass();
+         test.ViewPort.Edit("^table^[data\"\"4]3 ");
+         test.ViewPort.SelectionStart = new Point(0xC, 0);
+
+         test.ViewPort.Edit("+");
+
+         Assert.Equal(0x10, test.Model.GetNextRun(0).Length);
+      }
+
       private static void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);

@@ -342,7 +342,27 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var lastArrayCharacterIndex = FormatString.LastIndexOf(ArrayEnd);
          var newFormat = FormatString.Substring(0, lastArrayCharacterIndex + 1);
          if (newFormat != FormatString) newFormat += ElementCount + elementCount;
-         return new ArrayRun(owner, newFormat, LengthFromAnchor, Start, ElementCount + elementCount, ElementContent, PointerSources, PointerSourcesForInnerElements);
+         var newInnerElementsSources = PointerSourcesForInnerElements?.ToList();
+
+         if (newInnerElementsSources != null) {
+            newInnerElementsSources = new List<IReadOnlyList<int>>(PointerSourcesForInnerElements);
+
+            // add extra elements at the back. Since this is a new element being added, it's fair to think that nothing points to it.
+            for (int i = 0; i < elementCount; i++) {
+               newInnerElementsSources.Add(new List<int>());
+            }
+
+            // remove extra elements at the back. Add NoInfoRuns for the pointers to point to.
+            for (int i = 0; i < -elementCount; i++) {
+               var noInfoRun = new NoInfoRun(Length - ElementLength * (i + 1), newInnerElementsSources[newInnerElementsSources.Count - 1]);
+               newInnerElementsSources.RemoveAt(newInnerElementsSources.Count - 1);
+
+               // TODO add the run
+               throw new NotImplementedException();
+            }
+         }
+
+         return new ArrayRun(owner, newFormat, LengthFromAnchor, Start, ElementCount + elementCount, ElementContent, PointerSources, newInnerElementsSources);
       }
 
       public ArrayRun GrowBitArraySegment(int bitSegmentIndex, int additionalBytes) {
