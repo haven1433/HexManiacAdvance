@@ -203,6 +203,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                if (destination != Pointer.NULL && model.GetNextRun(destination) is IStreamRun && pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), destination)) {
                   if (pointerSegment.InnerFormat == PCSRun.SharedFormatString || pointerSegment.InnerFormat == PLMRun.SharedFormatString) {
                      var streamElement = new StreamArrayElementViewModel(history, (FieldArrayElementViewModel)viewModel, model, item.Name, itemAddress);
+                     int parentIndex = Children.Count - 1;
+                     var streamElementName = item.Name;
+                     var streamAddress = itemAddress;
+                     Children[parentIndex].DataChanged += (sender, e) => {
+                        var newStream = new StreamArrayElementViewModel(history, (FieldArrayElementViewModel)Children[parentIndex], model, streamElementName, streamAddress);
+                        newStream.DataChanged += ForwardModelChanged;
+                        newStream.DataMoved += ForwardModelDataMoved;
+                        Children[parentIndex + 1] = newStream;
+                     };
                      streamElement.DataChanged += ForwardModelChanged;
                      streamElement.DataMoved += ForwardModelDataMoved;
                      Children.Add(streamElement);
