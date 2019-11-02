@@ -493,7 +493,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// Remove the sources that match the array's original location.
       /// Add new sources corresponding to the array's new location.
       /// </summary>
-      private void UpdateAnchorsFromArrayMove(ModelDelta changeToken, ArrayRun original, ArrayRun moved) {
+      private void UpdateAnchorsFromArrayMove(ModelDelta changeToken, ITableRun original, ITableRun moved) {
          int originalOffset = original.Start;
          int segmentOffset = moved.Start;
          // i loops over the different segments in the array
@@ -1367,6 +1367,9 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          // move run
          var newRun = run.Duplicate(newStart, run.PointerSources.ToArray());
+         if (newRun is ITableRun array) {
+            UpdateAnchorsFromArrayMove(changeToken, (ITableRun)run, array);
+         }
 
          int index = BinarySearch(run.Start);
          changeToken.RemoveRun(runs[index]);
