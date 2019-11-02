@@ -1366,20 +1366,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          // move run
-         IFormattedRun newRun;
-         if (run is PCSRun pcs) {
-            newRun = new PCSRun(this, newStart, run.Length, run.PointerSources);
-         } else if (run is ArrayRun array) {
-            var array1 = array.Move(newStart);
-            UpdateAnchorsFromArrayMove(changeToken, array, array1);
-            newRun = array1;
-         } else if (run is EggMoveRun egg) {
-            newRun = new EggMoveRun(this, newStart);
-         } else if (run is PLMRun plm) {
-            newRun = new PLMRun(this, newStart);
-         } else {
-            throw new NotImplementedException();
-         }
+         var newRun = run.Duplicate(newStart, run.PointerSources.ToArray());
 
          int index = BinarySearch(run.Start);
          changeToken.RemoveRun(runs[index]);

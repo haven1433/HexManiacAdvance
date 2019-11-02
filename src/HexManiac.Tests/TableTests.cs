@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using System;
 using System.Linq;
 using Xunit;
 
@@ -36,6 +37,18 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Edit("C ");
 
          Assert.Equal(2, Model[0x60 + TrainerPokemonTeamRun.PokemonFormat_PokemonStart]);
+      }
+
+      [Fact]
+      public void CanExtendTrainerTeamViaStream() {
+         ArrangeTrainerPokemonTeamData(0, 1);
+         Model[0x6C] = 0x0B; // add a random data value so that extending will cause moving
+
+         ViewPort.SelectionStart = new Point(0, 6);
+         var streamTool = ViewPort.Tools.StringTool;
+         streamTool.Content = $"10 A{Environment.NewLine}10 B";
+
+         Assert.NotEqual(0x60, Model.ReadPointer(0x24));
       }
 
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount) {
