@@ -206,7 +206,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var result = "Address: " + left.ToString("X6");
 
          var run = Model.GetNextRun(left);
-         if (run is ArrayRun array1 && array1.Start <= left) {
+         if (run is ITableRun array1 && array1.Start <= left) {
             var index = array1.ConvertByteOffsetToArrayOffset(left).ElementIndex;
             var basename = Model.GetAnchorFromAddress(-1, array1.Start);
             if (array1.ElementNames.Count > index) {
@@ -216,7 +216,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          } else if (run.PointerSources != null && run.PointerSources.Count > 0 && string.IsNullOrEmpty(Model.GetAnchorFromAddress(-1, run.Start))) {
             var sourceRun = Model.GetNextRun(run.PointerSources[0]);
-            if (sourceRun is ArrayRun array2) {
+            if (sourceRun is ITableRun array2) {
                // we are an anchor that's pointed to from an array
                var offset = array2.ConvertByteOffsetToArrayOffset(run.PointerSources[0]);
                var index = offset.ElementIndex;
@@ -442,7 +442,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var right = Math.Max(selectionStart, selectionEnd);
             var startRun = Model.GetNextRun(left);
             var endRun = Model.GetNextRun(right);
-            if (startRun == endRun && startRun.Start <= left && (startRun.Start < left || startRun.Start + startRun.Length - 1 > right) && startRun is ArrayRun arrayRun) {
+            if (startRun == endRun && startRun.Start <= left && (startRun.Start < left || startRun.Start + startRun.Length - 1 > right) && startRun is ITableRun arrayRun) {
                for (int i = 0; i < arrayRun.ElementCount; i++) {
                   var start = arrayRun.Start + arrayRun.ElementLength * i;
                   if (start + arrayRun.ElementLength <= left) continue;
@@ -551,7 +551,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public bool IsTable(Point point) {
          var search = scroll.ViewPointToDataIndex(point);
          var run = Model.GetNextRun(search);
-         return run.Start <= search && run is ArrayRun;
+         return run.Start <= search && run is ITableRun;
       }
 
       public void Refresh() => RefreshBackingData();
@@ -597,11 +597,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                TryCompleteEdit(point);
                return;
             }
-            if (key == ConsoleKey.Enter && run is ArrayRun arrayRun1) {
+            if (key == ConsoleKey.Enter && run is ITableRun arrayRun1) {
                var offsets = arrayRun1.ConvertByteOffsetToArrayOffset(offset);
                SilentScroll(offsets.SegmentStart + arrayRun1.ElementLength);
             }
-            if (key == ConsoleKey.Tab && run is ArrayRun arrayRun2) {
+            if (key == ConsoleKey.Tab && run is ITableRun arrayRun2) {
                var offsets = arrayRun2.ConvertByteOffsetToArrayOffset(offset);
                SilentScroll(offsets.SegmentStart + arrayRun2.ElementContent[offsets.SegmentIndex].Length);
             }
@@ -668,7 +668,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var cellToText = new ConvertCellToText(Model, run.Start);
          var cell = currentView[point.X, point.Y];
 
-         if (run is ArrayRun array) {
+         if (run is ITableRun array) {
             var offsets = array.ConvertByteOffsetToArrayOffset(index);
             if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.PCS) {
                for (int i = index + 1; i < offsets.SegmentStart + array.ElementContent[offsets.SegmentIndex].Length; i++) history.CurrentChange.ChangeData(Model, i, 0x00);
@@ -999,7 +999,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (currentRun is IStreamRun) {
                Tools.StringTool.Address = currentRun.Start;
                Tools.SelectedIndex = Tools.IndexOf(Tools.StringTool);
-            } else if (currentRun is ArrayRun array) {
+            } else if (currentRun is ITableRun array) {
                var offsets = array.ConvertByteOffsetToArrayOffset(byteOffset);
                if (format is PCS) {
                   Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
@@ -1016,7 +1016,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var index = scroll.ViewPointToDataIndex(SelectionStart);
          var run = Model.GetNextRun(index);
          if (run.Start > index) return;
-         if (run is ArrayRun array) {
+         if (run is ITableRun array) {
             var offsets = array.ConvertByteOffsetToArrayOffset(index);
             if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Pointer) {
                FollowLink(x, y);
@@ -1121,7 +1121,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             } else if (newText.StartsWith(GotoMarker.ToString())) {
                return Model.GetNewPointerAutocompleteOptions(newText, selectedIndex);
             } else if (originalFormat is IntegerEnum intEnum) {
-               var array = (ArrayRun)Model.GetNextRun(intEnum.Source);
+               var array = (ITableRun)Model.GetNextRun(intEnum.Source);
                var segment = (ArrayRunEnumSegment)array.ElementContent[array.ConvertByteOffsetToArrayOffset(intEnum.Source).SegmentIndex];
                var options = segment.GetOptions(Model).Select(option => option + " "); // autocomplete needs to complete after selection, so add a space
                return AutoCompleteSelectionItem.Generate(options.Where(option => option.MatchesPartial(newText)), selectedIndex);
@@ -1293,8 +1293,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   var run = Model.GetNextRun(completeEditOperation.NewDataIndex);
                   if (run.Start > completeEditOperation.NewDataIndex) run = new NoInfoRun(Model.Count);
                   if (completeEditOperation.DataMoved) UpdateToolsFromSelection(run.Start);
-                  if (run is ArrayRun) Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
-                  if (run is ArrayRun || run is PCSRun || run is PLMRun || run is EggMoveRun) Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
+                  if (run is ITableRun) Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
+                  if (run is ITableRun || run is IStreamRun) Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
                   if (completeEditOperation.MessageText != null) OnMessage?.Invoke(this, completeEditOperation.MessageText);
                   if (completeEditOperation.ErrorText != null) OnError?.Invoke(this, completeEditOperation.ErrorText);
                }
@@ -1464,8 +1464,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             RefreshBackingData();
          }
 
-         if (run is ArrayRun && sender != Tools.StringTool && Model.GetNextRun(Tools.StringTool.Address).Start == run.Start) Tools.StringTool.DataForCurrentRunChanged();
-         if (run is ArrayRun && sender != Tools.TableTool && Model.GetNextRun(Tools.TableTool.Address).Start == run.Start) Tools.TableTool.DataForCurrentRunChanged();
+         if (run is ITableRun && sender != Tools.StringTool && Model.GetNextRun(Tools.StringTool.Address).Start == run.Start) Tools.StringTool.DataForCurrentRunChanged();
+         if (run is ITableRun && sender != Tools.TableTool && Model.GetNextRun(Tools.TableTool.Address).Start == run.Start) Tools.TableTool.DataForCurrentRunChanged();
       }
 
       private void ModelDataMovedByTool(object sender, (int originalLocation, int newLocation) locations) {

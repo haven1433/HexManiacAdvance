@@ -28,6 +28,16 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(new Point(1, 6), ViewPort.SelectionEnd);
       }
 
+      [Fact]
+      public void HexEditingWorksForTrainerPokemon() {
+         ArrangeTrainerPokemonTeamData(0, 1);
+
+         ViewPort.SelectionStart = new Point(TrainerPokemonTeamRun.PokemonFormat_PokemonStart, 6);
+         ViewPort.Edit("C ");
+
+         Assert.Equal(2, Model[0x60 + TrainerPokemonTeamRun.PokemonFormat_PokemonStart]);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount) {
          CreateTextTable(EggMoveRun.PokemonNameTable, 0x100, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(EggMoveRun.MoveNamesTable, 0x140, "abcdefghijklmnop".Select(c => c.ToString()).ToArray());
