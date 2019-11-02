@@ -50,7 +50,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public string SerializeRun() {
-         var newContent = PCSString.Convert(model, Start, Length);
+         var newContent = PCSString.Convert(model, Start, Length) ?? "\"\"";
          newContent = newContent.Substring(1, newContent.Length - 2); // remove quotes
          return newContent;
       }

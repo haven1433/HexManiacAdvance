@@ -138,7 +138,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          if (address != Pointer.NULL) {
-            viewModel.Model.WritePointer(viewModel.History.CurrentChange, address, viewModel.Start);
+            viewModel.Model.WritePointer(viewModel.History.CurrentChange, viewModel.Start, address);
          } else {
             viewModel.ErrorText = "Address should be hexidecimal or an anchor.";
          }
@@ -146,8 +146,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public string UpdateViewModelFromModel(FieldArrayElementViewModel viewModel) {
          var value = viewModel.Model.ReadPointer(viewModel.Start);
-         var text = value.ToString("X2");
-         while (text.Length < 6) text = "0" + text;
+         var text = value.ToString("X6");
          return $"{PointerRun.PointerStart}{text}{PointerRun.PointerEnd}";
       }
    }
@@ -282,8 +281,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          // by the time we get this far, we're nearly guaranteed that this will be a IStreamRun.
          // if it's not an IStreamRun, it's because the pointer in the array doesn't actually point to a valid stream.
          // at which point, we don't want to display any content.
-         var run = (IStreamRun)model.GetNextRun(destination);
-         content = run.SerializeRun() ?? string.Empty;
+         var run = model.GetNextRun(destination) as IStreamRun;
+         content = run?.SerializeRun() ?? string.Empty;
       }
    }
 
