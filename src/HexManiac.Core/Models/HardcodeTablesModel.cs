@@ -136,7 +136,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             case Emerald:                               source = 0x06930C; break;
             case Ruby: case Sapphire:                   source = 0x03B7BC; break;
          }
-         AddTable(source, "lvlmoves", $"[moves<{PLMRun.SharedFormatString}>]{EggMoveRun.PokemonNameTable}");
+         AddTable(source, "lvlmoves", $"[movesFromLevel<{PLMRun.SharedFormatString}>]{EggMoveRun.PokemonNameTable}");
 
          // tutormoves / tutorcompatibility
          if (gameCode != Ruby && gameCode != Sapphire) {
