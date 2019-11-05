@@ -229,13 +229,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else {
             preferredWidth = DefaultPreferredWidth;
          }
-         GotoAddressAndAlign(address, preferredWidth, destinationIsArray);
+         GotoAddressAndAlign(address, preferredWidth, destinationIsArray ? destinationRun.Start : 0, destinationIsArray);
       }
 
-      private void GotoAddressAndAlign(int address, int preferredWidth, bool destinationIsArray = false) {
+      private void GotoAddressAndAlign(int address, int preferredWidth, int tableStart = 0, bool destinationIsArray = false) {
          using (ModelCacheScope.CreateScope(model)) {
             var startAddress = address;
-            if (!destinationIsArray && preferredWidth > 1) address -= address % preferredWidth;
+            if (preferredWidth > 1) address -= (address - tableStart) % preferredWidth;
 
             // first, change the selection and scroll to select the actual requested address
             SelectionStart = Scroll.DataIndexToViewPoint(startAddress);
