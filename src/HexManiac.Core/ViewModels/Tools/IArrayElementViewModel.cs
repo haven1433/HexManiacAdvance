@@ -332,41 +332,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          this.start = start;
 
          var array = (ITableRun)model.GetNextRun(start);
-         var anchor = model.GetAnchorFromAddress(-1, array.Start);
          var offset = array.ConvertByteOffsetToArrayOffset(start);
          segment = array.ElementContent[offset.SegmentIndex];
          if (segment is ArrayRunBitArraySegment bitSegment) {
-            // get all the bits of this segment and turn them into BitElements
-            var optionSource = model.GetAddressFromAnchor(history.CurrentChange, -1, bitSegment.SourceArrayName);
-            var bits = model.ReadMultiByteValue(start, bitSegment.Length);
-            var names = bitSegment.GetOptions(model);
-            for (int i = 0; i < names.Count; i++) {
-               var element = new BitElement { BitLabel = names[i] };
-               children.Add(element);
-               element.PropertyChanged += ChildChanged;
-            }
+            var optionSource = FillBodyFromBitArraySegment(bitSegment);
 
             LinkCommand = new StubCommand {
                CanExecute = arg => optionSource != Pointer.NULL,
                Execute = arg => selection.GotoAddress(optionSource),
             };
          } else if (segment is ArrayRunEnumSegment enumSegment) {
-            // get 1 bit of each segment and turn them into BitElements
-            foreach (var option in model.Arrays) {
-               if (option.ElementNames.Count != option.ElementCount) continue;
-               var segment = option.ElementContent[0];
-               if (segment is ArrayRunBitArraySegment match && match.SourceArrayName == anchor && option.ElementContent.Count == 1) {
-                  rotatedBitArray = option;
-                  for (int i = 0; i < option.ElementCount; i++) {
-                     var element = new BitElement { BitLabel = option.ElementNames[i] };
-                     children.Add(element);
-                     element.PropertyChanged += ChildChanged;
-                  }
-                  break;
-               }
-               if (rotatedBitArray != null) break;
-            }
-            if (rotatedBitArray == null) throw new NotImplementedException();
+            rotatedBitArray = FillBodyFromEnumSegment(enumSegment);
 
             LinkCommand = new StubCommand {
                CanExecute = arg => true,
@@ -377,6 +353,45 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          UpdateViewFromModel();
+      }
+
+      private int FillBodyFromBitArraySegment(ArrayRunBitArraySegment bitSegment) {
+         // get all the bits of this segment and turn them into BitElements
+         var optionSource = model.GetAddressFromAnchor(history.CurrentChange, -1, bitSegment.SourceArrayName);
+         var bits = model.ReadMultiByteValue(start, bitSegment.Length);
+         var names = bitSegment.GetOptions(model);
+         for (int i = 0; i < names.Count; i++) {
+            var element = new BitElement { BitLabel = names[i] };
+            children.Add(element);
+            element.PropertyChanged += ChildChanged;
+         }
+
+         return optionSource;
+      }
+
+      private ArrayRun FillBodyFromEnumSegment(ArrayRunEnumSegment enumSegment) {
+         // get 1 bit of each segment and turn them into BitElements
+         var array = (ITableRun)model.GetNextRun(start);
+         var anchor = model.GetAnchorFromAddress(-1, array.Start);
+         ArrayRun rotatedBitArray = null;
+
+         foreach (var option in model.Arrays) {
+            if (option.ElementNames.Count != option.ElementCount) continue;
+            var segment = option.ElementContent[0];
+            if (segment is ArrayRunBitArraySegment match && match.SourceArrayName == anchor && option.ElementContent.Count == 1) {
+               rotatedBitArray = option;
+               for (int i = 0; i < option.ElementCount; i++) {
+                  var element = new BitElement { BitLabel = option.ElementNames[i] };
+                  children.Add(element);
+                  element.PropertyChanged += ChildChanged;
+               }
+               break;
+            }
+            if (rotatedBitArray != null) break;
+         }
+         if (rotatedBitArray == null) throw new NotImplementedException();
+
+         return rotatedBitArray;
       }
 
       #region IReadOnlyList<BitElement> Implementation
