@@ -91,7 +91,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void HideCommandClosesAnyOpenTools() {
          var model = new PokemonModel(new byte[0x200]);
          var history = new ChangeHistory<ModelDelta>(null);
-         var tools = new ToolTray(model, new Selection(new ScrollRegion(), model), history);
+         var tools = new ToolTray(model, new Selection(new ScrollRegion(), model), history, null);
 
          tools.SelectedIndex = 1;
          tools.HideCommand.Execute();

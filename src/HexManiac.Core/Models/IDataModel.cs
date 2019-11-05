@@ -39,6 +39,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       int FindFreeSpace(int start, int length);
       void ClearFormat(ModelDelta changeToken, int start, int length);
       void ClearFormatAndData(ModelDelta changeToken, int start, int length);
+      void ClearPointer(ModelDelta currentChange, int source, int destination);
       string Copy(Func<ModelDelta> changeToken, int start, int length);
 
       void Load(byte[] newData, StoredMetadata metadata);
@@ -117,6 +118,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public abstract IReadOnlyList<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses);
 
       public abstract void UpdateArrayPointer(ModelDelta currentChange, ArrayRunElementSegment segment, int index, int fullValue);
+
+      public abstract void ClearPointer(ModelDelta currentChange, int source, int destination);
 
       public int ReadValue(int index) => BitConverter.ToInt32(RawData, index);
 
@@ -321,6 +324,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override void ClearFormatAndData(ModelDelta changeToken, int start, int length) {
          for (int i = 0; i < length; i++) changeToken.ChangeData(this, start + i, 0xFF);
       }
+
+      public override void ClearPointer(ModelDelta currentChange, int source, int destination) => throw new NotImplementedException();
 
       public override IReadOnlyList<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses) => throw new NotImplementedException();
 

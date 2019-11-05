@@ -418,7 +418,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          selection.PreviewSelectionStartChanged += ClearActiveEditBeforeSelectionChanges;
          selection.OnError += (sender, e) => OnError?.Invoke(this, e);
 
-         tools = new ToolTray(Model, selection, history);
+         tools = new ToolTray(Model, selection, history, this);
          Tools.OnError += (sender, e) => OnError?.Invoke(this, e);
          Tools.OnMessage += (sender, e) => OnMessage?.Invoke(this, e);
          tools.RequestMenuClose += (sender, e) => RequestMenuClose?.Invoke(this, e);
@@ -625,6 +625,33 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          underEdit = new UnderEdit(underEdit.OriginalFormat, underEdit.AutocompleteOptions[index].CompletionText, underEdit.EditWidth);
          currentView[point.X, point.Y] = new HexElement(element.Value, underEdit);
          TryCompleteEdit(point);
+      }
+
+      public void RepointToNewCopy(int pointer) {
+         var destination = Model.GetNextRun(Model.ReadPointer(pointer));
+         if (destination.PointerSources.Count < 2) {
+            OnError?.Invoke(this, "This is the only pointer, no need to make a new copy.");
+            return;
+         }
+
+         if (destination is ArrayRun) {
+            OnError?.Invoke(this, "Cannot automatically duplicate a table. This operation is unsafe.");
+            return;
+         }
+
+         var newDestination = Model.FindFreeSpace(destination.Start, destination.Length);
+         if (newDestination == -1) {
+            newDestination = Model.Count;
+            Model.ExpandData(history.CurrentChange, Model.Count + destination.Length);
+         }
+
+         Array.Copy(Model.RawData, destination.Start, Model.RawData, newDestination, destination.Length);
+         Model.ClearPointer(CurrentChange, pointer, destination.Start);
+         Model.WritePointer(CurrentChange, pointer, newDestination); // point to the new destination
+         var destination2 = Model.GetNextRun(destination.Start);
+         Model.ObserveRunWritten(CurrentChange, destination2.Duplicate(newDestination, pointer)); // create a new run at the new destination
+         OnMessage?.Invoke(this, "New Copy added at " + newDestination.ToString("X6"));
+         Refresh();
       }
 
       private void AcceptBackspace(UnderEdit underEdit, IFormattedRun run, Point point) {

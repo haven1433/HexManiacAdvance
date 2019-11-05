@@ -238,7 +238,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    }
 
    public class StreamArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
-      private readonly ChangeHistory<ModelDelta> history;
+      private readonly ViewPort viewPort;
       private readonly FieldArrayElementViewModel matchingField;
       private readonly IDataModel model;
       private readonly string name;
@@ -257,8 +257,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                using (ModelCacheScope.CreateScope(model)) {
                   var destination = model.ReadPointer(start);
                   var run = (IStreamRun)model.GetNextRun(destination);
-                  var newRun = run.DeserializeRun(content, history.CurrentChange);
-                  model.ObserveRunWritten(history.CurrentChange, newRun);
+                  var newRun = run.DeserializeRun(content, viewPort.CurrentChange);
+                  model.ObserveRunWritten(viewPort.CurrentChange, newRun);
                   if (run.Start != newRun.Start) {
                      DataMoved?.Invoke(this, (run.Start, newRun.Start));
                      matchingField.RefreshControlFromModelChange();
@@ -269,8 +269,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
-      public StreamArrayElementViewModel(ChangeHistory<ModelDelta> history, FieldArrayElementViewModel matchingField, IDataModel model, string name, int start) {
-         this.history = history;
+      public string Message { get; }
+      private bool canRepoint;
+      public bool CanRepoint { get => canRepoint; set => TryUpdate(ref canRepoint, value); }
+      public ICommand Repoint { get; }
+
+      public StreamArrayElementViewModel(ViewPort viewPort, FieldArrayElementViewModel matchingField, IDataModel model, string name, int start) {
+         this.viewPort = viewPort;
          this.matchingField = matchingField;
          this.model = model;
          this.name = name;
@@ -282,7 +287,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          // if it's not an IStreamRun, it's because the pointer in the array doesn't actually point to a valid stream.
          // at which point, we don't want to display any content.
          var run = model.GetNextRun(destination) as IStreamRun;
-         content = run?.SerializeRun() ?? string.Empty;
+         if (run != null) {
+            content = run?.SerializeRun() ?? string.Empty;
+            var sourceCount = run.PointerSources.Count;
+            if (sourceCount > 1) {
+               CanRepoint = true;
+               Message = $"This is used by {sourceCount} pointers.";
+               Repoint = new StubCommand {
+                  CanExecute = arg => CanRepoint,
+                  Execute = arg => {
+                     var originalDestination = model.ReadPointer(start);
+                     viewPort.RepointToNewCopy(start);
+                     var newDestination = model.ReadPointer(start);
+                     matchingField.RefreshControlFromModelChange();
+                     CanRepoint = false;
+                  },
+               };
+            }
+         }
       }
    }
 

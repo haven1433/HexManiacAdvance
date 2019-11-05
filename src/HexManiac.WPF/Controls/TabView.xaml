@@ -209,7 +209,23 @@
                            </StackPanel>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:StreamArrayElementViewModel}">
-                           <TextBox UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Margin="20,2,2,2" AcceptsReturn="True"/>
+                           <StackPanel>
+                              <DockPanel Visibility="{Binding CanRepoint, Converter={StaticResource BoolToVisibility}}">
+                                 <Button Content="Repoint this one" Command="{Binding Repoint}" DockPanel.Dock="Right">
+                                    <Button.ToolTip>
+                                       <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                                          <TextBlock TextAlignment="Left">
+                                             Make a copy of the data and <LineBreak/>
+                                             change this pointer to reference it. <LineBreak/>
+                                             Other pointers will remain unchanged.
+                                          </TextBlock>
+                                       </ToolTip>
+                                    </Button.ToolTip>
+                                 </Button>
+                                 <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource Secondary}" FontStyle="Italic" Text="{Binding Message}" TextWrapping="Wrap"/>
+                              </DockPanel>
+                              <TextBox UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Margin="20,2,2,2" AcceptsReturn="True"/>
+                           </StackPanel>
                         </DataTemplate>
                      </ItemsControl.Resources>
                   </ItemsControl>

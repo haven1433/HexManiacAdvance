@@ -847,6 +847,16 @@ namespace HavenSoft.HexManiac.Core.Models {
          return new PCSRun(model, address, length, pointers);
       }
 
+      /// <summary>
+      /// Removes a pointer from the list of sources
+      /// </summary>
+      public override void ClearPointer(ModelDelta currentChange, int source, int destination) {
+         var index = BinarySearch(destination);
+         currentChange.RemoveRun(runs[index]);
+         runs[index] = runs[index].RemoveSource(source);
+         currentChange.AddRun(runs[index]);
+      }
+
       private void ClearFormat(ModelDelta changeToken, int originalStart, int length, bool alsoClearData) {
          int start = originalStart;
          for (var run = GetNextRun(start); length > 0 && run != null; run = GetNextRun(start)) {

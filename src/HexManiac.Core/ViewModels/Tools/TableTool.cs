@@ -13,6 +13,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly IDataModel model;
       private readonly Selection selection;
       private readonly ChangeHistory<ModelDelta> history;
+      private readonly ViewPort viewPort;
       private readonly IToolTrayViewModel toolTray;
 
       public string Name => "Table";
@@ -84,10 +85,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public event EventHandler<(int originalLocation, int newLocation)> ModelDataMoved; // invoke when a new item gets added and the table has to move
 #pragma warning restore 0067
 
-      public TableTool(IDataModel model, Selection selection, ChangeHistory<ModelDelta> history, IToolTrayViewModel toolTray) {
+      public TableTool(IDataModel model, Selection selection, ChangeHistory<ModelDelta> history, ViewPort viewPort, IToolTrayViewModel toolTray) {
          this.model = model;
          this.selection = selection;
          this.history = history;
+         this.viewPort = viewPort;
          this.toolTray = toolTray;
          Children = new ObservableCollection<IArrayElementViewModel>();
 
@@ -124,7 +126,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                using (ModelCacheScope.CreateScope(model)) {
                   var array = (ArrayRun)model.GetNextRun(address);
                   var originalArray = array;
-                  var error = model.CompleteArrayExtension(history.CurrentChange, ref array);
+                  var error = model.CompleteArrayExtension(viewPort.CurrentChange, ref array);
                   if (array.Start != originalArray.Start) {
                      ModelDataMoved?.Invoke(this, (originalArray.Start, array.Start));
                      selection.GotoAddress(array.Start + array.Length - array.ElementLength);
@@ -202,12 +204,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                var destination = model.ReadPointer(itemAddress);
                if (destination != Pointer.NULL && model.GetNextRun(destination) is IStreamRun && pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), destination)) {
                   if (pointerSegment.InnerFormat == PCSRun.SharedFormatString || pointerSegment.InnerFormat == PLMRun.SharedFormatString) {
-                     var streamElement = new StreamArrayElementViewModel(history, (FieldArrayElementViewModel)viewModel, model, item.Name, itemAddress);
+                     var streamElement = new StreamArrayElementViewModel(viewPort, (FieldArrayElementViewModel)viewModel, model, item.Name, itemAddress);
                      int parentIndex = Children.Count - 1;
                      var streamElementName = item.Name;
                      var streamAddress = itemAddress;
                      Children[parentIndex].DataChanged += (sender, e) => {
-                        var newStream = new StreamArrayElementViewModel(history, (FieldArrayElementViewModel)Children[parentIndex], model, streamElementName, streamAddress);
+                        var newStream = new StreamArrayElementViewModel(viewPort, (FieldArrayElementViewModel)Children[parentIndex], model, streamElementName, streamAddress);
                         newStream.DataChanged += ForwardModelChanged;
                         newStream.DataMoved += ForwardModelDataMoved;
                         Children[parentIndex + 1] = newStream;
