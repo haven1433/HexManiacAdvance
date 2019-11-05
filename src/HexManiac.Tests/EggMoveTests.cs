@@ -41,14 +41,14 @@ namespace HavenSoft.HexManiac.Tests {
          model.WriteMultiByteValue(0, 2, token, EggMoveRun.MagicNumber + 2); // Carl
          model.WriteMultiByteValue(2, 2, token, 3);                          // Wind
 
-         viewPort.Edit("^eggmoves`egg` ");
+         viewPort.Edit($"^{HardcodeTablesModel.EggMovesTableName}`egg` ");
       }
 
       #endregion
 
       [Fact]
       public void CanCreateEggMoveStream() {
-         viewPort.Edit("^eggmoves`egg` ");
+         viewPort.Edit($"^{HardcodeTablesModel.EggMovesTableName}`egg` ");
 
          Assert.Equal(2, model.GetNextRun(0).Length);
       }
@@ -113,7 +113,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void RunAutoMoves() {
-         viewPort.Edit("^eggmoves`egg` ");
+         viewPort.Edit($"^{HardcodeTablesModel.EggMovesTableName}`egg` ");
          model.WriteMultiByteValue(2, 2, new ModelDelta(), 0x0206);
          viewPort.Edit("[Carl]");
 

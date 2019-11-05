@@ -14,6 +14,10 @@ namespace HavenSoft.HexManiac.Core.Models {
    /// </summary>
    public class HardcodeTablesModel : PokemonModel {
       public const string ItemsTableName = "items";
+      public const string TrainerTableName = "trainerdata";
+      public const string EggMovesTableName = "eggmoves";
+      public const string LevelMovesTableName = "lvlmoves";
+
       private readonly string gameCode;
       private readonly ModelDelta noChangeDelta = new NoDataChangeDeltaModel();
 
@@ -137,7 +141,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             case Emerald:                               source = 0x06930C; break;
             case Ruby: case Sapphire:                   source = 0x03B7BC; break;
          }
-         AddTable(source, "lvlmoves", $"[movesFromLevel<{PLMRun.SharedFormatString}>]{EggMoveRun.PokemonNameTable}");
+         AddTable(source, LevelMovesTableName, $"[movesFromLevel<{PLMRun.SharedFormatString}>]{EggMoveRun.PokemonNameTable}");
 
          // tutormoves / tutorcompatibility
          if (gameCode != Ruby && gameCode != Sapphire) {
@@ -193,7 +197,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             case Emerald:                               source = 0x03587C; break;
             case Ruby: case Sapphire:                   source = 0x00D890; break;
          }
-         AddTable(source, "trainerdata", $"[structType.4 class.trainerclassnames introMusic. sprite. name\"\"12 item1:{ItemsTableName} item2:{ItemsTableName} item3:{ItemsTableName} item4:{ItemsTableName} doubleBattle:: ai:: pokemonCount:: pokemon<`tpt`>]");
+         AddTable(source, TrainerTableName, $"[structType.4 class.trainerclassnames introMusic. sprite. name\"\"12 item1:{ItemsTableName} item2:{ItemsTableName} item3:{ItemsTableName} item4:{ItemsTableName} doubleBattle:: ai:: pokemonCount:: pokemon<`tpt`>]");
       }
 
       private void DecodeStreams() {
@@ -206,7 +210,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             case Ruby: case Sapphire:                   source = 0x041B44; break;
          }
 
-         ObserveAnchorWritten(noChangeDelta, "eggmoves", new EggMoveRun(this, ReadPointer(source)));
+         ObserveAnchorWritten(noChangeDelta, EggMovesTableName, new EggMoveRun(this, ReadPointer(source)));
       }
 
       private IReadOnlyList<int> AllSourcesToSameDestination(int source) {

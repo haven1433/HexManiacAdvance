@@ -1087,7 +1087,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          RequestMenuClose?.Invoke(this, EventArgs.Empty);
       }
 
-      public void OpenSearchResultsTab(string title, IList<(int start, int end)> matches) {
+      public void OpenSearchResultsTab(string title, IReadOnlyList<(int start, int end)> matches) {
          if (matches.Count == 1) {
             var match = matches[0];
             selection.GotoAddress(match.start);

@@ -37,13 +37,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       private readonly Dictionary<string, IReadOnlyList<string>> cachedOptions = new Dictionary<string, IReadOnlyList<string>>();
+      private readonly Dictionary<string, IReadOnlyList<string>> cachedBitOptions = new Dictionary<string, IReadOnlyList<string>>();
+
       public IReadOnlyList<string> GetOptions(string table) {
          if (!cachedOptions.ContainsKey(table)) cachedOptions[table] = GetOptions(model, table) ?? new List<string>();
          return cachedOptions[table];
       }
 
       public IReadOnlyList<string> GetBitOptions(string enumName) {
-         if (cachedOptions.ContainsKey(enumName)) return cachedOptions[enumName];
+         if (cachedBitOptions.ContainsKey(enumName)) return cachedBitOptions[enumName];
 
          var sourceAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, enumName);
          if (sourceAddress == Pointer.NULL) return null;
@@ -64,7 +66,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
          }
 
-         cachedOptions[enumName] = results;
+         cachedBitOptions[enumName] = results;
          return results;
       }
 

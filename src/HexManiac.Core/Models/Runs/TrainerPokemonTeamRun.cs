@@ -198,6 +198,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return buffer.ToString();
       }
 
+      public bool DependsOn(string anchorName) => anchorName == HardcodeTablesModel.ItemsTableName || anchorName == EggMoveRun.MoveNamesTable || anchorName == EggMoveRun.PokemonNameTable;
+
       private class TeamData {
          private readonly List<int> levels = new List<int>();
          private readonly List<int> pokemons = new List<int>();

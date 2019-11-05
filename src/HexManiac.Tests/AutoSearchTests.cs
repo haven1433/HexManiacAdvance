@@ -187,7 +187,7 @@ namespace HavenSoft.HexManiac.Tests {
          var model = fixture.LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
 
-         var address = model.GetAddressFromAnchor(noChange, -1, "lvlmoves");
+         var address = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.LevelMovesTableName);
          var run = (ArrayRun)model.GetNextAnchor(address);
          Assert.NotNull(run);
       }
@@ -212,7 +212,7 @@ namespace HavenSoft.HexManiac.Tests {
          var model = fixture.LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
 
-         var address = model.GetAddressFromAnchor(noChange, -1, "eggmoves");
+         var address = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.EggMovesTableName);
          var run = (EggMoveRun)model.GetNextAnchor(address);
 
          if (game.Contains("Vega")) Assert.Equal(3, run.PointerSources.Count); // there's a false positive in Vega... for now! Would be nice if this were 2, but it doesn't much matter.

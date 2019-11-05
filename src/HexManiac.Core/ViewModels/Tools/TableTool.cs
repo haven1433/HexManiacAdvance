@@ -187,25 +187,35 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          AddChildrenFromStreams(array, basename, index);
       }
 
-      private void AddChildrenFromStreams(ArrayRun array, string basename, int index) {
+      private void AddChildrenFromStreams(ITableRun array, string basename, int index) {
          var plmResults = new List<(int, int)>();
          var eggResults = new List<(int, int)>();
+         var trainerResults = new List<int>();
          foreach (var child in model.Streams) {
             if (!child.DependsOn(basename)) continue;
             if (child is PLMRun plmRun) plmResults.AddRange(plmRun.Search(basename, index));
             if (child is EggMoveRun eggRun) eggResults.AddRange(eggRun.Search(basename, index));
+            if (child is TrainerPokemonTeamRun trainerRun) trainerResults.AddRange(trainerRun.Search(basename, index));
          }
          if (eggResults.Count > 0) {
-            Children.Add(new ButtonArrayElementViewModel("Show usages with egg moves.", () => {
+            Children.Add(new ButtonArrayElementViewModel("Show uses in egg moves.", () => {
                using (ModelCacheScope.CreateScope(model)) {
-                  viewPort.OpenSearchResultsTab($"{array.ElementNames[index]} within eggmoves", eggResults);
+                  viewPort.OpenSearchResultsTab($"{array.ElementNames[index]} within {HardcodeTablesModel.EggMovesTableName}", eggResults);
                }
             }));
          }
          if (plmResults.Count > 0) {
-            Children.Add(new ButtonArrayElementViewModel("Show usages with level-up moves.", () => {
+            Children.Add(new ButtonArrayElementViewModel("Show uses in level-up moves.", () => {
                using (ModelCacheScope.CreateScope(model)) {
-                  viewPort.OpenSearchResultsTab($"{array.ElementNames[index]} within lvlmoves", plmResults);
+                  viewPort.OpenSearchResultsTab($"{array.ElementNames[index]} within {HardcodeTablesModel.LevelMovesTableName}", plmResults);
+               }
+            }));
+         }
+         if (trainerResults.Count > 0) {
+            var selections = trainerResults.Select(result => (result, result + 1)).ToList();
+            Children.Add(new ButtonArrayElementViewModel("Show uses in trainer teams.", () => {
+               using (ModelCacheScope.CreateScope(model)) {
+                  viewPort.OpenSearchResultsTab($"{array.ElementNames[index]} within {HardcodeTablesModel.TrainerTableName}", selections);
                }
             }));
          }
@@ -234,7 +244,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                var destination = model.ReadPointer(itemAddress);
                if (destination != Pointer.NULL && model.GetNextRun(destination) is IStreamRun && pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), itemAddress, destination)) {
                   if (pointerSegment.InnerFormat == PCSRun.SharedFormatString || pointerSegment.InnerFormat == PLMRun.SharedFormatString || pointerSegment.InnerFormat == TrainerPokemonTeamRun.SharedFormatString) {
-                     var streamElement = new StreamArrayElementViewModel(history, (FieldArrayElementViewModel)viewModel, model, item.Name, itemAddress);
+                     var streamElement = new StreamArrayElementViewModel(viewPort, (FieldArrayElementViewModel)viewModel, model, item.Name, itemAddress);
                      int parentIndex = Children.Count - 1;
                      var streamElementName = item.Name;
                      var streamAddress = itemAddress;

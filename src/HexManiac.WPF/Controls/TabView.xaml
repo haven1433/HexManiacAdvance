@@ -228,7 +228,7 @@
                            </StackPanel>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:ButtonArrayElementViewModel}">
-                           <Button Content="{Binding Text}" Margin="5" Command="{Binding Command}"/>
+                           <Button HorizontalAlignment="Center" Content="{Binding Text}" Margin="5" Command="{Binding Command}"/>
                         </DataTemplate>
                      </ItemsControl.Resources>
                   </ItemsControl>
