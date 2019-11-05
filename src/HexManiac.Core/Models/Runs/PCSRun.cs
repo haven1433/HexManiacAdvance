@@ -68,6 +68,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new PCSRun(model, newRun.Start, bytes.Count, newRun.PointerSources);
       }
 
+      public bool DependsOn(string anchorName) => false;
+
       protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new PCSRun(model, Start, Length, newPointerSources);
    }
 }

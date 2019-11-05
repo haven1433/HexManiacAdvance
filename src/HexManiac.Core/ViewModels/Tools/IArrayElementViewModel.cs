@@ -385,6 +385,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
    }
 
+   public class ButtonArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
+      public bool IsInError => false;
+
+      public string ErrorText => string.Empty;
+
+      public event EventHandler DataChanged;
+
+      public string Text { get; }
+      public ICommand Command { get; }
+
+      public ButtonArrayElementViewModel(string text, Action action) {
+         Text = text;
+         Command = new StubCommand {
+            CanExecute = arg => true,
+            Execute = arg => action(),
+         };
+      }
+   }
+
    public class BitElement : ViewModelCore {
       private string bitLabel;
       public string BitLabel {

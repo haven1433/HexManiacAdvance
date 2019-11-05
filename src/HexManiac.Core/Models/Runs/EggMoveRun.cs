@@ -179,6 +179,22 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new EggMoveRun(model, run.Start);
       }
 
+      public bool DependsOn(string anchorName) {
+         return anchorName == PokemonNameTable || anchorName == MoveNamesTable;
+      }
+
+      public IEnumerable<(int, int)> Search(string parentArrayName, int index) {
+         var groupStart = 0;
+         if (parentArrayName == PokemonNameTable) groupStart = MagicNumber;
+         if (parentArrayName == PokemonNameTable || parentArrayName == MoveNamesTable) {
+            for (int i = 0; i < Length - 2; i += 2) {
+               if (model.ReadMultiByteValue(Start + i, 2) == index + groupStart) {
+                  yield return (Start + i, Start + i + 1);
+               }
+            }
+         }
+      }
+
       public IEnumerable<string> GetAutoCompleteOptions() {
          var cache = ModelCacheScope.GetCache(model);
          var cachedPokenames = cache.GetOptions(PokemonNameTable);

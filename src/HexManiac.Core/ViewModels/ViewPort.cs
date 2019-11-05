@@ -862,24 +862,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          foreach (var child in Model.Streams) {
             // option 1: the value is used by egg moves
             if (child is EggMoveRun eggRun) {
-               var groupStart = 0;
-               if (parentArrayName == EggMoveRun.PokemonNameTable) groupStart = EggMoveRun.MagicNumber;
-               if (parentArrayName == EggMoveRun.PokemonNameTable || parentArrayName == EggMoveRun.MoveNamesTable) {
-                  for (int i = 0; i < eggRun.Length - 2; i += 2) {
-                     if (Model.ReadMultiByteValue(eggRun.Start + i, 2) == offsets.ElementIndex + groupStart) {
-                        yield return (eggRun.Start + i, eggRun.Start + i + 1);
-                     }
-                  }
-               }
+               foreach (var result in eggRun.Search(parentArrayName, offsets.ElementIndex)) yield return result;
             }
             // option 2: the value is used by learnable moves
             if (child is PLMRun plmRun && parentArrayName == EggMoveRun.MoveNamesTable) {
-               for (int i = 0; i < plmRun.Length - 2; i += 2) {
-                  var fullValue = Model.ReadMultiByteValue(plmRun.Start + i, 2);
-                  if (PLMRun.SplitToken(fullValue).move == offsets.ElementIndex) {
-                     yield return (plmRun.Start + i, plmRun.Start + i + 1);
-                  }
-               }
+               foreach (var result in plmRun.Search(parentArrayName, offsets.ElementIndex)) yield return result;
             }
          }
       }
@@ -1092,6 +1079,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          RequestTabChange(this, newTab);
          RequestMenuClose?.Invoke(this, EventArgs.Empty);
+      }
+
+      public void OpenSearchResultsTab(string title, IList<(int start, int end)> matches) {
+         if (matches.Count == 1) {
+            var match = matches[0];
+            selection.GotoAddress(match.start);
+            SelectionStart = scroll.DataIndexToViewPoint(match.start);
+            SelectionEnd = scroll.DataIndexToViewPoint(match.end);
+            return;
+         }
+
+         var newTab = new SearchResultsViewPort(title);
+         foreach (var pair in matches) newTab.Add(CreateChildView(pair.start, pair.end), pair.start, pair.end);
+         RequestTabChange(this, newTab);
       }
 
       public void ValidateMatchedWords() {

@@ -170,14 +170,43 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          if (!string.IsNullOrEmpty(array.LengthFromAnchor)) basename = array.LengthFromAnchor; // basename is now a 'parent table' name, if there is one
 
+         // add content from this table
          AddChildrenFromTable(array, index);
-         foreach(var currentArray in model.Arrays) {
+
+         // add content from related tables
+         foreach (var currentArray in model.Arrays) {
             if (currentArray == array) continue;
             var currentArrayName = model.GetAnchorFromAddress(-1, currentArray.Start);
             if (currentArray.LengthFromAnchor == basename || currentArrayName == basename) {
                Children.Add(new SplitterArrayElementViewModel(currentArrayName));
                AddChildrenFromTable(currentArray, index);
             }
+         }
+
+         AddChildrenFromStreams(array, basename, index);
+      }
+
+      private void AddChildrenFromStreams(ArrayRun array, string basename, int index) {
+         var plmResults = new List<(int, int)>();
+         var eggResults = new List<(int, int)>();
+         foreach (var child in model.Streams) {
+            if (!child.DependsOn(basename)) continue;
+            if (child is PLMRun plmRun) plmResults.AddRange(plmRun.Search(basename, index));
+            if (child is EggMoveRun eggRun) eggResults.AddRange(eggRun.Search(basename, index));
+         }
+         if (eggResults.Count > 0) {
+            Children.Add(new ButtonArrayElementViewModel("Show usages with egg moves.", () => {
+               using (ModelCacheScope.CreateScope(model)) {
+                  viewPort.OpenSearchResultsTab($"{array.ElementNames[index]} within eggmoves", eggResults);
+               }
+            }));
+         }
+         if (plmResults.Count > 0) {
+            Children.Add(new ButtonArrayElementViewModel("Show usages with level-up moves.", () => {
+               using (ModelCacheScope.CreateScope(model)) {
+                  viewPort.OpenSearchResultsTab($"{array.ElementNames[index]} within lvlmoves", plmResults);
+               }
+            }));
          }
       }
 

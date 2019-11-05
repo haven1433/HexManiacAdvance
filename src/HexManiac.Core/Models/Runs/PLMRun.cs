@@ -115,5 +115,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          for (int i = data.Count + 2; i < Length / 2; i++) model.WriteMultiByteValue(run.Start + i * 2, 2, token, EggMoveRun.EndStream); // fill any remaining old space with FF
          return new PLMRun(model, run.Start);
       }
+
+      public bool DependsOn(string anchorName) => anchorName == EggMoveRun.MoveNamesTable;
+
+      public IEnumerable<(int, int)> Search(string parentArrayName, int index) {
+         for (int i = 0; i < Length - 2; i += 2) {
+            var fullValue = model.ReadMultiByteValue(Start + i, 2);
+            if (SplitToken(fullValue).move == index) {
+               yield return (Start + i, Start + i + 1);
+            }
+         }
+      }
    }
 }

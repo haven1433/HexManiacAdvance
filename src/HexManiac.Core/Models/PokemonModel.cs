@@ -33,7 +33,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public virtual int EarliestAllowedAnchor => 0;
 
       public override IReadOnlyList<ArrayRun> Arrays => runs.OfType<ArrayRun>().ToList();
-      public override IReadOnlyList<IFormattedRun> Streams => runs.Where(run => run is IStreamRun).ToList();
+      public override IReadOnlyList<IStreamRun> Streams => runs.Where(run => run is IStreamRun).Select(run => (IStreamRun)run).ToList();
 
       #region Constructor
 

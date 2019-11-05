@@ -68,7 +68,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public IReadOnlyList<string> ElementNames {
          get {
             var cache = ModelCacheScope.GetCache(owner);
-            return cache.GetOptions(LengthFromAnchor);
+            var options = cache.GetOptions(LengthFromAnchor);
+            if (options.Count == 0) {
+               var name = owner.GetAnchorFromAddress(-1, Start);
+               options = cache.GetOptions(name);
+            }
+            return options;
          }
       }
 

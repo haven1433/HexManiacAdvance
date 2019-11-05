@@ -32,6 +32,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       /// The run usually starts at the same spot as before, but in the case of repointing it can be different.
       /// </summary>
       IStreamRun DeserializeRun(string content, ModelDelta token);
+
+      bool DependsOn(string anchorName);
    }
 
    public class FormattedRunComparer : IComparer<IFormattedRun> {

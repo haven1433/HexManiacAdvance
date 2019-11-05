@@ -227,6 +227,9 @@
                               <TextBox UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Margin="20,2,2,2" AcceptsReturn="True"/>
                            </StackPanel>
                         </DataTemplate>
+                        <DataTemplate DataType="{x:Type hsg3hvmtr:ButtonArrayElementViewModel}">
+                           <Button Content="{Binding Text}" Margin="5" Command="{Binding Command}"/>
+                        </DataTemplate>
                      </ItemsControl.Resources>
                   </ItemsControl>
                </StackPanel>
