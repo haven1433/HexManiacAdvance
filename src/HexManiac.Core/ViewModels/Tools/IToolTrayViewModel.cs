@@ -49,6 +49,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
+      public IToolViewModel SelectedTool => selectedIndex == -1 ? null : tools[selectedIndex];
+
       public int Count => tools.Count;
       public IToolViewModel this[int index] => tools[index];
 

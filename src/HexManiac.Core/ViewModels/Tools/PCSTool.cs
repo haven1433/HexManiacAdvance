@@ -95,7 +95,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          get => enabled;
          private set {
             if (TryUpdate(ref enabled, value)) {
-               if (!enabled) Content = string.Empty;
+               if (!enabled) TryUpdate(ref content, string.Empty, nameof(Content));
             }
          }
       }
@@ -157,7 +157,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public void RefreshContentAtAddress() {
          var run = model.GetNextRun(address);
-         if ((run is IStreamRun || run is ArrayRun) && run.Start <= address) {
+         if ((run is IStreamRun || AddressIsTextInTableRun(run, address)) && run.Start <= address) {
             runner.Schedule(DataForCurrentRunChanged);
             Enabled = true;
             ShowMessage = false;
@@ -208,6 +208,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          throw new NotImplementedException();
+      }
+
+      private bool AddressIsTextInTableRun(IFormattedRun run, int address) {
+         if (run is ITableRun tableRun) {
+            var offsets = tableRun.ConvertByteOffsetToArrayOffset(address);
+            return tableRun.ElementContent[offsets.SegmentIndex].Type == ElementContentType.PCS;
+         }
+         return false;
       }
 
       private string RemoveQuotes(string newContent) {

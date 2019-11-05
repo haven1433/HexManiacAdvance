@@ -178,8 +178,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var offsets = array.ConvertByteOffsetToArrayOffset(dataIndex);
                Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
                Tools.TableTool.Address = array.Start + array.ElementLength * offsets.ElementIndex;
+               if (!Tools.StringTool.Enabled && tools.SelectedTool == tools.StringTool) {
+                  Tools.SelectedIndex = Tools.IndexOf(Tools.TableTool);
+               }
             } else if (run.Start <= dataIndex && run is IStreamRun) {
                Tools.StringTool.Address = run.Start;
+               if (tools.SelectedTool == tools.TableTool) {
+                  Tools.SelectedIndex = Tools.IndexOf(Tools.StringTool);
+               }
             } else {
                Tools.StringTool.Address = dataIndex;
             }
