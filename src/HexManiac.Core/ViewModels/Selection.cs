@@ -239,7 +239,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
             // first, change the selection and scroll to select the actual requested address
             SelectionStart = Scroll.DataIndexToViewPoint(startAddress);
-            Scroll.ScrollValue += selectionStart.Y;
+            Scroll.ScrollValue += Scroll.DataIndexToViewPoint(startAddress).Y; // recalculate, as the scroll may have changed
 
             // then, scroll left/right as needed to align everything
             while (Scroll.DataIndex < address) Scroll.Scroll.Execute(Direction.Right);
