@@ -1008,6 +1008,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                } else {
                   OnError(this, $"Pointer destination {pointer.DestinationName} not found.");
                }
+               return;
             }
 
             // follow word value source
@@ -1018,6 +1019,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                } else {
                   selection.GotoAddress(address);
                }
+               return;
             }
 
             // open tool
