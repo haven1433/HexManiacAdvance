@@ -471,7 +471,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          copyAddress.CanExecute = CanAlwaysExecute;
          copyAddress.Execute = arg => {
             var fileSystem = (IFileSystem)arg;
-            fileSystem.CopyText = scroll.ViewPointToDataIndex(selection.SelectionStart).ToString("X6");
+            CopyAddressExecute(fileSystem);
          };
 
          moveSelectionStart.CanExecute = selection.MoveSelectionStart.CanExecute;
@@ -501,6 +501,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          close.CanExecute = CanAlwaysExecute;
          close.Execute = arg => CloseExecuted((IFileSystem)arg);
+      }
+
+      private void CopyAddressExecute(IFileSystem fileSystem) {
+         fileSystem.CopyText = scroll.ViewPointToDataIndex(selection.SelectionStart).ToString("X6");
+         RequestMenuClose?.Invoke(this, EventArgs.Empty);
+         OnMessage?.Invoke(this, $"'{fileSystem.CopyText}' copied to clipboard.");
       }
 
       #endregion
@@ -543,6 +549,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             results.Add(new ContextItem("Copy", Copy.Execute) { ShortcutText = "Ctrl+C" });
          }
          results.Add(new ContextItem("Paste", arg => Edit(((IFileSystem)arg).CopyText)) { ShortcutText = "Ctrl+V" });
+         results.Add(new ContextItem("Copy Address", arg => CopyAddressExecute((IFileSystem)arg)));
          return results;
       }
 
