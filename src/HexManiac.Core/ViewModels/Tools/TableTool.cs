@@ -58,7 +58,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set {
             if (TryUpdate(ref address, value)) {
                var run = model.GetNextRun(value);
-               if (run.Start > value || !(run is ArrayRun array)) {
+               if (run.Start > value || !(run is ITableRun)) {
                   Enabled = false;
                   CommandCanExecuteChanged();
                   return;
@@ -95,11 +95,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          previous = new StubCommand {
             CanExecute = parameter => {
-               var array = model.GetNextRun(address) as ArrayRun;
+               var array = model.GetNextRun(address) as ITableRun;
                return array != null && array.Start < address;
             },
             Execute = parameter => {
-               var array = (ArrayRun)model.GetNextRun(address);
+               var array = (ITableRun)model.GetNextRun(address);
                selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(Address - array.ElementLength);
                selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selection.Scroll.ViewPointToDataIndex(selection.SelectionStart) + array.ElementLength - 1);
             }
@@ -107,11 +107,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          next = new StubCommand {
             CanExecute = parameter => {
-               var array = model.GetNextRun(address) as ArrayRun;
+               var array = model.GetNextRun(address) as ITableRun;
                return array != null && array.Start + array.Length > address + array.ElementLength;
             },
             Execute = parameter => {
-               var array = (ArrayRun)model.GetNextRun(address);
+               var array = (ITableRun)model.GetNextRun(address);
                selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(Address + array.ElementLength);
                selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selection.Scroll.ViewPointToDataIndex(selection.SelectionStart) + array.ElementLength - 1);
             }
@@ -119,12 +119,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          append = new StubCommand {
             CanExecute = parameter => {
-               var array = model.GetNextRun(address) as ArrayRun;
+               var array = model.GetNextRun(address) as ITableRun;
                return array != null && array.Start + array.Length == address + array.ElementLength;
             },
             Execute = parameter => {
                using (ModelCacheScope.CreateScope(model)) {
-                  var array = (ArrayRun)model.GetNextRun(address);
+                  var array = (ITableRun)model.GetNextRun(address);
                   var originalArray = array;
                   var error = model.CompleteArrayExtension(viewPort.CurrentChange, ref array);
                   if (array.Start != originalArray.Start) {
@@ -151,7 +151,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          foreach (var child in Children) child.DataChanged -= ForwardModelChanged;
          Children.Clear();
 
-         var array = model.GetNextRun(Address) as ArrayRun;
+         var array = model.GetNextRun(Address) as ITableRun;
          if (array == null) {
             CurrentElementName = "The Table tool only works if your cursor is on table data.";
             return;
@@ -161,6 +161,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          TryUpdate(ref selectedTableIndex, model.Arrays.IndexOf(array), nameof(SelectedTableIndex));
 
          var basename = model.GetAnchorFromAddress(-1, array.Start);
+         if (string.IsNullOrEmpty(basename)) basename = array.Start.ToString("X6");
          var index = (Address - array.Start) / array.ElementLength;
          if (array.ElementNames.Count > index) {
             CurrentElementName = $"{basename}/{index}" + Environment.NewLine + $"{basename}/{array.ElementNames[index]}";
@@ -168,18 +169,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             CurrentElementName = $"{basename}/{index}";
          }
 
-         if (!string.IsNullOrEmpty(array.LengthFromAnchor)) basename = array.LengthFromAnchor; // basename is now a 'parent table' name, if there is one
-
-         // add content from this table
          AddChildrenFromTable(array, index);
 
-         // add content from related tables
-         foreach (var currentArray in model.Arrays) {
-            if (currentArray == array) continue;
-            var currentArrayName = model.GetAnchorFromAddress(-1, currentArray.Start);
-            if (currentArray.LengthFromAnchor == basename || currentArrayName == basename) {
-               Children.Add(new SplitterArrayElementViewModel(currentArrayName));
-               AddChildrenFromTable(currentArray, index);
+         if (array is ArrayRun arrayRun) {
+            if (!string.IsNullOrEmpty(arrayRun.LengthFromAnchor)) basename = arrayRun.LengthFromAnchor; // basename is now a 'parent table' name, if there is one
+
+            foreach (var currentArray in model.Arrays) {
+               if (currentArray == arrayRun) continue;
+               var currentArrayName = model.GetAnchorFromAddress(-1, currentArray.Start);
+               if (currentArray.LengthFromAnchor == basename || currentArrayName == basename) {
+                  Children.Add(new SplitterArrayElementViewModel(currentArrayName));
+                  AddChildrenFromTable(currentArray, index);
+               }
             }
          }
 
@@ -210,7 +211,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
-      private void AddChildrenFromTable(ArrayRun table, int index) {
+      private void AddChildrenFromTable(ITableRun table, int index) {
          var itemAddress = table.Start + table.ElementLength * index;
          foreach (var item in table.ElementContent) {
             IArrayElementViewModel viewModel = null;
@@ -231,9 +232,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             viewModel.DataChanged += ForwardModelChanged;
             if (item is ArrayRunPointerSegment pointerSegment) {
                var destination = model.ReadPointer(itemAddress);
-               if (destination != Pointer.NULL && model.GetNextRun(destination) is IStreamRun && pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), destination)) {
-                  if (pointerSegment.InnerFormat == PCSRun.SharedFormatString || pointerSegment.InnerFormat == PLMRun.SharedFormatString) {
-                     var streamElement = new StreamArrayElementViewModel(viewPort, (FieldArrayElementViewModel)viewModel, model, item.Name, itemAddress);
+               if (destination != Pointer.NULL && model.GetNextRun(destination) is IStreamRun && pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), itemAddress, destination)) {
+                  if (pointerSegment.InnerFormat == PCSRun.SharedFormatString || pointerSegment.InnerFormat == PLMRun.SharedFormatString || pointerSegment.InnerFormat == TrainerPokemonTeamRun.SharedFormatString) {
+                     var streamElement = new StreamArrayElementViewModel(history, (FieldArrayElementViewModel)viewModel, model, item.Name, itemAddress);
                      int parentIndex = Children.Count - 1;
                      var streamElementName = item.Name;
                      var streamAddress = itemAddress;

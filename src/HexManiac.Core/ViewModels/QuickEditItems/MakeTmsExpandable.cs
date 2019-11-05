@@ -201,7 +201,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
          // clear HMs from the TmMove table
          table = (ArrayRun)model.GetNextRun(tmMovesAddress);
-         table = table.Append(-8);
+         table = table.Append(token, -8);
          model.ObserveAnchorWritten(token, TmMoves, table);
          for (int i = 0; i < 8; i++) model.WriteMultiByteValue(table.Start + table.Length + i * 2, 2, token, 0);
 

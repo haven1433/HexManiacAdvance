@@ -5,6 +5,54 @@ using System.Linq;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
+   public interface ITableRun : IFormattedRun {
+      int ElementCount { get; }
+      int ElementLength { get; }
+      IReadOnlyList<string> ElementNames { get; }
+      IReadOnlyList<ArrayRunElementSegment> ElementContent { get; }
+      ITableRun Append(ModelDelta token, int length);
+   }
+
+   public static class ITableRunExtensions {
+      public static ArrayOffset ConvertByteOffsetToArrayOffset(this ITableRun self, int byteOffset) {
+         var offset = byteOffset - self.Start;
+         int elementIndex = offset / self.ElementLength;
+         int elementOffset = offset % self.ElementLength;
+         int segmentIndex = 0, segmentOffset = elementOffset;
+         while (self.ElementContent[segmentIndex].Length <= segmentOffset) {
+            segmentOffset -= self.ElementContent[segmentIndex].Length; segmentIndex++;
+         }
+         return new ArrayOffset(elementIndex, segmentIndex, byteOffset - segmentOffset, segmentOffset);
+      }
+
+      public static IDataFormat CreateSegmentDataFormat(this ITableRun self, IDataModel data, int index) {
+         var offsets = self.ConvertByteOffsetToArrayOffset(index);
+         var currentSegment = self.ElementContent[offsets.SegmentIndex];
+         var position = index - offsets.SegmentStart;
+         if (currentSegment.Type == ElementContentType.Integer) {
+            if (currentSegment is ArrayRunEnumSegment enumSegment) {
+               var value = enumSegment.ToText(data, index);
+               return new IntegerEnum(offsets.SegmentStart, position, value, currentSegment.Length);
+            } else {
+               var value = ArrayRunElementSegment.ToInteger(data, offsets.SegmentStart, currentSegment.Length);
+               return new Integer(offsets.SegmentStart, position, value, currentSegment.Length);
+            }
+         }
+
+         if (currentSegment.Type == ElementContentType.Pointer) {
+            var destination = data.ReadPointer(offsets.SegmentStart);
+            var destinationName = data.GetAnchorFromAddress(offsets.SegmentStart, destination);
+            return new Pointer(offsets.SegmentStart, position, destination, destinationName);
+         }
+
+         if (currentSegment.Type == ElementContentType.BitArray) {
+            return new BitArray(offsets.SegmentStart, position, currentSegment.Length);
+         }
+
+         throw new NotImplementedException();
+      }
+   }
+
    public class ArrayOffset {
       /// <summary>
       /// Ranges from 0 to ElementCount
@@ -30,7 +78,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
    }
 
-   public class ArrayRun : BaseRun {
+   public class ArrayRun : BaseRun, ITableRun {
       public const char ExtendArray = '+';
       public const char ArrayStart = '[';
       public const char ArrayEnd = ']';
@@ -296,7 +344,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private string cachedCurrentString;
       private int currentCachedStartIndex = -1, currentCachedIndex = -1;
       public override IDataFormat CreateDataFormat(IDataModel data, int index) {
-         var offsets = ConvertByteOffsetToArrayOffset(index);
+         var offsets = this.ConvertByteOffsetToArrayOffset(index);
          var currentSegment = ElementContent[offsets.SegmentIndex];
          if (currentSegment.Type == ElementContentType.PCS) {
             if (currentCachedStartIndex != offsets.SegmentStart || currentCachedIndex > offsets.SegmentOffset) {
@@ -308,42 +356,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             return PCSRun.CreatePCSFormat(data, offsets.SegmentStart, index, cachedCurrentString);
          }
 
-         var position = index - offsets.SegmentStart;
-         if (currentSegment.Type == ElementContentType.Integer) {
-            if (currentSegment is ArrayRunEnumSegment enumSegment) {
-               var value = enumSegment.ToText(data, index);
-               return new IntegerEnum(offsets.SegmentStart, position, value, currentSegment.Length);
-            } else {
-               var value = ArrayRunElementSegment.ToInteger(data, offsets.SegmentStart, currentSegment.Length);
-               return new Integer(offsets.SegmentStart, position, value, currentSegment.Length);
-            }
-         }
-
-         if (currentSegment.Type == ElementContentType.Pointer) {
-            var destination = data.ReadPointer(offsets.SegmentStart);
-            var destinationName = data.GetAnchorFromAddress(offsets.SegmentStart, destination);
-            return new Pointer(offsets.SegmentStart, position, destination, destinationName);
-         }
-
-         if (currentSegment.Type == ElementContentType.BitArray) {
-            return new BitArray(offsets.SegmentStart, position, currentSegment.Length);
-         }
-
-         throw new NotImplementedException();
+         return this.CreateSegmentDataFormat(data, index);
       }
 
-      public ArrayOffset ConvertByteOffsetToArrayOffset(int byteOffset) {
-         var offset = byteOffset - Start;
-         int elementIndex = offset / ElementLength;
-         int elementOffset = offset % ElementLength;
-         int segmentIndex = 0, segmentOffset = elementOffset;
-         while (ElementContent[segmentIndex].Length <= segmentOffset) {
-            segmentOffset -= ElementContent[segmentIndex].Length; segmentIndex++;
-         }
-         return new ArrayOffset(elementIndex, segmentIndex, byteOffset - segmentOffset, segmentOffset);
-      }
-
-      public ArrayRun Append(int elementCount) {
+      ITableRun ITableRun.Append(ModelDelta token, int elementCount) => Append(token, elementCount);
+      public ArrayRun Append(ModelDelta token, int elementCount) {
          var lastArrayCharacterIndex = FormatString.LastIndexOf(ArrayEnd);
          var newFormat = FormatString.Substring(0, lastArrayCharacterIndex + 1);
          if (newFormat != FormatString) newFormat += ElementCount + elementCount;
@@ -429,7 +446,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public void AppendTo(IDataModel data, StringBuilder text, int start, int length) {
-         var offsets = ConvertByteOffsetToArrayOffset(start);
+         var offsets = this.ConvertByteOffsetToArrayOffset(start);
          length += offsets.SegmentOffset;
          for (int i = offsets.ElementIndex; i < ElementCount && length > 0; i++) {
             var offset = offsets.SegmentStart;
@@ -643,7 +660,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (destination == Pointer.NULL) return true;
                if (0 > destination || destination > owner.Count) return false;
                if (segment is ArrayRunPointerSegment pointerSegment) {
-                  if (!pointerSegment.DestinationDataMatchesPointerFormat(owner, new NoDataChangeDeltaModel(), destination)) return false;
+                  if (!pointerSegment.DestinationDataMatchesPointerFormat(owner, new NoDataChangeDeltaModel(), start, destination)) return false;
                }
                return true;
             case ElementContentType.BitArray:

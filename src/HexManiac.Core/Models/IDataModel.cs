@@ -30,7 +30,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       bool TryGetUsefulHeader(int address, out string header);
 
-      bool IsAtEndOfArray(int dataIndex, out ArrayRun arrayRun); // is this byte the first one after the end of an array run? (also return true if the array is length 0 and starts right here)
+      bool IsAtEndOfArray(int dataIndex, out ITableRun tableRun); // is this byte the first one after the end of a table run? (also return true if the table is length 0 and starts right here)
 
       void ObserveRunWritten(ModelDelta changeToken, IFormattedRun run);
       void ObserveAnchorWritten(ModelDelta changeToken, string anchorName, IFormattedRun run);
@@ -101,7 +101,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public virtual bool TryGetUsefulHeader(int address, out string header) { header = null; return false; }
 
-      public abstract bool IsAtEndOfArray(int dataIndex, out ArrayRun arrayRun);
+      public abstract bool IsAtEndOfArray(int dataIndex, out ITableRun tableRun);
 
       public virtual void Load(byte[] newData, StoredMetadata metadata) => RawData = newData;
 
@@ -251,27 +251,30 @@ namespace HavenSoft.HexManiac.Core.Models {
          return format;
       }
 
-      public static ErrorInfo CompleteArrayExtension(this IDataModel model, ModelDelta changeToken, ref ArrayRun arrayRun) {
-         var currentArrayName = model.GetAnchorFromAddress(-1, arrayRun.Start);
+      public static ErrorInfo CompleteArrayExtension(this IDataModel model, ModelDelta changeToken, ref ITableRun table) {
+         var currentArrayName = model.GetAnchorFromAddress(-1, table.Start);
 
-         var visitedNames = new List<string>() { model.GetAnchorFromAddress(-1, arrayRun.Start) };
-         var visitedAddress = new List<int>() { arrayRun.Start };
+         var visitedNames = new List<string>() { model.GetAnchorFromAddress(-1, table.Start) };
+         var visitedAddress = new List<int>() { table.Start };
 
-         while (arrayRun.LengthFromAnchor != string.Empty) {
-            if (visitedNames.Contains(arrayRun.LengthFromAnchor)) {
-               // We kept going up the chain of tables but didn't find a top table. table length definitions are circular.
-               return new ErrorInfo($"Could not extend table safely. Table length has a circular dependency involving {arrayRun.LengthFromAnchor}.");
+         if (table is ArrayRun arrayRun) {
+            while (arrayRun.LengthFromAnchor != string.Empty) {
+               if (visitedNames.Contains(arrayRun.LengthFromAnchor)) {
+                  // We kept going up the chain of tables but didn't find a top table. table length definitions are circular.
+                  return new ErrorInfo($"Could not extend table safely. Table length has a circular dependency involving {arrayRun.LengthFromAnchor}.");
+               }
+
+               var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, arrayRun.LengthFromAnchor);
+               visitedNames.Add(arrayRun.LengthFromAnchor);
+               visitedAddress.Add(address);
+               arrayRun = (ArrayRun)model.GetNextRun(address);
             }
-
-            var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, arrayRun.LengthFromAnchor);
-            visitedNames.Add(arrayRun.LengthFromAnchor);
-            visitedAddress.Add(address);
-            arrayRun = (ArrayRun)model.GetNextRun(address);
+            table = arrayRun;
          }
 
-         ExtendArrayAndChildren(model, changeToken, arrayRun);
+         ExtendTableAndChildren(model, changeToken, table);
 
-         arrayRun = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, currentArrayName));
+         table = (ITableRun)model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, currentArrayName));
 
          var changedNames = new List<string>();
          for (int i = 0; i < visitedNames.Count; i++) {
@@ -284,9 +287,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          return new ErrorInfo($"Tables {all} were moved. Pointers have been updated.", isWarningLevel: true);
       }
 
-      private static void ExtendArrayAndChildren(IDataModel model, ModelDelta changeToken, ArrayRun array) {
-         var newRun = (ArrayRun)model.RelocateForExpansion(changeToken, array, array.Length + array.ElementLength);
-         newRun = newRun.Append(1);
+      private static void ExtendTableAndChildren(IDataModel model, ModelDelta changeToken, ITableRun array) {
+         var newRun = (ITableRun)model.RelocateForExpansion(changeToken, array, array.Length + array.ElementLength);
+         newRun = newRun.Append(changeToken, 1);
          model.ObserveRunWritten(changeToken, newRun);
       }
 
@@ -314,7 +317,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override string GetAnchorFromAddress(int requestSource, int destination) => string.Empty;
       public override IFormattedRun GetNextRun(int dataIndex) => NoInfoRun.NullRun;
       public override IFormattedRun GetNextAnchor(int dataIndex) => NoInfoRun.NullRun;
-      public override bool IsAtEndOfArray(int dataIndex, out ArrayRun arrayRun) { arrayRun = null; return false; }
+      public override bool IsAtEndOfArray(int dataIndex, out ITableRun tableRun) { tableRun = null; return false; }
       public override void ObserveRunWritten(ModelDelta changeToken, IFormattedRun run) { }
       public override void ObserveAnchorWritten(ModelDelta changeToken, string anchorName, IFormattedRun run) { }
       public override void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd, IReadOnlyDictionary<int, string> matchedWordsToRemove, IReadOnlyDictionary<int, string> matchedWordsToAdd) { }

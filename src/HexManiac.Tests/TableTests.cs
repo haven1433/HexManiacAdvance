@@ -1,5 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using System;
 using System.Linq;
 using Xunit;
 
@@ -16,6 +18,53 @@ namespace HavenSoft.HexManiac.Tests {
 
          // a combobox is used for numeric limit fields
          ViewPort.Tools.TableTool.Children.Single(child => child is ComboBoxArrayElementViewModel);
+      }
+
+      [Fact]
+      public void TrainerPokemonTeamEnumSelectionSelectsEntireEnum() {
+         ArrangeTrainerPokemonTeamData(0, 1);
+
+         ViewPort.SelectionStart = new Point(0, 6);
+
+         Assert.Equal(new Point(1, 6), ViewPort.SelectionEnd);
+      }
+
+      [Fact]
+      public void HexEditingWorksForTrainerPokemon() {
+         ArrangeTrainerPokemonTeamData(0, 1);
+
+         ViewPort.SelectionStart = new Point(TrainerPokemonTeamRun.PokemonFormat_PokemonStart, 6);
+         ViewPort.Edit("C ");
+
+         Assert.Equal(2, Model[0x60 + TrainerPokemonTeamRun.PokemonFormat_PokemonStart]);
+      }
+
+      [Fact]
+      public void CanExtendTrainerTeamViaStream() {
+         ArrangeTrainerPokemonTeamData(0, 1);
+         Model[0x6C] = 0x0B; // add a random data value so that extending will cause moving
+
+         ViewPort.SelectionStart = new Point(0, 6);
+         var streamTool = ViewPort.Tools.StringTool;
+         streamTool.Content = $"10 A{Environment.NewLine}10 B";
+
+         Assert.NotEqual(0x60, Model.ReadPointer(0x24));
+      }
+
+      private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount) {
+         CreateTextTable(EggMoveRun.PokemonNameTable, 0x100, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
+         CreateTextTable(EggMoveRun.MoveNamesTable, 0x140, "abcdefghijklmnop".Select(c => c.ToString()).ToArray());
+         CreateTextTable(HardcodeTablesModel.ItemsTableName, 0x180, "0123456789".Select(c => c.ToString()).ToArray());
+
+         Model[TrainerPokemonTeamRun.TrainerFormat_StructTypeOffset] = structType;
+         Model[TrainerPokemonTeamRun.TrainerFormat_PokemonCountOffset] = pokemonCount;
+         Model.WritePointer(new ModelDelta(), TrainerPokemonTeamRun.TrainerFormat_PointerOffset, 0x60);
+
+         ViewPort.Goto.Execute("00");
+         ViewPort.SelectionStart = new Point(4, 2);
+         ViewPort.Edit($"^trainertable[team<{TrainerPokemonTeamRun.SharedFormatString}>]1 ");
+
+         ViewPort.Goto.Execute("00");
       }
    }
 }

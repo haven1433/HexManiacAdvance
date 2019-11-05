@@ -201,7 +201,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          get => selectedIndex;
          set {
             if (!TryUpdate(ref selectedIndex, value)) return;
-            var run = (ArrayRun)Model.GetNextRun(Start);
+            var run = (ITableRun)Model.GetNextRun(Start);
             var offsets = run.ConvertByteOffsetToArrayOffset(Start);
             var segment = (ArrayRunEnumSegment)run.ElementContent[offsets.SegmentIndex];
 
@@ -217,7 +217,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public ComboBoxArrayElementViewModel(Selection selection, ChangeHistory<ModelDelta> history, IDataModel model, string name, int start, int length) {
          (this.history, Model, Name, Start, Length) = (history, model, name, start, length);
-         var run = (ArrayRun)Model.GetNextRun(Start);
+         var run = (ITableRun)Model.GetNextRun(Start);
          var offsets = run.ConvertByteOffsetToArrayOffset(start);
          var segment = (ArrayRunEnumSegment)run.ElementContent[offsets.SegmentIndex];
          var optionSource = model.GetAddressFromAnchor(history.CurrentChange, -1, segment.EnumName);
@@ -330,7 +330,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Name = name;
          this.start = start;
 
-         var array = (ArrayRun)model.GetNextRun(start);
+         var array = (ITableRun)model.GetNextRun(start);
          var offset = array.ConvertByteOffsetToArrayOffset(start);
          segment = (ArrayRunBitArraySegment)array.ElementContent[offset.SegmentIndex];
          var optionSource = model.GetAddressFromAnchor(history.CurrentChange, -1, segment.SourceArrayName);

@@ -97,7 +97,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(PCS pcs, byte data) {
          // don't let it start with a space unless it's in quotes (for copy/paste)
          var run = Model.GetNextRun(MemoryLocation);
-         if (run is ArrayRun array) {
+         if (run is ITableRun array) {
             var offsets = array.ConvertByteOffsetToArrayOffset(MemoryLocation);
             if (offsets.SegmentStart == MemoryLocation && Input == ' ') return;
          }
@@ -124,7 +124,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(IntegerEnum integer, byte data) {
          if (!integer.CanStartWithCharacter(Input)) return;
 
-         var arrayRun = (ArrayRun)Model.GetNextRun(MemoryLocation);
+         var arrayRun = (ITableRun)Model.GetNextRun(MemoryLocation);
          var offsets = arrayRun.ConvertByteOffsetToArrayOffset(MemoryLocation);
          var segment = (ArrayRunEnumSegment)arrayRun.ElementContent[offsets.SegmentIndex];
          var allOptions = segment.GetOptions(Model).Select(option => option + " ");

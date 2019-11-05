@@ -192,7 +192,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (i == runs.Count - 1 || runs[i].Start + runs[i].Length <= runs[i + 1].Start) continue;
             var debugRunStart1 = runs[i].Start.ToString("X6");
             var debugRunStart2 = runs[i + 1].Start.ToString("X6");
-            Debug.Fail("Conflict: there's a run that ends before the next run starts!");
+            Debug.Fail("Conflict: there's a run that ends after the next run starts!");
          }
       }
 
@@ -394,10 +394,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          return true;
       }
 
-      public override bool IsAtEndOfArray(int dataIndex, out ArrayRun arrayRun) {
+      public override bool IsAtEndOfArray(int dataIndex, out ITableRun arrayRun) {
          var index = BinarySearch(dataIndex);
          if (index >= 0 && runs[index].Length == 0) {
-            arrayRun = runs[index] as ArrayRun;
+            arrayRun = runs[index] as ITableRun;
             return arrayRun != null;
          }
 
@@ -409,7 +409,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             return false;
          }
 
-         arrayRun = runs[index] as ArrayRun;
+         arrayRun = runs[index] as ITableRun;
          return arrayRun != null && runs[index].Start + runs[index].Length == dataIndex;
       }
 
@@ -493,7 +493,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// Remove the sources that match the array's original location.
       /// Add new sources corresponding to the array's new location.
       /// </summary>
-      private void UpdateAnchorsFromArrayMove(ModelDelta changeToken, ArrayRun original, ArrayRun moved) {
+      private void UpdateAnchorsFromArrayMove(ModelDelta changeToken, ITableRun original, ITableRun moved) {
          int originalOffset = original.Start;
          int segmentOffset = moved.Start;
          // i loops over the different segments in the array
@@ -531,7 +531,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (anchor.Equals(table.LengthFromAnchor)) {
                if (arrayRun.ElementCount == table.ElementCount) continue;
                newTable = (ArrayRun)RelocateForExpansion(changeToken, table, arrayRun.ElementCount * table.ElementLength);
-               newTable = newTable.Append(arrayRun.ElementCount - table.ElementCount);
+               newTable = newTable.Append(changeToken, arrayRun.ElementCount - table.ElementCount);
                ObserveRunWritten(changeToken, newTable);
             }
             // option 2: this table includes a bit-array based on the given table
@@ -605,8 +605,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             // the pointer points to a known normal anchor
             var existingRun = runs[index];
             changeToken.RemoveRun(existingRun);
-            UpdateNewRunFromPointerFormat(ref existingRun, segment as ArrayRunPointerSegment, changeToken);
             existingRun = existingRun.MergeAnchor(new[] { start });
+            UpdateNewRunFromPointerFormat(ref existingRun, segment as ArrayRunPointerSegment, changeToken);
             index = BinarySearch(destination); // runs could've been removed during UpdateNewRunFromPointerFormat: search for the index again.
             if (index < 0) {
                runs.Insert(~index, existingRun);
@@ -636,6 +636,10 @@ namespace HavenSoft.HexManiac.Core.Models {
                run = runAttempt.MergeAnchor(run.PointerSources);
                ClearFormat(token, run.Start, run.Length);
             }
+         } else if (segment.InnerFormat == TrainerPokemonTeamRun.SharedFormatString) {
+            var runAttempt = new TrainerPokemonTeamRun(this, run.Start, run.PointerSources);
+            ClearFormat(token, run.Start, runAttempt.Length);
+            run = runAttempt;
          } else {
             throw new NotImplementedException();
          }
@@ -1249,6 +1253,8 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private static ErrorInfo TryParseFormat(IDataModel model, string format, int dataIndex, out IFormattedRun run) {
          run = new NoInfoRun(dataIndex);
+         var existingRun = model.GetNextRun(dataIndex);
+         if (existingRun.Start == run.Start) run = run.MergeAnchor(existingRun.PointerSources);
 
          if (format == PCSRun.SharedFormatString) {
             var length = PCSString.ReadString(model, dataIndex, true);
@@ -1269,6 +1275,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          } else if (format == PLMRun.SharedFormatString) {
             run = new PLMRun(model, dataIndex);
             if (run.Length == 0) return new ErrorInfo("Format specified was for pokemon level-up move data, but could not parse that location as level-up move data.");
+         } else if (format == TrainerPokemonTeamRun.SharedFormatString) {
+            run = new TrainerPokemonTeamRun(model, dataIndex, run.PointerSources);
          } else {
             var errorInfo = TryParse(model, format, dataIndex, null, out var arrayRun);
             if (errorInfo == ErrorInfo.NoError) {
@@ -1368,19 +1376,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          // move run
-         IFormattedRun newRun;
-         if (run is PCSRun pcs) {
-            newRun = new PCSRun(this, newStart, run.Length, run.PointerSources);
-         } else if (run is ArrayRun array) {
-            var array1 = array.Move(newStart);
-            UpdateAnchorsFromArrayMove(changeToken, array, array1);
-            newRun = array1;
-         } else if (run is EggMoveRun egg) {
-            newRun = new EggMoveRun(this, newStart);
-         } else if (run is PLMRun plm) {
-            newRun = new PLMRun(this, newStart);
-         } else {
-            throw new NotImplementedException();
+         var newRun = run.Duplicate(newStart, run.PointerSources.ToArray());
+         if (newRun is ITableRun array) {
+            UpdateAnchorsFromArrayMove(changeToken, (ITableRun)run, array);
          }
 
          int index = BinarySearch(run.Start);

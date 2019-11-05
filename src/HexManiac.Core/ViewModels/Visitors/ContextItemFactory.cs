@@ -63,7 +63,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             Results.Add(new ContextItem("Repoint to New Copy", arg => ViewPort.RepointToNewCopy(pointerAddress)));
          }
 
-         var arrayRun = ViewPort.Model.GetNextRun(pointerAddress) as ArrayRun;
+         var arrayRun = ViewPort.Model.GetNextRun(pointerAddress) as ITableRun;
          if (arrayRun != null && arrayRun.Start <= pointerAddress) Results.AddRange(GetTableChildren(arrayRun));
          else Results.AddRange(GetFormattedChildren());
       }
@@ -101,7 +101,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Results.Add(new ContextItem("Copy Selection", ViewPort.Copy.Execute) { ShortcutText = "Ctrl+C" });
 
          var address = ViewPort.ConvertViewPointToAddress(point);
-         var arrayRun = ViewPort.Model.GetNextRun(address) as ArrayRun;
+         var arrayRun = ViewPort.Model.GetNextRun(address) as ITableRun;
          if (arrayRun != null && arrayRun.Start <= address) Results.AddRange(GetTableChildren(arrayRun));
          else Results.AddRange(GetFormattedChildren());
       }
@@ -113,12 +113,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(Ascii ascii, byte data) => Results.AddRange(GetFormattedChildren());
 
       public void Visit(Integer integer, byte data) {
-         var arrayRun = (ArrayRun)ViewPort.Model.GetNextRun(ViewPort.Tools.TableTool.Address);
+         var arrayRun = (ITableRun)ViewPort.Model.GetNextRun(ViewPort.Tools.TableTool.Address);
          Results.AddRange(GetTableChildren(arrayRun));
       }
 
       public void Visit(IntegerEnum integer, byte data) {
-         var arrayRun = (ArrayRun)ViewPort.Model.GetNextRun(ViewPort.Tools.TableTool.Address);
+         var arrayRun = (ITableRun)ViewPort.Model.GetNextRun(ViewPort.Tools.TableTool.Address);
          Results.AddRange(GetTableChildren(arrayRun));
       }
 
@@ -137,13 +137,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       }
 
       public void Visit(BitArray array, byte data) {
-         var arrayRun = (ArrayRun)ViewPort.Model.GetNextRun(ViewPort.Tools.TableTool.Address);
+         var arrayRun = (ITableRun)ViewPort.Model.GetNextRun(ViewPort.Tools.TableTool.Address);
          Results.AddRange(GetTableChildren(arrayRun));
       }
 
       public void Visit(MatchedWord word, byte data) => Results.AddRange(GetFormattedChildren());
 
-      private IEnumerable<IContextItem> GetTableChildren(ArrayRun array) {
+      private IEnumerable<IContextItem> GetTableChildren(ITableRun array) {
          if (ViewPort.Tools.TableTool.Append.CanExecute(null)) {
             yield return new ContextItem("Extend Table", ViewPort.Tools.TableTool.Append.Execute);
          }

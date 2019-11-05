@@ -292,7 +292,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
 
             if (newRun.ElementCount != lines.Length) {
-               newRun = newRun.Append(lines.Length - newRun.ElementCount);
+               newRun = newRun.Append(history.CurrentChange, lines.Length - newRun.ElementCount);
                model.ObserveRunWritten(history.CurrentChange, newRun);
                history.CurrentChange.AddRun(newRun);
             }

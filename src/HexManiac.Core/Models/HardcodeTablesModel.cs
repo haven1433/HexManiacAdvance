@@ -13,6 +13,7 @@ namespace HavenSoft.HexManiac.Core.Models {
    /// Lengths of some tables are still calculated dynamically based on best-fit, so operations like adding pokemon from a separate tool should still be picked up correctly.
    /// </summary>
    public class HardcodeTablesModel : PokemonModel {
+      public const string ItemsTableName = "items";
       private readonly string gameCode;
       private readonly ModelDelta noChangeDelta = new NoDataChangeDeltaModel();
 
@@ -111,7 +112,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             case FireRed: case LeafGreen: case Emerald: source = 0x0001BC; break;
             case Ruby: case Sapphire:                   source = 0x010B64; break;
          }
-         var format = $"[hp. attack. def. speed. spatk. spdef. type1.types type2.types catchRate. baseExp. evs: item1:items item2:items genderratio. steps2hatch. basehappiness. growthrate. egg1. egg2. ability1.abilitynames ability2.abilitynames runrate. unknown. padding:]{EggMoveRun.PokemonNameTable}";
+         var format = $"[hp. attack. def. speed. spatk. spdef. type1.types type2.types catchRate. baseExp. evs: item1:{ItemsTableName} item2:{ItemsTableName} genderratio. steps2hatch. basehappiness. growthrate. egg1. egg2. ability1.abilitynames ability2.abilitynames runrate. unknown. padding:]{EggMoveRun.PokemonNameTable}";
          AddTable(source, "pokestats", format);
 
          // items
@@ -120,7 +121,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             case Ruby: case Sapphire:                   source = 0x0A98F0; break;
          }
          format = $"[name\"\"14 index: price: holdeffect: description<{PCSRun.SharedFormatString}> keyitemvalue. bagkeyitem. pocket. type. fieldeffect<> battleusage:: battleeffect<> battleextra::]";
-         AddTable(source, "items", format);
+         AddTable(source, ItemsTableName, format);
 
          // movedata
          switch (gameCode) {
@@ -184,7 +185,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             case Ruby: case Sapphire:                   source = -1;       break;
          }
          source = GetNextRun(source).Start;
-         AddTable(source, "itemimages", "[image<> palette<>]items");
+         AddTable(source, "itemimages", $"[image<> palette<>]{ItemsTableName}");
 
          // trainer teams
          switch (gameCode) {
@@ -192,7 +193,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             case Emerald:                               source = 0x03587C; break;
             case Ruby: case Sapphire:                   source = 0x00D890; break;
          }
-         AddTable(source, "trainerdata", "[structType.4 class.trainerclassnames introMusic. sprite. name\"\"12 item1:items item2:items item3:items item4:items doubleBattle:: ai:: pokemonCount:: pokemon<>]");
+         AddTable(source, "trainerdata", $"[structType.4 class.trainerclassnames introMusic. sprite. name\"\"12 item1:{ItemsTableName} item2:{ItemsTableName} item3:{ItemsTableName} item4:{ItemsTableName} doubleBattle:: ai:: pokemonCount:: pokemon<`tpt`>]");
       }
 
       private void DecodeStreams() {
@@ -223,7 +224,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (interruptingRun.Start < destination && interruptingRun is ArrayRun array) {
             var elementLength = array.ElementLength;
             var elementCount = (destination - array.Start) / array.ElementLength;
-            array = array.Append(elementCount - array.ElementCount);
+            array = array.Append(noChangeDelta, elementCount - array.ElementCount);
             ObserveAnchorWritten(noChangeDelta, GetAnchorFromAddress(-1, array.Start), array);
          }
 

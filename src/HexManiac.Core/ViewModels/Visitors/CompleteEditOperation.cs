@@ -55,7 +55,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(Pointer pointer, byte data) {
          var run = Model.GetNextRun(memoryLocation);
-         if (run is ArrayRun && CurrentText[0] != PointerStart) {
+         if (run is ITableRun && CurrentText[0] != PointerStart) {
             ErrorText = "Pointers in tables cannot be removed without removing the table.";
             return;
          }
@@ -215,7 +215,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             return;
          }
 
-         var run = (ArrayRun)Model.GetNextRun(memoryLocation);
+         var run = (ITableRun)Model.GetNextRun(memoryLocation);
          var offsets = run.ConvertByteOffsetToArrayOffset(memoryLocation);
          int length = run.ElementContent[offsets.SegmentIndex].Length;
          for (int i = 0; i < length; i++) {
@@ -228,7 +228,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       }
 
       private void CompleteIntegerEnumEdit(IntegerEnum integer) {
-         var array = (ArrayRun)Model.GetNextRun(memoryLocation);
+         var array = (ITableRun)Model.GetNextRun(memoryLocation);
          var offsets = array.ConvertByteOffsetToArrayOffset(memoryLocation);
          var segment = (ArrayRunEnumSegment)array.ElementContent[offsets.SegmentIndex];
          if (segment.TryParse(Model, CurrentText, out int value)) {
@@ -259,7 +259,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
          var currentRun = Model.GetNextRun(memoryLocation);
          if (currentRun.Start > memoryLocation) currentRun = null;
-         bool inArray = currentRun is ArrayRun && currentRun.Start <= memoryLocation;
+         bool inArray = currentRun is ITableRun && currentRun.Start <= memoryLocation;
          var sources = currentRun?.PointerSources;
 
          if (!inArray) {
@@ -284,7 +284,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
          if (fullValue == Pointer.NULL || (0 <= fullValue && fullValue < Model.Count)) {
             if (inArray) {
-               UpdateArrayPointer((ArrayRun)currentRun, fullValue);
+               UpdateArrayPointer((ITableRun)currentRun, fullValue);
             } else {
                Model.WritePointer(CurrentChange, memoryLocation, fullValue);
                Model.ObserveRunWritten(CurrentChange, new PointerRun(memoryLocation, sources));
@@ -318,7 +318,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                var newRunLength = PCSString.ReadString(Model, run.Start, true);
                Model.ObserveRunWritten(CurrentChange, new PCSRun(Model, run.Start, newRunLength, run.PointerSources));
             }
-         } else if (run is ArrayRun arrayRun) {
+         } else if (run is ITableRun arrayRun) {
             var offsets = arrayRun.ConvertByteOffsetToArrayOffset(memoryLocation);
             CurrentChange.ChangeData(Model, memoryLocation, 0xFF);
             memoryLocation++;
@@ -365,7 +365,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                run = new PCSRun(Model, run.Start, run.Length + extraBytesNeeded, run.PointerSources);
                Model.ObserveRunWritten(CurrentChange, run);
             }
-         } else if (run is ArrayRun arrayRun) {
+         } else if (run is ITableRun arrayRun) {
             // if the last characet is being edited for an array, truncate
             var offsets = arrayRun.ConvertByteOffsetToArrayOffset(memoryLocation);
             if (arrayRun.ElementContent[offsets.SegmentIndex].Length == position + 1) {
@@ -457,11 +457,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
       }
 
-      private void UpdateArrayPointer(ArrayRun run, int pointerDestination) {
+      private void UpdateArrayPointer(ITableRun run, int pointerDestination) {
          var offsets = run.ConvertByteOffsetToArrayOffset(memoryLocation);
          var segment = run.ElementContent[offsets.SegmentIndex];
          if (segment is ArrayRunPointerSegment pointerSegment) {
-            if (!pointerSegment.DestinationDataMatchesPointerFormat(Model, CurrentChange, pointerDestination)) {
+            if (!pointerSegment.DestinationDataMatchesPointerFormat(Model, CurrentChange, offsets.SegmentStart, pointerDestination)) {
                ErrorText = $"This pointer must point to {pointerSegment.InnerFormat} data.";
                return;
             }
