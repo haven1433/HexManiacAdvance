@@ -232,6 +232,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             else if (item.Type == ElementContentType.Integer) {
                if (item is ArrayRunEnumSegment enumSegment) {
                   viewModel = new ComboBoxArrayElementViewModel(selection, history, model, item.Name, itemAddress, item.Length);
+                  var anchor = model.GetAnchorFromAddress(-1, table.Start);
+                  if (!string.IsNullOrEmpty(anchor) && model.GetDependantArrays(anchor).Count() == 1) {
+                     Children.Add(viewModel);
+                     viewModel.DataChanged += ForwardModelChanged;
+                     viewModel = new BitListArrayElementViewModel(selection, history, model, item.Name, itemAddress);
+                  }
                } else {
                   viewModel = new FieldArrayElementViewModel(history, model, item.Name, itemAddress, item.Length, new NumericFieldStrategy());
                }
