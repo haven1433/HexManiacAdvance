@@ -71,6 +71,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       private static IReadOnlyList<string> GetOptions(IDataModel model, string enumName) {
+
          if (!model.TryGetNameArray(enumName, out var enumArray)) return new string[0];
 
          // array must be at least as long as than the current value
@@ -78,9 +79,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          // sweet, we can convert from the integer value to the enum value
          var results = new List<string>();
+         var textIndex = 0;
+         int segmentOffset = 0;
+         while (textIndex < enumArray.ElementContent.Count && enumArray.ElementContent[textIndex].Type != ElementContentType.PCS) {
+            segmentOffset += enumArray.ElementContent[textIndex].Length;
+            textIndex++;
+         }
+         if (textIndex == enumArray.ElementContent.Count) return new string[0];
          for (int i = 0; i < optionCount; i++) {
-            var elementStart = enumArray.Start + enumArray.ElementLength * i;
-            var valueWithQuotes = PCSString.Convert(model, elementStart, enumArray.ElementContent[0].Length)?.Trim() ?? string.Empty;
+            var elementStart = enumArray.Start + enumArray.ElementLength * i + segmentOffset;
+            var valueWithQuotes = PCSString.Convert(model, elementStart, enumArray.ElementContent[textIndex].Length)?.Trim() ?? string.Empty;
 
             if (valueWithQuotes.Contains(' ')) {
                results.Add(valueWithQuotes);

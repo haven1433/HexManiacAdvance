@@ -178,12 +178,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          array = model.GetNextRun(address) as ArrayRun;
          if (array == null) return false;
 
-         // the array must start with a text element
-         if (array.ElementContent.Count == 0) return false;
-         var firstContent = array.ElementContent[0];
-         if (firstContent.Type != ElementContentType.PCS) return false;
-
-         return true;
+         // the array must contain a text element
+         return array.ElementContent.Any(segment => segment.Type == ElementContentType.PCS);
       }
 
       public static List<int> FindPossibleTextStartingPlaces(this IDataModel model, int left, int length) {
