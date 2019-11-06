@@ -21,6 +21,7 @@
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>pokenames<LineBreak/>
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>abilitynames<LineBreak/>
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>trainerclassnames<LineBreak/>
+      <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>trainerdata<LineBreak/>
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>types<LineBreak/>
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>items<LineBreak/>
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>itemimages<LineBreak/>
