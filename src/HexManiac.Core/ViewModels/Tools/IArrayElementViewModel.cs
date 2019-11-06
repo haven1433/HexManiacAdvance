@@ -408,7 +408,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             for (int i = 0; i < segment.Length; i++) {
                byte result = 0;
                for (int j = 0; j < 8 && children.Count > i * 8 + j; j++) result += (byte)(children[i * 8 + j].IsChecked ? (1 << j) : 0);
-               history.CurrentChange.ChangeData(model, start + i, result);
+               if (model[start + i] != result) history.CurrentChange.ChangeData(model, start + i, result);
             }
          } else {
             var array = (ArrayRun)model.GetNextRun(start);
