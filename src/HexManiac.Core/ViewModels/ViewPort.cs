@@ -705,6 +705,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          run = Model.GetNextRun(index);
 
+         if (run.Start > index) {
+            // no run: doing a raw edit.
+            SelectionStart = scroll.DataIndexToViewPoint(index);
+            var element = currentView[SelectionStart.X, SelectionStart.Y];
+            var text = element.Value.ToString("X2");
+            currentView[SelectionStart.X, SelectionStart.Y] = new HexElement(element, element.Format.Edit(text.Substring(0, text.Length - 1)));
+            NotifyCollectionChanged(ResetArgs);
+            return;
+         }
+
          if (run is PCSRun || run is AsciiRun) {
             for (int i = index; i < run.Start + run.Length; i++) history.CurrentChange.ChangeData(Model, i, 0xFF);
             var length = PCSString.ReadString(Model, run.Start, true);
@@ -769,12 +779,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var format = new UnderEdit(currentView[p.X, p.Y].Format, editString, editLength);
                currentView[p.X, p.Y] = new HexElement(currentView[p.X, p.Y], format);
             }
-         } else {
-            SelectionStart = scroll.DataIndexToViewPoint(index);
-            var element = currentView[SelectionStart.X, SelectionStart.Y];
-            var text = element.Value.ToString("X2");
-            currentView[SelectionStart.X, SelectionStart.Y] = new HexElement(element, element.Format.Edit(text.Substring(0, text.Length - 1)));
          }
+
          NotifyCollectionChanged(ResetArgs);
       }
 

@@ -168,6 +168,8 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.CollectionChanged += (sender, e) => collectionNotifications++;
 
          ViewPort.Edit("0102030405");
+         ViewPort.SelectionStart = new Point(0, 1);
+         ViewPort.Edit("060708090A");
          collectionNotifications = 0;
          ViewPort.Undo.Execute();
 
@@ -409,6 +411,20 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Clear.Execute();
 
          Assert.IsType<PCS>(ViewPort[2, 0].Format);
+      }
+
+      [Fact]
+      public void BackspaceEditsSingleCellWhenNoFormats() {
+         var test = new BaseViewModelTestClass();
+         test.Model.ObserveRunWritten(new ModelDelta(), new AsciiRun(0x20, 0x10));
+         test.Model[0] = 0xA0;
+         test.Model[1] = 0xA1;
+         test.Model[2] = 0xA2;
+
+         test.ViewPort.SelectionStart = new Point(1, 0);
+         test.ViewPort.Edit(ConsoleKey.Backspace);
+
+         Assert.Equal(0xA2, test.Model[2]);
       }
    }
 }
