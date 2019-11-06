@@ -314,6 +314,26 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(table.ElementCount, model.ReadValue(word.Start));
       }
 
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void TrainersAreFound(string game) {
+         var model = fixture.LoadModel(game);
+         var noChange = new NoDataChangeDeltaModel();
+
+         Assert.True(model.TryGetNameArray(HardcodeTablesModel.TrainerTableName, out var trainers));
+         if (game.Contains("Emerald"))              Assert.Equal(855, trainers.ElementCount);
+         else if (game.Contains("Altair"))          Assert.Equal(1,   trainers.ElementCount); // actually has 855, but the first element is glitched in a way that I shouldn't auto-recover.
+         else if (game.Contains("FireRed"))         Assert.Equal(743, trainers.ElementCount);
+         else if (game.Contains("LeafGreen"))       Assert.Equal(743, trainers.ElementCount);
+         else if (game.Contains("Clover"))          Assert.Equal(743, trainers.ElementCount);
+         else if (game.Contains("Vega"))            Assert.Equal(743, trainers.ElementCount);
+         else if (game.Contains("DarkRisingKAIZO")) Assert.Equal(742, trainers.ElementCount); // the last one is glitched
+         else if (game.Contains("Gaia"))            Assert.Equal(743, trainers.ElementCount);
+         else if (game.Contains("Ruby"))            Assert.Equal(694, trainers.ElementCount);
+         else if (game.Contains("Sapphire"))        Assert.Equal(694, trainers.ElementCount);
+         else throw new NotImplementedException();
+      }
+
       // this one actually changes the data, so I can't use the same shared model as everone else.
       // [SkippableTheory] // test removed until feature is complete.
       // [MemberData(nameof(PokemonGames))]

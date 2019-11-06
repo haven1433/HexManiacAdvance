@@ -15,6 +15,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          pcs[0] = " ";
 
          pcs[0x13] = "\\a"; // align?
+         pcs[0x17] = "á";
 
          pcs[0x1B] = "é";
          pcs[0x2D] = "&";
@@ -32,6 +33,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          Fill(pcs, "abcdefghijklmnopqrstuvwxyz", 0xD5);
 
          pcs[0xF0] = ":";
+         pcs[0xF6] = "ü";
          pcs[0xF9] = "\\9";
          pcs[0xFA] = "\\l";
          pcs[0xFB] = "\\pn";

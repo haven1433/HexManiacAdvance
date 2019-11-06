@@ -29,10 +29,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          // trainer format (abbreviated):
          //     0           1       2         3        4-15     16     18      20     22       24          28       32         36          40 total
          // [structType. class. introMusic. sprite. name\"\"12 item1: item2: item3: item4: doubleBattle:: ai:: pokemonCount:: pokemon<>]
-         if (sources.Count < 1) throw new ArgumentException("Trainer Pokemon Team streams must be pointed to!");
-         var source = sources.First();
-         StructType = model[source - TrainerFormat_PointerOffset];
-         ElementCount = model[source - TrainerFormat_PointerOffset + TrainerFormat_PokemonCountOffset];
+         if (sources.Count < 1) {
+            // when removing a TPTRun, it might temporarily have no sources.
+            StructType = 0;
+            ElementCount = 1;
+         } else {
+            var source = sources.First();
+            StructType = model[source - TrainerFormat_PointerOffset];
+            ElementCount = model[source - TrainerFormat_PointerOffset + TrainerFormat_PokemonCountOffset];
+         }
 
          var segments = new List<ArrayRunElementSegment>();
          segments.Add(new ArrayRunElementSegment("ivSpread", ElementContentType.Integer, 2));

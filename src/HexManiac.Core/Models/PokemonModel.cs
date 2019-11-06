@@ -166,6 +166,9 @@ namespace HavenSoft.HexManiac.Core.Models {
                }
             }
 
+            // for every TPTRun, make sure something points to it
+            if (runs[i] is TrainerPokemonTeamRun) Debug.Assert(runs[i].PointerSources.Count > 0, "TPTRuns must not exist with no content long-term.");
+
             // for every run with sources, make sure the pointer at that source actually points to it
             if (runs[i].PointerSources != null) {
                foreach (var source in runs[i].PointerSources) {
