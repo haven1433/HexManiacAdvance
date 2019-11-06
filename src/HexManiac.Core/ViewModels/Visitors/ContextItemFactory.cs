@@ -51,8 +51,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Results.Add(new ContextItem("Display as Text", ViewPort.IsText.Execute));
       }
 
-      public void Visit(Edited dataFormat, byte data) => dataFormat.OriginalFormat.Visit(this, data);
-
       public void Visit(UnderEdit dataFormat, byte data) { }
 
       public void Visit(Pointer pointer, byte data) {

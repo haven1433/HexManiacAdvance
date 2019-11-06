@@ -149,10 +149,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      var endEdit = " ";
                      if (underEdit.CurrentText.Count(c => c == StringDelimeter) % 2 == 1) endEdit = StringDelimeter.ToString();
                      var originalFormat = underEdit.OriginalFormat;
-                     if (originalFormat is Edited edited) originalFormat = edited.OriginalFormat;
                      if (originalFormat is Anchor anchor) originalFormat = anchor.OriginalFormat;
                      if (underEdit.CurrentText.StartsWith(EggMoveRun.GroupStart) && (originalFormat is EggSection || originalFormat is EggItem)) endEdit = EggMoveRun.GroupEnd;
-                     currentView[location.X, location.Y] = new HexElement(element.Value, underEdit.Edit(endEdit));
+                     currentView[location.X, location.Y] = new HexElement(element.Value, element.Edited, underEdit.Edit(endEdit));
                      if (!TryCompleteEdit(location)) ClearEdits(location);
                   }
                }
@@ -264,7 +263,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void HistoryPropertyChanged(object sender, PropertyChangedEventArgs e) {
          if (e.PropertyName == nameof(history.IsSaved)) {
             save.CanExecuteChanged.Invoke(save, EventArgs.Empty);
-            if (history.IsSaved) Model.ResetChanges();
+            if (history.IsSaved) { Model.ResetChanges(); RefreshBackingData(); }
          }
 
          if (e.PropertyName == nameof(history.HasDataChange)) NotifyPropertyChanged(nameof(Name));
@@ -541,7 +540,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
             if (options != null) {
                var edit = new UnderEdit(underEdit.OriginalFormat, underEdit.CurrentText, underEdit.EditWidth, options);
-               currentView[SelectionStart.X, SelectionStart.Y] = new HexElement(this[SelectionStart.X, SelectionStart.Y].Value, edit);
+               currentView[SelectionStart.X, SelectionStart.Y] = new HexElement(this[SelectionStart.X, SelectionStart.Y], edit);
                NotifyCollectionChanged(ResetArgs);
                return;
             }
@@ -609,10 +608,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (underEdit.AutocompleteOptions != null && underEdit.AutocompleteOptions.Any(option => option.IsSelected)) {
                   var selectedIndex = AutoCompleteSelectionItem.SelectedIndex(underEdit.AutocompleteOptions);
                   underEdit = new UnderEdit(underEdit.OriginalFormat, underEdit.AutocompleteOptions[selectedIndex].CompletionText, underEdit.EditWidth);
-                  currentView[point.X, point.Y] = new HexElement(element.Value, underEdit);
+                  currentView[point.X, point.Y] = new HexElement(element.Value, element.Edited, underEdit);
                   RequestMenuClose?.Invoke(this, EventArgs.Empty);
                } else {
-                  currentView[point.X, point.Y] = new HexElement(element.Value, underEdit.Edit(" "));
+                  currentView[point.X, point.Y] = new HexElement(element.Value, element.Edited, underEdit.Edit(" "));
                }
                TryCompleteEdit(point);
                return;
@@ -643,7 +642,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (underEdit == null) return;
          var index = underEdit.AutocompleteOptions.Select(option => option.CompletionText).ToList().IndexOf(input);
          underEdit = new UnderEdit(underEdit.OriginalFormat, underEdit.AutocompleteOptions[index].CompletionText, underEdit.EditWidth);
-         currentView[point.X, point.Y] = new HexElement(element.Value, underEdit);
+         currentView[point.X, point.Y] = new HexElement(element.Value, element.Edited, underEdit);
          TryCompleteEdit(point);
       }
 
@@ -687,7 +686,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                options = GetAutocompleteOptions(underEdit.OriginalFormat, newText, selectedIndex);
             }
             var newFormat = new UnderEdit(underEdit.OriginalFormat, newText, underEdit.EditWidth, options);
-            currentView[point.X, point.Y] = new HexElement(currentView[point.X, point.Y].Value, newFormat);
+            currentView[point.X, point.Y] = new HexElement(currentView[point.X, point.Y], newFormat);
             NotifyCollectionChanged(ResetArgs);
             return;
          }
@@ -729,13 +728,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                PrepareForMultiSpaceEdit(point, 4);
                var destination = ((Pointer)cell.Format).DestinationAsText;
                destination = destination.Substring(0, destination.Length - 1);
-               currentView[point.X, point.Y] = new HexElement(cell.Value, new UnderEdit(cell.Format, destination, 4));
+               currentView[point.X, point.Y] = new HexElement(cell, new UnderEdit(cell.Format, destination, 4));
             } else if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Integer) {
                PrepareForMultiSpaceEdit(point, ((Integer)cell.Format).Length);
                cell.Format.Visit(cellToText, cell.Value);
                var text = cellToText.Result;
                text = text.Substring(0, text.Length - 1);
-               currentView[point.X, point.Y] = new HexElement(cell.Value, new UnderEdit(cell.Format, text, ((Integer)cell.Format).Length));
+               currentView[point.X, point.Y] = new HexElement(cell, new UnderEdit(cell.Format, text, ((Integer)cell.Format).Length));
             } else {
                throw new NotImplementedException();
             }
@@ -748,7 +747,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             cell.Format.Visit(cellToText, cell.Value);
             var text = cellToText.Result;
             text = text.Substring(0, text.Length - 1);
-            currentView[point.X, point.Y] = new HexElement(cell.Value, new UnderEdit(cell.Format, text, 2));
+            currentView[point.X, point.Y] = new HexElement(cell, new UnderEdit(cell.Format, text, 2));
             NotifyCollectionChanged(ResetArgs);
             return;
          }
@@ -768,13 +767,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                string editString = i == 0 ? text.Substring(0, text.Length - 1) : string.Empty;
                if (i > 0) editLength = 1;
                var format = new UnderEdit(currentView[p.X, p.Y].Format, editString, editLength);
-               currentView[p.X, p.Y] = new HexElement(currentView[p.X, p.Y].Value, format);
+               currentView[p.X, p.Y] = new HexElement(currentView[p.X, p.Y], format);
             }
          } else {
             SelectionStart = scroll.DataIndexToViewPoint(index);
             var element = currentView[SelectionStart.X, SelectionStart.Y];
             var text = element.Value.ToString("X2");
-            currentView[SelectionStart.X, SelectionStart.Y] = new HexElement(element.Value, element.Format.Edit(text.Substring(0, text.Length - 1)));
+            currentView[SelectionStart.X, SelectionStart.Y] = new HexElement(element, element.Format.Edit(text.Substring(0, text.Length - 1)));
          }
          NotifyCollectionChanged(ResetArgs);
       }
@@ -1006,7 +1005,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void FollowLink(int x, int y) {
          var format = currentView[x, y].Format;
-         if (format is Edited edited) format = edited.OriginalFormat;
          if (format is Anchor anchor) format = anchor.OriginalFormat;
 
          using (ModelCacheScope.CreateScope(Model)) {
@@ -1156,7 +1154,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             } else {
                newFormat = element.Format.Edit(input.ToString());
             }
-            currentView[point.X, point.Y] = new HexElement(element.Value, newFormat);
+            currentView[point.X, point.Y] = new HexElement(element, newFormat);
          } else {
             // ShouldAcceptInput already did the work: nothing to change
          }
@@ -1169,7 +1167,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private IReadOnlyList<AutoCompleteSelectionItem> GetAutocompleteOptions(IDataFormat originalFormat, string newText, int selectedIndex = -1) {
          using (ModelCacheScope.CreateScope(Model)) {
-            if (originalFormat is Edited edited) originalFormat = edited.OriginalFormat;
             if (originalFormat is Anchor anchor) originalFormat = anchor.OriginalFormat;
             if (newText.StartsWith(PointerStart.ToString())) {
                return Model.GetNewPointerAutocompleteOptions(newText, selectedIndex);
@@ -1248,7 +1245,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                PrepareForMultiSpaceEdit(point, 4);
                var autoCompleteOptions = input == GotoMarker ? new AutoCompleteSelectionItem[0] : null;
                var underEdit = new UnderEdit(element.Format, input.ToString(), 4, autoCompleteOptions);
-               currentView[point.X, point.Y] = new HexElement(element.Value, underEdit);
+               currentView[point.X, point.Y] = new HexElement(element, underEdit);
                return true;
             }
          }
@@ -1259,7 +1256,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (startCellEdit.NewFormat != null) {
             // if the edit provided a new format, go ahead and build a new element based on that format.
             // if no new format was provided, then the default logic in the method above will make a new UnderEdit cell if the Result is true.
-            currentView[point.X, point.Y] = new HexElement(element.Value, startCellEdit.NewFormat);
+            currentView[point.X, point.Y] = new HexElement(element, startCellEdit.NewFormat);
             if (startCellEdit.NewFormat.EditWidth > 1) PrepareForMultiSpaceEdit(point, startCellEdit.NewFormat.EditWidth);
          }
          return startCellEdit.Result;
@@ -1311,7 +1308,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (point.Y >= Height) return;
             var element = currentView[point.X, point.Y];
             var newFormat = element.Format.Edit(string.Empty);
-            currentView[point.X, point.Y] = new HexElement(element.Value, newFormat);
+            currentView[point.X, point.Y] = new HexElement(element, newFormat);
          }
          selection.PropertyChanged -= SelectionPropertyChanged; // don't notify on multi-space edit: it breaks up the undo history
          SelectionEnd = scroll.DataIndexToViewPoint(endIndex);
@@ -1535,12 +1532,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void RefreshBackingData(Point p) {
          var index = scroll.ViewPointToDataIndex(p);
+         var edited = Model.HasChanged(index);
          if (index < 0 | index >= Model.Count) { currentView[p.X, p.Y] = HexElement.Undefined; return; }
          var run = Model.GetNextRun(index);
-         if (index < run.Start) { currentView[p.X, p.Y] = new HexElement(Model[index], None.Instance); return; }
+         if (index < run.Start) { currentView[p.X, p.Y] = new HexElement(Model[index], edited, None.Instance); return; }
          var format = run.CreateDataFormat(Model, index);
          format = Model.WrapFormat(run, format, index);
-         currentView[p.X, p.Y] = new HexElement(Model[index], format);
+         currentView[p.X, p.Y] = new HexElement(Model[index], edited, format);
       }
 
       private void RefreshBackingData() {
@@ -1550,6 +1548,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             for (int y = 0; y < Height; y++) {
                for (int x = 0; x < Width; x++) {
                   var index = scroll.ViewPointToDataIndex(new Point(x, y));
+                  var edited = Model.HasChanged(index);
                   if (run == null || index >= run.Start + run.Length) {
                      run = Model.GetNextRun(index) ?? new NoInfoRun(Model.Count);
                   }
@@ -1558,11 +1557,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   } else if (index >= run.Start) {
                      var format = run.CreateDataFormat(Model, index);
                      format = Model.WrapFormat(run, format, index);
-                     currentView[x, y] = new HexElement(Model[index], format);
+                     currentView[x, y] = new HexElement(Model[index], edited, format);
                   } else {
-                     currentView[x, y] = new HexElement(Model[index], None.Instance);
+                     currentView[x, y] = new HexElement(Model[index], edited, None.Instance);
                   }
-                  if (Model.HasChanged(index)) currentView[x, y] = new HexElement(Model[index], new Edited(currentView[x, y].Format));
                }
             }
          }

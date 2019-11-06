@@ -65,12 +65,11 @@ namespace HavenSoft.HexManiac.Core.Models {
    public abstract class BaseModel : IDataModel {
       public const int PointerOffset = 0x08000000;
 
-      private readonly bool trackChanges;
       private readonly ISet<int> changes = new HashSet<int>();
 
       public byte[] RawData { get; private set; }
 
-      public BaseModel(byte[] data, bool trackChanges = false) => (RawData, this.trackChanges) = (data, trackChanges);
+      public BaseModel(byte[] data) => RawData = data;
 
       public virtual IReadOnlyList<ArrayRun> Arrays { get; } = new List<ArrayRun>();
       public virtual IReadOnlyList<IStreamRun> Streams { get; } = new List<IStreamRun>();
@@ -79,7 +78,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          get => RawData[index];
          set {
             RawData[index] = value;
-            if (trackChanges) changes.Add(index);
+            changes.Add(index);
          }
       }
 

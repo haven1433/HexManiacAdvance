@@ -29,7 +29,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       public override int EarliestAllowedAnchor => 0x200;
 
-      public HardcodeTablesModel(byte[] data, StoredMetadata metadata = null, bool trackChanges = false) : base(data, metadata, trackChanges) {
+      public HardcodeTablesModel(byte[] data, StoredMetadata metadata = null) : base(data, metadata) {
          if (metadata != null && !metadata.IsEmpty) return;
 
          gameCode = string.Concat(Enumerable.Range(0xAC, 4).Select(i => ((char)data[i]).ToString()));

@@ -55,8 +55,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Result = ViewPort.AllHexCharacters.Contains(Input);
       }
 
-      public void Visit(Edited dataFormat, byte data) => dataFormat.OriginalFormat.Visit(this, data);
-
       // we were asked to start an edit, but there's already an edit under way!
       // just continue the existing edit.
       public void Visit(UnderEdit underEdit, byte data) {

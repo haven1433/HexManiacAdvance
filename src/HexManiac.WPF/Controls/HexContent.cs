@@ -411,15 +411,27 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
          for (int x = 0; x < ViewPort.Width; x++) {
             for (int y = 0; y < ViewPort.Height; y++) {
-               if (!ViewPort.IsSelected(new ModelPoint(x, y))) continue;
                var element = ViewPort[x, y];
+               if (element.Edited && !ViewPort.IsSelected(new ModelPoint(x, y))) {
+                  drawingContext.PushOpacity(.2);
+                  drawingContext.DrawRectangle(Brush(nameof(Theme.Error)), null, new Rect(x * CellWidth, y * CellHeight, CellWidth, CellHeight));
+                  drawingContext.Pop();
+               }
+
+               if (!ViewPort.IsSelected(new ModelPoint(x, y))) continue;
+
                drawingContext.PushTransform(new TranslateTransform(x * CellWidth, y * CellHeight));
 
                drawingContext.DrawRectangle(Brush(nameof(Theme.Backlight)), null, cellRect);
+               if (element.Edited) {
+                  drawingContext.PushOpacity(.2);
+                  drawingContext.DrawRectangle(Brush(nameof(Theme.Error)), null, cellRect);
+                  drawingContext.Pop();
+               }
                if (!ViewPort.IsSelected(new ModelPoint(x, y - 1))) drawingContext.DrawLine(BorderPen, topLeft, topRight);
                if (!ViewPort.IsSelected(new ModelPoint(x, y + 1))) drawingContext.DrawLine(BorderPen, bottomLeft, bottomRight);
                if (!ViewPort.IsSelected(new ModelPoint(x - 1, y))) drawingContext.DrawLine(BorderPen, topLeft, bottomLeft);
-               if (!ViewPort.IsSelected(new ModelPoint(x + 1, y))) drawingContext.DrawLine(BorderPen, topRight, bottomRight);
+               if (!ViewPort.IsSelected(new ModelPoint(x + 1, y))) drawingContext.DrawLine(BorderPen, topRight, bottomRight);               
 
                drawingContext.Pop();
             }

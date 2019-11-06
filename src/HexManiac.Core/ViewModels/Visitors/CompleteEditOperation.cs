@@ -51,8 +51,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
       }
 
-      public void Visit(Edited dataFormat, byte data) => dataFormat.OriginalFormat.Visit(this, data);
-
       public void Visit(UnderEdit dataFormat, byte data) => throw new NotImplementedException();
 
       public void Visit(Pointer pointer, byte data) {
@@ -67,7 +65,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(Anchor anchor, byte data) {
          anchor.OriginalFormat.Visit(this, data);
-         if (NewCell != null) NewCell = new HexElement(NewCell.Value, new Anchor(NewCell.Format, anchor.Name, anchor.Format, anchor.Sources));
+         if (NewCell != null) NewCell = new HexElement(NewCell, new Anchor(NewCell.Format, anchor.Name, anchor.Format, anchor.Sources));
       }
 
       public void Visit(PCS pcs, byte data) => VisitPCS(pcs);
@@ -245,7 +243,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          var content = (byte)CurrentText[0];
 
          CurrentChange.ChangeData(Model, memoryLocation, content);
-         NewCell = new HexElement(content, new Ascii(asciiFormat.Source, asciiFormat.Position, CurrentText[0]));
+         NewCell = new HexElement(content, true, new Ascii(asciiFormat.Source, asciiFormat.Position, CurrentText[0]));
          NewDataIndex = memoryLocation + 1;
       }
 

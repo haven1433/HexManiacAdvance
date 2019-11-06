@@ -21,8 +21,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void Visit(None dataFormat, byte data) => Result = data.ToString("X2");
 
-      public void Visit(Edited dataFormat, byte data) => dataFormat.OriginalFormat.Visit(this, data);
-
       public void Visit(UnderEdit dataFormat, byte data) {
          throw new NotImplementedException();
       }

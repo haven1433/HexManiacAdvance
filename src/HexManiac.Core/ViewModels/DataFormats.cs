@@ -20,7 +20,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       void Visit(Undefined dataFormat, byte data);
       void Visit(None dataFormat, byte data);
       void Visit(UnderEdit dataFormat, byte data);
-      void Visit(Edited dataFormat, byte data);
       void Visit(Pointer pointer, byte data);
       void Visit(Anchor anchor, byte data);
       void Visit(PCS pcs, byte data);
@@ -58,15 +57,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
 
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
       public bool Equals(IDataFormat format) => format is None;
-   }
-
-   public class Edited : IDataFormat {
-      public IDataFormat OriginalFormat { get; }
-      public Edited(IDataFormat original) => OriginalFormat = original;
-
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
-
-      public bool Equals(IDataFormat other) => other is Edited that && that.OriginalFormat.Equals(OriginalFormat);
    }
 
    public class UnderEdit : IDataFormat {
