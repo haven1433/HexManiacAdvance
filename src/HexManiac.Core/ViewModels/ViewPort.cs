@@ -149,6 +149,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      var endEdit = " ";
                      if (underEdit.CurrentText.Count(c => c == StringDelimeter) % 2 == 1) endEdit = StringDelimeter.ToString();
                      var originalFormat = underEdit.OriginalFormat;
+                     if (originalFormat is Edited edited) originalFormat = edited.OriginalFormat;
                      if (originalFormat is Anchor anchor) originalFormat = anchor.OriginalFormat;
                      if (underEdit.CurrentText.StartsWith(EggMoveRun.GroupStart) && (originalFormat is EggSection || originalFormat is EggItem)) endEdit = EggMoveRun.GroupEnd;
                      currentView[location.X, location.Y] = new HexElement(element.Value, underEdit.Edit(endEdit));
@@ -261,7 +262,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void HistoryPropertyChanged(object sender, PropertyChangedEventArgs e) {
-         if (e.PropertyName == nameof(history.IsSaved)) save.CanExecuteChanged.Invoke(save, EventArgs.Empty);
+         if (e.PropertyName == nameof(history.IsSaved)) {
+            save.CanExecuteChanged.Invoke(save, EventArgs.Empty);
+            if (history.IsSaved) Model.ResetChanges();
+         }
+
          if (e.PropertyName == nameof(history.HasDataChange)) NotifyPropertyChanged(nameof(Name));
       }
 
@@ -294,6 +299,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (fileSystem.Save(new LoadedFile(FileName, Model.RawData))) {
             fileSystem.SaveMetadata(FileName, metadata?.Serialize());
             history.TagAsSaved();
+            Model.ResetChanges();
          }
       }
 
@@ -306,6 +312,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             FileName = newName; // don't bother notifying, because tagging the history will cause a notify;
             fileSystem.SaveMetadata(FileName, metadata?.Serialize());
             history.TagAsSaved();
+            Model.ResetChanges();
          }
       }
 
@@ -658,7 +665,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             Model.ExpandData(history.CurrentChange, Model.Count + destination.Length);
          }
 
-         Array.Copy(Model.RawData, destination.Start, Model.RawData, newDestination, destination.Length);
+         for (int i = 0; i < destination.Length; i++) {
+            history.CurrentChange.ChangeData(Model, newDestination + i, Model[destination.Start + i]);
+         }
+
          Model.ClearPointer(CurrentChange, pointer, destination.Start);
          Model.WritePointer(CurrentChange, pointer, newDestination); // point to the new destination
          var destination2 = Model.GetNextRun(destination.Start);
@@ -996,6 +1006,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void FollowLink(int x, int y) {
          var format = currentView[x, y].Format;
+         if (format is Edited edited) format = edited.OriginalFormat;
          if (format is Anchor anchor) format = anchor.OriginalFormat;
 
          using (ModelCacheScope.CreateScope(Model)) {
@@ -1158,6 +1169,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private IReadOnlyList<AutoCompleteSelectionItem> GetAutocompleteOptions(IDataFormat originalFormat, string newText, int selectedIndex = -1) {
          using (ModelCacheScope.CreateScope(Model)) {
+            if (originalFormat is Edited edited) originalFormat = edited.OriginalFormat;
             if (originalFormat is Anchor anchor) originalFormat = anchor.OriginalFormat;
             if (newText.StartsWith(PointerStart.ToString())) {
                return Model.GetNewPointerAutocompleteOptions(newText, selectedIndex);
@@ -1550,6 +1562,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   } else {
                      currentView[x, y] = new HexElement(Model[index], None.Instance);
                   }
+                  if (Model.HasChanged(index)) currentView[x, y] = new HexElement(Model[index], new Edited(currentView[x, y].Format));
                }
             }
          }

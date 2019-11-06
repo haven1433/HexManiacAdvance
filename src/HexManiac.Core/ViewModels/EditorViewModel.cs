@@ -289,7 +289,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   metadataText = fileSystem.MetadataFor(file.Name) ?? new string[0];
                }
                var metadata = new StoredMetadata(metadataText);
-               var viewPort = new ViewPort(file.Name, new HardcodeTablesModel(file.Contents, metadata));
+               var viewPort = new ViewPort(file.Name, new HardcodeTablesModel(file.Contents, metadata, trackChanges: true));
                if (metadata.IsEmpty) {
                   var createdMetadata = viewPort.Model.ExportMetadata().Serialize();
                   fileSystem.SaveMetadata(file.Name, createdMetadata);

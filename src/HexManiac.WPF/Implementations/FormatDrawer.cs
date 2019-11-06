@@ -77,6 +77,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          for (int x = 0; x < modelWidth; x++) {
             var cell = viewPort[x, position.Y];
             var format = cell.Format;
+            if (format is Edited edited) format = edited.OriginalFormat; // edited cell's wrap the actual format
             if (format is Anchor anchor) format = anchor.OriginalFormat; // anchor's have other formats nested inside that we may care about
 
             if (format is PCS pcs) {
@@ -145,6 +146,10 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          } else {
             return baseTextOffset + actualText.Width;
          }
+      }
+
+      public void Visit(Edited dataFormat, byte data) {
+         dataFormat.OriginalFormat.Visit(this, data);
       }
 
       public void Visit(UnderEdit dataFormat, byte data) {

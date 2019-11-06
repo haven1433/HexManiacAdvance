@@ -9,6 +9,9 @@ using System.Linq;
 namespace HavenSoft.HexManiac.Core.Models {
    public interface IDataModel : IReadOnlyList<byte>, IEquatable<IDataModel> {
       byte[] RawData { get; }
+      bool HasChanged(int index);
+      void ResetChanges();
+
       new byte this[int index] { get; set; }
       IReadOnlyList<ArrayRun> Arrays { get; }
       IReadOnlyList<IStreamRun> Streams { get; }
@@ -62,14 +65,26 @@ namespace HavenSoft.HexManiac.Core.Models {
    public abstract class BaseModel : IDataModel {
       public const int PointerOffset = 0x08000000;
 
+      private readonly bool trackChanges;
+      private readonly ISet<int> changes = new HashSet<int>();
+
       public byte[] RawData { get; private set; }
 
-      public BaseModel(byte[] data) => RawData = data;
+      public BaseModel(byte[] data, bool trackChanges = false) => (RawData, this.trackChanges) = (data, trackChanges);
 
       public virtual IReadOnlyList<ArrayRun> Arrays { get; } = new List<ArrayRun>();
       public virtual IReadOnlyList<IStreamRun> Streams { get; } = new List<IStreamRun>();
 
-      public byte this[int index] { get => RawData[index]; set => RawData[index] = value; }
+      public byte this[int index] {
+         get => RawData[index];
+         set {
+            RawData[index] = value;
+            if (trackChanges) changes.Add(index);
+         }
+      }
+
+      public bool HasChanged(int index) => changes.Contains(index);
+      public void ResetChanges() => changes.Clear();
 
       byte IReadOnlyList<byte>.this[int index] => RawData[index];
 

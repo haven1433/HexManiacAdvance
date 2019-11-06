@@ -24,6 +24,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(None dataFormat, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
 
+      public void Visit(Edited dataFormat, byte data) => dataFormat.OriginalFormat.Visit(this, data);
+
       public void Visit(UnderEdit dataFormat, byte data) => throw new NotImplementedException();
 
       public void Visit(Pointer pointer, byte data) {

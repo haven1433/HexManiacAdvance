@@ -44,6 +44,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Result = ViewPort.AllHexCharacters.Contains(Input);
       }
 
+      public void Visit(Edited dataFormat, byte data) => dataFormat.OriginalFormat.Visit(this, data);
+
       // 'ContinueCellEdit' is expected to be passed the innerformat. It should never get an UnderEdit cell.
       // The UnderEdit object that's currently being edited was passed in separately to the constructor.
       public void Visit(UnderEdit dataFormat, byte data) => throw new NotImplementedException();

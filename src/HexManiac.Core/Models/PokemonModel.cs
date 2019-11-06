@@ -37,7 +37,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       #region Constructor
 
-      public PokemonModel(byte[] data, StoredMetadata metadata = null) : base(data) {
+      public PokemonModel(byte[] data, StoredMetadata metadata = null, bool trackChanges = false) : base(data, trackChanges) {
          Initialize(metadata);
       }
 
