@@ -895,14 +895,20 @@ namespace HavenSoft.HexManiac.Core.Models {
          int runIndex;
 
          // case 1: anchor is named
-         // delete the anchor. Clear pointers to it, but keep the names. They're pointers, just not to here anymore.
+         // delete the anchor.
          if (anchorForAddress.TryGetValue(run.Start, out string name)) {
-            foreach (var source in run.PointerSources) {
-               WriteValue(changeToken, source, 0);
-               changeToken.AddUnmappedPointer(source, name);
-               sourceToUnmappedName[source] = name;
+            if (!(changeToken is NoDataChangeDeltaModel)) {
+               // Clear pointers to it, but keep the names. They're pointers, just not to here anymore.
+               foreach (var source in run.PointerSources) {
+                  WriteValue(changeToken, source, 0);
+                  changeToken.AddUnmappedPointer(source, name);
+                  sourceToUnmappedName[source] = name;
+               }
+               unmappedNameToSources[name] = new List<int>(run.PointerSources);
+            } else {
+               // Clear pointer formats to it. They're not actually pointers.
+               foreach (var source in run.PointerSources) ClearFormat(changeToken, source, 4);
             }
-            unmappedNameToSources[name] = new List<int>(run.PointerSources);
             changeToken.RemoveName(run.Start, name);
             addressForAnchor.Remove(name);
             anchorForAddress.Remove(run.Start);
@@ -968,7 +974,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var index = BinarySearch(destination);
             if (index >= 0) {
                ClearPointerFromAnchor(changeToken, start, index);
-            } else if (runs[~index - 1] is ArrayRun array) {
+            } else if (index != -1 && runs[~index - 1] is ArrayRun array) { // if index is -1, we are before the first run, so we're not within an array run
                ClearPointerWithinArray(changeToken, start, ~index - 1, array);
             } else {
                Debug.Fail($"Trying to clear a pointer that starts at {start:X6}, but the run in that area seems to be not be a pointer run.");
