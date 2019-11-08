@@ -288,5 +288,26 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       #endregion
+
+      /// <summary>
+      /// Finds what 4 moves a pokemon would have by default, based on lvlmoves and the given level
+      /// </summary>
+      private IReadOnlyList<int> GetDefaultMoves(int pokemon, int currentLevel) {
+         var results = new List<int>();
+         if (model.TryGetNameArray(HardcodeTablesModel.LevelMovesTableName, out var lvlMoves)) {
+            var movesStart = model.ReadPointer(lvlMoves.Start + lvlMoves.ElementLength * pokemon);
+            if (model.GetNextRun(movesStart) is PLMRun run) {
+               for (int i = 0; i < run.Length; i += 2) {
+                  var pair = model.ReadMultiByteValue(run.Start + i, 2);
+                  var (level, move) = PLMRun.SplitToken(pair);
+                  if (currentLevel <= level) results.Add(move);
+                  else break;
+               }
+            }
+         }
+         while (results.Count > 4) results.RemoveAt(0); // restrict to the last 4 moves
+         while (results.Count < 4) results.Add(0);      // pad with extra '0' moves if needed
+         return results;
+      }
    }
 }
