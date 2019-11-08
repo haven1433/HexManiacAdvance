@@ -44,6 +44,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             { nameof(viewModel.Theme.Accent), Brush(viewModel.Theme.Accent) },
             { nameof(viewModel.Theme.Stream1), Brush(viewModel.Theme.Stream1) },
             { nameof(viewModel.Theme.Stream2), Brush(viewModel.Theme.Stream2) },
+            { nameof(viewModel.Theme.ErrorBackground), Brush(viewModel.Theme.ErrorBackground) },
          };
          Resources.MergedDictionaries.Clear();
          Resources.MergedDictionaries.Add(dict);
