@@ -72,9 +72,9 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private void UpdateManualSelection(PCSTool tool) {
          var linesBeforeSelection = StringToolTextBox.Text.Substring(0, StringToolTextBox.SelectionStart).Split(Environment.NewLine).Length - 1;
-         var totalLines = StringToolTextBox.Text.Split(Environment.NewLine).Length;
+         var lastLineIndex = StringToolTextBox.Text.Split(Environment.NewLine).Length - 1;
          var highestScroll = StringToolTextBox.ExtentHeight - StringToolTextBox.ViewportHeight;
-         var verticalOffset = linesBeforeSelection * highestScroll / totalLines;
+         var verticalOffset = linesBeforeSelection * highestScroll / lastLineIndex;
          StringToolTextBox.ScrollToVerticalOffset(verticalOffset);
       }
 
@@ -90,12 +90,16 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var verticalOffset = StringToolTextBox.VerticalOffset;
          var lineHeight = StringToolTextBox.ExtentHeight / totalLines;
          var verticalStart = lineHeight * linesBeforeSelection - verticalOffset + 2;
-         if (verticalStart < 0 || verticalStart > StringToolTextBox.ViewportHeight) return;
+         if (verticalStart < 0 || verticalStart > StringToolTextBox.ViewportHeight) {
+            ManualHighlight.Opacity = 0;
+            return;
+         }
 
          var selectionStart = StringToolTextBox.Text.Substring(0, StringToolTextBox.SelectionStart).Split(Environment.NewLine).Last().Length;
          const int fontWidth = 7; // FormattedText.Width gives more like 6.5, but 7 actually looks better.
          var horizontalStart = selectionStart * fontWidth + 2;
          var width = tool.ContentSelectionLength * fontWidth;
+         ManualHighlight.Opacity = 0.4;
          ManualHighlight.Margin = new Thickness(horizontalStart, verticalStart, StringToolTextBox.ActualWidth - horizontalStart - width, 0);
       }
 
