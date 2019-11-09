@@ -237,15 +237,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var startAddress = address;
             if (preferredWidth > 1) address -= (address - tableStart) % preferredWidth;
 
-            // first, change the selection and scroll to select the actual requested address
-            SelectionStart = Scroll.DataIndexToViewPoint(startAddress);
-            Scroll.ScrollValue += Scroll.DataIndexToViewPoint(startAddress).Y; // recalculate, as the scroll may have changed
+            // first, change the scroll to view the actual requested address
+            Scroll.ScrollValue += Scroll.DataIndexToViewPoint(startAddress).Y;
 
             // then, scroll left/right as needed to align everything
             while (Scroll.DataIndex < address) Scroll.Scroll.Execute(Direction.Right);
             while (Scroll.DataIndex > address) Scroll.Scroll.Execute(Direction.Left);
 
+            // update the width
             PreferredWidth = preferredWidth;
+
+            // finally, update the selection
+            SelectionStart = Scroll.DataIndexToViewPoint(startAddress);
          }
       }
 

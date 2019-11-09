@@ -185,5 +185,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          contextMenu.StaysOpen = false;
          contextMenu.IsOpen = true;
       }
+
+      /// <summary>
+      /// If the current table is selected, the ViewModel still wants
+      /// to know the user input so the ViewModel can Goto the table.
+      /// </summary>
+      private void TableSelected(object sender, EventArgs e) {
+         if (DataContext is IViewPort viewPort) viewPort.Tools.TableTool.SelectedTableIndex = TableSelector.SelectedIndex;
+      }
    }
 }

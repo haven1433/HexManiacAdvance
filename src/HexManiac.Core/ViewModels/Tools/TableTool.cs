@@ -24,12 +24,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public int SelectedTableIndex {
          get => selectedTableIndex;
          set {
-            if (TryUpdate(ref selectedTableIndex, value)) {
-               if (selectedTableIndex == -1) return;
-               var array = model.Arrays.Skip(selectedTableIndex).First();
-               selection.GotoAddress(array.Start);
-               Address = array.Start;
-            }
+            TryUpdate(ref selectedTableIndex, value);
+            if (selectedTableIndex == -1) return;
+            var array = model.Arrays[selectedTableIndex];
+            selection.GotoAddress(array.Start);
+            Address = array.Start;
          }
       }
 
