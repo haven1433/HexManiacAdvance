@@ -19,6 +19,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public PLMRun(IDataModel dataModel, int start, IReadOnlyList<int> pointerSources = null) : base(start, pointerSources) {
          model = dataModel;
          var moveNames = ModelCacheScope.GetCache(dataModel).GetOptions(EggMoveRun.MoveNamesTable);
+         Length = 1;
          for (int i = Start; i < model.Count; i += 2) {
             var value = model.ReadMultiByteValue(i, 2);
             if (value == 0xFFFF) {
@@ -96,7 +97,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var lines = content.ToLower().Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
          foreach (var line in lines) {
             var parts = line.Split(new[] { ' ' }, 2);
-            if (!int.TryParse(parts[0], out var level)) level = 0;
+            if (!int.TryParse(parts[0], out var level)) continue;
             var moveName = parts.Length == 1 ? "0" : parts[1];
             moveName = moveName.Trim().Trim('"');
 
@@ -112,7 +113,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var run = model.RelocateForExpansion(token, this, data.Count * 2 + 2);
          for (int i = 0; i < data.Count; i++) model.WriteMultiByteValue(run.Start + i * 2, 2, token, data[i]);
          model.WriteMultiByteValue(run.Start + data.Count * 2, 2, token, EggMoveRun.EndStream); // write the new end token
-         for (int i = data.Count + 2; i < Length / 2; i++) model.WriteMultiByteValue(run.Start + i * 2, 2, token, EggMoveRun.EndStream); // fill any remaining old space with FF
+         for (int i = data.Count + 2; i < Length; i++) token.ChangeData(model, run.Start + i, 0xFF); // fill any remaining old space with FF
+
          return new PLMRun(model, run.Start);
       }
 
