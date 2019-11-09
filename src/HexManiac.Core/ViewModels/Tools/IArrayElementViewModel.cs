@@ -135,18 +135,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          int address;
          if (!int.TryParse(content, NumberStyles.HexNumber, CultureInfo.CurrentCulture.NumberFormat, out address)) {
             address = viewModel.Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, content);
+            if (address == Pointer.NULL && content != "null") {
+               viewModel.ErrorText = "Address should be hexidecimal or an anchor.";
+               return;
+            }
          }
 
-         if (address != Pointer.NULL) {
-            viewModel.Model.WritePointer(viewModel.History.CurrentChange, viewModel.Start, address);
-         } else {
-            viewModel.ErrorText = "Address should be hexidecimal or an anchor.";
-         }
+         viewModel.Model.WritePointer(viewModel.History.CurrentChange, viewModel.Start, address);
       }
 
       public string UpdateViewModelFromModel(FieldArrayElementViewModel viewModel) {
          var value = viewModel.Model.ReadPointer(viewModel.Start);
          var text = value.ToString("X6");
+         if (value == Pointer.NULL) text = "null";
          return $"{PointerRun.PointerStart}{text}{PointerRun.PointerEnd}";
       }
    }
