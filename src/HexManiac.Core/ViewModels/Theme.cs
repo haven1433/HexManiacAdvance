@@ -111,7 +111,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Accent = accent[5].ToRgb().ToHexString();
          Text2 = accent[6].ToRgb().ToHexString();
          Stream1 = accent[7].ToRgb().ToHexString();
-         ErrorBackground = Splice(hsbHighlightDark, accent[0], .2);
+         EditBackground = Splice(hsbHighlightDark, accent[2], .2);
 
          NotifyPropertyChanged(nameof(Primary));
          NotifyPropertyChanged(nameof(Background));
@@ -121,7 +121,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public string Secondary { get => secondary; set => TryUpdate(ref secondary, value); }
       public string Backlight { get => backlight; set => TryUpdate(ref backlight, value); }
 
-      private string error, text1, text2, data1, data2, accent, stream1, stream2, errorBackground;
+      private string error, text1, text2, data1, data2, accent, stream1, stream2, editBackground;
       public string Error { get => error; set => TryUpdate(ref error, value); }
       public string Text1 { get => text1; set => TryUpdate(ref text1, value); }
       public string Text2 { get => text2; set => TryUpdate(ref text2, value); }
@@ -130,7 +130,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public string Accent { get => accent; set => TryUpdate(ref accent, value); }
       public string Stream1 { get => stream1; set => TryUpdate(ref stream1, value); }
       public string Stream2 { get => stream2; set => TryUpdate(ref stream2, value); }
-      public string ErrorBackground { get => errorBackground; set => TryUpdate(ref errorBackground, value); }
+      public string EditBackground { get => editBackground; set => TryUpdate(ref editBackground, value); }
 
       public string Primary => PrimaryColor;
       public string Background => BackgroundColor;
