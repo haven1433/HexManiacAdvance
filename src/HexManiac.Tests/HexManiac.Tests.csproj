@@ -81,6 +81,7 @@
     <Compile Include="NestedTablesTests.cs" />
     <Compile Include="PointerModelTests.cs" />
     <Compile Include="NavigationTests.cs" />
+    <Compile Include="StreamTests.cs" />
     <Compile Include="StringModelTests.cs" />
     <Compile Include="TableTests.cs" />
     <Compile Include="ToolTests.cs" />

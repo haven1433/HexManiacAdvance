@@ -222,7 +222,11 @@
                                        </ToolTip>
                                     </Button.ToolTip>
                                  </Button>
-                                 <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource Secondary}" FontStyle="Italic" Text="{Binding Message}" TextWrapping="Wrap"/>
+                                 <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource Secondary}" FontStyle="Italic" TextWrapping="Wrap">
+                                    <Run Text="This is used by"/>
+                                    <Run Foreground="{DynamicResource Accent}" Text="{Binding Message, Mode=OneWay}"/>
+                                    <Run Text="pointers."/>
+                                 </TextBlock>
                               </DockPanel>
                               <TextBox UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Margin="20,2,2,2" AcceptsReturn="True"/>
                            </StackPanel>

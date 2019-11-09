@@ -293,7 +293,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var sourceCount = run.PointerSources.Count;
             if (sourceCount > 1) {
                CanRepoint = true;
-               Message = $"This is used by {sourceCount} pointers.";
+               Message = $"{sourceCount}";
                Repoint = new StubCommand {
                   CanExecute = arg => CanRepoint,
                   Execute = arg => {
