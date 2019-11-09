@@ -43,15 +43,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          segments.Add(new ArrayRunElementSegment("ivSpread", ElementContentType.Integer, 2));
          segments.Add(new ArrayRunElementSegment("level", ElementContentType.Integer, 2));
          segments.Add(new ArrayRunEnumSegment("mon", 2, EggMoveRun.PokemonNameTable));
+         if ((StructType & INCLUDE_ITEM) != 0) {
+            segments.Add(new ArrayRunEnumSegment("item", 2, HardcodeTablesModel.ItemsTableName));
+         }
          if ((StructType & INCLUDE_MOVES) != 0) {
             segments.Add(new ArrayRunEnumSegment("move1", 2, EggMoveRun.MoveNamesTable));
             segments.Add(new ArrayRunEnumSegment("move2", 2, EggMoveRun.MoveNamesTable));
             segments.Add(new ArrayRunEnumSegment("move3", 2, EggMoveRun.MoveNamesTable));
             segments.Add(new ArrayRunEnumSegment("move4", 2, EggMoveRun.MoveNamesTable));
          }
-         if ((StructType & INCLUDE_ITEM) != 0) {
-            segments.Add(new ArrayRunEnumSegment("item", 2, HardcodeTablesModel.ItemsTableName));
-         } else {
+         if ((StructType & INCLUDE_ITEM) == 0) {
             segments.Add(new ArrayRunElementSegment("padding", ElementContentType.Integer, 2));
          }
 
@@ -156,11 +157,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             model.WriteMultiByteValue(start + 2, 2, token, data.Pokemon[i]);
             model.WriteMultiByteValue(start + 4, 2, token, data.IVs[i]);
             start += 6;
+            if (data.ItemsIncluded) {
+               model.WriteMultiByteValue(start, 2, token, data.Items[i]);
+               start += 2;
+            }
             if (data.MovesIncluded) {
                for (int j = 0; j < 4; j++) model.WriteMultiByteValue(start + j * 2, 2, token, data.Moves[i * 4 + j]);
                start += 8;
             }
-            model.WriteMultiByteValue(start, 2, token, data.Items[i]);
+
+            // if there's no item, add 2 more bytes to get to the next multiple of 4.
+            if (!data.ItemsIncluded) {
+               model.WriteMultiByteValue(start, 2, token, 0);
+               start += 2;
+            }
          }
 
          // step 4: write the parent data
@@ -182,18 +192,22 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var pokeID = model.ReadMultiByteValue(start + 4, 2);
             var pokemonNames = cache.GetOptions(EggMoveRun.PokemonNameTable);
             var pokemon = pokemonNames.Count > pokeID ? pokemonNames[pokeID] : pokeID.ToString();
+            start += 6;
+
             var item = string.Empty;
             if ((StructType & INCLUDE_ITEM) != 0) {
-               var itemID = model.ReadMultiByteValue(start + ElementLength - 2, 2);
+               var itemID = model.ReadMultiByteValue(start, 2);
                var itemNames = cache.GetOptions(HardcodeTablesModel.ItemsTableName);
                item = itemNames.Count > itemID ? itemNames[itemID] : itemID.ToString();
                item = "@" + item;
+               start += 2;
             }
+
             buffer.AppendLine($"{level} {pokemon} ({ivSpread}){item}");
             if ((StructType & INCLUDE_MOVES) != 0) {
                var moveNames = cache.GetOptions(EggMoveRun.MoveNamesTable);
-               for(int j = 0; j < 4; j++) {
-                  var moveID = model.ReadMultiByteValue(start + 6 + j * 2, 2);
+               for (int j = 0; j < 4; j++) {
+                  var moveID = model.ReadMultiByteValue(start + j * 2, 2);
                   var move = moveNames.Count > moveID ? moveNames[moveID] : moveID.ToString();
                   buffer.AppendLine($"- {move}");
                }
