@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
+using System.Linq;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
@@ -194,7 +195,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private bool containsUniqueOption;
-      public ObservableCollection<string> Options { get; }
+      public ObservableCollection<ComboOption> Options { get; }
 
       private int selectedIndex;
 
@@ -207,7 +208,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var segment = (ArrayRunEnumSegment)run.ElementContent[offsets.SegmentIndex];
 
             // special case: the last option might be a weird value that came in, not normally available in the enum
-            if (containsUniqueOption && selectedIndex == Options.Count - 1 && int.TryParse(Options[selectedIndex], out var parsedValue)) {
+            if (containsUniqueOption && selectedIndex == Options.Count - 1 && int.TryParse(Options[selectedIndex].Text, out var parsedValue)) {
                value = parsedValue;
             }
 
@@ -222,7 +223,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var offsets = run.ConvertByteOffsetToArrayOffset(start);
          var segment = (ArrayRunEnumSegment)run.ElementContent[offsets.SegmentIndex];
          var optionSource = model.GetAddressFromAnchor(history.CurrentChange, -1, segment.EnumName);
-         Options = new ObservableCollection<string>(segment.GetOptions(model));
+         Options = new ObservableCollection<ComboOption>(segment.GetOptions(model).Select(option => new ComboOption(option)));
          var value = model.ReadMultiByteValue(start, length);
          if (value >= Options.Count) {
             Options.Add(value.ToString());
@@ -236,6 +237,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             Execute = arg => selection.GotoAddress(optionSource),
          };
       }
+   }
+
+   /// <summary>
+   /// This exists to wrap a string, just so that WPF doesn't mess up the combo-box selection in the case of multiple indexes having the same text.
+   /// </summary>
+   public class ComboOption {
+      public string Text { get; }
+      public ComboOption(string text) { Text = text; }
+      public static implicit operator ComboOption(string text) => new ComboOption(text);
    }
 
    public class StreamArrayElementViewModel : ViewModelCore, IArrayElementViewModel {

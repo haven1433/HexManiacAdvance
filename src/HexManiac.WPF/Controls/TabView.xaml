@@ -160,7 +160,7 @@
                                  <ColumnDefinition Width="Auto"/>
                               </Grid.ColumnDefinitions>
                               <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
-                              <ComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" Margin="0,0,2,0" Grid.Column="1"/>
+                              <ComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" DisplayMemberPath="Text" Margin="0,0,2,0" Grid.Column="1"/>
                               <Button Grid.Column="2" Command="{Binding GotoSource}" Width="20" Height="20">
                                  <Button.ToolTip>
                                     <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
