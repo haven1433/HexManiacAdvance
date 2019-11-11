@@ -97,6 +97,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public int Source { get; }      // 6 hex digits
       public int Position { get; }    // 0 through 3
       public int Destination { get; } // 6 hex digits
+      public bool HasError { get; }
       public string DestinationName { get; } // null if there is no name for that anchor
       public string DestinationAsText {
          get {
@@ -106,11 +107,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          }
       }
 
-      public Pointer(int source, int positionInPointer, int destination, string destinationName) {
+      public Pointer(int source, int positionInPointer, int destination, string destinationName, bool hasError) {
          Source = source;
          Position = positionInPointer;
          Destination = destination;
          DestinationName = destinationName;
+         HasError = hasError;
       }
 
       public bool Equals(IDataFormat other) {

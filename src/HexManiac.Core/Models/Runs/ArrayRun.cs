@@ -42,7 +42,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (currentSegment.Type == ElementContentType.Pointer) {
             var destination = data.ReadPointer(offsets.SegmentStart);
             var destinationName = data.GetAnchorFromAddress(offsets.SegmentStart, destination);
-            return new Pointer(offsets.SegmentStart, position, destination, destinationName);
+            var hasError = destination < 0 || data.GetNextRun(destination).Start != destination; // table pointers might not point at anchors
+            return new Pointer(offsets.SegmentStart, position, destination, destinationName, hasError);
          }
 
          if (currentSegment.Type == ElementContentType.BitArray) {

@@ -82,7 +82,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             if (format is PCS pcs) {
                collector.Collect<PCS>(x, 1, pcs.ThisCharacter);
             } else if (format is Pointer pointer && pointer.Position == 0) {
-               if (pointer.Destination < 0) collector.Collect<ErrorPCS>(x, 4, pointer.DestinationAsText);
+               if (pointer.HasError) collector.Collect<ErrorPCS>(x, 4, pointer.DestinationAsText);
                else collector.Collect<Pointer>(x, 4, pointer.DestinationAsText);
             } else if (format is PlmItem plm && plm.Position == 0) {
                collector.Collect<PlmItem>(x, 2, plm.ToString());
