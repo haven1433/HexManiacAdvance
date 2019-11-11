@@ -157,7 +157,9 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (runs[i] is PointerRun pointerRun) {
                var destination = ReadPointer(pointerRun.Start);
                var run = GetNextRun(destination);
-               if (run is ArrayRun arrayRun1 && arrayRun1.SupportsPointersToElements) {
+               if (destination < 0 || destination >= Count) {
+                  // pointer points outside scope. Such a pointer is an error, but is not a metadata inconsistency.
+               } else if (run is ArrayRun arrayRun1 && arrayRun1.SupportsPointersToElements) {
                   var offsets = arrayRun1.ConvertByteOffsetToArrayOffset(destination);
                   Debug.Assert(arrayRun1.PointerSourcesForInnerElements[offsets.ElementIndex].Contains(pointerRun.Start));
                   if (offsets.ElementIndex == 0) Debug.Assert(run.PointerSources.Contains(pointerRun.Start));
@@ -189,6 +191,34 @@ namespace HavenSoft.HexManiac.Core.Models {
                   foreach (var source in arrayRun2.PointerSourcesForInnerElements[j]) {
                      Debug.Assert(ReadPointer(source) == arrayRun2.Start + arrayRun2.ElementLength * j);
                   }
+               }
+            }
+
+            // for every table, make sure the things it points to know about the table
+            if (runs[i] is ITableRun tableRun) {
+               int elementOffset = 0;
+               foreach (var segment in tableRun.ElementContent) {
+                  if (segment.Type != ElementContentType.Pointer) { elementOffset += segment.Length; continue; }
+                  for (int j = 0; j < tableRun.ElementCount; j++) {
+                     var start = tableRun.Start + elementOffset + tableRun.ElementLength * j;
+                     var destination = ReadPointer(start);
+                     var run = GetNextRun(destination);
+                     if (destination < 0 || destination >= Count) {
+                        // pointer points outside scope. Such a pointer is an error, but is not a metadata inconsistency.
+                     } else if (run is ArrayRun arrayRun1 && arrayRun1.SupportsPointersToElements) {
+                        var offsets = arrayRun1.ConvertByteOffsetToArrayOffset(destination);
+                        Debug.Assert(arrayRun1.PointerSourcesForInnerElements[offsets.ElementIndex].Contains(start));
+                        if (offsets.ElementIndex == 0) Debug.Assert(run.PointerSources.Contains(start));
+                     } else if (run is ITableRun && run.Start < destination) {
+                        // exception: tables are allowed to have pointers that point randomly into other tables.
+                        // such a thing is a data error in the ROM, but is not a metadata inconsistency.
+                     } else if (run.Start != destination) {
+                        // for tables, the invalidly point into a run. Such is an error in the data, but is allowed for the metadata.
+                     } else {
+                        Debug.Assert(run.PointerSources.Contains(start));
+                     }
+                  }
+                  elementOffset += segment.Length;
                }
             }
 
@@ -601,22 +631,26 @@ namespace HavenSoft.HexManiac.Core.Models {
             // the pointer points to a location between existing runs
             IFormattedRun newRun = new NoInfoRun(destination, new[] { start });
             UpdateNewRunFromPointerFormat(ref newRun, segment as ArrayRunPointerSegment, changeToken);
-            index = BinarySearch(destination); // runs could've been removed/added during UpdateNewRunFromPointerFormat: search for the index again.
-            runs.Insert(~index, newRun);
-            changeToken.AddRun(newRun);
+            if (newRun != null) {
+               index = BinarySearch(destination); // runs could've been removed/added during UpdateNewRunFromPointerFormat: search for the index again.
+               runs.Insert(~index, newRun);
+               changeToken.AddRun(newRun);
+            }
          } else {
             // the pointer points to a known normal anchor
             var existingRun = runs[index];
             changeToken.RemoveRun(existingRun);
             existingRun = existingRun.MergeAnchor(new[] { start });
             UpdateNewRunFromPointerFormat(ref existingRun, segment as ArrayRunPointerSegment, changeToken);
-            index = BinarySearch(destination); // runs could've been removed during UpdateNewRunFromPointerFormat: search for the index again.
-            if (index < 0) {
-               runs.Insert(~index, existingRun);
-            } else {
-               runs[index] = existingRun;
+            if (existingRun != null) {
+               index = BinarySearch(destination); // runs could've been removed during UpdateNewRunFromPointerFormat: search for the index again.
+               if (index < 0) {
+                  runs.Insert(~index, existingRun);
+               } else {
+                  runs[index] = existingRun;
+               }
+               changeToken.AddRun(existingRun);
             }
-            changeToken.AddRun(existingRun);
          }
       }
 
@@ -625,6 +659,14 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// Update the model so the data we're pointing to is actually that format.
       /// </summary>
       private void UpdateNewRunFromPointerFormat(ref IFormattedRun run, ArrayRunPointerSegment segment, ModelDelta token) {
+         var nextRun = GetNextRun(run.Start);
+         if (nextRun.Start <= run.Start && nextRun is ITableRun && run.GetType() != nextRun.GetType()) {
+            // we're trying to point into a table. The table format wins: don't add any anchor.
+            // this pointer is a 'bad' pointer: its pointing somewhere we KNOW doesn't contain the right data.
+            run = null;
+            return;
+         }
+
          if (segment == null) return;
          if (segment.InnerFormat == PCSRun.SharedFormatString) {
             var length = PCSString.ReadString(this, run.Start, true);
@@ -655,45 +697,45 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          var existingRun = (index >= 0 && index < runs.Count) ? runs[index] : null;
 
-         if (existingRun == null) {
-            // no format starts exactly at this anchor, so clear any format that goes over this anchor.
-            ClearFormat(changeToken, location, run.Length);
-         } else if (!(run is NoInfoRun)) {
-            // a format starts exactly at this anchor.
-            // but the new format may extend further. If so, clear the existing format.
-            if (existingRun.Length < run.Length) {
-               ClearFormat(changeToken, run.Start, run.Length);
-            }
-         }
-
-         if (anchorForAddress.TryGetValue(location, out string oldAnchorName)) {
-            anchorForAddress.Remove(location);
-            addressForAnchor.Remove(oldAnchorName);
-            changeToken.RemoveName(location, oldAnchorName);
-         }
-
-         if (addressForAnchor.ContainsKey(anchorName)) {
-            RemoveAnchorByName(changeToken, anchorName);
-         }
-
-         // if this anchor was given a name, add it
-         if (anchorName != string.Empty) {
-            anchorForAddress.Add(location, anchorName);
-            addressForAnchor.Add(anchorName, location);
-            changeToken.AddName(location, anchorName);
-         }
-
-         var seekPointers = existingRun?.PointerSources == null || existingRun?.Start != location;
-         var sources = GetSourcesPointingToNewAnchor(changeToken, anchorName, seekPointers);
-
-         // if we're adding an array, a few extra updates
-         if (run is ArrayRun array) {
-            // update inner pointers and dependent arrays
-            if (array.SupportsPointersToElements) run = array.AddSourcesPointingWithinArray(changeToken);
-         }
-
-         var newRun = run.MergeAnchor(sources);
          using (ModelCacheScope.CreateScope(this)) {
+            if (existingRun == null) {
+               // no format starts exactly at this anchor, so clear any format that goes over this anchor.
+               ClearFormat(changeToken, location, run.Length);
+            } else if (!(run is NoInfoRun)) {
+               // a format starts exactly at this anchor.
+               // but the new format may extend further. If so, clear the existing format.
+               if (existingRun.Length < run.Length) {
+                  ClearFormat(changeToken, run.Start, run.Length);
+               }
+            }
+
+            if (anchorForAddress.TryGetValue(location, out string oldAnchorName)) {
+               anchorForAddress.Remove(location);
+               addressForAnchor.Remove(oldAnchorName);
+               changeToken.RemoveName(location, oldAnchorName);
+            }
+
+            if (addressForAnchor.ContainsKey(anchorName)) {
+               RemoveAnchorByName(changeToken, anchorName);
+            }
+
+            // if this anchor was given a name, add it
+            if (anchorName != string.Empty) {
+               anchorForAddress.Add(location, anchorName);
+               addressForAnchor.Add(anchorName, location);
+               changeToken.AddName(location, anchorName);
+            }
+
+            var seekPointers = existingRun?.PointerSources == null || existingRun?.Start != location;
+            var sources = GetSourcesPointingToNewAnchor(changeToken, anchorName, seekPointers);
+
+            // if we're adding an array, a few extra updates
+            if (run is ArrayRun array) {
+               // update inner pointers and dependent arrays
+               if (array.SupportsPointersToElements) run = array.AddSourcesPointingWithinArray(changeToken);
+            }
+
+            var newRun = run.MergeAnchor(sources);
             ObserveRunWritten(changeToken, newRun);
          }
       }
@@ -918,17 +960,6 @@ namespace HavenSoft.HexManiac.Core.Models {
             return;
          }
 
-         // case 1.5: unnamed anchor doesn't start where the delete starts, but the pointer to it lives in an array
-         // this anchor is real, but the format is wrong. Keep the anchor, lose the format.
-         if (run.Start != originalStart && run.PointerSources != null && run.PointerSources.Any(source => GetNextRun(source) is ArrayRun)) {
-            var newRun = new NoInfoRun(run.Start, run.PointerSources);
-            runIndex = BinarySearch(run.Start);
-            changeToken.RemoveRun(run);
-            changeToken.AddRun(newRun);
-            runs[runIndex] = newRun;
-            return;
-         }
-
          // case 2: unnamed anchor doesn't start where the delete starts
          // this anchor shouldn't exist. The things that point to it aren't real pointers.
          if (run.Start != originalStart) {
@@ -936,7 +967,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             // as such, we should not change their data, just remove their pointer format
             foreach (var source in run.PointerSources ?? new int[0]) {
                var sourceRunIndex = BinarySearch(source);
-               if (sourceRunIndex >= 0) {
+               if (sourceRunIndex >= 0 && runs[sourceRunIndex] is PointerRun) {
                   var pointerRun = runs[sourceRunIndex];
                   changeToken.RemoveRun(pointerRun);
                   if (pointerRun.PointerSources == null) {
@@ -947,6 +978,8 @@ namespace HavenSoft.HexManiac.Core.Models {
                      changeToken.AddRun(newRun);
                      runs[sourceRunIndex] = newRun;
                   }
+               } else {
+                  // this source is in a table: the source is in error, but we have to leave it anyway.
                }
             }
             runIndex = BinarySearch(run.Start);

@@ -70,6 +70,7 @@
     <Compile Include="ArrayRunTests.cs" />
     <Compile Include="AutoSearchTests.cs" />
     <Compile Include="BaseViewModelTestClass.cs" />
+    <Compile Include="BasicLoadTests.cs" />
     <Compile Include="ChangeHistoryTests.cs" />
     <Compile Include="AsciiRunTests.cs" />
     <Compile Include="EggMoveTests.cs" />

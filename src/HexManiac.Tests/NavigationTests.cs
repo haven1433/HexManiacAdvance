@@ -317,7 +317,7 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
-         data = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         data = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          model = new PokemonModel(data);
          viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
       }

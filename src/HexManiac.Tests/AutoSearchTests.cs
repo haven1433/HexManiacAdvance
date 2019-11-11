@@ -251,7 +251,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [SkippableFact]
       public void TutorsCompatibilityContainsCorrectDataFireRed() {
-         var model = fixture.LoadModel((string)PokemonGames.Select(array=>(string)array[0]).Single(game => game.Contains("FireRed")));
+         var model = fixture.LoadModel(PokemonGames.Select(array => (string)array[0]).Single(game => game.Contains("FireRed")));
          var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, AutoSearchModel.TutorCompatibility);
          Assert.Equal(0x409A, model.ReadMultiByteValue(address + 2, 2));
       }
