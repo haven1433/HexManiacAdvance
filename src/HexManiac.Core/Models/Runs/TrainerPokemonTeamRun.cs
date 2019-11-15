@@ -9,6 +9,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public const int TrainerFormat_StructTypeOffset = 0;
       public const int TrainerFormat_PokemonCountOffset = 32;
       public const int TrainerFormat_PointerOffset = 36;
+      public const int TrainerFormat_Width = 40;
       public const byte INCLUDE_MOVES = 1;
       public const byte INCLUDE_ITEM = 2;
 
@@ -23,22 +24,38 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public byte StructType { get; }
 
+      #region Constructors
+
       public TrainerPokemonTeamRun(IDataModel model, int start, IReadOnlyList<int> sources) : base(start, sources) {
          this.model = model;
 
          // trainer format (abbreviated):
          //     0           1       2         3        4-15     16     18      20     22       24          28       32         36          40 total
          // [structType. class. introMusic. sprite. name\"\"12 item1: item2: item3: item4: doubleBattle:: ai:: pokemonCount:: pokemon<>]
-         if (sources.Count < 1) {
-            // when removing a TPTRun, it might temporarily have no sources.
-            StructType = 0;
-            ElementCount = 1;
-         } else {
-            var source = sources.First();
+         StructType = 0;
+         ElementCount = 1;
+         foreach (var source in sources) {
+            if (!(model.GetNextRun(source) is ITableRun)) continue;
             StructType = model[source - TrainerFormat_PointerOffset];
             ElementCount = model[source - TrainerFormat_PointerOffset + TrainerFormat_PokemonCountOffset];
+            break;
          }
 
+         var segments = Initialize();
+         ElementContent = segments;
+         ElementLength = ElementContent.Sum(segment => segment.Length);
+      }
+
+      private TrainerPokemonTeamRun(IDataModel model, int start, IReadOnlyList<int> sources, int primarySource) : base(start, sources) {
+         this.model = model;
+         StructType = model[primarySource - TrainerFormat_PointerOffset];
+         ElementCount = model[primarySource - TrainerFormat_PointerOffset + TrainerFormat_PokemonCountOffset];
+         var segments = Initialize();
+         ElementContent = segments;
+         ElementLength = ElementContent.Sum(segment => segment.Length);
+      }
+
+      private IReadOnlyList<ArrayRunElementSegment> Initialize() {
          var segments = new List<ArrayRunElementSegment>();
          segments.Add(new ArrayRunElementSegment("ivSpread", ElementContentType.Integer, 2));
          segments.Add(new ArrayRunElementSegment("level", ElementContentType.Integer, 2));
@@ -56,9 +73,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             segments.Add(new ArrayRunElementSegment("padding", ElementContentType.Integer, 2));
          }
 
-         ElementContent = segments;
-         ElementLength = ElementContent.Sum(segment => segment.Length);
+         return segments;
       }
+
+      #endregion
 
       public IEnumerable<int> Search(string parentArrayName, int id) {
          for (int i = 0; i < ElementCount; i++) {
@@ -151,8 +169,19 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (totalLength > workingRun.Length) workingRun = (TrainerPokemonTeamRun)model.RelocateForExpansion(token, workingRun, totalLength);
 
          // step 3: write the run data
+         WriteData(token, workingRun.Start, data);
+
+         // step 4: write the parent data
+         var structType = (data.ItemsIncluded ? INCLUDE_ITEM : 0) ^ (data.MovesIncluded ? INCLUDE_MOVES : 0);
+         UpdateParents(token, structType, data.Pokemon.Count, workingRun.PointerSources);
+
+         return new TrainerPokemonTeamRun(model, workingRun.Start, workingRun.PointerSources);
+      }
+
+      private void WriteData(ModelDelta token, int runStart, TeamData data) {
+         var elementLength = data.MovesIncluded ? 16 : 8;
          for (int i = 0; i < data.Pokemon.Count; i++) {
-            int start = workingRun.Start + elementLength * i;
+            int start = runStart + elementLength * i;
             model.WriteMultiByteValue(start + 0, 2, token, data.Levels[i]);
             model.WriteMultiByteValue(start + 2, 2, token, data.Pokemon[i]);
             model.WriteMultiByteValue(start + 4, 2, token, data.IVs[i]);
@@ -172,14 +201,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                start += 2;
             }
          }
+      }
 
-         // step 4: write the parent data
-         var structType = (data.ItemsIncluded ? INCLUDE_ITEM : 0) ^ (data.MovesIncluded ? INCLUDE_MOVES : 0);
-         var parent = workingRun.PointerSources[0] - TrainerFormat_PointerOffset;
-         model.WriteMultiByteValue(parent + TrainerFormat_StructTypeOffset, 1, token, structType);
-         model.WriteMultiByteValue(parent + TrainerFormat_PokemonCountOffset, 4, token, data.Pokemon.Count);
-
-         return new TrainerPokemonTeamRun(model, workingRun.Start, workingRun.PointerSources);
+      private void UpdateParents(ModelDelta token, int structType, int pokemonCount, IReadOnlyList<int> pointerSources) {
+         foreach (var source in pointerSources) {
+            if (!(model.GetNextRun(source) is ITableRun)) continue;
+            var parent = source - TrainerFormat_PointerOffset;
+            if (model[parent + TrainerFormat_StructTypeOffset] != structType) token.ChangeData(model, parent + TrainerFormat_StructTypeOffset, (byte)structType);
+            if (model[parent + TrainerFormat_PokemonCountOffset] != pokemonCount) model.WriteMultiByteValue(parent + TrainerFormat_PokemonCountOffset, 4, token, pokemonCount);
+         }
       }
 
       public string SerializeRun() {
@@ -276,6 +306,38 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
          }
 
+         public TeamData(IDataModel model, int start, int structType, int count) {
+            ItemsIncluded = (INCLUDE_ITEM & structType) != 0;
+            MovesIncluded = (INCLUDE_MOVES & structType) != 0;
+            for (int i = 0; i < count; i++) {
+               ivs.Add(model.ReadMultiByteValue(start + 0, 2));
+               levels.Add(model.ReadMultiByteValue(start + 2, 2));
+               pokemons.Add(model.ReadMultiByteValue(start + 4, 2));
+               start += 6;
+               if (ItemsIncluded) {
+                  items.Add(model.ReadMultiByteValue(start, 2));
+                  start += 2;
+               }
+               if (MovesIncluded) {
+                  for (int j = 0; j < 4; j++) moves.Add(model.ReadMultiByteValue(start + j * 2, 2));
+                  start += 8;
+               } else {
+                  moves.AddRange(new[] { 0, 0, 0, 0 });
+               }
+               if (!ItemsIncluded) start += 2;
+            }
+         }
+
+         public void SetDefaultMoves(TrainerPokemonTeamRun parent) {
+            MovesIncluded = true;
+            moves.Clear();
+            for (int i = 0; i < pokemons.Count; i++) {
+               moves.AddRange(parent.GetDefaultMoves(pokemons[i], levels[i]));
+            }
+         }
+
+         public void RemoveMoves() => MovesIncluded = false;
+
          private void AddIV(List<int> ivs, string[] ivTokenized) {
             if (ivTokenized.Length == 2) {
                ivTokenized[1] = ivTokenized[1].Replace(")", "").Trim();
@@ -302,6 +364,32 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       #endregion
+
+      public TrainerPokemonTeamRun UpdateFromParent(ModelDelta token, int parentSegmentChange, int pointerSource) {
+         // we only care if the change was to the parent's structType or pokemonCount.
+         if (parentSegmentChange != 0 && parentSegmentChange != 11) return this;
+
+         var newStructType = model[pointerSource - TrainerFormat_PointerOffset];
+         var newElementCount = model[pointerSource - TrainerFormat_PointerOffset + TrainerFormat_PokemonCountOffset];
+
+         var newRun = this;
+         if (newElementCount != ElementCount) newRun = (TrainerPokemonTeamRun)newRun.Append(token, newElementCount - ElementCount);
+         if (newStructType != StructType) {
+            var data = new TeamData(model, newRun.Start, StructType, newElementCount);
+            if ((newStructType & INCLUDE_MOVES) != 0 && (StructType & INCLUDE_MOVES) == 0) {
+               data.SetDefaultMoves(this);
+               newRun = (TrainerPokemonTeamRun)model.RelocateForExpansion(token, newRun, newRun.Length * 2);
+            } else if ((newStructType & INCLUDE_MOVES) == 0 && (StructType & INCLUDE_MOVES) != 0) {
+               data.RemoveMoves();
+            }
+            WriteData(token, newRun.Start, data);
+         }
+         if (newElementCount != ElementCount || newStructType != StructType) {
+            UpdateParents(token, newStructType, newElementCount, newRun.PointerSources);
+         }
+
+         return new TrainerPokemonTeamRun(model, newRun.Start, PointerSources, pointerSource);
+      }
 
       /// <summary>
       /// Finds what 4 moves a pokemon would have by default, based on lvlmoves and the given level

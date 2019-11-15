@@ -322,7 +322,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          anchor = nameparts.First();
 
          if (addressForAnchor.TryGetValueCaseInsensitive(anchor, out int address)) {
-            if (nameparts.Length > 1) address = GetAddressFromAnchor(address, nameparts);
+            nameparts = nameparts.Skip(1).ToArray();
+            if (nameparts.Length > 0) address = GetAddressFromAnchor(address, nameparts);
             return address;
          }
 
@@ -343,23 +344,43 @@ namespace HavenSoft.HexManiac.Core.Models {
       private int GetAddressFromAnchor(int startingAddress, string[] nameparts) {
          var run = GetNextRun(startingAddress);
 
+         // support empty string as element 0
+         if (nameparts[0] == string.Empty) return run.Start;
+
          // only support indexing into an anchor if the anchor points to an array
-         if (!(run is ArrayRun array)) return Pointer.NULL;
+         if (!(run is ITableRun array)) return Pointer.NULL;
 
-         // support things like items/4
-         if (nameparts.Length == 2 && int.TryParse(nameparts[1], out var index)) {
-            return array.Start + array.ElementLength * index;
-         }
+         if (nameparts.Length < 1) return Pointer.NULL;
 
-         // support things like pokestats/BULBASAUR
-         if (nameparts.Length == 2) {
-            var elementName = nameparts[1].ToLower();
+         // support things like .../4
+         if (!int.TryParse(nameparts[0], out var index)) {
+            // support things like .../BULBASAUR
+            index = -1;
+            var elementName = nameparts[0].ToLower();
             for (int i = 0; i < array.ElementNames.Count; i++) {
-               if (array.ElementNames[i].ToLower() == elementName) return array.Start + array.ElementLength * i;
+               if (array.ElementNames[i].ToLower() != elementName) continue;
+               index = i;
+               break;
             }
+            if (index == -1) return Pointer.NULL;
          }
 
-         // not supported
+         var elementStart = array.Start + array.ElementLength * index;
+         if (nameparts.Length == 1) return elementStart;
+
+         // support things like .../4/name
+         var segmentOffset = 0;
+         foreach (var segment in array.ElementContent) {
+            if (segment.Name.ToLower() == nameparts[1].ToLower()) {
+               var segmentStart = elementStart + segmentOffset;
+               if (nameparts.Length > 2 && segment.Type == ElementContentType.Pointer) {
+                  return GetAddressFromAnchor(ReadPointer(segmentStart), nameparts.Skip(2).ToArray());
+               }
+               return segmentStart;
+            }
+            segmentOffset += segment.Length;
+         }
+
          return Pointer.NULL;
       }
 
@@ -1168,17 +1189,65 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (run == null || !partial.Contains(ArrayAnchorSeparator)) {
                if (name.MatchesPartial(partial)) results.Add(name);
             } else {
-               var childNames = run.ElementNames;
-               if (childNames != null && childNames.Count > 0) {
-                  foreach (var childName in childNames) {
-                     var full = $"{name}{ArrayAnchorSeparator}{childName}";
-                     if (full.MatchesPartial(partial)) results.Add(full);
-                  }
-               }
+               var nameParts = partial.Split(ArrayAnchorSeparator);
+               if (!name.MatchesPartial(nameParts[0])) continue;
+               results.AddRange(GetAutoCompleteOptions(name + ArrayAnchorSeparator, run, nameParts.Skip(1).ToArray()));
             }
          }
 
          return results;
+      }
+
+      /// <summary>
+      /// This recursively looks through parts[], alternating looking for two things:
+      /// (1) Find which index of an array we're looking at.
+      /// (2) Find which segment of that element we're looking at.
+      /// (3) Follow a pointer and go back to (1).
+      ///
+      /// Since there are multiple cases for what an 'index' can look like, we have to check each case for each index. 2 loops.
+      /// Since there can be multiple returns from a pointer, we have to return each recursive result for each segment name. 2 loops.
+      ///
+      /// ... So this function has 4 nested for-loops, each with multiple conditionals.
+      /// </summary>
+      private IEnumerable<string> GetAutoCompleteOptions(string prefix, ITableRun run, string[] parts) {
+         var childNames = run.ElementNames;
+         for (int i = 0; i < run.ElementCount; i++) {
+            var options = new List<string> { i.ToString() };
+            if (childNames != null && childNames.Count > i && !string.IsNullOrEmpty(childNames[i])) options.Add(childNames[i]);
+            foreach (var option in options) {
+               if (!option.MatchesPartial(parts[0])) continue;
+               if (parts.Length == 1) {
+                  yield return prefix + option;
+                  continue;
+               }
+               // looking for a field name
+               int segmentOffset = 0;
+               foreach (var segment in run.ElementContent) {
+                  if (!segment.Name.MatchesPartial(parts[1])) {
+                     segmentOffset += segment.Length;
+                     continue;
+                  }
+                  if (parts.Length == 2) {
+                     yield return prefix + option + ArrayAnchorSeparator + segment.Name;
+                  } else {
+                     var childRunStart = ReadPointer(run.Start + run.ElementLength * i + segmentOffset);
+                     if (segment.Type != ElementContentType.Pointer) {
+                        segmentOffset += segment.Length;
+                        continue; // oops, can't follow into a non-pointer segment
+                     }
+                     var childRun = GetNextRun(childRunStart);
+                     if (parts[2] == string.Empty) {
+                        yield return prefix + option + ArrayAnchorSeparator + segment.Name + ArrayAnchorSeparator;
+                     } else if(childRun is ITableRun tableRun) {
+                        foreach(var result in GetAutoCompleteOptions(prefix + option + ArrayAnchorSeparator + segment.Name + ArrayAnchorSeparator, tableRun, parts.Skip(2).ToArray())) {
+                           yield return result;
+                        }
+                     }
+                  }
+                  segmentOffset += segment.Length;
+               }
+            }
+         }
       }
 
       public override StoredMetadata ExportMetadata() {

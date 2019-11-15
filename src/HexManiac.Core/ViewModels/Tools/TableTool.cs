@@ -126,17 +126,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   var array = (ITableRun)model.GetNextRun(address);
                   var originalArray = array;
                   var error = model.CompleteArrayExtension(viewPort.CurrentChange, ref array);
-                  if (array.Start != originalArray.Start) {
-                     ModelDataMoved?.Invoke(this, (originalArray.Start, array.Start));
-                     selection.GotoAddress(array.Start + array.Length - array.ElementLength);
-                  }
-                  if (error.HasError && !error.IsWarning) {
-                     OnError?.Invoke(this, error.ErrorMessage);
-                  } else {
-                     if (error.IsWarning) OnMessage?.Invoke(this, error.ErrorMessage);
-                     ModelDataChanged?.Invoke(this, array);
-                     selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(array.Start + array.Length - array.ElementLength);
-                     selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selection.Scroll.ViewPointToDataIndex(selection.SelectionStart) + array.ElementLength - 1);
+                  if (array != null) {
+                     if (array.Start != originalArray.Start) {
+                        ModelDataMoved?.Invoke(this, (originalArray.Start, array.Start));
+                        selection.GotoAddress(array.Start + array.Length - array.ElementLength);
+                     }
+                     if (error.HasError && !error.IsWarning) {
+                        OnError?.Invoke(this, error.ErrorMessage);
+                     } else {
+                        if (error.IsWarning) OnMessage?.Invoke(this, error.ErrorMessage);
+                        ModelDataChanged?.Invoke(this, array);
+                        selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(array.Start + array.Length - array.ElementLength);
+                        selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selection.Scroll.ViewPointToDataIndex(selection.SelectionStart) + array.ElementLength - 1);
+                     }
                   }
                   RequestMenuClose?.Invoke(this, EventArgs.Empty);
                }

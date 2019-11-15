@@ -52,6 +52,21 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          throw new NotImplementedException();
       }
+
+      public static void NotifyChildren(this ITableRun self, IDataModel model, ModelDelta token, int elementIndex, int segmentIndex) {
+         int offset = 0;
+         foreach (var segment in self.ElementContent) {
+            if (segment is ArrayRunPointerSegment pointerSegment) {
+               var pointerSource = self.Start + elementIndex * self.ElementLength + offset;
+               var destination = model.ReadPointer(pointerSource);
+               var run = model.GetNextRun(destination);
+               if (run.Start == destination && run is TrainerPokemonTeamRun teamRun) {
+                  model.ObserveRunWritten(token, teamRun.UpdateFromParent(token, segmentIndex, pointerSource));
+               }
+            }
+            offset += segment.Length;
+         }
+      }
    }
 
    public class ArrayOffset {

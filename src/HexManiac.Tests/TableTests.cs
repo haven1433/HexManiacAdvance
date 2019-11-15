@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
@@ -51,9 +52,113 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.NotEqual(0x60, Model.ReadPointer(0x24));
       }
 
+      [Fact]
+      public void CanContractTrainerTeamViaStream() {
+         ArrangeTrainerPokemonTeamData(0, 4);
+
+         ViewPort.SelectionStart = new Point(0, 6);
+         var streamTool = ViewPort.Tools.StringTool;
+         streamTool.Content = $"10 A";
+
+         Assert.Equal(1, Model[TrainerPokemonTeamRun.TrainerFormat_PokemonCountOffset]);
+      }
+
+      [Fact]
+      public void AppendViaTableToolUpdatesParent() {
+         ArrangeTrainerPokemonTeamData(0, 2, 1);
+
+         ViewPort.Edit("@A8 "); // select last pokemon
+         var tableTool = ViewPort.Tools.TableTool;
+         tableTool.Append.Execute();
+
+         Assert.Equal(3, Model[TrainerPokemonTeamRun.TrainerFormat_PokemonCountOffset]);
+      }
+
+      [Fact]
+      public void ChangePokemonCountUpdatesTrainerTeam() {
+         ArrangeTrainerPokemonTeamData(0, 2, 2);
+
+         // update count via table: child run should update
+         var tool = ViewPort.Tools.TableTool;
+         var childCountField = (FieldArrayElementViewModel)tool.Children[tool.Children.Count - 3];
+         childCountField.Content = "3";
+         Assert.Equal(3, ((ITableRun)Model.GetNextRun(0xA0)).ElementCount);
+
+         // update count via inline: child run should update
+         ViewPort.Edit("@20 1 ");
+         Assert.Equal(1, ((ITableRun)Model.GetNextRun(0xA0)).ElementCount);
+      }
+
+      [Fact]
+      public void ChangePokemonCountChangesOtherTeamsWithSamePointer() {
+         ArrangeTrainerPokemonTeamData(0, 2, 2);
+         ViewPort.Edit("@4C <0A0>");
+
+         // update count via table: sibling should update
+         var tool = ViewPort.Tools.TableTool;
+         var childCountField = (FieldArrayElementViewModel)tool.Children[tool.Children.Count - 3];
+         childCountField.Content = "3";
+         Assert.Equal(3, Model[0x48]);
+
+         // update count via inline: sibling should update
+         ViewPort.Edit("@20 1 ");
+         Assert.Equal(1, Model[0x48]);
+      }
+
+      [Fact]
+      public void ChangeStructTypeChangesTrainerTeam() {
+         ArrangeTrainerPokemonTeamData(0, 2, 2);
+
+         // update count via table: child run should update
+         var tool = ViewPort.Tools.TableTool;
+         var childCountField = (ComboBoxArrayElementViewModel)tool.Children[0];
+         childCountField.SelectedIndex = 3;
+         Assert.Equal(0x10, ((ITableRun)Model.GetNextRun(0xA0)).ElementLength);
+
+         // update count via inline: child run should update
+         ViewPort.Edit("@00 2 ");
+         Assert.Equal(0x08, ((ITableRun)Model.GetNextRun(0xA0)).ElementLength);
+      }
+
+      [Fact]
+      public void ChangeStructTypeChangesOtherTeamsWithSamePointer() {
+         ArrangeTrainerPokemonTeamData(0, 2, 2);
+         ViewPort.Edit("@4C <0A0>");
+
+         // update count via table: sibling should update
+         var tool = ViewPort.Tools.TableTool;
+         var childCountField = (ComboBoxArrayElementViewModel)tool.Children[0];
+         childCountField.SelectedIndex = 3;
+         Assert.Equal(3, Model[0x28]);
+
+         // update count via inline: sibling should update
+         ViewPort.Edit("@00 2 ");
+         Assert.Equal(2, Model[0x28]);
+      }
+
+      private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
+         CreateTextTable(EggMoveRun.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
+         CreateTextTable(EggMoveRun.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
+         CreateTextTable(HardcodeTablesModel.ItemsTableName, 0x1D0, "0123456789".Select(c => c.ToString()).ToArray());
+
+         // trainers start at 00. There is room for up to 4.
+         // teams start at A0.    There is room for up to 3 pokemon on each team.
+         for (int i = 0; i < trainerCount; i++) {
+            var initialOffset = i * TrainerPokemonTeamRun.TrainerFormat_Width;
+            Model[initialOffset + TrainerPokemonTeamRun.TrainerFormat_StructTypeOffset] = structType;
+            Model[initialOffset + TrainerPokemonTeamRun.TrainerFormat_PokemonCountOffset] = pokemonCount;
+            Model.WritePointer(new ModelDelta(), initialOffset + TrainerPokemonTeamRun.TrainerFormat_PointerOffset, 0xA0 + 0x30 * i);
+         }
+
+         ViewPort.Edit($"@00 ^trainertable[structType.4 class.trainerclassnames introMusic. sprite. name\"\"12 " +
+            $"item1:{HardcodeTablesModel.ItemsTableName} item2:{HardcodeTablesModel.ItemsTableName} item3:{HardcodeTablesModel.ItemsTableName} item4:{HardcodeTablesModel.ItemsTableName} " +
+            $"doubleBattle:: ai:: pokemonCount:: pokemon<{TrainerPokemonTeamRun.SharedFormatString}>]{trainerCount} @00");
+         ViewPort.ResetAlignment.Execute();
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount) {
          CreateTextTable(EggMoveRun.PokemonNameTable, 0x100, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
-         CreateTextTable(EggMoveRun.MoveNamesTable, 0x140, "abcdefghijklmnop".Select(c => c.ToString()).ToArray());
+         CreateTextTable(EggMoveRun.MoveNamesTable, 0x140, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.ItemsTableName, 0x180, "0123456789".Select(c => c.ToString()).ToArray());
 
          Model[TrainerPokemonTeamRun.TrainerFormat_StructTypeOffset] = structType;

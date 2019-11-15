@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using System.Collections.Generic;
 using System.Linq;
@@ -314,6 +315,24 @@ namespace HavenSoft.HexManiac.Tests {
 
          editor.ResetAlignment.Execute();
          Assert.Equal(16, viewPort.Width); // closest smaller multiple of 16
+      }
+
+      [Fact]
+      public void GotoAutocompleteIncludesTableFields() {
+         var test = new BaseViewModelTestClass();
+         test.ViewPort.Edit("^table[field1:: field2<>]2 ");
+
+         using (ModelCacheScope.CreateScope(test.Model)) {
+            var options = test.Model.GetAutoCompleteAnchorNameOptions("table/0/");
+
+            Assert.Contains("table/0/field1", options);
+            Assert.Contains("table/0/field2", options);
+
+            options = test.Model.GetAutoCompleteAnchorNameOptions("table//field2/");
+
+            Assert.Contains("table/0/field2/", options);
+            Assert.Contains("table/1/field2/", options);
+         }
       }
 
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {

@@ -1351,7 +1351,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   var run = Model.GetNextRun(completeEditOperation.NewDataIndex);
                   if (run.Start > completeEditOperation.NewDataIndex) run = new NoInfoRun(Model.Count);
                   if (completeEditOperation.DataMoved) UpdateToolsFromSelection(run.Start);
-                  if (run is ITableRun) Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
+                  if (run is ITableRun tableRun) {
+                     var offsets = tableRun.ConvertByteOffsetToArrayOffset(dataIndex);
+                     tableRun.NotifyChildren(Model, history.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
+                     Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
+                  }
                   if (run is ITableRun || run is IStreamRun) Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
                   if (completeEditOperation.MessageText != null) OnMessage?.Invoke(this, completeEditOperation.MessageText);
                   if (completeEditOperation.ErrorText != null) OnError?.Invoke(this, completeEditOperation.ErrorText);
@@ -1419,7 +1423,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var originalArray = arrayRun;
             var errorInfo = Model.CompleteArrayExtension(history.CurrentChange, ref arrayRun);
             if (!errorInfo.HasError || errorInfo.IsWarning) {
-               if (arrayRun.Start != originalArray.Start) {
+               if (arrayRun != null && arrayRun.Start != originalArray.Start) {
                   ScrollFromRunMove(arrayRun.Start + arrayRun.Length, arrayRun.Length, arrayRun);
                }
                if (errorInfo.IsWarning) OnMessage?.Invoke(this, errorInfo.ErrorMessage);

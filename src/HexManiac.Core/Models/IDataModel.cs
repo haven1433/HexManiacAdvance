@@ -4,6 +4,7 @@ using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models {
@@ -264,7 +265,9 @@ namespace HavenSoft.HexManiac.Core.Models {
       public static ErrorInfo CompleteArrayExtension(this IDataModel model, ModelDelta changeToken, ref ITableRun table) {
          var currentArrayName = model.GetAnchorFromAddress(-1, table.Start);
 
-         var visitedNames = new List<string>() { model.GetAnchorFromAddress(-1, table.Start) };
+         var initialTableName = model.GetAnchorFromAddress(-1, table.Start);
+         if (initialTableName == string.Empty) initialTableName = model.GetNameFromParent(table);
+         var visitedNames = new List<string>() { initialTableName };
          var visitedAddress = new List<int>() { table.Start };
 
          if (table is ArrayRun arrayRun) {
@@ -284,7 +287,9 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          ExtendTableAndChildren(model, changeToken, table);
 
-         table = (ITableRun)model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, currentArrayName));
+
+         table = model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, currentArrayName)) as ITableRun;
+         if (table == null) return ErrorInfo.NoError;
 
          var changedNames = new List<string>();
          for (int i = 0; i < visitedNames.Count; i++) {
@@ -295,6 +300,25 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (changedNames.Count == 1) return new ErrorInfo($"{changedNames[0]} was moved. Pointers have been updated.", isWarningLevel: true);
          var all = changedNames.Aggregate((a, b) => a + ", " + b);
          return new ErrorInfo($"Tables {all} were moved. Pointers have been updated.", isWarningLevel: true);
+      }
+
+      private static string GetNameFromParent(this IDataModel model, ITableRun table) {
+         foreach (var source in table.PointerSources) {
+            var parent = model.GetNextRun(source) as ITableRun;
+            if (parent == null) continue;
+            var offsets = parent.ConvertByteOffsetToArrayOffset(source);
+            var segmentName = parent.ElementContent[offsets.SegmentIndex].Name;
+            var parentIndex = offsets.ElementIndex;
+            var parentName = model.GetAnchorFromAddress(-1, parent.Start);
+            if (parentName != null) {
+               return $"{parentName}/{parentIndex}/{segmentName}/";
+            } else {
+               return model.GetNameFromParent(parent) + $"{parentIndex}/{segmentName}/";
+            }
+         }
+
+         Debug.Fail("Could not find parent of nameless table. A table may have been moved, but we don't know which one.");
+         return string.Empty;
       }
 
       private static void ExtendTableAndChildren(IDataModel model, ModelDelta changeToken, ITableRun array) {

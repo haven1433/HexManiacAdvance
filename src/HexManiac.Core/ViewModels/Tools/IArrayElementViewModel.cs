@@ -114,6 +114,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public void UpdateModelFromViewModel(FieldArrayElementViewModel viewModel) {
          if (int.TryParse(viewModel.Content, out int content)) {
             viewModel.Model.WriteMultiByteValue(viewModel.Start, viewModel.Length, viewModel.History.CurrentChange, content);
+            var run = (ITableRun)viewModel.Model.GetNextRun(viewModel.Start);
+            var offsets = run.ConvertByteOffsetToArrayOffset(viewModel.Start);
+            run.NotifyChildren(viewModel.Model, viewModel.History.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
          } else {
             viewModel.ErrorText = $"{viewModel.Name} must be an integer.";
          }
@@ -214,6 +217,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
             Model.WriteMultiByteValue(Start, Length, history.CurrentChange, value);
             DataChanged?.Invoke(this, EventArgs.Empty);
+            run.NotifyChildren(Model, history.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
          }
       }
 
