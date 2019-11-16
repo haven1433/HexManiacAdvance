@@ -150,6 +150,28 @@ namespace HavenSoft.HexManiac.Tests {
          }
       }
 
+      [Fact]
+      public void ChangingTypeFromMovesToMovesAndItemsKeepsSameMoves() {
+         ArrangeTrainerPokemonTeamData(TrainerPokemonTeamRun.INCLUDE_MOVES, 1, 1);
+         ViewPort.Edit("@A0 ");
+         var tool = ViewPort.Tools.StringTool;
+
+         tool.Content = @"10 A
+- w
+- x
+- y
+- q";
+
+         ViewPort.Edit("@00 3 @trainertable/0/pokemon/0 ");
+
+         var moves = tool.Content.Split(new[] { Environment.NewLine }, 2, StringSplitOptions.None)[1];
+         Assert.Equal(@"- w
+- x
+- y
+- q
+", moves);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(EggMoveRun.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(EggMoveRun.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

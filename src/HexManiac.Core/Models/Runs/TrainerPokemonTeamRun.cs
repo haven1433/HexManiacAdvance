@@ -343,6 +343,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          public void RemoveMoves() => MovesIncluded = false;
 
+         public void SetDefaultItems() {
+            ItemsIncluded = true;
+            items.Clear();
+            items.AddRange(Enumerable.Repeat(0, pokemons.Count));
+         }
+
+         public void RemoveItems() => ItemsIncluded = false;
+
          private void AddIV(List<int> ivs, string[] ivTokenized) {
             if (ivTokenized.Length == 2) {
                ivTokenized[1] = ivTokenized[1].Replace(")", "").Trim();
@@ -381,11 +389,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (newElementCount != ElementCount) newRun = (TrainerPokemonTeamRun)newRun.Append(token, newElementCount - ElementCount);
          if (newStructType != StructType) {
             var data = new TeamData(model, newRun.Start, StructType, newElementCount);
-            if ((newStructType & INCLUDE_MOVES) != 0 && (StructType & INCLUDE_MOVES) == 0) {
+            if ((newStructType & INCLUDE_MOVES) != 0 && !data.MovesIncluded) {
                data.SetDefaultMoves(this);
                newRun = (TrainerPokemonTeamRun)model.RelocateForExpansion(token, newRun, newRun.Length * 2);
-            } else if ((newStructType & INCLUDE_MOVES) == 0 && (StructType & INCLUDE_MOVES) != 0) {
+            } else if ((newStructType & INCLUDE_MOVES) == 0 && data.MovesIncluded) {
                data.RemoveMoves();
+            }
+            if ((newStructType & INCLUDE_ITEM) != 0 && !data.ItemsIncluded) {
+               data.SetDefaultItems();
+            } else if ((newStructType & INCLUDE_ITEM) == 0 && data.ItemsIncluded) {
+               data.RemoveItems();
             }
             WriteData(token, newRun.Start, data);
          }
