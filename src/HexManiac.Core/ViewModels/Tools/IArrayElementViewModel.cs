@@ -134,7 +134,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ElementContentViewModelType Type => ElementContentViewModelType.Address;
 
       public void UpdateModelFromViewModel(FieldArrayElementViewModel viewModel) {
-         var content = viewModel.Content;
+         var content = viewModel.Content.Trim();
          if (content.StartsWith(PointerRun.PointerStart.ToString())) content = content.Substring(1);
          if (content.EndsWith(PointerRun.PointerEnd.ToString())) content = content.Substring(0, content.Length - 1);
 
