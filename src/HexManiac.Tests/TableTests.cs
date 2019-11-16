@@ -136,6 +136,20 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(2, Model[0x28]);
       }
 
+      [Fact]
+      public void SimplifyStructTypeClearsExtraUnusedData() {
+         ArrangeTrainerPokemonTeamData(TrainerPokemonTeamRun.INCLUDE_MOVES, 2, 1);
+         ViewPort.Edit("@A0 ");
+         var tool = ViewPort.Tools.StringTool;
+
+         tool.Content = "10 A";
+
+         Assert.Equal(0, Model[TrainerPokemonTeamRun.TrainerFormat_StructTypeOffset]); // the parent updated to type 0
+         for (int i = 8; i < 0x20; i++) { // 0x10 per pokemon for 2 pokemon
+            Assert.Equal(0xFF, Model[0xA0 + i]); // the child is just 8 bytes long but used to be 0x20 bytes long, so bytes 8 to 0x20 are all FF
+         }
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(EggMoveRun.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(EggMoveRun.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

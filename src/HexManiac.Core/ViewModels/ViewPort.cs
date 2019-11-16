@@ -1345,9 +1345,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      currentView[point.X, point.Y] = completeEditOperation.NewCell;
                   }
                   if (completeEditOperation.DataMoved || completeEditOperation.NewDataIndex > scroll.DataLength) scroll.DataLength = Model.Count;
-                  if (!SilentScroll(completeEditOperation.NewDataIndex) && completeEditOperation.NewCell == null) {
-                     RefreshBackingData();
-                  }
                   var run = Model.GetNextRun(completeEditOperation.NewDataIndex);
                   if (run.Start > completeEditOperation.NewDataIndex) run = new NoInfoRun(Model.Count);
                   if (completeEditOperation.DataMoved) UpdateToolsFromSelection(run.Start);
@@ -1359,6 +1356,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   if (run is ITableRun || run is IStreamRun) Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
                   if (completeEditOperation.MessageText != null) OnMessage?.Invoke(this, completeEditOperation.MessageText);
                   if (completeEditOperation.ErrorText != null) OnError?.Invoke(this, completeEditOperation.ErrorText);
+                  if (!SilentScroll(completeEditOperation.NewDataIndex) && completeEditOperation.NewCell == null) {
+                     RefreshBackingData();
+                  }
                }
             }
 

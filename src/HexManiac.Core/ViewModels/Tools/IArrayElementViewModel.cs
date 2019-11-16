@@ -68,8 +68,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          get => content;
          set {
             if (TryUpdate(ref content, value)) {
-               strategy.UpdateModelFromViewModel(this);
-               DataChanged?.Invoke(this, EventArgs.Empty);
+               using (ModelCacheScope.CreateScope(Model)) {
+                  strategy.UpdateModelFromViewModel(this);
+                  DataChanged?.Invoke(this, EventArgs.Empty);
+               }
             }
          }
       }
@@ -216,8 +218,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
 
             Model.WriteMultiByteValue(Start, Length, history.CurrentChange, value);
-            DataChanged?.Invoke(this, EventArgs.Empty);
             run.NotifyChildren(Model, history.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
+            DataChanged?.Invoke(this, EventArgs.Empty);
          }
       }
 

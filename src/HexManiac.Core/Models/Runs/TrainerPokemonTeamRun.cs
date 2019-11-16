@@ -182,9 +182,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var elementLength = data.MovesIncluded ? 16 : 8;
          for (int i = 0; i < data.Pokemon.Count; i++) {
             int start = runStart + elementLength * i;
-            model.WriteMultiByteValue(start + 0, 2, token, data.Levels[i]);
-            model.WriteMultiByteValue(start + 2, 2, token, data.Pokemon[i]);
-            model.WriteMultiByteValue(start + 4, 2, token, data.IVs[i]);
+            model.WriteMultiByteValue(start + 0, 2, token, data.IVs[i]);
+            model.WriteMultiByteValue(start + 2, 2, token, data.Levels[i]);
+            model.WriteMultiByteValue(start + 4, 2, token, data.Pokemon[i]);
             start += 6;
             if (data.ItemsIncluded) {
                model.WriteMultiByteValue(start, 2, token, data.Items[i]);
@@ -200,6 +200,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                model.WriteMultiByteValue(start, 2, token, 0);
                start += 2;
             }
+         }
+
+         // free space from the original run that's not needed by the new run
+         for (int i = elementLength * data.Pokemon.Count; i < Length; i++) {
+            token.ChangeData(model, runStart + i, 0xFF);
          }
       }
 
@@ -272,7 +277,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var pokemonNames = cache.GetOptions(EggMoveRun.PokemonNameTable);
 
             foreach (var line in lines) {
-               if (line is "") continue;
+               if (line.Trim() is "") continue;
                if (line.StartsWith("-")) {
                   if (pokemons.Count == 0) continue;
                   if (currentPokemonMoveCount > 3) continue;
@@ -290,10 +295,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   if (!int.TryParse(levelTokenized[0], out int level)) continue;
                   levels.Add(level);
 
-                  var itemTokenized = line.Split(new[] { '@' }, 2);
+                  var itemTokenized = levelTokenized[1].Split(new[] { '@' }, 2);
                   AddItem(itemNames, items, itemTokenized);
 
-                  var ivTokenized = line.Split(new[] { '(' }, 2);
+                  var ivTokenized = itemTokenized[0].Split(new[] { '(' }, 2);
                   AddIV(ivs, ivTokenized);
 
                   var pokemon = ivTokenized[0].Trim();
