@@ -313,9 +313,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
    public class StreamArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
       private readonly ViewPort viewPort;
-      private readonly FieldArrayElementViewModel matchingField;
       private readonly IDataModel model;
 
+      private FieldArrayElementViewModel matchingField;
       private string name;
       private int start;
       private EventHandler dataChanged;
@@ -370,30 +370,32 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (sourceCount > 1) {
                CanRepoint = true;
                Message = $"{sourceCount}";
-               Repoint = new StubCommand {
-                  CanExecute = arg => CanRepoint,
-                  Execute = arg => {
-                     var originalDestination = model.ReadPointer(start);
-                     viewPort.RepointToNewCopy(start);
-                     var newDestination = model.ReadPointer(start);
-                     matchingField.RefreshControlFromModelChange();
-                     CanRepoint = false;
-                  },
-               };
             }
          }
+         Repoint = new StubCommand {
+            CanExecute = arg => CanRepoint,
+            Execute = arg => {
+               var originalDestination = this.model.ReadPointer(this.start);
+               this.viewPort.RepointToNewCopy(this.start);
+               var newDestination = this.model.ReadPointer(this.start);
+               this.matchingField.RefreshControlFromModelChange();
+               CanRepoint = false;
+            },
+         };
       }
 
       public bool TryCopy(IArrayElementViewModel other) {
          if (!(other is StreamArrayElementViewModel stream)) return false;
          name = stream.name;
          start = stream.start;
+         matchingField = stream.matchingField;
          TryUpdate(ref content, stream.content, nameof(Content));
          Message = stream.Message;
          NotifyPropertyChanged(nameof(Message));
-         CanRepoint = stream.CanRepoint;
-         Repoint = stream.Repoint;
-         NotifyPropertyChanged(nameof(Repoint));
+         if (CanRepoint != stream.CanRepoint) {
+            CanRepoint = stream.CanRepoint;
+            ((StubCommand)Repoint).CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+         }
          dataChanged = stream.dataChanged;
          dataMoved = stream.dataMoved;
          return true;
