@@ -4,7 +4,6 @@ using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
@@ -23,15 +22,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       event EventHandler DataChanged;
       bool IsInError { get; }
       string ErrorText { get; }
+      bool TryCopy(IArrayElementViewModel other);
    }
 
    public class SplitterArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
       event EventHandler IArrayElementViewModel.DataChanged { add { } remove { } }
 
+      private string sectionName;
+
       public bool IsInError => !string.IsNullOrEmpty(ErrorText);
       public string ErrorText { get; }
-      public string SectionName { get; }
+      public string SectionName { get => sectionName; set => TryUpdate(ref sectionName, value); }
       public SplitterArrayElementViewModel(string sectionName) => SectionName = sectionName;
+
+      public bool TryCopy(IArrayElementViewModel other) {
+         if (!(other is SplitterArrayElementViewModel splitter)) return false;
+         SectionName = splitter.SectionName;
+         return true;
+      }
    }
 
    public interface IFieldArrayElementViewModelStrategy {
@@ -43,13 +51,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class FieldArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
       private readonly IFieldArrayElementViewModelStrategy strategy;
 
-      public event EventHandler DataChanged;
+      private string name;
+      private int start, length;
+
+      private EventHandler dataChanged;
+      public event EventHandler DataChanged { add => dataChanged += value; remove => dataChanged -= value; }
 
       public ChangeHistory<ModelDelta> History { get; }
       public IDataModel Model { get; }
-      public string Name { get; }
-      public int Start { get; }
-      public int Length { get; }
+      public string Name { get => name; set => TryUpdate(ref name, value); }
+      public int Start { get => start; set => TryUpdate(ref start, value); }
+      public int Length { get => length; set => TryUpdate(ref length, value); }
 
       public ElementContentViewModelType Type => strategy.Type;
 
@@ -70,7 +82,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (TryUpdate(ref content, value)) {
                using (ModelCacheScope.CreateScope(Model)) {
                   strategy.UpdateModelFromViewModel(this);
-                  DataChanged?.Invoke(this, EventArgs.Empty);
+                  dataChanged?.Invoke(this, EventArgs.Empty);
                }
             }
          }
@@ -84,6 +96,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public void RefreshControlFromModelChange() {
          TryUpdate(ref content, strategy.UpdateViewModelFromModel(this), nameof(Content));
+      }
+
+      public bool TryCopy(IArrayElementViewModel other) {
+         if (!(other is FieldArrayElementViewModel field)) return false;
+         if (strategy.Type != field.strategy.Type) return false;
+
+         Name = field.Name;
+         Start = field.Start;
+         Length = field.Length;
+         TryUpdate(ref content, field.Content, nameof(Content));
+         ErrorText = field.ErrorText;
+         dataChanged = field.dataChanged;
+         return true;
       }
    }
 
@@ -178,14 +203,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
    public class ComboBoxArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
       private readonly ChangeHistory<ModelDelta> history;
+      private readonly Selection selection;
 
-      public event EventHandler DataChanged;
+      private string name;
+      private int start, length;
+
+      private EventHandler dataChanged;
+      public event EventHandler DataChanged { add => dataChanged += value; remove => dataChanged -= value; }
 
       public IDataModel Model { get; }
-      public string Name { get; }
-      public int Start { get; }
-      public int Length { get; }
-      public ICommand GotoSource { get; }
+      public string Name { get => name; set => TryUpdate(ref name, value); }
+      public int Start {
+         get => start; set {
+            if (!TryUpdate(ref start, value)) return;
+         }
+      }
+      public int Length { get => length; set => TryUpdate(ref length, value); }
+      public ICommand GotoSource { get; private set; }
 
       public ElementContentViewModelType Type => ElementContentViewModelType.ComboBox;
 
@@ -200,7 +234,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private bool containsUniqueOption;
-      public ObservableCollection<ComboOption> Options { get; }
+      public List<ComboOption> Options { get; private set; }
 
       private int selectedIndex;
 
@@ -219,29 +253,52 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
             Model.WriteMultiByteValue(Start, Length, history.CurrentChange, value);
             run.NotifyChildren(Model, history.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
-            DataChanged?.Invoke(this, EventArgs.Empty);
+            dataChanged?.Invoke(this, EventArgs.Empty);
          }
       }
 
       public ComboBoxArrayElementViewModel(Selection selection, ChangeHistory<ModelDelta> history, IDataModel model, string name, int start, int length) {
-         (this.history, Model, Name, Start, Length) = (history, model, name, start, length);
+         (this.selection, this.history, Model, Name, Start, Length) = (selection, history, model, name, start, length);
          var run = (ITableRun)Model.GetNextRun(Start);
          var offsets = run.ConvertByteOffsetToArrayOffset(start);
          var segment = (ArrayRunEnumSegment)run.ElementContent[offsets.SegmentIndex];
-         var optionSource = model.GetAddressFromAnchor(history.CurrentChange, -1, segment.EnumName);
-         Options = new ObservableCollection<ComboOption>(segment.GetOptions(model).Select(option => new ComboOption(option)));
-         var value = model.ReadMultiByteValue(start, length);
-         if (value >= Options.Count) {
-            Options.Add(value.ToString());
+         var optionSource = Model.GetAddressFromAnchor(history.CurrentChange, -1, segment.EnumName);
+         Options = new List<ComboOption>(segment.GetOptions(Model).Select(option => new ComboOption(option)));
+         var modelValue = Model.ReadMultiByteValue(start, length);
+         if (modelValue >= Options.Count) {
+            Options.Add(modelValue.ToString());
             selectedIndex = Options.Count - 1;
             containsUniqueOption = true;
          } else {
-            selectedIndex = model.ReadMultiByteValue(start, length);
+            selectedIndex = Model.ReadMultiByteValue(start, length);
          }
          GotoSource = new StubCommand {
             CanExecute = arg => optionSource != Pointer.NULL,
             Execute = arg => selection.GotoAddress(optionSource),
          };
+      }
+
+      public bool TryCopy(IArrayElementViewModel other) {
+         if (!(other is ComboBoxArrayElementViewModel comboBox)) return false;
+         Name = comboBox.Name;
+         Length = comboBox.Length;
+         Start = comboBox.Start;
+
+         // only update the options if they're different
+         if (!Options.Select(option => option.Text).SequenceEqual(comboBox.Options.Select(option => option.Text))) {
+            selectedIndex = -1; // changing options will make the UIElement update the SelectedIndex automatically. Set it first so that we don't cause a data change.
+            Options = comboBox.Options;
+            NotifyPropertyChanged(nameof(Options));
+         }
+
+         containsUniqueOption = comboBox.containsUniqueOption;
+         TryUpdate(ref selectedIndex, comboBox.SelectedIndex, nameof(SelectedIndex));
+         ErrorText = comboBox.ErrorText;
+         GotoSource = comboBox.GotoSource;
+         NotifyPropertyChanged(nameof(GotoSource));
+         dataChanged = comboBox.dataChanged;
+
+         return true;
       }
    }
 
@@ -258,13 +315,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly ViewPort viewPort;
       private readonly FieldArrayElementViewModel matchingField;
       private readonly IDataModel model;
-      private readonly string name;
-      private readonly int start;
+
+      private string name;
+      private int start;
+      private EventHandler dataChanged;
+      private EventHandler<(int originalStart, int newStart)> dataMoved;
 
       public bool IsInError => !string.IsNullOrEmpty(ErrorText);
       public string ErrorText { get; private set; }
-      public event EventHandler DataChanged;
-      public event EventHandler<(int originalStart, int newStart)> DataMoved;
+      public event EventHandler DataChanged { add => dataChanged += value; remove => dataChanged -= value; }
+      public event EventHandler<(int originalStart, int newStart)> DataMoved { add => dataMoved += value;remove => dataMoved -= value; }
 
       string content;
       public string Content {
@@ -277,19 +337,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   var newRun = run.DeserializeRun(content, viewPort.CurrentChange);
                   model.ObserveRunWritten(viewPort.CurrentChange, newRun);
                   if (run.Start != newRun.Start) {
-                     DataMoved?.Invoke(this, (run.Start, newRun.Start));
+                     dataMoved?.Invoke(this, (run.Start, newRun.Start));
                      matchingField.RefreshControlFromModelChange();
                   }
-                  DataChanged?.Invoke(this, EventArgs.Empty);
+                  dataChanged?.Invoke(this, EventArgs.Empty);
                }
             }
          }
       }
 
-      public string Message { get; }
+      public string Message { get; private set; }
       private bool canRepoint;
       public bool CanRepoint { get => canRepoint; set => TryUpdate(ref canRepoint, value); }
-      public ICommand Repoint { get; }
+      public ICommand Repoint { get; private set; }
 
       public StreamArrayElementViewModel(ViewPort viewPort, FieldArrayElementViewModel matchingField, IDataModel model, string name, int start) {
          this.viewPort = viewPort;
@@ -323,15 +383,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
          }
       }
+
+      public bool TryCopy(IArrayElementViewModel other) {
+         if (!(other is StreamArrayElementViewModel stream)) return false;
+         name = stream.name;
+         start = stream.start;
+         TryUpdate(ref content, stream.content, nameof(Content));
+         Message = stream.Message;
+         NotifyPropertyChanged(nameof(Message));
+         CanRepoint = stream.CanRepoint;
+         Repoint = stream.Repoint;
+         NotifyPropertyChanged(nameof(Repoint));
+         dataChanged = stream.dataChanged;
+         dataMoved = stream.dataMoved;
+         return true;
+      }
    }
 
    public class BitListArrayElementViewModel : ViewModelCore, IReadOnlyList<BitElement>, IArrayElementViewModel {
       private readonly ChangeHistory<ModelDelta> history;
       private readonly IDataModel model;
-      private readonly int start;
       private readonly List<BitElement> children = new List<BitElement>();
       private readonly ArrayRunElementSegment segment;
       private readonly ArrayRun rotatedBitArray;
+
+      private int start;
 
       public string Name { get; }
 
@@ -340,7 +416,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public ICommand LinkCommand { get; }
 
-      public event EventHandler DataChanged;
+      private EventHandler dataChanged;
+      public event EventHandler DataChanged { add => dataChanged += value; remove => dataChanged -= value; }
 
       public BitListArrayElementViewModel(Selection selection, ChangeHistory<ModelDelta> history, IDataModel model, string name, int start) {
          this.history = history;
@@ -443,7 +520,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                if (bits != model[elementStart]) history.CurrentChange.ChangeData(model, elementStart, bits);
             }
          }
-         DataChanged?.Invoke(this, EventArgs.Empty);
+         dataChanged?.Invoke(this, EventArgs.Empty);
       }
 
       public void UpdateViewFromModel() {
@@ -472,6 +549,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
+      public bool TryCopy(IArrayElementViewModel other) {
+         if (!(other is BitListArrayElementViewModel bitList)) return false;
+         if (Name != bitList.Name) return false;
+         if (segment != bitList.segment) return false;
+         if (rotatedBitArray != bitList.rotatedBitArray) return false;
+         if (!children.Select(child => child.BitLabel).SequenceEqual(bitList.children.Select(child => child.BitLabel))) return false;
+
+         start = bitList.start;
+         for (int i = 0; i < children.Count; i++) {
+            children[i].PropertyChanged -= ChildChanged;
+            children[i].IsChecked = bitList.children[i].IsChecked;
+            children[i].PropertyChanged += ChildChanged;
+         }
+         dataChanged = bitList.dataChanged;
+
+         return true;
+      }
+
       private void ChildChanged(object sender, PropertyChangedEventArgs e) {
          UpdateModelFromView();
       }
@@ -482,10 +577,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public string ErrorText => string.Empty;
 
-      public event EventHandler DataChanged;
+      event EventHandler IArrayElementViewModel.DataChanged { add { } remove { } }
 
-      public string Text { get; }
-      public ICommand Command { get; }
+      public string Text { get; private set; }
+      public ICommand Command { get; private set; }
 
       public ButtonArrayElementViewModel(string text, Action action) {
          Text = text;
@@ -494,9 +589,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             Execute = arg => action(),
          };
       }
+
+      public bool TryCopy(IArrayElementViewModel other) {
+         if (!(other is ButtonArrayElementViewModel button)) return false;
+         if (Text != button.Text) return false;
+         Command = button.Command;
+         NotifyPropertyChanged(nameof(Command));
+         return true;
+      }
    }
 
-   public class BitElement : ViewModelCore {
+   public class BitElement : ViewModelCore, IEquatable<BitElement> {
       private string bitLabel;
       public string BitLabel {
          get => bitLabel;
@@ -508,5 +611,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          get => isChecked;
          set => TryUpdate(ref isChecked, value);
       }
+
+      public bool Equals(BitElement other) => bitLabel == other.bitLabel && isChecked == other.isChecked;
    }
 }

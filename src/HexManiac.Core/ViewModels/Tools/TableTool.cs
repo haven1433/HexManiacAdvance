@@ -148,9 +148,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          CurrentElementName = "The Table tool only works if your cursor is on table data.";
       }
 
+      private int childInsertionIndex = 0;
+      private void AddChild(IArrayElementViewModel child) {
+         if (childInsertionIndex == Children.Count) {
+            Children.Add(child);
+         } else if (!Children[childInsertionIndex].TryCopy(child)) {
+            Children[childInsertionIndex] = child;
+         }
+         childInsertionIndex++;
+      }
+
       public void DataForCurrentRunChanged() {
          foreach (var child in Children) child.DataChanged -= ForwardModelChanged;
-         Children.Clear();
+         childInsertionIndex = 0;
 
          var array = model.GetNextRun(Address) as ITableRun;
          if (array == null) {
@@ -186,6 +196,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          AddChildrenFromStreams(array, basename, index);
+         foreach (var child in Children) child.DataChanged += ForwardModelChanged;
+         while (Children.Count > childInsertionIndex) Children.RemoveAt(Children.Count - 1);
       }
 
       private void AddChildrenFromStreams(ITableRun array, string basename, int index) {
@@ -199,14 +211,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (child is TrainerPokemonTeamRun trainerRun) trainerResults.AddRange(trainerRun.Search(basename, index));
          }
          if (eggResults.Count > 0) {
-            Children.Add(new ButtonArrayElementViewModel("Show uses in egg moves.", () => {
+            AddChild(new ButtonArrayElementViewModel("Show uses in egg moves.", () => {
                using (ModelCacheScope.CreateScope(model)) {
                   viewPort.OpenSearchResultsTab($"{array.ElementNames[index]} within {HardcodeTablesModel.EggMovesTableName}", eggResults);
                }
             }));
          }
          if (plmResults.Count > 0) {
-            Children.Add(new ButtonArrayElementViewModel("Show uses in level-up moves.", () => {
+            AddChild(new ButtonArrayElementViewModel("Show uses in level-up moves.", () => {
                using (ModelCacheScope.CreateScope(model)) {
                   viewPort.OpenSearchResultsTab($"{array.ElementNames[index]} within {HardcodeTablesModel.LevelMovesTableName}", plmResults);
                }
@@ -214,7 +226,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
          if (trainerResults.Count > 0) {
             var selections = trainerResults.Select(result => (result, result + 1)).ToList();
-            Children.Add(new ButtonArrayElementViewModel("Show uses in trainer teams.", () => {
+            AddChild(new ButtonArrayElementViewModel("Show uses in trainer teams.", () => {
                using (ModelCacheScope.CreateScope(model)) {
                   viewPort.OpenSearchResultsTab($"{array.ElementNames[index]} within {HardcodeTablesModel.TrainerTableName}", selections);
                }
@@ -235,8 +247,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   viewModel = new ComboBoxArrayElementViewModel(selection, history, model, item.Name, itemAddress, item.Length);
                   var anchor = model.GetAnchorFromAddress(-1, table.Start);
                   if (!string.IsNullOrEmpty(anchor) && model.GetDependantArrays(anchor).Count() == 1) {
-                     Children.Add(viewModel);
-                     viewModel.DataChanged += ForwardModelChanged;
+                     AddChild(viewModel);
                      viewModel = new BitListArrayElementViewModel(selection, history, model, item.Name, itemAddress);
                   }
                } else {
@@ -245,25 +256,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             } else {
                throw new NotImplementedException();
             }
-            Children.Add(viewModel);
-            viewModel.DataChanged += ForwardModelChanged;
+            AddChild(viewModel);
             if (item is ArrayRunPointerSegment pointerSegment) {
                var destination = model.ReadPointer(itemAddress);
                if (destination != Pointer.NULL && model.GetNextRun(destination) is IStreamRun && pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), itemAddress, destination)) {
                   if (pointerSegment.InnerFormat == PCSRun.SharedFormatString || pointerSegment.InnerFormat == PLMRun.SharedFormatString || pointerSegment.InnerFormat == TrainerPokemonTeamRun.SharedFormatString) {
                      var streamElement = new StreamArrayElementViewModel(viewPort, (FieldArrayElementViewModel)viewModel, model, item.Name, itemAddress);
-                     int parentIndex = Children.Count - 1;
+                     int parentIndex = childInsertionIndex - 1;
                      var streamElementName = item.Name;
                      var streamAddress = itemAddress;
                      Children[parentIndex].DataChanged += (sender, e) => {
                         var newStream = new StreamArrayElementViewModel(viewPort, (FieldArrayElementViewModel)Children[parentIndex], model, streamElementName, streamAddress);
                         newStream.DataChanged += ForwardModelChanged;
                         newStream.DataMoved += ForwardModelDataMoved;
-                        Children[parentIndex + 1] = newStream;
+                        if (!Children[parentIndex + 1].TryCopy(newStream)) Children[parentIndex + 1] = newStream;
                      };
-                     streamElement.DataChanged += ForwardModelChanged;
                      streamElement.DataMoved += ForwardModelDataMoved;
-                     Children.Add(streamElement);
+                     AddChild(streamElement);
                   } else {
                      throw new NotImplementedException();
                   }
