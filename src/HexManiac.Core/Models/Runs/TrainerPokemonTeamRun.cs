@@ -414,13 +414,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       /// </summary>
       private IReadOnlyList<int> GetDefaultMoves(int pokemon, int currentLevel) {
          var results = new List<int>();
-         if (model.TryGetNameArray(HardcodeTablesModel.LevelMovesTableName, out var lvlMoves)) {
+         var levelMovesAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, HardcodeTablesModel.LevelMovesTableName);
+         var lvlMoves = model.GetNextRun(levelMovesAddress) as ArrayRun;
+         if (lvlMoves != null) {
             var movesStart = model.ReadPointer(lvlMoves.Start + lvlMoves.ElementLength * pokemon);
             if (model.GetNextRun(movesStart) is PLMRun run) {
                for (int i = 0; i < run.Length; i += 2) {
                   var pair = model.ReadMultiByteValue(run.Start + i, 2);
                   var (level, move) = PLMRun.SplitToken(pair);
-                  if (currentLevel <= level) results.Add(move);
+                  if (currentLevel >= level) results.Add(move);
                   else break;
                }
             }
