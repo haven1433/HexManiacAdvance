@@ -241,19 +241,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public int SelectedIndex {
          get => selectedIndex;
          set {
-            if (!TryUpdate(ref selectedIndex, value)) return;
-            var run = (ITableRun)Model.GetNextRun(Start);
-            var offsets = run.ConvertByteOffsetToArrayOffset(Start);
-            var segment = (ArrayRunEnumSegment)run.ElementContent[offsets.SegmentIndex];
+            using (ModelCacheScope.CreateScope(Model)) {
+               if (!TryUpdate(ref selectedIndex, value)) return;
+               var run = (ITableRun)Model.GetNextRun(Start);
+               var offsets = run.ConvertByteOffsetToArrayOffset(Start);
+               var segment = (ArrayRunEnumSegment)run.ElementContent[offsets.SegmentIndex];
 
-            // special case: the last option might be a weird value that came in, not normally available in the enum
-            if (containsUniqueOption && selectedIndex == Options.Count - 1 && int.TryParse(Options[selectedIndex].Text, out var parsedValue)) {
-               value = parsedValue;
+               // special case: the last option might be a weird value that came in, not normally available in the enum
+               if (containsUniqueOption && selectedIndex == Options.Count - 1 && int.TryParse(Options[selectedIndex].Text, out var parsedValue)) {
+                  value = parsedValue;
+               }
+
+               Model.WriteMultiByteValue(Start, Length, history.CurrentChange, value);
+               run.NotifyChildren(Model, history.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
+               dataChanged?.Invoke(this, EventArgs.Empty);
             }
-
-            Model.WriteMultiByteValue(Start, Length, history.CurrentChange, value);
-            run.NotifyChildren(Model, history.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
-            dataChanged?.Invoke(this, EventArgs.Empty);
          }
       }
 
@@ -570,7 +572,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void ChildChanged(object sender, PropertyChangedEventArgs e) {
-         UpdateModelFromView();
+         using (ModelCacheScope.CreateScope(model)) {
+            UpdateModelFromView();
+         }
       }
    }
 

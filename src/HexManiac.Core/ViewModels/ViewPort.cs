@@ -1527,7 +1527,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          if (run is ITableRun && sender != Tools.StringTool && Model.GetNextRun(Tools.StringTool.Address).Start == run.Start) Tools.StringTool.DataForCurrentRunChanged();
-         if (run is ITableRun && sender != Tools.TableTool && Model.GetNextRun(Tools.TableTool.Address).Start == run.Start) Tools.TableTool.DataForCurrentRunChanged();
+         if (run is ITableRun && Model.GetNextRun(Tools.TableTool.Address).Start == run.Start) Tools.TableTool.DataForCurrentRunChanged();
       }
 
       private void ModelDataMovedByTool(object sender, (int originalLocation, int newLocation) locations) {
