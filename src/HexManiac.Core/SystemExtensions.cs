@@ -39,7 +39,7 @@ namespace HavenSoft.HexManiac.Core {
          foreach (var character in partial) {
             var index = full.IndexOf(character.ToString(), StringComparison.CurrentCultureIgnoreCase);
             if (index == -1) return false;
-            full = full.Substring(index);
+            full = full.Substring(index + 1);
          }
 
          return true;
