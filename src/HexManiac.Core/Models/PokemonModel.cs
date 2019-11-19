@@ -1195,6 +1195,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
          }
 
+         // limit it to the first 80 options for performance
+         if (results.Count > 80) results.RemoveRange(80, results.Count - 80);
          return results;
       }
 
