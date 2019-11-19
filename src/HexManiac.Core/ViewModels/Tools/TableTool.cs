@@ -238,9 +238,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var itemAddress = table.Start + table.ElementLength * index;
          foreach (var item in table.ElementContent) {
             IArrayElementViewModel viewModel = null;
-            if (item.Type == ElementContentType.Unknown) viewModel = new FieldArrayElementViewModel(history, model, item.Name, itemAddress, item.Length, new HexFieldStratgy());
-            else if (item.Type == ElementContentType.PCS) viewModel = new FieldArrayElementViewModel(history, model, item.Name, itemAddress, item.Length, new TextFieldStratgy());
-            else if (item.Type == ElementContentType.Pointer) viewModel = new FieldArrayElementViewModel(history, model, item.Name, itemAddress, item.Length, new AddressFieldStratgy());
+            if (item.Type == ElementContentType.Unknown) viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, new HexFieldStratgy());
+            else if (item.Type == ElementContentType.PCS) viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, new TextFieldStratgy());
+            else if (item.Type == ElementContentType.Pointer) viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, new AddressFieldStratgy());
             else if (item.Type == ElementContentType.BitArray) viewModel = new BitListArrayElementViewModel(selection, history, model, item.Name, itemAddress);
             else if (item.Type == ElementContentType.Integer) {
                if (item is ArrayRunEnumSegment enumSegment) {
@@ -251,7 +251,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                      viewModel = new BitListArrayElementViewModel(selection, history, model, item.Name, itemAddress);
                   }
                } else {
-                  viewModel = new FieldArrayElementViewModel(history, model, item.Name, itemAddress, item.Length, new NumericFieldStrategy());
+                  viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, new NumericFieldStrategy());
                }
             } else {
                throw new NotImplementedException();

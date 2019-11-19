@@ -57,7 +57,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private EventHandler dataChanged;
       public event EventHandler DataChanged { add => dataChanged += value; remove => dataChanged -= value; }
 
-      public ChangeHistory<ModelDelta> History { get; }
+      public ViewPort ViewPort { get; }
       public IDataModel Model { get; }
       public string Name { get => name; set => TryUpdate(ref name, value); }
       public int Start { get => start; set => TryUpdate(ref start, value); }
@@ -88,9 +88,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
-      public FieldArrayElementViewModel(ChangeHistory<ModelDelta> history, IDataModel model, string name, int start, int length, IFieldArrayElementViewModelStrategy strategy) {
+      public FieldArrayElementViewModel(ViewPort viewPort, string name, int start, int length, IFieldArrayElementViewModelStrategy strategy) {
          this.strategy = strategy;
-         (History, Model, Name, Start, Length) = (history, model, name, start, length);
+         (ViewPort, Model, Name, Start, Length) = (viewPort, viewPort.Model, name, start, length);
          content = strategy.UpdateViewModelFromModel(this);
       }
 
@@ -120,7 +120,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          while (textBytes.Count < viewModel.Length) textBytes.Add(0x00);
          if (textBytes.Count > viewModel.Length) textBytes[viewModel.Length - 1] = 0xFF;
          for (int i = 0; i < viewModel.Length; i++) {
-            viewModel.History.CurrentChange.ChangeData(viewModel.Model, viewModel.Start + i, textBytes[i]);
+            viewModel.ViewPort.CurrentChange.ChangeData(viewModel.Model, viewModel.Start + i, textBytes[i]);
          }
       }
 
@@ -140,10 +140,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public void UpdateModelFromViewModel(FieldArrayElementViewModel viewModel) {
          if (int.TryParse(viewModel.Content, out int content)) {
-            viewModel.Model.WriteMultiByteValue(viewModel.Start, viewModel.Length, viewModel.History.CurrentChange, content);
+            viewModel.Model.WriteMultiByteValue(viewModel.Start, viewModel.Length, viewModel.ViewPort.CurrentChange, content);
             var run = (ITableRun)viewModel.Model.GetNextRun(viewModel.Start);
             var offsets = run.ConvertByteOffsetToArrayOffset(viewModel.Start);
-            run.NotifyChildren(viewModel.Model, viewModel.History.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
+            var error = run.NotifyChildren(viewModel.Model, viewModel.ViewPort.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
+            if (error.IsWarning) viewModel.ViewPort.RaiseMessage(error.ErrorMessage);
          } else {
             viewModel.ErrorText = $"{viewModel.Name} must be an integer.";
          }
@@ -172,7 +173,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
          }
 
-         viewModel.Model.WritePointer(viewModel.History.CurrentChange, viewModel.Start, address);
+         viewModel.Model.WritePointer(viewModel.ViewPort.CurrentChange, viewModel.Start, address);
       }
 
       public string UpdateViewModelFromModel(FieldArrayElementViewModel viewModel) {
@@ -188,7 +189,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public void UpdateModelFromViewModel(FieldArrayElementViewModel viewModel) {
          if (int.TryParse(viewModel.Content, NumberStyles.HexNumber, CultureInfo.CurrentCulture.NumberFormat, out int hexValue)) {
-            viewModel.Model.WriteMultiByteValue(viewModel.Start, viewModel.Length, viewModel.History.CurrentChange, hexValue);
+            viewModel.Model.WriteMultiByteValue(viewModel.Start, viewModel.Length, viewModel.ViewPort.CurrentChange, hexValue);
          } else {
             viewModel.ErrorText = "Value should be hexidecimal.";
          }

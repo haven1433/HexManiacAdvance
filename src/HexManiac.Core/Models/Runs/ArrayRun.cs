@@ -53,19 +53,24 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          throw new NotImplementedException();
       }
 
-      public static void NotifyChildren(this ITableRun self, IDataModel model, ModelDelta token, int elementIndex, int segmentIndex) {
+      public static ErrorInfo NotifyChildren(this ITableRun self, IDataModel model, ModelDelta token, int elementIndex, int segmentIndex) {
          int offset = 0;
+         var info = ErrorInfo.NoError;
          foreach (var segment in self.ElementContent) {
             if (segment is ArrayRunPointerSegment pointerSegment) {
                var pointerSource = self.Start + elementIndex * self.ElementLength + offset;
                var destination = model.ReadPointer(pointerSource);
                var run = model.GetNextRun(destination);
                if (run.Start == destination && run is TrainerPokemonTeamRun teamRun) {
-                  model.ObserveRunWritten(token, teamRun.UpdateFromParent(token, segmentIndex, pointerSource));
+                  var newRun = teamRun.UpdateFromParent(token, segmentIndex, pointerSource);
+                  model.ObserveRunWritten(token, newRun);
+                  if (newRun.Start != teamRun.Start) info = new ErrorInfo($"Team was automatically moved to {newRun.Start.ToString("X6")}. Pointers were updated.", isWarningLevel: true);
                }
             }
             offset += segment.Length;
          }
+
+         return info;
       }
    }
 

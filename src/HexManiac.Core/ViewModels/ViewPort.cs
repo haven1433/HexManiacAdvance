@@ -1350,7 +1350,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   if (completeEditOperation.DataMoved) UpdateToolsFromSelection(run.Start);
                   if (run is ITableRun tableRun) {
                      var offsets = tableRun.ConvertByteOffsetToArrayOffset(dataIndex);
-                     tableRun.NotifyChildren(Model, history.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
+                     var errorInfo = tableRun.NotifyChildren(Model, history.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
+                     HandleErrorInfo(errorInfo);
                      Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
                   }
                   if (run is ITableRun || run is IStreamRun) Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
@@ -1426,11 +1427,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (arrayRun != null && arrayRun.Start != originalArray.Start) {
                   ScrollFromRunMove(arrayRun.Start + arrayRun.Length, arrayRun.Length, arrayRun);
                }
-               if (errorInfo.IsWarning) OnMessage?.Invoke(this, errorInfo.ErrorMessage);
                RefreshBackingData();
-            } else {
-               OnError?.Invoke(this, errorInfo.ErrorMessage);
             }
+            HandleErrorInfo(errorInfo);
             result = true;
             return true;
          }
@@ -1474,11 +1473,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return true;
          }
 
-         if (errorInfo.IsWarning) {
-            OnMessage?.Invoke(this, errorInfo.ErrorMessage);
-         } else {
-            OnError?.Invoke(this, errorInfo.ErrorMessage);
-         }
+         HandleErrorInfo(errorInfo);
 
          return errorInfo.IsWarning;
       }
@@ -1502,6 +1497,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          UpdateSelectionWithoutNotify(nextPoint);
          return didScroll;
+      }
+
+      private void HandleErrorInfo(ErrorInfo info) {
+         if (!info.HasError) return;
+         if (info.IsWarning) OnMessage?.Invoke(this, info.ErrorMessage);
+         else OnError?.Invoke(this, info.ErrorMessage);
       }
 
       /// <summary>
