@@ -1117,7 +1117,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   text.Append(PCSString.Convert(this, run.Start, run.Length) + " ");
                   start += run.Length;
                   length -= run.Length;
-               } else if (run is ArrayRun arrayRun) {
+               } else if (run is ITableRun arrayRun) {
                   arrayRun.AppendTo(this, text, start, length);
                   text.Append(" ");
                   length -= run.Start + run.Length - start;

@@ -53,6 +53,24 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          throw new NotImplementedException();
       }
 
+      public static void AppendTo(this ITableRun self, IDataModel data, StringBuilder text, int start, int length) {
+         var offsets = self.ConvertByteOffsetToArrayOffset(start);
+         length += offsets.SegmentOffset;
+         for (int i = offsets.ElementIndex; i < self.ElementCount && length > 0; i++) {
+            var offset = offsets.SegmentStart;
+            if (offsets.SegmentIndex == 0 && offsets.ElementIndex > 0) text.Append(ArrayRun.ExtendArray);
+            for (int j = offsets.SegmentIndex; j < self.ElementContent.Count && length > 0; j++) {
+               var segment = self.ElementContent[j];
+               text.Append(segment.ToText(data, offset).Trim());
+               text.Append(" ");
+               offset += segment.Length;
+               length -= segment.Length;
+            }
+            text.Append(Environment.NewLine);
+            offsets = new ArrayOffset(0, 0, offset, 0);
+         }
+      }
+
       public static ErrorInfo NotifyChildren(this ITableRun self, IDataModel model, ModelDelta token, int elementIndex, int segmentIndex) {
          int offset = 0;
          var info = ErrorInfo.NoError;
@@ -464,24 +482,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (ElementLength % columnCount != 0) return null;
          var segments = ElementLength / columnCount;
          return Enumerable.Range(0, segments).Select(i => new HeaderRow(this, columnCount * i + startingDataIndex - Start, columnCount, startingDataIndex)).ToList();
-      }
-
-      public void AppendTo(IDataModel data, StringBuilder text, int start, int length) {
-         var offsets = this.ConvertByteOffsetToArrayOffset(start);
-         length += offsets.SegmentOffset;
-         for (int i = offsets.ElementIndex; i < ElementCount && length > 0; i++) {
-            var offset = offsets.SegmentStart;
-            if (offsets.SegmentIndex == 0 && offsets.ElementIndex > 0) text.Append(ExtendArray);
-            for (int j = offsets.SegmentIndex; j < ElementContent.Count && length > 0; j++) {
-               var segment = ElementContent[j];
-               text.Append(segment.ToText(data, offset).Trim());
-               text.Append(" ");
-               offset += segment.Length;
-               length -= segment.Length;
-            }
-            text.Append(Environment.NewLine);
-            offsets = new ArrayOffset(0, 0, offset, 0);
-         }
       }
 
       public ArrayRun Move(int newStart) {
