@@ -136,7 +136,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void ClearActiveEditBeforeSelectionChanges(object sender, Point location) {
          if (location.X >= 0 && location.X < scroll.Width && location.Y >= 0 && location.Y < scroll.Height) {
-            var element = currentView[location.X, location.Y];
+            var element = this[location.X, location.Y];
             var underEdit = element.Format as UnderEdit;
             if (underEdit != null) {
                using (ModelCacheScope.CreateScope(Model)) {
@@ -385,6 +385,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          get {
             if (x < 0 || x >= Width) return HexElement.Undefined;
             if (y < 0 || y >= Height) return HexElement.Undefined;
+            if (currentView[x, y] is object) return currentView[x, y];
+
+            if (x == 0 && y == 0) {
+               RefreshBackingDataFull();
+               return currentView[x, y];
+            }
+
+            using (ModelCacheScope.CreateScope(Model)) {
+               RefreshBackingData(new Point(x, y));
+            }
+
             return currentView[x, y];
          }
       }
@@ -554,7 +565,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public IReadOnlyList<IContextItem> GetContextMenuItems(Point selectionPoint) {
          Debug.Assert(IsSelected(selectionPoint));
          var factory = new ContextItemFactory(this);
-         var cell = currentView[SelectionStart.X, SelectionStart.Y];
+         var cell = this[SelectionStart.X, SelectionStart.Y];
          cell.Format.Visit(factory, cell.Value);
          var results = factory.Results.ToList();
          if (!SelectionStart.Equals(SelectionEnd)) {
@@ -602,7 +613,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var offset = scroll.ViewPointToDataIndex(GetEditPoint());
             var run = Model.GetNextRun(offset);
             var point = GetEditPoint();
-            var element = currentView[point.X, point.Y];
+            var element = this[point.X, point.Y];
             var underEdit = element.Format as UnderEdit;
             if (key == ConsoleKey.Enter && underEdit != null) {
                if (underEdit.AutocompleteOptions != null && underEdit.AutocompleteOptions.Any(option => option.IsSelected)) {
@@ -637,7 +648,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void Autocomplete(string input) {
          var point = SelectionStart;
-         var element = currentView[point.X, point.Y];
+         var element = this[point.X, point.Y];
          var underEdit = element.Format as UnderEdit;
          if (underEdit == null) return;
          var index = underEdit.AutocompleteOptions.Select(option => option.CompletionText).ToList().IndexOf(input);
@@ -686,7 +697,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                options = GetAutocompleteOptions(underEdit.OriginalFormat, newText, selectedIndex);
             }
             var newFormat = new UnderEdit(underEdit.OriginalFormat, newText, underEdit.EditWidth, options);
-            currentView[point.X, point.Y] = new HexElement(currentView[point.X, point.Y], newFormat);
+            currentView[point.X, point.Y] = new HexElement(this[point.X, point.Y], newFormat);
             NotifyCollectionChanged(ResetArgs);
             return;
          }
@@ -708,7 +719,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (run.Start > index) {
             // no run: doing a raw edit.
             SelectionStart = scroll.DataIndexToViewPoint(index);
-            var element = currentView[SelectionStart.X, SelectionStart.Y];
+            var element = this[SelectionStart.X, SelectionStart.Y];
             var text = element.Value.ToString("X2");
             currentView[SelectionStart.X, SelectionStart.Y] = new HexElement(element, element.Format.Edit(text.Substring(0, text.Length - 1)));
             NotifyCollectionChanged(ResetArgs);
@@ -725,7 +736,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          var cellToText = new ConvertCellToText(Model, run.Start);
-         var cell = currentView[point.X, point.Y];
+         var cell = this[point.X, point.Y];
 
          if (run is ITableRun array) {
             var offsets = array.ConvertByteOffsetToArrayOffset(index);
@@ -765,7 +776,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (run.Start <= index && run.Start + run.Length > index) {
             // I want to do a backspace at the end of this run
             SelectionStart = scroll.DataIndexToViewPoint(run.Start);
-            var element = currentView[SelectionStart.X, SelectionStart.Y];
+            var element = this[SelectionStart.X, SelectionStart.Y];
             element.Format.Visit(cellToText, element.Value);
             var text = cellToText.Result;
 
@@ -776,8 +787,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var p = scroll.DataIndexToViewPoint(run.Start + i);
                string editString = i == 0 ? text.Substring(0, text.Length - 1) : string.Empty;
                if (i > 0) editLength = 1;
-               var format = new UnderEdit(currentView[p.X, p.Y].Format, editString, editLength);
-               currentView[p.X, p.Y] = new HexElement(currentView[p.X, p.Y], format);
+               var format = new UnderEdit(this[p.X, p.Y].Format, editString, editLength);
+               currentView[p.X, p.Y] = new HexElement(this[p.X, p.Y], format);
             }
          }
 
@@ -1010,7 +1021,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void FollowLink(int x, int y) {
-         var format = currentView[x, y].Format;
+         var format = this[x, y].Format;
          if (format is Anchor anchor) format = anchor.OriginalFormat;
 
          using (ModelCacheScope.CreateScope(Model)) {
@@ -1098,7 +1109,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public virtual void FindAllSources(int x, int y) {
-         var anchor = currentView[x, y].Format as DataFormats.Anchor;
+         var anchor = this[x, y].Format as DataFormats.Anchor;
          if (anchor == null) return;
          var title = string.IsNullOrEmpty(anchor.Name) ? (y * Width + x + scroll.DataIndex).ToString("X6") : anchor.Name;
          title = "Sources of " + title;
@@ -1142,7 +1153,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void Edit(char input) {
          var point = GetEditPoint();
-         var element = currentView[point.X, point.Y];
+         var element = this[point.X, point.Y];
 
          if (!ShouldAcceptInput(point, element, input)) {
             ClearEdits(point);
@@ -1151,7 +1162,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          SelectionStart = point;
 
-         if (element == currentView[point.X, point.Y]) {
+         if (element == this[point.X, point.Y]) {
             UnderEdit newFormat;
             if (element.Format is UnderEdit underEdit && underEdit.AutocompleteOptions != null) {
                var newText = underEdit.CurrentText + input;
@@ -1203,7 +1214,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void ClearEdits(Point point) {
-         if (currentView[point.X, point.Y].Format is UnderEdit) RefreshBackingData();
+         if (this[point.X, point.Y].Format is UnderEdit) RefreshBackingData();
       }
 
       private Point GetEditPoint() {
@@ -1312,7 +1323,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          for (int i = 1; i < length; i++) {
             point = scroll.DataIndexToViewPoint(index + i);
             if (point.Y >= Height) return;
-            var element = currentView[point.X, point.Y];
+            var element = this[point.X, point.Y];
             var newFormat = element.Format.Edit(string.Empty);
             currentView[point.X, point.Y] = new HexElement(element, newFormat);
          }
@@ -1326,7 +1337,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          selection.PreviewSelectionStartChanged -= ClearActiveEditBeforeSelectionChanges;
          using (new StubDisposable { Dispose = () => selection.PreviewSelectionStartChanged += ClearActiveEditBeforeSelectionChanges }) {
 
-            var element = currentView[point.X, point.Y];
+            var element = this[point.X, point.Y];
             var underEdit = element.Format as UnderEdit;
             if (underEdit == null) return false; // no edit to complete
 
@@ -1439,7 +1450,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       /// <returns>True if it was completed successfully, false if some sort of error occurred and we should abort the remainder of the edit.</returns>
       private bool CompleteAnchorEdit(Point point) {
-         var underEdit = (UnderEdit)currentView[point.X, point.Y].Format;
+         var underEdit = (UnderEdit)this[point.X, point.Y].Format;
          var index = scroll.ViewPointToDataIndex(point);
          ErrorInfo errorInfo;
 
@@ -1554,6 +1565,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void RefreshBackingData() {
          currentView = new HexElement[Width, Height];
+         RequestMenuClose?.Invoke(this, EventArgs.Empty);
+         NotifyCollectionChanged(ResetArgs);
+      }
+
+      private void RefreshBackingDataFull() {
+         currentView = new HexElement[Width, Height];
          IFormattedRun run = null;
          using (ModelCacheScope.CreateScope(Model)) {
             for (int y = 0; y < Height; y++) {
@@ -1575,9 +1592,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                }
             }
          }
-
-         RequestMenuClose?.Invoke(this, EventArgs.Empty);
-         NotifyCollectionChanged(ResetArgs);
       }
 
       private void UpdateColumnHeaders() {
