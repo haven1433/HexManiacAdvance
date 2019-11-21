@@ -41,6 +41,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd, IReadOnlyDictionary<int, string> matchedWordsToRemove, IReadOnlyDictionary<int, string> matchedWordsToAdd);
       IFormattedRun RelocateForExpansion(ModelDelta changeToken, IFormattedRun run, int minimumLength);
       int FindFreeSpace(int start, int length);
+      void ClearAnchor(ModelDelta changeToken, int start, int length);
       void ClearFormat(ModelDelta changeToken, int start, int length);
       void ClearFormatAndData(ModelDelta changeToken, int start, int length);
       void ClearPointer(ModelDelta currentChange, int source, int destination);
@@ -89,6 +90,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       byte IReadOnlyList<byte>.this[int index] => RawData[index];
 
       public int Count => RawData.Length;
+
+      public abstract void ClearAnchor(ModelDelta changeToken, int start, int length);
 
       public abstract void ClearFormat(ModelDelta changeToken, int start, int length);
 
@@ -357,6 +360,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd, IReadOnlyDictionary<int, string> matchedWordsToRemove, IReadOnlyDictionary<int, string> matchedWordsToAdd) { }
       public override IFormattedRun RelocateForExpansion(ModelDelta changeToken, IFormattedRun run, int minimumLength) => throw new NotImplementedException();
       public override int FindFreeSpace(int start, int length) => throw new NotImplementedException();
+      public override void ClearAnchor(ModelDelta changeToken, int start, int length) { }
       public override void ClearFormat(ModelDelta changeToken, int start, int length) { }
       public override void ClearFormatAndData(ModelDelta changeToken, int start, int length) {
          for (int i = 0; i < length; i++) changeToken.ChangeData(this, start + i, 0xFF);

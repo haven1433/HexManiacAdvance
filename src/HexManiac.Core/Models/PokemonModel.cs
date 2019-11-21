@@ -866,12 +866,17 @@ namespace HavenSoft.HexManiac.Core.Models {
          return -1;
       }
 
+      public override void ClearAnchor(ModelDelta changeToken, int start, int length) {
+         ClearFormat(changeToken, start, length, keepInitialAnchorPointers: false, alsoClearData: false);
+      }
+
       public override void ClearFormat(ModelDelta changeToken, int originalStart, int length) {
-         ClearFormat(changeToken, originalStart, length, alsoClearData: false);
+         var run = GetNextRun(originalStart);
+         ClearFormat(changeToken, originalStart, length, keepInitialAnchorPointers: run.Start == originalStart, alsoClearData: false);
       }
 
       public override void ClearFormatAndData(ModelDelta changeToken, int originalStart, int length) {
-         ClearFormat(changeToken, originalStart, length, alsoClearData: true);
+         ClearFormat(changeToken, originalStart, length, keepInitialAnchorPointers: false, alsoClearData: true);
       }
 
       // for each of the results, we recognized it as text: see if we need to add a matching string run / pointers
@@ -927,8 +932,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          currentChange.AddRun(runs[index]);
       }
 
-      private void ClearFormat(ModelDelta changeToken, int originalStart, int length, bool alsoClearData) {
-         int start = originalStart;
+      private void ClearFormat(ModelDelta changeToken, int start, int length, bool keepInitialAnchorPointers, bool alsoClearData) {
          for (var run = GetNextRun(start); length > 0 && run != null; run = GetNextRun(start)) {
 
             if (alsoClearData && start < run.Start) {
@@ -943,7 +947,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                matchedWords[wordRun.SourceArrayName].Remove(wordRun.Start);
             }
 
-            ClearAnchorFormat(changeToken, originalStart, run);
+            ClearAnchorFormat(changeToken, keepInitialAnchorPointers, run);
 
             if (alsoClearData) {
                for (int i = 0; i < run.Length; i++) changeToken.ChangeData(this, run.Start + i, 0xFF);
@@ -951,10 +955,11 @@ namespace HavenSoft.HexManiac.Core.Models {
 
             length -= run.Length + run.Start - start;
             start = run.Start + run.Length;
+            keepInitialAnchorPointers = false;
          }
       }
 
-      private void ClearAnchorFormat(ModelDelta changeToken, int originalStart, IFormattedRun run) {
+      private void ClearAnchorFormat(ModelDelta changeToken, bool keepPointers, IFormattedRun run) {
          int runIndex;
 
          // case 1: anchor is named
@@ -981,9 +986,9 @@ namespace HavenSoft.HexManiac.Core.Models {
             return;
          }
 
-         // case 2: unnamed anchor doesn't start where the delete starts
+         // case 2: unnamed anchor is not really an anchor, so don't keep the pointers
          // this anchor shouldn't exist. The things that point to it aren't real pointers.
-         if (run.Start != originalStart) {
+         if (!keepPointers) {
             // by removing the unnamed anchor here, we're claiming that these were never really pointers to begin with.
             // as such, we should not change their data, just remove their pointer format
             foreach (var source in run.PointerSources ?? new int[0]) {
@@ -1009,8 +1014,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             return;
          }
 
-         // case 3: unnamed anchor starts where the delete starts.
-         // delete the content, but leave the anchor and pointers to it: we don't want to lose the pointers that point here.
+         // case 3: unnamed anchor and we want to keep the pointers
+         // delete the content, but leave the anchor and pointers to it: we don't want to lose track of the pointers that point here.
          runIndex = BinarySearch(run.Start);
          changeToken.RemoveRun(run);
          if (run.PointerSources != null) {

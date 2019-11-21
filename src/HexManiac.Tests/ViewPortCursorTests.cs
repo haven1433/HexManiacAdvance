@@ -352,7 +352,7 @@ namespace HavenSoft.HexManiac.Tests {
          items.Single(item => item.Text == "Copy");
          items.Single(item => item.Text == "Paste");
 
-         viewPort.ClearFormat();
+         viewPort.ClearAnchor();
          viewPort.Model.WriteMultiByteValue(0x22, 4, new ModelDelta(), 0x000000FF);
          viewPort.Edit("^text\"\" Hello World!\"");
          viewPort.SelectionStart = new Point(5, 2);

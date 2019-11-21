@@ -153,7 +153,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       }
 
       private IEnumerable<IContextItem> GetFormattedChildren() {
-         yield return new ContextItem("Clear Format", arg => ViewPort.ClearFormat());
+         yield return new ContextItem("Clear Format", arg => ViewPort.ClearAnchor());
       }
    }
 }

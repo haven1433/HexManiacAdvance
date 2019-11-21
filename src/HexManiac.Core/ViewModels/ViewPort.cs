@@ -590,12 +590,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void RaiseMessage(string text) => OnMessage?.Invoke(this, text);
 
-      public void ClearFormat() {
+      public void ClearAnchor() {
          var startDataIndex = scroll.ViewPointToDataIndex(SelectionStart);
          var endDataIndex = scroll.ViewPointToDataIndex(SelectionEnd);
          if (startDataIndex > endDataIndex) (startDataIndex, endDataIndex) = (endDataIndex, startDataIndex);
 
-         Model.ClearFormat(history.CurrentChange, startDataIndex, endDataIndex - startDataIndex + 1);
+         Model.ClearAnchor(history.CurrentChange, startDataIndex, endDataIndex - startDataIndex + 1);
          RefreshBackingData();
       }
 
