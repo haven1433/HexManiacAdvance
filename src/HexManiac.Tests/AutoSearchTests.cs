@@ -64,6 +64,21 @@ namespace HavenSoft.HexManiac.Tests {
 
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
+      public void MoveDescriptionsAreFound(string game) {
+         var model = fixture.LoadModel(game);
+         var noChange = new NoDataChangeDeltaModel();
+
+         var moveNamesAddress = model.GetAddressFromAnchor(noChange, -1, EggMoveRun.MoveNamesTable);
+         var moveNamesRun = (ArrayRun)model.GetNextAnchor(moveNamesAddress);
+
+         var moveDescriptionsAddress = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.MoveDescriptionsName);
+         var moveDescriptionsRun = (ArrayRun)model.GetNextAnchor(moveDescriptionsAddress);
+
+         Assert.Equal(moveNamesRun.ElementCount - 1, moveDescriptionsRun.ElementCount);
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
       public void AbilitiyNamesAreFound(string game) {
          var model = fixture.LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();

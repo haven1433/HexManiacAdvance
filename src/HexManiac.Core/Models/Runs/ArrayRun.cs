@@ -138,7 +138,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       // length of each element
       public int ElementLength { get; }
 
+      /// <summary>
+      /// For some arrays, their length is determined by another named array.
+      /// This way, we can know when we need to expand multiple arrays to keep them the same length.
+      /// </summary>
       public string LengthFromAnchor { get; }
+
+      /// <summary>
+      /// For some dependendent arrays, the length doesn't exactly match.
+      /// For example, move 0 doesn't have a description.
+      /// </summary>
+      public int ParentOffset { get; }
 
       public bool SupportsPointersToElements { get; }
 
@@ -160,6 +170,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                var name = owner.GetAnchorFromAddress(-1, Start);
                options = cache.GetOptions(name);
             }
+
+            if (options.Count == ElementCount - ParentOffset && ParentOffset != 0) {
+               if (ParentOffset < 0) options = options.Skip(-ParentOffset).ToList();
+               else options = Enumerable.Repeat(string.Empty, ParentOffset).Concat(options).ToList();
+            }
+
             return options;
          }
       }
@@ -203,14 +219,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             LengthFromAnchor = string.Empty;
             ElementCount = Math.Max(1, result);
          } else {
-            LengthFromAnchor = length;
-            ElementCount = Math.Max(1, ParseLengthFromAnchor());
+            (LengthFromAnchor, ParentOffset, ElementCount) = ParseLengthFromAnchor(length);
+            if (ElementCount < 1) throw new ArrayRunParseException("Tables must have a length of at least 1 element.");
          }
 
          Length = ElementLength * ElementCount;
       }
 
-      private ArrayRun(IDataModel data, string format, string lengthFromAnchor, int start, int elementCount, IReadOnlyList<ArrayRunElementSegment> segments, IReadOnlyList<int> pointerSources, IReadOnlyList<IReadOnlyList<int>> pointerSourcesForInnerElements) : base(start, pointerSources) {
+      private ArrayRun(IDataModel data, string format, string lengthFromAnchor, int parentOffset, int start, int elementCount, IReadOnlyList<ArrayRunElementSegment> segments, IReadOnlyList<int> pointerSources, IReadOnlyList<IReadOnlyList<int>> pointerSourcesForInnerElements) : base(start, pointerSources) {
          owner = data;
          FormatString = format;
          ElementContent = segments;
@@ -218,6 +234,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          ElementCount = elementCount;
          var closeArray = format.LastIndexOf(ArrayEnd.ToString());
          LengthFromAnchor = lengthFromAnchor;
+         ParentOffset = parentOffset;
          Length = ElementLength * ElementCount;
          SupportsPointersToElements = pointerSourcesForInnerElements != null;
          PointerSourcesForInnerElements = pointerSourcesForInnerElements;
@@ -253,12 +270,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (string.IsNullOrEmpty(length)) {
                var bestAddress = StandardSearch(data, elementContent, elementLength, out int bestLength, runFilter);
                if (bestAddress == Pointer.NULL) return false;
-               self = new ArrayRun(data, originalFormat + bestLength, string.Empty, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources, null);
+               self = new ArrayRun(data, originalFormat + bestLength, string.Empty, 0, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources, null);
             } else {
                var bestAddress = KnownLengthSearch(data, elementContent, elementLength, length, out int bestLength, runFilter);
                if (bestAddress == Pointer.NULL) return false;
                var lengthFromAnchor = int.TryParse(length, out var _) ? string.Empty : length;
-               self = new ArrayRun(data, originalFormat, lengthFromAnchor, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources, null);
+               self = new ArrayRun(data, originalFormat, lengthFromAnchor, 0, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources, null);
             }
          }
 
@@ -402,7 +419,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public ArrayRun Append(ModelDelta token, int elementCount) {
          var lastArrayCharacterIndex = FormatString.LastIndexOf(ArrayEnd);
          var newFormat = FormatString.Substring(0, lastArrayCharacterIndex + 1);
-         if (newFormat != FormatString) newFormat += ElementCount + elementCount;
+         if (newFormat != FormatString) {
+            if (!string.IsNullOrEmpty(LengthFromAnchor)) {
+               newFormat += LengthFromAnchor;
+               if (ParentOffset != 0) newFormat += ParentOffset;
+            } else {
+               newFormat += ElementCount + elementCount;
+            }
+         }
          var newInnerElementsSources = PointerSourcesForInnerElements?.ToList();
 
          if (newInnerElementsSources != null) {
@@ -423,7 +447,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
          }
 
-         return new ArrayRun(owner, newFormat, LengthFromAnchor, Start, ElementCount + elementCount, ElementContent, PointerSources, newInnerElementsSources);
+         return new ArrayRun(owner, newFormat, LengthFromAnchor, ParentOffset, Start, ElementCount + elementCount, ElementContent, PointerSources, newInnerElementsSources);
       }
 
       public ArrayRun GrowBitArraySegment(int bitSegmentIndex, int additionalBytes) {
@@ -432,7 +456,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var content = ElementContent.ToList();
          var oldSegment = (ArrayRunBitArraySegment)content[bitSegmentIndex];
          content[bitSegmentIndex] = new ArrayRunBitArraySegment(oldSegment.Name, oldSegment.Length + additionalBytes, oldSegment.SourceArrayName);
-         return new ArrayRun(owner, FormatString, LengthFromAnchor, Start, ElementCount, content, PointerSources, PointerSourcesForInnerElements);
+         return new ArrayRun(owner, FormatString, LengthFromAnchor, ParentOffset, Start, ElementCount, content, PointerSources, PointerSourcesForInnerElements);
       }
 
       public ArrayRun AddSourcePointingWithinArray(int source) {
@@ -442,7 +466,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (index == 0) throw new NotImplementedException();
          var newInnerPointerSources = PointerSourcesForInnerElements.ToList();
          newInnerPointerSources[index] = newInnerPointerSources[index].Concat(new[] { source }).ToList();
-         return new ArrayRun(owner, FormatString, LengthFromAnchor, Start, ElementCount, ElementContent, PointerSources, newInnerPointerSources);
+         return new ArrayRun(owner, FormatString, LengthFromAnchor, ParentOffset, Start, ElementCount, ElementContent, PointerSources, newInnerPointerSources);
       }
 
       public ArrayRun AddSourcesPointingWithinArray(ModelDelta changeToken) {
@@ -464,7 +488,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
 
          var pointerSourcesForInnerElements = results.Cast<IReadOnlyList<int>>().ToList();
-         return new ArrayRun(owner, FormatString, LengthFromAnchor, Start, ElementCount, ElementContent, PointerSources, pointerSourcesForInnerElements);
+         return new ArrayRun(owner, FormatString, LengthFromAnchor, ParentOffset, Start, ElementCount, ElementContent, PointerSources, pointerSourcesForInnerElements);
       }
 
       /// <summary>
@@ -485,7 +509,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public ArrayRun Move(int newStart) {
-         return new ArrayRun(owner, FormatString, LengthFromAnchor, newStart, ElementCount, ElementContent, PointerSources, PointerSourcesForInnerElements);
+         return new ArrayRun(owner, FormatString, LengthFromAnchor, ParentOffset, newStart, ElementCount, ElementContent, PointerSources, PointerSourcesForInnerElements);
       }
 
       public override IFormattedRun RemoveSource(int source) {
@@ -496,7 +520,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             newInnerPointerSources.Add(list.Where(item => item != source).ToList());
          }
 
-         return new ArrayRun(owner, FormatString, LengthFromAnchor, Start, ElementCount, ElementContent, newPointerSources, newInnerPointerSources);
+         return new ArrayRun(owner, FormatString, LengthFromAnchor, ParentOffset, Start, ElementCount, ElementContent, newPointerSources, newInnerPointerSources);
       }
 
       public bool HasSameSegments(ArrayRun other) {
@@ -527,7 +551,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             for (int i = 1; i < PointerSourcesForInnerElements.Count; i++) newInnerPointerSources.Add(PointerSourcesForInnerElements[i]);
          }
 
-         return new ArrayRun(owner, FormatString, LengthFromAnchor, Start, ElementCount, ElementContent, newPointerSources, newInnerPointerSources);
+         return new ArrayRun(owner, FormatString, LengthFromAnchor, ParentOffset, Start, ElementCount, ElementContent, newPointerSources, newInnerPointerSources);
       }
 
       private static List<ArrayRunElementSegment> ParseSegments(string segments, IDataModel model) {
@@ -615,22 +639,31 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return (ElementContentType.Unknown, 0, 0);
       }
 
-      private int ParseLengthFromAnchor() {
+      private (string lengthFromAnchor, int parentOffset, int elementCount) ParseLengthFromAnchor(string length) {
+         var parts = length.Split("-");
+         if (parts.Length == 2 && int.TryParse(parts[1], out int parentOffset)) {
+            parentOffset = -parentOffset;
+         } else {
+            parentOffset = 0;
+         }
+         var lengthFromAnchor = parts[0];
+
+
          // length is based on another array
-         int address = owner.GetAddressFromAnchor(new ModelDelta(), -1, LengthFromAnchor);
+         int address = owner.GetAddressFromAnchor(new ModelDelta(), -1, lengthFromAnchor);
          if (address == Pointer.NULL) {
             // the requested name was unknown... length is zero for now
-            return 0;
+            return (lengthFromAnchor, parentOffset, 1);
          }
 
          var run = owner.GetNextRun(address) as ArrayRun;
          if (run == null || run.Start != address) {
             // the requested name was not an array, or did not start where anticipated
             // length is zero for now
-            return 0;
+            return (lengthFromAnchor, parentOffset, 1);
          }
 
-         return run.ElementCount;
+         return (lengthFromAnchor, parentOffset, run.ElementCount + parentOffset);
       }
 
       private static bool DataMatchesElementFormat(IDataModel owner, int start, IReadOnlyList<ArrayRunElementSegment> segments, FormatMatchFlags flags, IFormattedRun nextAnchor) {

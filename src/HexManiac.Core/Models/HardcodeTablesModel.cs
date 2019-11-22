@@ -17,6 +17,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public const string TrainerTableName = "trainerdata";
       public const string EggMovesTableName = "eggmoves";
       public const string LevelMovesTableName = "lvlmoves";
+      public const string MoveDescriptionsName = "movedescriptions";
 
       private readonly string gameCode;
       private readonly ModelDelta noChangeDelta = new NoDataChangeDeltaModel();
@@ -106,6 +107,14 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
          AddTable(source, "abilitydescriptions", $"[description<{PCSRun.SharedFormatString}>]abilitynames");
 
+         // movedescriptions
+         switch (gameCode) {
+            case Ruby: case Sapphire: source = 0x0A0494; break;
+            case FireRed:             source = 0x0E5440; break;
+            case LeafGreen:           source = 0x0E5418; break;
+            case Emerald:             source = 0x1C3EFC; break;
+         }
+         AddTable(source, MoveDescriptionsName, $"[description<{PCSRun.SharedFormatString}>]{EggMoveRun.MoveNamesTable}-1");
       }
 
       private void DecodeDataArrays() {
