@@ -558,6 +558,19 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var list = new List<ArrayRunElementSegment>();
          segments = segments.Trim();
          while (segments.Length > 0) {
+            if (segments.StartsWith("[")) {
+               int subArrayClose = segments.LastIndexOf("]");
+               if (subArrayClose == -1) throw new ArrayRunParseException("Found unmatched open bracket ([).");
+               var innerSegments = ParseSegments(segments.Substring(1, subArrayClose - 1), model);
+               segments = segments.Substring(subArrayClose + 1);
+               int repeatLength = 0;
+               while (repeatLength < segments.Length && char.IsDigit(segments[repeatLength])) repeatLength++;
+               var innerCount = int.Parse(segments.Substring(0, repeatLength));
+               for (int i = 0; i < innerCount; i++) list.AddRange(innerSegments);
+               segments = segments.Substring(repeatLength);
+               continue;
+            }
+
             int nameEnd = 0;
             while (nameEnd < segments.Length && char.IsLetterOrDigit(segments[nameEnd])) nameEnd++;
             var name = segments.Substring(0, nameEnd);

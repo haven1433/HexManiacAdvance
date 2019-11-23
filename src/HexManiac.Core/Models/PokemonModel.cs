@@ -681,6 +681,10 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       private void UpdateNewRunFromPointerFormat(ref IFormattedRun run, ArrayRunPointerSegment segment, ModelDelta token) {
          var nextRun = GetNextRun(run.Start);
+         if (nextRun == run && nextRun is ITableRun) {
+            // the parent table points into a table. The existing table format wins: just keep it the same.
+            return;
+         }
          if (nextRun.Start <= run.Start && nextRun is ITableRun && run.GetType() != nextRun.GetType()) {
             // we're trying to point into a table. The table format wins: don't add any anchor.
             // this pointer is a 'bad' pointer: its pointing somewhere we KNOW doesn't contain the right data.
@@ -973,7 +977,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   sourceToUnmappedName[source] = name;
                }
                unmappedNameToSources[name] = new List<int>(run.PointerSources);
-            } else {
+            } else if (!keepPointers) {
                // Clear pointer formats to it. They're not actually pointers.
                foreach (var source in run.PointerSources) ClearFormat(changeToken, source, 4);
             }

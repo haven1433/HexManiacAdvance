@@ -16,6 +16,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public const string ItemsTableName = "items";
       public const string TrainerTableName = "trainerdata";
       public const string EggMovesTableName = "eggmoves";
+      public const string EvolutionTableName = "evolutions";
       public const string LevelMovesTableName = "lvlmoves";
       public const string MoveDescriptionsName = "movedescriptions";
 
@@ -127,6 +128,14 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
          var format = $"[hp. attack. def. speed. spatk. spdef. type1.types type2.types catchRate. baseExp. evs: item1:{ItemsTableName} item2:{ItemsTableName} genderratio. steps2hatch. basehappiness. growthrate. egg1. egg2. ability1.abilitynames ability2.abilitynames runrate. unknown. padding:]{EggMoveRun.PokemonNameTable}";
          AddTable(source, "pokestats", format);
+
+         // evolutions
+         switch (gameCode) {
+            case FireRed: case LeafGreen: source = 0x42F6C; break;
+            case Ruby: case Sapphire:     source = 0x3F534; break;
+            case Emerald:                 source = 0x6D140; break;
+         }
+         AddTable(source, EvolutionTableName, $"[[method: arg: species:{EggMoveRun.PokemonNameTable} unused:]5]{EggMoveRun.PokemonNameTable}");
 
          // items
          switch (gameCode) {
