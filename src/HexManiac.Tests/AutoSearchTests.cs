@@ -164,6 +164,17 @@ namespace HavenSoft.HexManiac.Tests {
 
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
+      public void DecorationsAreFound(string game) {
+         var model = fixture.LoadModel(game);
+         var noChange = new NoDataChangeDeltaModel();
+
+         var address = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.DecorationsTableName);
+         var run = (ArrayRun)model.GetNextAnchor(address);
+         Assert.Equal(121, run.ElementCount);
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
       public void TrainerClassNamesAreFound(string game) {
          var model = fixture.LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();

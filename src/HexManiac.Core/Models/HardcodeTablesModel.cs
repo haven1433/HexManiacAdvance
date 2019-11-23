@@ -18,6 +18,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public const string EggMovesTableName = "eggmoves";
       public const string EvolutionTableName = "evolutions";
       public const string LevelMovesTableName = "lvlmoves";
+      public const string DecorationsTableName = "decorations";
       public const string MoveDescriptionsName = "movedescriptions";
 
       private readonly string gameCode;
@@ -216,6 +217,13 @@ namespace HavenSoft.HexManiac.Core.Models {
             case Ruby: case Sapphire:                   source = 0x00D890; break;
          }
          AddTable(source, TrainerTableName, $"[structType.4 class.trainerclassnames introMusic. sprite. name\"\"12 item1:{ItemsTableName} item2:{ItemsTableName} item3:{ItemsTableName} item4:{ItemsTableName} doubleBattle:: ai:: pokemonCount:: pokemon<`tpt`>]");
+
+         // decorations
+         switch (gameCode) {
+            case FireRed: case LeafGreen: case Emerald: source = 0x00014C; break;
+            case Ruby: case Sapphire:                   source = 0x0B3AC8; break;
+         }
+         AddTable(source, DecorationsTableName, $"[id. name\"\"16 permission. shape. category. price:: description<\"\"> graphics<>]");
       }
 
       private void DecodeStreams() {
