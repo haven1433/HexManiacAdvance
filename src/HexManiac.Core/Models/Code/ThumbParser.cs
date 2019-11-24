@@ -20,9 +20,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
    public class ThumbParser {
       private readonly List<ConditionCode> conditionalCodes = new List<ConditionCode>();
-      private readonly List<IInstruction> instructionTemplates = new List<IInstruction>(); 
+      private readonly List<IInstruction> instructionTemplates = new List<IInstruction>();
       public ThumbParser(string[] engineLines) {
-         foreach(var line in engineLines) {
+         foreach (var line in engineLines) {
             if (ConditionCode.TryLoadConditionCode(line, out var condition)) conditionalCodes.Add(condition);
             else if (Instruction.TryLoadInstruction(line, out var instruction)) instructionTemplates.Add(instruction);
          }

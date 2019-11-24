@@ -219,7 +219,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       private void Draw(string text, string brush, double size, int cells, int position, string appendEnd = "", bool italics = false) {
          var needsClip = position > Position.X || Position.X - position > modelWidth - cells;
          if (!needsClip && position != 0) return;
-         
+
          var textTypeface = italics ? italicTypeface : typeface;
          var run = CreateGlyphRun(textTypeface, size, cells, position, text, appendEnd);
 
@@ -272,7 +272,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          double y = (position.Y + 1) * cellSize.Height - 1.5;
          context.DrawLine(new Pen(Brush(brush), 1), new Point(startPoint, y), new Point(endPoint, y));
       }
-      
+
       private FormattedText TruncateText(string destination, double fontSize, string brush, int widthInCells, string postText = "", bool italics = false) {
          var text = CreateText(destination, fontSize, Brush(brush), italics);
          if (text.Width > cellSize.Width * widthInCells) {

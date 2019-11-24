@@ -50,10 +50,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          TryUpdate(ref backgroundColor, "#222222", nameof(BackgroundColor));
          TryUpdate(ref hueOffset, 0.1, nameof(HueOffset));
          TryUpdate(ref accentSaturation, 0.7, nameof(AccentSaturation));
-         TryUpdate(ref accentValue , 0.7, nameof(AccentValue));
+         TryUpdate(ref accentValue, 0.7, nameof(AccentValue));
          TryUpdate(ref highlightBrightness, 0.6, nameof(HighlightBrightness));
          UpdateTheme();
-   }
+      }
 
       public static bool TryConvertColor(string text, out (byte r, byte g, byte b) color) {
          const string hex = "0123456789ABCDEF";

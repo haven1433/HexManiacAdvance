@@ -1255,8 +1255,8 @@ namespace HavenSoft.HexManiac.Core.Models {
                      var childRun = GetNextRun(childRunStart);
                      if (parts[2] == string.Empty) {
                         yield return prefix + option + ArrayAnchorSeparator + segment.Name + ArrayAnchorSeparator;
-                     } else if(childRun is ITableRun tableRun) {
-                        foreach(var result in GetAutoCompleteOptions(prefix + option + ArrayAnchorSeparator + segment.Name + ArrayAnchorSeparator, tableRun, parts.Skip(2).ToArray())) {
+                     } else if (childRun is ITableRun tableRun) {
+                        foreach (var result in GetAutoCompleteOptions(prefix + option + ArrayAnchorSeparator + segment.Name + ArrayAnchorSeparator, tableRun, parts.Skip(2).ToArray())) {
                            yield return result;
                         }
                      }

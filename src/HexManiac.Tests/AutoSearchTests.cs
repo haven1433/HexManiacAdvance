@@ -17,7 +17,7 @@ namespace HavenSoft.HexManiac.Tests {
    /// These tests are skippable, so that they'll work even if you don't have the ROMs on your system.
    /// This is important, since the ROMs aren't part of the repository.
    /// </summary>
-   public class AutoSearchTests : IClassFixture<AutoSearchFixture>{
+   public class AutoSearchTests : IClassFixture<AutoSearchFixture> {
 
       public static IEnumerable<object[]> PokemonGames { get; } = new[] {
          "Ruby",
@@ -383,16 +383,16 @@ namespace HavenSoft.HexManiac.Tests {
          var noChange = new NoDataChangeDeltaModel();
 
          Assert.True(model.TryGetNameArray(HardcodeTablesModel.TrainerTableName, out var trainers));
-         if (game.Contains("Emerald"))              Assert.Equal(855, trainers.ElementCount);
-         else if (game.Contains("Altair"))          Assert.Equal(1,   trainers.ElementCount); // actually has 855, but the first element is glitched in a way that I shouldn't auto-recover.
-         else if (game.Contains("FireRed"))         Assert.Equal(743, trainers.ElementCount);
-         else if (game.Contains("LeafGreen"))       Assert.Equal(743, trainers.ElementCount);
-         else if (game.Contains("Clover"))          Assert.Equal(743, trainers.ElementCount);
-         else if (game.Contains("Vega"))            Assert.Equal(743, trainers.ElementCount);
+         if (game.Contains("Emerald")) Assert.Equal(855, trainers.ElementCount);
+         else if (game.Contains("Altair")) Assert.Equal(1, trainers.ElementCount); // actually has 855, but the first element is glitched in a way that I shouldn't auto-recover.
+         else if (game.Contains("FireRed")) Assert.Equal(743, trainers.ElementCount);
+         else if (game.Contains("LeafGreen")) Assert.Equal(743, trainers.ElementCount);
+         else if (game.Contains("Clover")) Assert.Equal(743, trainers.ElementCount);
+         else if (game.Contains("Vega")) Assert.Equal(743, trainers.ElementCount);
          else if (game.Contains("DarkRisingKAIZO")) Assert.Equal(742, trainers.ElementCount); // the last one is glitched
-         else if (game.Contains("Gaia"))            Assert.Equal(743, trainers.ElementCount);
-         else if (game.Contains("Ruby"))            Assert.Equal(694, trainers.ElementCount);
-         else if (game.Contains("Sapphire"))        Assert.Equal(694, trainers.ElementCount);
+         else if (game.Contains("Gaia")) Assert.Equal(743, trainers.ElementCount);
+         else if (game.Contains("Ruby")) Assert.Equal(694, trainers.ElementCount);
+         else if (game.Contains("Sapphire")) Assert.Equal(694, trainers.ElementCount);
          else throw new NotImplementedException();
       }
 

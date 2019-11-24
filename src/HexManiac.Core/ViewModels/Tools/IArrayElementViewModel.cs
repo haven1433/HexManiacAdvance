@@ -327,7 +327,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public bool IsInError => !string.IsNullOrEmpty(ErrorText);
       public string ErrorText { get; private set; }
       public event EventHandler DataChanged { add => dataChanged += value; remove => dataChanged -= value; }
-      public event EventHandler<(int originalStart, int newStart)> DataMoved { add => dataMoved += value;remove => dataMoved -= value; }
+      public event EventHandler<(int originalStart, int newStart)> DataMoved { add => dataMoved += value; remove => dataMoved -= value; }
 
       string content;
       public string Content {

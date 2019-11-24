@@ -215,7 +215,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          list = Find(originalCode, 0x06F700, 0x1B7000);
          if (list.Count != 1) return;
          var tmMoves = ReadPointer(list[0] + originalCode.Length);
-         if (tmMoves< 0 || tmMoves > Count) return;
+         if (tmMoves < 0 || tmMoves > Count) return;
 
          // get hmMoves location
          originalCode = new byte[] {

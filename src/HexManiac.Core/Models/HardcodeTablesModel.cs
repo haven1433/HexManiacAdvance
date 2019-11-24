@@ -73,53 +73,53 @@ namespace HavenSoft.HexManiac.Core.Models {
          // pokenames
          switch (gameCode) {
             case FireRed: case LeafGreen: case Emerald: source = 0x000144; break;
-            case Ruby: case Sapphire:                   source = 0x00FA58; break;
+            case Ruby: case Sapphire: source = 0x00FA58; break;
          }
          AddTable(source, EggMoveRun.PokemonNameTable, "[name\"\"11]");
 
          // movenames
          switch (gameCode) {
             case FireRed: case LeafGreen: case Emerald: source = 0x000148; break;
-            case Ruby: case Sapphire:                   source = 0x02E18C; break;
+            case Ruby: case Sapphire: source = 0x02E18C; break;
          }
          AddTable(source, EggMoveRun.MoveNamesTable, "[name\"\"13]");
 
          // abilitynames
          switch (gameCode) {
             case FireRed: case LeafGreen: case Emerald: source = 0x0001C0; break;
-            case Ruby: case Sapphire:                   source = 0x09FE64; break;
+            case Ruby: case Sapphire: source = 0x09FE64; break;
          }
          AddTable(source, "abilitynames", "[name\"\"13]");
 
          // trainerclassnames
          switch (gameCode) {
-            case FireRed: case LeafGreen:               source = AllSourcesToSameDestination(source)[1] + 0x9C; break;
-            case Emerald:                               source = 0x0183B4; break;
-            case Ruby: case Sapphire:                   source = 0x1217BC; break;
+            case FireRed: case LeafGreen: source = AllSourcesToSameDestination(source)[1] + 0x9C; break;
+            case Emerald: source = 0x0183B4; break;
+            case Ruby: case Sapphire: source = 0x1217BC; break;
          }
          AddTable(source, "trainerclassnames", "[name\"\"13]");
 
          // types
          switch (gameCode) {
-            case FireRed: case LeafGreen:               source = 0x0309C8; break;
-            case Emerald:                               source = 0x0166F4; break;
-            case Ruby: case Sapphire:                   source = 0x02E3A8; break;
+            case FireRed: case LeafGreen: source = 0x0309C8; break;
+            case Emerald: source = 0x0166F4; break;
+            case Ruby: case Sapphire: source = 0x02E3A8; break;
          }
          AddTable(source, "types", "^[name\"\"7]");
 
          // abilitydescriptions
          switch (gameCode) {
             case FireRed: case LeafGreen: case Emerald: source = 0x0001C4; break;
-            case Ruby: case Sapphire:                   source = 0x09FE68; break;
+            case Ruby: case Sapphire: source = 0x09FE68; break;
          }
          AddTable(source, "abilitydescriptions", $"[description<{PCSRun.SharedFormatString}>]abilitynames");
 
          // movedescriptions
          switch (gameCode) {
             case Ruby: case Sapphire: source = 0x0A0494; break;
-            case FireRed:             source = 0x0E5440; break;
-            case LeafGreen:           source = 0x0E5418; break;
-            case Emerald:             source = 0x1C3EFC; break;
+            case FireRed: source = 0x0E5440; break;
+            case LeafGreen: source = 0x0E5418; break;
+            case Emerald: source = 0x1C3EFC; break;
          }
          AddTable(source, MoveDescriptionsName, $"[description<{PCSRun.SharedFormatString}>]{EggMoveRun.MoveNamesTable}-1");
       }
@@ -130,7 +130,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          // pokestats
          switch (gameCode) {
             case FireRed: case LeafGreen: case Emerald: source = 0x0001BC; break;
-            case Ruby: case Sapphire:                   source = 0x010B64; break;
+            case Ruby: case Sapphire: source = 0x010B64; break;
          }
          var format = $"[hp. attack. def. speed. spatk. spdef. type1.types type2.types catchRate. baseExp. evs: item1:{ItemsTableName} item2:{ItemsTableName} genderratio. steps2hatch. basehappiness. growthrate. egg1. egg2. ability1.abilitynames ability2.abilitynames runrate. unknown. padding:]{EggMoveRun.PokemonNameTable}";
          AddTable(source, "pokestats", format);
@@ -138,15 +138,15 @@ namespace HavenSoft.HexManiac.Core.Models {
          // evolutions
          switch (gameCode) {
             case FireRed: case LeafGreen: source = 0x42F6C; break;
-            case Ruby: case Sapphire:     source = 0x3F534; break;
-            case Emerald:                 source = 0x6D140; break;
+            case Ruby: case Sapphire: source = 0x3F534; break;
+            case Emerald: source = 0x6D140; break;
          }
          AddTable(source, EvolutionTableName, $"[[method: arg: species:{EggMoveRun.PokemonNameTable} unused:]5]{EggMoveRun.PokemonNameTable}");
 
          // items
          switch (gameCode) {
             case FireRed: case LeafGreen: case Emerald: source = 0x0001C8; break;
-            case Ruby: case Sapphire:                   source = 0x0A98F0; break;
+            case Ruby: case Sapphire: source = 0x0A98F0; break;
          }
          format = $"[name\"\"14 index: price: holdeffect: description<{PCSRun.SharedFormatString}> keyitemvalue. bagkeyitem. pocket. type. fieldeffect<> battleusage:: battleeffect<> battleextra::]";
          AddTable(source, ItemsTableName, format);
@@ -154,25 +154,25 @@ namespace HavenSoft.HexManiac.Core.Models {
          // movedata
          switch (gameCode) {
             case FireRed: case LeafGreen: case Emerald: source = 0x0001CC; break;
-            case Ruby: case Sapphire:                   source = 0x00CA54; break;
+            case Ruby: case Sapphire: source = 0x00CA54; break;
          }
          format = $"[effect. power. type.types accuracy. pp. effectAccuracy. target. priority. more::]{EggMoveRun.MoveNamesTable}";
          AddTable(source, "movedata", format);
 
          // lvlmoves
          switch (gameCode) {
-            case FireRed: case LeafGreen:               source = 0x03EA7C; break;
-            case Emerald:                               source = 0x06930C; break;
-            case Ruby: case Sapphire:                   source = 0x03B7BC; break;
+            case FireRed: case LeafGreen: source = 0x03EA7C; break;
+            case Emerald: source = 0x06930C; break;
+            case Ruby: case Sapphire: source = 0x03B7BC; break;
          }
          AddTable(source, LevelMovesTableName, $"[movesFromLevel<{PLMRun.SharedFormatString}>]{EggMoveRun.PokemonNameTable}");
 
          // tutormoves / tutorcompatibility
          if (gameCode != Ruby && gameCode != Sapphire) {
             switch (gameCode) {
-               case FireRed:                            source = 0x120BE4; break;
-               case LeafGreen:                          source = 0x120BBC; break;
-               case Emerald:                            source = 0x1B236C; break;
+               case FireRed: source = 0x120BE4; break;
+               case LeafGreen: source = 0x120BBC; break;
+               case Emerald: source = 0x1B236C; break;
             }
             format = $"[move:{EggMoveRun.MoveNamesTable}]" + (gameCode == Emerald ? 30 : 15);
             AddTable(source, MoveTutors, format);
@@ -183,50 +183,50 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          // tmmoves
          switch (gameCode) {
-            case FireRed: case LeafGreen:               source = 0x125A60; break;
-            case Emerald:                               source = 0x1B6D10; break;
-            case Ruby: case Sapphire:                   source = 0x06F038; break;
+            case FireRed: case LeafGreen: source = 0x125A60; break;
+            case Emerald: source = 0x1B6D10; break;
+            case Ruby: case Sapphire: source = 0x06F038; break;
          }
          source = GetNextRun(source).Start;
          AddTable(source, TmMoves, $"[move:{EggMoveRun.MoveNamesTable}]58");
 
          // tmcompatibility
          switch (gameCode) {
-            case FireRed: case LeafGreen:               source = 0x043C68; break;
-            case Emerald:                               source = 0x06E048; break;
-            case Ruby: case Sapphire:                   source = 0x0403B0; break;
+            case FireRed: case LeafGreen: source = 0x043C68; break;
+            case Emerald: source = 0x06E048; break;
+            case Ruby: case Sapphire: source = 0x0403B0; break;
          }
          AddTable(source, TmCompatibility, $"[moves|b[]{TmMoves}]{EggMoveRun.PokemonNameTable}");
 
          // hmmoves
          switch (gameCode) {
-            case FireRed: case LeafGreen:               source = 0x0441DC; break;
-            case Emerald:                               source = 0x06E828; break;
-            case Ruby: case Sapphire:                   source = 0x040A24; break;
+            case FireRed: case LeafGreen: source = 0x0441DC; break;
+            case Emerald: source = 0x06E828; break;
+            case Ruby: case Sapphire: source = 0x040A24; break;
          }
          AddTable(source, HmMoves, $"[move:{EggMoveRun.MoveNamesTable}]8");
 
          // itemimages
          switch (gameCode) {
-            case FireRed: case LeafGreen:               source = 0x098970; break;
-            case Emerald:                               source = 0x1B0034; break;
-            case Ruby: case Sapphire:                   source = -1;       break;
+            case FireRed: case LeafGreen: source = 0x098970; break;
+            case Emerald: source = 0x1B0034; break;
+            case Ruby: case Sapphire: source = -1; break;
          }
          source = GetNextRun(source).Start;
          AddTable(source, "itemimages", $"[image<> palette<>]{ItemsTableName}");
 
          // trainer teams
          switch (gameCode) {
-            case FireRed: case LeafGreen:               source = 0x00FC00; break;
-            case Emerald:                               source = 0x03587C; break;
-            case Ruby: case Sapphire:                   source = 0x00D890; break;
+            case FireRed: case LeafGreen: source = 0x00FC00; break;
+            case Emerald: source = 0x03587C; break;
+            case Ruby: case Sapphire: source = 0x00D890; break;
          }
          AddTable(source, TrainerTableName, $"[structType.4 class.trainerclassnames introMusic. sprite. name\"\"12 item1:{ItemsTableName} item2:{ItemsTableName} item3:{ItemsTableName} item4:{ItemsTableName} doubleBattle:: ai:: pokemonCount:: pokemon<`tpt`>]");
 
          // decorations
          switch (gameCode) {
             case FireRed: case LeafGreen: case Emerald: source = 0x00014C; break;
-            case Ruby: case Sapphire:                   source = 0x0B3AC8; break;
+            case Ruby: case Sapphire: source = 0x0B3AC8; break;
          }
          AddTable(source, DecorationsTableName, $"[id. name\"\"16 permission. shape. category. price:: description<\"\"> graphics<>]");
       }
@@ -236,17 +236,17 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          // regional dex
          switch (gameCode) {
-            case Ruby:    case Sapphire:  source = 0x03F7F0; break;
+            case Ruby: case Sapphire: source = 0x03F7F0; break;
             case FireRed: case LeafGreen: source = 0x0431F0; break;
-            case Emerald:                 source = 0x06D3FC; break;
+            case Emerald: source = 0x06D3FC; break;
          }
          AddTable(source, RegionalDexTableName, "[index:]pokenames-1");
 
          // national dex
          switch (gameCode) {
-            case Ruby:    case Sapphire:  source = 0x03F83C; break;
+            case Ruby: case Sapphire: source = 0x03F83C; break;
             case FireRed: case LeafGreen: source = 0x04323C; break;
-            case Emerald:                 source = 0x06D448; break;
+            case Emerald: source = 0x06D448; break;
          }
          AddTable(source, NationalDexTableName, "[index:]pokenames-1");
 
@@ -255,18 +255,18 @@ namespace HavenSoft.HexManiac.Core.Models {
          // hoenn[bulbasaur]= 203, national[bulbasaur]=   1, HoennToNationalDex[203]=   1
          // -> this table's values can be determined automatically based on the first two
          switch (gameCode) {
-            case Ruby:    case Sapphire:  source = 0x03F888; break;
+            case Ruby: case Sapphire: source = 0x03F888; break;
             case FireRed: case LeafGreen: source = 0x043288; break;
-            case Emerald:                 source = 0x06D494; break;
+            case Emerald: source = 0x06D494; break;
          }
          AddTable(source, ConversionDexTableName, "[index:]pokenames-1");
 
          // dex info
          switch (gameCode) {
-            case Ruby: case Sapphire:  source = 0x08F508; break;
-            case FireRed:              source = 0x088E34; break;
-            case LeafGreen:            source = 0x088E30; break;
-            case Emerald:              source = 0x0BFA20; break;
+            case Ruby: case Sapphire: source = 0x08F508; break;
+            case FireRed: source = 0x088E34; break;
+            case LeafGreen: source = 0x088E30; break;
+            case Emerald: source = 0x0BFA20; break;
          }
          // height is in decimeters
          // weight is in hectograms
@@ -280,9 +280,9 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          // eggmoves
          switch (gameCode) {
-            case FireRed: case LeafGreen:               source = 0x045C50; break;
-            case Emerald:                               source = 0x0703F0; break;
-            case Ruby: case Sapphire:                   source = 0x041B44; break;
+            case FireRed: case LeafGreen: source = 0x045C50; break;
+            case Emerald: source = 0x0703F0; break;
+            case Ruby: case Sapphire: source = 0x041B44; break;
          }
 
          ObserveAnchorWritten(noChangeDelta, EggMovesTableName, new EggMoveRun(this, ReadPointer(source)));

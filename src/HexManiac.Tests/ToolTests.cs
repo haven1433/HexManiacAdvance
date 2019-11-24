@@ -263,9 +263,9 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Theory]
       [InlineData(0x0000, "nop")]
-      [InlineData(0b0001100_010_001_000,  "add   r0, r1, r2")]
-      [InlineData(0b00000_00100_010_001,  "lsl   r1, r2, #4")]
-      [InlineData(0b1101_0000_00001100,   "beq   <00001C>")] // 1C = 28 (current address is zero). 28 = 12*2+4
+      [InlineData(0b0001100_010_001_000, "add   r0, r1, r2")]
+      [InlineData(0b00000_00100_010_001, "lsl   r1, r2, #4")]
+      [InlineData(0b1101_0000_00001100, "beq   <00001C>")] // 1C = 28 (current address is zero). 28 = 12*2+4
       [InlineData(0b01000110_0_1_000_111, "mov   r7, r8")]
       public void ThumbDecompilerTests(int input, string output) {
          var bytes = new[] { (byte)input, (byte)(input >> 8) };
@@ -291,12 +291,12 @@ namespace HavenSoft.HexManiac.Tests {
          var model = new PokemonModel(bytes);
          var lines = parser.Parse(model, 0, bytes.Length).Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
          Assert.Equal(7, lines.Length);
-         Assert.Equal("000000:",               lines[0]);
+         Assert.Equal("000000:", lines[0]);
          Assert.Equal("    push  lr, {r4-r5}", lines[1]);
-         Assert.Equal("    cmp   r0, #1",      lines[2]);
-         Assert.Equal("    bne   <000008>",    lines[3]);
-         Assert.Equal("    add   r0, r1, r1",  lines[4]);
-         Assert.Equal("000008:",               lines[5]);
+         Assert.Equal("    cmp   r0, #1", lines[2]);
+         Assert.Equal("    bne   <000008>", lines[3]);
+         Assert.Equal("    add   r0, r1, r1", lines[4]);
+         Assert.Equal("000008:", lines[5]);
          Assert.Equal("    pop   pc, {r4-r5}", lines[6]);
       }
 
@@ -319,13 +319,13 @@ namespace HavenSoft.HexManiac.Tests {
          var model = new PokemonModel(bytes);
          var lines = parser.Parse(model, 0, bytes.Length).Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
          Assert.Equal(7, lines.Length);
-         Assert.Equal("000000:",                      lines[0]);
+         Assert.Equal("000000:", lines[0]);
          Assert.Equal("    ldr   r0, [pc, <000004>]", lines[1]);
-         Assert.Equal("    b     <00000C>",           lines[2]);
-         Assert.Equal("000004:",                      lines[3]);
-         Assert.Equal("    .word 56781234",           lines[4]);
-         Assert.Equal("00000C:",                      lines[5]);
-         Assert.Equal("    bx    r0",                 lines[6]);
+         Assert.Equal("    b     <00000C>", lines[2]);
+         Assert.Equal("000004:", lines[3]);
+         Assert.Equal("    .word 56781234", lines[4]);
+         Assert.Equal("00000C:", lines[5]);
+         Assert.Equal("    bx    r0", lines[6]);
       }
 
       [Fact]
@@ -345,12 +345,12 @@ namespace HavenSoft.HexManiac.Tests {
          var lines = parser.Parse(model, 0, bytes.Length).Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
 
          Assert.Equal(6, lines.Length);
-         Assert.Equal("000000:",                      lines[0]);
-         Assert.Equal("    nop",                      lines[1]);
+         Assert.Equal("000000:", lines[0]);
+         Assert.Equal("    nop", lines[1]);
          Assert.Equal("    ldr   r0, [pc, <000008>]", lines[2]);
-         Assert.Equal("    pop   pc, {}",             lines[3]);
-         Assert.Equal("000008:",                      lines[4]);
-         Assert.Equal("    .word DEADBEEF",           lines[5]);
+         Assert.Equal("    pop   pc, {}", lines[3]);
+         Assert.Equal("000008:", lines[4]);
+         Assert.Equal("    .word DEADBEEF", lines[5]);
       }
 
       /// <summary>
@@ -367,17 +367,17 @@ namespace HavenSoft.HexManiac.Tests {
          var lines = parser.Parse(model, 0, 20).Split(Environment.NewLine).Where(s => !string.IsNullOrEmpty(s)).ToArray(); // pc(0)+#(4)*2+4 = C
 
          Assert.Equal(11, lines.Length);
-         Assert.Equal("000000:",            lines[0]);
+         Assert.Equal("000000:", lines[0]);
          Assert.Equal("    bl    <00000C>", lines[1]);
-         Assert.Equal("    nop",            lines[2]);
-         Assert.Equal("    nop",            lines[3]);
-         Assert.Equal("    nop",            lines[4]);
-         Assert.Equal("    nop",            lines[5]);
-         Assert.Equal("00000C:",            lines[6]);
-         Assert.Equal("    nop",            lines[7]);
-         Assert.Equal("    nop",            lines[8]);
-         Assert.Equal("    nop",            lines[9]);
-         Assert.Equal("    nop",            lines[10]);
+         Assert.Equal("    nop", lines[2]);
+         Assert.Equal("    nop", lines[3]);
+         Assert.Equal("    nop", lines[4]);
+         Assert.Equal("    nop", lines[5]);
+         Assert.Equal("00000C:", lines[6]);
+         Assert.Equal("    nop", lines[7]);
+         Assert.Equal("    nop", lines[8]);
+         Assert.Equal("    nop", lines[9]);
+         Assert.Equal("    nop", lines[10]);
       }
 
       [Theory]
@@ -512,7 +512,7 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       private static readonly ThumbParser parser;
-      static ToolTests(){
+      static ToolTests() {
          parser = new ThumbParser(File.ReadAllLines("resources/armReference.txt"));
       }
    }
