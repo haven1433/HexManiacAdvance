@@ -231,6 +231,31 @@ namespace HavenSoft.HexManiac.Tests {
 
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
+      public void PokedexDataIsFound(string game) {
+         var model = fixture.LoadModel(game);
+         var noChange = new NoDataChangeDeltaModel();
+
+         var regional = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.RegionalDexTableName);
+         var national = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.NationalDexTableName);
+         var conversion = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.ConversionDexTableName);
+         var info = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.DexInfoTableName);
+
+         var regionalRun = model.GetNextAnchor(regional);
+         var nationalRun = model.GetNextAnchor(national);
+         var conversionRun = model.GetNextAnchor(conversion);
+         var infoRun = (ArrayRun)model.GetNextAnchor(info);
+
+         Assert.IsType<ArrayRun>(regionalRun);
+         Assert.IsType<ArrayRun>(nationalRun);
+         Assert.IsType<ArrayRun>(conversionRun);
+
+         if (game.Contains("Clover") || game.Contains("Gaia")) return; // some hacks have busted dex data
+
+         Assert.Equal(387, infoRun.ElementCount);
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
       public void MoveDataFound(string game) {
          var model = fixture.LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();

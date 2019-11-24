@@ -14,12 +14,16 @@ namespace HavenSoft.HexManiac.Core.Models {
    /// </summary>
    public class HardcodeTablesModel : PokemonModel {
       public const string ItemsTableName = "items";
+      public const string DexInfoTableName = "dexinfo";
       public const string TrainerTableName = "trainerdata";
       public const string EggMovesTableName = "eggmoves";
       public const string EvolutionTableName = "evolutions";
       public const string LevelMovesTableName = "lvlmoves";
       public const string DecorationsTableName = "decorations";
+      public const string RegionalDexTableName = "regionaldex";
+      public const string NationalDexTableName = "nationaldex";
       public const string MoveDescriptionsName = "movedescriptions";
+      public const string ConversionDexTableName = "hoennToNational";
 
       private readonly string gameCode;
       private readonly ModelDelta noChangeDelta = new NoDataChangeDeltaModel();
@@ -46,6 +50,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             DecodeHeader();
             DecodeNameArrays();
             DecodeDataArrays();
+            DecodeDexArrays();
             DecodeStreams();
          }
 
@@ -224,6 +229,50 @@ namespace HavenSoft.HexManiac.Core.Models {
             case Ruby: case Sapphire:                   source = 0x0B3AC8; break;
          }
          AddTable(source, DecorationsTableName, $"[id. name\"\"16 permission. shape. category. price:: description<\"\"> graphics<>]");
+      }
+
+      private void DecodeDexArrays() {
+         int source = 0;
+
+         // regional dex
+         switch (gameCode) {
+            case Ruby:    case Sapphire:  source = 0x03F7F0; break;
+            case FireRed: case LeafGreen: source = 0x0431F0; break;
+            case Emerald:                 source = 0x06D3FC; break;
+         }
+         AddTable(source, RegionalDexTableName, "[index:]pokenames-1");
+
+         // national dex
+         switch (gameCode) {
+            case Ruby:    case Sapphire:  source = 0x03F83C; break;
+            case FireRed: case LeafGreen: source = 0x04323C; break;
+            case Emerald:                 source = 0x06D448; break;
+         }
+         AddTable(source, NationalDexTableName, "[index:]pokenames-1");
+
+         // hoenn-to-national conversion
+         // hoenn[treecko]  =   1, national[treecko]  = 252, HoeennToNationalDex[ 1]= 252
+         // hoenn[bulbasaur]= 203, national[bulbasaur]=   1, HoennToNationalDex[203]=   1
+         // -> this table's values can be determined automatically based on the first two
+         switch (gameCode) {
+            case Ruby:    case Sapphire:  source = 0x03F888; break;
+            case FireRed: case LeafGreen: source = 0x043288; break;
+            case Emerald:                 source = 0x06D494; break;
+         }
+         AddTable(source, ConversionDexTableName, "[index:]pokenames-1");
+
+         // dex info
+         switch (gameCode) {
+            case Ruby: case Sapphire:  source = 0x08F508; break;
+            case FireRed:              source = 0x088E34; break;
+            case LeafGreen:            source = 0x088E30; break;
+            case Emerald:              source = 0x0BFA20; break;
+         }
+         // height is in decimeters
+         // weight is in hectograms
+         var format = "[species\"\"12 height: weight: description1<\"\"> description2<\"\"> unused: pokemonScale: pokemonOffset: trainerScale: trainerOffset: unused:]";
+         if (gameCode == Emerald) format = "[species\"\"12 height: weight: description<\"\"> unused: pokemonScale: pokemonOffset: trainerScale: trainerOffset: usused:]";
+         AddTable(source, DexInfoTableName, format);
       }
 
       private void DecodeStreams() {

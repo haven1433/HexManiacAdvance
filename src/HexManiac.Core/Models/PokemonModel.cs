@@ -210,7 +210,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                         Debug.Assert(arrayRun1.PointerSourcesForInnerElements[offsets.ElementIndex].Contains(start));
                         if (offsets.ElementIndex == 0) Debug.Assert(run.PointerSources.Contains(start));
                      } else if (run is ITableRun && run.Start < destination) {
-                        // exception: tables are allowed to have pointers that point randomly into other tables.
+                        // exception: tables are allowed to have pointers that point randomly into other runs.
                         // such a thing is a data error in the ROM, but is not a metadata inconsistency.
                      } else if (run.Start != destination) {
                         // for tables, the invalidly point into a run. Such is an error in the data, but is allowed for the metadata.
@@ -691,6 +691,12 @@ namespace HavenSoft.HexManiac.Core.Models {
             run = null;
             return;
          }
+         if (nextRun.Start < run.Start && nextRun.PointerSources != null && nextRun.PointerSources.Any(source => GetNextRun(source) is ITableRun)) {
+            // we're trying to point into something that is owned by a table. The table format wins: don't add any anchor.
+            // this pointer is a 'bad' pointer: its pointing somewhere we KNOW doesn't contain the right data.
+            run = null;
+            return;
+         }
 
          if (segment == null) return;
          if (segment.InnerFormat == PCSRun.SharedFormatString) {
@@ -1040,7 +1046,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             } else if (index != -1 && runs[~index - 1] is ArrayRun array) { // if index is -1, we are before the first run, so we're not within an array run
                ClearPointerWithinArray(changeToken, start, ~index - 1, array);
             } else {
-               Debug.Fail($"Trying to clear a pointer that starts at {start:X6}, but the run in that area seems to be not be a pointer run.");
+               // pointers in tables are allowed to point at junk
             }
          } else if (sourceToUnmappedName.TryGetValue(start, out var name)) {
             changeToken.RemoveUnmappedPointer(start, name);

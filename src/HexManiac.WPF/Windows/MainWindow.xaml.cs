@@ -69,9 +69,8 @@ namespace HavenSoft.HexManiac.WPF.Windows {
                      Background = (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][nameof(Theme.Background)],
                      SizeToContent = SizeToContent.WidthAndHeight,
                      WindowStyle = WindowStyle.ToolWindow,
-                     Content = new Grid {
+                     Content = new StackPanel {
                         Width = 300,
-                        Height = 100,
                         Children = {
                               new TextBlock {
                                  Margin = new Thickness(5),
