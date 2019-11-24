@@ -163,8 +163,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          childInsertionIndex = 0;
 
          var array = model.GetNextRun(Address) as ITableRun;
-         if (array == null) {
+         if (array == null || array.Start > Address) {
             CurrentElementName = "The Table tool only works if your cursor is on table data.";
+            Children.Clear();
             return;
          }
 
