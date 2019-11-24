@@ -251,6 +251,10 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             return;
          }
          downPoint = ControlCoordinatesToModelCoordinates(e);
+         if (e.ChangedButton == MouseButton.Middle) {
+            CaptureMouse();
+            return;
+         }
          if (e.ChangedButton != MouseButton.Left) return;
          Focus();
          if (Keyboard.Modifiers == ModifierKeys.Control) {
@@ -284,11 +288,18 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             InvalidateVisual();
          }
          if (!IsMouseCaptured) return;
-         if (!(ViewPort is ViewPort viewPort)) return;
-
 
          var point = e.GetPosition(this);
          var modelPoint = ControlCoordinatesToModelCoordinates(e);
+
+         if (e.MiddleButton == MouseButtonState.Pressed) {
+            ViewPort.ScrollValue -= modelPoint.Y - downPoint.Y;
+            downPoint = modelPoint;
+            return;
+         }
+
+         if (!(ViewPort is ViewPort viewPort)) return;
+
          if (point.X < 0) {
             viewPort.SelectionEnd = new ModelPoint(viewPort.Width - 1, modelPoint.Y);
          } else {
@@ -365,6 +376,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          base.OnMouseWheel(e);
          if (Keyboard.Modifiers == ModifierKeys.Control) {
             FontSize = Math.Min(Math.Max(8, FontSize + Math.Sign(e.Delta)), 24);
+         } else if (Keyboard.Modifiers == ModifierKeys.Shift) {
+            ViewPort.ScrollValue -= Math.Sign(e.Delta) * 5;
          } else {
             ViewPort.ScrollValue -= Math.Sign(e.Delta);
          }
