@@ -158,6 +158,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (InnerFormat == PCSRun.SharedFormatString) return true;
             if (InnerFormat == PLMRun.SharedFormatString) return true;
             if (InnerFormat == TrainerPokemonTeamRun.SharedFormatString) return true;
+            if (InnerFormat.StartsWith("[") && InnerFormat.Contains("]")) return true;
             return false;
          }
       }
@@ -195,12 +196,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, teamRun);
                   return true;
                }
+            } else if (InnerFormat.StartsWith("[")) {
+               if (TableStreamRun.TryParseTableStream(owner, destination, new[] { source }, InnerFormat, out var tsRun)) {
+                  if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, tsRun);
+                  return true;
+               }
             }
          } else {
             // easy case: already have a useful format, just see if it matches
             if (InnerFormat == PCSRun.SharedFormatString) return run is PCSRun;
             if (InnerFormat == PLMRun.SharedFormatString) return run is PLMRun;
             if (InnerFormat == TrainerPokemonTeamRun.SharedFormatString) return run is TrainerPokemonTeamRun;
+            if (InnerFormat.StartsWith("[")) return run is TableStreamRun tsRun && tsRun.FormatString == InnerFormat;
          }
          return false;
       }

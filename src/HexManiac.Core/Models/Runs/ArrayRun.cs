@@ -554,7 +554,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new ArrayRun(owner, FormatString, LengthFromAnchor, ParentOffset, Start, ElementCount, ElementContent, newPointerSources, newInnerPointerSources);
       }
 
-      private static List<ArrayRunElementSegment> ParseSegments(string segments, IDataModel model) {
+      public static List<ArrayRunElementSegment> ParseSegments(string segments, IDataModel model) {
          var list = new List<ArrayRunElementSegment>();
          segments = segments.Trim();
          while (segments.Length > 0) {
