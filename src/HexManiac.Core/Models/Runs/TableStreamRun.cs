@@ -46,7 +46,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          ElementContent = segments;
          this.endStream = endStream;
          ElementLength = segments.Sum(segment => segment.Length);
-         ElementCount = endStream.GetCount(start, ElementLength);
+         ElementCount = endStream.GetCount(start, ElementLength, sources);
          Length = ElementLength * ElementCount + endStream.ExtraLength;
          FormatString = formatString;
       }
@@ -104,7 +104,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
    public interface IStreamEndStrategy {
       int ExtraLength { get; }
-      int GetCount(int start, int elementLength);
+      int GetCount(int start, int elementLength, IReadOnlyList<int> pointerSources);
    }
 
    public class FixedLengthStreamStrategy : IStreamEndStrategy {
@@ -113,7 +113,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public FixedLengthStreamStrategy(int count) => Count = count;
 
-      public int GetCount(int start, int elementLength) => Count;
+      public int GetCount(int start, int elementLength, IReadOnlyList<int> pointerSources) => Count;
    }
 
    public class EndCodeStreamStrategy : IStreamEndStrategy {
@@ -133,7 +133,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          EndCode = endCode;
       }
 
-      public int GetCount(int start, int elementLength) {
+      public int GetCount(int start, int elementLength, IReadOnlyList<int> pointerSources) {
          int length = 0;
          while (true) {
             bool match = true;
@@ -158,21 +158,34 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          this.model = model;
          parentName = tokens[0];
          parentField = tokens[1];
-
       }
 
-      public int GetCount(int start, int elementLength) {
-         var parentIndex = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, parentName);
+      public int GetCount(int start, int elementLength, IReadOnlyList<int> pointerSources) {
+         var parentIndex = 0;
+         if (parentName == string.Empty) {
+            parentIndex = pointerSources.Where(SourceIsFromParentTable).FirstOrDefault();
+         } else {
+            parentIndex = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, parentName);
+         }
          var run = model.GetNextRun(parentIndex) as ITableRun;
+         if (run == null) return 0;
          var segmentOffset = 0;
-         foreach(var segment in run.ElementContent) {
+         foreach (var segment in run.ElementContent) {
             if (segment.Name == parentField) {
-               var offsets = run.ConvertByteOffsetToArrayOffset(start);
-               return model.ReadMultiByteValue(run.Start + offsets.ElementIndex * run.ElementLength + segmentOffset, segment.Length);
+               foreach (var source in pointerSources) {
+                  var offsets = run.ConvertByteOffsetToArrayOffset(source);
+                  if (offsets.ElementIndex < 0 || offsets.ElementIndex > run.ElementCount) continue;
+                  return model.ReadMultiByteValue(run.Start + offsets.ElementIndex * run.ElementLength + segmentOffset, segment.Length);
+               }
             }
             segmentOffset += segment.Length;
          }
          return 0;
+      }
+
+      private bool SourceIsFromParentTable(int source) {
+         if (!(model.GetNextRun(source) is ITableRun run)) return false;
+         return run.ElementContent.Any(segment => segment.Name == parentField);
       }
    }
 }

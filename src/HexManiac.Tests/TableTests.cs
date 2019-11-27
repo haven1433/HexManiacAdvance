@@ -173,7 +173,7 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
-      public void CanCreateCustomNamedStreams() {
+      public void CanCreateCustomNamedStreamsWithEndToken() {
          // Arrange: create some data near the start that could be a custom stream
          CreateTextTable("info", 0x100, Enumerable.Range('a', 20).Select(c => ((char)c).ToString()).ToArray());
          for (byte i = 0; i < 0x10; i++) Model[i] = i;
@@ -189,6 +189,23 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.IsAssignableFrom<IStreamRun>(run);
          Assert.Equal(4, run.ElementCount);
          Assert.Equal(4, run.ElementLength);
+      }
+
+      [Fact]
+      public void CanCreateTableStreamWithLengthFromParent() {
+         // arrange: write the data for the table
+         Model.WritePointer(ViewPort.CurrentChange, 0x80, 0x00);
+         Model.WriteMultiByteValue(0x84, 4, ViewPort.CurrentChange, 4);
+
+         // act: add the run
+         ViewPort.Edit("@80 ^table[data<[category.]/count> count::]1 ");
+
+         // assert: make sure the custom stream looks right
+         var run = (ITableRun)Model.GetNextRun(0);
+         Assert.Equal(4, run.Length);
+         Assert.IsAssignableFrom<IStreamRun>(run);
+         Assert.Equal(4, run.ElementCount);
+         Assert.Equal(1, run.ElementLength);
       }
 
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {

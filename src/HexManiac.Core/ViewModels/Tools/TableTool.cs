@@ -265,22 +265,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (item is ArrayRunPointerSegment pointerSegment) {
                var destination = model.ReadPointer(itemAddress);
                if (destination != Pointer.NULL && model.GetNextRun(destination) is IStreamRun && pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), itemAddress, destination)) {
-                  if (pointerSegment.InnerFormat == PCSRun.SharedFormatString || pointerSegment.InnerFormat == PLMRun.SharedFormatString || pointerSegment.InnerFormat == TrainerPokemonTeamRun.SharedFormatString) {
-                     var streamElement = new StreamArrayElementViewModel(viewPort, (FieldArrayElementViewModel)viewModel, model, item.Name, itemAddress);
-                     int parentIndex = childInsertionIndex - 1;
-                     var streamElementName = item.Name;
-                     var streamAddress = itemAddress;
-                     Children[parentIndex].DataChanged += (sender, e) => {
-                        var newStream = new StreamArrayElementViewModel(viewPort, (FieldArrayElementViewModel)Children[parentIndex], model, streamElementName, streamAddress);
-                        newStream.DataChanged += ForwardModelChanged;
-                        newStream.DataMoved += ForwardModelDataMoved;
-                        if (!Children[parentIndex + 1].TryCopy(newStream)) Children[parentIndex + 1] = newStream;
-                     };
-                     streamElement.DataMoved += ForwardModelDataMoved;
-                     AddChild(streamElement);
-                  } else {
-                     throw new NotImplementedException();
-                  }
+                  var streamElement = new StreamArrayElementViewModel(viewPort, (FieldArrayElementViewModel)viewModel, model, item.Name, itemAddress);
+                  int parentIndex = childInsertionIndex - 1;
+                  var streamElementName = item.Name;
+                  var streamAddress = itemAddress;
+                  Children[parentIndex].DataChanged += (sender, e) => {
+                     var newStream = new StreamArrayElementViewModel(viewPort, (FieldArrayElementViewModel)Children[parentIndex], model, streamElementName, streamAddress);
+                     newStream.DataChanged += ForwardModelChanged;
+                     newStream.DataMoved += ForwardModelDataMoved;
+                     if (!Children[parentIndex + 1].TryCopy(newStream)) Children[parentIndex + 1] = newStream;
+                  };
+                  streamElement.DataMoved += ForwardModelDataMoved;
+                  AddChild(streamElement);
                }
             }
             itemAddress += item.Length;

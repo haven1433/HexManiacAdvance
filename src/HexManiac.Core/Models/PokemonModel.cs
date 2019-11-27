@@ -716,6 +716,14 @@ namespace HavenSoft.HexManiac.Core.Models {
             var runAttempt = new TrainerPokemonTeamRun(this, run.Start, run.PointerSources);
             ClearFormat(token, run.Start, runAttempt.Length);
             run = runAttempt;
+         } else if (segment.InnerFormat.StartsWith("[") && segment.InnerFormat.Contains("]")) {
+            if (TableStreamRun.TryParseTableStream(this, run.Start, run.PointerSources, segment.InnerFormat, out var runAttempt)) {
+               ClearFormat(token, run.Start, runAttempt.Length);
+               run = runAttempt;
+            } else {
+               // failed to parse, so the format should be treated as empty
+               return;
+            }
          } else {
             throw new NotImplementedException();
          }
