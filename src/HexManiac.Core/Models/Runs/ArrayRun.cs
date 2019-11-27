@@ -189,6 +189,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (!format.StartsWith(ArrayStart.ToString()) || closeArray == -1) throw new ArrayRunParseException($"Array Content must be wrapped in {ArrayStart}{ArrayEnd}.");
          var segments = format.Substring(1, closeArray - 1);
          var length = format.Substring(closeArray + 1);
+         if (!length.All(c => char.IsLetterOrDigit(c) || c == '-')) throw new ArrayRunParseException("Array length must be an anchor name or a number."); // the name might end with "-1" so also allow dashes
          ElementContent = ParseSegments(segments, data);
          if (ElementContent.Count == 0) throw new ArrayRunParseException("Array Content must not be empty.");
          ElementLength = ElementContent.Sum(e => e.Length);
@@ -240,14 +241,19 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          PointerSourcesForInnerElements = pointerSourcesForInnerElements;
       }
 
-      public static ErrorInfo TryParse(IDataModel data, string format, int start, IReadOnlyList<int> pointerSources, out ArrayRun self) {
+      public static ErrorInfo TryParse(IDataModel data, string format, int start, IReadOnlyList<int> pointerSources, out ITableRun self) {
          try {
             using (ModelCacheScope.CreateScope(data)) {
                self = new ArrayRun(data, format, start, pointerSources);
             }
          } catch (ArrayRunParseException e) {
-            self = null;
-            return new ErrorInfo(e.Message);
+            // failed to parse as an array... can we parse as a table stream?
+            if (TableStreamRun.TryParseTableStream(data, start, pointerSources, format, out var tableStreamRun)) {
+               self = tableStreamRun;
+            } else {
+               self = null;
+               return new ErrorInfo(e.Message);
+            }
          }
 
          return ErrorInfo.NoError;

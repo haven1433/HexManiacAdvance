@@ -172,6 +172,25 @@ namespace HavenSoft.HexManiac.Tests {
 ", moves);
       }
 
+      [Fact]
+      public void CanCreateCustomNamedStreams() {
+         // Arrange: create some data near the start that could be a custom stream
+         CreateTextTable("info", 0x100, Enumerable.Range('a', 20).Select(c => ((char)c).ToString()).ToArray());
+         for (byte i = 0; i < 0x10; i++) Model[i] = i;
+         Model[0x10] = 0xFF;
+         Model[0x11] = 0xFF;
+
+         // Act: create the custom stream
+         ViewPort.Edit("@00 ^bob[number: category:info]!FFFF ");
+
+         // Assert: make sure the custom stream looks right
+         var run = (ITableRun)Model.GetNextRun(0);
+         Assert.Equal(0x12, run.Length);
+         Assert.IsAssignableFrom<IStreamRun>(run);
+         Assert.Equal(4, run.ElementCount);
+         Assert.Equal(4, run.ElementLength);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(EggMoveRun.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(EggMoveRun.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

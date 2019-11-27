@@ -1431,6 +1431,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             return new ErrorInfo("An anchor with nothing pointing to it must have a name.");
          } else if (!allowAnchorOverwrite && nextAnchor.Start < runToWrite.Start + runToWrite.Length) {
             return new ErrorInfo("An existing anchor starts before the new one ends.");
+         } else if (!name.All(c => char.IsLetterOrDigit(c) || c == '-')) { // at this point, the name might have a "-1" on the end, so still allow the dash
+            return new ErrorInfo("Anchor names must contain only letters and numbers.");
          } else {
             return ErrorInfo.NoError;
          }

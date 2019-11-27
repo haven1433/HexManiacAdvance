@@ -12,14 +12,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public static bool TryParseTableStream(IDataModel model, int start, IReadOnlyList<int> sources, string content, out TableStreamRun tableStream) {
          tableStream = null;
 
-         if (content[0] != '[') return false;
+         if (content.Length < 4 || content[0] != '[') return false;
          var close = content.LastIndexOf(']');
          if (close == -1) return false;
          var endStream = ParseEndStream(model, content.Substring(close + 1));
          if (endStream == null) return false;
-         var segmentContent = content.Substring(1, close);
-         var segments = ArrayRun.ParseSegments(segmentContent, model);
-         tableStream = new TableStreamRun(model, start, sources, content, segments, endStream);
+         var segmentContent = content.Substring(1, close - 1);
+         try {
+            var segments = ArrayRun.ParseSegments(segmentContent, model);
+            tableStream = new TableStreamRun(model, start, sources, content, segments, endStream);
+         } catch (ArrayRunParseException) {
+            return false;
+         }
          return true;
       }
 
@@ -43,7 +47,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          this.endStream = endStream;
          ElementLength = segments.Sum(segment => segment.Length);
          ElementCount = endStream.GetCount(start, ElementLength);
-         Length = ElementLength * ElementCount;
+         Length = ElementLength * ElementCount + endStream.ExtraLength;
          FormatString = formatString;
       }
 
@@ -99,18 +103,25 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    }
 
    public interface IStreamEndStrategy {
+      int ExtraLength { get; }
       int GetCount(int start, int elementLength);
    }
 
    public class FixedLengthStreamStrategy : IStreamEndStrategy {
       public int Count { get; }
+      public int ExtraLength => 0;
+
       public FixedLengthStreamStrategy(int count) => Count = count;
+
       public int GetCount(int start, int elementLength) => Count;
    }
 
    public class EndCodeStreamStrategy : IStreamEndStrategy {
       private readonly IDataModel model;
+
       public IReadOnlyList<byte> EndCode { get; }
+      public int ExtraLength => EndCode.Count;
+
       public EndCodeStreamStrategy(IDataModel model, string endToken) {
          this.model = model;
          var hex = ViewModels.ViewPort.AllHexCharacters;
@@ -121,13 +132,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
          EndCode = endCode;
       }
+
       public int GetCount(int start, int elementLength) {
          int length = 0;
          while (true) {
             bool match = true;
             for (int j = 0; j < EndCode.Count && match; j++) {
                if (model.Count <= start + j) return 0;
-               if (model[start + j] != EndCode[j]) match = true;
+               if (model[start + j] != EndCode[j]) match = false;
             }
             if (match) return length;
             length++;
@@ -139,12 +151,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class LengthFromParentStreamStrategy : IStreamEndStrategy {
       private readonly IDataModel model;
       private readonly string parentName, parentField;
+
+      public int ExtraLength => 0;
+
       public LengthFromParentStreamStrategy(IDataModel model, string[] tokens) {
          this.model = model;
          parentName = tokens[0];
          parentField = tokens[1];
 
       }
+
       public int GetCount(int start, int elementLength) {
          var parentIndex = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, parentName);
          var run = model.GetNextRun(parentIndex) as ITableRun;
@@ -159,6 +175,4 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return 0;
       }
    }
-
-
 }
