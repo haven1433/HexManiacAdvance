@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Linq;
@@ -189,6 +190,11 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.IsAssignableFrom<IStreamRun>(run);
          Assert.Equal(4, run.ElementCount);
          Assert.Equal(4, run.ElementLength);
+
+         var format = (EndStream)run.CreateDataFormat(Model, 0x11);
+         Assert.Equal(0x10, format.Source);
+         Assert.Equal(1, format.Position);
+         Assert.Equal(2, format.Length);
       }
 
       [Fact]

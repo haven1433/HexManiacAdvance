@@ -33,6 +33,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       void Visit(PlmItem item, byte data);
       void Visit(BitArray array, byte data);
       void Visit(MatchedWord word, byte data);
+      void Visit(EndStream stream, byte data);
    }
 
    /// <summary>
@@ -331,5 +332,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public void Visit(IDataFormatVisitor visitor, byte data) {
          visitor.Visit(this, data);
       }
+   }
+
+   public class EndStream : IDataFormatInstance {
+      public int Source { get; }
+      public int Position { get; }
+      public int Length { get; }
+
+      public EndStream(int source, int position, int length) => (Source, Position, Length) = (source, position, length);
+
+      public bool Equals(IDataFormat other) {
+         if (!(other is EndStream that)) return false;
+         return (Source, Position, Length) == (that.Source, that.Position, that.Length);
+      }
+
+      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 }

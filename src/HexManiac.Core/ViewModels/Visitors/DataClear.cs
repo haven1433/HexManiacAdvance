@@ -54,5 +54,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(BitArray array, byte data) => buffer.WriteMultiByteValue(index, array.Length, currentChange, 0x00);
 
       public void Visit(MatchedWord word, byte data) => Visit((None)null, data);
+
+      public void Visit(EndStream endStream, byte data) {
+         for (int i = 0; i < endStream.Length; i++) {
+            currentChange.ChangeData(buffer, endStream.Source + i, 0xFF);
+         }
+      }
    }
 }

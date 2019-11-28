@@ -73,6 +73,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          collector.Initialize<Integer>(typeface, fontSize);
          collector.Initialize<BitArray>(typeface, fontSize);
          collector.Initialize<MatchedWord>(typeface, fontSize * .75);
+         collector.Initialize<EndStream>(typeface, fontSize);
 
          for (int x = 0; x < modelWidth; x++) {
             var cell = viewPort[x, position.Y];
@@ -104,6 +105,10 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                collector.Collect<BitArray>(x, 1, byteText[cell.Value]);
             } else if (format is MatchedWord word && word.Position == 0) {
                collector.Collect<MatchedWord>(x, 4, word.Name);
+            } else if (format is EndStream endStream && endStream.Position == 0) {
+               var converter = new ConvertCellToText(viewPort.Model, 0);
+               converter.Visit(endStream, cell.Value);
+               collector.Collect<EndStream>(x, endStream.Length, converter.Result);
             }
          }
 
@@ -212,6 +217,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       public void Visit(BitArray array, byte data) { }
 
       public void Visit(MatchedWord word, byte data) { }
+
+      public void Visit(EndStream endStream, byte data) { }
 
       /// <summary>
       /// This function is full of dragons. You probably don't want to touch it.

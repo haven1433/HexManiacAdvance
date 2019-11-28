@@ -55,7 +55,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       #region BaseRun
 
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) => this.CreateSegmentDataFormat(data, index);
+      public override IDataFormat CreateDataFormat(IDataModel data, int index) {
+         var naturalLength = ElementCount * ElementLength;
+         var naturalStop = Start + naturalLength;
+         if (index > naturalStop) return new EndStream(naturalStop, index - naturalStop, Length - naturalLength);
+         return this.CreateSegmentDataFormat(data, index);
+      }
 
       protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new TableStreamRun(model, Start, newPointerSources, FormatString, ElementContent, endStream);
 

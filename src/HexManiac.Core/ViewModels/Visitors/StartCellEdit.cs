@@ -162,6 +162,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Result = ViewPort.AllHexCharacters.Contains(Input);
       }
       public void Visit(MatchedWord word, byte data) => BasicVisit(word, data);
+      public void Visit(EndStream endStream, byte data) => Result = Input == ExtendArray;
    }
 }
 

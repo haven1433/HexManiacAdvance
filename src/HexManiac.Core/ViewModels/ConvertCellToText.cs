@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 
@@ -56,5 +57,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void Visit(BitArray array, byte data) => Visit((None)null, data);
 
       public void Visit(MatchedWord word, byte data) => Visit((None)null, data);
+
+      public void Visit(EndStream endStream, byte data) => Result = new string(new[] { ArrayRun.ArrayStart, ArrayRun.ArrayEnd });
    }
 }

@@ -181,6 +181,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(MatchedWord word, byte data) => Visit((None)null, data);
 
+      public void Visit(EndStream endStream, byte data) {
+         // the only valid edit for an EndStream is to extend the stream.
+         Result = true;
+         var run = (TableStreamRun)Model.GetNextRun(memoryLocation);
+         var newRun = run.Append(CurrentChange, 1);
+
+         if (newRun.Start != run.Start) {
+            MessageText = $"Stream was automatically moved to {newRun.Start.ToString("X6")}. Pointers were updated.";
+            NewDataIndex = memoryLocation + newRun.Start - run.Start;
+            DataMoved = true;
+         }
+         Model.ObserveRunWritten(CurrentChange, newRun);
+      }
+
       /// <summary>
       /// Parses text in a PLM run to get the level and move.
       /// returns an error string if the parse fails.

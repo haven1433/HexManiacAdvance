@@ -119,5 +119,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       }
 
       public void Visit(MatchedWord word, byte data) => Visit((None)null, data);
+
+      public void Visit(EndStream endStream, byte data) => throw new NotImplementedException();
    }
 }
