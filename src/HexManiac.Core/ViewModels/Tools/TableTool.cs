@@ -175,34 +175,38 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var basename = model.GetAnchorFromAddress(-1, array.Start);
          if (string.IsNullOrEmpty(basename)) basename = array.Start.ToString("X6");
          var index = (Address - array.Start) / array.ElementLength;
-         if (array.ElementNames.Count > index) {
-            CurrentElementName = $"{basename}/{index}" + Environment.NewLine + $"{basename}/{array.ElementNames[index]}";
-         } else {
-            CurrentElementName = $"{basename}/{index}";
-         }
 
-         AddChildrenFromTable(array, index);
+         if (index < array.ElementCount) {
+            if (array.ElementNames.Count > index) {
+               CurrentElementName = $"{basename}/{index}" + Environment.NewLine + $"{basename}/{array.ElementNames[index]}";
+            } else {
+               CurrentElementName = $"{basename}/{index}";
+            }
 
-         if (array is ArrayRun arrayRun) {
-            index -= arrayRun.ParentOffset;
-            if (!string.IsNullOrEmpty(arrayRun.LengthFromAnchor)) basename = arrayRun.LengthFromAnchor; // basename is now a 'parent table' name, if there is one
+            AddChildrenFromTable(array, index);
 
-            foreach (var currentArray in model.Arrays) {
-               if (currentArray == arrayRun) continue;
-               var currentArrayName = model.GetAnchorFromAddress(-1, currentArray.Start);
-               if (currentArray.LengthFromAnchor == basename || currentArrayName == basename) {
-                  var currentIndex = index + currentArray.ParentOffset;
-                  if (currentIndex >= 0 && currentIndex < currentArray.ElementCount) {
-                     AddChild(new SplitterArrayElementViewModel(currentArrayName));
-                     AddChildrenFromTable(currentArray, currentIndex);
+            if (array is ArrayRun arrayRun) {
+               index -= arrayRun.ParentOffset;
+               if (!string.IsNullOrEmpty(arrayRun.LengthFromAnchor)) basename = arrayRun.LengthFromAnchor; // basename is now a 'parent table' name, if there is one
+
+               foreach (var currentArray in model.Arrays) {
+                  if (currentArray == arrayRun) continue;
+                  var currentArrayName = model.GetAnchorFromAddress(-1, currentArray.Start);
+                  if (currentArray.LengthFromAnchor == basename || currentArrayName == basename) {
+                     var currentIndex = index + currentArray.ParentOffset;
+                     if (currentIndex >= 0 && currentIndex < currentArray.ElementCount) {
+                        AddChild(new SplitterArrayElementViewModel(currentArrayName));
+                        AddChildrenFromTable(currentArray, currentIndex);
+                     }
                   }
                }
             }
+
+            AddChildrenFromStreams(array, basename, index);
          }
 
-         AddChildrenFromStreams(array, basename, index);
-         foreach (var child in Children) child.DataChanged += ForwardModelChanged;
          while (Children.Count > childInsertionIndex) Children.RemoveAt(Children.Count - 1);
+         foreach (var child in Children) child.DataChanged += ForwardModelChanged;
       }
 
       private void AddChildrenFromStreams(ITableRun array, string basename, int index) {

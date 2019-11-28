@@ -1299,6 +1299,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
          if (!(run is ITableRun array)) return (p, p);
 
+         var naturalEnd = array.Start + array.ElementCount * array.ElementLength;
+         if (naturalEnd <= index) {
+            return pair(naturalEnd, array.Start + array.Length);
+         }
+
          var offset = array.ConvertByteOffsetToArrayOffset(index);
          var type = array.ElementContent[offset.SegmentIndex].Type;
          if (type == ElementContentType.Pointer || type == ElementContentType.Integer || type == ElementContentType.BitArray) {

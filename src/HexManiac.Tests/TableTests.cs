@@ -195,6 +195,10 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x10, format.Source);
          Assert.Equal(1, format.Position);
          Assert.Equal(2, format.Length);
+
+         // Assert: selecting the end token selects the entire token
+         ViewPort.Edit("@10 ");
+         Assert.NotEqual(ViewPort.SelectionStart, ViewPort.SelectionEnd);
       }
 
       [Fact]
