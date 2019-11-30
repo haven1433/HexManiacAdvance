@@ -911,6 +911,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   yield return (result, result + 1);
                }
             }
+            // option 3: the value is in an enum used by a custom table stream
+            if (child is TableStreamRun table) {
+               foreach(var result in table.Search(parentArrayName, offsets.ElementIndex)) yield return result;
+            }
          }
       }
 
