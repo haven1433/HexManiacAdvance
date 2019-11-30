@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Input;
@@ -264,9 +265,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          (this.selection, this.history, Model, Name, Start, Length) = (selection, history, model, name, start, length);
          var run = (ITableRun)Model.GetNextRun(Start);
          var offsets = run.ConvertByteOffsetToArrayOffset(start);
-         var segment = (ArrayRunEnumSegment)run.ElementContent[offsets.SegmentIndex];
-         var optionSource = Model.GetAddressFromAnchor(history.CurrentChange, -1, segment.EnumName);
-         Options = new List<ComboOption>(segment.GetOptions(Model).Select(option => new ComboOption(option)));
+         var segment = run.ElementContent[offsets.SegmentIndex] as ArrayRunEnumSegment;
+         int optionSource = Pointer.NULL;
+         Debug.Assert(segment != null);
+         if (segment != null) {
+            optionSource = Model.GetAddressFromAnchor(history.CurrentChange, -1, segment.EnumName);
+            Options = new List<ComboOption>(segment.GetOptions(Model).Select(option => new ComboOption(option)));
+         } else {
+            Options = new List<ComboOption>();
+         }
          var modelValue = Model.ReadMultiByteValue(start, length);
          if (modelValue >= Options.Count) {
             Options.Add(modelValue.ToString());
@@ -343,7 +350,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                      dataMoved?.Invoke(this, (run.Start, newRun.Start));
                      matchingField.RefreshControlFromModelChange();
                   }
-                  dataChanged?.Invoke(this, EventArgs.Empty);
+                  overrideCopyAttempt = true;
+                  using (new StubDisposable { Dispose = () => overrideCopyAttempt = false }) {
+                     dataChanged?.Invoke(this, EventArgs.Empty);
+                  }
                }
             }
          }
@@ -387,8 +397,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          };
       }
 
+      // if the source of the copy attempt is a datachange that I triggered myself, then ignore the copy and keep the same contents.
+      private bool overrideCopyAttempt;
       public bool TryCopy(IArrayElementViewModel other) {
          if (!(other is StreamArrayElementViewModel stream)) return false;
+         if (overrideCopyAttempt) return true;
          name = stream.name;
          start = stream.start;
          matchingField = stream.matchingField;
