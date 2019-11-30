@@ -58,7 +58,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public override IDataFormat CreateDataFormat(IDataModel data, int index) {
          var naturalLength = ElementCount * ElementLength;
          var naturalStop = Start + naturalLength;
-         if (index > naturalStop) return new EndStream(naturalStop, index - naturalStop, Length - naturalLength);
+         if (index >= naturalStop) return new EndStream(naturalStop, index - naturalStop, Length - naturalLength);
          return this.CreateSegmentDataFormat(data, index);
       }
 
@@ -79,8 +79,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public bool DependsOn(string anchorName) {
-         // TODO
-         return false;
+         return ElementContent.OfType<ArrayRunEnumSegment>().Any(segment => segment.EnumName == anchorName);
       }
 
       #endregion
@@ -100,16 +99,35 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public override string FormatString { get; }
 
       public ITableRun Append(ModelDelta token, int length) {
-         // TODO
-         return this;
+         return endStream.Append(this, token, length);
+      }
+
+      public IEnumerable<(int, int)> Search(string baseName, int index) {
+         int segmentOffset = 0;
+         for (int i = 0; i < ElementContent.Count; i++) {
+            if (ElementContent[i] is ArrayRunEnumSegment segment && segment.EnumName == baseName) {
+               for (int j = 0; j < ElementCount; j++) {
+                  var segmentStart = Start + j * ElementLength + segmentOffset;
+                  if (model.ReadMultiByteValue(segmentStart, segment.Length) != index) continue;
+                  yield return (segmentStart, segmentStart + segment.Length - 1);
+               }
+            }
+            segmentOffset += ElementContent[i].Length;
+         }
       }
 
       #endregion
+
+      public TableStreamRun UpdateFromParent(ModelDelta token, int parentSegmentChange, int pointerSource) {
+         if (!(endStream is LengthFromParentStreamStrategy strategy)) return this;
+         return strategy.UpdateFromParentStream(this, token, parentSegmentChange, pointerSource);
+      }
    }
 
    public interface IStreamEndStrategy {
       int ExtraLength { get; }
       int GetCount(int start, int elementLength, IReadOnlyList<int> pointerSources);
+      TableStreamRun Append(TableStreamRun run, ModelDelta token, int length);
    }
 
    public class FixedLengthStreamStrategy : IStreamEndStrategy {
@@ -119,6 +137,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public FixedLengthStreamStrategy(int count) => Count = count;
 
       public int GetCount(int start, int elementLength, IReadOnlyList<int> pointerSources) => Count;
+
+      public TableStreamRun Append(TableStreamRun run, ModelDelta token, int length) => run;
    }
 
    public class EndCodeStreamStrategy : IStreamEndStrategy {
@@ -151,6 +171,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             start += elementLength;
          }
       }
+
+      public TableStreamRun Append(TableStreamRun run, ModelDelta token, int length) {
+         var naturalLength = run.Length - EndCode.Count;
+         var newRun = (TableStreamRun)model.RelocateForExpansion(token, run, naturalLength + length * run.ElementLength);
+         for (int i = 0; i < run.ElementLength * length; i++) token.ChangeData(model, newRun.Start + naturalLength + i, 0x00);
+         for (int i = naturalLength + length * run.ElementLength; i < naturalLength; i++) token.ChangeData(model, newRun.Start + i, 0xFF);
+         for (int i = 0; i < EndCode.Count; i++) token.ChangeData(model, newRun.Start + naturalLength + length * run.ElementLength + i, EndCode[i]);
+         return new TableStreamRun(model, newRun.Start, run.PointerSources, run.FormatString, run.ElementContent, this);
+      }
    }
 
    public class LengthFromParentStreamStrategy : IStreamEndStrategy {
@@ -166,31 +195,88 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public int GetCount(int start, int elementLength, IReadOnlyList<int> pointerSources) {
-         var parentIndex = 0;
-         if (parentName == string.Empty) {
-            parentIndex = pointerSources.Where(SourceIsFromParentTable).FirstOrDefault();
-         } else {
-            parentIndex = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, parentName);
-         }
+         var parentIndex = GetParentIndex(pointerSources);
          var run = model.GetNextRun(parentIndex) as ITableRun;
          if (run == null) return 0;
-         var segmentOffset = 0;
-         foreach (var segment in run.ElementContent) {
-            if (segment.Name == parentField) {
-               foreach (var source in pointerSources) {
-                  var offsets = run.ConvertByteOffsetToArrayOffset(source);
-                  if (offsets.ElementIndex < 0 || offsets.ElementIndex > run.ElementCount) continue;
-                  return model.ReadMultiByteValue(run.Start + offsets.ElementIndex * run.ElementLength + segmentOffset, segment.Length);
-               }
-            }
-            segmentOffset += segment.Length;
+         var segmentIndex = GetSegmentIndex(run, parentField);
+         if (segmentIndex == -1) return 0;
+         var segmentOffset = run.ElementContent.Take(segmentIndex).Sum(segment => segment.Length);
+
+         foreach (var source in pointerSources) {
+            var offsets = run.ConvertByteOffsetToArrayOffset(source);
+            if (offsets.ElementIndex < 0 || offsets.ElementIndex > run.ElementCount) continue;
+            return model.ReadMultiByteValue(run.Start + offsets.ElementIndex * run.ElementLength + segmentOffset, run.ElementContent[segmentIndex].Length);
          }
+
          return 0;
+      }
+
+      public TableStreamRun Append(TableStreamRun run, ModelDelta token, int length) {
+         var parentIndex = GetParentIndex(run.PointerSources);
+         var parent = model.GetNextRun(parentIndex) as ITableRun;
+         if (parent == null) return run;
+         var segmentIndex = GetSegmentIndex(parent, parentField);
+         if (segmentIndex == -1) return run;
+
+         UpdateParents(token, parent, segmentIndex, run.ElementCount + length, run.PointerSources);
+
+         var naturalLength = run.Length;
+         var newRun = (TableStreamRun)model.RelocateForExpansion(token, run, naturalLength + length * run.ElementLength);
+         for (int i = 0; i < run.ElementLength * length; i++) token.ChangeData(model, newRun.Start + naturalLength + i, 0x00);
+         for (int i = naturalLength + length * run.ElementLength; i < naturalLength; i++) token.ChangeData(model, newRun.Start + i, 0xFF);
+         return new TableStreamRun(model, newRun.Start, run.PointerSources, run.FormatString, run.ElementContent, this);
+      }
+
+      public TableStreamRun UpdateFromParentStream(TableStreamRun run, ModelDelta token, int parentSegmentIndex, int pointerSource) {
+         var parentAddress = GetParentIndex(run.PointerSources);
+         var parent = model.GetNextRun(parentAddress) as ITableRun;
+         if (parent == null) return run;
+         var segmentIndex = GetSegmentIndex(parent, parentField);
+         if (segmentIndex == -1 || segmentIndex != parentSegmentIndex) return run;
+         var segmentOffset = parent.ElementContent.Take(segmentIndex).Sum(segment => segment.Length);
+         var offsets = parent.ConvertByteOffsetToArrayOffset(parentAddress);
+
+         var newElementCount = model.ReadMultiByteValue(parent.Start + offsets.ElementIndex * parent.ElementLength + segmentOffset, parent.ElementContent[segmentIndex].Length);
+
+         var newRun = run;
+         if (newElementCount != newRun.ElementCount) {
+            newRun = (TableStreamRun)newRun.Append(token, newElementCount - newRun.ElementCount);
+            UpdateParents(token, parent, segmentIndex, newElementCount, newRun.PointerSources);
+         }
+
+         return newRun;
+      }
+
+      private int GetParentIndex(IReadOnlyList<int> pointerSources) {
+         if (parentName == string.Empty) {
+            return pointerSources.Where(SourceIsFromParentTable).FirstOrDefault();
+         } else {
+            return model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, parentName);
+         }
+      }
+
+      private int GetSegmentIndex(ITableRun parentRun, string segmentName) {
+         for (int i = 0; i < parentRun.ElementContent.Count; i++) {
+            if (parentRun.ElementContent[i].Name == segmentName) return i;
+         }
+         return -1;
       }
 
       private bool SourceIsFromParentTable(int source) {
          if (!(model.GetNextRun(source) is ITableRun run)) return false;
          return run.ElementContent.Any(segment => segment.Name == parentField);
+      }
+
+      private void UpdateParents(ModelDelta token, ITableRun parent, int segmentIndex, int newValue, IReadOnlyList<int> pointerSources) {
+         var segmentOffset = parent.ElementContent.Take(segmentIndex).Sum(segment => segment.Length);
+         var segmentLength = parent.ElementContent[segmentIndex].Length;
+         foreach (var source in pointerSources) {
+            var offsets = parent.ConvertByteOffsetToArrayOffset(source);
+            if (offsets.ElementIndex < 0 || offsets.ElementIndex > parent.ElementCount) continue;
+            if (model.ReadMultiByteValue(parent.Start + offsets.ElementIndex * parent.ElementLength + segmentOffset, segmentLength) != newValue) {
+               model.WriteMultiByteValue(parent.Start + offsets.ElementIndex * parent.ElementLength + segmentOffset, segmentLength, token, newValue);
+            }
+         }
       }
    }
 }

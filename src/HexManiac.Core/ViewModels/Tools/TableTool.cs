@@ -213,11 +213,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var plmResults = new List<(int, int)>();
          var eggResults = new List<(int, int)>();
          var trainerResults = new List<int>();
+         var streamResults = new List<(int, int)>();
          foreach (var child in model.Streams) {
             if (!child.DependsOn(basename)) continue;
             if (child is PLMRun plmRun) plmResults.AddRange(plmRun.Search(basename, index));
             if (child is EggMoveRun eggRun) eggResults.AddRange(eggRun.Search(basename, index));
             if (child is TrainerPokemonTeamRun trainerRun) trainerResults.AddRange(trainerRun.Search(basename, index));
+            if (child is TableStreamRun streamRun) streamResults.AddRange(streamRun.Search(basename, index));
          }
          if (eggResults.Count > 0) {
             AddChild(new ButtonArrayElementViewModel("Show uses in egg moves.", () => {
@@ -238,6 +240,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             AddChild(new ButtonArrayElementViewModel("Show uses in trainer teams.", () => {
                using (ModelCacheScope.CreateScope(model)) {
                   viewPort.OpenSearchResultsTab($"{array.ElementNames[index]} within {HardcodeTablesModel.TrainerTableName}", selections);
+               }
+            }));
+         }
+         if (streamResults.Count > 0) {
+            AddChild(new ButtonArrayElementViewModel("Show uses in other streams.", () => {
+               using (ModelCacheScope.CreateScope(model)) {
+                  viewPort.OpenSearchResultsTab($"{array.ElementNames[index]} within streams", streamResults);
                }
             }));
          }

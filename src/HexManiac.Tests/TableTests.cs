@@ -218,6 +218,38 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(1, run.ElementLength);
       }
 
+      [Fact]
+      public void CanExtendTableStreamWithEndToken() {
+         ViewPort.Edit("@10 FF FF FF FF @00 ^bob[number.]!FF ");
+
+         ViewPort.Edit("@10 +");
+
+         var run = (ITableRun)Model.GetNextRun(0);
+         Assert.Equal(0x11, run.ElementCount);
+      }
+
+      [Fact]
+      public void CanExtendTableStreamWithLengthFromParent() {
+         ViewPort.Edit("FF FF FF FF FF FF FF FF @80 <0> 02 @80 ^table[data<[value.]/count> count::]1 ");
+
+         ViewPort.Edit("@02 +");
+
+         var run = (ITableRun)Model.GetNextRun(0);
+         Assert.Equal(3, run.ElementCount);
+         Assert.Equal(3, Model[0x84]);
+      }
+
+      [Fact]
+      public void CanExtendTableStreamWithLengthFromParentFromParent() {
+         ViewPort.Edit("FF FF FF FF FF FF FF FF @80 <0> 02 @80 ^table[data<[value.]/count> count::]1 ");
+
+         ViewPort.Edit("@84 3 ");
+
+         var run = (ITableRun)Model.GetNextRun(0);
+         Assert.Equal(3, run.ElementCount);
+         Assert.Equal(3, Model[0x84]);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(EggMoveRun.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(EggMoveRun.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

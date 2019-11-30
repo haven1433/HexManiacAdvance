@@ -83,6 +83,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   var newRun = teamRun.UpdateFromParent(token, segmentIndex, pointerSource);
                   model.ObserveRunWritten(token, newRun);
                   if (newRun.Start != teamRun.Start) info = new ErrorInfo($"Team was automatically moved to {newRun.Start.ToString("X6")}. Pointers were updated.", isWarningLevel: true);
+               } else if (run.Start == destination && run is TableStreamRun tableStreamRun) {
+                  var newRun = tableStreamRun.UpdateFromParent(token, segmentIndex, pointerSource);
+                  model.ObserveRunWritten(token, newRun);
+                  if (newRun.Start != tableStreamRun.Start) info = new ErrorInfo($"Stream was automatically moved to {newRun.Start.ToString("X6")}. Pointers were updated.", isWarningLevel: true);
                }
             }
             offset += segment.Length;

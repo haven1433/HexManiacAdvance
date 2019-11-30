@@ -1258,7 +1258,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (!(element.Format is UnderEdit)) {
             if (input == ExtendArray) {
                var index = scroll.ViewPointToDataIndex(point);
-               return Model.IsAtEndOfArray(index, out var _);
+               if (Model.IsAtEndOfArray(index, out var _)) return true;
             }
 
             if (input == AnchorStart || input == GotoMarker) {
@@ -1362,22 +1362,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                underEdit.OriginalFormat.Visit(completeEditOperation, element.Value);
 
                if (completeEditOperation.Result) {
+                  // if the data we just changed was in a table, notify children of that table about the change
+                  if (Model.GetNextRun(dataIndex) is ITableRun tableRun) {
+                     var offsets = tableRun.ConvertByteOffsetToArrayOffset(dataIndex);
+                     var errorInfo = tableRun.NotifyChildren(Model, history.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
+                     HandleErrorInfo(errorInfo);
+                  }
+
+                  // update the cell / selection
                   if (completeEditOperation.NewCell != null) {
                      currentView[point.X, point.Y] = completeEditOperation.NewCell;
                   }
                   if (completeEditOperation.DataMoved || completeEditOperation.NewDataIndex > scroll.DataLength) scroll.DataLength = Model.Count;
+
+                  // update tools from the new moved selection
                   var run = Model.GetNextRun(completeEditOperation.NewDataIndex);
                   if (run.Start > completeEditOperation.NewDataIndex) run = new NoInfoRun(Model.Count);
                   if (completeEditOperation.DataMoved) UpdateToolsFromSelection(run.Start);
-                  if (run is ITableRun tableRun) {
-                     var offsets = tableRun.ConvertByteOffsetToArrayOffset(dataIndex);
-                     var errorInfo = tableRun.NotifyChildren(Model, history.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
-                     HandleErrorInfo(errorInfo);
+                  if (run is ITableRun) {
                      Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
                   }
                   if (run is ITableRun || run is IStreamRun) Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
                   if (completeEditOperation.MessageText != null) OnMessage?.Invoke(this, completeEditOperation.MessageText);
                   if (completeEditOperation.ErrorText != null) OnError?.Invoke(this, completeEditOperation.ErrorText);
+
+                  // refresh the screen
                   if (!SilentScroll(completeEditOperation.NewDataIndex) && completeEditOperation.NewCell == null) {
                      RefreshBackingData();
                   }
