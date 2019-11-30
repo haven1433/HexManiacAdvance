@@ -181,7 +181,21 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             viewModel.CopyAddress.Execute(FileSystem);
             contextMenu.IsOpen = false;
          });
-         contextMenu.PlacementTarget = element;
+         contextMenu.Placement = PlacementMode.Mouse;
+         contextMenu.StaysOpen = false;
+         contextMenu.IsOpen = true;
+      }
+      private void BytesShowMenu(object sender, MouseButtonEventArgs e) {
+         var element = (FrameworkElement)sender;
+         var viewModel = element.DataContext as ViewPort;
+         if (viewModel == null) return;
+         contextMenu.Child = new Button {
+            Content = "Copy Bytes"
+         }.SetEvent(Button.ClickEvent, (sender2, e2) => {
+            viewModel.CopyBytes.Execute(FileSystem);
+            contextMenu.IsOpen = false;
+         });
+         contextMenu.Placement = PlacementMode.Mouse;
          contextMenu.StaysOpen = false;
          contextMenu.IsOpen = true;
       }

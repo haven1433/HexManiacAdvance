@@ -11,6 +11,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Windows.Input;
 using static HavenSoft.HexManiac.Core.ICommandExtensions;
 using static HavenSoft.HexManiac.Core.Models.Runs.ArrayRun;
@@ -31,6 +32,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          clear = new StubCommand(),
          copy = new StubCommand(),
          copyAddress = new StubCommand(),
+         copyBytes = new StubCommand(),
          isText = new StubCommand();
 
       private HexElement[,] currentView;
@@ -166,6 +168,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          using (ModelCacheScope.CreateScope(Model)) {
             UpdateToolsFromSelection(dataIndex);
             UpdateSelectedAddress();
+            UpdateSelectedBytes();
          }
          RequestMenuClose?.Invoke(this, EventArgs.Empty);
       }
@@ -242,6 +245,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          SelectedAddress = result;
+      }
+
+      private string selectedBytes;
+      public string SelectedBytes {
+         get => selectedBytes;
+         private set => TryUpdate(ref selectedBytes, value);
+      }
+
+      private void UpdateSelectedBytes() {
+         var bytes = GetSelectedByteContents();
+         if (bytes.Length > 0x30) bytes = bytes.Substring(0, 0x30) + "...";
+         SelectedBytes = "Selected Bytes: " + bytes;
+      }
+
+      private string GetSelectedByteContents() {
+         var dataIndex1 = scroll.ViewPointToDataIndex(SelectionStart);
+         var dataIndex2 = scroll.ViewPointToDataIndex(SelectionEnd);
+         var left = Math.Min(dataIndex1, dataIndex2);
+         var length = Math.Abs(dataIndex1 - dataIndex2) + 1;
+         if (left < 0) { length += left;left = 0; }
+         if (left + length > Model.Count) length = Model.Count - left;
+         var result = new StringBuilder();
+         for (int i = 0; i < length; i++) result.Append(Model[left + i].ToString("X2") + " ");
+         return result.ToString();
       }
 
       #endregion
@@ -381,6 +408,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ICommand Copy => copy;
       public ICommand CopyAddress => copyAddress;
+      public ICommand CopyBytes => copyBytes;
       public ICommand Clear => clear;
       public ICommand IsText => isText;
 
@@ -502,6 +530,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             CopyAddressExecute(fileSystem);
          };
 
+         copyBytes.CanExecute = CanAlwaysExecute;
+         copyBytes.Execute = arg => {
+            var fileSystem = (IFileSystem)arg;
+            CopyBytesExecute(fileSystem);
+         };
+
          moveSelectionStart.CanExecute = selection.MoveSelectionStart.CanExecute;
          moveSelectionStart.Execute = arg => {
             var direction = (Direction)arg;
@@ -533,6 +567,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void CopyAddressExecute(IFileSystem fileSystem) {
          fileSystem.CopyText = scroll.ViewPointToDataIndex(selection.SelectionStart).ToString("X6");
+         RequestMenuClose?.Invoke(this, EventArgs.Empty);
+         OnMessage?.Invoke(this, $"'{fileSystem.CopyText}' copied to clipboard.");
+      }
+
+      private void CopyBytesExecute(IFileSystem fileSystem) {
+         fileSystem.CopyText = GetSelectedByteContents();
          RequestMenuClose?.Invoke(this, EventArgs.Empty);
          OnMessage?.Invoke(this, $"'{fileSystem.CopyText}' copied to clipboard.");
       }

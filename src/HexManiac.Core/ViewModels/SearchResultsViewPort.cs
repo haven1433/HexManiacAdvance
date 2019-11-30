@@ -85,6 +85,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public IToolTrayViewModel Tools { get; } = new SearchResultsTools();
 
       public string SelectedAddress => string.Empty;
+      public string SelectedBytes => string.Empty;
 
       public string AnchorText { get; set; }
 

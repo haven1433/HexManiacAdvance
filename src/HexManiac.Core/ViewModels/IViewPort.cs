@@ -24,6 +24,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       ICommand Scroll { get; } // parameter: Direction to scroll
 
       string SelectedAddress { get; }
+      string SelectedBytes { get; }
       string AnchorText { get; }
       bool AnchorTextVisible { get; }
 
