@@ -148,7 +148,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             case FireRed: case LeafGreen: case Emerald: source = 0x0001C8; break;
             case Ruby: case Sapphire: source = 0x0A98F0; break;
          }
-         format = $"[name\"\"14 index: price: holdeffect: description<{PCSRun.SharedFormatString}> keyitemvalue. bagkeyitem. pocket. type. fieldeffect<> battleusage:: battleeffect<> battleextra::]";
+         format = $"[name\"\"14 index: price: holdeffect. param. description<{PCSRun.SharedFormatString}> keyitemvalue. bagkeyitem. pocket. type. fieldeffect<> battleusage:: battleeffect<> battleextra::]";
          AddTable(source, ItemsTableName, format);
 
          // movedata
