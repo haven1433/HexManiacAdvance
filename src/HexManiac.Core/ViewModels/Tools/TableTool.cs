@@ -275,24 +275,42 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                throw new NotImplementedException();
             }
             AddChild(viewModel);
-            if (item is ArrayRunPointerSegment pointerSegment) {
-               var destination = model.ReadPointer(itemAddress);
-               if (destination != Pointer.NULL && model.GetNextRun(destination) is IStreamRun && pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), itemAddress, destination)) {
-                  var streamElement = new StreamArrayElementViewModel(viewPort, (FieldArrayElementViewModel)viewModel, model, item.Name, itemAddress);
-                  int parentIndex = childInsertionIndex - 1;
-                  var streamElementName = item.Name;
-                  var streamAddress = itemAddress;
-                  Children[parentIndex].DataChanged += (sender, e) => {
-                     var newStream = new StreamArrayElementViewModel(viewPort, (FieldArrayElementViewModel)Children[parentIndex], model, streamElementName, streamAddress);
-                     newStream.DataChanged += ForwardModelChanged;
-                     newStream.DataMoved += ForwardModelDataMoved;
-                     if (!Children[parentIndex + 1].TryCopy(newStream)) Children[parentIndex + 1] = newStream;
-                  };
-                  streamElement.DataMoved += ForwardModelDataMoved;
-                  AddChild(streamElement);
-               }
-            }
+            AddChildrenFromPointerSegment(itemAddress, item, childInsertionIndex - 1);
             itemAddress += item.Length;
+         }
+      }
+
+      private void AddChildrenFromPointerSegment(int itemAddress, ArrayRunElementSegment item, int parentIndex) {
+         if (!(item is ArrayRunPointerSegment pointerSegment)) return;
+         var destination = model.ReadPointer(itemAddress);
+         if (destination == Pointer.NULL) return;
+         if (!(model.GetNextRun(destination) is IStreamRun streamRun)) return;
+         if (!pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), itemAddress, destination)) return;
+
+         var streamElement = new StreamArrayElementViewModel(viewPort, model, item.Name, itemAddress);
+         var streamElementName = item.Name;
+         var streamAddress = itemAddress;
+         var myIndex = childInsertionIndex;
+         Children[parentIndex].DataChanged += (sender, e) => {
+            var newStream = new StreamArrayElementViewModel(viewPort, model, streamElementName, streamAddress);
+            newStream.DataChanged += ForwardModelChanged;
+            newStream.DataMoved += ForwardModelDataMoved;
+            if (!Children[myIndex].TryCopy(newStream)) Children[myIndex] = newStream;
+         };
+         streamElement.DataMoved += ForwardModelDataMoved;
+         AddChild(streamElement);
+
+         parentIndex = childInsertionIndex - 1;
+         if (streamRun is ITableRun tableRun) {
+            int segmentOffset = 0;
+            for (int i = 0; i < tableRun.ElementContent.Count; i++) {
+               if (!(tableRun.ElementContent[i] is ArrayRunPointerSegment)) { segmentOffset += tableRun.ElementContent[i].Length; continue; }
+               for (int j = 0; j < tableRun.ElementCount; j++) {
+                  itemAddress = tableRun.Start + segmentOffset + j * tableRun.ElementLength;
+                  AddChildrenFromPointerSegment(itemAddress, tableRun.ElementContent[i], parentIndex);
+               }
+               segmentOffset += tableRun.ElementContent[i].Length;
+            }
          }
       }
 

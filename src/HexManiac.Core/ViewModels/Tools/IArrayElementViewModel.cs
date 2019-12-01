@@ -95,10 +95,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          content = strategy.UpdateViewModelFromModel(this);
       }
 
-      public void RefreshControlFromModelChange() {
-         TryUpdate(ref content, strategy.UpdateViewModelFromModel(this), nameof(Content));
-      }
-
       public bool TryCopy(IArrayElementViewModel other) {
          if (!(other is FieldArrayElementViewModel field)) return false;
          if (strategy.Type != field.strategy.Type) return false;
@@ -325,7 +321,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly ViewPort viewPort;
       private readonly IDataModel model;
 
-      private FieldArrayElementViewModel matchingField;
       private string name;
       private int start;
       private EventHandler dataChanged;
@@ -348,7 +343,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   model.ObserveRunWritten(viewPort.CurrentChange, newRun);
                   if (run.Start != newRun.Start) {
                      dataMoved?.Invoke(this, (run.Start, newRun.Start));
-                     matchingField.RefreshControlFromModelChange();
                   }
                   overrideCopyAttempt = true;
                   using (new StubDisposable { Dispose = () => overrideCopyAttempt = false }) {
@@ -364,9 +358,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public bool CanRepoint { get => canRepoint; set => TryUpdate(ref canRepoint, value); }
       public ICommand Repoint { get; private set; }
 
-      public StreamArrayElementViewModel(ViewPort viewPort, FieldArrayElementViewModel matchingField, IDataModel model, string name, int start) {
+      public StreamArrayElementViewModel(ViewPort viewPort, IDataModel model, string name, int start) {
          this.viewPort = viewPort;
-         this.matchingField = matchingField;
          this.model = model;
          this.name = name;
          this.start = start;
@@ -391,7 +384,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                var originalDestination = this.model.ReadPointer(this.start);
                this.viewPort.RepointToNewCopy(this.start);
                var newDestination = this.model.ReadPointer(this.start);
-               this.matchingField.RefreshControlFromModelChange();
                CanRepoint = false;
             },
          };
@@ -404,7 +396,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (overrideCopyAttempt) return true;
          name = stream.name;
          start = stream.start;
-         matchingField = stream.matchingField;
          TryUpdate(ref content, stream.content, nameof(Content));
          Message = stream.Message;
          NotifyPropertyChanged(nameof(Message));
