@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
@@ -69,13 +71,42 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       #region StreamRun
 
       public string SerializeRun() {
-         // TODO
-         return string.Empty;
+         var builder = new StringBuilder();
+         this.AppendTo(model, builder, Start, ElementLength * ElementCount);
+         return builder.ToString();
       }
 
       public IStreamRun DeserializeRun(string content, ModelDelta token) {
-         // TODO
-         return this;
+         var lines = content.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+         var newRun = this;
+         if (lines.Length != ElementCount) newRun = (TableStreamRun)Append(token, lines.Length - ElementCount);
+         int start = newRun.Start;
+         for (int i = 0; i < newRun.ElementCount; i++) {
+            var line = lines.Length > i ? lines[i] : string.Empty;
+            var tokens = Tokenize(line);
+            int segmentOffset = 0;
+            for (int j = 0; j < ElementContent.Count; j++) {
+               var data = j < tokens.Count ? tokens[j] : string.Empty;
+               ElementContent[j].Write(model, token, start + segmentOffset, data);
+               segmentOffset += ElementContent[j].Length;
+            }
+            start += ElementLength;
+         }
+         return newRun;
+      }
+
+      private IReadOnlyList<string> Tokenize(string line) {
+         // split at each space
+         var tokens = new List<string>(line.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries));
+
+         // recombine tokens so that each token that starts with " ends with "
+         for (int i = 0; i < tokens.Count - 1; i++) {
+            if (tokens[i].StartsWith("\"") == tokens[i].EndsWith("\"")) continue;
+            tokens[i] += " " + tokens[i + 1];
+            i--;
+         }
+
+         return tokens;
       }
 
       public bool DependsOn(string anchorName) {

@@ -62,11 +62,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             for (int j = offsets.SegmentIndex; j < self.ElementContent.Count && length > 0; j++) {
                var segment = self.ElementContent[j];
                text.Append(segment.ToText(data, offset).Trim());
-               text.Append(" ");
+               if (j + 1 < self.ElementContent.Count) text.Append(" ");
                offset += segment.Length;
                length -= segment.Length;
             }
-            text.Append(Environment.NewLine);
+            if (i + 1 < self.ElementCount) text.Append(Environment.NewLine);
             offsets = new ArrayOffset(0, 0, offset, 0);
          }
       }

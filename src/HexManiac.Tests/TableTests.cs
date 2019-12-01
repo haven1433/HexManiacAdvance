@@ -250,6 +250,27 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(3, Model[0x84]);
       }
 
+      [Fact]
+      public void CannotExtendLengthOfFixedLengthStreamViaTool() {
+         // Arrange
+         ViewPort.Edit("FF FF FF FF FF FF FF FF @80 <0> @80 ^table[data<[value.]5>]1 ");
+         var segment = ViewPort.Tools.TableTool.Children.OfType<StreamArrayElementViewModel>().Single();
+
+         // precondition: the format is as expected
+         Assert.Equal(@"255
+255
+255
+255
+255", segment.Content);
+
+         // Act: change the content in a way that would change the length of a more dynamic stream.
+         segment.Content = "12";
+
+         // Assert that the stream length is still 5.
+         var result = (ITableRun)Model.GetNextRun(0);
+         Assert.Equal(5, result.ElementCount);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(EggMoveRun.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(EggMoveRun.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

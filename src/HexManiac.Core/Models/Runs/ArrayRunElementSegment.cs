@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -30,6 +31,32 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                var anchor = rawData.GetAnchorFromAddress(-1, address);
                if (string.IsNullOrEmpty(anchor)) anchor = address.ToString("X6");
                return $"{PointerRun.PointerStart}{anchor}{PointerRun.PointerEnd}";
+            default:
+               throw new NotImplementedException();
+         }
+      }
+
+      public virtual void Write(IDataModel model, ModelDelta token, int start, string data) {
+         switch (Type) {
+            case ElementContentType.PCS:
+               var bytes = PCSString.Convert(data);
+               while (bytes.Count > Length) bytes.RemoveAt(bytes.Count - 1);
+               if (!bytes.Contains(0xFF)) bytes[bytes.Count - 1] = 0xFF;
+               while (bytes.Count < Length) bytes.Add(0);
+               for (int i = 0; i < Length; i++) token.ChangeData(model, start + i, bytes[i]);
+               break;
+            case ElementContentType.Integer:
+               if (!int.TryParse(data, out var intValue)) intValue = 0;
+               model.WriteMultiByteValue(start, Length, token, intValue);
+               break;
+            case ElementContentType.Pointer:
+               if (data.StartsWith("<")) data = data.Substring(1);
+               if (data.EndsWith(">")) data = data.Substring(0, data.Length - 1);
+               if (!int.TryParse(data, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var address)) {
+                  address = model.GetAddressFromAnchor(token, -1, data);
+               }
+               model.WritePointer(token, start, address);
+               break;
             default:
                throw new NotImplementedException();
          }
@@ -74,6 +101,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (value.Contains(' ')) value = $"\"{value}\"";
 
             return value;
+         }
+      }
+
+      public override void Write(IDataModel model, ModelDelta token, int start, string data) {
+         using (ModelCacheScope.CreateScope(model)) {
+            if (!TryParse(model, data, out int value)) {
+               base.Write(model, token, start, data);
+               return;
+            }
+
+            base.Write(model, token, start, value.ToString());
          }
       }
 
@@ -132,12 +170,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public override string ToText(IDataModel rawData, int offset) {
-         var result = new StringBuilder(Length * 3);
+         var result = new StringBuilder(Length * 2);
          for (int i = 0; i < Length; i++) {
             result.Append(rawData[offset + i].ToString("X2"));
-            result.Append(" ");
          }
          return result.ToString();
+      }
+
+      public override void Write(IDataModel model, ModelDelta token, int start, string data) {
+         for (int i = 0; i < Length && i * 2 + 1 < data.Length; i++) {
+            if (!byte.TryParse(data.Substring(i * 2, 2), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var value)) value = 0;
+            token.ChangeData(model, start + i, value);
+         }
       }
 
       public IReadOnlyList<string> GetOptions(IDataModel model) {
