@@ -271,6 +271,15 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(5, result.ElementCount);
       }
 
+      [Fact]
+      public void AddingArrayWithPointerToStreamWithPointersAlsoAddsAnchorsForThosePointers() {
+         ViewPort.Edit("1A 00 00 08 @33 08"); // 00 will point to 1A, 30 will point to 00
+
+         ViewPort.Edit("@30 ^table[pointer<[inner<>]1>]1 "); // this table is a pointer that points to a pointer
+
+         Assert.Equal(0x1A, Model.GetNextRun(0x1A).Start);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(EggMoveRun.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(EggMoveRun.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

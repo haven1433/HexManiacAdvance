@@ -235,7 +235,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          // wild pokemon
          // TODO grass format = [rate:: list<[low. high. species:pokenames]12>]1
          source = Find("0348048009E00000FFFF0000");
-         AddTable(source, WildTableName, "[bank. map. unused: grass<> surf<> tree<> fish<>]");
+         AddTable(source, WildTableName, "[bank. map. unused: grass<[rate:: list<>]1> surf<[rate:: list<>]1> tree<[rate:: list<>]1> fish<[rate:: list<>]1>]");
       }
 
       private void DecodeDexArrays() {

@@ -178,11 +178,11 @@ namespace HavenSoft.HexManiac.Core.Models {
                   if (run is PointerRun) {
                      Debug.Assert(run.Start == source);
                      Debug.Assert(ReadPointer(source) == runs[i].Start);
-                  } else if (run is ArrayRun) {
+                  } else if (run is ITableRun) {
                      Debug.Assert(run.Start <= source);
                      Debug.Assert(ReadPointer(source) == runs[i].Start);
                   } else {
-                     Debug.Fail($"Pointer must be a {nameof(PointerRun)} or live within an {nameof(ArrayRun)}");
+                     Debug.Fail($"Pointer must be a {nameof(PointerRun)} or live within an {nameof(ITableRun)}");
                   }
                }
             }
@@ -505,10 +505,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          if (run is PointerRun) AddPointerToAnchor(null, changeToken, run.Start);
-         if (run is ArrayRun arrayRun) {
-            ModifyAnchorsFromPointerArray(changeToken, arrayRun, AddPointerToAnchor);
-            UpdateDependantArrayLengths(changeToken, arrayRun);
-         }
+         if (run is ITableRun tableRun) ModifyAnchorsFromPointerArray(changeToken, tableRun, AddPointerToAnchor);
+         if (run is ArrayRun arrayRun) UpdateDependantArrayLengths(changeToken, arrayRun);
 
          if (run is WordRun word) {
             if (!matchedWords.ContainsKey(word.SourceArrayName)) matchedWords[word.SourceArrayName] = new List<int>();
@@ -527,7 +525,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// When we make a new pointer, we need to update anchors to include the new pointer.
       /// So update all the anchors based on any new pointers in this newly added array.
       /// </summary>
-      private void ModifyAnchorsFromPointerArray(ModelDelta changeToken, ArrayRun arrayRun, Action<ArrayRunElementSegment, ModelDelta, int> changeAnchors) {
+      private void ModifyAnchorsFromPointerArray(ModelDelta changeToken, ITableRun arrayRun, Action<ArrayRunElementSegment, ModelDelta, int> changeAnchors) {
          int segmentOffset = arrayRun.Start;
          // i loops over the different segments in the array
          for (int i = 0; i < arrayRun.ElementContent.Count; i++) {
@@ -653,9 +651,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             IFormattedRun newRun = new NoInfoRun(destination, new[] { start });
             UpdateNewRunFromPointerFormat(ref newRun, segment as ArrayRunPointerSegment, changeToken);
             if (newRun != null) {
-               index = BinarySearch(destination); // runs could've been removed/added during UpdateNewRunFromPointerFormat: search for the index again.
-               runs.Insert(~index, newRun);
-               changeToken.AddRun(newRun);
+               ObserveRunWritten(changeToken, newRun);
             }
          } else {
             // the pointer points to a known normal anchor
@@ -664,13 +660,19 @@ namespace HavenSoft.HexManiac.Core.Models {
             existingRun = existingRun.MergeAnchor(new[] { start });
             UpdateNewRunFromPointerFormat(ref existingRun, segment as ArrayRunPointerSegment, changeToken);
             if (existingRun != null) {
-               index = BinarySearch(destination); // runs could've been removed during UpdateNewRunFromPointerFormat: search for the index again.
-               if (index < 0) {
-                  runs.Insert(~index, existingRun);
+               if (segment == null) {
+                  // it's just a naked pointer, so we have no knowledge about the thing it points to.
+                  index = BinarySearch(destination); // runs could've been removed during UpdateNewRunFromPointerFormat: search for the index again.
+                  if (index < 0) {
+                     runs.Insert(~index, existingRun);
+                  } else {
+                     runs[index] = existingRun;
+                  }
+                  changeToken.AddRun(existingRun);
                } else {
-                  runs[index] = existingRun;
+                  // it could point to something interesting. Do a full observe.
+                  ObserveRunWritten(changeToken, existingRun);
                }
-               changeToken.AddRun(existingRun);
             }
          }
       }
@@ -1484,9 +1486,9 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          foreach (var source in sources) {
             var index = BinarySearch(source);
-            if (index >= 0 && runs[index] is ArrayRun array1) {
+            if (index >= 0 && runs[index] is ITableRun array1) {
                Debug.Assert(array1.ElementContent[0].Type == ElementContentType.Pointer);
-            } else if (index < 0 && runs[~index - 1] is ArrayRun array2) {
+            } else if (index < 0 && runs[~index - 1] is ITableRun array2) {
                var offsets = array2.ConvertByteOffsetToArrayOffset(source);
                Debug.Assert(array2.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Pointer);
             } else {
