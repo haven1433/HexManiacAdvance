@@ -311,6 +311,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(compatibilityElementLength, compatibility.ElementContent[0].Length);
       }
 
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void WildPokemonAreFound(string game) {
+         var model = fixture.LoadModel(game);
+         var noChange = new NoDataChangeDeltaModel();
+
+         var wildLocation = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.WildTableName);
+         var wild = (ArrayRun)model.GetNextRun(wildLocation);
+
+         // TODO
+      }
+
       [SkippableFact]
       public void TutorsCompatibilityContainsCorrectDataFireRed() {
          var model = fixture.LoadModel(PokemonGames.Select(array => (string)array[0]).Single(game => game.Contains("FireRed")));

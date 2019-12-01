@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using static HavenSoft.HexManiac.Core.Models.AutoSearchModel;
 
@@ -13,6 +14,7 @@ namespace HavenSoft.HexManiac.Core.Models {
    /// Lengths of some tables are still calculated dynamically based on best-fit, so operations like adding pokemon from a separate tool should still be picked up correctly.
    /// </summary>
    public class HardcodeTablesModel : PokemonModel {
+      public const string WildTableName = "wild";
       public const string ItemsTableName = "items";
       public const string DexInfoTableName = "dexinfo";
       public const string TrainerTableName = "trainerdata";
@@ -229,6 +231,11 @@ namespace HavenSoft.HexManiac.Core.Models {
             case Ruby: case Sapphire: source = 0x0B3AC8; break;
          }
          AddTable(source, DecorationsTableName, $"[id. name\"\"16 permission. shape. category. price:: description<\"\"> graphics<>]");
+
+         // wild pokemon
+         // TODO grass format = [rate:: list<[low. high. species:pokenames]12>]1
+         source = Find("0348048009E00000FFFF0000");
+         AddTable(source, WildTableName, "[bank. map. unused: grass<> surf<> tree<> fish<>]");
       }
 
       private void DecodeDexArrays() {
@@ -284,7 +291,6 @@ namespace HavenSoft.HexManiac.Core.Models {
             case Emerald: source = 0x0703F0; break;
             case Ruby: case Sapphire: source = 0x041B44; break;
          }
-
          ObserveAnchorWritten(noChangeDelta, EggMovesTableName, new EggMoveRun(this, ReadPointer(source)));
       }
 
@@ -292,6 +298,25 @@ namespace HavenSoft.HexManiac.Core.Models {
          var destination = ReadPointer(source);
          var run = GetNextRun(destination);
          return run.PointerSources;
+      }
+
+      private int Find(string bytesText) {
+         var bytes = new List<byte>();
+         while (bytesText.Length > 0) {
+            bytes.Add(byte.Parse(bytesText.Substring(0, 2), NumberStyles.HexNumber));
+            bytesText = bytesText.Substring(2);
+         }
+
+         for (int i = 0; i < RawData.Length; i++) {
+            if (RawData[i] != bytes[0]) continue;
+            if (Enumerable.Range(1, bytes.Count - 1).All(
+               j => i + j < RawData.Length && RawData[i + j] == bytes[j]
+            )) {
+               return i + bytes.Count;
+            }
+         }
+
+         return -1;
       }
 
       private void AddTable(int source, string name, string format) {
