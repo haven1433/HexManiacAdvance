@@ -47,7 +47,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                break;
             case ElementContentType.Integer:
                if (!int.TryParse(data, out var intValue)) intValue = 0;
-               model.WriteMultiByteValue(start, Length, token, intValue);
+               if (model.ReadMultiByteValue(start, Length) != intValue) {
+                  model.WriteMultiByteValue(start, Length, token, intValue);
+               }
                break;
             case ElementContentType.Pointer:
                if (data.StartsWith("<")) data = data.Substring(1);
@@ -55,7 +57,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (!int.TryParse(data, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var address)) {
                   address = model.GetAddressFromAnchor(token, -1, data);
                }
-               model.WritePointer(token, start, address);
+               if (model.ReadPointer(start) != address) {
+                  model.WritePointer(token, start, address);
+               }
                break;
             default:
                throw new NotImplementedException();
@@ -121,7 +125,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (text.StartsWith("\"") && text.EndsWith("\"")) text = text.Substring(1, text.Length - 2);
          var partialMatches = new List<string>();
          var matches = new List<string>();
-         if (!model.TryGetNameArray(EnumName, out var enumArray)) return false;
 
          // if the ~ character is used, expect that it's saying which match we want
          var desiredMatch = 1;
@@ -131,25 +134,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          // ok, so everything lines up... check the array to see if any values match the string entered
          text = text.ToLower();
-         for (int i = 0; i < enumArray.ElementCount; i++) {
-            var option = PCSString.Convert(model, enumArray.Start + enumArray.ElementLength * i, enumArray.ElementContent[0].Length).ToLower();
-            option = option.Substring(1, option.Length - 2);
-            // check for exact matches
-            if (option == text) {
-               matches.Add(option);
-               if (matches.Count == desiredMatch) {
-                  value = i;
-                  return true;
-               }
-            }
-            // check for start-of-string matches (for autocomplete)
-            if (option.StartsWith(text)) {
-               partialMatches.Add(option);
-               if (partialMatches.Count == desiredMatch && matches.Count == 0) {
-                  value = i;
-                  return true;
-               }
-            }
+         var options = ModelCacheScope.GetCache(model).GetOptions(EnumName);
+         for (int i = 0; i < options.Count; i++) {
+            var option = options[i];
+            if (option == text) matches.Add(option);
+            if (matches.Count == desiredMatch) { value = i; return true; }
+            if (option.MatchesPartial(text)) partialMatches.Add(option);
+            if (partialMatches.Count == desiredMatch && matches.Count == 0) { value = i; return true; }
          }
 
          // we went through the whole array and didn't find it :(
