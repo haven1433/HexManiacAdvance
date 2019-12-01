@@ -233,9 +233,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          AddTable(source, DecorationsTableName, $"[id. name\"\"16 permission. shape. category. price:: description<\"\"> graphics<>]");
 
          // wild pokemon
-         // TODO grass format = [rate:: list<[low. high. species:pokenames]12>]1
          source = Find("0348048009E00000FFFF0000");
-         AddTable(source, WildTableName, "[bank. map. unused: grass<[rate:: list<>]1> surf<[rate:: list<>]1> tree<[rate:: list<>]1> fish<[rate:: list<>]1>]");
+         string table(int length) => $"<[rate:: list<[low. high. species:pokenames]{length}>]1>";
+         AddTable(source, WildTableName, $"[bank. map. unused: grass{table(12)} surf{table(5)} tree{table(5)} fish{table(10)}]");
       }
 
       private void DecodeDexArrays() {
