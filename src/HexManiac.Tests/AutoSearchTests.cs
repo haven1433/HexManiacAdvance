@@ -353,6 +353,16 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(compatibilityElementLength, compatibility.ElementContent[0].Length);
       }
 
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void MultichoiceAreFound(string game) {
+         var model = fixture.LoadModel(game);
+         var noChange = new NoDataChangeDeltaModel();
+
+         var multichoiceAddress = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.MultichoiceTableName);
+         var multichoice = (ArrayRun)model.GetNextRun(multichoiceAddress);
+      }
+
       // this one actually changes the data, so I can't use the same shared model as everone else.
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]

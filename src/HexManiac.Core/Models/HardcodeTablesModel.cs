@@ -21,6 +21,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public const string EggMovesTableName = "eggmoves";
       public const string EvolutionTableName = "evolutions";
       public const string LevelMovesTableName = "lvlmoves";
+      public const string MultichoiceTableName = "multichoice";
       public const string DecorationsTableName = "decorations";
       public const string RegionalDexTableName = "regionaldex";
       public const string NationalDexTableName = "nationaldex";
@@ -124,6 +125,15 @@ namespace HavenSoft.HexManiac.Core.Models {
             case Emerald: source = 0x1C3EFC; break;
          }
          AddTable(source, MoveDescriptionsName, $"[description<{PCSRun.SharedFormatString}>]{EggMoveRun.MoveNamesTable}-1");
+
+         // multichoice
+         switch (gameCode) {
+            case Ruby: case Sapphire: source = 0x0B50A0; break;
+            case FireRed: source = 0x09CD58; break;
+            case LeafGreen: source = 0x09CB2C; break;
+            case Emerald: source = 0x0E1FB8; break;
+         }
+         AddTable(source, MultichoiceTableName, $"[options<[text<\"\"> unused::]/count> count::]");
       }
 
       private void DecodeDataArrays() {
