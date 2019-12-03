@@ -592,6 +592,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (format == ElementContentType.Integer && segments.Length > formatLength && segments[formatLength] != ' ') {
                segments = segments.Substring(formatLength);
                if (int.TryParse(segments, out var maxValue)) {
+                  var endOfToken = segments.IndexOf(' ');
+                  if (endOfToken == -1) endOfToken = segments.Length;
+                  segments = segments.Substring(endOfToken).Trim();
                   list.Add(new ArrayRunEnumSegment(name, segmentLength, segments));
                } else {
                   var endOfToken = segments.IndexOf(' ');
@@ -692,14 +695,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private static bool DataMatchesElementFormat(IDataModel owner, int start, IReadOnlyList<ArrayRunElementSegment> segments, FormatMatchFlags flags, IFormattedRun nextAnchor) {
          foreach (var segment in segments) {
             if (start + segment.Length > owner.Count) return false;
-            if (!DataMatchesSegmentFormat(owner, start, segment, flags, nextAnchor)) return false;
+            if (start + segment.Length > nextAnchor.Start && nextAnchor is ArrayRun) return false; // don't blap over existing arrays
+            if (!DataMatchesSegmentFormat(owner, start, segment, flags)) return false;
             start += segment.Length;
          }
          return true;
       }
 
-      private static bool DataMatchesSegmentFormat(IDataModel owner, int start, ArrayRunElementSegment segment, FormatMatchFlags flags, IFormattedRun nextAnchor) {
-         if (start + segment.Length > nextAnchor.Start && nextAnchor is ArrayRun) return false; // don't blap over existing arrays
+      public static bool DataMatchesSegmentFormat(IDataModel owner, int start, ArrayRunElementSegment segment, FormatMatchFlags flags) {
          switch (segment.Type) {
             case ElementContentType.PCS:
                int readLength = PCSString.ReadString(owner, start, true, segment.Length);
@@ -730,7 +733,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (segment is ArrayRunEnumSegment enumSegment) {
                   return owner.ReadMultiByteValue(start, segment.Length) < enumSegment.GetOptions(owner).Count;
                } else {
-                  return true;
+                  return segment.Length < 4 || owner[start + 3] < 0x08; // we want an integer, not a pointer
                }
             case ElementContentType.Pointer:
                var destination = owner.ReadPointer(start);

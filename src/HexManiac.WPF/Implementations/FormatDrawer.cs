@@ -64,6 +64,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          collector.Initialize<UnderEdit>(typeface, fontSize);       // actually None -> 00
          collector.Initialize<ErrorPCS>(typeface, fontSize);        // actually error pointer
          collector.Initialize<PCS>(typeface, fontSize);
+         collector.Initialize<EscapedPCS>(typeface, fontSize);
          collector.Initialize<Ascii>(typeface, fontSize);
          collector.Initialize<Pointer>(typeface, fontSize);
          collector.Initialize<PlmItem>(typeface, fontSize * .75);
@@ -82,6 +83,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
             if (format is PCS pcs) {
                collector.Collect<PCS>(x, 1, pcs.ThisCharacter);
+            } else if (format is EscapedPCS escapedPCS) {
+               collector.Collect<EscapedPCS>(x, 1, escapedPCS.ThisValue.ToString("X2"));
             } else if (format is Pointer pointer && pointer.Position == 0) {
                if (pointer.HasError) collector.Collect<ErrorPCS>(x, 4, pointer.DestinationAsText);
                else collector.Collect<Pointer>(x, 4, pointer.DestinationAsText);
@@ -115,6 +118,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          context.PushTransform(new TranslateTransform(0, position.Y * cellSize.Height));
 
          collector.Render<PCS>(context, Brush(nameof(Theme.Text1)));
+         collector.Render<EscapedPCS>(context, Brush(nameof(Theme.Text1)));
          collector.Render<Pointer>(context, Brush(nameof(Theme.Accent)));
          collector.Render<PlmItem>(context, Brush(nameof(Theme.Stream2)));
          collector.Render<EggItem>(context, Brush(nameof(Theme.Stream2)));

@@ -129,7 +129,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          // multichoice
          switch (gameCode) {
             case Ruby: case Sapphire: source = 0x0B50A0; break;
-            case FireRed: source = 0x09CD58; break;
+            case FireRed: source = 0x09CB58; break;
             case LeafGreen: source = 0x09CB2C; break;
             case Emerald: source = 0x0E1FB8; break;
          }

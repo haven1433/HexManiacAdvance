@@ -68,10 +68,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public static int ToInteger(IReadOnlyList<byte> data, int offset, int length) {
          int result = 0;
-         int multiplier = 1;
+         int shift = 0;
          for (int i = 0; i < length; i++) {
-            result += data[offset + i] * multiplier;
-            multiplier *= 0x100;
+            result += data[offset + i] << shift;
+            shift += 8;
          }
          return result;
       }
@@ -89,7 +89,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (options == null) return base.ToText(model, offset);
 
             var resultAsInteger = ToInteger(model, offset, Length);
-            if (resultAsInteger >= options.Count) return base.ToText(model, offset);
+            if (resultAsInteger >= options.Count || resultAsInteger < 0) return base.ToText(model, offset);
             var value = options[resultAsInteger];
 
             // use ~2 postfix for a value if an earlier entry in the array has the same string
