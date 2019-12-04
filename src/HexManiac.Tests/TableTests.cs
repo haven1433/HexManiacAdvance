@@ -177,7 +177,6 @@ namespace HavenSoft.HexManiac.Tests {
       public void CanCreateCustomNamedStreamsWithEndToken() {
          // Arrange: create some data near the start that could be a custom stream
          CreateTextTable("info", 0x100, Enumerable.Range('a', 20).Select(c => ((char)c).ToString()).ToArray());
-         for (byte i = 0; i < 0x10; i++) Model[i] = i;
          Model[0x10] = 0xFF;
          Model[0x11] = 0xFF;
 

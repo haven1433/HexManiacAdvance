@@ -129,6 +129,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public const char DoubleByteIntegerFormat = ':';
       public const char ArrayAnchorSeparator = '/';
 
+      private const int JunkLimit = 80;
+
       private readonly IDataModel owner;
 
       // length in bytes of the entire array
@@ -214,7 +216,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             while (Start + byteLength + ElementLength <= nextRun.Start && DataMatchesElementFormat(owner, Start + byteLength, ElementContent, flags, nextRun)) {
                byteLength += ElementLength;
                elementCount++;
-               if (elementCount == 100) flags |= FormatMatchFlags.AllowJunkAfterText;
+               if (elementCount == JunkLimit) flags |= FormatMatchFlags.AllowJunkAfterText;
             }
             LengthFromAnchor = string.Empty;
             ElementCount = Math.Max(1, elementCount); // if the user said there's a format here, then there is, even if the format it wrong.
@@ -314,7 +316,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             int currentLength = 0;
             int currentAddress = run.Start;
             while (true) {
-               if (currentLength > 100) flags |= FormatMatchFlags.AllowJunkAfterText; // we've gone long enough without junk data to be fairly sure that we're looking at something real
+               if (currentLength > JunkLimit) flags |= FormatMatchFlags.AllowJunkAfterText; // we've gone long enough without junk data to be fairly sure that we're looking at something real
                if (nextArray.Start < currentAddress) nextArray = data.GetNextAnchor(nextArray.Start + 1);
                if (DataMatchesElementFormat(data, currentAddress, elementContent, flags, nextArray)) {
                   currentLength++;
@@ -733,6 +735,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (segment is ArrayRunEnumSegment enumSegment) {
                   return owner.ReadMultiByteValue(start, segment.Length) < enumSegment.GetOptions(owner).Count;
                } else {
+                  if (flags.HasFlag(FormatMatchFlags.AllowJunkAfterText)) return true; // don't bother verifying if junk is allowed
                   return segment.Length < 4 || owner[start + 3] < 0x08; // we want an integer, not a pointer
                }
             case ElementContentType.Pointer:

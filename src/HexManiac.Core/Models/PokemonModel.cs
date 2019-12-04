@@ -701,23 +701,19 @@ namespace HavenSoft.HexManiac.Core.Models {
             return;
          }
 
-         if (segment == null) { run = null; return; }
+         if (segment == null) return;
          if (segment.InnerFormat == PCSRun.SharedFormatString) {
             var length = PCSString.ReadString(this, run.Start, true);
             if (length > 0) {
                var newRun = new PCSRun(this, run.Start, length, run.PointerSources);
                if (!newRun.Equals(run)) ClearFormat(token, newRun.Start, newRun.Length);
                run = newRun;
-            } else {
-               run = null;
             }
          } else if (segment.InnerFormat == PLMRun.SharedFormatString) {
             var runAttempt = new PLMRun(this, run.Start);
             if (runAttempt.Length > 0) {
                run = runAttempt.MergeAnchor(run.PointerSources);
                ClearFormat(token, run.Start, run.Length);
-            } else {
-               run = null;
             }
          } else if (segment.InnerFormat == TrainerPokemonTeamRun.SharedFormatString) {
             var runAttempt = new TrainerPokemonTeamRun(this, run.Start, run.PointerSources);
@@ -729,7 +725,6 @@ namespace HavenSoft.HexManiac.Core.Models {
                run = runAttempt;
             } else {
                // failed to parse, so the format should be treated as empty
-               run = null;
             }
          } else {
             throw new NotImplementedException();
