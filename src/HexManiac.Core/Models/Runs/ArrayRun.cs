@@ -247,14 +247,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          PointerSourcesForInnerElements = pointerSourcesForInnerElements;
       }
 
-      public static ErrorInfo TryParse(IDataModel data, string format, int start, IReadOnlyList<int> pointerSources, out ITableRun self) {
+      public static ErrorInfo TryParse(IDataModel data, string format, int start, IReadOnlyList<int> pointerSources, out ITableRun self) => TryParse(data, "UNUSED", format, start, pointerSources, out self);
+
+      public static ErrorInfo TryParse(IDataModel data, string name, string format, int start, IReadOnlyList<int> pointerSources, out ITableRun self) {
          try {
             using (ModelCacheScope.CreateScope(data)) {
                self = new ArrayRun(data, format, start, pointerSources);
             }
          } catch (ArrayRunParseException e) {
             // failed to parse as an array... can we parse as a table stream?
-            if (TableStreamRun.TryParseTableStream(data, start, pointerSources, format, out var tableStreamRun)) {
+            if (TableStreamRun.TryParseTableStream(data, start, pointerSources, name, format, null, out var tableStreamRun)) {
                self = tableStreamRun;
             } else {
                self = null;
@@ -698,13 +700,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          foreach (var segment in segments) {
             if (start + segment.Length > owner.Count) return false;
             if (start + segment.Length > nextAnchor.Start && nextAnchor is ArrayRun) return false; // don't blap over existing arrays
-            if (!DataMatchesSegmentFormat(owner, start, segment, flags)) return false;
+            if (!DataMatchesSegmentFormat(owner, start, segment, flags, segments)) return false;
             start += segment.Length;
          }
          return true;
       }
 
-      public static bool DataMatchesSegmentFormat(IDataModel owner, int start, ArrayRunElementSegment segment, FormatMatchFlags flags) {
+      public static bool DataMatchesSegmentFormat(IDataModel owner, int start, ArrayRunElementSegment segment, FormatMatchFlags flags, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          switch (segment.Type) {
             case ElementContentType.PCS:
                int readLength = PCSString.ReadString(owner, start, true, segment.Length);
@@ -743,7 +745,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (destination == Pointer.NULL) return true;
                if (0 > destination || destination > owner.Count) return false;
                if (segment is ArrayRunPointerSegment pointerSegment) {
-                  if (!pointerSegment.DestinationDataMatchesPointerFormat(owner, new NoDataChangeDeltaModel(), start, destination)) return false;
+                  if (!pointerSegment.DestinationDataMatchesPointerFormat(owner, new NoDataChangeDeltaModel(), start, destination, sourceSegments)) return false;
                }
                return true;
             case ElementContentType.BitArray:

@@ -11,13 +11,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       #region Constructors
 
-      public static bool TryParseTableStream(IDataModel model, int start, IReadOnlyList<int> sources, string content, out TableStreamRun tableStream) {
+      public static bool TryParseTableStream(IDataModel model, int start, IReadOnlyList<int> sources, string fieldName, string content, IReadOnlyList<ArrayRunElementSegment> sourceSegments, out TableStreamRun tableStream) {
          tableStream = null;
 
          if (content.Length < 4 || content[0] != '[') return false;
          var close = content.LastIndexOf(']');
          if (close == -1) return false;
-         var endStream = ParseEndStream(model, content.Substring(close + 1));
+         var endStream = ParseEndStream(model, fieldName, content.Substring(close + 1), sourceSegments);
          if (endStream == null) return false;
          var segmentContent = content.Substring(1, close - 1);
          try {
@@ -30,14 +30,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          for (int i = 0; i < tableStream.ElementCount; i++) {
             int subStart = start + tableStream.ElementLength * i;
             for (int j = 0; j < tableStream.ElementContent.Count; j++) {
-               if (!ArrayRun.DataMatchesSegmentFormat(model, subStart, tableStream.ElementContent[j], default)) return false;
+               if (!ArrayRun.DataMatchesSegmentFormat(model, subStart, tableStream.ElementContent[j], default, sourceSegments)) return false;
                subStart += tableStream.ElementContent[j].Length;
             }
          }
-         return true;
+         return tableStream.ElementCount > 0;
       }
 
-      public static IStreamEndStrategy ParseEndStream(IDataModel model, string endToken) {
+      public static IStreamEndStrategy ParseEndStream(IDataModel model, string fieldName, string endToken, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          if (int.TryParse(endToken, out var number)) {
             return new FixedLengthStreamStrategy(number);
          }
@@ -46,7 +46,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
          var tokens = endToken.Split("/");
          if (tokens.Length == 2) {
-            return new LengthFromParentStreamStrategy(model, tokens);
+            return new LengthFromParentStreamStrategy(model, tokens, fieldName, sourceSegments);
          }
          return null;
       }
@@ -223,28 +223,33 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
    public class LengthFromParentStreamStrategy : IStreamEndStrategy {
       private readonly IDataModel model;
-      private readonly string parentName, parentField;
+      private readonly string parentName, parentFieldForLength, parentFieldForThis;
+      private readonly IReadOnlyList<ArrayRunElementSegment> sourceSegments;
 
       public int ExtraLength => 0;
 
-      public LengthFromParentStreamStrategy(IDataModel model, string[] tokens) {
+      public LengthFromParentStreamStrategy(IDataModel model, string[] tokens, string tableFieldName, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          this.model = model;
          parentName = tokens[0];
-         parentField = tokens[1];
+         parentFieldForLength = tokens[1];
+         parentFieldForThis = tableFieldName;
+         this.sourceSegments = sourceSegments;
       }
 
       public int GetCount(int start, int elementLength, IReadOnlyList<int> pointerSources) {
          var parentIndex = GetParentIndex(pointerSources);
-         var run = model.GetNextRun(parentIndex) as ITableRun;
-         if (run == null) return 0;
-         var segmentIndex = GetSegmentIndex(run, parentField);
-         if (segmentIndex == -1) return 0;
-         var segmentOffset = run.ElementContent.Take(segmentIndex).Sum(segment => segment.Length);
+         var run = parentIndex >= 0 ? model.GetNextRun(parentIndex) as ITableRun : null;
+         int countSegmentIndex = -1;
+         var segments = run?.ElementContent ?? sourceSegments;
+         countSegmentIndex = GetSegmentIndex(segments, parentFieldForLength);
+         if (countSegmentIndex == -1) return 0;
+         var countSegmentOffset = segments.Take(countSegmentIndex).Sum(segment => segment.Length);
+         var pointerSegmentIndex = GetSegmentIndex(segments, parentFieldForThis);
+         var pointerSegmentOffset = segments.Take(pointerSegmentIndex).Sum(segment => segment.Length);
 
-         foreach (var source in pointerSources) {
-            var offsets = run.ConvertByteOffsetToArrayOffset(source);
-            if (offsets.ElementIndex < 0 || offsets.ElementIndex > run.ElementCount) continue;
-            return model.ReadMultiByteValue(run.Start + offsets.ElementIndex * run.ElementLength + segmentOffset, run.ElementContent[segmentIndex].Length);
+         foreach (var source in pointerSources.OrderBy(source => source)) {
+            if (source < parentIndex) continue;
+            return model.ReadMultiByteValue(source - pointerSegmentOffset + countSegmentOffset, segments[countSegmentIndex].Length);
          }
 
          return 0;
@@ -254,7 +259,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var parentIndex = GetParentIndex(run.PointerSources);
          var parent = model.GetNextRun(parentIndex) as ITableRun;
          if (parent == null) return run;
-         var segmentIndex = GetSegmentIndex(parent, parentField);
+         var segmentIndex = GetSegmentIndex(parent.ElementContent, parentFieldForLength);
          if (segmentIndex == -1) return run;
 
          UpdateParents(token, parent, segmentIndex, run.ElementCount + length, run.PointerSources);
@@ -270,7 +275,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var parentAddress = GetParentIndex(run.PointerSources);
          var parent = model.GetNextRun(parentAddress) as ITableRun;
          if (parent == null) return run;
-         var segmentIndex = GetSegmentIndex(parent, parentField);
+         var segmentIndex = GetSegmentIndex(parent.ElementContent, parentFieldForLength);
          if (segmentIndex == -1 || segmentIndex != parentSegmentIndex) return run;
          var segmentOffset = parent.ElementContent.Take(segmentIndex).Sum(segment => segment.Length);
          var offsets = parent.ConvertByteOffsetToArrayOffset(parentAddress);
@@ -288,22 +293,24 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       private int GetParentIndex(IReadOnlyList<int> pointerSources) {
          if (parentName == string.Empty) {
-            return pointerSources.Where(SourceIsFromParentTable).FirstOrDefault();
+            var matches = pointerSources.Where(SourceIsFromParentTable).ToList();
+            return matches.Count > 0 ? matches[0] : -1;
          } else {
             return model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, parentName);
          }
       }
 
-      private int GetSegmentIndex(ITableRun parentRun, string segmentName) {
-         for (int i = 0; i < parentRun.ElementContent.Count; i++) {
-            if (parentRun.ElementContent[i].Name == segmentName) return i;
+      private int GetSegmentIndex(IReadOnlyList<ArrayRunElementSegment> sourceSegments, string segmentName) {
+         if (sourceSegments == null) return -1;
+         for (int i = 0; i < sourceSegments.Count; i++) {
+            if (sourceSegments[i].Name == segmentName) return i;
          }
          return -1;
       }
 
       private bool SourceIsFromParentTable(int source) {
          if (!(model.GetNextRun(source) is ITableRun run)) return false;
-         return run.ElementContent.Any(segment => segment.Name == parentField);
+         return run.ElementContent.Any(segment => segment.Name == parentFieldForLength);
       }
 
       private void UpdateParents(ModelDelta token, ITableRun parent, int segmentIndex, int newValue, IReadOnlyList<int> pointerSources) {

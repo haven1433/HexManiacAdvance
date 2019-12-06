@@ -171,6 +171,11 @@ namespace HavenSoft.HexManiac.Core.Models {
             // for every TPTRun, make sure something points to it
             if (runs[i] is TrainerPokemonTeamRun) Debug.Assert(runs[i].PointerSources.Count > 0, "TPTRuns must not exist with no content long-term.");
 
+            // for ever NoInfoRun, something points to it
+            if ((runs[i] is NoInfoRun || runs[i] is PointerRun) && !anchorForAddress.ContainsKey(runs[i].Start)) {
+               // Debug.Assert(runs[i].PointerSources == null || runs[i].PointerSources.Count > 0, "Unnamed NoInfoRuns must have something pointing to them!");
+            }
+
             // for every run with sources, make sure the pointer at that source actually points to it
             if (runs[i].PointerSources != null) {
                foreach (var source in runs[i].PointerSources) {
@@ -240,7 +245,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       private static ErrorInfo ApplyAnchor(IDataModel model, ModelDelta changeToken, int dataIndex, string text, bool allowAnchorOverwrite) {
          var (name, format) = SplitNameAndFormat(text);
 
-         var errorInfo = TryParseFormat(model, format, dataIndex, out var runToWrite);
+         var errorInfo = TryParseFormat(model, name, format, dataIndex, out var runToWrite);
          if (errorInfo.HasError) return errorInfo;
 
          errorInfo = ValidateAnchorNameAndFormat(model, runToWrite, name, format, dataIndex, allowAnchorOverwrite);
@@ -720,7 +725,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             ClearFormat(token, run.Start, runAttempt.Length);
             run = runAttempt;
          } else if (segment.InnerFormat.StartsWith("[") && segment.InnerFormat.Contains("]")) {
-            if (TableStreamRun.TryParseTableStream(this, run.Start, run.PointerSources, segment.InnerFormat, out var runAttempt)) {
+            if (TableStreamRun.TryParseTableStream(this, run.Start, run.PointerSources, segment.Name, segment.InnerFormat, null, out var runAttempt)) {
                ClearFormat(token, run.Start, runAttempt.Length);
                run = runAttempt;
             } else {
@@ -1389,7 +1394,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          return (name, format);
       }
 
-      private static ErrorInfo TryParseFormat(IDataModel model, string format, int dataIndex, out IFormattedRun run) {
+      private static ErrorInfo TryParseFormat(IDataModel model, string name, string format, int dataIndex, out IFormattedRun run) {
          run = new NoInfoRun(dataIndex);
          var existingRun = model.GetNextRun(dataIndex);
          if (existingRun.Start == run.Start) run = run.MergeAnchor(existingRun.PointerSources);
@@ -1416,7 +1421,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          } else if (format == TrainerPokemonTeamRun.SharedFormatString) {
             run = new TrainerPokemonTeamRun(model, dataIndex, run.PointerSources);
          } else {
-            var errorInfo = TryParse(model, format, dataIndex, null, out var arrayRun);
+            var errorInfo = TryParse(model, name, format, dataIndex, null, out var arrayRun);
             if (errorInfo == ErrorInfo.NoError) {
                run = arrayRun;
             } else if (format != string.Empty) {

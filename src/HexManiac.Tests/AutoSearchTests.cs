@@ -361,6 +361,8 @@ namespace HavenSoft.HexManiac.Tests {
 
          var multichoiceAddress = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.MultichoiceTableName);
          var multichoice = (ArrayRun)model.GetNextRun(multichoiceAddress);
+         if (game.Contains("DarkRising")) return;            // dark rising has bugged pointers in the 2nd one, so we don't expect to find many multichoice.
+         Assert.NotInRange(multichoice.ElementCount, 0, 30); // make sure we found at least a few
       }
 
       // this one actually changes the data, so I can't use the same shared model as everone else.

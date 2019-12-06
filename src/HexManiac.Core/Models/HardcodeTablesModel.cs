@@ -342,7 +342,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             ObserveAnchorWritten(noChangeDelta, GetAnchorFromAddress(-1, array.Start), array);
          }
 
-         var errorInfo = ArrayRun.TryParse(this, format, destination, null, out var arrayRun);
+         var errorInfo = ArrayRun.TryParse(this, name, format, destination, null, out var arrayRun);
          if (!errorInfo.HasError) {
             ObserveAnchorWritten(noChangeDelta, name, arrayRun);
          }
