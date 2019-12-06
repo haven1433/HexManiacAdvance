@@ -300,7 +300,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             if (inArray) {
                UpdateArrayPointer((ITableRun)currentRun, fullValue);
             } else {
-               Model.WritePointer(CurrentChange, memoryLocation, fullValue);
+               if (Model.ReadPointer(memoryLocation) != fullValue) {
+                  Model.WritePointer(CurrentChange, memoryLocation, fullValue);
+               }
                Model.ObserveRunWritten(CurrentChange, new PointerRun(memoryLocation, sources));
             }
 

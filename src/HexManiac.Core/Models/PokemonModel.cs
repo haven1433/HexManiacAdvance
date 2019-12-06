@@ -1101,7 +1101,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public override void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, int source, int destination) {
          ClearPointerFormat(segment, changeToken, source);
-         WritePointer(changeToken, source, destination);
+         if (ReadPointer(source) != destination) WritePointer(changeToken, source, destination);
          AddPointerToAnchor(segment, changeToken, source);
       }
 
