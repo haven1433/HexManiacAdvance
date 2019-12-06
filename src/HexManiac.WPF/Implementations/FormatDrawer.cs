@@ -132,6 +132,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          collector.Render<ErrorPCS>(context, Brush(nameof(Theme.Error)));
          collector.Render<BitArray>(context, Brush(nameof(Theme.Data1)));
          collector.Render<MatchedWord>(context, Brush(nameof(Theme.Data1)));
+         collector.Render<EndStream>(context, Brush(nameof(Theme.Stream1)));
 
          context.Pop();
       }

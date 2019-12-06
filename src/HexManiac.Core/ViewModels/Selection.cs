@@ -221,7 +221,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private static (Point start, Point end) GetDefaultSelectionSpan(Point p) => (p, p);
 
       private void GotoAddressHelper(int address) {
-         var destinationRun = model.GetNextRun(address) as ArrayRun;
+         var destinationRun = model.GetNextRun(address) as ITableRun;
          var destinationIsArray = destinationRun != null && destinationRun.Start <= address;
          int preferredWidth;
          if (destinationIsArray) {

@@ -378,15 +378,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (value == null) value = string.Empty;
             if (!value.StartsWith(AnchorStart.ToString())) value = AnchorStart + value;
             if (TryUpdate(ref anchorText, value)) {
-               var index = scroll.ViewPointToDataIndex(SelectionStart);
-               var run = Model.GetNextRun(index);
-               if (run.Start == index) {
-                  var errorInfo = PokemonModel.ApplyAnchor(Model, history.CurrentChange, index, AnchorText);
-                  if (errorInfo == ErrorInfo.NoError) {
-                     OnError?.Invoke(this, string.Empty);
-                     var newRun = Model.GetNextRun(index);
-                     if (newRun is ArrayRun array) {
-                        using (ModelCacheScope.CreateScope(Model)) {
+               using (ModelCacheScope.CreateScope(Model)) {
+                  var index = scroll.ViewPointToDataIndex(SelectionStart);
+                  var run = Model.GetNextRun(index);
+                  if (run.Start == index) {
+                     var errorInfo = PokemonModel.ApplyAnchor(Model, history.CurrentChange, index, AnchorText);
+                     if (errorInfo == ErrorInfo.NoError) {
+                        OnError?.Invoke(this, string.Empty);
+                        var newRun = Model.GetNextRun(index);
+                        if (newRun is ArrayRun array) {
                            // if the format changed (ignoring length), run a goto to update the display width
                            if (run is ArrayRun array2 && !array.HasSameSegments(array2)) {
                               selection.PropertyChanged -= SelectionPropertyChanged; // to keep from double-updating the AnchorText
@@ -396,10 +396,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                            UpdateColumnHeaders();
                            Tools.RefreshContent();
                         }
+                        RefreshBackingData();
+                     } else {
+                        OnError?.Invoke(this, errorInfo.ErrorMessage);
                      }
-                     RefreshBackingData();
-                  } else {
-                     OnError?.Invoke(this, errorInfo.ErrorMessage);
                   }
                }
             }
@@ -1345,7 +1345,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var naturalEnd = array.Start + array.ElementCount * array.ElementLength;
          if (naturalEnd <= index) {
-            return pair(naturalEnd, array.Start + array.Length);
+            return pair(naturalEnd, array.Start + array.Length - 1);
          }
 
          var offset = array.ConvertByteOffsetToArrayOffset(index);
