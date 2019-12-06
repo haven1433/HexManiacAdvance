@@ -8,6 +8,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public static IReadOnlyList<string> PCS;
       public static IReadOnlyList<byte> Newlines;
 
+      public static readonly byte DoubleEscape = 0xFC;
       public static readonly byte Escape = 0xFD;
 
       static PCSString() {
@@ -115,7 +116,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (count > 3 && !allowCharacterRepeates) return -1; // not a string if it has more than 3 of the same character in a row.
             if (PCS[recent] == null) return -1; // not valid string data
             if (data[start + length] == 0xFF) return length + 1;  // end of string. Add one extra space for the end-of-stream byte
-            if (data[start + length] == Escape) length++;     // escape character, skip the next byte
+            if (data[start + length] == Escape) length++;               // escape character, skip the next byte
+            else if (data[start + length] == DoubleEscape) length += 2; // double-escape character, skip the next 2 bytes
             length++;
          }
          return -1;

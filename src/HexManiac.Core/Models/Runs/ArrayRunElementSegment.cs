@@ -68,10 +68,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public static int ToInteger(IReadOnlyList<byte> data, int offset, int length) {
          int result = 0;
-         int multiplier = 1;
+         int shift = 0;
          for (int i = 0; i < length; i++) {
-            result += data[offset + i] * multiplier;
-            multiplier *= 0x100;
+            result += data[offset + i] << shift;
+            shift += 8;
          }
          return result;
       }
@@ -89,7 +89,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (options == null) return base.ToText(model, offset);
 
             var resultAsInteger = ToInteger(model, offset, Length);
-            if (resultAsInteger >= options.Count) return base.ToText(model, offset);
+            if (resultAsInteger >= options.Count || resultAsInteger < 0) return base.ToText(model, offset);
             var value = options[resultAsInteger];
 
             // use ~2 postfix for a value if an earlier entry in the array has the same string
@@ -202,7 +202,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          InnerFormat = innerFormat;
       }
 
-      public bool DestinationDataMatchesPointerFormat(IDataModel owner, ModelDelta token, int source, int destination) {
+      public bool DestinationDataMatchesPointerFormat(IDataModel owner, ModelDelta token, int source, int destination, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          if (destination == Pointer.NULL) return true;
          var run = owner.GetNextAnchor(destination);
          if (run.Start < destination) return false;
@@ -232,7 +232,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   return true;
                }
             } else if (InnerFormat.StartsWith("[")) {
-               if (TableStreamRun.TryParseTableStream(owner, destination, new[] { source }, InnerFormat, out var tsRun)) {
+               if (TableStreamRun.TryParseTableStream(owner, destination, new[] { source }, Name, InnerFormat, sourceSegments, out var tsRun)) {
                   if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, tsRun);
                   return true;
                }

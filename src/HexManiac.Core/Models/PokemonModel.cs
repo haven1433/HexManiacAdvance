@@ -55,7 +55,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var anchor in metadata.NamedAnchors) {
             // since we're loading metadata, we're pretty sure that the anchors in the metadata are right.
             // therefore, allow those anchors to overwrite anything we found during the initial quick-search phase.
-            ApplyAnchor(this, new NoDataChangeDeltaModel(), anchor.Address, AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
+            using (ModelCacheScope.CreateScope(this)) {
+               ApplyAnchor(this, new NoDataChangeDeltaModel(), anchor.Address, AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
+            }
          }
          foreach (var unmappedPointer in metadata.UnmappedPointers) {
             sourceToUnmappedName[unmappedPointer.Address] = unmappedPointer.Name;
@@ -171,6 +173,11 @@ namespace HavenSoft.HexManiac.Core.Models {
             // for every TPTRun, make sure something points to it
             if (runs[i] is TrainerPokemonTeamRun) Debug.Assert(runs[i].PointerSources.Count > 0, "TPTRuns must not exist with no content long-term.");
 
+            // for ever NoInfoRun, something points to it
+            if ((runs[i] is NoInfoRun || runs[i] is PointerRun) && !anchorForAddress.ContainsKey(runs[i].Start)) {
+               Debug.Assert(runs[i].PointerSources == null || runs[i].PointerSources.Count > 0, "Unnamed NoInfoRuns must have something pointing to them!");
+            }
+
             // for every run with sources, make sure the pointer at that source actually points to it
             if (runs[i].PointerSources != null) {
                foreach (var source in runs[i].PointerSources) {
@@ -240,7 +247,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       private static ErrorInfo ApplyAnchor(IDataModel model, ModelDelta changeToken, int dataIndex, string text, bool allowAnchorOverwrite) {
          var (name, format) = SplitNameAndFormat(text);
 
-         var errorInfo = TryParseFormat(model, format, dataIndex, out var runToWrite);
+         var errorInfo = TryParseFormat(model, name, format, dataIndex, out var runToWrite);
          if (errorInfo.HasError) return errorInfo;
 
          errorInfo = ValidateAnchorNameAndFormat(model, runToWrite, name, format, dataIndex, allowAnchorOverwrite);
@@ -468,6 +475,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override void ObserveRunWritten(ModelDelta changeToken, IFormattedRun run) {
+         Debug.Assert(run.Length > 0); // writing a run of length zero is stupid.
          if (run is ArrayRun array) {
             // update any words who's length matches this array's name
             var anchorName = anchorForAddress[run.Start];
@@ -719,12 +727,11 @@ namespace HavenSoft.HexManiac.Core.Models {
             ClearFormat(token, run.Start, runAttempt.Length);
             run = runAttempt;
          } else if (segment.InnerFormat.StartsWith("[") && segment.InnerFormat.Contains("]")) {
-            if (TableStreamRun.TryParseTableStream(this, run.Start, run.PointerSources, segment.InnerFormat, out var runAttempt)) {
+            if (TableStreamRun.TryParseTableStream(this, run.Start, run.PointerSources, segment.Name, segment.InnerFormat, null, out var runAttempt)) {
                ClearFormat(token, run.Start, runAttempt.Length);
                run = runAttempt;
             } else {
                // failed to parse, so the format should be treated as empty
-               return;
             }
          } else {
             throw new NotImplementedException();
@@ -1078,6 +1085,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          // if it's any other kind of run with no name and no pointers to it, remove it.
          if (newAnchorRun.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(newAnchorRun.Start) && !(newAnchorRun is PointerRun)) {
             runs.RemoveAt(index);
+         } else if (newAnchorRun.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(newAnchorRun.Start) && newAnchorRun is PointerRun) {
+            // if it IS a pointer run, we still need to remove the anchor by setting the pointerSources to null.
+            runs[index] = new PointerRun(newAnchorRun.Start);
          } else {
             runs[index] = newAnchorRun;
             changeToken.AddRun(newAnchorRun);
@@ -1093,7 +1103,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public override void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, int source, int destination) {
          ClearPointerFormat(segment, changeToken, source);
-         WritePointer(changeToken, source, destination);
+         if (ReadPointer(source) != destination) WritePointer(changeToken, source, destination);
          AddPointerToAnchor(segment, changeToken, source);
       }
 
@@ -1389,7 +1399,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          return (name, format);
       }
 
-      private static ErrorInfo TryParseFormat(IDataModel model, string format, int dataIndex, out IFormattedRun run) {
+      private static ErrorInfo TryParseFormat(IDataModel model, string name, string format, int dataIndex, out IFormattedRun run) {
          run = new NoInfoRun(dataIndex);
          var existingRun = model.GetNextRun(dataIndex);
          if (existingRun.Start == run.Start) run = run.MergeAnchor(existingRun.PointerSources);
@@ -1416,7 +1426,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          } else if (format == TrainerPokemonTeamRun.SharedFormatString) {
             run = new TrainerPokemonTeamRun(model, dataIndex, run.PointerSources);
          } else {
-            var errorInfo = TryParse(model, format, dataIndex, null, out var arrayRun);
+            var errorInfo = TryParse(model, name, format, dataIndex, null, out var arrayRun);
             if (errorInfo == ErrorInfo.NoError) {
                run = arrayRun;
             } else if (format != string.Empty) {

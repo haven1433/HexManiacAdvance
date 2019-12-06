@@ -20,7 +20,10 @@ namespace HavenSoft.HexManiac.Core.Models {
       public const string TrainerTableName = "trainerdata";
       public const string EggMovesTableName = "eggmoves";
       public const string EvolutionTableName = "evolutions";
+      public const string TypeChartTableName = "typeChart";
+      public const string TypeChartTableName2 = "typeChart2";
       public const string LevelMovesTableName = "lvlmoves";
+      public const string MultichoiceTableName = "multichoice";
       public const string DecorationsTableName = "decorations";
       public const string RegionalDexTableName = "regionaldex";
       public const string NationalDexTableName = "nationaldex";
@@ -124,6 +127,15 @@ namespace HavenSoft.HexManiac.Core.Models {
             case Emerald: source = 0x1C3EFC; break;
          }
          AddTable(source, MoveDescriptionsName, $"[description<{PCSRun.SharedFormatString}>]{EggMoveRun.MoveNamesTable}-1");
+
+         // multichoice
+         switch (gameCode) {
+            case Ruby: case Sapphire: source = 0x0B50A0; break;
+            case FireRed: source = 0x09CB58; break;
+            case LeafGreen: source = 0x09CB2C; break;
+            case Emerald: source = 0x0E1FB8; break;
+         }
+         AddTable(source, MultichoiceTableName, $"[options<[text<\"\"> unused::]/count> count::]");
       }
 
       private void DecodeDataArrays() {
@@ -292,6 +304,16 @@ namespace HavenSoft.HexManiac.Core.Models {
             case Ruby: case Sapphire: source = 0x041B44; break;
          }
          ObserveAnchorWritten(noChangeDelta, EggMovesTableName, new EggMoveRun(this, ReadPointer(source)));
+
+         // type chart
+         switch (gameCode) {
+            case FireRed: case LeafGreen: source = 0x01E944; break;
+            case Ruby: case Sapphire: source = 0x01CDC8; break;
+            case Emerald: source = 0x047134; break;
+         }
+         AddTable(source, TypeChartTableName, "[attack.types defend.types strength.]!FEFE00");
+         var run = GetNextAnchor(GetAddressFromAnchor(noChangeDelta, -1, TypeChartTableName)) as ITableRun;
+         if (run != null) AddTableDirect(run.Start + run.Length, TypeChartTableName2, "[attack.types defend.types strength.]!FFFF00");
       }
 
       private IReadOnlyList<int> AllSourcesToSameDestination(int source) {
@@ -319,6 +341,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          return -1;
       }
 
+      /// <summary>
+      /// Find a table given a pointer to that table
+      /// </summary>
       private void AddTable(int source, string name, string format) {
          if (source < 0 || source > RawData.Length) return;
          var destination = ReadPointer(source);
@@ -332,9 +357,18 @@ namespace HavenSoft.HexManiac.Core.Models {
             ObserveAnchorWritten(noChangeDelta, GetAnchorFromAddress(-1, array.Start), array);
          }
 
-         var errorInfo = ArrayRun.TryParse(this, format, destination, null, out var arrayRun);
-         if (!errorInfo.HasError) {
-            ObserveAnchorWritten(noChangeDelta, name, arrayRun);
+         AddTableDirect(destination, name, format);
+      }
+
+      /// <summary>
+      /// Find a table given an address for that table
+      /// </summary>
+      private void AddTableDirect(int destination, string name, string format) {
+         using (ModelCacheScope.CreateScope(this)) {
+            var errorInfo = ArrayRun.TryParse(this, format, destination, null, out var tableRun);
+            if (!errorInfo.HasError) {
+               ObserveAnchorWritten(noChangeDelta, name, tableRun);
+            }
          }
       }
    }

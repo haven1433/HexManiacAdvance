@@ -353,6 +353,32 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(compatibilityElementLength, compatibility.ElementContent[0].Length);
       }
 
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void MultichoiceAreFound(string game) {
+         var model = fixture.LoadModel(game);
+         var noChange = new NoDataChangeDeltaModel();
+
+         var multichoiceAddress = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.MultichoiceTableName);
+         var multichoice = (ArrayRun)model.GetNextRun(multichoiceAddress);
+         if (game.Contains("DarkRising")) return;            // dark rising has bugged pointers in the 2nd one, so we don't expect to find many multichoice.
+         Assert.NotInRange(multichoice.ElementCount, 0, 30); // make sure we found at least a few
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void TypeChartIsFound(string game) {
+         var model = fixture.LoadModel(game);
+         var noChange = new NoDataChangeDeltaModel();
+
+         var typeChartAddress = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.TypeChartTableName);
+         var typeChart = (ITableRun)model.GetNextRun(typeChartAddress);
+         Assert.NotInRange(typeChart.ElementCount, 0, 100);
+
+         var typeChartAddress2 = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.TypeChartTableName2);
+         var typeChart2 = (ITableRun)model.GetNextRun(typeChartAddress2);
+      }
+
       // this one actually changes the data, so I can't use the same shared model as everone else.
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]

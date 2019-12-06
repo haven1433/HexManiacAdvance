@@ -285,7 +285,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var destination = model.ReadPointer(itemAddress);
          if (destination == Pointer.NULL) return;
          if (!(model.GetNextRun(destination) is IStreamRun streamRun)) return;
-         if (!pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), itemAddress, destination)) return;
+         if (!pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), itemAddress, destination, null)) return;
 
          var streamElement = new StreamArrayElementViewModel(viewPort, model, item.Name, itemAddress);
          var streamElementName = item.Name;

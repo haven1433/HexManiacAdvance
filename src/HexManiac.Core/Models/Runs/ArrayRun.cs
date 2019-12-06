@@ -129,6 +129,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public const char DoubleByteIntegerFormat = ':';
       public const char ArrayAnchorSeparator = '/';
 
+      private const int JunkLimit = 80;
+
       private readonly IDataModel owner;
 
       // length in bytes of the entire array
@@ -214,7 +216,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             while (Start + byteLength + ElementLength <= nextRun.Start && DataMatchesElementFormat(owner, Start + byteLength, ElementContent, flags, nextRun)) {
                byteLength += ElementLength;
                elementCount++;
-               if (elementCount == 100) flags |= FormatMatchFlags.AllowJunkAfterText;
+               if (elementCount == JunkLimit) flags |= FormatMatchFlags.AllowJunkAfterText;
             }
             LengthFromAnchor = string.Empty;
             ElementCount = Math.Max(1, elementCount); // if the user said there's a format here, then there is, even if the format it wrong.
@@ -245,14 +247,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          PointerSourcesForInnerElements = pointerSourcesForInnerElements;
       }
 
-      public static ErrorInfo TryParse(IDataModel data, string format, int start, IReadOnlyList<int> pointerSources, out ITableRun self) {
+      public static ErrorInfo TryParse(IDataModel data, string format, int start, IReadOnlyList<int> pointerSources, out ITableRun self) => TryParse(data, "UNUSED", format, start, pointerSources, out self);
+
+      public static ErrorInfo TryParse(IDataModel data, string name, string format, int start, IReadOnlyList<int> pointerSources, out ITableRun self) {
          try {
             using (ModelCacheScope.CreateScope(data)) {
                self = new ArrayRun(data, format, start, pointerSources);
             }
          } catch (ArrayRunParseException e) {
             // failed to parse as an array... can we parse as a table stream?
-            if (TableStreamRun.TryParseTableStream(data, start, pointerSources, format, out var tableStreamRun)) {
+            if (TableStreamRun.TryParseTableStream(data, start, pointerSources, name, format, null, out var tableStreamRun)) {
                self = tableStreamRun;
             } else {
                self = null;
@@ -314,7 +318,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             int currentLength = 0;
             int currentAddress = run.Start;
             while (true) {
-               if (currentLength > 100) flags |= FormatMatchFlags.AllowJunkAfterText; // we've gone long enough without junk data to be fairly sure that we're looking at something real
+               if (currentLength > JunkLimit) flags |= FormatMatchFlags.AllowJunkAfterText; // we've gone long enough without junk data to be fairly sure that we're looking at something real
                if (nextArray.Start < currentAddress) nextArray = data.GetNextAnchor(nextArray.Start + 1);
                if (DataMatchesElementFormat(data, currentAddress, elementContent, flags, nextArray)) {
                   currentLength++;
@@ -592,6 +596,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (format == ElementContentType.Integer && segments.Length > formatLength && segments[formatLength] != ' ') {
                segments = segments.Substring(formatLength);
                if (int.TryParse(segments, out var maxValue)) {
+                  var endOfToken = segments.IndexOf(' ');
+                  if (endOfToken == -1) endOfToken = segments.Length;
+                  segments = segments.Substring(endOfToken).Trim();
                   list.Add(new ArrayRunEnumSegment(name, segmentLength, segments));
                } else {
                   var endOfToken = segments.IndexOf(' ');
@@ -692,14 +699,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private static bool DataMatchesElementFormat(IDataModel owner, int start, IReadOnlyList<ArrayRunElementSegment> segments, FormatMatchFlags flags, IFormattedRun nextAnchor) {
          foreach (var segment in segments) {
             if (start + segment.Length > owner.Count) return false;
-            if (!DataMatchesSegmentFormat(owner, start, segment, flags, nextAnchor)) return false;
+            if (start + segment.Length > nextAnchor.Start && nextAnchor is ArrayRun) return false; // don't blap over existing arrays
+            if (!DataMatchesSegmentFormat(owner, start, segment, flags, segments)) return false;
             start += segment.Length;
          }
          return true;
       }
 
-      private static bool DataMatchesSegmentFormat(IDataModel owner, int start, ArrayRunElementSegment segment, FormatMatchFlags flags, IFormattedRun nextAnchor) {
-         if (start + segment.Length > nextAnchor.Start && nextAnchor is ArrayRun) return false; // don't blap over existing arrays
+      public static bool DataMatchesSegmentFormat(IDataModel owner, int start, ArrayRunElementSegment segment, FormatMatchFlags flags, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          switch (segment.Type) {
             case ElementContentType.PCS:
                int readLength = PCSString.ReadString(owner, start, true, segment.Length);
@@ -730,14 +737,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (segment is ArrayRunEnumSegment enumSegment) {
                   return owner.ReadMultiByteValue(start, segment.Length) < enumSegment.GetOptions(owner).Count;
                } else {
-                  return true;
+                  if (flags.HasFlag(FormatMatchFlags.AllowJunkAfterText)) return true; // don't bother verifying if junk is allowed
+                  return segment.Length < 4 || owner[start + 3] < 0x08; // we want an integer, not a pointer
                }
             case ElementContentType.Pointer:
                var destination = owner.ReadPointer(start);
                if (destination == Pointer.NULL) return true;
                if (0 > destination || destination > owner.Count) return false;
                if (segment is ArrayRunPointerSegment pointerSegment) {
-                  if (!pointerSegment.DestinationDataMatchesPointerFormat(owner, new NoDataChangeDeltaModel(), start, destination)) return false;
+                  if (!pointerSegment.DestinationDataMatchesPointerFormat(owner, new NoDataChangeDeltaModel(), start, destination, sourceSegments)) return false;
                }
                return true;
             case ElementContentType.BitArray:
