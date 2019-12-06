@@ -173,7 +173,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
             // for ever NoInfoRun, something points to it
             if ((runs[i] is NoInfoRun || runs[i] is PointerRun) && !anchorForAddress.ContainsKey(runs[i].Start)) {
-               // Debug.Assert(runs[i].PointerSources == null || runs[i].PointerSources.Count > 0, "Unnamed NoInfoRuns must have something pointing to them!");
+               Debug.Assert(runs[i].PointerSources == null || runs[i].PointerSources.Count > 0, "Unnamed NoInfoRuns must have something pointing to them!");
             }
 
             // for every run with sources, make sure the pointer at that source actually points to it
@@ -1083,6 +1083,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          // if it's any other kind of run with no name and no pointers to it, remove it.
          if (newAnchorRun.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(newAnchorRun.Start) && !(newAnchorRun is PointerRun)) {
             runs.RemoveAt(index);
+         } else if (newAnchorRun.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(newAnchorRun.Start) && newAnchorRun is PointerRun) {
+            // if it IS a pointer run, we still need to remove the anchor by setting the pointerSources to null.
+            runs[index] = new PointerRun(newAnchorRun.Start);
          } else {
             runs[index] = newAnchorRun;
             changeToken.AddRun(newAnchorRun);
