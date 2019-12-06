@@ -365,6 +365,20 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.NotInRange(multichoice.ElementCount, 0, 30); // make sure we found at least a few
       }
 
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void TypeChartIsFound(string game) {
+         var model = fixture.LoadModel(game);
+         var noChange = new NoDataChangeDeltaModel();
+
+         var typeChartAddress = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.TypeChartTableName);
+         var typeChart = (ITableRun)model.GetNextRun(typeChartAddress);
+         Assert.NotInRange(typeChart.ElementCount, 0, 100);
+
+         var typeChartAddress2 = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.TypeChartTableName2);
+         var typeChart2 = (ITableRun)model.GetNextRun(typeChartAddress2);
+      }
+
       // this one actually changes the data, so I can't use the same shared model as everone else.
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
