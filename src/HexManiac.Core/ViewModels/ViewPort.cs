@@ -264,7 +264,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var dataIndex2 = scroll.ViewPointToDataIndex(SelectionEnd);
          var left = Math.Min(dataIndex1, dataIndex2);
          var length = Math.Abs(dataIndex1 - dataIndex2) + 1;
-         if (left < 0) { length += left;left = 0; }
+         if (left < 0) { length += left; left = 0; }
          if (left + length > Model.Count) length = Model.Count - left;
          var result = new StringBuilder();
          for (int i = 0; i < length; i++) result.Append(Model[left + i].ToString("X2") + " ");
@@ -953,7 +953,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
             // option 3: the value is in an enum used by a custom table stream
             if (child is TableStreamRun table) {
-               foreach(var result in table.Search(parentArrayName, offsets.ElementIndex)) yield return result;
+               foreach (var result in table.Search(parentArrayName, offsets.ElementIndex)) yield return result;
             }
          }
       }
