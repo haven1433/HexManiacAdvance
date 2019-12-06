@@ -5,7 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:hsg3hwr="clr-namespace:HavenSoft.HexManiac.WPF.Resources"
              mc:Ignorable="d" Background="{DynamicResource Background}"
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="800"
+             HorizontalAlignment="Center">
    <Grid.ColumnDefinitions>
       <ColumnDefinition/>
       <ColumnDefinition Width="20"/>
@@ -22,11 +23,13 @@
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>movenames / movedata / movedescriptions<LineBreak/>
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>abilitynames / abilitydescriptions<LineBreak/>
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>trainerclassnames / trainerdata<LineBreak/>
-      <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>types<LineBreak/>
+      <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>types / typechart<LineBreak/>
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>items / itemimages<LineBreak/>
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>tutormoves / tutorcompatibility<LineBreak/>
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>tmmoves / tmcompatibility<LineBreak/>
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>dexinfo / regionaldex / nationaldex / hoennToNational<LineBreak/>
+      <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>wild<LineBreak/>
+      <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>multichoice<LineBreak/>
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>decorations<LineBreak/>
    </TextBlock>
    <StackPanel Grid.Column="2" VerticalAlignment="Center" TextBlock.Foreground="{DynamicResource Primary}" >
