@@ -58,9 +58,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Results.Add(new ContextItem("Follow Pointer", arg => ViewPort.FollowLink(point.X, point.Y)) { ShortcutText = "Ctrl+Click" });
 
          var pointerAddress = ViewPort.ConvertViewPointToAddress(point);
-         var destination = ViewPort.Model.GetNextRun(ViewPort.Model.ReadPointer(pointerAddress));
-         if (!(destination is NoInfoRun)) {
-            Results.Add(new ContextItem("Repoint to New Copy", arg => ViewPort.RepointToNewCopy(pointerAddress)));
+         var pointerDestination = ViewPort.Model.ReadPointer(pointerAddress);
+         if (pointerDestination == Pointer.NULL) {
+            Results.Add(new ContextItem("Create New Data", arg => ViewPort.RepointToNewCopy(pointerAddress)));
+         } else {
+            var destination = ViewPort.Model.GetNextRun(pointerDestination);
+            if (!(destination is NoInfoRun)) {
+               Results.Add(new ContextItem("Repoint to New Copy", arg => ViewPort.RepointToNewCopy(pointerAddress)));
+            }
          }
 
          var arrayRun = ViewPort.Model.GetNextRun(pointerAddress) as ITableRun;

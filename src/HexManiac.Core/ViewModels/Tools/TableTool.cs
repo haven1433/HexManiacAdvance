@@ -282,10 +282,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void AddChildrenFromPointerSegment(int itemAddress, ArrayRunElementSegment item, int parentIndex) {
          if (!(item is ArrayRunPointerSegment pointerSegment)) return;
+         if (pointerSegment.InnerFormat == string.Empty) return;
          var destination = model.ReadPointer(itemAddress);
-         if (destination == Pointer.NULL) return;
-         if (!(model.GetNextRun(destination) is IStreamRun streamRun)) return;
-         if (!pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), itemAddress, destination, null)) return;
+         IStreamRun streamRun = null;
+         if (destination != Pointer.NULL) {
+            if (!(model.GetNextRun(destination) is IStreamRun destinationStream)) return;
+            if (!pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), itemAddress, destination, null)) return;
+            streamRun = destinationStream;
+         }
 
          var streamElement = new StreamArrayElementViewModel(viewPort, model, item.Name, itemAddress);
          var streamElementName = item.Name;

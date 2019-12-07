@@ -233,7 +233,20 @@
                                     <Run Text="pointers."/>
                                  </TextBlock>
                               </DockPanel>
-                              <TextBox UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Margin="20,2,2,2" AcceptsReturn="True"/>
+                              <DockPanel Visibility="{Binding CanCreateNew, Converter={StaticResource BoolToVisibility}}">
+                                 <Button Content="Cretae new data" Command="{Binding CreateNew}" DockPanel.Dock="Right">
+                                    <Button.ToolTip>
+                                       <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                                          <TextBlock TextAlignment="Left">
+                                             Create new data in free space that <LineBreak/>
+                                             matches the expected format.
+                                          </TextBlock>
+                                       </ToolTip>
+                                    </Button.ToolTip>
+                                 </Button>
+                              </DockPanel>
+                              <TextBox UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Margin="20,2,2,2" AcceptsReturn="True"
+                                 Visibility="{Binding ShowContent, Converter={StaticResource BoolToVisibility}}"/>
                            </StackPanel>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:ButtonArrayElementViewModel}">
