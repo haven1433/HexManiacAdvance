@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Linq;
 
@@ -67,47 +68,59 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       }
 
       private void InsertRoutine_GetTutorMove(ViewPort viewPort, int address, int originalLength) {
-         /*
-         GetTutorMove(index)
-             lsl   r0, r0, #1            @ 00000_00001_000_000   0040
-             ldr   r1, =move_tutor_list  @ 01001_001_00000001    4901
-             ldrh  r0, [r0, r1]          @ 0101101_001_000_000   5A40
-             bx    lr                    @ 010001110_1_110_000   4770
-         move_tutor_list:
-             .word <tutormoves>
-         */
+         var token = viewPort.CurrentChange;
+         var model = viewPort.Model;
+         model.ClearFormat(token, address, originalLength);
 
-         viewPort.Edit($"@{address:X6} 40 00 01 49 40 5A 70 47 <{MoveTutors}> "); // new data only 0xC long
-         for (int i = 0x0C; i < originalLength; i++) viewPort.Edit("00 ");
+         var code = $@"
+            GetTutorMove: @ (index) -> moveID
+               lsl   r0, r0, #1
+               ldr   r1, [pc, <move_tutor_list>]
+               ldrh  r0, [r0, r1]
+               bx    lr
+            move_tutor_list:
+               .word <tutormoves>
+         ".Split(Environment.NewLine);
+
+         var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, address, code);
+         for (int i = 0; i < bytes.Count; i++) token.ChangeData(model, address + i, bytes[i]);
+         for (int i = bytes.Count; i < originalLength; i++) token.ChangeData(model, address + i, 0x00);
+
+         viewPort.Edit($"@{address + bytes.Count - 4:X6} <{MoveTutors}>");
       }
 
       private void InsertRoutine_CanPokemonLearnTutorMove(ViewPort viewPort, int address, int originalLength) {
-         /*
-         CanPokemonLearnTutorMove(pokemon, tutor_move)
-             ldr     r2, =move_tutor_count          @ 01001_010_00000111    4A07
-             add     r2, #7                         @ 00110_010_00000111    3207
-             lsr     r2, r2, #3                     @ 00001_00011_010_010   08D2
-             mul     r0, r2                         @ 0100001101_010_000    4350
-             lsr     r2, r1, #3                     @ 00001_00011_001_010   08CA
-             add     r0, r0, r2                     @ 0001100_010_000_000   1880
-             mov     r2, #7                         @ 00100_010_00000111    2207
-             and     r1, r2                         @ 0100000000_010_001    4011
-             ldr     r2, =move_tutor_compatibility  @ 01001_010_00000010    4A02
-             ldrb    r0, [r2, r0]                   @ 0101110_000_010_000   5C10
-             lsr     r0, r1                         @ 0100000011_001_000    40C8
-             mov     r2, #1                         @ 00100_010_00000001    2201
-             and     r0, r2                         @ 0100000000_010_000    4010
-             bx      lr                             @ 010001110_1_110_000   4770
-         move_tutor_compatibility:
-             .word <tutorcompatibility>
-         move_tutor_count:
-             .word ::tutormoves
-         */
-         viewPort.Edit($"@{address:X6} ");
-         viewPort.Edit("07 4A 07 32 D2 08 50 43 CA 08 80 18 07 22 11 40 ");
-         viewPort.Edit("02 4A 10 5C C8 40 01 22 10 40 70 47 ");
-         viewPort.Edit($"<{TutorCompatibility}> ::{MoveTutors} ");  // new data only 0x24 long
-         for (int i = 0x24; i < originalLength; i++) viewPort.Edit("00 ");
+         var token = viewPort.CurrentChange;
+         var model = viewPort.Model;
+         model.ClearFormat(token, address, originalLength);
+
+         var code = $@"
+            CanPokemonLearnTutorMove: @ (pokemon, tutor_move) -> bool
+               ldr     r2, [pc, <move_tutor_count>]
+               add     r2, #7
+               lsr     r2, r2, #3
+               mul     r0, r2
+               lsr     r2, r1, #3
+               add     r0, r0, r2
+               mov     r2, #7
+               and     r1, r2
+               ldr     r2, [pc, <move_tutor_compatibility>]
+               ldrb    r0, [r2, r0]
+               lsr     r0, r1
+               mov     r2, #1
+               and     r0, r2
+               bx      lr
+            move_tutor_compatibility:
+               .word <tutorcompatibility>
+            move_tutor_count:
+               .word 0 @ ::tutormoves
+         ".Split(Environment.NewLine);
+
+         var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, address, code);
+         for (int i = 0; i < bytes.Count; i++) token.ChangeData(model, address + i, bytes[i]);
+         for (int i = bytes.Count; i < originalLength; i++) token.ChangeData(model, address + i, 0x00);
+
+         viewPort.Edit($"@{address + bytes.Count - 8:X6} <{TutorCompatibility}> ::{MoveTutors} ");
       }
    }
 }

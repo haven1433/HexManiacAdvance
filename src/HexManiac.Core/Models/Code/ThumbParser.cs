@@ -219,6 +219,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             if (part.StartsWith("0") || part.StartsWith("1")) {
                var code = ToBits(part);
                instructionParts.Add(new InstructionPart(InstructionArgType.OpCode, code, part.Length));
+            } else if (part == "lr") {
+               instructionParts.Add(new InstructionPart(InstructionArgType.Register, 0, 3, part));
             } else if (part.StartsWith("r")) {
                instructionParts.Add(new InstructionPart(InstructionArgType.Register, 0, 3, part));
             } else if (part.StartsWith("#")) {
@@ -478,6 +480,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
             // read a register
             if (template[0] == 'r') {
+               if (line.StartsWith("lr")) line = "r14" + line.Substring(2);
                if (line[0] != 'r') return false;
                var name = "r" + template[1];
                var instruction = instructionParts.Single(i => i.Name == name);
