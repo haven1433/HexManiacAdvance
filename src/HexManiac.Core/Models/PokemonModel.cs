@@ -708,7 +708,12 @@ namespace HavenSoft.HexManiac.Core.Models {
             return;
          }
 
-         if (segment == null) return;
+         if (segment == null) {
+            // we don't know anything about the format, but we know a pointer starts here.
+            // clear any existing formats that conflict with this pointer.
+            if (run.Start != nextRun.Start) ClearFormat(token, run.Start, run.Length);
+            return;
+         }
          if (segment.InnerFormat == PCSRun.SharedFormatString) {
             var length = PCSString.ReadString(this, run.Start, true);
             if (length > 0) {

@@ -15,6 +15,7 @@ namespace HavenSoft.HexManiac.Core.Models {
    /// </summary>
    public class HardcodeTablesModel : PokemonModel {
       public const string WildTableName = "wild";
+      public const string SpecialsTable = "specials";
       public const string ItemsTableName = "items";
       public const string DexInfoTableName = "dexinfo";
       public const string TrainerTableName = "trainerdata";
@@ -248,6 +249,15 @@ namespace HavenSoft.HexManiac.Core.Models {
          source = Find("0348048009E00000FFFF0000");
          string table(int length) => $"<[rate:: list<[low. high. species:pokenames]{length}>]1>";
          AddTable(source, WildTableName, $"[bank. map. unused: grass{table(12)} surf{table(5)} tree{table(5)} fish{table(10)}]");
+
+         // specials
+         switch (gameCode) {
+            case FireRed: case LeafGreen: source = 0x069F18; break;
+            case Ruby: source = 0x0658B4; break;
+            case Sapphire: source = 0x0658B8; break;
+            case Emerald: source = 0x099314; break;
+         }
+         AddTable(source, SpecialsTable, "[code<>]");
       }
 
       private void DecodeDexArrays() {

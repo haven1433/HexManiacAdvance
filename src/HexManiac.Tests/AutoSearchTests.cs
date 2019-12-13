@@ -379,6 +379,17 @@ namespace HavenSoft.HexManiac.Tests {
          var typeChart2 = (ITableRun)model.GetNextRun(typeChartAddress2);
       }
 
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void SpecialsAreFound(string game) {
+         var model = fixture.LoadModel(game);
+         var noChange = new NoDataChangeDeltaModel();
+
+         var specialsAddress = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.SpecialsTable);
+         var specials = (ITableRun)model.GetNextRun(specialsAddress);
+         Assert.NotInRange(specials.ElementCount, 0, 300);
+      }
+
       // this one actually changes the data, so I can't use the same shared model as everone else.
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]

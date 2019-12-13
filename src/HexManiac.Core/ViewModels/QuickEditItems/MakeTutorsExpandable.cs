@@ -19,9 +19,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          // require that I have a tab with real data, not a search tab or a diff tab or something
          if (!(viewPortInterface is ViewPort viewPort)) return false;
 
+         // require that we fan find the specials table and that it's long enough
+         var specialsAddress = viewPort.Model.GetAddressFromAnchor(viewPort.CurrentChange, -1, HardcodeTablesModel.SpecialsTable);
+         if (specialsAddress < 0 || specialsAddress > viewPort.Model.Count) return false;
+         var specials = viewPort.Model.GetNextRun(specialsAddress) as ITableRun;
+         if (specials == null) return false;
+         if (specials.ElementCount < 397) return false;
+
          // require that this data actually supports this change
          var model = viewPort.Model;
-         var (getTutorMove, canPokemonLearnTutorMove, getTutorMove_Length, canPokemonLearnTutorMove_Length) = GetOffsets(viewPort);
+         var gameCode = new string(Enumerable.Range(0xAC, 4).Select(i => ((char)model[i])).ToArray());
+         var (getTutorMove, canPokemonLearnTutorMove, getTutorMove_Length, canPokemonLearnTutorMove_Length) = GetOffsets(viewPort, gameCode);
          if (getTutorMove < 0 || canPokemonLearnTutorMove < 0) return false;
 
          // require that this data has a tutormoves and tutorcompatibility table, since we're messing with those
@@ -39,12 +47,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       public ErrorInfo Run(IViewPort viewPortInterface) {
          var viewPort = (ViewPort)viewPortInterface;
          var model = viewPort.Model;
-         var (getTutorMove, canPokemonLearnTutorMove, getTutorMove_Length, canPokemonLearnTutorMove_Length) = GetOffsets(viewPort);
+         var token = viewPort.CurrentChange;
+         var gameCode = new string(Enumerable.Range(0xAC, 4).Select(i => ((char)model[i])).ToArray());
+
+         var (getTutorMove, canPokemonLearnTutorMove, getTutorMove_Length, canPokemonLearnTutorMove_Length) = GetOffsets(viewPort, gameCode);
+         var specialsAddress = model.GetAddressFromAnchor(token, -1, HardcodeTablesModel.SpecialsTable);
+         var tutorSpecial = model.ReadPointer(specialsAddress + 397 * 4); // Emerald tutors is actually special 477, but we don't need to edit it so it doesn't matter.
+
          var tutormoves = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, MoveTutors);
          var tutorcompatibility = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, TutorCompatibility);
 
          InsertRoutine_GetTutorMove(viewPort, getTutorMove, getTutorMove_Length);
          InsertRoutine_CanPokemonLearnTutorMove(viewPort, canPokemonLearnTutorMove, canPokemonLearnTutorMove_Length);
+         UpdateRoutine_TutorSpecial(viewPort, tutorSpecial, gameCode);
 
          CanRunChanged?.Invoke(this, EventArgs.Empty);
 
@@ -53,9 +68,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
       public void TabChanged() => CanRunChanged?.Invoke(this, EventArgs.Empty);
 
-      public static (int getTutorMove, int canPokemonLearnTutorMove, int getTutorMove_Length, int canPokemonLearnTutorMove_Length) GetOffsets(ViewPort viewPort) {
-         var model = viewPort.Model;
-         var gameCode = new string(Enumerable.Range(0xAC, 4).Select(i => ((char)model[i])).ToArray());
+      public static (int getTutorMove, int canPokemonLearnTutorMove, int getTutorMove_Length, int canPokemonLearnTutorMove_Length) GetOffsets(ViewPort viewPort, string gameCode) {
          if (gameCode == FireRed) {
             return (0x120BA8, 0x120BE8, 0x40, 0x54);
          } else if (gameCode == LeafGreen) {
@@ -121,6 +134,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          for (int i = bytes.Count; i < originalLength; i++) token.ChangeData(model, address + i, 0x00);
 
          viewPort.Edit($"@{address + bytes.Count - 8:X6} <{TutorCompatibility}> ::{MoveTutors} ");
+      }
+
+      private void UpdateRoutine_TutorSpecial(ViewPort viewPort, int tutorSpecial, string gameCode) {
+         if (gameCode == Emerald) return; // Emerald's tutor special doesn't have a limiter, so it doesn't need to be updated.
+
+         // change the code from 'branch-hi' to 'branch-never' so that the standard codepath is taken for tutorID>14
+         const int instructionIndex = 5;
+         const int instructionWidth = 2;
+         var branchOffset = tutorSpecial + instructionIndex * instructionWidth;
+         viewPort.CurrentChange.ChangeData(viewPort.Model, branchOffset, 0xDE);
       }
    }
 }
