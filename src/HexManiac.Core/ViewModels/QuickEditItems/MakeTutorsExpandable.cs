@@ -143,7 +143,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          const int instructionIndex = 5;
          const int instructionWidth = 2;
          var branchOffset = tutorSpecial + instructionIndex * instructionWidth;
-         viewPort.CurrentChange.ChangeData(viewPort.Model, branchOffset, 0xDE);
+         viewPort.CurrentChange.ChangeData(viewPort.Model, branchOffset, 0xDF);
       }
    }
 }
