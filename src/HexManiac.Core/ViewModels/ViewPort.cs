@@ -9,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -899,6 +900,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             results.AddRange(Search(searchBytes).Select(result => (result, result + 3)));
          }
 
+         // it might be a bl command
+         if (cleanedSearchString.StartsWith("BL ") && cleanedSearchString.Contains("<") && cleanedSearchString.EndsWith(">")) {
+            results.AddRange(FindBranchLink(cleanedSearchString));
+         }
+
          // attempt to parse the search string fully
          if (TryParseSearchString(searchBytes, cleanedSearchString, errorOnParseError: results.Count == 0)) {
             // find matches
@@ -913,6 +919,46 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          results = right.Concat(left).ToList();
          NotifyNumberOfResults(rawSearch, results.Count);
          return results;
+      }
+
+      private IEnumerable<(int start, int end)> FindBranchLink(string command) {
+         var addressStart = command.IndexOf(" <") + 2;
+         var addressEnd = command.LastIndexOf(">");
+         if (addressEnd < addressStart) yield break;
+         var addressText = command.Substring(addressStart, addressEnd - addressStart);
+         if (!int.TryParse(addressText, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int address)) {
+            address = Model.GetAddressFromAnchor(CurrentChange, -1, addressText);
+            if (address < 0 || address >= Model.Count) yield break;
+         }
+
+         // I want to know, for any given point in the raw data, if it's possible a branch-link command pointing to `address`
+         // branch link commands are always 4 bytes and have the following format:
+         // 11111 #11 11110 #11, where #=pc+#*2+4
+         // note that this command is 4 bytes long, stored byte reversed. So in the data, it's:
+         // 8 bits: bits 11-18 of a 22 bit signed offset
+         // 8 bits:
+         //         the low 3 bits are bits 19-21 of a 22 bit signed offset
+         //         the high 5 bits are always 11110
+         // 8 bits: bits 0-7 of a 22 bit signed offset
+         // 8 bits:
+         //         the low 3 bits are bits 8-10 of a 22 bit signed offset
+         //         the high 5 bits are always 11111
+         // the command is always 2-byte aligned
+         //
+         // bit order is really weird (11-18, 19-21, 0-7, 8-10) because BL is made of **2** instructions,
+         // and each instruction is stored little-endian
+
+         // start as early as possible in the file: maximum offset, or offset for source=0
+         int offset = Math.Min(0b0111111111111111111111, (address - 4) / 2);
+         for (; true; offset--) { // traveling down the offsets means traveling up the source options
+            int source = address - 4 - offset * 2;
+            if (source + 4 > Model.RawData.Length) break;
+            if (Model.RawData[source + 2] != (byte)offset) continue; // check source+2 first because it's the simplest, and thus fastest
+            if (Model.RawData[source + 0] != (byte)(offset >> 11)) continue;
+            if (Model.RawData[source + 3] != (0b11111000 | (0b111 & offset >> 8))) continue;
+            if (Model.RawData[source + 1] != (0b11110000 | (0b111 & offset >> 19))) continue;
+            yield return (source, source + 3);
+         }
       }
 
       private IEnumerable<(int start, int end)> FindUnquotedText(string cleanedSearchString, List<ISearchByte> searchBytes) {
