@@ -34,6 +34,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public const string MoveInfoListName = "moveinfo";
       public const string MoveEffectListName = "moveeffects";
       public const string MoveTargetListName = "movetarget";
+      public const string EvolutionMethodListName = "evolutionmethods";
       public const string DecorationsShapeListName = "decorshape";
       public const string DecorationsCategoryListName = "decorcategory";
       public const string DecorationsPermissionListName = "decorpermissions";
@@ -164,7 +165,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             case Ruby: case Sapphire: source = 0x3F534; break;
             case Emerald: source = 0x6D140; break;
          }
-         AddTable(source, EvolutionTableName, $"[[method: arg: species:{EggMoveRun.PokemonNameTable} unused:]5]{EggMoveRun.PokemonNameTable}");
+         AddTable(source, EvolutionTableName, $"[[method:{EvolutionMethodListName} arg: species:{EggMoveRun.PokemonNameTable} unused:]5]{EggMoveRun.PokemonNameTable}");
 
          // items
          switch (gameCode) {
@@ -614,6 +615,27 @@ namespace HavenSoft.HexManiac.Core.Models {
             "3x1",
             "2x2",
             "2x1",
+         });
+         #endregion
+
+         #region Evolution Methods
+         SetList(EvolutionMethodListName, new[] {
+            "None",
+            "Happiness",
+            "Happy Day",
+            "Happy Night",
+            "Level",
+            "Trade",
+            "Trade Item",
+            "Stone",
+            "Level High Attack",
+            "Level Attack matches Defense",
+            "Level High Defense",
+            "Level Odd Personality",
+            "Level Even Personality",
+            "Level And New Pokemon",
+            "Level But New Pokemon",
+            "Beauty",
          });
          #endregion
       }

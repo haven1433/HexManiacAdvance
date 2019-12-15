@@ -398,6 +398,7 @@ namespace HavenSoft.HexManiac.Tests {
             new[] { game, HardcodeTablesModel.DecorationsShapeListName, 10 },
             new[] { game, HardcodeTablesModel.DecorationsPermissionListName, 5 },
             new[] { game, HardcodeTablesModel.DecorationsCategoryListName, 8 },
+            new[] { game, HardcodeTablesModel.EvolutionMethodListName, 16 },
          }
       );
 
