@@ -31,6 +31,13 @@ namespace HavenSoft.HexManiac.Core.Models {
       public const string MoveDescriptionsName = "movedescriptions";
       public const string ConversionDexTableName = "hoennToNational";
 
+      public const string MoveInfoListName = "moveinfo";
+      public const string MoveEffectListName = "moveeffects";
+      public const string MoveTargetListName = "movetarget";
+      public const string DecorationsShapeListName = "decorshape";
+      public const string DecorationsCategoryListName = "decorcategory";
+      public const string DecorationsPermissionListName = "decorpermissions";
+
       private readonly string gameCode;
       private readonly ModelDelta noChangeDelta = new NoDataChangeDeltaModel();
 
@@ -53,6 +60,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          var gamesToDecode = new[] { Ruby, Sapphire, Emerald, FireRed, LeafGreen };
          if (gamesToDecode.Contains(gameCode)) {
+            AddDefaultLists();
             DecodeHeader();
             DecodeNameArrays();
             DecodeDataArrays();
@@ -171,7 +179,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             case FireRed: case LeafGreen: case Emerald: source = 0x0001CC; break;
             case Ruby: case Sapphire: source = 0x00CA54; break;
          }
-         format = $"[effect. power. type.types accuracy. pp. effectAccuracy. target. priority. more::]{EggMoveRun.MoveNamesTable}";
+         format = $"[effect.{MoveEffectListName} power. type.types accuracy. pp. effectAccuracy. target|b[]{MoveTargetListName} priority. info|b[]{MoveInfoListName} unused. unused:]{EggMoveRun.MoveNamesTable}";
          AddTable(source, "movedata", format);
 
          // lvlmoves
@@ -180,7 +188,9 @@ namespace HavenSoft.HexManiac.Core.Models {
             case Emerald: source = 0x06930C; break;
             case Ruby: case Sapphire: source = 0x03B7BC; break;
          }
-         AddTable(source, LevelMovesTableName, $"[movesFromLevel<{PLMRun.SharedFormatString}>]{EggMoveRun.PokemonNameTable}");
+         using (ModelCacheScope.CreateScope(this)) { // cares about pokenames and movenames
+            AddTable(source, LevelMovesTableName, $"[movesFromLevel<{PLMRun.SharedFormatString}>]{EggMoveRun.PokemonNameTable}");
+         }
 
          // tutormoves / tutorcompatibility
          if (gameCode != Ruby && gameCode != Sapphire) {
@@ -243,7 +253,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             case FireRed: case LeafGreen: case Emerald: source = 0x00014C; break;
             case Ruby: case Sapphire: source = 0x0B3AC8; break;
          }
-         AddTable(source, DecorationsTableName, $"[id. name\"\"16 permission. shape. category. price:: description<\"\"> graphics<>]");
+         AddTable(source, DecorationsTableName, $"[id. name\"\"16 permission.{DecorationsPermissionListName} shape.{DecorationsShapeListName} category.{DecorationsCategoryListName} price:: description<\"\"> graphics<>]");
 
          // wild pokemon
          source = Find("0348048009E00000FFFF0000");
@@ -324,6 +334,288 @@ namespace HavenSoft.HexManiac.Core.Models {
          AddTable(source, TypeChartTableName, "[attack.types defend.types strength.]!FEFE00");
          var run = GetNextAnchor(GetAddressFromAnchor(noChangeDelta, -1, TypeChartTableName)) as ITableRun;
          if (run != null) AddTableDirect(run.Start + run.Length, TypeChartTableName2, "[attack.types defend.types strength.]!FFFF00");
+      }
+
+      private void AddDefaultLists() {
+         #region Move Effects
+         var moveEffects = new string[214];
+         moveEffects[0] = "None";
+         moveEffects[1] = "SleepPrimary";
+         moveEffects[2] = "Poison";
+         moveEffects[3] = "HealHalf";
+         moveEffects[4] = "Burn";
+         moveEffects[5] = "Freeze";
+         moveEffects[6] = "Paralyze";
+         moveEffects[7] = "Suicide";
+         moveEffects[8] = "HealHalfIfOpponentSleeping";
+         moveEffects[9] = "RepeatFoeMove";
+         moveEffects[10] = "RaiseAttackPrimary";
+         moveEffects[11] = "RaiseDefensePrimary";
+         moveEffects[12] = "???RaiseSpeedPrimary???";
+         moveEffects[13] = "RaiseAttackSpAttackPrimary";
+         moveEffects[14] = "unknown1";
+         moveEffects[15] = "???RaiseAccuracyPrimary???";
+         moveEffects[16] = "RaiseEvasivenessPrimary";
+         moveEffects[17] = "NeverMiss";
+         moveEffects[18] = "LowerAttackPrimary";
+         moveEffects[19] = "LowerDefensePrimary";
+         moveEffects[20] = "LowerSpeedPrimary";
+         moveEffects[21] = "???LowerAttackSpAttackPrimary???";
+         moveEffects[22] = "unknown2";
+         moveEffects[23] = "LowerAccuracyPrimary";
+         moveEffects[24] = "LowerEvasionPrimary";
+         moveEffects[25] = "RemoveStateChanges";
+         moveEffects[26] = "Bide";
+         moveEffects[27] = "2to3turnsThenConfused";
+         moveEffects[28] = "OpponentSwitch";
+         moveEffects[29] = "2to5hits";
+         moveEffects[30] = "ChangeTypeToFriendlyMove";
+         moveEffects[31] = "Flinch";
+         moveEffects[32] = "Recover";
+         moveEffects[33] = "BadPoisonPrimary";
+         moveEffects[34] = "Money";
+         moveEffects[35] = "RaiseSpDef2Wall";
+         moveEffects[36] = "ParalyzeBurnFreeze";
+         moveEffects[37] = "Rest";
+         moveEffects[38] = "OHKO";
+         moveEffects[39] = "2turnHighCrit";
+         moveEffects[40] = "HalfDamage";
+         moveEffects[41] = "20Damage";
+         moveEffects[42] = "2to5turnTrap";
+         moveEffects[43] = "HighCrit";
+         moveEffects[44] = "2hits";
+         moveEffects[45] = "MissHurtSelf";
+         moveEffects[46] = "PreventStatReduction";
+         moveEffects[47] = "RaiseCriticalRate";
+         moveEffects[48] = "25Recoil";
+         moveEffects[49] = "ConfusionPrimary";
+         moveEffects[50] = "RaiseAttack2Primary";
+         moveEffects[51] = "RaiseDefense2Primary";
+         moveEffects[52] = "RaiseSpeed2Primary";
+         moveEffects[53] = "RaiseSpAtk2Primary";
+         moveEffects[54] = "RaiseSpDef2Primary";
+         moveEffects[55] = "???RaiseAccuracy2Primary???";
+         moveEffects[56] = "???RaiseEvasiveness2Primary???";
+         moveEffects[57] = "Transform";
+         moveEffects[58] = "LowerAttack2Primary";
+         moveEffects[59] = "LowerDefense2Primary";
+         moveEffects[60] = "LowerSpeed2Primary";
+         moveEffects[61] = "???LowerSpAtk2Primary???";
+         moveEffects[62] = "LowerSpDef2Primary";
+         moveEffects[63] = "???";
+         moveEffects[64] = "????";
+         moveEffects[65] = "RaiseDefense2Wall";
+         moveEffects[66] = "PoisonPrimary";
+         moveEffects[67] = "ParalyzePrimary";
+         moveEffects[68] = "LowerAttack";
+         moveEffects[69] = "LowerDefense";
+         moveEffects[70] = "LowerSpeed";
+         moveEffects[71] = "LowerSpAtk";
+         moveEffects[72] = "LowerSpDef";
+         moveEffects[73] = "LowerAccuracy";
+         moveEffects[74] = "?????";
+         moveEffects[75] = "2turnHighCritFlinch";
+         moveEffects[76] = "Confusion";
+         moveEffects[77] = "2hitsPoison";
+         moveEffects[78] = "NeverMiss(VitalThrow)";
+         moveEffects[79] = "Substitute";
+         moveEffects[80] = "SkipNextTurn";
+         moveEffects[81] = "StrongerForLessHealth";
+         moveEffects[82] = "Mimic";
+         moveEffects[83] = "RandomMove";
+         moveEffects[84] = "SeedOpponent";
+         moveEffects[85] = "Splash";
+         moveEffects[86] = "Disable";
+         moveEffects[87] = "DamageBasedOnLevel";
+         moveEffects[88] = "DamageRandom";
+         moveEffects[89] = "DoublePhysicalDamage";
+         moveEffects[90] = "OpponentRepeatMoveFor2to6turns";
+         moveEffects[91] = "PainSplit";
+         moveEffects[92] = "WhileSleepingFlinch";
+         moveEffects[93] = "ChangeTypeToResistPreviousHit";
+         moveEffects[94] = "NextAttackHits";
+         moveEffects[95] = "Sketch";
+         moveEffects[96] = "??????";
+         moveEffects[97] = "SleepTalk";
+         moveEffects[98] = "DestinyBond";
+         moveEffects[99] = "StrengthDependsOnHealth";
+         moveEffects[100] = "ReducePP";
+         moveEffects[101] = "FalseSwipe";
+         moveEffects[102] = "HealPartyStatus";
+         moveEffects[103] = "NormalPlusPriority";
+         moveEffects[104] = "3turnTripleHit";
+         moveEffects[105] = "StealItem";
+         moveEffects[106] = "NoSwitch";
+         moveEffects[107] = "Nightmare";
+         moveEffects[108] = "RaiseEvasivenessAndBecomeSmaller";
+         moveEffects[109] = "Curse";
+         moveEffects[110] = "??";
+         moveEffects[111] = "EvadeNextAttack";
+         moveEffects[112] = "Spikes";
+         moveEffects[113] = "FoeCannnotRaiseEvasion";
+         moveEffects[114] = "PerishSong";
+         moveEffects[115] = "Sandstorm";
+         moveEffects[116] = "Endure";
+         moveEffects[117] = "5turnsUntilMiss";
+         moveEffects[118] = "ConfuseAndRaiseAttack2";
+         moveEffects[119] = "GetStrongerEachHit";
+         moveEffects[120] = "Attract";
+         moveEffects[121] = "StrongerWithFriendship";
+         moveEffects[122] = "Present";
+         moveEffects[123] = "WeakerWithFriendship";
+         moveEffects[124] = "PreventStatus5Turns";
+         moveEffects[125] = "BurnRaiseSpeed";
+         moveEffects[126] = "Magnitude";
+         moveEffects[127] = "BatonPass";
+         moveEffects[128] = "DoublePowerIfOpponentSwitching";
+         moveEffects[129] = "RemoveBindSeedSpikes";
+         moveEffects[130] = "20Damage";
+         moveEffects[131] = "???????";
+         moveEffects[132] = "MorningSun";
+         moveEffects[133] = "Synthesis";
+         moveEffects[134] = "Moonlight";
+         moveEffects[135] = "HiddenPower";
+         moveEffects[136] = "Rain5turns";
+         moveEffects[137] = "Sun5turns";
+         moveEffects[138] = "RaiseDefense";
+         moveEffects[139] = "RaiseAttack";
+         moveEffects[140] = "RaiseAllStats";
+         moveEffects[141] = "????????";
+         moveEffects[142] = "HalfHealthToRaiseAttack6";
+         moveEffects[143] = "CopyFoeStatChangesPrimary";
+         moveEffects[144] = "DoubleSpecialDamage";
+         moveEffects[145] = "RaiseDefenseThenAttackTurn2";
+         moveEffects[146] = "FlinchAndDoubleDamageToFly";
+         moveEffects[147] = "DoubleDamageToDig";
+         moveEffects[148] = "DamageIn2Turns";
+         moveEffects[149] = "DoubleDamageToFly";
+         moveEffects[150] = "FlinchAndDoubleDamageToMinimize";
+         moveEffects[151] = "ChargeFirstTurn";
+         moveEffects[152] = "ParalyzeAndIncreaseAccuracyInRain";
+         moveEffects[153] = "Escape";
+         moveEffects[154] = "DamageBasedOnPartySize";
+         moveEffects[155] = "2turn";
+         moveEffects[156] = "RaiseDefenseAndImproveRollingMoves";
+         moveEffects[157] = "RecoverOrFriend";
+         moveEffects[158] = "OnlyWorksOnce";
+         moveEffects[159] = "2to5turnsNoSleep";
+         moveEffects[160] = "Stockpile";
+         moveEffects[161] = "Spit Up";
+         moveEffects[162] = "Swallow";
+         moveEffects[163] = "?????????";
+         moveEffects[164] = "Hail5turns";
+         moveEffects[165] = "Torment";
+         moveEffects[166] = "ConfuseAndRaiseSpAtk2";
+         moveEffects[167] = "BurnPrimary";
+         moveEffects[168] = "SuicideLowerAtkSpAtk2";
+         moveEffects[169] = "DoubleDamageIfStatus";
+         moveEffects[170] = "SelfFlinchIfHit";
+         moveEffects[171] = "DoubleDamageToParalyzeAndHealParalyze";
+         moveEffects[172] = "ForceFoesAttackMe";
+         moveEffects[173] = "NaturePower";
+         moveEffects[174] = "BoostNextElectricMove";
+         moveEffects[175] = "Taunt";
+         moveEffects[176] = "BoostAllyPower";
+         moveEffects[177] = "TradeHeldItems";
+         moveEffects[178] = "CopyAbility";
+         moveEffects[179] = "HealHalfNextTurn";
+         moveEffects[180] = "UseAllyMove";
+         moveEffects[181] = "Ingrain";
+         moveEffects[182] = "LowerSelfAtkDef";
+         moveEffects[183] = "ReflectStatusMoves";
+         moveEffects[184] = "Recycle";
+         moveEffects[185] = "DoubleDamageIfHitThisTurn";
+         moveEffects[186] = "BreakWall";
+         moveEffects[187] = "Yawn";
+         moveEffects[188] = "KnockOff";
+         moveEffects[189] = "Endeavor";
+         moveEffects[190] = "DamageBasedOnHighRemainingHealth";
+         moveEffects[191] = "SkillSwap";
+         moveEffects[192] = "Imprison";
+         moveEffects[193] = "HealSelfStatus";
+         moveEffects[194] = "Grudge";
+         moveEffects[195] = "Snatch";
+         moveEffects[196] = "DamageBasedOnWeight";
+         moveEffects[197] = "SecondEffectBasedOnTerrain";
+         moveEffects[198] = "33Recoil";
+         moveEffects[199] = "ConfuseAllPokemon";
+         moveEffects[200] = "HighCritBurn";
+         moveEffects[201] = "MudSport";
+         moveEffects[202] = "BadPoison";
+         moveEffects[203] = "WeatherBall";
+         moveEffects[204] = "LowerSpAtk2Self";
+         moveEffects[205] = "LowerAttackDefensePrimary";
+         moveEffects[206] = "RaiseDefenseSpDef";
+         moveEffects[207] = "CanDamageFly";
+         moveEffects[208] = "RaiseAttackDefensePrimary";
+         moveEffects[209] = "HighCritPoison";
+         moveEffects[210] = "WaterSport";
+         moveEffects[211] = "RaiseSpAtkSpDefPrimary";
+         moveEffects[212] = "RaiseAttackSpeedPrimary";
+         moveEffects[213] = "ChangetypeFromTerrain";
+         SetList(MoveEffectListName, moveEffects);
+         #endregion
+
+         #region Move Info
+         SetList(MoveInfoListName, new[] {
+            "Makes Contact",
+            "Affected by Protect",
+            "Affected by Magic Coat",
+            "Affected by Snatch",
+            "Affected by Mirror Move",
+            "Affected by King's Rock",
+         });
+         #endregion
+
+         #region Move Target
+         SetList(MoveTargetListName, new[] {
+            "RecentAttacker",
+            "Unused",
+            "Random",
+            "Both",
+            "Self",
+            "Everyone",
+            "Hazard",
+         });
+         #endregion
+
+         #region Decorations Permission
+         SetList(DecorationsPermissionListName, new[] {
+            "Normal",
+            "Put On Floor",
+            "Object",
+            "Place On Wall",
+            "Doll or Cushion",
+         });
+         #endregion
+
+         #region Decorations Category
+         SetList(DecorationsCategoryListName, new[] {
+            "Desk",
+            "Chair",
+            "Plant",
+            "Unique",
+            "Mat",
+            "Poster",
+            "Doll",
+            "Cushion",
+         });
+         #endregion
+
+         #region Decorations Shape
+         SetList(DecorationsShapeListName, new[] {
+            "1x1",
+            "unused",
+            "unused",
+            "1x1t",
+            "2x2p",
+            "1x1p",
+            "unused",
+            "3x1",
+            "2x2",
+            "2x1",
+         });
+         #endregion
       }
 
       private IReadOnlyList<int> AllSourcesToSameDestination(int source) {

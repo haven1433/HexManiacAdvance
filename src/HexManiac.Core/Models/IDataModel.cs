@@ -33,6 +33,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       IFormattedRun GetNextAnchor(int dataIndex);
 
       bool TryGetUsefulHeader(int address, out string header);
+      bool TryGetList(string name, out IReadOnlyList<string> nameArray);
 
       bool IsAtEndOfArray(int dataIndex, out ITableRun tableRun); // is this byte the first one after the end of a table run? (also return true if the table is length 0 and starts right here)
 
@@ -118,6 +119,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public abstract IFormattedRun GetNextAnchor(int dataIndex);
 
       public virtual bool TryGetUsefulHeader(int address, out string header) { header = null; return false; }
+
+      public virtual bool TryGetList(string name, out IReadOnlyList<string> list) { list = null; return false; }
 
       public abstract bool IsAtEndOfArray(int dataIndex, out ITableRun tableRun);
 

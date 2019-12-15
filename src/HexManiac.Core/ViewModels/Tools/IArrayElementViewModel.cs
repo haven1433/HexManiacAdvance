@@ -496,7 +496,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          // get all the bits of this segment and turn them into BitElements
          var optionSource = model.GetAddressFromAnchor(history.CurrentChange, -1, bitSegment.SourceArrayName);
          var bits = model.ReadMultiByteValue(start, bitSegment.Length);
-         var names = bitSegment.GetOptions(model);
+         var names = bitSegment.GetOptions(model) ?? new string[0];
+         Debug.Assert(names.Count > 0, "The user is using a source for a bit array that either doesn't exist or has no length. This is probably not what the user wanted.");
          for (int i = 0; i < names.Count; i++) {
             var element = new BitElement { BitLabel = names[i] };
             children.Add(element);

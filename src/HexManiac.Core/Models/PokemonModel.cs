@@ -30,6 +30,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       // get the list of addresses in the file that want to store a number that matches the length of the table.
       private readonly Dictionary<string, List<int>> matchedWords = new Dictionary<string, List<int>>();
 
+      private readonly Dictionary<string, List<string>> lists = new Dictionary<string, List<string>>();
+
       public virtual int EarliestAllowedAnchor => 0;
 
       public override IReadOnlyList<ArrayRun> Arrays => anchorForAddress.Keys.Select(address => runs[BinarySearch(address)]).OfType<ArrayRun>().ToList();
@@ -52,6 +54,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (metadata == null) return;
 
          // metadata is more important than anything already found
+         foreach (var list in metadata.Lists) {
+            lists.Add(list.Name, list.ToList());
+         }
          foreach (var anchor in metadata.NamedAnchors) {
             // since we're loading metadata, we're pretty sure that the anchors in the metadata are right.
             // therefore, allow those anchors to overwrite anything we found during the initial quick-search phase.
@@ -911,6 +916,17 @@ namespace HavenSoft.HexManiac.Core.Models {
          ClearFormat(changeToken, originalStart, length, keepInitialAnchorPointers: false, alsoClearData: true);
       }
 
+      public void SetList(string name, IReadOnlyList<string> list) {
+         if (list == null && lists.ContainsKey(name)) lists.Remove(name);
+         else lists[name] = list.ToList();
+      }
+
+      public override bool TryGetList(string name, out IReadOnlyList<string> list) {
+         var result = lists.TryGetValueCaseInsensitive(name, out var value);
+         list = value;
+         return result;
+      }
+
       // for each of the results, we recognized it as text: see if we need to add a matching string run / pointers
       public override int ConsiderResultsAsTextRuns(ModelDelta currentChange, IReadOnlyList<int> searchResults) {
          int resultsRecognizedAsTextRuns = 0;
@@ -1314,7 +1330,14 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
          }
 
-         return new StoredMetadata(anchors, unmappedPointers, matchedWords);
+         var lists = new List<StoredList>();
+         foreach (var kvp in this.lists) {
+            var name = kvp.Key;
+            var members = kvp.Value.Select((text, i) => i.ToString() == text ? null : text);
+            lists.Add(new StoredList(name, members.ToList()));
+         }
+
+         return new StoredMetadata(anchors, unmappedPointers, matchedWords, lists);
       }
 
       /// <summary>

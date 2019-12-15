@@ -47,6 +47,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public IReadOnlyList<string> GetBitOptions(string enumName) {
          if (cachedBitOptions.ContainsKey(enumName)) return cachedBitOptions[enumName];
 
+         // if it's from a list, then it's not from an enum, but instead from just a string list
+         if (model.TryGetList(enumName, out var nameArray)) return nameArray;
+
          var sourceAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, enumName);
          if (sourceAddress == Pointer.NULL) return null;
          var sourceRun = model.GetNextRun(sourceAddress) as ArrayRun;
@@ -71,6 +74,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       private static IReadOnlyList<string> GetOptions(IDataModel model, string enumName) {
+         if (model.TryGetList(enumName, out var nameArray)) return nameArray;
 
          if (!model.TryGetNameArray(enumName, out var enumArray)) return new string[0];
 
