@@ -53,6 +53,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var (getTutorMove, canPokemonLearnTutorMove, getTutorMove_Length, canPokemonLearnTutorMove_Length) = GetOffsets(viewPort, gameCode);
          var specialsAddress = model.GetAddressFromAnchor(token, -1, HardcodeTablesModel.SpecialsTable);
          var tutorSpecial = model.ReadPointer(specialsAddress + 397 * 4); // Emerald tutors is actually special 477, but we don't need to edit it so it doesn't matter.
+         tutorSpecial -= 1; // the pointer is to thumb code, so it's off by one.
 
          var tutormoves = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, MoveTutors);
          var tutorcompatibility = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, TutorCompatibility);
@@ -139,11 +140,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       private void UpdateRoutine_TutorSpecial(ViewPort viewPort, int tutorSpecial, string gameCode) {
          if (gameCode == Emerald) return; // Emerald's tutor special doesn't have a limiter, so it doesn't need to be updated.
 
-         // change the code from 'branch-hi' to 'branch-never' so that the standard codepath is taken for tutorID>14
-         const int instructionIndex = 5;
-         const int instructionWidth = 2;
+         // change the code from 'branch-hi' to 'nop' so that the standard codepath is taken for tutorID>14
+         int instructionIndex = 5;
+         int instructionWidth = 2;
          var branchOffset = tutorSpecial + instructionIndex * instructionWidth;
-         viewPort.CurrentChange.ChangeData(viewPort.Model, branchOffset, 0xDF);
+         viewPort.Model.WriteMultiByteValue(branchOffset, 2, viewPort.CurrentChange, 0x0000);
+
+         // a separate routine several layers down also needs to be updated
+         // change the code from 'branch-hi' to 'nop' so that the standard codepath is taken for tutorID>14
+         instructionIndex = 20;
+         branchOffset = (gameCode == FireRed) ? 0x11F430 : 0x11F408; // FireRed / LeafGreen
+         branchOffset += instructionIndex * instructionWidth;
+         viewPort.Model.WriteMultiByteValue(branchOffset, 2, viewPort.CurrentChange, 0x0000);
       }
    }
 }

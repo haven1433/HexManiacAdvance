@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
@@ -333,6 +334,21 @@ namespace HavenSoft.HexManiac.Tests {
             Assert.Contains("table/0/field2/", options);
             Assert.Contains("table/1/field2/", options);
          }
+      }
+
+      [Fact]
+      public void CanSearchForBranchLink() {
+         var test = new BaseViewModelTestClass();
+         var command1 = test.ViewPort.Tools.CodeTool.Parser.Compile(test.Model, 0x0010, "bl <000060>").ToArray();
+         var command2 = test.ViewPort.Tools.CodeTool.Parser.Compile(test.Model, 0x0100, "bl <000060>").ToArray();
+         Array.Copy(command1, 0, test.Model.RawData, 0x0010, command1.Length);
+         Array.Copy(command2, 0, test.Model.RawData, 0x0100, command2.Length);
+
+         var results = test.ViewPort.Find("bl <000060>").ToList();
+
+         Assert.Equal(2, results.Count);
+         Assert.Equal(0x010, results[0].start);
+         Assert.Equal(0x100, results[1].start);
       }
 
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {

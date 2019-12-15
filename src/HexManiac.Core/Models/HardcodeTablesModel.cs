@@ -259,7 +259,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          // wild pokemon
          source = Find("0348048009E00000FFFF0000");
          string table(int length) => $"<[rate:: list<[low. high. species:pokenames]{length}>]1>";
-         AddTable(source, WildTableName, $"[bank. map. unused: grass{table(12)} surf{table(5)} tree{table(5)} fish{table(10)}]");
+         using (ModelCacheScope.CreateScope(this)) { // cares about pokenames
+            AddTable(source, WildTableName, $"[bank. map. unused: grass{table(12)} surf{table(5)} tree{table(5)} fish{table(10)}]");
+         }
 
          // specials
          switch (gameCode) {

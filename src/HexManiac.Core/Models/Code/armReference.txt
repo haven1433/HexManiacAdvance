@@ -21,7 +21,7 @@ lt=1011  @ <  less than             (signed)
 gt=1100  @ >  greater than          (signed)
 le=1101  @ <= less than or equal    (signed)
 al=1110  @    always
-ne=1111  @    never
+nv=1111  @    never
 
 @ opcodes and args
 0000000000000000    |     nop                 @ does nothing
