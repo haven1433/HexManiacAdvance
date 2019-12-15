@@ -354,9 +354,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public string Message { get; private set; }
-      private bool canRepoint;
+      private bool canRepoint, canCreateNew;
       public bool CanRepoint { get => canRepoint; set => TryUpdate(ref canRepoint, value); }
+      public bool CanCreateNew {
+         get => canCreateNew;
+         set {
+            if (TryUpdate(ref canCreateNew, value)) {
+               NotifyPropertyChanged(nameof(ShowContent));
+            }
+         }
+      }
+      public bool ShowContent => !CanCreateNew;
       public ICommand Repoint { get; private set; }
+      public ICommand CreateNew { get; private set; }
 
       public StreamArrayElementViewModel(ViewPort viewPort, IDataModel model, string name, int start) {
          this.viewPort = viewPort;
@@ -378,13 +388,33 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                Message = $"{sourceCount}";
             }
          }
+         if (destination == Pointer.NULL) {
+            content = string.Empty;
+            CanCreateNew = true;
+         }
          Repoint = new StubCommand {
             CanExecute = arg => CanRepoint,
             Execute = arg => {
-               var originalDestination = this.model.ReadPointer(this.start);
-               this.viewPort.RepointToNewCopy(this.start);
-               var newDestination = this.model.ReadPointer(this.start);
-               CanRepoint = false;
+               using (ModelCacheScope.CreateScope(this.model)) {
+                  var originalDestination = this.model.ReadPointer(this.start);
+                  this.viewPort.RepointToNewCopy(this.start);
+                  CanRepoint = false;
+                  using (new StubDisposable { Dispose = () => overrideCopyAttempt = false }) {
+                     dataChanged?.Invoke(this, EventArgs.Empty);
+                  }
+               }
+            },
+         };
+         CreateNew = new StubCommand {
+            CanExecute = arg => CanCreateNew,
+            Execute = arg => {
+               using (ModelCacheScope.CreateScope(this.model)) {
+                  this.viewPort.RepointToNewCopy(this.start);
+                  CanCreateNew = false;
+                  using (new StubDisposable { Dispose = () => overrideCopyAttempt = false }) {
+                     dataChanged?.Invoke(this, EventArgs.Empty);
+                  }
+               }
             },
          };
       }
@@ -402,6 +432,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (CanRepoint != stream.CanRepoint) {
             CanRepoint = stream.CanRepoint;
             ((StubCommand)Repoint).CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+         }
+         if (CanCreateNew != stream.CanCreateNew) {
+            CanCreateNew = stream.CanCreateNew;
+            ((StubCommand)CreateNew).CanExecuteChanged?.Invoke(this, EventArgs.Empty);
          }
          dataChanged = stream.dataChanged;
          dataMoved = stream.dataMoved;
@@ -462,7 +496,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          // get all the bits of this segment and turn them into BitElements
          var optionSource = model.GetAddressFromAnchor(history.CurrentChange, -1, bitSegment.SourceArrayName);
          var bits = model.ReadMultiByteValue(start, bitSegment.Length);
-         var names = bitSegment.GetOptions(model);
+         var names = bitSegment.GetOptions(model) ?? new string[0];
+         Debug.Assert(names.Count > 0, "The user is using a source for a bit array that either doesn't exist or has no length. This is probably not what the user wanted.");
          for (int i = 0; i < names.Count; i++) {
             var element = new BitElement { BitLabel = names[i] };
             children.Add(element);

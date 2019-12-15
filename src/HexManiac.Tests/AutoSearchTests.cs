@@ -379,6 +379,39 @@ namespace HavenSoft.HexManiac.Tests {
          var typeChart2 = (ITableRun)model.GetNextRun(typeChartAddress2);
       }
 
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void SpecialsAreFound(string game) {
+         var model = fixture.LoadModel(game);
+         var noChange = new NoDataChangeDeltaModel();
+
+         var specialsAddress = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.SpecialsTable);
+         var specials = (ITableRun)model.GetNextRun(specialsAddress);
+         Assert.NotInRange(specials.ElementCount, 0, 300);
+      }
+
+      public static IEnumerable<object[]> ListData => PokemonGames.Select(array => array[0]).SelectMany(game =>
+         new[] {
+            new[] { game, HardcodeTablesModel.MoveEffectListName, 214 },
+            new[] { game, HardcodeTablesModel.MoveInfoListName, 6 },
+            new[] { game, HardcodeTablesModel.MoveTargetListName, 7 },
+            new[] { game, HardcodeTablesModel.DecorationsShapeListName, 10 },
+            new[] { game, HardcodeTablesModel.DecorationsPermissionListName, 5 },
+            new[] { game, HardcodeTablesModel.DecorationsCategoryListName, 8 },
+            new[] { game, HardcodeTablesModel.EvolutionMethodListName, 16 },
+         }
+      );
+
+      [SkippableTheory]
+      [MemberData(nameof(ListData))]
+      public void ListFound(string game, string listName, int listCount) {
+         var model = fixture.LoadModel(game);
+         using (ModelCacheScope.CreateScope(model)) {
+            var options = ModelCacheScope.GetCache(model).GetOptions(listName);
+            Assert.Equal(listCount, options.Count);
+         }
+      }
+
       // this one actually changes the data, so I can't use the same shared model as everone else.
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]

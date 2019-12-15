@@ -279,6 +279,29 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x1A, Model.GetNextRun(0x1A).Start);
       }
 
+      [Fact]
+      public void CanCreateDataFromNull() {
+         for (int i = 0x80; i < Model.RawData.Length; i++) Model.RawData[i] = 0xFF;
+         ViewPort.Edit("^table[number: value: pointer<\"\">]8 @04 ");
+
+         // verify that it's in the context menu
+         var items = ViewPort.GetContextMenuItems(new Point(4, 0));
+         var createNewItem = items.Single(item => item.Text == "Create New Data");
+
+         // verify that it's in the table
+         var toolElements = ViewPort.Tools.TableTool.Children;
+         var createNewTool = toolElements.Single(element => element is StreamArrayElementViewModel stream && stream.CanCreateNew);
+
+         // verify that the command works
+         createNewItem.Command.Execute();
+         Assert.NotEqual(0, Model.ReadValue(0x04));
+         var run = (PCSRun)Model.GetNextRun(Model.ReadPointer(0x04));
+         Assert.Equal(1, run.Length);
+
+         // verify that you can't use the table tool's version anymore
+         Assert.False(((StreamArrayElementViewModel)createNewTool).CanRepoint);
+      }
+      
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(EggMoveRun.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(EggMoveRun.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

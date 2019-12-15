@@ -264,7 +264,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var dataIndex2 = scroll.ViewPointToDataIndex(SelectionEnd);
          var left = Math.Min(dataIndex1, dataIndex2);
          var length = Math.Abs(dataIndex1 - dataIndex2) + 1;
-         if (left < 0) { length += left;left = 0; }
+         if (left < 0) { length += left; left = 0; }
          if (left + length > Model.Count) length = Model.Count - left;
          var result = new StringBuilder();
          for (int i = 0; i < length; i++) result.Append(Model[left + i].ToString("X2") + " ");
@@ -703,7 +703,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void RepointToNewCopy(int pointer) {
-         var destination = Model.GetNextRun(Model.ReadPointer(pointer));
+         var destinationAddress = Model.ReadPointer(pointer);
+         if (destinationAddress == Pointer.NULL) {
+            CreateNewData(pointer);
+            return;
+         }
+
+         var destination = Model.GetNextRun(destinationAddress);
          if (destination.PointerSources.Count < 2) {
             OnError?.Invoke(this, "This is the only pointer, no need to make a new copy.");
             return;
@@ -730,6 +736,41 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Model.ObserveRunWritten(CurrentChange, destination2.Duplicate(newDestination, pointer)); // create a new run at the new destination
          OnMessage?.Invoke(this, "New Copy added at " + newDestination.ToString("X6"));
          Refresh();
+      }
+
+      private void CreateNewData(int pointer) {
+         var errorText = "Can only create new data for a pointer with a format within a table.";
+         if (!(Model.GetNextRun(pointer) is ITableRun tableRun)) {
+            OnError?.Invoke(this, errorText);
+            return;
+         }
+         var offsets = tableRun.ConvertByteOffsetToArrayOffset(pointer);
+         if (!(tableRun.ElementContent[offsets.SegmentIndex] is ArrayRunPointerSegment pointerSegment) || !pointerSegment.IsInnerFormatValid) {
+            OnError?.Invoke(this, errorText);
+            return;
+         }
+
+         var insert = 0;
+         var length = 0;
+         var startSearch = (Model as PokemonModel)?.EarliestAllowedAnchor ?? 0;
+         if (pointerSegment.InnerFormat == PCSRun.SharedFormatString) {
+            length = 1;
+         } else if (pointerSegment.InnerFormat == PLMRun.SharedFormatString) {
+            length = 2;
+         } else if (pointerSegment.InnerFormat == TrainerPokemonTeamRun.SharedFormatString) {
+            length = new TrainerPokemonTeamRun(Model, -1, new[] { pointer }).Length;
+         } else if (pointerSegment.InnerFormat.StartsWith("[") && pointerSegment.InnerFormat.Contains("]")) {
+            // don't bother checking that the data is valid: with an invalid starting point, we know the data is garbage.
+            TableStreamRun.TryParseTableStream(Model, -1, new int[] { pointer }, pointerSegment.Name, pointerSegment.InnerFormat, tableRun.ElementContent, out var newStream);
+            length = newStream.Length;
+         } else {
+            Debug.Fail("Not Implemented!");
+         }
+
+         insert = Model.FindFreeSpace(startSearch, length);
+         pointerSegment.WriteNewFormat(Model, CurrentChange, pointer, insert, length, tableRun.ElementContent);
+         OnMessage?.Invoke(this, "New data added at " + insert.ToString("X6"));
+         RefreshBackingData();
       }
 
       private void AcceptBackspace(UnderEdit underEdit, IFormattedRun run, Point point) {
@@ -953,7 +994,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
             // option 3: the value is in an enum used by a custom table stream
             if (child is TableStreamRun table) {
-               foreach(var result in table.Search(parentArrayName, offsets.ElementIndex)) yield return result;
+               foreach (var result in table.Search(parentArrayName, offsets.ElementIndex)) yield return result;
             }
          }
       }

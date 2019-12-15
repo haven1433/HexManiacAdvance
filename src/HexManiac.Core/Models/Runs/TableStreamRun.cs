@@ -27,6 +27,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             return false;
          }
 
+         if (start < 0) return false; // not a valid data location, so the data can't possibly be valid
          for (int i = 0; i < tableStream.ElementCount; i++) {
             int subStart = start + tableStream.ElementLength * i;
             for (int j = 0; j < tableStream.ElementContent.Count; j++) {
@@ -87,7 +88,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public IStreamRun DeserializeRun(string content, ModelDelta token) {
          var lines = content.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
          var newRun = this;
-         if (lines.Length != ElementCount) newRun = (TableStreamRun)Append(token, lines.Length - ElementCount);
+         var appendCount = Math.Max(lines.Length, 1) - ElementCount;
+         if (lines.Length != ElementCount) newRun = (TableStreamRun)Append(token, appendCount);
          int start = newRun.Start;
          for (int i = 0; i < newRun.ElementCount; i++) {
             var line = lines.Length > i ? lines[i] : string.Empty;
@@ -198,6 +200,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public int GetCount(int start, int elementLength, IReadOnlyList<int> pointerSources) {
+         if (start < 0) return 0;
          int length = 0;
          while (true) {
             bool match = true;
@@ -215,7 +218,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var naturalLength = run.Length - EndCode.Count;
          var newRun = (TableStreamRun)model.RelocateForExpansion(token, run, naturalLength + length * run.ElementLength);
          for (int i = 0; i < run.ElementLength * length; i++) token.ChangeData(model, newRun.Start + naturalLength + i, 0x00);
-         for (int i = naturalLength + length * run.ElementLength; i < naturalLength; i++) token.ChangeData(model, newRun.Start + i, 0xFF);
+         for (int i = naturalLength + length * run.ElementLength; i < naturalLength; i++) if (model[newRun.Start + i] != 0xFF) token.ChangeData(model, newRun.Start + i, 0xFF);
          for (int i = 0; i < EndCode.Count; i++) token.ChangeData(model, newRun.Start + naturalLength + length * run.ElementLength + i, EndCode[i]);
          return new TableStreamRun(model, newRun.Start, run.PointerSources, run.FormatString, run.ElementContent, this);
       }
@@ -237,22 +240,23 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public int GetCount(int start, int elementLength, IReadOnlyList<int> pointerSources) {
+         int defaultValue = start >= 0 ? 0 : 1;
          var parentIndex = GetParentIndex(pointerSources);
          var run = parentIndex >= 0 ? model.GetNextRun(parentIndex) as ITableRun : null;
          int countSegmentIndex = -1;
          var segments = run?.ElementContent ?? sourceSegments;
          countSegmentIndex = GetSegmentIndex(segments, parentFieldForLength);
-         if (countSegmentIndex == -1) return 0;
+         if (countSegmentIndex == -1) return defaultValue;
          var countSegmentOffset = segments.Take(countSegmentIndex).Sum(segment => segment.Length);
          var pointerSegmentIndex = GetSegmentIndex(segments, parentFieldForThis);
          var pointerSegmentOffset = segments.Take(pointerSegmentIndex).Sum(segment => segment.Length);
 
          foreach (var source in pointerSources.OrderBy(source => source)) {
             if (source < parentIndex) continue;
-            return model.ReadMultiByteValue(source - pointerSegmentOffset + countSegmentOffset, segments[countSegmentIndex].Length);
+            return Math.Max(model.ReadMultiByteValue(source - pointerSegmentOffset + countSegmentOffset, segments[countSegmentIndex].Length), defaultValue);
          }
 
-         return 0;
+         return defaultValue;
       }
 
       public TableStreamRun Append(TableStreamRun run, ModelDelta token, int length) {
@@ -267,7 +271,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var naturalLength = run.Length;
          var newRun = (TableStreamRun)model.RelocateForExpansion(token, run, naturalLength + length * run.ElementLength);
          for (int i = 0; i < run.ElementLength * length; i++) token.ChangeData(model, newRun.Start + naturalLength + i, 0x00);
-         for (int i = naturalLength + length * run.ElementLength; i < naturalLength; i++) token.ChangeData(model, newRun.Start + i, 0xFF);
+         for (int i = naturalLength + length * run.ElementLength; i < naturalLength; i++) if (model[newRun.Start + i] != 0xFF) token.ChangeData(model, newRun.Start + i, 0xFF);
          return new TableStreamRun(model, newRun.Start, run.PointerSources, run.FormatString, run.ElementContent, this);
       }
 
