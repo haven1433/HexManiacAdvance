@@ -253,8 +253,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          get {
             if (selectedBytes != null) return selectedBytes;
 
-            var bytes = GetSelectedByteContents();
-            if (bytes.Length > 0x30) bytes = bytes.Substring(0, 0x30) + "...";
+            var bytes = GetSelectedByteContents(0x10);
             selectedBytes = "Selected Bytes: " + bytes;
             return selectedBytes;
          }
@@ -265,7 +264,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void UpdateSelectedBytes() => SelectedBytes = null;
 
       private static readonly string[] byteToString = Enumerable.Range(0, 0x100).Select(i => i.ToString("X2") + " ").ToArray();
-      private string GetSelectedByteContents() {
+      private string GetSelectedByteContents(int maxByteCount = int.MaxValue) {
          var dataIndex1 = scroll.ViewPointToDataIndex(SelectionStart);
          var dataIndex2 = scroll.ViewPointToDataIndex(SelectionEnd);
          var left = Math.Min(dataIndex1, dataIndex2);
@@ -273,10 +272,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (left < 0) { length += left; left = 0; }
          if (left + length > Model.Count) length = Model.Count - left;
          var result = new StringBuilder();
-         for (int i = 0; i < length; i++) {
+         for (int i = 0; i < length && i < maxByteCount; i++) {
             var token = byteToString[Model[left + i]];
             result.Append(token);
          }
+         if (maxByteCount < length) result.Append("...");
          return result.ToString();
       }
 
