@@ -559,7 +559,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private ModelPoint ControlCoordinatesToModelCoordinates(MouseEventArgs e) {
          var point = e.GetPosition(this);
-         point = new ScreenPoint(Math.Max(0, point.X), Math.Max(0, point.Y)); // out of bounds to the left/top clamps to 0 (useful for headers)
+         point = new ScreenPoint(Math.Max(0, point.X + HorizontalScrollValue), Math.Max(0, point.Y)); // out of bounds to the left/top clamps to 0 (useful for headers)
          return new ModelPoint((int)(point.X / CellWidth), (int)(point.Y / CellHeight));
       }
    }
