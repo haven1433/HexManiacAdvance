@@ -250,16 +250,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private string selectedBytes;
       public string SelectedBytes {
-         get => selectedBytes;
+         get {
+            if (selectedBytes != null) return selectedBytes;
+
+            var bytes = GetSelectedByteContents();
+            if (bytes.Length > 0x30) bytes = bytes.Substring(0, 0x30) + "...";
+            selectedBytes = "Selected Bytes: " + bytes;
+            return selectedBytes;
+         }
          private set => TryUpdate(ref selectedBytes, value);
       }
 
-      private void UpdateSelectedBytes() {
-         var bytes = GetSelectedByteContents();
-         if (bytes.Length > 0x30) bytes = bytes.Substring(0, 0x30) + "...";
-         SelectedBytes = "Selected Bytes: " + bytes;
-      }
+      // update the selected bytes lazily. Most of the time we don't really care about the new value.
+      private void UpdateSelectedBytes() => SelectedBytes = null;
 
+      private static readonly string[] byteToString = Enumerable.Range(0, 0x100).Select(i => i.ToString("X2") + " ").ToArray();
       private string GetSelectedByteContents() {
          var dataIndex1 = scroll.ViewPointToDataIndex(SelectionStart);
          var dataIndex2 = scroll.ViewPointToDataIndex(SelectionEnd);
@@ -268,7 +273,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (left < 0) { length += left; left = 0; }
          if (left + length > Model.Count) length = Model.Count - left;
          var result = new StringBuilder();
-         for (int i = 0; i < length; i++) result.Append(Model[left + i].ToString("X2") + " ");
+         for (int i = 0; i < length; i++) {
+            var token = byteToString[Model[left + i]];
+            result.Append(token);
+         }
          return result.ToString();
       }
 
