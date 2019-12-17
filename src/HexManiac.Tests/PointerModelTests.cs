@@ -754,6 +754,17 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.IsType<PointerRun>(run);
       }
 
+      [Fact]
+      public void AnchorWithNoFormatContextMenuContainsRemoveOption() {
+         var test = new BaseViewModelTestClass();
+         test.ViewPort.Edit("<000020> @20 "); // add a pointer and go to the destination
+
+         test.ViewPort.SelectionStart = new Point();
+         var contextItems = test.ViewPort.GetContextMenuItems(new Point());
+
+         contextItems.Single(item => item.Text == "Clear Format");
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);
