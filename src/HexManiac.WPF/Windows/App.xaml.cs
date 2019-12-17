@@ -13,6 +13,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
    partial class App {
       protected override void OnStartup(StartupEventArgs e) {
          base.OnStartup(e);
+         SetInitialWorkingDirectory();
 
          var args = e.Args;
          var useMetadata = true;
@@ -28,6 +29,18 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          MainWindow = new MainWindow(viewModel);
          MainWindow.Resources.Add("FileSystem", fileSystem);
          MainWindow.Show();
+      }
+
+      /// <summary>
+      /// Generally, the initial working directory is set to wherever the program was launched from.
+      /// In the case of command line usage or dropping a file onto the EXE, that's not the EXE's location.
+      /// We want the initial loading directory to match the EXE's path so we can find the reference files.
+      /// Example: armReference.txt, scriptReference.txt
+      /// </summary>
+      private static void SetInitialWorkingDirectory() {
+         var mainAssemblyLocation = Assembly.GetExecutingAssembly().Location;
+         var workingDirectory = Path.GetDirectoryName(mainAssemblyLocation);
+         Directory.SetCurrentDirectory(workingDirectory);
       }
 
       private void UpdateThemeDictionary(EditorViewModel viewModel) {
