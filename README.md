@@ -1,55 +1,26 @@
 # Hex Maniac Advance
 
-*A hex editor designed for editing Pokemon GBA games*
+HexManiacAdvance is a hex editor designed for editing Pokemon GBA games. It specifically targets the English games Ruby (AXVE), Sapphire (AXPE), FireRed (BPRE), LeafGreen (BPGE), and Emerald (BPEE). It has a reduced set of features when opening other files.
 
-*(This project is still very new. This ReadMe is more of a vision document. As the project grows, the ReadMe will become
-an introduction document, with usage / tutorials / implementation details moving to the Wiki.)*
+Other than standard hex editor features like load/save, view/edit, and copy/paste, it also provides improved navigation, display, and editing features for more easily working with data within the files.
 
-## Motivation
+![](https://imgur.com/IxUGebf)
 
-A few years ago, I thought it would be fun to try and make a custom version of FireRed.
-What I found was a vibrant community of hackers using a variety of tools, each with a specific purpose.
-Advance Starter, Advance Trainer, Advance IntroEdit, TM Editor Pro, A-Tack, Advance Map,
-Nameless Tile Map Editor, YAPE, Pokedex Order Editor... the list goes on and on.
+# Getting Started
 
-Each tool was useful in its own way, but each presented only a peep-hole into what was going on inside the game.
-Most tutorials for advanced or specific things involved asking you to use a Hex Editor, repoint tables, or open and close
-multiple programs. While working on my project, I would often have my screen littered with different windows, each serving
-a specific purpose. These tools work, and they work well. But I often found myself wanting to see a more whole view of the file,
-instead of just peeking.
+## As a User
 
-## The Goal of this Software (small version)
+Go visit the [releases](https://github.com/haven1433/HexManiacAdvance/releases) page to grab the latest public build.
 
-I want to create a Hex Editor that can provide a richer editor experience specifically for pokemon gba games.
+Running HexManiacAdvance requires Windows and .Net 4.7.2.
 
-* Ruby
-* Sapphire
-* FireRed
-* LeafGreen
-* Emerald
+## As a Developer
 
-Here's a list of some of the minimal features I would need in order for this tool to provide any value:
+Clone or download the project, then open the solution with Visual Studio. The project has been tested 2017 and 2019, but may work with other versions.
 
-* Standard Hex Editor features (data entry, Find/Goto, Copy/Paste)
-* Multiple simultaneous open files
-* Automatic pointer recognition / navigation
-* Moving data
-* Forking / joining data
+Once you have the solution open in Visual Studio, you can find the XUnit automated tests in the test explorer window. Note that some tests expect you to have roms in a folder called "sampleFiles" within `..\HexManiac\artifacts\HexManiac.Tests\bin\Debug`.
 
-## The Goal of this Software (ideal version)
+For information on the achitecture of the application, see the [Developer Guide](https://github.com/haven1433/HexManiacAdvance/wiki/Developer-Guide).
 
-I want to create a generalized data editor that can recognize data within the file and provide appropriate edit options for it.
-
-Here's a list of nice features I'd like to implement eventually:
-
-* Recognition of images / palettes. Drag-drop support to add images/palettes. Image/palette editor.
-* Recognition of music / sounds. Music / sound editor.
-* Recognition of strings. Support for editing text / automatic repointing.
-* Recognition of map data, including tilesets, event data, scripting, and assembly routine links. Editing and repointing support.
-* Recognition of other commonly edited data, such as evolutions, attacks, abilities, stats, and trainers.
-* Making the program itself scriptable, so it can be used as an environment for useful one-off utilities
-for decapitalization, randomization, or balancing.
-
-Obviously this is a much more in-depth list. These features could take quite some time (or never get done), but the idea is to design
-the editor with these future features in mind.
-
+# License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
