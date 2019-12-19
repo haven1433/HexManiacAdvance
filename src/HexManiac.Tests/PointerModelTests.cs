@@ -757,12 +757,15 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void AnchorWithNoFormatContextMenuContainsRemoveOption() {
          var test = new BaseViewModelTestClass();
-         test.ViewPort.Edit("<000020> @20 "); // add a pointer and go to the destination
+         test.ViewPort.Edit("<000020> @20 "); // add a pointer to 0x20 and go there
 
          test.ViewPort.SelectionStart = new Point();
          var contextItems = test.ViewPort.GetContextMenuItems(new Point());
+         var clearFormatItem = contextItems.Single(item => item.Text == "Clear Format");
+         clearFormatItem.Command.Execute();
 
-         contextItems.Single(item => item.Text == "Clear Format");
+         // verify that there is no longer a run starting at 0x20
+         Assert.NotEqual(0x20, test.Model.GetNextRun(0x20).Start);
       }
 
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
