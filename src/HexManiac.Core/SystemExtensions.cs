@@ -7,6 +7,9 @@ namespace HavenSoft.HexManiac.Core {
 
       ////// Random utility functions on basic types, mostly added to make code easier to read. //////
 
+      private static readonly IReadOnlyList<string> byteToString = Enumerable.Range(0, 0x100).Select(i => i.ToString("X2")).ToArray();
+      public static string ToHexString(this byte value) => byteToString[value];
+
       public static T LimitToRange<T>(this T value, T lower, T upper) where T : IComparable<T> {
          if (upper.CompareTo(lower) < 0) throw new ArgumentException($"upper value {upper} is less than lower value {lower}");
          if (value.CompareTo(lower) < 0) return lower;

@@ -263,7 +263,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       // update the selected bytes lazily. Most of the time we don't really care about the new value.
       private void UpdateSelectedBytes() => SelectedBytes = null;
 
-      private static readonly string[] byteToString = Enumerable.Range(0, 0x100).Select(i => i.ToString("X2") + " ").ToArray();
       private string GetSelectedByteContents(int maxByteCount = int.MaxValue) {
          var dataIndex1 = scroll.ViewPointToDataIndex(SelectionStart);
          var dataIndex2 = scroll.ViewPointToDataIndex(SelectionEnd);
@@ -273,8 +272,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (left + length > Model.Count) length = Model.Count - left;
          var result = new StringBuilder();
          for (int i = 0; i < length && i < maxByteCount; i++) {
-            var token = byteToString[Model[left + i]];
+            var token = Model[left + i].ToHexString();
             result.Append(token);
+            result.Append(" ");
          }
          if (maxByteCount < length) result.Append("...");
          return result.ToString();

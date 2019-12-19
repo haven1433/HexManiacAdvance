@@ -44,18 +44,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public void UpdateContent() {
-         var start = selection.Scroll.ViewPointToDataIndex(selection.SelectionStart);
+         var start = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionStart));
          var end = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd));
 
-         if (mode == CodeMode.Raw) {
-            Content = RawParse(model, start, end - start + 1);
-            return;
-         }
-
-         if (start == end) { Content = string.Empty; return; }
          if (start > end) (start, end) = (end, start);
+         int length = end - start + 1;
 
-         if (mode == CodeMode.Script) {
+         if (length > 0x1000) {
+            Content = "Too many bytes selected.";
+         } else if (mode == CodeMode.Raw) {
+            Content = RawParse(model, start, end - start + 1);
+         } else if (length < 2) {
+            Content = string.Empty;
+         } else if (mode == CodeMode.Script) {
             Content = script.Parse(model, start, end - start + 1);
          } else if (mode == CodeMode.Thumb) {
             Content = thumb.Parse(model, start, end - start + 1);
@@ -67,7 +68,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private string RawParse(IDataModel model, int start, int length) {
          var builder = new StringBuilder();
          while (length > 0) {
-            builder.Append(model[start].ToString("X2"));
+            builder.Append(model[start].ToHexString());
             builder.Append(" ");
             length--;
             start++;
