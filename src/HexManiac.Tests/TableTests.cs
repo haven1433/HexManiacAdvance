@@ -301,7 +301,7 @@ namespace HavenSoft.HexManiac.Tests {
          // verify that you can't use the table tool's version anymore
          Assert.False(((StreamArrayElementViewModel)createNewTool).CanRepoint);
       }
-      
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(EggMoveRun.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(EggMoveRun.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
