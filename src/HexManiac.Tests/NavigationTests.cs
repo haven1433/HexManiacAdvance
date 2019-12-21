@@ -351,6 +351,16 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x100, results[1].start);
       }
 
+      [Fact]
+      public void SelectionLengthIsPositiveWhenSelectingLeft() {
+         var test = new BaseViewModelTestClass();
+
+         test.ViewPort.SelectionStart = new Point(3, 0);
+         test.ViewPort.SelectionEnd = new Point(0, 0);
+
+         Assert.Contains("| 4 bytes selected", test.ViewPort.SelectedAddress);
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          model = new PokemonModel(data);

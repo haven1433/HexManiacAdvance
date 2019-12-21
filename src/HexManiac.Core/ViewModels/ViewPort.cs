@@ -241,7 +241,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          if (!SelectionStart.Equals(SelectionEnd)) {
-            int length = scroll.ViewPointToDataIndex(SelectionEnd) - scroll.ViewPointToDataIndex(SelectionStart) + 1;
+            int length = Math.Abs(dataIndex1 - dataIndex2) + 1;
             result += $" | {length} bytes selected";
          }
 
