@@ -35,5 +35,18 @@ namespace HavenSoft.HexManiac.Tests {
          // assert that bytes 7/8 are FF
          Assert.Equal(0xFFFF, Model.ReadMultiByteValue(0x46, 2));
       }
+
+      [Fact]
+      public void CanCopyPlmStream() {
+         var fileSystem = new StubFileSystem();
+         CreateTextTable(EggMoveRun.MoveNamesTable, 0x100, "Punch", "Kick", "Bite", "Snarl", "Smile", "Cry");
+         ViewPort.Edit("@00 FFFF @00 ^someMoves`plm` 3 Punch 5 Kick 7 Bite 11 Snarl ");
+
+         ViewPort.SelectionStart = new Point(2, 0);
+         ViewPort.SelectionEnd = new Point(7, 0);
+         ViewPort.Copy.Execute(fileSystem);
+
+         Assert.Equal("5 Kick 7 Bite 11 Snarl", fileSystem.CopyText);
+      }
    }
 }

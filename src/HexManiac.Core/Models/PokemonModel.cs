@@ -1131,17 +1131,13 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override string Copy(Func<ModelDelta> changeToken, int start, int length) {
          var text = new StringBuilder();
          var run = GetNextRun(start);
-         if (run.Start < start && !(run is ArrayRun) && !(run is EggMoveRun)) {
-            length += start - run.Start;
-            start = run.Start;
-         }
 
          using (ModelCacheScope.CreateScope(this)) {
             while (length > 0) {
                run = GetNextRun(start);
                if (run.Start > start) {
                   var len = Math.Min(length, run.Start - start);
-                  var bytes = Enumerable.Range(start, len).Select(i => RawData[i].ToString("X2"));
+                  var bytes = Enumerable.Range(start, len).Select(i => RawData[i].ToHexString());
                   text.Append(string.Join(" ", bytes) + " ");
                   length -= len;
                   start += len;
@@ -1166,7 +1162,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   start += 4;
                   length -= 4;
                } else if (run is NoInfoRun noInfoRun) {
-                  text.Append(RawData[run.Start].ToString("X2") + " ");
+                  text.Append(RawData[run.Start].ToHexString() + " ");
                   start += 1;
                   length -= 1;
                } else if (run is PCSRun pcsRun) {
@@ -1180,6 +1176,11 @@ namespace HavenSoft.HexManiac.Core.Models {
                   start = run.Start + run.Length;
                } else if (run is EggMoveRun eggRun) {
                   eggRun.AppendTo(text, start, length);
+                  text.Append(" ");
+                  length -= run.Start + run.Length - start;
+                  start = run.Start + run.Length;
+               } else if (run is PLMRun plmRun) {
+                  plmRun.AppendTo(text, start, length);
                   text.Append(" ");
                   length -= run.Start + run.Length - start;
                   start = run.Start + run.Length;

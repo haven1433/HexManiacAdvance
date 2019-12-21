@@ -128,5 +128,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
          }
       }
+
+      public void AppendTo(StringBuilder text, int start, int length) {
+         var moveNames = ModelCacheScope.GetCache(model).GetOptions(EggMoveRun.MoveNamesTable);
+         for (int i = 0; i < length && i < Length - Start; i += 2) {
+            if (i > 0) text.Append(" ");
+            if (i + start - Start == Length - 2) { text.Append("[]"); continue; }
+            var (level, move) = SplitToken(model.ReadMultiByteValue(start + i, 2));
+            var moveName = moveNames.Count > move ? moveNames[move] : move.ToString();
+            text.Append($"{level} {moveName}");
+         }
+      }
    }
 }
