@@ -48,5 +48,17 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal("5 Kick 7 Bite 11 Snarl", fileSystem.CopyText);
       }
+
+      [Fact]
+      public void CanShortenPlmStream() {
+         var fileSystem = new StubFileSystem();
+         CreateTextTable(EggMoveRun.MoveNamesTable, 0x100, "Punch", "Kick", "Bite", "Snarl", "Smile", "Cry");
+         ViewPort.Edit("@00 FFFF @00 ^someMoves`plm` 3 Punch 5 Kick 7 Bite 11 Snarl ");
+
+         ViewPort.Edit("@04 []");
+
+         Assert.Equal(6, Model.GetNextRun(0).Length);
+         Assert.Equal(new Point(6, 0), ViewPort.SelectionStart);
+      }
    }
 }

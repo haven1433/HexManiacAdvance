@@ -152,7 +152,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Result = true;
       }
       public void Visit(PlmItem item, byte data) {
-         Result = char.IsDigit(Input);
+         Result = char.IsDigit(Input) || Input == '[';
          if (Result) {
             var autocomplete = AutoCompleteSelectionItem.Generate(Enumerable.Empty<string>(), -1);
             NewFormat = new UnderEdit(item, Input.ToString(), 2, autocomplete);

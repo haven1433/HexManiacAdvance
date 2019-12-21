@@ -99,7 +99,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(PlmItem item, byte data) {
          var specialCharacters = " -"; // double-edge, Vine Whip
 
-         if (!UnderEdit.CurrentText.Contains(" ")) {
+         if (UnderEdit.CurrentText == "[") {
+            Result = Input == ']';
+         } else if (!UnderEdit.CurrentText.Contains(" ")) {
             // before the space, only numbers are allowed
             Result = char.IsDigit(Input) || Input == ' ';
          } else if (UnderEdit.CurrentText.EndsWith(" ") && !UnderEdit.CurrentText.Contains(StringDelimeter)) {

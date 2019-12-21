@@ -127,6 +127,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (CurrentText == EggMoveRun.GroupStart + EggMoveRun.GroupEnd) {
             for (int i = this.memoryLocation; i < run.Start + run.Length; i += 2) Model.WriteMultiByteValue(i, 2, CurrentChange, 0xFFFF);
             Model.ObserveRunWritten(CurrentChange, new PLMRun(Model, run.Start));
+            NewDataIndex = memoryLocation + 2;
+            Result = true;
             return;
          }
 
