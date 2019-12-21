@@ -107,13 +107,13 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
-      public void UndoCanCauseScrolling() {
+      public void UndoDoesNotCauseScrolling() {
          ViewPort.SelectionStart = new Point(0, 0);
          ViewPort.Edit("FF");
          ViewPort.Scroll.Execute(Direction.Down);
          ViewPort.Undo.Execute();
 
-         Assert.Equal(0, ViewPort.ScrollValue);
+         Assert.Equal(1, ViewPort.ScrollValue);
       }
 
       [Fact]
