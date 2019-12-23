@@ -464,8 +464,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
 
-      public ViewPort(string fileName, IDataModel model) {
-         history = new ChangeHistory<ModelDelta>(RevertChanges);
+      public ViewPort(string fileName, IDataModel model, ChangeHistory<ModelDelta> changeHistory = null) {
+         history = changeHistory ?? new ChangeHistory<ModelDelta>(RevertChanges);
          history.PropertyChanged += HistoryPropertyChanged;
 
          Model = model;
@@ -742,6 +742,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Model.ObserveRunWritten(CurrentChange, destination2.Duplicate(newDestination, pointer)); // create a new run at the new destination
          OnMessage?.Invoke(this, "New Copy added at " + newDestination.ToString("X6"));
          Refresh();
+      }
+
+      public void OpenInNewTab(int destination) {
+         var child = new ViewPort(FileName, Model, history);
+         child.selection.GotoAddress(destination);
+         RequestTabChange?.Invoke(this, child);
       }
 
       private void CreateNewData(int pointer) {
