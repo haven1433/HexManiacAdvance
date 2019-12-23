@@ -7,7 +7,11 @@ using Xunit;
 namespace HavenSoft.HexManiac.Tests {
    public class BasicLoadTests {
       static BasicLoadTests() {
-         SampleFiles = Directory.EnumerateFiles("sampleFiles", "*.gba").Select(file => new object[] { file }).ToArray();
+         if (Directory.Exists("sampleFiles")) {
+            SampleFiles = Directory.EnumerateFiles("sampleFiles", "*.gba").Select(file => new object[] { file }).ToArray();
+         } else {
+            SampleFiles = Enumerable.Empty<object[]>();
+         }
       }
       public static IEnumerable<object[]> SampleFiles { get; }
 
