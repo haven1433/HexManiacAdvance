@@ -446,6 +446,20 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x100, newTab.DataOffset);                          // the new tab is scrolled to the desired location
       }
 
+      [Fact]
+      public void TabGetsRefreshedWhenSwitchedIn() {
+         int count = 0;
+         var tab1 = new StubTabContent { Refresh = () => count++ };
+         var tab2 = new StubTabContent();
+         editor.Add(tab1);
+         count = 0;
+
+         tab1.RequestTabChange?.Invoke(tab1, tab2);
+         editor.SelectedIndex = 0;
+
+         Assert.Equal(1, count);
+      }
+
       private StubTabContent CreateClosableTab() {
          var tab = new StubTabContent();
          var close = new StubCommand { CanExecute = arg => true };

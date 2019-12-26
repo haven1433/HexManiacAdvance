@@ -214,6 +214,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }) { ShortcutText = "Ctrl+Click" } };
       }
 
+      public void Refresh() { }
+
       private void NotifyCollectionChanged() {
          if (children.Count == 0) return;
          UpdateHeaders();
