@@ -522,7 +522,7 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Edit("+");
 
          // 0x14 bytes after the start of the change should store the length of items
-         var gameCode = new string(Enumerable.Range(0xAC, 4).Select(i => ((char)model[i])).ToArray());
+         var gameCode = model.GetGameCode();
          var editStart = MakeItemsExpandable.GetPrimaryEditAddress(gameCode);
          table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, "items")); // note that since we changed the table, we have to get the run again.
          var word = (WordRun)model.GetNextRun(editStart + 0x14);

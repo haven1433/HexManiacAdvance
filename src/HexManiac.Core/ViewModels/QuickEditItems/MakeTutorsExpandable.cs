@@ -28,7 +28,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
          // require that this data actually supports this change
          var model = viewPort.Model;
-         var gameCode = new string(Enumerable.Range(0xAC, 4).Select(i => ((char)model[i])).ToArray());
+         var gameCode = model.GetGameCode();
          var (getTutorMove, canPokemonLearnTutorMove, getTutorMove_Length, canPokemonLearnTutorMove_Length) = GetOffsets(viewPort, gameCode);
          if (getTutorMove < 0 || canPokemonLearnTutorMove < 0) return false;
 
@@ -48,7 +48,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var viewPort = (ViewPort)viewPortInterface;
          var model = viewPort.Model;
          var token = viewPort.CurrentChange;
-         var gameCode = new string(Enumerable.Range(0xAC, 4).Select(i => ((char)model[i])).ToArray());
+         var gameCode = model.GetGameCode();
 
          var (getTutorMove, canPokemonLearnTutorMove, getTutorMove_Length, canPokemonLearnTutorMove_Length) = GetOffsets(viewPort, gameCode);
          var specialsAddress = model.GetAddressFromAnchor(token, -1, HardcodeTablesModel.SpecialsTable);
