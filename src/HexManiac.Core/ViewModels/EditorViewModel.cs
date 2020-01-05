@@ -208,6 +208,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (TryUpdate(ref selectedIndex, value)) {
                   findPrevious.CanExecuteChanged.Invoke(findPrevious, EventArgs.Empty);
                   findNext.CanExecuteChanged.Invoke(findNext, EventArgs.Empty);
+                  if (selectedIndex >= 0 && selectedIndex < tabs.Count) tabs[selectedIndex].Refresh();
                   UpdateGotoViewModel();
                   foreach (var edit in QuickEdits) edit.TabChanged();
                }

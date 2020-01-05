@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
 using System;
+using System.Linq;
 using System.Windows.Input;
 using Xunit;
 
@@ -428,6 +429,35 @@ namespace HavenSoft.HexManiac.Tests {
 
          editor.ResetTheme.Execute();
          Assert.Equal(defaultValue, editor.Theme.AccentValue);
+      }
+
+      [Fact]
+      public void CanOpenSecondTabWithSameModel() {
+         var test = new BaseViewModelTestClass();
+         editor.Add(test.ViewPort);
+         test.ViewPort.Edit("<000100> @00 "); // create a pointer for us to follow
+
+         var item = test.ViewPort.GetContextMenuItems(new Point()).Single(menuItem => menuItem.Text == "Open in New Tab");
+         item.Command.Execute();
+
+         var newTab = (ViewPort)editor[1];
+         Assert.Equal(test.ViewPort.CurrentChange, newTab.CurrentChange); // they have the same change history
+         Assert.Equal(test.ViewPort.Model, newTab.Model);                 // they have the same model
+         Assert.Equal(0x100, newTab.DataOffset);                          // the new tab is scrolled to the desired location
+      }
+
+      [Fact]
+      public void TabGetsRefreshedWhenSwitchedIn() {
+         int count = 0;
+         var tab1 = new StubTabContent { Refresh = () => count++ };
+         var tab2 = new StubTabContent();
+         editor.Add(tab1);
+         count = 0;
+
+         tab1.RequestTabChange?.Invoke(tab1, tab2);
+         editor.SelectedIndex = 0;
+
+         Assert.Equal(1, count);
       }
 
       private StubTabContent CreateClosableTab() {

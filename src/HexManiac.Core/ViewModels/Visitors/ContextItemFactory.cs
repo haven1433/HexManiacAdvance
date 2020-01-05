@@ -66,6 +66,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             if (!(destination is NoInfoRun)) {
                Results.Add(new ContextItem("Repoint to New Copy", arg => ViewPort.RepointToNewCopy(pointerAddress)));
             }
+            Results.Add(new ContextItem("Open in New Tab", arg => ViewPort.OpenInNewTab(pointerDestination)));
          }
 
          var arrayRun = ViewPort.Model.GetNextRun(pointerAddress) as ITableRun;
