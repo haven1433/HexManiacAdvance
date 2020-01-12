@@ -72,8 +72,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       public static (int getTutorMove, int canPokemonLearnTutorMove, int getTutorMove_Length, int canPokemonLearnTutorMove_Length) GetOffsets(ViewPort viewPort, string gameCode) {
          if (gameCode == FireRed) {
             return (0x120BA8, 0x120BE8, 0x40, 0x54);
+         } else if (gameCode == FireRed1_1) {
+            return (0x120C20, 0x120C60, 0x40, 0x54);
          } else if (gameCode == LeafGreen) {
             return (0x120B80, 0x120BC0, 0x40, 0x54);
+         } else if (gameCode == LeafGreen1_1) {
+            return (0x120BF8, 0x120C38, 0x40, 0x54);
          } else if (gameCode == Emerald) {
             return (0x1B2360, 0x1B2370, 0x10, 0x2C);
          } else {
