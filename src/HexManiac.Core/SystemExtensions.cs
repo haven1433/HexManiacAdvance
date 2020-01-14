@@ -36,6 +36,8 @@ namespace HavenSoft.HexManiac.Core {
 
       public static string[] Split(this string self, string token) => self.Split(new[] { token }, StringSplitOptions.None);
 
+      public static bool IsAny<T>(this T self, params T[] options) where T : IEquatable<T> => options.Contains(self);
+
       ////// these are some specific string extensions to deal with smart auto-complete //////
 
       public static bool MatchesPartial(this string full, string partial) {

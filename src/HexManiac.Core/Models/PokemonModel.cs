@@ -249,7 +249,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          return errorInfo;
       }
 
-      private static ErrorInfo ApplyAnchor(IDataModel model, ModelDelta changeToken, int dataIndex, string text, bool allowAnchorOverwrite) {
+      public static ErrorInfo ApplyAnchor(IDataModel model, ModelDelta changeToken, int dataIndex, string text, bool allowAnchorOverwrite) {
          var (name, format) = SplitNameAndFormat(text);
 
          var errorInfo = TryParseFormat(model, name, format, dataIndex, out var runToWrite);
