@@ -5,15 +5,45 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
+   public static class PropertyChangedEventHandlerExtensions {
+      public static void Notify(this PropertyChangedEventHandler handler, INotifyPropertyChanged sender, [CallerMemberName]string propertyName = null) {
+         handler?.Invoke(sender, new PropertyChangedEventArgs(propertyName));
+      }
+
+      public static void Notify(this PropertyChangedEventHandler handler, INotifyPropertyChanged sender, object oldValue, [CallerMemberName]string propertyName = null) {
+         handler?.Invoke(sender, new ExtendedPropertyChangedEventArgs(oldValue, propertyName));
+      }
+
+      public static bool TryUpdate<T>(this PropertyChangedEventHandler handler, INotifyPropertyChanged sender, ref T field, T value, [CallerMemberName]string propertyName = null) where T : IEquatable<T> {
+         if (field == null && value == null) return false;
+         if (field != null && field.Equals(value)) return false;
+         var oldValue = field;
+         field = value;
+         handler.Notify(sender, oldValue, propertyName);
+         return true;
+      }
+
+      public static bool TryUpdateEnum<T>(this PropertyChangedEventHandler handler, INotifyPropertyChanged sender, ref T field, T value, [CallerMemberName]string propertyName = null) where T : Enum {
+         if (field.Equals(value)) return false;
+         var oldValue = field;
+         field = value;
+         handler.Notify(sender, oldValue, propertyName);
+         return true;
+      }
+   }
+
+   /// <summary>
+   /// Utility base-class that adds the PropertyChanged event and adds utility methods to simplify calling it.
+   /// </summary>
    public class ViewModelCore : INotifyPropertyChanged {
       public event PropertyChangedEventHandler PropertyChanged;
 
       protected void NotifyPropertyChanged([CallerMemberName]string propertyName = null) {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+         PropertyChanged.Notify(this, propertyName);
       }
 
       protected void NotifyPropertyChanged(object oldValue, [CallerMemberName]string propertyName = null) {
-         PropertyChanged?.Invoke(this, new ExtendedPropertyChangedEventArgs(oldValue, propertyName));
+         PropertyChanged.Notify(this, oldValue, propertyName);
       }
 
       /// <summary>
@@ -26,20 +56,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// <param name="propertyName">The name of the property to notify on. If the property is the caller, the compiler will figure this parameter out automatically.</param>
       /// <returns>false if the data did not need to be updated, true if it did.</returns>
       protected bool TryUpdate<T>(ref T backingField, T newValue, [CallerMemberName]string propertyName = null) where T : IEquatable<T> {
-         if (backingField == null && newValue == null) return false;
-         if (backingField != null && backingField.Equals(newValue)) return false;
-         var oldValue = backingField;
-         backingField = newValue;
-         NotifyPropertyChanged(oldValue, propertyName);
-         return true;
+         return PropertyChanged.TryUpdate(this, ref backingField, newValue, propertyName);
       }
 
       protected bool TryUpdateEnum<T>(ref T backingField, T newValue, [CallerMemberName]string propertyName = null) where T : Enum {
-         if (backingField.Equals(newValue)) return false;
-         var oldValue = backingField;
-         backingField = newValue;
-         NotifyPropertyChanged(oldValue, propertyName);
-         return true;
+         return PropertyChanged.TryUpdateEnum(this, ref backingField, newValue, propertyName);
       }
 
       protected bool TryUpdateSequence<T, U>(ref T backingField, T newValue, [CallerMemberName]string propertyName = null) where T : IEnumerable<U> where U : IEquatable<U> {
