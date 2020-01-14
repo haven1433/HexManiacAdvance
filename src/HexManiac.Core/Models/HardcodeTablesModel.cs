@@ -73,7 +73,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private void LoadDefaultMetadata() {
          if (!File.Exists("resources/default.toml")) return;
-         var lines = File.ReadAllLines("resources/tableReference.txt");
+         var lines = File.ReadAllLines("resources/default.toml");
          var metadata = new StoredMetadata(lines);
          foreach (var list in metadata.Lists) SetList(list.Name, list.Contents);
          foreach (var anchor in metadata.NamedAnchors) ApplyAnchor(this, new NoDataChangeDeltaModel(), anchor.Address, BaseRun.AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
