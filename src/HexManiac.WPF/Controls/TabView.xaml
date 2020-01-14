@@ -309,15 +309,27 @@
          ColumnWidth="{Binding CellWidth, ElementName=HexContent}"
          HorizontalOffset="{Binding ElementName=HexContent, Path=HorizontalScrollValue}"/>
       <!-- Row Headers -->
-      <ItemsControl DockPanel.Dock="Left" Width="70" ItemsSource="{Binding Headers}" Background="{DynamicResource Backlight}" MouseDown="HeaderMouseDown">
-         <ItemsControl.ItemTemplate>
-            <DataTemplate>
-               <Viewbox Height="{Binding CellHeight, ElementName=HexContent}" HorizontalAlignment="Right" Margin="0,0,2,0">
-                  <TextBlock Foreground="{DynamicResource Secondary}" Text="{Binding}" FontFamily="Consolas" Padding="1"/>
-               </Viewbox>
-            </DataTemplate>
-         </ItemsControl.ItemTemplate>
-      </ItemsControl>
+      <Grid DockPanel.Dock="Left" ClipToBounds="True" Background="{DynamicResource Backlight}" MouseDown="HeaderMouseDown" Name="HeaderRenderAreaContainer">
+         <Grid Name="HeaderRenderArea">
+            <Grid Name="ScrollingHeader" RenderTransform="{Binding RenderTransform, ElementName=ScrollingHexContent}">
+               <Rectangle Name="OldHeader" RenderTransform="{Binding RenderTransform, ElementName=OldContent}">
+                  <Rectangle.Fill>
+                     <ImageBrush x:Name="OldHeaderBrush"/>
+                  </Rectangle.Fill>
+               </Rectangle>
+               <ItemsControl Width="70" ItemsSource="{Binding Headers}" Background="{DynamicResource Backlight}">
+                  <ItemsControl.ItemTemplate>
+                     <DataTemplate>
+                        <Viewbox Height="{Binding CellHeight, ElementName=HexContent}" HorizontalAlignment="Right" Margin="0,0,2,0">
+                           <TextBlock Foreground="{DynamicResource Secondary}" Text="{Binding}" FontFamily="Consolas" Padding="1"/>
+                        </Viewbox>
+                     </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+               </ItemsControl>
+            </Grid>
+         </Grid>
+      </Grid>
+
       <Line Width="1" DockPanel.Dock="Left" Stroke="{DynamicResource Background}"/>
       <ScrollBar DockPanel.Dock="Right"
          Minimum="{Binding MinimumScroll}" Maximum="{Binding MaximumScroll}" Value="{Binding ScrollValue}"
@@ -325,9 +337,24 @@
       <ScrollBar DockPanel.Dock="Bottom" Orientation="Horizontal" SmallChange="10" LargeChange="{Binding CellWidth, ElementName=HexContent}"
          Minimum="0" Maximum="{Binding HorizontalScrollMaximum, ElementName=HexContent}" Value="{Binding HorizontalScrollValue, ElementName=HexContent}"
          Visibility="{Binding ShowHorizontalScroll, ElementName=HexContent, Converter={StaticResource BoolToVisibility}}" />
-      <Grid Margin=".5,.5,0,0">
-         <hsg3hv:HexContent x:Name="HexContent" GotFocus="ShowCursor" LostFocus="HideCursor" ViewPort="{Binding}" FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=ZoomLevel}"  ShowGrid="{Binding DataContext.ShowMatrix, RelativeSource={RelativeSource AncestorType=hsg3ww:MainWindow}}" CursorNeedsUpdate="UpdateBlinkyCursor"/>
-         <Rectangle Width="1" Fill="{DynamicResource Secondary}" Visibility="Collapsed" IsHitTestVisible="False" Name="BlinkyCursor" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+      <Grid Margin=".5,.5,0,0" ClipToBounds="True" Name="HexContentRenderAreaContainer">
+         <Grid Name="HexContentRenderArea">
+            <Grid Name="ScrollingHexContent">
+               <Grid.RenderTransform>
+                  <TranslateTransform/>
+               </Grid.RenderTransform>
+               <Rectangle Name="OldContent">
+                  <Rectangle.Fill>
+                     <ImageBrush x:Name="OldContentBrush"/>
+                  </Rectangle.Fill>
+                  <Rectangle.RenderTransform>
+                     <TranslateTransform/>
+                  </Rectangle.RenderTransform>
+               </Rectangle>
+               <hsg3hv:HexContent x:Name="HexContent" GotFocus="ShowCursor" LostFocus="HideCursor" ViewPort="{Binding}" FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=ZoomLevel}"  ShowGrid="{Binding DataContext.ShowMatrix, RelativeSource={RelativeSource AncestorType=hsg3ww:MainWindow}}" CursorNeedsUpdate="UpdateBlinkyCursor"/>
+               <Rectangle Width="1" Fill="{DynamicResource Secondary}" Visibility="Collapsed" IsHitTestVisible="False" Name="BlinkyCursor" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+            </Grid>
+         </Grid>
       </Grid>
    </DockPanel>
 </UserControl>

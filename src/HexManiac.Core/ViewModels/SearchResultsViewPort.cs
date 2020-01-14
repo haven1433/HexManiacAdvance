@@ -47,9 +47,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
       public int MinimumScroll => 0;
+      public event EventHandler PreviewScrollChanged;
       public int ScrollValue {
          get => scrollValue;
          set {
+            PreviewScrollChanged?.Invoke(this, EventArgs.Empty);
             value = value.LimitToRange(0, MaximumScroll);
             if (TryUpdate(ref scrollValue, value)) NotifyCollectionChanged();
          }
