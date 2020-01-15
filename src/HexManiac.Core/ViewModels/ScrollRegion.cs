@@ -60,7 +60,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (dif == 0) return;
 
             DataIndex += dif * width;
-            TryUpdate(ref scrollValue, value);
+            NotifyPropertyChanged(value - dif);
          }
       }
 
@@ -160,8 +160,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             newCurrentScroll = 0;
          }
 
-         // Call Update instead of ScrollValue.set to avoid changing the dataIndex.
-         TryUpdate(ref scrollValue, newCurrentScroll, nameof(ScrollValue));
+         // don't notify: the caller will notify if desired.
+         scrollValue = newCurrentScroll;
          UpdateHeaders();
       }
 

@@ -55,6 +55,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private readonly ScrollRegion scroll;
 
+      public event EventHandler PreviewScrollChanged;
+
       public int Width {
          get => scroll.Width;
          set {
@@ -73,7 +75,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public int ScrollValue {
          get => scroll.ScrollValue;
-         set { using (ModelCacheScope.CreateScope(Model)) scroll.ScrollValue = value; }
+         set {
+            PreviewScrollChanged?.Invoke(this, EventArgs.Empty);
+            using (ModelCacheScope.CreateScope(Model)) scroll.ScrollValue = value;
+         }
       }
 
       public int MaximumScroll => scroll.MaximumScroll;
@@ -607,6 +612,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                return;
             }
          }
+         PreviewScrollChanged?.Invoke(this, EventArgs.Empty);
          selection.MoveSelectionStart.Execute(arg);
       }
 

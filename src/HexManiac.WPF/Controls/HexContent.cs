@@ -47,12 +47,14 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             oldViewPort.CollectionChanged -= OnViewPortContentChanged;
             oldViewPort.PropertyChanged -= OnViewPortPropertyChanged;
             oldViewPort.RequestMenuClose -= OnViewPortRequestMenuClose;
+            oldViewPort.Headers.CollectionChanged -= OnViewPortContentChanged;
          }
 
          if (e.NewValue is IViewPort newViewPort) {
             newViewPort.CollectionChanged += OnViewPortContentChanged;
             newViewPort.PropertyChanged += OnViewPortPropertyChanged;
             newViewPort.RequestMenuClose += OnViewPortRequestMenuClose;
+            newViewPort.Headers.CollectionChanged += OnViewPortContentChanged;
             UpdateViewPortSize();
          }
 

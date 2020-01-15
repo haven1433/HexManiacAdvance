@@ -13,6 +13,8 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
@@ -25,6 +27,17 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       public int ZoomLevel {
          get => (int)GetValue(ZoomLevelProperty);
          set => SetValue(ZoomLevelProperty, value);
+      }
+
+      #endregion
+
+      #region AnimateScroll
+
+      public static readonly DependencyProperty AnimateScrollProperty = DependencyProperty.Register(nameof(AnimateScroll), typeof(bool), typeof(TabView), new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+
+      public bool AnimateScroll {
+         get => (bool)GetValue(AnimateScrollProperty);
+         set => SetValue(AnimateScrollProperty, value);
       }
 
       #endregion
@@ -47,8 +60,16 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void HandleDataContextChanged(object sender, DependencyPropertyChangedEventArgs e) {
+         if (e.OldValue is IViewPort viewPortOld1) {
+            viewPortOld1.PropertyChanged -= HandleViewPortScrollChanged;
+            viewPortOld1.PreviewScrollChanged -= PreviewViewPortScrollChanged;
+         }
          if (e.OldValue is ViewPort viewPortOld) {
             viewPortOld.Tools.StringTool.PropertyChanged -= HandleStringToolPropertyChanged;
+         }
+         if (e.NewValue is IViewPort viewPortNew1) {
+            viewPortNew1.PropertyChanged += HandleViewPortScrollChanged;
+            viewPortNew1.PreviewScrollChanged += PreviewViewPortScrollChanged;
          }
          if (e.NewValue is ViewPort viewPortNew) {
             viewPortNew.Tools.StringTool.PropertyChanged += HandleStringToolPropertyChanged;
@@ -150,6 +171,49 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          } else {
             BlinkyCursor.Fill = Brushes.Transparent;
          }
+      }
+
+      #endregion
+
+      #region Scrolling Animation Code
+
+      private RenderTargetBitmap hexContentBitmap = new RenderTargetBitmap(10, 10, 96, 96, PixelFormats.Pbgra32);
+      private RenderTargetBitmap headerBitmap = new RenderTargetBitmap(10, 10, 96, 96, PixelFormats.Pbgra32);
+
+      private void PreviewViewPortScrollChanged(object sender, EventArgs e) {
+         if (!AnimateScroll) return;
+         var translate = (TranslateTransform)ScrollingHexContent.RenderTransform;
+         translate.BeginAnimation(TranslateTransform.YProperty, null); // kill any existing animation
+         translate.Y = 0;
+
+         if ((int)HexContent.ActualWidth != hexContentBitmap.PixelWidth || (int)HexContent.ActualHeight != hexContentBitmap.PixelHeight) {
+            hexContentBitmap = new RenderTargetBitmap((int)HexContent.ActualWidth, (int)HexContent.ActualHeight, 96, 96, PixelFormats.Pbgra32);
+         }
+         if ((int)HeaderRenderAreaContainer.ActualWidth != headerBitmap.PixelWidth || (int)HeaderRenderAreaContainer.ActualHeight != headerBitmap.PixelHeight) {
+            headerBitmap = new RenderTargetBitmap((int)HeaderRenderAreaContainer.ActualWidth, (int)HeaderRenderAreaContainer.ActualHeight, 96, 96, PixelFormats.Pbgra32);
+         }
+         hexContentBitmap.Clear();
+         headerBitmap.Clear();
+         hexContentBitmap.Render(HexContentRenderArea);
+         headerBitmap.Render(HeaderRenderArea);
+         ((ImageBrush)OldContent.Fill).ImageSource = hexContentBitmap;
+         ((ImageBrush)OldHeader.Fill).ImageSource = headerBitmap;
+         ((TranslateTransform)OldContent.RenderTransform).Y = 0; // reset the transform to prevent visual glitching
+      }
+
+      private void HandleViewPortScrollChanged(object sender, PropertyChangedEventArgs e) {
+         if (!AnimateScroll) return;
+         if (e.PropertyName != nameof(IViewPort.ScrollValue)) return;
+         var viewPort = (IViewPort)sender;
+         var oldValue = (int)((ExtendedPropertyChangedEventArgs)e).OldValue;
+         var newValue = viewPort.ScrollValue;
+         var scrollChange = newValue - oldValue;
+         if (scrollChange == 0) return;
+
+         var translate = (TranslateTransform)ScrollingHexContent.RenderTransform;
+         var currentOffset = scrollChange * HexContent.CellHeight;
+         translate.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(currentOffset, 0, new Duration(TimeSpan.FromMilliseconds(100))));
+         ((TranslateTransform)OldContent.RenderTransform).Y = -currentOffset;
       }
 
       #endregion

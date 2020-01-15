@@ -50,6 +50,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          clearError = new StubCommand(),
          clearMessage = new StubCommand(),
          toggleMatrix = new StubCommand(),
+         toggleScrollAnimation = new StubCommand(),
          toggleTableHeaders = new StubCommand();
 
       private readonly Dictionary<Func<ITabContent, ICommand>, EventHandler> forwardExecuteChangeNotifications;
@@ -82,6 +83,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand ClearError => clearError;
       public ICommand ClearMessage => clearMessage;
       public ICommand ToggleMatrix => toggleMatrix;
+      public ICommand ToggleScrollAnimation => toggleScrollAnimation;
       public ICommand ToggleTableHeaders => toggleTableHeaders;
 
       private GotoControlViewModel gotoViewModel = new GotoControlViewModel(null);
@@ -166,6 +168,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public bool ShowMatrix {
          get => showMatrix;
          set => TryUpdate(ref showMatrix, value);
+      }
+
+      private bool animateScroll = true;
+      public bool AnimateScroll {
+         get => animateScroll;
+         set => TryUpdate(ref animateScroll, value);
       }
 
       public Theme Theme { get; }
@@ -258,6 +266,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var metadata = fileSystem.MetadataFor(ApplicationName) ?? new string[0];
          Theme = new Theme(metadata);
          ShowMatrix = !metadata.Contains("ShowMatrixGrid = False");
+         AnimateScroll = !metadata.Contains("AnimateScroll = False");
          var zoomLine = metadata.FirstOrDefault(line => line.StartsWith("ZoomLevel ="));
          if (zoomLine != null && int.TryParse(zoomLine.Split('=').Last().Trim(), out var zoomLevel)) ZoomLevel = zoomLevel;
       }
@@ -272,6 +281,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          metadata.Add("[GeneralSettings]");
          metadata.Add($"ShowMatrixGrid = {ShowMatrix}");
          metadata.Add($"ZoomLevel = {ZoomLevel}");
+         metadata.Add($"AnimateScroll = {AnimateScroll}");
          metadata.Add(string.Empty);
          metadata.AddRange(Theme.Serialize());
          fileSystem.SaveMetadata(ApplicationName, metadata.ToArray());
@@ -320,6 +330,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          toggleMatrix.CanExecute = CanAlwaysExecute;
          toggleMatrix.Execute = arg => ShowMatrix = !ShowMatrix;
+
+         toggleScrollAnimation.CanExecute = CanAlwaysExecute;
+         toggleScrollAnimation.Execute = arg => AnimateScroll = !AnimateScroll;
 
          resetZoom.CanExecute = CanAlwaysExecute;
          resetZoom.Execute = arg => ZoomLevel = 16;

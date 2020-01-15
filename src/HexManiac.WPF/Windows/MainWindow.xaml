@@ -117,6 +117,7 @@
                </MenuItem>
                <MenuItem Header="_View">
                   <MenuItem Header="Toggle _Matrix Grid" Command="{Binding ToggleMatrix}" InputGestureText="Ctrl+M"/>
+                  <MenuItem Header="Toggle Scroll _Animation" Command="{Binding ToggleScrollAnimation}"/>
                   <MenuItem Header="Reset _Zoom" Command="{Binding ResetZoom}">
                      <MenuItem.ToolTip>
                         <ToolTip BorderThickness="0" Background="{DynamicResource Backlight}">
@@ -259,7 +260,9 @@
                </TabControl.ItemTemplate>
                <TabControl.ContentTemplate>
                   <DataTemplate>
-                     <hsg3hv:TabView ZoomLevel="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.ZoomLevel}"/>
+                     <hsg3hv:TabView
+                        AnimateScroll="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.AnimateScroll}"
+                        ZoomLevel="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.ZoomLevel}"/>
                   </DataTemplate>
                </TabControl.ContentTemplate>
             </TabControl>
