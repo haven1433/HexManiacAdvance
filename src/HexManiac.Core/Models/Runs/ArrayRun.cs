@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -707,6 +708,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public static bool DataMatchesSegmentFormat(IDataModel owner, int start, ArrayRunElementSegment segment, FormatMatchFlags flags, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
+         Debug.Assert(sourceSegments.Contains(segment), "Expected segment to be one among sourceSegments.");
          switch (segment.Type) {
             case ElementContentType.PCS:
                int readLength = PCSString.ReadString(owner, start, true, segment.Length);

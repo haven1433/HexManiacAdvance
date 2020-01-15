@@ -31,7 +31,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          for (int i = 0; i < tableStream.ElementCount; i++) {
             int subStart = start + tableStream.ElementLength * i;
             for (int j = 0; j < tableStream.ElementContent.Count; j++) {
-               if (!ArrayRun.DataMatchesSegmentFormat(model, subStart, tableStream.ElementContent[j], default, sourceSegments)) return false;
+               if (!ArrayRun.DataMatchesSegmentFormat(model, subStart, tableStream.ElementContent[j], default, tableStream.ElementContent)) return false;
                subStart += tableStream.ElementContent[j].Length;
             }
          }
