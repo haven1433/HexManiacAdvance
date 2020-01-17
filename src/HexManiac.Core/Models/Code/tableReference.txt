@@ -33,3 +33,6 @@ nationaldex,         03F83C, 03F83C, 03F83C, 03F83C, 04323C, 04323C, 043250, 043
 hoennToNational,     03F888, 03F888, 03F888, 03F888, 043288, 043288, 04329C, 04329C, 06D494, [index:]pokenames-1
 dexinfo,             08F508, 08F508, 08F528, 08F528, 088E34, 088E30, 088E48, 088E1C,       , [species""12 height: weight: description1<""> description2<""> unused: pokemonScale: pokemonOffset: trainerScale: trainerOffset: unused:]
 dexinfo,                   ,       ,       ,       ,       ,       ,       ,       , 0BFA20, [species""12 height: weight: description<""> unused: pokemonScale: pokemonOffset: trainerScale: trainerOffset: unused:]
+
+habitatnames,              ,       ,       ,       , 104F84, 104F5C, 104FFC, 104FD4,       , [name<"">]
+habitats,                  ,       ,       ,       , 106888, 106860, 106900, 1068D8,       , [data<[pokemon<[species:pokenames]/pokecount> pokecount::]/count> count::]habitatnames

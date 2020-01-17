@@ -1,4 +1,5 @@
 ﻿
+using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
@@ -392,6 +393,27 @@ namespace HavenSoft.HexManiac.Tests {
          var specialsAddress = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.SpecialsTable);
          var specials = (ITableRun)model.GetNextRun(specialsAddress);
          Assert.NotInRange(specials.ElementCount, 0, 300);
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void HabitatsAreFound(string game) {
+         var model = fixture.LoadModel(game);
+         var noChange = new NoDataChangeDeltaModel();
+
+         var habitatNamesAddress = model.GetAddressFromAnchor(noChange, -1, "habitatnames");
+         var habitatsAddress = model.GetAddressFromAnchor(noChange, -1, "habitats");
+
+         // ruby / sapphire / emerald have no habitats
+         if (model.GetGameCode().IsAny(AutoSearchModel.Ruby, AutoSearchModel.Ruby1_1, AutoSearchModel.Sapphire, AutoSearchModel.Sapphire1_1, AutoSearchModel.Emerald)) {
+            Assert.Equal(Pointer.NULL, habitatNamesAddress);
+            Assert.Equal(Pointer.NULL, habitatsAddress);
+            return;
+         }
+
+         var habitatNames = (ITableRun)model.GetNextRun(habitatNamesAddress);
+         var habitats = (ITableRun)model.GetNextRun(habitatsAddress);
+         Assert.InRange(habitats.ElementCount, 8, 12);
       }
 
       public static IEnumerable<object[]> ListData => PokemonGames.Select(array => array[0]).SelectMany(game =>
