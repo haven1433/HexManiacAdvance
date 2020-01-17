@@ -305,6 +305,23 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
+      public void MultilinePlmPasteWorks() {
+         SetupMoveTable(0x00);
+         SetupPlmStream(0x50, 2);
+         viewPort.Edit(@"@000050
+4 Three
+6 Five
+10 Zero
+[]
+");
+
+         Assert.Equal(0b0000100_000000011, model.ReadMultiByteValue(0x50, 2));
+         Assert.Equal(0b0000110_000000101, model.ReadMultiByteValue(0x52, 2));
+         Assert.Equal(0b0001010_000000000, model.ReadMultiByteValue(0x54, 2));
+         Assert.Equal(0xFFFF, model.ReadMultiByteValue(0x56, 2));
+      }
+
+      [Fact]
       public void ChoosingAutoCompleteOptionClosesPlmEdit() {
          SetupMoveTable(0x00);
          viewPort.SelectionStart = new Point(0, 1); // start of move "Two"
