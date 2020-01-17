@@ -1308,6 +1308,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var point = GetEditPoint();
          var element = this[point.X, point.Y];
 
+         if (input.IsAny('\r', '\n')) input = ' '; // handle multiline pasting by just treating the newlines as standard whitespace. 
+
          if (!ShouldAcceptInput(point, element, input)) {
             ClearEdits(point);
             return;
