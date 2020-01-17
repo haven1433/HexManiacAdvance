@@ -25,6 +25,10 @@ namespace HavenSoft.HexManiac.Tests {
          "FireRed",
          "LeafGreen",
          "Emerald",
+         "FireRed v1.1",
+         "LeafGreen v1.1",
+         "Ruby v1.1",
+         "Sapphire v1.1",
          "DarkRisingKAIZO", // from FireRed
          "Vega 2019-04-20", // from FireRed
          "Clover",          // from FireRed
@@ -325,7 +329,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [SkippableFact]
       public void TutorsCompatibilityContainsCorrectDataFireRed() {
-         var model = fixture.LoadModel(PokemonGames.Select(array => (string)array[0]).Single(game => game.Contains("FireRed")));
+         var model = fixture.LoadModel(PokemonGames.Select(array => (string)array[0]).First(game => game.Contains("FireRed")));
          var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, AutoSearchModel.TutorCompatibility);
          Assert.Equal(0x409A, model.ReadMultiByteValue(address + 2, 2));
       }
@@ -522,7 +526,7 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Edit("+");
 
          // 0x14 bytes after the start of the change should store the length of items
-         var gameCode = new string(Enumerable.Range(0xAC, 4).Select(i => ((char)model[i])).ToArray());
+         var gameCode = model.GetGameCode();
          var editStart = MakeItemsExpandable.GetPrimaryEditAddress(gameCode);
          table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, "items")); // note that since we changed the table, we have to get the run again.
          var word = (WordRun)model.GetNextRun(editStart + 0x14);

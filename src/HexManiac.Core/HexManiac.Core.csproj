@@ -110,6 +110,9 @@
     <Compile Include="ViewModels\ViewPort.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Models\Code\default.toml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -119,6 +122,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Models\Code\scriptReference.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Models\Code\tableReference.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

@@ -26,7 +26,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var viewPort = viewPortInterface as ViewPort;
          if (viewPort == null) return false;
          var model = viewPortInterface.Model;
-         var gameCode = new string(Enumerable.Range(0xAC, 4).Select(i => ((char)model[i])).ToArray());
+         var gameCode = model.GetGameCode();
 
          var start = GetPrimaryEditAddress(gameCode);
          if (start == -1) return false;
@@ -37,7 +37,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       public ErrorInfo Run(IViewPort viewPortInterface) {
          var viewPort = (ViewPort)viewPortInterface;
          var model = viewPortInterface.Model;
-         var gameCode = new string(Enumerable.Range(0xAC, 4).Select(i => ((char)model[i])).ToArray());
+         var gameCode = model.GetGameCode();
          var start = GetPrimaryEditAddress(gameCode);
 
          // IsItemIDValid(itemID)

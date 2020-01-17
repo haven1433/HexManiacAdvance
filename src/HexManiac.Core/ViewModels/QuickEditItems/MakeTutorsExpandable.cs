@@ -28,7 +28,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
          // require that this data actually supports this change
          var model = viewPort.Model;
-         var gameCode = new string(Enumerable.Range(0xAC, 4).Select(i => ((char)model[i])).ToArray());
+         var gameCode = model.GetGameCode();
          var (getTutorMove, canPokemonLearnTutorMove, getTutorMove_Length, canPokemonLearnTutorMove_Length) = GetOffsets(viewPort, gameCode);
          if (getTutorMove < 0 || canPokemonLearnTutorMove < 0) return false;
 
@@ -48,7 +48,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var viewPort = (ViewPort)viewPortInterface;
          var model = viewPort.Model;
          var token = viewPort.CurrentChange;
-         var gameCode = new string(Enumerable.Range(0xAC, 4).Select(i => ((char)model[i])).ToArray());
+         var gameCode = model.GetGameCode();
 
          var (getTutorMove, canPokemonLearnTutorMove, getTutorMove_Length, canPokemonLearnTutorMove_Length) = GetOffsets(viewPort, gameCode);
          var specialsAddress = model.GetAddressFromAnchor(token, -1, HardcodeTablesModel.SpecialsTable);
@@ -72,8 +72,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       public static (int getTutorMove, int canPokemonLearnTutorMove, int getTutorMove_Length, int canPokemonLearnTutorMove_Length) GetOffsets(ViewPort viewPort, string gameCode) {
          if (gameCode == FireRed) {
             return (0x120BA8, 0x120BE8, 0x40, 0x54);
+         } else if (gameCode == FireRed1_1) {
+            return (0x120C20, 0x120C60, 0x40, 0x54);
          } else if (gameCode == LeafGreen) {
             return (0x120B80, 0x120BC0, 0x40, 0x54);
+         } else if (gameCode == LeafGreen1_1) {
+            return (0x120BF8, 0x120C38, 0x40, 0x54);
          } else if (gameCode == Emerald) {
             return (0x1B2360, 0x1B2370, 0x10, 0x2C);
          } else {

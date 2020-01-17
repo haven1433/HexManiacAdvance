@@ -11,11 +11,15 @@ namespace HavenSoft.HexManiac.Core.Models {
    /// </summary>
    public class AutoSearchModel : PokemonModel {
       public const string
-         Ruby = "AXVE",
-         Sapphire = "AXPE",
-         Emerald = "BPEE",
-         FireRed = "BPRE",
-         LeafGreen = "BPGE";
+         Ruby = "AXVE0",
+         Sapphire = "AXPE0",
+         Emerald = "BPEE0",
+         FireRed = "BPRE0",
+         LeafGreen = "BPGE0",
+         Ruby1_1 = "AXVE1",
+         Sapphire1_1 = "AXPE1",
+         FireRed1_1 = "BPRE1",
+         LeafGreen1_1 = "BPGE1";
 
       public const string
          TmMoves = "tmmoves",
@@ -38,7 +42,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public AutoSearchModel(byte[] data, StoredMetadata metadata = null) : base(data, metadata) {
          if (metadata != null && !metadata.IsEmpty) return;
 
-         gameCode = string.Concat(Enumerable.Range(0xAC, 4).Select(i => ((char)data[i]).ToString()));
+         gameCode = this.GetGameCode();
 
          // in vanilla emerald, this pointer isn't four-byte aligned
          // it's at the very front of the ROM, so if there's no metadata we can be pretty sure that the pointer is still there

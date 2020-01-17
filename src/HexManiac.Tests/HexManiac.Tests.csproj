@@ -133,7 +133,10 @@ del *.cs</PreBuildEvent>
 mkdir "$(TargetDir)resources"
 copy "$(TargetDir)Models\Code\*.txt" "$(TargetDir)resources"
 del "$(TargetDir)Models\Code\*.txt"
-    </PostBuildEvent>
+copy "$(TargetDir)Models\Code\*.toml" "$(TargetDir)resources"
+del "$(TargetDir)Models\Code\*.toml"
+
+</PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\..\packages\xunit.core.2.4.1\build\xunit.core.targets" Condition="Exists('..\..\packages\xunit.core.2.4.1\build\xunit.core.targets')" />
 </Project>

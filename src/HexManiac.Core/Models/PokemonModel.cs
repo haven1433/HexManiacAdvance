@@ -249,7 +249,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          return errorInfo;
       }
 
-      private static ErrorInfo ApplyAnchor(IDataModel model, ModelDelta changeToken, int dataIndex, string text, bool allowAnchorOverwrite) {
+      public static ErrorInfo ApplyAnchor(IDataModel model, ModelDelta changeToken, int dataIndex, string text, bool allowAnchorOverwrite) {
          var (name, format) = SplitNameAndFormat(text);
 
          var errorInfo = TryParseFormat(model, name, format, dataIndex, out var runToWrite);
@@ -664,6 +664,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             IFormattedRun newRun = new NoInfoRun(destination, new[] { start });
             UpdateNewRunFromPointerFormat(ref newRun, segment as ArrayRunPointerSegment, changeToken);
             if (newRun != null) {
+               ClearFormat(changeToken, newRun.Start, newRun.Length); // adding a new destination, so clear anything in the way.
                ObserveRunWritten(changeToken, newRun);
             }
          } else {

@@ -140,7 +140,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       public ErrorInfo Run(IViewPort viewPortInterface) {
          var viewPort = (ViewPort)viewPortInterface;
          var model = viewPort.Model;
-         var gameCode = new string(Enumerable.Range(0xAC, 4).Select(i => ((char)model[i])).ToArray());
+         var gameCode = model.GetGameCode();
 
          SplitTmsHms(viewPort);
          InsertCanPokemonLearnTmOrHmMove(viewPort, gameCode);
