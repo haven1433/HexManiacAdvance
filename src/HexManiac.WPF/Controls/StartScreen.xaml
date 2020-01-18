@@ -27,7 +27,8 @@
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>items / itemimages<LineBreak/>
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>tutormoves / tutorcompatibility<LineBreak/>
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>tmmoves / tmcompatibility<LineBreak/>
-      <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>dexinfo / regionaldex / nationaldex / hoennToNational<LineBreak/>
+      <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>dexinfo / regionaldex / nationaldex / hoennToNational<LineBreak/>      
+      <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>searchalpha / searchsize / searchweight / searchtype<LineBreak/>
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>habitatnames / habitats<LineBreak/>
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>wild<LineBreak/>
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>multichoice<LineBreak/>

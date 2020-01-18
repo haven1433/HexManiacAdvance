@@ -22,7 +22,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          ArrayStart, ArrayEnd,
          StringDelimeter, StreamDelimeter,
          PointerStart, PointerEnd,
-         '|', '!', ArrayAnchorSeparator,
+         '|', '!', '-', ArrayAnchorSeparator,
          SingleByteIntegerFormat, DoubleByteIntegerFormat,
       };
 

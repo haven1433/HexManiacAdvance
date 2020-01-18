@@ -12,14 +12,22 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
+using static HavenSoft.HexManiac.Core.Models.AutoSearchModel;
+
 namespace HavenSoft.HexManiac.Tests {
+   internal static class TestExtensions {
+      public static ITableRun GetTable(this IDataModel model, string name) {
+         var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, name);
+         return model.GetNextRun(address) as ITableRun;
+      }
+   }
+
    /// <summary>
    /// The Auto-Search tests exist to verify that data can be found in the Vanilla roms.
    /// These tests are skippable, so that they'll work even if you don't have the ROMs on your system.
    /// This is important, since the ROMs aren't part of the repository.
    /// </summary>
    public class AutoSearchTests : IClassFixture<AutoSearchFixture> {
-
       public static IEnumerable<object[]> PokemonGames { get; } = new[] {
          "Ruby",
          "Sapphire",
@@ -38,6 +46,7 @@ namespace HavenSoft.HexManiac.Tests {
       }.Select(game => new object[] { "sampleFiles/Pokemon " + game + ".gba" });
 
       private readonly AutoSearchFixture fixture;
+      private readonly NoDataChangeDeltaModel noChange = new NoDataChangeDeltaModel();
 
       public AutoSearchTests(AutoSearchFixture fixture) => this.fixture = fixture;
 
@@ -257,6 +266,19 @@ namespace HavenSoft.HexManiac.Tests {
          if (game.Contains("Clover") || game.Contains("Gaia")) return; // some hacks have busted dex data
 
          Assert.Equal(387, infoRun.ElementCount);
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void PokedexSearchDataIsFound(string game) {
+         var model = fixture.LoadModel(game);
+
+         Assert.NotNull(model.GetTable("searchalpha"));
+         Assert.NotNull(model.GetTable("searchweight"));
+         Assert.NotNull(model.GetTable("searchsize"));
+
+         if (model.GetGameCode().IsAny(Ruby, Ruby1_1, Sapphire, Sapphire1_1, Emerald)) return;
+         Assert.NotNull(model.GetTable("searchtype"));
       }
 
       [SkippableTheory]

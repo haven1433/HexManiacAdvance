@@ -209,6 +209,43 @@ namespace HavenSoft.HexManiac.Core.Models {
          return array.ElementContent.Any(segment => segment.Type == ElementContentType.PCS);
       }
 
+      public static bool TryGetIndexNames(this IDataModel model, string anchorName, out IReadOnlyList<string> names) {
+         names = null;
+
+         // verify that this anchor is an index-array
+         var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, anchorName);
+         var array = model.GetNextRun(address) as ArrayRun;
+         if (array == null) return false;
+         if (array.ElementContent.Count != 1) return false;
+         if (array.ElementContent[0].Type != ElementContentType.Integer) return false;
+
+         // verify that the parent is a name-array
+         var parentName = array.LengthFromAnchor;
+         if (parentName == string.Empty) return false;
+         address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, parentName);
+         var parent = model.GetNextRun(address) as ArrayRun;
+         if (parent == null) return false;
+         if (parent.ElementContent.Count != 1) return false;
+         if (parent.ElementContent[0].Type != ElementContentType.PCS) return false;
+
+         var offset = array.FormatString.EndsWith("-1") ? 1 : 0;
+         var rawOptions = ModelCacheScope.GetCache(model).GetOptions(parentName);
+
+         // create a name array, where the names are rearranged based on the index array
+         var result = new string[rawOptions.Count];
+         for (int i = 0; i < result.Length - offset; i++) {
+            var index = model.ReadMultiByteValue(array.Start + array.ElementLength * i, array.ElementLength);
+            if (index < offset) return false;
+            if (index - offset >= result.Length) return false;
+            if (i + offset >= rawOptions.Count) return false;
+            result[index] = rawOptions[i + offset];
+            if (result[i] == null) result[i] = "?unused?";
+         }
+
+         names = result;
+         return true;
+      }
+
       public static List<int> FindPossibleTextStartingPlaces(this IDataModel model, int left, int length) {
          // part 1: find a previous FF, which is possibly the end of another text
          while (model[left] != 0xFF && PCSString.PCS[model[left]] != null) { left--; length++; }
