@@ -415,7 +415,7 @@ namespace HavenSoft.HexManiac.Tests {
             Assert.Equal("Elen", options[5]);
             Assert.Equal("Fred", options[6]);
             Assert.Equal("Gary", options[7]);
-            Assert.Equal(7, options.Count);
+            Assert.Equal(8, options.Count);
          }
       }
 
