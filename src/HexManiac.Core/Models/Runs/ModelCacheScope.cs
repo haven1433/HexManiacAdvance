@@ -76,7 +76,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private static IReadOnlyList<string> GetOptions(IDataModel model, string enumName) {
          if (model.TryGetList(enumName, out var nameArray)) return nameArray;
 
-         if (!model.TryGetNameArray(enumName, out var enumArray)) return new string[0];
+         if (!model.TryGetNameArray(enumName, out var enumArray)) {
+            if (model.TryGetIndexNames(enumName, out var indexArray)) return indexArray;
+            return new string[0];
+         }
 
          // array must be at least as long as than the current value
          var optionCount = enumArray.ElementCount;
