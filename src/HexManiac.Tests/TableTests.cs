@@ -303,8 +303,8 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
-         CreateTextTable(EggMoveRun.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
-         CreateTextTable(EggMoveRun.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
+         CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
+         CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.ItemsTableName, 0x1D0, "0123456789".Select(c => c.ToString()).ToArray());
 
          // trainers start at 00. There is room for up to 4.
@@ -323,8 +323,8 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount) {
-         CreateTextTable(EggMoveRun.PokemonNameTable, 0x100, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
-         CreateTextTable(EggMoveRun.MoveNamesTable, 0x140, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
+         CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x100, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
+         CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x140, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.ItemsTableName, 0x180, "0123456789".Select(c => c.ToString()).ToArray());
 
          Model[TrainerPokemonTeamRun.TrainerFormat_StructTypeOffset] = structType;

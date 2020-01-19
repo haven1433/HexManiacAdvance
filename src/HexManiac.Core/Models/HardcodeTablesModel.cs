@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using static HavenSoft.HexManiac.Core.Models.AutoSearchModel;
 
 namespace HavenSoft.HexManiac.Core.Models {
    /// <summary>
@@ -15,30 +14,52 @@ namespace HavenSoft.HexManiac.Core.Models {
    /// Lengths of some tables are still calculated dynamically based on best-fit, so operations like adding pokemon from a separate tool should still be picked up correctly.
    /// </summary>
    public class HardcodeTablesModel : PokemonModel {
-      public const string WildTableName = "wild";
-      public const string SpecialsTable = "specials";
-      public const string ItemsTableName = "items";
-      public const string DexInfoTableName = "dexinfo";
-      public const string TrainerTableName = "trainerdata";
-      public const string EggMovesTableName = "eggmoves";
-      public const string EvolutionTableName = "evolutions";
-      public const string TypeChartTableName = "typeChart";
-      public const string TypeChartTableName2 = "typeChart2";
-      public const string LevelMovesTableName = "lvlmoves";
-      public const string MultichoiceTableName = "multichoice";
-      public const string DecorationsTableName = "decorations";
-      public const string RegionalDexTableName = "regionaldex";
-      public const string NationalDexTableName = "nationaldex";
-      public const string MoveDescriptionsName = "movedescriptions";
-      public const string ConversionDexTableName = "hoennToNational";
+      public const string
+         WildTableName = "wild",
+         SpecialsTable = "specials",
+         ItemsTableName = "items",
+         MoveNamesTable = "movenames",
+         DexInfoTableName = "dexinfo",
+         PokemonNameTable = "pokenames",
+         TrainerTableName = "trainerdata",
+         EggMovesTableName = "eggmoves",
+         EvolutionTableName = "evolutions",
+         TypeChartTableName = "typeChart",
+         TypeChartTableName2 = "typeChart2",
+         LevelMovesTableName = "lvlmoves",
+         MultichoiceTableName = "multichoice",
+         DecorationsTableName = "decorations",
+         RegionalDexTableName = "regionaldex",
+         NationalDexTableName = "nationaldex",
+         MoveDescriptionsName = "movedescriptions",
+         ConversionDexTableName = "hoennToNational";
 
-      public const string MoveInfoListName = "moveinfo";
-      public const string MoveEffectListName = "moveeffects";
-      public const string MoveTargetListName = "movetarget";
-      public const string EvolutionMethodListName = "evolutionmethods";
-      public const string DecorationsShapeListName = "decorshape";
-      public const string DecorationsCategoryListName = "decorcategory";
-      public const string DecorationsPermissionListName = "decorpermissions";
+      public const string
+         MoveInfoListName = "moveinfo",
+         MoveEffectListName = "moveeffects",
+         MoveTargetListName = "movetarget",
+         EvolutionMethodListName = "evolutionmethods",
+         DecorationsShapeListName = "decorshape",
+         DecorationsCategoryListName = "decorcategory",
+         DecorationsPermissionListName = "decorpermissions";
+
+      public const string
+         Ruby = "AXVE0",
+         Sapphire = "AXPE0",
+         Emerald = "BPEE0",
+         FireRed = "BPRE0",
+         LeafGreen = "BPGE0",
+         Ruby1_1 = "AXVE1",
+         Sapphire1_1 = "AXPE1",
+         FireRed1_1 = "BPRE1",
+         LeafGreen1_1 = "BPGE1";
+
+      public const string
+         TmMoves = "tmmoves",
+         HmMoves = "hmmoves",
+         TmCompatibility = "tmcompatibility",
+         MoveTutors = "tutormoves",
+         TutorCompatibility = "tutorcompatibility";
 
       private readonly string gameCode;
       private readonly ModelDelta noChangeDelta = new NoDataChangeDeltaModel();

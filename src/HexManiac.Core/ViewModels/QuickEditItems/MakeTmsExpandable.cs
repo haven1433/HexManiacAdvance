@@ -3,9 +3,8 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
-using static HavenSoft.HexManiac.Core.Models.AutoSearchModel;
+using static HavenSoft.HexManiac.Core.Models.HardcodeTablesModel;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
    // TODO for Emerald, update CanSpeciesLearnTmHm also
@@ -206,8 +205,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          for (int i = 0; i < 8; i++) model.WriteMultiByteValue(table.Start + table.Length + i * 2, 2, token, 0);
 
          // add new tmcompatibility and hmcompatibility formats
-         viewPort.Edit($"@{compatibilityAddress:X6} ^{TmCompatibility}[pokemon|b[]{TmMoves}]{EggMoveRun.PokemonNameTable} ");
-         viewPort.Edit($"@{hmStart:X6} ^{HmCompatibility}[pokemon|b[]{HmMoves}]{EggMoveRun.PokemonNameTable} ");
+         viewPort.Edit($"@{compatibilityAddress:X6} ^{TmCompatibility}[pokemon|b[]{TmMoves}]{PokemonNameTable} ");
+         viewPort.Edit($"@{hmStart:X6} ^{HmCompatibility}[pokemon|b[]{HmMoves}]{PokemonNameTable} ");
       }
 
       // original-new   ->   58-58

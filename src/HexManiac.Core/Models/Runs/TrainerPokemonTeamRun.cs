@@ -59,15 +59,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var segments = new List<ArrayRunElementSegment>();
          segments.Add(new ArrayRunElementSegment("ivSpread", ElementContentType.Integer, 2));
          segments.Add(new ArrayRunElementSegment("level", ElementContentType.Integer, 2));
-         segments.Add(new ArrayRunEnumSegment("mon", 2, EggMoveRun.PokemonNameTable));
+         segments.Add(new ArrayRunEnumSegment("mon", 2, HardcodeTablesModel.PokemonNameTable));
          if ((StructType & INCLUDE_ITEM) != 0) {
             segments.Add(new ArrayRunEnumSegment("item", 2, HardcodeTablesModel.ItemsTableName));
          }
          if ((StructType & INCLUDE_MOVES) != 0) {
-            segments.Add(new ArrayRunEnumSegment("move1", 2, EggMoveRun.MoveNamesTable));
-            segments.Add(new ArrayRunEnumSegment("move2", 2, EggMoveRun.MoveNamesTable));
-            segments.Add(new ArrayRunEnumSegment("move3", 2, EggMoveRun.MoveNamesTable));
-            segments.Add(new ArrayRunEnumSegment("move4", 2, EggMoveRun.MoveNamesTable));
+            segments.Add(new ArrayRunEnumSegment("move1", 2, HardcodeTablesModel.MoveNamesTable));
+            segments.Add(new ArrayRunEnumSegment("move2", 2, HardcodeTablesModel.MoveNamesTable));
+            segments.Add(new ArrayRunEnumSegment("move3", 2, HardcodeTablesModel.MoveNamesTable));
+            segments.Add(new ArrayRunEnumSegment("move4", 2, HardcodeTablesModel.MoveNamesTable));
          }
          if ((StructType & INCLUDE_ITEM) == 0) {
             segments.Add(new ArrayRunElementSegment("padding", ElementContentType.Integer, 2));
@@ -81,13 +81,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public IEnumerable<int> Search(string parentArrayName, int id) {
          for (int i = 0; i < ElementCount; i++) {
             int start = Start + i * ElementLength;
-            if (parentArrayName == EggMoveRun.MoveNamesTable && (StructType & INCLUDE_MOVES) != 0) {
+            if (parentArrayName == HardcodeTablesModel.MoveNamesTable && (StructType & INCLUDE_MOVES) != 0) {
                for (int j = 0; j < 4; j++) {
                   var index = start + PokemonFormat_MoveStart + j * 2;
                   var moveID = model.ReadMultiByteValue(index, 2);
                   if (moveID == id) yield return index;
                }
-            } else if (parentArrayName == EggMoveRun.PokemonNameTable) {
+            } else if (parentArrayName == HardcodeTablesModel.PokemonNameTable) {
                var index = start + PokemonFormat_PokemonStart;
                var pokemonID = model.ReadMultiByteValue(index, 2);
                if (pokemonID == id) yield return index;
@@ -225,7 +225,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var ivSpread = model.ReadMultiByteValue(start + 0, 2) * 31 / 255;
             var level = model.ReadMultiByteValue(start + 2, 2);
             var pokeID = model.ReadMultiByteValue(start + 4, 2);
-            var pokemonNames = cache.GetOptions(EggMoveRun.PokemonNameTable);
+            var pokemonNames = cache.GetOptions(HardcodeTablesModel.PokemonNameTable);
             var pokemon = pokemonNames.Count > pokeID ? pokemonNames[pokeID] : pokeID.ToString();
             start += 6;
 
@@ -240,7 +240,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
             buffer.AppendLine($"{level} {pokemon} ({ivSpread}){item}");
             if ((StructType & INCLUDE_MOVES) != 0) {
-               var moveNames = cache.GetOptions(EggMoveRun.MoveNamesTable);
+               var moveNames = cache.GetOptions(HardcodeTablesModel.MoveNamesTable);
                for (int j = 0; j < 4; j++) {
                   var moveID = model.ReadMultiByteValue(start + j * 2, 2);
                   var move = moveNames.Count > moveID ? moveNames[moveID] : moveID.ToString();
@@ -252,7 +252,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return buffer.ToString();
       }
 
-      public bool DependsOn(string anchorName) => anchorName == HardcodeTablesModel.ItemsTableName || anchorName == EggMoveRun.MoveNamesTable || anchorName == EggMoveRun.PokemonNameTable;
+      public bool DependsOn(string anchorName) => anchorName == HardcodeTablesModel.ItemsTableName || anchorName == HardcodeTablesModel.MoveNamesTable || anchorName == HardcodeTablesModel.PokemonNameTable;
 
       private class TeamData {
          private readonly List<int> levels = new List<int>();
@@ -272,9 +272,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          public TeamData(ModelCacheScope cache, string[] lines) {
             var currentPokemonMoveCount = 0;
-            var moveNames = cache.GetOptions(EggMoveRun.MoveNamesTable);
+            var moveNames = cache.GetOptions(HardcodeTablesModel.MoveNamesTable);
             var itemNames = cache.GetOptions(HardcodeTablesModel.ItemsTableName);
-            var pokemonNames = cache.GetOptions(EggMoveRun.PokemonNameTable);
+            var pokemonNames = cache.GetOptions(HardcodeTablesModel.PokemonNameTable);
 
             foreach (var line in lines) {
                if (line.Trim() is "") continue;

@@ -12,7 +12,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
-using static HavenSoft.HexManiac.Core.Models.AutoSearchModel;
+using static HavenSoft.HexManiac.Core.Models.HardcodeTablesModel;
 
 namespace HavenSoft.HexManiac.Tests {
    internal static class TestExtensions {
@@ -56,7 +56,7 @@ namespace HavenSoft.HexManiac.Tests {
          var model = fixture.LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
 
-         var address = model.GetAddressFromAnchor(noChange, -1, EggMoveRun.PokemonNameTable);
+         var address = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.PokemonNameTable);
          var run = (ArrayRun)model.GetNextAnchor(address);
          if (game.Contains("Gaia")) Assert.Equal(1111, run.ElementCount);
          else Assert.Equal(412, run.ElementCount);
@@ -68,7 +68,7 @@ namespace HavenSoft.HexManiac.Tests {
          var model = fixture.LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
 
-         var address = model.GetAddressFromAnchor(noChange, -1, EggMoveRun.MoveNamesTable);
+         var address = model.GetAddressFromAnchor(noChange, -1, MoveNamesTable);
          var run = (ArrayRun)model.GetNextAnchor(address);
          if (game.Contains("Vega")) Assert.Equal(512, run.ElementCount);
          else if (game.Contains("Clover")) Assert.Equal(512, run.ElementCount);
@@ -82,10 +82,10 @@ namespace HavenSoft.HexManiac.Tests {
          var model = fixture.LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
 
-         var moveNamesAddress = model.GetAddressFromAnchor(noChange, -1, EggMoveRun.MoveNamesTable);
+         var moveNamesAddress = model.GetAddressFromAnchor(noChange, -1, MoveNamesTable);
          var moveNamesRun = (ArrayRun)model.GetNextAnchor(moveNamesAddress);
 
-         var moveDescriptionsAddress = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.MoveDescriptionsName);
+         var moveDescriptionsAddress = model.GetAddressFromAnchor(noChange, -1, MoveDescriptionsName);
          var moveDescriptionsRun = (ArrayRun)model.GetNextAnchor(moveDescriptionsAddress);
 
          Assert.Equal(moveNamesRun.ElementCount - 1, moveDescriptionsRun.ElementCount);
@@ -318,8 +318,8 @@ namespace HavenSoft.HexManiac.Tests {
          var model = fixture.LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
 
-         var movesLocation = model.GetAddressFromAnchor(noChange, -1, AutoSearchModel.MoveTutors);
-         var compatibilityLocation = model.GetAddressFromAnchor(noChange, -1, AutoSearchModel.TutorCompatibility);
+         var movesLocation = model.GetAddressFromAnchor(noChange, -1, MoveTutors);
+         var compatibilityLocation = model.GetAddressFromAnchor(noChange, -1, TutorCompatibility);
 
          // ruby and sapphire have no tutors
          if (game.Contains("Ruby") || game.Contains("Sapphire")) {
@@ -353,7 +353,7 @@ namespace HavenSoft.HexManiac.Tests {
       [SkippableFact]
       public void TutorsCompatibilityContainsCorrectDataFireRed() {
          var model = fixture.LoadModel(PokemonGames.Select(array => (string)array[0]).First(game => game.Contains("FireRed")));
-         var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, AutoSearchModel.TutorCompatibility);
+         var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, TutorCompatibility);
          Assert.Equal(0x409A, model.ReadMultiByteValue(address + 2, 2));
       }
 
@@ -363,9 +363,9 @@ namespace HavenSoft.HexManiac.Tests {
          var model = fixture.LoadModel(game);
          var noChange = new NoDataChangeDeltaModel();
 
-         var movesLocation = model.GetAddressFromAnchor(noChange, -1, AutoSearchModel.TmMoves);
-         var hmLocation = model.GetAddressFromAnchor(noChange, -1, AutoSearchModel.HmMoves);
-         var compatibilityLocation = model.GetAddressFromAnchor(noChange, -1, AutoSearchModel.TmCompatibility);
+         var movesLocation = model.GetAddressFromAnchor(noChange, -1, TmMoves);
+         var hmLocation = model.GetAddressFromAnchor(noChange, -1, HmMoves);
+         var compatibilityLocation = model.GetAddressFromAnchor(noChange, -1, TmCompatibility);
 
          var tmMoves = (ArrayRun)model.GetNextRun(movesLocation);
          var hmMoves = (ArrayRun)model.GetNextRun(hmLocation);
@@ -427,7 +427,7 @@ namespace HavenSoft.HexManiac.Tests {
          var habitatsAddress = model.GetAddressFromAnchor(noChange, -1, "habitats");
 
          // ruby / sapphire / emerald have no habitats
-         if (model.GetGameCode().IsAny(AutoSearchModel.Ruby, AutoSearchModel.Ruby1_1, AutoSearchModel.Sapphire, AutoSearchModel.Sapphire1_1, AutoSearchModel.Emerald)) {
+         if (model.GetGameCode().IsAny(Ruby, Ruby1_1, Sapphire, Sapphire1_1, Emerald)) {
             Assert.Equal(Pointer.NULL, habitatNamesAddress);
             Assert.Equal(Pointer.NULL, habitatsAddress);
             return;
@@ -484,13 +484,13 @@ namespace HavenSoft.HexManiac.Tests {
          expandTutors.Run(viewPort);
 
          // extend the table
-         var table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, AutoSearchModel.MoveTutors));
+         var table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, MoveTutors));
          viewPort.Goto.Execute((table.Start + table.Length).ToString("X6"));
          viewPort.Edit("+");
 
          // the 4 bytes after the last pointer to tutor-compatibility should store the length of tutormoves
-         table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, AutoSearchModel.MoveTutors));
-         var tutorCompatibilityPointerSources = model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, AutoSearchModel.TutorCompatibility)).PointerSources;
+         table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, MoveTutors));
+         var tutorCompatibilityPointerSources = model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, TutorCompatibility)).PointerSources;
          var word = (WordRun)model.GetNextRun(tutorCompatibilityPointerSources.First() + 4);
          Assert.Equal(table.ElementCount, model.ReadValue(word.Start));
       }
@@ -539,13 +539,13 @@ namespace HavenSoft.HexManiac.Tests {
          expandTMs.Run(viewPort);
 
          // extend the table
-         var table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, AutoSearchModel.TmMoves));
+         var table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, TmMoves));
          viewPort.Goto.Execute((table.Start + table.Length).ToString("X6"));
          viewPort.Edit("+");
 
          // the 4 bytes after the last pointer to tm-compatibility should store the length of tmmoves
-         table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, AutoSearchModel.TmMoves));
-         var tmCompatibilityPointerSources = model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, AutoSearchModel.TmCompatibility)).PointerSources;
+         table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, TmMoves));
+         var tmCompatibilityPointerSources = model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, TmCompatibility)).PointerSources;
          var word = (WordRun)model.GetNextRun(tmCompatibilityPointerSources.First() + 4);
          Assert.Equal(table.ElementCount, model.ReadValue(word.Start));
       }

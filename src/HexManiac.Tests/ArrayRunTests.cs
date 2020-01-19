@@ -1086,7 +1086,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void PlmPointersMoveWhenPlmTableSourceMoves() {
          var source = new BaseViewModelTestClass();
-         source.CreateTextTable(EggMoveRun.MoveNamesTable, 0x100, "A B C D E F G".Split(' '));
+         source.CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x100, "A B C D E F G".Split(' '));
 
          // Arrange: write the data for a table @0 pointing to PLM run @4.
          source.Model.WriteMultiByteValue(4, 2, new ModelDelta(), 0x0404); // learn E at level 2

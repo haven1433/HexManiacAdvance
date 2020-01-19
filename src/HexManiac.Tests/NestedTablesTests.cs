@@ -249,7 +249,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          // add lvlmoves table
          viewPort.Goto.Execute("000000");
-         viewPort.Edit($"^{HardcodeTablesModel.LevelMovesTableName}[data<`plm`>]{EggMoveRun.PokemonNameTable} ");
+         viewPort.Edit($"^{HardcodeTablesModel.LevelMovesTableName}[data<`plm`>]{HardcodeTablesModel.PokemonNameTable} ");
 
          viewPort.Goto.Execute("000110"); // jump to the anchor for Bob's moves
          Assert.Contains($"| {HardcodeTablesModel.LevelMovesTableName}/Bob/data", viewPort.SelectedAddress);
@@ -270,7 +270,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          // add lvlmoves table
          viewPort.Goto.Execute("000000");
-         viewPort.Edit($"^{HardcodeTablesModel.LevelMovesTableName}[data<`plm`>]{EggMoveRun.PokemonNameTable} ");
+         viewPort.Edit($"^{HardcodeTablesModel.LevelMovesTableName}[data<`plm`>]{HardcodeTablesModel.PokemonNameTable} ");
 
          var results = viewPort.Find("Three");
          Assert.Equal(9, results.Count); // the actual text + entries for the 8 pokemon
@@ -388,7 +388,7 @@ namespace HavenSoft.HexManiac.Tests {
          // Arrange a table with 8 elements
          // and a second table that uses those elements as bits
          SetupMoveTable(0x00);
-         viewPort.Edit($"@40 ^mymoves[move:{EggMoveRun.MoveNamesTable}]8 "); // setup a table that uses 'movenames' as an enum
+         viewPort.Edit($"@40 ^mymoves[move:{HardcodeTablesModel.MoveNamesTable}]8 "); // setup a table that uses 'movenames' as an enum
          viewPort.Edit($"@60 ^table[data|b[]mymoves]4 @61 FF "); // set all 8 name bits to true for the table[1]    // 60 - 64
 
          // Act: expand the enum table to have 9 entries
@@ -405,7 +405,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void EnumFromEnumFromStringUsesIndexValueAsOptions() {
          SetupNameTable(0x180);
-         viewPort.Edit($"@00 ^enum1[value.]{EggMoveRun.PokemonNameTable}-1 2 3 4 5 6 7 1 ");
+         viewPort.Edit($"@00 ^enum1[value.]{HardcodeTablesModel.PokemonNameTable}-1 2 3 4 5 6 7 1 ");
          using (ModelCacheScope.CreateScope(model)) {
             var options = ModelCacheScope.GetCache(model).GetOptions("enum1");
             Assert.Equal("Horton", options[1]); // option 0 should be Horton because enum[Horton] = 0
@@ -422,13 +422,13 @@ namespace HavenSoft.HexManiac.Tests {
       // creates a move table that is 0x40 bytes long
       private void SetupMoveTable(int start) {
          viewPort.Goto.Execute(start.ToString("X6"));
-         viewPort.Edit("^" + EggMoveRun.MoveNamesTable + "[name\"\"8]8 Zero\" One\" Two\" Three\" Four\" Five\" Six\" Seven\"");
+         viewPort.Edit("^" + HardcodeTablesModel.MoveNamesTable + "[name\"\"8]8 Zero\" One\" Two\" Three\" Four\" Five\" Six\" Seven\"");
       }
 
       // creates a name table that is 0x40 bytes long
       private void SetupNameTable(int start) {
          viewPort.Goto.Execute(start.ToString("X6"));
-         viewPort.Edit("^" + EggMoveRun.PokemonNameTable + "[name\"\"8]8 Adam\" Bob\" Carl\" Dave\" Elen\" Fred\" Gary\" Horton\"");
+         viewPort.Edit("^" + HardcodeTablesModel.PokemonNameTable + "[name\"\"8]8 Adam\" Bob\" Carl\" Dave\" Elen\" Fred\" Gary\" Horton\"");
       }
 
       // creates a plm stream named 'stream' that is <0x20 bytes long. Length should be <9.

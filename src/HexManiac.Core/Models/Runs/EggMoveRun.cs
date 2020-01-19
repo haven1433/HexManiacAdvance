@@ -5,12 +5,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
+using static HavenSoft.HexManiac.Core.Models.HardcodeTablesModel;
+
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class EggMoveRun : BaseRun, IStreamRun {
       public const int MagicNumber = 0x4E20; // anything above this number is a pokemon, anything below it is a move
       public const int EndStream = 0xFFFF;
-      public const string PokemonNameTable = "pokenames";
-      public const string MoveNamesTable = "movenames";
       public const string GroupStart = "[";
       public const string GroupEnd = "]";
       public static readonly string SharedFormatString = AsciiRun.StreamDelimeter + "egg" + AsciiRun.StreamDelimeter;

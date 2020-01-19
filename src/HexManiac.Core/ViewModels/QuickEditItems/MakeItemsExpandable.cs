@@ -3,7 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using System;
 using System.Linq;
 
-using static HavenSoft.HexManiac.Core.Models.AutoSearchModel;
+using static HavenSoft.HexManiac.Core.Models.HardcodeTablesModel;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
    public class MakeItemsExpandable : IQuickEditItem {

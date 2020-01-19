@@ -319,7 +319,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void PlmRunsContainingNamesWithSpacesCanBeCorrectlyEditedWithTheTextTool() {
          var tool = ViewPort.Tools.StringTool;
          var delta = new ModelDelta();
-         CreateTextTable(EggMoveRun.MoveNamesTable, 0x00, "Option0", "Option1", "Option2 More", "Option3 More", "Option4");
+         CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x00, "Option0", "Option1", "Option2 More", "Option3 More", "Option4");
          for (int i = 0; i < 4; i++) Model.WriteMultiByteValue(0x50 + i * 2, 2, delta, 0x0201);
          Model.WriteMultiByteValue(0x58, 2, new ModelDelta(), 0xFFFF);
          ViewPort.Goto.Execute("50");

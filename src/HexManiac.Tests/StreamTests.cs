@@ -6,7 +6,7 @@ namespace HavenSoft.HexManiac.Tests {
    public class StreamTests : BaseViewModelTestClass {
       [Fact]
       public void ParseErrorInPlmRunDeserializeGetsSkipped() {
-         CreateTextTable(EggMoveRun.MoveNamesTable, 0, "A", "B", "\"C C\"", "D");
+         CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0, "A", "B", "\"C C\"", "D");
          Model.WriteMultiByteValue(0x40, 2, new ModelDelta(), 0xFFFF);
          ViewPort.Edit("@40 ^bob`plm` 5 a 6 b 7 c 8 d ");
 
@@ -23,7 +23,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void ShortenPlmRunClearsExtraUnusedBytes() {
-         CreateTextTable(EggMoveRun.MoveNamesTable, 0, "A", "B", "\"C C\"", "D");
+         CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0, "A", "B", "\"C C\"", "D");
          Model.WriteMultiByteValue(0x40, 2, new ModelDelta(), 0xFFFF);
          ViewPort.Edit("@40 ^bob`plm` 5 a 6 b 7 c 8 d ");
 
@@ -39,7 +39,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void CanCopyPlmStream() {
          var fileSystem = new StubFileSystem();
-         CreateTextTable(EggMoveRun.MoveNamesTable, 0x100, "Punch", "Kick", "Bite", "Snarl", "Smile", "Cry");
+         CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x100, "Punch", "Kick", "Bite", "Snarl", "Smile", "Cry");
          ViewPort.Edit("@00 FFFF @00 ^someMoves`plm` 3 Punch 5 Kick 7 Bite 11 Snarl ");
 
          ViewPort.SelectionStart = new Point(2, 0);
@@ -52,7 +52,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void CanShortenPlmStream() {
          var fileSystem = new StubFileSystem();
-         CreateTextTable(EggMoveRun.MoveNamesTable, 0x100, "Punch", "Kick", "Bite", "Snarl", "Smile", "Cry");
+         CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x100, "Punch", "Kick", "Bite", "Snarl", "Smile", "Cry");
          ViewPort.Edit("@00 FFFF @00 ^someMoves`plm` 3 Punch 5 Kick 7 Bite 11 Snarl ");
 
          ViewPort.Edit("@04 []");

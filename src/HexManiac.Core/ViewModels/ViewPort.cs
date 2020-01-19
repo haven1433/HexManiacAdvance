@@ -1046,7 +1046,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                foreach (var result in eggRun.Search(parentArrayName, offsets.ElementIndex)) yield return result;
             }
             // option 2: the value is used by learnable moves
-            if (child is PLMRun plmRun && parentArrayName == EggMoveRun.MoveNamesTable) {
+            if (child is PLMRun plmRun && parentArrayName == HardcodeTablesModel.MoveNamesTable) {
                foreach (var result in plmRun.Search(parentArrayName, offsets.ElementIndex)) yield return result;
             }
             // option 3: the value is a move used by trainer teams

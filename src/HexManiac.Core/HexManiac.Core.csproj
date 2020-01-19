@@ -50,7 +50,6 @@
     <Compile Include="Models\Code\ThumbParser.cs" />
     <Compile Include="Models\HardcodeTablesModel.cs" />
     <Compile Include="Models\Runs\ArrayRun.cs" />
-    <Compile Include="Models\AutoSearchModel.cs" />
     <Compile Include="Models\ErrorInfo.cs" />
     <Compile Include="Models\IDataModel.cs" />
     <Compile Include="Models\Runs\ArrayRunElementSegment.cs" />
