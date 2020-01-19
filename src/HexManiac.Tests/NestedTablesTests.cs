@@ -399,6 +399,26 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(8, model.GetNextRun(0x60).Length);
       }
 
+      /// <summary>
+      /// You can not only make an enum out of a string table, but also out of an index list matching the length of a string table
+      /// </summary>
+      [Fact]
+      public void EnumFromEnumFromStringUsesIndexValueAsOptions() {
+         SetupNameTable(0x180);
+         viewPort.Edit($"@00 ^enum1[value.]{EggMoveRun.PokemonNameTable}-1 2 3 4 5 6 7 1 ");
+         using (ModelCacheScope.CreateScope(model)) {
+            var options = ModelCacheScope.GetCache(model).GetOptions("enum1");
+            Assert.Equal("Horton", options[1]); // option 0 should be Horton because enum[Horton] = 0
+            Assert.Equal("Bob", options[2]);
+            Assert.Equal("Carl", options[3]);
+            Assert.Equal("Dave", options[4]);
+            Assert.Equal("Elen", options[5]);
+            Assert.Equal("Fred", options[6]);
+            Assert.Equal("Gary", options[7]);
+            Assert.Equal(8, options.Count);
+         }
+      }
+
       // creates a move table that is 0x40 bytes long
       private void SetupMoveTable(int start) {
          viewPort.Goto.Execute(start.ToString("X6"));

@@ -33,6 +33,9 @@ nationaldex,         03F83C, 03F83C, 03F83C, 03F83C, 04323C, 04323C, 043250, 043
 hoennToNational,     03F888, 03F888, 03F888, 03F888, 043288, 043288, 04329C, 04329C, 06D494, [index:]pokenames-1
 dexinfo,             08F508, 08F508, 08F528, 08F528, 088E34, 088E30, 088E48, 088E1C,       , [species""12 height: weight: description1<""> description2<""> unused: pokemonScale: pokemonOffset: trainerScale: trainerOffset: unused:]
 dexinfo,                   ,       ,       ,       ,       ,       ,       ,       , 0BFA20, [species""12 height: weight: description<""> unused: pokemonScale: pokemonOffset: trainerScale: trainerOffset: unused:]
-
+searchalpha,         08D930, 08D930, 08D950, 08D950, 103694, 10366C, 10370C, 1036E4, 0BCB74, [species:nationaldex]nationaldex
+searchweight,        08D9BC, 08D9BC, 08D9DC, 08D9DC, 1037CC, 1037A4, 103844, 10381C, 0BCC00, [species:nationaldex]386
+searchsize,          08DAE4, 08DAE4, 08DB04, 08DB04, 103868, 103840, 1038E0, 1038B8, 0BCD28, [species:nationaldex]386
+searchtype,                ,       ,       ,       , 103734, 10370C, 1037AC, 103784,       , [species:pokenames]nationaldex
 habitatnames,              ,       ,       ,       , 104F84, 104F5C, 104FFC, 104FD4,       , [name<"">]
 habitats,                  ,       ,       ,       , 106888, 106860, 106900, 1068D8,       , [data<[pokemon<[species:pokenames]/pokecount> pokecount::]/count> count::]habitatnames
