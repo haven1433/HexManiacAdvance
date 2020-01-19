@@ -54,10 +54,8 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void PokemonNamesAreFound(string game) {
          var model = fixture.LoadModel(game);
-         var noChange = new NoDataChangeDeltaModel();
 
-         var address = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.PokemonNameTable);
-         var run = (ArrayRun)model.GetNextAnchor(address);
+         var run = model.GetTable(PokemonNameTable);
          if (game.Contains("Gaia")) Assert.Equal(1111, run.ElementCount);
          else Assert.Equal(412, run.ElementCount);
       }
@@ -66,10 +64,8 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void MovesNamesAreFound(string game) {
          var model = fixture.LoadModel(game);
-         var noChange = new NoDataChangeDeltaModel();
 
-         var address = model.GetAddressFromAnchor(noChange, -1, MoveNamesTable);
-         var run = (ArrayRun)model.GetNextAnchor(address);
+         var run = model.GetTable(MoveNamesTable);
          if (game.Contains("Vega")) Assert.Equal(512, run.ElementCount);
          else if (game.Contains("Clover")) Assert.Equal(512, run.ElementCount);
          else if (game.Contains("Gaia")) Assert.Equal(512, run.ElementCount);
@@ -80,13 +76,9 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void MoveDescriptionsAreFound(string game) {
          var model = fixture.LoadModel(game);
-         var noChange = new NoDataChangeDeltaModel();
 
-         var moveNamesAddress = model.GetAddressFromAnchor(noChange, -1, MoveNamesTable);
-         var moveNamesRun = (ArrayRun)model.GetNextAnchor(moveNamesAddress);
-
-         var moveDescriptionsAddress = model.GetAddressFromAnchor(noChange, -1, MoveDescriptionsName);
-         var moveDescriptionsRun = (ArrayRun)model.GetNextAnchor(moveDescriptionsAddress);
+         var moveNamesRun = model.GetTable(MoveNamesTable);
+         var moveDescriptionsRun = model.GetTable(MoveDescriptionsName);
 
          Assert.Equal(moveNamesRun.ElementCount - 1, moveDescriptionsRun.ElementCount);
       }
@@ -95,10 +87,8 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void AbilitiyNamesAreFound(string game) {
          var model = fixture.LoadModel(game);
-         var noChange = new NoDataChangeDeltaModel();
 
-         var address = model.GetAddressFromAnchor(noChange, -1, "abilitynames");
-         var run = (ArrayRun)model.GetNextAnchor(address);
+         var run = model.GetTable("abilitynames");
          if (game.Contains("Clover")) Assert.Equal(156, run.ElementCount);
          else if (game.Contains("Gaia")) Assert.Equal(188, run.ElementCount);
          else Assert.Equal(78, run.ElementCount);
@@ -108,10 +98,8 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void AbilitiyDescriptionsAreFound(string game) {
          var model = fixture.LoadModel(game);
-         var noChange = new NoDataChangeDeltaModel();
 
-         var address = model.GetAddressFromAnchor(noChange, -1, "abilitydescriptions");
-         var run = (ArrayRun)model.GetNextAnchor(address);
+         var run = model.GetTable("abilitydescriptions");
          if (game.Contains("Clover")) Assert.Equal(156, run.ElementCount);
          else if (game.Contains("Gaia")) Assert.Equal(188, run.ElementCount);
          else Assert.Equal(78, run.ElementCount);
@@ -119,7 +107,7 @@ namespace HavenSoft.HexManiac.Tests {
          if (game.Contains("Gaia")) return; // don't validate description text in Gaia, it's actually invalid.
 
          for (var i = 0; i < run.ElementCount; i++) {
-            address = model.ReadPointer(run.Start + i * 4);
+            var address = model.ReadPointer(run.Start + i * 4);
             var childRun = model.GetNextRun(address);
             Assert.IsType<PCSRun>(childRun);
          }
@@ -129,10 +117,8 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void TypesAreFound(string game) {
          var model = fixture.LoadModel(game);
-         var noChange = new NoDataChangeDeltaModel();
 
-         var address = model.GetAddressFromAnchor(noChange, -1, "types");
-         var run = (ArrayRun)model.GetNextAnchor(address);
+         var run = model.GetTable("types");
          if (game.Contains("Clover")) Assert.Equal(24, run.ElementCount);
          else if (game.Contains("Gaia")) Assert.Equal(25, run.ElementCount);
          else Assert.Equal(18, run.ElementCount);
@@ -142,10 +128,8 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void ItemsAreFound(string game) {
          var model = fixture.LoadModel(game);
-         var noChange = new NoDataChangeDeltaModel();
 
-         var address = model.GetAddressFromAnchor(noChange, -1, "items");
-         var run = (ArrayRun)model.GetNextAnchor(address);
+         var run = model.GetTable("items");
          if (game.Contains("Altair")) Assert.Equal(377, run.ElementCount);
          else if (game.Contains("Emerald")) Assert.Equal(377, run.ElementCount);
          else if (game.Contains("FireRed")) Assert.Equal(375, run.ElementCount);
@@ -163,7 +147,6 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void ItemImagesAreFound(string game) {
          var model = fixture.LoadModel(game);
-         var noChange = new NoDataChangeDeltaModel();
 
          var address = model.GetAddressFromAnchor(noChange, -1, "itemimages");
          if (game.Contains("Ruby") || game.Contains("Sapphire")) {
@@ -180,10 +163,8 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void DecorationsAreFound(string game) {
          var model = fixture.LoadModel(game);
-         var noChange = new NoDataChangeDeltaModel();
 
-         var address = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.DecorationsTableName);
-         var run = (ArrayRun)model.GetNextAnchor(address);
+         var run = model.GetTable(DecorationsTableName);
          Assert.Equal(121, run.ElementCount);
       }
 
@@ -191,10 +172,8 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void TrainerClassNamesAreFound(string game) {
          var model = fixture.LoadModel(game);
-         var noChange = new NoDataChangeDeltaModel();
 
-         var address = model.GetAddressFromAnchor(noChange, -1, "trainerclassnames");
-         var run = (ArrayRun)model.GetNextAnchor(address);
+         var run = model.GetTable("trainerclassnames");
          if (game.Contains("Altair")) Assert.Equal(66, run.ElementCount);
          else if (game.Contains("Emerald")) Assert.Equal(66, run.ElementCount);
          else if (game.Contains("FireRed")) Assert.Equal(107, run.ElementCount);
@@ -209,10 +188,8 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void PokeStatsAreFound(string game) {
          var model = fixture.LoadModel(game);
-         var noChange = new NoDataChangeDeltaModel();
 
-         var address = model.GetAddressFromAnchor(noChange, -1, "pokestats");
-         var run = (ArrayRun)model.GetNextAnchor(address);
+         var run = model.GetTable("pokestats");
 
          var firstPokemonStats = model.Skip(run.Start + run.ElementLength).Take(6).ToArray();
          var compareSet = new[] { 45, 49, 49, 45, 65, 65 }; // Bulbasaur
@@ -225,10 +202,8 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void LvlUpMovesAreFound(string game) {
          var model = fixture.LoadModel(game);
-         var noChange = new NoDataChangeDeltaModel();
 
-         var address = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.LevelMovesTableName);
-         var run = (ArrayRun)model.GetNextAnchor(address);
+         var run = model.GetTable(LevelMovesTableName);
          Assert.NotNull(run);
       }
 
@@ -236,10 +211,8 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void EvolutionsAreFound(string game) {
          var model = fixture.LoadModel(game);
-         var noChange = new NoDataChangeDeltaModel();
 
-         var address = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.EvolutionTableName);
-         var run = model.GetNextAnchor(address);
+         var run = model.GetTable(EvolutionTableName);
          Assert.IsType<ArrayRun>(run);
       }
 
@@ -247,17 +220,11 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void PokedexDataIsFound(string game) {
          var model = fixture.LoadModel(game);
-         var noChange = new NoDataChangeDeltaModel();
 
-         var regional = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.RegionalDexTableName);
-         var national = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.NationalDexTableName);
-         var conversion = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.ConversionDexTableName);
-         var info = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.DexInfoTableName);
-
-         var regionalRun = model.GetNextAnchor(regional);
-         var nationalRun = model.GetNextAnchor(national);
-         var conversionRun = model.GetNextAnchor(conversion);
-         var infoRun = (ArrayRun)model.GetNextAnchor(info);
+         var regionalRun = model.GetTable(RegionalDexTableName);
+         var nationalRun = model.GetTable(NationalDexTableName);
+         var conversionRun = model.GetTable(ConversionDexTableName);
+         var infoRun = (ArrayRun)model.GetTable(DexInfoTableName);
 
          Assert.IsType<ArrayRun>(regionalRun);
          Assert.IsType<ArrayRun>(nationalRun);
@@ -285,10 +252,8 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void MoveDataFound(string game) {
          var model = fixture.LoadModel(game);
-         var noChange = new NoDataChangeDeltaModel();
 
-         var address = model.GetAddressFromAnchor(noChange, -1, "movedata");
-         var run = (ArrayRun)model.GetNextAnchor(address);
+         var run = model.GetTable("movedata");
 
          var poundStats = model.Skip(run.Start + run.ElementLength).Take(8).ToArray();
          var compareSet = new[] { 0, 40, 0, 100, 35, 0, 0, 0 };
@@ -299,7 +264,6 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void EggMoveDataFound(string game) {
          var model = fixture.LoadModel(game);
-         var noChange = new NoDataChangeDeltaModel();
 
          var address = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.EggMovesTableName);
          var run = (EggMoveRun)model.GetNextAnchor(address);
@@ -316,7 +280,6 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void TutorsAreFound(string game) {
          var model = fixture.LoadModel(game);
-         var noChange = new NoDataChangeDeltaModel();
 
          var movesLocation = model.GetAddressFromAnchor(noChange, -1, MoveTutors);
          var compatibilityLocation = model.GetAddressFromAnchor(noChange, -1, TutorCompatibility);
@@ -342,12 +305,8 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void WildPokemonAreFound(string game) {
          var model = fixture.LoadModel(game);
-         var noChange = new NoDataChangeDeltaModel();
-
-         var wildLocation = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.WildTableName);
-         var wild = (ArrayRun)model.GetNextRun(wildLocation);
-
-         // TODO
+         var wild = model.GetTable(WildTableName);
+         Assert.NotNull(wild);
       }
 
       [SkippableFact]
@@ -361,15 +320,10 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void TmsAreFound(string game) {
          var model = fixture.LoadModel(game);
-         var noChange = new NoDataChangeDeltaModel();
 
-         var movesLocation = model.GetAddressFromAnchor(noChange, -1, TmMoves);
-         var hmLocation = model.GetAddressFromAnchor(noChange, -1, HmMoves);
-         var compatibilityLocation = model.GetAddressFromAnchor(noChange, -1, TmCompatibility);
-
-         var tmMoves = (ArrayRun)model.GetNextRun(movesLocation);
-         var hmMoves = (ArrayRun)model.GetNextRun(hmLocation);
-         var compatibility = (ArrayRun)model.GetNextRun(compatibilityLocation);
+         var tmMoves = model.GetTable(TmMoves);
+         var hmMoves = model.GetTable(HmMoves);
+         var compatibility = model.GetTable(TmCompatibility);
 
          var expectedTmMoves = 58;
          var expectedHmMoves = 8;
@@ -384,10 +338,8 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void MultichoiceAreFound(string game) {
          var model = fixture.LoadModel(game);
-         var noChange = new NoDataChangeDeltaModel();
 
-         var multichoiceAddress = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.MultichoiceTableName);
-         var multichoice = (ArrayRun)model.GetNextRun(multichoiceAddress);
+         var multichoice = model.GetTable(MultichoiceTableName);
          if (game.Contains("DarkRising")) return;            // dark rising has bugged pointers in the 2nd one, so we don't expect to find many multichoice.
          Assert.NotInRange(multichoice.ElementCount, 0, 30); // make sure we found at least a few
       }
@@ -396,24 +348,20 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void TypeChartIsFound(string game) {
          var model = fixture.LoadModel(game);
-         var noChange = new NoDataChangeDeltaModel();
 
-         var typeChartAddress = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.TypeChartTableName);
-         var typeChart = (ITableRun)model.GetNextRun(typeChartAddress);
+         var typeChart = model.GetTable(TypeChartTableName);
          Assert.NotInRange(typeChart.ElementCount, 0, 100);
 
-         var typeChartAddress2 = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.TypeChartTableName2);
-         var typeChart2 = (ITableRun)model.GetNextRun(typeChartAddress2);
+         var typeChart2 = model.GetTable(TypeChartTableName2);
+         Assert.NotNull(typeChart2);
       }
 
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
       public void SpecialsAreFound(string game) {
          var model = fixture.LoadModel(game);
-         var noChange = new NoDataChangeDeltaModel();
 
-         var specialsAddress = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.SpecialsTable);
-         var specials = (ITableRun)model.GetNextRun(specialsAddress);
+         var specials = model.GetTable(SpecialsTable);
          Assert.NotInRange(specials.ElementCount, 0, 300);
       }
 
@@ -421,7 +369,6 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void HabitatsAreFound(string game) {
          var model = fixture.LoadModel(game);
-         var noChange = new NoDataChangeDeltaModel();
 
          var habitatNamesAddress = model.GetAddressFromAnchor(noChange, -1, "habitatnames");
          var habitatsAddress = model.GetAddressFromAnchor(noChange, -1, "habitats");
@@ -440,13 +387,14 @@ namespace HavenSoft.HexManiac.Tests {
 
       public static IEnumerable<object[]> ListData => PokemonGames.Select(array => array[0]).SelectMany(game =>
          new[] {
-            new[] { game, HardcodeTablesModel.MoveEffectListName, 214 },
-            new[] { game, HardcodeTablesModel.MoveInfoListName, 6 },
-            new[] { game, HardcodeTablesModel.MoveTargetListName, 7 },
-            new[] { game, HardcodeTablesModel.DecorationsShapeListName, 10 },
-            new[] { game, HardcodeTablesModel.DecorationsPermissionListName, 5 },
-            new[] { game, HardcodeTablesModel.DecorationsCategoryListName, 8 },
-            new[] { game, HardcodeTablesModel.EvolutionMethodListName, 16 },
+            new[] { game, MoveEffectListName, 214 },
+            new[] { game, MoveInfoListName, 6 },
+            new[] { game, MoveTargetListName, 7 },
+            new[] { game, DecorationsShapeListName, 10 },
+            new[] { game, DecorationsPermissionListName, 5 },
+            new[] { game, DecorationsCategoryListName, 8 },
+            new[] { game, EvolutionMethodListName, 16 },
+            new[] { game, "evbits", 12 },
          }
       );
 
@@ -499,9 +447,8 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void TrainersAreFound(string game) {
          var model = fixture.LoadModel(game);
-         var noChange = new NoDataChangeDeltaModel();
 
-         Assert.True(model.TryGetNameArray(HardcodeTablesModel.TrainerTableName, out var trainers));
+         Assert.True(model.TryGetNameArray(TrainerTableName, out var trainers));
          if (game.Contains("Emerald")) Assert.Equal(855, trainers.ElementCount);
          else if (game.Contains("Altair")) Assert.Equal(1, trainers.ElementCount); // actually has 855, but the first element is glitched in a way that I shouldn't auto-recover.
          else if (game.Contains("FireRed")) Assert.Equal(743, trainers.ElementCount);
