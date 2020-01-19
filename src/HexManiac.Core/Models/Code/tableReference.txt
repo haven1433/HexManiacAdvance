@@ -8,7 +8,7 @@ abilitydescriptions, 09FE68, 09FE68, 09FE88, 09FE88, 0001C4, 0001C4, 0001C4, 000
 movedescriptions,    0A0494, 0A0494, 0A04B4, 0A04B4, 0E5440, 0E5418, 0E5454, 0E542C, 1C3EFC, [description<"">]movenames-1
 multichoice,         0B50A0, 0B50A0, 0B50C0, 0B50C0, 09CB58, 09CB2C, 09CB6C, 09CB40, 0E1FB8, [options<[text<""> unused::]/count> count::]
 
-pokestats,           010B64, 010B64, 010B64, 010B64, 0001BC, 0001BC, 0001BC, 0001BC, 0001BC, [hp. attack. def. speed. spatk. spdef. type1.types type2.types catchRate. baseExp. evs: item1:items item2:items genderratio. steps2hatch. basehappiness. growthrate. egg1. egg2. ability1.abilitynames ability2.abilitynames runrate. unknown. padding:]pokenames
+pokestats,           010B64, 010B64, 010B64, 010B64, 0001BC, 0001BC, 0001BC, 0001BC, 0001BC, [hp. attack. def. speed. spatk. spdef. type1.types type2.types catchRate. baseExp. evs|b[]evbits item1:items item2:items genderratio. steps2hatch. basehappiness. growthrate. egg1. egg2. ability1.abilitynames ability2.abilitynames runrate. unknown. padding:]pokenames
 evolutions,          03F534, 03F534, 03F534, 03F534, 042F6C, 042F6C, 042F80, 042F80, 06D140, [[method:evolutionmethods arg: species:pokenames unused:]5]pokenames
 items,               0A98F0, 0A98F0, 0A9910, 0A9910, 0001C8, 0001C8, 0001C8, 0001C8, 0001C8, [name""14 index: price: holdeffect. param. description<""> keyitemvalue. bagkeyitem. pocket. type. fieldeffect<> battleusage:: battleeffect<> battleextra::]
 movedata,            00CA54, 00CA54, 00CA54, 00CA54, 0001CC, 0001CC, 0001CC, 0001CC, 0001CC, [effect.moveeffects power. type.types accuracy. pp. effectAccuracy. target|b[]movetarget priority. info|b[]moveinfo unused. unused:]movenames

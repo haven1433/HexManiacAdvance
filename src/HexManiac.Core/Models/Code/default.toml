@@ -314,3 +314,20 @@ Name = '''evolutionmethods'''
    '''Beauty''',
 ]
 
+[[List]]
+Name = '''evbits'''
+0 = [
+   '''+1 HP''',
+   '''+2 HP''',
+   '''+1 Attack''',
+   '''+2 Attack''',
+   '''+1 Defense''',
+   '''+2 Defense''',
+   '''+1 Speed''',
+   '''+2 Speed''',
+   '''+1 Sp Attack''',
+   '''+2 Sp Attack''',
+   '''+1 Sp Defense''',
+   '''+2 Sp Defense''',
+]
+
