@@ -331,3 +331,40 @@ Name = '''evbits'''
    '''+2 Sp Defense''',
 ]
 
+[[List]]
+Name = '''traineraibits'''
+0 = [
+   '''CheckBadMove''',
+   '''TryToFaint''',
+   '''CheckViability''',
+   '''SetupFirstTurn''',
+   '''Risky''',
+   '''PreferStrongestMove''',
+   '''PreferBatonPass''',
+   '''DoubleBattle''',
+   '''HPAware''',
+   '''Unknown''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Roaming''',
+   '''Safari''',
+   '''FirstBattle''',
+]
+
