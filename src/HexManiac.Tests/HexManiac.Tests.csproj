@@ -80,6 +80,7 @@
     <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubFileSystem.cs" />
     <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubTabContent.cs" />
     <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubViewPort.cs" />
+    <Compile Include="ImageTests.cs" />
     <Compile Include="ListTests.cs" />
     <Compile Include="NestedTablesTests.cs" />
     <Compile Include="PointerModelTests.cs" />
