@@ -605,9 +605,14 @@ namespace HavenSoft.HexManiac.Core.Models {
                if (!(newTable.ElementContent[segmentIndex] is ArrayRunBitArraySegment bitSegment)) continue;
                if (bitSegment.SourceArrayName != anchor) continue;
                if (bitSegment.Length == requiredByteLength) continue;
-               newTable = (ArrayRun)RelocateForExpansion(changeToken, table, newTable.ElementCount * (newTable.ElementLength - bitSegment.Length + requiredByteLength));
-               // within the new table, shift all the data to fit the new data width
-               ShiftTableBytesForGrowingSegment(changeToken, newTable, requiredByteLength, segmentIndex);
+
+               // if the changeToken is a NoChange, we're still in the middle of loading
+               // in that case, don't try to relocate/shift anything, just grow the proper segment based on the length of the newly loaded table
+               if (!(changeToken is NoDataChangeDeltaModel)) {
+                  newTable = (ArrayRun)RelocateForExpansion(changeToken, table, newTable.ElementCount * (newTable.ElementLength - bitSegment.Length + requiredByteLength));
+                  // within the new table, shift all the data to fit the new data width
+                  ShiftTableBytesForGrowingSegment(changeToken, newTable, requiredByteLength, segmentIndex);
+               }
                newTable = newTable.GrowBitArraySegment(segmentIndex, requiredByteLength - bitSegment.Length);
                ObserveRunWritten(changeToken, newTable);
             }
