@@ -210,7 +210,7 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.FollowLink(0, 7); // 7*16 = 112, right in the middle of our data
          // note that this will change our width to 15, because we're linking to data of width 5 when our maxwidth is 16.
 
-         Assert.Equal(0, viewPort.Tools.SelectedIndex); // string tool is selected
+         Assert.Equal(viewPort.Tools.IndexOf(viewPort.Tools.StringTool), viewPort.Tools.SelectedIndex); // string tool is selected
          Assert.Equal(100, viewPort.Tools.StringTool.Address);
          var lineCount = viewPort.Tools.StringTool.Content.Split(Environment.NewLine).Length;
          Assert.Equal(6, lineCount);

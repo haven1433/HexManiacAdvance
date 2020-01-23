@@ -26,6 +26,7 @@ namespace HavenSoft.HexManiac.Tests {
          var model = new PokemonModel(buffer);
          var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^bob\"\" \"Some Text\" 00 <000100>");
+         viewPort.Tools.SelectedIndex = -1;
          var toolProperties = new List<string>();
          viewPort.Tools.PropertyChanged += (sender, e) => toolProperties.Add(e.PropertyName);
          viewPort.FollowLink(0, 0);
