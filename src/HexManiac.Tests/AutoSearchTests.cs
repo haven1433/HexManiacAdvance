@@ -209,6 +209,15 @@ namespace HavenSoft.HexManiac.Tests {
 
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
+      public void TradeDataIsFound(string game) {
+         var model = fixture.LoadModel(game);
+
+         var run = model.GetTable("tradedata");
+         Assert.NotNull(run);
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
       public void EvolutionsAreFound(string game) {
          var model = fixture.LoadModel(game);
 

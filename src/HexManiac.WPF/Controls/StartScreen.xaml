@@ -25,6 +25,7 @@
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>trainerclassnames / trainerdata<LineBreak/>
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>types / typechart<LineBreak/>
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>items / itemimages<LineBreak/>
+      <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>tradedata<LineBreak/>
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>tutormoves / tutorcompatibility<LineBreak/>
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>tmmoves / tmcompatibility<LineBreak/>
       <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>dexinfo / regionaldex / nationaldex / hoennToNational<LineBreak/>      
