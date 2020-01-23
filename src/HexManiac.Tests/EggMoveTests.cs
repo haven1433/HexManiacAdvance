@@ -157,7 +157,7 @@ Water";
          viewPort.SelectionStart = new Point(2, 0);
          viewPort.FollowLink(2, 0);
 
-         Assert.Equal(0, viewPort.Tools.SelectedIndex);
+         Assert.Equal(viewPort.Tools.IndexOf(viewPort.Tools.StringTool), viewPort.Tools.SelectedIndex);
       }
 
       [Fact]

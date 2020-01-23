@@ -59,9 +59,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ICommand TableToolCommand => tableToolCommand;
       public ICommand CodeToolCommand => codeToolCommand;
 
-      public PCSTool StringTool => (PCSTool)tools[0];
+      public PCSTool StringTool => (PCSTool)tools[1];
 
-      public TableTool TableTool => (TableTool)tools[1];
+      public TableTool TableTool => (TableTool)tools[0];
 
       public CodeTool CodeTool => (CodeTool)tools[2];
 
@@ -89,19 +89,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ToolTray(IDataModel model, Selection selection, ChangeHistory<ModelDelta> history, ViewPort viewPort) {
          this.model = model;
          tools = new IToolViewModel[] {
-            new PCSTool(model, selection, history, this),
             new TableTool(model, selection, history, viewPort, this),
+            new PCSTool(model, selection, history, this),
             new CodeTool(model, selection),
          };
 
          stringToolCommand = new StubCommand {
             CanExecute = ICommandExtensions.CanAlwaysExecute,
-            Execute = arg => SelectedIndex = selectedIndex == 0 ? -1 : 0,
+            Execute = arg => SelectedIndex = selectedIndex == 1 ? -1 : 1,
          };
 
          tableToolCommand = new StubCommand {
             CanExecute = ICommandExtensions.CanAlwaysExecute,
-            Execute = arg => SelectedIndex = selectedIndex == 1 ? -1 : 1,
+            Execute = arg => SelectedIndex = selectedIndex == 0 ? -1 : 0,
          };
 
          codeToolCommand = new StubCommand {
@@ -114,7 +114,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             Execute = arg => SelectedIndex = -1,
          };
 
-         SelectedIndex = -1;
+         SelectedIndex = 0; // table tool is open by default
 
          StringTool.OnError += (sender, e) => OnError?.Invoke(this, e);
          TableTool.OnError += (sender, e) => OnError?.Invoke(this, e);
