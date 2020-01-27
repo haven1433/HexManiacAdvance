@@ -12,7 +12,7 @@ pokestats,           010B64, 010B64, 010B64, 010B64, 0001BC, 0001BC, 0001BC, 000
 evolutions,          03F534, 03F534, 03F534, 03F534, 042F6C, 042F6C, 042F80, 042F80, 06D140, [[method:evolutionmethods arg: species:pokenames unused:]5]pokenames
 items,               0A98F0, 0A98F0, 0A9910, 0A9910, 0001C8, 0001C8, 0001C8, 0001C8, 0001C8, [name""14 index: price: holdeffect. param. description<""> keyitemvalue. bagkeyitem. pocket. type. fieldeffect<> battleusage:: battleeffect<> battleextra::]
 movedata,            00CA54, 00CA54, 00CA54, 00CA54, 0001CC, 0001CC, 0001CC, 0001CC, 0001CC, [effect.moveeffects power. type.types accuracy. pp. effectAccuracy. target|b[]movetarget priority. info|b[]moveinfo unused. unused:]movenames
-lvlmoves,            03B7BC, 03B7BC, 03B7BC, 03B7BC, 03EA7C, 03EA7C, 03EA90, 03EA90, 06930C, [movesFromLevel<"">]pokenames
+lvlmoves,            03B7BC, 03B7BC, 03B7BC, 03B7BC, 03EA7C, 03EA7C, 03EA90, 03EA90, 06930C, [movesFromLevel<`plm`>]pokenames
 tutormoves,                ,       ,       ,       , 120BE4, 120BBC, 120C5C, 120C34,       , [move:movenames]15
 tutormoves,                ,       ,       ,       ,       ,       ,       ,       , 1B236C, [move:movenames]30
 tutorcompatibility,        ,       ,       ,       , 120C30, 120C08, 120CA8, 120C80, 1B2390, [moves|b[]tutormoves]pokenames
