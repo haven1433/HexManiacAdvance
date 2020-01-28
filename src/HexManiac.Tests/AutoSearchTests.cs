@@ -74,6 +74,14 @@ namespace HavenSoft.HexManiac.Tests {
 
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
+      public void NaturesAreFound(string game) {
+         var model = fixture.LoadModel(game);
+         var run = model.GetTable("natures");
+         Assert.Equal(25, run.ElementCount);
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
       public void MoveDescriptionsAreFound(string game) {
          var model = fixture.LoadModel(game);
 
