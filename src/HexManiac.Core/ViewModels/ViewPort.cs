@@ -196,7 +196,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   Tools.SelectedIndex = Tools.IndexOf(Tools.StringTool);
                }
             } else {
-               Tools.StringTool.Address = dataIndex;
+               // not a table or stream, so don't update table/stream tools
             }
          }
 

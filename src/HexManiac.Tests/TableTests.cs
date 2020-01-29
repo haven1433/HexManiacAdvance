@@ -302,6 +302,23 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.False(((StreamArrayElementViewModel)createNewTool).CanRepoint);
       }
 
+      [Fact]
+      public void CanGetOptionsFromStringPointerTable() {
+         ViewPort.Edit("^aSpot FF @aSpot ^aSpot\"\" Content1\""); // 9 bytes
+         ViewPort.Edit("^bSpot FF @bSpot ^bSpot\"\" Content2\""); // 9 bytes
+         ViewPort.Edit("^cSpot FF @cSpot ^cSpot\"\" Content3\""); // 9 bytes
+         ViewPort.Edit("@20 <aSpot> <bSpot> <cSpot> @20 ");
+         ViewPort.Edit("^table[pointer<\"\">]3 "); // 12 bytes
+
+         using (ModelCacheScope.CreateScope(Model)) {
+            var options = ModelCacheScope.GetCache(Model).GetOptions("table");
+            Assert.Equal(3, options.Count);
+            Assert.Equal("Content1", options[0]);
+            Assert.Equal("Content2", options[1]);
+            Assert.Equal("Content3", options[2]);
+         }
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

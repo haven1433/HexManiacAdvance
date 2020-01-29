@@ -205,8 +205,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          array = model.GetNextRun(address) as ArrayRun;
          if (array == null) return false;
 
-         // the array must contain a text element
-         return array.ElementContent.Any(segment => segment.Type == ElementContentType.PCS);
+         // the array must contain a text or pointer-to-text element
+         return array.ElementContent.Any(segment =>
+            segment.Type == ElementContentType.PCS ||
+            (segment is ArrayRunPointerSegment pSegment && pSegment.InnerFormat == PCSRun.SharedFormatString));
       }
 
       public static bool TryGetIndexNames(this IDataModel model, string anchorName, out IReadOnlyList<string> names) {
