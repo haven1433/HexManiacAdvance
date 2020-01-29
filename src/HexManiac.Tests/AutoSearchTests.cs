@@ -212,7 +212,7 @@ namespace HavenSoft.HexManiac.Tests {
          var model = fixture.LoadModel(game);
 
          var run = model.GetTable(LevelMovesTableName);
-         Assert.NotNull(run);
+         Assert.Equal(PLMRun.SharedFormatString, ((ArrayRunPointerSegment)run.ElementContent[0]).InnerFormat);
       }
 
       [SkippableTheory]
