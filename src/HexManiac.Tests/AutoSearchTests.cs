@@ -434,7 +434,7 @@ namespace HavenSoft.HexManiac.Tests {
          var editor = new EditorViewModel(fileSystem, false);
          var viewPort = new ViewPort(game, model);
          editor.Add(viewPort);
-         var expandTutors = editor.QuickEdits.Single(edit => edit.Name == "Make Tutors Expandable");
+         var expandTutors = editor.QuickEdits.Single(edit => edit.Name == new MakeTutorsExpandable().Name);
 
          // ruby/sapphire do not support this quick-edit
          var canRun = expandTutors.CanRun(viewPort);
@@ -458,6 +458,28 @@ namespace HavenSoft.HexManiac.Tests {
          var tutorCompatibilityPointerSources = model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, TutorCompatibility)).PointerSources;
          var word = (WordRun)model.GetNextRun(tutorCompatibilityPointerSources.First() + 4);
          Assert.Equal(table.ElementCount, model.ReadValue(word.Start));
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void ExpandableMovesWorks(string game) {
+         var fileSystem = new StubFileSystem();
+         var model = fixture.LoadModelNoCache(game);
+         var editor = new EditorViewModel(fileSystem, false);
+         var viewPort = new ViewPort(game, model);
+         editor.Add(viewPort);
+         var expandMoves = editor.QuickEdits.Single(edit => edit.Name == new MakeMovesExpandable().Name);
+         var originalPointerCount = model.GetTable("movedata").PointerSources.Count;
+
+         Assert.True(expandMoves.CanRun(viewPort));
+
+         // run the actual quick-edit
+         var error = expandMoves.Run(viewPort);
+         Assert.Equal(ErrorInfo.NoError, error);
+
+         // verify that new pointers were added to movedata
+         var newPointerCount = model.GetTable("movedata").PointerSources.Count;
+         Assert.Equal(5, newPointerCount - originalPointerCount);
       }
 
       [SkippableTheory]

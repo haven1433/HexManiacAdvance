@@ -160,7 +160,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       [Conditional("DEBUG")]
-      protected void ResolveConflicts() {
+      public void ResolveConflicts() {
          for (int i = 0; i < runs.Count; i++) {
             // for every pointer run, make sure that the thing it points to knows about it
             if (runs[i] is PointerRun pointerRun) {
