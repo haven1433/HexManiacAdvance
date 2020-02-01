@@ -523,10 +523,10 @@ namespace HavenSoft.HexManiac.Tests {
          var editor = new EditorViewModel(fileSystem, false);
          var viewPort = new ViewPort(game, model);
          editor.Add(viewPort);
-         var expandTMs = editor.QuickEdits.Single(edit => edit.Name == "Make Items Expandable");
+         var expandItems = editor.QuickEdits.Single(edit => edit.Name == "Make Items Expandable");
 
          // run the actual quick-edit
-         expandTMs.Run(viewPort);
+         expandItems.Run(viewPort);
 
          // extend the table
          var table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, "items"));
