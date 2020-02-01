@@ -275,6 +275,12 @@ namespace HavenSoft.HexManiac.Tests {
          var poundStats = model.Skip(run.Start + run.ElementLength).Take(8).ToArray();
          var compareSet = new[] { 0, 40, 0, 100, 35, 0, 0, 0 };
          for (int i = 0; i < compareSet.Length; i++) Assert.Equal(compareSet[i], poundStats[i]);
+
+         run = model.GetTable("moveanimations");
+         Assert.Equal(ElementContentType.Pointer, run.ElementContent[0].Type);
+
+         run = model.GetTable("moveeffects");
+         Assert.Equal(ElementContentType.Pointer, run.ElementContent[0].Type);
       }
 
       [SkippableTheory]
