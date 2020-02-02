@@ -483,6 +483,9 @@ namespace HavenSoft.HexManiac.Tests {
          var error = expandMoves.Run(viewPort);
          Assert.Equal(ErrorInfo.NoError, error);
 
+         // verify we can't run it again
+         Assert.False(expandMoves.CanRun(viewPort));
+
          // verify that new pointers were added to movedata
          var newPointerCount = model.GetTable("movedata").PointerSources.Count;
          Assert.Equal(5, newPointerCount - originalPointerCount);

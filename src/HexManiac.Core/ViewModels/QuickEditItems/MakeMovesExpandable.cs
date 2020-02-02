@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
@@ -14,8 +15,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          [Sapphire] = new[] { 0x03D210, 0x03D2FA, 0x1FB0C0 },
          [Ruby1_1] = new[] { 0x03D210, 0x03D2FA, 0x1FB148 },
          [Sapphire1_1] = new[] { 0x03D210, 0x03D2FA, 0x1FB0D8 },
-         [FireRed] = new[] { 0x040394, 0x0404E0, 0x250C08 },
-         [LeafGreen] = new[] { 0x040394, 0x0404E0, 0x250BE4 },
+         [FireRed] = new[] { 0x040394, 0x0404DE, 0x250C08 },
+         [LeafGreen] = new[] { 0x040394, 0x0404DE, 0x250BE4 },
          [FireRed1_1] = new[] { 0x0403A8, 0x0404F2, 0x250C78 },
          [LeafGreen1_1] = new[] { 0x0403A8, 0x0404F2, 0x250C54 },
          [Emerald] = new[] { 0x06ACC0, 0x06ADAA, 0x31C89C },
@@ -57,8 +58,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var model = viewPort.Model;
          var game = model.GetGameCode();
          var thumb = viewPort.Tools.CodeTool.Parser;
+         var token = viewPort.CurrentChange;
          var sourcesToPP = viewPort.Find($"<{Addresses[game][2]:X6}>");
-         var moveDataAddress = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, "movedata");
+         var moveDataAddress = model.GetAddressFromAnchor(token, -1, "movedata");
          if (moveDataAddress == Pointer.NULL) return new ErrorInfo("Expanding moves requires the existence of a 'movedata' table.");
          if (sourcesToPP.Count != 5) {
             var originalCount = sourcesToPP.Count;
@@ -71,9 +73,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          // update limiter
          foreach (var limiter in Limiters[game]) {
             if (model[limiter] == 0xD8) {
-               model[limiter] = 0xDF;
+               token.ChangeData(model, limiter, 0xDF);
             } else if (model[limiter] == 0xD9) {
-               model[limiter] = 0xDE;
+               token.ChangeData(model, limiter, 0xDE);
             } else {
                return new ErrorInfo($"Limiter could not be updated: {limiter:X6}");
             }
@@ -82,19 +84,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          // update routine 1
          var routine1Edit = Addresses[game][0];
          var code = thumb.Compile(model, routine1Edit, "add r2, r2, #4", "mov pc, r0");
-         for (int i = 0; i < code.Count; i++) model[routine1Edit + i] = code[i];
+         Debug.Assert(code.Count == 4 && !code.Contains(byte.MinValue));
+         for (int i = 0; i < code.Count; i++) token.ChangeData(model, routine1Edit + i, code[i]);
 
          // update routine 2
          var routine2Edit = Addresses[game][1];
          code = thumb.Compile(model, routine2Edit, "add r4, r2, #4");
-         for (int i = 0; i < code.Count; i++) model[routine2Edit + i] = code[i];
+         Debug.Assert(code.Count == 2 && !code.Contains(byte.MinValue));
+         for (int i = 0; i < code.Count; i++) token.ChangeData(model, routine2Edit + i, code[i]);
 
          // update PP pointers
          foreach (var source in sourcesToPP) {
             var start = source.start;
-            model.ClearFormat(viewPort.CurrentChange, start, 4);
-            model.WritePointer(viewPort.CurrentChange, start, moveDataAddress);
-            model.ObserveRunWritten(viewPort.CurrentChange, new PointerRun(start));
+            model.ClearFormat(token, start, 4);
+            model.WritePointer(token, start, moveDataAddress);
+            model.ObserveRunWritten(token, new PointerRun(start));
          }
 
          return ErrorInfo.NoError;

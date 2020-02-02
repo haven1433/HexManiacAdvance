@@ -481,6 +481,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             // read a register
             if (template[0] == 'r') {
                if (line.StartsWith("lr")) line = "r14" + line.Substring(2);
+               if (line.StartsWith("pc")) line = "r15" + line.Substring(2);
                if (line[0] != 'r') return false;
                var name = "r" + template[1];
                var instruction = instructionParts.Single(i => i.Name == name);
