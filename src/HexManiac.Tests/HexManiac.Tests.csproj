@@ -69,6 +69,7 @@
     <Compile Include="ArrayColumnHeaderTests.cs" />
     <Compile Include="ArrayRunTests.cs" />
     <Compile Include="AutoSearchTests.cs" />
+    <Compile Include="BadFileLoadTests.cs" />
     <Compile Include="BaseViewModelTestClass.cs" />
     <Compile Include="BasicLoadTests.cs" />
     <Compile Include="ChangeHistoryTests.cs" />
