@@ -74,6 +74,14 @@ namespace HavenSoft.HexManiac.Tests {
 
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
+      public void NaturesAreFound(string game) {
+         var model = fixture.LoadModel(game);
+         var run = model.GetTable("natures");
+         Assert.Equal(25, run.ElementCount);
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
       public void MoveDescriptionsAreFound(string game) {
          var model = fixture.LoadModel(game);
 
@@ -204,7 +212,7 @@ namespace HavenSoft.HexManiac.Tests {
          var model = fixture.LoadModel(game);
 
          var run = model.GetTable(LevelMovesTableName);
-         Assert.NotNull(run);
+         Assert.Equal(PLMRun.SharedFormatString, ((ArrayRunPointerSegment)run.ElementContent[0]).InnerFormat);
       }
 
       [SkippableTheory]
@@ -267,6 +275,12 @@ namespace HavenSoft.HexManiac.Tests {
          var poundStats = model.Skip(run.Start + run.ElementLength).Take(8).ToArray();
          var compareSet = new[] { 0, 40, 0, 100, 35, 0, 0, 0 };
          for (int i = 0; i < compareSet.Length; i++) Assert.Equal(compareSet[i], poundStats[i]);
+
+         run = model.GetTable("moveanimations");
+         Assert.Equal(ElementContentType.Pointer, run.ElementContent[0].Type);
+
+         run = model.GetTable("moveeffects");
+         Assert.Equal(ElementContentType.Pointer, run.ElementContent[0].Type);
       }
 
       [SkippableTheory]
@@ -426,7 +440,7 @@ namespace HavenSoft.HexManiac.Tests {
          var editor = new EditorViewModel(fileSystem, false);
          var viewPort = new ViewPort(game, model);
          editor.Add(viewPort);
-         var expandTutors = editor.QuickEdits.Single(edit => edit.Name == "Make Tutors Expandable");
+         var expandTutors = editor.QuickEdits.Single(edit => edit.Name == new MakeTutorsExpandable().Name);
 
          // ruby/sapphire do not support this quick-edit
          var canRun = expandTutors.CanRun(viewPort);
@@ -450,6 +464,31 @@ namespace HavenSoft.HexManiac.Tests {
          var tutorCompatibilityPointerSources = model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, TutorCompatibility)).PointerSources;
          var word = (WordRun)model.GetNextRun(tutorCompatibilityPointerSources.First() + 4);
          Assert.Equal(table.ElementCount, model.ReadValue(word.Start));
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void ExpandableMovesWorks(string game) {
+         var fileSystem = new StubFileSystem();
+         var model = fixture.LoadModelNoCache(game);
+         var editor = new EditorViewModel(fileSystem, false);
+         var viewPort = new ViewPort(game, model);
+         editor.Add(viewPort);
+         var expandMoves = editor.QuickEdits.Single(edit => edit.Name == new MakeMovesExpandable().Name);
+         var originalPointerCount = model.GetTable("movedata").PointerSources.Count;
+
+         Assert.True(expandMoves.CanRun(viewPort));
+
+         // run the actual quick-edit
+         var error = expandMoves.Run(viewPort);
+         Assert.Equal(ErrorInfo.NoError, error);
+
+         // verify we can't run it again
+         Assert.False(expandMoves.CanRun(viewPort));
+
+         // verify that new pointers were added to movedata
+         var newPointerCount = model.GetTable("movedata").PointerSources.Count;
+         Assert.Equal(5, newPointerCount - originalPointerCount);
       }
 
       [SkippableTheory]
@@ -515,10 +554,10 @@ namespace HavenSoft.HexManiac.Tests {
          var editor = new EditorViewModel(fileSystem, false);
          var viewPort = new ViewPort(game, model);
          editor.Add(viewPort);
-         var expandTMs = editor.QuickEdits.Single(edit => edit.Name == "Make Items Expandable");
+         var expandItems = editor.QuickEdits.Single(edit => edit.Name == "Make Items Expandable");
 
          // run the actual quick-edit
-         expandTMs.Run(viewPort);
+         expandItems.Run(viewPort);
 
          // extend the table
          var table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, "items"));

@@ -88,14 +88,27 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var results = new List<string>();
          var textIndex = 0;
          int segmentOffset = 0;
-         while (textIndex < enumArray.ElementContent.Count && enumArray.ElementContent[textIndex].Type != ElementContentType.PCS) {
-            segmentOffset += enumArray.ElementContent[textIndex].Length;
+         while (textIndex < enumArray.ElementContent.Count) {
+            var segmnt = enumArray.ElementContent[textIndex];
+            if (segmnt.Type == ElementContentType.PCS) break;
+            if (segmnt is ArrayRunPointerSegment pSegment && pSegment.InnerFormat == PCSRun.SharedFormatString) break;
+            segmentOffset += segmnt.Length;
             textIndex++;
          }
          if (textIndex == enumArray.ElementContent.Count) return new string[0];
+         var segment = enumArray.ElementContent[textIndex];
+         var isPointer = segment.Type == ElementContentType.Pointer;
          for (int i = 0; i < optionCount; i++) {
             var elementStart = enumArray.Start + enumArray.ElementLength * i + segmentOffset;
-            var valueWithQuotes = PCSString.Convert(model, elementStart, enumArray.ElementContent[textIndex].Length)?.Trim() ?? string.Empty;
+            var elementLength = segment.Length;
+            if (isPointer) {
+               elementStart = model.ReadPointer(elementStart);
+               if (elementStart < 0 || elementStart >= model.Count) return new string[0];
+               elementLength = PCSString.ReadString(model, elementStart, true);
+               if (elementLength < 1) return new string[0]; // contents must be a valid string to be used as options
+            }
+
+            var valueWithQuotes = PCSString.Convert(model, elementStart, elementLength)?.Trim() ?? string.Empty;
 
             if (valueWithQuotes.Contains(' ')) {
                results.Add(valueWithQuotes);

@@ -79,6 +79,8 @@ namespace HavenSoft.HexManiac.Core.Models {
                runs.Insert(~index, new WordRun(word.Address, word.Name));
             }
          }
+
+         ResolveConflicts();
       }
 
       /// <summary>
@@ -158,7 +160,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       [Conditional("DEBUG")]
-      protected void ResolveConflicts() {
+      public void ResolveConflicts() {
          for (int i = 0; i < runs.Count; i++) {
             // for every pointer run, make sure that the thing it points to knows about it
             if (runs[i] is PointerRun pointerRun) {
@@ -608,10 +610,14 @@ namespace HavenSoft.HexManiac.Core.Models {
 
                // if the changeToken is a NoChange, we're still in the middle of loading
                // in that case, don't try to relocate/shift anything, just grow the proper segment based on the length of the newly loaded table
+               var newElementWidth = newTable.ElementLength - bitSegment.Length + requiredByteLength;
                if (!(changeToken is NoDataChangeDeltaModel)) {
-                  newTable = (ArrayRun)RelocateForExpansion(changeToken, table, newTable.ElementCount * (newTable.ElementLength - bitSegment.Length + requiredByteLength));
+                  newTable = (ArrayRun)RelocateForExpansion(changeToken, table, newTable.ElementCount * newElementWidth);
                   // within the new table, shift all the data to fit the new data width
                   ShiftTableBytesForGrowingSegment(changeToken, newTable, requiredByteLength, segmentIndex);
+               } else {
+                  // we didn't relocate/shift, but we still need to clear the area before growing the table
+                  ClearFormat(changeToken, newTable.Start + newTable.Length, newTable.ElementCount * (newElementWidth - newTable.ElementLength));
                }
                newTable = newTable.GrowBitArraySegment(segmentIndex, requiredByteLength - bitSegment.Length);
                ObserveRunWritten(changeToken, newTable);

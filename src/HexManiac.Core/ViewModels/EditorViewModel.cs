@@ -190,10 +190,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public IReadOnlyList<IQuickEditItem> QuickEdits { get; } = new List<IQuickEditItem> {
          new MakeTutorsExpandable(),
+         new MakeMovesExpandable(),
          new UpdateDexConversionTable(),
          // new MakeTmsExpandable(),   // expanding TMs requires further research.
          // new MakeItemsExpandable(),
-      };
+      }.Select(edit => new EditItemWrapper(edit)).ToList();
 
       public event EventHandler<Action> RequestDelayedWork;
 
@@ -651,5 +652,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void RaiseSaveAllCanExecuteChanged(object sender, EventArgs e) => saveAll.CanExecuteChanged.Invoke(this, e);
+   }
+
+   /// <summary>
+   /// Gives all QuickEditItem's an extra check at the end to make sure that they didn't leave the model in a bad state.
+   /// </summary>
+   public class EditItemWrapper : QuickEditItemDecorator {
+      public EditItemWrapper(IQuickEditItem core) => InnerQuickEditItem = core;
+      public override ErrorInfo Run(IViewPort viewPort) {
+         var result = base.Run(viewPort);
+         (viewPort.Model as PokemonModel)?.ResolveConflicts();
+         return result;
+      }
    }
 }
