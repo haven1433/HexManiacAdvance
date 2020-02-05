@@ -22,6 +22,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public EggMoveRun(IDataModel dataModel, int dataIndex, IReadOnlyList<int> pointerSources = null) : base(dataIndex, pointerSources) {
          model = dataModel;
          Length = 0;
+         if (Start < 0) return;
          for (int i = Start; i < model.Count; i += 2) {
             if (model[i] == 0xFF && model[i + 1] == 0xFF) {
                Length = i - Start + 2;

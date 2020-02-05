@@ -79,7 +79,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          // in vanilla emerald, this pointer isn't four-byte aligned
          // it's at the very front of the ROM, so if there's no metadata we can be pretty sure that the pointer is still there
-         if (gameCode == Emerald && data[0x1C3] == 0x08) ObserveRunWritten(noChangeDelta, new PointerRun(0x1C0));
+         if (gameCode == Emerald && data.Length > EarliestAllowedAnchor && data[0x1C3] == 0x08) ObserveRunWritten(noChangeDelta, new PointerRun(0x1C0));
 
          var gamesToDecode = new[] { Ruby, Sapphire, Emerald, FireRed, LeafGreen, Ruby1_1, Sapphire1_1, FireRed1_1, LeafGreen1_1 };
          if (gamesToDecode.Contains(gameCode)) {
@@ -138,7 +138,13 @@ namespace HavenSoft.HexManiac.Core.Models {
             case Ruby: case Sapphire: source = 0x041B44; break;
             case Ruby1_1: case Sapphire1_1: source = 0x041B64; break;
          }
-         if (source > 0) ObserveAnchorWritten(noChangeDelta, EggMovesTableName, new EggMoveRun(this, ReadPointer(source)));
+         if (source > 0 && source < Count) {
+            var address = ReadPointer(source);
+            var eggRun = new EggMoveRun(this, address);
+            if (eggRun.Length > 0) {
+               ObserveAnchorWritten(noChangeDelta, EggMovesTableName, eggRun);
+            }
+         }
 
          // type chart
          source = 0;
