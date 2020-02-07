@@ -386,6 +386,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          if (thisTemplate.Contains("{cond}")) {
             var condIndex = thisTemplate.IndexOf("{cond}");
             if (thisTemplate.Substring(0, condIndex) != line.Substring(0, condIndex)) return false;
+            if (condIndex + 2 > line.Length) return false;
             var condition = line.Substring(condIndex, 2);
             ccode = conditionCodes.FirstOrDefault(code => code.Mnemonic == condition);
             if (ccode == null) return false;
@@ -397,6 +398,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          // check that the command matches
          var commandToken = line.Split(' ')[0] + " ";
          if (!thisTemplate.StartsWith(commandToken)) return false;
+         if (commandToken.Length > line.Length) return false;
          line = line.Substring(commandToken.Length);
          thisTemplate = thisTemplate.Substring(commandToken.Length);
 
@@ -491,6 +493,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   if (value > 7 && !instructionParts.Any(part => part.Type == InstructionArgType.HighRegister)) return false;
                }
                template = template.Substring(2);
+               var register = "r" + value;
+               if (register.Length > line.Length) return false;
                line = line.Substring(("r" + value).Length);
                continue;
             }
@@ -498,9 +502,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             // read a pointer
             if (template.StartsWith("#=pc")) {
                if (line[0] != '<') return false;
+               if (!line.Contains('>')) return false;
                var content = line.Substring(1).Split('>')[0];
                numeric = labels.ResolveLabel(content);
                if (numeric == Pointer.NULL && !int.TryParse(content, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out numeric)) return false;
+               if (line.Length < content.Length + 2) return false;
                line = line.Substring(content.Length + 2);
                template = template.Substring(template.IndexOf('+') + 1);
                template = template.Substring(template.IndexOf('+') + 2);

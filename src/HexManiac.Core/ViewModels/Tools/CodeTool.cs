@@ -16,6 +16,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly ScriptParser script;
       private readonly IDataModel model;
       private readonly Selection selection;
+      private readonly ChangeHistory<ModelDelta> history;
+
+      public event EventHandler<ErrorInfo> ModelDataChanged;
+
+      public bool IsReadOnly => true;
 
       public CodeMode Mode {
          get => mode;
@@ -26,16 +31,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public string Content {
          get => content;
-         set => TryUpdate(ref content, value);
+         set {
+            TryUpdate(ref content, value);
+            CompileChanges();
+         }
       }
 
       public ThumbParser Parser => thumb;
 
-      public CodeTool(IDataModel model, Selection selection) {
+      public CodeTool(IDataModel model, Selection selection, ChangeHistory<ModelDelta> history) {
          thumb = new ThumbParser(File.ReadAllLines("resources/armReference.txt"));
          script = new ScriptParser(File.ReadAllLines("resources/scriptReference.txt"));
          this.model = model;
          this.selection = selection;
+         this.history = history;
          selection.PropertyChanged += (sender, e) => {
             if (e.PropertyName == nameof(selection.SelectionEnd)) {
                UpdateContent();
@@ -59,10 +68,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          } else if (mode == CodeMode.Script) {
             Content = script.Parse(model, start, end - start + 1);
          } else if (mode == CodeMode.Thumb) {
-            Content = thumb.Parse(model, start, end - start + 1);
+            TryUpdate(ref content, thumb.Parse(model, start, end - start + 1), nameof(Content));
          } else {
             throw new NotImplementedException();
          }
+      }
+
+      private void CompileChanges() {
+         if (mode != CodeMode.Thumb) return;
+         var start = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionStart));
+         var end = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd));
+         if (start > end) (start, end) = (end, start);
+         int length = end - start + 1;
+         var code = thumb.Compile(model, start, Content.Split(Environment.NewLine));
+
+         if (code.Count != length) return;
+
+         for (int i = 0; i < code.Count; i++) {
+            history.CurrentChange.ChangeData(model, start + i, code[i]);
+         }
+
+         ModelDataChanged?.Invoke(this, ErrorInfo.NoError);
       }
 
       private string RawParse(IDataModel model, int start, int length) {

@@ -61,6 +61,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public virtual void ChangeData(IDataModel model, int index, byte data) {
+         if (model.Count > index && model[index] == data) return;
          if (!oldData.ContainsKey(index)) {
             if (model.Count <= index) {
                model.ExpandData(this, index);

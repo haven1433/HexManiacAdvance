@@ -493,6 +493,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Tools.StringTool.ModelDataMoved += ModelDataMovedByTool;
          Tools.TableTool.ModelDataChanged += ModelChangedByTool;
          Tools.TableTool.ModelDataMoved += ModelDataMovedByTool;
+         Tools.CodeTool.ModelDataChanged += ModelChangedByCodeTool;
 
          ImplementCommands();
          RefreshBackingData();
@@ -1719,6 +1720,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             selection.GotoAddress(locations.newLocation - offset);
          }
          OnMessage?.Invoke(this, $"Data was automatically moved to {locations.newLocation.ToString("X6")}. Pointers were updated.");
+      }
+
+      private void ModelChangedByCodeTool(object sender, ErrorInfo e) {
+         RefreshBackingData();
+         HandleErrorInfo(e);
       }
 
       private void RefreshBackingData(Point p) {

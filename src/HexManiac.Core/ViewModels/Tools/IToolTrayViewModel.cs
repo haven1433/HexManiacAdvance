@@ -91,7 +91,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          tools = new IToolViewModel[] {
             new TableTool(model, selection, history, viewPort, this),
             new PCSTool(model, selection, history, this),
-            new CodeTool(model, selection),
+            new CodeTool(model, selection, history),
          };
 
          stringToolCommand = new StubCommand {

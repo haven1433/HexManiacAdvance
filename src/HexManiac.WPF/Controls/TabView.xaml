@@ -276,7 +276,7 @@
                <TextBlock Text="Code Type" Margin="5,0" Grid.Column="0"/>
                <ComboBox Grid.Column="1" Name="CodeModeSelector" SelectedItem="{Binding CodeTool.Mode}"/>
             </Grid>
-            <TextBox UndoLimit="0" Margin="5" Width="255" FontFamily="Consolas" Text="{Binding CodeTool.Content, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True" VerticalScrollBarVisibility="Auto" />
+            <TextBox UndoLimit="0" Margin="5" Width="255" FontFamily="Consolas" Text="{Binding CodeTool.Content, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="{Binding CodeTool.IsReadOnly}" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" />
          </DockPanel>
       </Grid>
       <!-- Anchor Editor -->
