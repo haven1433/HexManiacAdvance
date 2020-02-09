@@ -6,6 +6,7 @@ using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
    public class BasicLoadTests {
+      private static readonly Singletons singletons = new Singletons();
       static BasicLoadTests() {
          if (Directory.Exists("sampleFiles")) {
             SampleFiles = Directory.EnumerateFiles("sampleFiles", "*.gba").Select(file => new object[] { file }).ToArray();
@@ -19,7 +20,7 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(SampleFiles))]
       public void CanLoad(string file) {
          var data = File.ReadAllBytes(file);
-         var model = new HardcodeTablesModel(data);
+         var model = new HardcodeTablesModel(singletons, data);
       }
    }
 }

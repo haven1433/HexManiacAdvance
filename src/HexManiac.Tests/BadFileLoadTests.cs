@@ -3,6 +3,8 @@ using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
    public class BadFileLoadTests {
+      private static readonly Singletons singletons = new Singletons();
+
       [Theory]
       [InlineData(HardcodeTablesModel.Ruby)]
       [InlineData(HardcodeTablesModel.Sapphire)]
@@ -20,7 +22,7 @@ namespace HavenSoft.HexManiac.Tests {
          data[0xAC + 2] = (byte)gamecode[2];
          data[0xAC + 3] = (byte)gamecode[3];
 
-         var model = new HardcodeTablesModel(data);
+         var model = new HardcodeTablesModel(singletons, data);
       }
    }
 }

@@ -61,6 +61,7 @@
     <Compile Include="Models\Runs\TableStreamRun.cs" />
     <Compile Include="Models\Runs\TrainerPokemonTeamRun.cs" />
     <Compile Include="Models\Runs\WordRun.cs" />
+    <Compile Include="Models\Singletons.cs" />
     <Compile Include="ViewModels\AutoCompleteSelectionItem.cs" />
     <Compile Include="ViewModels\QuickEditItems\IQuickEditItem.cs" />
     <Compile Include="ViewModels\QuickEditItems\MakeItemsExpandable.cs" />

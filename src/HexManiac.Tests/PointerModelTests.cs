@@ -771,7 +771,7 @@ namespace HavenSoft.HexManiac.Tests {
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);
-         viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort = new ViewPort("file.txt", model, BaseViewModelTestClass.Singletons) { Width = 0x10, Height = 0x10 };
       }
    }
 }

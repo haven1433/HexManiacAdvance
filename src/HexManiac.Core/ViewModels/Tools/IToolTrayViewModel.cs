@@ -86,12 +86,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public event EventHandler<string> OnMessage;
       public event EventHandler RequestMenuClose;
 
-      public ToolTray(IDataModel model, Selection selection, ChangeHistory<ModelDelta> history, ViewPort viewPort) {
+      public ToolTray(Singletons singletons, IDataModel model, Selection selection, ChangeHistory<ModelDelta> history, ViewPort viewPort) {
          this.model = model;
          tools = new IToolViewModel[] {
             new TableTool(model, selection, history, viewPort, this),
             new PCSTool(model, selection, history, this),
-            new CodeTool(model, selection, history),
+            new CodeTool(singletons, model, selection, history),
          };
 
          stringToolCommand = new StubCommand {

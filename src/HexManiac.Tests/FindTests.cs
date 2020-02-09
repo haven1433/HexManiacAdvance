@@ -70,7 +70,7 @@ namespace HavenSoft.HexManiac.Tests {
          tab.Find = str => new[] { (0x54, 0x54), (0x154, 0x154) };
          tab.Model = new BasicModel(new byte[0x200]);
          tab.CreateChildView = (int startAddress, int endAddress) => {
-            var child = new ChildViewPort(tab);
+            var child = new ChildViewPort(tab, BaseViewModelTestClass.Singletons);
             count++;
             return child;
          };
@@ -90,7 +90,7 @@ namespace HavenSoft.HexManiac.Tests {
             Find = str => new[] { (0x54, 0x54), (0x154, 0x154) },
             Model = new BasicModel(new byte[0x200]),
             Goto = new StubCommand { CanExecute = arg => true, Execute = arg => gotoCount++ },
-            CreateChildView = (start, end) => new ChildViewPort(tab),
+            CreateChildView = (start, end) => new ChildViewPort(tab, BaseViewModelTestClass.Singletons),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
@@ -112,7 +112,7 @@ namespace HavenSoft.HexManiac.Tests {
             Find = query => new[] { (0x60, 0x60) },
             Goto = new StubCommand(),
             Model = new BasicModel(new byte[0x200]),
-            CreateChildView = (start, end) => new ChildViewPort(tab1),
+            CreateChildView = (start, end) => new ChildViewPort(tab1, BaseViewModelTestClass.Singletons),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
@@ -122,7 +122,7 @@ namespace HavenSoft.HexManiac.Tests {
             Find = query => new[] { (0x50, 0x50), (0x70, 0x70) },
             Goto = new StubCommand(),
             Model = new BasicModel(new byte[0x200]),
-            CreateChildView = (start, end) => new ChildViewPort(tab2),
+            CreateChildView = (start, end) => new ChildViewPort(tab2, BaseViewModelTestClass.Singletons),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
@@ -150,7 +150,7 @@ namespace HavenSoft.HexManiac.Tests {
             Find = query => new[] { (0x50, 0x50), (0x70, 0x70) },
             Goto = new StubCommand(),
             Model = new BasicModel(new byte[0x200]),
-            CreateChildView = (start, end) => new ChildViewPort(tab),
+            CreateChildView = (start, end) => new ChildViewPort(tab, BaseViewModelTestClass.Singletons),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
@@ -171,7 +171,7 @@ namespace HavenSoft.HexManiac.Tests {
             Find = query => new[] { (0x50, 0x50), (0x70, 0x70) },
             Goto = new StubCommand(),
             Model = new BasicModel(new byte[0x200]),
-            CreateChildView = (start, end) => new ChildViewPort(tab),
+            CreateChildView = (start, end) => new ChildViewPort(tab, BaseViewModelTestClass.Singletons),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
@@ -189,8 +189,8 @@ namespace HavenSoft.HexManiac.Tests {
          var composite = new SearchResultsViewPort("search") { Height = 0x10 };
          var parentData = new byte[0x100];
          var parent = new StubViewPort { Width = 0x10, Height = 0x10, Model = new BasicModel(parentData) };
-         composite.Add(new ChildViewPort(parent), 0, 0);
-         composite.Add(new ChildViewPort(parent), 0, 0);
+         composite.Add(new ChildViewPort(parent, BaseViewModelTestClass.Singletons), 0, 0);
+         composite.Add(new ChildViewPort(parent, BaseViewModelTestClass.Singletons), 0, 0);
 
          var bodyChanged = false;
          var headerChanged = false;
@@ -251,7 +251,7 @@ namespace HavenSoft.HexManiac.Tests {
          tab = new StubViewPort {
             Find = query => new[] { (0x50, 0x50) },
             Goto = new StubCommand(),
-            CreateChildView = (start, end) => new ChildViewPort(tab),
+            CreateChildView = (start, end) => new ChildViewPort(tab, BaseViewModelTestClass.Singletons),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
@@ -272,7 +272,7 @@ namespace HavenSoft.HexManiac.Tests {
             Find = query => new[] { (0x50, 0x50), (0x70, 0x70) },
             Goto = new StubCommand(),
             Model = new BasicModel(new byte[0x200]),
-            CreateChildView = (start, end) => new ChildViewPort(tab),
+            CreateChildView = (start, end) => new ChildViewPort(tab, BaseViewModelTestClass.Singletons),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,

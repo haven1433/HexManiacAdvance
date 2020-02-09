@@ -36,6 +36,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          copyBytes = new StubCommand(),
          isText = new StubCommand();
 
+      public Singletons Singletons { get; }
+
       private HexElement[,] currentView;
       private bool exitEditEarly;
 
@@ -469,7 +471,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
 
-      public ViewPort(string fileName, IDataModel model, ChangeHistory<ModelDelta> changeHistory = null) {
+      public ViewPort(string fileName, IDataModel model, Singletons singletons = null, ChangeHistory<ModelDelta> changeHistory = null) {
+         Singletons = singletons ?? new Singletons();
          history = changeHistory ?? new ChangeHistory<ModelDelta>(RevertChanges);
          history.PropertyChanged += HistoryPropertyChanged;
 
@@ -485,7 +488,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          selection.PreviewSelectionStartChanged += ClearActiveEditBeforeSelectionChanges;
          selection.OnError += (sender, e) => OnError?.Invoke(this, e);
 
-         tools = new ToolTray(Model, selection, history, this);
+         tools = new ToolTray(Singletons, Model, selection, history, this);
          Tools.OnError += (sender, e) => OnError?.Invoke(this, e);
          Tools.OnMessage += (sender, e) => OnMessage?.Invoke(this, e);
          tools.RequestMenuClose += (sender, e) => RequestMenuClose?.Invoke(this, e);
@@ -752,7 +755,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void OpenInNewTab(int destination) {
-         var child = new ViewPort(FileName, Model, history);
+         var child = new ViewPort(FileName, Model, Singletons, history);
          child.selection.GotoAddress(destination);
          RequestTabChange?.Invoke(this, child);
       }
@@ -1157,7 +1160,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       #endregion
 
       public IChildViewPort CreateChildView(int startAddress, int endAddress) {
-         var child = new ChildViewPort(this);
+         var child = new ChildViewPort(this, Singletons);
 
          var run = Model.GetNextRun(startAddress);
          if (run is ArrayRun array) {

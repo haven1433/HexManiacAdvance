@@ -12,6 +12,8 @@ namespace HavenSoft.HexManiac.Tests {
    /// Pull standard setup into a base-class to reduce code duplication
    /// </summary>
    public class BaseViewModelTestClass {
+
+      public static Singletons Singletons { get; } = new Singletons();
       public ViewPort ViewPort { get; }
       public PokemonModel Model { get; }
       public byte[] Data { get; } = new byte[0x200];
@@ -20,7 +22,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       public BaseViewModelTestClass() {
          Model = new PokemonModel(Data);
-         ViewPort = new ViewPort("file.txt", Model) { Width = 0x10, Height = 0x10 };
+         ViewPort = new ViewPort("file.txt", Model, Singletons) { Width = 0x10, Height = 0x10 };
          ViewPort.OnError += (sender, e) => Errors.Add(e);
          ViewPort.OnMessage += (sender, e) => Messages.Add(e);
       }

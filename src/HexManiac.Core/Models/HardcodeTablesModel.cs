@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 
+
 namespace HavenSoft.HexManiac.Core.Models {
    /// <summary>
    /// An alternative to the AutoSearchModel.
@@ -72,7 +73,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       public override int EarliestAllowedAnchor => 0x200;
 
-      public HardcodeTablesModel(byte[] data, StoredMetadata metadata = null) : base(data, metadata) {
+      public HardcodeTablesModel(Singletons singletons, byte[] data, StoredMetadata metadata = null) : base(data, metadata) {
          if (metadata != null && !metadata.IsEmpty) return;
 
          gameCode = this.GetGameCode();
@@ -85,7 +86,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (gamesToDecode.Contains(gameCode)) {
             LoadDefaultMetadata();
             DecodeHeader();
-            DecodeTablesFromReference();
+            if (singletons.GameReferenceTables.TryGetValue(gameCode, out var referenceTables)) {
+               DecodeTablesFromReference(referenceTables);
+            }
             DecodeStreams();
          }
 
@@ -106,24 +109,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      private static readonly string[] referenceOrder = new string[] { "name", Ruby, Sapphire, Ruby1_1, Sapphire1_1, FireRed, LeafGreen, FireRed1_1, LeafGreen1_1, Emerald, "format" };
-      private void DecodeTablesFromReference() {
-         var gameIndex = referenceOrder.IndexOf(gameCode);
-         if (gameIndex == -1) return;
-         if (!File.Exists("resources/tableReference.txt")) return;
-         var lines = File.ReadAllLines("resources/tableReference.txt");
-         foreach (var line in lines) {
-            var row = line.Trim();
-            if (row.StartsWith("//")) continue;
-            var segments = row.Split(",");
-            if (segments.Length != referenceOrder.Length) continue;
-            var addressHex = segments[gameIndex].Trim();
-            if (addressHex == string.Empty) continue;
-            if (!int.TryParse(addressHex, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int address)) continue;
-            var name = segments[0].Trim();
-            var format = segments.Last().Trim();
+      private void DecodeTablesFromReference(GameReferenceTables tables) {
+         foreach(var table in tables) {
             using (ModelCacheScope.CreateScope(this)) {
-               AddTable(address, name, format);
+               AddTable(table.Address, table.Name, table.Format);
             }
          }
       }

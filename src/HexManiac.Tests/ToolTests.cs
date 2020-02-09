@@ -92,7 +92,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void HideCommandClosesAnyOpenTools() {
          var model = new PokemonModel(new byte[0x200]);
          var history = new ChangeHistory<ModelDelta>(null);
-         var tools = new ToolTray(model, new Selection(new ScrollRegion(), model), history, null);
+         var tools = new ToolTray(singletons, model, new Selection(new ScrollRegion(), model), history, null);
 
          tools.SelectedIndex = 1;
          tools.HideCommand.Execute();
@@ -513,9 +513,11 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(3, tool.ContentSelectionLength);
       }
 
+      private static readonly Singletons singletons;
       private static readonly ThumbParser parser;
       static ToolTests() {
-         parser = new ThumbParser(File.ReadAllLines("resources/armReference.txt"));
+         singletons = new Singletons();
+         parser = new ThumbParser(singletons);
       }
    }
 }

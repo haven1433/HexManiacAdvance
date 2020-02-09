@@ -9,18 +9,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
    public class ScriptParser {
       private readonly IReadOnlyList<ScriptLine> engine;
 
-      public ScriptParser(string[] lines) {
-         engine = lines
-            .Select(line => line.Split('#').First().Trim())
-            .Where(line => !string.IsNullOrEmpty(line))
-            .Select(line => new ScriptLine(line))
-            .ToArray();
-      }
-
-      public static ScriptParser LoadEngine(string filePath) {
-         var lines = File.ReadAllLines(filePath);
-         return new ScriptParser(lines);
-      }
+      public ScriptParser(IReadOnlyList<ScriptLine> engine) => this.engine = engine;
 
       public string Parse(IDataModel data, int start, int length) {
          var builder = new StringBuilder();

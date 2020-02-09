@@ -39,9 +39,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public ThumbParser Parser => thumb;
 
-      public CodeTool(IDataModel model, Selection selection, ChangeHistory<ModelDelta> history) {
-         thumb = new ThumbParser(File.ReadAllLines("resources/armReference.txt"));
-         script = new ScriptParser(File.ReadAllLines("resources/scriptReference.txt"));
+      public CodeTool(Singletons singletons, IDataModel model, Selection selection, ChangeHistory<ModelDelta> history) {
+         thumb = new ThumbParser(singletons);
+         script = new ScriptParser(singletons.ScriptLines);
          this.model = model;
          this.selection = selection;
          this.history = history;

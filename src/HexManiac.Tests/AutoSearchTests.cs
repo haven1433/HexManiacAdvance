@@ -584,14 +584,15 @@ namespace HavenSoft.HexManiac.Tests {
    /// are part of the same Test Collection (because they're in the same class)
    /// </summary>
    public class AutoSearchFixture {
-      private IDictionary<string, PokemonModel> modelCache = new Dictionary<string, PokemonModel>();
+      private readonly Singletons singletons = new Singletons();
+      private readonly IDictionary<string, PokemonModel> modelCache = new Dictionary<string, PokemonModel>();
 
       public AutoSearchFixture() {
          Parallel.ForEach(AutoSearchTests.PokemonGames.Select(array => (string)array[0]), name => {
             if (!File.Exists(name)) return;
             var data = File.ReadAllBytes(name);
             var metadata = new StoredMetadata(new string[0]);
-            var model = new HardcodeTablesModel(data, metadata);
+            var model = new HardcodeTablesModel(singletons, data, metadata);
             lock (modelCache) modelCache[name] = model;
          });
       }
