@@ -10,16 +10,20 @@ using static HavenSoft.HexManiac.Core.Models.HardcodeTablesModel;
 namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
    public class MakeMovesExpandable : IQuickEditItem {
 
-      private static readonly IReadOnlyDictionary<string, int[]> Addresses = new Dictionary<string, int[]> {
-         [Ruby] = new[] { 0x03D210, 0x03D2FA, 0x1FB130 },
-         [Sapphire] = new[] { 0x03D210, 0x03D2FA, 0x1FB0C0 },
-         [Ruby1_1] = new[] { 0x03D210, 0x03D2FA, 0x1FB148 },
-         [Sapphire1_1] = new[] { 0x03D210, 0x03D2FA, 0x1FB0D8 },
-         [FireRed] = new[] { 0x040394, 0x0404DE, 0x250C08 },
-         [LeafGreen] = new[] { 0x040394, 0x0404DE, 0x250BE4 },
-         [FireRed1_1] = new[] { 0x0403A8, 0x0404F2, 0x250C78 },
-         [LeafGreen1_1] = new[] { 0x0403A8, 0x0404F2, 0x250C54 },
-         [Emerald] = new[] { 0x06ACC0, 0x06ADAA, 0x31C89C },
+      private static readonly IReadOnlyDictionary<string, int> OriginalPPPointer = new Dictionary<string, int> {
+         [Ruby] = 0x1FB130,
+         [Sapphire] = 0x1FB0C0,
+         [Ruby1_1] = 0x1FB148,
+         [Sapphire1_1] = 0x1FB0D8,
+         [FireRed] = 0x250C08,
+         [LeafGreen] = 0x250BE4,
+         [FireRed1_1] = 0x250C78,
+         [LeafGreen1_1] = 0x250C54,
+         [Emerald] = 0x31C89C,
+      };
+
+      private static readonly IReadOnlyDictionary<string, int[]> Routines = new Dictionary<string, int[]> {
+         [FireRed] = new[] { 0x0114F2, 0x011654, 0x03E8E4, 0x03E986, 0x040E94 },
       };
 
       private static readonly IReadOnlyDictionary<string, int[]> Limiters = new Dictionary<string, int[]> {
@@ -48,9 +52,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          if (moveDataAddress == Pointer.NULL) return false;
          var game = model.GetGameCode();
          if (!Limiters.TryGetValue(game, out var limiters)) return false;
+         if (!Routines.TryGetValue(game, out var routines)) return false;
+
+         var initialRoutine = viewPort.Tools.CodeTool.Parser.Compile(model, 0, "lsl r2, r0, #1", "add r2, r2, r0", "lsl r2, r2, #2");
+
          var limitersCanBeChanged = limiters.All(limiter => model.Count > limiter && model[limiter].IsAny<byte>(0xD8, 0xD9));
-         var nop = model.ReadMultiByteValue(Addresses[game][0] + 0x2, 2);
-         return limitersCanBeChanged && nop == 0x0000;
+         var codeCanBeChanged = routines.All(routine =>
+            model.Count > routine + initialRoutine.Count &&
+            Enumerable.Range(0, initialRoutine.Count).All(i => model[routine + i] == initialRoutine[i]));
+         return limitersCanBeChanged && codeCanBeChanged;
       }
 
       public ErrorInfo Run(IViewPort viewPortInterface) {
@@ -59,14 +69,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var game = model.GetGameCode();
          var thumb = viewPort.Tools.CodeTool.Parser;
          var token = viewPort.CurrentChange;
-         var sourcesToPP = viewPort.Find($"<{Addresses[game][2]:X6}>");
+
          var moveDataAddress = model.GetAddressFromAnchor(token, -1, "movedata");
          if (moveDataAddress == Pointer.NULL) return new ErrorInfo("Expanding moves requires the existence of a 'movedata' table.");
+
+         var sourcesToPP = viewPort.Find($"<{OriginalPPPointer[game]:X6}>");
          if (sourcesToPP.Count != 5) {
             var originalCount = sourcesToPP.Count;
             sourcesToPP = viewPort.Find($"<{(moveDataAddress + 4):X6}>");
             if (sourcesToPP.Count != 5) {
-               return new ErrorInfo($"Expanding moves utility expects there to be 5 pointers to PP moves, but there were {originalCount} to {Addresses[game][2]:X6} and {sourcesToPP.Count} to {(moveDataAddress + 4):X6}.");
+               return new ErrorInfo($"Expanding moves utility expects there to be 5 pointers to PP moves, but there were {originalCount} to {OriginalPPPointer[game]:X6} and {sourcesToPP.Count} to {(moveDataAddress + 4):X6}.");
             }
          }
 
@@ -81,17 +93,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
             }
          }
 
-         // update routine 1
-         var routine1Edit = Addresses[game][0];
-         var code = thumb.Compile(model, routine1Edit, "add r2, r2, #4", "mov pc, r0");
-         Debug.Assert(code.Count == 4 && !code.Contains(byte.MinValue));
-         for (int i = 0; i < code.Count; i++) token.ChangeData(model, routine1Edit + i, code[i]);
-
-         // update routine 2
-         var routine2Edit = Addresses[game][1];
-         code = thumb.Compile(model, routine2Edit, "add r4, r2, #4");
-         Debug.Assert(code.Count == 2 && !code.Contains(byte.MinValue));
-         for (int i = 0; i < code.Count; i++) token.ChangeData(model, routine2Edit + i, code[i]);
+         // update routines
+         var code = thumb.Compile(model, 0, "mov r2, #12", "mul r2, r0", "add r2, r2, #4");
+         Debug.Assert(code.Count == 6 && !code.Contains(byte.MinValue));
+         foreach (var routine in Routines[game]) {
+            for (int i = 0; i < code.Count; i++) token.ChangeData(model, routine + i, code[i]);
+         }
 
          // update PP pointers
          foreach (var source in sourcesToPP) {
