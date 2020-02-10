@@ -918,7 +918,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          // it might be a pointer without angle braces
          if (cleanedSearchString.Length == 6 && cleanedSearchString.All(AllHexCharacters.Contains)) {
             searchBytes.AddRange(Parse(cleanedSearchString).Reverse().Append((byte)0x08).Select(b => (SearchByte)b));
-            results.AddRange(Search(searchBytes).Select(result => (result, result + 3)));
+            results.AddRange(Model.Search(searchBytes).Select(result => (result, result + 3)));
          }
 
          // it might be a bl command
@@ -929,7 +929,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          // attempt to parse the search string fully
          if (TryParseSearchString(searchBytes, cleanedSearchString, errorOnParseError: results.Count == 0)) {
             // find matches
-            results.AddRange(Search(searchBytes).Select(result => (result, result + searchBytes.Count - 1)));
+            results.AddRange(Model.Search(searchBytes).Select(result => (result, result + searchBytes.Count - 1)));
          }
 
          // reorder the list to start at the current cursor position
@@ -990,7 +990,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (pcsBytes.Count != cleanedSearchString.Length) yield break;
 
          searchBytes.AddRange(pcsBytes.Select(b => new PCSSearchByte(b)));
-         var textResults = Search(searchBytes).ToList();
+         var textResults = Model.Search(searchBytes).ToList();
          Model.ConsiderResultsAsTextRuns(history.CurrentChange, textResults);
          foreach (var result in textResults) {
             if (Model.GetNextRun(result) is ArrayRun parentArray && parentArray.LengthFromAnchor == string.Empty) {
@@ -1082,16 +1082,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             result[i] += (byte)AllHexCharacters.IndexOf(thisByte[1]);
          }
          return result;
-      }
-
-      private IEnumerable<int> Search(IList<ISearchByte> searchBytes) {
-         for (int i = 0; i < Model.Count - searchBytes.Count; i++) {
-            for (int j = 0; j < searchBytes.Count; j++) {
-               if (!searchBytes[j].Match(Model[i + j])) break;
-               if (j == searchBytes.Count - 1) yield return i;
-            }
-         }
-         searchBytes.Clear();
       }
 
       private bool TryParseSearchString(List<ISearchByte> searchBytes, string cleanedSearchString, bool errorOnParseError) {

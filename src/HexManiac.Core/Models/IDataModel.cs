@@ -392,6 +392,27 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
          }
       }
+
+      public static IEnumerable<int> FindPointer(this IDataModel model, int address) {
+         var low = (byte)address;
+         var mid = (byte)(address >> 8);
+         var high = (byte)(address >> 16);
+         return model.Find(low, mid, high, 0x08);
+      }
+
+      public static IEnumerable<int> Find(this IDataModel model, params byte[] search) {
+         return model.Search(search.Select<byte, ISearchByte>(b => (SearchByte)b).ToList());
+      }
+
+      public static IEnumerable<int> Search(this IDataModel model, IList<ISearchByte> searchBytes) {
+         for (int i = 0; i < model.Count - searchBytes.Count; i++) {
+            for (int j = 0; j < searchBytes.Count; j++) {
+               if (!searchBytes[j].Match(model[i + j])) break;
+               if (j == searchBytes.Count - 1) yield return i;
+            }
+         }
+         searchBytes.Clear();
+      }
    }
 
    public class BasicModel : BaseModel {

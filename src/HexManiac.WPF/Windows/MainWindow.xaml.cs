@@ -89,8 +89,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
                                        Command = new StubCommand {
                                           CanExecute = arg1 => true,
                                           Execute = arg1 => {
-                                             var error = edit.Run(ViewModel[ViewModel.SelectedIndex] as IViewPort);
-                                             // TODO do something with the error?
+                                             ViewModel.RunQuickEdit(edit);
                                              window.Close();
                                           }
                                        },

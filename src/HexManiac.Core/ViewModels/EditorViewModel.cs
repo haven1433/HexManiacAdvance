@@ -111,6 +111,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      public void RunQuickEdit(IQuickEditItem edit) {
+         var error = edit.Run(tabs[SelectedIndex] as IViewPort);
+         if (!error.HasError) return;
+         if (error.IsWarning) {
+            InformationMessage = error.ErrorMessage;
+         } else {
+            ErrorMessage = error.ErrorMessage;
+         }
+      }
+
       private int zoomLevel = 16;
       public int ZoomLevel {
          get => zoomLevel;
