@@ -246,6 +246,11 @@
                <TabControl.ItemTemplate>
                   <DataTemplate>
                      <StackPanel Orientation="Horizontal">
+                        <StackPanel.ToolTip>
+                           <ToolTip BorderThickness="0" Background="{DynamicResource Backlight}">
+                              <TextBlock Text="{Binding FullFileName}"/>
+                           </ToolTip>
+                        </StackPanel.ToolTip>
                         <TextBlock Name="TabTextBlock" Background="Transparent" Text="{Binding Name}" Foreground="{DynamicResource Primary}" MouseDown="TabMouseDown" MouseMove="TabMouseMove" MouseUp="TabMouseUp">
                            <TextBlock.InputBindings>
                               <MouseBinding MouseAction="MiddleClick" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}"/>

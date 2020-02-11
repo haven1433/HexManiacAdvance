@@ -51,7 +51,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private string fileName;
-      public string FileName { get => fileName; private set => TryUpdate(ref fileName, value); }
+      public string FileName {
+         get => fileName;
+         private set {
+            if (TryUpdate(ref fileName, value)) FullFileName = Path.GetFullPath(fileName);
+         }
+      }
+
+      private string fullFileName;
+      public string FullFileName { get => fullFileName; private set => TryUpdate(ref fullFileName, value); }
 
       #region Scrolling Properties
 

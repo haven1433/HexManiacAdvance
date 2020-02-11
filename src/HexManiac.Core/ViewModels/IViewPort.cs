@@ -13,6 +13,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       event EventHandler PreviewScrollChanged;
 
       string FileName { get; } // Name is dispayed in a tab. FileName lets us know when to call 'ConsiderReload'
+      string FullFileName { get; } // FullFileName is displayed when hovering over the tab.
 
       int Width { get; set; }
       int Height { get; set; }

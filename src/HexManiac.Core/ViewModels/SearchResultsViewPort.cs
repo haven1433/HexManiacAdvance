@@ -67,6 +67,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
       public string Name { get; }
+      public string FullFileName { get; }
       public string FileName => string.Empty;
       public ICommand Save { get; } = new StubCommand();
       public ICommand SaveAs { get; } = new StubCommand();
@@ -109,7 +110,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       #endregion
 
       public SearchResultsViewPort(string searchTerm) {
-         Name = $"Results for {searchTerm}";
+         FullFileName = $"Results for {searchTerm}";
+         Name = FullFileName.Length > 24 ? FullFileName.Substring(0, 23) + "…" : FullFileName;
+         
          width = 4;
          height = 4;
 
