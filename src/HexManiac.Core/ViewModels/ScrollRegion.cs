@@ -37,18 +37,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public int Width {
          get => width;
          set {
-            if (TryUpdate(ref width, value.LimitToRange(4, int.MaxValue))) {
-               UpdateScrollRange();
-            }
+            // do the update manually so that we don't notify value change until after calling UpdateScrollRange
+            value = value.LimitToRange(4, int.MaxValue);
+            if (value == width) return;
+            var oldWidth = width;
+            width = value;
+            UpdateScrollRange();
+            NotifyPropertyChanged(oldWidth);
          }
       }
 
       public int Height {
          get => height;
          set {
-            if (TryUpdate(ref height, value.LimitToRange(4, int.MaxValue))) {
-               UpdateScrollRange();
-            }
+            // do the update manually so that we don't notify value change until after calling UpdateScrollRange
+            value = value.LimitToRange(4, int.MaxValue);
+            if (value == height) return;
+            var oldHeight = height;
+            height = value;
+            UpdateScrollRange();
+            NotifyPropertyChanged(oldHeight);
          }
       }
 

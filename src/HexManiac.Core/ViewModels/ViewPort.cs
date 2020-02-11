@@ -112,6 +112,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          if (e.PropertyName == nameof(Width)) {
             UpdateColumnHeaders();
+            NotifyPropertyChanged(nameof(ScrollValue)); // changing the Scroll's Width can mess with the ScrollValue: go ahead and notify
          }
       }
 
