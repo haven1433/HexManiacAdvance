@@ -44,6 +44,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       }
 
       private void UpdateThemeDictionary(EditorViewModel viewModel) {
+         if (Resources.MergedDictionaries.Count == 0) Resources.MergedDictionaries.Add(new ResourceDictionary());
          var dict = new ResourceDictionary {
             { nameof(viewModel.Theme.Primary), Brush(viewModel.Theme.Primary) },
             { nameof(viewModel.Theme.Secondary), Brush(viewModel.Theme.Secondary) },
@@ -59,8 +60,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             { nameof(viewModel.Theme.Stream2), Brush(viewModel.Theme.Stream2) },
             { nameof(viewModel.Theme.EditBackground), Brush(viewModel.Theme.EditBackground) },
          };
-         Resources.MergedDictionaries.Clear();
-         Resources.MergedDictionaries.Add(dict);
+         Resources.MergedDictionaries[0] = dict;
       }
 
       private static SolidColorBrush Brush(string text) {
