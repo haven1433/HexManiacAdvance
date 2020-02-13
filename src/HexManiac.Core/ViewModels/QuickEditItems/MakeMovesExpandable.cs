@@ -73,7 +73,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
     mul   r2, r0
     add   r2, r2, #4
 ".Split(Environment.NewLine)).ToArray();
-         var codePotentiallyUsingPpPointer = model.Find(codeUsingPpPointer);
+         var codePotentiallyUsingPpPointer = model.Find(codeUsingPpPointer).ToList();
          foreach (var pointer in sourcesToPP) {
             var codeForPointer = codePotentiallyUsingPpPointer.Where(code => code < pointer).Last();
             for (int i = 0; i < changedCodeForPpPointer.Length; i++) {
