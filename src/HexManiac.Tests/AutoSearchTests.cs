@@ -472,7 +472,7 @@ namespace HavenSoft.HexManiac.Tests {
          var fileSystem = new StubFileSystem();
          var model = fixture.LoadModelNoCache(game);
          var editor = new EditorViewModel(fileSystem, false);
-         var viewPort = new ViewPort(game, model);
+         var viewPort = new ViewPort(game, model, fixture.Singletons);
          editor.Add(viewPort);
          var expandMoves = editor.QuickEdits.Single(edit => edit.Name == new MakeMovesExpandable().Name);
          var originalPointerCount = model.GetTable("movedata").PointerSources.Count;
@@ -584,15 +584,16 @@ namespace HavenSoft.HexManiac.Tests {
    /// are part of the same Test Collection (because they're in the same class)
    /// </summary>
    public class AutoSearchFixture {
-      private readonly Singletons singletons = new Singletons();
       private readonly IDictionary<string, PokemonModel> modelCache = new Dictionary<string, PokemonModel>();
+
+      public Singletons Singletons { get; } = new Singletons();
 
       public AutoSearchFixture() {
          Parallel.ForEach(AutoSearchTests.PokemonGames.Select(array => (string)array[0]), name => {
             if (!File.Exists(name)) return;
             var data = File.ReadAllBytes(name);
             var metadata = new StoredMetadata(new string[0]);
-            var model = new HardcodeTablesModel(singletons, data, metadata);
+            var model = new HardcodeTablesModel(Singletons, data, metadata);
             lock (modelCache) modelCache[name] = model;
          });
       }
