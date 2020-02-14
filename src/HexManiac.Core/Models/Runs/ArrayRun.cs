@@ -251,18 +251,27 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public static ErrorInfo TryParse(IDataModel data, string format, int start, IReadOnlyList<int> pointerSources, out ITableRun self) => TryParse(data, "UNUSED", format, start, pointerSources, out self);
 
       public static ErrorInfo TryParse(IDataModel data, string name, string format, int start, IReadOnlyList<int> pointerSources, out ITableRun self) {
-         try {
-            using (ModelCacheScope.CreateScope(data)) {
-               self = new ArrayRun(data, format, start, pointerSources);
-            }
-         } catch (ArrayRunParseException e) {
-            // failed to parse as an array... can we parse as a table stream?
-            if (TableStreamRun.TryParseTableStream(data, start, pointerSources, name, format, null, out var tableStreamRun)) {
-               self = tableStreamRun;
-            } else {
-               self = null;
+         self = null;
+         var startArray = format.IndexOf(ArrayStart);
+         var closeArray = format.LastIndexOf(ArrayEnd);
+         if (startArray == -1 || startArray > closeArray) return new ErrorInfo($"Array Content must be wrapped in {ArrayStart}{ArrayEnd}.");
+         var length = format.Substring(closeArray + 1);
+
+         if (length.All(c => char.IsLetterOrDigit(c) || c == '-')) {
+            // option 1: the length looks like a standard table length (or is empty, and thus dynamic). Parse as a table.
+            try {
+               using (ModelCacheScope.CreateScope(data)) {
+                  self = new ArrayRun(data, format, start, pointerSources);
+               }
+            } catch (ArrayRunParseException e) {
                return new ErrorInfo(e.Message);
             }
+         } else if (TableStreamRun.TryParseTableStream(data, start, pointerSources, name, format, null, out var tableStreamRun)) {
+            // option 2: parse as a table stream, because the length contains characters like / or ! that make it look dependent on 
+            self = tableStreamRun;
+         } else {
+            // option 3: table parsing failed. Something weird in the length.
+            return new ErrorInfo($"Array length must be an anchor name or a number: {length}");
          }
 
          return ErrorInfo.NoError;
