@@ -82,8 +82,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set {
             if (TryUpdate(ref content, value)) {
                using (ModelCacheScope.CreateScope(Model)) {
+                  ErrorText = string.Empty;
                   strategy.UpdateModelFromViewModel(this);
-                  dataChanged?.Invoke(this, EventArgs.Empty);
+                  if (!IsInError) {
+                     dataChanged?.Invoke(this, EventArgs.Empty);
+                  }
                }
             }
          }
