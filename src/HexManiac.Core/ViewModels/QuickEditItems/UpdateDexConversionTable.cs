@@ -10,6 +10,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          EditorViewModel.ApplicationName + " can update this automatically." + Environment.NewLine +
          "If you're using FireRed or LeafGreen, this probably doesn't matter for you.";
 
+      public string WikiLink => "https://github.com/haven1433/HexManiacAdvance/wiki/Pokedex-Conversion-Explained";
+
       public event EventHandler CanRunChanged;
 
       public bool CanRun(IViewPort viewPortInterface) {

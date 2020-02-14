@@ -8,8 +8,11 @@ using static HavenSoft.HexManiac.Core.Models.HardcodeTablesModel;
 namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
    public class MakeTutorsExpandable : IQuickEditItem {
       public string Name => "Make Tutors Expandable";
+
       public string Description => "The initial games limited to have exactly 18 (FireRed) or no more than 32 (Emerald) tutors." +
                Environment.NewLine + "This change will allow you to freely add new tutors, up to 256.";
+
+      public string WikiLink => "https://github.com/haven1433/HexManiacAdvance/wiki/Tutor-Expansion-Explained";
 
       public event EventHandler CanRunChanged;
 

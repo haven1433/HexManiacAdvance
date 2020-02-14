@@ -7,14 +7,17 @@ using HavenSoft.HexManiac.WPF.Implementations;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Navigation;
 
 namespace HavenSoft.HexManiac.WPF.Windows {
    partial class MainWindow {
@@ -78,6 +81,15 @@ namespace HavenSoft.HexManiac.WPF.Windows {
                                  Text = edit.Description,
                                  TextWrapping = TextWrapping.Wrap,
                               },
+                              new TextBlock(
+                                 new Hyperlink(new Run("Click here to learn more.")) {
+                                    Foreground = (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][nameof(Theme.Accent)],
+                                    NavigateUri = new Uri(edit.WikiLink),
+
+                                 }.Fluent(link => link.RequestNavigate += Navigate)
+                              ) {
+                                 HorizontalAlignment = HorizontalAlignment.Center,
+                              },
                               new StackPanel {
                                  Orientation = Orientation.Horizontal,
                                  VerticalAlignment = VerticalAlignment.Bottom,
@@ -119,6 +131,11 @@ namespace HavenSoft.HexManiac.WPF.Windows {
                Command = command,
             });
          }
+      }
+
+      private void Navigate(object sender, RequestNavigateEventArgs e) {
+         Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri));
+         e.Handled = true;
       }
 
       protected override void OnDrop(DragEventArgs e) {

@@ -12,6 +12,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       public string Description => "The initial games have functions that do out-of-bounds checks on item IDs using a hard-coded number of items." +
          Environment.NewLine + "This change will allow HexManiac to update those functions as you to expand the number of items in the game.";
 
+      public string WikiLink => throw new NotImplementedException();
+
       public event EventHandler CanRunChanged;
 
       public static int GetPrimaryEditAddress(string gameCode) {

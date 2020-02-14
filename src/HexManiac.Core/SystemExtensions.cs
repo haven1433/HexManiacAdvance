@@ -42,6 +42,13 @@ namespace HavenSoft.HexManiac.Core {
          return options.Contains(self);
       }
 
+      // There are times where we want to do some sort of action on an object fluently: do the action, but return the same object.
+      // For example, we might want to run a method or add an event after a property initializer, without needing to name the instance.
+      public static T Fluent<T>(this T self, Action<T> action) {
+         action(self);
+         return self;
+      }
+
       ////// these are some specific string extensions to deal with smart auto-complete //////
 
       public static bool MatchesPartial(this string full, string partial) {

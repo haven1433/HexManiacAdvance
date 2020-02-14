@@ -93,6 +93,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          Environment.NewLine + "After this change, TM moves are based on the name given to the TM/HM instead of the item index." +
          Environment.NewLine + "For example, an item named 'TM30' will use the 30th move in the 'tmmoves' table.";
 
+      public string WikiLink => throw new NotImplementedException();
+
       public event EventHandler CanRunChanged;
 
       public MakeTmsExpandable() {

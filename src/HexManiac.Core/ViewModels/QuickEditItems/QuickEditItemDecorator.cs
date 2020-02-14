@@ -52,6 +52,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems
                 return default(string);
             }
         }
+        public virtual string WikiLink
+        {
+            get
+            {
+                if (InnerQuickEditItem != null)
+                {
+                    return InnerQuickEditItem.WikiLink;
+                }
+                return default(string);
+            }
+        }
         public virtual event System.EventHandler CanRunChanged
         {
             add

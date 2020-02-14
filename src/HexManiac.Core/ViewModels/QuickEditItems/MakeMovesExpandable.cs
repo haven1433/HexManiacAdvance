@@ -27,6 +27,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       public string Description => "Running this utility will remove the move limiters" +
                                    "and allow the PP pointers to auto-repoint.";
 
+      public string WikiLink => "https://github.com/haven1433/HexManiacAdvance/wiki/Move-Expansion-Explained";
+
       public event EventHandler CanRunChanged;
 
       public bool CanRun(IViewPort viewPort) {
