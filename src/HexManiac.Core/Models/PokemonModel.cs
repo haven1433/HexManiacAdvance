@@ -597,8 +597,9 @@ namespace HavenSoft.HexManiac.Core.Models {
             // option 1: this table's length is based on the given table
             if (anchor.Equals(table.LengthFromAnchor)) {
                if (arrayRun.ElementCount == table.ElementCount) continue;
-               newTable = (ArrayRun)RelocateForExpansion(changeToken, table, arrayRun.ElementCount * table.ElementLength);
-               newTable = newTable.Append(changeToken, arrayRun.ElementCount - table.ElementCount);
+               int targetCount = arrayRun.ElementCount + table.ParentOffset;
+               newTable = (ArrayRun)RelocateForExpansion(changeToken, table, targetCount * table.ElementLength);
+               newTable = newTable.Append(changeToken, targetCount - table.ElementCount);
                ObserveRunWritten(changeToken, newTable);
             }
             // option 2: this table includes a bit-array based on the given table

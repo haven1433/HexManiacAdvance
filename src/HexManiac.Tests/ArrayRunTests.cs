@@ -1117,6 +1117,33 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x10, test.Model.GetNextRun(0).Length);
       }
 
+      [Fact]
+      public void ExtendingTableWithLengthMinusOneFromParentOnlyAddsOneElement() {
+         var data = new byte[0x200];
+         var model = new PokemonModel(data);
+         var token = new ModelDelta();
+
+         // Arrange - 2 tables, a parent and a child. The child is one shorter than the parent.
+         ArrayRun.TryParse(model, "[element:]10", 0x20, null, out var parent);
+         model.ObserveAnchorWritten(token, "parent", parent);
+         ArrayRun.TryParse(model, "[element:]parent-1", 0x40, null, out var child);
+         model.ObserveAnchorWritten(token, "child", child);
+         Assert.Equal(9, child.ElementCount);
+
+         // Adding via the child should extend the child by 1.
+         child = model.GetTable("child");
+         var errorInfo = model.CompleteArrayExtension(token, ref child);
+         Assert.Equal(ErrorInfo.NoError, errorInfo);
+         Assert.Equal(10, child.ElementCount);
+
+         // Adding via the parent should extend the child by 1.
+         parent = model.GetTable("parent");
+         errorInfo = model.CompleteArrayExtension(token, ref parent);
+         child = model.GetTable("child");
+         Assert.Equal(ErrorInfo.NoError, errorInfo);
+         Assert.Equal(11, child.ElementCount);
+      }
+
       private static void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);
