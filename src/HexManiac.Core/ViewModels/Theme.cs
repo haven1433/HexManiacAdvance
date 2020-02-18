@@ -111,7 +111,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Accent = accent[5].ToRgb().ToHexString();
          Text2 = accent[6].ToRgb().ToHexString();
          Stream1 = accent[7].ToRgb().ToHexString();
-         EditBackground = Splice(hsbHighlightDark, accent[2], .2);
+         EditBackground = Splice(hsbHighlightDark, accent[2], .1);
 
          NotifyPropertyChanged(nameof(Primary));
          NotifyPropertyChanged(nameof(Background));
