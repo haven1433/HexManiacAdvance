@@ -1608,7 +1608,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var errorInfo = Model.CompleteArrayExtension(history.CurrentChange, ref arrayRun);
             if (!errorInfo.HasError || errorInfo.IsWarning) {
                if (arrayRun != null && arrayRun.Start != originalArray.Start) {
-                  ScrollFromRunMove(arrayRun.Start + arrayRun.Length, arrayRun.Length, arrayRun);
+                  ScrollFromRunMove(dataIndex, originalArray, arrayRun);
                }
                RefreshBackingData();
             }
@@ -1661,11 +1661,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return errorInfo.IsWarning;
       }
 
-      private void ScrollFromRunMove(int originalIndexInData, int indexInOldRun, IFormattedRun newRun) {
+      private void ScrollFromRunMove(int initialSelection, IFormattedRun oldRun, IFormattedRun newRun) {
          scroll.DataLength = Model.Count; // possible length change
-         var offset = originalIndexInData - scroll.DataIndex;
+         var screenSelectionOffset = initialSelection - scroll.DataIndex;
+         var tableOffset = scroll.DataIndex - oldRun.Start;
          selection.PropertyChanged -= SelectionPropertyChanged;
-         selection.GotoAddress(newRun.Start + indexInOldRun - offset);
+         selection.GotoAddress(newRun.Start + tableOffset);
+         selection.SelectionStart = scroll.DataIndexToViewPoint(scroll.DataIndex + screenSelectionOffset);
          selection.PropertyChanged += SelectionPropertyChanged;
       }
 
