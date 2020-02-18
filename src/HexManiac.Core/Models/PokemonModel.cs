@@ -884,7 +884,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override int FindFreeSpace(int start, int minimumLength) {
-         const int SpacerLength = 0x10;
+         const int SpacerLength = 0x100;
          minimumLength += 0x140; // make sure there's plenty of room after, so that we're not in the middle of some other data set
          var runIndex = 0;
          while (start < RawData.Length - minimumLength) {
