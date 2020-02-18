@@ -1099,10 +1099,10 @@ namespace HavenSoft.HexManiac.Tests {
          source.ViewPort.Goto.Execute("04");
          source.ViewPort.Edit("+");
 
-         // Assert: the PLMRun at 04 should not have moved. There should be one thing pointing to it.
+         // Assert: the PLMRun at 04 should not have moved. There should be two things pointing to it, since the extended table got a new pointer.
          var newTableStart = source.Model.GetAddressFromAnchor(new ModelDelta(), -1, HardcodeTablesModel.LevelMovesTableName);
          var plmRun = (PLMRun)source.Model.GetNextRun(4);
-         Assert.Single(plmRun.PointerSources);
+         Assert.Equal(2, plmRun.PointerSources.Count);
          Assert.Equal(newTableStart, plmRun.PointerSources[0]);
       }
 

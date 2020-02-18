@@ -451,6 +451,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                newFormat += ElementCount + elementCount;
             }
          }
+
+         // set default values based on the bytes from the previous element
+         for (int i = 0; i < elementCount; i++) {
+            for (int j = 0; j < ElementLength; j++) {
+               var newDataAddress = Start + Length + i * ElementLength + j;
+               var validData = owner[Start + Length - ElementLength + j];
+               token.ChangeData(owner, newDataAddress, validData);
+            }
+         }
+
          var newInnerElementsSources = PointerSourcesForInnerElements?.ToList();
 
          if (newInnerElementsSources != null) {
