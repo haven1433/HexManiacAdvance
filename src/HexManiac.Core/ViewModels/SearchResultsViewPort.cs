@@ -112,7 +112,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public SearchResultsViewPort(string searchTerm) {
          FullFileName = $"Results for {searchTerm}";
          Name = FullFileName.Length > 24 ? FullFileName.Substring(0, 23) + "…" : FullFileName;
-         
+
          width = 4;
          height = 4;
 

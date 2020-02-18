@@ -110,7 +110,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private void DecodeTablesFromReference(GameReferenceTables tables) {
-         foreach(var table in tables) {
+         foreach (var table in tables) {
             using (ModelCacheScope.CreateScope(this)) {
                AddTable(table.Address, table.Name, table.Format);
             }

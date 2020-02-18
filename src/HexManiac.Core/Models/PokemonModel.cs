@@ -903,7 +903,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var lastConflictingData = -1;
             for (int i = start; i < start + minimumLength; i++) if (RawData[i] != 0xFF) lastConflictingData = i;
             if (lastConflictingData != -1) {
-               start = (int)lastConflictingData + SpacerLength;
+               start = lastConflictingData + SpacerLength;
                start -= start % 4;
                continue;
             }
