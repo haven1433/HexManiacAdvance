@@ -137,12 +137,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          text = text.ToLower();
          var options = ModelCacheScope.GetCache(model).GetOptions(EnumName);
          for (int i = 0; i < options.Count; i++) {
-            var option = options[i];
+            var option = options[i].ToLower();
             if (option == text) matches.Add(option);
             if (matches.Count == desiredMatch) { value = i; return true; }
             if (option.MatchesPartial(text)) partialMatches.Add(option);
-            if (partialMatches.Count == desiredMatch && matches.Count == 0) { value = i; return true; }
+            if (partialMatches.Count == desiredMatch && matches.Count == 0) value = i;
          }
+         if (matches.Count == 0 && partialMatches.Count >= desiredMatch) return true; // no full matches, use the partial match
 
          // we went through the whole array and didn't find it :(
          return false;
