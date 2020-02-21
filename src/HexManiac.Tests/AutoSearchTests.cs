@@ -408,6 +408,29 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.InRange(habitats.ElementCount, 8, 12);
       }
 
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void PickupItemsAreFound(string game) {
+         var model = fixture.LoadModel(game);
+
+         var pickupitems = model.GetTable("pickupitems");
+         Assert.IsType<ArrayRun>(pickupitems);
+
+         if (model.GetGameCode() == Emerald) {
+            var rarepickupitems = model.GetTable("pickupitemsrare");
+            Assert.IsType<ArrayRun>(rarepickupitems);
+         }
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void BattleScriptSourceIsFound(string game) {
+         var model = fixture.LoadModel(game);
+
+         var pickupitems = model.GetTable("battlescriptsource");
+         Assert.IsType<ArrayRun>(pickupitems);
+      }
+
       public static IEnumerable<object[]> ListData => PokemonGames.Select(array => array[0]).SelectMany(game =>
          new[] {
             new[] { game, MoveEffectListName, 214 },
