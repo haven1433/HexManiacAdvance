@@ -9,7 +9,7 @@ using static HavenSoft.HexManiac.Core.Models.Runs.PCSRun;
 using static HavenSoft.HexManiac.Core.Models.Runs.PointerRun;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
-   internal class CompleteEditOperation : IDataFormatVisitor {
+   internal class CompleteCellEdit : IDataFormatVisitor {
       private readonly IDataModel Model;
       private readonly int memoryLocation;
       private readonly string CurrentText;
@@ -24,7 +24,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                                                        // and refresh the one cell (along with any other UnderEdit cells)
                                                        // if result is true and this _is_ null, then the entire screen needs to be refreshed.
 
-      public CompleteEditOperation(IDataModel model, int memoryLocation, string currentText, ModelDelta currentChange) {
+      public CompleteCellEdit(IDataModel model, int memoryLocation, string currentText, ModelDelta currentChange) {
          Model = model;
          this.memoryLocation = memoryLocation;
          CurrentText = currentText;

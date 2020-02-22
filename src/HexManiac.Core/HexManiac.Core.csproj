@@ -71,7 +71,7 @@
     <Compile Include="ViewModels\QuickEditItems\QuickEditItemDecorator.cs" />
     <Compile Include="ViewModels\QuickEditItems\UpdateDexConversionTable.cs" />
     <Compile Include="ViewModels\Tools\CodeTool.cs" />
-    <Compile Include="ViewModels\Visitors\CompleteEditOperation.cs" />
+    <Compile Include="ViewModels\Visitors\CompleteCellEdit.cs" />
     <Compile Include="ViewModels\Visitors\ContextItemFactory.cs" />
     <Compile Include="ViewModels\Visitors\ContinueCellEdit.cs" />
     <Compile Include="ViewModels\ConvertCellToText.cs" />
