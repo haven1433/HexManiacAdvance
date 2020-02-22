@@ -319,6 +319,24 @@ namespace HavenSoft.HexManiac.Tests {
          }
       }
 
+      [Fact]
+      public void CanClearBitOptions() {
+         CreateTextTable("source", 0x100, "Apple", "Banana", "Coconut", "Durian");
+         CreateBitArrayTable("test", 0x20, "source", 0b0101, 0b1010, 0b1100, 0b0011);
+
+         ViewPort.Edit("@test/1 -");
+         Assert.Equal(0b0000, Model[0x21]);
+      }
+
+      [Fact]
+      public void CanSetBitOptions() {
+         CreateTextTable("source", 0x100, "Apple", "Banana", "Coconut", "Durian");
+         CreateBitArrayTable("test", 0x20, "source", 0b0101, 0b1010, 0b1100, 0b0011);
+
+         ViewPort.Edit("@test/1 apple ");
+         Assert.Equal(0b1011, Model[0x21]);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
