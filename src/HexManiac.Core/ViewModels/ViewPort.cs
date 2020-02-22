@@ -853,7 +853,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          var cellToText = new ConvertCellToText(Model, run.Start);
-         var cell = this[point.X, point.Y];
+         var cell = this[point];
+
+         void TableBackspace(int length) {
+            PrepareForMultiSpaceEdit(point, length);
+            cell.Format.Visit(cellToText, cell.Value);
+            var text = cellToText.Result;
+            if (cell.Format is BitArray) {
+               for (int i = 1; i < length; i++) {
+                  var extraData = Model[scroll.ViewPointToDataIndex(point) + i];
+                  cell.Format.Visit(cellToText, extraData);
+                  text += cellToText.Result;
+               }
+            }
+            text = text.Substring(0, text.Length - 1);
+            currentView[point.X, point.Y] = new HexElement(cell, new UnderEdit(cell.Format, text, length));
+         }
 
          if (run is ITableRun array) {
             var offsets = array.ConvertByteOffsetToArrayOffset(index);
@@ -863,16 +878,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                RefreshBackingData();
                SelectionStart = scroll.DataIndexToViewPoint(index - 1);
             } else if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Pointer) {
-               PrepareForMultiSpaceEdit(point, 4);
-               var destination = ((Pointer)cell.Format).DestinationAsText;
-               destination = destination.Substring(0, destination.Length - 1);
-               currentView[point.X, point.Y] = new HexElement(cell, new UnderEdit(cell.Format, destination, 4));
+               TableBackspace(4);
             } else if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Integer) {
-               PrepareForMultiSpaceEdit(point, ((Integer)cell.Format).Length);
-               cell.Format.Visit(cellToText, cell.Value);
-               var text = cellToText.Result;
-               text = text.Substring(0, text.Length - 1);
-               currentView[point.X, point.Y] = new HexElement(cell, new UnderEdit(cell.Format, text, ((Integer)cell.Format).Length));
+               TableBackspace(((Integer)cell.Format).Length);
+            } else if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.BitArray) {
+               TableBackspace(((BitArray)cell.Format).Length);
             } else {
                throw new NotImplementedException();
             }

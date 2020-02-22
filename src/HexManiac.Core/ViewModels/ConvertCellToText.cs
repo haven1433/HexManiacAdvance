@@ -26,11 +26,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          throw new NotImplementedException();
       }
 
-      public void Visit(Pointer pointer, byte data) {
-         var destination = pointer.Destination.ToString("X6");
-         Result = $"<{destination}>";
-         if (!string.IsNullOrEmpty(pointer.DestinationName)) Result = $"<{pointer.DestinationName}>";
-      }
+      public void Visit(Pointer pointer, byte data) => Result = pointer.DestinationAsText;
 
       public void Visit(Anchor anchor, byte data) => anchor.OriginalFormat.Visit(this, data);
 
