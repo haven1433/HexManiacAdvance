@@ -681,7 +681,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             while (segments.Length > endIndex && char.IsLetterOrDigit(segments[endIndex])) endIndex++;
             var format = segments.Substring(0, endIndex);
             var name = format.Substring(BitArray.SharedFormatString.Length);
-            var options = ModelCacheScope.GetCache(model).GetBitOptions(name);
+            var options = model.GetBitOptions(name);
             var count = options?.Count ?? 8;
             return (ElementContentType.BitArray, format.Length, (int)Math.Ceiling(count / 8.0));
          }

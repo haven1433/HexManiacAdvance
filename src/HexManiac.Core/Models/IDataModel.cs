@@ -231,7 +231,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (parent.ElementContent[0].Type != ElementContentType.PCS) return false;
 
          var offset = array.FormatString.EndsWith("-1") ? 1 : 0;
-         var rawOptions = ModelCacheScope.GetCache(model).GetOptions(parentName);
+         var rawOptions = model.GetOptions(parentName);
 
          // create a name array, where the names are rearranged based on the index array
          var result = new string[rawOptions.Count];
@@ -413,6 +413,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
          searchBytes.Clear();
       }
+
+      public static IReadOnlyList<string> GetOptions(this IDataModel model, string tableName) => ModelCacheScope.GetCache(model).GetOptions(tableName);
+
+      public static IReadOnlyList<string> GetBitOptions(this IDataModel model, string tableName) => ModelCacheScope.GetCache(model).GetBitOptions(tableName);
    }
 
    public class BasicModel : BaseModel {

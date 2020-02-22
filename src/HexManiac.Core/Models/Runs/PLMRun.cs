@@ -18,7 +18,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public PLMRun(IDataModel dataModel, int start, IReadOnlyList<int> pointerSources = null) : base(start, pointerSources) {
          model = dataModel;
-         var moveNames = ModelCacheScope.GetCache(dataModel).GetOptions(HardcodeTablesModel.MoveNamesTable);
+         var moveNames = dataModel.GetOptions(HardcodeTablesModel.MoveNamesTable);
          Length = 1;
          for (int i = Start; i < model.Count; i += 2) {
             var value = model.ReadMultiByteValue(i, 2);
@@ -43,7 +43,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) {
          Debug.Assert(data == model);
-         var moveNames = ModelCacheScope.GetCache(model).GetOptions(HardcodeTablesModel.MoveNamesTable);
+         var moveNames = model.GetOptions(HardcodeTablesModel.MoveNamesTable);
          var position = index - Start;
          var groupStart = position % 2 == 1 ? position - 1 : position;
          position -= groupStart;
@@ -57,7 +57,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public bool TryGetMoveNumber(string moveName, out int move) {
          moveName = moveName.Trim('"').ToLower();
-         var moveNames = ModelCacheScope.GetCache(model).GetOptions(HardcodeTablesModel.MoveNamesTable);
+         var moveNames = model.GetOptions(HardcodeTablesModel.MoveNamesTable);
          var names = moveNames.Select(name => name.Trim('"').ToLower()).ToList();
 
          // perfect match?
@@ -72,12 +72,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public IEnumerable<string> GetAutoCompleteOptions(string header) {
-         var moveNames = ModelCacheScope.GetCache(model).GetOptions(HardcodeTablesModel.MoveNamesTable);
+         var moveNames = model.GetOptions(HardcodeTablesModel.MoveNamesTable);
          return moveNames.Select(name => $"{header} {name}" + (name.EndsWith("\"") ? "" : " ")); // autocomplete needs to complete after selection, so add a space if there's no quotes
       }
 
       public string SerializeRun() {
-         var moveNames = ModelCacheScope.GetCache(model).GetOptions(HardcodeTablesModel.MoveNamesTable);
+         var moveNames = model.GetOptions(HardcodeTablesModel.MoveNamesTable);
          var builder = new StringBuilder();
          for (int i = 0; i < Length - 2; i += 2) {
             var address = Start + i;
@@ -91,7 +91,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public IStreamRun DeserializeRun(string content, ModelDelta token) {
          var data = new List<int>();
-         var moveNames = ModelCacheScope.GetCache(model).GetOptions(HardcodeTablesModel.MoveNamesTable);
+         var moveNames = model.GetOptions(HardcodeTablesModel.MoveNamesTable);
          moveNames = moveNames.Select(name => name.Trim('"').ToLower()).ToList();
 
          var lines = content.ToLower().Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
@@ -130,7 +130,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public void AppendTo(StringBuilder text, int start, int length) {
-         var moveNames = ModelCacheScope.GetCache(model).GetOptions(HardcodeTablesModel.MoveNamesTable);
+         var moveNames = model.GetOptions(HardcodeTablesModel.MoveNamesTable);
          for (int i = 0; i < length && i < Length - Start; i += 2) {
             if (i > 0) text.Append(" ");
             if (i + start - Start == Length - 2) { text.Append("[]"); continue; }

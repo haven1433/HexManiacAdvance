@@ -108,8 +108,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new EggMoveRun(model, Start, newPointerSources);
 
       public int GetPokemonNumber(string input) {
-         var cache = ModelCacheScope.GetCache(model);
-         var cachedPokenames = cache.GetOptions(PokemonNameTable);
+         var cachedPokenames = model.GetOptions(PokemonNameTable);
 
          if (input.StartsWith(GroupStart)) input = input.Substring(1, input.Length - 2);
          input = input.ToLower();

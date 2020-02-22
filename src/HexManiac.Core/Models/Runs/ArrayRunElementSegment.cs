@@ -135,7 +135,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          // ok, so everything lines up... check the array to see if any values match the string entered
          text = text.ToLower();
-         var options = ModelCacheScope.GetCache(model).GetOptions(EnumName);
+         var options = model.GetOptions(EnumName);
          for (int i = 0; i < options.Count; i++) {
             var option = options[i].ToLower();
             if (option == text) matches.Add(option);
@@ -151,7 +151,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public IReadOnlyList<string> GetOptions(IDataModel model) {
          if (int.TryParse(EnumName, out var result)) return Enumerable.Range(0, result).Select(i => i.ToString()).ToList();
-         return ModelCacheScope.GetCache(model).GetOptions(EnumName);
+         return model.GetOptions(EnumName);
       }
    }
 

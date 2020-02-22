@@ -185,49 +185,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
       }
 
-      private void HandleHexChangeToBitArray(BitArray array, string currentText) {
-         var parseArray = new byte[array.Length];
-
-         for (int i = 0; i < array.Length; i++) {
-            if (!byte.TryParse(currentText.Substring(i * 2, 2), NumberStyles.HexNumber, CultureInfo.CurrentCulture.NumberFormat, out var result)) {
-               ErrorText = $"Could not parse {CurrentText} as a bit-array.";
-               return;
-            }
-            parseArray[i] = result;
-         }
-         for (int i = 0; i < array.Length; i++) CurrentChange.ChangeData(Model, memoryLocation + i, parseArray[i]);
-
-         NewDataIndex = memoryLocation + array.Length;
-         Result = true;
-      }
-
-      private void HandleBitArrayClear(BitArray array) {
-         for (int i = 0; i < array.Length; i++) CurrentChange.ChangeData(Model, memoryLocation + i, 0);
-         NewDataIndex = memoryLocation;
-         Result = true;
-      }
-
-      private void HandleBitArrayEntry(BitArray array, string currentText) {
-         currentText = currentText.Replace("\"", "").Trim();
-         var run = (ITableRun)Model.GetNextRun(memoryLocation);
-         var offset = run.ConvertByteOffsetToArrayOffset(memoryLocation);
-         var segment = (ArrayRunBitArraySegment)run.ElementContent[offset.SegmentIndex];
-         var sourceName = segment.SourceArrayName;
-         var options = ModelCacheScope.GetCache(Model).GetBitOptions(sourceName);
-         var bit = options.IndexOfPartial(currentText);
-         if (bit == -1) {
-            ErrorText = $"Could not parse {CurrentText} as a bit name.";
-            return;
-         }
-
-         var dataIndex = memoryLocation;
-         while (bit >= 8) { dataIndex++; bit -= 8; }
-         var newData = (byte)(Model[dataIndex] | 1 << bit);
-         CurrentChange.ChangeData(Model, dataIndex, newData);
-         NewDataIndex = memoryLocation;
-         Result = true;
-      }
-
       public void Visit(MatchedWord word, byte data) => Visit((None)null, data);
 
       public void Visit(EndStream endStream, byte data) {
@@ -520,6 +477,49 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             eggRun = (EggMoveRun)Model.GetNextRun(eggRun.Start);
             eggRun.UpdateLimiter(CurrentChange);
          }
+      }
+
+      private void HandleHexChangeToBitArray(BitArray array, string currentText) {
+         var parseArray = new byte[array.Length];
+
+         for (int i = 0; i < array.Length; i++) {
+            if (!byte.TryParse(currentText.Substring(i * 2, 2), NumberStyles.HexNumber, CultureInfo.CurrentCulture.NumberFormat, out var result)) {
+               ErrorText = $"Could not parse {CurrentText} as a bit-array.";
+               return;
+            }
+            parseArray[i] = result;
+         }
+         for (int i = 0; i < array.Length; i++) CurrentChange.ChangeData(Model, memoryLocation + i, parseArray[i]);
+
+         NewDataIndex = memoryLocation + array.Length;
+         Result = true;
+      }
+
+      private void HandleBitArrayClear(BitArray array) {
+         for (int i = 0; i < array.Length; i++) CurrentChange.ChangeData(Model, memoryLocation + i, 0);
+         NewDataIndex = memoryLocation;
+         Result = true;
+      }
+
+      private void HandleBitArrayEntry(BitArray array, string currentText) {
+         currentText = currentText.Replace("\"", "").Trim();
+         var run = (ITableRun)Model.GetNextRun(memoryLocation);
+         var offset = run.ConvertByteOffsetToArrayOffset(memoryLocation);
+         var segment = (ArrayRunBitArraySegment)run.ElementContent[offset.SegmentIndex];
+         var sourceName = segment.SourceArrayName;
+         var options = Model.GetBitOptions(sourceName);
+         var bit = options.IndexOfPartial(currentText);
+         if (bit == -1) {
+            ErrorText = $"Could not parse {CurrentText} as a bit name.";
+            return;
+         }
+
+         var dataIndex = memoryLocation;
+         while (bit >= 8) { dataIndex++; bit -= 8; }
+         var newData = (byte)(Model[dataIndex] | 1 << bit);
+         CurrentChange.ChangeData(Model, dataIndex, newData);
+         NewDataIndex = memoryLocation;
+         Result = true;
       }
 
       private void UpdateArrayPointer(ITableRun run, int pointerDestination) {
