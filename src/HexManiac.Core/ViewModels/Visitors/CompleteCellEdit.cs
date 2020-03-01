@@ -201,6 +201,37 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Model.ObserveRunWritten(CurrentChange, newRun);
       }
 
+      public void Visit(LzMagicIdentifier lz, byte data) => Result = false;
+
+      public void Visit(LzGroupHeader lz, byte data) {
+         if (!CurrentText.EndsWith(" ")) return;
+         if (byte.TryParse(CurrentText, NumberStyles.HexNumber, CultureInfo.CurrentCulture.NumberFormat, out var result)) {
+            CurrentChange.ChangeData(Model, memoryLocation, result);
+            Result = true;
+         }
+      }
+
+      public void Visit(LzCompressed lz, byte data) {
+         if (!CurrentText.EndsWith(" ")) return;
+         var sections = CurrentText.Trim().Split(":");
+         if (sections.Length != 2) return;
+         if (!int.TryParse(sections[0], out int runLength)) return;
+         if (!int.TryParse(sections[1], out int runOffset)) return;
+         var result = new LzCompressedToken((byte)runLength, (short)runOffset).Render().ToList();
+         CurrentChange.ChangeData(Model, memoryLocation, result[0]);
+         CurrentChange.ChangeData(Model, memoryLocation + 1, result[1]);
+         NewDataIndex = memoryLocation + 2;
+         Result = true;
+      }
+
+      public void Visit(LzUncompressed lz, byte data) {
+         if (!CurrentText.EndsWith(" ")) return;
+         if (byte.TryParse(CurrentText, NumberStyles.HexNumber, CultureInfo.CurrentCulture.NumberFormat, out var result)) {
+            CurrentChange.ChangeData(Model, memoryLocation, result);
+            Result = true;
+         }
+      }
+
       /// <summary>
       /// Parses text in a PLM run to get the level and move.
       /// returns an error string if the parse fails.

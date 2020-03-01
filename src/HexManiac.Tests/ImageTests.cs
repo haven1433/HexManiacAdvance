@@ -6,17 +6,17 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void ValidHeaderIsRecognized() {
          var data = new byte[] { 0x10, 8, 0, 0, 0b000000, 0, 0, 0, 0, 0, 0, 0, 0 };
-         Assert.True(LZRun.IsCompressedLzData(data, 0));
+         Assert.NotEqual(-1, LZRun.IsCompressedLzData(data, 0));
       }
 
       [Theory]
       [InlineData(new byte[] { 0x00, 8, 0, 0, 0b000000, 0, 0, 0, 0, 0, 0, 0, 0 })] // first byte must be 0x10
       [InlineData(new byte[] { 0x10, 8, 1, 0, 0b000000, 0, 0, 0, 0, 0, 0, 0, 0 })] // must contain enough bytes to read the whole format
-      [InlineData(new byte[] { 0x10, 6, 0, 0, 0b100000, 0, 0, 0, 0, 0, 0, 0, 0 })] // any unused bits at the end of the 'compression' byte must be 0
-      [InlineData(new byte[] { 0x10, 7, 0, 0, 0b000001, 0, 0, 0, 0, 0, 0, 0, 0 })] // first bit of the first 'compression' byte must be 0, since compression looks back
-      [InlineData(new byte[] { 0x10, 7, 0, 0, 0b000010, 0, 0, 4, 0, 0, 0, 0, 0 })] // compressed bytes cannot start further back than the start of the stream
-      public void ValidHeaderIsInvalid(byte[] data) {
-         Assert.False(LZRun.IsCompressedLzData(data, 0));
+      [InlineData(new byte[] { 0x10, 6, 0, 0, 0b000001, 0, 0, 0, 0, 0, 0, 0, 0 })] // any unused bits at the end of the 'compression' byte must be 0
+      [InlineData(new byte[] { 0x10, 7, 0, 0, 0b100000, 0, 0, 0, 0, 0, 0, 0, 0 })] // first bit of the first 'compression' byte must be 0, since compression looks back
+      [InlineData(new byte[] { 0x10, 7, 0, 0, 0b010000, 0, 0, 4, 0, 0, 0, 0, 0 })] // compressed bytes cannot start further back than the start of the stream
+      public void InvalidHeaderIsInvalid(byte[] data) {
+         Assert.Equal(-1, LZRun.IsCompressedLzData(data, 0));
       }
 
       [Theory]

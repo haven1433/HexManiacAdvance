@@ -34,6 +34,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       void Visit(BitArray array, byte data);
       void Visit(MatchedWord word, byte data);
       void Visit(EndStream stream, byte data);
+      void Visit(LzMagicIdentifier lz, byte data);
+      void Visit(LzGroupHeader lz, byte data);
+      void Visit(LzCompressed lz, byte data);
+      void Visit(LzUncompressed lz, byte data);
    }
 
    /// <summary>
@@ -344,6 +348,43 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public bool Equals(IDataFormat other) {
          if (!(other is EndStream that)) return false;
          return (Source, Position, Length) == (that.Source, that.Position, that.Length);
+      }
+
+      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
+   }
+
+   public class LzMagicIdentifier : IDataFormat {
+      public static LzMagicIdentifier Instance { get; } = new LzMagicIdentifier();
+      private LzMagicIdentifier() { }
+      public bool Equals(IDataFormat other) => other is LzMagicIdentifier;
+      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
+   }
+
+   public class LzGroupHeader : IDataFormat {
+      public static LzGroupHeader Instance { get; } = new LzGroupHeader();
+      private LzGroupHeader() { }
+      public bool Equals(IDataFormat other) => other is LzMagicIdentifier;
+      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
+   }
+
+   public class LzUncompressed : IDataFormat {
+      public static LzUncompressed Instance { get; } = new LzUncompressed();
+      private LzUncompressed() { }
+      public bool Equals(IDataFormat other) => other is LzMagicIdentifier;
+      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
+   }
+
+   public class LzCompressed : IDataFormatInstance {
+      public int Source { get; }
+      public int Position { get; }
+      public int RunLength { get; }
+      public int RunOffset { get; }
+
+      public LzCompressed(int source, int position, int runLength, int runOffset) => (Source, Position, RunLength, RunOffset) = (source, position, runLength, runOffset);
+
+      public bool Equals(IDataFormat other) {
+         if (!(other is LzCompressed that)) return false;
+         return Source == that.Source && Position == that.Position && RunLength == that.RunLength && RunOffset == that.RunOffset;
       }
 
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);

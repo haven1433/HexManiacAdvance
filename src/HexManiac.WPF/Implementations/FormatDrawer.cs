@@ -75,6 +75,10 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          collector.Initialize<BitArray>(typeface, fontSize);
          collector.Initialize<MatchedWord>(typeface, fontSize * .75);
          collector.Initialize<EndStream>(typeface, fontSize);
+         collector.Initialize<LzMagicIdentifier>(typeface, fontSize);
+         collector.Initialize<LzGroupHeader>(typeface, fontSize);
+         collector.Initialize<LzUncompressed>(typeface, fontSize);
+         collector.Initialize<LzCompressed>(typeface, fontSize);
 
          for (int x = 0; x < modelWidth; x++) {
             var cell = viewPort[x, position.Y];
@@ -112,6 +116,14 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                var converter = new ConvertCellToText(viewPort.Model, 0);
                converter.Visit(endStream, cell.Value);
                collector.Collect<EndStream>(x, endStream.Length, converter.Result);
+            } else if (format is LzMagicIdentifier lzMagic) {
+               collector.Collect<LzMagicIdentifier>(x, 1, "lz");
+            } else if (format is LzGroupHeader lzGroup) {
+               collector.Collect<LzGroupHeader>(x, 1, byteText[cell.Value]);
+            } else if (format is LzUncompressed lzUncompressed) {
+               collector.Collect<LzUncompressed>(x, 1, byteText[cell.Value]);
+            } else if (format is LzCompressed lzCompressed && lzCompressed.Position == 0) {
+               collector.Collect<LzGroupHeader>(x, 2, $"{lzCompressed.RunLength}:{lzCompressed.RunOffset}");
             }
          }
 
@@ -133,6 +145,10 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          collector.Render<BitArray>(context, Brush(nameof(Theme.Data1)));
          collector.Render<MatchedWord>(context, Brush(nameof(Theme.Data1)));
          collector.Render<EndStream>(context, Brush(nameof(Theme.Stream1)));
+         collector.Render<LzMagicIdentifier>(context, Brush(nameof(Theme.Text2)));
+         collector.Render<LzGroupHeader>(context, Brush(nameof(Theme.Data1)));
+         collector.Render<LzUncompressed>(context, Brush(nameof(Theme.Primary)));
+         collector.Render<LzCompressed>(context, Brush(nameof(Theme.Stream2)));
 
          context.Pop();
       }
@@ -224,6 +240,14 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       public void Visit(MatchedWord word, byte data) { }
 
       public void Visit(EndStream endStream, byte data) { }
+
+      public void Visit(LzMagicIdentifier lz, byte data) { }
+
+      public void Visit(LzGroupHeader lz, byte data) { }
+
+      public void Visit(LzUncompressed lz, byte data) { }
+
+      public void Visit(LzCompressed lz, byte data) { }
 
       /// <summary>
       /// This function is full of dragons. You probably don't want to touch it.

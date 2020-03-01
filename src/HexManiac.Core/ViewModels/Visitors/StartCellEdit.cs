@@ -164,6 +164,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       }
       public void Visit(MatchedWord word, byte data) => BasicVisit(word, data);
       public void Visit(EndStream endStream, byte data) => Result = Input == ExtendArray;
+
+      public void Visit(LzMagicIdentifier lz, byte data) => Result = false;
+
+      public void Visit(LzGroupHeader lz, byte data) => Result = ViewPort.AllHexCharacters.Contains(Input);
+
+      public void Visit(LzCompressed lz, byte data) => Result = char.IsDigit(Input);
+
+      public void Visit(LzUncompressed lz, byte data) => Result = ViewPort.AllHexCharacters.Contains(Input);
    }
 }
 

@@ -176,11 +176,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          return code;
       }
 
-      public static int ReadMultiByteValue(this IDataModel model, int index, int length) {
+      public static int ReadMultiByteValue(this IReadOnlyList<byte> model, int index, int length) {
          int word = 0;
          while (length > 0) {
             word <<= 8;
-            word += model.RawData[index + length - 1];
+            word += model[index + length - 1];
             length--;
          }
          return word;

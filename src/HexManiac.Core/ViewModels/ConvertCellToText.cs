@@ -55,5 +55,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void Visit(MatchedWord word, byte data) => Visit((None)null, data);
 
       public void Visit(EndStream endStream, byte data) => Result = new string(new[] { ArrayRun.ArrayStart, ArrayRun.ArrayEnd });
+
+      public void Visit(LzMagicIdentifier lz, byte data) => Result = "lz";
+
+      public void Visit(LzGroupHeader lz, byte data) => Visit((None)null, data);
+
+      public void Visit(LzCompressed lz, byte data) {
+         var start = index;
+         (int runLength, int runOffset) = LZRun.ReadCompressedToken(buffer, ref start);
+         Result = $"{runLength}:{runOffset}";
+      }
+
+      public void Visit(LzUncompressed lz, byte data) => Visit((None)null, data);
    }
 }

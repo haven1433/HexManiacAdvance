@@ -121,8 +121,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(Ascii ascii, byte data) => Results.AddRange(GetFormattedChildren());
 
       public void Visit(Integer integer, byte data) {
-         var arrayRun = (ITableRun)ViewPort.Model.GetNextRun(ViewPort.Tools.TableTool.Address);
-         Results.AddRange(GetTableChildren(arrayRun));
+         var arrayRun = ViewPort.Model.GetNextRun(ViewPort.Tools.TableTool.Address) as ITableRun;
+         if (arrayRun != null) {
+            Results.AddRange(GetTableChildren(arrayRun));
+         } else {
+            Results.AddRange(GetFormattedChildren());
+         }
       }
 
       public void Visit(IntegerEnum integer, byte data) {
@@ -164,6 +168,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       private IEnumerable<IContextItem> GetFormattedChildren() {
          yield return new ContextItem("Clear Format", arg => ViewPort.ClearAnchor());
+      }
+
+      public void Visit(LzMagicIdentifier lz, byte data) => VisitLzFormat(lz, data);
+
+      public void Visit(LzGroupHeader lz, byte data) => VisitLzFormat(lz, data);
+
+      public void Visit(LzCompressed lz, byte data) => VisitLzFormat(lz, data);
+
+      public void Visit(LzUncompressed lz, byte data) => VisitLzFormat(lz, data);
+
+      private void VisitLzFormat(IDataFormat format, byte data) {
+         Results.AddRange(GetFormattedChildren());
       }
    }
 }
