@@ -36,7 +36,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   start += 1;
                } else {
                   var (runLength, runOffset) = ReadCompressedToken(data, ref start);
-                  if (index - runOffset < start || runLength < 0) return -1;
+                  if (index - runOffset < initialStart || runLength < 0) return -1;
                   index += runLength;
                }
             }
