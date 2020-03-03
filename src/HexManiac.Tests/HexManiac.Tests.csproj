@@ -66,6 +66,9 @@
     <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubDataModel.cs">
       <Link>StubDataModel.cs</Link>
     </Compile>
+    <Compile Include="..\..\artifacts\HexManiac.Tests\codegen\StubMetadataInfo.cs">
+      <Link>StubMetadataInfo.cs</Link>
+    </Compile>
     <Compile Include="ArrayColumnHeaderTests.cs" />
     <Compile Include="ArrayRunTests.cs" />
     <Compile Include="AutoSearchTests.cs" />
@@ -123,11 +126,12 @@
     <PreBuildEvent>
 if not exist $(SolutionDir)artifacts\$(AssemblyName)\codegen mkdir $(SolutionDir)artifacts\$(AssemblyName)\codegen
 
-$(SolutionDir)packages\HavenSoft.AutoImplement.1.1.1\AutoImplement $(SolutionDir)artifacts\HexManiac.Core\bin\$(ConfigurationName)\HexManiac.Core.dll ITabContent IFileSystem IViewPort IDataModel
+$(SolutionDir)packages\HavenSoft.AutoImplement.1.1.1\AutoImplement $(SolutionDir)artifacts\HexManiac.Core\bin\$(ConfigurationName)\HexManiac.Core.dll ITabContent IFileSystem IViewPort IDataModel IMetadataInfo
 move /Y StubTabContent.cs $(SolutionDir)artifacts\$(AssemblyName)\codegen
 move /Y StubFileSystem.cs $(SolutionDir)artifacts\$(AssemblyName)\codegen
 move /Y StubViewPort.cs $(SolutionDir)artifacts\$(AssemblyName)\codegen
 move /Y StubDataModel.cs $(SolutionDir)artifacts\$(AssemblyName)\codegen
+move /Y StubMetadataInfo.cs $(SolutionDir)artifacts\$(AssemblyName)\codegen
 
 del *.cs</PreBuildEvent>
     <PostBuildEvent>

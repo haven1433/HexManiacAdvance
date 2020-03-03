@@ -17,7 +17,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private const int MaxReasonableResults = 400; // limit for performance reasons
 
       private readonly IFileSystem fileSystem;
-      private readonly Singletons singletons = new Singletons();
       private readonly bool allowLoadingMetadata;
       private readonly List<ITabContent> tabs;
 
@@ -207,6 +206,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          // new MakeItemsExpandable(),
       }.Select(edit => new EditItemWrapper(edit)).ToList();
 
+      public Singletons Singletons { get; } = new Singletons();
+
       public event EventHandler<Action> RequestDelayedWork;
 
       public event EventHandler MoveFocusToFind;
@@ -313,9 +314,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   metadataText = fileSystem.MetadataFor(file.Name) ?? new string[0];
                }
                var metadata = new StoredMetadata(metadataText);
-               var viewPort = new ViewPort(file.Name, new HardcodeTablesModel(singletons, file.Contents, metadata), singletons);
+               var viewPort = new ViewPort(file.Name, new HardcodeTablesModel(Singletons, file.Contents, metadata), Singletons);
                if (metadata.IsEmpty) {
-                  var createdMetadata = viewPort.Model.ExportMetadata().Serialize();
+                  var createdMetadata = viewPort.Model.ExportMetadata(Singletons.MetadataInfo).Serialize();
                   fileSystem.SaveMetadata(file.Name, createdMetadata);
                }
                Add(viewPort);
