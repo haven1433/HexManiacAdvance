@@ -100,10 +100,9 @@ namespace HavenSoft.HexManiac.Tests {
 
       // TODO if an LZRun compressed segment is edited such that even with no other segments, the length is longer than allowed, error and don't make the change
       // TODO if an LZRun compressed segment is edited such that the segment becomes shorter, the overall LZRun becomes longer. Append to the end as needed, adding extra '00' bytes. Repoint if needed.
-      // TODO verify that an LZRun 1-byte header cannot be edited
+      // TODO verify that an LZRun 1-byte header can be replaced with `lz` or `10` and nothing else
       // TODO if an LZRun decompressed length is edited, fix up end as needed
       // TODO if an LZRun bitfield segment is edited, reinterpret everything after and fixup end as needed
-      // TODO if an LZRun decompressed segment is edited, we're fine
       // TODO if an LZRun has a length requirement that isn't met (example, the image is known to be 32x32 in size), error if the length is changed
    }
 }
