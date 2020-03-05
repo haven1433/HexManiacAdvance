@@ -1460,6 +1460,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (even) return pair(index, index + 1);
             return pair(index - 1, index);
          }
+         if (run is LZRun lzRun) {
+            var format = run.CreateDataFormat(Model, index);
+            if (format is Integer integer) return pair(integer.Source, integer.Source + 2);
+            if (format is LzCompressed compressed) return pair(compressed.Source, compressed.Source + 1);
+         }
          if (!(run is ITableRun array)) return (p, p);
 
          var naturalEnd = array.Start + array.ElementCount * array.ElementLength;

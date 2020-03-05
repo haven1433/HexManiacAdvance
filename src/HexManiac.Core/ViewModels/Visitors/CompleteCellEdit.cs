@@ -70,7 +70,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(PCS pcs, byte data) => VisitPCS(pcs);
 
-      private void VisitPCS(IDataFormatInstance pcs) {
+      private void VisitPCS(IDataFormatStreamInstance pcs) {
          var currentText = CurrentText;
          if (currentText.StartsWith(StringDelimeter.ToString())) currentText = currentText.Substring(1);
          if (pcs.Position != 0 && CurrentText == StringDelimeter.ToString()) {
@@ -217,9 +217,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (sections.Length != 2) return;
          if (!int.TryParse(sections[0], out int runLength)) return;
          if (!int.TryParse(sections[1], out int runOffset)) return;
-         var result = new LzCompressedToken((byte)runLength, (short)runOffset).Render().ToList();
+         var result = LZRun.CompressedToken((byte)runLength, (short)runOffset);
          CurrentChange.ChangeData(Model, memoryLocation, result[0]);
          CurrentChange.ChangeData(Model, memoryLocation + 1, result[1]);
+         var run = (LZRun)Model.GetNextRun(memoryLocation);
+         run = run.FixupEnd(Model, CurrentChange);
+         Model.ObserveRunWritten(CurrentChange, run);
          NewDataIndex = memoryLocation + 2;
          Result = true;
       }
@@ -387,7 +390,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       private void CompleteCharacterEdit(IDataFormat originalFormat) {
          var editText = CurrentText;
          if (editText.StartsWith("\"")) editText = editText.Substring(1);
-         var pcs = originalFormat as IDataFormatInstance;
+         var pcs = originalFormat as IDataFormatStreamInstance;
          var escaped = originalFormat as EscapedPCS;
          var run = Model.GetNextRun(memoryLocation);
 

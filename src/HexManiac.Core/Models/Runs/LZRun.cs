@@ -122,12 +122,111 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return result;
       }
 
+      public static IReadOnlyList<byte> CompressedToken(byte runLength, short runOffset) => new LzCompressedToken(runLength, runOffset).Render().ToList();
+
       private IDisposable previousScope;
       private IDataFormat[] cache;
       public override IDataFormat CreateDataFormat(IDataModel data, int index) {
          var scope = ModelCacheScope.GetCache(data);
          if (previousScope != scope) UpdateCache(scope, data);
          return cache[index - Start];
+      }
+
+      /// <summary>
+      /// In response to a change to the raw data,
+      /// shorten or lengthen the run.
+      /// </summary>
+      public LZRun FixupEnd(IDataModel model, ModelDelta token) {
+         var newData = RecommendedFixup();
+         var newRun = model.RelocateForExpansion(token, this, newData.Count);
+         var newStart = newRun.Start;
+         for (int i = 0; i < newData.Count; i++) token.ChangeData(model, newStart + i, newData[i]);
+         for (int i = newData.Count; i < Length; i++) token.ChangeData(model, newStart + i, 0xFF);
+         return new LZRun(model, newStart, newRun.PointerSources);
+      }
+
+      /// <summary>
+      /// Without worrying about available space, rectify the end of the data to make it the appropriate length.
+      /// </summary>
+      private IReadOnlyList<byte> RecommendedFixup() {
+         var newCompressedData = new List<byte>(new[] { data[Start + 0], data[Start + 1], data[Start + 2], data[Start + 3] });
+         var uncompressedLength = newCompressedData.ReadMultiByteValue(1, 3);
+         int currentLength = 0;
+         int readIndex = Start + 4;
+         while (currentLength < uncompressedLength) {
+            int lastBitFieldIndex = readIndex;
+            byte bitField = 0;
+            if (readIndex < Start + Length) {
+               bitField = data[lastBitFieldIndex];
+               readIndex += 1;
+            } else {
+               lastBitFieldIndex = newCompressedData.Count;
+            }
+            byte lastBitFieldValue = bitField;
+            newCompressedData.Add(lastBitFieldValue);
+            for (int i = 0; i < 8; i++) {
+               if (currentLength == uncompressedLength) {
+                  lastBitFieldValue &= (byte)(0xFF << 8 - i);
+                  newCompressedData[lastBitFieldIndex] = lastBitFieldValue;
+                  break;
+               }
+               if (readIndex == Start + Length) {
+                  // ran out of data to read. Try to fill the rest with a compressed token.
+                  var runLength = (byte)Math.Min(uncompressedLength - currentLength, 18);
+                  lastBitFieldValue |= (byte)(1 << 7 - i);
+                  newCompressedData[lastBitFieldIndex] = lastBitFieldValue;
+                  newCompressedData.AddRange(new LzCompressedToken(runLength, 1).Render());
+                  continue;
+               }
+               var isCompressed = IsNextTokenCompressed(ref bitField);
+               if (!isCompressed) {
+                  newCompressedData.Add(data[Start + readIndex]);
+                  readIndex += 1;
+                  currentLength += 1;
+               } else {
+                  (int runLength, int runOffset) = ReadCompressedToken(data, ref readIndex);
+                  if (currentLength + runLength > uncompressedLength) {
+                     TruncateCompressedToken(newCompressedData, uncompressedLength, ref currentLength, lastBitFieldIndex, ref lastBitFieldValue, i, ref runOffset);
+                     break;
+                  } else {
+                     newCompressedData.AddRange(new LzCompressedToken((byte)runLength, (short)runOffset).Render());
+                     currentLength += runLength;
+                  }
+               }
+            }
+         }
+
+         return newCompressedData;
+      }
+
+      private static void TruncateCompressedToken(List<byte> newData, int uncompressedLength, ref int currentLength, int lastBitField, ref byte lastBitFieldValue, int groupIndex, ref int runOffset) {
+         var recommendedCompressedLength = uncompressedLength - currentLength;
+         if (recommendedCompressedLength == 1) {
+            lastBitFieldValue &= (byte)(0xFF << 8 - groupIndex);
+            newData[lastBitField] = lastBitFieldValue;
+            if (runOffset > newData.Count) runOffset = newData.Count;
+            newData.Add(newData[newData.Count - runOffset]);
+            currentLength += 1;
+         } else if (recommendedCompressedLength == 2) {
+            lastBitFieldValue &= (byte)(0xFF << 8 - groupIndex);
+            newData[lastBitField] = lastBitFieldValue;
+            if (runOffset > newData.Count) runOffset = newData.Count;
+            newData.Add(newData[newData.Count - runOffset]);
+            if (groupIndex == 7) {
+               var lastValue = newData[newData.Count - runOffset];
+               newData.Add(0x00); // group header, no compressed data
+               newData.Add(lastValue);
+            } else {
+               newData.Add(newData[newData.Count - runOffset]);
+            }
+            currentLength += 2;
+         } else if (recommendedCompressedLength > 2) {
+            // we can still use a compressed token, just make it shorter
+            lastBitFieldValue &= (byte)(0xFF << 7 - groupIndex);
+            newData[lastBitField] = lastBitFieldValue;
+            newData.AddRange(new LzCompressedToken((byte)recommendedCompressedLength, (short)runOffset).Render());
+            currentLength += recommendedCompressedLength;
+         }
       }
 
       protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new LZRun(data, Start, newPointerSources);
@@ -192,30 +291,30 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
          }
       }
-   }
 
-   internal interface ILzDataToken {
-      byte CompressionBit(int offset);
-      IEnumerable<byte> Render();
-   }
+      private interface ILzDataToken {
+         byte CompressionBit(int offset);
+         IEnumerable<byte> Render();
+      }
 
-   internal class LzUncompressedToken : ILzDataToken {
-      public byte Value { get; }
-      public LzUncompressedToken(byte value) => Value = value;
-      public byte CompressionBit(int offset) => 0;
-      public IEnumerable<byte> Render() { yield return Value; }
-   }
+      private class LzUncompressedToken : ILzDataToken {
+         public byte Value { get; }
+         public LzUncompressedToken(byte value) => Value = value;
+         public byte CompressionBit(int offset) => 0;
+         public IEnumerable<byte> Render() { yield return Value; }
+      }
 
-   internal class LzCompressedToken : ILzDataToken {
-      public byte Length { get; }
-      public short Offset { get; }
-      public LzCompressedToken(byte length, short offset) => (Length, Offset) = (length, offset);
-      public byte CompressionBit(int offset) => (byte)(1 << 7 - offset);
-      public IEnumerable<byte> Render() {
-         var offset = Offset - 1;
-         var length = Length - 3;
-         yield return (byte)((length << 4) | (offset >> 8));
-         yield return (byte)offset;
+      private class LzCompressedToken : ILzDataToken {
+         public byte Length { get; }
+         public short Offset { get; }
+         public LzCompressedToken(byte length, short offset) => (Length, Offset) = (length, offset);
+         public byte CompressionBit(int offset) => (byte)(1 << 7 - offset);
+         public IEnumerable<byte> Render() {
+            var offset = Offset - 1;
+            var length = Length - 3;
+            yield return (byte)((length << 4) | (offset >> 8));
+            yield return (byte)offset;
+         }
       }
    }
 }
