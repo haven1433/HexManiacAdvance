@@ -124,7 +124,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(EndStream endStream, byte data) => throw new NotImplementedException();
 
-      public void Visit(LzMagicIdentifier lz, byte data) => Result = false;
+      public void Visit(LzMagicIdentifier lz, byte data) => Result = char.ToLower(Input) == 'z';
 
       public void Visit(LzGroupHeader lz, byte data) => Result = ViewPort.AllHexCharacters.Contains(Input) || char.IsWhiteSpace(Input);
 

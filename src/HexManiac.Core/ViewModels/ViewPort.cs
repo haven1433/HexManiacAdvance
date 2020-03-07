@@ -1454,16 +1454,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          (Point, Point) pair(int start, int end) => (scroll.DataIndexToViewPoint(start), scroll.DataIndexToViewPoint(end));
 
-         if (run is PointerRun || run is WordRun) return pair(run.Start, run.Start + run.Length - 1);
-         if (run is EggMoveRun || run is PLMRun) {
-            var even = (index - run.Start) % 2 == 0;
-            if (even) return pair(index, index + 1);
-            return pair(index - 1, index);
-         }
-         if (run is LZRun lzRun) {
-            var format = run.CreateDataFormat(Model, index);
-            if (format is Integer integer) return pair(integer.Source, integer.Source + 2);
-            if (format is LzCompressed compressed) return pair(compressed.Source, compressed.Source + 1);
+         using (ModelCacheScope.CreateScope(Model)) {
+            if (run.CreateDataFormat(Model, index) is IDataFormatInstance instance) {
+               return pair(instance.Source, instance.Source + instance.Length - 1);
+            }
          }
          if (!(run is ITableRun array)) return (p, p);
 

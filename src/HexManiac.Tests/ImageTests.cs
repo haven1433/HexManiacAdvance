@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models.Runs;
+﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using Xunit;
 
@@ -127,11 +128,26 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Single(Messages); // message about the repoint
       }
 
-      // TODO if an LZRun compressed segment is edited such that the segment becomes shorter, the overall LZRun becomes longer. Append to the end as needed, adding extra '00' bytes. Repoint if needed.
-      // TODO verify that an LZRun 1-byte header can be replaced with `lz` or `10` and nothing else
+      [Fact]
+      public void CanTypeLZOverHeader() {
+         SetFullModel(0xFF);
+         CreateLzRun(0,
+            0x10, 6, 0, 0, // header (uncompressed length = 6)
+            0b01000000,     // group
+            0x30,           // uncompressed 30
+            0x20, 0x00);    // compressed   5:1
+
+         ViewPort.Edit("@00 lz "); // too short! We need 1 more byte at the end!
+
+         Assert.Equal(new Point(1, 0), ViewPort.SelectionStart);
+         Assert.Equal(new Point(3,0), ViewPort.SelectionEnd);
+      }
+
       // TODO if an LZRun decompressed length is edited, fix up end as needed
       // TODO if an LZRun bitfield segment is edited, reinterpret everything after and fixup end as needed
       // TODO if an LZRun has a length requirement that isn't met (example, the image is known to be 32x32 in size), error if the length is changed
+      // TODO LZRun is IStreamRun and the stream is the decompressed data
+      // TODO changing decompressed LZ Stream via Stream tool updates the run
 
       private void CreateLzRun(int start, params byte[] data) {
          for (int i = 0; i < data.Length; i++) Model[start + i] = data[i];

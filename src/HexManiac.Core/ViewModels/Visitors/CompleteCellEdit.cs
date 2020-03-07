@@ -201,7 +201,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Model.ObserveRunWritten(CurrentChange, newRun);
       }
 
-      public void Visit(LzMagicIdentifier lz, byte data) => Result = false;
+      public void Visit(LzMagicIdentifier lz, byte data) {
+         if (CurrentText.ToLower() == "lz") {
+            Result = true;
+            NewDataIndex = memoryLocation + 1;
+         }
+      }
 
       public void Visit(LzGroupHeader lz, byte data) {
          if (!CurrentText.EndsWith(" ")) return;
