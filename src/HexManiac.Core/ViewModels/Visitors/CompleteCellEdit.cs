@@ -217,14 +217,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (sections.Length != 2) return;
          if (!int.TryParse(sections[0], out int runLength)) return;
          if (!int.TryParse(sections[1], out int runOffset)) return;
+         Result = true;
+         if (runLength < 3 || runLength > 18) {
+            ErrorText = "Run Length must be > 2 and < 19";
+            return;
+         } else if (runOffset < 1 || runOffset > 0x1000) {
+            ErrorText = "Run Offset must be > 0 and <= 4096";
+            return;
+         }
          var result = LZRun.CompressedToken((byte)runLength, (short)runOffset);
          CurrentChange.ChangeData(Model, memoryLocation, result[0]);
          CurrentChange.ChangeData(Model, memoryLocation + 1, result[1]);
          var run = (LZRun)Model.GetNextRun(memoryLocation);
+         var initialStart = run.Start;
+         int runIndex = memoryLocation - run.Start;
          run = run.FixupEnd(Model, CurrentChange);
          Model.ObserveRunWritten(CurrentChange, run);
-         NewDataIndex = memoryLocation + 2;
-         Result = true;
+         if (run.Start != initialStart) MessageText = $"LZ Compressed data was automatically moved to {run.Start.ToString("X6")}. Pointers were updated.";
+         if (Model[run.Start + runIndex] != result[0] || Model[run.Start + runIndex + 1] != result[1]) {
+            ErrorText = "The run cannot be longer than the header specifies.";
+         } else {
+            NewDataIndex = run.Start + runIndex + 2;
+         }
       }
 
       public void Visit(LzUncompressed lz, byte data) {

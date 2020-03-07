@@ -69,5 +69,9 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Goto.Execute(address.ToString("X2"));
          ViewPort.Edit($"^{tableName}[data{BitArray.SharedFormatString}{sourceTable}]{encoding.Length} ");
       }
+
+      public void SetFullModel(byte value) {
+         for (int i = 0; i < Model.Count; i++) Model[i] = value;
+      }
    }
 }

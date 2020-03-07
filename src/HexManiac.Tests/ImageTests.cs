@@ -62,20 +62,16 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void ExtendCompressedLzTokenShortensLzRun() {
-         for (int i = 0; i < Model.Count; i++) Model[i] = 0xFF;
-
-         var data = new byte[] {
+         SetFullModel(0xFF);
+         CreateLzRun(0,
             0x10, 13, 0, 0, // header
             0b01110000,    // group
             0x30,          // uncompressed 30
             0x00, 0x00,    // compressed   3:1    (we're going to make this one longer)
             0x20, 0x00,    // compressed   5:1    (this one will end up shorter)
             0x00, 0x00,    // compressed   3:1    (this one should go away, which means the group header needs to be changed)
-            0x30,          // uncompressed 30     (this one should go away)
-         }; // biases should make the compressed token length 3, offset 1 (3:1)
-         for (int i = 0; i < data.Length; i++) Model[i] = data[i];
-         var run = new LZRun(Model, 0);
-         Model.ObserveRunWritten(ViewPort.CurrentChange, run);
+            0x30           // uncompressed 30     (this one should go away)
+            );
 
          // make the actual edit
          ViewPort.Edit("@07 8:1 ");
@@ -98,11 +94,49 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0xFF, Model[12]);
       }
 
-      // TODO if an LZRun compressed segment is edited such that even with no other segments, the length is longer than allowed, error and don't make the change
+      [Fact]
+      public void ExtendLastCompressedTokenBeyondLengthErrors() {
+         SetFullModel(0xFF);
+         CreateLzRun(0,
+            0x10, 4, 0, 0, // header (uncompressed length = 4)
+            0b01000000,     // group
+            0x30,           // uncompressed 30
+            0x00, 0x00);    // compressed   3:1
+
+         ViewPort.Edit("@06 4:1 "); // too long! You said you only want 3 more bytes, but this is 4 bytes!
+
+         Assert.Single(Errors);
+      }
+
+      [Fact]
+      public void ContractCompressedLzTokenLengthensAndRepoints() {
+         SetFullModel(0xFF);
+         CreateLzRun(0,
+            0x10, 6, 0, 0, // header (uncompressed length = 6)
+            0b01000000,     // group
+            0x30,           // uncompressed 30
+            0x20, 0x00);    // compressed   5:1
+         Model[8] = 0xBA;   // random byte that we don't want to overwrite
+
+         ViewPort.Edit("@00 ^bob @06 4:1 "); // too short! We need 1 more byte at the end!
+
+         var address = Model.GetAddressFromAnchor(ViewPort.CurrentChange, -1, "bob");
+         var run = (LZRun)Model.GetNextRun(address);
+
+         Assert.Equal(9, run.Length);
+         Assert.Single(Messages); // message about the repoint
+      }
+
       // TODO if an LZRun compressed segment is edited such that the segment becomes shorter, the overall LZRun becomes longer. Append to the end as needed, adding extra '00' bytes. Repoint if needed.
       // TODO verify that an LZRun 1-byte header can be replaced with `lz` or `10` and nothing else
       // TODO if an LZRun decompressed length is edited, fix up end as needed
       // TODO if an LZRun bitfield segment is edited, reinterpret everything after and fixup end as needed
       // TODO if an LZRun has a length requirement that isn't met (example, the image is known to be 32x32 in size), error if the length is changed
+
+      private void CreateLzRun(int start, params byte[] data) {
+         for (int i = 0; i < data.Length; i++) Model[start + i] = data[i];
+         var run = new LZRun(Model, start);
+         Model.ObserveRunWritten(ViewPort.CurrentChange, run);
+      }
    }
 }

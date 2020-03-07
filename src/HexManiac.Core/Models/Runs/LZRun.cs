@@ -36,7 +36,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   start += 1;
                } else {
                   var (runLength, runOffset) = ReadCompressedToken(data, ref start);
-                  if (index - runOffset < initialStart || runLength < 0) return -1;
+                  if (index - runOffset < 0 || runLength < 0) return -1;
                   index += runLength;
                }
             }
@@ -171,11 +171,21 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   break;
                }
                if (readIndex == Start + Length) {
-                  // ran out of data to read. Try to fill the rest with a compressed token.
+                  // ran out of data to read.
                   var runLength = (byte)Math.Min(uncompressedLength - currentLength, 18);
-                  lastBitFieldValue |= (byte)(1 << 7 - i);
-                  newCompressedData[lastBitFieldIndex] = lastBitFieldValue;
-                  newCompressedData.AddRange(new LzCompressedToken(runLength, 1).Render());
+                  if (runLength < 3) {
+                     // too short for a compressed token, add an uncompressed token instead.
+                     lastBitFieldValue &= (byte)(0xFF << 8 - i);
+                     newCompressedData.Add(0);
+                     newCompressedData[lastBitFieldIndex] = lastBitFieldValue;
+                     runLength = 1;
+                  } else {
+                     // Try to fill the rest with a compressed token.
+                     lastBitFieldValue |= (byte)(1 << 7 - i);
+                     newCompressedData[lastBitFieldIndex] = lastBitFieldValue;
+                     newCompressedData.AddRange(new LzCompressedToken(runLength, 1).Render());
+                  }
+                  currentLength += runLength;
                   continue;
                }
                var isCompressed = IsNextTokenCompressed(ref bitField);
@@ -310,8 +320,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          public LzCompressedToken(byte length, short offset) => (Length, Offset) = (length, offset);
          public byte CompressionBit(int offset) => (byte)(1 << 7 - offset);
          public IEnumerable<byte> Render() {
-            var offset = Offset - 1;
-            var length = Length - 3;
+            var offset = (Offset - 1).LimitToRange(0, 0xFFF);
+            var length = (Length - 3).LimitToRange(0, 0xF);
             yield return (byte)((length << 4) | (offset >> 8));
             yield return (byte)offset;
          }
