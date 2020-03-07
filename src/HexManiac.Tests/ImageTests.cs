@@ -143,7 +143,20 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(new Point(3,0), ViewPort.SelectionEnd);
       }
 
-      // TODO if an LZRun decompressed length is edited, fix up end as needed
+      [Fact]
+      public void CanEditDecompressedLengthInCompressedData() {
+         SetFullModel(0xFF);
+         CreateLzRun(0,
+            0x10, 6, 0, 0, // header (uncompressed length = 6)
+            0b01000000,     // group
+            0x30,           // uncompressed 30
+            0x20, 0x00);    // compressed   5:1
+
+         ViewPort.Edit("@01 8 "); // overall data should be longer now
+
+         Assert.Equal(10, Model.GetNextRun(0).Length);
+      }
+
       // TODO if an LZRun bitfield segment is edited, reinterpret everything after and fixup end as needed
       // TODO if an LZRun has a length requirement that isn't met (example, the image is known to be 32x32 in size), error if the length is changed
       // TODO LZRun is IStreamRun and the stream is the decompressed data
