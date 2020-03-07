@@ -148,6 +148,7 @@ namespace HavenSoft.HexManiac.Tests {
       // TODO if an LZRun has a length requirement that isn't met (example, the image is known to be 32x32 in size), error if the length is changed
       // TODO LZRun is IStreamRun and the stream is the decompressed data
       // TODO changing decompressed LZ Stream via Stream tool updates the run
+      // TODO double-clicking selects the entire compressed run
 
       private void CreateLzRun(int start, params byte[] data) {
          for (int i = 0; i < data.Length; i++) Model[start + i] = data[i];
