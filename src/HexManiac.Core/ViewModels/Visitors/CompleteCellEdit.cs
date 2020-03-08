@@ -212,6 +212,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (!CurrentText.EndsWith(" ")) return;
          if (byte.TryParse(CurrentText, NumberStyles.HexNumber, CultureInfo.CurrentCulture.NumberFormat, out var result)) {
             CurrentChange.ChangeData(Model, memoryLocation, result);
+            var run = (LZRun)Model.GetNextRun(memoryLocation);
+            int runIndex = memoryLocation - run.Start;
+            run = FixupLzRun(run);
+            NewDataIndex = run.Start + runIndex + 1;
             Result = true;
          }
       }

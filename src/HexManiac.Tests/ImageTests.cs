@@ -157,11 +157,35 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(10, Model.GetNextRun(0).Length);
       }
 
-      // TODO if an LZRun bitfield segment is edited, reinterpret everything after and fixup end as needed
-      // TODO if an LZRun has a length requirement that isn't met (example, the image is known to be 32x32 in size), error if the length is changed
+      /// <summary>
+      /// Note that group-header changes near the end of the run might not be fully obeyed.
+      /// Can this cause problems when pasting over an existing run with a run that has the same decompressed length?
+      /// </summary>
+      [Fact]
+      public void CanEditLzGroupHeaderBitfield() {
+         SetFullModel(0xFF);
+         CreateLzRun(0,
+            0x10, 6, 0, 0, // header (uncompressed length = 6)
+            0b01000000,     // group
+            0x30,           // uncompressed 30
+            0x20, 0x00);    // compressed   5:1
+
+         ViewPort.Edit("@04 00 "); // override bitfield to be 'none compressed'
+         // there were 3 bytes after the group header, so an additional 3 bytes are needed to make the uncompressed data length 6
+
+         Assert.Equal(4 + 1 + 3 + 2, Model.GetNextRun(0).Length); // header, group header, 3 uncompressed bytes, auto-fill with a compressed segment
+         Assert.Equal(0x10, Model[4]);
+
+         ViewPort.Edit("@04 08 "); // note that the last compressed segment now straddles into unknown data.
+
+         Assert.Equal(4 + 1 + 4 + 1 + 1, Model.GetNextRun(0).Length); // header, group header, 4 uncompressed bytes, then 2 uncompressed bytes because there's not enough data left to be compressed
+         Assert.Equal(0, Model[4]);
+      }
+
       // TODO LZRun is IStreamRun and the stream is the decompressed data
       // TODO changing decompressed LZ Stream via Stream tool updates the run
       // TODO double-clicking selects the entire compressed run
+      // TODO if an LZRun has a length requirement that isn't met (example, the image is known to be 32x32 in size), error if the length is changed
 
       private void CreateLzRun(int start, params byte[] data) {
          for (int i = 0; i < data.Length; i++) Model[start + i] = data[i];
