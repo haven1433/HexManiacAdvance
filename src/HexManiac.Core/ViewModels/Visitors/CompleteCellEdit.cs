@@ -234,11 +234,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          CurrentChange.ChangeData(Model, memoryLocation, result[0]);
          CurrentChange.ChangeData(Model, memoryLocation + 1, result[1]);
          var run = (LZRun)Model.GetNextRun(memoryLocation);
-         var initialStart = run.Start;
          int runIndex = memoryLocation - run.Start;
-         run = run.FixupEnd(Model, CurrentChange);
-         Model.ObserveRunWritten(CurrentChange, run);
-         if (run.Start != initialStart) MessageText = $"LZ Compressed data was automatically moved to {run.Start.ToString("X6")}. Pointers were updated.";
+         run = FixupLzRun(run);
          if (Model[run.Start + runIndex] != result[0] || Model[run.Start + runIndex + 1] != result[1]) {
             ErrorText = "The run cannot be longer than the header specifies.";
          } else {
@@ -288,16 +285,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             return;
          }
 
-         var run = (ITableRun)Model.GetNextRun(memoryLocation);
-         var offsets = run.ConvertByteOffsetToArrayOffset(memoryLocation);
-         int length = run.ElementContent[offsets.SegmentIndex].Length;
-         for (int i = 0; i < length; i++) {
-            CurrentChange.ChangeData(Model, offsets.SegmentStart + i, (byte)result);
-            result /= 0x100;
-         }
-
-         if (result != 0) ErrorText = $"Warning: number was too big to fit in the available space.";
-         NewDataIndex = offsets.SegmentStart + length;
+         var run = Model.GetNextRun(memoryLocation);
+         Model.WriteMultiByteValue(integer.Source, integer.Length, CurrentChange, result);
+         if (result >= Math.Pow(2L, integer.Length * 8)) ErrorText = $"Warning: number was too big to fit in the available space.";
+         int runIndex = integer.Source - run.Start;
+         if (run is LZRun lzRun) run = FixupLzRun(lzRun);
+         NewDataIndex = run.Start + runIndex + integer.Length;
       }
 
       private void CompleteIntegerEnumEdit(IntegerEnum integer) {
@@ -586,6 +579,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
 
          Model.UpdateArrayPointer(CurrentChange, segment, memoryLocation, pointerDestination);
+      }
+
+      private LZRun FixupLzRun(LZRun run) {
+         var initialStart = run.Start;
+         run = run.FixupEnd(Model, CurrentChange);
+         Model.ObserveRunWritten(CurrentChange, run);
+         if (run.Start != initialStart) MessageText = $"LZ Compressed data was automatically moved to {run.Start.ToString("X6")}. Pointers were updated.";
+         return run;
       }
    }
 }
