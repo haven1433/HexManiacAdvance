@@ -790,6 +790,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             length = 2;
          } else if (pointerSegment.InnerFormat == TrainerPokemonTeamRun.SharedFormatString) {
             length = new TrainerPokemonTeamRun(Model, -1, new[] { pointer }).Length;
+         } else if (SpriteRun.TryParseSpriteFormat(pointerSegment.InnerFormat, out var spriteFormat)) {
+            // TODO
+            throw new NotImplementedException();
+            // length = new SpriteRun(spriteFormat, Model, -1, new[] { pointer }).Length;
+         } else if (PaletteRun.TryParsePaletteFormat(pointerSegment.InnerFormat, out var paletteFormat)) {
+            // TODO
+            throw new NotImplementedException();
+            // length = new PaletteRun(paletteFormat, Model, -1, new[] { pointer }).Length;
          } else if (pointerSegment.InnerFormat.StartsWith("[") && pointerSegment.InnerFormat.Contains("]")) {
             // don't bother checking that the data is valid: with an invalid starting point, we know the data is garbage.
             TableStreamRun.TryParseTableStream(Model, -1, new int[] { pointer }, pointerSegment.Name, pointerSegment.InnerFormat, tableRun.ElementContent, out var newStream);

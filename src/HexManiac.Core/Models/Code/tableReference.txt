@@ -37,6 +37,14 @@ pickupitemsrare,           ,       ,       ,       ,       ,       ,       ,    
 battlescriptsource,  012F34, 012F34, 012F34, 012F34, 014C1C, 014C1C, 014C30, 014C30,       , [code<>]248
 battlescriptsource,        ,       ,       ,       ,       ,       ,       ,       , 03CD94, [code<>]249
 
+// width x height x pages x layers. Measured in tiles.
+frontsprites,    ,,,, 000128,,,,, [sprite<`lzs4x4x1x1`> a: b:]200
+backsprites,     ,,,, 00012C,,,,, [sprite<`lzs4x4x1x1`> a: b:]200
+pokepalettes,    ,,,, 000130,,,,, [palette<`lzp4`> a: b:]200
+shinypalettes,   ,,,, 000134,,,,, [palette<`lzp4`> a: b:]200
+trainersprites,  ,,,,,,,,, [sprite<`lzs4x4x1x1`>]30
+trainerpalettes, ,,,,,,,,, [palette<`lzp4`>]30
+
 regionaldex,         03F7F0, 03F7F0, 03F7F0, 03F7F0, 0431F0, 0431F0, 043204, 043204, 06D3FC, [index:]pokenames-1
 nationaldex,         03F83C, 03F83C, 03F83C, 03F83C, 04323C, 04323C, 043250, 043250, 06D448, [index:]pokenames-1
 // hoenn[treecko]  =   1, national[treecko]  = 252, HoeennToNationalDex[ 1]= 252

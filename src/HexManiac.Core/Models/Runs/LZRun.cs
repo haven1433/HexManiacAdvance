@@ -9,14 +9,14 @@ using HavenSoft.HexManiac.Core.ViewModels.Tools;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class LZRun : BaseRun, IStreamRun {
-      private readonly IDataModel data;
+      public IDataModel Model { get; }
 
       public override int Length { get; }
 
       public override string FormatString => "`lz`";
 
       public LZRun(IDataModel data, int start, IReadOnlyList<int> sources = null) : base(start, sources) {
-         this.data = data;
+         this.Model = data;
          Length = IsCompressedLzData(data, start);
       }
 
@@ -144,13 +144,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var newStart = newRun.Start;
          for (int i = 0; i < newData.Count; i++) token.ChangeData(model, newStart + i, newData[i]);
          for (int i = newData.Count; i < Length; i++) token.ChangeData(model, newStart + i, 0xFF);
-         return new LZRun(model, newStart, newRun.PointerSources);
+         return (LZRun)Duplicate(newStart, newRun.PointerSources.ToArray());
       }
 
       #region StreamRun
 
       public string SerializeRun() {
-         var uncompressed = Decompress(data, Start);
+         var uncompressed = Decompress(Model, Start);
          var builder = new StringBuilder();
          for (int i = 0; i < uncompressed.Length; i++) {
             if (i % 16 != 0) {
@@ -171,11 +171,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var compressed = Compress(uncompressed, 0, uncompressed.Count);
          IStreamRun run = this;
          if (compressed.Count > Length) {
-            run = (IStreamRun)data.RelocateForExpansion(token, this, compressed.Count);
+            run = (IStreamRun)Model.RelocateForExpansion(token, this, compressed.Count);
          }
-         for (int i = 0; i < compressed.Count; i++) token.ChangeData(data, run.Start + i, compressed[i]);
-         for (int i = compressed.Count; i < Length; i++) token.ChangeData(data, run.Start + i, 0xFF);
-         return new LZRun(data, run.Start, PointerSources);
+         for (int i = 0; i < compressed.Count; i++) token.ChangeData(Model, run.Start + i, compressed[i]);
+         for (int i = compressed.Count; i < Length; i++) token.ChangeData(Model, run.Start + i, 0xFF);
+         return (LZRun)Duplicate(run.Start, PointerSources.ToArray());
       }
 
       public bool DependsOn(string anchorName) => false;
@@ -186,7 +186,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       /// Without worrying about available space, rectify the end of the data to make it the appropriate length.
       /// </summary>
       private IReadOnlyList<byte> RecommendedFixup() {
-         var newCompressedData = new List<byte>(new[] { data[Start + 0], data[Start + 1], data[Start + 2], data[Start + 3] });
+         var newCompressedData = new List<byte>(new[] { Model[Start + 0], Model[Start + 1], Model[Start + 2], Model[Start + 3] });
          var uncompressedLength = newCompressedData.ReadMultiByteValue(1, 3);
          int currentLength = 0;
          int readIndex = Start + 4;
@@ -194,7 +194,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             int lastBitFieldIndex = readIndex;
             byte bitField = 0;
             if (readIndex < Start + Length) {
-               bitField = data[lastBitFieldIndex];
+               bitField = Model[lastBitFieldIndex];
                readIndex += 1;
             } else {
                lastBitFieldIndex = newCompressedData.Count;
@@ -227,11 +227,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                }
                var isCompressed = IsNextTokenCompressed(ref bitField);
                if (!isCompressed) {
-                  newCompressedData.Add(data[Start + readIndex]);
+                  newCompressedData.Add(Model[Start + readIndex]);
                   readIndex += 1;
                   currentLength += 1;
                } else {
-                  (int runLength, int runOffset) = ReadCompressedToken(data, ref readIndex);
+                  (int runLength, int runOffset) = ReadCompressedToken(Model, ref readIndex);
                   if (currentLength + runLength > uncompressedLength) {
                      TruncateCompressedToken(newCompressedData, uncompressedLength, ref currentLength, lastBitFieldIndex, ref lastBitFieldValue, i, ref runOffset);
                      break;
@@ -276,7 +276,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new LZRun(data, Start, newPointerSources);
+      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new LZRun(Model, Start, newPointerSources);
 
       private static int ReadHeader(IReadOnlyList<byte> data, ref int start) {
          if (start + 4 > data.Count) return -1;
@@ -363,5 +363,65 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             yield return (byte)offset;
          }
       }
+   }
+
+   public class SpriteRun : LZRun {
+      public SpriteFormat SpriteFormat { get; }
+
+      public SpriteRun(SpriteFormat spriteFormat, IDataModel data, int start, IReadOnlyList<int> sources)
+         : base(data, start, sources) {
+         SpriteFormat = spriteFormat;
+      }
+
+      public static bool TryParseSpriteFormat(string pointerFormat, out SpriteFormat spriteFormat) {
+         spriteFormat = default;
+         if (!pointerFormat.StartsWith("`lzs") || !pointerFormat.EndsWith("`")) return false;
+         var formatContent = pointerFormat.Substring(4);
+         formatContent = formatContent.Substring(0, formatContent.Length - 1);
+         var dimensionsAsText = formatContent.Split('x');
+         if (dimensionsAsText.Length != 4) return false;
+         if (!int.TryParse(dimensionsAsText[0], out var width)) return false;
+         if (!int.TryParse(dimensionsAsText[1], out var height)) return false;
+         if (!int.TryParse(dimensionsAsText[2], out var depth)) return false;
+         if (!int.TryParse(dimensionsAsText[3], out var pages)) return false;
+         spriteFormat = new SpriteFormat(width, height, depth, pages);
+         return true;
+      }
+
+      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new SpriteRun(SpriteFormat, Model, Start, newPointerSources);
+   }
+
+   public struct SpriteFormat {
+      public int TileWidth { get; }
+      public int TileHeight { get; }
+      public int TileDepth { get; }
+      public int Pages { get; }
+      public SpriteFormat(int width, int height, int depth, int pages) => (TileWidth, TileHeight, TileDepth, Pages) = (width, height, depth, pages);
+   }
+
+   public class PaletteRun : LZRun {
+      public PaletteFormat PaletteFormat { get; }
+
+      public PaletteRun(PaletteFormat paletteFormat, IDataModel data, int start, IReadOnlyList<int> sources)
+         : base(data,start,sources){
+         PaletteFormat = paletteFormat;
+      }
+
+      public static bool TryParsePaletteFormat(string pointerFormat, out PaletteFormat paletteFormat) {
+         paletteFormat = default;
+         if (!pointerFormat.StartsWith("`lzp") || !pointerFormat.EndsWith("`")) return false;
+         var formatContent = pointerFormat.Substring(4);
+         formatContent = formatContent.Substring(0, formatContent.Length - 1);
+         if (!int.TryParse(formatContent, out var bits)) return false;
+         paletteFormat = new PaletteFormat(bits);
+         return true;
+      }
+
+      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new PaletteRun(PaletteFormat, Model, Start, newPointerSources);
+   }
+
+   public struct PaletteFormat {
+      public int Bits { get; }
+      public PaletteFormat(int bits) => Bits = bits;
    }
 }

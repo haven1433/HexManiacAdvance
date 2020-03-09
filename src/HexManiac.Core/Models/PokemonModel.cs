@@ -749,6 +749,18 @@ namespace HavenSoft.HexManiac.Core.Models {
             var runAttempt = new TrainerPokemonTeamRun(this, run.Start, run.PointerSources);
             ClearFormat(token, run.Start, runAttempt.Length);
             run = runAttempt;
+         } else if (SpriteRun.TryParseSpriteFormat(segment.InnerFormat, out var spriteFormat)) {
+            var runAttempt = new SpriteRun(spriteFormat, this, run.Start, run.PointerSources);
+            if (runAttempt.Length > 0) {
+               run = runAttempt.MergeAnchor(run.PointerSources);
+               ClearFormat(token, run.Start, run.Length);
+            }
+         } else if (PaletteRun.TryParsePaletteFormat(segment.InnerFormat, out var paletteFormat)) {
+            var runAttempt = new PaletteRun(paletteFormat, this, run.Start, run.PointerSources);
+            if (runAttempt.Length > 0) {
+               run = runAttempt.MergeAnchor(run.PointerSources);
+               ClearFormat(token, run.Start, run.Length);
+            }
          } else if (segment.InnerFormat.StartsWith("[") && segment.InnerFormat.Contains("]")) {
             if (TableStreamRun.TryParseTableStream(this, run.Start, run.PointerSources, segment.Name, segment.InnerFormat, null, out var runAttempt)) {
                ClearFormat(token, run.Start, runAttempt.Length);
@@ -1467,6 +1479,10 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (run.Length == 0) return new ErrorInfo("Format specified was for pokemon level-up move data, but could not parse that location as level-up move data.");
          } else if (format == TrainerPokemonTeamRun.SharedFormatString) {
             run = new TrainerPokemonTeamRun(model, dataIndex, run.PointerSources);
+         } else if (SpriteRun.TryParseSpriteFormat(format, out var spriteFormat)) {
+            run = new SpriteRun(spriteFormat, model, dataIndex, run.PointerSources);
+         } else if (PaletteRun.TryParsePaletteFormat(format, out var paletteFormat)) {
+            run = new PaletteRun(paletteFormat, model, dataIndex, run.PointerSources);
          } else {
             var errorInfo = TryParse(model, name, format, dataIndex, null, out var arrayRun);
             if (errorInfo == ErrorInfo.NoError) {

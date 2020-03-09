@@ -292,6 +292,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          var streamElement = new StreamArrayElementViewModel(viewPort, model, item.Name, itemAddress);
+         if (streamRun is SpriteRun) streamElement = new SpriteArrayElementViewModel(viewPort, item.Name, itemAddress);
          var streamElementName = item.Name;
          var streamAddress = itemAddress;
          var myIndex = childInsertionIndex;
