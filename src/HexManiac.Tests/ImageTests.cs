@@ -34,7 +34,8 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void RunHasExpectedLength() {
          var data = new byte[] { 0x10, 8, 0, 0, 0b000000, 0, 0, 0, 0, 0, 0, 0, 0 };
-         var run = new LZRun(data, 0);
+         var model = new PokemonModel(data);
+         var run = new LZRun(model, 0);
          Assert.Equal(13, run.Length);
       }
 
@@ -137,10 +138,10 @@ namespace HavenSoft.HexManiac.Tests {
             0x30,           // uncompressed 30
             0x20, 0x00);    // compressed   5:1
 
-         ViewPort.Edit("@00 lz "); // too short! We need 1 more byte at the end!
+         ViewPort.Edit("@20 @00 lz "); // too short! We need 1 more byte at the end!
 
          Assert.Equal(new Point(1, 0), ViewPort.SelectionStart);
-         Assert.Equal(new Point(3,0), ViewPort.SelectionEnd);
+         Assert.Equal(new Point(3, 0), ViewPort.SelectionEnd);
       }
 
       [Fact]
@@ -180,6 +181,31 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(4 + 1 + 4 + 1 + 1, Model.GetNextRun(0).Length); // header, group header, 4 uncompressed bytes, then 2 uncompressed bytes because there's not enough data left to be compressed
          Assert.Equal(0, Model[4]);
+      }
+
+      [Fact]
+      public void CanEditLzDataViaStreamTool() {
+         SetFullModel(0xFF);
+         CreateLzRun(0,
+            0x10, 6, 0, 0, // header (uncompressed length = 6)
+            0b01000000,     // group
+            0x30,           // uncompressed 30
+            0x20, 0x00);    // compressed   5:1
+
+         ViewPort.Edit("@04 ");
+         Assert.Equal("30 30 30 30 30 30", ViewPort.Tools.StringTool.Content);
+
+         ViewPort.Tools.StringTool.Content = "30 20 30 30 30 30"; // should result in 30 20 30 (3:1)
+
+         var run = Model.GetNextRun(0);
+         Assert.Equal(0b00010000, Model[4]);
+         Assert.Equal(0x30, Model[5]);
+         Assert.Equal(0x20, Model[6]);
+         Assert.Equal(0x30, Model[7]);
+         Assert.Equal(0x00, Model[8]);
+         Assert.Equal(0x00, Model[9]);
+         Assert.Equal(10, run.Length);
+         Assert.IsAssignableFrom<IStreamRun>(run);
       }
 
       // TODO LZRun is IStreamRun and the stream is the decompressed data

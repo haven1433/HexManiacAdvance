@@ -1,19 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
-   public class LZRun : BaseRun {
-      private readonly IReadOnlyList<byte> data;
+   public class LZRun : BaseRun, IStreamRun {
+      private readonly IDataModel data;
 
       public override int Length { get; }
 
       public override string FormatString => "`lz`";
 
-      public LZRun(IReadOnlyList<byte> data, int start, IReadOnlyList<int> sources = null) : base(start, sources) {
+      public LZRun(IDataModel data, int start, IReadOnlyList<int> sources = null) : base(start, sources) {
          this.data = data;
          Length = IsCompressedLzData(data, start);
       }
@@ -145,6 +147,41 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new LZRun(model, newStart, newRun.PointerSources);
       }
 
+      #region StreamRun
+
+      public string SerializeRun() {
+         var uncompressed = Decompress(data, Start);
+         var builder = new StringBuilder();
+         for (int i = 0; i < uncompressed.Length; i++) {
+            if (i % 16 != 0) {
+               builder.Append(" ");
+            } else if (i != 0) {
+               builder.AppendLine();
+            }
+            builder.Append(uncompressed[i].ToHexString());
+         }
+         return builder.ToString();
+      }
+
+      public IStreamRun DeserializeRun(string content, ModelDelta token) {
+         var uncompressed = new List<byte>();
+         foreach (var textByte in content.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)) {
+            if (byte.TryParse(textByte, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out byte value)) uncompressed.Add(value);
+         }
+         var compressed = Compress(uncompressed, 0, uncompressed.Count);
+         IStreamRun run = this;
+         if (compressed.Count > Length) {
+            run = (IStreamRun)data.RelocateForExpansion(token, this, compressed.Count);
+         }
+         for (int i = 0; i < compressed.Count; i++) token.ChangeData(data, run.Start + i, compressed[i]);
+         for (int i = compressed.Count; i < Length; i++) token.ChangeData(data, run.Start + i, 0xFF);
+         return new LZRun(data, run.Start, PointerSources);
+      }
+
+      public bool DependsOn(string anchorName) => false;
+
+      #endregion
+
       /// <summary>
       /// Without worrying about available space, rectify the end of the data to make it the appropriate length.
       /// </summary>
@@ -253,7 +290,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          int bestLength = 2, bestOffset = -1;
          for (int runOffset = 1; runOffset <= 0x1000 && start - runOffset >= earliest; runOffset++) {
             int runLength = 0;
-            while (data[start - runOffset + runLength] == data[start + runLength] && start + runLength < end && runLength < 18) runLength++;
+            while (start + runLength < end && runLength < 18 && data[start - runOffset + runLength] == data[start + runLength]) runLength++;
             if (runLength > bestLength) (bestLength, bestOffset) = (runLength, runOffset);
          }
          return (bestLength, bestOffset);
