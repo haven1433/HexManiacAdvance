@@ -208,10 +208,19 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.IsAssignableFrom<IStreamRun>(run);
       }
 
-      // TODO LZRun is IStreamRun and the stream is the decompressed data
-      // TODO changing decompressed LZ Stream via Stream tool updates the run
-      // TODO double-clicking selects the entire compressed run
-      // TODO if an LZRun has a length requirement that isn't met (example, the image is known to be 32x32 in size), error if the length is changed
+      [Fact]
+      public void CanSelectWholeCompressedRun() {
+         SetFullModel(0xFF);
+         CreateLzRun(0,
+            0x10, 6, 0, 0, // header (uncompressed length = 6)
+            0b01000000,     // group
+            0x30,           // uncompressed 30
+            0x20, 0x00);    // compressed   5:1
+
+         ViewPort.ExpandSelection(0, 0);
+
+         Assert.True(ViewPort.IsSelected(new Point(7, 0)));
+      }
 
       private void CreateLzRun(int start, params byte[] data) {
          for (int i = 0; i < data.Length; i++) Model[start + i] = data[i];
