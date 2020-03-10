@@ -379,12 +379,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var formatContent = pointerFormat.Substring(4);
          formatContent = formatContent.Substring(0, formatContent.Length - 1);
          var dimensionsAsText = formatContent.Split('x');
-         if (dimensionsAsText.Length != 4) return false;
-         if (!int.TryParse(dimensionsAsText[0], out var width)) return false;
-         if (!int.TryParse(dimensionsAsText[1], out var height)) return false;
-         if (!int.TryParse(dimensionsAsText[2], out var depth)) return false;
-         if (!int.TryParse(dimensionsAsText[3], out var pages)) return false;
-         spriteFormat = new SpriteFormat(width, height, depth, pages);
+         if (dimensionsAsText.Length != 5) return false;
+         if (!int.TryParse(dimensionsAsText[0], out var bitsPerPixel)) return false;
+         if (!int.TryParse(dimensionsAsText[1], out var width)) return false;
+         if (!int.TryParse(dimensionsAsText[2], out var height)) return false;
+         if (!int.TryParse(dimensionsAsText[3], out var depth)) return false;
+         if (!int.TryParse(dimensionsAsText[4], out var pages)) return false;
+         spriteFormat = new SpriteFormat(bitsPerPixel, width, height, depth, pages);
          return true;
       }
 
@@ -392,11 +393,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    }
 
    public struct SpriteFormat {
+      public int BitsPerPixel { get; }
       public int TileWidth { get; }
       public int TileHeight { get; }
       public int TileDepth { get; }
       public int Pages { get; }
-      public SpriteFormat(int width, int height, int depth, int pages) => (TileWidth, TileHeight, TileDepth, Pages) = (width, height, depth, pages);
+      public SpriteFormat(int bitsPerPixel, int width, int height, int depth, int pages) => (BitsPerPixel, TileWidth, TileHeight, TileDepth, Pages) = (bitsPerPixel, width, height, depth, pages);
    }
 
    public class PaletteRun : LZRun {

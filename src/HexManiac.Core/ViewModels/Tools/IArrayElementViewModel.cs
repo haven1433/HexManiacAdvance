@@ -320,7 +320,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public static implicit operator ComboOption(string text) => new ComboOption(text);
    }
 
-   public class StreamArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
+   public class StreamArrayElementViewModel : ViewModelCore, IStreamArrayElementViewModel {
       private readonly ViewPort viewPort;
       private readonly IDataModel model;
 

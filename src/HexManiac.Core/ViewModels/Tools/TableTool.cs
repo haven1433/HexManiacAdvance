@@ -291,13 +291,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             streamRun = destinationStream;
          }
 
-         var streamElement = new StreamArrayElementViewModel(viewPort, model, item.Name, itemAddress);
-         if (streamRun is SpriteRun) streamElement = new SpriteArrayElementViewModel(viewPort, item.Name, itemAddress);
+         IStreamArrayElementViewModel streamElement = new StreamArrayElementViewModel(viewPort, model, item.Name, itemAddress);
+         if (streamRun is SpriteRun spriteRun) streamElement = new SpriteArrayElementViewModel(viewPort, spriteRun.SpriteFormat, item.Name, itemAddress);
          var streamElementName = item.Name;
          var streamAddress = itemAddress;
          var myIndex = childInsertionIndex;
          Children[parentIndex].DataChanged += (sender, e) => {
-            var newStream = new StreamArrayElementViewModel(viewPort, model, streamElementName, streamAddress);
+            var closure_destination = model.ReadPointer(streamAddress);
+            var run = (IStreamRun)model.GetNextRun(destination);
+            IStreamArrayElementViewModel newStream = new StreamArrayElementViewModel(viewPort, model, streamElementName, streamAddress);
+            if (run is SpriteRun spriteRun1) newStream = new SpriteArrayElementViewModel(viewPort, spriteRun1.SpriteFormat, streamElementName, streamAddress);
             newStream.DataChanged += ForwardModelChanged;
             newStream.DataMoved += ForwardModelDataMoved;
             if (!Children[myIndex].TryCopy(newStream)) Children[myIndex] = newStream;
