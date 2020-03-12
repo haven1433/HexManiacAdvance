@@ -73,6 +73,7 @@
     <Compile Include="ViewModels\QuickEditItems\UpdateDexConversionTable.cs" />
     <Compile Include="ViewModels\Tools\CodeTool.cs" />
     <Compile Include="ViewModels\Tools\IStreamArrayElementViewModel.cs" />
+    <Compile Include="ViewModels\Tools\PaletteArrayElementViewModel.cs" />
     <Compile Include="ViewModels\Tools\SpriteArrayElementViewModel.cs" />
     <Compile Include="ViewModels\Visitors\CompleteCellEdit.cs" />
     <Compile Include="ViewModels\Visitors\ContextItemFactory.cs" />

@@ -2,11 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
    public class TileImage : Image {
@@ -47,10 +50,21 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       public static Color Convert16BitColor(short color) {
-         byte r = (byte)(color >> 11);
-         byte g = (byte)((color >> 5) & 0b111111);
-         byte b = (byte)(color & 0b11111);
-         return Color.FromArgb(255, (byte)(r << 3), (byte)(g << 2), (byte)(b << 3));
+         byte b = (byte)((color >> 10) & 0b11111);
+         byte g = (byte)((color >> 5) & 0b11111);
+         byte r = (byte)((color >> 0) & 0b11111);
+         return Color.FromArgb(255, (byte)(r << 3), (byte)(g << 3), (byte)(b << 3));
+      }
+   }
+
+   public class PaletteColorConverter : IValueConverter {
+      public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
+         var color = (short)value;
+         return new SolidColorBrush(TileImage.Convert16BitColor(color));
+      }
+
+      public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {
+         throw new NotImplementedException();
       }
    }
 }
