@@ -214,6 +214,23 @@
                         <DataTemplate DataType="{x:Type hsg3hvmtr:ButtonArrayElementViewModel}">
                            <Button HorizontalAlignment="Center" Content="{Binding Text}" Margin="5" Command="{Binding Command}"/>
                         </DataTemplate>
+                        <DataTemplate DataType="{x:Type hsg3hvmtr:SpriteArrayElementViewModel}">
+                           <ItemsControl RenderOptions.BitmapScalingMode="NearestNeighbor" SnapsToDevicePixels="True" ItemsSource="{Binding Tiles}" Width="{Binding PixelWidth}" Height="{Binding PixelHeight}">
+                              <ItemsControl.LayoutTransform>
+                                 <ScaleTransform ScaleX="2" ScaleY="2" />
+                              </ItemsControl.LayoutTransform>
+                              <ItemsControl.ItemsPanel>
+                                 <ItemsPanelTemplate>
+                                    <WrapPanel/>
+                                 </ItemsPanelTemplate>
+                              </ItemsControl.ItemsPanel>
+                              <ItemsControl.ItemTemplate>
+                                 <DataTemplate>
+                                    <hsg3hv:TileImage />
+                                 </DataTemplate>
+                              </ItemsControl.ItemTemplate>
+                           </ItemsControl>
+                        </DataTemplate>
                      </ItemsControl.Resources>
                   </ItemsControl>
                </StackPanel>

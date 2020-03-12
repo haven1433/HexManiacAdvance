@@ -398,7 +398,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public int TileHeight { get; }
       public int TileDepth { get; }
       public int Pages { get; }
-      public SpriteFormat(int bitsPerPixel, int width, int height, int depth, int pages) => (BitsPerPixel, TileWidth, TileHeight, TileDepth, Pages) = (bitsPerPixel, width, height, depth, pages);
+      public int ExpectedByteLength { get; }
+      public SpriteFormat(int bitsPerPixel, int width, int height, int depth, int pages) {
+         (BitsPerPixel, TileWidth, TileHeight, TileDepth, Pages) = (bitsPerPixel, width, height, depth, pages);
+         ExpectedByteLength = 8 * BitsPerPixel * TileWidth * TileHeight * TileDepth * Pages;
+      }
    }
 
    public class PaletteRun : LZRun {

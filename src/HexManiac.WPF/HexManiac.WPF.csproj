@@ -62,6 +62,7 @@
     <Compile Include="Controls\TabView.xaml.cs">
       <DependentUpon>TabView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\TileImage.cs" />
     <Compile Include="Windows\ThemeSelector.xaml.cs">
       <DependentUpon>ThemeSelector.xaml</DependentUpon>
     </Compile>
