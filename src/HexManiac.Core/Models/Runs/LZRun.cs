@@ -379,13 +379,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var formatContent = pointerFormat.Substring(4);
          formatContent = formatContent.Substring(0, formatContent.Length - 1);
          var dimensionsAsText = formatContent.Split('x');
-         if (dimensionsAsText.Length != 5) return false;
+         if (dimensionsAsText.Length != 3) return false;
          if (!int.TryParse(dimensionsAsText[0], out var bitsPerPixel)) return false;
          if (!int.TryParse(dimensionsAsText[1], out var width)) return false;
          if (!int.TryParse(dimensionsAsText[2], out var height)) return false;
-         if (!int.TryParse(dimensionsAsText[3], out var depth)) return false;
-         if (!int.TryParse(dimensionsAsText[4], out var pages)) return false;
-         spriteFormat = new SpriteFormat(bitsPerPixel, width, height, depth, pages);
+         spriteFormat = new SpriteFormat(bitsPerPixel, width, height);
          return true;
       }
 
@@ -396,12 +394,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public int BitsPerPixel { get; }
       public int TileWidth { get; }
       public int TileHeight { get; }
-      public int TileDepth { get; }
-      public int Pages { get; }
       public int ExpectedByteLength { get; }
-      public SpriteFormat(int bitsPerPixel, int width, int height, int depth, int pages) {
-         (BitsPerPixel, TileWidth, TileHeight, TileDepth, Pages) = (bitsPerPixel, width, height, depth, pages);
-         ExpectedByteLength = 8 * BitsPerPixel * TileWidth * TileHeight * TileDepth * Pages;
+      public SpriteFormat(int bitsPerPixel, int width, int height) {
+         (BitsPerPixel, TileWidth, TileHeight) = (bitsPerPixel, width, height);
+         ExpectedByteLength = 8 * BitsPerPixel * TileWidth * TileHeight;
       }
    }
 

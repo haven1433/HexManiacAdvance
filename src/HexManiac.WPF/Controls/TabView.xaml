@@ -216,42 +216,55 @@
                            <Button HorizontalAlignment="Center" Content="{Binding Text}" Margin="5" Command="{Binding Command}"/>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:SpriteArrayElementViewModel}">
-                           <ItemsControl RenderOptions.BitmapScalingMode="NearestNeighbor" SnapsToDevicePixels="True" ItemsSource="{Binding Tiles}" Width="{Binding PixelWidth}" Height="{Binding PixelHeight}">
-                              <ItemsControl.LayoutTransform>
-                                 <ScaleTransform ScaleX="2" ScaleY="2" />
-                              </ItemsControl.LayoutTransform>
-                              <ItemsControl.ItemsPanel>
-                                 <ItemsPanelTemplate>
-                                    <WrapPanel/>
-                                 </ItemsPanelTemplate>
-                              </ItemsControl.ItemsPanel>
-                              <ItemsControl.ItemTemplate>
-                                 <DataTemplate>
-                                    <hsg3hv:TileImage />
-                                 </DataTemplate>
-                              </ItemsControl.ItemTemplate>
-                           </ItemsControl>
+                           <StackPanel>
+                              <ItemsControl Name="ImageTiles" RenderOptions.BitmapScalingMode="NearestNeighbor" SnapsToDevicePixels="True" ItemsSource="{Binding Tiles}" Width="{Binding PixelWidth}" Height="{Binding PixelHeight}">
+                                 <ItemsControl.LayoutTransform>
+                                    <ScaleTransform ScaleX="2" ScaleY="2" />
+                                 </ItemsControl.LayoutTransform>
+                                 <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                       <WrapPanel/>
+                                    </ItemsPanelTemplate>
+                                 </ItemsControl.ItemsPanel>
+                                 <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                       <hsg3hv:TileImage />
+                                    </DataTemplate>
+                                 </ItemsControl.ItemTemplate>
+                              </ItemsControl>
+                              <DockPanel Visibility="{Binding HasMultiplePages, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
+                                 <Button Content="Previous" Command="{Binding PreviousPage}" DockPanel.Dock="Left"/>
+                                 <Button Content="Next" Command="{Binding NextPage}" DockPanel.Dock="Right"/>
+                              </DockPanel>
+                           </StackPanel>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:PaletteArrayElementViewModel}">
-                           <ItemsControl RenderOptions.BitmapScalingMode="NearestNeighbor" SnapsToDevicePixels="True" ItemsSource="{Binding Colors}" Width="{Binding PixelWidth}" Height="{Binding PixelHeight}">
-                              <ItemsControl.ItemsPanel>
-                                 <ItemsPanelTemplate>
-                                    <UniformGrid Columns="{Binding ColorWidth}" Rows="{Binding ColorHeight}"/>
-                                 </ItemsPanelTemplate>
-                              </ItemsControl.ItemsPanel>
-                              <ItemsControl.ItemTemplate>
-                                 <DataTemplate>
-                                    <Rectangle Fill="{Binding Converter={StaticResource PaletteColorConverter}}">
-                                       <Rectangle.Stroke>
-                                          <LinearGradientBrush>
-                                             <GradientStop Color="Black" Offset="0" />
-                                             <GradientStop Color="White" Offset="1" />
-                                          </LinearGradientBrush>
-                                       </Rectangle.Stroke>
-                                    </Rectangle>
-                                 </DataTemplate>
-                              </ItemsControl.ItemTemplate>
-                           </ItemsControl>
+                           <StackPanel>
+                              <ItemsControl RenderOptions.BitmapScalingMode="NearestNeighbor" SnapsToDevicePixels="True" ItemsSource="{Binding Colors}" Width="{Binding PixelWidth}" Height="{Binding PixelHeight}"
+                                            MouseDown="ActivatePalette">
+                                 <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                       <UniformGrid Columns="{Binding ColorWidth}" Rows="{Binding ColorHeight}"/>
+                                    </ItemsPanelTemplate>
+                                 </ItemsControl.ItemsPanel>
+                                 <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                       <Rectangle Fill="{Binding Converter={StaticResource PaletteColorConverter}}">
+                                          <Rectangle.Stroke>
+                                             <LinearGradientBrush>
+                                                <GradientStop Color="Black" Offset="0" />
+                                                <GradientStop Color="White" Offset="1" />
+                                             </LinearGradientBrush>
+                                          </Rectangle.Stroke>
+                                       </Rectangle>
+                                    </DataTemplate>
+                                 </ItemsControl.ItemTemplate>
+                              </ItemsControl>
+                              <DockPanel Visibility="{Binding HasMultiplePages, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
+                                 <Button Content="Previous" Command="{Binding PreviousPage}" DockPanel.Dock="Left"/>
+                                 <Button Content="Next" Command="{Binding NextPage}" DockPanel.Dock="Right"/>
+                              </DockPanel>
+                           </StackPanel>
                         </DataTemplate>
                      </ItemsControl.Resources>
                   </ItemsControl>

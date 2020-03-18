@@ -37,14 +37,14 @@ pickupitemsrare,           ,       ,       ,       ,       ,       ,       ,    
 battlescriptsource,  012F34, 012F34, 012F34, 012F34, 014C1C, 014C1C, 014C30, 014C30,       , [code<>]248
 battlescriptsource,        ,       ,       ,       ,       ,       ,       ,       , 03CD94, [code<>]249
 
-// bits x width x height x pages x layers. Width/Hegiht measured in tiles.
-frontsprites,    ,,,, 000128,,,,, [sprite<`lzs4x8x8x1x1`> a: b:]440
-backsprites,     ,,,, 00012C,,,,, [sprite<`lzs4x8x8x1x1`> a: b:]frontsprites
+// bits x width x height. Width/Hegiht measured in tiles.
+frontsprites,    ,,,, 000128,,,,, [sprite<`lzs4x8x8`> a: b:]440
+backsprites,     ,,,, 00012C,,,,, [sprite<`lzs4x8x8`> a: b:]frontsprites
 pokepalettes,    ,,,, 000130,,,,, [palette<`lzp4`> a: b:]frontsprites
 shinypalettes,   ,,,, 000134,,,,, [palette<`lzp4`> a: b:]frontsprites
-ballsprites,     ,,,, 0001D0,,,,, [sprite<`lzs4x2x6x1x1`> a: b:]12
+ballsprites,     ,,,, 0001D0,,,,, [sprite<`lzs4x2x6`> a: b:]12
 ballpalettes,    ,,,, 0001D4,,,,, [palette<`lzp4`> a: b:]ballsprites
-trainersprites,  ,,,, 03473C,,,,, [sprite<`lzs4x8x8x1x1`> a: b:]148
+trainersprites,  ,,,, 03473C,,,,, [sprite<`lzs4x8x8`> a: b:]148
 trainerpalettes, ,,,, 03474C,,,,, [palette<`lzp4`> a: b:]trainersprites
 
 regionaldex,         03F7F0, 03F7F0, 03F7F0, 03F7F0, 0431F0, 0431F0, 043204, 043204, 06D3FC, [index:]pokenames-1

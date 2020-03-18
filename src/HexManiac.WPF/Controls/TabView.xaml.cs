@@ -272,5 +272,10 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void TableSelected(object sender, EventArgs e) {
          if (DataContext is IViewPort viewPort) viewPort.Tools.TableTool.SelectedTableIndex = TableSelector.SelectedIndex;
       }
+
+      private void ActivatePalette(object sender, MouseButtonEventArgs e) {
+         var viewModel = (PaletteArrayElementViewModel)((FrameworkElement)sender).DataContext;
+         viewModel.Activate();
+      }
    }
 }
