@@ -53,6 +53,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          byte b = (byte)((color >> 10) & 0b11111);
          byte g = (byte)((color >> 5) & 0b11111);
          byte r = (byte)((color >> 0) & 0b11111);
+
          return Color.FromArgb(255, (byte)(r << 3), (byte)(g << 3), (byte)(b << 3));
       }
    }
@@ -60,7 +61,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
    public class PaletteColorConverter : IValueConverter {
       public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
          var color = (short)value;
-         return new SolidColorBrush(TileImage.Convert16BitColor(color));
+         var wpfColor = TileImage.Convert16BitColor(color);
+         return new SolidColorBrush(wpfColor);
       }
 
       public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {

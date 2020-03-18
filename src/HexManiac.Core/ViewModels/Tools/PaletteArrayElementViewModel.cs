@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models.Runs;
+﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -59,7 +60,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Debug.Assert(data.Length == count * 2);
          Colors.Clear();
          for (int i = 0; i < count; i++) {
-            var color = (short)(data[i * 2] | (data[i * 2 + 1] << 8));
+            var color = (short)data.ReadMultiByteValue(i * 2, 2);
             Colors.Add(color);
          }
       }

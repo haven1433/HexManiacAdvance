@@ -417,6 +417,17 @@ namespace HavenSoft.HexManiac.Core.Models {
       public static IReadOnlyList<string> GetOptions(this IDataModel model, string tableName) => ModelCacheScope.GetCache(model).GetOptions(tableName);
 
       public static IReadOnlyList<string> GetBitOptions(this IDataModel model, string tableName) => ModelCacheScope.GetCache(model).GetBitOptions(tableName);
+
+      public static IEnumerable<ArrayRun> GetRelatedArrays(this IDataModel model, ArrayRun table) {
+         var basename = model.GetAnchorFromAddress(-1, table.Start);
+         if (!string.IsNullOrEmpty(table.LengthFromAnchor)) basename = table.LengthFromAnchor;
+         foreach (var array in model.Arrays) {
+            if (array == table) continue;
+            var currentArrayName = model.GetAnchorFromAddress(-1, array.Start);
+            if (!basename.IsAny(array.LengthFromAnchor, currentArrayName)) continue;
+            yield return array;
+         }
+      }
    }
 
    public class BasicModel : BaseModel {

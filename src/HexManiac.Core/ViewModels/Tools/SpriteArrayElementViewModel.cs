@@ -1,8 +1,10 @@
-﻿using HavenSoft.HexManiac.Core.Models.Runs;
+﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class SpriteArrayElementViewModel : ViewModelCore, IStreamArrayElementViewModel {
@@ -62,12 +64,46 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var tileSize = 8 * format.BitsPerPixel;
          Debug.Assert(data.Length == format.ExpectedByteLength);
          Tiles.Clear();
+         var palette = GetDesiredPalette(null);
          for (int y = 0; y < format.TileHeight; y++) {
             for (int x = 0; x < format.TileWidth; x++) {
                var tileIndex = y * format.TileWidth + x;
-               Tiles.Add(new TileViewModel(data, tileIndex * tileSize, tileSize));
+               Tiles.Add(new TileViewModel(data, tileIndex * tileSize, tileSize, palette));
             }
          }
+      }
+
+      /// <summary>
+      /// If the hint is a table name, only match palettes from that table.
+      /// </summary>
+      private IReadOnlyList<short> GetDesiredPalette(string hint) {
+         var myRun = viewPort.Model.GetNextRun(Start) as ArrayRun;
+         if (myRun == null) return null;
+         var offset = myRun.ConvertByteOffsetToArrayOffset(Start);
+         foreach (var array in viewPort.Model.GetRelatedArrays(myRun)) {
+            if (!string.IsNullOrEmpty(hint) && viewPort.Model.GetAnchorFromAddress(-1, array.Start) != hint) {
+               continue;
+            }
+
+            int segmentOffset = 0;
+            foreach (var segment in array.ElementContent) {
+               if (segment is ArrayRunPointerSegment pointerSegment) {
+                  if (PaletteRun.TryParsePaletteFormat(pointerSegment.InnerFormat, out var paletteFormat)) {
+                     var source = array.Start + array.ElementLength * offset.ElementIndex + segmentOffset;
+                     var destination = viewPort.Model.ReadPointer(source);
+                     var paletteRun = viewPort.Model.GetNextRun(destination) as PaletteRun;
+                     if (paletteRun != null) {
+                        if (LZRun.TryDecompress(viewPort.Model, destination, out var data)) {
+                           return Enumerable.Range(0, data.Length / 2)
+                              .Select(i => (short)data.ReadMultiByteValue(i * 2, 2)).ToList();
+                        }
+                     }
+                  }
+               }
+               segmentOffset += segment.Length;
+            }
+         }
+         return null;
       }
 
       // the gba expects the high bits to be the first pixel. WPF expects the low bits to be the first pixel.
@@ -87,17 +123,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       /// </summary>
       public IReadOnlyList<short> Palette { get; private set; }
 
-      public TileViewModel(byte[] data, int start, int byteLength) {
+      public TileViewModel(byte[] data, int start, int byteLength, IReadOnlyList<short> palette) {
          DataStore = data;
          Start = start;
-         // TODO figure out default palette based on byteLength / 8 = bitsPerPixel
-         var palette = new List<short>();
-         for (int i = 0; i <= 15; i++) {
-            var (r, g, b) = (0b11111 * i / 15, 0b111111 * i / 15, 0b11111 * i / 15);
-            var color = (r << 11) | (g << 5) | b;
-            palette.Add((short)color);
-         }
          Palette = palette;
+
+         if (palette != null) return;
+         
+         var defaultPalette = new List<short>();
+         int desiredCount = (int)Math.Pow(2, byteLength / 8);
+         for (int i = 0; i < desiredCount; i++) {
+            var shade = 0b11111 * i / (desiredCount - 1);
+            var color = (shade << 10) | (shade << 5) | shade;
+            defaultPalette.Add((short)color);
+         }
+         Palette = defaultPalette;
       }
 
       // TODO include horizontal/vertical flip information

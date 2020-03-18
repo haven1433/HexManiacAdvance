@@ -234,9 +234,6 @@
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:PaletteArrayElementViewModel}">
                            <ItemsControl RenderOptions.BitmapScalingMode="NearestNeighbor" SnapsToDevicePixels="True" ItemsSource="{Binding Colors}" Width="{Binding PixelWidth}" Height="{Binding PixelHeight}">
-                              <ItemsControl.LayoutTransform>
-                                 <ScaleTransform ScaleX="2" ScaleY="2" />
-                              </ItemsControl.LayoutTransform>
                               <ItemsControl.ItemsPanel>
                                  <ItemsPanelTemplate>
                                     <UniformGrid Columns="{Binding ColorWidth}" Rows="{Binding ColorHeight}"/>
