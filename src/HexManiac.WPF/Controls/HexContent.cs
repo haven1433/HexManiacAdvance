@@ -557,6 +557,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             HorizontalScrollValue = Math.Min(HorizontalScrollValue, HorizontalScrollMaximum);
          } else {
             ShowHorizontalScroll = false;
+            HorizontalScrollValue = 0;
          }
       }
 
