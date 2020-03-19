@@ -250,6 +250,8 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public static List<int> FindPossibleTextStartingPlaces(this IDataModel model, int left, int length) {
          // part 1: find a previous FF, which is possibly the end of another text
+         var startPlaces = new List<int>();
+         if (left < 0 || left >= model.Count) return startPlaces;
          while (model[left] != 0xFF && PCSString.PCS[model[left]] != null) { left--; length++; }
          left++; length--;
 
@@ -264,7 +266,6 @@ namespace HavenSoft.HexManiac.Core.Models {
          // part 3: look for possible starting locations:
          // (1) places that start directly after FF
          // (2) places that start with a NoInfoRun
-         var startPlaces = new List<int>();
          while (length > 0) {
             startPlaces.Add(left);
             var run = model.GetNextRun(left);
