@@ -1145,13 +1145,15 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
-      public void AutocompletePicksExpectedElement() {
+      public void AutocompletePicksExpectedElementAndMovesToNextElement() {
          var test = new BaseViewModelTestClass();
          test.CreateTextTable("movenames", 0x100, "Tackle", "Fire Punch", "Earthquake", "Psycho Boost");
          test.CreateEnumTable("pokemoves", 0x00, "movenames", 0, 1, 2, 3);
 
          test.ViewPort.Edit("@04 firepunch ");
          Assert.Equal(1, test.Model.ReadMultiByteValue(0x04, 2));
+         Assert.Equal(new Point(2, 0), test.ViewPort.SelectionStart);
+         Assert.Equal("pokemoves/3", test.ViewPort.Tools.TableTool.CurrentElementName);
       }
 
       private static void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {

@@ -1553,6 +1553,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   if (!SilentScroll(completeEditOperation.NewDataIndex) && completeEditOperation.NewCell == null) {
                      RefreshBackingData();
                   }
+
+                  UpdateToolsFromSelection(completeEditOperation.NewDataIndex);
                }
             }
 
