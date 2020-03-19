@@ -140,8 +140,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var option = options[i].ToLower();
             if (option == text) matches.Add(option);
             if (matches.Count == desiredMatch) { value = i; return true; }
-            if (option.MatchesPartial(text)) partialMatches.Add(option);
-            if (partialMatches.Count == desiredMatch && matches.Count == 0) value = i;
+            if (option.MatchesPartial(text)) {
+               partialMatches.Add(option);
+               if (partialMatches.Count == desiredMatch && matches.Count == 0) value = i;
+            }
          }
          if (matches.Count == 0 && partialMatches.Count >= desiredMatch) return true; // no full matches, use the partial match
 

@@ -1144,6 +1144,16 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(11, child.ElementCount);
       }
 
+      [Fact]
+      public void AutocompletePicksExpectedElement() {
+         var test = new BaseViewModelTestClass();
+         test.CreateTextTable("movenames", 0x100, "Tackle", "Fire Punch", "Earthquake", "Psycho Boost");
+         test.CreateEnumTable("pokemoves", 0x00, "movenames", 0, 1, 2, 3);
+
+         test.ViewPort.Edit("@04 firepunch ");
+         Assert.Equal(1, test.Model.ReadMultiByteValue(0x04, 2));
+      }
+
       private static void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);
