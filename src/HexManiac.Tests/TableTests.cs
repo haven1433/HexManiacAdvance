@@ -253,7 +253,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void CannotExtendLengthOfFixedLengthStreamViaTool() {
          // Arrange
          ViewPort.Edit("FF FF FF FF FF FF FF FF @80 <0> @80 ^table[data<[value.]5>]1 ");
-         var segment = ViewPort.Tools.TableTool.Children.OfType<StreamArrayElementViewModel>().Single();
+         var segment = ViewPort.Tools.TableTool.Children.OfType<TextStreamElementViewModel>().Single();
 
          // precondition: the format is as expected
          Assert.Equal(@"255
@@ -290,7 +290,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          // verify that it's in the table
          var toolElements = ViewPort.Tools.TableTool.Children;
-         var createNewTool = toolElements.Single(element => element is StreamArrayElementViewModel stream && stream.CanCreateNew);
+         var createNewTool = toolElements.Single(element => element is TextStreamElementViewModel stream && stream.CanCreateNew);
 
          // verify that the command works
          createNewItem.Command.Execute();
@@ -299,7 +299,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(1, run.Length);
 
          // verify that you can't use the table tool's version anymore
-         Assert.False(((StreamArrayElementViewModel)createNewTool).CanRepoint);
+         Assert.False(((TextStreamElementViewModel)createNewTool).CanRepoint);
       }
 
       [Fact]

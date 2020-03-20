@@ -144,7 +144,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var newStart = newRun.Start;
          for (int i = 0; i < newData.Count; i++) token.ChangeData(model, newStart + i, newData[i]);
          for (int i = newData.Count; i < Length; i++) token.ChangeData(model, newStart + i, 0xFF);
-         return (LZRun)Duplicate(newStart, newRun.PointerSources.ToArray());
+         return (LZRun)Duplicate(newStart, newRun.PointerSources?.ToArray());
       }
 
       #region StreamRun
@@ -175,7 +175,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
          for (int i = 0; i < compressed.Count; i++) token.ChangeData(Model, run.Start + i, compressed[i]);
          for (int i = compressed.Count; i < Length; i++) token.ChangeData(Model, run.Start + i, 0xFF);
-         return (LZRun)Duplicate(run.Start, PointerSources.ToArray());
+         return (LZRun)Duplicate(run.Start, PointerSources?.ToArray());
       }
 
       public bool DependsOn(string anchorName) => false;

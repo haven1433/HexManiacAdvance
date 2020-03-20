@@ -138,7 +138,7 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Edit("^table[description<\"\">]4 <000000>"); // note that this auto-scrolls, since a table was created
 
          Assert.Equal(2, viewPort.Tools.TableTool.Children.Count);
-         Assert.IsType<StreamArrayElementViewModel>(viewPort.Tools.TableTool.Children[1]);
+         Assert.IsType<TextStreamElementViewModel>(viewPort.Tools.TableTool.Children[1]);
       }
 
       [Fact]
@@ -150,7 +150,7 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.SelectionStart = new Point(0, 4);
          viewPort.Edit("^table[description<\"\">]4 <000000>"); // note that this auto-scrolls, since a table was created
          viewPort.SelectionStart = new Point(0, 0);
-         var textViewModel = (StreamArrayElementViewModel)viewPort.Tools.TableTool.Children[1];
+         var textViewModel = (TextStreamElementViewModel)viewPort.Tools.TableTool.Children[1];
 
          // act: use the tool to change the content, forcing a repoint
          messages.Clear();

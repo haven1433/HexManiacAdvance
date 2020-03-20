@@ -3,7 +3,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:hsv="clr-namespace:HavenSoft.HexManiac.WPF.Resources"
       xmlns:hsg3hvmtr="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Tools;assembly=HexManiac.Core"
-      xmlns:hsg3ww="clr-namespace:HavenSoft.HexManiac.WPF.Windows"
+      xmlns:hsg3hw="clr-namespace:HavenSoft.HexManiac.WPF.Windows"
       xmlns:hsg3hv="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
       DataContextChanged="HandleDataContextChanged">
    <UserControl.Resources>
@@ -176,38 +176,9 @@
                               </ItemsControl>
                            </StackPanel>
                         </DataTemplate>
-                        <DataTemplate DataType="{x:Type hsg3hvmtr:StreamArrayElementViewModel}">
+                        <DataTemplate DataType="{x:Type hsg3hvmtr:StreamElementViewModel}">
                            <StackPanel>
-                              <DockPanel Visibility="{Binding CanRepoint, Converter={StaticResource BoolToVisibility}}">
-                                 <Button Content="Repoint this one" Command="{Binding Repoint}" DockPanel.Dock="Right">
-                                    <Button.ToolTip>
-                                       <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
-                                          <TextBlock TextAlignment="Left">
-                                             Make a copy of the data and <LineBreak/>
-                                             change this pointer to reference it. <LineBreak/>
-                                             Other pointers will remain unchanged.
-                                          </TextBlock>
-                                       </ToolTip>
-                                    </Button.ToolTip>
-                                 </Button>
-                                 <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource Secondary}" FontStyle="Italic" TextWrapping="Wrap">
-                                    <Run Text="This is used by"/>
-                                    <Run Foreground="{DynamicResource Accent}" Text="{Binding Message, Mode=OneWay}"/>
-                                    <Run Text="pointers."/>
-                                 </TextBlock>
-                              </DockPanel>
-                              <DockPanel Visibility="{Binding CanCreateNew, Converter={StaticResource BoolToVisibility}}">
-                                 <Button Content="Cretae new data" Command="{Binding CreateNew}" DockPanel.Dock="Right">
-                                    <Button.ToolTip>
-                                       <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
-                                          <TextBlock TextAlignment="Left">
-                                             Create new data in free space that <LineBreak/>
-                                             matches the expected format.
-                                          </TextBlock>
-                                       </ToolTip>
-                                    </Button.ToolTip>
-                                 </Button>
-                              </DockPanel>
+                              <hsg3hv:CommonTableStreamControl />
                               <TextBox UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Margin="20,2,2,2" AcceptsReturn="True"
                                  Visibility="{Binding ShowContent, Converter={StaticResource BoolToVisibility}}"/>
                            </StackPanel>
@@ -215,8 +186,9 @@
                         <DataTemplate DataType="{x:Type hsg3hvmtr:ButtonArrayElementViewModel}">
                            <Button HorizontalAlignment="Center" Content="{Binding Text}" Margin="5" Command="{Binding Command}"/>
                         </DataTemplate>
-                        <DataTemplate DataType="{x:Type hsg3hvmtr:SpriteArrayElementViewModel}">
+                        <DataTemplate DataType="{x:Type hsg3hvmtr:SpriteElementViewModel}">
                            <StackPanel>
+                              <hsg3hv:CommonTableStreamControl />
                               <ItemsControl Name="ImageTiles" RenderOptions.BitmapScalingMode="NearestNeighbor" SnapsToDevicePixels="True" ItemsSource="{Binding Tiles}" Width="{Binding PixelWidth}" Height="{Binding PixelHeight}">
                                  <ItemsControl.LayoutTransform>
                                     <ScaleTransform ScaleX="2" ScaleY="2" />
@@ -238,8 +210,9 @@
                               </DockPanel>
                            </StackPanel>
                         </DataTemplate>
-                        <DataTemplate DataType="{x:Type hsg3hvmtr:PaletteArrayElementViewModel}">
+                        <DataTemplate DataType="{x:Type hsg3hvmtr:PaletteElementViewModel}">
                            <StackPanel>
+                              <hsg3hv:CommonTableStreamControl />
                               <ItemsControl RenderOptions.BitmapScalingMode="NearestNeighbor" SnapsToDevicePixels="True" ItemsSource="{Binding Colors}" Width="{Binding PixelWidth}" Height="{Binding PixelHeight}"
                                             MouseDown="ActivatePalette">
                                  <ItemsControl.ItemsPanel>
@@ -403,7 +376,7 @@
                      <TranslateTransform/>
                   </Rectangle.RenderTransform>
                </Rectangle>
-               <hsg3hv:HexContent x:Name="HexContent" GotFocus="ShowCursor" LostFocus="HideCursor" ViewPort="{Binding}" FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=ZoomLevel}"  ShowGrid="{Binding DataContext.ShowMatrix, RelativeSource={RelativeSource AncestorType=hsg3ww:MainWindow}}" CursorNeedsUpdate="UpdateBlinkyCursor"/>
+               <hsg3hv:HexContent x:Name="HexContent" GotFocus="ShowCursor" LostFocus="HideCursor" ViewPort="{Binding}" FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=ZoomLevel}"  ShowGrid="{Binding DataContext.ShowMatrix, RelativeSource={RelativeSource AncestorType=hsg3hw:MainWindow}}" CursorNeedsUpdate="UpdateBlinkyCursor"/>
                <Rectangle Width="1" Fill="{DynamicResource Secondary}" Visibility="Collapsed" IsHitTestVisible="False" Name="BlinkyCursor" HorizontalAlignment="Left" VerticalAlignment="Top"/>
             </Grid>
          </Grid>

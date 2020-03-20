@@ -8,29 +8,6 @@ using System.Diagnostics;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
-   public interface IToolTrayViewModel : IReadOnlyList<IToolViewModel>, INotifyPropertyChanged {
-      int SelectedIndex { get; set; }
-
-      ICommand HideCommand { get; }
-      ICommand StringToolCommand { get; }
-      ICommand TableToolCommand { get; }
-      ICommand CodeToolCommand { get; }
-
-      PCSTool StringTool { get; }
-
-      TableTool TableTool { get; }
-
-      CodeTool CodeTool { get; }
-
-      IDisposable DeferUpdates { get; }
-
-      event EventHandler<string> OnError;
-      event EventHandler<string> OnMessage;
-
-      void Schedule(Action action);
-      void RefreshContent();
-   }
-
    public class ToolTray : ViewModelCore, IToolTrayViewModel {
       private readonly IList<IToolViewModel> tools;
       private readonly StubCommand hideCommand;

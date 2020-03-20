@@ -291,8 +291,7 @@ namespace HavenSoft.HexManiac.Tests {
          var address = model.GetAddressFromAnchor(noChange, -1, HardcodeTablesModel.EggMovesTableName);
          var run = (EggMoveRun)model.GetNextAnchor(address);
 
-         if (game.Contains("Vega")) Assert.Equal(3, run.PointerSources.Count); // there's a false positive in Vega... for now! Would be nice if this were 2, but it doesn't much matter.
-         else Assert.Equal(2, run.PointerSources.Count);
+         Assert.Equal(2, run.PointerSources.Count);
          var expectedLastElement = model.ReadMultiByteValue(run.PointerSources[1] - 4, 4);
          var expectedLength = expectedLastElement + 1;
          var actualLength = run.Length / 2 - 1;  // remove the closing element.

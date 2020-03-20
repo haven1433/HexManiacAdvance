@@ -3,106 +3,32 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
-   public interface IPagedViewModel : IStreamArrayElementViewModel {
-      bool HasMultiplePages { get; }
-      int Pages { get; }
-      int CurrentPage { get; set; }
-      ICommand PreviousPage { get; }
-      ICommand NextPage { get; }
-   }
-
-   public class SpriteArrayElementViewModel : ViewModelCore, IPagedViewModel {
-      private readonly ViewPort viewPort;
+   public class SpriteElementViewModel : PagedElementViewModel, IPagedViewModel {
       private SpriteFormat format;
       private byte[] data;
-
-      public event EventHandler<(int originalStart, int newStart)> DataMoved;
-      public event EventHandler DataChanged;
-
-      public string Name { get; private set; }
-      public int Start { get; private set; } // a pointer to the sprite's compressed data
-
-      public bool IsInError => !string.IsNullOrEmpty(ErrorText);
 
       public int PixelWidth => format.TileWidth * 8;
       public int PixelHeight => format.TileHeight * 8;
 
-      #region Pages
-
-      public bool HasMultiplePages => Pages > 1;
-
-      private int currentPage;
-      public int CurrentPage {
-         get => currentPage;
-         set {
-            if (!TryUpdate(ref currentPage, value)) return;
-            UpdateTiles();
-         }
-      }
-
-      public int Pages { get; private set; }
-
-      private readonly StubCommand previousPage = new StubCommand();
-      public ICommand PreviousPage => previousPage;
-
-      private readonly StubCommand nextPage = new StubCommand();
-      public ICommand NextPage => nextPage;
-
-      public void UpdateOtherPagedViewModels() {
-         foreach (var child in viewPort.Tools.TableTool.Children) {
-            if (!(child is IPagedViewModel pvm)) continue;
-            pvm.CurrentPage = pvm.Pages > CurrentPage ? CurrentPage : 0;
-         }
-      }
-
-      #endregion
-
       public ObservableCollection<TileViewModel> Tiles { get; } = new ObservableCollection<TileViewModel>();
 
-      private string errorText;
-      public string ErrorText {
-         get => errorText;
-         private set {
-            if (TryUpdate(ref errorText, value)) NotifyPropertyChanged(nameof(IsInError));
-         }
-      }
-
-      public SpriteArrayElementViewModel(ViewPort viewPort, SpriteFormat format, string name, int itemAddress) {
-         this.viewPort = viewPort;
+      public SpriteElementViewModel(ViewPort viewPort, SpriteFormat format, int itemAddress) : base(viewPort, itemAddress) {
          this.format = format;
-         Name = name;
-         Start = itemAddress;
          DecodeData();
          UpdateTiles();
-
-         previousPage.CanExecute = arg => currentPage > 0;
-         previousPage.Execute = arg => { CurrentPage -= 1; UpdateOtherPagedViewModels(); };
-         nextPage.CanExecute = arg => currentPage < Pages - 1;
-         nextPage.Execute = arg => { CurrentPage += 1; UpdateOtherPagedViewModels(); };
       }
 
-      public bool TryCopy(IArrayElementViewModel other) {
-         if (!(other is SpriteArrayElementViewModel that)) return false;
-         Name = that.Name;
-         Start = that.Start;
+      protected override bool TryCopy(PagedElementViewModel other) {
+         if (!(other is SpriteElementViewModel that)) return false;
          format = that.format;
-         ErrorText = that.ErrorText;
          data = that.data;
-         currentPage = that.currentPage;
-         Pages = that.Pages;
-         NotifyPropertyChanged(nameof(Name));
-         NotifyPropertyChanged(nameof(Start));
-         NotifyPropertyChanged(nameof(ErrorText));
+
          NotifyPropertyChanged(nameof(PixelWidth));
          NotifyPropertyChanged(nameof(PixelHeight));
-         NotifyPropertyChanged(nameof(Pages));
-         NotifyPropertyChanged(nameof(HasMultiplePages));
          UpdateTiles();
          return true;
       }
@@ -120,18 +46,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                Tiles.Add(new TileViewModel(data, tileIndex * tileSize, tileSize, palette));
             }
          }
-
-         previousPage.CanExecuteChanged.Invoke(previousPage, EventArgs.Empty);
-         nextPage.CanExecuteChanged.Invoke(nextPage, EventArgs.Empty);
       }
 
       private void DecodeData() {
-         var destination = viewPort.Model.ReadPointer(Start);
-         data = LZRun.Decompress(viewPort.Model, destination);
+         var destination = ViewPort.Model.ReadPointer(Start);
+         data = LZRun.Decompress(ViewPort.Model, destination);
          if (format.BitsPerPixel == 4) FixPixelByteOrder(data);
          Debug.Assert(data.Length % format.ExpectedByteLength == 0);
          Pages = data.Length / format.ExpectedByteLength;
-         if (currentPage >= Pages) CurrentPage = 0;
+         if (CurrentPage >= Pages) CurrentPage = 0;
       }
 
       /// <summary>
@@ -139,18 +62,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       /// </summary>
       private IReadOnlyList<short> GetDesiredPalette(string hint) {
          // fast version
-         foreach (var viewModel in viewPort.Tools.TableTool.Children) {
-            if (!(viewModel is PaletteArrayElementViewModel paevm)) continue;
-            if (!string.IsNullOrEmpty(hint) && paevm.QualifiedName != hint) continue;
+         foreach (var viewModel in ViewPort.Tools.TableTool.Children) {
+            if (!(viewModel is PaletteElementViewModel paevm)) continue;
+            if (!string.IsNullOrEmpty(hint) && paevm.TableName != hint) continue;
             return paevm.Colors;
          }
 
          // slow version, if no palettes are loaded yet
-         var myRun = viewPort.Model.GetNextRun(Start) as ArrayRun;
+         var myRun = ViewPort.Model.GetNextRun(Start) as ArrayRun;
          if (myRun == null) return null;
          var offset = myRun.ConvertByteOffsetToArrayOffset(Start);
-         foreach (var array in viewPort.Model.GetRelatedArrays(myRun)) {
-            if (!string.IsNullOrEmpty(hint) && viewPort.Model.GetAnchorFromAddress(-1, array.Start) != hint) {
+         foreach (var array in ViewPort.Model.GetRelatedArrays(myRun)) {
+            if (!string.IsNullOrEmpty(hint) && ViewPort.Model.GetAnchorFromAddress(-1, array.Start) != hint) {
                continue;
             }
 
@@ -159,10 +82,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                if (segment is ArrayRunPointerSegment pointerSegment) {
                   if (PaletteRun.TryParsePaletteFormat(pointerSegment.InnerFormat, out var paletteFormat)) {
                      var source = array.Start + array.ElementLength * offset.ElementIndex + segmentOffset;
-                     var destination = viewPort.Model.ReadPointer(source);
-                     var paletteRun = viewPort.Model.GetNextRun(destination) as PaletteRun;
+                     var destination = Model.ReadPointer(source);
+                     var paletteRun = Model.GetNextRun(destination) as PaletteRun;
                      if (paletteRun != null) {
-                        if (LZRun.TryDecompress(viewPort.Model, destination, out var data)) {
+                        if (LZRun.TryDecompress(Model, destination, out var data)) {
                            return Enumerable.Range(0, data.Length / 2)
                               .Select(i => (short)data.ReadMultiByteValue(i * 2, 2)).ToList();
                         }

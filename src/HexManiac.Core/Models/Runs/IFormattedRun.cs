@@ -86,8 +86,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public IFormattedRun Duplicate(int start, params int[] pointerSources) {
+         var myStart = Start;
+         Start = start;
          var copy = Clone(pointerSources);
-         copy.Start = start;
+         Start = myStart;
          return copy;
       }
 

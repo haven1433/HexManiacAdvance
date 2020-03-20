@@ -274,7 +274,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void ActivatePalette(object sender, MouseButtonEventArgs e) {
-         var viewModel = (PaletteArrayElementViewModel)((FrameworkElement)sender).DataContext;
+         var viewModel = (PaletteElementViewModel)((FrameworkElement)sender).DataContext;
          viewModel.Activate();
       }
    }
