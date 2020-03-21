@@ -10,6 +10,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class SpriteElementViewModel : PagedElementViewModel, IPagedViewModel {
       private SpriteFormat format;
       private byte[] data;
+      private string paletteHint;
 
       public int PixelWidth => format.TileWidth * 8;
       public int PixelHeight => format.TileHeight * 8;
@@ -22,6 +23,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          UpdateTiles();
       }
 
+      /// <summary>
+      /// Note that this method runs _before_ changes are copied from the baseclass
+      /// So if we want to update tiles based on the new start point,
+      /// Then UpdateColors can't rely on our internal start point
+      /// </summary>
       protected override bool TryCopy(PagedElementViewModel other) {
          if (!(other is SpriteElementViewModel that)) return false;
          format = that.format;
@@ -29,24 +35,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          NotifyPropertyChanged(nameof(PixelWidth));
          NotifyPropertyChanged(nameof(PixelHeight));
-         UpdateTiles();
+         UpdateTiles(that.CurrentPage, paletteHint);
          return true;
       }
 
-      public void UpdateTiles(string hint = null) {
-         // TODO support multiple layers
-         var tileSize = 8 * format.BitsPerPixel;
-         Tiles.Clear();
-         var palette = GetDesiredPalette(hint);
-         for (int y = 0; y < format.TileHeight; y++) {
-            for (int x = 0; x < format.TileWidth; x++) {
-               var tileIndex = CurrentPage;
-               tileIndex = tileIndex * format.TileHeight + y;
-               tileIndex = tileIndex * format.TileWidth + x;
-               Tiles.Add(new TileViewModel(data, tileIndex * tileSize, tileSize, palette));
-            }
-         }
-      }
+      protected override void PageChanged() => UpdateTiles(CurrentPage, paletteHint);
 
       private void DecodeData() {
          var destination = ViewPort.Model.ReadPointer(Start);
@@ -54,7 +47,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (format.BitsPerPixel == 4) FixPixelByteOrder(data);
          Debug.Assert(data.Length % format.ExpectedByteLength == 0);
          Pages = data.Length / format.ExpectedByteLength;
-         if (CurrentPage >= Pages) CurrentPage = 0;
+      }
+
+      public void UpdateTiles(int? pageOption = null, string hint = null) {
+         // TODO support multiple layers
+         paletteHint = hint;
+         int page = pageOption ?? CurrentPage;
+         var tileSize = 8 * format.BitsPerPixel;
+         Tiles.Clear();
+         var palette = GetDesiredPalette(paletteHint);
+         for (int y = 0; y < format.TileHeight; y++) {
+            for (int x = 0; x < format.TileWidth; x++) {
+               var tileIndex = page;
+               tileIndex = tileIndex * format.TileHeight + y;
+               tileIndex = tileIndex * format.TileWidth + x;
+               Tiles.Add(new TileViewModel(data, tileIndex * tileSize, tileSize, palette));
+            }
+         }
       }
 
       /// <summary>
@@ -63,9 +72,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private IReadOnlyList<short> GetDesiredPalette(string hint) {
          // fast version
          foreach (var viewModel in ViewPort.Tools.TableTool.Children) {
-            if (!(viewModel is PaletteElementViewModel paevm)) continue;
-            if (!string.IsNullOrEmpty(hint) && paevm.TableName != hint) continue;
-            return paevm.Colors;
+            if (!(viewModel is PaletteElementViewModel pevm)) continue;
+            if (!string.IsNullOrEmpty(hint) && pevm.TableName != hint) continue;
+            return pevm.Colors;
          }
 
          // slow version, if no palettes are loaded yet
