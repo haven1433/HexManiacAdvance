@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models {
    public class StoredMetadata {
@@ -11,14 +10,16 @@ namespace HavenSoft.HexManiac.Core.Models {
       public IReadOnlyList<StoredUnmappedPointer> UnmappedPointers { get; }
       public IReadOnlyList<StoredMatchedWord> MatchedWords { get; }
       public IReadOnlyList<StoredList> Lists { get; }
+      public string Version { get; }
 
       public bool IsEmpty => NamedAnchors.Count == 0 && UnmappedPointers.Count == 0;
 
-      public StoredMetadata(IReadOnlyList<StoredAnchor> anchors, IReadOnlyList<StoredUnmappedPointer> unmappedPointers, IReadOnlyList<StoredMatchedWord> matchedWords, IReadOnlyList<StoredList> lists) {
-         NamedAnchors = anchors;
-         UnmappedPointers = unmappedPointers;
-         MatchedWords = matchedWords;
-         Lists = lists;
+      public StoredMetadata(IReadOnlyList<StoredAnchor> anchors, IReadOnlyList<StoredUnmappedPointer> unmappedPointers, IReadOnlyList<StoredMatchedWord> matchedWords, IReadOnlyList<StoredList> lists, IMetadataInfo generalInfo) {
+         NamedAnchors = anchors ?? new List<StoredAnchor>();
+         UnmappedPointers = unmappedPointers ?? new List<StoredUnmappedPointer>();
+         MatchedWords = matchedWords ?? new List<StoredMatchedWord>();
+         Lists = lists ?? new List<StoredList>();
+         Version = generalInfo.VersionNumber;
       }
 
       public StoredMetadata(string[] lines) {
@@ -60,6 +61,10 @@ namespace HavenSoft.HexManiac.Core.Models {
                currentItemFormat = cleanLine.Split("'''")[1];
             }
 
+            if (cleanLine.StartsWith("ApplicationVersion = '''")) {
+               Version = cleanLine.Split("'''")[1];
+            }
+
             if (cleanLine.Contains('=') && int.TryParse(cleanLine.Split('=')[0].Trim(), out currentItemIndex)) {
                if (currentItemChildren == null) currentItemChildren = new List<string>();
                while (currentItemChildren.Count < currentItemIndex) currentItemChildren.Add(null);
@@ -90,6 +95,11 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public string[] Serialize() {
          var lines = new List<string>();
+
+         lines.Add("[General]");
+         if (Version != null) lines.Add($"ApplicationVersion = '''{Version}'''");
+         lines.Add(string.Empty);
+         lines.Add("#################################");
 
          foreach (var anchor in NamedAnchors) {
             lines.Add("[[NamedAnchors]]");

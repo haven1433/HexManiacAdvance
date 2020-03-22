@@ -1335,7 +1335,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public override StoredMetadata ExportMetadata() {
+      public override StoredMetadata ExportMetadata(IMetadataInfo metadataInfo) {
          var anchors = new List<StoredAnchor>();
          foreach (var kvp in anchorForAddress) {
             var (address, name) = (kvp.Key, kvp.Value);
@@ -1364,7 +1364,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             lists.Add(new StoredList(name, members.ToList()));
          }
 
-         return new StoredMetadata(anchors, unmappedPointers, matchedWords, lists);
+         return new StoredMetadata(anchors, unmappedPointers, matchedWords, lists, metadataInfo);
       }
 
       /// <summary>

@@ -349,7 +349,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return;
          }
 
-         var metadata = Model.ExportMetadata();
+         var metadata = Model.ExportMetadata(Singletons.MetadataInfo);
          if (fileSystem.Save(new LoadedFile(FileName, Model.RawData))) {
             fileSystem.SaveMetadata(FileName, metadata?.Serialize());
             history.TagAsSaved();
@@ -361,7 +361,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var newName = fileSystem.RequestNewName(FileName, "GameBoy Advanced", "gba");
          if (newName == null) return;
 
-         var metadata = Model.ExportMetadata();
+         var metadata = Model.ExportMetadata(Singletons.MetadataInfo);
          if (fileSystem.Save(new LoadedFile(newName, Model.RawData))) {
             FileName = newName; // don't bother notifying, because tagging the history will cause a notify;
             fileSystem.SaveMetadata(FileName, metadata?.Serialize());
@@ -372,7 +372,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void CloseExecuted(IFileSystem fileSystem) {
          if (!history.IsSaved) {
-            var metadata = Model.ExportMetadata();
+            var metadata = Model.ExportMetadata(Singletons.MetadataInfo);
             var result = fileSystem.TrySavePrompt(new LoadedFile(FileName, Model.RawData));
             if (result == null) return;
             if (result == true) {
