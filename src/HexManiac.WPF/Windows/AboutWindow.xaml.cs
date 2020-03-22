@@ -1,15 +1,12 @@
-﻿using System.Diagnostics;
-using System.Reflection;
+﻿using HavenSoft.HexManiac.Core.Models;
+using System.Diagnostics;
 using System.Windows.Navigation;
 
 namespace HavenSoft.HexManiac.WPF.Windows {
    partial class AboutWindow {
-      public AboutWindow() {
+      public AboutWindow(IMetadataInfo metadata) {
          InitializeComponent();
-
-         var assembly = Assembly.GetExecutingAssembly();
-         var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
-         Version.Text = $"Version {fvi.FileMajorPart}.{fvi.FileMinorPart}.{fvi.FileBuildPart}";
+         Version.Text = $"Version {metadata.VersionNumber}";
       }
 
       private void Navigate(object sender, RequestNavigateEventArgs e) {

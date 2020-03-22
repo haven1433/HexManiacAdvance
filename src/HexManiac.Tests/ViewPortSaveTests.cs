@@ -360,7 +360,7 @@ namespace HavenSoft.HexManiac.Tests {
          change.AddMatchedWord(model, 0, "table");
          model.ObserveRunWritten(change, new WordRun(0, "table"));
 
-         fileSystem.MetadataFor = name => model.ExportMetadata().Serialize();
+         fileSystem.MetadataFor = name => model.ExportMetadata(BaseViewModelTestClass.Singletons.MetadataInfo).Serialize();
          fileSystem.OpenFile = (name, extensions) => new LoadedFile(name, data);
          var editor = new EditorViewModel(fileSystem);
 
