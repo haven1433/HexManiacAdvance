@@ -1,7 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
-using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.WPF.Controls;
 using HavenSoft.HexManiac.WPF.Implementations;
 using System;
@@ -12,7 +11,6 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -226,7 +224,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
       private void WikiClick(object sender, EventArgs e) => System.Diagnostics.Process.Start("https://github.com/haven1433/HexManiacAdvance/wiki");
       private void ReportIssueClick(object sender, EventArgs e) => System.Diagnostics.Process.Start("https://github.com/haven1433/HexManiacAdvance/issues");
-      private void AboutClick(object sender, EventArgs e) => new AboutWindow().ShowDialog();
+      private void AboutClick(object sender, EventArgs e) => new AboutWindow(ViewModel.Singletons.MetadataInfo).ShowDialog();
 
       private void EditBoxVisibilityChanged(object sender, DependencyPropertyChangedEventArgs e) {
          var box = (TextBox)sender;

@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using HavenSoft.HexManiac.Core.Models.Code;
 using static HavenSoft.HexManiac.Core.Models.HardcodeTablesModel;
 
@@ -17,6 +18,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       private const string ThumbReferenceFileName = "resources/armReference.txt";
       private const string ScriptReferenceFileName = "resources/scriptReference.txt";
 
+      public IMetadataInfo MetadataInfo { get; }
       public IReadOnlyDictionary<string, GameReferenceTables> GameReferenceTables { get; }
       public IReadOnlyList<ConditionCode> ThumbConditionalCodes { get; }
       public IReadOnlyList<IInstruction> ThumbInstructionTemplates { get; }
@@ -26,6 +28,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          GameReferenceTables = CreateGameReferenceTables();
          (ThumbConditionalCodes, ThumbInstructionTemplates) = LoadThumbReference();
          ScriptLines = LoadScriptReference();
+         MetadataInfo = new MetadataInfo();
       }
 
       private IReadOnlyList<ScriptLine> LoadScriptReference() {
@@ -94,5 +97,18 @@ namespace HavenSoft.HexManiac.Core.Models {
       public int Address { get; }
       public string Format { get; }
       public ReferenceTable(string name, int address, string format) => (Name, Address, Format) = (name, address, format);
+   }
+
+   public interface IMetadataInfo {
+      string VersionNumber { get; }
+   }
+
+   internal class MetadataInfo : IMetadataInfo {
+      public string VersionNumber { get; }
+      public MetadataInfo() {
+         var assembly = Assembly.GetExecutingAssembly();
+         var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
+         VersionNumber = $"{fvi.FileMajorPart}.{fvi.FileMinorPart}.{fvi.FileBuildPart}";
+      }
    }
 }

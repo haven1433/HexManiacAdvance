@@ -460,6 +460,31 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(1, count);
       }
 
+      [Fact]
+      public void CanLoadVersionFromToml() {
+         var file = @"
+[General]
+ApplicationVersion = '''0.1.0'''
+";
+         var metadata = new StoredMetadata(file.Split(Environment.NewLine));
+         Assert.Equal("0.1.0", metadata.Version);
+      }
+
+      [Fact]
+      public void CanSaveVersionToToml() {
+         var metadata = new StoredMetadata(null, null, null, null, new StubMetadataInfo { VersionNumber = "0.1.0" });
+         var lines = metadata.Serialize();
+         Assert.Contains("[General]", lines);
+         Assert.Contains("ApplicationVersion = '''0.1.0'''", lines);
+      }
+
+      [Fact]
+      public void NullVersionIsNotSavedToToml() {
+         var metadata = new StoredMetadata(null, null, null, null, new StubMetadataInfo());
+         var lines = metadata.Serialize();
+         Assert.All(lines, line => Assert.DoesNotContain("ApplicationVersion = '''", line));
+      }
+
       private StubTabContent CreateClosableTab() {
          var tab = new StubTabContent();
          var close = new StubCommand { CanExecute = arg => true };

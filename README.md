@@ -12,6 +12,8 @@ Other than standard hex editor features like load/save, view/edit, and copy/past
 
 Go visit the [releases](https://github.com/haven1433/HexManiacAdvance/releases) page to grab the latest public build.
 
+Visit the [Wiki](https://github.com/haven1433/HexManiacAdvance/wiki) to see a user guide, tutorials, and other resources.
+
 Running HexManiacAdvance requires Windows and .Net 4.7.2.
 
 ## As a Developer

@@ -634,7 +634,7 @@ namespace HavenSoft.HexManiac.Tests {
       public IDataModel LoadModelNoCache(string name) {
          Skip.IfNot(File.Exists(name));
          var template = modelCache[name];
-         var metadata = template.ExportMetadata();
+         var metadata = template.ExportMetadata(Singletons.MetadataInfo);
          var model = new PokemonModel(template.RawData.ToArray(), metadata);
          return model;
       }
