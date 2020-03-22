@@ -56,9 +56,10 @@
     <Compile Include="Models\Runs\AsciiRun.cs" />
     <Compile Include="Models\Runs\EggMoveRun.cs" />
     <Compile Include="Models\Runs\HeaderRow.cs" />
-    <Compile Include="Models\Runs\LZRun.cs" />
+    <Compile Include="Models\Runs\Compressed.cs" />
     <Compile Include="Models\Runs\ModelCacheScope.cs" />
     <Compile Include="Models\Runs\PLMRun.cs" />
+    <Compile Include="Models\Runs\Sprites.cs" />
     <Compile Include="Models\Runs\TableStreamRun.cs" />
     <Compile Include="Models\Runs\TrainerPokemonTeamRun.cs" />
     <Compile Include="Models\Runs\WordRun.cs" />

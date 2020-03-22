@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 
-namespace HavenSoft.HexManiac.Core.Models.Runs {
+namespace HavenSoft.HexManiac.Core.Models.Runs.Compressed {
    public class LZRun : BaseRun, IStreamRun {
       public IDataModel Model { get; }
 
@@ -322,7 +322,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             for (int i = 0; i < 8 && cacheIndex < cache.Length; i++) {
                if (IsNextTokenCompressed(ref bitfield)) {
                   if (cacheIndex + 2 > cache.Length) {
-                     cache[cacheIndex] = None.Instance;
+                     cache[cacheIndex] = LzUncompressed.Instance;
                      cacheIndex++;
                   } else {
                      var (runLength, runOffset) = ReadCompressedToken(data, ref start);
@@ -368,9 +368,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class SpriteRun : LZRun {
       public SpriteFormat SpriteFormat { get; }
 
+      public override string FormatString { get; }
+
       public SpriteRun(SpriteFormat spriteFormat, IDataModel data, int start, IReadOnlyList<int> sources)
          : base(data, start, sources) {
          SpriteFormat = spriteFormat;
+         FormatString = $"`lzs{spriteFormat.BitsPerPixel}x{spriteFormat.TileWidth}x{spriteFormat.TileHeight}`";
       }
 
       public static bool TryParseSpriteFormat(string pointerFormat, out SpriteFormat spriteFormat) {
@@ -404,9 +407,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class PaletteRun : LZRun {
       public PaletteFormat PaletteFormat { get; }
 
+      public override string FormatString { get; }
+
       public PaletteRun(PaletteFormat paletteFormat, IDataModel data, int start, IReadOnlyList<int> sources)
          : base(data,start,sources){
          PaletteFormat = paletteFormat;
+         FormatString = $"`lzp{paletteFormat.Bits}`";
       }
 
       public static bool TryParsePaletteFormat(string pointerFormat, out PaletteFormat paletteFormat) {
