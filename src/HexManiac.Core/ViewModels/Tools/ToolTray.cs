@@ -35,7 +35,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ICommand StringToolCommand => stringToolCommand;
       public ICommand TableToolCommand => tableToolCommand;
       public ICommand CodeToolCommand => codeToolCommand;
-      public ICommand SpriteToolCommand => SpriteToolCommand;
+      public ICommand SpriteToolCommand => spriteToolCommand;
 
       public PCSTool StringTool => (PCSTool)tools[1];
 

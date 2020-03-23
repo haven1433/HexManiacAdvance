@@ -21,10 +21,10 @@
       </DockPanel>
       <!-- Tool Headers -->
       <StackPanel DockPanel.Dock="Left" Visibility="{Binding HasTools, Converter={StaticResource BoolToVisibility}}">
-         <Button Content="Table" Command="{Binding Tools.TableToolCommand}" Margin="0,2">
-            <Button.LayoutTransform>
-               <RotateTransform Angle="-90"/>
-            </Button.LayoutTransform>
+         <StackPanel.Resources>
+            <RotateTransform x:Key="Sideways" Angle="-90"/>
+         </StackPanel.Resources>
+         <Button Content="Table" Command="{Binding Tools.TableToolCommand}" Margin="0,2" LayoutTransform="{StaticResource Sideways}">
             <Button.Style>
                <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                   <Style.Triggers>
@@ -35,10 +35,7 @@
                </Style>
             </Button.Style>
          </Button>
-         <Button Content="Text" Command="{Binding Tools.StringToolCommand}" Margin="0,2">
-            <Button.LayoutTransform>
-               <RotateTransform Angle="-90"/>
-            </Button.LayoutTransform>
+         <Button Content="Text" Command="{Binding Tools.StringToolCommand}" Margin="0,2" LayoutTransform="{StaticResource Sideways}">
             <Button.Style>
                <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                   <Style.Triggers>
@@ -49,14 +46,22 @@
                </Style>
             </Button.Style>
          </Button>
-         <Button Content="Code" Command="{Binding Tools.CodeToolCommand}" Margin="0,2">
-            <Button.LayoutTransform>
-               <RotateTransform Angle="-90"/>
-            </Button.LayoutTransform>
+         <Button Content="Image" Command="{Binding Tools.SpriteToolCommand}" Margin="0,2" LayoutTransform="{StaticResource Sideways}">
             <Button.Style>
                <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                   <Style.Triggers>
                      <DataTrigger Binding="{Binding Tools.SelectedIndex}" Value="2">
+                        <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                     </DataTrigger>
+                  </Style.Triggers>
+               </Style>
+            </Button.Style>
+         </Button>
+         <Button Content="Code" Command="{Binding Tools.CodeToolCommand}" Margin="0,2" LayoutTransform="{StaticResource Sideways}">
+            <Button.Style>
+               <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                  <Style.Triggers>
+                     <DataTrigger Binding="{Binding Tools.SelectedIndex}" Value="3">
                         <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
                      </DataTrigger>
                   </Style.Triggers>
@@ -283,12 +288,31 @@
                <Rectangle Name="ManualHighlight" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="14" Fill="{DynamicResource Accent}" Opacity=".4"/>
             </Grid>
          </DockPanel>
-         <DockPanel Name="CodeToolPanel">
+         <DockPanel Name="ImageToolPanel">
             <DockPanel.Style>
                <Style TargetType="DockPanel">
                   <Setter Property="Visibility" Value="Collapsed"/>
                   <Style.Triggers>
                      <DataTrigger Binding="{Binding SelectedIndex}" Value="2">
+                        <Setter Property="Visibility" Value="Visible"/>
+                     </DataTrigger>
+                  </Style.Triggers>
+               </Style>
+            </DockPanel.Style>
+            <TextBlock Text="Image Address:" Margin="5,15,0,0" DockPanel.Dock="Top"/>
+            <TextBox Text="{Binding SpriteTool.SpriteAddress, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5" DockPanel.Dock="Top"/>
+
+            <TextBlock Text="Palette Address:" Margin="5,15,0,0" DockPanel.Dock="Top"/>
+            <TextBox Text="{Binding SpriteTool.PaletteAddress, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5" DockPanel.Dock="Top"/>
+
+            <Decorator Name="TODO"/>
+         </DockPanel>
+         <DockPanel Name="CodeToolPanel">
+            <DockPanel.Style>
+               <Style TargetType="DockPanel">
+                  <Setter Property="Visibility" Value="Collapsed"/>
+                  <Style.Triggers>
+                     <DataTrigger Binding="{Binding SelectedIndex}" Value="3">
                         <Setter Property="Visibility" Value="Visible"/>
                      </DataTrigger>
                   </Style.Triggers>
