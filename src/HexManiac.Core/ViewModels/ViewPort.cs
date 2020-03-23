@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Compressed;
+using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
@@ -193,22 +194,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void UpdateToolsFromSelection(int dataIndex) {
          var run = Model.GetNextRun(dataIndex);
+         if (run.Start > dataIndex) return;
 
-         using (ModelCacheScope.CreateScope(Model)) {
-            if (run.Start <= dataIndex && run is ITableRun array) {
+            using (ModelCacheScope.CreateScope(Model)) {
+            if (run is ISpriteRun) {
+               tools.SpriteTool.SpriteAddress = run.Start;
+               tools.SelectedIndex = tools.IndexOf(tools.SpriteTool);
+            } else if (run is IPaletteRun) {
+               tools.SpriteTool.PaletteAddress = run.Start;
+               tools.SelectedIndex = tools.IndexOf(tools.SpriteTool);
+            } else if (run is ITableRun array) {
                var offsets = array.ConvertByteOffsetToArrayOffset(dataIndex);
                Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
                Tools.TableTool.Address = array.Start + array.ElementLength * offsets.ElementIndex;
-               if (!Tools.StringTool.Enabled && tools.SelectedTool == tools.StringTool) {
-                  Tools.SelectedIndex = Tools.IndexOf(Tools.TableTool);
+               if (!(run is IStreamRun) || tools.SelectedTool != tools.StringTool) {
+                  tools.SelectedIndex = tools.IndexOf(tools.TableTool);
                }
-            } else if (run.Start <= dataIndex && run is IStreamRun) {
+            } else if (run is IStreamRun) {
                Tools.StringTool.Address = run.Start;
-               if (tools.SelectedTool == tools.TableTool) {
-                  Tools.SelectedIndex = Tools.IndexOf(Tools.StringTool);
-               }
+               tools.SelectedIndex = tools.IndexOf(tools.StringTool);
             } else {
-               // not a table or stream, so don't update table/stream tools
+               // not a special run, so don't update tools
             }
          }
 
@@ -791,11 +797,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             length = 2;
          } else if (pointerSegment.InnerFormat == TrainerPokemonTeamRun.SharedFormatString) {
             length = new TrainerPokemonTeamRun(Model, -1, new[] { pointer }).Length;
-         } else if (SpriteRun.TryParseSpriteFormat(pointerSegment.InnerFormat, out var spriteFormat)) {
+         } else if (Models.Runs.Compressed.SpriteRun.TryParseSpriteFormat(pointerSegment.InnerFormat, out var spriteFormat)) {
             // TODO
             throw new NotImplementedException();
             // length = new SpriteRun(spriteFormat, Model, -1, new[] { pointer }).Length;
-         } else if (PaletteRun.TryParsePaletteFormat(pointerSegment.InnerFormat, out var paletteFormat)) {
+         } else if (Models.Runs.Compressed.PaletteRun.TryParsePaletteFormat(pointerSegment.InnerFormat, out var paletteFormat)) {
             // TODO
             throw new NotImplementedException();
             // length = new PaletteRun(paletteFormat, Model, -1, new[] { pointer }).Length;
@@ -1226,7 +1232,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             // open tool
             var byteOffset = scroll.ViewPointToDataIndex(new Point(x, y));
             var currentRun = Model.GetNextRun(byteOffset);
-            if (currentRun is IStreamRun) {
+            if (currentRun is ISpriteRun) {
+               tools.SpriteTool.SpriteAddress = currentRun.Start;
+               tools.SelectedIndex = Tools.IndexOf(Tools.SpriteTool);
+            } else if (currentRun is IPaletteRun) {
+               tools.SpriteTool.PaletteAddress = currentRun.Start;
+               tools.SelectedIndex = Tools.IndexOf(Tools.SpriteTool);
+            } else if (currentRun is IStreamRun) {
                Tools.StringTool.Address = currentRun.Start;
                Tools.SelectedIndex = Tools.IndexOf(Tools.StringTool);
             } else if (currentRun is ITableRun array) {

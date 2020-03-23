@@ -11,7 +11,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class ToolTray : ViewModelCore, IToolTrayViewModel {
       private readonly IList<IToolViewModel> tools;
       private readonly StubCommand hideCommand;
-      private readonly StubCommand stringToolCommand, tableToolCommand, codeToolCommand;
+      private readonly StubCommand stringToolCommand, tableToolCommand, codeToolCommand, spriteToolCommand;
       private readonly HashSet<Action> deferredWork = new HashSet<Action>();
       private readonly IDataModel model;
 
@@ -35,12 +35,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ICommand StringToolCommand => stringToolCommand;
       public ICommand TableToolCommand => tableToolCommand;
       public ICommand CodeToolCommand => codeToolCommand;
+      public ICommand SpriteToolCommand => SpriteToolCommand;
 
       public PCSTool StringTool => (PCSTool)tools[1];
 
       public TableTool TableTool => (TableTool)tools[0];
 
-      public CodeTool CodeTool => (CodeTool)tools[2];
+      public CodeTool CodeTool => (CodeTool)tools[3];
+
+      public SpriteTool SpriteTool => (SpriteTool)tools[2];
 
       private StubDisposable currentDeferralToken;
       public IDisposable DeferUpdates {
@@ -68,24 +71,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          tools = new IToolViewModel[] {
             new TableTool(model, selection, history, viewPort, this),
             new PCSTool(model, selection, history, this),
+            new SpriteTool(),
             new CodeTool(singletons, model, selection, history),
          };
 
-         stringToolCommand = new StubCommand {
+         StubCommand commandFor(int i) => new StubCommand {
             CanExecute = ICommandExtensions.CanAlwaysExecute,
-            Execute = arg => SelectedIndex = selectedIndex == 1 ? -1 : 1,
+            Execute = arg => SelectedIndex = selectedIndex == i ? -1 : i,
          };
 
-         tableToolCommand = new StubCommand {
-            CanExecute = ICommandExtensions.CanAlwaysExecute,
-            Execute = arg => SelectedIndex = selectedIndex == 0 ? -1 : 0,
-         };
-
-         codeToolCommand = new StubCommand {
-            CanExecute = ICommandExtensions.CanAlwaysExecute,
-            Execute = arg => SelectedIndex = selectedIndex == 2 ? -1 : 2,
-         };
-
+         tableToolCommand = commandFor(0);
+         stringToolCommand = commandFor(1);
+         spriteToolCommand = commandFor(2);
+         codeToolCommand = commandFor(3);
+         
          hideCommand = new StubCommand {
             CanExecute = arg => SelectedIndex != -1,
             Execute = arg => SelectedIndex = -1,
@@ -96,6 +95,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          StringTool.OnError += (sender, e) => OnError?.Invoke(this, e);
          TableTool.OnError += (sender, e) => OnError?.Invoke(this, e);
          TableTool.OnMessage += (sender, e) => OnMessage?.Invoke(this, e);
+         SpriteTool.OnMessage += (sender, e) => OnMessage?.Invoke(this, e);
          TableTool.RequestMenuClose += (sender, e) => RequestMenuClose?.Invoke(this, e);
       }
 

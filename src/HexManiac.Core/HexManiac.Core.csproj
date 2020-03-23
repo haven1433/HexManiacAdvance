@@ -80,6 +80,7 @@
     <Compile Include="ViewModels\Tools\PagedElementViewModel.cs" />
     <Compile Include="ViewModels\Tools\PaletteElementViewModel.cs" />
     <Compile Include="ViewModels\Tools\SpriteElementViewModel.cs" />
+    <Compile Include="ViewModels\Tools\SpriteTool.cs" />
     <Compile Include="ViewModels\Tools\StreamElementViewModel.cs" />
     <Compile Include="ViewModels\Tools\TextStreamElementViewModel.cs" />
     <Compile Include="ViewModels\Visitors\CompleteCellEdit.cs" />

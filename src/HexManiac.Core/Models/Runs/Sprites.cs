@@ -23,7 +23,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public override string FormatString { get; }
 
-      public SpriteRun(int start, int bitsPerPixel, int tileWidth, int tileHeight, IReadOnlyList<int> sources) : base(start, sources) {
+      public SpriteRun(int start, int bitsPerPixel, int tileWidth, int tileHeight, IReadOnlyList<int> sources = null) : base(start, sources) {
          this.bitsPerPixel = bitsPerPixel;
          this.tileWidth = tileWidth;
          this.tileHeight = tileHeight;
@@ -86,7 +86,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public override string FormatString { get; }
 
-      public PaletteRun(int start, int bits, IReadOnlyList<int> sources) : base(start, sources) {
+      public PaletteRun(int start, int bits, IReadOnlyList<int> sources = null) : base(start, sources) {
          this.bits = bits;
          Length = 2 * (int)Math.Pow(2, bits);
          FormatString = $"`ucp{bits}`";

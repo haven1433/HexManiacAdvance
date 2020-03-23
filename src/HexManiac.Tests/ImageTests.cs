@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Compressed;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
@@ -221,6 +222,18 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.ExpandSelection(0, 0);
 
          Assert.True(ViewPort.IsSelected(new Point(7, 0)));
+      }
+
+      [Fact]
+      public void ImageToolExists() {
+         Model.ObserveRunWritten(ViewPort.CurrentChange, new Core.Models.Runs.Sprites.SpriteRun(0x10, 4, 2, 2));
+         Model.ObserveRunWritten(ViewPort.CurrentChange, new Core.Models.Runs.Sprites.PaletteRun(0x100, 4));
+         ViewPort.SelectionStart = new Point(2, 2);
+         var tools = ViewPort.Tools;
+
+         Assert.Equal(tools.IndexOf(tools.SpriteTool), tools.SelectedIndex);
+         Assert.Equal(0x10, tools.SpriteTool.SpriteAddress);
+         Assert.Equal(Pointer.NULL, tools.SpriteTool.PaletteAddress);
       }
 
       private void CreateLzRun(int start, params byte[] data) {

@@ -22,12 +22,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       ICommand StringToolCommand { get; }
       ICommand TableToolCommand { get; }
       ICommand CodeToolCommand { get; }
+      ICommand SpriteToolCommand { get; }
 
       PCSTool StringTool { get; }
 
       TableTool TableTool { get; }
 
       CodeTool CodeTool { get; }
+
+      SpriteTool SpriteTool { get; }
 
       IDisposable DeferUpdates { get; }
 
