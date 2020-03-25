@@ -135,14 +135,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          
          var defaultPalette = new List<short>();
          int desiredCount = (int)Math.Pow(2, byteLength / 8);
-         for (int i = 0; i < desiredCount; i++) {
-            var shade = 0b11111 * i / (desiredCount - 1);
-            var color = (shade << 10) | (shade << 5) | shade;
-            defaultPalette.Add((short)color);
-         }
-         Palette = defaultPalette;
+         Palette = CreateDefaultPalette(desiredCount);
       }
 
       // TODO include horizontal/vertical flip information
+
+      public static short[] CreateDefaultPalette(int desiredCount) {
+         var palette = new short[desiredCount];
+         for (int i = 0; i < desiredCount; i++) {
+            var shade = 0b11111 * i / (desiredCount - 1);
+            var color = (shade << 10) | (shade << 5) | shade;
+            palette[i] = (short)color;
+         }
+         return palette;
+      }
    }
 }

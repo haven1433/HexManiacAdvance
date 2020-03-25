@@ -35,6 +35,13 @@ namespace HavenSoft.HexManiac.Core {
          return -1;
       }
 
+      public static int IndexOf<T>(this T[] list, T element) where T : IEquatable<T> {
+         for (int i = 0; i < list.Length; i++) {
+            if (list[i].Equals(element)) return i;
+         }
+         return -1;
+      }
+
       public static string[] Split(this string self, string token) => self.Split(new[] { token }, StringSplitOptions.None);
 
       public static bool IsAny<T>(this T self, params T[] options) {

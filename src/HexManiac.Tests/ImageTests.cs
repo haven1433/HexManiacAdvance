@@ -234,6 +234,10 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(tools.IndexOf(tools.SpriteTool), tools.SelectedIndex);
          Assert.Equal(0x10, tools.SpriteTool.SpriteAddress);
          Assert.Equal(Pointer.NULL, tools.SpriteTool.PaletteAddress);
+         Assert.False(tools.SpriteTool.PreviousSpritePage.CanExecute(null));
+         Assert.False(tools.SpriteTool.NextSpritePage.CanExecute(null));
+         Assert.False(tools.SpriteTool.PreviousPalettePage.CanExecute(null));
+         Assert.False(tools.SpriteTool.NextPalettePage.CanExecute(null));
       }
 
       private void CreateLzRun(int start, params byte[] data) {

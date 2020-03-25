@@ -305,7 +305,21 @@
             <TextBlock Text="Palette Address:" Margin="5,15,0,0" DockPanel.Dock="Top"/>
             <TextBox Text="{Binding SpriteTool.PaletteAddress, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5" DockPanel.Dock="Top"/>
 
-            <Decorator Name="TODO"/>
+            <ItemsControl ItemsSource="{Binding SpriteTool}">
+               <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                     <UniformGrid Columns="{Binding PixelWidth}" Rows="{Binding PixelHeight}" />
+                  </ItemsPanelTemplate>
+               </ItemsControl.ItemsPanel>
+               <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                     <Rectangle Fill="{Binding Converter={StaticResource PaletteColorConverter}}" />
+                  </DataTemplate>
+               </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <!-- TODO sprite paging control -->
+            <!-- TODO palette viewer -->
+            <!-- TODO palette paging control -->
          </DockPanel>
          <DockPanel Name="CodeToolPanel">
             <DockPanel.Style>
