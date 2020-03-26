@@ -379,8 +379,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Compressed {
       public static bool TryParseSpriteFormat(string pointerFormat, out SpriteFormat spriteFormat) {
          spriteFormat = default;
          if (!pointerFormat.StartsWith("`lzs") || !pointerFormat.EndsWith("`")) return false;
-         var formatContent = pointerFormat.Substring(4);
-         formatContent = formatContent.Substring(0, formatContent.Length - 1);
+         return TryParseDimensions(pointerFormat, out spriteFormat);
+      }
+
+      public static bool TryParseDimensions(string format, out SpriteFormat spriteFormat) {
+         spriteFormat = default;
+         var formatContent = format.Substring(4, format.Length - 5);
          var dimensionsAsText = formatContent.Split('x');
          if (dimensionsAsText.Length != 3) return false;
          if (!int.TryParse(dimensionsAsText[0], out var bitsPerPixel)) return false;
@@ -418,8 +422,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Compressed {
       public static bool TryParsePaletteFormat(string pointerFormat, out PaletteFormat paletteFormat) {
          paletteFormat = default;
          if (!pointerFormat.StartsWith("`lzp") || !pointerFormat.EndsWith("`")) return false;
-         var formatContent = pointerFormat.Substring(4);
-         formatContent = formatContent.Substring(0, formatContent.Length - 1);
+         return TryParseDimensions(pointerFormat, out paletteFormat);
+      }
+
+      public static bool TryParseDimensions(string format, out PaletteFormat paletteFormat) {
+         paletteFormat = default;
+         var formatContent = format.Substring(4, format.Length - 5);
          if (!int.TryParse(formatContent, out var bits)) return false;
          paletteFormat = new PaletteFormat(bits);
          return true;

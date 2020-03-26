@@ -268,7 +268,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          try {
             instruction = new Instruction(parts[0].Trim(), parts[1].Trim());
-         } catch (ArgumentException e) {
+         } catch (ArgumentException) {
             Debugger.Break();
             return false;
          }

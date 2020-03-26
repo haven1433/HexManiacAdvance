@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+﻿using HavenSoft.HexManiac.Core.Models.Runs.Compressed;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
 
@@ -29,6 +30,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          this.tileHeight = tileHeight;
          Length = tileWidth * tileHeight * bitsPerPixel * 8;
          FormatString = $"`ucs{bitsPerPixel}x{tileWidth}x{tileHeight}`";
+      }
+
+      public static bool TryParseSpriteFormat(string pointerFormat, out SpriteFormat spriteFormat) {
+         spriteFormat = default;
+         if (!pointerFormat.StartsWith("`ucs") || !pointerFormat.EndsWith("`")) return false;
+         return Compressed.SpriteRun.TryParseDimensions(pointerFormat, out spriteFormat);
       }
 
       // not actually LZ, but it is uncompressed and acts much the same way.
@@ -90,6 +97,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          this.bits = bits;
          Length = 2 * (int)Math.Pow(2, bits);
          FormatString = $"`ucp{bits}`";
+      }
+
+      public static bool TryParsePaletteFormat(string pointerFormat, out PaletteFormat paletteFormat) {
+         paletteFormat = default;
+         if (!pointerFormat.StartsWith("`ucp") || !pointerFormat.EndsWith("`")) return false;
+         return Compressed.PaletteRun.TryParseDimensions(pointerFormat, out paletteFormat);
       }
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) => LzUncompressed.Instance;

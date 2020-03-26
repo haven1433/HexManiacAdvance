@@ -1610,8 +1610,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             // anchor format will only end once the user
             // -> types a whitespace character,
             // -> types a closing quote for the text format ""
-            // -> types a closing quote for the plm format `plm`
-            if (!char.IsWhiteSpace(endingCharacter) && !currentText.EndsWith(PCSRun.SharedFormatString) && !currentText.EndsWith(PLMRun.SharedFormatString)) {
+            // -> types a closing ` for a `` format
+            if (!char.IsWhiteSpace(endingCharacter) && !currentText.EndsWith(AsciiRun.StreamDelimeter.ToString())) {
+               AnchorTextVisible = true;
+               return true;
+            }
+
+            // special case: `asc` has a length token outside the ``, so the anchor isn't completed if it ends with `asc`
+            if (currentText.EndsWith("`asc`")) {
                AnchorTextVisible = true;
                return true;
             }
@@ -1660,7 +1666,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          // if it's an unnamed text/stream anchor, we have special logic for that
          using (ModelCacheScope.CreateScope(Model)) {
-            if (underEdit.CurrentText == AnchorStart + PCSRun.SharedFormatString) {
+            if (underEdit.CurrentText.Trim() == AnchorStart + PCSRun.SharedFormatString) {
                int count = Model.ConsiderResultsAsTextRuns(history.CurrentChange, new[] { index });
                if (count == 0) {
                   errorInfo = new ErrorInfo("An anchor with nothing pointing to it must have a name.");

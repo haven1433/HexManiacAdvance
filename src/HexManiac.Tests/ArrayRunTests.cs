@@ -818,8 +818,8 @@ namespace HavenSoft.HexManiac.Tests {
          var model = new PokemonModel(data);
          WriteStrings(data, 0x10, "This is a song!");
          ArrayRun.TryParse(model, "^[content<>]1", 0x00, null, out var array);
-         model.ObserveAnchorWritten(changeToken, "array", array);
          model.WritePointer(changeToken, 0x00, 0x10);
+         model.ObserveAnchorWritten(changeToken, "array", array);
 
          // there is a pointer at 0x00 that points to 0x10
          // but we know about it via an array
@@ -843,8 +843,8 @@ namespace HavenSoft.HexManiac.Tests {
          var model = new PokemonModel(data);
          WriteStrings(data, 0x10, "This is a song!");
          ArrayRun.TryParse(model, "^[content<>]4", 0x00, null, out var array);
-         model.ObserveAnchorWritten(changeToken, "array", array);
          model.WritePointer(changeToken, 0x04, 0x10);
+         model.ObserveAnchorWritten(changeToken, "array", array);
 
          // there is a pointer at 0x00 that points to 0x10
          // but we know about it via an array

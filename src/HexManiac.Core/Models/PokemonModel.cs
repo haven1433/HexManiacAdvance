@@ -1,5 +1,4 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
-using HavenSoft.HexManiac.Core.Models.Runs.Compressed;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
@@ -666,7 +665,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          var destination = ReadPointer(start);
          if (destination < 0 || destination >= Count) return;
          int index = BinarySearch(destination);
-         if (index < 0 && ~index > 0 && runs[~index - 1] is ArrayRun array && array.SupportsPointersToElements && (destination - array.Start) % array.ElementLength == 0) {
+         if (index < 0 && ~index > 0 && runs[~index - 1] is ArrayRun array &&
+            array.SupportsPointersToElements &&
+            array.Start + array.Length > destination &&
+            (destination - array.Start) % array.ElementLength == 0) {
             // the pointer points into an array that supports inner anchors
             index = ~index - 1;
             changeToken.RemoveRun(array);
@@ -750,14 +752,26 @@ namespace HavenSoft.HexManiac.Core.Models {
             var runAttempt = new TrainerPokemonTeamRun(this, run.Start, run.PointerSources);
             ClearFormat(token, run.Start, runAttempt.Length);
             run = runAttempt;
-         } else if (SpriteRun.TryParseSpriteFormat(segment.InnerFormat, out var spriteFormat)) {
-            var runAttempt = new SpriteRun(spriteFormat, this, run.Start, run.PointerSources);
+         } else if (Runs.Compressed.SpriteRun.TryParseSpriteFormat(segment.InnerFormat, out var spriteFormat)) {
+            var runAttempt = new Runs.Compressed.SpriteRun(spriteFormat, this, run.Start, run.PointerSources);
             if (runAttempt.Length > 0) {
                run = runAttempt.MergeAnchor(run.PointerSources);
                ClearFormat(token, run.Start, run.Length);
             }
-         } else if (PaletteRun.TryParsePaletteFormat(segment.InnerFormat, out var paletteFormat)) {
-            var runAttempt = new PaletteRun(paletteFormat, this, run.Start, run.PointerSources);
+         } else if (Runs.Compressed.PaletteRun.TryParsePaletteFormat(segment.InnerFormat, out var paletteFormat)) {
+            var runAttempt = new Runs.Compressed.PaletteRun(paletteFormat, this, run.Start, run.PointerSources);
+            if (runAttempt.Length > 0) {
+               run = runAttempt.MergeAnchor(run.PointerSources);
+               ClearFormat(token, run.Start, run.Length);
+            }
+         } else if (Runs.Sprites.SpriteRun.TryParseSpriteFormat(segment.InnerFormat, out spriteFormat)) {
+            var runAttempt = new Runs.Sprites.SpriteRun(run.Start, spriteFormat.BitsPerPixel, spriteFormat.TileWidth, spriteFormat.TileHeight,run.PointerSources);
+            if (runAttempt.Length > 0) {
+               run = runAttempt.MergeAnchor(run.PointerSources);
+               ClearFormat(token, run.Start, run.Length);
+            }
+         } else if (Runs.Sprites.PaletteRun.TryParsePaletteFormat(segment.InnerFormat, out paletteFormat)) {
+            var runAttempt = new Runs.Sprites.PaletteRun(run.Start, paletteFormat.Bits, run.PointerSources);
             if (runAttempt.Length > 0) {
                run = runAttempt.MergeAnchor(run.PointerSources);
                ClearFormat(token, run.Start, run.Length);
@@ -1480,10 +1494,14 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (run.Length == 0) return new ErrorInfo("Format specified was for pokemon level-up move data, but could not parse that location as level-up move data.");
          } else if (format == TrainerPokemonTeamRun.SharedFormatString) {
             run = new TrainerPokemonTeamRun(model, dataIndex, run.PointerSources);
-         } else if (SpriteRun.TryParseSpriteFormat(format, out var spriteFormat)) {
-            run = new SpriteRun(spriteFormat, model, dataIndex, run.PointerSources);
-         } else if (PaletteRun.TryParsePaletteFormat(format, out var paletteFormat)) {
-            run = new PaletteRun(paletteFormat, model, dataIndex, run.PointerSources);
+         } else if (Runs.Compressed.SpriteRun.TryParseSpriteFormat(format, out var spriteFormat)) {
+            run = new Runs.Compressed.SpriteRun(spriteFormat, model, dataIndex, run.PointerSources);
+         } else if (Runs.Compressed.PaletteRun.TryParsePaletteFormat(format, out var paletteFormat)) {
+            run = new Runs.Compressed.PaletteRun(paletteFormat, model, dataIndex, run.PointerSources);
+         } else if (Runs.Sprites.SpriteRun.TryParseSpriteFormat(format, out spriteFormat)) {
+            run = new Runs.Sprites.SpriteRun(dataIndex, spriteFormat.BitsPerPixel, spriteFormat.TileWidth, spriteFormat.TileHeight, run.PointerSources);
+         } else if (Runs.Sprites.PaletteRun.TryParsePaletteFormat(format, out paletteFormat)) {
+            run = new Runs.Sprites.PaletteRun(dataIndex, paletteFormat.Bits, run.PointerSources);
          } else {
             var errorInfo = TryParse(model, name, format, dataIndex, null, out var arrayRun);
             if (errorInfo == ErrorInfo.NoError) {

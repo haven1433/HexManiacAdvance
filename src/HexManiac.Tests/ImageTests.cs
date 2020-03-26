@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Compressed;
+using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using Xunit;
 
@@ -238,6 +239,19 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.False(tools.SpriteTool.NextSpritePage.CanExecute(null));
          Assert.False(tools.SpriteTool.PreviousPalettePage.CanExecute(null));
          Assert.False(tools.SpriteTool.NextPalettePage.CanExecute(null));
+      }
+
+      [Fact]
+      public void CanAddUncompressedImageRunsFromViewPort() {
+         ViewPort.Edit("^sprite`ucs4x2x2`");
+         var run = Model.GetNextRun(0);
+         Assert.Equal(32 * 2 * 2, run.Length);
+         Assert.IsAssignableFrom<ISpriteRun>(run);
+
+         ViewPort.Edit("@100 ^pal`ucp4`");
+         run = Model.GetNextRun(0x100);
+         Assert.Equal(32, run.Length);
+         Assert.IsAssignableFrom<IPaletteRun>(run);
       }
 
       private void CreateLzRun(int start, params byte[] data) {
