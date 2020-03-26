@@ -53,11 +53,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                var tileStart = ((y * tileWidth) + x) * 32 + Start;
                int xOffset = x * 8;
                for (int i = 0; i < 32; i++) {
-                  int xx = i % 4;
-                  int yy = i / 4;
+                  int xx = i % 4; // ranges from 0 to 3
+                  int yy = i / 4; // ranges from 0 to 7
                   byte raw = model[tileStart + i];
-                  result[xOffset + xx + 0, yOffset + yy] = raw >> 4;
-                  result[xOffset + xx + 1, yOffset + yy] = (raw & 0xF);
+                  result[xOffset + xx * 2 + 0, yOffset + yy] = (raw & 0xF);
+                  result[xOffset + xx * 2 + 1, yOffset + yy] = raw >> 4;
                }
             }
          }

@@ -1,6 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
@@ -9,7 +8,6 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
    public class TileImage : Image {
@@ -29,9 +27,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          UpdateSource();
       }
 
-      private void HandleDataContextPropertyChanged(object sender, PropertyChangedEventArgs e) {
-         UpdateSource();
-      }
+      private void HandleDataContextPropertyChanged(object sender, PropertyChangedEventArgs e) => UpdateSource();
 
       public void UpdateSource() {
          var bitsPerPixel = 4; // TODO
@@ -67,6 +63,31 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {
          throw new NotImplementedException();
+      }
+   }
+
+   public class PixelImage : Image {
+      private SpriteTool ViewModel => (SpriteTool)DataContext;
+      public PixelImage() {
+         DataContextChanged += (sender, e) => UpdateDataContext(e);
+         Stretch = Stretch.None;
+      }
+      private void UpdateDataContext(DependencyPropertyChangedEventArgs e) {
+         var oldValue = e.OldValue as INotifyPropertyChanged;
+         if (oldValue != null) oldValue.PropertyChanged -= HandleDataContextPropertyChanged;
+         var newValue = e.NewValue as INotifyPropertyChanged;
+         if (newValue != null) newValue.PropertyChanged += HandleDataContextPropertyChanged;
+         UpdateSource();
+      }
+      private void HandleDataContextPropertyChanged(object sender, PropertyChangedEventArgs e) => UpdateSource();
+      public void UpdateSource() {
+         if (DataContext == null) return;
+         var pixels = ViewModel.ToArray();
+         if (pixels.Length == 0) { Source = null; return; }
+         int stride = ViewModel.PixelWidth * 2;
+         var format = PixelFormats.Bgr555;
+         var source = BitmapSource.Create(ViewModel.PixelWidth, ViewModel.PixelHeight, 96, 96, format, null, pixels, stride);
+         Source = source;
       }
    }
 }

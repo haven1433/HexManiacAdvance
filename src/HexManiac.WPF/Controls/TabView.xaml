@@ -288,7 +288,7 @@
                <Rectangle Name="ManualHighlight" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="14" Fill="{DynamicResource Accent}" Opacity=".4"/>
             </Grid>
          </DockPanel>
-         <DockPanel Name="ImageToolPanel">
+         <DockPanel Width="265" Name="ImageToolPanel">
             <DockPanel.Style>
                <Style TargetType="DockPanel">
                   <Setter Property="Visibility" Value="Collapsed"/>
@@ -305,18 +305,12 @@
             <TextBlock Text="Palette Address:" Margin="5,15,0,0" DockPanel.Dock="Top"/>
             <TextBox Text="{Binding SpriteTool.PaletteAddress, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5" DockPanel.Dock="Top"/>
 
-            <ItemsControl ItemsSource="{Binding SpriteTool}">
-               <ItemsControl.ItemsPanel>
-                  <ItemsPanelTemplate>
-                     <UniformGrid Columns="{Binding PixelWidth}" Rows="{Binding PixelHeight}" />
-                  </ItemsPanelTemplate>
-               </ItemsControl.ItemsPanel>
-               <ItemsControl.ItemTemplate>
-                  <DataTemplate>
-                     <Rectangle Fill="{Binding Converter={StaticResource PaletteColorConverter}}" />
-                  </DataTemplate>
-               </ItemsControl.ItemTemplate>
-            </ItemsControl>
+            <hsg3hv:PixelImage DataContext="{Binding SpriteTool}" SnapsToDevicePixels="True">
+                <hsg3hv:PixelImage.LayoutTransform>
+                    <ScaleTransform ScaleX="2" ScaleY="2" />
+                </hsg3hv:PixelImage.LayoutTransform>
+            </hsg3hv:PixelImage>
+             
             <!-- TODO sprite paging control -->
             <!-- TODO palette viewer -->
             <!-- TODO palette paging control -->
