@@ -77,15 +77,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public int PaletteHeight { get; private set; }
 
       public short this[int i] {
-         get {
-            var color = palette[pixels[i % PixelWidth, i / PixelWidth]];
-            // the view wants the color channels flipped
-            // because color formats are weird
-            var r = ((color >> 10) & 0x1F);
-            var g = ((color >> 5) & 0x1F);
-            var b = ((color >> 0) & 0x1F);
-            return (short)((b << 10) | (g << 5) | (r << 0));
-         }
+         get => palette[pixels[i % PixelWidth, i / PixelWidth]];
          set {
             pixels[i % PixelWidth, i / PixelWidth] = palette.IndexOf(value);
             var run = model.GetNextRun(spriteAddress) as ISpriteRun;

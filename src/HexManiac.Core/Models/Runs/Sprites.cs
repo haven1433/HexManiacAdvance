@@ -112,7 +112,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public IReadOnlyList<short> GetPalette(IDataModel model, int page) {
          var results = new List<short>();
          for (int i = 0; i < Length; i += 2) {
-            results.Add((short)model.ReadMultiByteValue(Start + i, 2));
+            var color = model.ReadMultiByteValue(Start + i, 2);
+            // the view wants the color channels flipped
+            // because color formats in the gba are weird
+            var r = ((color >> 10) & 0x1F);
+            var g = ((color >> 5) & 0x1F);
+            var b = ((color >> 0) & 0x1F);
+            results.Add((short)((b << 10) | (g << 5) | (r << 0)));
          }
          return results;
       }

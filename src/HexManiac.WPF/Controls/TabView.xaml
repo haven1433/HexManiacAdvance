@@ -288,9 +288,9 @@
                <Rectangle Name="ManualHighlight" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="14" Fill="{DynamicResource Accent}" Opacity=".4"/>
             </Grid>
          </DockPanel>
-         <DockPanel Width="265" Name="ImageToolPanel">
-            <DockPanel.Style>
-               <Style TargetType="DockPanel">
+         <ScrollViewer Width="265" Name="ImageToolPanel" VerticalScrollBarVisibility="Visible">
+            <ScrollViewer.Style>
+               <Style TargetType="ScrollViewer">
                   <Setter Property="Visibility" Value="Collapsed"/>
                   <Style.Triggers>
                      <DataTrigger Binding="{Binding SelectedIndex}" Value="2">
@@ -298,24 +298,44 @@
                      </DataTrigger>
                   </Style.Triggers>
                </Style>
-            </DockPanel.Style>
-            <TextBlock Text="Image Address:" Margin="5,15,0,0" DockPanel.Dock="Top"/>
-            <TextBox Text="{Binding SpriteTool.SpriteAddress, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5" DockPanel.Dock="Top"/>
+            </ScrollViewer.Style>
+            <StackPanel>
+               <TextBlock Text="Image Address:" Margin="5,15,0,0" />
+               <TextBox Text="{Binding SpriteTool.SpriteAddress, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5" />
 
-            <TextBlock Text="Palette Address:" Margin="5,15,0,0" DockPanel.Dock="Top"/>
-            <TextBox Text="{Binding SpriteTool.PaletteAddress, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5" DockPanel.Dock="Top"/>
+               <TextBlock Text="Palette Address:" Margin="5,15,0,0" DockPanel.Dock="Top"/>
+               <TextBox Text="{Binding SpriteTool.PaletteAddress, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5" />
 
-            <hsg3hv:PixelImage DataContext="{Binding SpriteTool}" SnapsToDevicePixels="True">
-                <hsg3hv:PixelImage.LayoutTransform>
-                    <ScaleTransform ScaleX="2" ScaleY="2" />
-                </hsg3hv:PixelImage.LayoutTransform>
-            </hsg3hv:PixelImage>
-             
-            <!-- TODO sprite paging control -->
-            <!-- TODO palette viewer -->
+               <hsg3hv:PixelImage DataContext="{Binding SpriteTool}" SnapsToDevicePixels="True">
+                  <hsg3hv:PixelImage.LayoutTransform>
+                     <ScaleTransform ScaleX="2" ScaleY="2" />
+                  </hsg3hv:PixelImage.LayoutTransform>
+               </hsg3hv:PixelImage>
+
+               <!-- TODO sprite paging control -->
+               <ItemsControl HorizontalAlignment="Center" SnapsToDevicePixels="True" ItemsSource="{Binding SpriteTool.Palette}">
+                  <ItemsControl.ItemsPanel>
+                     <ItemsPanelTemplate>
+                        <UniformGrid Columns="{Binding SpriteTool.PaletteWidth}" Rows="{Binding SpriteTool.PaletteHeight}"/>
+                     </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                     <DataTemplate>
+                        <Rectangle Fill="{Binding Converter={StaticResource PaletteColorConverter}}" Width="14" Height="14">
+                           <Rectangle.Stroke>
+                              <LinearGradientBrush>
+                                 <GradientStop Color="Black" Offset="0" />
+                                 <GradientStop Color="White" Offset="1" />
+                              </LinearGradientBrush>
+                           </Rectangle.Stroke>
+                        </Rectangle>
+                     </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+               </ItemsControl>
+            </StackPanel>
             <!-- TODO palette paging control -->
-         </DockPanel>
-         <DockPanel Name="CodeToolPanel">
+         </ScrollViewer>
+      <DockPanel Name="CodeToolPanel">
             <DockPanel.Style>
                <Style TargetType="DockPanel">
                   <Setter Property="Visibility" Value="Collapsed"/>
