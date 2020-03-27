@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 
@@ -365,10 +366,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Compressed {
       }
    }
 
-   public class SpriteRun : LZRun {
+   public class SpriteRun : LZRun, ISpriteRun {
       public SpriteFormat SpriteFormat { get; }
 
       public override string FormatString { get; }
+
+      public int Pages {
+         get {
+            var length = Model.ReadMultiByteValue(Start + 1, 3);
+            return length / SpriteFormat.ExpectedByteLength;
+         }
+      }
 
       public SpriteRun(SpriteFormat spriteFormat, IDataModel data, int start, IReadOnlyList<int> sources)
          : base(data, start, sources) {
@@ -395,6 +403,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Compressed {
       }
 
       protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new SpriteRun(SpriteFormat, Model, Start, newPointerSources);
+
+      public int[,] GetPixels(IDataModel model, int page) {
+         var data = Decompress(model, Start);
+         return Sprites.SpriteRun.GetPixels(data, SpriteFormat.ExpectedByteLength * page, SpriteFormat.TileWidth, SpriteFormat.TileHeight);
+      }
+
+      public ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels) {
+         throw new NotImplementedException();
+      }
    }
 
    public struct SpriteFormat {
@@ -408,10 +425,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Compressed {
       }
    }
 
-   public class PaletteRun : LZRun {
+   public class PaletteRun : LZRun, IPaletteRun {
       public PaletteFormat PaletteFormat { get; }
 
       public override string FormatString { get; }
+
+      public int Pages => PaletteFormat.Bits;
 
       public PaletteRun(PaletteFormat paletteFormat, IDataModel data, int start, IReadOnlyList<int> sources)
          : base(data,start,sources){
@@ -434,6 +453,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Compressed {
       }
 
       protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new PaletteRun(PaletteFormat, Model, Start, newPointerSources);
+
+      public IReadOnlyList<short> GetPalette(IDataModel model, int page) {
+         var data = Decompress(model, Start);
+         var colorCount = (int)Math.Pow(2, PaletteFormat.Bits);
+         var pageLength = colorCount * 2;
+         return Sprites.PaletteRun.GetPalette(data, page * pageLength, colorCount);
+      }
+
+      public IPaletteRun SetPalette(IDataModel model, ModelDelta token, int page, IReadOnlyList<short> colors) {
+         throw new NotImplementedException();
+      }
    }
 
    public struct PaletteFormat {

@@ -46,9 +46,9 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       public static Color Convert16BitColor(short color) {
-         byte b = (byte)((color >> 10) & 0b11111);
+         byte b = (byte)((color >> 0) & 0b11111);
          byte g = (byte)((color >> 5) & 0b11111);
-         byte r = (byte)((color >> 0) & 0b11111);
+         byte r = (byte)((color >> 10) & 0b11111);
 
          return Color.FromArgb(255, (byte)(r << 3), (byte)(g << 3), (byte)(b << 3));
       }

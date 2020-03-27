@@ -45,17 +45,24 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       // TODO support values other than 4bpp
       public int[,] GetPixels(IDataModel model, int page) {
-         // convert from raw values to palette-index values
+         var pageSize = 8 * bitsPerPixel * tileWidth * tileHeight;
+         return GetPixels(model, Start + page * pageSize, tileWidth, tileHeight);
+      }
+
+      /// <summary>
+      /// convert from raw values to palette-index values
+      /// </summary>
+      public static int[,] GetPixels(IReadOnlyList<byte> data, int start, int tileWidth, int tileHeight) {
          var result = new int[8 * tileWidth, 8 * tileHeight];
          for (int y = 0; y < tileHeight; y++) {
             int yOffset = y * 8;
             for (int x = 0; x < tileWidth; x++) {
-               var tileStart = ((y * tileWidth) + x) * 32 + Start;
+               var tileStart = ((y * tileWidth) + x) * 32 + start;
                int xOffset = x * 8;
                for (int i = 0; i < 32; i++) {
                   int xx = i % 4; // ranges from 0 to 3
                   int yy = i / 4; // ranges from 0 to 7
-                  byte raw = model[tileStart + i];
+                  byte raw = data[tileStart + i];
                   result[xOffset + xx * 2 + 0, yOffset + yy] = (raw & 0xF);
                   result[xOffset + xx * 2 + 1, yOffset + yy] = raw >> 4;
                }
@@ -110,17 +117,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new PaletteRun(Start, bits, newPointerSources);
 
       public IReadOnlyList<short> GetPalette(IDataModel model, int page) {
-         var results = new List<short>();
-         for (int i = 0; i < Length; i += 2) {
-            var color = model.ReadMultiByteValue(Start + i, 2);
-            // the view wants the color channels flipped
-            // because color formats in the gba are weird
-            var r = ((color >> 10) & 0x1F);
-            var g = ((color >> 5) & 0x1F);
-            var b = ((color >> 0) & 0x1F);
-            results.Add((short)((b << 10) | (g << 5) | (r << 0)));
-         }
-         return results;
+         var paletteColorCount = (int)Math.Pow(2, bits);
+         var pageLength = paletteColorCount * 2;
+         return GetPalette(model, Start + page * pageLength, paletteColorCount);
       }
 
       public IPaletteRun SetPalette(IDataModel model, ModelDelta token, int page, IReadOnlyList<short> data) {
@@ -128,6 +127,25 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             model.WriteMultiByteValue(Start + i, 2, token, data[i / 2]);
          }
          return this;
+      }
+
+      public static IReadOnlyList<short> GetPalette(IReadOnlyList<byte> data, int start, int count) {
+         var results = new List<short>();
+         for (int i = 0; i < count; i++) {
+            var color = (short)data.ReadMultiByteValue(start + i * 2, 2);
+            results.Add(FlipColorChannels(color));
+         }
+         return results;
+      }
+
+      /// <summary>
+      /// the gba and WPF do color channels reversed
+      /// </summary>
+      public static short FlipColorChannels(short color) {
+         var r = ((color >> 10) & 0x1F);
+         var g = ((color >> 5) & 0x1F);
+         var b = ((color >> 0) & 0x1F);
+         return (short)((b << 10) | (g << 5) | (r << 0));
       }
    }
 }

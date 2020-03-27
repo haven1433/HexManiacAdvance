@@ -66,6 +66,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          int pageStart = page * pageLength;
          for (int i = 0; i < colorCount; i++) {
             var color = (short)data.ReadMultiByteValue(pageStart + i * 2, 2);
+            color = Models.Runs.Sprites.PaletteRun.FlipColorChannels(color);
             Colors.Add(color);
          }
       }
