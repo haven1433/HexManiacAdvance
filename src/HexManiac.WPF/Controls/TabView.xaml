@@ -71,6 +71,9 @@
       </StackPanel>
       <!-- Tools -->
       <Grid DockPanel.Dock="Left" DataContext="{Binding Tools}">
+         <Grid.Resources>
+            <ScaleTransform ScaleX="2" ScaleY="2" x:Key="TwoX"/>
+         </Grid.Resources>
          <Grid.Style>
             <Style TargetType="Grid">
                <Style.Triggers>
@@ -195,10 +198,7 @@
                            <StackPanel>
                               <hsg3hv:CommonTableStreamControl />
                               <ItemsControl Name="ImageTiles" RenderOptions.BitmapScalingMode="NearestNeighbor" SnapsToDevicePixels="True" ItemsSource="{Binding Tiles}"
-                                            Width="{Binding PixelWidth}" Height="{Binding PixelHeight}">
-                                 <ItemsControl.LayoutTransform>
-                                    <ScaleTransform ScaleX="2" ScaleY="2" />
-                                 </ItemsControl.LayoutTransform>
+                                            Width="{Binding PixelWidth}" Height="{Binding PixelHeight}" LayoutTransform="{StaticResource TwoX}">
                                  <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
                                        <WrapPanel/>
@@ -306,11 +306,7 @@
                <TextBlock Text="Palette Address:" Margin="5,15,0,0" DockPanel.Dock="Top"/>
                <TextBox Text="{Binding SpriteTool.PaletteAddress, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5" />
 
-               <hsg3hv:PixelImage DataContext="{Binding SpriteTool}" SnapsToDevicePixels="True">
-                  <hsg3hv:PixelImage.LayoutTransform>
-                     <ScaleTransform ScaleX="2" ScaleY="2" />
-                  </hsg3hv:PixelImage.LayoutTransform>
-               </hsg3hv:PixelImage>
+               <hsg3hv:PixelImage DataContext="{Binding SpriteTool}" SnapsToDevicePixels="True" LayoutTransform="{StaticResource TwoX}"/>
 
                <!-- TODO sprite paging control -->
                <ItemsControl HorizontalAlignment="Center" SnapsToDevicePixels="True" ItemsSource="{Binding SpriteTool.Palette}">
