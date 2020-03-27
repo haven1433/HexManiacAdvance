@@ -300,15 +300,21 @@
                </Style>
             </ScrollViewer.Style>
             <StackPanel>
+               <!-- Addresses -->
                <TextBlock Text="Image Address:" Margin="5,15,0,0" />
                <TextBox Text="{Binding SpriteTool.SpriteAddress, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5" />
 
                <TextBlock Text="Palette Address:" Margin="5,15,0,0" DockPanel.Dock="Top"/>
                <TextBox Text="{Binding SpriteTool.PaletteAddress, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5" />
 
+               <!-- Sprite -->
                <hsg3hv:PixelImage DataContext="{Binding SpriteTool}" SnapsToDevicePixels="True" LayoutTransform="{StaticResource TwoX}"/>
+               <DockPanel Visibility="{Binding SpriteTool.HasMultipleSpritePages, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
+                  <Button Content="Previous" Command="{Binding SpriteTool.PreviousSpritePage}" DockPanel.Dock="Left"/>
+                  <Button Content="Next" Command="{Binding SpriteTool.NextSpritePage}" DockPanel.Dock="Right"/>
+               </DockPanel>
 
-               <!-- TODO sprite paging control -->
+               <!-- Palette -->
                <ItemsControl HorizontalAlignment="Center" SnapsToDevicePixels="True" ItemsSource="{Binding SpriteTool.Palette}">
                   <ItemsControl.ItemsPanel>
                      <ItemsPanelTemplate>
@@ -328,10 +334,15 @@
                      </DataTemplate>
                   </ItemsControl.ItemTemplate>
                </ItemsControl>
+               <DockPanel Visibility="{Binding SpriteTool.HasMultiplePalettePages, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
+                  <Button Content="Previous" Command="{Binding SpriteTool.PreviousPalettePage}" DockPanel.Dock="Left"/>
+                  <Button Content="Next" Command="{Binding SpriteTool.NextPalettePage}" DockPanel.Dock="Right"/>
+               </DockPanel>
+
             </StackPanel>
             <!-- TODO palette paging control -->
          </ScrollViewer>
-      <DockPanel Name="CodeToolPanel">
+         <DockPanel Name="CodeToolPanel">
             <DockPanel.Style>
                <Style TargetType="DockPanel">
                   <Setter Property="Visibility" Value="Collapsed"/>

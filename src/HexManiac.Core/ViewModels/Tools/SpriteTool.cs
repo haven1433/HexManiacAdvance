@@ -37,6 +37,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             } else {
                spritePages = run.Pages;
                if (spritePage >= spritePages) spritePage = 0;
+               NotifyPropertyChanged(nameof(HasMultipleSpritePages));
             }
             LoadSprite();
          }
@@ -54,6 +55,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             } else {
                palPages = paletteRun.Pages;
                if (palPage >= palPages) palPage = 0;
+               NotifyPropertyChanged(nameof(HasMultiplePalettePages));
             }
             LoadPalette();
          }
@@ -135,6 +137,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
          NotifyPropertyChanged(nameof(PixelWidth));
          NotifyPropertyChanged(nameof(PixelHeight));
+         prevSpritePage.CanExecuteChanged.Invoke(prevSpritePage, EventArgs.Empty);
+         nextSpritePage.CanExecuteChanged.Invoke(nextSpritePage, EventArgs.Empty);
          CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
       }
 
@@ -150,6 +154,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          PaletteHeight = (int)(Math.Ceiling((double)palette.Length / PaletteWidth));
          NotifyPropertyChanged(nameof(PaletteWidth));
          NotifyPropertyChanged(nameof(PaletteHeight));
+         prevPalPage.CanExecuteChanged.Invoke(prevPalPage, EventArgs.Empty);
+         nextPalPage.CanExecuteChanged.Invoke(nextPalPage, EventArgs.Empty);
 
          Palette.Clear();
          foreach (var color in palette) Palette.Add(color);

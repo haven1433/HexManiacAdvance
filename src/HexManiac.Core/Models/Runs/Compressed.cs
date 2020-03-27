@@ -430,7 +430,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Compressed {
 
       public override string FormatString { get; }
 
-      public int Pages => PaletteFormat.Bits;
+      public int Pages {
+         get {
+            var length = Model.ReadMultiByteValue(Start + 1, 3);
+            var paletteLength = (int)Math.Pow(2, PaletteFormat.Bits) * 2;
+            return length / paletteLength;
+         }
+      }
 
       public PaletteRun(PaletteFormat paletteFormat, IDataModel data, int start, IReadOnlyList<int> sources)
          : base(data,start,sources){
