@@ -361,6 +361,17 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Contains("| 4 bytes selected", test.ViewPort.SelectedAddress);
       }
 
+      [Fact]
+      public void CanPrefixAddressWith0xDuringGoto() {
+         var editor = new EditorViewModel(new StubFileSystem());
+         var test = new BaseViewModelTestClass();
+         editor.Add(test.ViewPort);
+
+         editor.GotoViewModel.Goto.Execute("0x0030");
+
+         Assert.Equal(0x30, test.ViewPort.DataOffset);
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          model = new PokemonModel(data);

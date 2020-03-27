@@ -136,6 +136,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var address = args.ToString().Trim();
                if (address.StartsWith(PointerRun.PointerStart.ToString())) address = address.Substring(1);
                if (address.EndsWith(PointerRun.PointerEnd.ToString())) address = address.Substring(0, address.Length - 1);
+               if (address.StartsWith("0x")) address = address.Substring(2);
                var anchor = this.model.GetAddressFromAnchor(new ModelDelta(), -1, address);
                using (ModelCacheScope.CreateScope(this.model)) {
                   if (anchor != Pointer.NULL) {
