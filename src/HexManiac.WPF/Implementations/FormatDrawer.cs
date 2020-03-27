@@ -86,44 +86,44 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             if (format is Anchor anchor) format = anchor.OriginalFormat; // anchor's have other formats nested inside that we may care about
 
             if (format is PCS pcs) {
-               collector.Collect<PCS>(x, 1, pcs.ThisCharacter);
+               collector.Collect<PCS>(format, x, 1, pcs.ThisCharacter);
             } else if (format is EscapedPCS escapedPCS) {
-               collector.Collect<EscapedPCS>(x, 1, escapedPCS.ThisValue.ToString("X2"));
-            } else if (format is Pointer pointer && pointer.Position == 0) {
-               if (pointer.HasError) collector.Collect<ErrorPCS>(x, 4, pointer.DestinationAsText);
-               else collector.Collect<Pointer>(x, 4, pointer.DestinationAsText);
-            } else if (format is PlmItem plm && plm.Position == 0) {
-               collector.Collect<PlmItem>(x, 2, plm.ToString());
-            } else if (format is EggItem eggItem && eggItem.Position == 0) {
-               collector.Collect<EggItem>(x, 2, eggItem.ItemName);
-            } else if (format is EggSection eggSection && eggSection.Position == 0) {
-               collector.Collect<EggSection>(x, 2, eggSection.SectionName);
-            } else if (format is IntegerEnum intEnum && intEnum.Position == 0) {
-               collector.Collect<IntegerEnum>(x, intEnum.Length, intEnum.Value);
-            } else if (format is Integer integer && integer.Position == 0) {
-               collector.Collect<Integer>(x, integer.Length, integer.Value.ToString());
+               collector.Collect<EscapedPCS>(format, x, 1, escapedPCS.ThisValue.ToString("X2"));
+            } else if (format is Pointer pointer) {
+               if (pointer.HasError) collector.Collect<ErrorPCS>(format, x, 4, pointer.DestinationAsText);
+               else collector.Collect<Pointer>(format, x, 4, pointer.DestinationAsText);
+            } else if (format is PlmItem plm) {
+               collector.Collect<PlmItem>(format, x, 2, plm.ToString());
+            } else if (format is EggItem eggItem) {
+               collector.Collect<EggItem>(format, x, 2, eggItem.ItemName);
+            } else if (format is EggSection eggSection) {
+               collector.Collect<EggSection>(format, x, 2, eggSection.SectionName);
+            } else if (format is IntegerEnum intEnum) {
+               collector.Collect<IntegerEnum>(format, x, intEnum.Length, intEnum.Value);
+            } else if (format is Integer integer) {
+               collector.Collect<Integer>(format, x, integer.Length, integer.Value.ToString());
             } else if (format is Ascii asc) {
-               collector.Collect<Ascii>(x, 1, asc.ThisCharacter.ToString());
+               collector.Collect<Ascii>(format, x, 1, asc.ThisCharacter.ToString());
             } else if (format is None none) {
-               if (cell.Value == 0x00) collector.Collect<UnderEdit>(x, 1, "00");
-               else if (cell.Value == 0xFF) collector.Collect<Undefined>(x, 1, "FF");
-               else collector.Collect<None>(x, 1, byteText[cell.Value]);
+               if (cell.Value == 0x00) collector.Collect<UnderEdit>(format, x, 1, "00");
+               else if (cell.Value == 0xFF) collector.Collect<Undefined>(format, x, 1, "FF");
+               else collector.Collect<None>(format, x, 1, byteText[cell.Value]);
             } else if (format is BitArray array) {
-               collector.Collect<BitArray>(x, 1, byteText[cell.Value]);
-            } else if (format is MatchedWord word && word.Position == 0) {
-               collector.Collect<MatchedWord>(x, 4, word.Name);
-            } else if (format is EndStream endStream && endStream.Position == 0) {
+               collector.Collect<BitArray>(format, x, 1, byteText[cell.Value]);
+            } else if (format is MatchedWord word) {
+               collector.Collect<MatchedWord>(format, x, 4, word.Name);
+            } else if (format is EndStream endStream) {
                var converter = new ConvertCellToText(viewPort.Model, 0);
                converter.Visit(endStream, cell.Value);
-               collector.Collect<EndStream>(x, endStream.Length, converter.Result);
+               collector.Collect<EndStream>(format, x, endStream.Length, converter.Result);
             } else if (format is LzMagicIdentifier lzMagic) {
-               collector.Collect<LzMagicIdentifier>(x, 1, "lz");
+               collector.Collect<LzMagicIdentifier>(format, x, 1, "lz");
             } else if (format is LzGroupHeader lzGroup) {
-               collector.Collect<LzGroupHeader>(x, 1, byteText[cell.Value]);
+               collector.Collect<LzGroupHeader>(format, x, 1, byteText[cell.Value]);
             } else if (format is LzUncompressed lzUncompressed) {
-               collector.Collect<LzUncompressed>(x, 1, byteText[cell.Value]);
-            } else if (format is LzCompressed lzCompressed && lzCompressed.Position == 0) {
-               collector.Collect<LzGroupHeader>(x, 2, $"{lzCompressed.RunLength}:{lzCompressed.RunOffset}");
+               collector.Collect<LzUncompressed>(format, x, 1, byteText[cell.Value]);
+            } else if (format is LzCompressed lzCompressed) {
+               collector.Collect<LzGroupHeader>(format, x, 2, $"{lzCompressed.RunLength}:{lzCompressed.RunOffset}");
             }
          }
 
@@ -147,7 +147,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          collector.Render<EndStream>(context, Brush(nameof(Theme.Stream1)));
          collector.Render<LzMagicIdentifier>(context, Brush(nameof(Theme.Text2)));
          collector.Render<LzGroupHeader>(context, Brush(nameof(Theme.Data1)));
-         collector.Render<LzUncompressed>(context, Brush(nameof(Theme.Primary)));
+         collector.Render<LzUncompressed>(context, Brush(nameof(Theme.Data2)));
          collector.Render<LzCompressed>(context, Brush(nameof(Theme.Stream2)));
 
          context.Pop();
@@ -373,8 +373,14 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          texts[typeof(T)] = new List<char>();
       }
 
-      public void Collect<T>(int cellStart, int cellWidth, string text) where T : IDataFormat {
+      public void Collect<T>(IDataFormat format, int cellStart, int cellWidth, string text) where T : IDataFormat {
          if (text == null || text.Length == 0) return;
+
+         if (format is IDataFormatInstance instance && instance.Position != 0) {
+            if (cellStart > 0) return;
+            cellStart -= instance.Position;
+         }
+
          string appendEnd = "…";
          if (text.EndsWith(">")) appendEnd += ">";
          double availableSectionWidth = cellSize.Width * cellWidth;

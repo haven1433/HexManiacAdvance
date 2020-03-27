@@ -391,11 +391,20 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (ViewPort == null) return;
          var visitor = new FormatDrawer(drawingContext, ViewPort, ViewPort.Width, ViewPort.Height, CellWidth, CellHeight, FontSize);
 
-         if (ShowHorizontalScroll) drawingContext.PushTransform(new TranslateTransform(-HorizontalScrollValue, 0));
-         RenderGrid(drawingContext);
-         RenderSelection(drawingContext);
-         RenderData(drawingContext, visitor);
-         if (ShowHorizontalScroll) drawingContext.Pop();
+         // clear
+         drawingContext.DrawRectangle(Brush(nameof(Theme.Background)), null, new Rect(0, 0, ActualWidth, ActualHeight));
+
+         { 
+            if (ShowHorizontalScroll) drawingContext.PushTransform(new TranslateTransform(-HorizontalScrollValue, 0));
+            RenderGrid(drawingContext);
+            RenderSelection(drawingContext);
+            {
+               drawingContext.PushClip(new RectangleGeometry(new Rect(new Size(ViewPort.Width * CellWidth, ViewPort.Height * CellHeight))));
+               RenderData(drawingContext, visitor);
+               drawingContext.Pop();
+            }
+            if (ShowHorizontalScroll) drawingContext.Pop();
+         }
       }
 
       private static SolidColorBrush Brush(string name) {
@@ -403,7 +412,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void RenderGrid(DrawingContext drawingContext) {
-         drawingContext.DrawRectangle(Brush(nameof(Theme.Background)), null, new Rect(0, 0, ActualWidth, ActualHeight));
          if (!ShowGrid) return;
 
          var gridPen = new Pen(Brush(nameof(Theme.Backlight)), 1);
