@@ -79,6 +79,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          collector.Initialize<LzGroupHeader>(typeface, fontSize);
          collector.Initialize<LzUncompressed>(typeface, fontSize);
          collector.Initialize<LzCompressed>(typeface, fontSize);
+         collector.Initialize<UncompressedPaletteColor>(typeface, fontSize * .75);
 
          for (int x = 0; x < modelWidth; x++) {
             var cell = viewPort[x, position.Y];
@@ -124,6 +125,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                collector.Collect<LzUncompressed>(format, x, 1, byteText[cell.Value]);
             } else if (format is LzCompressed lzCompressed) {
                collector.Collect<LzGroupHeader>(format, x, 2, $"{lzCompressed.RunLength}:{lzCompressed.RunOffset}");
+            } else if (format is UncompressedPaletteColor color) {
+               collector.Collect<UncompressedPaletteColor>(format, x, 2, color.ToString());
             }
          }
 
@@ -149,6 +152,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          collector.Render<LzGroupHeader>(context, Brush(nameof(Theme.Data1)));
          collector.Render<LzUncompressed>(context, Brush(nameof(Theme.Data2)));
          collector.Render<LzCompressed>(context, Brush(nameof(Theme.Stream2)));
+         collector.Render<UncompressedPaletteColor>(context, Brush(nameof(Theme.Text2)));
 
          context.Pop();
       }
@@ -249,6 +253,11 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
       public void Visit(LzCompressed lz, byte data) { }
 
+      public void Visit(UncompressedPaletteColor color, byte data) {
+         var brush = (Brush)new PaletteColorConverter().Convert(color.Color, null, null, null);
+         Underline(brush, color.Position == 0, color.Position == 1);
+      }
+
       /// <summary>
       /// This function is full of dragons. You probably don't want to touch it.
       /// </summary>
@@ -302,11 +311,13 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             advanceWidths, null, text.ToCharArray(), null, null, null, null);
       }
 
-      private void Underline(string brush, bool isStart, bool isEnd) {
+      private void Underline(string brush, bool isStart, bool isEnd) => Underline(Brush(brush), isStart, isEnd);
+
+      private void Underline(Brush brush, bool isStart, bool isEnd) {
          var startPoint = position.X * cellSize.Width + (isStart ? cellSize.Width / 4 : 0);
          var endPoint = (position.X + 1) * cellSize.Width - (isEnd ? cellSize.Width / 4 : 0);
          double y = (position.Y + 1) * cellSize.Height - 1.5;
-         context.DrawLine(new Pen(Brush(brush), 1), new Point(startPoint, y), new Point(endPoint, y));
+         context.DrawLine(new Pen(brush, 1), new Point(startPoint, y), new Point(endPoint, y));
       }
 
       private FormattedText TruncateText(string destination, double fontSize, string brush, int widthInCells, string postText = "", bool italics = false) {

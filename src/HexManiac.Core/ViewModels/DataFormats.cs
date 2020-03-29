@@ -44,6 +44,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       void Visit(LzGroupHeader lz, byte data);
       void Visit(LzCompressed lz, byte data);
       void Visit(LzUncompressed lz, byte data);
+      void Visit(UncompressedPaletteColor color, byte data);
    }
 
    /// <summary>
@@ -399,5 +400,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       }
 
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
+   }
+
+   public class UncompressedPaletteColor : IDataFormatInstance {
+      public int Source { get; }
+      public int Position { get; }
+      public int Length => 2;
+      public short Color { get; }
+
+      public int R => (Color >> 10) & 0x1F;
+      public int G => (Color >> 5) & 0x1F;
+      public int B => (Color >> 0) & 0x1F;
+
+      public UncompressedPaletteColor(int source, int position, short color) => (Source, Position, Color) = (source, position, color);
+
+      public bool Equals(IDataFormat other) {
+         if (!(other is UncompressedPaletteColor that)) return false;
+         return Source == that.Source && Position == that.Position && Color == that.Color;
+      }
+
+      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
+
+      public override string ToString() => $"{R}:{G}:{B}";
    }
 }

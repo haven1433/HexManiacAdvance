@@ -131,5 +131,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(LzCompressed lz, byte data) => Result = char.IsDigit(Input) || Input == ':' || char.IsWhiteSpace(Input);
 
       public void Visit(LzUncompressed lz, byte data) => Result = ViewPort.AllHexCharacters.Contains(Input) || char.IsWhiteSpace(Input);
+
+      public void Visit(UncompressedPaletteColor color, byte data) {
+         Result = ViewPort.AllHexCharacters.Contains(Input) || Input.IsAny(':', ' ');
+      }
    }
 }

@@ -256,6 +256,51 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
       }
 
+      public void Visit(UncompressedPaletteColor color, byte data) {
+         if (!CurrentText.EndsWith(" ")) return;
+         if (CurrentText.Length < 4) return;
+
+         // option 1: 4 hex bytes
+         if (CurrentText.Length == 5 && short.TryParse(CurrentText.Trim(), NumberStyles.HexNumber, CultureInfo.CurrentCulture.NumberFormat, out var result)) {
+            Model.WriteMultiByteValue(memoryLocation, 2, CurrentChange, result);
+            NewDataIndex = memoryLocation + 2;
+            Result = true;
+            return;
+         }
+
+         // option 2: 2 hex bytes, a space, and 2 more hex bytes
+         if (CurrentText.Length == 6) {
+            if (byte.TryParse(CurrentText.Substring(0, 2), NumberStyles.HexNumber, CultureInfo.CurrentCulture.NumberFormat, out var byte1)) {
+               if (byte.TryParse(CurrentText.Substring(3, 2), NumberStyles.HexNumber, CultureInfo.CurrentCulture.NumberFormat, out var byte2)) {
+                  CurrentChange.ChangeData(Model, memoryLocation + 0, byte1);
+                  CurrentChange.ChangeData(Model, memoryLocation + 1, byte2);
+                  NewDataIndex = memoryLocation + 2;
+                  Result = true;
+                  return;
+               }
+            }
+         }
+
+         // option 3: 3 decimal values, separated by :
+         var channels = CurrentText.Trim().Split(':');
+         if (channels.Length == 3 &&
+            byte.TryParse(channels[0], out var red) &&
+            byte.TryParse(channels[1], out var green) &&
+            byte.TryParse(channels[2], out var blue)) {
+            var newColor = (short)((red << 10) | (green << 5) | (blue));
+            Model.WriteMultiByteValue(memoryLocation, 2, CurrentChange, newColor);
+            NewDataIndex = memoryLocation + 2;
+            Result = true;
+            return;
+         }
+
+         // incomplete
+         if (CurrentText.Count(c => c == ' ') > 1) {
+            Result = true;
+            ErrorText = $"Could not parse {CurrentText} as a palette color.";
+         }
+      }
+
       /// <summary>
       /// Parses text in a PLM run to get the level and move.
       /// returns an error string if the parse fails.

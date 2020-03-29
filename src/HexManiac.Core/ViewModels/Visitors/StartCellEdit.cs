@@ -172,6 +172,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(LzCompressed lz, byte data) => Result = char.IsDigit(Input);
 
       public void Visit(LzUncompressed lz, byte data) => Result = ViewPort.AllHexCharacters.Contains(Input);
+
+      public void Visit(UncompressedPaletteColor color, byte data) => Result = ViewPort.AllHexCharacters.Contains(Input);
    }
 }
 
