@@ -46,6 +46,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void UpdateSprites(string hint = null) {
          foreach (var child in ViewPort.Tools.TableTool.Children) {
+            if (child == this) break;
             if (!(child is SpriteElementViewModel sevm)) continue;
             sevm.UpdateTiles(hint: hint);
          }

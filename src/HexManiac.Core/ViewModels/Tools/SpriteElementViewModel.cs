@@ -3,15 +3,6 @@ using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections.Generic;
 
-// if a sprite-element is first in the list, it'll render wrong (using the previously loaded palette, because of the order the viewmodels are loaded)
-// but when the palette comes along, it'll make it render right.
-// if a palette-element is first in the list, it'll look for sprites to update, and update the old ones.
-// but when the sprite comes along, it'll render itself right based on the previously added palette.
-
-// this is not super performant, but it allows whoever is loaded last to fix everything.
-// the other way to make this more efficient would be to make images/palettes not try to update based on things below them in the list.
-// but that's a performance improvement for later.
-
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class SpriteElementViewModel : PagedElementViewModel, IPagedViewModel, IPixelViewModel {
       private SpriteFormat format;
@@ -37,7 +28,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       protected override bool TryCopy(PagedElementViewModel other) {
          if (!(other is SpriteElementViewModel that)) return false;
          format = that.format;
-         UpdateTiles(that.Start, CurrentPage);
+         UpdateTiles(that.Start, CurrentPage, true);
          return true;
       }
 
@@ -45,16 +36,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public void UpdateTiles(int? pageOption = null, string hint = null) {
          // TODO support multiple layers
-         paletteHint = hint;
+         paletteHint = hint ?? paletteHint;
          int page = pageOption ?? CurrentPage;
-         UpdateTiles(Start, page);
+         UpdateTiles(Start, page, false);
       }
 
-      private void UpdateTiles(int start, int page) {
+      private int[,] lastPixels;
+      private IReadOnlyList<short> lastColors;
+      private void UpdateTiles(int start, int page, bool exitPaletteSearchEarly) {
          var destination = ViewPort.Model.ReadPointer(start);
          var run = ViewPort.Model.GetNextRun(destination) as ISpriteRun;
          var pixels = run.GetPixels(ViewPort.Model, page);
-         var palette = GetDesiredPalette(start, paletteHint, page);
+         var palette = GetDesiredPalette(start, paletteHint, page, exitPaletteSearchEarly);
+         if (pixels == lastPixels && palette == lastColors) return;
+         lastPixels = pixels;
+         lastColors = palette;
          PixelData = SpriteTool.Render(pixels, palette);
          NotifyPropertyChanged(nameof(PixelWidth));
          NotifyPropertyChanged(nameof(PixelHeight));
@@ -64,13 +60,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       /// <summary>
       /// If the hint is a table name, only match palettes from that table.
       /// </summary>
-      private IReadOnlyList<short> GetDesiredPalette(int start, string hint, int page) {
+      private IReadOnlyList<short> GetDesiredPalette(int start, string hint, int page, bool exitEarly) {
          IReadOnlyList<short> first = null;
          // fast version
          foreach (var viewModel in ViewPort.Tools.TableTool.Children) {
+            if (viewModel == this && exitEarly) break;
             if (!(viewModel is PaletteElementViewModel pevm)) continue;
             first = first ?? pevm.Colors;
-            if (!string.IsNullOrEmpty(hint)) break;
+            if (string.IsNullOrEmpty(hint)) break;
             if (pevm.TableName != hint) continue;
             return pevm.Colors;
          }
