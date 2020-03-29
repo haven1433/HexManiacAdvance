@@ -5,11 +5,18 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
-   public class SpriteTool : ViewModelCore, IEnumerable<short>, INotifyCollectionChanged, IToolViewModel {
+   public interface IPixelViewModel : INotifyPropertyChanged {
+      int PixelWidth { get; }
+      int PixelHeight { get; }
+      short[] PixelData { get; }
+   }
+
+   public class SpriteTool : ViewModelCore, IToolViewModel, IPixelViewModel {
       private readonly ViewPort viewPort;
       private readonly IDataModel model;
 
@@ -71,34 +78,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public event EventHandler<string> OnMessage;
 
-      public event NotifyCollectionChangedEventHandler CollectionChanged;
-
       public int PixelWidth { get; private set; }
       public int PixelHeight { get; private set; }
       public int PaletteWidth { get; private set; }
       public int PaletteHeight { get; private set; }
 
-      public short this[int i] {
-         get => palette[pixels[i % PixelWidth, i / PixelWidth]];
-         set {
-            pixels[i % PixelWidth, i / PixelWidth] = palette.IndexOf(value);
-            var run = model.GetNextRun(spriteAddress) as ISpriteRun;
-            if (run == null) return;
-            run.SetPixels(model, viewPort.CurrentChange, spritePage, pixels);
-         }
-      }
-
-      public int Count => pixels?.Length ?? 0;
-
-      #region Enumerable Implementation
-
-      public IEnumerator<short> GetEnumerator() => Enumerate().GetEnumerator();
-
-      System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
-
-      private IEnumerable<short> Enumerate() => Enumerable.Range(0, Count).Select(i => this[i]);
-
-      #endregion
+      public short[] PixelData { get; private set; }
 
       // TODO propogate changes back to the paletteAddress in the model
       public ObservableCollection<short> Palette { get; private set; } = new ObservableCollection<short>();
@@ -124,6 +109,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          LoadPalette();
       }
 
+      public static short[] Render(int[,] pixels, IReadOnlyList<short> palette) {
+         if (pixels == null) return new short[0];
+         if (palette == null) palette = TileViewModel.CreateDefaultPalette(16); // TODO be able to create default palette for 256 colors
+         var data = new short[pixels.Length];
+         var width = pixels.GetLength(0);
+         for (int i = 0; i < data.Length; i++) {
+            var pixel = pixels[i % width, i / width];
+            data[i] = palette[pixel];
+         }
+         return data;
+      }
+
       private void LoadSprite() {
          var run = model.GetNextRun(spriteAddress) as ISpriteRun;
          if (run == null) {
@@ -139,7 +136,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          NotifyPropertyChanged(nameof(PixelHeight));
          prevSpritePage.CanExecuteChanged.Invoke(prevSpritePage, EventArgs.Empty);
          nextSpritePage.CanExecuteChanged.Invoke(nextSpritePage, EventArgs.Empty);
-         CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+         PixelData = Render(pixels, palette);
+         NotifyPropertyChanged(PixelData);
       }
 
       private void LoadPalette() {
@@ -159,7 +157,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          Palette.Clear();
          foreach (var color in palette) Palette.Add(color);
-         CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+         PixelData = Render(pixels, palette);
+         NotifyPropertyChanged(PixelData);
       }
    }
 }

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Windows.Input;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
-using HavenSoft.HexManiac.Core.Models.Runs.Compressed;
+using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
@@ -281,24 +281,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (!(item is ArrayRunPointerSegment pointerSegment)) return;
          if (pointerSegment.InnerFormat == string.Empty) return;
          var destination = model.ReadPointer(itemAddress);
-         IStreamRun streamRun = null;
-         if (destination != Pointer.NULL) {
-            if (!(model.GetNextRun(destination) is IStreamRun destinationStream)) return;
-            if (!pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), itemAddress, destination, null)) return;
-            streamRun = destinationStream;
-         }
+         if (destination == Pointer.NULL) return;
+         var streamRun = model.GetNextRun(destination);
+         if (!pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), itemAddress, destination, null)) return;
 
-         IStreamArrayElementViewModel streamElement = new TextStreamElementViewModel(viewPort, model, itemAddress);
-         if (streamRun is SpriteRun spriteRun) streamElement = new SpriteElementViewModel(viewPort, spriteRun.SpriteFormat, itemAddress);
-         if (streamRun is PaletteRun paletteRun) streamElement = new PaletteElementViewModel(viewPort, paletteRun.PaletteFormat, itemAddress);
+         IStreamArrayElementViewModel streamElement = null;
+         if (streamRun is IStreamRun) streamElement = new TextStreamElementViewModel(viewPort, model, itemAddress);
+         if (streamRun is ISpriteRun spriteRun) streamElement = new SpriteElementViewModel(viewPort, spriteRun.SpriteFormat, itemAddress);
+         if (streamRun is IPaletteRun paletteRun) streamElement = new PaletteElementViewModel(viewPort, paletteRun.PaletteFormat, itemAddress);
+         if (streamElement == null) return;
+
          var streamAddress = itemAddress;
          var myIndex = childInsertionIndex;
          Children[parentIndex].DataChanged += (sender, e) => {
             var closure_destination = model.ReadPointer(streamAddress);
             var run = (IStreamRun)model.GetNextRun(destination);
-            IStreamArrayElementViewModel newStream = new TextStreamElementViewModel(viewPort, model, streamAddress);
-            if (run is SpriteRun spriteRun1) newStream = new SpriteElementViewModel(viewPort, spriteRun1.SpriteFormat, streamAddress);
-            if (run is PaletteRun paletteRun1) streamElement = new PaletteElementViewModel(viewPort, paletteRun1.PaletteFormat, streamAddress);
+            IStreamArrayElementViewModel newStream = null;
+
+            if (run is IStreamRun) newStream = new TextStreamElementViewModel(viewPort, model, streamAddress);
+            if (run is ISpriteRun spriteRun1) newStream = new SpriteElementViewModel(viewPort, spriteRun1.SpriteFormat, streamAddress);
+            if (run is IPaletteRun paletteRun1) newStream = new PaletteElementViewModel(viewPort, paletteRun1.PaletteFormat, streamAddress);
+
             newStream.DataChanged += ForwardModelChanged;
             newStream.DataMoved += ForwardModelDataMoved;
             if (!Children[myIndex].TryCopy(newStream)) Children[myIndex] = newStream;

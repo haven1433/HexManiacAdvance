@@ -67,7 +67,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
    }
 
    public class PixelImage : Image {
-      private SpriteTool ViewModel => (SpriteTool)DataContext;
+      private IPixelViewModel ViewModel => DataContext as IPixelViewModel;
       public PixelImage() {
          DataContextChanged += (sender, e) => UpdateDataContext(e);
          Stretch = Stretch.None;
@@ -81,8 +81,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
       private void HandleDataContextPropertyChanged(object sender, PropertyChangedEventArgs e) => UpdateSource();
       public void UpdateSource() {
-         if (DataContext == null) return;
-         var pixels = ViewModel.ToArray();
+         if (ViewModel == null) return;
+         var pixels = ViewModel.PixelData;
          if (pixels.Length == 0) { Source = null; return; }
          int stride = ViewModel.PixelWidth * 2;
          var format = PixelFormats.Bgr555;

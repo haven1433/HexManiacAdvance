@@ -765,13 +765,13 @@ namespace HavenSoft.HexManiac.Core.Models {
                ClearFormat(token, run.Start, run.Length);
             }
          } else if (Runs.Sprites.SpriteRun.TryParseSpriteFormat(segment.InnerFormat, out spriteFormat)) {
-            var runAttempt = new Runs.Sprites.SpriteRun(run.Start, spriteFormat.BitsPerPixel, spriteFormat.TileWidth, spriteFormat.TileHeight,run.PointerSources);
+            var runAttempt = new Runs.Sprites.SpriteRun(run.Start, spriteFormat, run.PointerSources);
             if (runAttempt.Length > 0) {
                run = runAttempt.MergeAnchor(run.PointerSources);
                ClearFormat(token, run.Start, run.Length);
             }
          } else if (Runs.Sprites.PaletteRun.TryParsePaletteFormat(segment.InnerFormat, out paletteFormat)) {
-            var runAttempt = new Runs.Sprites.PaletteRun(run.Start, paletteFormat.Bits, run.PointerSources);
+            var runAttempt = new Runs.Sprites.PaletteRun(run.Start, paletteFormat, run.PointerSources);
             if (runAttempt.Length > 0) {
                run = runAttempt.MergeAnchor(run.PointerSources);
                ClearFormat(token, run.Start, run.Length);
@@ -1499,9 +1499,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          } else if (Runs.Compressed.PaletteRun.TryParsePaletteFormat(format, out var paletteFormat)) {
             run = new Runs.Compressed.PaletteRun(paletteFormat, model, dataIndex, run.PointerSources);
          } else if (Runs.Sprites.SpriteRun.TryParseSpriteFormat(format, out spriteFormat)) {
-            run = new Runs.Sprites.SpriteRun(dataIndex, spriteFormat.BitsPerPixel, spriteFormat.TileWidth, spriteFormat.TileHeight, run.PointerSources);
+            run = new Runs.Sprites.SpriteRun(dataIndex, spriteFormat, run.PointerSources);
          } else if (Runs.Sprites.PaletteRun.TryParsePaletteFormat(format, out paletteFormat)) {
-            run = new Runs.Sprites.PaletteRun(dataIndex, paletteFormat.Bits, run.PointerSources);
+            run = new Runs.Sprites.PaletteRun(dataIndex, paletteFormat, run.PointerSources);
          } else {
             var errorInfo = TryParse(model, name, format, dataIndex, null, out var arrayRun);
             if (errorInfo == ErrorInfo.NoError) {

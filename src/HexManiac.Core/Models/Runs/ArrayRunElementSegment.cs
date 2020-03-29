@@ -200,6 +200,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (InnerFormat == TrainerPokemonTeamRun.SharedFormatString) return true;
             if (SpriteRun.TryParseSpriteFormat(InnerFormat, out var _)) return true;
             if (PaletteRun.TryParsePaletteFormat(InnerFormat, out var _)) return true;
+            if (Sprites.SpriteRun.TryParseSpriteFormat(InnerFormat, out var _)) return true;
+            if (Sprites.PaletteRun.TryParsePaletteFormat(InnerFormat, out var _)) return true;
             if (InnerFormat.StartsWith("[") && InnerFormat.Contains("]")) return true;
             return false;
          }
@@ -250,6 +252,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, lzRun);
                   return true;
                }
+            } else if (Sprites.SpriteRun.TryParseSpriteFormat(InnerFormat, out spriteFormat)) {
+               var spriteRun = new Sprites.SpriteRun(destination, spriteFormat, new[] { source });
+               // TODO deal with the run being too long?
+               if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, spriteRun);
+               return true;
+            } else if (Sprites.PaletteRun.TryParsePaletteFormat(InnerFormat,out paletteFormat)) {
+               var palRun = new Sprites.PaletteRun(destination, paletteFormat, new[] { source });
+               // TODO deal with the run being too long?
+               if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, palRun);
+               return true;
             } else if (InnerFormat.StartsWith("[")) {
                if (TableStreamRun.TryParseTableStream(owner, destination, new[] { source }, Name, InnerFormat, sourceSegments, out var tsRun)) {
                   if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, tsRun);
@@ -263,6 +275,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (InnerFormat == TrainerPokemonTeamRun.SharedFormatString) return run is TrainerPokemonTeamRun;
             if (SpriteRun.TryParseSpriteFormat(InnerFormat, out var _)) return run is SpriteRun;
             if (PaletteRun.TryParsePaletteFormat(InnerFormat, out var _)) return run is PaletteRun;
+            if (Sprites.SpriteRun.TryParseSpriteFormat(InnerFormat, out var _)) return run is Sprites.SpriteRun;
+            if (Sprites.PaletteRun.TryParsePaletteFormat(InnerFormat, out var _)) return run is Sprites.PaletteRun;
             if (InnerFormat.StartsWith("[")) return run is TableStreamRun tsRun && tsRun.FormatString == InnerFormat;
          }
          return false;
@@ -283,6 +297,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             run = new SpriteRun(spriteFormat, owner, destination, new[] { source });
          } else if (PaletteRun.TryParsePaletteFormat(InnerFormat, out var paletteFormat)) {
             run = new PaletteRun(paletteFormat, owner, destination, new[] { source });
+         } else if (Sprites.SpriteRun.TryParseSpriteFormat(InnerFormat, out spriteFormat)) {
+            run = new Sprites.SpriteRun(destination, spriteFormat, new[] { source });
+         } else if (Sprites.PaletteRun.TryParsePaletteFormat(InnerFormat,out paletteFormat)) {
+            run = new Sprites.PaletteRun(destination, paletteFormat, new[] { source });
          } else if (InnerFormat.StartsWith("[") && InnerFormat.Contains("]")) {
             // don't bother checking the TryParse result: we very much expect that the data originally in the run won't fit the parse.
             TableStreamRun.TryParseTableStream(owner, destination, new[] { source }, Name, InnerFormat, sourceSegments, out var tableStream);

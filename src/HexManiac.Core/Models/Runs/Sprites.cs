@@ -5,12 +5,14 @@ using System.Collections.Generic;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
    public interface ISpriteRun : IFormattedRun {
+      SpriteFormat SpriteFormat { get; }
       int Pages { get; }
       int[,] GetPixels(IDataModel model, int page);
       ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels);
    }
 
    public interface IPaletteRun : IFormattedRun {
+      PaletteFormat PaletteFormat { get; }
       int Pages { get; }
       IReadOnlyList<short> GetPalette(IDataModel model, int page);
       IPaletteRun SetPalette(IDataModel model, ModelDelta token, int page, IReadOnlyList<short> colors);
@@ -19,15 +21,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
    public class SpriteRun : BaseRun, ISpriteRun {
       private readonly int bitsPerPixel, tileWidth, tileHeight;
 
+      public SpriteFormat SpriteFormat { get; }
       public int Pages => 1;
       public override int Length { get; }
 
       public override string FormatString { get; }
 
-      public SpriteRun(int start, int bitsPerPixel, int tileWidth, int tileHeight, IReadOnlyList<int> sources = null) : base(start, sources) {
-         this.bitsPerPixel = bitsPerPixel;
-         this.tileWidth = tileWidth;
-         this.tileHeight = tileHeight;
+      public SpriteRun(int start, SpriteFormat format, IReadOnlyList<int> sources = null) : base(start, sources) {
+         SpriteFormat = format;
+         bitsPerPixel = format.BitsPerPixel;
+         tileWidth = format.TileWidth;
+         tileHeight = format.TileHeight;
          Length = tileWidth * tileHeight * bitsPerPixel * 8;
          FormatString = $"`ucs{bitsPerPixel}x{tileWidth}x{tileHeight}`";
       }
@@ -41,7 +45,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       // not actually LZ, but it is uncompressed and acts much the same way.
       public override IDataFormat CreateDataFormat(IDataModel data, int index) => LzUncompressed.Instance; 
 
-      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new SpriteRun(Start, bitsPerPixel, tileWidth, tileHeight, newPointerSources);
+      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new SpriteRun(Start, SpriteFormat, newPointerSources);
 
       // TODO support values other than 4bpp
       public int[,] GetPixels(IDataModel model, int page) {
@@ -95,13 +99,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
    public class PaletteRun : BaseRun, IPaletteRun {
       private readonly int bits;
 
+      public PaletteFormat PaletteFormat { get; }
       public int Pages => 1;
       public override int Length { get; }
 
       public override string FormatString { get; }
 
-      public PaletteRun(int start, int bits, IReadOnlyList<int> sources = null) : base(start, sources) {
-         this.bits = bits;
+      public PaletteRun(int start, PaletteFormat format, IReadOnlyList<int> sources = null) : base(start, sources) {
+         PaletteFormat = format;
+         bits = format.Bits;
          Length = 2 * (int)Math.Pow(2, bits);
          FormatString = $"`ucp{bits}`";
       }
@@ -114,7 +120,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) => LzUncompressed.Instance;
 
-      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new PaletteRun(Start, bits, newPointerSources);
+      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new PaletteRun(Start, PaletteFormat, newPointerSources);
 
       public IReadOnlyList<short> GetPalette(IDataModel model, int page) {
          var paletteColorCount = (int)Math.Pow(2, bits);

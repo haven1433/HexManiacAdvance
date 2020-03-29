@@ -197,19 +197,7 @@
                         <DataTemplate DataType="{x:Type hsg3hvmtr:SpriteElementViewModel}">
                            <StackPanel>
                               <hsg3hv:CommonTableStreamControl />
-                              <ItemsControl Name="ImageTiles" RenderOptions.BitmapScalingMode="NearestNeighbor" SnapsToDevicePixels="True" ItemsSource="{Binding Tiles}"
-                                            Width="{Binding PixelWidth}" Height="{Binding PixelHeight}" LayoutTransform="{StaticResource TwoX}">
-                                 <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                       <WrapPanel/>
-                                    </ItemsPanelTemplate>
-                                 </ItemsControl.ItemsPanel>
-                                 <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                       <hsg3hv:TileImage />
-                                    </DataTemplate>
-                                 </ItemsControl.ItemTemplate>
-                              </ItemsControl>
+                              <hsg3hv:PixelImage SnapsToDevicePixels="True" LayoutTransform="{StaticResource TwoX}"/>
                               <DockPanel Visibility="{Binding HasMultiplePages, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
                                  <Button Content="Previous" Command="{Binding PreviousPage}" DockPanel.Dock="Left"/>
                                  <Button Content="Next" Command="{Binding NextPage}" DockPanel.Dock="Right"/>

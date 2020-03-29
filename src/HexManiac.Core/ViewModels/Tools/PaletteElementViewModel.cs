@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs.Compressed;
+using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -7,7 +8,6 @@ using System.Diagnostics;
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class PaletteElementViewModel : PagedElementViewModel, IPagedViewModel {
       private PaletteFormat format;
-      private byte[] data;
 
       public string TableName { get; private set; }
 
@@ -19,8 +19,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public PaletteElementViewModel(ViewPort viewPort, PaletteFormat format, int itemAddress) : base(viewPort, itemAddress) {
          this.format = format;
          TableName = viewPort.Model.GetAnchorFromAddress(-1, viewPort.Model.GetNextRun(itemAddress).Start);
-         DecodeData();
-         UpdateColors(0);
+         var destination = Model.ReadPointer(Start);
+         var run = viewPort.Model.GetNextRun(destination) as IPaletteRun;
+         Pages = run.Pages;
+         UpdateColors(Start, 0);
       }
 
       /// <summary>
@@ -31,42 +33,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       protected override bool TryCopy(PagedElementViewModel other) {
          if (!(other is PaletteElementViewModel that)) return false;
          format = that.format;
-         data = that.data;
-
-         UpdateColors(other.CurrentPage);
+         UpdateColors(other.Start, other.CurrentPage);
+         UpdateSprites();
          NotifyPropertyChanged(nameof(ColorWidth));
          NotifyPropertyChanged(nameof(ColorHeight));
          return true;
       }
 
-      protected override void PageChanged() => UpdateColors(CurrentPage);
+      protected override void PageChanged() => UpdateColors(Start, CurrentPage);
 
-      public void Activate() {
+      public void Activate() => UpdateSprites(TableName);
+
+      private void UpdateSprites(string hint = null) {
          foreach (var child in ViewPort.Tools.TableTool.Children) {
             if (!(child is SpriteElementViewModel sevm)) continue;
-            sevm.UpdateTiles(hint: TableName);
+            sevm.UpdateTiles(hint: hint);
          }
       }
 
-      private void DecodeData() {
-         int colorCount = (int)Math.Pow(2, format.Bits);
-         int pageLength = colorCount * 2;
-
-         var destination = Model.ReadPointer(Start);
-         data = LZRun.Decompress(Model, destination);
-         Debug.Assert(data.Length % colorCount * 2 == 0);
-         Pages = data.Length / pageLength;
-      }
-
-      private void UpdateColors(int page) {
+      private void UpdateColors(int start, int page) {
          page %= Pages;
          Colors.Clear();
-         int colorCount = (int)Math.Pow(2, format.Bits);
-         int pageLength = colorCount * 2;
-         int pageStart = page * pageLength;
-         for (int i = 0; i < colorCount; i++) {
-            var color = (short)data.ReadMultiByteValue(pageStart + i * 2, 2);
-            color = Models.Runs.Sprites.PaletteRun.FlipColorChannels(color);
+         var destination = Model.ReadPointer(start);
+         var run = ViewPort.Model.GetNextRun(destination) as IPaletteRun;
+         foreach (var color in run.GetPalette(Model, page)) {
             Colors.Add(color);
          }
       }

@@ -40,14 +40,17 @@ battlescriptsource,  012F34, 012F34, 012F34, 012F34, 014C1C, 014C1C, 014C30, 014
 battlescriptsource,        ,       ,       ,       ,       ,       ,       ,       , 03CD94, [code<>]249
 
 // bits x width x height. Width/Hegiht measured in tiles.
-frontsprites,    ,,,, 000128,,,, 000128, [sprite<`lzs4x8x8`> uncompressedLength: index:]440
-backsprites,     ,,,, 00012C,,,, 00012C, [sprite<`lzs4x8x8`> uncompressedLength: index:]frontsprites
-pokepalettes,    ,,,, 000130,,,, 000130, [palette<`lzp4`> index: unused:]frontsprites
-shinypalettes,   ,,,, 000134,,,, 000134, [palette<`lzp4`> index: unused:]frontsprites
-ballsprites,     ,,,, 0001D0,,,, 0001D0, [sprite<`lzs4x2x6`> uncompressedLength: a b]12
-ballpalettes,    ,,,, 0001D4,,,, 0001D4, [palette<`lzp4`> a b unused:]ballsprites
-trainersprites,  ,,,, 03473C,,,, 03473C, [sprite<`lzs4x8x8`> uncompressedLength: index:]148
-trainerpalettes, ,,,, 03474C,,,, 03474C, [palette<`lzp4`> index: unused:]trainersprites
+frontsprites,     ,,,, 000128,,,, 000128, [sprite<`lzs4x8x8`> uncompressedLength: index:]440
+backsprites,      ,,,, 00012C,,,, 00012C, [sprite<`lzs4x8x8`> uncompressedLength: index:]frontsprites
+pokepalettes,     ,,,, 000130,,,, 000130, [palette<`lzp4`> index: unused:]frontsprites
+shinypalettes,    ,,,, 000134,,,, 000134, [palette<`lzp4`> index: unused:]frontsprites
+pokeicons,        ,,,, 000138,,,, 000138, [icon<`ucs4x4x8`>]frontsprites
+pokeiconpalindex, ,,,, 00013C,,,, 00013C, [index.]frontsprites
+pokeiconpalettes, ,,,, 000140,,,, 000140, [palette<`ucp4`> id::]3
+ballsprites,      ,,,, 0001D0,,,, 0001D0, [sprite<`lzs4x2x6`> uncompressedLength: a b]12
+ballpalettes,     ,,,, 0001D4,,,, 0001D4, [palette<`lzp4`> a b unused:]ballsprites
+trainersprites,   ,,,, 03473C,,,, 03473C, [sprite<`lzs4x8x8`> uncompressedLength: index:]148
+trainerpalettes,  ,,,, 03474C,,,, 03474C, [palette<`lzp4`> index: unused:]trainersprites
 
 regionaldex,         03F7F0, 03F7F0, 03F7F0, 03F7F0, 0431F0, 0431F0, 043204, 043204, 06D3FC, [index:]pokenames-1
 nationaldex,         03F83C, 03F83C, 03F83C, 03F83C, 04323C, 04323C, 043250, 043250, 06D448, [index:]pokenames-1
