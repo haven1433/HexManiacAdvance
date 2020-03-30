@@ -254,6 +254,42 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.IsAssignableFrom<IPaletteRun>(run);
       }
 
+      [Fact]
+      public void CanCopyCompressedSprite() {
+         ViewPort.Edit("10 20 @00 ^run`lzs4x1x1`");
+         var fileSystem = new StubFileSystem();
+         ViewPort.ExpandSelection(0, 0);
+         ViewPort.Copy.Execute(fileSystem);
+         Assert.StartsWith("^run`lzs4x1x1` lz 32 00 ", fileSystem.CopyText);
+      }
+
+      [Fact]
+      public void CanCopyCompressedPalette() {
+         ViewPort.Edit("10 20 @00 ^run`lzp4`");
+         var fileSystem = new StubFileSystem();
+         ViewPort.ExpandSelection(0, 0);
+         ViewPort.Copy.Execute(fileSystem);
+         Assert.StartsWith("^run`lzp4` lz 32 00 ", fileSystem.CopyText);
+      }
+
+      [Fact]
+      public void CanCopyUncompressedSprite() {
+         ViewPort.Edit("^run`ucs4x1x1`");
+         var fileSystem = new StubFileSystem();
+         ViewPort.ExpandSelection(0, 0);
+         ViewPort.Copy.Execute(fileSystem);
+         Assert.StartsWith("^run`ucs4x1x1` 00 ", fileSystem.CopyText);
+      }
+
+      [Fact]
+      public void CanCopyUncompressedPalette() {
+         ViewPort.Edit("^run`ucp4`");
+         var fileSystem = new StubFileSystem();
+         ViewPort.ExpandSelection(0, 0);
+         ViewPort.Copy.Execute(fileSystem);
+         Assert.StartsWith("^run`ucp4` 0:0:0 ", fileSystem.CopyText);
+      }
+
       private void CreateLzRun(int start, params byte[] data) {
          for (int i = 0; i < data.Length; i++) Model[start + i] = data[i];
          var run = new LZRun(Model, start);

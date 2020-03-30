@@ -2,16 +2,17 @@
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
-   public interface ISpriteRun : IFormattedRun {
+   public interface ISpriteRun : IAppendToBuilderRun {
       SpriteFormat SpriteFormat { get; }
       int Pages { get; }
       int[,] GetPixels(IDataModel model, int page);
       ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels);
    }
 
-   public interface IPaletteRun : IFormattedRun {
+   public interface IPaletteRun : IAppendToBuilderRun {
       PaletteFormat PaletteFormat { get; }
       int Pages { get; }
       IReadOnlyList<short> GetPalette(IDataModel model, int page);
@@ -93,6 +94,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          }
          return this;
       }
+
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length) {
+         while (length > 0) {
+            builder.Append(model[start].ToHexString() + " ");
+            start += 1;
+            length -= 1;
+         }
+      }
    }
 
    public class PaletteRun : BaseRun, IPaletteRun {
@@ -158,6 +167,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          var g = ((color >> 5) & 0x1F);
          var b = ((color >> 0) & 0x1F);
          return (short)((b << 10) | (g << 5) | (r << 0));
+      }
+
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length) {
+         while (length > 0) {
+            var format = (UncompressedPaletteColor)CreateDataFormat(model, start);
+            builder.Append(format.ToString() + " ");
+            start += 2 - format.Position;
+            length -= 2 - format.Position;
+         }
       }
    }
 }

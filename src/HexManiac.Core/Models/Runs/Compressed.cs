@@ -9,7 +9,7 @@ using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Compressed {
-   public class LZRun : BaseRun, IStreamRun {
+   public class LZRun : BaseRun, IStreamRun, IAppendToBuilderRun {
       public IDataModel Model { get; }
 
       public override int Length { get; }
@@ -336,6 +336,38 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Compressed {
                   cacheIndex++;
                   start++;
                }
+            }
+         }
+      }
+
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length) {
+         while (length > 0) {
+            var format = CreateDataFormat(model, start);
+            if (format is LzMagicIdentifier) {
+               builder.Append("lz ");
+               start += 1;
+               length -= 1;
+            } else if (format is Integer integer) {
+               var uncompressedLength = model.ReadMultiByteValue(integer.Source, 3);
+               builder.Append($"{uncompressedLength} ");
+               start += 3 - integer.Position;
+               length -= 3 - integer.Position;
+            } else if (format is LzGroupHeader) {
+               builder.Append(model[start].ToHexString() + " ");
+               start += 1;
+               length -= 1;
+            } else if (format is LzUncompressed) {
+               builder.Append(model[start].ToHexString() + " ");
+               start += 1;
+               length -= 1;
+            } else if (format is LzCompressed compressed) {
+               var tempStart = start - compressed.Position;
+               var (runLength, runOffset) = ReadCompressedToken(model, ref tempStart);
+               builder.Append($"{runLength}:{runOffset} ");
+               length -= tempStart - start;
+               start = tempStart;
+            } else {
+               throw new NotImplementedException();
             }
          }
       }
