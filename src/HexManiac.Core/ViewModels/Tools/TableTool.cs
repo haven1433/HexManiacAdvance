@@ -281,12 +281,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (!(item is ArrayRunPointerSegment pointerSegment)) return;
          if (pointerSegment.InnerFormat == string.Empty) return;
          var destination = model.ReadPointer(itemAddress);
-         if (destination == Pointer.NULL) return;
-         var streamRun = model.GetNextRun(destination);
-         if (!pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), itemAddress, destination, null)) return;
+         IFormattedRun streamRun = null;
+         if (destination != Pointer.NULL) {
+            streamRun = model.GetNextRun(destination);
+            if (!pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), itemAddress, destination, null)) return;
+         }
 
          IStreamArrayElementViewModel streamElement = null;
-         if (streamRun is IStreamRun) streamElement = new TextStreamElementViewModel(viewPort, model, itemAddress);
+         if (streamRun == null || streamRun is IStreamRun) streamElement = new TextStreamElementViewModel(viewPort, model, itemAddress);
          if (streamRun is ISpriteRun spriteRun) streamElement = new SpriteElementViewModel(viewPort, spriteRun.SpriteFormat, itemAddress);
          if (streamRun is IPaletteRun paletteRun) streamElement = new PaletteElementViewModel(viewPort, paletteRun.PaletteFormat, itemAddress);
          if (streamElement == null) return;
@@ -298,7 +300,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var run = (IStreamRun)model.GetNextRun(destination);
             IStreamArrayElementViewModel newStream = null;
 
-            if (run is IStreamRun) newStream = new TextStreamElementViewModel(viewPort, model, streamAddress);
+            if (run == null || run is IStreamRun) newStream = new TextStreamElementViewModel(viewPort, model, streamAddress);
             if (run is ISpriteRun spriteRun1) newStream = new SpriteElementViewModel(viewPort, spriteRun1.SpriteFormat, streamAddress);
             if (run is IPaletteRun paletteRun1) newStream = new PaletteElementViewModel(viewPort, paletteRun1.PaletteFormat, streamAddress);
 

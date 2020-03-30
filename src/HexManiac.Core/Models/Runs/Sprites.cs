@@ -95,7 +95,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
    }
 
-   // TODO inline edit of palette based on RGB. Custom DataFormat PaletteColor
    public class PaletteRun : BaseRun, IPaletteRun {
       private readonly int bits;
 
@@ -118,7 +117,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return Compressed.PaletteRun.TryParseDimensions(pointerFormat, out paletteFormat);
       }
 
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) => LzUncompressed.Instance;
+      public override IDataFormat CreateDataFormat(IDataModel data, int index) {
+         var runPosition = index - Start;
+         var colorPosition = runPosition % 2;
+         var colorStart = Start + runPosition - colorPosition;
+         var color = (short)data.ReadMultiByteValue(colorStart, 2);
+         color = FlipColorChannels(color);
+         return new UncompressedPaletteColor(colorStart, colorPosition, color);
+      }
 
       protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new PaletteRun(Start, PaletteFormat, newPointerSources);
 

@@ -144,6 +144,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new TrainerPokemonTeamRun(model, workingRun.Start, workingRun.PointerSources);
       }
 
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length) => ITableRunExtensions.AppendTo(this, model, builder, start, length);
+
       #endregion
 
       #region IStreamRun

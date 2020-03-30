@@ -143,6 +143,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return endStream.Append(this, token, length);
       }
 
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length) => ITableRunExtensions.AppendTo(this, model, builder, start, length);
+
       public IEnumerable<(int, int)> Search(string baseName, int index) {
          int segmentOffset = 0;
          for (int i = 0; i < ElementContent.Count; i++) {

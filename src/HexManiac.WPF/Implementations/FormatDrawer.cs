@@ -152,7 +152,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          collector.Render<LzGroupHeader>(context, Brush(nameof(Theme.Data1)));
          collector.Render<LzUncompressed>(context, Brush(nameof(Theme.Data2)));
          collector.Render<LzCompressed>(context, Brush(nameof(Theme.Stream2)));
-         collector.Render<UncompressedPaletteColor>(context, Brush(nameof(Theme.Text2)));
+         collector.Render<UncompressedPaletteColor>(context, Brush(nameof(Theme.Data2)));
 
          context.Pop();
       }
@@ -316,7 +316,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       private void Underline(Brush brush, bool isStart, bool isEnd) {
          var startPoint = position.X * cellSize.Width + (isStart ? cellSize.Width / 4 : 0);
          var endPoint = (position.X + 1) * cellSize.Width - (isEnd ? cellSize.Width / 4 : 0);
-         double y = (position.Y + 1) * cellSize.Height - 1.5;
+         double y = (position.Y + 1) * cellSize.Height - 1;
          context.DrawLine(new Pen(brush, 1), new Point(startPoint, y), new Point(endPoint, y));
       }
 

@@ -173,7 +173,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(LzUncompressed lz, byte data) => Result = ViewPort.AllHexCharacters.Contains(Input);
 
-      public void Visit(UncompressedPaletteColor color, byte data) => Result = ViewPort.AllHexCharacters.Contains(Input);
+      public void Visit(UncompressedPaletteColor color, byte data) {
+         Result = ViewPort.AllHexCharacters.Contains(Input);
+         if (Result) NewFormat = new UnderEdit(color, Input.ToString(), 2);
+      }
    }
 }
 

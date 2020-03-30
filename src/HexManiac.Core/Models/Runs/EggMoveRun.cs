@@ -8,7 +8,7 @@ using System.Text;
 using static HavenSoft.HexManiac.Core.Models.HardcodeTablesModel;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
-   public class EggMoveRun : BaseRun, IStreamRun {
+   public class EggMoveRun : BaseRun, IStreamRun, IAppendToBuilderRun {
       public const int MagicNumber = 0x4E20; // anything above this number is a pokemon, anything below it is a move
       public const int EndStream = 0xFFFF;
       public const string GroupStart = "[";
@@ -209,7 +209,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return pokenames.Concat(movenames);
       }
 
-      public void AppendTo(StringBuilder text, int start, int length) {
+      public void AppendTo(IDataModel model, StringBuilder text, int start, int length) {
          var cache = ModelCacheScope.GetCache(model);
          var cachedPokenames = cache.GetOptions(PokemonNameTable);
          var cachedMovenames = cache.GetOptions(MoveNamesTable);

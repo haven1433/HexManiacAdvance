@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public interface IFormattedRun {
@@ -13,6 +14,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       IFormattedRun MergeAnchor(IReadOnlyList<int> sources);
       IFormattedRun RemoveSource(int source);
       IFormattedRun Duplicate(int start, params int[] pointerSources);
+   }
+
+   public interface IAppendToBuilderRun : IFormattedRun {
+      void AppendTo(IDataModel model, StringBuilder builder, int start, int length);
    }
 
    /// <summary>

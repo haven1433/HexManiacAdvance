@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
-   public interface ITableRun : IFormattedRun {
+   public interface ITableRun : IAppendToBuilderRun {
       int ElementCount { get; }
       int ElementLength { get; }
       IReadOnlyList<string> ElementNames { get; }
@@ -54,7 +54,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          throw new NotImplementedException();
       }
 
-      public static void AppendTo(this ITableRun self, IDataModel data, StringBuilder text, int start, int length) {
+      public static void AppendTo(ITableRun self, IDataModel data, StringBuilder text, int start, int length) {
          var offsets = self.ConvertByteOffsetToArrayOffset(start);
          length += offsets.SegmentOffset;
          for (int i = offsets.ElementIndex; i < self.ElementCount && length > 0; i++) {
@@ -483,6 +483,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          return new ArrayRun(owner, newFormat, LengthFromAnchor, ParentOffset, Start, ElementCount + elementCount, ElementContent, PointerSources, newInnerElementsSources);
       }
+
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length) => ITableRunExtensions.AppendTo(this, model, builder, start, length);
 
       public ArrayRun GrowBitArraySegment(int bitSegmentIndex, int additionalBytes) {
          // all the data has been moved already

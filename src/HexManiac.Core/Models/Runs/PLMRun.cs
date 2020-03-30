@@ -9,7 +9,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    /// <summary>
    /// PLMRuns have a hard-coded dependency on a table named 'movenames', which it uses to... get the names of the moves.
    /// </summary>
-   public class PLMRun : BaseRun, IStreamRun {
+   public class PLMRun : BaseRun, IStreamRun, IAppendToBuilderRun {
       public const int MaxLearningLevel = 100;
       public static readonly string SharedFormatString = AsciiRun.StreamDelimeter + "plm" + AsciiRun.StreamDelimeter;
       private readonly IDataModel model;
@@ -129,7 +129,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      public void AppendTo(StringBuilder text, int start, int length) {
+      public void AppendTo(IDataModel model, StringBuilder text, int start, int length) {
          var moveNames = model.GetOptions(HardcodeTablesModel.MoveNamesTable);
          for (int i = 0; i < length && i < Length - Start; i += 2) {
             if (i > 0) text.Append(" ");

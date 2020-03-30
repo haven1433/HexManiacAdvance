@@ -136,6 +136,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          viewPort.SelectionStart = new Point(0, 4);
          viewPort.Edit("^table[description<\"\">]4 <000000>"); // note that this auto-scrolls, since a table was created
+         viewPort.MoveSelectionStart.Execute(Direction.Left);  // select the pointer we just completed
 
          Assert.Equal(2, viewPort.Tools.TableTool.Children.Count);
          Assert.IsType<TextStreamElementViewModel>(viewPort.Tools.TableTool.Children[1]);

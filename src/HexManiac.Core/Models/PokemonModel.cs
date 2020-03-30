@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.Models.Runs.Compressed;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
@@ -1207,20 +1208,10 @@ namespace HavenSoft.HexManiac.Core.Models {
                   length -= 1;
                } else if (run is PCSRun pcsRun) {
                   text.Append(PCSString.Convert(this, run.Start, run.Length) + " ");
+                  length -= run.Start + run.Length - start;
                   start += run.Length;
-                  length -= run.Length;
-               } else if (run is ITableRun arrayRun) {
-                  arrayRun.AppendTo(this, text, start, length);
-                  text.Append(" ");
-                  length -= run.Start + run.Length - start;
-                  start = run.Start + run.Length;
-               } else if (run is EggMoveRun eggRun) {
-                  eggRun.AppendTo(text, start, length);
-                  text.Append(" ");
-                  length -= run.Start + run.Length - start;
-                  start = run.Start + run.Length;
-               } else if (run is PLMRun plmRun) {
-                  plmRun.AppendTo(text, start, length);
+               } else if (run is IAppendToBuilderRun atbRun) {
+                  atbRun.AppendTo(this, text, start, length);
                   text.Append(" ");
                   length -= run.Start + run.Length - start;
                   start = run.Start + run.Length;
