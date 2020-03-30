@@ -337,6 +337,13 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0b1011, Model[0x21]);
       }
 
+      [Fact]
+      public void EnumFromRandomTableHasValues() {
+         ViewPort.Edit("^primes[value.]10 @20 ^child[element:primes]13 ");
+         var viewModel = (ComboBoxArrayElementViewModel)ViewPort.Tools.TableTool.Children.Single(child => child is ComboBoxArrayElementViewModel);
+         Assert.Equal(10, viewModel.Options.Count);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

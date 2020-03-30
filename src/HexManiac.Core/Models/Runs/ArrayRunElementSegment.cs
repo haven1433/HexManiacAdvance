@@ -154,7 +154,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public IReadOnlyList<string> GetOptions(IDataModel model) {
          if (int.TryParse(EnumName, out var result)) return Enumerable.Range(0, result).Select(i => i.ToString()).ToList();
-         return model.GetOptions(EnumName);
+         var options = model.GetOptions(EnumName);
+
+         // we _need_ options for the table tool
+         // if we have none, just create "0", "1", ..., "n-1" based on the length of the EnumName table.
+         if (options.Count == 0) {
+            var tableRun = model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, EnumName)) as ITableRun;
+            if (tableRun != null) options = Enumerable.Range(0, tableRun.ElementCount).Select(i => i.ToString()).ToList();
+         }
+
+         return options;
       }
    }
 
