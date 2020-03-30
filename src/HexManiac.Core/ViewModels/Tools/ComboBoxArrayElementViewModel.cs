@@ -28,6 +28,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public event EventHandler DataChanged { add => dataChanged += value; remove => dataChanged -= value; }
 
       public IDataModel Model { get; }
+      public string TableName { get; private set; }
       public string Name { get => name; set => TryUpdate(ref name, value); }
       public int Start {
          get => start; set {
@@ -78,6 +79,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ComboBoxArrayElementViewModel(Selection selection, ChangeHistory<ModelDelta> history, IDataModel model, string name, int start, int length) {
          (this.selection, this.history, Model, Name, Start, Length) = (selection, history, model, name, start, length);
          var run = (ITableRun)Model.GetNextRun(Start);
+         TableName = model.GetAnchorFromAddress(-1, run.Start);
          var offsets = run.ConvertByteOffsetToArrayOffset(start);
          var segment = run.ElementContent[offsets.SegmentIndex] as ArrayRunEnumSegment;
          int optionSource = Pointer.NULL;
@@ -105,6 +107,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public bool TryCopy(IArrayElementViewModel other) {
          if (!(other is ComboBoxArrayElementViewModel comboBox)) return false;
          Name = comboBox.Name;
+         TableName = comboBox.TableName;
          Length = comboBox.Length;
          Start = comboBox.Start;
 

@@ -1,4 +1,6 @@
-﻿using HavenSoft.HexManiac.Core.Models.Runs.Compressed;
+﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.Models.Runs.Compressed;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections.Generic;
@@ -61,8 +63,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       /// If the hint is a table name, only match palettes from that table.
       /// </summary>
       private IReadOnlyList<short> GetDesiredPalette(int start, string hint, int page, bool exitEarly) {
+         hint = format.PaletteHint ?? hint; // if there's a paletteHint, that takes precendence
+
+         // search for hint matches in other comboboxes in the viewmodel
+         foreach (var viewModel in ViewPort.Tools.TableTool.Children) {
+            if (viewModel is ComboBoxArrayElementViewModel comboBox) {
+               if (comboBox.TableName != hint) continue;
+               if (TryGetPaletteFromComboBoxInMatchingTable(start, comboBox, page, out var colors)) return colors;
+            }
+         }
+
+         // search for hint matches in other palettes in the viewmodel
          IReadOnlyList<short> first = null;
-         // fast version
          foreach (var viewModel in ViewPort.Tools.TableTool.Children) {
             if (viewModel == this && exitEarly) break;
             if (!(viewModel is PaletteElementViewModel pevm)) continue;
@@ -73,6 +85,46 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          return first;
+      }
+
+      /// <summary>
+      /// If the hint-name matches the name of a table of a combobox also loaded as a parallel table,
+      /// then there isn't a 1-to-1 mapping between sprites and palettes.
+      /// Instead, each sprite has an index (from the combobox) that matches a palette.
+      /// In this case, the combobox will know which list of palettes it's pulling from.
+      /// </summary>
+      private bool TryGetPaletteFromComboBoxInMatchingTable(int start, ComboBoxArrayElementViewModel comboBox, int page, out IReadOnlyList<short> colors) {
+         colors = null;
+
+         // figure out the current index into the table
+         var myRun = (ITableRun)Model.GetNextRun(start);
+         var arrayIndex = (start - myRun.Start) / myRun.ElementLength;
+
+         // figure out the name of the palette table
+         var indexRun = (ITableRun)Model.GetNextRun(comboBox.Start);
+         var offsets = indexRun.ConvertByteOffsetToArrayOffset(comboBox.Start);
+         if (offsets.SegmentOffset != 0) return false; // for now, require that 
+         var segment = indexRun.ElementContent[offsets.SegmentIndex] as ArrayRunEnumSegment;
+         if (segment == null) return false;
+         var paletteTable = segment.EnumName;
+
+         // figure out which element into the palette run from the value in the index run
+         var paletteIndex = Model.ReadMultiByteValue(indexRun.Start + indexRun.ElementLength * arrayIndex, segment.Length);
+
+         // find the pointer to our palette
+         var array = Model.GetNextRun(Model.GetAddressFromAnchor(ViewPort.CurrentChange, -1, paletteTable)) as ArrayRun;
+         if (array == null) return false;
+         if (array.ElementContent[0].Type != ElementContentType.Pointer) return false;
+         var pointer = array.Start + array.ElementLength * paletteIndex;
+
+         // go get the palette that we want
+         var paletteAddress = Model.ReadPointer(pointer);
+         var palRun = Model.GetNextRun(paletteAddress) as IPaletteRun;
+         if (palRun == null) return false;
+
+         // return the values from the palette
+         colors = palRun.GetPalette(Model, page);
+         return true;
       }
    }
 

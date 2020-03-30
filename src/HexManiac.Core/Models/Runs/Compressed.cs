@@ -424,13 +424,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Compressed {
 
       public static bool TryParseDimensions(string format, out SpriteFormat spriteFormat) {
          spriteFormat = default;
-         var formatContent = format.Substring(4, format.Length - 5);
-         var dimensionsAsText = formatContent.Split('x');
+         var formatContent = format.Substring(4, format.Length - 5); // snip leading "`xxx" and trailing "`"
+         var hintSplit = formatContent.Split('|');
+         var dimensionsAsText = hintSplit[0].Split('x');
          if (dimensionsAsText.Length != 3) return false;
          if (!int.TryParse(dimensionsAsText[0], out var bitsPerPixel)) return false;
          if (!int.TryParse(dimensionsAsText[1], out var width)) return false;
          if (!int.TryParse(dimensionsAsText[2], out var height)) return false;
-         spriteFormat = new SpriteFormat(bitsPerPixel, width, height);
+         var hint = hintSplit.Length == 2 ? hintSplit[1] : null;
+         spriteFormat = new SpriteFormat(bitsPerPixel, width, height, hint);
          return true;
       }
 
@@ -451,8 +453,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Compressed {
       public int TileWidth { get; }
       public int TileHeight { get; }
       public int ExpectedByteLength { get; }
-      public SpriteFormat(int bitsPerPixel, int width, int height) {
+      public string PaletteHint { get; }
+      public SpriteFormat(int bitsPerPixel, int width, int height, string paletteHint) {
          (BitsPerPixel, TileWidth, TileHeight) = (bitsPerPixel, width, height);
+         PaletteHint = paletteHint;
          ExpectedByteLength = 8 * BitsPerPixel * TileWidth * TileHeight;
       }
    }
@@ -496,6 +500,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Compressed {
          var data = Decompress(model, Start);
          var colorCount = (int)Math.Pow(2, PaletteFormat.Bits);
          var pageLength = colorCount * 2;
+         page %= Pages;
          return Sprites.PaletteRun.GetPalette(data, page * pageLength, colorCount);
       }
 

@@ -16,6 +16,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       short[] PixelData { get; }
    }
 
+   // TODO use the hint on the format (if there is one) to find a matching palette
    public class SpriteTool : ViewModelCore, IToolViewModel, IPixelViewModel {
       private readonly ViewPort viewPort;
       private readonly IDataModel model;

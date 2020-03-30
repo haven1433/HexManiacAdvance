@@ -138,6 +138,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new PaletteRun(Start, PaletteFormat, newPointerSources);
 
       public IReadOnlyList<short> GetPalette(IDataModel model, int page) {
+         page %= Pages;
          var paletteColorCount = (int)Math.Pow(2, bits);
          var pageLength = paletteColorCount * 2;
          return GetPalette(model, Start + page * pageLength, paletteColorCount);
