@@ -288,18 +288,23 @@
                </Style>
             </ScrollViewer.Style>
             <StackPanel>
-               <!-- Addresses -->
-               <TextBlock Text="Image Address:" Margin="5,15,0,0" />
-               <TextBox Text="{Binding SpriteTool.SpriteAddress, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5" />
-
-               <TextBlock Text="Palette Address:" Margin="5,15,0,0" DockPanel.Dock="Top"/>
-               <TextBox Text="{Binding SpriteTool.PaletteAddress, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5" />
+               <!-- Sprite Address -->
+               <DockPanel Margin="5,15">
+                  <TextBlock VerticalAlignment="Center" Text="Image Address:" />
+                  <TextBox Text="{Binding SpriteTool.SpriteAddress, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5" />
+               </DockPanel>
 
                <!-- Sprite -->
                <hsg3hv:PixelImage DataContext="{Binding SpriteTool}" SnapsToDevicePixels="True" LayoutTransform="{StaticResource TwoX}"/>
                <DockPanel Visibility="{Binding SpriteTool.HasMultipleSpritePages, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
                   <Button Content="Previous" Command="{Binding SpriteTool.PreviousSpritePage}" DockPanel.Dock="Left"/>
                   <Button Content="Next" Command="{Binding SpriteTool.NextSpritePage}" DockPanel.Dock="Right"/>
+               </DockPanel>
+
+               <!-- Palette Address -->
+               <DockPanel Margin="5,15">
+                  <TextBlock VerticalAlignment="Center" Text="Palette Address:" />
+                  <TextBox Text="{Binding SpriteTool.PaletteAddress, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5" />
                </DockPanel>
 
                <!-- Palette -->

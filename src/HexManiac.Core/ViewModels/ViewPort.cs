@@ -445,8 +445,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public HexElement this[int x, int y] {
          get {
-            if (x < 0 || x >= Width) return HexElement.Undefined;
-            if (y < 0 || y >= Height) return HexElement.Undefined;
+            if (x < 0 || x >= Width || x >= currentView.GetLength(0)) return HexElement.Undefined;
+            if (y < 0 || y >= Height || y >= currentView.GetLength(1)) return HexElement.Undefined;
             if (currentView[x, y] is object) return currentView[x, y];
 
             if (x == 0 && y == 0) {

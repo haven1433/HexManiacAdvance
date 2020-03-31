@@ -22,6 +22,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly ViewPort viewPort;
       private readonly IDataModel model;
 
+      private bool paletteWasSetMoreRecently;
+
       private int spritePages = 1, palPages = 1, spritePage = 0, palPage = 0;
       private int[,] pixels;
       private short[] palette;
@@ -38,8 +40,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public int SpriteAddress {
          get => spriteAddress;
          set {
-            if (!TryUpdate(ref spriteAddress, value)) return;
             var run = model.GetNextRun(value) as ISpriteRun;
+            if (!TryUpdate(ref spriteAddress, value)) {
+               if (paletteWasSetMoreRecently) FindMatchingPalette(run);
+               paletteWasSetMoreRecently = false;
+               return;
+            }
+
             if (run == null) {
                spritePages = 1;
                spritePage = 0;
@@ -58,6 +65,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          get => paletteAddress;
          set {
             if (!TryUpdate(ref paletteAddress, value)) return;
+            paletteWasSetMoreRecently = true;
             var paletteRun = model.GetNextRun(value) as IPaletteRun;
             if (paletteRun == null) {
                palPages = 1;
