@@ -373,9 +373,6 @@ namespace HavenSoft.HexManiac.Tests {
 
          var typeChart = model.GetTable(TypeChartTableName);
          Assert.NotInRange(typeChart.ElementCount, 0, 100);
-
-         var typeChart2 = model.GetTable(TypeChartTableName2);
-         Assert.NotNull(typeChart2);
       }
 
       [SkippableTheory]

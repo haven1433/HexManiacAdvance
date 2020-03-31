@@ -28,7 +28,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
 
          if (start < 0) return false; // not a valid data location, so the data can't possibly be valid
-         for (int i = 0; i < tableStream.ElementCount; i++) {
+
+         // if the first 90% matches, we don't need to check the last 10%
+         var mostElementsCount = (int)Math.Ceiling(tableStream.ElementCount * .9);
+         for (int i = 0; i < mostElementsCount; i++) {
             int subStart = start + tableStream.ElementLength * i;
             for (int j = 0; j < tableStream.ElementContent.Count; j++) {
                if (!ArrayRun.DataMatchesSegmentFormat(model, subStart, tableStream.ElementContent[j], default, tableStream.ElementContent)) return false;

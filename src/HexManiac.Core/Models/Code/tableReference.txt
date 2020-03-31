@@ -66,3 +66,7 @@ searchsize,          08DAE4, 08DAE4, 08DB04, 08DB04, 103868, 103840, 1038E0, 103
 searchtype,                ,       ,       ,       , 103734, 10370C, 1037AC, 103784,       , [species:pokenames]nationaldex
 habitatnames,              ,       ,       ,       , 104F84, 104F5C, 104FFC, 104FD4,       , [name<"">]
 habitats,                  ,       ,       ,       , 106888, 106860, 106900, 1068D8,       , [data<[pokemon<[species:pokenames]/pokecount> pokecount::]/count> count::]habitatnames
+
+// other types of runs
+eggmoves,            041B44, 041B44, 041B64, 041B64, 045C50, 045C50, 045C64, 045C64, 0703F0, `egg`
+typeChart,           01CDC8, 01CDC8, 01CDC8, 01CDC8, 01E944, 01E944, 01E958, 01E958, 047134, [attack.types defend.types strength.]!FFFF00
