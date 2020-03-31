@@ -179,8 +179,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
 
             if (options.Count == ElementCount - ParentOffset && ParentOffset != 0) {
+               // if negative: pull values off the front
                if (ParentOffset < 0) options = options.Skip(-ParentOffset).ToList();
-               else options = Enumerable.Repeat(string.Empty, ParentOffset).Concat(options).ToList();
+               // if positive: add values onto the back
+               else options = options.Concat(Enumerable.Range(ElementCount, ParentOffset).Select(i => i.ToString())).ToList();
             }
 
             return options;
@@ -196,7 +198,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (!format.StartsWith(ArrayStart.ToString()) || closeArray == -1) throw new ArrayRunParseException($"Array Content must be wrapped in {ArrayStart}{ArrayEnd}.");
          var segments = format.Substring(1, closeArray - 1);
          var length = format.Substring(closeArray + 1);
-         if (!length.All(c => char.IsLetterOrDigit(c) || c == '-')) throw new ArrayRunParseException("Array length must be an anchor name or a number."); // the name might end with "-1" so also allow dashes
+         if (!length.All(c => char.IsLetterOrDigit(c) || c.IsAny('-', '+'))) throw new ArrayRunParseException("Array length must be an anchor name or a number."); // the name might end with "-1" so also allow +/-
          ElementContent = ParseSegments(segments, data);
          if (ElementContent.Count == 0) throw new ArrayRunParseException("Array Content must not be empty.");
          ElementLength = ElementContent.Sum(e => e.Length);
@@ -257,7 +259,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (startArray == -1 || startArray > closeArray) return new ErrorInfo($"Array Content must be wrapped in {ArrayStart}{ArrayEnd}.");
          var length = format.Substring(closeArray + 1);
 
-         if (length.All(c => char.IsLetterOrDigit(c) || c == '-')) {
+         if (length.All(c => char.IsLetterOrDigit(c) || c.IsAny('-', '+'))) {
             // option 1: the length looks like a standard table length (or is empty, and thus dynamic). Parse as a table.
             try {
                using (ModelCacheScope.CreateScope(data)) {
@@ -693,8 +695,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       private (string lengthFromAnchor, int parentOffset, int elementCount) ParseLengthFromAnchor(string length) {
          var parts = length.Split("-");
+         if (parts.Length == 1) parts = length.Split("+");
          if (parts.Length == 2 && int.TryParse(parts[1], out int parentOffset)) {
-            parentOffset = -parentOffset;
+            if (length.Contains("-")) parentOffset = -parentOffset;
          } else {
             parentOffset = 0;
          }
