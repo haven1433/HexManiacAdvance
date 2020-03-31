@@ -5,16 +5,18 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
-   public interface ISpriteRun : IAppendToBuilderRun {
-      SpriteFormat SpriteFormat { get; }
+   public interface IPagedRun : IAppendToBuilderRun {
       int Pages { get; }
+   }
+
+   public interface ISpriteRun : IPagedRun {
+      SpriteFormat SpriteFormat { get; }
       int[,] GetPixels(IDataModel model, int page);
       ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels);
    }
 
-   public interface IPaletteRun : IAppendToBuilderRun {
+   public interface IPaletteRun : IPagedRun {
       PaletteFormat PaletteFormat { get; }
-      int Pages { get; }
       IReadOnlyList<short> GetPalette(IDataModel model, int page);
       IPaletteRun SetPalette(IDataModel model, ModelDelta token, int page, IReadOnlyList<short> colors);
    }

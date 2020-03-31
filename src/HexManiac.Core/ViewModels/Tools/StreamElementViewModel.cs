@@ -18,10 +18,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private int usageCount;
       public int UsageCount {
          get => usageCount;
-         private set {
+         set {
             if (!TryUpdate(ref usageCount, value)) return;
             NotifyPropertyChanged(nameof(ShowContent));
             NotifyPropertyChanged(nameof(CanRepoint));
+            NotifyPropertyChanged(nameof(CanCreateNew));
             repoint.CanExecuteChanged.Invoke(repoint, EventArgs.Empty);
             createNew.CanExecuteChanged.Invoke(createNew, EventArgs.Empty);
          }
@@ -68,11 +69,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          // by the time we get this far, we're nearly guaranteed that this will be a IStreamRun.
          // if it's not an IStreamRun, it's because the pointer in the array doesn't actually point to a valid stream.
+         // (It might point to an IPagedRun or some other stream-like element.)
          // at which point, we don't want to display any content.
          var destination = Model.ReadPointer(Start);
          if (destination == Pointer.NULL) {
             UsageCount = 0;
-            return;
          } else {
             var run = Model.GetNextRun(destination) as IStreamRun;
             UsageCount = run?.PointerSources.Count ?? 0;

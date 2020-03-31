@@ -19,7 +19,7 @@
          </Button>
          <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource Secondary}" FontStyle="Italic" TextWrapping="Wrap">
             <Run Text="This is used by"/>
-            <Run Foreground="{DynamicResource Accent}" Text="{Binding Message, Mode=OneWay}"/>
+            <Run Foreground="{DynamicResource Accent}" Text="{Binding UsageCount, Mode=OneWay}"/>
             <Run Text="pointers."/>
          </TextBlock>
       </DockPanel>

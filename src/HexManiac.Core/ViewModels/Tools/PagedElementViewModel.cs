@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
+using System;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
@@ -28,6 +29,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public PagedElementViewModel(ViewPort viewPort, int start) : base(viewPort, start) {
          Pages = 1;
+
+         // update usage count, assuming that our run is paged.
+         var run = Model.GetNextRun(Model.ReadPointer(Start)) as IPagedRun;
+         UsageCount = run?.PointerSources.Count ?? 0;
+
          previousPage.CanExecute = arg => currentPage > 0;
          previousPage.Execute = arg => CurrentPage -= 1;
          nextPage.CanExecute = arg => currentPage < Pages - 1;
