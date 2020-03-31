@@ -161,7 +161,9 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          // intentionally draw nothing
       }
 
-      public void Visit(None dataFormat, byte data) { }
+      public void Visit(None dataFormat, byte data) {
+         if (data == 0xB5) Underline(nameof(Theme.Secondary), false, false);
+      }
 
       public static double CalculateTextOffset(string text, int fontSize, double cellWidth, UnderEdit edit) {
          var defaultText = CreateText("00", fontSize, null);
