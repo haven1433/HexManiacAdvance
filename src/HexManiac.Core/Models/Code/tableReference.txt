@@ -55,6 +55,8 @@ ballsprites,      ,,,, 0001D0,,,, 0001D0, [sprite<`lzs4x2x6|ballpalettes`> uncom
 ballpalettes,     ,,,, 0001D4,,,, 0001D4, [palette<`lzp4`> a b unused:]ballsprites
 trainersprites,   ,,,, 03473C,,,, 03473C, [sprite<`lzs4x8x8|trainerpalettes`> uncompressedLength: index:]148
 trainerpalettes,  ,,,, 03474C,,,, 03474C, [palette<`lzp4`> index: unused:]trainersprites
+trainerbacksprites,        ,       ,       ,       , 10BC58,       ,       ,       ,       , [sprite<`ucs4x8x8|trainerbackpals`> a b c:]6
+trainerbackpals,           ,       ,       ,       , 0335D4,       ,       ,       ,       , [pal<`lzp4`> sprite::]trainerbacksprites
 
 // pokedex
 regionaldex,         03F7F0, 03F7F0, 03F7F0, 03F7F0, 0431F0, 0431F0, 043204, 043204, 06D3FC, [index:]pokenames-1
@@ -85,3 +87,6 @@ typeiconpalette,           ,       ,       ,       ,       ,       ,       ,    
 typeicontilepositions      ,       ,       ,       ,       ,       ,       ,       , 61CFCC, [pointer<[start:: unused::]1>]typeiconindex
 // the 'start' value is the index of the tile from typeicons where that type's icon starts. Since each icon is 4x2 tiles, each 'start' value is a multiple of 8.
 // @Emerald:61CFC0 :typeiconindex
+bagtypeicon,               ,       ,       ,       ,       ,       ,       ,       , 19A340, `ucs4x16x16|bagtypepalette`
+bagtypepalette,            ,       ,       ,       ,       ,       ,       ,       , 19A2E0, `ucp4`
+bagtypeiconmap,            ,       ,       ,       ,       ,       ,       ,       , 19A33C, [width. height. xy:]24

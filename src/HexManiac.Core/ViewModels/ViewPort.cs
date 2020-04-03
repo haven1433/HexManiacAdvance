@@ -423,8 +423,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                               selection.PropertyChanged += SelectionPropertyChanged;
                            }
                            UpdateColumnHeaders();
-                           Tools.RefreshContent();
                         }
+                        Tools.RefreshContent();
                         RefreshBackingData();
                      } else {
                         OnError?.Invoke(this, errorInfo.ErrorMessage);

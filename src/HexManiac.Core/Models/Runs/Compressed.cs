@@ -12,13 +12,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Compressed {
    public class LZRun : BaseRun, IStreamRun, IAppendToBuilderRun {
       public IDataModel Model { get; }
 
-      public override int Length { get; }
+      private int length;
+      public override int Length => length;
+      protected void InvalidateLength() => length = -1;
+
+      public int DecompressedLength { get; }
 
       public override string FormatString => "`lz`";
 
       public LZRun(IDataModel data, int start, IReadOnlyList<int> sources = null) : base(start, sources) {
          this.Model = data;
-         Length = IsCompressedLzData(data, start);
+         length = IsCompressedLzData(data, start);
+         DecompressedLength = data.ReadMultiByteValue(start + 1, 3);
       }
 
       /// <returns>The length of the compressed data</returns>
@@ -413,6 +418,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Compressed {
       public SpriteRun(SpriteFormat spriteFormat, IDataModel data, int start, IReadOnlyList<int> sources)
          : base(data, start, sources) {
          SpriteFormat = spriteFormat;
+         if (spriteFormat.ExpectedByteLength > DecompressedLength) InvalidateLength();
          FormatString = $"`lzs{spriteFormat.BitsPerPixel}x{spriteFormat.TileWidth}x{spriteFormat.TileHeight}`";
       }
 
@@ -477,6 +483,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Compressed {
       public PaletteRun(PaletteFormat paletteFormat, IDataModel data, int start, IReadOnlyList<int> sources)
          : base(data,start,sources){
          PaletteFormat = paletteFormat;
+         if ((int)Math.Pow(2, paletteFormat.Bits) * 2 > DecompressedLength) InvalidateLength();
          FormatString = $"`lzp{paletteFormat.Bits}`";
       }
 

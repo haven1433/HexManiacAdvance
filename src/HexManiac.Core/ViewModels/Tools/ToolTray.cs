@@ -109,6 +109,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public void RefreshContent() {
          TableTool.DataForCurrentRunChanged();
+         SpriteTool.DataForCurrentRunChanged();
       }
 
       public IEnumerator<IToolViewModel> GetEnumerator() => tools.GetEnumerator();

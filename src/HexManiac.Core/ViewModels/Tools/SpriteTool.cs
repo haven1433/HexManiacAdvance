@@ -44,7 +44,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (!TryUpdate(ref spriteAddress, value)) {
                if (paletteWasSetMoreRecently) FindMatchingPalette(run);
                paletteWasSetMoreRecently = false;
-               return;
+               if (!RunPropertiesChanged(run)) return;
             }
 
             if (run == null) {
@@ -117,6 +117,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          prevPalPage.Execute = arg => { palPage -= 1; LoadPalette(); };
          nextPalPage.Execute = arg => { palPage += 1; LoadPalette(); };
 
+         LoadPalette();
+      }
+
+      public void DataForCurrentRunChanged() {
+         LoadSprite();
          LoadPalette();
       }
 
@@ -213,6 +218,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var indexedPaletteAddress = model.ReadPointer(paletteTableElementStart);
          if (!(model.GetNextRun(indexedPaletteAddress) is IPaletteRun)) return;
          PaletteAddress = indexedPaletteAddress;
+      }
+
+      private bool RunPropertiesChanged(ISpriteRun run) {
+         if (run == null) return false;
+         if (run.SpriteFormat.TileWidth * 8 != PixelWidth) return true;
+         if (run.SpriteFormat.TileHeight * 8 != PixelHeight) return true;
+         if (run.Pages != spritePages) return true;
+         return false;
       }
    }
 }

@@ -1487,8 +1487,10 @@ namespace HavenSoft.HexManiac.Core.Models {
             run = new TrainerPokemonTeamRun(model, dataIndex, run.PointerSources);
          } else if (Runs.Compressed.SpriteRun.TryParseSpriteFormat(format, out var spriteFormat)) {
             run = new Runs.Compressed.SpriteRun(spriteFormat, model, dataIndex, run.PointerSources);
+            if (run.Length < 6) return new ErrorInfo($"Compressed data needs to be at least {spriteFormat.ExpectedByteLength} when decompressed, but was too short.");
          } else if (Runs.Compressed.PaletteRun.TryParsePaletteFormat(format, out var paletteFormat)) {
             run = new Runs.Compressed.PaletteRun(paletteFormat, model, dataIndex, run.PointerSources);
+            if (run.Length < 6) return new ErrorInfo($"Compressed data needs to be at least {(int)Math.Pow(2, paletteFormat.Bits + 1)} bytes when decompressed, but was too short.");
          } else if (Runs.Sprites.SpriteRun.TryParseSpriteFormat(format, out spriteFormat)) {
             run = new Runs.Sprites.SpriteRun(dataIndex, spriteFormat, run.PointerSources);
          } else if (Runs.Sprites.PaletteRun.TryParsePaletteFormat(format, out paletteFormat)) {

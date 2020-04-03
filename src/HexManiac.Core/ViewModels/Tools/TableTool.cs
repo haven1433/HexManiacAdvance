@@ -176,7 +176,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (string.IsNullOrEmpty(basename)) basename = array.Start.ToString("X6");
          var index = (Address - array.Start) / array.ElementLength;
 
-         if (index < array.ElementCount) {
+         if (0 <= index && index < array.ElementCount) {
             if (array.ElementNames.Count > index) {
                CurrentElementName = $"{basename}/{index}" + Environment.NewLine + $"{basename}/{array.ElementNames[index]}";
             } else {
