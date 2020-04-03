@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows.Input;
@@ -11,10 +12,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    /// <summary>
    /// This exists to wrap a string, just so that WPF doesn't mess up the combo-box selection in the case of multiple indexes having the same text.
    /// </summary>
-   public class ComboOption {
+   public class ComboOption : IPixelViewModel {
+      public event PropertyChangedEventHandler PropertyChanged;
+      public bool DisplayAsText => Text != null;
       public string Text { get; }
-      public ComboOption(string text) { Text = text; }
+
+      public int PixelWidth { get; private set; }
+      public int PixelHeight { get; private set; }
+      public short[] PixelData { get; private set; }
+
+      public ComboOption(string text) { Text = text; PixelData = new short[0]; }
       public static implicit operator ComboOption(string text) => new ComboOption(text);
+      public static ComboOption CreateFromSprite(short[] pixelData, int width) => new ComboOption(null) {
+         PixelData = pixelData,
+         PixelWidth = width,
+         PixelHeight = pixelData.Length / width,
+      };
    }
 
    public class ComboBoxArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
@@ -86,7 +99,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Debug.Assert(segment != null);
          if (segment != null) {
             optionSource = Model.GetAddressFromAnchor(history.CurrentChange, -1, segment.EnumName);
-            Options = new List<ComboOption>(segment.GetOptions(Model).Select(option => new ComboOption(option)));
+            Options = new List<ComboOption>(segment.GetComboOptions(Model));
          } else {
             Options = new List<ComboOption>();
          }

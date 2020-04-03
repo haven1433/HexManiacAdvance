@@ -12,35 +12,6 @@ natures,             0443D8, 0443D8, 0443F8, 0443F8, 0488B8, 0488B8, 0488CC, 048
 mapnames,                  ,       ,       ,       , 0C0C94, 0C0C68, 0C0CA8, 0C0C7C,       , [name<"">]
 mapnames,            0FB550, 0FB550, 0FB570, 0FB570,       ,       ,       ,       , 123B44, [a b c d name<"">]
 
-// data
-pokestats,           010B64, 010B64, 010B64, 010B64, 0001BC, 0001BC, 0001BC, 0001BC, 0001BC, [hp. attack. def. speed. spatk. spdef. type1.types type2.types catchRate. baseExp. evs|b[]evbits item1:items item2:items genderratio. steps2hatch. basehappiness. growthrate. egg1. egg2. ability1.abilitynames ability2.abilitynames runrate. unknown. padding:]pokenames
-evolutions,          03F534, 03F534, 03F534, 03F534, 042F6C, 042F6C, 042F80, 042F80, 06D140, [[method:evolutionmethods arg: species:pokenames unused:]5]pokenames
-items,               0A98F0, 0A98F0, 0A9910, 0A9910, 0001C8, 0001C8, 0001C8, 0001C8, 0001C8, [name""14 index: price: holdeffect. param. description<""> keyitemvalue. bagkeyitem. pocket. type. fieldeffect<> battleusage:: battleeffect<> battleextra::]
-movedata,            00CA54, 00CA54, 00CA54, 00CA54, 0001CC, 0001CC, 0001CC, 0001CC, 0001CC, [effect.moveeffects power. type.types accuracy. pp. effectAccuracy. target|b[]movetarget priority. info|b[]moveinfo unused. unused:]movenames
-moveanimations,      075734, 075738, 075754, 075758, 0725D0, 0725D0, 0725E4, 0725E4, 0A3A44, [animation<>]movenames
-moveeffects,         0146E4, 0146E4, 0146E4, 0146E4, 016364, 016364, 016378, 016378, 03E854, [effect<>]213
-lvlmoves,            03B7BC, 03B7BC, 03B7BC, 03B7BC, 03EA7C, 03EA7C, 03EA90, 03EA90, 06930C, [movesFromLevel<`plm`>]pokenames
-tutormoves,                ,       ,       ,       , 120BE4, 120BBC, 120C5C, 120C34,       , [move:movenames]15
-tutormoves,                ,       ,       ,       ,       ,       ,       ,       , 1B236C, [move:movenames]30
-tutorcompatibility,        ,       ,       ,       , 120C30, 120C08, 120CA8, 120C80, 1B2390, [moves|b[]tutormoves]pokenames
-tmmoves,             06F038, 06F03C, 06F058, 06F05C, 125A8C, 125A64, 125B04, 125ADC, 1B6D10, [move:movenames]58
-tmcompatibility,     0403B0, 0403B0, 0403D0, 0403D0, 043C68, 043C68, 043C7C, 043C7C, 06E048, [moves|b[]tmmoves]pokenames
-hmmoves,             040A24, 040A24, 040A44, 040A44, 0441DC, 0441DC, 0441F0, 0441F0, 06E828, [move:movenames]8
-itemimages,                ,       ,       ,       , 09899C, 098970, 0989B0, 098984, 1B0034, [image<`lzs4x3x3`> palette<`lzp4`>]items
-trainerdata,         00D890, 00D890, 00D890, 00D890, 00FC00, 00FC00, 00FC14, 00FC14, 03587C, [structType.4 class.trainerclassnames introMusic. sprite. name""12 item1:items item2:items item3:items item4:items doubleBattle:: ai|b[]traineraibits pokemonCount:: pokemon<`tpt`>]
-decorations,         0B3AC8, 0B3AC8, 0B3AE8, 0B3AE8, 00014C, 00014C, 00014C, 00014C, 00014C, [id. name""16 permission.decorpermissions shape.decorshape category.decorcategory price:: description<""> graphics<>]
-wild,                084D9C, 084D9C, 084DBC, 084DBC, 082990, 082964, 0829A4, 082978, 0B4D48, [bank. map. unused: grass<[rate:: list<[low. high. species:pokenames]12>]1> surf<[rate:: list<[low. high. species:pokenames]5>]1> tree<[rate:: list<[low. high. species:pokenames]5>]1> fish<[rate:: list<[low. high. species:pokenames]10>]1>]
-specials,            0658B4, 0658B8, 0658D4, 0658D8, 069F18, 069F18, 069F2C, 069F2C, 099314, [code<>]
-tradedata,           04D8D4, 04D8D4, 04D8F4, 04D8F4,       ,       ,       ,       ,       , [nickname""12 receive:pokenames hp attack defense speed spatk spdef abilitynum:: trainerid:: cool. tough. beauty. smart. cute. unused. unused: personality:: helditem:items mailnum. trainername""11 trainergender. sheen. give::pokenames]3
-tradedata,                 ,       ,       ,       , 053AD4, 053AD4, 053AE8, 053AE8,       , [nickname""12 receive:pokenames hp attack defense speed spatk spdef abilitynum:: trainerid:: cool. tough. beauty. smart. cute. unused. unused: personality:: helditem:items mailnum. trainername""11 trainergender. sheen. give::pokenames]9
-tradedata,                 ,       ,       ,       ,       ,       ,       ,       , 07E774, [nickname""12 receive:pokenames hp attack defense speed spatk spdef abilitynum:: trainerid:: cool. tough. beauty. smart. cute. unused. unused: personality:: helditem:items mailnum. trainername""11 trainergender. sheen. give::pokenames]4
-pickupitems,         02AFB8, 02AFB8, 02AFB8, 02AFB8,       ,       ,       ,       ,       , [item:items chance:]10
-pickupitems,               ,       ,       ,       , 02CEE4, 02CEE4, 02CEF8, 02CEF8,       , [item:items chance:]16
-pickupitems,               ,       ,       ,       ,       ,       ,       ,       , 055DF4, [item:items]18
-pickupitemsrare,           ,       ,       ,       ,       ,       ,       ,       , 055D2C, [item:items]11
-battlescriptsource,  012F34, 012F34, 012F34, 012F34, 014C1C, 014C1C, 014C30, 014C30,       , [code<>]248
-battlescriptsource,        ,       ,       ,       ,       ,       ,       ,       , 03CD94, [code<>]249
-
 // sprites / palettes
 // bits x width x height. Width/Hegiht measured in tiles.
 // pakenames+28: egg, unown*27 (B-Z, !, ?), 
@@ -57,6 +28,35 @@ trainersprites,   ,,,, 03473C,,,, 03473C, [sprite<`lzs4x8x8|trainerpalettes`> un
 trainerpalettes,  ,,,, 03474C,,,, 03474C, [palette<`lzp4`> index: unused:]trainersprites
 trainerbacksprites,        ,       ,       ,       , 10BC58,       ,       ,       ,       , [sprite<`ucs4x8x8|trainerbackpals`> a b c:]6
 trainerbackpals,           ,       ,       ,       , 0335D4,       ,       ,       ,       , [pal<`lzp4`> sprite::]trainerbacksprites
+
+// data
+pokestats,           010B64, 010B64, 010B64, 010B64, 0001BC, 0001BC, 0001BC, 0001BC, 0001BC, [hp. attack. def. speed. spatk. spdef. type1.types type2.types catchRate. baseExp. evs|b[]evbits item1:items item2:items genderratio. steps2hatch. basehappiness. growthrate. egg1. egg2. ability1.abilitynames ability2.abilitynames runrate. unknown. padding:]pokenames
+evolutions,          03F534, 03F534, 03F534, 03F534, 042F6C, 042F6C, 042F80, 042F80, 06D140, [[method:evolutionmethods arg: species:pokenames unused:]5]pokenames
+items,               0A98F0, 0A98F0, 0A9910, 0A9910, 0001C8, 0001C8, 0001C8, 0001C8, 0001C8, [name""14 index: price: holdeffect. param. description<""> keyitemvalue. bagkeyitem. pocket. type. fieldeffect<> battleusage:: battleeffect<> battleextra::]
+movedata,            00CA54, 00CA54, 00CA54, 00CA54, 0001CC, 0001CC, 0001CC, 0001CC, 0001CC, [effect.moveeffects power. type.types accuracy. pp. effectAccuracy. target|b[]movetarget priority. info|b[]moveinfo unused. unused:]movenames
+moveanimations,      075734, 075738, 075754, 075758, 0725D0, 0725D0, 0725E4, 0725E4, 0A3A44, [animation<>]movenames
+moveeffects,         0146E4, 0146E4, 0146E4, 0146E4, 016364, 016364, 016378, 016378, 03E854, [effect<>]213
+lvlmoves,            03B7BC, 03B7BC, 03B7BC, 03B7BC, 03EA7C, 03EA7C, 03EA90, 03EA90, 06930C, [movesFromLevel<`plm`>]pokenames
+tutormoves,                ,       ,       ,       , 120BE4, 120BBC, 120C5C, 120C34,       , [move:movenames]15
+tutormoves,                ,       ,       ,       ,       ,       ,       ,       , 1B236C, [move:movenames]30
+tutorcompatibility,        ,       ,       ,       , 120C30, 120C08, 120CA8, 120C80, 1B2390, [moves|b[]tutormoves]pokenames
+tmmoves,             06F038, 06F03C, 06F058, 06F05C, 125A8C, 125A64, 125B04, 125ADC, 1B6D10, [move:movenames]58
+tmcompatibility,     0403B0, 0403B0, 0403D0, 0403D0, 043C68, 043C68, 043C7C, 043C7C, 06E048, [moves|b[]tmmoves]pokenames
+hmmoves,             040A24, 040A24, 040A44, 040A44, 0441DC, 0441DC, 0441F0, 0441F0, 06E828, [move:movenames]8
+itemimages,                ,       ,       ,       , 09899C, 098970, 0989B0, 098984, 1B0034, [image<`lzs4x3x3`> palette<`lzp4`>]items
+trainerdata,         00D890, 00D890, 00D890, 00D890, 00FC00, 00FC00, 00FC14, 00FC14, 03587C, [structType.4 class.trainerclassnames introMusic. sprite.trainersprites name""12 item1:items item2:items item3:items item4:items doubleBattle:: ai|b[]traineraibits pokemonCount:: pokemon<`tpt`>]
+decorations,         0B3AC8, 0B3AC8, 0B3AE8, 0B3AE8, 00014C, 00014C, 00014C, 00014C, 00014C, [id. name""16 permission.decorpermissions shape.decorshape category.decorcategory price:: description<""> graphics<>]
+wild,                084D9C, 084D9C, 084DBC, 084DBC, 082990, 082964, 0829A4, 082978, 0B4D48, [bank. map. unused: grass<[rate:: list<[low. high. species:pokenames]12>]1> surf<[rate:: list<[low. high. species:pokenames]5>]1> tree<[rate:: list<[low. high. species:pokenames]5>]1> fish<[rate:: list<[low. high. species:pokenames]10>]1>]
+specials,            0658B4, 0658B8, 0658D4, 0658D8, 069F18, 069F18, 069F2C, 069F2C, 099314, [code<>]
+tradedata,           04D8D4, 04D8D4, 04D8F4, 04D8F4,       ,       ,       ,       ,       , [nickname""12 receive:pokenames hp attack defense speed spatk spdef abilitynum:: trainerid:: cool. tough. beauty. smart. cute. unused. unused: personality:: helditem:items mailnum. trainername""11 trainergender. sheen. give::pokenames]3
+tradedata,                 ,       ,       ,       , 053AD4, 053AD4, 053AE8, 053AE8,       , [nickname""12 receive:pokenames hp attack defense speed spatk spdef abilitynum:: trainerid:: cool. tough. beauty. smart. cute. unused. unused: personality:: helditem:items mailnum. trainername""11 trainergender. sheen. give::pokenames]9
+tradedata,                 ,       ,       ,       ,       ,       ,       ,       , 07E774, [nickname""12 receive:pokenames hp attack defense speed spatk spdef abilitynum:: trainerid:: cool. tough. beauty. smart. cute. unused. unused: personality:: helditem:items mailnum. trainername""11 trainergender. sheen. give::pokenames]4
+pickupitems,         02AFB8, 02AFB8, 02AFB8, 02AFB8,       ,       ,       ,       ,       , [item:items chance:]10
+pickupitems,               ,       ,       ,       , 02CEE4, 02CEE4, 02CEF8, 02CEF8,       , [item:items chance:]16
+pickupitems,               ,       ,       ,       ,       ,       ,       ,       , 055DF4, [item:items]18
+pickupitemsrare,           ,       ,       ,       ,       ,       ,       ,       , 055D2C, [item:items]11
+battlescriptsource,  012F34, 012F34, 012F34, 012F34, 014C1C, 014C1C, 014C30, 014C30,       , [code<>]248
+battlescriptsource,        ,       ,       ,       ,       ,       ,       ,       , 03CD94, [code<>]249
 
 // pokedex
 regionaldex,         03F7F0, 03F7F0, 03F7F0, 03F7F0, 0431F0, 0431F0, 043204, 043204, 06D3FC, [index:]pokenames-1
@@ -90,3 +90,7 @@ typeicontilepositions      ,       ,       ,       ,       ,       ,       ,    
 bagtypeicon,               ,       ,       ,       ,       ,       ,       ,       , 19A340, `ucs4x16x16|bagtypepalette`
 bagtypepalette,            ,       ,       ,       ,       ,       ,       ,       , 19A2E0, `ucp4`
 bagtypeiconmap,            ,       ,       ,       ,       ,       ,       ,       , 19A33C, [width. height. xy:]24
+
+titlescreenCharizardPalette, ,,,, 078AA0,,,,, `ucp4`
+titlescreenCharizardTiles,   ,,,, 078AA4,,,,, `lzs4x9x15`
+//titlescreenCharizardTilemap, ,,,, 078A9C,,,,, ????

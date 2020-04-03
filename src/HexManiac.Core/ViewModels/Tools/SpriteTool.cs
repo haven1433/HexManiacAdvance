@@ -42,7 +42,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set {
             var run = model.GetNextRun(value) as ISpriteRun;
             if (!TryUpdate(ref spriteAddress, value)) {
-               if (paletteWasSetMoreRecently) FindMatchingPalette(run);
+               if (paletteWasSetMoreRecently) PaletteAddress = FindMatchingPalette(model, run, PaletteAddress);
                paletteWasSetMoreRecently = false;
                if (!RunPropertiesChanged(run)) return;
             }
@@ -56,7 +56,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                NotifyPropertyChanged(nameof(HasMultipleSpritePages));
             }
             LoadSprite();
-            FindMatchingPalette(run);
+            PaletteAddress = FindMatchingPalette(model, run, PaletteAddress);
          }
       }
 
@@ -177,47 +177,45 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          NotifyPropertyChanged(PixelData);
       }
 
-      private void FindMatchingPalette(ISpriteRun spriteRun) {
+      public static int FindMatchingPalette(IDataModel model, ISpriteRun spriteRun, int defaultAddress) {
          var hint = spriteRun?.SpriteFormat.PaletteHint;
-         if (hint == null) return;
-         var hintRun = model.GetNextRun(model.GetAddressFromAnchor(viewPort.CurrentChange, -1, hint));
+         if (hint == null) return defaultAddress;
+         var hintRun = model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, hint));
 
          // easy case: the hint is the address of a palette
          if (hintRun is IPaletteRun) {
-            PaletteAddress = hintRun.Start;
-            return;
+            return hintRun.Start;
          }
 
          // harder case: the hint is a table
-         if (!(hintRun is ITableRun hintTableRun)) return;
-         if ((spriteRun.PointerSources?.Count ?? 0) == 0) return;
+         if (!(hintRun is ITableRun hintTableRun)) return defaultAddress;
+         if ((spriteRun.PointerSources?.Count ?? 0) == 0) return defaultAddress;
          var spritePointer = spriteRun.PointerSources[0];
          var spriteTable = model.GetNextRun(spritePointer) as ITableRun;
-         if (spriteTable == null) return;
+         if (spriteTable == null) return defaultAddress;
          int spriteIndex = (spritePointer - spriteTable.Start) / spriteTable.ElementLength;
 
          // easy case: hint table is pointers to palettes
          var hintTableElementStart = hintTableRun.Start + hintTableRun.ElementLength * spriteIndex;
          if (hintTableRun.ElementContent[0].Type == ElementContentType.Pointer) {
             var paletteAddress = model.ReadPointer(hintTableElementStart);
-            if (!(model.GetNextRun(paletteAddress) is IPaletteRun)) return;
-            PaletteAddress = paletteAddress;
-            return;
+            if (!(model.GetNextRun(paletteAddress) is IPaletteRun)) return defaultAddress;
+            return paletteAddress;
          }
 
          // harder case: hint table is index into a different table
          var segment = hintTableRun.ElementContent[0] as ArrayRunEnumSegment;
-         if (segment == null) return;
-         var paletteTableAddress = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, segment.EnumName);
+         if (segment == null) return defaultAddress;
+         var paletteTableAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, segment.EnumName);
          var paletteTableRun = model.GetNextRun(paletteTableAddress) as ITableRun;
-         if (paletteTableRun == null) return;
-         if (paletteTableRun.ElementContent[0].Type != ElementContentType.Pointer) return;
+         if (paletteTableRun == null) return defaultAddress;
+         if (paletteTableRun.ElementContent[0].Type != ElementContentType.Pointer) return defaultAddress;
          var index = model.ReadMultiByteValue(hintTableElementStart, segment.Length);
-         if (paletteTableRun.ElementCount <= index) return;
+         if (paletteTableRun.ElementCount <= index) return defaultAddress;
          var paletteTableElementStart = paletteTableRun.Start + paletteTableRun.ElementLength * index;
          var indexedPaletteAddress = model.ReadPointer(paletteTableElementStart);
-         if (!(model.GetNextRun(indexedPaletteAddress) is IPaletteRun)) return;
-         PaletteAddress = indexedPaletteAddress;
+         if (!(model.GetNextRun(indexedPaletteAddress) is IPaletteRun)) return defaultAddress;
+         return indexedPaletteAddress;
       }
 
       private bool RunPropertiesChanged(ISpriteRun run) {

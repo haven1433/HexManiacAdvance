@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs.Compressed;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -87,7 +88,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public override string ToText(IDataModel model, int offset) {
          var noChange = new NoDataChangeDeltaModel();
          using (ModelCacheScope.CreateScope(model)) {
-            var options = GetOptions(model);
+            var options = GetOptions(model).ToList();
             if (options == null) return base.ToText(model, offset);
 
             var resultAsInteger = ToInteger(model, offset, Length);
@@ -108,6 +109,31 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
             return value;
          }
+      }
+
+      // TODO do some sort of caching: rendering these images every time probably sucks for performance.
+      public IEnumerable<ComboOption> GetComboOptions(IDataModel model) {
+         var defaultOptions = GetOptions(model).Select(option => new ComboOption(option));
+         var tableRun = model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, EnumName)) as ITableRun;
+         if (tableRun == null) return defaultOptions;
+         if (!(tableRun.ElementContent[0] is ArrayRunPointerSegment pointerSegment)) return defaultOptions;
+         if (!SpriteRun.TryParseSpriteFormat(pointerSegment.InnerFormat, out var _) && !Sprites.SpriteRun.TryParseSpriteFormat(pointerSegment.InnerFormat, out var _)) return defaultOptions;
+
+         var imageOptions = new List<ComboOption>();
+         for (int i = 0; i < tableRun.ElementCount; i++) {
+            var destination = model.ReadPointer(tableRun.Start + tableRun.ElementLength * i);
+            var run = model.GetNextRun(destination) as Sprites.ISpriteRun;
+            if (run == null) return defaultOptions;
+            var sprite = run.GetPixels(model, 0);
+            var paletteAddress = SpriteTool.FindMatchingPalette(model, run, 0);
+            var paletteRun = model.GetNextRun(paletteAddress) as Sprites.IPaletteRun;
+            var palette = paletteRun?.GetPalette(model, 0) ?? TileViewModel.CreateDefaultPalette(16);
+            var image = SpriteTool.Render(sprite, palette);
+            var option = ComboOption.CreateFromSprite(image, sprite.GetLength(0));
+            imageOptions.Add(option);
+         }
+
+         return imageOptions;
       }
 
       public override void Write(IDataModel model, ModelDelta token, int start, string data) {
@@ -152,15 +178,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return false;
       }
 
-      public IReadOnlyList<string> GetOptions(IDataModel model) {
-         if (int.TryParse(EnumName, out var result)) return Enumerable.Range(0, result).Select(i => i.ToString()).ToList();
-         var options = model.GetOptions(EnumName);
+      public IEnumerable<string> GetOptions(IDataModel model) {
+         if (int.TryParse(EnumName, out var result)) return Enumerable.Range(0, result).Select(i => i.ToString());
+         IEnumerable<string> options = model.GetOptions(EnumName);
 
          // we _need_ options for the table tool
          // if we have none, just create "0", "1", ..., "n-1" based on the length of the EnumName table.
-         if (options.Count == 0) {
+         if (!options.Any()) {
             var tableRun = model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, EnumName)) as ITableRun;
-            if (tableRun != null) options = Enumerable.Range(0, tableRun.ElementCount).Select(i => i.ToString()).ToList();
+            if (tableRun != null) options = Enumerable.Range(0, tableRun.ElementCount).Select(i => i.ToString());
          }
 
          return options;

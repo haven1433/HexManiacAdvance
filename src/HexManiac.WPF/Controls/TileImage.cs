@@ -70,6 +70,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private IPixelViewModel ViewModel => DataContext as IPixelViewModel;
       public PixelImage() {
          DataContextChanged += (sender, e) => UpdateDataContext(e);
+         SnapsToDevicePixels = true;
          Stretch = Stretch.None;
       }
       private void UpdateDataContext(DependencyPropertyChangedEventArgs e) {

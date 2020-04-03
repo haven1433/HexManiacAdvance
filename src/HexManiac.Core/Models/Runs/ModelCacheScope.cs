@@ -60,7 +60,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             return null;
          }
 
-         var enumOptions = sourceSegment.GetOptions(model);
+         var enumOptions = sourceSegment.GetOptions(model).ToList();
          if (enumOptions == null) return null;
 
          var results = new List<string>(sourceRun.ElementCount);

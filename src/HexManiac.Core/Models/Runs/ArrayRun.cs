@@ -761,7 +761,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                return true;
             case ElementContentType.Integer:
                if (segment is ArrayRunEnumSegment enumSegment) {
-                  return owner.ReadMultiByteValue(start, segment.Length) < enumSegment.GetOptions(owner).Count;
+                  var options = enumSegment.GetOptions(owner).ToList();
+                  return owner.ReadMultiByteValue(start, segment.Length) < options.Count;
                } else {
                   if (flags.HasFlag(FormatMatchFlags.AllowJunkAfterText)) return true; // don't bother verifying if junk is allowed
                   return segment.Length < 4 || owner[start + 3] < 0x08; // we want an integer, not a pointer

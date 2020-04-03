@@ -136,7 +136,26 @@
                                  <ColumnDefinition Width="Auto"/>
                               </Grid.ColumnDefinitions>
                               <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
-                              <ComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" DisplayMemberPath="Text" Margin="0,0,2,0" Grid.Column="1"/>
+                              <ComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" Margin="0,0,2,0" Grid.Column="1">
+                                 <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                       <StackPanel>
+                                          <TextBlock Text="{Binding Text}" Visibility="{Binding DisplayAsText, Converter={StaticResource BoolToVisibility}}"/>
+                                          <hsg3hv:PixelImage x:Name="OptionImage">
+                                             <hsg3hv:PixelImage.Style>
+                                                <Style TargetType="hsg3hv:PixelImage">
+                                                   <Style.Triggers>
+                                                      <DataTrigger Binding="{Binding DisplayAsText}" Value="True">
+                                                         <Setter Property="Visibility" Value="Collapsed"/>
+                                                      </DataTrigger>
+                                                   </Style.Triggers>
+                                                </Style>
+                                             </hsg3hv:PixelImage.Style>
+                                          </hsg3hv:PixelImage>
+                                       </StackPanel>
+                                    </DataTemplate>
+                                 </ComboBox.ItemTemplate>
+                              </ComboBox>
                               <Button Grid.Column="2" Command="{Binding GotoSource}" Width="20" Height="20">
                                  <Button.ToolTip>
                                     <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
@@ -295,7 +314,7 @@
                </DockPanel>
 
                <!-- Sprite -->
-               <hsg3hv:PixelImage DataContext="{Binding SpriteTool}" SnapsToDevicePixels="True" LayoutTransform="{StaticResource TwoX}"/>
+               <hsg3hv:PixelImage DataContext="{Binding SpriteTool}" LayoutTransform="{StaticResource TwoX}"/>
                <DockPanel Visibility="{Binding SpriteTool.HasMultipleSpritePages, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
                   <Button Content="Previous" Command="{Binding SpriteTool.PreviousSpritePage}" DockPanel.Dock="Left"/>
                   <Button Content="Next" Command="{Binding SpriteTool.NextSpritePage}" DockPanel.Dock="Right"/>
@@ -333,7 +352,6 @@
                </DockPanel>
 
             </StackPanel>
-            <!-- TODO palette paging control -->
          </ScrollViewer>
          <DockPanel Name="CodeToolPanel">
             <DockPanel.Style>
