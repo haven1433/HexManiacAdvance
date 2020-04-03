@@ -77,6 +77,7 @@ eggmoves,            041B44, 041B44, 041B64, 041B64, 045C50, 045C50, 045C64, 045
 typeChart,           01CDC8, 01CDC8, 01CDC8, 01CDC8, 01E944, 01E944, 01E958, 01E958, 047134, [attack.types defend.types strength.]!FFFF00
 typeicons,                 ,       ,       ,       , 107DB0,       ,       ,       ,       , `ucs4x16x16|typeiconpalette`
 typeiconpalette,           ,       ,       ,       , 107D64,       ,       ,       ,       , `ucp4`
+typetoiconmap,             ,       ,       ,       , 107DAC,       ,       ,       ,       , [width. height. xy:]24
 typeicons,                 ,       ,       ,       ,       ,       ,       ,       , 61CFBC, `lzs4x4x46|typeiconpalette`
 typeiconindex,             ,       ,       ,       ,       ,       ,       ,       , 1C439C, [index.]23
 // 0D, 0E, 0F are the 3 palettes (0, 1, 2)
