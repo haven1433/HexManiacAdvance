@@ -100,7 +100,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
          anchor.OriginalFormat.Visit(this, data);
 
-         if (anchor.OriginalFormat is None) Results.AddRange(GetFormattedChildren());
+         if (anchor.OriginalFormat is None) {
+            Results.Add(new ContextItem("View as 16-color palette", p => ViewPort.InsertPalette16()));
+            Results.AddRange(GetFormattedChildren());
+         }
       }
 
       public void Visit(PCS pcs, byte data) {

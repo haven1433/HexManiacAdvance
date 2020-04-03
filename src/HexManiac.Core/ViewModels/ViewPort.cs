@@ -1338,6 +1338,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      public void InsertPalette16() {
+         var selectionPoint = scroll.ViewPointToDataIndex(SelectionStart);
+         var run1 = Model.GetNextRun(selectionPoint);
+         var run2 = Model.GetNextRun(selectionPoint + 1);
+         if (run1.Start+32 != run2.Start || !(run1 is NoInfoRun)) {
+            OnError?.Invoke(this, "Palettes insertion requires a no-format anchor with exactly 32 bytes of space.");
+            return;
+         }
+         Model.ObserveAnchorWritten(CurrentChange, $"pal{run1.Start:X6}", new Models.Runs.Sprites.PaletteRun(run1.Start, new PaletteFormat(4)));
+         Refresh();
+         RequestMenuClose?.Invoke(this, EventArgs.Empty);
+         UpdateToolsFromSelection(run1.Start);
+      }
+
       private void Edit(char input) {
          var point = GetEditPoint();
          var element = this[point.X, point.Y];
