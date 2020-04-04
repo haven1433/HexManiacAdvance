@@ -97,6 +97,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public int Address { get; }
       public string Format { get; }
       public ReferenceTable(string name, int address, string format) => (Name, Address, Format) = (name, address, format);
+      public override string ToString() => $"{Address:X6} -> {Name}, {Format}";
    }
 
    public interface IMetadataInfo {

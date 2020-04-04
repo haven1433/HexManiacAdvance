@@ -150,9 +150,14 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          var interruptingRun = GetNextRun(destination);
          if (interruptingRun.Start < destination && interruptingRun is ArrayRun array) {
-            var elementLength = array.ElementLength;
             var elementCount = (destination - array.Start) / array.ElementLength;
-            array = array.Append(noChangeDelta, elementCount - array.ElementCount);
+            var desiredChange = elementCount - array.ElementCount;
+            while(!string.IsNullOrEmpty(array.LengthFromAnchor)) {
+               var nextArray = GetNextRun(GetAddressFromAnchor(noChangeDelta, -1, array.LengthFromAnchor)) as ArrayRun;
+               if (nextArray == null) break;
+               array = nextArray;
+            }
+            array = array.Append(noChangeDelta, desiredChange);
             ObserveAnchorWritten(noChangeDelta, GetAnchorFromAddress(-1, array.Start), array);
          }
 

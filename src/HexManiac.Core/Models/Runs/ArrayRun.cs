@@ -448,7 +448,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (newFormat != FormatString) {
             if (!string.IsNullOrEmpty(LengthFromAnchor)) {
                newFormat += LengthFromAnchor;
-               if (ParentOffset != 0) newFormat += ParentOffset;
+               if (ParentOffset != 0) {
+                  var parentOffset = ParentOffset.ToString();
+                  if (!parentOffset.StartsWith("-")) parentOffset = '+' + parentOffset;
+                  newFormat += parentOffset;
+               }
             } else {
                newFormat += ElementCount + elementCount;
             }

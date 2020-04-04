@@ -242,6 +242,17 @@ namespace HavenSoft.HexManiac.Core.Models {
             var debugRunStart2 = runs[i + 1].Start.ToString("X6");
             Debug.Fail("Conflict: there's a run that ends after the next run starts!");
          }
+
+         // for every table with a matched-length, verify that the length is as expected.
+         var token = new NoDataChangeDeltaModel();
+         foreach(var array in Arrays) {
+            if (string.IsNullOrEmpty(array.LengthFromAnchor)) continue;
+            var parentName = array.LengthFromAnchor;
+            var childName = GetAnchorFromAddress(-1, array.Start);
+            var parent = GetNextRun(GetAddressFromAnchor(token, -1, array.LengthFromAnchor)) as ITableRun;
+            if (parent == null) continue;
+            Debug.Assert(parent.ElementCount + array.ParentOffset == array.ElementCount);
+         }
       }
 
       #endregion
@@ -597,8 +608,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             var newTable = table;
             // option 1: this table's length is based on the given table
             if (anchor.Equals(table.LengthFromAnchor)) {
-               if (arrayRun.ElementCount == table.ElementCount) continue;
                int targetCount = arrayRun.ElementCount + table.ParentOffset;
+               if (table.ElementCount == targetCount) continue;
                newTable = (ArrayRun)RelocateForExpansion(changeToken, table, targetCount * table.ElementLength);
                newTable = newTable.Append(changeToken, targetCount - table.ElementCount);
                ObserveRunWritten(changeToken, newTable);

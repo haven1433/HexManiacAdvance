@@ -285,7 +285,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Compressed {
       protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new LZRun(Model, Start, newPointerSources);
 
       private static int ReadHeader(IReadOnlyList<byte> data, ref int start) {
-         if (start + 4 > data.Count) return -1;
+         if (start < 0 || start + 4 > data.Count) return -1;
          if (data[start] != 0x10) return -1;
          int length = data.ReadMultiByteValue(start + 1, 3);
          start += 4;
