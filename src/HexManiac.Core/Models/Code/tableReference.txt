@@ -92,5 +92,6 @@ bagtypepalette,            ,       ,       ,       ,       ,       ,       ,    
 bagtypeiconmap,            ,       ,       ,       ,       ,       ,       ,       , 19A33C, [width. height. xy:]24
 
 titlescreenCharizardPalette, ,,,, 078AA0,,,,, `ucp4`
-titlescreenCharizardTiles,   ,,,, 078AA4,,,,, `lzs4x9x15`
-//titlescreenCharizardTilemap, ,,,, 078A9C,,,,, ????
+//titlescreenCharizardTileset, ,,,, 078AA4,,,,, `lzt4|titlescreenCharizardPalette`
+//titlescreenCharizardTilemap, ,,,, 078AA8,,,,, `lzm4x32x20|titlescreenCharizardTileset`
+
