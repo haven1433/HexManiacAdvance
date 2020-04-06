@@ -513,6 +513,19 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(3, tool.ContentSelectionLength);
       }
 
+      [Fact]
+      public void ToolSelectionDoesNotAutoChangeForCodeToolHexView() {
+         var test = new BaseViewModelTestClass();
+         test.ViewPort.Edit("FF @00 ^text\"\" Hello World!");
+         test.ViewPort.Tools.CodeToolCommand.Execute();
+         test.ViewPort.Tools.CodeTool.Mode = CodeMode.Raw;
+
+         test.ViewPort.SelectionStart = new Point(0, 1);
+         test.ViewPort.SelectionStart = new Point(0, 0);
+
+         Assert.Equal(test.ViewPort.Tools.CodeTool, test.ViewPort.Tools.SelectedTool);
+      }
+
       private static readonly Singletons singletons;
       private static readonly ThumbParser parser;
       static ToolTests() {

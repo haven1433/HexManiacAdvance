@@ -279,6 +279,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public IToolViewModel this[int index] => null;
       public int SelectedIndex { get => -1; set { } }
+      public IToolViewModel SelectedTool => null;
       public int Count => 0;
       public IEnumerator<IToolViewModel> GetEnumerator() => new List<IToolViewModel>().GetEnumerator();
       IEnumerator IEnumerable.GetEnumerator() => new List<IToolViewModel>().GetEnumerator();
