@@ -56,7 +56,7 @@ namespace HavenSoft.HexManiac.Tests {
          var model = fixture.LoadModel(game);
 
          var run = model.GetTable(PokemonNameTable);
-         if (game.Contains("Gaia")) Assert.Equal(1111, run.ElementCount);
+         if (game.Contains("Gaia")) Assert.Equal(823, run.ElementCount);
          else Assert.Equal(412, run.ElementCount);
       }
 
@@ -329,6 +329,46 @@ namespace HavenSoft.HexManiac.Tests {
          var model = fixture.LoadModel(game);
          var wild = model.GetTable(WildTableName);
          Assert.NotNull(wild);
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void PokeballSpritesAreFound(string game) {
+         var model = fixture.LoadModel(game);
+         var sprites = model.GetTable("ballsprites");
+         var palettes = model.GetTable("ballpalettes");
+         Assert.NotNull(sprites);
+         Assert.NotNull(palettes);
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void TrainerSpritesAreFound(string game) {
+         var model = fixture.LoadModel(game);
+         var sprites = model.GetTable("trainersprites");
+         var palettes = model.GetTable("trainerpalettes");
+         Assert.NotNull(sprites);
+         Assert.NotNull(palettes);
+
+         if (!game.Contains("Ruby") && !game.Contains("Sapphire")) {
+            sprites = model.GetTable("trainerbacksprites");
+            palettes = model.GetTable("trainerbackpals");
+            Assert.NotNull(sprites);
+            Assert.NotNull(palettes);
+         }
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void PokeIconsFound(string game) {
+         var model = fixture.LoadModel(game);
+         Assert.NotNull(model.GetTable("frontsprites"));
+         Assert.NotNull(model.GetTable("backsprites"));
+         Assert.NotNull(model.GetTable("pokepalettes"));
+         Assert.NotNull(model.GetTable("shinypalettes"));
+         Assert.NotNull(model.GetTable("pokeicons"));
+         Assert.NotNull(model.GetTable("pokeiconpalindex"));
+         Assert.NotNull(model.GetTable("pokeiconpalettes"));
       }
 
       [SkippableFact]

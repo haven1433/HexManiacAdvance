@@ -15,20 +15,22 @@ natures,             0443D8, 0443D8, 0443F8, 0443F8, 0488B8, 0488B8, 0488CC, 048
 // sprites / palettes
 // bits x width x height. Width/Hegiht measured in tiles.
 // pakenames+28: egg, unown*27 (B-Z, !, ?), 
-frontsprites,     ,,,, 000128,,,, 000128, [sprite<`lzs4x8x8`> uncompressedLength: index:]pokenames+28
-backsprites,      ,,,, 00012C,,,, 00012C, [sprite<`lzs4x8x8`> uncompressedLength: index:]pokenames+28
-pokepalettes,     ,,,, 000130,,,, 000130, [palette<`lzp4`> index: unused:]pokenames+28
-shinypalettes,    ,,,, 000134,,,, 000134, [palette<`lzp4`> index: unused:]pokenames+28
-pokeicons,        ,,,, 000138,,,, 000138, [icon<`ucs4x4x8|pokeiconpalindex`>]pokenames+28
-pokeiconpalindex, ,,,, 00013C,,,, 00013C, [index.pokeiconpalettes]pokenames+28
-pokeiconpalettes, ,,,, 000140,,,, 000140, [palette<`ucp4`> id::]3
-ballsprites,      ,,,, 0001D0,,,, 0001D0, [sprite<`lzs4x2x6|ballpalettes`> uncompressedLength: a b]12
-ballpalettes,     ,,,, 0001D4,,,, 0001D4, [palette<`lzp4`> a b unused:]ballsprites
-trainersprites,   ,,,, 03473C,,,,       , [sprite<`lzs4x8x8|trainerpalettes`> uncompressedLength: index:]148
-trainersprites,   ,,,,       ,,,, 05DF78, [sprite<`lzs4x8x8|trainerpalettes`> uncompressedLength: index:]93
-trainerpalettes,  ,,,, 03474C,,,, 05B784, [palette<`lzp4`> index: unused:]trainersprites
-trainerbacksprites,        ,       ,       ,       , 10BC58,       ,       ,       ,       , [sprite<`ucs4x8x8|trainerbackpals`> a b c:]6
-trainerbackpals,           ,       ,       ,       , 0335D4,       ,       ,       ,       , [pal<`lzp4`> sprite::]trainerbacksprites
+frontsprites,        00D324, 00D324, 00D324, 00D324, 000128, 000128, 000128, 000128, 000128, [sprite<`lzs4x8x8`> uncompressedLength: index:]pokenames+28
+backsprites,         00D3D8, 00D3D8, 00D3D8, 00D3D8, 00012C, 00012C, 00012C, 00012C, 00012C, [sprite<`lzs4x8x8`> uncompressedLength: index:]pokenames+28
+pokepalettes,        040954, 040954, 040974, 040974, 000130, 000130, 000130, 000130, 000130, [palette<`lzp4`> index: unused:]pokenames+28
+shinypalettes,       04098C, 04098C, 0409AC, 0409AC, 000134, 000134, 000134, 000134, 000134, [palette<`lzp4`> index: unused:]pokenames+28
+pokeicons,           099AA0, 099AA0, 099AC0, 099AC0, 000138, 000138, 000138, 000138, 000138, [icon<`ucs4x4x8|pokeiconpalindex`>]pokenames+28
+pokeiconpalindex,    099BB0, 099BB0, 099BD0, 099BD0, 00013C, 00013C, 00013C, 00013C, 00013C, [index.pokeiconpalettes]pokenames+28
+pokeiconpalettes,    09D53C, 09D53C, 09D55C, 09D55C, 000140, 000140, 000140, 000140, 000140, [palette<`ucp4`> id::]3
+ballsprites,         0473BC, 0473BC, 0473DC, 0473DC, 0001D0, 0001D0, 0001D0, 0001D0, 0001D0, [sprite<`lzs4x2x6|ballpalettes`> uncompressedLength: a b]12
+ballpalettes,        0473C0, 0473C0, 0473E0, 0473E0, 0001D4, 0001D4, 0001D4, 0001D4, 0001D4, [palette<`lzp4`> a b unused:]ballsprites
+trainersprites,      031B9C, 031B9C, 031B9C, 031B9C,       ,       ,       ,       ,       , [sprite<`lzs4x8x8|trainerpalettes`> uncompressedLength: index:]83
+trainersprites,            ,       ,       ,       , 03473C, 03473C, 034750, 034750,       , [sprite<`lzs4x8x8|trainerpalettes`> uncompressedLength: index:]148
+trainersprites,            ,       ,       ,       ,       ,       ,       ,       , 05DF78, [sprite<`lzs4x8x8|trainerpalettes`> uncompressedLength: index:]93
+trainerpalettes,     031B98, 031B98, 031B98, 031B98, 03474C, 03474C, 034760, 034760, 05B784, [palette<`lzp4`> index: unused:]trainersprites
+trainerbacksprites,        ,       ,       ,       , 10BC58, 10BC30, 10BCD0, 10BCA8,       , [sprite<`ucs4x8x8|trainerbackpals`> a b c:]6
+trainerbacksprites,        ,       ,       ,       ,       ,       ,       ,       , 05DFD4, [sprite<`ucs4x8x8|trainerbackpals`> a b c:]8
+trainerbackpals,           ,       ,       ,       , 0335D4, 0335D4, 0335E8, 0335E8, 05DFDC, [pal<`lzp4`> sprite::]trainerbacksprites
 
 // data
 pokestats,           010B64, 010B64, 010B64, 010B64, 0001BC, 0001BC, 0001BC, 0001BC, 0001BC, [hp. attack. def. speed. spatk. spdef. type1.types type2.types catchRate. baseExp. evs|b[]evbits item1:items item2:items genderratio. steps2hatch. basehappiness. growthrate. egg1. egg2. ability1.abilitynames ability2.abilitynames runrate. unknown. padding:]pokenames
