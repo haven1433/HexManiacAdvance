@@ -84,7 +84,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       public void UpdateSource() {
          if (ViewModel == null) return;
          var pixels = ViewModel.PixelData;
-         if (pixels.Length == 0) { Source = null; return; }
+         var expectedLength = ViewModel.PixelWidth * ViewModel.PixelHeight;
+         if (pixels.Length < expectedLength || pixels.Length == 0) { Source = null; return; }
          int stride = ViewModel.PixelWidth * 2;
          var format = PixelFormats.Bgr555;
          var source = BitmapSource.Create(ViewModel.PixelWidth, ViewModel.PixelHeight, 96, 96, format, null, pixels, stride);

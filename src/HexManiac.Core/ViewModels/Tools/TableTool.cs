@@ -205,6 +205,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          while (Children.Count > childInsertionIndex) Children.RemoveAt(Children.Count - 1);
          foreach (var child in Children) child.DataChanged += ForwardModelChanged;
+
+         // update sprites now that all the associated palettes have been loaded.
+         foreach (var child in Children) {
+            if (!(child is SpriteElementViewModel sevm)) continue;
+            sevm.UpdateTiles();
+         }
       }
 
       private void AddChildrenFromStreams(ITableRun array, string basename, int index) {
