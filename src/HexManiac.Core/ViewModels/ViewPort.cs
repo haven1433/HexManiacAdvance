@@ -675,7 +675,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var endDataIndex = scroll.ViewPointToDataIndex(SelectionEnd);
          if (startDataIndex > endDataIndex) (startDataIndex, endDataIndex) = (endDataIndex, startDataIndex);
 
-         Model.ClearAnchor(history.CurrentChange, startDataIndex, endDataIndex - startDataIndex + 1);
+         // do the clear with a custom token that can't change data.
+         // This anchor-clear is a formatting-only change.
+         Model.ClearAnchor(history.InsertCustomChange(new NoDataChangeDeltaModel()), startDataIndex, endDataIndex - startDataIndex + 1);
          RefreshBackingData();
       }
 

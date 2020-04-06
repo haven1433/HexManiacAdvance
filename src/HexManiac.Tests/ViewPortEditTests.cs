@@ -415,16 +415,26 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void BackspaceEditsSingleCellWhenNoFormats() {
-         var test = new BaseViewModelTestClass();
-         test.Model.ObserveRunWritten(new ModelDelta(), new AsciiRun(0x20, 0x10));
-         test.Model[0] = 0xA0;
-         test.Model[1] = 0xA1;
-         test.Model[2] = 0xA2;
+         Model.ObserveRunWritten(new ModelDelta(), new AsciiRun(0x20, 0x10));
+         Model[0] = 0xA0;
+         Model[1] = 0xA1;
+         Model[2] = 0xA2;
 
-         test.ViewPort.SelectionStart = new Point(1, 0);
-         test.ViewPort.Edit(ConsoleKey.Backspace);
+         ViewPort.SelectionStart = new Point(1, 0);
+         ViewPort.Edit(ConsoleKey.Backspace);
 
-         Assert.Equal(0xA2, test.Model[2]);
+         Assert.Equal(0xA2, Model[2]);
+      }
+
+      [Fact]
+      public void ClearFormatOnNamedAnchorRemovesAnchorButDoesNotClearFalsePointers() {
+         ViewPort.Edit("<000004> ^fake ");
+
+         var items = ViewPort.GetContextMenuItems(new Point(4, 0));
+         var clear = items.Single(item => item.Text.Contains("Clear Format"));
+         clear.Command.Execute();
+
+         Assert.Equal(4, Model[0]);
       }
    }
 }
