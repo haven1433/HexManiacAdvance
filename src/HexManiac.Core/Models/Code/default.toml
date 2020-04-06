@@ -256,6 +256,15 @@ Name = '''movetarget'''
 ]
 
 [[List]]
+Name = '''trainerStructType'''
+0 = [
+    '''Normal''',
+    '''Moves''',
+    '''Items''',
+    '''Both''',
+]
+
+[[List]]
 Name = '''decorpermissions'''
 0 = [
    '''Normal''',

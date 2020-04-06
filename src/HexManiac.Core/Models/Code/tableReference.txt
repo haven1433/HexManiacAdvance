@@ -47,7 +47,7 @@ tmmoves,             06F038, 06F03C, 06F058, 06F05C, 125A8C, 125A64, 125B04, 125
 tmcompatibility,     0403B0, 0403B0, 0403D0, 0403D0, 043C68, 043C68, 043C7C, 043C7C, 06E048, [moves|b[]tmmoves]pokenames
 hmmoves,             040A24, 040A24, 040A44, 040A44, 0441DC, 0441DC, 0441F0, 0441F0, 06E828, [move:movenames]8
 itemimages,                ,       ,       ,       , 09899C, 098970, 0989B0, 098984, 1B0034, [image<`lzs4x3x3`> palette<`lzp4`>]items
-trainerdata,         00D890, 00D890, 00D890, 00D890, 00FC00, 00FC00, 00FC14, 00FC14, 03587C, [structType.4 class.trainerclassnames introMusic. sprite.trainersprites name""12 item1:items item2:items item3:items item4:items doubleBattle:: ai|b[]traineraibits pokemonCount:: pokemon<`tpt`>]
+trainerdata,         00D890, 00D890, 00D890, 00D890, 00FC00, 00FC00, 00FC14, 00FC14, 03587C, [structType.trainerStructType class.trainerclassnames introMusic. sprite.trainersprites name""12 item1:items item2:items item3:items item4:items doubleBattle:: ai|b[]traineraibits pokemonCount:: pokemon<`tpt`>]
 decorations,         0B3AC8, 0B3AC8, 0B3AE8, 0B3AE8, 00014C, 00014C, 00014C, 00014C, 00014C, [id. name""16 permission.decorpermissions shape.decorshape category.decorcategory price:: description<""> graphics<>]
 wild,                084D9C, 084D9C, 084DBC, 084DBC, 082990, 082964, 0829A4, 082978, 0B4D48, [bank. map. unused: grass<[rate:: list<[low. high. species:pokenames]12>]1> surf<[rate:: list<[low. high. species:pokenames]5>]1> tree<[rate:: list<[low. high. species:pokenames]5>]1> fish<[rate:: list<[low. high. species:pokenames]10>]1>]
 specials,            0658B4, 0658B8, 0658D4, 0658D8, 069F18, 069F18, 069F2C, 069F2C, 099314, [code<>]

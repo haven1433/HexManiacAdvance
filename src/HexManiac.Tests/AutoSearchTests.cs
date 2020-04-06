@@ -477,6 +477,7 @@ namespace HavenSoft.HexManiac.Tests {
             new[] { game, DecorationsCategoryListName, 8 },
             new[] { game, EvolutionMethodListName, 16 },
             new[] { game, "evbits", 12 },
+            new[] { game, "trainerStructType", 4 },
          }
       );
 
