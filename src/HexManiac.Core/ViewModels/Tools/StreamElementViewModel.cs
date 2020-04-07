@@ -11,6 +11,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public IDataModel Model { get; }
       public int Start { get; private set; }
 
+      public ICommand Undo { get; }
+      public ICommand Redo { get; }
+
       #region IStreamArrayElementViewModel Properties
 
       public bool ShowContent => UsageCount != 0;
@@ -60,6 +63,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          ViewPort = viewPort;
          Model = viewPort.Model;
          Start = start;
+         Undo = ViewPort.Undo;
+         Redo = ViewPort.Redo;
 
          repoint.CanExecute = arg => CanRepoint;
          repoint.Execute = ExecuteRepoint;
@@ -86,8 +91,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private bool overrideCopyAttempt;
       public bool TryCopy(IArrayElementViewModel other) {
          if (!(other is StreamElementViewModel that)) return false;
-         if (!TryCopy(that)) return false;
          if (overrideCopyAttempt) return true;
+         if (!TryCopy(that)) return false;
 
          UsageCount = that.UsageCount;
          ErrorText = that.ErrorText;

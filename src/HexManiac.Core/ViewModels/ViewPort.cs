@@ -32,6 +32,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private static readonly NotifyCollectionChangedEventArgs ResetArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
       private readonly StubCommand
+         undoWrapper = new StubCommand(),
+         redoWrapper = new StubCommand(),
          clear = new StubCommand(),
          copy = new StubCommand(),
          copyAddress = new StubCommand(),
@@ -314,9 +316,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ModelDelta CurrentChange => history.CurrentChange;
 
-      public ICommand Undo => history.Undo;
+      public ICommand Undo => undoWrapper;
 
-      public ICommand Redo => history.Redo;
+      public ICommand Redo => redoWrapper;
 
       private ModelDelta RevertChanges(ModelDelta changes) {
          var reverse = changes.Revert(Model);
@@ -524,6 +526,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ViewPort(LoadedFile file) : this(file.Name, new BasicModel(file.Contents)) { }
 
       private void ImplementCommands() {
+         undoWrapper.CanExecute = history.Undo.CanExecute;
+         undoWrapper.Execute = arg => { history.Undo.Execute(arg); using (ModelCacheScope.CreateScope(Model)) tools.RefreshContent(); };
+         history.Undo.CanExecuteChanged += (sender, e) => undoWrapper.CanExecuteChanged.Invoke(undoWrapper, e);
+
+         redoWrapper.CanExecute = history.Redo.CanExecute;
+         redoWrapper.Execute = arg => { history.Redo.Execute(arg); using (ModelCacheScope.CreateScope(Model)) tools.RefreshContent(); };
+         history.Redo.CanExecuteChanged += (sender, e) => redoWrapper.CanExecuteChanged.Invoke(redoWrapper, e);
+
          clear.CanExecute = CanAlwaysExecute;
          clear.Execute = arg => {
             var selectionStart = scroll.ViewPointToDataIndex(selection.SelectionStart);
