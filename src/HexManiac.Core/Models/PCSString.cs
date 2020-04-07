@@ -14,18 +14,24 @@ namespace HavenSoft.HexManiac.Core.Models {
       static PCSString() {
          var pcs = new string[0x100];
          pcs[0] = " ";
+         Fill(pcs, "ÀÁÂÇÈÉÊËÌ", 0x01);
+         Fill(pcs, "ÎÏÒÓÔŒÙÚÛÑßàáçèéêëì", 0x0B);
+         Fill(pcs, "îïòóôœùúûñºª", 0x20);
+         Fill(pcs, "& \\+", 0x2D);
+         Fill(pcs, "=;", 0x35);
 
-         pcs[0x13] = "\\a"; // align?
-         pcs[0x17] = "á";
-
-         pcs[0x1B] = "é";
-         pcs[0x2D] = "&";
 
          pcs[0x48] = "\\r"; // right?
 
-         Fill(pcs, "\\pk \\mn \\Po \\Ke \\Bl \\Lo \\Ck", 0x53);
+         Fill(pcs, "¿ ¡ \\pk \\mn \\Po \\Ke \\Bl \\Lo \\Ck Í", 0x51);
 
          Fill(pcs, "%()", 0x5B);
+
+         pcs[0x68] = "â";
+         pcs[0x6F] = "í";
+
+         Fill(pcs, "\\< \\>", 0x85);
+
          Fill(pcs, "0123456789", 0xA1);
          // \. -> ellipsis   \qo \qc -> quote open/close    \sm \sf -> male/female symbols
          Fill(pcs, "! ? . - ‧ \\. \\qo \\qc ‘ ' \\sm \\sf $ , * /", 0xAB);
@@ -33,8 +39,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          Fill(pcs, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 0XBB);
          Fill(pcs, "abcdefghijklmnopqrstuvwxyz", 0xD5);
 
-         pcs[0xF0] = ":";
-         pcs[0xF6] = "ü";
+         Fill(pcs, ":ÄÖÜäöü", 0xF0);
+
          pcs[0xF9] = "\\9";
          pcs[0xFA] = "\\l";
          pcs[0xFB] = "\\pn";
@@ -105,17 +111,22 @@ namespace HavenSoft.HexManiac.Core.Models {
       public static int ReadString(IReadOnlyList<byte> data, int start, bool allowCharacterRepeates, int maxLength = int.MaxValue) {
          int length = 0;
          byte recent = data[start];
-         int count = 0;
+         int repeatCount = 0;
+         int spacesCount = 0;
          while (start + length < data.Count && length <= maxLength) {
             if (data[start + length] == recent) {
-               count++;
+               repeatCount++;
             } else {
-               count = 1;
+               repeatCount = 1;
                recent = data[start + length];
             }
-            if (count > 3 && !allowCharacterRepeates) return -1; // not a string if it has more than 3 of the same character in a row.
+            if (data[start + length] == 0x00) spacesCount++;
+            if (repeatCount > 3 && !allowCharacterRepeates) return -1; // not a string if it has more than 3 of the same character in a row.
             if (PCS[recent] == null) return -1; // not valid string data
-            if (data[start + length] == 0xFF) return length + 1;  // end of string. Add one extra space for the end-of-stream byte
+            if (data[start + length] == 0xFF) {
+               if (spacesCount * 2 > length + 1 && spacesCount != length) return -1; // over half the string is whitespace. Probably a false string.
+               return length + 1;  // end of string. Add one extra space for the end-of-stream byte
+            }
             if (data[start + length] == Escape) length++;               // escape character, skip the next byte
             else if (data[start + length] == DoubleEscape) length += 2; // double-escape character, skip the next 2 bytes
             length++;
