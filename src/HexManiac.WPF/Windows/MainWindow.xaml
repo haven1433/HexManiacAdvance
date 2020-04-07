@@ -143,8 +143,8 @@
                   <MenuItem Header="_Wiki" Click="WikiClick"/>
                   <MenuItem Header="_Tutorials" Click="TutorialsClick"
                   <MenuItem Header="_Report an Issue" Click="ReportIssueClick"/>
-                  <MenuItem Header="_About" Click="AboutClick"/>
-               </MenuItem>
+                     <MenuItem Header="_About" Click="AboutClick"/>
+                  </MenuItem>
             </Menu>
             <!-- Goto -->
             <StackPanel Name="GotoPanel" Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}">

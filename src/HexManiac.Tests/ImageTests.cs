@@ -82,12 +82,12 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Edit("@07 8:1 ");
 
          // check that compressed segment 1 got longer
-         Assert.Equal(0x50, Model[ 6]);
-         Assert.Equal(0x00, Model[ 7]);
+         Assert.Equal(0x50, Model[6]);
+         Assert.Equal(0x00, Model[7]);
 
          // check that compressed segment 2 got shorter
-         Assert.Equal(0x10, Model[ 8]);
-         Assert.Equal(0x00, Model[ 9]);
+         Assert.Equal(0x10, Model[8]);
+         Assert.Equal(0x00, Model[9]);
 
          // check that compressed segment 3 is gone
          Assert.Equal(10, Model.GetNextRun(0).Length);

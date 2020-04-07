@@ -16,7 +16,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   if (run.Start != newRun.Start) {
                      RaiseDataMoved(run.Start, newRun.Start);
                   }
-                  using (PreventSelfCopy()) { 
+                  using (PreventSelfCopy()) {
                      RaiseDataChanged();
                   }
                }

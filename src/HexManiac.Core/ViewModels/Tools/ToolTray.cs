@@ -84,7 +84,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          stringToolCommand = commandFor(1);
          spriteToolCommand = commandFor(2);
          codeToolCommand = commandFor(3);
-         
+
          hideCommand = new StubCommand {
             CanExecute = arg => SelectedIndex != -1,
             Execute = arg => SelectedIndex = -1,

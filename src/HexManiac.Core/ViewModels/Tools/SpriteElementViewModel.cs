@@ -141,7 +141,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Palette = palette;
 
          if (palette != null) return;
-         
+
          var defaultPalette = new List<short>();
          int desiredCount = (int)Math.Pow(2, byteLength / 8);
          Palette = CreateDefaultPalette(desiredCount);

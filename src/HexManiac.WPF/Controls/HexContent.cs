@@ -394,7 +394,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          // clear
          drawingContext.DrawRectangle(Brush(nameof(Theme.Background)), null, new Rect(0, 0, ActualWidth, ActualHeight));
 
-         { 
+         {
             if (ShowHorizontalScroll) drawingContext.PushTransform(new TranslateTransform(-HorizontalScrollValue, 0));
             RenderGrid(drawingContext);
             RenderSelection(drawingContext);

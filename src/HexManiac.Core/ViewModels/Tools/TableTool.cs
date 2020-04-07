@@ -190,7 +190,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                index -= negParentOffset;
                if (!string.IsNullOrEmpty(arrayRun.LengthFromAnchor)) basename = arrayRun.LengthFromAnchor; // basename is now a 'parent table' name, if there is one
 
-               foreach(var currentArray in model.GetRelatedArrays(arrayRun)) {
+               foreach (var currentArray in model.GetRelatedArrays(arrayRun)) {
                   var currentArrayName = model.GetAnchorFromAddress(-1, currentArray.Start);
                   var currentIndex = index + negParentOffset;
                   if (currentIndex >= 0 && currentIndex < currentArray.ElementCount) {

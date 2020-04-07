@@ -1357,7 +1357,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var selectionPoint = scroll.ViewPointToDataIndex(SelectionStart);
          var run1 = Model.GetNextRun(selectionPoint);
          var run2 = Model.GetNextRun(selectionPoint + 1);
-         if (run1.Start+32 != run2.Start || !(run1 is NoInfoRun)) {
+         if (run1.Start + 32 != run2.Start || !(run1 is NoInfoRun)) {
             OnError?.Invoke(this, "Palettes insertion requires a no-format anchor with exactly 32 bytes of space.");
             return;
          }

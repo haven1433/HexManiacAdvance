@@ -1,5 +1,4 @@
-﻿
-   <UserControl x:Class="HavenSoft.HexManiac.WPF.Controls.TabView"
+﻿<UserControl x:Class="HavenSoft.HexManiac.WPF.Controls.TabView"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:hsv="clr-namespace:HavenSoft.HexManiac.WPF.Resources"

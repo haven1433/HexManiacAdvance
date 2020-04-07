@@ -292,7 +292,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                // TODO deal with the run being too long?
                if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, spriteRun);
                return true;
-            } else if (Sprites.PaletteRun.TryParsePaletteFormat(InnerFormat,out paletteFormat)) {
+            } else if (Sprites.PaletteRun.TryParsePaletteFormat(InnerFormat, out paletteFormat)) {
                var palRun = new Sprites.PaletteRun(destination, paletteFormat, new[] { source });
                // TODO deal with the run being too long?
                if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, palRun);
@@ -334,7 +334,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             run = new PaletteRun(paletteFormat, owner, destination, new[] { source });
          } else if (Sprites.SpriteRun.TryParseSpriteFormat(InnerFormat, out spriteFormat)) {
             run = new Sprites.SpriteRun(destination, spriteFormat, new[] { source });
-         } else if (Sprites.PaletteRun.TryParsePaletteFormat(InnerFormat,out paletteFormat)) {
+         } else if (Sprites.PaletteRun.TryParsePaletteFormat(InnerFormat, out paletteFormat)) {
             run = new Sprites.PaletteRun(destination, paletteFormat, new[] { source });
          } else if (InnerFormat.StartsWith("[") && InnerFormat.Contains("]")) {
             // don't bother checking the TryParse result: we very much expect that the data originally in the run won't fit the parse.

@@ -152,7 +152,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (interruptingRun.Start < destination && interruptingRun is ArrayRun array) {
             var elementCount = (destination - array.Start) / array.ElementLength;
             var desiredChange = elementCount - array.ElementCount;
-            while(!string.IsNullOrEmpty(array.LengthFromAnchor)) {
+            while (!string.IsNullOrEmpty(array.LengthFromAnchor)) {
                var nextArray = GetNextRun(GetAddressFromAnchor(noChangeDelta, -1, array.LengthFromAnchor)) as ArrayRun;
                if (nextArray == null) break;
                array = nextArray;

@@ -54,7 +54,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       protected void RaiseDataMoved(int originalStart, int newStart) => dataMoved?.Invoke(this, (originalStart, newStart));
 
       private event EventHandler dataChanged;
-      public event EventHandler DataChanged { add => dataChanged += value;remove => dataChanged -= value; }
+      public event EventHandler DataChanged { add => dataChanged += value; remove => dataChanged -= value; }
       protected void RaiseDataChanged() => dataChanged?.Invoke(this, EventArgs.Empty);
 
       #endregion
