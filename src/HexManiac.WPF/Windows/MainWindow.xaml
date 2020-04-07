@@ -141,6 +141,7 @@
                <MenuItem Name="QuickEdits" Header="Utilities"/>
                <MenuItem Header="_Help">
                   <MenuItem Header="_Wiki" Click="WikiClick"/>
+                  <MenuItem Header="_Tutorials" Click="TutorialsClick"
                   <MenuItem Header="_Report an Issue" Click="ReportIssueClick"/>
                   <MenuItem Header="_About" Click="AboutClick"/>
                </MenuItem>
