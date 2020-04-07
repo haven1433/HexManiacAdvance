@@ -481,7 +481,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Compressed {
       }
 
       public PaletteRun(PaletteFormat paletteFormat, IDataModel data, int start, IReadOnlyList<int> sources)
-         : base(data,start,sources){
+         : base(data, start, sources) {
          PaletteFormat = paletteFormat;
          if ((int)Math.Pow(2, paletteFormat.Bits) * 2 > DecompressedLength) InvalidateLength();
          FormatString = $"`lzp{paletteFormat.Bits}`";

@@ -31,6 +31,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          redoStack = new Stack<T>();
 
       private bool revertInProgress;
+      private bool customChangeInProgress;
       private T currentChange;
       private int undoStackSizeAtSaveTag;
 
@@ -45,6 +46,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (undoStack.Count < undoStackSizeAtSaveTag) undoStackSizeAtSaveTag = -1;
                redo.CanExecuteChanged.Invoke(redo, EventArgs.Empty);
             }
+
+            if (customChangeInProgress) ChangeCompleted();
 
             if (currentChange == null) {
                bool notifyIsSavedChanged = IsSaved;
@@ -90,6 +93,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void ChangeCompleted() {
+         customChangeInProgress = false;
          if (currentChange == null) return;
          if (!currentChange.HasAnyChange) { currentChange = null; return; }
          VerifyRevertNotInProgress();
@@ -98,6 +102,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          undoStack.Push(currentChange);
          currentChange.OnNewDataChange -= OnCurrentTokenDataChanged;
          currentChange = null;
+      }
+
+      public T InsertCustomChange(T change) {
+         ChangeCompleted();
+         currentChange = change;
+         customChangeInProgress = true;
+         return change;
       }
 
       public void TagAsSaved() {

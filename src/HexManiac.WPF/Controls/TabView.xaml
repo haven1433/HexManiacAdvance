@@ -207,7 +207,12 @@
                            <StackPanel>
                               <hsg3hv:CommonTableStreamControl />
                               <TextBox UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Margin="20,2,2,2" AcceptsReturn="True"
-                                 Visibility="{Binding ShowContent, Converter={StaticResource BoolToVisibility}}"/>
+                                 Visibility="{Binding ShowContent, Converter={StaticResource BoolToVisibility}}">
+                                 <TextBox.InputBindings>
+                                    <KeyBinding Modifiers="Ctrl" Key="Z" Command="{Binding Undo}"/>
+                                    <KeyBinding Modifiers="Ctrl" Key="Y" Command="{Binding Redo}"/>
+                                 </TextBox.InputBindings>
+                              </TextBox>
                            </StackPanel>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:ButtonArrayElementViewModel}">

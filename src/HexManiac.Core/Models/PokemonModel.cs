@@ -245,7 +245,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          // for every table with a matched-length, verify that the length is as expected.
          var token = new NoDataChangeDeltaModel();
-         foreach(var array in Arrays) {
+         foreach (var array in Arrays) {
             if (string.IsNullOrEmpty(array.LengthFromAnchor)) continue;
             var parentName = array.LengthFromAnchor;
             var childName = GetAnchorFromAddress(-1, array.Start);

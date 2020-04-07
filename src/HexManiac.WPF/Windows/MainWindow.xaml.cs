@@ -222,8 +222,9 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          if (ViewModel.Count == 0) Close();
       }
 
-      private void WikiClick(object sender, EventArgs e) => System.Diagnostics.Process.Start("https://github.com/haven1433/HexManiacAdvance/wiki");
-      private void ReportIssueClick(object sender, EventArgs e) => System.Diagnostics.Process.Start("https://github.com/haven1433/HexManiacAdvance/issues");
+      private void WikiClick(object sender, EventArgs e) => Process.Start("https://github.com/haven1433/HexManiacAdvance/wiki");
+      private void TutorialsClick(object sender, RoutedEventArgs e) => Process.Start("https://github.com/haven1433/HexManiacAdvance/wiki/Tutorials");
+      private void ReportIssueClick(object sender, EventArgs e) => Process.Start("https://github.com/haven1433/HexManiacAdvance/issues");
       private void AboutClick(object sender, EventArgs e) => new AboutWindow(ViewModel.Singletons.MetadataInfo).ShowDialog();
 
       private void EditBoxVisibilityChanged(object sender, DependencyPropertyChangedEventArgs e) {

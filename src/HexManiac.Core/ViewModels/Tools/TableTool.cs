@@ -190,7 +190,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                index -= negParentOffset;
                if (!string.IsNullOrEmpty(arrayRun.LengthFromAnchor)) basename = arrayRun.LengthFromAnchor; // basename is now a 'parent table' name, if there is one
 
-               foreach(var currentArray in model.GetRelatedArrays(arrayRun)) {
+               foreach (var currentArray in model.GetRelatedArrays(arrayRun)) {
                   var currentArrayName = model.GetAnchorFromAddress(-1, currentArray.Start);
                   var currentIndex = index + negParentOffset;
                   if (currentIndex >= 0 && currentIndex < currentArray.ElementCount) {
@@ -205,6 +205,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          while (Children.Count > childInsertionIndex) Children.RemoveAt(Children.Count - 1);
          foreach (var child in Children) child.DataChanged += ForwardModelChanged;
+
+         // update sprites now that all the associated palettes have been loaded.
+         foreach (var child in Children) {
+            if (!(child is SpriteElementViewModel sevm)) continue;
+            sevm.UpdateTiles();
+         }
       }
 
       private void AddChildrenFromStreams(ITableRun array, string basename, int index) {

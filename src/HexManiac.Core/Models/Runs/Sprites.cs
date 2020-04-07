@@ -46,7 +46,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       // not actually LZ, but it is uncompressed and acts much the same way.
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) => LzUncompressed.Instance; 
+      public override IDataFormat CreateDataFormat(IDataModel data, int index) => LzUncompressed.Instance;
 
       protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new SpriteRun(Start, SpriteFormat, newPointerSources);
 

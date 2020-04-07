@@ -32,6 +32,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private static readonly NotifyCollectionChangedEventArgs ResetArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
       private readonly StubCommand
+         undoWrapper = new StubCommand(),
+         redoWrapper = new StubCommand(),
          clear = new StubCommand(),
          copy = new StubCommand(),
          copyAddress = new StubCommand(),
@@ -196,25 +198,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var run = Model.GetNextRun(dataIndex);
          if (run.Start > dataIndex) return;
 
+         // if the 'Raw' tool is selected, don't auto-update tool selection.
+         if (!(tools.SelectedTool == tools.CodeTool && tools.CodeTool.Mode == CodeMode.Raw)) {
             using (ModelCacheScope.CreateScope(Model)) {
-            if (run is ISpriteRun) {
-               tools.SpriteTool.SpriteAddress = run.Start;
-               tools.SelectedIndex = tools.IndexOf(tools.SpriteTool);
-            } else if (run is IPaletteRun) {
-               tools.SpriteTool.PaletteAddress = run.Start;
-               tools.SelectedIndex = tools.IndexOf(tools.SpriteTool);
-            } else if (run is ITableRun array) {
-               var offsets = array.ConvertByteOffsetToArrayOffset(dataIndex);
-               Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
-               Tools.TableTool.Address = array.Start + array.ElementLength * offsets.ElementIndex;
-               if (!(run is IStreamRun) || tools.SelectedTool != tools.StringTool) {
-                  tools.SelectedIndex = tools.IndexOf(tools.TableTool);
+               if (run is ISpriteRun) {
+                  tools.SpriteTool.SpriteAddress = run.Start;
+                  tools.SelectedIndex = tools.IndexOf(tools.SpriteTool);
+               } else if (run is IPaletteRun) {
+                  tools.SpriteTool.PaletteAddress = run.Start;
+                  tools.SelectedIndex = tools.IndexOf(tools.SpriteTool);
+               } else if (run is ITableRun array) {
+                  var offsets = array.ConvertByteOffsetToArrayOffset(dataIndex);
+                  Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
+                  Tools.TableTool.Address = array.Start + array.ElementLength * offsets.ElementIndex;
+                  if (!(run is IStreamRun) || tools.SelectedTool != tools.StringTool) {
+                     tools.SelectedIndex = tools.IndexOf(tools.TableTool);
+                  }
+               } else if (run is IStreamRun) {
+                  Tools.StringTool.Address = run.Start;
+                  tools.SelectedIndex = tools.IndexOf(tools.StringTool);
+               } else {
+                  // not a special run, so don't update tools
                }
-            } else if (run is IStreamRun) {
-               Tools.StringTool.Address = run.Start;
-               tools.SelectedIndex = tools.IndexOf(tools.StringTool);
-            } else {
-               // not a special run, so don't update tools
             }
          }
 
@@ -311,9 +316,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ModelDelta CurrentChange => history.CurrentChange;
 
-      public ICommand Undo => history.Undo;
+      public ICommand Undo => undoWrapper;
 
-      public ICommand Redo => history.Redo;
+      public ICommand Redo => redoWrapper;
 
       private ModelDelta RevertChanges(ModelDelta changes) {
          var reverse = changes.Revert(Model);
@@ -521,6 +526,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ViewPort(LoadedFile file) : this(file.Name, new BasicModel(file.Contents)) { }
 
       private void ImplementCommands() {
+         undoWrapper.CanExecute = history.Undo.CanExecute;
+         undoWrapper.Execute = arg => { history.Undo.Execute(arg); using (ModelCacheScope.CreateScope(Model)) tools.RefreshContent(); };
+         history.Undo.CanExecuteChanged += (sender, e) => undoWrapper.CanExecuteChanged.Invoke(undoWrapper, e);
+
+         redoWrapper.CanExecute = history.Redo.CanExecute;
+         redoWrapper.Execute = arg => { history.Redo.Execute(arg); using (ModelCacheScope.CreateScope(Model)) tools.RefreshContent(); };
+         history.Redo.CanExecuteChanged += (sender, e) => redoWrapper.CanExecuteChanged.Invoke(redoWrapper, e);
+
          clear.CanExecute = CanAlwaysExecute;
          clear.Execute = arg => {
             var selectionStart = scroll.ViewPointToDataIndex(selection.SelectionStart);
@@ -672,7 +685,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var endDataIndex = scroll.ViewPointToDataIndex(SelectionEnd);
          if (startDataIndex > endDataIndex) (startDataIndex, endDataIndex) = (endDataIndex, startDataIndex);
 
-         Model.ClearAnchor(history.CurrentChange, startDataIndex, endDataIndex - startDataIndex + 1);
+         // do the clear with a custom token that can't change data.
+         // This anchor-clear is a formatting-only change.
+         Model.ClearAnchor(history.InsertCustomChange(new NoDataChangeDeltaModel()), startDataIndex, endDataIndex - startDataIndex + 1);
          RefreshBackingData();
       }
 
@@ -1342,7 +1357,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var selectionPoint = scroll.ViewPointToDataIndex(SelectionStart);
          var run1 = Model.GetNextRun(selectionPoint);
          var run2 = Model.GetNextRun(selectionPoint + 1);
-         if (run1.Start+32 != run2.Start || !(run1 is NoInfoRun)) {
+         if (run1.Start + 32 != run2.Start || !(run1 is NoInfoRun)) {
             OnError?.Invoke(this, "Palettes insertion requires a no-format anchor with exactly 32 bytes of space.");
             return;
          }

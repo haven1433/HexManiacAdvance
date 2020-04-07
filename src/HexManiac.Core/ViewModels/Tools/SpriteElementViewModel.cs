@@ -19,7 +19,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var destination = ViewPort.Model.ReadPointer(Start);
          var run = ViewPort.Model.GetNextRun(destination) as ISpriteRun;
          Pages = run.Pages;
-         UpdateTiles();
       }
 
       /// <summary>
@@ -30,7 +29,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       protected override bool TryCopy(PagedElementViewModel other) {
          if (!(other is SpriteElementViewModel that)) return false;
          format = that.format;
-         UpdateTiles(that.Start, CurrentPage, true);
          return true;
       }
 
@@ -143,7 +141,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Palette = palette;
 
          if (palette != null) return;
-         
+
          var defaultPalette = new List<short>();
          int desiredCount = (int)Math.Pow(2, byteLength / 8);
          Palette = CreateDefaultPalette(desiredCount);
