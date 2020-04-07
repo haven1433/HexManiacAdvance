@@ -92,6 +92,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
 
       public bool SaveMetadata(string originalFileName, string[] metadata) {
+         if (metadata == null) return true; // nothing to save
          var metadataName = Path.ChangeExtension(originalFileName, ".toml");
          File.WriteAllLines(metadataName, metadata);
          return true;
