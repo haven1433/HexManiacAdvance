@@ -88,8 +88,17 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (pixels.Length < expectedLength || pixels.Length == 0) { Source = null; return; }
          int stride = ViewModel.PixelWidth * 2;
          var format = PixelFormats.Bgr555;
-         var source = BitmapSource.Create(ViewModel.PixelWidth, ViewModel.PixelHeight, 96, 96, format, null, pixels, stride);
-         Source = source;
+
+         if (!(Source is WriteableBitmap wSource) ||
+            wSource.PixelWidth != ViewModel.PixelWidth ||
+            wSource.PixelHeight != ViewModel.PixelHeight ||
+            wSource.Format != format) {
+            Source = new WriteableBitmap(ViewModel.PixelWidth, ViewModel.PixelHeight, 96, 96, format, null);
+         }
+
+         var source = (WriteableBitmap)Source;
+         var rect = new Int32Rect(0, 0, ViewModel.PixelWidth, ViewModel.PixelHeight);
+         source.WritePixels(rect, pixels, stride, 0);
       }
    }
 }

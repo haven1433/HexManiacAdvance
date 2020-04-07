@@ -1,9 +1,9 @@
-﻿using HavenSoft.HexManiac.Core.Models;
-using HavenSoft.HexManiac.Core.Models.Runs.Compressed;
+﻿using HavenSoft.HexManiac.Core.Models.Runs.Compressed;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
+using System.Collections.Specialized;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class PaletteElementViewModel : PagedElementViewModel, IPagedViewModel {
@@ -11,7 +11,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public string TableName { get; private set; }
 
-      public ObservableCollection<short> Colors { get; } = new ObservableCollection<short>();
+      public RangedObservableCollection<short> Colors { get; } = new RangedObservableCollection<short>();
 
       public int ColorWidth => (int)Math.Ceiling(Math.Sqrt(Colors.Count));
       public int ColorHeight => (int)Math.Sqrt(Colors.Count);
@@ -34,7 +34,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (!(other is PaletteElementViewModel that)) return false;
          format = that.format;
          UpdateColors(other.Start, other.CurrentPage);
-         UpdateSprites();
          NotifyPropertyChanged(nameof(ColorWidth));
          NotifyPropertyChanged(nameof(ColorHeight));
          return true;
@@ -54,12 +53,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void UpdateColors(int start, int page) {
          page %= Pages;
-         Colors.Clear();
          var destination = Model.ReadPointer(start);
          var run = ViewPort.Model.GetNextRun(destination) as IPaletteRun;
-         foreach (var color in run.GetPalette(Model, page)) {
-            Colors.Add(color);
-         }
+         Colors.SetContents(run.GetPalette(Model, page));
+      }
+   }
+
+   public class RangedObservableCollection<T> : List<T>, INotifyCollectionChanged {
+      private readonly NotifyCollectionChangedEventArgs Reset = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
+      public event NotifyCollectionChangedEventHandler CollectionChanged;
+      public void SetContents(IEnumerable<T> elements) {
+         Clear();
+         AddRange(elements);
+         CollectionChanged?.Invoke(this, Reset);
       }
    }
 }

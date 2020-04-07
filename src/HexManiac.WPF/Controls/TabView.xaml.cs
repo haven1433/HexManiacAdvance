@@ -180,8 +180,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private RenderTargetBitmap hexContentBitmap = new RenderTargetBitmap(10, 10, 96, 96, PixelFormats.Pbgra32);
       private RenderTargetBitmap headerBitmap = new RenderTargetBitmap(10, 10, 96, 96, PixelFormats.Pbgra32);
 
+      private bool preppedForScrolling;
       private void PreviewViewPortScrollChanged(object sender, EventArgs e) {
          if (!AnimateScroll) return;
+         if (preppedForScrolling) return; // only prepare for a scroll change if we've handled a scroll since the last time we prepared.
+
          var translate = (TranslateTransform)ScrollingHexContent.RenderTransform;
          translate.BeginAnimation(TranslateTransform.YProperty, null); // kill any existing animation
          translate.Y = 0;
@@ -199,6 +202,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          ((ImageBrush)OldContent.Fill).ImageSource = hexContentBitmap;
          ((ImageBrush)OldHeader.Fill).ImageSource = headerBitmap;
          ((TranslateTransform)OldContent.RenderTransform).Y = 0; // reset the transform to prevent visual glitching
+
+         preppedForScrolling = true;
       }
 
       private void HandleViewPortScrollChanged(object sender, PropertyChangedEventArgs e) {
@@ -215,6 +220,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var currentOffset = scrollChange * HexContent.CellHeight;
          translate.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(currentOffset, 0, new Duration(TimeSpan.FromMilliseconds(100))));
          ((TranslateTransform)OldContent.RenderTransform).Y = -currentOffset;
+         preppedForScrolling = false;
       }
 
       #endregion
