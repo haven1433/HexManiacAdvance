@@ -2,7 +2,6 @@
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {

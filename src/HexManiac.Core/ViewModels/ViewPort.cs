@@ -803,32 +803,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return;
          }
 
-         var insert = 0;
-         var length = 0;
          var startSearch = (Model as PokemonModel)?.EarliestAllowedAnchor ?? 0;
-         if (pointerSegment.InnerFormat == PCSRun.SharedFormatString) {
-            length = 1;
-         } else if (pointerSegment.InnerFormat == PLMRun.SharedFormatString) {
-            length = 2;
-         } else if (pointerSegment.InnerFormat == TrainerPokemonTeamRun.SharedFormatString) {
-            length = new TrainerPokemonTeamRun(Model, -1, new[] { pointer }).Length;
-         } else if (Models.Runs.Compressed.SpriteRun.TryParseSpriteFormat(pointerSegment.InnerFormat, out var spriteFormat)) {
-            // TODO
-            throw new NotImplementedException();
-            // length = new SpriteRun(spriteFormat, Model, -1, new[] { pointer }).Length;
-         } else if (Models.Runs.Compressed.PaletteRun.TryParsePaletteFormat(pointerSegment.InnerFormat, out var paletteFormat)) {
-            // TODO
-            throw new NotImplementedException();
-            // length = new PaletteRun(paletteFormat, Model, -1, new[] { pointer }).Length;
-         } else if (pointerSegment.InnerFormat.StartsWith("[") && pointerSegment.InnerFormat.Contains("]")) {
-            // don't bother checking that the data is valid: with an invalid starting point, we know the data is garbage.
-            TableStreamRun.TryParseTableStream(Model, -1, new int[] { pointer }, pointerSegment.Name, pointerSegment.InnerFormat, tableRun.ElementContent, out var newStream);
-            length = newStream.Length;
-         } else {
-            Debug.Fail("Not Implemented!");
-         }
+         var length = FormatRunFactory.GetStrategy(pointerSegment.InnerFormat).LengthForNewRun(Model, pointer);
 
-         insert = Model.FindFreeSpace(startSearch, length);
+         var insert = Model.FindFreeSpace(startSearch, length);
          pointerSegment.WriteNewFormat(Model, CurrentChange, pointer, insert, length, tableRun.ElementContent);
          OnMessage?.Invoke(this, "New data added at " + insert.ToString("X6"));
          RefreshBackingData();
