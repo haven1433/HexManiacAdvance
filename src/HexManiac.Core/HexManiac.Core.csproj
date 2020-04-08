@@ -72,6 +72,7 @@
     <Compile Include="ViewModels\QuickEditItems\MakeTutorsExpandable.cs" />
     <Compile Include="ViewModels\QuickEditItems\QuickEditItemDecorator.cs" />
     <Compile Include="ViewModels\QuickEditItems\UpdateDexConversionTable.cs" />
+    <Compile Include="ViewModels\RunStrategy.cs" />
     <Compile Include="ViewModels\Tools\BitListArrayElementViewModel.cs" />
     <Compile Include="ViewModels\Tools\ButtonArrayElementViewModel.cs" />
     <Compile Include="ViewModels\Tools\CodeTool.cs" />

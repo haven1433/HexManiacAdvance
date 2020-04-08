@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs.Compressed;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
@@ -228,19 +229,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class ArrayRunPointerSegment : ArrayRunElementSegment {
       public string InnerFormat { get; }
 
-      public bool IsInnerFormatValid {
-         get {
-            if (InnerFormat == PCSRun.SharedFormatString) return true;
-            if (InnerFormat == PLMRun.SharedFormatString) return true;
-            if (InnerFormat == TrainerPokemonTeamRun.SharedFormatString) return true;
-            if (SpriteRun.TryParseSpriteFormat(InnerFormat, out var _)) return true;
-            if (PaletteRun.TryParsePaletteFormat(InnerFormat, out var _)) return true;
-            if (Sprites.SpriteRun.TryParseSpriteFormat(InnerFormat, out var _)) return true;
-            if (Sprites.PaletteRun.TryParsePaletteFormat(InnerFormat, out var _)) return true;
-            if (InnerFormat.StartsWith("[") && InnerFormat.Contains("]")) return true;
-            return false;
-         }
-      }
+      public bool IsInnerFormatValid => FormatRunFactory.GetStrategy(InnerFormat) != null;
 
       public ArrayRunPointerSegment(string name, string innerFormat) : base(name, ElementContentType.Pointer, 4) {
          InnerFormat = innerFormat;
@@ -252,57 +241,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (run.Start < destination) return false;
          if (run.Start > destination || (run.Start == destination && (run is NoInfoRun || run is PointerRun))) {
             // hard case: no format found, so check the data
-            if (InnerFormat == PCSRun.SharedFormatString) {
-               var length = PCSString.ReadString(owner, destination, true);
-
-               if (length > 0) {
-                  // our token will be a no-change token if we're in the middle of exploring the data.
-                  // If so, don't actually add the run. It's enough to know that we _can_ add the run.
-                  if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, new PCSRun(owner, destination, length));
-                  return true;
-               }
-            } else if (InnerFormat == PLMRun.SharedFormatString) {
-               var plmRun = new PLMRun(owner, destination);
-               var length = plmRun.Length;
-               if (length >= 2) {
-                  if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, plmRun);
-                  return true;
-               }
-            } else if (InnerFormat == TrainerPokemonTeamRun.SharedFormatString) {
-               var teamRun = new TrainerPokemonTeamRun(owner, destination, new[] { source });
-               var length = teamRun.Length;
-               if (length >= 2) {
-                  if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, teamRun);
-                  return true;
-               }
-            } else if (SpriteRun.TryParseSpriteFormat(InnerFormat, out var spriteFormat)) {
-               var lzRun = new LZRun(owner, destination, new[] { source });
-               if (lzRun.Length > 5 && owner.ReadMultiByteValue(destination + 1, 3) % 32 == 0) {
-                  if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, lzRun);
-                  return true;
-               }
-            } else if (PaletteRun.TryParsePaletteFormat(InnerFormat, out var paletteFormat)) {
-               var lzRun = new LZRun(owner, destination, new[] { source });
-               if (lzRun.Length > 5 && owner.ReadMultiByteValue(destination + 1, 3) == Math.Pow(2, paletteFormat.Bits + 1)) {
-                  if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, lzRun);
-                  return true;
-               }
-            } else if (Sprites.SpriteRun.TryParseSpriteFormat(InnerFormat, out spriteFormat)) {
-               var spriteRun = new Sprites.SpriteRun(destination, spriteFormat, new[] { source });
-               // TODO deal with the run being too long?
-               if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, spriteRun);
-               return true;
-            } else if (Sprites.PaletteRun.TryParsePaletteFormat(InnerFormat, out paletteFormat)) {
-               var palRun = new Sprites.PaletteRun(destination, paletteFormat, new[] { source });
-               // TODO deal with the run being too long?
-               if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, palRun);
-               return true;
-            } else if (InnerFormat.StartsWith("[")) {
-               if (TableStreamRun.TryParseTableStream(owner, destination, new[] { source }, Name, InnerFormat, sourceSegments, out var tsRun)) {
-                  if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, tsRun);
-                  return true;
-               }
-            }
+            return FormatRunFactory.GetStrategy(InnerFormat).TryAddFormatAtDestination(owner, token, source, destination, Name, sourceSegments);
          } else {
             // easy case: already have a useful format, just see if it matches
             if (InnerFormat == PCSRun.SharedFormatString) return run is PCSRun;
