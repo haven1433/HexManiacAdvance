@@ -21,12 +21,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public abstract IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments);
 
+      public abstract void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run);
+
       protected ITableRun GetTable(IDataModel model, int pointerAddress) => (ITableRun)model.GetNextRun(pointerAddress);
 
       protected ArrayRunPointerSegment GetSegment(ITableRun table, int pointerAddress) {
          var offsets = table.ConvertByteOffsetToArrayOffset(pointerAddress);
          return (ArrayRunPointerSegment)table.ElementContent[offsets.SegmentIndex];
       }
+
+      public abstract ErrorInfo TryParseFormat(IDataModel model, string name, int dataIndex, ref IFormattedRun run);
    }
 
    public class FormatRunFactory {
@@ -34,6 +38,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          RunStrategy strategy = null;
          if (format == PCSRun.SharedFormatString) {
             strategy = new PCSRunContentStrategy();
+         } else if (format.StartsWith(AsciiRun.SharedFormatString)) {
+            strategy = new AsciiRunContentStrategy();
+         } else if (format == EggMoveRun.SharedFormatString) {
+            strategy = new EggRunContentStrategy();
          } else if (format == PLMRun.SharedFormatString) {
             strategy = new PLMRunContentStrategy();
          } else if (format == TrainerPokemonTeamRun.SharedFormatString) {
@@ -46,7 +54,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             strategy = new SpriteRunContentStrategy(spriteFormat1);
          } else if (Models.Runs.Sprites.PaletteRun.TryParsePaletteFormat(format, out var paletteFormat1)) {
             strategy = new PaletteRunContentStrategy(paletteFormat1);
-         } else if (format.StartsWith("[") && format.Contains("]")) {
+         } else if (format.IndexOf("[") >= 0 && format.IndexOf("[") < format.IndexOf("]")) {
             strategy = new TableStreamRunContentStrategy();
          } else {
             Debug.Fail("Not Implemented!");
@@ -76,6 +84,64 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          // found freespace, so this should already be an FF. Just add the format.
          return new PCSRun(owner, destination, 1);
       }
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) {
+         var length = PCSString.ReadString(model, run.Start, true);
+         if (length > 0) {
+            var newRun = new PCSRun(model, run.Start, length, run.PointerSources);
+            if (!newRun.Equals(run)) model.ClearFormat(token, newRun.Start, newRun.Length);
+            run = newRun;
+         }
+      }
+      public override ErrorInfo TryParseFormat(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+         var length = PCSString.ReadString(model, dataIndex, true);
+         if (length < 0) {
+            return new ErrorInfo($"Format was specified as a string, but no string was recognized.");
+         } else if (PokemonModel.SpanContainsAnchor(model, dataIndex, length)) {
+            return new ErrorInfo($"Format was specified as a string, but a string would overlap the next anchor.");
+         }
+         run = new PCSRun(model, dataIndex, length);
+
+         return ErrorInfo.NoError;
+      }
+   }
+
+   public class AsciiRunContentStrategy : RunStrategy {
+      public override int LengthForNewRun(IDataModel model, int pointerAddress) => throw new NotImplementedException();
+
+      public override bool Matches(IFormattedRun run) => throw new NotImplementedException();
+
+      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string Name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) => throw new NotImplementedException();
+
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) => throw new NotImplementedException();
+
+      public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) => throw new NotImplementedException();
+
+      public override ErrorInfo TryParseFormat(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+         if (int.TryParse(Format.Substring(5), out var length)) {
+            run = new AsciiRun(dataIndex, length);
+         } else {
+            return new ErrorInfo($"Ascii runs must include a length.");
+         }
+
+         return ErrorInfo.NoError;
+      }
+   }
+
+   public class EggRunContentStrategy : RunStrategy {
+      public override int LengthForNewRun(IDataModel model, int pointerAddress) => throw new NotImplementedException();
+
+      public override bool Matches(IFormattedRun run) => throw new NotImplementedException();
+
+      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string Name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) => throw new NotImplementedException();
+
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) => throw new NotImplementedException();
+
+      public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) => throw new NotImplementedException();
+
+      public override ErrorInfo TryParseFormat(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+         run = new EggMoveRun(model, dataIndex);
+         return ErrorInfo.NoError;
+      }
    }
 
    public class PLMRunContentStrategy : RunStrategy {
@@ -94,6 +160,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          // PLM ends with FFFF, and this is already freespace, so just add the format.
          return new PLMRun(owner, destination);
       }
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) {
+         var runAttempt = new PLMRun(model, run.Start);
+         if (runAttempt.Length > 0) {
+            run = runAttempt.MergeAnchor(run.PointerSources);
+            model.ClearFormat(token, run.Start, run.Length);
+         }
+      }
+      public override ErrorInfo TryParseFormat(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+         run = new PLMRun(model, dataIndex);
+         if (run.Length == 0) return new ErrorInfo("Format specified was for pokemon level-up move data, but could not parse that location as level-up move data.");
+         return ErrorInfo.NoError;
+      }
    }
 
    public class TrainerPokemonTeamRunContentStrategy : RunStrategy {
@@ -110,6 +188,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public override bool Matches(IFormattedRun run) => run is TrainerPokemonTeamRun;
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          return new TrainerPokemonTeamRun(owner, destination, new[] { source }).DeserializeRun("0 ???", token);
+      }
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) {
+         var runAttempt = new TrainerPokemonTeamRun(model, run.Start, run.PointerSources);
+         model.ClearFormat(token, run.Start, runAttempt.Length);
+         run = runAttempt;
+      }
+      public override ErrorInfo TryParseFormat(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+         run = new TrainerPokemonTeamRun(model, dataIndex, run.PointerSources);
+         return ErrorInfo.NoError;
       }
    }
 
@@ -130,6 +217,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          throw new NotImplementedException();
       }
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) {
+         var runAttempt = new Models.Runs.Compressed.SpriteRun(spriteFormat, model, run.Start, run.PointerSources);
+         if (runAttempt.Length > 0) {
+            run = runAttempt.MergeAnchor(run.PointerSources);
+            model.ClearFormat(token, run.Start, run.Length);
+         }
+      }
+      public override ErrorInfo TryParseFormat(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+         run = new Models.Runs.Compressed.SpriteRun(spriteFormat, model, dataIndex, run.PointerSources);
+         if (run.Length < 6) return new ErrorInfo($"Compressed data needs to be at least {spriteFormat.ExpectedByteLength} when decompressed, but was too short.");
+         return ErrorInfo.NoError;
+      }
    }
 
    public class LzPaletteRunContentStrategy : RunStrategy {
@@ -149,6 +248,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          throw new NotImplementedException();
       }
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) {
+         var runAttempt = new Models.Runs.Compressed.PaletteRun(paletteFormat, model, run.Start, run.PointerSources);
+         if (runAttempt.Length > 0) {
+            run = runAttempt.MergeAnchor(run.PointerSources);
+            model.ClearFormat(token, run.Start, run.Length);
+         }
+      }
+      public override ErrorInfo TryParseFormat(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+         run = new Models.Runs.Compressed.PaletteRun(paletteFormat, model, dataIndex, run.PointerSources);
+         if (run.Length < 6) return new ErrorInfo($"Compressed data needs to be at least {(int)Math.Pow(2, paletteFormat.Bits + 1)} bytes when decompressed, but was too short.");
+         return ErrorInfo.NoError;
+      }
    }
 
    public class SpriteRunContentStrategy : RunStrategy {
@@ -166,6 +277,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          throw new NotImplementedException();
       }
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) {
+         var runAttempt = new Models.Runs.Sprites.SpriteRun(run.Start, spriteFormat, run.PointerSources);
+         if (runAttempt.Length > 0) {
+            run = runAttempt.MergeAnchor(run.PointerSources);
+            model.ClearFormat(token, run.Start, run.Length);
+         }
+      }
+      public override ErrorInfo TryParseFormat(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+         run = new Models.Runs.Sprites.SpriteRun(dataIndex, spriteFormat, run.PointerSources);
+         return ErrorInfo.NoError;
+      }
    }
 
    public class PaletteRunContentStrategy : RunStrategy {
@@ -182,6 +304,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public override bool Matches(IFormattedRun run) => run is Models.Runs.Sprites.PaletteRun palRun && palRun.FormatString == Format;
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          throw new NotImplementedException();
+      }
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) {
+         var runAttempt = new Models.Runs.Sprites.PaletteRun(run.Start, paletteFormat, run.PointerSources);
+         if (runAttempt.Length > 0) {
+            run = runAttempt.MergeAnchor(run.PointerSources);
+            model.ClearFormat(token, run.Start, run.Length);
+         }
+      }
+      public override ErrorInfo TryParseFormat(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+         run = new Models.Runs.Sprites.PaletteRun(dataIndex, paletteFormat, run.PointerSources);
+         return ErrorInfo.NoError;
       }
    }
 
@@ -204,6 +337,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          // don't bother checking the TryParse result: we very much expect that the data originally in the run won't fit the parse.
          TableStreamRun.TryParseTableStream(owner, destination, new[] { source }, name, Format, sourceSegments, out var tableStream);
          return tableStream.DeserializeRun("", token);
+      }
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) {
+         if (!TableStreamRun.TryParseTableStream(model, run.Start, run.PointerSources, name, Format, null, out var runAttempt)) return;
+         model.ClearFormat(token, run.Start, runAttempt.Length);
+         run = runAttempt;
+      }
+      public override ErrorInfo TryParseFormat(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+         var errorInfo = ArrayRun.TryParse(model, name, Format, dataIndex, null, out var arrayRun);
+         if (errorInfo == ErrorInfo.NoError) {
+            run = arrayRun;
+         } else if (Format != string.Empty) {
+            return new ErrorInfo($"Format {Format} was not understood.");
+         }
+
+         return ErrorInfo.NoError;
       }
    }
 }

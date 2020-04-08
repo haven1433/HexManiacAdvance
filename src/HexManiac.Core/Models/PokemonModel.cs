@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Compressed;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
@@ -747,57 +748,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (run.Start != nextRun.Start) ClearFormat(token, run.Start, run.Length);
             return;
          }
-         if (segment.InnerFormat == PCSRun.SharedFormatString) {
-            var length = PCSString.ReadString(this, run.Start, true);
-            if (length > 0) {
-               var newRun = new PCSRun(this, run.Start, length, run.PointerSources);
-               if (!newRun.Equals(run)) ClearFormat(token, newRun.Start, newRun.Length);
-               run = newRun;
-            }
-         } else if (segment.InnerFormat == PLMRun.SharedFormatString) {
-            var runAttempt = new PLMRun(this, run.Start);
-            if (runAttempt.Length > 0) {
-               run = runAttempt.MergeAnchor(run.PointerSources);
-               ClearFormat(token, run.Start, run.Length);
-            }
-         } else if (segment.InnerFormat == TrainerPokemonTeamRun.SharedFormatString) {
-            var runAttempt = new TrainerPokemonTeamRun(this, run.Start, run.PointerSources);
-            ClearFormat(token, run.Start, runAttempt.Length);
-            run = runAttempt;
-         } else if (Runs.Compressed.SpriteRun.TryParseSpriteFormat(segment.InnerFormat, out var spriteFormat)) {
-            var runAttempt = new Runs.Compressed.SpriteRun(spriteFormat, this, run.Start, run.PointerSources);
-            if (runAttempt.Length > 0) {
-               run = runAttempt.MergeAnchor(run.PointerSources);
-               ClearFormat(token, run.Start, run.Length);
-            }
-         } else if (Runs.Compressed.PaletteRun.TryParsePaletteFormat(segment.InnerFormat, out var paletteFormat)) {
-            var runAttempt = new Runs.Compressed.PaletteRun(paletteFormat, this, run.Start, run.PointerSources);
-            if (runAttempt.Length > 0) {
-               run = runAttempt.MergeAnchor(run.PointerSources);
-               ClearFormat(token, run.Start, run.Length);
-            }
-         } else if (Runs.Sprites.SpriteRun.TryParseSpriteFormat(segment.InnerFormat, out spriteFormat)) {
-            var runAttempt = new Runs.Sprites.SpriteRun(run.Start, spriteFormat, run.PointerSources);
-            if (runAttempt.Length > 0) {
-               run = runAttempt.MergeAnchor(run.PointerSources);
-               ClearFormat(token, run.Start, run.Length);
-            }
-         } else if (Runs.Sprites.PaletteRun.TryParsePaletteFormat(segment.InnerFormat, out paletteFormat)) {
-            var runAttempt = new Runs.Sprites.PaletteRun(run.Start, paletteFormat, run.PointerSources);
-            if (runAttempt.Length > 0) {
-               run = runAttempt.MergeAnchor(run.PointerSources);
-               ClearFormat(token, run.Start, run.Length);
-            }
-         } else if (segment.InnerFormat.StartsWith("[") && segment.InnerFormat.Contains("]")) {
-            if (TableStreamRun.TryParseTableStream(this, run.Start, run.PointerSources, segment.Name, segment.InnerFormat, null, out var runAttempt)) {
-               ClearFormat(token, run.Start, runAttempt.Length);
-               run = runAttempt;
-            } else {
-               // failed to parse, so the format should be treated as empty
-            }
-         } else {
-            throw new NotImplementedException();
-         }
+
+         FormatRunFactory.GetStrategy(segment.InnerFormat).UpdateNewRunFromPointerFormat(this, token, segment.Name, ref run);
       }
 
       public override void ObserveAnchorWritten(ModelDelta changeToken, string anchorName, IFormattedRun run) {
@@ -1475,47 +1427,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          var existingRun = model.GetNextRun(dataIndex);
          if (existingRun.Start == run.Start) run = run.MergeAnchor(existingRun.PointerSources);
 
-         if (format == PCSRun.SharedFormatString) {
-            var length = PCSString.ReadString(model, dataIndex, true);
-            if (length < 0) {
-               return new ErrorInfo($"Format was specified as a string, but no string was recognized.");
-            } else if (SpanContainsAnchor(model, dataIndex, length)) {
-               return new ErrorInfo($"Format was specified as a string, but a string would overlap the next anchor.");
-            }
-            run = new PCSRun(model, dataIndex, length);
-         } else if (format.StartsWith(AsciiRun.SharedFormatString)) {
-            if (int.TryParse(format.Substring(5), out var length)) {
-               run = new AsciiRun(dataIndex, length);
-            } else {
-               return new ErrorInfo($"Ascii runs must include a length.");
-            }
-         } else if (format == EggMoveRun.SharedFormatString) {
-            run = new EggMoveRun(model, dataIndex);
-         } else if (format == PLMRun.SharedFormatString) {
-            run = new PLMRun(model, dataIndex);
-            if (run.Length == 0) return new ErrorInfo("Format specified was for pokemon level-up move data, but could not parse that location as level-up move data.");
-         } else if (format == TrainerPokemonTeamRun.SharedFormatString) {
-            run = new TrainerPokemonTeamRun(model, dataIndex, run.PointerSources);
-         } else if (Runs.Compressed.SpriteRun.TryParseSpriteFormat(format, out var spriteFormat)) {
-            run = new Runs.Compressed.SpriteRun(spriteFormat, model, dataIndex, run.PointerSources);
-            if (run.Length < 6) return new ErrorInfo($"Compressed data needs to be at least {spriteFormat.ExpectedByteLength} when decompressed, but was too short.");
-         } else if (Runs.Compressed.PaletteRun.TryParsePaletteFormat(format, out var paletteFormat)) {
-            run = new Runs.Compressed.PaletteRun(paletteFormat, model, dataIndex, run.PointerSources);
-            if (run.Length < 6) return new ErrorInfo($"Compressed data needs to be at least {(int)Math.Pow(2, paletteFormat.Bits + 1)} bytes when decompressed, but was too short.");
-         } else if (Runs.Sprites.SpriteRun.TryParseSpriteFormat(format, out spriteFormat)) {
-            run = new Runs.Sprites.SpriteRun(dataIndex, spriteFormat, run.PointerSources);
-         } else if (Runs.Sprites.PaletteRun.TryParsePaletteFormat(format, out paletteFormat)) {
-            run = new Runs.Sprites.PaletteRun(dataIndex, paletteFormat, run.PointerSources);
-         } else {
-            var errorInfo = TryParse(model, name, format, dataIndex, null, out var arrayRun);
-            if (errorInfo == ErrorInfo.NoError) {
-               run = arrayRun;
-            } else if (format != string.Empty) {
-               return new ErrorInfo($"Format {format} was not understood.");
-            }
-         }
+         // special case: empty format, stick with the no-info run
+         if (format == string.Empty) return ErrorInfo.NoError;
 
-         return ErrorInfo.NoError;
+         return FormatRunFactory.GetStrategy(format)?.TryParseFormat(model, name, dataIndex, ref run) ?? new ErrorInfo($"Format {format} was not understood."); ;
       }
 
       private static ErrorInfo ValidateAnchorNameAndFormat(IDataModel model, IFormattedRun runToWrite, string name, string format, int dataIndex, bool allowAnchorOverwrite = false) {
