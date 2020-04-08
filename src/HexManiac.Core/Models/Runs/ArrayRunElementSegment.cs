@@ -251,32 +251,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public void WriteNewFormat(IDataModel owner, ModelDelta token, int source, int destination, int length, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          owner.WritePointer(token, source, destination);
          IFormattedRun run;
-         if (InnerFormat == PCSRun.SharedFormatString) {
-            // found freespace, so this should already be an FF. Just add the format.
-            run = new PCSRun(owner, destination, length);
-         } else if (InnerFormat == PLMRun.SharedFormatString) {
-            // PLM ends with FFFF, and this is already freespace, so just add the format.
-            run = new PLMRun(owner, destination);
-         } else if (InnerFormat == TrainerPokemonTeamRun.SharedFormatString) {
-            run = new TrainerPokemonTeamRun(owner, destination, new[] { source }).DeserializeRun("0 ???", token);
-         } else if (SpriteRun.TryParseSpriteFormat(InnerFormat, out var spriteFormat)) {
-            run = new SpriteRun(spriteFormat, owner, destination, new[] { source });
-         } else if (PaletteRun.TryParsePaletteFormat(InnerFormat, out var paletteFormat)) {
-            run = new PaletteRun(paletteFormat, owner, destination, new[] { source });
-         } else if (Sprites.SpriteRun.TryParseSpriteFormat(InnerFormat, out spriteFormat)) {
-            run = new Sprites.SpriteRun(destination, spriteFormat, new[] { source });
-         } else if (Sprites.PaletteRun.TryParsePaletteFormat(InnerFormat, out paletteFormat)) {
-            run = new Sprites.PaletteRun(destination, paletteFormat, new[] { source });
-         } else if (InnerFormat.StartsWith("[") && InnerFormat.Contains("]")) {
-            // don't bother checking the TryParse result: we very much expect that the data originally in the run won't fit the parse.
-            TableStreamRun.TryParseTableStream(owner, destination, new[] { source }, Name, InnerFormat, sourceSegments, out var tableStream);
-            run = tableStream.DeserializeRun("", token);
-         } else {
-            Debug.Fail("Not Implemented!");
-            return;
-         }
-
-         owner.ObserveRunWritten(token, run.MergeAnchor(new[] { source }));
+         var newRun = FormatRunFactory.GetStrategy(InnerFormat).WriteNewRun(owner, token, source, destination, Name, sourceSegments);
+         owner.ObserveRunWritten(token, newRun.MergeAnchor(new[] { source }));
       }
    }
 }

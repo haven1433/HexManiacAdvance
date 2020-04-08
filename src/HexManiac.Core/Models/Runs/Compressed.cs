@@ -415,7 +415,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Compressed {
          }
       }
 
-      public SpriteRun(SpriteFormat spriteFormat, IDataModel data, int start, IReadOnlyList<int> sources)
+      public SpriteRun(SpriteFormat spriteFormat, IDataModel data, int start, IReadOnlyList<int> sources = null)
          : base(data, start, sources) {
          SpriteFormat = spriteFormat;
          if (spriteFormat.ExpectedByteLength > DecompressedLength) InvalidateLength();
@@ -480,7 +480,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Compressed {
          }
       }
 
-      public PaletteRun(PaletteFormat paletteFormat, IDataModel data, int start, IReadOnlyList<int> sources)
+      public PaletteRun(PaletteFormat paletteFormat, IDataModel data, int start, IReadOnlyList<int> sources = null)
          : base(data, start, sources) {
          PaletteFormat = paletteFormat;
          if ((int)Math.Pow(2, paletteFormat.Bits) * 2 > DecompressedLength) InvalidateLength();
