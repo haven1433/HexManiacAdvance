@@ -9,18 +9,34 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    public abstract class RunStrategy {
       public string Format { get; set; }
 
+      /// <summary>
+      /// If a 'default' run is created for the pointer at the given address, how many bytes need to be available at the destination location?
+      /// </summary>
       public abstract int LengthForNewRun(IDataModel model, int pointerAddress);
 
       /// <summary>
       /// Returns true if the format is capable of being added for the pointer at source.
       /// If the token is such that edits are allowed, actually add the format.
       /// </summary>
-      public abstract bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string Name, IReadOnlyList<ArrayRunElementSegment> sourceSegments);
+      public abstract bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments);
 
+      /// <summary>
+      /// Returns true if the input run is valid for this run 'type'.
+      /// Often this is just a type comparison, but for runs with multiple
+      /// formats (example, SpriteRun with width/height), it can be more complex.
+      /// </summary>
       public abstract bool Matches(IFormattedRun run);
 
+      /// <summary>
+      /// Create a new run meant to go into a pointer in a table.
+      /// The destination has been prepared, but is all FF.
+      /// </summary>
       public abstract IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments);
 
+      /// <summary>
+      /// A pointer format in a table has changed.
+      /// Replace the given run with a new run of the appropriate format.
+      /// </summary>
       public abstract void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run);
 
       protected ITableRun GetTable(IDataModel model, int pointerAddress) => (ITableRun)model.GetNextRun(pointerAddress);
@@ -105,12 +121,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
    }
 
+   /// <summary>
+   /// ASCII runs are not currently supported within tables.
+   /// </summary>
    public class AsciiRunContentStrategy : RunStrategy {
       public override int LengthForNewRun(IDataModel model, int pointerAddress) => throw new NotImplementedException();
 
       public override bool Matches(IFormattedRun run) => throw new NotImplementedException();
 
-      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string Name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) => throw new NotImplementedException();
+      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) => throw new NotImplementedException();
 
       public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) => throw new NotImplementedException();
 
@@ -127,12 +146,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
    }
 
+   /// <summary>
+   /// Egg runs are not currently supported within tables.
+   /// </summary>
    public class EggRunContentStrategy : RunStrategy {
       public override int LengthForNewRun(IDataModel model, int pointerAddress) => throw new NotImplementedException();
 
       public override bool Matches(IFormattedRun run) => throw new NotImplementedException();
 
-      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string Name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) => throw new NotImplementedException();
+      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) => throw new NotImplementedException();
 
       public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) => throw new NotImplementedException();
 
