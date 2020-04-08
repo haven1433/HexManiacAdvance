@@ -17,6 +17,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// </summary>
       public abstract bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string Name, IReadOnlyList<ArrayRunElementSegment> sourceSegments);
 
+      public abstract bool Matches(IFormattedRun run);
+
       protected ITableRun GetTable(IDataModel model, int pointerAddress) => (ITableRun)model.GetNextRun(pointerAddress);
 
       protected ArrayRunPointerSegment GetSegment(ITableRun table, int pointerAddress) {
@@ -67,6 +69,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          // even if we didn't add the format, we're _capable_ of adding it... so return true
          return true;
       }
+      public override bool Matches(IFormattedRun run) => run is PCSRun;
    }
 
    public class PLMRunContentStrategy : RunStrategy {
@@ -80,6 +83,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          return true;
       }
+      public override bool Matches(IFormattedRun run) => run is PLMRun;
    }
 
    public class TrainerPokemonTeamRunContentStrategy : RunStrategy {
@@ -93,6 +97,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          return true;
       }
+      public override bool Matches(IFormattedRun run) => run is TrainerPokemonTeamRun;
    }
 
    public class LzSpriteRunContentStrategy : RunStrategy {
@@ -107,6 +112,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          return true;
       }
+      public override bool Matches(IFormattedRun run) => run is SpriteRun spriteRun && spriteRun.FormatString == Format;
    }
 
    public class LzPaletteRunContentStrategy : RunStrategy {
@@ -121,6 +127,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          return true;
       }
+      public override bool Matches(IFormattedRun run) => run is PaletteRun palRun && palRun.FormatString == Format;
    }
 
    public class SpriteRunContentStrategy : RunStrategy {
@@ -132,6 +139,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, spriteRun);
          return true;
       }
+      public override bool Matches(IFormattedRun run) => run is Models.Runs.Sprites.SpriteRun spriteRun && spriteRun.FormatString == Format;
    }
 
    public class PaletteRunContentStrategy : RunStrategy {
@@ -143,6 +151,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, palRun);
          return true;
       }
+      public override bool Matches(IFormattedRun run) => run is Models.Runs.Sprites.PaletteRun palRun && palRun.FormatString == Format;
    }
 
    public class TableStreamRunContentStrategy : RunStrategy {
@@ -159,5 +168,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
          return false;
       }
+      public override bool Matches(IFormattedRun run) => run is TableStreamRun streamRun && streamRun.FormatString == Format;
    }
 }

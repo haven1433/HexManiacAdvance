@@ -241,19 +241,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (run.Start < destination) return false;
          if (run.Start > destination || (run.Start == destination && (run is NoInfoRun || run is PointerRun))) {
             // hard case: no format found, so check the data
-            return FormatRunFactory.GetStrategy(InnerFormat).TryAddFormatAtDestination(owner, token, source, destination, Name, sourceSegments);
+            return FormatRunFactory.GetStrategy(InnerFormat)?.TryAddFormatAtDestination(owner, token, source, destination, Name, sourceSegments) ?? false;
          } else {
             // easy case: already have a useful format, just see if it matches
-            if (InnerFormat == PCSRun.SharedFormatString) return run is PCSRun;
-            if (InnerFormat == PLMRun.SharedFormatString) return run is PLMRun;
-            if (InnerFormat == TrainerPokemonTeamRun.SharedFormatString) return run is TrainerPokemonTeamRun;
-            if (SpriteRun.TryParseSpriteFormat(InnerFormat, out var _)) return run is SpriteRun;
-            if (PaletteRun.TryParsePaletteFormat(InnerFormat, out var _)) return run is PaletteRun;
-            if (Sprites.SpriteRun.TryParseSpriteFormat(InnerFormat, out var _)) return run is Sprites.SpriteRun;
-            if (Sprites.PaletteRun.TryParsePaletteFormat(InnerFormat, out var _)) return run is Sprites.PaletteRun;
-            if (InnerFormat.StartsWith("[")) return run is TableStreamRun tsRun && tsRun.FormatString == InnerFormat;
+            return FormatRunFactory.GetStrategy(InnerFormat)?.Matches(run) ?? false;
          }
-         return false;
       }
 
       public void WriteNewFormat(IDataModel owner, ModelDelta token, int source, int destination, int length, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
