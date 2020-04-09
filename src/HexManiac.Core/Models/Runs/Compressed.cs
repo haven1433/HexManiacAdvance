@@ -518,6 +518,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Compressed {
 
    public struct PaletteFormat {
       public int Bits { get; }
+      public int ExpectedByteLength => (int)Math.Pow(2, Bits + 1);
+
       public PaletteFormat(int bits) => Bits = bits;
    }
 }

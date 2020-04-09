@@ -226,7 +226,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       readonly SpriteFormat spriteFormat;
       public LzSpriteRunContentStrategy(SpriteFormat spriteFormat) => this.spriteFormat = spriteFormat;
 
-      public override int LengthForNewRun(IDataModel model, int pointerAddress) => throw new NotImplementedException(); // figure out the needed uncompressed size from the parent table
+      public override int LengthForNewRun(IDataModel model, int pointerAddress) {
+         var data = LZRun.Compress(new byte[spriteFormat.ExpectedByteLength], 0, spriteFormat.ExpectedByteLength);
+         return data.Count;
+      }
       public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          var lzRun = new SpriteRun(spriteFormat, owner, destination, new[] { source });
          if (lzRun.Length <= 5 || owner.ReadMultiByteValue(destination + 1, 3) % 32 != 0) return false;
@@ -237,7 +240,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
       public override bool Matches(IFormattedRun run) => run is SpriteRun spriteRun && spriteRun.FormatString == Format;
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
-         throw new NotImplementedException();
+         var data = LZRun.Compress(new byte[spriteFormat.ExpectedByteLength], 0, spriteFormat.ExpectedByteLength);
+         for (int i = 0; i < data.Count; i++) token.ChangeData(owner, destination + i, data[i]);
+         return new SpriteRun(spriteFormat, owner, destination);
       }
       public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) {
          var runAttempt = new Models.Runs.Compressed.SpriteRun(spriteFormat, model, run.Start, run.PointerSources);
@@ -257,7 +262,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private readonly PaletteFormat paletteFormat;
       public LzPaletteRunContentStrategy(PaletteFormat paletteFormat) => this.paletteFormat = paletteFormat;
 
-      public override int LengthForNewRun(IDataModel model, int pointerAddress) => throw new NotImplementedException(); // figure out the needed uncompressed size from the parent table
+      public override int LengthForNewRun(IDataModel model, int pointerAddress) {
+         var data = LZRun.Compress(new byte[paletteFormat.ExpectedByteLength], 0, paletteFormat.ExpectedByteLength);
+         return data.Count;
+      }
       public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          var lzRun = new PaletteRun(paletteFormat, owner, destination, new[] { source });
          if (lzRun.Length <= 5 && owner.ReadMultiByteValue(destination + 1, 3) != Math.Pow(2, paletteFormat.Bits + 1)) return false;
@@ -268,7 +276,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
       public override bool Matches(IFormattedRun run) => run is PaletteRun palRun && palRun.FormatString == Format;
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
-         throw new NotImplementedException();
+         var data = LZRun.Compress(new byte[paletteFormat.ExpectedByteLength], 0, paletteFormat.ExpectedByteLength);
+         for (int i = 0; i < data.Count; i++) token.ChangeData(owner, destination + i, data[i]);
+         return new PaletteRun(paletteFormat, owner, destination);
       }
       public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) {
          var runAttempt = new Models.Runs.Compressed.PaletteRun(paletteFormat, model, run.Start, run.PointerSources);
@@ -288,7 +298,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private readonly SpriteFormat spriteFormat;
       public SpriteRunContentStrategy(SpriteFormat spriteFormat) => this.spriteFormat = spriteFormat;
 
-      public override int LengthForNewRun(IDataModel model, int pointerAddress) => throw new NotImplementedException(); // figure out the needed uncompressed size from the parent table
+      public override int LengthForNewRun(IDataModel model, int pointerAddress) => spriteFormat.ExpectedByteLength;
       public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          var spriteRun = new Models.Runs.Sprites.SpriteRun(destination, spriteFormat, new[] { source });
          // TODO deal with the run being too long?
@@ -297,7 +307,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
       public override bool Matches(IFormattedRun run) => run is Models.Runs.Sprites.SpriteRun spriteRun && spriteRun.FormatString == Format;
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
-         throw new NotImplementedException();
+         for (int i = 0; i < spriteFormat.ExpectedByteLength; i++) token.ChangeData(owner, destination + i, 0);
+         return new Models.Runs.Sprites.SpriteRun(destination, spriteFormat);
       }
       public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) {
          var runAttempt = new Models.Runs.Sprites.SpriteRun(run.Start, spriteFormat, run.PointerSources);
@@ -316,7 +327,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private readonly PaletteFormat paletteFormat;
       public PaletteRunContentStrategy(PaletteFormat paletteFormat) => this.paletteFormat = paletteFormat;
 
-      public override int LengthForNewRun(IDataModel model, int pointerAddress) => throw new NotImplementedException(); // figure out the needed uncompressed size from the parent table
+      public override int LengthForNewRun(IDataModel model, int pointerAddress) => paletteFormat.ExpectedByteLength;
       public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          var palRun = new Models.Runs.Sprites.PaletteRun(destination, paletteFormat, new[] { source });
          // TODO deal with the run being too long?
@@ -325,7 +336,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
       public override bool Matches(IFormattedRun run) => run is Models.Runs.Sprites.PaletteRun palRun && palRun.FormatString == Format;
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
-         throw new NotImplementedException();
+         var length = paletteFormat.ExpectedByteLength;
+         for (int i = 0; i < length; i++) token.ChangeData(owner, destination + i, 0);
+         return new Models.Runs.Sprites.PaletteRun(destination, paletteFormat);
       }
       public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) {
          var runAttempt = new Models.Runs.Sprites.PaletteRun(run.Start, paletteFormat, run.PointerSources);
