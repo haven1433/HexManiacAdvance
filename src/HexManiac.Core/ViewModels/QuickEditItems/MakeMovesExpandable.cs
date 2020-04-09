@@ -42,7 +42,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
     lsl   r0, r0, #1
     cmp   r1, r0
 ".Split(Environment.NewLine)).ToArray();
-         return model.Find(limiterCode).Any();
+         return model.ThumbFind(limiterCode).Any();
       }
 
       public ErrorInfo Run(IViewPort viewPortInterface) {
@@ -75,7 +75,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
     mul   r2, r0
     add   r2, r2, #4
 ".Split(Environment.NewLine)).ToArray();
-         var codePotentiallyUsingPpPointer = model.Find(codeUsingPpPointer).ToList();
+         var codePotentiallyUsingPpPointer = model.ThumbFind(codeUsingPpPointer).ToList();
          foreach (var pointer in sourcesToPP) {
             var codeForPointer = codePotentiallyUsingPpPointer.Where(code => code < pointer).Last();
             for (int i = 0; i < changedCodeForPpPointer.Length; i++) {

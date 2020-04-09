@@ -402,7 +402,24 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public static IEnumerable<int> Find(this IDataModel model, params byte[] search) {
-         return model.Search(search.Select<byte, ISearchByte>(b => (SearchByte)b).ToList());
+         for (int i = 0; i < model.Count - search.Length; i++) {
+            for (int j = 0; j < search.Length; j++) {
+               if (model[i + j] != search[j]) break;
+               if (j == search.Length - 1) yield return i;
+            }
+         }
+      }
+
+      /// <summary>
+      /// We can search faster if we're looking for thumb code, because we know the code will be 2-byte aligned.
+      /// </summary>
+      public static IEnumerable<int> ThumbFind(this IDataModel model, byte[] search) {
+         for (int i = 0; i < model.Count - search.Length; i += 2) {
+            for (int j = 0; j < search.Length; j++) {
+               if (model[i + j] != search[j]) break;
+               if (j == search.Length - 1) yield return i;
+            }
+         }
       }
 
       public static IEnumerable<int> Search(this IDataModel model, IList<ISearchByte> searchBytes) {
