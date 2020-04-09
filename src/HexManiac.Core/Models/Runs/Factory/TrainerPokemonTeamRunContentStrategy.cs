@@ -27,7 +27,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          model.ClearFormat(token, run.Start, runAttempt.Length);
          run = runAttempt;
       }
-      public override ErrorInfo TryParseFormat(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+      public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
          run = new TrainerPokemonTeamRun(model, dataIndex, run.PointerSources);
          return ErrorInfo.NoError;
       }

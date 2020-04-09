@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using System.Collections.Generic;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
@@ -287,6 +288,52 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.ExpandSelection(0, 0);
          ViewPort.Copy.Execute(fileSystem);
          Assert.StartsWith("^run`ucp4` 0:0:0 ", fileSystem.CopyText);
+      }
+
+      [Fact]
+      public void CanAddLzTilesetAndTilemapFromViewPort() {
+         Model.ExpandData(ViewPort.CurrentChange, 0x400);
+         ViewPort.Refresh();
+
+         // Arrange tileset data
+         var tileByteLength = 8 * 8 / 2;
+         var tileCount = 11;
+         var lzData = LZRun.Compress(new byte[tileByteLength * tileCount], 0, tileByteLength * tileCount);
+         for (int i = 0; i < lzData.Count; i++) Model[0x20 + i] = lzData[i];
+
+         // Act: add tileset run
+         ViewPort.Edit("<20> @20 ^tileset`lzt4`"); // 4 bits per pixel
+
+         // Assert: tilesets show up as ISpriteRuns for the image tool
+         var run = Model.GetNextRun(0x20) as ISpriteRun;
+
+         // Assert: tilesets have 1 page
+         Assert.Equal(1, run.Pages);
+
+         // Assert: tilesets figure out dimensions dynamically.
+         // They attempt to show in a square if possible,
+         //   then add extra needed full columns,
+         //   then add extra single tiles in a bottom row.
+         Assert.Equal(4, run.SpriteFormat.TileWidth);
+         Assert.Equal(3, run.SpriteFormat.TileHeight);
+
+
+         // Arrange tilemap data
+         lzData = LZRun.Compress(new byte[2 * 16], 0, 2 * 16);
+         for (int i = 0; i < lzData.Count; i++) Model[0x200 + i] = lzData[i];
+
+         // Act: add tilemap run
+         ViewPort.Edit("@10 <200> @0200 ^tilemap`lzm4x4x4|tileset`"); // 4 bits per pixel, 4 tiles wide, 4 tiles tall.
+
+         // Assert: tilemaps show up as ISpriteRun for the image tool
+         run = Model.GetNextRun(0x200) as ISpriteRun;
+
+         // Assert: tilemaps have 1 page
+         Assert.Equal(1, run.Pages);
+
+         // Assert: tilemaps have the specified dimensions.
+         Assert.Equal(4, run.SpriteFormat.TileWidth);
+         Assert.Equal(4, run.SpriteFormat.TileHeight);
       }
 
       private void CreateLzRun(int start, params byte[] data) {

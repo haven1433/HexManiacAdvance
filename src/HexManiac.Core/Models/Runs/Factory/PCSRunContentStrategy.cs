@@ -33,7 +33,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
             run = newRun;
          }
       }
-      public override ErrorInfo TryParseFormat(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+      public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
          var length = PCSString.ReadString(model, dataIndex, true);
          if (length < 0) {
             return new ErrorInfo($"Format was specified as a string, but no string was recognized.");

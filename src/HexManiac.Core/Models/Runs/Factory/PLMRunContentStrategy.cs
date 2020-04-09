@@ -29,7 +29,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
             model.ClearFormat(token, run.Start, run.Length);
          }
       }
-      public override ErrorInfo TryParseFormat(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+      public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
          run = new PLMRun(model, dataIndex);
          if (run.Length == 0) return new ErrorInfo("Format specified was for pokemon level-up move data, but could not parse that location as level-up move data.");
          return ErrorInfo.NoError;

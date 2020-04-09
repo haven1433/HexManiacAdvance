@@ -61,6 +61,8 @@
     <Compile Include="Models\Runs\Sprites\LZRun.cs" />
     <Compile Include="Models\Runs\Sprites\LzPaletteRun.cs" />
     <Compile Include="Models\Runs\Sprites\LzSpriteRun.cs" />
+    <Compile Include="Models\Runs\Sprites\LzTilemapRun.cs" />
+    <Compile Include="Models\Runs\Sprites\LzTilesetRun.cs" />
     <Compile Include="Models\Runs\Sprites\PaletteRun.cs" />
     <Compile Include="Models\Runs\Sprites\SpriteRun.cs" />
     <Compile Include="Models\Runs\Sprites\Sprites.cs" />

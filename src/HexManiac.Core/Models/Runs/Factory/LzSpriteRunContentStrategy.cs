@@ -37,7 +37,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
             model.ClearFormat(token, run.Start, run.Length);
          }
       }
-      public override ErrorInfo TryParseFormat(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+      public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
          run = new LzSpriteRun(spriteFormat, model, dataIndex, run.PointerSources);
          if (run.Length < 6) return new ErrorInfo($"Compressed data needs to be at least {spriteFormat.ExpectedByteLength} when decompressed, but was too short.");
          return ErrorInfo.NoError;

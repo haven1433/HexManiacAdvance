@@ -674,7 +674,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return run.Start <= search && run is ITableRun;
       }
 
-      public void Refresh() => RefreshBackingData();
+      public void Refresh() {
+         scroll.DataLength = Model.Count;
+         RefreshBackingData();
+      }
 
       public void RaiseError(string text) => OnError?.Invoke(this, text);
 

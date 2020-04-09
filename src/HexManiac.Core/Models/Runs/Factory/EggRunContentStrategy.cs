@@ -17,7 +17,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
 
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) => throw new NotImplementedException();
 
-      public override ErrorInfo TryParseFormat(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+      public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
          run = new EggMoveRun(model, dataIndex);
          return ErrorInfo.NoError;
       }

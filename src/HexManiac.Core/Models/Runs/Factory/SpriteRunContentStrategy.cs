@@ -30,7 +30,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
             model.ClearFormat(token, run.Start, run.Length);
          }
       }
-      public override ErrorInfo TryParseFormat(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+      public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
          run = new SpriteRun(dataIndex, spriteFormat, run.PointerSources);
          return ErrorInfo.NoError;
       }

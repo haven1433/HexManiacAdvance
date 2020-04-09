@@ -37,9 +37,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       public abstract void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run);
 
       /// <summary>
-      /// Attempt to parse the format into a reasonable run that starts at the specified dataIndex.
+      /// Attempt to parse the existing data into a run of the desired type.
       /// </summary>
-      public abstract ErrorInfo TryParseFormat(IDataModel model, string name, int dataIndex, ref IFormattedRun run);
+      public abstract ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run);
 
       protected ITableRun GetTable(IDataModel model, int pointerAddress) => (ITableRun)model.GetNextRun(pointerAddress);
 
@@ -66,6 +66,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
             strategy = new LzSpriteRunContentStrategy(spriteFormat);
          } else if (LzPaletteRun.TryParsePaletteFormat(format, out var paletteFormat)) {
             strategy = new LzPaletteRunContentStrategy(paletteFormat);
+         } else if (LzTilesetRun.TryParseTilesetFormat(format, out var tilesetFormat)) {
+            strategy = new LzTilesetRunContentStrategy(tilesetFormat);
+         } else if (LzTilemapRun.TryParseTilemapFormat(format, out var tilemapFormat)) {
+            strategy = new LzTilemapRunContentStrategy(tilemapFormat);
          } else if (SpriteRun.TryParseSpriteFormat(format, out var spriteFormat1)) {
             strategy = new SpriteRunContentStrategy(spriteFormat1);
          } else if (PaletteRun.TryParsePaletteFormat(format, out var paletteFormat1)) {
@@ -79,6 +83,99 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
 
          strategy.Format = format;
          return strategy;
+      }
+   }
+
+   public class LzTilesetRunContentStrategy : RunStrategy {
+      public TilesetFormat TilesetFormat { get; }
+      public LzTilesetRunContentStrategy(TilesetFormat format) => TilesetFormat = format;
+
+      public override int LengthForNewRun(IDataModel model, int pointerAddress) {
+         var defaultData = new byte[TilesetFormat.BitsPerPixel * 8];
+         return LZRun.Compress(defaultData, 0, defaultData.Length).Count;
+      }
+
+      public override bool Matches(IFormattedRun run) => run is LzTilesetRun tsRun && tsRun.Format.BitsPerPixel == TilesetFormat.BitsPerPixel;
+
+      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
+         var lzRun = new LZRun(owner, destination);
+         if (lzRun.Length < 0) return false;
+         if (lzRun.Length % 0x20 != 0) return false;
+         var newRun = new LzTilesetRun(TilesetFormat, owner, destination);
+         if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, newRun);
+         return true;
+      }
+
+      public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+         var lzRun = new LZRun(model, dataIndex);
+         if (lzRun.Length < 0) return new ErrorInfo("Format was specified as a compressed tileset, but no compressed data was recognized.");
+         if (lzRun.DecompressedLength % 0x20 != 0) return new ErrorInfo("Format was specified as a compressed tileset, but the compressed data was not the proper length to be a tileset.");
+         var newRun = new LzTilesetRun(TilesetFormat, model, dataIndex);
+         run = newRun;
+         return ErrorInfo.NoError;
+      }
+
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) {
+         var lzRun = new LZRun(model, run.Start);
+         if (lzRun.Length < 0) return;
+         if (lzRun.DecompressedLength % 0x20 != 0) return;
+         var newRun = new LzTilesetRun(TilesetFormat, model, run.Start);
+         model.ClearFormat(token, newRun.Start, newRun.Length);
+         run = newRun;
+      }
+
+      public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
+         var defaultData = new byte[TilesetFormat.BitsPerPixel * 8];
+         var data = LZRun.Compress(defaultData, 0, defaultData.Length);
+         for (int i = 0; i < data.Count; i++) token.ChangeData(owner, destination + i, data[i]);
+         return new LzTilesetRun(TilesetFormat, owner, destination);
+      }
+   }
+
+   public class LzTilemapRunContentStrategy : RunStrategy {
+      public TilemapFormat TilemapFormat { get; }
+      public LzTilemapRunContentStrategy(TilemapFormat format) => TilemapFormat = format;
+
+      public override int LengthForNewRun(IDataModel model, int pointerAddress) {
+         var defaultData = new byte[TilemapFormat.BitsPerPixel * 8];
+         return LZRun.Compress(defaultData, 0, defaultData.Length).Count;
+      }
+
+      public override bool Matches(IFormattedRun run) => run is LzTilesetRun tsRun && tsRun.Format.BitsPerPixel == TilemapFormat.BitsPerPixel;
+
+      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
+         var lzRun = new LZRun(owner, destination);
+         if (lzRun.DecompressedLength != TilemapFormat.ExpectedUncompressedLength) return false;
+         var newRun = new LzTilemapRun(TilemapFormat, owner, destination);
+         if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, newRun);
+         return true;
+      }
+
+      public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+         var lzRun = new LZRun(model, dataIndex);
+         if (lzRun.DecompressedLength != TilemapFormat.ExpectedUncompressedLength) {
+            return new ErrorInfo($"Expected an uncompressed length of {TilemapFormat.ExpectedUncompressedLength}, but it was {lzRun.DecompressedLength}");
+         }
+
+         var newRun = new LzTilemapRun(TilemapFormat, model, dataIndex);
+         run = newRun;
+         return ErrorInfo.NoError;
+      }
+
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) {
+         var lzRun = new LZRun(model, run.Start);
+         if (lzRun.Length < 0) return;
+         if (lzRun.DecompressedLength != TilemapFormat.ExpectedUncompressedLength) return;
+         var newRun = new LzTilemapRun(TilemapFormat, model, run.Start);
+         model.ClearFormat(token, newRun.Start, newRun.Length);
+         run = newRun;
+      }
+
+      public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
+         var defaultData = new byte[TilemapFormat.BitsPerPixel * 8];
+         var data = LZRun.Compress(defaultData, 0, defaultData.Length);
+         for (int i = 0; i < data.Count; i++) token.ChangeData(owner, destination + i, data[i]);
+         return new LzTilemapRun(TilemapFormat, owner, destination);
       }
    }
 }

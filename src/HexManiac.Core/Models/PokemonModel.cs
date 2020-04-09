@@ -1429,7 +1429,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          // special case: empty format, stick with the no-info run
          if (format == string.Empty) return ErrorInfo.NoError;
 
-         return FormatRunFactory.GetStrategy(format)?.TryParseFormat(model, name, dataIndex, ref run) ?? new ErrorInfo($"Format {format} was not understood."); ;
+         return FormatRunFactory.GetStrategy(format)?.TryParseData(model, name, dataIndex, ref run) ?? new ErrorInfo($"Format {format} was not understood."); ;
       }
 
       private static ErrorInfo ValidateAnchorNameAndFormat(IDataModel model, IFormattedRun runToWrite, string name, string format, int dataIndex, bool allowAnchorOverwrite = false) {

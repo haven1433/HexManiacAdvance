@@ -1,5 +1,4 @@
-﻿using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
@@ -21,6 +20,26 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public int ExpectedByteLength => (int)Math.Pow(2, Bits + 1);
 
       public PaletteFormat(int bits) => Bits = bits;
+   }
+
+   public struct TilesetFormat {
+      public int BitsPerPixel { get; }
+      public string PaletteHint { get; }
+      public TilesetFormat(int bitsPerPixel, string paletteHint) => (BitsPerPixel, PaletteHint) = (bitsPerPixel, paletteHint);
+   }
+
+   public struct TilemapFormat {
+      public int BitsPerPixel { get; }
+      public int TileWidth { get; }
+      public int TileHeight { get; }
+      public int ExpectedUncompressedLength => TileWidth * TileHeight * 2; // TODO handle BitsPerPixel
+      public string MatchingTileset { get; }
+      public TilemapFormat(int bits, int width, int height, string tileset) {
+         BitsPerPixel = bits;
+         TileWidth = width;
+         TileHeight = height;
+         MatchingTileset = tileset;
+      }
    }
 
    public interface IPagedRun : IAppendToBuilderRun {
