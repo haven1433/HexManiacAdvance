@@ -69,34 +69,34 @@
     <Compile Include="..\..\artifacts\HexManiac.Tests\codegen\StubMetadataInfo.cs">
       <Link>StubMetadataInfo.cs</Link>
     </Compile>
-    <Compile Include="ArrayColumnHeaderTests.cs" />
-    <Compile Include="ArrayRunTests.cs" />
-    <Compile Include="AutoSearchTests.cs" />
-    <Compile Include="BadFileLoadTests.cs" />
+    <Compile Include="Before_Baseclass\ArrayColumnHeaderTests.cs" />
+    <Compile Include="Before_Baseclass\ArrayRunTests.cs" />
+    <Compile Include="Integration\AutoSearchTests.cs" />
+    <Compile Include="Integration\BadFileLoadTests.cs" />
     <Compile Include="BaseViewModelTestClass.cs" />
-    <Compile Include="BasicLoadTests.cs" />
-    <Compile Include="ChangeHistoryTests.cs" />
-    <Compile Include="AsciiRunTests.cs" />
-    <Compile Include="EggMoveTests.cs" />
-    <Compile Include="FindTests.cs" />
+    <Compile Include="Integration\BasicLoadTests.cs" />
+    <Compile Include="Before_Baseclass\ChangeHistoryTests.cs" />
+    <Compile Include="Before_Baseclass\AsciiRunTests.cs" />
+    <Compile Include="Before_Baseclass\EggMoveTests.cs" />
+    <Compile Include="Before_Baseclass\FindTests.cs" />
     <Compile Include="GeneralAppTests.cs" />
     <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubFileSystem.cs" />
     <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubTabContent.cs" />
     <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubViewPort.cs" />
     <Compile Include="ImageTests.cs" />
     <Compile Include="ListTests.cs" />
-    <Compile Include="NestedTablesTests.cs" />
-    <Compile Include="PointerModelTests.cs" />
-    <Compile Include="NavigationTests.cs" />
+    <Compile Include="Before_Baseclass\NestedTablesTests.cs" />
+    <Compile Include="Before_Baseclass\PointerModelTests.cs" />
+    <Compile Include="Before_Baseclass\NavigationTests.cs" />
     <Compile Include="StreamTests.cs" />
-    <Compile Include="StringModelTests.cs" />
+    <Compile Include="Before_Baseclass\StringModelTests.cs" />
     <Compile Include="TableTests.cs" />
-    <Compile Include="ToolTests.cs" />
-    <Compile Include="ViewPortAutocompleteEditTests.cs" />
-    <Compile Include="ViewPortCursorTests.cs" />
+    <Compile Include="Before_Baseclass\ToolTests.cs" />
+    <Compile Include="Before_Baseclass\ViewPortAutocompleteEditTests.cs" />
+    <Compile Include="Before_Baseclass\ViewPortCursorTests.cs" />
     <Compile Include="ViewPortEditTests.cs" />
-    <Compile Include="ViewPortSaveTests.cs" />
-    <Compile Include="ViewPortScrollTests.cs" />
+    <Compile Include="Before_Baseclass\ViewPortSaveTests.cs" />
+    <Compile Include="Before_Baseclass\ViewPortScrollTests.cs" />
     <Compile Include="..\SharedAssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

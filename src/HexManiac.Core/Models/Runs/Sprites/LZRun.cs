@@ -1,14 +1,11 @@
-﻿using System;
+﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
-using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
-using HavenSoft.HexManiac.Core.ViewModels.Tools;
 
-namespace HavenSoft.HexManiac.Core.Models.Runs.Compressed {
+namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
    public class LZRun : BaseRun, IStreamRun, IAppendToBuilderRun {
       public IDataModel Model { get; }
 
@@ -401,125 +398,5 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Compressed {
             yield return (byte)offset;
          }
       }
-   }
-
-   public class SpriteRun : LZRun, ISpriteRun {
-      public SpriteFormat SpriteFormat { get; }
-
-      public override string FormatString { get; }
-
-      public int Pages {
-         get {
-            var length = Model.ReadMultiByteValue(Start + 1, 3);
-            return length / SpriteFormat.ExpectedByteLength;
-         }
-      }
-
-      public SpriteRun(SpriteFormat spriteFormat, IDataModel data, int start, IReadOnlyList<int> sources = null)
-         : base(data, start, sources) {
-         SpriteFormat = spriteFormat;
-         if (spriteFormat.ExpectedByteLength > DecompressedLength) InvalidateLength();
-         FormatString = $"`lzs{spriteFormat.BitsPerPixel}x{spriteFormat.TileWidth}x{spriteFormat.TileHeight}`";
-      }
-
-      public static bool TryParseSpriteFormat(string pointerFormat, out SpriteFormat spriteFormat) {
-         spriteFormat = default;
-         if (!pointerFormat.StartsWith("`lzs") || !pointerFormat.EndsWith("`")) return false;
-         return TryParseDimensions(pointerFormat, out spriteFormat);
-      }
-
-      public static bool TryParseDimensions(string format, out SpriteFormat spriteFormat) {
-         spriteFormat = default;
-         var formatContent = format.Substring(4, format.Length - 5); // snip leading "`xxx" and trailing "`"
-         var hintSplit = formatContent.Split('|');
-         var dimensionsAsText = hintSplit[0].Split('x');
-         if (dimensionsAsText.Length != 3) return false;
-         if (!int.TryParse(dimensionsAsText[0], out var bitsPerPixel)) return false;
-         if (!int.TryParse(dimensionsAsText[1], out var width)) return false;
-         if (!int.TryParse(dimensionsAsText[2], out var height)) return false;
-         var hint = hintSplit.Length == 2 ? hintSplit[1] : null;
-         spriteFormat = new SpriteFormat(bitsPerPixel, width, height, hint);
-         return true;
-      }
-
-      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new SpriteRun(SpriteFormat, Model, Start, newPointerSources);
-
-      public int[,] GetPixels(IDataModel model, int page) {
-         var data = Decompress(model, Start);
-         return Sprites.SpriteRun.GetPixels(data, SpriteFormat.ExpectedByteLength * page, SpriteFormat.TileWidth, SpriteFormat.TileHeight);
-      }
-
-      public ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels) {
-         throw new NotImplementedException();
-      }
-   }
-
-   public struct SpriteFormat {
-      public int BitsPerPixel { get; }
-      public int TileWidth { get; }
-      public int TileHeight { get; }
-      public int ExpectedByteLength { get; }
-      public string PaletteHint { get; }
-      public SpriteFormat(int bitsPerPixel, int width, int height, string paletteHint) {
-         (BitsPerPixel, TileWidth, TileHeight) = (bitsPerPixel, width, height);
-         PaletteHint = paletteHint;
-         ExpectedByteLength = 8 * BitsPerPixel * TileWidth * TileHeight;
-      }
-   }
-
-   public class PaletteRun : LZRun, IPaletteRun {
-      public PaletteFormat PaletteFormat { get; }
-
-      public override string FormatString { get; }
-
-      public int Pages {
-         get {
-            var length = Model.ReadMultiByteValue(Start + 1, 3);
-            var paletteLength = (int)Math.Pow(2, PaletteFormat.Bits) * 2;
-            return length / paletteLength;
-         }
-      }
-
-      public PaletteRun(PaletteFormat paletteFormat, IDataModel data, int start, IReadOnlyList<int> sources = null)
-         : base(data, start, sources) {
-         PaletteFormat = paletteFormat;
-         if ((int)Math.Pow(2, paletteFormat.Bits) * 2 > DecompressedLength) InvalidateLength();
-         FormatString = $"`lzp{paletteFormat.Bits}`";
-      }
-
-      public static bool TryParsePaletteFormat(string pointerFormat, out PaletteFormat paletteFormat) {
-         paletteFormat = default;
-         if (!pointerFormat.StartsWith("`lzp") || !pointerFormat.EndsWith("`")) return false;
-         return TryParseDimensions(pointerFormat, out paletteFormat);
-      }
-
-      public static bool TryParseDimensions(string format, out PaletteFormat paletteFormat) {
-         paletteFormat = default;
-         var formatContent = format.Substring(4, format.Length - 5);
-         if (!int.TryParse(formatContent, out var bits)) return false;
-         paletteFormat = new PaletteFormat(bits);
-         return true;
-      }
-
-      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new PaletteRun(PaletteFormat, Model, Start, newPointerSources);
-
-      public IReadOnlyList<short> GetPalette(IDataModel model, int page) {
-         var data = Decompress(model, Start);
-         var colorCount = (int)Math.Pow(2, PaletteFormat.Bits);
-         var pageLength = colorCount * 2;
-         page %= Pages;
-         return Sprites.PaletteRun.GetPalette(data, page * pageLength, colorCount);
-      }
-
-      public IPaletteRun SetPalette(IDataModel model, ModelDelta token, int page, IReadOnlyList<short> colors) {
-         throw new NotImplementedException();
-      }
-   }
-
-   public struct PaletteFormat {
-      public int Bits { get; }
-      public int ExpectedByteLength => (int)Math.Pow(2, Bits + 1);
-
-      public PaletteFormat(int bits) => Bits = bits;
    }
 }
