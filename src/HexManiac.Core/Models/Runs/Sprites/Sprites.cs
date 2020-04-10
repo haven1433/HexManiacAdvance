@@ -38,7 +38,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          BitsPerPixel = bits;
          TileWidth = width;
          TileHeight = height;
-         MatchingTileset = tileset;
+         MatchingTileset = tileset ?? string.Empty;
       }
    }
 

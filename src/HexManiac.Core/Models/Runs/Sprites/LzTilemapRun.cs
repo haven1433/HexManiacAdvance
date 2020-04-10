@@ -50,12 +50,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return true;
       }
 
+      private int arrayTilesetAddress;
+      public void SetTilesetAddressHint(int address) => arrayTilesetAddress = address;
+
       public int[,] GetPixels(IDataModel model, int page) {
          var result = new int[Format.TileWidth * 8, Format.TileHeight * 8];
 
          var mapData = Decompress(model, Start);
          var tilesetAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, Format.MatchingTileset);
          var tileset = model.GetNextRun(tilesetAddress) as LzTilesetRun;
+         if (tileset == null) tileset = model.GetNextRun(arrayTilesetAddress) as LzTilesetRun;
+         
          if (tileset == null) return result;
 
          var tiles = Decompress(model, tileset.Start);

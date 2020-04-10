@@ -38,6 +38,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          // TODO support multiple layers
          paletteHint = hint ?? paletteHint;
          int page = pageOption ?? CurrentPage;
+
+         var destination = ViewPort.Model.ReadPointer(Start);
+         if (Model.GetNextRun(destination) is LzTilemapRun mapRun) SpriteTool.FindMatchingTileset(Model, mapRun);
+
          UpdateTiles(Start, page, false);
       }
 

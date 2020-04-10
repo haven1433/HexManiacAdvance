@@ -152,6 +152,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             PixelWidth = pixels.GetLength(0);
             PixelHeight = pixels.GetLength(1);
          }
+         if (run is LzTilemapRun tmRun) FindMatchingTileset(model, tmRun);
          PixelData = Render(pixels, palette);
          NotifyPropertyChanged(nameof(PixelWidth));
          NotifyPropertyChanged(nameof(PixelHeight));
@@ -210,10 +211,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          // easy case: hint table is pointers to palettes
          var hintTableElementStart = hintTableRun.Start + hintTableRun.ElementLength * spriteIndex;
-         if (hintTableRun.ElementContent[0].Type == ElementContentType.Pointer) {
-            var paletteAddress = model.ReadPointer(hintTableElementStart);
-            if (!(model.GetNextRun(paletteAddress) is IPaletteRun)) return defaultAddress;
-            return paletteAddress;
+         int segmentOffset = 0;
+         for (int i = 0; i < hintTableRun.ElementContent.Count; i++) {
+            if (hintTableRun.ElementContent[i].Type == ElementContentType.Pointer) {
+               var paletteAddress = model.ReadPointer(hintTableElementStart + segmentOffset);
+               if (model.GetNextRun(paletteAddress) is IPaletteRun) return paletteAddress;
+            }
+            segmentOffset += hintTableRun.ElementContent[i].Length;
          }
 
          // harder case: hint table is index into a different table
@@ -229,6 +233,44 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var indexedPaletteAddress = model.ReadPointer(paletteTableElementStart);
          if (!(model.GetNextRun(indexedPaletteAddress) is IPaletteRun)) return defaultAddress;
          return indexedPaletteAddress;
+      }
+
+      public static void FindMatchingTileset(IDataModel model, LzTilemapRun tilemap) {
+         var hint = tilemap.Format.MatchingTileset;
+         IFormattedRun hintRun;
+         if (hint != null) {
+            hintRun = model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, hint));
+         } else {
+            hintRun = model.GetNextRun(tilemap.PointerSources[0]);
+         }
+
+         // easy case: the hint is the address of a tileset
+         if (hintRun is LzTilesetRun) {
+            tilemap.SetTilesetAddressHint(hintRun.Start);
+            return;
+         }
+
+         // harder case: the hint is a table
+         if (!(hintRun is ITableRun hintTableRun)) return;
+         var tilemapPointer = tilemap.PointerSources[0];
+         var tilemapTable = model.GetNextRun(tilemapPointer) as ITableRun;
+         if (tilemapTable == null) return;
+         int tilemapIndex = (tilemapPointer - tilemapTable.Start) / tilemapTable.ElementLength;
+
+         // get which element of the table has the tileset
+         var segmentOffset = 0;
+         for (int i = 0; i < tilemapTable.ElementContent.Count; i++) {
+            if (tilemapTable.ElementContent[i] is ArrayRunPointerSegment segment) {
+               if (LzTilesetRun.TryParseTilesetFormat(segment.InnerFormat, out var _)) {
+                  var source = tilemapTable.Start + tilemapTable.ElementLength * tilemapIndex + segmentOffset;
+                  if (model.GetNextRun(model.ReadPointer(source)) is LzTilesetRun tilesetRun) {
+                     tilemap.SetTilesetAddressHint(tilesetRun.Start);
+                     return;
+                  }
+               }
+            }
+            segmentOffset += tilemapTable.ElementContent[i].Length;
+         }
       }
 
       private bool RunPropertiesChanged(ISpriteRun run) {

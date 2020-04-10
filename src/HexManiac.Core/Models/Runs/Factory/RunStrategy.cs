@@ -99,7 +99,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          var lzRun = new LZRun(owner, destination);
          if (lzRun.Length < 0) return false;
-         if (lzRun.Length % 0x20 != 0) return false;
+         if (lzRun.DecompressedLength % 0x20 != 0) return false;
          var newRun = new LzTilesetRun(TilesetFormat, owner, destination);
          if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, newRun);
          return true;
@@ -118,7 +118,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          var lzRun = new LZRun(model, run.Start);
          if (lzRun.Length < 0) return;
          if (lzRun.DecompressedLength % 0x20 != 0) return;
-         var newRun = new LzTilesetRun(TilesetFormat, model, run.Start);
+         var newRun = new LzTilesetRun(TilesetFormat, model, run.Start, run.PointerSources);
          model.ClearFormat(token, newRun.Start, newRun.Length);
          run = newRun;
       }
@@ -140,7 +140,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          return LZRun.Compress(defaultData, 0, defaultData.Length).Count;
       }
 
-      public override bool Matches(IFormattedRun run) => run is LzTilesetRun tsRun && tsRun.Format.BitsPerPixel == TilemapFormat.BitsPerPixel;
+      public override bool Matches(IFormattedRun run) => run is LzTilemapRun tmRun && tmRun.Format.BitsPerPixel == TilemapFormat.BitsPerPixel;
 
       public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          var lzRun = new LZRun(owner, destination);
@@ -165,7 +165,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          var lzRun = new LZRun(model, run.Start);
          if (lzRun.Length < 0) return;
          if (lzRun.DecompressedLength != TilemapFormat.ExpectedUncompressedLength) return;
-         var newRun = new LzTilemapRun(TilemapFormat, model, run.Start);
+         var newRun = new LzTilemapRun(TilemapFormat, model, run.Start, run.PointerSources);
          model.ClearFormat(token, newRun.Start, newRun.Length);
          run = newRun;
       }

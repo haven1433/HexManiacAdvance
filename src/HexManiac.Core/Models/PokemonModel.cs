@@ -230,7 +230,11 @@ namespace HavenSoft.HexManiac.Core.Models {
                      } else if (run.Start != destination) {
                         // for tables, the invalidly point into a run. Such is an error in the data, but is allowed for the metadata.
                      } else {
-                        Debug.Assert(run.PointerSources.Contains(start));
+                        if (run.PointerSources != null) {
+                           Debug.Assert(run.PointerSources.Contains(start));
+                        } else {
+                           Debug.Fail("This run is referenced by a table, but doesn't know about the table that points to it.");
+                        }
                      }
                   }
                   elementOffset += segment.Length;

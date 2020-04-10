@@ -32,7 +32,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          // update usage count, assuming that our run is paged.
          var run = Model.GetNextRun(Model.ReadPointer(Start)) as IPagedRun;
-         UsageCount = run?.PointerSources.Count ?? 0;
+         UsageCount = run?.PointerSources?.Count ?? 0;
 
          previousPage.CanExecute = arg => currentPage > 0;
          previousPage.Execute = arg => CurrentPage -= 1;
