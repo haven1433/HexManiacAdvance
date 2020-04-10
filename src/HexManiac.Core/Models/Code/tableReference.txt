@@ -96,6 +96,6 @@ bagtypeiconmap,            ,       ,       ,       ,       ,       ,       ,    
 
 titlescreenPokemonPalette, ,,,, 078AA0,078AA0,,,, `ucp4`
 titlescreenPokemonTileset, ,,,, 078AA4,078AA4,,,, `lzt4|titlescreenPokemonPalette`
-titlescreenPokemonTilemap, ,,,, 078AA8,078AA8,,,, `lzm4x32x20|titlescreenPokemonTileset` // something about the palette being loaded into D?
+titlescreenPokemonTilemap, ,,,, 078AA8,078AA8,,,, `lzm4x32x20|titlescreenPokemonTileset`                                            // Utilize D
 
-firstpersonviews, ,,,, 0F80FC,,,, , [a b c d tileset<`lzt4|firstpersonviews`> tilemap<`lzm4x32x20|firstpersonviews`> pal<`ucp4`>]28
+firstpersonviews, ,,,, 0F80FC,,,, , [a b c d tileset<`lzt4|firstpersonviews`> tilemap<`lzm4x32x20|firstpersonviews`> pal<`ucp4`>]28 // Utilize E, D. ucp has 2 pages

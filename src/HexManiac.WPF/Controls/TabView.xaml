@@ -71,9 +71,6 @@
       </StackPanel>
       <!-- Tools -->
       <Grid DockPanel.Dock="Left" DataContext="{Binding Tools}">
-         <Grid.Resources>
-            <ScaleTransform ScaleX="2" ScaleY="2" x:Key="TwoX"/>
-         </Grid.Resources>
          <Grid.Style>
             <Style TargetType="Grid">
                <Style.Triggers>
@@ -221,7 +218,11 @@
                         <DataTemplate DataType="{x:Type hsg3hvmtr:SpriteElementViewModel}">
                            <StackPanel>
                               <hsg3hv:CommonTableStreamControl />
-                              <hsg3hv:PixelImage SnapsToDevicePixels="True" LayoutTransform="{StaticResource TwoX}"/>
+                              <hsg3hv:PixelImage SnapsToDevicePixels="True">
+                                 <hsg3hv:PixelImage.LayoutTransform>
+                                    <ScaleTransform ScaleX="{Binding SpriteScale}" ScaleY="{Binding SpriteScale}" />
+                                 </hsg3hv:PixelImage.LayoutTransform>
+                              </hsg3hv:PixelImage>
                               <DockPanel Visibility="{Binding HasMultiplePages, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
                                  <Button Content="Previous" Command="{Binding PreviousPage}" DockPanel.Dock="Left"/>
                                  <Button Content="Next" Command="{Binding NextPage}" DockPanel.Dock="Right"/>

@@ -13,6 +13,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public short[] PixelData { get; private set; }
       public int PixelWidth => format.TileWidth * 8;
       public int PixelHeight => format.TileHeight * 8;
+      public double SpriteScale { get; private set; }
 
       public SpriteElementViewModel(ViewPort viewPort, SpriteFormat format, int itemAddress) : base(viewPort, itemAddress) {
          this.format = format;
@@ -59,6 +60,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          NotifyPropertyChanged(nameof(PixelWidth));
          NotifyPropertyChanged(nameof(PixelHeight));
          NotifyPropertyChanged(nameof(PixelData));
+         if (SpriteTool.MaxSpriteWidth < PixelWidth) {
+            SpriteScale = .5;
+         } else if (SpriteTool.MaxSpriteWidth > PixelWidth * 2) {
+            SpriteScale = 2;
+         } else {
+            SpriteScale = 1;
+         }
+         NotifyPropertyChanged(nameof(SpriteScale));
       }
 
       /// <summary>

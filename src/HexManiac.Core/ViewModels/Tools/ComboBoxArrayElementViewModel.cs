@@ -20,6 +20,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public int PixelWidth { get; private set; }
       public int PixelHeight { get; private set; }
       public short[] PixelData { get; private set; }
+      public double SpriteScale => 1;
 
       public ComboOption(string text) { Text = text; PixelData = new short[0]; }
       public static implicit operator ComboOption(string text) => new ComboOption(text);

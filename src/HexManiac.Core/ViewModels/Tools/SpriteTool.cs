@@ -15,11 +15,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       int PixelWidth { get; }
       int PixelHeight { get; }
       short[] PixelData { get; }
+      double SpriteScale { get; }
    }
 
    // TODO use the hint on the format (if there is one) to find a matching palette
    public class SpriteTool : ViewModelCore, IToolViewModel, IPixelViewModel {
-      private const int MaxWidth = 265; // From UI
+      public const int MaxSpriteWidth = 265; // From UI
       private readonly ViewPort viewPort;
       private readonly IDataModel model;
 
@@ -161,9 +162,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          NotifyPropertyChanged(PixelData);
 
          // update scale
-         if (PixelWidth > MaxWidth) {
+         if (PixelWidth > MaxSpriteWidth) {
             SpriteScale = .5;
-         } else if (PixelWidth < MaxWidth / 2) {
+         } else if (PixelWidth < MaxSpriteWidth / 2) {
             SpriteScale = 2;
          } else {
             SpriteScale = 1;
