@@ -18,7 +18,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          : base(data, start, sources) {
          SpriteFormat = spriteFormat;
          if (spriteFormat.ExpectedByteLength > DecompressedLength) InvalidateLength();
-         FormatString = $"`lzs{spriteFormat.BitsPerPixel}x{spriteFormat.TileWidth}x{spriteFormat.TileHeight}`";
+         var hintContent = string.Empty;
+         if (!string.IsNullOrEmpty(spriteFormat.PaletteHint)) hintContent += "|" + spriteFormat.PaletteHint;
+         FormatString = $"`lzs{spriteFormat.BitsPerPixel}x{spriteFormat.TileWidth}x{spriteFormat.TileHeight}{hintContent}`";
       }
 
       public static bool TryParseSpriteFormat(string pointerFormat, out SpriteFormat spriteFormat) {
@@ -45,7 +47,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public int[,] GetPixels(IDataModel model, int page) {
          var data = Decompress(model, Start);
-         return Sprites.SpriteRun.GetPixels(data, SpriteFormat.ExpectedByteLength * page, SpriteFormat.TileWidth, SpriteFormat.TileHeight);
+         return SpriteRun.GetPixels(data, SpriteFormat.ExpectedByteLength * page, SpriteFormat.TileWidth, SpriteFormat.TileHeight);
       }
 
       public ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels) {

@@ -19,16 +19,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
    // TODO use the hint on the format (if there is one) to find a matching palette
    public class SpriteTool : ViewModelCore, IToolViewModel, IPixelViewModel {
+      private const int MaxWidth = 265; // From UI
       private readonly ViewPort viewPort;
       private readonly IDataModel model;
 
       private bool paletteWasSetMoreRecently;
 
+      private double spriteScale;
       private int spritePages = 1, palPages = 1, spritePage = 0, palPage = 0;
       private int[,] pixels;
       private short[] palette;
 
       public string Name => "Image";
+
+      public double SpriteScale { get => spriteScale; set => TryUpdate(ref spriteScale, value); }
 
       private readonly StubCommand
          prevSpritePage = new StubCommand(),
@@ -99,7 +103,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       // TODO propogate changes back to the paletteAddress in the model
       public ObservableCollection<short> Palette { get; private set; } = new ObservableCollection<short>();
 
-      public bool IsReadOnly => throw new NotImplementedException();
+      public bool IsReadOnly => true;
 
       public SpriteTool(ViewPort viewPort) {
          this.viewPort = viewPort;
@@ -132,7 +136,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var width = pixels.GetLength(0);
          for (int i = 0; i < data.Length; i++) {
             var pixel = pixels[i % width, i / width];
-            data[i] = palette[pixel];
+            data[i] = palette[pixel % palette.Count];
          }
          return data;
       }
@@ -154,6 +158,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          prevSpritePage.CanExecuteChanged.Invoke(prevSpritePage, EventArgs.Empty);
          nextSpritePage.CanExecuteChanged.Invoke(nextSpritePage, EventArgs.Empty);
          NotifyPropertyChanged(PixelData);
+
+         // update scale
+         if (PixelWidth > MaxWidth) {
+            SpriteScale = .5;
+         } else if (PixelWidth < MaxWidth / 2) {
+            SpriteScale = 2;
+         } else {
+            SpriteScale = 1;
+         }
       }
 
       private void LoadPalette() {

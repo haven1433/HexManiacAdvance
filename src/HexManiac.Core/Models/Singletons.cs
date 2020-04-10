@@ -50,7 +50,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var line in lines) {
             var row = line.Trim();
             if (row.StartsWith("//")) continue;
-            var segments = row.Split(",");
+            var segments = row.Split("//")[0].Split(",");
             if (segments.Length != referenceOrder.Length) continue;
             var name = segments[0].Trim();
             var format = segments.Last().Trim();
@@ -63,7 +63,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          var readonlyTables = new Dictionary<string, GameReferenceTables>();
-         foreach (var pair in tables) readonlyTables.Add(pair.Key, new Models.GameReferenceTables(pair.Value));
+         foreach (var pair in tables) readonlyTables.Add(pair.Key, new GameReferenceTables(pair.Value));
          return readonlyTables;
       }
 

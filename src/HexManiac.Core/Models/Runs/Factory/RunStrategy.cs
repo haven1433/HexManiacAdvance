@@ -77,7 +77,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          } else if (format.IndexOf("[") >= 0 && format.IndexOf("[") < format.IndexOf("]")) {
             strategy = new TableStreamRunContentStrategy();
          } else {
-            Debug.Fail("Not Implemented!");
             return null;
          }
 

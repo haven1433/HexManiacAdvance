@@ -1,11 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
    public class LzTilemapRun : LZRun, ISpriteRun {
-      SpriteFormat ISpriteRun.SpriteFormat => new SpriteFormat(Format.BitsPerPixel, Format.TileWidth, Format.TileHeight, null);
+      SpriteFormat ISpriteRun.SpriteFormat {
+         get {
+            string hint = null;
+            var address = Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, Format.MatchingTileset);
+            if(address>=0 && address < Model.Count) {
+               var tileset = Model.GetNextRun(address) as ISpriteRun;
+               if (tileset != null) {
+                  hint = tileset.SpriteFormat.PaletteHint;
+               }
+            }
+
+            return new SpriteFormat(Format.BitsPerPixel, Format.TileWidth, Format.TileHeight, hint);
+         }
+      }
       public int Pages => 1;
       public TilemapFormat Format { get; }
+
+      public override string FormatString => $"`lzm{Format.BitsPerPixel}x{Format.TileWidth}x{Format.TileHeight}|{Format.MatchingTileset}`";
 
       public LzTilemapRun(TilemapFormat format, IDataModel data, int start, IReadOnlyList<int> sources = null) : base(data, start, sources) {
          Format = format;
@@ -38,10 +54,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          var result = new int[Format.TileWidth * 8, Format.TileHeight * 8];
 
          var mapData = Decompress(model, Start);
-         var sheet = new int[Format.TileWidth * 8, Format.TileHeight * 8];
          var tilesetAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, Format.MatchingTileset);
          var tileset = model.GetNextRun(tilesetAddress) as LzTilesetRun;
-         // TODO handle null tileset
+         if (tileset == null) return result;
+
          var tiles = Decompress(model, tileset.Start);
 
          var tileSize = tileset.Format.BitsPerPixel * 8;
@@ -50,7 +66,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             var yStart = y * 8;
             for (int x = 0; x < Format.TileWidth; x++) {
                var map = mapData.ReadMultiByteValue((Format.TileWidth * y + x) * 2, 2);
-               var tileStart = (map & 0x3FF) * tileSize;
+               var tile = map & 0x3FF;
+
+               var tileStart = tile * tileSize;
                var pixels = SpriteRun.GetPixels(tiles, tileStart, 1, 1); // TODO cache this during this method so we don't load the same tile more than once
                var hFlip = (map >> 10) & 0x1;
                var vFlip = (map >> 11) & 0x1;

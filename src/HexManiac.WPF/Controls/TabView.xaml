@@ -319,7 +319,11 @@
                </DockPanel>
 
                <!-- Sprite -->
-               <hsg3hv:PixelImage DataContext="{Binding SpriteTool}" LayoutTransform="{StaticResource TwoX}"/>
+               <hsg3hv:PixelImage DataContext="{Binding SpriteTool}">
+                  <hsg3hv:PixelImage.LayoutTransform>
+                     <ScaleTransform ScaleX="{Binding SpriteScale}" ScaleY="{Binding SpriteScale}" />
+                  </hsg3hv:PixelImage.LayoutTransform>
+               </hsg3hv:PixelImage>
                <DockPanel Visibility="{Binding SpriteTool.HasMultipleSpritePages, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
                   <Button Content="Previous" Command="{Binding SpriteTool.PreviousSpritePage}" DockPanel.Dock="Left"/>
                   <Button Content="Next" Command="{Binding SpriteTool.NextSpritePage}" DockPanel.Dock="Right"/>
