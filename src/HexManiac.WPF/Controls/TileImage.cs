@@ -72,6 +72,10 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          DataContextChanged += (sender, e) => UpdateDataContext(e);
          SnapsToDevicePixels = true;
          Stretch = Stretch.None;
+         var transform = new ScaleTransform();
+         BindingOperations.SetBinding(transform, ScaleTransform.ScaleXProperty, new Binding(nameof(IPixelViewModel.SpriteScale)));
+         BindingOperations.SetBinding(transform, ScaleTransform.ScaleYProperty, new Binding(nameof(IPixelViewModel.SpriteScale)));
+         LayoutTransform = transform;
       }
       private void UpdateDataContext(DependencyPropertyChangedEventArgs e) {
          var oldValue = e.OldValue as INotifyPropertyChanged;

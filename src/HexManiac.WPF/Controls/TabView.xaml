@@ -218,11 +218,7 @@
                         <DataTemplate DataType="{x:Type hsg3hvmtr:SpriteElementViewModel}">
                            <StackPanel>
                               <hsg3hv:CommonTableStreamControl />
-                              <hsg3hv:PixelImage SnapsToDevicePixels="True">
-                                 <hsg3hv:PixelImage.LayoutTransform>
-                                    <ScaleTransform ScaleX="{Binding SpriteScale}" ScaleY="{Binding SpriteScale}" />
-                                 </hsg3hv:PixelImage.LayoutTransform>
-                              </hsg3hv:PixelImage>
+                              <hsg3hv:PixelImage SnapsToDevicePixels="True" />
                               <DockPanel Visibility="{Binding HasMultiplePages, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
                                  <Button Content="Previous" Command="{Binding PreviousPage}" DockPanel.Dock="Left"/>
                                  <Button Content="Next" Command="{Binding NextPage}" DockPanel.Dock="Right"/>
@@ -320,11 +316,7 @@
                </DockPanel>
 
                <!-- Sprite -->
-               <hsg3hv:PixelImage DataContext="{Binding SpriteTool}">
-                  <hsg3hv:PixelImage.LayoutTransform>
-                     <ScaleTransform ScaleX="{Binding SpriteScale}" ScaleY="{Binding SpriteScale}" />
-                  </hsg3hv:PixelImage.LayoutTransform>
-               </hsg3hv:PixelImage>
+               <hsg3hv:PixelImage DataContext="{Binding SpriteTool}" />
                <DockPanel Visibility="{Binding SpriteTool.HasMultipleSpritePages, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
                   <Button Content="Previous" Command="{Binding SpriteTool.PreviousSpritePage}" DockPanel.Dock="Left"/>
                   <Button Content="Next" Command="{Binding SpriteTool.NextSpritePage}" DockPanel.Dock="Right"/>
