@@ -80,9 +80,9 @@ habitats,                  ,       ,       ,       , 106888, 106860, 106900, 106
 // non-tables
 eggmoves,            041B44, 041B44, 041B64, 041B64, 045C50, 045C50, 045C64, 045C64, 0703F0, `egg`
 typeChart,           01CDC8, 01CDC8, 01CDC8, 01CDC8, 01E944, 01E944, 01E958, 01E958, 047134, [attack.types defend.types strength.]!FFFF00
-typeicons,                 ,       ,       ,       , 107DB0,       ,       ,       ,       , `ucs4x16x16|typeiconpalette`
-typeiconpalette,           ,       ,       ,       , 107D64,       ,       ,       ,       , `ucp4`
-typetoiconmap,             ,       ,       ,       , 107DAC,       ,       ,       ,       , [width. height. xy:]24
+typeicons,                 ,       ,       ,       , 107DB0, 107D88, 107E28, 107E00,       , `ucs4x16x16|typeiconpalette`
+typeiconpalette,           ,       ,       ,       , 107D64, 107D3C, 107DDC, 107DB4,       , `ucp4`
+typetoiconmap,             ,       ,       ,       , 107DAC, 107D84, 107E24, 107DFC,       , [width. height. xy:]24
 typeicons,                 ,       ,       ,       ,       ,       ,       ,       , 61CFBC, `lzs4x4x46|typeiconpalette`
 typeiconindex,             ,       ,       ,       ,       ,       ,       ,       , 1C439C, [index.]23
 // 0D, 0E, 0F are the 3 palettes (0, 1, 2)
@@ -95,24 +95,30 @@ bagtypepalette,            ,       ,       ,       ,       ,       ,       ,    
 bagtypeiconmap,            ,       ,       ,       ,       ,       ,       ,       , 19A33C, [width. height. xy:]24
 
 
-titlescreenLogoPalette,       ,,,, 078A94,,,,, `ucp8`
-titlescreenLogoTileSet,       ,,,, 078A98,,,,, `lzt8|titlescreenLogoPalette`
-titlescreenLogoTileMap,       ,,,, 078A9C,,,,, `lzm4x32x20|titlescreenLogoTileSet`
+titlescreenLogoPalette,       ,,,, 078A94, 078A94, 078AA8, 078AA8, , `ucp8`
+titlescreenLogoTileSet,       ,,,, 078A98, 078A98, 078AAC, 078AAC, , `lzt8|titlescreenLogoPalette`
+titlescreenLogoTileMap,       ,,,, 078A9C, 078A9C, 078AB0, 078AB0, , `lzm4x32x20|titlescreenLogoTileSet`
 
-titlescreenPokemonPalette,    ,,,, 078AA0, 078AA0,,,, `ucp4`
-titlescreenPokemonTileset,    ,,,, 078AA4, 078AA4,,,, `lzt4|titlescreenPokemonPalette`
-titlescreenPokemonTilemap,    ,,,, 078AA8, 078AA8,,,, `lzm4x32x20|titlescreenPokemonTileset`                                         // Utilize D
+titlescreenPokemonPalette,    ,,,, 078AA0, 078AA0, 078AB4, 078AB4, , `ucp4`
+titlescreenPokemonTileset,    ,,,, 078AA4, 078AA4, 078AB8, 078AB8, , `lzt4|titlescreenPokemonPalette`
+titlescreenPokemonTilemap,    ,,,, 078AA8, 078AA8, 078ABC, 078ABC, , `lzm4x32x20|titlescreenPokemonTileset`                                         // Utilize D
 
-titlescreenPublisherPalette,  ,,,, 078AAC,,,,, `ucp4`
-titlescreenPublisherTileSet,  ,,,, 078AB0,,,,, `lzt4|titlescreenPublisherPalette`
-titlescreenPublisherTileMap,  ,,,, 078AB4,,,,, `lzm4x32x20|titlescreenPublisherTileSet`
+titlescreenPublisherPalette,  ,,,, 078AAC, 078AAC, 078AC0, 078AC0, , `ucp4`
+titlescreenPublisherTileSet,  ,,,, 078AB0, 078AB0, 078AC4, 078AC4, , `lzt4|titlescreenPublisherPalette`
+titlescreenPublisherTileMap,  ,,,, 078AB4, 078AB4, 078AC8, 078AC8, , `lzm4x32x20|titlescreenPublisherTileSet`
 
-titlescreenWidescreenTileSet, ,,,, 078AB8,,,,, `lzt4|titlescreenPublisherPalette`
-titlescreenWidescreenTileMap, ,,,, 078ABC,,,,, `lzm4x32x20|titlescreenWidescreenTileSet`
+titlescreenWidescreenTileSet, ,,,, 078AB8, 078AB8, 078ACC, 078ACC, , `lzt4|titlescreenPublisherPalette`
+titlescreenWidescreenTileMap, ,,,, 078ABC, 078ABC, 078AD0, 078AD0, , `lzm4x32x20|titlescreenWidescreenTileSet`
 
-firstpersonviews, ,,,, 0F80FC,,,, , [a b c d tileset<`lzt4|firstpersonviews`> tilemap<`lzm4x32x20|firstpersonviews`> pal<`ucp4`>]28 // Utilize E, D. ucp has 2 pages
+firstpersonviews, ,,,, 0F80FC, 0F80D4, 0F8174, 0F814C, , [a b c d tileset<`lzt4|firstpersonviews`> tilemap<`lzm4x32x20|firstpersonviews`> pal<`ucp4`>]28 // Utilize E, D. ucp has 2 pages
 
-townmapPalette, ,,,, 0C02EC,,,,, `ucp4`
-townmapTileSet, ,,,, 0C0330,,,,, `lzt4|townmapPalette`
-townmapTileMap, ,,,, 0C035C,,,,, `lzm4x30x20|townmapTileSet`   // Utilize 0, 2. ucp has 2 pages.
+townmapPalette,       ,,,, 0C02EC, 0C02C0, 0C0300, 0C02D4, , `ucp4`
+townmapTileSet,       ,,,, 0C0330, 0C0304, 0C0344, 0C0318, , `lzt4|townmapPalette`
+townmapTileMap,       ,,,, 0C035C, 0C0330, 0C0370, 0C0344, , `lzm4x30x20|townmapTileSet`   // Utilize 0, 2. ucp has 2 pages.
+island1TileMap,       ,,,, 0C0370, 0C0344, 0C0384, 0C0358, , `lzm4x30x20|townmapTileSet`
+island2TileMap,       ,,,, 0C0388, 0C035C, 0C039C, 0C0370, , `lzm4x30x20|townmapTileSet`
+island3TileMap,       ,,,, 0C03A4, 0C0378, 0C03B8, 0C038C, , `lzm4x30x20|townmapTileSet`
+townmapBorderTileSet, ,,,, 0C033C, 0C0310, 0C0350, 0C0324, , `lzt4|townmapPalette`
+townmapBorderTileMap, ,,,, 0C03C0, 0C0394, 0C03D4, 0C03A8, , `lzm4x30x20|townmapBorderTileSet`
+
 
