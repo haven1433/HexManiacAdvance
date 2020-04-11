@@ -155,6 +155,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          if (lzRun.DecompressedLength != TilemapFormat.ExpectedUncompressedLength) {
             return new ErrorInfo($"Expected an uncompressed length of {TilemapFormat.ExpectedUncompressedLength}, but it was {lzRun.DecompressedLength}");
          }
+         if (lzRun.Length < 6) {
+            return new ErrorInfo($"Unable to decompress run at {dataIndex:X6}.");
+         }
 
          var newRun = new LzTilemapRun(TilemapFormat, model, dataIndex);
          run = newRun;
