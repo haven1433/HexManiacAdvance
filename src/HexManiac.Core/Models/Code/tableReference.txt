@@ -94,8 +94,25 @@ bagtypeicon,               ,       ,       ,       ,       ,       ,       ,    
 bagtypepalette,            ,       ,       ,       ,       ,       ,       ,       , 19A2E0, `ucp4`
 bagtypeiconmap,            ,       ,       ,       ,       ,       ,       ,       , 19A33C, [width. height. xy:]24
 
-titlescreenPokemonPalette, ,,,, 078AA0,078AA0,,,, `ucp4`
-titlescreenPokemonTileset, ,,,, 078AA4,078AA4,,,, `lzt4|titlescreenPokemonPalette`
-titlescreenPokemonTilemap, ,,,, 078AA8,078AA8,,,, `lzm4x32x20|titlescreenPokemonTileset`                                            // Utilize D
+
+titlescreenLogoPalette,       ,,,, 078A94,,,,, `ucp8`
+titlescreenLogoTileSet,       ,,,, 078A98,,,,, `lzt8|titlescreenLogoPalette`
+titlescreenLogoTileMap,       ,,,, 078A9C,,,,, `lzm4x32x20|titlescreenLogoTileSet`
+
+titlescreenPokemonPalette,    ,,,, 078AA0, 078AA0,,,, `ucp4`
+titlescreenPokemonTileset,    ,,,, 078AA4, 078AA4,,,, `lzt4|titlescreenPokemonPalette`
+titlescreenPokemonTilemap,    ,,,, 078AA8, 078AA8,,,, `lzm4x32x20|titlescreenPokemonTileset`                                         // Utilize D
+
+titlescreenPublisherPalette,  ,,,, 078AAC,,,,, `ucp4`
+titlescreenPublisherTileSet,  ,,,, 078AB0,,,,, `lzt4|titlescreenPublisherPalette`
+titlescreenPublisherTileMap,  ,,,, 078AB4,,,,, `lzm4x32x20|titlescreenPublisherTileSet`
+
+titlescreenWidescreenTileSet, ,,,, 078AB8,,,,, `lzt4|titlescreenPublisherPalette`
+titlescreenWidescreenTileMap, ,,,, 078ABC,,,,, `lzm4x32x20|titlescreenWidescreenTileSet`
 
 firstpersonviews, ,,,, 0F80FC,,,, , [a b c d tileset<`lzt4|firstpersonviews`> tilemap<`lzm4x32x20|firstpersonviews`> pal<`ucp4`>]28 // Utilize E, D. ucp has 2 pages
+
+townmapPalette, ,,,, 0C02EC,,,,, `ucp4`
+townmapTileSet, ,,,, 0C0330,,,,, `lzt4|townmapPalette`
+townmapTileMap, ,,,, 0C035C,,,,, `lzm4x30x20|townmapTileSet`   // Utilize 0, 2. ucp has 2 pages.
+
