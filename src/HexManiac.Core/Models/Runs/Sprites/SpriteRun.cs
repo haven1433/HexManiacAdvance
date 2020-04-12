@@ -43,10 +43,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       /// </summary>
       public static int[,] GetPixels(IReadOnlyList<byte> data, int start, int tileWidth, int tileHeight, int bitsPerPixel) {
          var result = new int[8 * tileWidth, 8 * tileHeight];
+         Debug.Assert(bitsPerPixel == 8 || bitsPerPixel == 4);
          for (int y = 0; y < tileHeight; y++) {
             int yOffset = y * 8;
             for (int x = 0; x < tileWidth; x++) {
-               var tileStart = ((y * tileWidth) + x) * 32 + start;
+               var tileStart = ((y * tileWidth) + x) * 8 * bitsPerPixel + start;
                int xOffset = x * 8;
                if (bitsPerPixel == 4) {
                   for (int i = 0; i < 32; i++) {
@@ -57,7 +58,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                      result[xOffset + xx * 2 + 1, yOffset + yy] = raw >> 4;
                   }
                } else {
-                  Debug.Assert(bitsPerPixel == 8);
                   for (int i = 0; i < 64; i++) {
                      int xx = i % 8;
                      int yy = i / 8;

@@ -13,7 +13,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public LzTilesetRun(TilesetFormat format, IDataModel data, int start, IReadOnlyList<int> sources = null) : base(data, start, sources) {
          Format = format;
-         var tileSize = (int)Math.Pow(2, format.BitsPerPixel + 1);
+         var tileSize = format.BitsPerPixel * 8;
          var uncompressedSize = data.ReadMultiByteValue(start + 1, 3);
          var tileCount = uncompressedSize / tileSize;
          var roughSize = Math.Sqrt(tileCount);
