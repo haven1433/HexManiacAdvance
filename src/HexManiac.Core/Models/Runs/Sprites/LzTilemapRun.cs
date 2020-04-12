@@ -74,7 +74,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                var tile = map & 0x3FF;
 
                var tileStart = tile * tileSize;
-               var pixels = SpriteRun.GetPixels(tiles, tileStart, 1, 1); // TODO cache this during this method so we don't load the same tile more than once
+               var pixels = SpriteRun.GetPixels(tiles, tileStart, 1, 1, Format.BitsPerPixel); // TODO cache this during this method so we don't load the same tile more than once
                var hFlip = (map >> 10) & 0x1;
                var vFlip = (map >> 11) & 0x1;
                var pal = (map >> 12) & 0xF;

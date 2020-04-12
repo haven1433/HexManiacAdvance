@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
@@ -32,29 +33,37 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new SpriteRun(Start, SpriteFormat, newPointerSources);
 
-      // TODO support values other than 4bpp
       public int[,] GetPixels(IDataModel model, int page) {
          var pageSize = 8 * bitsPerPixel * tileWidth * tileHeight;
-         return GetPixels(model, Start + page * pageSize, tileWidth, tileHeight);
+         return GetPixels(model, Start + page * pageSize, tileWidth, tileHeight, bitsPerPixel);
       }
 
       /// <summary>
       /// convert from raw values to palette-index values
       /// </summary>
-      public static int[,] GetPixels(IReadOnlyList<byte> data, int start, int tileWidth, int tileHeight) {
+      public static int[,] GetPixels(IReadOnlyList<byte> data, int start, int tileWidth, int tileHeight, int bitsPerPixel) {
          var result = new int[8 * tileWidth, 8 * tileHeight];
          for (int y = 0; y < tileHeight; y++) {
             int yOffset = y * 8;
             for (int x = 0; x < tileWidth; x++) {
                var tileStart = ((y * tileWidth) + x) * 32 + start;
                int xOffset = x * 8;
-               for (int i = 0; i < 32; i++) {
-                  int xx = i % 4; // ranges from 0 to 3
-                  int yy = i / 4; // ranges from 0 to 7
-
-                  var raw = (byte)(tileStart + i < data.Count ? data[tileStart + i] : 0);
-                  result[xOffset + xx * 2 + 0, yOffset + yy] = (raw & 0xF);
-                  result[xOffset + xx * 2 + 1, yOffset + yy] = raw >> 4;
+               if (bitsPerPixel == 4) {
+                  for (int i = 0; i < 32; i++) {
+                     int xx = i % 4; // ranges from 0 to 3
+                     int yy = i / 4; // ranges from 0 to 7
+                     var raw = (byte)(tileStart + i < data.Count ? data[tileStart + i] : 0);
+                     result[xOffset + xx * 2 + 0, yOffset + yy] = (raw & 0xF);
+                     result[xOffset + xx * 2 + 1, yOffset + yy] = raw >> 4;
+                  }
+               } else {
+                  Debug.Assert(bitsPerPixel == 8);
+                  for (int i = 0; i < 64; i++) {
+                     int xx = i % 8;
+                     int yy = i / 8;
+                     var raw = tileStart + i < data.Count ? data[tileStart + i] : 0;
+                     result[xOffset + xx, yOffset + yy] = raw;
+                  }
                }
             }
          }
