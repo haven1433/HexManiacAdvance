@@ -204,7 +204,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          Palette.Clear();
          foreach (var color in palette) Palette.Add(color);
-         PixelData = Render(pixels, GetRenderPalette(model.GetNextRun(spriteAddress) as ISpriteRun), paletteFormat);
+         PixelData = Render(pixels, GetRenderPalette(model?.GetNextRun(spriteAddress) as ISpriteRun), paletteFormat);
          NotifyPropertyChanged(PixelData);
       }
 
