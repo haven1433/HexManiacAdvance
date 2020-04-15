@@ -4,6 +4,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
@@ -334,6 +335,17 @@ namespace HavenSoft.HexManiac.Tests {
          // Assert: tilemaps have the specified dimensions.
          Assert.Equal(4, run.SpriteFormat.TileWidth);
          Assert.Equal(4, run.SpriteFormat.TileHeight);
+      }
+
+      [Fact]
+      public void DoNotRenameAnchorWhenCreatingAPaletteAutomatically() {
+         ViewPort.Edit("^bob @20 ^tom @bob ");
+         var items = ViewPort.GetContextMenuItems(new Point(0, 0));
+         var item = items.Single(element => element.Text == "View as 16-color palette");
+         item.Command.Execute();
+
+         var anchor = Model.GetAnchorFromAddress(-1, 0);
+         Assert.Equal("bob", anchor);
       }
 
       private void CreateLzRun(int start, params byte[] data) {
