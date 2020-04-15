@@ -98,31 +98,29 @@ bagtypeiconmap,            ,       ,       ,       ,       ,       ,       ,    
 titlescreenLogoPalette,       ,,,, 078A94, 078A94, 078AA8, 078AA8, , `ucp8`
 titlescreenLogoTileSet,       ,,,, 078A98, 078A98, 078AAC, 078AAC, , `lzt8|titlescreenLogoPalette`
 titlescreenLogoTileMap,       ,,,, 078A9C, 078A9C, 078AB0, 078AB0, , `lzm8x32x20|titlescreenLogoTileSet`
-titlescreenLogoSprite,        ,,,, ,,,, 0AA94C, `lzs8x32x8`
-titlescreenLogoPalette,       ,,,, ,,,, 0AA958, `ucp4:15`    // 16-color palette with 15 pages
-titlescreenVersionSprite,     ,,,, ,,,, 540048, `lzs8x8x8`
-titlescreenVersionPalette,    ,,,, ,,,, 0AA98C, `ucp4`       // this is a pointer to the 16th palette
-
-
-titlescreenPokemonPalette,    ,,,, 078AA0, 078AA0, 078AB4, 078AB4, , `ucp4`
+titlescreenPokemonPalette,    ,,,, 078AA0, 078AA0, 078AB4, 078AB4, , `ucp4:D`
 titlescreenPokemonTileset,    ,,,, 078AA4, 078AA4, 078AB8, 078AB8, , `lzt4|titlescreenPokemonPalette`
-titlescreenPokemonTilemap,    ,,,, 078AA8, 078AA8, 078ABC, 078ABC, , `lzm4x32x20|titlescreenPokemonTileset`                                         // Utilize D
-titlescreenPokemonPalette,    ,,,, ,,,, 57C568, `ucp4:13`                 // Rayquaza uses [C]
-titlescreenPokemonTileSet,    ,,,, ,,,, 0AA95C, `lzt4|raquazaPal`
-titlescreenPokemonTileMap,    ,,,, ,,,, 0AA964, `lzm4x32x32|raquazaTiles` // Utilize E
-
+titlescreenPokemonTilemap,    ,,,, 078AA8, 078AA8, 078ABC, 078ABC, , `lzm4x32x20|titlescreenPokemonTileset`
 titlescreenPublisherPalette,  ,,,, 078AAC, 078AAC, 078AC0, 078AC0, , `ucp4`
 titlescreenPublisherTileSet,  ,,,, 078AB0, 078AB0, 078AC4, 078AC4, , `lzt4|titlescreenPublisherPalette`
 titlescreenPublisherTileMap,  ,,,, 078AB4, 078AB4, 078AC8, 078AC8, , `lzm4x32x20|titlescreenPublisherTileSet`
-
 titlescreenWidescreenTileSet, ,,,, 078AB8, 078AB8, 078ACC, 078ACC, , `lzt4|titlescreenPublisherPalette`
 titlescreenWidescreenTileMap, ,,,, 078ABC, 078ABC, 078AD0, 078AD0, , `lzm4x32x20|titlescreenWidescreenTileSet`
 
-firstpersonviews, ,,,, 0F80FC, 0F80D4, 0F8174, 0F814C, , [a b c d tileset<`lzt4|firstpersonviews`> tilemap<`lzm4x32x20|firstpersonviews`> pal<`ucp4`>]28 // Utilize E, D. ucp has 2 pages
+titlescreenLogoSprite,        ,,,, ,,,, 0AA94C, `lzs8x32x8|titlescreenLogoPalette`
+titlescreenLogoPalette,       ,,,, ,,,, 0AA958, `ucp4:0123456789ABCDE`
+titlescreenVersionPalette,    ,,,, ,,,, 0AA98C, `ucp4`
+titlescreenVersionSprite,     ,,,, ,,,, 540048, `lzs8x8x8|titlescreenVersionPalette`
+titlescreenPokemonTileSet,    ,,,, ,,,, 0AA95C, `lzt4|titlescreenLogoPalette`
+titlescreenPokemonTileMap,    ,,,, ,,,, 0AA964, `lzm4x32x32|titlescreenPokemonTileSet`
+// TODO find publisher info
 
-townmapPalette,       ,,,, 0C02EC, 0C02C0, 0C0300, 0C02D4, , `ucp4`
+
+firstpersonviews, ,,,, 0F80FC, 0F80D4, 0F8174, 0F814C, , [a b c d tileset<`lzt4|firstpersonviews`> tilemap<`lzm4x32x20|firstpersonviews`> pal<`ucp4:DE`>]28
+
+townmapPalette,       ,,,, 0C02EC, 0C02C0, 0C0300, 0C02D4, , `ucp4:01`
 townmapTileSet,       ,,,, 0C0330, 0C0304, 0C0344, 0C0318, , `lzt4|townmapPalette`
-townmapTileMap,       ,,,, 0C035C, 0C0330, 0C0370, 0C0344, , `lzm4x30x20|townmapTileSet`   // Utilize 0, 2. ucp has 2 pages.
+townmapTileMap,       ,,,, 0C035C, 0C0330, 0C0370, 0C0344, , `lzm4x30x20|townmapTileSet`
 island1TileMap,       ,,,, 0C0370, 0C0344, 0C0384, 0C0358, , `lzm4x30x20|townmapTileSet`
 island2TileMap,       ,,,, 0C0388, 0C035C, 0C039C, 0C0370, , `lzm4x30x20|townmapTileSet`
 island3TileMap,       ,,,, 0C03A4, 0C0378, 0C03B8, 0C038C, , `lzm4x30x20|townmapTileSet`

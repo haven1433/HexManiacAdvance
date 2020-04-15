@@ -14,7 +14,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       public LzPaletteRunContentStrategy(PaletteFormat paletteFormat) => this.paletteFormat = paletteFormat;
 
       public override int LengthForNewRun(IDataModel model, int pointerAddress) {
-         var data = LZRun.Compress(new byte[paletteFormat.ExpectedByteLength], 0, paletteFormat.ExpectedByteLength);
+         var data = LZRun.Compress(new byte[paletteFormat.ExpectedByteLengthPerPage], 0, paletteFormat.ExpectedByteLengthPerPage);
          return data.Count;
       }
       public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
@@ -27,7 +27,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       }
       public override bool Matches(IFormattedRun run) => run is LzPaletteRun palRun && palRun.FormatString == Format;
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
-         var data = LZRun.Compress(new byte[paletteFormat.ExpectedByteLength], 0, paletteFormat.ExpectedByteLength);
+         var data = LZRun.Compress(new byte[paletteFormat.ExpectedByteLengthPerPage], 0, paletteFormat.ExpectedByteLengthPerPage);
          for (int i = 0; i < data.Count; i++) token.ChangeData(owner, destination + i, data[i]);
          return new LzPaletteRun(paletteFormat, owner, destination);
       }

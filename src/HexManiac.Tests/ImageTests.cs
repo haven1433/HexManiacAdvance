@@ -227,8 +227,8 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void ImageToolExists() {
-         Model.ObserveRunWritten(ViewPort.CurrentChange, new Core.Models.Runs.Sprites.SpriteRun(0x10, new SpriteFormat(4, 2, 2, null)));
-         Model.ObserveRunWritten(ViewPort.CurrentChange, new Core.Models.Runs.Sprites.PaletteRun(0x100, new PaletteFormat(4)));
+         Model.ObserveRunWritten(ViewPort.CurrentChange, new SpriteRun(0x10, new SpriteFormat(4, 2, 2, null)));
+         Model.ObserveRunWritten(ViewPort.CurrentChange, new PaletteRun(0x100, new PaletteFormat(4, 1)));
          ViewPort.SelectionStart = new Point(2, 2);
          var tools = ViewPort.Tools;
 

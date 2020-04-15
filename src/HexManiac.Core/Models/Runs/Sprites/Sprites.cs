@@ -17,9 +17,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
    public struct PaletteFormat {
       public int Bits { get; }
-      public int ExpectedByteLength => (int)Math.Pow(2, Bits + 1);
+      public int InitialBlankPages { get; }
+      public int Pages { get; }
+      public int ExpectedByteLengthPerPage => (int)Math.Pow(2, Bits + 1);
 
-      public PaletteFormat(int bits) => Bits = bits;
+      public PaletteFormat(int bits, int pages, int initialBlankPages = 0) => (Bits, Pages, InitialBlankPages) = (bits, pages, initialBlankPages);
    }
 
    public struct TilesetFormat {
@@ -56,5 +58,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       PaletteFormat PaletteFormat { get; }
       IReadOnlyList<short> GetPalette(IDataModel model, int page);
       IPaletteRun SetPalette(IDataModel model, ModelDelta token, int page, IReadOnlyList<short> colors);
+   }
+
+   public static class IPaletteRunExtensions {
+      public static IReadOnlyList<short> AllColors(this IPaletteRun run, IDataModel model) {
+         if (run.PaletteFormat.Bits == 8) return run.GetPalette(model, 0);
+         var collection = new List<short>();
+
+         for (int i = 0; i < run.Pages; i++) collection.AddRange(run.GetPalette(model, i));
+
+         return collection;
+      }
    }
 }

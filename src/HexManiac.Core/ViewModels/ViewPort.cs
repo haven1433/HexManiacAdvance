@@ -1342,7 +1342,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             OnError?.Invoke(this, "Palettes insertion requires a no-format anchor with exactly 32 bytes of space.");
             return;
          }
-         Model.ObserveAnchorWritten(CurrentChange, $"pal{run1.Start:X6}", new Models.Runs.Sprites.PaletteRun(run1.Start, new PaletteFormat(4)));
+         Model.ObserveAnchorWritten(CurrentChange, $"pal{run1.Start:X6}", new PaletteRun(run1.Start, new PaletteFormat(4, 1)));
          Refresh();
          RequestMenuClose?.Invoke(this, EventArgs.Empty);
          UpdateToolsFromSelection(run1.Start);

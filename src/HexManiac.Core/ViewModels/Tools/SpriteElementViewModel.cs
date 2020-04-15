@@ -41,7 +41,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          int page = pageOption ?? CurrentPage;
 
          var destination = ViewPort.Model.ReadPointer(Start);
-         if (Model.GetNextRun(destination) is LzTilemapRun mapRun) SpriteTool.FindMatchingTileset(Model, mapRun);
+         if (Model.GetNextRun(destination) is LzTilemapRun mapRun) mapRun.FindMatchingTileset(Model);
 
          UpdateTiles(Start, page, false);
       }
@@ -52,11 +52,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var destination = ViewPort.Model.ReadPointer(start);
          var run = ViewPort.Model.GetNextRun(destination) as ISpriteRun;
          var pixels = run.GetPixels(ViewPort.Model, page);
-         var palette = GetDesiredPalette(start, paletteHint, page, exitPaletteSearchEarly);
+         var palette = GetDesiredPalette(start, paletteHint, page, exitPaletteSearchEarly, out var paletteFormat);
          if (pixels == lastPixels && palette == lastColors) return;
          lastPixels = pixels;
          lastColors = palette;
-         PixelData = SpriteTool.Render(pixels, palette);
+         if (!(run is LzTilemapRun)) paletteFormat = default;
+         PixelData = SpriteTool.Render(pixels, palette, paletteFormat);
          NotifyPropertyChanged(nameof(PixelWidth));
          NotifyPropertyChanged(nameof(PixelHeight));
          NotifyPropertyChanged(nameof(PixelData));
@@ -73,7 +74,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       /// <summary>
       /// If the hint is a table name, only match palettes from that table.
       /// </summary>
-      private IReadOnlyList<short> GetDesiredPalette(int start, string hint, int page, bool exitEarly) {
+      private IReadOnlyList<short> GetDesiredPalette(int start, string hint, int page, bool exitEarly, out PaletteFormat paletteFormat) {
+         paletteFormat = default;
          hint = format.PaletteHint ?? hint; // if there's a paletteHint, that takes precendence
 
          // search for hint matches in other comboboxes in the viewmodel
@@ -85,17 +87,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          // search for hint matches in other palettes in the viewmodel
-         IReadOnlyList<short> first = null;
+         PaletteElementViewModel first = null;
          foreach (var viewModel in ViewPort.Tools.TableTool.Children) {
             if (viewModel == this && exitEarly) break;
             if (!(viewModel is PaletteElementViewModel pevm)) continue;
-            first = first ?? pevm.Colors;
+            first = first ?? pevm;
             if (string.IsNullOrEmpty(hint)) break;
             if (pevm.TableName != hint) continue;
-            return pevm.Colors;
+            var palette = (IPaletteRun)Model.GetNextRun(Model.ReadPointer(pevm.Start));
+
+            paletteFormat = palette.PaletteFormat;
+            return palette.AllColors(Model);
          }
 
-         return first;
+         if (first == null) return TileViewModel.CreateDefaultPalette(0x10);
+         var paletteRun = (IPaletteRun)Model.GetNextRun(Model.ReadPointer(first.Start));
+         paletteFormat = paletteRun.PaletteFormat;
+         return paletteRun.AllColors(Model);
       }
 
       /// <summary>

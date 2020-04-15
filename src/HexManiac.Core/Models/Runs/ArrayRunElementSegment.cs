@@ -117,18 +117,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var tableRun = model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, EnumName)) as ITableRun;
          if (tableRun == null) return defaultOptions;
          if (!(tableRun.ElementContent[0] is ArrayRunPointerSegment pointerSegment)) return defaultOptions;
-         if (!LzSpriteRun.TryParseSpriteFormat(pointerSegment.InnerFormat, out var _) && !Sprites.SpriteRun.TryParseSpriteFormat(pointerSegment.InnerFormat, out var _)) return defaultOptions;
+         if (!LzSpriteRun.TryParseSpriteFormat(pointerSegment.InnerFormat, out var _) && !SpriteRun.TryParseSpriteFormat(pointerSegment.InnerFormat, out var _)) return defaultOptions;
 
          var imageOptions = new List<ComboOption>();
          for (int i = 0; i < tableRun.ElementCount; i++) {
             var destination = model.ReadPointer(tableRun.Start + tableRun.ElementLength * i);
-            var run = model.GetNextRun(destination) as Sprites.ISpriteRun;
+            var run = model.GetNextRun(destination) as ISpriteRun;
             if (run == null) return defaultOptions;
             var sprite = run.GetPixels(model, 0);
             var paletteAddress = SpriteTool.FindMatchingPalette(model, run, 0);
-            var paletteRun = model.GetNextRun(paletteAddress) as Sprites.IPaletteRun;
-            var palette = paletteRun?.GetPalette(model, 0) ?? TileViewModel.CreateDefaultPalette(16);
-            var image = SpriteTool.Render(sprite, palette);
+            var paletteRun = model.GetNextRun(paletteAddress) as IPaletteRun;
+            var palette = paletteRun?.GetPalette(model, paletteRun.PaletteFormat.InitialBlankPages) ?? TileViewModel.CreateDefaultPalette(16);
+            var image = SpriteTool.Render(sprite, palette, paletteRun?.PaletteFormat ?? default);
             var option = ComboOption.CreateFromSprite(image, sprite.GetLength(0));
             imageOptions.Add(option);
          }

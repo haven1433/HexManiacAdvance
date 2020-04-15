@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
@@ -8,7 +9,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       private readonly int bits;
 
       public PaletteFormat PaletteFormat { get; }
-      public int Pages => 1;
+      public int Pages { get; }
       public override int Length { get; }
 
       public override string FormatString { get; }
@@ -16,8 +17,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public PaletteRun(int start, PaletteFormat format, IReadOnlyList<int> sources = null) : base(start, sources) {
          PaletteFormat = format;
          bits = format.Bits;
-         Length = 2 * (int)Math.Pow(2, bits);
-         FormatString = $"`ucp{bits}`";
+         Pages = format.Pages;
+         if (bits == 8) Length = 512;
+         if (bits == 4) Length = Pages * 32;
+         var pagesPart = string.Empty;
+         if (Pages > 1 || format.InitialBlankPages > 0) {
+            var pageIDs = Enumerable.Range(format.InitialBlankPages, Pages).Select(i => ViewModels.ViewPort.AllHexCharacters[i]);
+            pagesPart = ":" + new string(pageIDs.ToArray());
+         }
+         FormatString = $"`ucp{bits}{pagesPart}`";
       }
 
       public static bool TryParsePaletteFormat(string pointerFormat, out PaletteFormat paletteFormat) {
@@ -38,7 +46,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new PaletteRun(Start, PaletteFormat, newPointerSources);
 
       public IReadOnlyList<short> GetPalette(IDataModel model, int page) {
-         page %= Pages;
+         page = page % Pages;
          var paletteColorCount = (int)Math.Pow(2, bits);
          var pageLength = paletteColorCount * 2;
          return GetPalette(model, Start + page * pageLength, paletteColorCount);

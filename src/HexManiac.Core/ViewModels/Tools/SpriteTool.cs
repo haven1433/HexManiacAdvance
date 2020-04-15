@@ -30,6 +30,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private int spritePages = 1, palPages = 1, spritePage = 0, palPage = 0;
       private int[,] pixels;
       private short[] palette;
+      private PaletteFormat paletteFormat;
 
       public string Name => "Image";
 
@@ -130,14 +131,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          LoadPalette();
       }
 
-      public static short[] Render(int[,] pixels, IReadOnlyList<short> palette) {
+      public static short[] Render(int[,] pixels, IReadOnlyList<short> palette, PaletteFormat format) {
          if (pixels == null) return new short[0];
-         if (palette == null) palette = TileViewModel.CreateDefaultPalette(16); // TODO be able to create default palette for 256 colors
+         if (palette == null) palette = TileViewModel.CreateDefaultPalette(16);
          var data = new short[pixels.Length];
          var width = pixels.GetLength(0);
+         var pixelOffset = format.InitialBlankPages << 4;
          for (int i = 0; i < data.Length; i++) {
             var pixel = pixels[i % width, i / width];
-            data[i] = palette[pixel % palette.Count];
+            while (pixel < pixelOffset) pixel += pixelOffset;
+            var pixelIntoPalette = Math.Max(0, pixel - pixelOffset);
+            data[i] = palette[pixelIntoPalette % palette.Count];
          }
          return data;
       }
@@ -153,8 +157,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             PixelWidth = pixels.GetLength(0);
             PixelHeight = pixels.GetLength(1);
          }
-         if (run is LzTilemapRun tmRun) FindMatchingTileset(model, tmRun);
-         PixelData = Render(pixels, palette);
+         var renderPalette = GetRenderPalette(run);
+         PixelData = Render(pixels, renderPalette, paletteFormat);
          NotifyPropertyChanged(nameof(PixelWidth));
          NotifyPropertyChanged(nameof(PixelHeight));
          prevSpritePage.CanExecuteChanged.Invoke(prevSpritePage, EventArgs.Empty);
@@ -171,12 +175,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
+      private IReadOnlyList<short> GetRenderPalette(ISpriteRun sprite) {
+         if (sprite == null) return palette;
+         if (sprite.SpriteFormat.BitsPerPixel == 8) {
+            if (model.GetNextRun(paletteAddress) is IPaletteRun paletteRun) return paletteRun.AllColors(model);
+         }
+         if (!(sprite is LzTilemapRun tmRun)) return palette;
+         tmRun.FindMatchingTileset(model);
+         if (model.GetNextRun(paletteAddress) is IPaletteRun palRun) return palRun.AllColors(model);
+         return palette;
+      }
+
       private void LoadPalette() {
          var run = model?.GetNextRun(paletteAddress) as IPaletteRun;
          if (run == null) {
             palette = TileViewModel.CreateDefaultPalette(0x10);
          } else {
             palette = run.GetPalette(model, palPage).ToArray();
+            paletteFormat = run.PaletteFormat;
          }
 
          PaletteWidth = (int)Math.Sqrt(palette.Length);
@@ -188,7 +204,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          Palette.Clear();
          foreach (var color in palette) Palette.Add(color);
-         PixelData = Render(pixels, palette);
+         PixelData = Render(pixels, GetRenderPalette(model.GetNextRun(spriteAddress) as ISpriteRun), paletteFormat);
          NotifyPropertyChanged(PixelData);
       }
 
@@ -234,44 +250,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var indexedPaletteAddress = model.ReadPointer(paletteTableElementStart);
          if (!(model.GetNextRun(indexedPaletteAddress) is IPaletteRun)) return defaultAddress;
          return indexedPaletteAddress;
-      }
-
-      public static void FindMatchingTileset(IDataModel model, LzTilemapRun tilemap) {
-         var hint = tilemap.Format.MatchingTileset;
-         IFormattedRun hintRun;
-         if (hint != null) {
-            hintRun = model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, hint));
-         } else {
-            hintRun = model.GetNextRun(tilemap.PointerSources[0]);
-         }
-
-         // easy case: the hint is the address of a tileset
-         if (hintRun is LzTilesetRun) {
-            tilemap.SetTilesetAddressHint(hintRun.Start);
-            return;
-         }
-
-         // harder case: the hint is a table
-         if (!(hintRun is ITableRun hintTableRun)) return;
-         var tilemapPointer = tilemap.PointerSources[0];
-         var tilemapTable = model.GetNextRun(tilemapPointer) as ITableRun;
-         if (tilemapTable == null) return;
-         int tilemapIndex = (tilemapPointer - tilemapTable.Start) / tilemapTable.ElementLength;
-
-         // get which element of the table has the tileset
-         var segmentOffset = 0;
-         for (int i = 0; i < tilemapTable.ElementContent.Count; i++) {
-            if (tilemapTable.ElementContent[i] is ArrayRunPointerSegment segment) {
-               if (LzTilesetRun.TryParseTilesetFormat(segment.InnerFormat, out var _)) {
-                  var source = tilemapTable.Start + tilemapTable.ElementLength * tilemapIndex + segmentOffset;
-                  if (model.GetNextRun(model.ReadPointer(source)) is LzTilesetRun tilesetRun) {
-                     tilemap.SetTilesetAddressHint(tilesetRun.Start);
-                     return;
-                  }
-               }
-            }
-            segmentOffset += tilemapTable.ElementContent[i].Length;
-         }
       }
 
       private bool RunPropertiesChanged(ISpriteRun run) {

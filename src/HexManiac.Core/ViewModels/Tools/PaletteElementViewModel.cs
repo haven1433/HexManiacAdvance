@@ -1,5 +1,4 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
-using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -51,7 +50,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void UpdateColors(int start, int page) {
-         page %= Pages;
          var destination = Model.ReadPointer(start);
          var run = ViewPort.Model.GetNextRun(destination) as IPaletteRun;
          Colors.SetContents(run.GetPalette(Model, page));

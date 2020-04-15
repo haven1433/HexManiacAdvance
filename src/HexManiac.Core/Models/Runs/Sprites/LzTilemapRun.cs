@@ -8,11 +8,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          get {
             string hint = null;
             var address = Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, Format.MatchingTileset);
-            if(address>=0 && address < Model.Count) {
+            if (address >= 0 && address < Model.Count) {
                var tileset = Model.GetNextRun(address) as ISpriteRun;
-               if (tileset != null) {
-                  hint = tileset.SpriteFormat.PaletteHint;
-               }
+               if (tileset == null) tileset = Model.GetNextRun(arrayTilesetAddress) as ISpriteRun;
+               if (tileset != null) hint = tileset.SpriteFormat.PaletteHint;
             }
 
             return new SpriteFormat(Format.BitsPerPixel, Format.TileWidth, Format.TileHeight, hint);
@@ -49,9 +48,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          tilemapFormat = new TilemapFormat(bits, width, height, hint);
          return true;
       }
-
-      private int arrayTilesetAddress;
-      public void SetTilesetAddressHint(int address) => arrayTilesetAddress = address;
 
       public int[,] GetPixels(IDataModel model, int page) {
          var result = new int[Format.TileWidth * 8, Format.TileHeight * 8];
@@ -95,6 +91,45 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels) {
          throw new NotImplementedException();
+      }
+
+      private int arrayTilesetAddress;
+      public void FindMatchingTileset(IDataModel model) {
+         var hint = Format.MatchingTileset;
+         IFormattedRun hintRun;
+         if (hint != null) {
+            hintRun = model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, hint));
+         } else {
+            hintRun = model.GetNextRun(PointerSources[0]);
+         }
+
+         // easy case: the hint is the address of a tileset
+         if (hintRun is LzTilesetRun) {
+            arrayTilesetAddress = hintRun.Start;
+            return;
+         }
+
+         // harder case: the hint is a table
+         if (!(hintRun is ITableRun hintTableRun)) return;
+         var tilemapPointer = PointerSources[0];
+         var tilemapTable = model.GetNextRun(tilemapPointer) as ITableRun;
+         if (tilemapTable == null) return;
+         int tilemapIndex = (tilemapPointer - tilemapTable.Start) / tilemapTable.ElementLength;
+
+         // get which element of the table has the tileset
+         var segmentOffset = 0;
+         for (int i = 0; i < tilemapTable.ElementContent.Count; i++) {
+            if (tilemapTable.ElementContent[i] is ArrayRunPointerSegment segment) {
+               if (LzTilesetRun.TryParseTilesetFormat(segment.InnerFormat, out var _)) {
+                  var source = tilemapTable.Start + tilemapTable.ElementLength * tilemapIndex + segmentOffset;
+                  if (model.GetNextRun(model.ReadPointer(source)) is LzTilesetRun tilesetRun) {
+                     arrayTilesetAddress = tilesetRun.Start;
+                     return;
+                  }
+               }
+            }
+            segmentOffset += tilemapTable.ElementContent[i].Length;
+         }
       }
 
       protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new LzTilemapRun(Format, Model, Start, newPointerSources);

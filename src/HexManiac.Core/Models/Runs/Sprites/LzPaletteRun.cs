@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
    public class LzPaletteRun : LZRun, IPaletteRun {
@@ -31,8 +32,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public static bool TryParseDimensions(string format, out PaletteFormat paletteFormat) {
          paletteFormat = default;
          var formatContent = format.Substring(4, format.Length - 5);
-         if (!int.TryParse(formatContent, out var bits)) return false;
-         paletteFormat = new PaletteFormat(bits);
+         var pageSplit = formatContent.Split(':');
+         int pages = 1, pageStart = 0;
+         if (pageSplit.Length == 2) {
+            var lastPageID = pageSplit[1].ToUpper().Last();
+            var lastPageIndex = ViewModels.ViewPort.AllHexCharacters.IndexOf(lastPageID);
+            if (lastPageIndex > 0) pages = lastPageIndex + 1;
+            var firstPageID = pageSplit[1].ToUpper().First();
+            var firstPageIndex = ViewModels.ViewPort.AllHexCharacters.IndexOf(firstPageID);
+            if (firstPageIndex > 0) pageStart = firstPageIndex;
+            pages -= firstPageIndex;
+         }
+
+         if (!int.TryParse(pageSplit[0], out var bits)) return false;
+         paletteFormat = new PaletteFormat(bits, pages, pageStart);
          return true;
       }
 
