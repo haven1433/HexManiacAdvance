@@ -310,7 +310,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
-   public class BitArray : IDataFormatInstance {
+   public class BitArray : IDataFormatStreamInstance {
       public static readonly string SharedFormatString = "|b[]";
 
       public int Source { get; }

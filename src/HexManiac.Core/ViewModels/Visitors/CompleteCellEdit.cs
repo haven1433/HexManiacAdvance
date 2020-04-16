@@ -173,14 +173,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             HandleBitArrayClear(array);
             return;
          }
-         if (CurrentText.EndsWith(" ")) {
+         if (CurrentText.EndsWith(" ") && !CurrentText.StartsWith("\"")) {
             currentText = CurrentText.Replace(" ", "");
             if (!currentText.All(ViewPort.AllHexCharacters.Contains)) {
                HandleBitArrayEntry(array, CurrentText);
                return;
             }
          }
-         if (CurrentText.StartsWith("\"") && CurrentText.EndsWith("\"")) {
+         if (CurrentText.StartsWith("\"") && CurrentText.EndsWith("\"") && CurrentText.Length > 1) {
             HandleBitArrayEntry(array, CurrentText);
             return;
          }
