@@ -147,7 +147,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      public bool TryParse(IDataModel model, string text, out int value) {
+      public bool TryParse(IDataModel model, string text, out int value) => TryParse(EnumName, model, text, out value);
+
+      public static bool TryParse(string enumName, IDataModel model, string text, out int value) {
          text = text.Trim();
          if (int.TryParse(text, out value)) return true;
          if (text.StartsWith("\"") && text.EndsWith("\"")) text = text.Substring(1, text.Length - 2);
@@ -162,7 +164,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          // ok, so everything lines up... check the array to see if any values match the string entered
          text = text.ToLower();
-         var options = model.GetOptions(EnumName);
+         var options = model.GetOptions(enumName);
          for (int i = 0; i < options.Count; i++) {
             var option = options[i].ToLower();
             if (option == text) matches.Add(option);

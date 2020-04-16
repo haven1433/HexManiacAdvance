@@ -379,20 +379,14 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          // only support indexing into an anchor if the anchor points to an array
          if (!(run is ITableRun array)) return Pointer.NULL;
+         var tableName = GetAnchorFromAddress(-1, run.Start);
 
          if (nameparts.Length < 1) return Pointer.NULL;
 
          // support things like .../4
          if (!int.TryParse(nameparts[0], out var index)) {
-            // support things like .../BULBASAUR
-            index = -1;
-            var elementName = nameparts[0].ToLower();
-            for (int i = 0; i < array.ElementNames.Count; i++) {
-               if (array.ElementNames[i].ToLower() != elementName) continue;
-               index = i;
-               break;
-            }
-            if (index == -1) return Pointer.NULL;
+            ArrayRunEnumSegment.TryParse(tableName, this, nameparts[0], out index);
+            if (index < 0) return Pointer.NULL;
          }
 
          var elementStart = array.Start + array.ElementLength * index;
