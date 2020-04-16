@@ -196,7 +196,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void UpdateToolsFromSelection(int dataIndex) {
          var run = Model.GetNextRun(dataIndex);
-         if (run.Start > dataIndex) return;
+         if (run.Start > dataIndex) {
+            AnchorTextVisible = false;
+            return;
+         }
 
          // if the 'Raw' tool is selected, don't auto-update tool selection.
          if (!(tools.SelectedTool == tools.CodeTool && tools.CodeTool.Mode == CodeMode.Raw)) {

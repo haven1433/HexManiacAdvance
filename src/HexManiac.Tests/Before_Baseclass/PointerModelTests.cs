@@ -768,6 +768,20 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.NotEqual(0x20, test.Model.GetNextRun(0x20).Start);
       }
 
+      [Fact]
+      public void AnchorCanContaintDots() {
+         var test = new BaseViewModelTestClass();
+         test.ViewPort.Edit("^This.name.Is.valid ");
+         Assert.Empty(test.Errors);
+         var address = test.Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, "This.name.Is.valid");
+         Assert.Equal(0, address);
+
+         test.ViewPort.AnchorText = "^This_name_is_Also_valid";
+         Assert.Empty(test.Errors);
+         address = test.Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, "This_name_is_Also_valid");
+         Assert.Equal(0, address);
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);

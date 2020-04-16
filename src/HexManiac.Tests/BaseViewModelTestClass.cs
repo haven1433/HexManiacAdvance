@@ -23,7 +23,7 @@ namespace HavenSoft.HexManiac.Tests {
       public BaseViewModelTestClass() {
          Model = new PokemonModel(Data);
          ViewPort = new ViewPort("file.txt", Model, Singletons) { Width = 0x10, Height = 0x10 };
-         ViewPort.OnError += (sender, e) => Errors.Add(e);
+         ViewPort.OnError += (sender, e) => { if (!string.IsNullOrEmpty(e)) Errors.Add(e); };
          ViewPort.OnMessage += (sender, e) => Messages.Add(e);
       }
 
