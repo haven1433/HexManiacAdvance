@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows.Input;
@@ -43,6 +44,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          findPrevious = new StubCommand(),
          findNext = new StubCommand(),
          showFind = new StubCommand(),
+         showHexConverter = new StubCommand(),
          hideSearchControls = new StubCommand(),
          resetZoom = new StubCommand(),
          resetAlignment = new StubCommand(),
@@ -72,10 +74,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand Delete => delete;
       public ICommand Back => back;
       public ICommand Forward => forward;
-      public ICommand Find => find;                 // parameter: target string to search
-      public ICommand FindPrevious => findPrevious; // parameter: target string to search
-      public ICommand FindNext => findNext;         // parameter: target string to search
-      public ICommand ShowFind => showFind;         // parameter: true for show, false for hide
+      public ICommand Find => find;                         // parameter: target string to search
+      public ICommand FindPrevious => findPrevious;         // parameter: target string to search
+      public ICommand FindNext => findNext;                 // parameter: target string to search
+      public ICommand ShowFind => showFind;                 // parameter: true for show, false for hide
+      public ICommand ShowHexConverter => showHexConverter; // parameter: true for show, false for hide
       public ICommand HideSearchControls => hideSearchControls;
       public ICommand ResetZoom => resetZoom;
       public ICommand ResetAlignment => resetAlignment;
@@ -104,9 +107,46 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                ClearError.Execute();
                ClearMessage.Execute();
                gotoViewModel.ControlVisible = false;
+               hexConverterVisible = false;
             }
             TryUpdate(ref findControlVisible, value);
             if (value) MoveFocusToFind?.Invoke(this, EventArgs.Empty);
+         }
+      }
+
+      private bool hexConverterVisible;
+      public bool HexConverterVisible {
+         get => hexConverterVisible;
+         private set {
+            if (value) {
+               ClearError.Execute();
+               ClearMessage.Execute();
+               gotoViewModel.ControlVisible = false;
+               findControlVisible = false;
+            }
+            TryUpdate(ref hexConverterVisible, value);
+            if (value) MoveFocusToHexConverter?.Invoke(this, EventArgs.Empty);
+         }
+      }
+
+      private string hexText;
+      public string HexText {
+         get => hexText;
+         set {
+            if (!TryUpdate(ref hexText, value)) return;
+            var parseHex = hexText.Where(ViewPort.AllHexCharacters.Contains).Select(c => c.ToString()).Aggregate(string.Empty, string.Concat);
+            if (!int.TryParse(parseHex, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int result)) return;
+            TryUpdate(ref decText, result.ToString(), nameof(DecText));
+         }
+      }
+
+      private string decText;
+      public string DecText {
+         get => decText;
+         set {
+            if (!TryUpdate(ref decText, value)) return;
+            if (!int.TryParse(decText, out int result)) return;
+            TryUpdate(ref hexText, result.ToString("X2"), nameof(HexText));
          }
       }
 
@@ -211,6 +251,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler<Action> RequestDelayedWork;
 
       public event EventHandler MoveFocusToFind;
+      public event EventHandler MoveFocusToHexConverter;
 
       #region Collection Properties
 
@@ -326,6 +367,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          };
 
          ImplementFindCommands();
+
+         showHexConverter.CanExecute = CanAlwaysExecute;
+         showHexConverter.Execute = arg => HexConverterVisible = (bool)arg;
 
          hideSearchControls.CanExecute = CanAlwaysExecute;
          hideSearchControls.Execute = arg => {

@@ -31,11 +31,15 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          viewModel.RequestDelayedWork += (sender, e) => deferredActions.Add(e);
          DataContext = viewModel;
          viewModel.MoveFocusToFind += (sender, e) => FocusTextBox(FindBox);
+         viewModel.MoveFocusToHexConverter += (sender, e) => FocusTextBox(HexBox);
          viewModel.GotoViewModel.MoveFocusToGoto += FocusGotoBox;
          viewModel.PropertyChanged += ViewModelPropertyChanged;
 
          GotoPanel.IsVisibleChanged += AnimateFocusToCorner;
          FindPanel.IsVisibleChanged += AnimateFocusToCorner;
+         HexConverter.IsVisibleChanged += AnimateFocusToCorner;
+         HexBox.GotFocus += (sender, e) => HexBox.SelectAll();
+         DecBox.GotFocus += (sender, e) => DecBox.SelectAll();
          MessagePanel.IsVisibleChanged += AnimateFocusToCorner;
          ErrorPanel.IsVisibleChanged += AnimateFocusToCorner;
 

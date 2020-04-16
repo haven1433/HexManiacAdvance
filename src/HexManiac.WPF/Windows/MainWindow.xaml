@@ -40,7 +40,11 @@
       <KeyBinding Key="OemMinus" Modifiers="Ctrl+Shift" Command="{Binding Forward}" />
 
       <KeyBinding Key="M" Modifiers="Ctrl" Command="{Binding ToggleMatrix}" />
-      <KeyBinding Key="H" Modifiers="Ctrl" Command="{Binding ToggleTableHeaders}" />
+      <KeyBinding Key="H" Modifiers="Ctrl" Command="{Binding ShowHexConverter}">
+         <KeyBinding.CommandParameter>
+            <sys:Boolean>true</sys:Boolean>
+         </KeyBinding.CommandParameter>
+      </KeyBinding>
 
       <KeyBinding Key="Esc" Command="{Binding ClearError}"/>
    </Window.InputBindings>
@@ -114,10 +118,16 @@
                   </MenuItem>
                   <MenuItem Header="Go _Back" Command="{Binding Back}" InputGestureText="Ctrl+-"/>
                   <MenuItem Header="Go _Forward" Command="{Binding Forward}" InputGestureText="Ctrl+Shift+-"/>
+                  <MenuItem Header="Show Hex Converter" Command="{Binding ShowHexConverter}" InputGestureText="Ctrl+H">
+                     <MenuItem.CommandParameter>
+                        <sys:Boolean>true</sys:Boolean>
+                     </MenuItem.CommandParameter>
+                  </MenuItem>
                </MenuItem>
                <MenuItem Header="_View">
                   <MenuItem Header="Toggle _Matrix Grid" Command="{Binding ToggleMatrix}" InputGestureText="Ctrl+M"/>
                   <MenuItem Header="Toggle Scroll _Animation" Command="{Binding ToggleScrollAnimation}"/>
+                  <MenuItem Header="Toggle Table Headers" Command="{Binding ToggleTableHeaders}"/>
                   <MenuItem Header="Reset _Zoom" Command="{Binding ResetZoom}">
                      <MenuItem.ToolTip>
                         <ToolTip BorderThickness="0" Background="{DynamicResource Backlight}">
@@ -192,6 +202,29 @@
                         </KeyBinding.CommandParameter>
                      </KeyBinding>
                      <KeyBinding Key="Return" Command="{Binding Find}" CommandParameter="{Binding Text, ElementName=FindBox}"/>
+                  </TextBox.InputBindings>
+               </TextBox>
+            </StackPanel>
+            <!-- Hex Converter -->
+            <StackPanel Name="HexConverter" Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding HexConverterVisible, Converter={StaticResource BoolToVisibility}}">
+               <TextBlock Text="Hex :" Margin="10,0" />
+               <TextBox Name="HexBox" MinWidth="100" IsVisibleChanged="EditBoxVisibilityChanged" Text="{Binding HexText, UpdateSourceTrigger=PropertyChanged}">
+                  <TextBox.InputBindings>
+                     <KeyBinding Key="Esc" Command="{Binding ShowHexConverter}">
+                        <KeyBinding.CommandParameter>
+                           <sys:Boolean>false</sys:Boolean>
+                        </KeyBinding.CommandParameter>
+                     </KeyBinding>
+                  </TextBox.InputBindings>
+               </TextBox>
+               <TextBlock Text="Decimal :" Margin="10,0" />
+               <TextBox Name="DecBox" MinWidth="100" IsVisibleChanged="EditBoxVisibilityChanged" Text="{Binding DecText, UpdateSourceTrigger=PropertyChanged}">
+                  <TextBox.InputBindings>
+                     <KeyBinding Key="Esc" Command="{Binding ShowHexConverter}">
+                        <KeyBinding.CommandParameter>
+                           <sys:Boolean>false</sys:Boolean>
+                        </KeyBinding.CommandParameter>
+                     </KeyBinding>
                   </TextBox.InputBindings>
                </TextBox>
             </StackPanel>
