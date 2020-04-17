@@ -35,7 +35,19 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
       public LoadedFile LoadFile(string fileName) {
          if (!File.Exists(fileName)) return null;
-         var data = File.ReadAllBytes(fileName);
+         var output = new List<byte>();
+
+         // use a buffered read with FileShare ReadWrite so we can open the file while another program is holding it.
+         using (var stream = new FileStream(fileName, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite)) {
+            var buffer = new byte[0x100000];
+            int readCount;
+            do {
+               readCount = stream.Read(buffer, 0, buffer.Length);
+               output.AddRange(buffer.Take(readCount));
+            } while (readCount == buffer.Length);
+         }
+
+         var data = output.ToArray();
          return new LoadedFile(fileName, data);
       }
 
@@ -83,7 +95,10 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          var path = Path.GetDirectoryName(file.Name);
          Directory.CreateDirectory(path);
          try {
-            File.WriteAllBytes(file.Name, file.Contents);
+            // use FileShare ReadWrite so we can write the file while another program is holding it.
+            using (var stream = new FileStream(file.Name, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite)) {
+               stream.Write(file.Contents, 0, file.Contents.Length);
+            }
          } catch (IOException) {
             ShowCustomMessageBox("Could not save. The file might be ReadOnly or in use by another application.", showYesNoCancel: false);
             return false;

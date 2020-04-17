@@ -133,6 +133,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          gotoCommand = new StubCommand {
             CanExecute = args => true,
             Execute = args => {
+               if (args is int intArgs) args = intArgs.ToString("X6");
                var address = args.ToString().Trim();
                if (address.StartsWith(PointerRun.PointerStart.ToString())) address = address.Substring(1);
                if (address.EndsWith(PointerRun.PointerEnd.ToString())) address = address.Substring(0, address.Length - 1);

@@ -1,6 +1,8 @@
-﻿using HavenSoft.HexManiac.Core.Models;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.WPF.Implementations;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -13,22 +15,38 @@ namespace HavenSoft.HexManiac.WPF.Windows {
    partial class App {
       protected override void OnStartup(StartupEventArgs e) {
          base.OnStartup(e);
-         SetInitialWorkingDirectory();
 
-         var args = e.Args;
-         var useMetadata = true;
-         if (args.Any(arg => arg == "--no-metadata")) {
-            useMetadata = false;
-            args = args.Where(arg => arg != "--no-metadata").ToArray();
-         }
-         var fileName = args?.Length == 1 ? args[0] : string.Empty;
+         var (path, address, useMetadata) = ParseArgs(e.Args);
+
          var fileSystem = new WindowsFileSystem(Dispatcher);
-         var viewModel = GetViewModel(fileName, fileSystem, useMetadata);
+         var viewModel = GetViewModel(path, address, fileSystem, useMetadata);
          UpdateThemeDictionary(viewModel);
          viewModel.Theme.PropertyChanged += (sender, _) => UpdateThemeDictionary(viewModel);
          MainWindow = new MainWindow(viewModel);
          MainWindow.Resources.Add("FileSystem", fileSystem);
          MainWindow.Show();
+      }
+
+      private static (string path, int address, bool useMetadata) ParseArgs(string[] args) {
+         var useMetadata = true;
+         if (args.Any(arg => arg == "--no-metadata")) {
+            useMetadata = false;
+            args = args.Where(arg => arg != "--no-metadata").ToArray();
+         }
+
+         var allArgs = args.Aggregate(string.Empty, (a, b) => a + ' ' + b);
+         var loadAddress = 0;
+         if (allArgs.Contains(":") && allArgs.LastIndexOf(":") > 4) {
+            var parts = allArgs.Split(':');
+            int.TryParse(parts.Last(), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out loadAddress);
+            allArgs = parts.Take(parts.Length - 1).Aggregate((a, b) => a + ":" + b).Trim();
+         } else if (allArgs.ToLower().Contains(".gba ")) {
+            var parts = allArgs.Split(" ");
+            int.TryParse(parts.Last(), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out loadAddress);
+            allArgs = parts.Take(parts.Length - 1).Aggregate(string.Empty, (a, b) => a + " " + b).Trim();
+         }
+
+         return (allArgs, loadAddress, useMetadata);
       }
 
       /// <summary>
@@ -74,11 +92,14 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          }
       }
 
-      private static EditorViewModel GetViewModel(string fileName, IFileSystem fileSystem, bool useMetadata) {
+      private static EditorViewModel GetViewModel(string fileName, int address, IFileSystem fileSystem, bool useMetadata) {
+         fileName = Path.GetFullPath(fileName);
+         SetInitialWorkingDirectory();
          var editor = new EditorViewModel(fileSystem, useMetadata);
          if (!File.Exists(fileName)) return editor;
          var loadedFile = fileSystem.LoadFile(fileName);
          editor.Open.Execute(loadedFile);
+         editor[editor.SelectedIndex].Goto.Execute(address);
          return editor;
       }
    }
