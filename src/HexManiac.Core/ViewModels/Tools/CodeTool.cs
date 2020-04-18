@@ -39,6 +39,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public ThumbParser Parser => thumb;
 
+      public ScriptParser ScriptParser => script;
+
       public CodeTool(Singletons singletons, IDataModel model, Selection selection, ChangeHistory<ModelDelta> history) {
          thumb = new ThumbParser(singletons);
          script = new ScriptParser(singletons.ScriptLines);

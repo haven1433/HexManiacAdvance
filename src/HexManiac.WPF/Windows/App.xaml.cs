@@ -99,7 +99,8 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          if (!File.Exists(fileName)) return editor;
          var loadedFile = fileSystem.LoadFile(fileName);
          editor.Open.Execute(loadedFile);
-         editor[editor.SelectedIndex].Goto.Execute(address);
+         var tab = editor[editor.SelectedIndex] as ViewPort;
+         if (tab != null) tab.CascadeScript(address);
          return editor;
       }
    }

@@ -512,7 +512,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                // I'll need to do something here eventually... but for now, just error
                // the right thing to do is probably to erase the existing format in favor of the new thing the user just tried to add.
                // if the existing format was an anchor, clear all the pointers that pointed to it, since the writer is declaring that that address is not a valid anchor.
-               throw new NotImplementedException();
+               Debug.Fail($"Trying to add a run at {run.Start:X6} which overlaps a run at {runs[index].Start:X6}");
             }
          } else {
             // replace / merge with existing

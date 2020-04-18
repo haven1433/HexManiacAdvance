@@ -1267,6 +1267,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          } else if (run is PointerRun pointer) {
             FollowLink(x, y);
+         } else if (run is XSERun xse) {
+            var length = tools.CodeTool.ScriptParser.GetScriptSegmentLength(Model, run.Start);
+            SelectionStart = scroll.DataIndexToViewPoint(run.Start);
+            SelectionEnd = scroll.DataIndexToViewPoint(run.Start + length - 1);
+            tools.CodeTool.Mode = CodeMode.Script;
+            tools.SelectedIndex = tools.IndexOf(tools.CodeTool);
          } else {
             SelectionStart = scroll.DataIndexToViewPoint(run.Start);
             SelectionEnd = scroll.DataIndexToViewPoint(run.Start + run.Length - 1);
@@ -1351,6 +1357,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Refresh();
          RequestMenuClose?.Invoke(this, EventArgs.Empty);
          UpdateToolsFromSelection(run1.Start);
+      }
+
+      public void CascadeScript(int address) {
+         Width = 16;  // hack to make the width right on initial load
+         Height = 16; // hack to make the height right on initial load
+         var addressText = address.ToString("X6");
+         Goto.Execute(addressText);
+         Debug.Assert(scroll.DataIndex == address - address % 16);
+         var length = tools.CodeTool.ScriptParser.GetScriptSegmentLength(Model, address);
+         Model.ClearFormat(CurrentChange, address, length - 1);
+
+         try {
+            tools.CodeTool.ScriptParser.FormatScript(CurrentChange, Model, address);
+         } catch (Exception e) {
+            File.WriteAllText("hmaError.txt", e.Message + Environment.NewLine + e.StackTrace);
+         }
+
+         SelectionStart = scroll.DataIndexToViewPoint(address);
+         SelectionEnd = scroll.DataIndexToViewPoint(address + length - 1);
+         tools.CodeTool.Mode = CodeMode.Script;
+         tools.SelectedIndex = tools.IndexOf(tools.CodeTool);
       }
 
       private void Edit(char input) {
@@ -1695,6 +1722,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   errorInfo = ErrorInfo.NoError;
                   Tools.StringTool.RefreshContentAtAddress();
                }
+            } else if (underEdit.CurrentText == AnchorStart + XSERun.SharedFormatString) {
+               // TODO
+               CascadeScript(index);
+               errorInfo = ErrorInfo.NoError;
             } else {
                errorInfo = PokemonModel.ApplyAnchor(Model, history.CurrentChange, index, underEdit.CurrentText);
                Tools.StringTool.RefreshContentAtAddress();

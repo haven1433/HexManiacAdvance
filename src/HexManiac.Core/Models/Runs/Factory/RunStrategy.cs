@@ -1,6 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
    public abstract class RunStrategy {
@@ -60,6 +59,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
             strategy = new EggRunContentStrategy();
          } else if (format == PLMRun.SharedFormatString) {
             strategy = new PLMRunContentStrategy();
+         } else if (format == XSERun.SharedFormatString) {
+            strategy = new XseRunContentStrategy();
          } else if (format == TrainerPokemonTeamRun.SharedFormatString) {
             strategy = new TrainerPokemonTeamRunContentStrategy();
          } else if (LzSpriteRun.TryParseSpriteFormat(format, out var spriteFormat)) {
@@ -82,6 +83,30 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
 
          strategy.Format = format;
          return strategy;
+      }
+   }
+
+   public class XseRunContentStrategy : RunStrategy {
+      public override int LengthForNewRun(IDataModel model, int pointerAddress) => 1;
+
+      public override bool Matches(IFormattedRun run) => run is XSERun;
+
+      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
+         throw new System.NotImplementedException();
+      }
+
+      // TODO
+      public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+         run = new XSERun(dataIndex, run.PointerSources);
+         return ErrorInfo.NoError;
+      }
+
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) {
+         throw new System.NotImplementedException();
+      }
+
+      public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
+         throw new System.NotImplementedException();
       }
    }
 

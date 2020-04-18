@@ -1,7 +1,8 @@
-﻿using System;
+﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -17,7 +18,50 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return builder.ToString();
       }
 
-      private byte[] Compile(string script) {
+      public int GetScriptSegmentLength(IDataModel model, int address) {
+         int length = 0;
+         while (true) {
+            var line = GetMatchingLine(model, address + length);
+            if (line == null) break;
+            length += line.CompiledByteLength;
+            if (line.IsEndingCommand) break;
+         }
+         return length;
+      }
+
+      public void FormatScript(ModelDelta token, IDataModel model, int address) {
+         var processed = new List<int>();
+         var toProcess = new List<int> { address };
+         while (toProcess.Count > 0) {
+            address = toProcess.Last();
+            toProcess.RemoveAt(toProcess.Count - 1);
+            if (processed.Contains(address)) continue;
+            model.ObserveRunWritten(token, new XSERun(address));
+            int length = 0;
+            while (true) {
+               var line = GetMatchingLine(model, address + length);
+               if (line == null) break;
+               length += line.LineCode.Count;
+               foreach (var arg in line.Args) {
+                  if (arg.Type != ArgType.Pointer) {
+                     length += arg.Length;
+                     continue;
+                  }
+                  var destination = model.ReadPointer(address + length);
+                  if (destination >= 0 && destination < model.Count) {
+                     model.ClearFormat(token, address + length, 4);
+                     model.ObserveRunWritten(token, new PointerRun(address + length));
+                     if (line.PointsToNextScript) toProcess.Add(destination);
+                  }
+                  length += arg.Length;
+               }
+               if (line.IsEndingCommand) break;
+            }
+            processed.Add(address);
+         }
+      }
+
+      public byte[] Compile(string script) {
          var lines = script.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
             .Select(line => line.Split('#').First().Trim())
             .Where(line => !string.IsNullOrEmpty(line))
@@ -31,6 +75,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
          return result.ToArray();
       }
+
+      public ScriptLine GetMatchingLine(IReadOnlyList<byte> data, int start) => engine.FirstOrDefault(option => option.Matches(data, start));
 
       private string[] Decompile(IDataModel data, int index, int length) {
          var results = new List<string>();
@@ -60,6 +106,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       private static readonly byte[] endCodes = new byte[] { 0x02, 0x03, 0x05, 0x08, 0x0A, 0x0C, 0x0D };
       public bool IsEndingCommand { get; }
+      public bool PointsToNextScript => LineCode.Count == 1 && LineCode[0].IsAny<byte>(4, 5, 6, 7);
 
       public ScriptLine(string engineLine) {
          var tokens = engineLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
@@ -82,6 +129,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          Args = args;
          CompiledByteLength = LineCode.Count + Args.Sum(arg => arg.Length);
          IsEndingCommand = LineCode.Count == 1 && endCodes.Contains(LineCode[0]);
+      }
+
+      public bool Matches(IReadOnlyList<byte> data, int index) {
+         if (index + LineCode.Count >= data.Count) return false;
+         return Enumerable.Range(0, LineCode.Count).All(i => data[index + i] == LineCode[i]);
       }
 
       public byte[] Compile(string scriptLine) {
