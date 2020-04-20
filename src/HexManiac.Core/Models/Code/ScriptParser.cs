@@ -42,6 +42,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      model.ClearFormat(token, address + length, 4);
                      model.ObserveRunWritten(token, new PointerRun(address + length));
                      if (line.PointsToNextScript) toProcess.Add(destination);
+                     if (line.PointsToText) {
+                        var destinationLength = PCSString.ReadString(model, destination, false);
+                        if (destinationLength > 3) model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength));
+                     }
                   }
                   length += arg.Length;
                }
@@ -95,6 +99,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       private static readonly byte[] endCodes = new byte[] { 0x02, 0x03, 0x05, 0x08, 0x0A, 0x0C, 0x0D };
       public bool IsEndingCommand { get; }
       public bool PointsToNextScript => LineCode.Count == 1 && LineCode[0].IsAny<byte>(4, 5, 6, 7);
+      public bool PointsToText => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x0F);
 
       public ScriptLine(string engineLine) {
          var tokens = engineLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
