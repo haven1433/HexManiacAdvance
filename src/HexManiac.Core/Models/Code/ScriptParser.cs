@@ -51,7 +51,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
       }
 
-      public byte[] Compile(string script) {
+      public byte[] Compile(IDataModel model, string script) {
          var lines = script.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
             .Select(line => line.Split('#').First().Trim())
             .Where(line => !string.IsNullOrEmpty(line))
@@ -60,7 +60,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          foreach (var line in lines) {
             foreach (var command in engine) {
                if (!(line + " ").StartsWith(command.LineCommand + " ")) continue;
-               result.AddRange(command.Compile(line));
+               result.AddRange(command.Compile(model, line));
             }
          }
          return result.ToArray();
@@ -124,7 +124,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return Enumerable.Range(0, LineCode.Count).All(i => data[index + i] == LineCode[i]);
       }
 
-      public byte[] Compile(string scriptLine) {
+      public byte[] Compile(IDataModel model, string scriptLine) {
          var tokens = scriptLine.Split(new[] { " " }, StringSplitOptions.None);
          if (tokens[0] != LineCommand) throw new ArgumentException($"Command {LineCommand} was expected, but received {tokens[0]} instead.");
          if (Args.Count != tokens.Length - 1) throw new ArgumentException($"Command {LineCommand} expects {Args.Count} arguments, but received {tokens.Length - 1} instead.");
@@ -132,13 +132,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          for (int i = 0; i < Args.Count; i++) {
             var token = tokens[i + 1];
             if (Args[i].Type == ArgType.Byte) {
-               results.Add(byte.Parse(token, NumberStyles.HexNumber));
+               results.Add((byte)Args[i].Convert(model, token));
             } else if (Args[i].Type == ArgType.Short) {
-               var value = short.Parse(token, NumberStyles.HexNumber);
+               var value = Args[i].Convert(model, token);
                results.Add((byte)value);
                results.Add((byte)(value >> 8));
             } else if (Args[i].Type == ArgType.Word) {
-               var value = int.Parse(token, NumberStyles.HexNumber);
+               var value = Args[i].Convert(model, token);
                results.Add((byte)value);
                results.Add((byte)(value >> 0x8));
                results.Add((byte)(value >> 0x10));
@@ -170,9 +170,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var builder = new StringBuilder(LineCommand);
          foreach (var arg in Args) {
             builder.Append(" ");
-            if (arg.Type == ArgType.Byte) builder.Append($"{data[start]:X2}");
-            if (arg.Type == ArgType.Short) builder.Append($"{data.ReadMultiByteValue(start, 2):X4}");
-            if (arg.Type == ArgType.Word) builder.Append($"{data.ReadMultiByteValue(start, 4):X8}");
+            if (arg.Type == ArgType.Byte) builder.Append($"{arg.Convert(data, data[start])}");
+            if (arg.Type == ArgType.Short) builder.Append($"{arg.Convert(data, data.ReadMultiByteValue(start, 2))}");
+            if (arg.Type == ArgType.Word) builder.Append($"{arg.Convert(data, data.ReadMultiByteValue(start, 4))}");
             if (arg.Type == ArgType.Pointer) {
                var address = data.ReadMultiByteValue(start, 4);
                if (address < 0x8000000) builder.Append(address.ToString("X6"));
@@ -205,6 +205,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          } else if (token.Contains("::")) {
             (Type, Length) = (ArgType.Word, 4);
             Name = token.Split(new[] { "::" }, StringSplitOptions.None).First();
+            EnumTableName = token.Split("::").Last();
          } else if (token.Contains(":")) {
             (Type, Length) = (ArgType.Short, 2);
             Name = token.Split(':').First();
@@ -215,6 +216,24 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             (Type, Length) = (ArgType.Byte, 1);
             Name = token;
          }
+      }
+
+      public string Convert(IDataModel model, int value) {
+         var byteText = value.ToString($"X{Length * 2}");
+         if (string.IsNullOrEmpty(EnumTableName)) return byteText;
+         var table = model.GetOptions(EnumTableName);
+         if ((table?.Count ?? 0) <= value) return byteText;
+         return table[value];
+      }
+
+      public int Convert(IDataModel model, string value) {
+         int result;
+         if (string.IsNullOrEmpty(EnumTableName)) {
+            if (int.TryParse(value, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out result)) return result;
+            return 0;
+         }
+         if (ArrayRunEnumSegment.TryParse(EnumTableName, model, value, out result)) return result;
+         return 0;
       }
    }
 

@@ -46,6 +46,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public ScriptParser ScriptParser => script;
 
+      public event EventHandler<(int originalLocation, int newLocation)> ModelDataMoved;
+
       public CodeTool(Singletons singletons, IDataModel model, Selection selection, ChangeHistory<ModelDelta> history) {
          thumb = new ThumbParser(singletons);
          script = new ScriptParser(singletons.ScriptLines);
@@ -67,24 +69,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (start > end) (start, end) = (end, start);
          int length = end - start + 1;
 
-         if (length > 0x1000) {
-            Content = "Too many bytes selected.";
-         } else if (mode == CodeMode.Raw) {
-            Content = RawParse(model, start, end - start + 1);
-         } else if (length < 2) {
-            TryUpdate(ref content, string.Empty, nameof(Content));
-         } else if (mode == CodeMode.Script) {
-            TryUpdate(ref content, script.Parse(model, start, end - start + 1), nameof(Content));
-         } else if (mode == CodeMode.Thumb) {
-            TryUpdate(ref content, thumb.Parse(model, start, end - start + 1), nameof(Content));
-         } else {
-            throw new NotImplementedException();
+         using (ModelCacheScope.CreateScope(model)) {
+            if (length > 0x1000) {
+               Content = "Too many bytes selected.";
+            } else if (mode == CodeMode.Raw) {
+               Content = RawParse(model, start, end - start + 1);
+            } else if (length < 2) {
+               TryUpdate(ref content, string.Empty, nameof(Content));
+            } else if (mode == CodeMode.Script) {
+               TryUpdate(ref content, script.Parse(model, start, end - start + 1), nameof(Content));
+            } else if (mode == CodeMode.Thumb) {
+               TryUpdate(ref content, thumb.Parse(model, start, end - start + 1), nameof(Content));
+            } else {
+               throw new NotImplementedException();
+            }
          }
       }
 
       private void CompileChanges() {
-         if (mode == CodeMode.Thumb) CompileThumbChanges();
-         if (mode == CodeMode.Script) CompileScriptChanges();
+         using (ModelCacheScope.CreateScope(model)) {
+            if (mode == CodeMode.Thumb) CompileThumbChanges();
+            if (mode == CodeMode.Script) CompileScriptChanges();
+         }
       }
 
       private void CompileThumbChanges() {
@@ -114,9 +120,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          ignoreContentUpdates = true;
          {
             int length = end - start + 1;
-            var code = script.Compile(Content);
+            var code = script.Compile(model, Content);
 
-            if (code.Length > length) run = (XSERun)model.RelocateForExpansion(history.CurrentChange, run, code.Length);
+            if (code.Length > length) {
+               run = (XSERun)model.RelocateForExpansion(history.CurrentChange, run, code.Length);
+               ModelDataMoved?.Invoke(this, (start, run.Start));
+            }
 
             model.ClearFormat(history.CurrentChange, start, length);
             for (int i = 0; i < code.Length; i++) history.CurrentChange.ChangeData(model, run.Start + i, code[i]);

@@ -377,3 +377,14 @@ Name = '''traineraibits'''
    '''FirstBattle''',
 ]
 
+[[List]]
+Name = '''script_compare'''
+0 = [
+    '''<''',
+    '''=''',
+    '''>''',
+    '''<=''',
+    '''>=''',
+    '''!=''',
+]
+

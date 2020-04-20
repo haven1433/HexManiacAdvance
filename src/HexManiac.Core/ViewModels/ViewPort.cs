@@ -521,6 +521,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Tools.TableTool.ModelDataChanged += ModelChangedByTool;
          Tools.TableTool.ModelDataMoved += ModelDataMovedByTool;
          Tools.CodeTool.ModelDataChanged += ModelChangedByCodeTool;
+         Tools.CodeTool.ModelDataMoved += ModelDataMovedByTool;
 
          ImplementCommands();
          RefreshBackingData();
