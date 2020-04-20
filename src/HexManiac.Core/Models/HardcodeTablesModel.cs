@@ -72,7 +72,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       public override int EarliestAllowedAnchor => 0x200;
 
-      public HardcodeTablesModel(Singletons singletons, byte[] data, StoredMetadata metadata = null) : base(data, metadata) {
+      public HardcodeTablesModel(Singletons singletons, byte[] data, StoredMetadata metadata = null) : base(data, metadata, singletons) {
          if (metadata != null && !metadata.IsEmpty) return;
 
          gameCode = this.GetGameCode();

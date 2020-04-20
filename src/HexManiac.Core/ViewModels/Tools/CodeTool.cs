@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Code;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using System;
 using System.IO;
 using System.Text;
@@ -20,18 +21,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public event EventHandler<ErrorInfo> ModelDataChanged;
 
-      public bool IsReadOnly => true;
+      public bool IsReadOnly => Mode != CodeMode.Script;
 
       public CodeMode Mode {
          get => mode;
          set {
-            if (TryUpdateEnum(ref mode, value)) UpdateContent();
+            if (!TryUpdateEnum(ref mode, value)) return;
+            UpdateContent();
+            NotifyPropertyChanged(nameof(IsReadOnly));
          }
       }
 
+      bool ignoreContentUpdates;
       public string Content {
          get => content;
          set {
+            if (ignoreContentUpdates) return;
             TryUpdate(ref content, value);
             CompileChanges();
          }
@@ -55,6 +60,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public void UpdateContent() {
+         if (ignoreContentUpdates) return;
          var start = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionStart));
          var end = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd));
 
@@ -68,7 +74,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          } else if (length < 2) {
             Content = string.Empty;
          } else if (mode == CodeMode.Script) {
-            Content = script.Parse(model, start, end - start + 1);
+            TryUpdate(ref content, script.Parse(model, start, end - start + 1), nameof(Content));
          } else if (mode == CodeMode.Thumb) {
             TryUpdate(ref content, thumb.Parse(model, start, end - start + 1), nameof(Content));
          } else {
@@ -77,7 +83,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void CompileChanges() {
-         if (mode != CodeMode.Thumb) return;
+         if (mode == CodeMode.Thumb) CompileThumbChanges();
+         if (mode == CodeMode.Script) CompileScriptChanges();
+      }
+
+      private void CompileThumbChanges() {
          var start = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionStart));
          var end = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd));
          if (start > end) (start, end) = (end, start);
@@ -91,6 +101,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          ModelDataChanged?.Invoke(this, ErrorInfo.NoError);
+      }
+
+      private void CompileScriptChanges() {
+         var start = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionStart));
+         var end = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd));
+         if (start > end) (start, end) = (end, start);
+
+         var run = model.GetNextRun(start) as XSERun;
+         if (run == null || run.Start != start) return;
+
+         ignoreContentUpdates = true;
+         {
+            int length = end - start + 1;
+            var code = script.Compile(Content);
+
+            if (code.Length > length) run = (XSERun)model.RelocateForExpansion(history.CurrentChange, run, code.Length);
+
+            for (int i = 0; i < code.Length; i++) history.CurrentChange.ChangeData(model, run.Start + i, code[i]);
+
+            selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(run.Start);
+            selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(run.Start + code.Length - 1);
+         }
+         ignoreContentUpdates = false;
       }
 
       private string RawParse(IDataModel model, int start, int length) {

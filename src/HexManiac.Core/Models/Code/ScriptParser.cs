@@ -1,7 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -12,21 +11,12 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public ScriptParser(IReadOnlyList<ScriptLine> engine) => this.engine = engine;
 
+      public int GetScriptSegmentLength(IDataModel model, int address) => engine.GetScriptSegmentLength(model, address);
+
       public string Parse(IDataModel data, int start, int length) {
          var builder = new StringBuilder();
          foreach (var line in Decompile(data, start, length)) builder.AppendLine(line);
          return builder.ToString();
-      }
-
-      public int GetScriptSegmentLength(IDataModel model, int address) {
-         int length = 0;
-         while (true) {
-            var line = GetMatchingLine(model, address + length);
-            if (line == null) break;
-            length += line.CompiledByteLength;
-            if (line.IsEndingCommand) break;
-         }
-         return length;
       }
 
       public void FormatScript(ModelDelta token, IDataModel model, int address) {
@@ -39,7 +29,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             model.ObserveRunWritten(token, new XSERun(address));
             int length = 0;
             while (true) {
-               var line = GetMatchingLine(model, address + length);
+               var line = engine.GetMatchingLine(model, address + length);
                if (line == null) break;
                length += line.LineCode.Count;
                foreach (var arg in line.Args) {
@@ -75,8 +65,6 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
          return result.ToArray();
       }
-
-      public ScriptLine GetMatchingLine(IReadOnlyList<byte> data, int start) => engine.FirstOrDefault(option => option.Matches(data, start));
 
       private string[] Decompile(IDataModel data, int index, int length) {
          var results = new List<string>();
@@ -235,5 +223,20 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       Short,
       Word,
       Pointer,
+   }
+
+   public static class ScriptExtensions {
+      public static ScriptLine GetMatchingLine(this IReadOnlyList<ScriptLine> self, IReadOnlyList<byte> data, int start) => self.FirstOrDefault(option => option.Matches(data, start));
+
+      public static int GetScriptSegmentLength(this IReadOnlyList<ScriptLine> self, IDataModel model, int address) {
+         int length = 0;
+         while (true) {
+            var line = self.GetMatchingLine(model, address + length);
+            if (line == null) break;
+            length += line.CompiledByteLength;
+            if (line.IsEndingCommand) break;
+         }
+         return length;
+      }
    }
 }

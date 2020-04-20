@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models.Runs;
+﻿using HavenSoft.HexManiac.Core.Models.Code;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
@@ -33,6 +34,8 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private readonly Dictionary<string, List<string>> lists = new Dictionary<string, List<string>>();
 
+      private readonly Singletons singletons;
+
       public virtual int EarliestAllowedAnchor => 0;
 
       public override IReadOnlyList<ArrayRun> Arrays => anchorForAddress.Keys.Select(address => runs[BinarySearch(address)]).OfType<ArrayRun>().ToList();
@@ -40,7 +43,8 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       #region Constructor
 
-      public PokemonModel(byte[] data, StoredMetadata metadata = null) : base(data) {
+      public PokemonModel(byte[] data, StoredMetadata metadata = null, Singletons singletons = null) : base(data) {
+         this.singletons = singletons;
          Initialize(metadata);
       }
 
@@ -859,15 +863,17 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override IFormattedRun RelocateForExpansion(ModelDelta changeToken, IFormattedRun run, int minimumLength) {
-         if (minimumLength <= run.Length) return run;
-         if (CanSafelyUse(run.Start + run.Length, run.Start + minimumLength)) return run;
+         int currentLength = run.Length;
+         if (run is XSERun) currentLength = singletons.ScriptLines.GetScriptSegmentLength(this, run.Start);
+         if (minimumLength <= currentLength) return run;
+         if (CanSafelyUse(run.Start + currentLength, run.Start + minimumLength)) return run;
 
          var freeSpace = FindFreeSpace(0x100, minimumLength);
          if (freeSpace >= 0) {
-            return MoveRun(changeToken, run, freeSpace);
+            return MoveRun(changeToken, run, currentLength, freeSpace);
          } else {
             ExpandData(changeToken, RawData.Length + minimumLength);
-            return MoveRun(changeToken, run, RawData.Length - minimumLength - 1);
+            return MoveRun(changeToken, run, currentLength, RawData.Length - minimumLength - 1);
          }
       }
 
@@ -1506,14 +1512,14 @@ namespace HavenSoft.HexManiac.Core.Models {
          return sources;
       }
 
-      private IFormattedRun MoveRun(ModelDelta changeToken, IFormattedRun run, int newStart) {
+      private IFormattedRun MoveRun(ModelDelta changeToken, IFormattedRun run, int length, int newStart) {
          // repoint
          foreach (var source in run.PointerSources) {
             WritePointer(changeToken, source, newStart);
          }
 
          // move data
-         for (int i = 0; i < run.Length; i++) {
+         for (int i = 0; i < length; i++) {
             changeToken.ChangeData(this, newStart + i, RawData[run.Start + i]);
             changeToken.ChangeData(this, run.Start + i, 0xFF);
          }
