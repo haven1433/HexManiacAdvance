@@ -1368,11 +1368,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var length = tools.CodeTool.ScriptParser.GetScriptSegmentLength(Model, address);
          Model.ClearFormat(CurrentChange, address, length - 1);
 
-         try {
-            tools.CodeTool.ScriptParser.FormatScript(CurrentChange, Model, address);
-         } catch (Exception e) {
-            File.WriteAllText("hmaError.txt", e.Message + Environment.NewLine + e.StackTrace);
-         }
+         tools.CodeTool.ScriptParser.FormatScript(CurrentChange, Model, address);
 
          SelectionStart = scroll.DataIndexToViewPoint(address);
          SelectionEnd = scroll.DataIndexToViewPoint(address + length - 1);

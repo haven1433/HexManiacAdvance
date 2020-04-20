@@ -72,7 +72,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          } else if (mode == CodeMode.Raw) {
             Content = RawParse(model, start, end - start + 1);
          } else if (length < 2) {
-            Content = string.Empty;
+            TryUpdate(ref content, string.Empty, nameof(Content));
          } else if (mode == CodeMode.Script) {
             TryUpdate(ref content, script.Parse(model, start, end - start + 1), nameof(Content));
          } else if (mode == CodeMode.Thumb) {
@@ -118,12 +118,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
             if (code.Length > length) run = (XSERun)model.RelocateForExpansion(history.CurrentChange, run, code.Length);
 
+            model.ClearFormat(history.CurrentChange, start, length);
             for (int i = 0; i < code.Length; i++) history.CurrentChange.ChangeData(model, run.Start + i, code[i]);
+            for (int i = code.Length; i < length; i++) history.CurrentChange.ChangeData(model, run.Start + i, 0xFF);
+            ScriptParser.FormatScript(history.CurrentChange, model, start);
 
             selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(run.Start);
             selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(run.Start + code.Length - 1);
          }
          ignoreContentUpdates = false;
+
+         ModelDataChanged?.Invoke(this, ErrorInfo.NoError);
       }
 
       private string RawParse(IDataModel model, int start, int length) {
