@@ -59,7 +59,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var result = new List<byte>();
          foreach (var line in lines) {
             foreach (var command in engine) {
-               if (!line.StartsWith(command.LineCommand + " ")) continue;
+               if (!(line + " ").StartsWith(command.LineCommand + " ")) continue;
                result.AddRange(command.Compile(line));
             }
          }
