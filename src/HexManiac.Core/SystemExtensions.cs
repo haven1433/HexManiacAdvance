@@ -18,6 +18,13 @@ namespace HavenSoft.HexManiac.Core {
          return value;
       }
 
+      public static IEnumerable<T> Until<T>(this IEnumerable<T> list, Func<T, bool> func) {
+         foreach (var element in list) {
+            if (func(element)) break;
+            yield return element;
+         }
+      }
+
       public static void Sort<T>(this List<T> list, Func<T, T, int> compare) {
          list.Sort(new StubComparer<T> { Compare = compare });
       }

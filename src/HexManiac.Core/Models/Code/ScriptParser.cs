@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -59,16 +60,63 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
       }
 
-      public byte[] Compile(IDataModel model, string script) {
+      public byte[] Compile(ModelDelta token, IDataModel model, ref string script, out IReadOnlyList<(int originalLocation, int newLocation)> movedData) {
+         movedData = new List<(int, int)>();
          var lines = script.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
             .Select(line => line.Split('#').First().Trim())
             .Where(line => !string.IsNullOrEmpty(line))
             .ToArray();
          var result = new List<byte>();
-         foreach (var line in lines) {
+         int streamLocation = -1, streamPointerLocation = -1;
+
+         for (var i = 0; i < lines.Length; i++) {
+            var line = lines[i];
+            if (line == "{") {
+               var streamStart = i + 1;
+               var indentCount = 1;
+               i += 2;
+               while (indentCount > 0) {
+                  line = lines[i];
+                  if (line == "{") indentCount += 1;
+                  if (line == "}") indentCount -= 1;
+                  i += 1;
+                  if (i == lines.Length) break;
+               }
+               i -= 1;
+               var streamEnd = i;
+               var stream = lines.Skip(streamStart).Take(streamEnd - streamStart + 1).Aggregate((a, b) => a + Environment.NewLine + b);
+
+               // Let the stream run handle updating itself based on the stream content.
+               if (streamLocation >= 0 && streamPointerLocation >= 0) {
+                  var streamRun = model.GetNextRun(streamLocation) as IStreamRun;
+                  if (streamRun != null && streamRun.Start == streamLocation) {
+                     streamRun = streamRun.DeserializeRun(stream, token);
+                     // alter script content and compiled byte location based on stream move
+                     if (streamRun.Start != streamLocation) {
+                        script = script.Replace(streamLocation.ToString("X6"), streamRun.Start.ToString("X6"));
+                        result[streamPointerLocation + 0] = (byte)(streamLocation >> 0);
+                        result[streamPointerLocation + 1] = (byte)(streamLocation >> 8);
+                        result[streamPointerLocation + 2] = (byte)(streamLocation >> 16);
+                        result[streamPointerLocation + 3] = (byte)((streamLocation >> 24) + 0x08);
+                        ((List<(int, int)>)movedData).Add((streamLocation, streamRun.Start));
+                     }
+                  }
+               }
+               continue;
+            }
+            streamLocation = -1; streamPointerLocation = -1;
             foreach (var command in engine) {
                if (!(line + " ").StartsWith(command.LineCommand + " ")) continue;
+               var currentSize = result.Count;
                result.AddRange(command.Compile(model, line));
+               if (command.PointsToMovement || command.PointsToText) {
+                  var pointerOffset = command.Args.Until(arg => arg.Type == ArgType.Pointer).Sum(arg => arg.Length) + command.LineCode.Count;
+                  var destination = result.ReadMultiByteValue(currentSize + pointerOffset, 4) - 0x8000000;
+                  if (destination >= 0) {
+                     streamPointerLocation = currentSize + pointerOffset;
+                     streamLocation = destination;
+                  }
+               }
             }
          }
          return result.ToArray();
@@ -178,6 +226,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
          start += LineCode.Count;
          var builder = new StringBuilder(LineCommand);
+         int lastAddress = -1;
          foreach (var arg in Args) {
             builder.Append(" ");
             if (arg.Type == ArgType.Byte) builder.Append($"{arg.Convert(data, data[start])}");
@@ -185,10 +234,24 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             if (arg.Type == ArgType.Word) builder.Append($"{arg.Convert(data, data.ReadMultiByteValue(start, 4))}");
             if (arg.Type == ArgType.Pointer) {
                var address = data.ReadMultiByteValue(start, 4);
-               if (address < 0x8000000) builder.Append(address.ToString("X6"));
-               else builder.Append($"<{address - 0x8000000:X6}>");
+               if (address < 0x8000000) {
+                  builder.Append(address.ToString("X6"));
+               } else {
+                  address -= 0x8000000;
+                  builder.Append($"<{address:X6}>");
+                  lastAddress = address;
+               }
             }
             start += arg.Length;
+         }
+         if (PointsToText || PointsToMovement) {
+            var stream = data.GetNextRun(lastAddress) as IStreamRun;
+            if (stream != null) {
+               builder.AppendLine();
+               builder.AppendLine("{");
+               builder.AppendLine(stream.SerializeRun());
+               builder.Append("}");
+            }
          }
          return builder.ToString();
       }

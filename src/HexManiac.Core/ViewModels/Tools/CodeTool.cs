@@ -120,7 +120,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          ignoreContentUpdates = true;
          {
             int length = end - start + 1;
-            var code = script.Compile(model, Content);
+            var codeContent = Content;
+            var code = script.Compile(history.CurrentChange, model, ref codeContent, out var movedData);
+            TryUpdate(ref content, codeContent, nameof(Content));
 
             if (code.Length > length) {
                run = (XSERun)model.RelocateForExpansion(history.CurrentChange, run, code.Length);
@@ -134,6 +136,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
             selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(run.Start);
             selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(run.Start + code.Length - 1);
+
+            foreach (var movedResource in movedData) ModelDataMoved?.Invoke(this, movedResource);
          }
          ignoreContentUpdates = false;
 
