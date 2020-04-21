@@ -1369,7 +1369,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var length = tools.CodeTool.ScriptParser.GetScriptSegmentLength(Model, address);
          Model.ClearFormat(CurrentChange, address, length - 1);
 
-         tools.CodeTool.ScriptParser.FormatScript(CurrentChange, Model, address);
+         using (ModelCacheScope.CreateScope(Model)) {
+            tools.CodeTool.ScriptParser.FormatScript(CurrentChange, Model, address);
+         }
 
          SelectionStart = scroll.DataIndexToViewPoint(address);
          SelectionEnd = scroll.DataIndexToViewPoint(address + length - 1);

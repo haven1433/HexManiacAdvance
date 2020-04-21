@@ -45,6 +45,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      if (line.PointsToText) {
                         var destinationLength = PCSString.ReadString(model, destination, false);
                         if (destinationLength > 3) model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength));
+                     } else if (line.PointsToMovement) {
+                        if (TableStreamRun.TryParseTableStream(model, destination, new[] { address + length }, string.Empty, "[move.movementtypes]!FE", null, out var tsRun)) {
+                           model.ObserveRunWritten(token, tsRun);
+                        }
                      }
                   }
                   length += arg.Length;
@@ -100,6 +104,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public bool IsEndingCommand { get; }
       public bool PointsToNextScript => LineCode.Count == 1 && LineCode[0].IsAny<byte>(4, 5, 6, 7);
       public bool PointsToText => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x0F);
+      public bool PointsToMovement => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x4F, 0x50);
 
       public ScriptLine(string engineLine) {
          var tokens = engineLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
