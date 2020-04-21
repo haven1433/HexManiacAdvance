@@ -166,7 +166,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          text = text.ToLower();
          var options = model.GetOptions(enumName);
          for (int i = 0; i < options.Count; i++) {
-            var option = options[i].ToLower();
+            var option = (options[i] ?? i.ToString()).ToLower();
             if (option == text) matches.Add(option);
             if (matches.Count == desiredMatch) { value = i; return true; }
             if (option.MatchesPartial(text)) {

@@ -237,6 +237,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
 
    public class IntegerEnum : Integer {
       public new string Value { get; }
+      public string DisplayValue {
+         get {
+            var value = Value;
+            if (!value.Contains("_")) return value;
+            var display = value.Substring(0, 1);
+            while (value.Contains("_")) {
+               value = value.Substring(value.IndexOf("_") + 1);
+               if (value.Length > 0) display += value.Substring(0, 1);
+            }
+            return display;
+         }
+      }
+
       public IntegerEnum(int source, int position, string value, int length) : base(source, position, -1, length) => Value = value;
 
       public override bool Equals(IDataFormat other) {

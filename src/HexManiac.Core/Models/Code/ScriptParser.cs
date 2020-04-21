@@ -103,7 +103,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       private static readonly byte[] endCodes = new byte[] { 0x02, 0x03, 0x05, 0x08, 0x0A, 0x0C, 0x0D };
       public bool IsEndingCommand { get; }
       public bool PointsToNextScript => LineCode.Count == 1 && LineCode[0].IsAny<byte>(4, 5, 6, 7);
-      public bool PointsToText => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x0F);
+      public bool PointsToText => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x0F, 0x67);
       public bool PointsToMovement => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x4F, 0x50);
 
       public ScriptLine(string engineLine) {

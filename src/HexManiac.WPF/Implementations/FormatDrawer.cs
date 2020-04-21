@@ -100,7 +100,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             } else if (format is EggSection eggSection) {
                collector.Collect<EggSection>(format, x, 2, eggSection.SectionName);
             } else if (format is IntegerEnum intEnum) {
-               collector.Collect<IntegerEnum>(format, x, intEnum.Length, intEnum.Value);
+               collector.Collect<IntegerEnum>(format, x, intEnum.Length, intEnum.DisplayValue);
             } else if (format is Integer integer) {
                collector.Collect<Integer>(format, x, integer.Length, integer.Value.ToString());
             } else if (format is Ascii asc) {
