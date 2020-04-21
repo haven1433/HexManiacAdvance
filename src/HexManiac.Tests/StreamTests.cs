@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
@@ -58,6 +59,26 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(6, Model.GetNextRun(0).Length);
          Assert.Equal(new Point(6, 0), ViewPort.SelectionStart);
+      }
+
+      [Fact]
+      public void ExtendingTableStreamRepoints() {
+         ViewPort.Edit("00 01 02 03 FF CC @00 ^table[value.]!FF ");
+         ViewPort.Tools.SelectedIndex = ViewPort.Tools.IndexOf(ViewPort.Tools.StringTool);
+         Assert.Equal(@"0
+1
+2
+3", ViewPort.Tools.StringTool.Content);
+
+         ViewPort.Tools.StringTool.Content = @"0
+1
+2
+3
+4";
+
+         Assert.NotEmpty(Messages);
+         var anchorAddress = Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, "table");
+         Assert.NotEqual(0, anchorAddress);
       }
    }
 }
