@@ -149,7 +149,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          int length = script.FindLength(model, run.Start);
          using (ModelCacheScope.CreateScope(model)) {
-            CompileScriptChanges(run, length, ref codeContent, false);
+            CompileScriptChanges(run, length, ref codeContent, body == Contents[0]);
 
             body.ContentChanged -= ScriptChanged;
             body.Content = codeContent;
@@ -219,16 +219,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                ModelDataMoved?.Invoke(this, (start, run.Start));
             }
 
-            model.ClearFormat(history.CurrentChange, start, length);
+            model.ClearAnchor(history.CurrentChange, start, length);
             for (int i = 0; i < code.Length; i++) history.CurrentChange.ChangeData(model, run.Start + i, code[i]);
             for (int i = code.Length; i < length; i++) history.CurrentChange.ChangeData(model, run.Start + i, 0xFF);
-            script.FormatScript(history.CurrentChange, model, start);
+            script.FormatScript(history.CurrentChange, model, run.Start);
 
             // this change may have orphaned some existing scripts. Don't lose them!
             var newScripts = script.CollectScripts(model, run.Start);
             foreach (var orphan in oldScripts.Except(newScripts)) {
                var orphanRun = model.GetNextRun(orphan);
-               if (orphanRun.Start != orphan && string.IsNullOrEmpty(model.GetAnchorFromAddress(-1, orphan))) {
+               if (orphanRun.Start == orphan && string.IsNullOrEmpty(model.GetAnchorFromAddress(-1, orphan))) {
                   script.FormatScript(history.CurrentChange, model, orphan);
                   model.ObserveAnchorWritten(history.CurrentChange, $"xse{orphan:X6}", new XSERun(orphan));
                }

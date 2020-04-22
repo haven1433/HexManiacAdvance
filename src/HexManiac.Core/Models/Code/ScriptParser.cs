@@ -115,20 +115,20 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public byte[] Compile(ModelDelta token, IDataModel model, ref string script, out IReadOnlyList<(int originalLocation, int newLocation)> movedData) {
          movedData = new List<(int, int)>();
          var lines = script.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
-            .Select(line => line.Split('#').First().Trim())
-            .Where(line => !string.IsNullOrEmpty(line))
+            .Select(line => line.Split('#').First())
+            .Where(line => !string.IsNullOrWhiteSpace(line))
             .ToArray();
          var result = new List<byte>();
          int streamLocation = -1, streamPointerLocation = -1;
 
          for (var i = 0; i < lines.Length; i++) {
-            var line = lines[i];
+            var line = lines[i].Trim();
             if (line == "{") {
                var streamStart = i + 1;
                var indentCount = 1;
                i += 2;
                while (indentCount > 0) {
-                  line = lines[i];
+                  line = lines[i].Trim();
                   if (line == "{") indentCount += 1;
                   if (line == "}") indentCount -= 1;
                   i += 1;
