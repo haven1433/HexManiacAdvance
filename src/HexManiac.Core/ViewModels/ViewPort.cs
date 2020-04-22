@@ -524,6 +524,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Tools.CodeTool.ModelDataMoved += ModelDataMovedByTool;
 
          ImplementCommands();
+         CascadeScripts();
          RefreshBackingData();
       }
 
@@ -611,6 +612,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          close.CanExecute = CanAlwaysExecute;
          close.Execute = arg => CloseExecuted((IFileSystem)arg);
+      }
+
+      /// <summary>
+      /// Top-level scripts may be available through metadata.
+      /// Find scripts called by those scripts, and add runs for those too.
+      /// </summary>
+      private void CascadeScripts() {
+         var noChange = new NoDataChangeDeltaModel();
+         using (ModelCacheScope.CreateScope(Model)) {
+            foreach (var anchor in Model.Anchors) {
+               var address = Model.GetAddressFromAnchor(noChange, -1, anchor);
+               var run = Model.GetNextRun(address);
+               if (run is XSERun) {
+                  tools.CodeTool.ScriptParser.FormatScript(noChange, Model, address);
+               }
+            }
+         }
       }
 
       private void CopyAddressExecute(IFileSystem fileSystem) {

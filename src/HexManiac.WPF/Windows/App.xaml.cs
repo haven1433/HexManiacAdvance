@@ -34,8 +34,8 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             args = args.Where(arg => arg != "--no-metadata").ToArray();
          }
 
-         var allArgs = args.Aggregate(string.Empty, (a, b) => a + ' ' + b);
-         var loadAddress = 0;
+         var allArgs = args.Aggregate(string.Empty, (a, b) => a + ' ' + b).Trim();
+         var loadAddress = -1;
          if (allArgs.Contains(":") && allArgs.LastIndexOf(":") > 4) {
             var parts = allArgs.Split(':');
             int.TryParse(parts.Last(), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out loadAddress);
@@ -100,7 +100,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          var loadedFile = fileSystem.LoadFile(fileName);
          editor.Open.Execute(loadedFile);
          var tab = editor[editor.SelectedIndex] as ViewPort;
-         if (tab != null) tab.CascadeScript(address);
+         if (tab != null && address >= 0) tab.CascadeScript(address);
          return editor;
       }
    }

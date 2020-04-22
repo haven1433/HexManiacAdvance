@@ -57,7 +57,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             address = toProcess.Last();
             toProcess.RemoveAt(toProcess.Count - 1);
             if (processed.Contains(address)) continue;
-            model.ObserveAnchorWritten(token, string.Empty, new XSERun(address));
+            var existingRun = model.GetNextRun(address);
+            if (!(existingRun is XSERun && existingRun.Start == address)) {
+               model.ObserveAnchorWritten(token, string.Empty, new XSERun(address));
+            }
             int length = 0;
             while (true) {
                var line = engine.GetMatchingLine(model, address + length);
