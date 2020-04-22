@@ -83,7 +83,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          var gamesToDecode = new[] { Ruby, Sapphire, Emerald, FireRed, LeafGreen, Ruby1_1, Sapphire1_1, FireRed1_1, LeafGreen1_1 };
          if (gamesToDecode.Contains(gameCode)) {
-            LoadDefaultMetadata();
+            LoadDefaultMetadata(gameCode.Substring(0, 4).ToLower());
             DecodeHeader();
             if (singletons.GameReferenceTables.TryGetValue(gameCode, out var referenceTables)) {
                DecodeTablesFromReference(referenceTables);
@@ -93,12 +93,21 @@ namespace HavenSoft.HexManiac.Core.Models {
          ResolveConflicts();
       }
 
-      private void LoadDefaultMetadata() {
-         if (!File.Exists("resources/default.toml")) return;
-         var lines = File.ReadAllLines("resources/default.toml");
-         var metadata = new StoredMetadata(lines);
-         foreach (var list in metadata.Lists) SetList(list.Name, list.Contents);
-         foreach (var anchor in metadata.NamedAnchors) ApplyAnchor(this, new NoDataChangeDeltaModel(), anchor.Address, BaseRun.AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
+      private void LoadDefaultMetadata(string code) {
+         if (File.Exists("resources/default.toml")) {
+            var lines = File.ReadAllLines("resources/default.toml");
+            var metadata = new StoredMetadata(lines);
+            foreach (var list in metadata.Lists) SetList(list.Name, list.Contents);
+            foreach (var anchor in metadata.NamedAnchors) ApplyAnchor(this, new NoDataChangeDeltaModel(), anchor.Address, BaseRun.AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
+         }
+
+         foreach (var fileName in Directory.GetFiles("resources", "default.*.toml")) {
+            if (!fileName.ToLower().Contains($".{code}.")) continue;
+            var lines = File.ReadAllLines(fileName);
+            var metadata = new StoredMetadata(lines);
+            foreach (var list in metadata.Lists) SetList(list.Name, list.Contents);
+            foreach (var anchor in metadata.NamedAnchors) ApplyAnchor(this, new NoDataChangeDeltaModel(), anchor.Address, BaseRun.AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
+         }
       }
 
       private void DecodeHeader() {

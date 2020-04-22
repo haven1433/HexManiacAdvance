@@ -141,6 +141,12 @@
     <Compile Include="ViewModels\ViewPort.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Models\Code\default.axve.axpe.bpee.toml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Models\Code\default.bpre.bpge.toml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Models\Code\default.toml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
