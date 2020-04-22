@@ -20,6 +20,36 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return builder.ToString();
       }
 
+      public List<int> CollectScripts(IDataModel model, int address) {
+         var scripts = new List<int> { address };
+
+         for (int i = 0; i < scripts.Count; i++) {
+            address = scripts[i];
+            int length = 0;
+            while (true) {
+               var line = engine.GetMatchingLine(model, address + length);
+               if (line?.IsEndingCommand ?? true) break;
+               length += line.LineCode.Count;
+               foreach (var arg in line.Args) {
+                  if (arg.Type == ArgType.Pointer) {
+                     var destination = model.ReadPointer(address + length);
+                     if (destination >= 0 && destination < model.Count &&
+                        line.PointsToNextScript &&
+                        !scripts.Contains(destination)
+                     ) {
+                        scripts.Add(destination);
+                     }
+                  }
+                  length += arg.Length;
+               }
+               if (line.IsEndingCommand) break;
+            }
+         }
+
+         return scripts;
+      }
+
+      // TODO refactor to rely on CollectScripts rather than duplicate code
       public void FormatScript(ModelDelta token, IDataModel model, int address) {
          var processed = new List<int>();
          var toProcess = new List<int> { address };
@@ -119,6 +149,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                }
             }
          }
+
+         if (result.Count == 0) result.Add(0x02); // end
          return result.ToArray();
       }
 

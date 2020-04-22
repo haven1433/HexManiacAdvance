@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
@@ -119,6 +120,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          ignoreContentUpdates = true;
          {
+            var oldScripts = ScriptParser.CollectScripts(model, run.Start);
             int length = end - start + 1;
             var codeContent = Content;
             var code = script.Compile(history.CurrentChange, model, ref codeContent, out var movedData);
@@ -133,6 +135,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             for (int i = 0; i < code.Length; i++) history.CurrentChange.ChangeData(model, run.Start + i, code[i]);
             for (int i = code.Length; i < length; i++) history.CurrentChange.ChangeData(model, run.Start + i, 0xFF);
             ScriptParser.FormatScript(history.CurrentChange, model, start);
+
+            // this change may have orphaned some existing scripts. Don't lose them!
+            var newScripts = ScriptParser.CollectScripts(model, run.Start);
+            foreach (var orphan in oldScripts.Except(newScripts)) {
+               var orphanRun = model.GetNextRun(orphan);
+               if (orphanRun.Start != orphan && string.IsNullOrEmpty(model.GetAnchorFromAddress(-1, orphan))) {
+                  ScriptParser.FormatScript(history.CurrentChange, model, orphan);
+                  model.ObserveAnchorWritten(history.CurrentChange, $"xse{orphan:X6}", new XSERun(orphan));
+               }
+            }
 
             selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(run.Start);
             selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(run.Start + code.Length - 1);
