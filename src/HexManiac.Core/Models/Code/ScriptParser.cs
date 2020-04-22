@@ -93,11 +93,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      if (line.PointsToNextScript) toProcess.Add(destination);
                      if (line.PointsToText) {
                         var destinationLength = PCSString.ReadString(model, destination, false);
-                        if (destinationLength > 3) model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength));
+                        if (destinationLength > 0) model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength));
                      } else if (line.PointsToMovement) {
-                        if (TableStreamRun.TryParseTableStream(model, destination, new[] { address + length }, string.Empty, "[move.movementtypes]!FE", null, out var tsRun)) {
-                           model.ObserveRunWritten(token, tsRun);
-                        }
+                        WriteMovementStream(model, token, destination, address + length);
                      }
                   }
                   length += arg.Length;
@@ -105,6 +103,12 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (line.IsEndingCommand) break;
             }
             processed.Add(address);
+         }
+      }
+
+      private void WriteMovementStream(IDataModel model, ModelDelta token, int start, int source) {
+         if (TableStreamRun.TryParseTableStream(model, start, new[] { source }, string.Empty, "[move.movementtypes]!FE", null, out var tsRun)) {
+            model.ObserveRunWritten(token, tsRun);
          }
       }
 
@@ -156,6 +160,25 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             foreach (var command in engine) {
                if (!(line + " ").StartsWith(command.LineCommand + " ")) continue;
                var currentSize = result.Count;
+
+               if (line.Contains("<??????>")) {
+                  int newAddress = -1;
+                  if (command.PointsToMovement) {
+                     newAddress = model.FindFreeSpace(0, 0x10);
+                     token.ChangeData(model, newAddress, 0xFE);
+                  } else if (command.PointsToText) {
+                     newAddress = model.FindFreeSpace(0, 0x10);
+                     token.ChangeData(model, newAddress, 0xFF);
+                  } else if (command.PointsToNextScript) {
+                     newAddress = model.FindFreeSpace(0, 0x10);
+                     token.ChangeData(model, newAddress, 0x02);
+                  }
+                  if (newAddress != -1) {
+                     line = line.Replace("<??????>", $"<{newAddress:X6}>");
+                     script = script.Replace("<??????>", $"<{newAddress:X6}>");
+                  }
+               }
+
                var error = command.Compile(model, line, out var code);
                if (error == null) {
                   result.AddRange(code);
@@ -197,7 +220,22 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
    }
 
-   public class ScriptLine {
+   public interface IScriptLine {
+      IReadOnlyList<ScriptArg> Args { get; }
+      IReadOnlyList<byte> LineCode { get; }
+      string LineCommand { get; }
+      int CompiledByteLength { get; }
+      bool IsEndingCommand { get; }
+      bool PointsToNextScript { get; }
+      bool PointsToText { get; }
+      bool PointsToMovement { get; }
+
+      bool Matches(IReadOnlyList<byte> data, int index);
+      string Compile(IDataModel model, string scriptLine, out byte[] result);
+      string Decompile(IDataModel data, int start);
+   }
+
+   public class ScriptLine : IScriptLine {
       public const string Hex = "0123456789ABCDEF";
       public IReadOnlyList<ScriptArg> Args { get; }
       public IReadOnlyList<byte> LineCode { get; }
@@ -262,8 +300,14 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                results.Add((byte)(value >> 0x18));
             } else if (Args[i].Type == ArgType.Pointer) {
                int value;
-               if (token.StartsWith("<") && token.EndsWith(">")) {
-                  value = int.Parse(token.Substring(1, token.Length - 2), NumberStyles.HexNumber);
+               if (token.StartsWith("<")) {
+                  if (!token.EndsWith(">")) {
+                     return "Unmatched <>";
+                  }
+                  token = token.Substring(1, token.Length - 2);
+                  if (!int.TryParse(token, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out value)) {
+                     return $"Unable to parse {token} as a hex number.";
+                  }
                   value += 0x8000000;
                } else {
                   value = int.Parse(token, NumberStyles.HexNumber);
