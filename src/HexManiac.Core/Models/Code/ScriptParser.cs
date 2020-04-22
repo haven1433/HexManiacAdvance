@@ -10,6 +10,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
    public class ScriptParser {
       private readonly IReadOnlyList<ScriptLine> engine;
 
+      public event EventHandler<string> CompileError;
+
       public ScriptParser(IReadOnlyList<ScriptLine> engine) => this.engine = engine;
 
       public int GetScriptSegmentLength(IDataModel model, int address) => engine.GetScriptSegmentLength(model, address);
@@ -154,7 +156,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             foreach (var command in engine) {
                if (!(line + " ").StartsWith(command.LineCommand + " ")) continue;
                var currentSize = result.Count;
-               result.AddRange(command.Compile(model, line));
+               var error = command.Compile(model, line, out var code);
+               if (error == null) {
+                  result.AddRange(code);
+               } else {
+                  CompileError?.Invoke(this, i + ": " + error);
+                  return null;
+               }
                if (command.PointsToMovement || command.PointsToText) {
                   var pointerOffset = command.Args.Until(arg => arg.Type == ArgType.Pointer).Sum(arg => arg.Length) + command.LineCode.Count;
                   var destination = result.ReadMultiByteValue(currentSize + pointerOffset, 4) - 0x8000000;
@@ -230,10 +238,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return Enumerable.Range(0, LineCode.Count).All(i => data[index + i] == LineCode[i]);
       }
 
-      public byte[] Compile(IDataModel model, string scriptLine) {
+      public string Compile(IDataModel model, string scriptLine, out byte[] result) {
+         result = null;
          var tokens = scriptLine.Split(new[] { " " }, StringSplitOptions.None);
          if (tokens[0] != LineCommand) throw new ArgumentException($"Command {LineCommand} was expected, but received {tokens[0]} instead.");
-         if (Args.Count != tokens.Length - 1) throw new ArgumentException($"Command {LineCommand} expects {Args.Count} arguments, but received {tokens.Length - 1} instead.");
+         if (Args.Count != tokens.Length - 1) {
+            return $"Command {LineCommand} expects {Args.Count} arguments, but received {tokens.Length - 1} instead.";
+         }
          var results = new List<byte>(LineCode);
          for (int i = 0; i < Args.Count; i++) {
             var token = tokens[i + 1];
@@ -265,7 +276,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                throw new NotImplementedException();
             }
          }
-         return results.ToArray();
+         result = results.ToArray();
+         return null;
       }
 
       public string Decompile(IDataModel data, int start) {

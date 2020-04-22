@@ -377,18 +377,22 @@
             <Grid Name="CodeToolBody">
                <TextBox UndoLimit="0" Margin="5" FontFamily="Consolas" Visibility="{Binding CodeTool.UseSingleContent, Converter={StaticResource BoolToVisibility}}"
                         Text="{Binding CodeTool.Content, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="{Binding CodeTool.IsReadOnly}" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
-               <ScrollViewer Visibility="{Binding CodeTool.UseMultiContent, Converter={StaticResource BoolToVisibility}}">
-                  <ItemsControl ItemsSource="{Binding CodeTool.Contents}">
-                     <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                           <StackPanel>
-                              <TextBlock Text="{Binding Label}"/>
-                              <TextBox Margin="5" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" FontFamily="Consolas"/>
-                           </StackPanel>
-                        </DataTemplate>
-                     </ItemsControl.ItemTemplate>
-                  </ItemsControl>
-               </ScrollViewer>
+               <DockPanel Visibility="{Binding CodeTool.UseMultiContent, Converter={StaticResource BoolToVisibility}}">
+                  <TextBlock Foreground="{DynamicResource Error}" DockPanel.Dock="Bottom" TextWrapping="Wrap"
+                     Text="{Binding CodeTool.ErrorText}"  Visibility="{Binding CodeTool.ShowErrorText, Converter={StaticResource BoolToVisibility}}" />
+                  <ScrollViewer>
+                     <ItemsControl ItemsSource="{Binding CodeTool.Contents}">
+                        <ItemsControl.ItemTemplate>
+                           <DataTemplate>
+                              <StackPanel>
+                                 <TextBlock Text="{Binding Label}" Margin="2,0"/>
+                                 <TextBox Margin="5" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" FontFamily="Consolas"/>
+                              </StackPanel>
+                           </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                     </ItemsControl>
+                  </ScrollViewer>
+               </DockPanel>
             </Grid>
          </DockPanel>
       </Grid>

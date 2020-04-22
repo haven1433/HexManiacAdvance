@@ -30,12 +30,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public bool UseSingleContent => !UseMultiContent;
       public bool UseMultiContent => Mode == CodeMode.Script && useMultiScriptContent;
 
+      private bool showErrorText;
+      public bool ShowErrorText { get => showErrorText; private set => TryUpdate(ref showErrorText, value); }
+
+      private string errorText;
+      public string ErrorText { get => errorText; private set => TryUpdate(ref errorText, value); }
+
       public CodeMode Mode {
          get => mode;
          set {
             if (!TryUpdateEnum(ref mode, value)) return;
             UpdateContent();
             NotifyPropertyChanged(nameof(IsReadOnly));
+            NotifyPropertyChanged(nameof(UseSingleContent));
+            NotifyPropertyChanged(nameof(UseMultiContent));
          }
       }
 
@@ -60,6 +68,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public CodeTool(Singletons singletons, IDataModel model, Selection selection, ChangeHistory<ModelDelta> history) {
          thumb = new ThumbParser(singletons);
          script = new ScriptParser(singletons.ScriptLines);
+         script.CompileError += ObserveCompileError;
          this.model = model;
          this.selection = selection;
          this.history = history;
@@ -192,12 +201,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void CompileScriptChanges(XSERun run, int length, ref string codeContent, bool updateSelection) {
+         ShowErrorText = false;
+         ErrorText = string.Empty;
          int start = run.Start;
 
          ignoreContentUpdates = true;
          {
             var oldScripts = script.CollectScripts(model, run.Start);
             var code = script.Compile(history.CurrentChange, model, ref codeContent, out var movedData);
+            if (code == null) {
+               ignoreContentUpdates = false;
+               return;
+            }
 
             if (code.Length > length) {
                run = (XSERun)model.RelocateForExpansion(history.CurrentChange, run, code.Length);
@@ -241,6 +256,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (start % 16 == 0) builder.AppendLine();
          }
          return builder.ToString();
+      }
+
+      private void ObserveCompileError(object sender, string error) {
+         ShowErrorText = true;
+         ErrorText += error + Environment.NewLine;
       }
    }
 
