@@ -355,7 +355,7 @@
 
             </StackPanel>
          </ScrollViewer>
-         <DockPanel Name="CodeToolPanel">
+         <DockPanel Name="CodeToolPanel" Width="265">
             <DockPanel.Style>
                <Style TargetType="DockPanel">
                   <Setter Property="Visibility" Value="Collapsed"/>
@@ -374,7 +374,22 @@
                <TextBlock Text="Code Type" Margin="5,0" Grid.Column="0"/>
                <ComboBox Grid.Column="1" Name="CodeModeSelector" SelectedItem="{Binding CodeTool.Mode}"/>
             </Grid>
-            <TextBox UndoLimit="0" Margin="5" Width="255" FontFamily="Consolas" Text="{Binding CodeTool.Content, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="{Binding CodeTool.IsReadOnly}" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" />
+            <Grid Name="CodeToolBody">
+               <TextBox UndoLimit="0" Margin="5" FontFamily="Consolas" Visibility="{Binding CodeTool.UseSingleContent, Converter={StaticResource BoolToVisibility}}"
+                        Text="{Binding CodeTool.Content, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="{Binding CodeTool.IsReadOnly}" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
+               <ScrollViewer Visibility="{Binding CodeTool.UseMultiContent, Converter={StaticResource BoolToVisibility}}">
+                  <ItemsControl ItemsSource="{Binding CodeTool.Contents}">
+                     <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                           <StackPanel>
+                              <TextBlock Text="{Binding Label}"/>
+                              <TextBox Margin="5" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" FontFamily="Consolas"/>
+                           </StackPanel>
+                        </DataTemplate>
+                     </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+               </ScrollViewer>
+            </Grid>
          </DockPanel>
       </Grid>
       <!-- Anchor Editor -->

@@ -14,7 +14,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class CodeTool : ViewModelCore, IToolViewModel {
       public string Name => "Code Tool";
 
-      private bool useMultiScriptContent = false; // feature toggle
+      private bool useMultiScriptContent = true; // feature toggle
 
       private string content;
       private CodeMode mode;
@@ -27,6 +27,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public event EventHandler<ErrorInfo> ModelDataChanged;
 
       public bool IsReadOnly => Mode != CodeMode.Script;
+      public bool UseSingleContent => !UseMultiContent;
       public bool UseMultiContent => Mode == CodeMode.Script && useMultiScriptContent;
 
       public CodeMode Mode {
@@ -84,6 +85,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                Content = RawParse(model, start, end - start + 1);
             } else if (length < 2) {
                TryUpdate(ref content, string.Empty, nameof(Content));
+               UpdateContents(-1);
             } else if (mode == CodeMode.Script) {
                if (useMultiScriptContent) {
                   UpdateContents(start);
@@ -98,17 +100,34 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
-      private void UpdateContents(int start) {
+      /// <summary>
+      /// Update all the content objects.
+      /// If one of the content objects is the one being changed, don't update that one.
+      /// </summary>
+      /// <param name="start"></param>
+      /// <param name="currentScriptStart"></param>
+      private void UpdateContents(int start, int currentScriptStart = -1) {
          var scripts = script.CollectScripts(model, start);
-         foreach (var body in Contents) body.ContentChanged -= ScriptChanged;
-         Contents.Clear();
-         foreach (var scriptStart in scripts) {
+         for (int i = 0; i < scripts.Count; i++) {
+            var scriptStart = scripts[i];
+            if (scriptStart == currentScriptStart && Contents.Count > i && Contents[i].Address == scriptStart) continue;
             var scriptLength = script.FindLength(model, scriptStart);
             var label = scriptStart.ToString("X6");
             var content = script.Parse(model, scriptStart, scriptLength);
             var body = new CodeBody { Address = scriptStart, Label = label, Content = content };
             body.ContentChanged += ScriptChanged;
-            Contents.Add(body);
+
+            if (Contents.Count > i) {
+               Contents[i].ContentChanged -= ScriptChanged;
+               Contents[i] = body;
+            } else {
+               Contents.Add(body);
+            }
+         }
+
+         while (Contents.Count > scripts.Count) {
+            Contents[Contents.Count - 1].ContentChanged -= ScriptChanged;
+            Contents.RemoveAt(Contents.Count - 1);
          }
       }
 
@@ -120,11 +139,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (run == null || run.Start != body.Address) Debug.Fail("How did this happen?");
 
          int length = script.FindLength(model, run.Start);
-         CompileScriptChanges(run, length, ref codeContent, false);
+         using (ModelCacheScope.CreateScope(model)) {
+            CompileScriptChanges(run, length, ref codeContent, false);
 
-         body.ContentChanged -= ScriptChanged;
-         body.Content = codeContent;
-         body.ContentChanged += ScriptChanged;
+            body.ContentChanged -= ScriptChanged;
+            body.Content = codeContent;
+            body.ContentChanged += ScriptChanged;
+
+            // reload?
+            var start = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionStart));
+            var end = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd));
+            if (start > end) (start, end) = (end, start);
+            UpdateContents(start, body.Address);
+         }
       }
 
       private void CompileChanges() {

@@ -21,6 +21,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       public List<int> CollectScripts(IDataModel model, int address) {
+         if (address < 0 || address >= model.Count) return new List<int>();
          var scripts = new List<int> { address };
 
          for (int i = 0; i < scripts.Count; i++) {
