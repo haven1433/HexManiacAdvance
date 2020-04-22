@@ -2,6 +2,8 @@
 using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using System;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -11,6 +13,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
    public class CodeTool : ViewModelCore, IToolViewModel {
       public string Name => "Code Tool";
+
+      private bool useMultiScriptContent = false; // feature toggle
 
       private string content;
       private CodeMode mode;
@@ -23,6 +27,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public event EventHandler<ErrorInfo> ModelDataChanged;
 
       public bool IsReadOnly => Mode != CodeMode.Script;
+      public bool UseMultiContent => Mode == CodeMode.Script && useMultiScriptContent;
 
       public CodeMode Mode {
          get => mode;
@@ -42,6 +47,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             CompileChanges();
          }
       }
+
+      public ObservableCollection<CodeBody> Contents { get; } = new ObservableCollection<CodeBody>();
 
       public ThumbParser Parser => thumb;
 
@@ -78,7 +85,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             } else if (length < 2) {
                TryUpdate(ref content, string.Empty, nameof(Content));
             } else if (mode == CodeMode.Script) {
-               TryUpdate(ref content, script.Parse(model, start, end - start + 1), nameof(Content));
+               if (useMultiScriptContent) {
+                  UpdateContents(start);
+               } else {
+                  TryUpdate(ref content, script.Parse(model, start, end - start + 1), nameof(Content));
+               }
             } else if (mode == CodeMode.Thumb) {
                TryUpdate(ref content, thumb.Parse(model, start, end - start + 1), nameof(Content));
             } else {
@@ -87,10 +98,39 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
+      private void UpdateContents(int start) {
+         var scripts = script.CollectScripts(model, start);
+         foreach (var body in Contents) body.ContentChanged -= ScriptChanged;
+         Contents.Clear();
+         foreach (var scriptStart in scripts) {
+            var scriptLength = script.FindLength(model, scriptStart);
+            var label = scriptStart.ToString("X6");
+            var content = script.Parse(model, scriptStart, scriptLength);
+            var body = new CodeBody { Address = scriptStart, Label = label, Content = content };
+            body.ContentChanged += ScriptChanged;
+            Contents.Add(body);
+         }
+      }
+
+      private void ScriptChanged(object viewModel, EventArgs e) {
+         var body = (CodeBody)viewModel;
+         var codeContent = body.Content;
+
+         var run = model.GetNextRun(body.Address) as XSERun;
+         if (run == null || run.Start != body.Address) Debug.Fail("How did this happen?");
+
+         int length = script.FindLength(model, run.Start);
+         CompileScriptChanges(run, length, ref codeContent, false);
+
+         body.ContentChanged -= ScriptChanged;
+         body.Content = codeContent;
+         body.ContentChanged += ScriptChanged;
+      }
+
       private void CompileChanges() {
          using (ModelCacheScope.CreateScope(model)) {
             if (mode == CodeMode.Thumb) CompileThumbChanges();
-            if (mode == CodeMode.Script) CompileScriptChanges();
+            if (mode == CodeMode.Script && !useMultiScriptContent) CompileScriptChanges();
          }
       }
 
@@ -117,14 +157,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          var run = model.GetNextRun(start) as XSERun;
          if (run == null || run.Start != start) return;
+         int length = end - start + 1;
+
+         string codeContent = Content;
+         CompileScriptChanges(run, length, ref codeContent, true);
+         TryUpdate(ref content, codeContent, nameof(Content));
+      }
+
+      private void CompileScriptChanges(XSERun run, int length, ref string codeContent, bool updateSelection) {
+         int start = run.Start;
 
          ignoreContentUpdates = true;
          {
-            var oldScripts = ScriptParser.CollectScripts(model, run.Start);
-            int length = end - start + 1;
-            var codeContent = Content;
+            var oldScripts = script.CollectScripts(model, run.Start);
             var code = script.Compile(history.CurrentChange, model, ref codeContent, out var movedData);
-            TryUpdate(ref content, codeContent, nameof(Content));
 
             if (code.Length > length) {
                run = (XSERun)model.RelocateForExpansion(history.CurrentChange, run, code.Length);
@@ -134,20 +180,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             model.ClearFormat(history.CurrentChange, start, length);
             for (int i = 0; i < code.Length; i++) history.CurrentChange.ChangeData(model, run.Start + i, code[i]);
             for (int i = code.Length; i < length; i++) history.CurrentChange.ChangeData(model, run.Start + i, 0xFF);
-            ScriptParser.FormatScript(history.CurrentChange, model, start);
+            script.FormatScript(history.CurrentChange, model, start);
 
             // this change may have orphaned some existing scripts. Don't lose them!
-            var newScripts = ScriptParser.CollectScripts(model, run.Start);
+            var newScripts = script.CollectScripts(model, run.Start);
             foreach (var orphan in oldScripts.Except(newScripts)) {
                var orphanRun = model.GetNextRun(orphan);
                if (orphanRun.Start != orphan && string.IsNullOrEmpty(model.GetAnchorFromAddress(-1, orphan))) {
-                  ScriptParser.FormatScript(history.CurrentChange, model, orphan);
+                  script.FormatScript(history.CurrentChange, model, orphan);
                   model.ObserveAnchorWritten(history.CurrentChange, $"xse{orphan:X6}", new XSERun(orphan));
                }
             }
 
-            selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(run.Start);
-            selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(run.Start + code.Length - 1);
+            if (updateSelection) {
+               selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(run.Start);
+               selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(run.Start + code.Length - 1);
+            }
 
             foreach (var movedResource in movedData) ModelDataMoved?.Invoke(this, movedResource);
          }
@@ -166,6 +214,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (start % 16 == 0) builder.AppendLine();
          }
          return builder.ToString();
+      }
+   }
+
+   public class CodeBody : ViewModelCore {
+      public event EventHandler ContentChanged;
+
+      private string label;
+      public string Label {
+         get => label;
+         set => TryUpdate(ref label, value);
+      }
+
+      private int address;
+      public int Address {
+         get => address;
+         set => TryUpdate(ref address, value);
+      }
+
+      private string content;
+      public string Content {
+         get => content;
+         set {
+            if (!TryUpdate(ref content, value)) return;
+            ContentChanged?.Invoke(this, EventArgs.Empty);
+         }
       }
    }
 }

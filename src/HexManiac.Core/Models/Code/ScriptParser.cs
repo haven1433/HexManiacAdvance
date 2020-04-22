@@ -42,11 +42,23 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   }
                   length += arg.Length;
                }
-               if (line.IsEndingCommand) break;
             }
          }
 
          return scripts;
+      }
+
+      public int FindLength(IDataModel model, int address) {
+         int length = 0;
+
+         while (true) {
+            var line = engine.GetMatchingLine(model, address + length);
+            if (line == null) break;
+            length += line.CompiledByteLength;
+            if (line.IsEndingCommand) break;
+         }
+
+         return length;
       }
 
       // TODO refactor to rely on CollectScripts rather than duplicate code
