@@ -225,7 +225,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             model.ClearAnchor(history.CurrentChange, start, length);
             for (int i = 0; i < code.Length; i++) history.CurrentChange.ChangeData(model, run.Start + i, code[i]);
             for (int i = code.Length; i < length; i++) history.CurrentChange.ChangeData(model, run.Start + i, 0xFF);
-            script.FormatScript(history.CurrentChange, model, run.Start);
+            script.FormatScript(history.CurrentChange, model, run.Start, run.PointerSources);
+            foreach (var source in run.PointerSources) model.ObserveRunWritten(history.CurrentChange, new PointerRun(source));
 
             // this change may have orphaned some existing scripts. Don't lose them!
             var newScripts = script.CollectScripts(model, run.Start);

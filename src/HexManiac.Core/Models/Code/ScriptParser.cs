@@ -65,7 +65,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       // TODO refactor to rely on CollectScripts rather than duplicate code
-      public void FormatScript(ModelDelta token, IDataModel model, int address) {
+      public void FormatScript(ModelDelta token, IDataModel model, int address, IReadOnlyList<int> sources = null) {
          var processed = new List<int>();
          var toProcess = new List<int> { address };
          while (toProcess.Count > 0) {
@@ -74,7 +74,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             if (processed.Contains(address)) continue;
             var existingRun = model.GetNextRun(address);
             if (!(existingRun is XSERun && existingRun.Start == address)) {
-               model.ObserveAnchorWritten(token, string.Empty, new XSERun(address));
+               if (sources == null && existingRun.Start != address) sources = model.SearchForPointersToAnchor(token, address);
+               model.ObserveAnchorWritten(token, string.Empty, new XSERun(address, sources));
+               sources = null;
             }
             int length = 0;
             while (true) {
