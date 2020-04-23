@@ -124,12 +124,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var label = scriptStart.ToString("X6");
             var content = script.Parse(model, scriptStart, scriptLength);
             var body = new CodeBody { Address = scriptStart, Label = label, Content = content };
-            body.ContentChanged += ScriptChanged;
 
             if (Contents.Count > i) {
                Contents[i].ContentChanged -= ScriptChanged;
-               Contents[i] = body;
+               Contents[i].Content = body.Content;
+               Contents[i].Address = body.Address;
+               Contents[i].Label = body.Label;
+               Contents[i].ContentChanged += ScriptChanged;
             } else {
+               body.ContentChanged += ScriptChanged;
                Contents.Add(body);
             }
          }
@@ -155,7 +158,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             body.Content = codeContent;
             body.ContentChanged += ScriptChanged;
 
-            // reload?
+            // reload
             var start = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionStart));
             var end = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd));
             if (start > end) (start, end) = (end, start);

@@ -92,7 +92,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      model.ObserveRunWritten(token, new PointerRun(address + length));
                      if (line.PointsToNextScript) toProcess.Add(destination);
                      if (line.PointsToText) {
-                        var destinationLength = PCSString.ReadString(model, destination, false);
+                        var destinationLength = PCSString.ReadString(model, destination, true);
                         if (destinationLength > 0) model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength));
                      } else if (line.PointsToMovement) {
                         WriteMovementStream(model, token, destination, address + length);
@@ -107,9 +107,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       private void WriteMovementStream(IDataModel model, ModelDelta token, int start, int source) {
-         if (TableStreamRun.TryParseTableStream(model, start, new[] { source }, string.Empty, "[move.movementtypes]!FE", null, out var tsRun)) {
-            model.ObserveRunWritten(token, tsRun);
-         }
+         TableStreamRun.TryParseTableStream(model, start, new[] { source }, string.Empty, "[move.movementtypes]!FE", null, out var tsRun);
+         if (tsRun != null) model.ObserveRunWritten(token, tsRun);
       }
 
       public byte[] Compile(ModelDelta token, IDataModel model, ref string script, out IReadOnlyList<(int originalLocation, int newLocation)> movedData) {
@@ -136,7 +135,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                }
                i -= 1;
                var streamEnd = i;
-               var stream = lines.Skip(streamStart).Take(streamEnd - streamStart + 1).Aggregate((a, b) => a + Environment.NewLine + b);
+               var stream = lines.Skip(streamStart).Take(streamEnd - streamStart).Aggregate((a, b) => a + Environment.NewLine + b);
 
                // Let the stream run handle updating itself based on the stream content.
                if (streamLocation >= 0 && streamPointerLocation >= 0) {
@@ -175,7 +174,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   }
                   if (newAddress != -1) {
                      line = line.Replace("<??????>", $"<{newAddress:X6}>");
-                     script = script.Replace("<??????>", $"<{newAddress:X6}>");
+                     if (command.PointsToNextScript) {
+                        script = script.Replace("<??????>", $"<{newAddress:X6}>");
+                     } else {
+                        script = script.Replace("<??????>", $"<{newAddress:X6}>{Environment.NewLine}{{{Environment.NewLine}}}");
+                     }
                   }
                }
 
@@ -194,6 +197,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      streamLocation = destination;
                   }
                }
+
+               break;
             }
          }
 
