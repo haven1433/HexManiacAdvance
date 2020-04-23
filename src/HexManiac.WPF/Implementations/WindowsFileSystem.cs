@@ -10,6 +10,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 namespace HavenSoft.HexManiac.WPF.Implementations {
@@ -213,11 +214,35 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          return lines;
       }
 
+      public (short[] image, int width) LoadImage() {
+         throw new NotImplementedException();
+      }
+
+      public void SaveImage(short[] image, int width) {
+         int height = image.Length / width;
+
+         var dialog = new SaveFileDialog { Filter = CreateFilterFromOptions("Image Files", "png") };
+         var result = dialog.ShowDialog();
+         if (result != true) return;
+         var fileName = dialog.FileName;
+
+         var stride = width * 2;
+         var bitmap = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgr555, null);
+         var rect = new Int32Rect(0, 0, width, height);
+         bitmap.WritePixels(rect, image, stride, 0);
+
+         var encoder = new PngBitmapEncoder();
+         encoder.Frames.Add(BitmapFrame.Create(bitmap));
+         using (var fileStream = File.Create(fileName)) {
+            encoder.Save(fileStream);
+         }
+      }
+
       private static SolidColorBrush Brush(string name) {
          return (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][name];
       }
 
-      private static string CreateFilterFromOptions(string description, string[] extensionOptions) {
+      private static string CreateFilterFromOptions(string description, params string[] extensionOptions) {
          if (description == null) return string.Empty;
          var extensions = string.Join(",", extensionOptions.Select(option => $"*.{option}"));
          return $"{description}|{extensions}|All Files|*.*";

@@ -37,6 +37,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public double SpriteScale { get => spriteScale; set => TryUpdate(ref spriteScale, value); }
 
       private readonly StubCommand
+         importPair = new StubCommand(),
+         exportPair = new StubCommand(),
          prevSpritePage = new StubCommand(),
          nextSpritePage = new StubCommand(),
          prevPalPage = new StubCommand(),
@@ -52,6 +54,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                paletteWasSetMoreRecently = false;
                if (!RunPropertiesChanged(run)) return;
             }
+
+            importPair.CanExecuteChanged.Invoke(importPair, EventArgs.Empty);
+            exportPair.CanExecuteChanged.Invoke(exportPair, EventArgs.Empty);
 
             if (run == null) {
                spritePages = 1;
@@ -71,6 +76,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          get => paletteAddress;
          set {
             if (!TryUpdate(ref paletteAddress, value)) return;
+            importPair.CanExecuteChanged.Invoke(importPair, EventArgs.Empty);
+            exportPair.CanExecuteChanged.Invoke(exportPair, EventArgs.Empty);
             paletteWasSetMoreRecently = true;
             var paletteRun = model.GetNextRun(value) as IPaletteRun;
             if (paletteRun == null) {
@@ -88,6 +95,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public bool HasMultipleSpritePages => spritePages > 1;
       public bool HasMultiplePalettePages => palPages > 1;
 
+      public ICommand ImportPair => importPair;
+      public ICommand ExportPair => exportPair;
       public ICommand PreviousSpritePage => prevSpritePage;
       public ICommand NextSpritePage => nextSpritePage;
       public ICommand PreviousPalettePage => prevPalPage;
@@ -113,11 +122,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          spriteAddress = Pointer.NULL;
          paletteAddress = Pointer.NULL;
 
+         importPair.CanExecute = arg => paletteAddress >= 0 && spriteAddress >= 0;
+         exportPair.CanExecute = arg => paletteAddress >= 0 && spriteAddress >= 0;
          prevSpritePage.CanExecute = arg => spritePage > 0;
          nextSpritePage.CanExecute = arg => spritePage < spritePages - 1;
          prevPalPage.CanExecute = arg => palPage > 0;
          nextPalPage.CanExecute = arg => palPage < palPages - 1;
 
+         importPair.Execute = arg => ImportSpriteAndPalette((IFileSystem)arg);
+         exportPair.Execute = arg => ExportSpriteAndPalette((IFileSystem)arg);
          prevSpritePage.Execute = arg => { spritePage -= 1; LoadSprite(); };
          nextSpritePage.Execute = arg => { spritePage += 1; LoadSprite(); };
          prevPalPage.Execute = arg => { palPage -= 1; LoadPalette(); };
@@ -258,6 +271,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (run.SpriteFormat.TileHeight * 8 != PixelHeight) return true;
          if (run.Pages != spritePages) return true;
          return false;
+      }
+
+      private void ImportSpriteAndPalette(IFileSystem fileSystem) {
+         (short[] image, int width) = fileSystem.LoadImage();
+         int height = image.Length / width;
+         if (width != PixelWidth || height != PixelHeight) {
+            viewPort.RaiseError("The width/height of the loaded image must match the current width/height!");
+            return;
+         }
+         // TODO
+      }
+
+      private void ExportSpriteAndPalette(IFileSystem fileSystem) {
+         fileSystem.SaveImage(PixelData, PixelWidth);
       }
    }
 }
