@@ -275,12 +275,50 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void ImportSpriteAndPalette(IFileSystem fileSystem) {
          (short[] image, int width) = fileSystem.LoadImage();
+         if (image == null) {
+            if (width % 8 != 0) viewPort.RaiseError("The width/height of the loaded image be a multiple of 8!");
+            return;
+         }
          int height = image.Length / width;
          if (width != PixelWidth || height != PixelHeight) {
             viewPort.RaiseError("The width/height of the loaded image must match the current width/height!");
             return;
          }
-         // TODO
+
+         var spriteRun = model.GetNextRun(spriteAddress) as ISpriteRun;
+         var palRun = model.GetNextRun(paletteAddress) as IPaletteRun;
+         if (spriteRun == null || palRun == null) {
+            viewPort.RaiseError("The sprite/palette addresses are not valid!");
+            return;
+         }
+
+         // extract/sort palette
+         var newPalette = image.Distinct().ToList();
+         if (newPalette.Count > palette.Length) {
+            viewPort.RaiseError("The loaded image uses too many colors!");
+            return;
+         }
+         while (newPalette.Count < palette.Length) newPalette.Add(0);
+         for (int i = 0; i < palette.Length; i++) {
+            var index = newPalette.IndexOf(palette[i]);
+            if (index == -1) continue;
+            newPalette.Remove(palette[i]);
+            newPalette.Insert(i, palette[i]);
+         }
+         var palIndex = new Dictionary<short, int>();
+         for (int i = 0; i < newPalette.Count; i++) palIndex[newPalette[i]] = i;
+
+         // extract pixels
+         int[,] newPixels = new int[width, height];
+         for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+               var pixel = image[y * width + x];
+               newPixels[x, y] = palIndex[pixel];
+            }
+         }
+
+         spriteRun.SetPixels(model, viewPort.CurrentChange, spritePage, newPixels);
+         palRun.SetPalette(model, viewPort.CurrentChange, palPage, newPalette);
       }
 
       private void ExportSpriteAndPalette(IFileSystem fileSystem) {

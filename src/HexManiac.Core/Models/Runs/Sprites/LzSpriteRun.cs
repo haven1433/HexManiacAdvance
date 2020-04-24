@@ -51,7 +51,19 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       public ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels) {
-         throw new NotImplementedException();
+         var data = Decompress(model, Start);
+         page %= Pages;
+
+         var pageLength = SpriteFormat.TileWidth * SpriteFormat.TileHeight * 8 * SpriteFormat.BitsPerPixel;
+         SpriteRun.SetPixels(data, page * pageLength, pixels, SpriteFormat.BitsPerPixel);
+
+         var newModelData = Compress(data, 0, data.Length);
+         var newRun = (ISpriteRun)model.RelocateForExpansion(token, this, newModelData.Count);
+         for (int i = 0; i < newModelData.Count; i++) token.ChangeData(model, newRun.Start + i, newModelData[i]);
+         for (int i = newModelData.Count; i < Length; i++) token.ChangeData(model, newRun.Start + i, 0xFF);
+         newRun = new LzSpriteRun(SpriteFormat, model, newRun.Start, newRun.PointerSources);
+         model.ObserveRunWritten(token, newRun);
+         return newRun;
       }
    }
 }

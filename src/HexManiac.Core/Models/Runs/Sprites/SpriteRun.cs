@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -70,22 +71,32 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return result;
       }
 
-      public ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels) {
-         for (int y = 0; y < tileHeight; y++) {
-            int yOffset = y * 8;
-            for (int x = 0; x < tileWidth; x++) {
-               var tileStart = ((y * tileWidth) + x) * 32 + Start;
-               int xOffset = x * 8;
-               for (int i = 0; i < 32; i++) {
-                  int xx = i % 4;
-                  int yy = i / 4;
-                  var high = pixels[xOffset + xx + 0, yOffset + yy];
-                  var low = pixels[xOffset + xx + 1, yOffset + yy];
-                  var raw = ((high << 4) | low);
-                  token.ChangeData(model, tileStart + i, (byte)raw);
+      public static void SetPixels(byte[] data, int start, int[,] pixels, int bitsPerPixel) {
+         int width = pixels.GetLength(0), height = pixels.GetLength(1);
+         int tileWidth = width / 8, tileHeight = height / 8;
+         if (bitsPerPixel == 4) {
+            for (int y = 0; y < tileHeight; y++) {
+               int yOffset = y * 8;
+               for (int x = 0; x < tileWidth; x++) {
+                  int xOffset = x * 8;
+                  for (int i = 0; i < 32; i++) {
+                     int xx = i % 4, yy = i / 4;
+                     var low = pixels[xOffset + xx * 2 + 0, yOffset + yy];
+                     var high = pixels[xOffset + xx * 2 + 1, yOffset + yy];
+                     data[start] = (byte)((high << 4) | low);
+                     start += 1;
+                  }
                }
             }
+         } else {
+            throw new NotImplementedException();
          }
+      }
+
+      public ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels) {
+         var data = new byte[pixels.Length * SpriteFormat.BitsPerPixel / 8];
+         SetPixels(data, 0, pixels, SpriteFormat.BitsPerPixel);
+         for (int i = 0; i < data.Length; i++) token.ChangeData(model, Start + i, data[i]);
          return this;
       }
 

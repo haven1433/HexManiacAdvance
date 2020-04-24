@@ -56,11 +56,23 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          var colorCount = (int)Math.Pow(2, PaletteFormat.Bits);
          var pageLength = colorCount * 2;
          page %= Pages;
-         return Sprites.PaletteRun.GetPalette(data, page * pageLength, colorCount);
+         return PaletteRun.GetPalette(data, page * pageLength, colorCount);
       }
 
       public IPaletteRun SetPalette(IDataModel model, ModelDelta token, int page, IReadOnlyList<short> colors) {
-         throw new NotImplementedException();
+         var data = Decompress(model, Start);
+         var colorCount = (int)Math.Pow(2, PaletteFormat.Bits);
+         var pageLength = colorCount * 2;
+         page %= Pages;
+         PaletteRun.SetPalette(data, page * pageLength, colors);
+
+         var newModelData = Compress(data, 0, data.Length);
+         var newRun = (IPaletteRun)model.RelocateForExpansion(token, this, newModelData.Count);
+         for (int i = 0; i < newModelData.Count; i++) token.ChangeData(model, newRun.Start + i, newModelData[i]);
+         for (int i = newModelData.Count; i < Length; i++) token.ChangeData(model, newRun.Start + i, 0xFF);
+         newRun = new LzPaletteRun(PaletteFormat, model, newRun.Start, newRun.PointerSources);
+         model.ObserveRunWritten(token, newRun);
+         return newRun;
       }
    }
 }

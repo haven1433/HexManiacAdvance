@@ -68,6 +68,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return results;
       }
 
+      public static void SetPalette(byte[] data, int start, IReadOnlyList<short> colors) {
+         for(int i = 0; i < colors.Count; i++) {
+            data[start + i * 2 + 0] = (byte)(colors[i] >> 0);
+            data[start + i * 2 + 1] = (byte)(colors[i] >> 8);
+         }
+      }
+
       /// <summary>
       /// the gba and WPF do color channels reversed
       /// </summary>

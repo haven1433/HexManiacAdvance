@@ -215,7 +215,36 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
 
       public (short[] image, int width) LoadImage() {
-         throw new NotImplementedException();
+         var dialog = new OpenFileDialog { Filter = CreateFilterFromOptions("Image Files", "png") };
+         var result = dialog.ShowDialog();
+         if (result != true) return default;
+         var fileName = dialog.FileName;
+
+         using (var fileStream = File.Open(fileName, FileMode.Open)) {
+            var decoder = new PngBitmapDecoder(fileStream, BitmapCreateOptions.None, BitmapCacheOption.None);
+            var frame = decoder.Frames[0];
+            if (frame.PixelWidth % 8 != 0) return (default, frame.PixelWidth);
+            if (frame.PixelHeight % 8 != 0) return (default, frame.PixelHeight);
+            var format = frame.Format;
+            short[] data = new short[frame.PixelWidth * frame.PixelHeight];
+            if (format == PixelFormats.Bgr24) {
+               byte[] raw = new byte[frame.PixelWidth * frame.PixelHeight * 3];
+               frame.CopyPixels(raw, frame.PixelWidth * 3, 0);
+               for (int y = 0; y < frame.PixelHeight; y++) {
+                  for (int x = 0; x < frame.PixelWidth; x++) {
+                     var outputPoint = y * frame.PixelWidth + x;
+                     var inputPoint = outputPoint * 3;
+                     var (r, g, b) = (raw[inputPoint + 2], raw[inputPoint + 1], raw[inputPoint + 0]);
+                     r >>= 3; g >>= 3; b >>= 3;
+                     data[outputPoint] = (short)((r << 0) | (g << 5) | (b << 10));
+                  }
+               }
+            } else {
+               throw new NotImplementedException();
+            }
+
+            return (data, frame.PixelWidth);
+         }
       }
 
       public void SaveImage(short[] image, int width) {
