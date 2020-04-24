@@ -86,12 +86,12 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// Show the user a dialog so they can select an image.
       /// Load the image into a 16bit (5r5g5b) array.
       /// </summary>
-      (short[] image, int width) LoadImage();
+      (short[] image, short[] paletteHint, int width) LoadImage();
 
       /// <summary>
       /// Show the user a dialog so they can create a file.
       /// Save this 16bit (5r5g5b) array into that file.
       /// </summary>
-      void SaveImage(short[] image, int width);
+      void SaveImage(short[] image, short[] palette, int width);
    }
 }

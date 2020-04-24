@@ -274,7 +274,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void ImportSpriteAndPalette(IFileSystem fileSystem) {
-         (short[] image, int width) = fileSystem.LoadImage();
+         (short[] image, short[] paletteHint, int width) = fileSystem.LoadImage();
          if (image == null) {
             if (width % 8 != 0) viewPort.RaiseError("The width/height of the loaded image be a multiple of 8!");
             return;
@@ -292,18 +292,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             return;
          }
 
-         // extract/sort palette
+         // extract palette
+         paletteHint = paletteHint ?? palette;
          var newPalette = image.Distinct().ToList();
          if (newPalette.Count > palette.Length) {
             viewPort.RaiseError("The loaded image uses too many colors!");
             return;
          }
-         while (newPalette.Count < palette.Length) newPalette.Add(0);
-         for (int i = 0; i < palette.Length; i++) {
-            var index = newPalette.IndexOf(palette[i]);
-            if (index == -1) continue;
-            newPalette.Remove(palette[i]);
-            newPalette.Insert(i, palette[i]);
+
+         // sort palette based on the previous palette
+         if (newPalette.All(paletteHint.Contains)) {
+            newPalette = paletteHint.ToList();
+         } else {
+            for (int i = 0; i < paletteHint.Length && i < newPalette.Count; i++) {
+               var color = paletteHint[i];
+               var index = newPalette.Skip(i).ToList().IndexOf(color) + i;
+               if (index == i - 1) continue;
+               newPalette.RemoveAt(index);
+               newPalette.Insert(i, color);
+            }
+            while (newPalette.Count < palette.Length) newPalette.Add(paletteHint.Except(newPalette).FirstOrDefault());
          }
          var palIndex = new Dictionary<short, int>();
          for (int i = 0; i < newPalette.Count; i++) palIndex[newPalette[i]] = i;
@@ -325,7 +333,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void ExportSpriteAndPalette(IFileSystem fileSystem) {
-         fileSystem.SaveImage(PixelData, PixelWidth);
+         fileSystem.SaveImage(PixelData, palette, PixelWidth);
       }
    }
 }

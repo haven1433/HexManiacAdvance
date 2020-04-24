@@ -59,6 +59,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return this;
       }
 
+      /// <summary>
+      /// The GBA stores colors in a 16-bit rgb value, 5 bits per channel. R is the high channel.
+      /// We render colors as 16-bit bgr values, 5 bits per channel. B is the high channel.
+      /// </summary>
       public static IReadOnlyList<short> GetPalette(IReadOnlyList<byte> data, int start, int count) {
          var results = new List<short>();
          for (int i = 0; i < count; i++) {
@@ -68,10 +72,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return results;
       }
 
+      /// <summary>
+      /// We render colors as 16-bit bgr values, 5 bits per channel. B is the high channel.
+      /// The GBA stores colors in a 16-bit rgb value, 5 bits per channel. R is the high channel.
+      /// </summary>
       public static void SetPalette(byte[] data, int start, IReadOnlyList<short> colors) {
-         for(int i = 0; i < colors.Count; i++) {
-            data[start + i * 2 + 0] = (byte)(colors[i] >> 0);
-            data[start + i * 2 + 1] = (byte)(colors[i] >> 8);
+         for (int i = 0; i < colors.Count; i++) {
+            var color = FlipColorChannels(colors[i]);
+            data[start + i * 2 + 0] = (byte)(color >> 0);
+            data[start + i * 2 + 1] = (byte)(color >> 8);
          }
       }
 

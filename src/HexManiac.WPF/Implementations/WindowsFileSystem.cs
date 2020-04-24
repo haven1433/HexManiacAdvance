@@ -1,9 +1,11 @@
-﻿using HavenSoft.HexManiac.Core.Models;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.WPF.Controls;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -15,6 +17,8 @@ using System.Windows.Threading;
 
 namespace HavenSoft.HexManiac.WPF.Implementations {
    public class WindowsFileSystem : IFileSystem {
+      private const string QueryPalette = "/Text/HexManiacAdvance_Palette";
+
       private readonly Dictionary<string, List<FileSystemWatcher>> watchers = new Dictionary<string, List<FileSystemWatcher>>();
       private readonly Dictionary<string, List<Action<IFileSystem>>> listeners = new Dictionary<string, List<Action<IFileSystem>>>();
 
@@ -214,7 +218,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          return lines;
       }
 
-      public (short[] image, int width) LoadImage() {
+      public (short[] image, short[] paletteHint, int width) LoadImage() {
          var dialog = new OpenFileDialog { Filter = CreateFilterFromOptions("Image Files", "png") };
          var result = dialog.ShowDialog();
          if (result != true) return default;
@@ -223,10 +227,20 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          using (var fileStream = File.Open(fileName, FileMode.Open)) {
             var decoder = new PngBitmapDecoder(fileStream, BitmapCreateOptions.None, BitmapCacheOption.None);
             var frame = decoder.Frames[0];
-            if (frame.PixelWidth % 8 != 0) return (default, frame.PixelWidth);
-            if (frame.PixelHeight % 8 != 0) return (default, frame.PixelHeight);
+            var metadata = (BitmapMetadata)frame.Metadata;
+            short[] comparePalette = null;
+            var comparePaletteMetadata = metadata.GetQuery(QueryPalette) as string;
+            if (comparePaletteMetadata != null) {
+               comparePalette = comparePaletteMetadata.Split(",")
+                  .Select(hex => short.TryParse(hex, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var color) ? color : default)
+                  .ToArray();
+            }
+
+            if (frame.PixelWidth % 8 != 0) return (default, default, frame.PixelWidth);
+            if (frame.PixelHeight % 8 != 0) return (default, default, frame.PixelHeight);
             var format = frame.Format;
             short[] data = new short[frame.PixelWidth * frame.PixelHeight];
+
             if (format == PixelFormats.Bgr24) {
                byte[] raw = new byte[frame.PixelWidth * frame.PixelHeight * 3];
                frame.CopyPixels(raw, frame.PixelWidth * 3, 0);
@@ -236,18 +250,18 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                      var inputPoint = outputPoint * 3;
                      var (r, g, b) = (raw[inputPoint + 2], raw[inputPoint + 1], raw[inputPoint + 0]);
                      r >>= 3; g >>= 3; b >>= 3;
-                     data[outputPoint] = (short)((r << 0) | (g << 5) | (b << 10));
+                     data[outputPoint] = (short)((r << 10) | (g << 5) | (b << 0));
                   }
                }
             } else {
                throw new NotImplementedException();
             }
 
-            return (data, frame.PixelWidth);
+            return (data, comparePalette, frame.PixelWidth);
          }
       }
 
-      public void SaveImage(short[] image, int width) {
+      public void SaveImage(short[] image, short[] palette, int width) {
          int height = image.Length / width;
 
          var dialog = new SaveFileDialog { Filter = CreateFilterFromOptions("Image Files", "png") };
@@ -261,7 +275,11 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          bitmap.WritePixels(rect, image, stride, 0);
 
          var encoder = new PngBitmapEncoder();
-         encoder.Frames.Add(BitmapFrame.Create(bitmap));
+         var metadata = new BitmapMetadata("png");
+         var framePalette = palette.Select(c => c.ToString("X4")).Aggregate((a, b) => a + "," + b);
+         metadata.SetQuery(QueryPalette, framePalette);
+         var frame = BitmapFrame.Create(bitmap, null, metadata, null);
+         encoder.Frames.Add(frame);
          using (var fileStream = File.Create(fileName)) {
             encoder.Save(fileStream);
          }
