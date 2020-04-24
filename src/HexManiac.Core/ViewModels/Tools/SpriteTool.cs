@@ -319,6 +319,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          spriteRun.SetPixels(model, viewPort.CurrentChange, spritePage, newPixels);
          palRun.SetPalette(model, viewPort.CurrentChange, palPage, newPalette);
+         viewPort.Refresh();
+         LoadPalette();
+         LoadSprite();
       }
 
       private void ExportSpriteAndPalette(IFileSystem fileSystem) {
