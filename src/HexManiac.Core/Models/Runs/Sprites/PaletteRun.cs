@@ -46,16 +46,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new PaletteRun(Start, PaletteFormat, newPointerSources);
 
       public IReadOnlyList<short> GetPalette(IDataModel model, int page) {
-         page = page % Pages;
+         page %= Pages;
          var paletteColorCount = (int)Math.Pow(2, bits);
-         var pageLength = paletteColorCount * 2;
+         var pageLength = PaletteFormat.ExpectedByteLengthPerPage;
          return GetPalette(model, Start + page * pageLength, paletteColorCount);
       }
 
-      public IPaletteRun SetPalette(IDataModel model, ModelDelta token, int page, IReadOnlyList<short> data) {
-         for (int i = 0; i < Length; i += 2) {
-            model.WriteMultiByteValue(Start + i, 2, token, data[i / 2]);
-         }
+      public IPaletteRun SetPalette(IDataModel model, ModelDelta token, int page, IReadOnlyList<short> colors) {
+         page %= Pages;
+         var pageLength = PaletteFormat.ExpectedByteLengthPerPage;
+         var start = Start + page * pageLength;
+
+         var data = new byte[pageLength];
+         SetPalette(data, 0, colors);
+         for (int i = 0; i < data.Length; i++) token.ChangeData(model, start + i, data[i]);
          return this;
       }
 
