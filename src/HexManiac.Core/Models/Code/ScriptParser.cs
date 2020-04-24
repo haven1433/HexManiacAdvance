@@ -98,6 +98,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                         if (destinationLength > 0) model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength));
                      } else if (line.PointsToMovement) {
                         WriteMovementStream(model, token, destination, address + length);
+                     } else if (line.PointsToMart) {
+                        WriteMartStream(model, token, destination, address + length);
                      }
                   }
                   length += arg.Length;
@@ -110,6 +112,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       private void WriteMovementStream(IDataModel model, ModelDelta token, int start, int source) {
          TableStreamRun.TryParseTableStream(model, start, new[] { source }, string.Empty, "[move.movementtypes]!FE", null, out var tsRun);
+         if (tsRun != null) model.ObserveRunWritten(token, tsRun);
+      }
+
+      private void WriteMartStream(IDataModel model, ModelDelta token, int start, int source) {
+         TableStreamRun.TryParseTableStream(model, start, new[] { source }, string.Empty, $"[move:{HardcodeTablesModel.ItemsTableName}]!0000", null, out var tsRun);
          if (tsRun != null) model.ObserveRunWritten(token, tsRun);
       }
 
@@ -170,6 +177,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   } else if (command.PointsToText) {
                      newAddress = model.FindFreeSpace(0, 0x10);
                      token.ChangeData(model, newAddress, 0xFF);
+                  } else if (command.PointsToMart) {
+                     newAddress = model.FindFreeSpace(0, 0x10);
+                     token.ChangeData(model, newAddress, 0x00);
+                     token.ChangeData(model, newAddress + 1, 0x00);
                   } else if (command.PointsToNextScript) {
                      newAddress = model.FindFreeSpace(0, 0x10);
                      token.ChangeData(model, newAddress, 0x02);
@@ -191,7 +202,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   CompileError?.Invoke(this, i + ": " + error);
                   return null;
                }
-               if (command.PointsToMovement || command.PointsToText) {
+               if (command.PointsToMovement || command.PointsToText || command.PointsToMart) {
                   var pointerOffset = command.Args.Until(arg => arg.Type == ArgType.Pointer).Sum(arg => arg.Length) + command.LineCode.Count;
                   var destination = result.ReadMultiByteValue(currentSize + pointerOffset, 4) - 0x8000000;
                   if (destination >= 0) {
@@ -236,6 +247,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       bool PointsToNextScript { get; }
       bool PointsToText { get; }
       bool PointsToMovement { get; }
+      bool PointsToMart { get; }
 
       bool Matches(IReadOnlyList<byte> data, int index);
       string Compile(IDataModel model, string scriptLine, out byte[] result);
@@ -254,6 +266,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public bool PointsToNextScript => LineCode.Count == 1 && LineCode[0].IsAny<byte>(4, 5, 6, 7);
       public bool PointsToText => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x0F, 0x67);
       public bool PointsToMovement => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x4F, 0x50);
+      public bool PointsToMart => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x86, 0x87, 0x88);
 
       public ScriptLine(string engineLine) {
          var tokens = engineLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
@@ -355,7 +368,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
             start += arg.Length;
          }
-         if (PointsToText || PointsToMovement) {
+         if (PointsToText || PointsToMovement || PointsToMart) {
             var stream = data.GetNextRun(lastAddress) as IStreamRun;
             if (stream != null) {
                builder.AppendLine();
