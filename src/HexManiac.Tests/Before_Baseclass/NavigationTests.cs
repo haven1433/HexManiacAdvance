@@ -372,6 +372,28 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x30, test.ViewPort.DataOffset);
       }
 
+      [Fact]
+      public void CanGotoNamedElements() {
+         var test = new BaseViewModelTestClass();
+         test.CreateTextTable("names", 0x100, "Adam Bob Carl Dave Eric Fred Greg Hal Jim".Split(" "));
+         test.ViewPort.Edit("@00 ^table[content.]names ");
+
+         test.ViewPort.Goto.Execute("table/Eric");
+
+         Assert.Equal(4, test.ViewPort.DataOffset);
+      }
+
+      [Fact]
+      public void CanGotoSecondNamedElementWithSameName() {
+         var test = new BaseViewModelTestClass();
+         test.CreateTextTable("names", 0x100, "Adam Bob Carl Dave Eric Dave Fred Greg Hal Jim".Split(" "));
+         test.ViewPort.Edit("@00 ^table[content.]names ");
+
+         test.ViewPort.Goto.Execute("table/Dav~2");
+
+         Assert.Equal(5, test.ViewPort.DataOffset);
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          model = new PokemonModel(data);

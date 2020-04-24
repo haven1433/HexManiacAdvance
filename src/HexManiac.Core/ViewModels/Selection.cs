@@ -138,8 +138,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (address.StartsWith(PointerRun.PointerStart.ToString())) address = address.Substring(1);
                if (address.EndsWith(PointerRun.PointerEnd.ToString())) address = address.Substring(0, address.Length - 1);
                if (address.StartsWith("0x")) address = address.Substring(2);
-               var anchor = this.model.GetAddressFromAnchor(new ModelDelta(), -1, address);
                using (ModelCacheScope.CreateScope(this.model)) {
+                  var anchor = this.model.GetAddressFromAnchor(new ModelDelta(), -1, address);
                   if (anchor != Pointer.NULL) {
                      GotoAddress(anchor);
                   } else if (int.TryParse(address, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int result)) {
