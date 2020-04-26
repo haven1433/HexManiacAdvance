@@ -49,5 +49,22 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new LzTilesetRun(Format, Model, Start, newPointerSources);
+
+      public LzTilesetRun SetPixels(IDataModel model, ModelDelta token, int[][,] tiles) {
+         var tileSize = 8 * Format.BitsPerPixel;
+         var data = new byte[tiles.Length * tileSize];
+
+         for (int i = 0; i < tiles.Length; i++) {
+            SpriteRun.SetPixels(data, i * tileSize, tiles[i], Format.BitsPerPixel);
+         }
+
+         var newModelData = Compress(data, 0, data.Length);
+         var newRun = (LzTilesetRun)model.RelocateForExpansion(token, this, newModelData.Count);
+         for (int i = 0; i < newModelData.Count; i++) token.ChangeData(model, newRun.Start + i, newModelData[i]);
+         for (int i = newModelData.Count; i < Length; i++) token.ChangeData(model, newRun.Start + i, 0xFF);
+         newRun = new LzTilesetRun(Format, model, newRun.Start, newRun.PointerSources);
+         model.ObserveRunWritten(token, newRun);
+         return newRun;
+      }
    }
 }

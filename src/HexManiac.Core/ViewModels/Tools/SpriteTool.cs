@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows.Input;
 
@@ -293,9 +294,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          // extract palette
-         paletteHint = paletteHint ?? palette;
+         var renderPalette = GetRenderPalette(model?.GetNextRun(spriteAddress) as ISpriteRun).ToArray();
+         paletteHint = paletteHint ?? renderPalette;
          var newPalette = image.Distinct().ToList();
-         if (newPalette.Count > palette.Length) {
+         if (newPalette.Count > renderPalette.Length) {
             viewPort.RaiseError("The loaded image uses too many colors!");
             return;
          }
@@ -311,29 +313,101 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                newPalette.RemoveAt(index);
                newPalette.Insert(i, color);
             }
-            while (newPalette.Count < palette.Length) newPalette.Add(paletteHint.Except(newPalette).FirstOrDefault());
+            while (newPalette.Count < renderPalette.Length) newPalette.Add(paletteHint.Except(newPalette).FirstOrDefault());
          }
-         var palIndex = new Dictionary<short, int>();
-         for (int i = 0; i < newPalette.Count; i++) palIndex[newPalette[i]] = i;
 
-         // extract pixels
-         int[,] newPixels = new int[width, height];
-         for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-               var pixel = image[y * width + x];
-               newPixels[x, y] = palIndex[pixel];
-            }
-         }
+         var tiles = Tilize(image, width);
+         var palettes = SplitPalettes(newPalette);
+         var tilePixels = tiles.Select(tile => ExtractPixelsForTile(tile, palettes, palRun.PaletteFormat.InitialBlankPages)).ToArray();
+         var newPixels = Detilize(tilePixels, width / 8);
 
          spriteRun.SetPixels(model, viewPort.CurrentChange, spritePage, newPixels);
-         palRun.SetPalette(model, viewPort.CurrentChange, palPage, newPalette);
+         if (palettes.Length == palRun.Pages) {
+            for (int i = 0; i < palettes.Length; i++) palRun.SetPalette(model, viewPort.CurrentChange, i, palettes[i]);
+         } else {
+            palRun.SetPalette(model, viewPort.CurrentChange, palPage, newPalette);
+         }
          viewPort.Refresh();
          LoadPalette();
          LoadSprite();
       }
 
+      private short[][] SplitPalettes(IReadOnlyList<short> colors) {
+         Debug.Assert(colors.Count % 16 == 0);
+         var result = new short[colors.Count / 16][];
+         for (int i = 0; i < result.Length; i++) result[i] = colors.Skip(i * 16).Take(16).ToArray();
+         return result;
+      }
+
+      private short[][] Tilize(short[] image, int width) {
+         var height = image.Length / width;
+         if (width % 8 != 0 || height % 8 != 0) throw new NotSupportedException("You can only tilize an image if width/height are multiples of 8!");
+         int tileWidth = width / 8, tileHeight = height / 8;
+         var result = new short[tileWidth * tileHeight][];
+         for (int y = 0; y < tileHeight; y++) {
+            for (int x = 0; x < tileWidth; x++) {
+               var tileIndex = y * tileWidth + x;
+               result[tileIndex] = new short[64];
+               for(int yy = 0; yy < 8; yy++) {
+                  for(int xx = 0; xx < 8; xx++) {
+                     var yIndex = y * 8 + yy;
+                     var xIndex = x * 8 + xx;
+                     var index = yIndex * width + xIndex;
+                     result[tileIndex][yy * 8 + xx] = image[index];
+                  }
+               }
+            }
+         }
+         return result;
+      }
+
+      private int WhichPalette(short[] tile, short[][] palettes) {
+         for (int i = 0; i < palettes.Length; i++) {
+            if (tile.All(palettes[i].Contains)) return i;
+         }
+         return -1;
+      }
+
+      private int[,] ExtractPixelsForTile(short[] tile, short[][]palettes, int paletteOffset) {
+         var paletteIndex = WhichPalette(tile, palettes);
+         var palette = palettes[paletteIndex];
+         paletteIndex = (paletteIndex + paletteOffset) << 4;
+         var palIndex = new Dictionary<short, int>();
+         var result = new int[8, 8];
+         for (int i = 0; i < palette.Length; i++) palIndex[palette[i]] = i;
+         for (int y = 0; y < 8; y++) {
+            for (int x = 0; x < 8; x++) {
+               var pixel = tile[y * 8 + x];
+               result[x, y] = palIndex[pixel] + paletteIndex;
+            }
+         }
+         return result;
+      }
+
+      private int[,] Detilize(int[][,] tiles, int tileWidth) {
+         Debug.Assert(tiles.Length % tileWidth == 0);
+         int tileHeight = tiles.Length / tileWidth;
+         var result = new int[tileWidth * 8, tiles.Length / tileWidth * 8];
+
+         for (int y = 0; y < tileHeight; y++) {
+            var yStart = y * 8;
+            for (int x = 0; x < tileWidth; x++) {
+               var tile = tiles[y * tileWidth + x];
+               var xStart = x * 8;
+               for (int yy = 0; yy < 8; yy++) {
+                  for (int xx = 0; xx < 8; xx++) {
+                     result[xStart + xx, yStart + yy] = tile[xx, yy];
+                  }
+               }
+            }
+         }
+
+         return result;
+      }
+
       private void ExportSpriteAndPalette(IFileSystem fileSystem) {
-         fileSystem.SaveImage(PixelData, palette, PixelWidth);
+         var renderPalette = GetRenderPalette(model?.GetNextRun(spriteAddress) as ISpriteRun).ToArray();
+         fileSystem.SaveImage(PixelData, renderPalette, PixelWidth);
       }
    }
 }
