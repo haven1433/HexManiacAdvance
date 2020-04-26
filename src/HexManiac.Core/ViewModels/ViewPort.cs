@@ -35,6 +35,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          undoWrapper = new StubCommand(),
          redoWrapper = new StubCommand(),
          clear = new StubCommand(),
+         selectAll = new StubCommand(),
          copy = new StubCommand(),
          copyAddress = new StubCommand(),
          copyBytes = new StubCommand(),
@@ -156,6 +157,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand Back => selection.Back;
       public ICommand Forward => selection.Forward;
       public ICommand ResetAlignment => selection.ResetAlignment;
+      public ICommand SelectAll => selectAll;
 
       private void ClearActiveEditBeforeSelectionChanges(object sender, Point location) {
          if (location.X >= 0 && location.X < scroll.Width && location.Y >= 0 && location.Y < scroll.Height) {
@@ -309,6 +311,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
          if (maxByteCount < length) result.Append("...");
          return result.ToString();
+      }
+
+      private void SelectAllExecuted() {
+         Goto.Execute(0);
+         SelectionStart = new Point(0, 0);
+         SelectionEnd = scroll.DataIndexToViewPoint(Model.Count - 1);
       }
 
       #endregion
@@ -566,10 +574,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
             var left = Math.Min(selectionStart, selectionEnd);
             var length = Math.Abs(selectionEnd - selectionStart) + 1;
-            bool usedHistory = false;
-            ((IFileSystem)arg).CopyText = Model.Copy(() => { usedHistory = true; return history.CurrentChange; }, left, length);
-            RefreshBackingData();
-            if (usedHistory) UpdateToolsFromSelection(left);
+            if (length > 10000) {
+               OnError?.Invoke(this, "Cannot copy more than 9999 bytes at once!");
+            } else {
+               bool usedHistory = false;
+               ((IFileSystem)arg).CopyText = Model.Copy(() => { usedHistory = true; return history.CurrentChange; }, left, length);
+               RefreshBackingData();
+               if (usedHistory) UpdateToolsFromSelection(left);
+            }
             RequestMenuClose?.Invoke(this, EventArgs.Empty);
          };
 
@@ -612,6 +624,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          close.CanExecute = CanAlwaysExecute;
          close.Execute = arg => CloseExecuted((IFileSystem)arg);
+
+         selectAll.CanExecute = CanAlwaysExecute;
+         selectAll.Execute = arg => SelectAllExecuted();
       }
 
       /// <summary>

@@ -37,6 +37,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          copy = new StubCommand(),
          paste = new StubCommand(),
          delete = new StubCommand(),
+         selectAll = new StubCommand(),
 
          back = new StubCommand(),
          forward = new StubCommand(),
@@ -72,6 +73,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand Copy => copy;
       public ICommand Paste => paste;
       public ICommand Delete => delete;
+      public ICommand SelectAll => selectAll;
       public ICommand Back => back;
       public ICommand Forward => forward;
       public ICommand Find => find;                         // parameter: target string to search
@@ -292,6 +294,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          copy = CreateWrapperForSelected(tab => tab.Copy);
          delete = CreateWrapperForSelected(tab => tab.Clear);
+         selectAll = CreateWrapperForSelected(tab => tab.SelectAll);
          save = CreateWrapperForSelected(tab => tab.Save);
          saveAs = CreateWrapperForSelected(tab => tab.SaveAs);
          close = CreateWrapperForSelected(tab => tab.Close);
@@ -307,6 +310,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          forwardExecuteChangeNotifications = new Dictionary<Func<ITabContent, ICommand>, EventHandler> {
             { tab => tab.Copy, (sender, e) => copy.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.Clear, (sender, e) => delete.CanExecuteChanged.Invoke(this, e) },
+            { tab => tab.SelectAll, (sender, e) => selectAll.CanExecuteChanged.Invoke(this,e) },
             { tab => tab.Save, (sender, e) => save.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.SaveAs, (sender, e) => saveAs.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.Close, (sender, e) => close.CanExecuteChanged.Invoke(this, e) },
