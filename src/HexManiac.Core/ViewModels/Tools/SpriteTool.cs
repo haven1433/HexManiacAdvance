@@ -321,13 +321,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var tilePixels = tiles.Select(tile => ExtractPixelsForTile(tile, palettes, palRun.PaletteFormat.InitialBlankPages)).ToArray();
          var newPixels = Detilize(tilePixels, width / 8);
 
-         spriteRun.SetPixels(model, viewPort.CurrentChange, spritePage, newPixels);
+         IFormattedRun newRun = spriteRun.SetPixels(model, viewPort.CurrentChange, spritePage, newPixels);
+         bool spriteMoved = newRun.Start != spriteRun.Start;
+
+         var initialPalletteRun = palRun;
          if (palettes.Length == palRun.Pages) {
-            for (int i = 0; i < palettes.Length; i++) palRun.SetPalette(model, viewPort.CurrentChange, i, palettes[i]);
+            for (int i = 0; i < palettes.Length; i++) palRun = palRun.SetPalette(model, viewPort.CurrentChange, i, palettes[i]);
          } else {
-            palRun.SetPalette(model, viewPort.CurrentChange, palPage, newPalette);
+            palRun = palRun.SetPalette(model, viewPort.CurrentChange, palPage, newPalette);
          }
-         viewPort.Refresh();
+         bool paletteMoved = initialPalletteRun.Start != palRun.Start;
+
+         if (spriteMoved && !paletteMoved) {
+            viewPort.Goto.Execute(newRun.Start);
+            viewPort.RaiseMessage($"Sprite moved to {newRun.Start:X6}. Pointers have been updated.");
+         } else if (paletteMoved && !spriteMoved) {
+            viewPort.Goto.Execute(palRun.Start);
+            viewPort.RaiseMessage($"Palette moved to {palRun.Start:X6}. Pointers have been updated.");
+         } else if (paletteMoved && spriteMoved) {
+            viewPort.Goto.Execute(newRun.Start);
+            viewPort.RaiseMessage($"Sprite and palette moved to {newRun.Start:X6} and {palRun.Start:X6}.");
+         } else {
+            viewPort.Refresh();
+         }
+
          LoadPalette();
          LoadSprite();
       }
