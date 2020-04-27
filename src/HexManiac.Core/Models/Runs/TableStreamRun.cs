@@ -90,6 +90,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public IStreamRun DeserializeRun(string content, ModelDelta token) {
          var lines = content.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+         if (lines.Length == 0) lines = content.Split(Environment.NewLine);
          var newRun = this;
          var appendCount = Math.Max(lines.Length, 1) - ElementCount;
          if (lines.Length != ElementCount) newRun = (TableStreamRun)Append(token, appendCount);
