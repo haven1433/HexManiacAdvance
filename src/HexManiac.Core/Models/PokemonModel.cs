@@ -1007,7 +1007,9 @@ namespace HavenSoft.HexManiac.Core.Models {
                matchedWords[wordRun.SourceArrayName].Remove(wordRun.Start);
             }
 
-            ClearAnchorFormat(changeToken, keepInitialAnchorPointers, run);
+            if (GetNextRun(run.Start).Start == run.Start) {
+               ClearAnchorFormat(changeToken, keepInitialAnchorPointers, run);
+            }
 
             if (alsoClearData) {
                for (int i = 0; i < run.Length; i++) changeToken.ChangeData(this, run.Start + i, 0xFF);
@@ -1117,7 +1119,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          // the only run that is allowed to exist with nothing pointing to it and no name is a pointer run.
          // if it's any other kind of run with no name and no pointers to it, remove it.
          if (newAnchorRun.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(newAnchorRun.Start) && !(newAnchorRun is PointerRun)) {
-            runs.RemoveAt(index);
+            ClearFormat(changeToken, anchorRun.Start, anchorRun.Length, false, false);
          } else if (newAnchorRun.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(newAnchorRun.Start) && newAnchorRun is PointerRun) {
             // if it IS a pointer run, we still need to remove the anchor by setting the pointerSources to null.
             runs[index] = new PointerRun(newAnchorRun.Start);
