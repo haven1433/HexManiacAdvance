@@ -35,10 +35,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          var pageSplit = formatContent.Split(':');
          int pages = 1, pageStart = 0;
          if (pageSplit.Length == 2) {
-            var lastPageID = pageSplit[1].ToUpper().Last();
+            var lastPageID = pageSplit[1].ToUpper().LastOrDefault();
             var lastPageIndex = ViewModels.ViewPort.AllHexCharacters.IndexOf(lastPageID);
             if (lastPageIndex > 0) pages = lastPageIndex + 1;
-            var firstPageID = pageSplit[1].ToUpper().First();
+            var firstPageID = pageSplit[1].ToUpper().FirstOrDefault();
             var firstPageIndex = ViewModels.ViewPort.AllHexCharacters.IndexOf(firstPageID);
             if (firstPageIndex > 0) pageStart = firstPageIndex;
             pages -= firstPageIndex;

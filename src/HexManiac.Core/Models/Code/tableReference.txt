@@ -94,6 +94,15 @@ bagtypeicon,               ,       ,       ,       ,       ,       ,       ,    
 bagtypepalette,            ,       ,       ,       ,       ,       ,       ,       , 19A2E0, `ucp4`
 bagtypeiconmap,            ,       ,       ,       ,       ,       ,       ,       , 19A33C, [width. height. xy:]24
 
+titlescreenPokemonPalette,    07C298, 07C29C, 07C2B8, 07C2BC, ,,,, , `ucp4:01`
+titlescreenPokemonTileset,    07C280, 07C284, 07C2A0, 07C2A4, ,,,, , `lzt4|titlescreenPokemonPalette`
+titlescreenPokemonTilemap,    07C288, 07C28C, 07C2A8, 07C2AC, ,,,, , `lzm4x32x20|titlescreenPokemonTileset`
+titlescreenLogoSprite,        07C270, 07C274, 07C290, 07C294, ,,,, , `lzs8x32x8`
+titlescreenLogoPalette,       07C27C, 07C280, 07C29C, 07C2A0, ,,,, , `ucp4:0123456789ABCD`
+titlescreenVersionSprite,     393EFC, 393D44, 393F14, 393D5C, ,,,, , `lzs8x8x8|titlescreenLogoPalette`
+titlescreenPublisherPalette,  393F9C, 393DE4, 393FB4, 393DFC, ,,,, , `ucp4`
+titlescreenPublisherTileSet,  393F8C, 393DD4, 393FA4, 393DEC, ,,,, , `lzt4|titlescreenPublisherPalette`
+// titlescreenPublisherTileMap
 
 titlescreenLogoPalette,       ,,,, 078A94, 078A94, 078AA8, 078AA8, , `ucp8`
 titlescreenLogoTileSet,       ,,,, 078A98, 078A98, 078AAC, 078AAC, , `lzt8|titlescreenLogoPalette`
