@@ -622,7 +622,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          var offsets = run.ConvertByteOffsetToArrayOffset(memoryLocation);
          var segment = run.ElementContent[offsets.SegmentIndex];
          if (segment is ArrayRunPointerSegment pointerSegment) {
-            if (!pointerSegment.DestinationDataMatchesPointerFormat(Model, CurrentChange, offsets.SegmentStart, pointerDestination, null)) {
+            if (!pointerSegment.DestinationDataMatchesPointerFormat(Model, CurrentChange, offsets.SegmentStart, pointerDestination, run.ElementContent)) {
                ErrorText = $"This pointer must point to {pointerSegment.InnerFormat} data.";
                return;
             }

@@ -33,7 +33,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          run = runAttempt;
       }
       public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
-         var errorInfo = ArrayRun.TryParse(model, name, Format, dataIndex, null, out var arrayRun);
+         var pointerSources = model.GetUnmappedSourcesToAnchor(name);
+         var errorInfo = ArrayRun.TryParse(model, name, Format, dataIndex, pointerSources, out var arrayRun);
          if (errorInfo == ErrorInfo.NoError) {
             run = arrayRun;
          } else if (Format != string.Empty) {

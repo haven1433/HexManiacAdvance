@@ -29,10 +29,19 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          if (start < 0) return false; // not a valid data location, so the data can't possibly be valid
 
+         if (model.GetUnmappedSourcesToAnchor(fieldName).Length > 0) {
+            // we're pasting this format and something else is expecting it. Don't expect the content to match yet.
+            return tableStream.ElementCount > 0; 
+         }
+
          // if the first 90% matches, we don't need to check the last 10%
          var mostElementsCount = (int)Math.Ceiling(tableStream.ElementCount * .9);
-         for (int i = 0; i < mostElementsCount; i++) {
-            int subStart = start + tableStream.ElementLength * i;
+         return DataMatches(model, tableStream, mostElementsCount);
+      }
+
+      public static bool DataMatches(IDataModel model, TableStreamRun tableStream, int elementsCount) {
+         for (int i = 0; i < elementsCount; i++) {
+            int subStart = tableStream.Start + tableStream.ElementLength * i;
             for (int j = 0; j < tableStream.ElementContent.Count; j++) {
                if (!ArrayRun.DataMatchesSegmentFormat(model, subStart, tableStream.ElementContent[j], default, tableStream.ElementContent)) return false;
                subStart += tableStream.ElementContent[j].Length;
@@ -84,7 +93,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public string SerializeRun() {
          var builder = new StringBuilder();
-         this.AppendTo(model, builder, Start, ElementLength * ElementCount);
+         AppendTo(model, builder, Start, ElementLength * ElementCount);
          return builder.ToString();
       }
 
@@ -246,8 +255,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public int GetCount(int start, int elementLength, IReadOnlyList<int> pointerSources) {
-         int defaultValue = start >= 0 ? 0 : 1;
-         var parentIndex = GetParentIndex(pointerSources);
+         int defaultValue = 1;
+         var parentIndex = pointerSources != null ? GetParentIndex(pointerSources) : -1;
          var run = parentIndex >= 0 ? model.GetNextRun(parentIndex) as ITableRun : null;
          int countSegmentIndex = -1;
          var segments = run?.ElementContent ?? sourceSegments;
@@ -294,8 +303,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          var newRun = run;
          if (newElementCount != newRun.ElementCount) {
-            newRun = (TableStreamRun)newRun.Append(token, newElementCount - newRun.ElementCount);
-            UpdateParents(token, parent, segmentIndex, newElementCount, newRun.PointerSources);
+            var nextRunMinimumStart = newRun.Start + newRun.ElementLength * newElementCount;
+            if (TableStreamRun.DataMatches(model, newRun, newElementCount) && model.GetNextRun(nextRunMinimumStart).Start >= nextRunMinimumStart) {
+               // no need to repoint: the next data matches
+               // this is important for when we're pasting pointers to existing formats before pasting those formats lengths.
+               UpdateParents(token, parent, segmentIndex, newElementCount, newRun.PointerSources);
+               newRun = new TableStreamRun(model, newRun.Start, newRun.PointerSources, newRun.FormatString, newRun.ElementContent, this);
+            } else {
+               newRun = (TableStreamRun)newRun.Append(token, newElementCount - newRun.ElementCount);
+               UpdateParents(token, parent, segmentIndex, newElementCount, newRun.PointerSources);
+            }
          }
 
          return newRun;

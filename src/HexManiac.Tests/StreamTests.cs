@@ -63,7 +63,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void ExtendingTableStreamRepoints() {
-         ViewPort.Edit("00 01 02 03 FF CC @00 ^table[value.]!FF ");
+         ViewPort.Edit("00 01 02 03 FF ^bob CC @00 ^table[value.]!FF ");
          ViewPort.Tools.SelectedIndex = ViewPort.Tools.IndexOf(ViewPort.Tools.StringTool);
          Assert.Equal(@"0
 1

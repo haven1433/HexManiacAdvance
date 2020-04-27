@@ -351,6 +351,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          return false;
       }
 
+      public override int[] GetUnmappedSourcesToAnchor(string anchor) {
+         if (!unmappedNameToSources.TryGetValue(anchor, out var list)) return new int[0];
+         return list.ToArray();
+      }
+
       public override int GetAddressFromAnchor(ModelDelta changeToken, int requestSource, string anchor) {
 
          var nameparts = anchor.Split('/');
@@ -996,7 +1001,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
             if (run.Start >= start + length) return;
             if (run is PointerRun) ClearPointerFormat(null, changeToken, run.Start);
-            if (run is ArrayRun arrayRun) ModifyAnchorsFromPointerArray(changeToken, arrayRun, ClearPointerFormat);
+            if (run is ITableRun arrayRun) ModifyAnchorsFromPointerArray(changeToken, arrayRun, ClearPointerFormat);
             if (run is WordRun wordRun) {
                changeToken.RemoveMatchedWord(wordRun.Start, wordRun.SourceArrayName);
                matchedWords[wordRun.SourceArrayName].Remove(wordRun.Start);

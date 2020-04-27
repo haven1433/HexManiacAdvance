@@ -414,7 +414,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          paste.CanExecute = arg => SelectedTab is ViewPort;
          paste.Execute = arg => {
-            (SelectedTab as ViewPort)?.Edit(fileSystem.CopyText);
+            var copyText = fileSystem.CopyText;
+            // if the paste is long, add whitespace to complete any pasted elements
+            if (copyText.Contains(Environment.NewLine)) copyText += " ";
+            (SelectedTab as ViewPort)?.Edit(copyText);
          };
       }
 

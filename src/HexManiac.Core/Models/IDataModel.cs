@@ -58,6 +58,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       int ReadPointer(int address);
       int ReadValue(int address);
 
+      int[] GetUnmappedSourcesToAnchor(string anchor);
       int GetAddressFromAnchor(ModelDelta changeToken, int requestSource, string anchor);
       string GetAnchorFromAddress(int requestSource, int destination);
       IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial);
@@ -109,6 +110,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          Array.Copy(RawData, newData, RawData.Length);
          RawData = newData;
       }
+
+      public virtual int[] GetUnmappedSourcesToAnchor(string anchor) => new int[0];
 
       public abstract int GetAddressFromAnchor(ModelDelta changeToken, int requestSource, string anchor);
 

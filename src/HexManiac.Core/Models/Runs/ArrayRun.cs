@@ -259,6 +259,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (startArray == -1 || startArray > closeArray) return new ErrorInfo($"Array Content must be wrapped in {ArrayStart}{ArrayEnd}.");
          var length = format.Substring(closeArray + 1);
 
+         var sourceSegments = 
+            data.GetUnmappedSourcesToAnchor(name)
+            .Select(source => data.GetNextRun(source) as ITableRun)
+            .Where(tRun => tRun != null)
+            .Select(tRun => tRun.ElementContent)
+            .FirstOrDefault();
+
          if (length.All(c => char.IsLetterOrDigit(c) || c.IsAny('-', '+'))) {
             // option 1: the length looks like a standard table length (or is empty, and thus dynamic). Parse as a table.
             try {
@@ -268,7 +275,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             } catch (ArrayRunParseException e) {
                return new ErrorInfo(e.Message);
             }
-         } else if (TableStreamRun.TryParseTableStream(data, start, pointerSources, name, format, null, out var tableStreamRun)) {
+         } else if (TableStreamRun.TryParseTableStream(data, start, pointerSources, name, format, sourceSegments, out var tableStreamRun)) {
             // option 2: parse as a table stream, because the length contains characters like / or ! that make it look dependent on 
             self = tableStreamRun;
          } else {
