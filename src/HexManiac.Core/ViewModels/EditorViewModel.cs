@@ -175,6 +175,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (value) {
                gotoViewModel.ControlVisible = false;
                FindControlVisible = false;
+               HexConverterVisible = false;
                ShowMessage = false;
             }
             if (TryUpdate(ref showError, value)) clearError.CanExecuteChanged.Invoke(clearError, EventArgs.Empty);
@@ -197,6 +198,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (value) {
                gotoViewModel.ControlVisible = false;
                FindControlVisible = false;
+               HexConverterVisible = false;
                ShowError = false;
             } else {
                infoMessage = string.Empty;
@@ -379,6 +381,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          hideSearchControls.Execute = arg => {
             gotoViewModel.ControlVisible = false;
             FindControlVisible = false;
+            HexConverterVisible = false;
             ShowError = false;
             ShowMessage = false;
          };
@@ -672,6 +675,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             ClearError.Execute();
             ClearMessage.Execute();
             FindControlVisible = false;
+            HexConverterVisible = false;
          }
       }
 
