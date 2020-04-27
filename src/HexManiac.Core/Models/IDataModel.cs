@@ -339,8 +339,11 @@ namespace HavenSoft.HexManiac.Core.Models {
             table = arrayRun;
          }
 
-         ExtendTableAndChildren(model, changeToken, table);
+         var newTable = ExtendTableAndChildren(model, changeToken, table);
 
+         if (newTable.Start != table.Start && string.IsNullOrEmpty(currentArrayName)) {
+            return new ErrorInfo($"Stream was moved. Pointers have been updated.", isWarningLevel: true);
+         }
 
          table = model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, currentArrayName)) as ITableRun;
          if (table == null) return ErrorInfo.NoError;
@@ -375,10 +378,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          return string.Empty;
       }
 
-      private static void ExtendTableAndChildren(IDataModel model, ModelDelta changeToken, ITableRun array) {
+      private static ITableRun ExtendTableAndChildren(IDataModel model, ModelDelta changeToken, ITableRun array) {
          var newRun = (ITableRun)model.RelocateForExpansion(changeToken, array, array.Length + array.ElementLength);
          newRun = newRun.Append(changeToken, 1);
          model.ObserveRunWritten(changeToken, newRun);
+         return newRun;
       }
 
       /// <summary>
