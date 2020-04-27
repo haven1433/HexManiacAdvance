@@ -93,7 +93,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       }
 
       private static EditorViewModel GetViewModel(string fileName, int address, IFileSystem fileSystem, bool useMetadata) {
-         fileName = Path.GetFullPath(fileName);
+         if (fileName != string.Empty) fileName = Path.GetFullPath(fileName);
          SetInitialWorkingDirectory();
          var editor = new EditorViewModel(fileSystem, useMetadata);
          if (!File.Exists(fileName)) return editor;
