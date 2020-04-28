@@ -278,6 +278,25 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          }
 
          CodeContentsPopup.IsOpen = true;
+         // var selectedLine = textbox.Text.Split(Environment.NewLine)[linesBeforeSelection];
+         // Annotate(textbox, textbox.SelectionStart, selectedLine.Split(' ')[0], Brush(nameof(Theme.Accent)));
+      }
+
+      private void Annotate(TextBox box, int index, string annotation, SolidColorBrush brush) {
+         var grid = box.Parent as Grid;
+         if (grid == null) return;
+         if (grid.Children.Count != 2) return;
+         var annotationBlock = grid.Children[1] as TextBlock;
+         if (annotationBlock == null) return;
+
+         var linesBeforeSelection = box.Text.Substring(0, index).Split(Environment.NewLine).Length - 1;
+         var totalLines = box.Text.Split(Environment.NewLine).Length;
+         var lineHeight = box.ExtentHeight / totalLines;
+         var verticalStart = lineHeight * linesBeforeSelection;
+
+         annotationBlock.Text = annotation;
+         annotationBlock.Margin = new Thickness(3, verticalStart + 1, 0, 0);
+         annotationBlock.Foreground = brush;
       }
 
       private void HeaderMouseDown(object sender, MouseButtonEventArgs e) {
