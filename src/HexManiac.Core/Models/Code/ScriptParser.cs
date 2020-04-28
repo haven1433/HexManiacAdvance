@@ -219,6 +219,16 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return result.ToArray();
       }
 
+      public string GetHelp(string currentLine) {
+         var candidates = engine.Where(line => line.LineCommand.Contains(currentLine.Split(' ')[0])).ToList();
+         if (candidates.Count > 10) return null;
+         if (candidates.Count == 0) return null;
+         if (candidates.Count == 1) return candidates[0].Usage + Environment.NewLine + string.Join(Environment.NewLine, candidates[0].Documentation);
+         var perfectMatch = candidates.FirstOrDefault(candidate => (currentLine + " ").StartsWith(candidate.LineCommand + " "));
+         if (perfectMatch != null) return perfectMatch.Usage + Environment.NewLine + string.Join(Environment.NewLine, perfectMatch.Documentation);
+         return string.Join(Environment.NewLine, candidates.Select(line => line.Usage));
+      }
+
       private string[] Decompile(IDataModel data, int index, int length) {
          var results = new List<string>();
          while (length > 0) {
@@ -255,11 +265,15 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
    }
 
    public class ScriptLine : IScriptLine {
+      private readonly List<string> documentation = new List<string>();
+
       public const string Hex = "0123456789ABCDEF";
       public IReadOnlyList<ScriptArg> Args { get; }
       public IReadOnlyList<byte> LineCode { get; }
       public string LineCommand { get; }
       public int CompiledByteLength { get; }
+      public IReadOnlyList<string> Documentation => documentation;
+      public string Usage { get; }
 
       private static readonly byte[] endCodes = new byte[] { 0x02, 0x03, 0x05, 0x08, 0x0A, 0x0C, 0x0D };
       public bool IsEndingCommand { get; }
@@ -269,6 +283,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public bool PointsToMart => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x86, 0x87, 0x88);
 
       public ScriptLine(string engineLine) {
+         var docSplit = engineLine.Split(new[] { '#' }, 2);
+         if (docSplit.Length > 1) documentation.Add('#' + docSplit[1]);
+         engineLine = docSplit[0].Trim();
+         Usage = engineLine.Split(new[] { ' ' }, 2).Last();
+
          var tokens = engineLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
          var lineCode = new List<byte>();
          var args = new List<ScriptArg>();
@@ -290,6 +309,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          CompiledByteLength = LineCode.Count + Args.Sum(arg => arg.Length);
          IsEndingCommand = LineCode.Count == 1 && endCodes.Contains(LineCode[0]);
       }
+
+      public void AddDocumentation(string doc) => documentation.Add(doc);
+
+      public bool PartialMatchLine(string line) => LineCommand.MatchesPartial(line.Split(' ')[0]);
 
       public bool Matches(IReadOnlyList<byte> data, int index) {
          if (index + LineCode.Count >= data.Count) return false;

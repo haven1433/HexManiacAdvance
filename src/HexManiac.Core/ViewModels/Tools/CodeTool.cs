@@ -127,12 +127,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
             if (Contents.Count > i) {
                Contents[i].ContentChanged -= ScriptChanged;
+               Contents[i].HelpSourceChanged -= UpdateScriptHelpFromLine;
                Contents[i].Content = body.Content;
                Contents[i].Address = body.Address;
                Contents[i].Label = body.Label;
+               Contents[i].HelpSourceChanged += UpdateScriptHelpFromLine;
                Contents[i].ContentChanged += ScriptChanged;
             } else {
                body.ContentChanged += ScriptChanged;
+               body.HelpSourceChanged += UpdateScriptHelpFromLine;
                Contents.Add(body);
             }
          }
@@ -155,7 +158,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             CompileScriptChanges(run, length, ref codeContent, body == Contents[0]);
 
             body.ContentChanged -= ScriptChanged;
+            body.HelpSourceChanged -= UpdateScriptHelpFromLine;
             body.Content = codeContent;
+            body.HelpSourceChanged += UpdateScriptHelpFromLine;
             body.ContentChanged += ScriptChanged;
 
             // reload
@@ -164,6 +169,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (start > end) (start, end) = (end, start);
             UpdateContents(start, body.Address);
          }
+      }
+
+      private void UpdateScriptHelpFromLine(object sender, string line) {
+         var codeBody = (CodeBody)sender;
+         var help = ScriptParser.GetHelp(line);
+         codeBody.HelpContent = help;
       }
 
       private void CompileChanges() {
@@ -271,6 +282,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class CodeBody : ViewModelCore {
       public event EventHandler ContentChanged;
 
+      public event EventHandler<string> HelpSourceChanged;
+
       private string label;
       public string Label {
          get => label;
@@ -283,6 +296,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set => TryUpdate(ref address, value);
       }
 
+      private int caretPosition;
+      public int CaretPosition {
+         get => caretPosition;
+         set {
+            if (!TryUpdate(ref caretPosition, value)) return;
+            var lines = content.Split(Environment.NewLine).ToList();
+            while (caretPosition > lines[0].Length) {
+               caretPosition -= lines[0].Length + Environment.NewLine.Length;
+               lines.RemoveAt(0);
+            }
+            HelpSourceChanged?.Invoke(this, lines[0]);
+         }
+      }
+
       private string content;
       public string Content {
          get => content;
@@ -291,5 +318,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             ContentChanged?.Invoke(this, EventArgs.Empty);
          }
       }
+
+      private string helpContent;
+      public string HelpContent { get => helpContent; set => TryUpdate(ref helpContent, value); }
    }
 }

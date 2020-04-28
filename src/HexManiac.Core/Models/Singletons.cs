@@ -34,11 +34,21 @@ namespace HavenSoft.HexManiac.Core.Models {
       private IReadOnlyList<ScriptLine> LoadScriptReference() {
          if (!File.Exists(ScriptReferenceFileName)) return new List<ScriptLine>();
          var lines = File.ReadAllLines(ScriptReferenceFileName);
-         return lines
-            .Select(line => line.Split('#').First().Trim())
-            .Where(line => !string.IsNullOrEmpty(line))
-            .Select(line => new ScriptLine(line))
-            .ToArray();
+         var scriptLines = new List<ScriptLine>();
+         ScriptLine active = null;
+         foreach (var line in lines) {
+            if (string.IsNullOrEmpty(line)) continue;
+            if (!line.StartsWith(" ") && active != null) active = null;
+            if (line.StartsWith("#")) continue;
+            if (line.Trim().StartsWith("#") && active != null) {
+               active.AddDocumentation(line.Trim());
+            } else {
+               active = new ScriptLine(line);
+               scriptLines.Add(active);
+            }
+         }
+
+         return scriptLines.ToArray();
       }
 
       private static readonly string[] referenceOrder = new string[] { "name", Ruby, Sapphire, Ruby1_1, Sapphire1_1, FireRed, LeafGreen, FireRed1_1, LeafGreen1_1, Emerald, "format" };

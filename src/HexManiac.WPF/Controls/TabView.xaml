@@ -5,6 +5,7 @@
       xmlns:hsg3hvmtr="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Tools;assembly=HexManiac.Core"
       xmlns:hsg3hw="clr-namespace:HavenSoft.HexManiac.WPF.Windows"
       xmlns:hsg3hv="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
+      PreviewMouseDown="ClearPopup"
       DataContextChanged="HandleDataContextChanged">
    <UserControl.Resources>
       <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
@@ -80,6 +81,17 @@
                </Style.Triggers>
             </Style>
          </Grid.Style>
+         <Popup Name="CodeContentsPopup" StaysOpen="False">
+            <Border BorderBrush="{DynamicResource Accent}" BorderThickness="1" Background="{DynamicResource Background}">
+               <StackPanel Width="300">
+                  <StackPanel Orientation="Horizontal">
+                     <TextBlock Name="CodeContentsPopupKeywordText" FontFamily="Consolas" FontWeight="Bold" Foreground="{DynamicResource Accent}"/>
+                     <TextBlock Name="CodeContentsPopupArgsText" FontFamily="Consolas"/>
+                  </StackPanel>
+                  <TextBlock Name="CodeContentsPopupDocumentationText" FontFamily="Consolas" TextWrapping="Wrap" FontStyle="Italic" Foreground="{DynamicResource Secondary}"/>
+               </StackPanel>
+            </Border>
+         </Popup>
          <DockPanel Width="265" Name="TableToolPanel">
             <DockPanel.Style>
                <Style TargetType="DockPanel">
@@ -390,7 +402,8 @@
                            <DataTemplate>
                               <StackPanel>
                                  <TextBlock Text="{Binding Label}" Margin="2,0"/>
-                                 <TextBox Margin="5" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" FontFamily="Consolas"/>
+                                 <TextBox Margin="5" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
+                                          AcceptsReturn="True" FontFamily="Consolas" SelectionChanged="CodeToolContentsSelectionChanged"/>
                               </StackPanel>
                            </DataTemplate>
                         </ItemsControl.ItemTemplate>

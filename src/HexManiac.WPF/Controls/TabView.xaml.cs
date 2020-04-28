@@ -237,6 +237,49 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          tool.PropertyChanged += HandleStringToolPropertyChanged;
       }
 
+      private void CodeToolContentsSelectionChanged(object sender, RoutedEventArgs e) {
+         var textbox = (TextBox)sender;
+         var viewPort = DataContext as IViewPort;
+         var tool = viewPort?.Tools?.CodeTool;
+         if (tool == null) return;
+         var codebody = (CodeBody)textbox.DataContext;
+
+         codebody.CaretPosition = textbox.SelectionStart;
+         if (string.IsNullOrEmpty(codebody.HelpContent) || !textbox.IsFocused) {
+            CodeContentsPopup.IsOpen = false;
+            return;
+         }
+
+         var linesBeforeSelection = textbox.Text.Substring(0, textbox.SelectionStart).Split(Environment.NewLine).Length - 1;
+         var totalLines = textbox.Text.Split(Environment.NewLine).Length;
+         var lineHeight = textbox.ExtentHeight / totalLines;
+         var verticalStart = lineHeight * (linesBeforeSelection + 1) + 2;
+
+         CodeContentsPopup.Placement = PlacementMode.Absolute;
+         var corner = textbox.PointToScreen(new System.Windows.Point(40, verticalStart));
+         CodeContentsPopup.HorizontalOffset = corner.X;
+         CodeContentsPopup.VerticalOffset = corner.Y;
+
+         var helpParts = codebody.HelpContent.Split(new[] { Environment.NewLine }, 2, StringSplitOptions.None);
+         var keyword = helpParts[0].Split(' ')[0];
+         var args = helpParts[0].Split(new[] { ' ' }, 2).Last();
+         if (args == keyword) args = string.Empty;
+         CodeContentsPopupKeywordText.Text = keyword;
+         CodeContentsPopupArgsText.Text = " " + args;
+         if (!codebody.HelpContent.Contains("#") && codebody.HelpContent.Trim().Contains(Environment.NewLine)) {
+            CodeContentsPopupKeywordText.Text = string.Empty;
+            CodeContentsPopupArgsText.Text = codebody.HelpContent.Trim();
+            CodeContentsPopupDocumentationText.Visibility = Visibility.Collapsed;
+         } else if (helpParts.Length == 1 || string.IsNullOrWhiteSpace(helpParts[1])) {
+            CodeContentsPopupDocumentationText.Visibility = Visibility.Collapsed;
+         } else {
+            CodeContentsPopupDocumentationText.Visibility = Visibility.Visible;
+            CodeContentsPopupDocumentationText.Text = helpParts[1];
+         }
+
+         CodeContentsPopup.IsOpen = true;
+      }
+
       private void HeaderMouseDown(object sender, MouseButtonEventArgs e) {
          HexContent.RaiseEvent(e);
       }
@@ -283,5 +326,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var viewModel = (PaletteElementViewModel)((FrameworkElement)sender).DataContext;
          viewModel.Activate();
       }
+
+      private void ClearPopup(object sender, MouseButtonEventArgs e) => CodeContentsPopup.IsOpen = false;
    }
 }
