@@ -18,7 +18,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, spriteRun);
          return true;
       }
-      public override bool Matches(IFormattedRun run) => run is Models.Runs.Sprites.SpriteRun spriteRun && spriteRun.FormatString == Format;
+      public override bool Matches(IFormattedRun run) =>
+         run is SpriteRun spriteRun &&
+         spriteRun.SpriteFormat.BitsPerPixel == spriteFormat.BitsPerPixel &&
+         spriteRun.SpriteFormat.TileWidth == spriteFormat.TileWidth &&
+         spriteRun.SpriteFormat.TileHeight == spriteFormat.TileHeight;
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          for (int i = 0; i < spriteFormat.ExpectedByteLength; i++) token.ChangeData(owner, destination + i, 0);
          return new SpriteRun(destination, spriteFormat);
