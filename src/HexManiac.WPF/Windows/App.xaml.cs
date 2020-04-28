@@ -38,11 +38,11 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          var loadAddress = -1;
          if (allArgs.Contains(":") && allArgs.LastIndexOf(":") > 4) {
             var parts = allArgs.Split(':');
-            int.TryParse(parts.Last(), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out loadAddress);
+            if (!int.TryParse(parts.Last(), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out loadAddress)) loadAddress = -1;
             allArgs = parts.Take(parts.Length - 1).Aggregate((a, b) => a + ":" + b).Trim();
          } else if (allArgs.ToLower().Contains(".gba ")) {
             var parts = allArgs.Split(" ");
-            int.TryParse(parts.Last(), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out loadAddress);
+            if (!int.TryParse(parts.Last(), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out loadAddress)) loadAddress = -1;
             allArgs = parts.Take(parts.Length - 1).Aggregate(string.Empty, (a, b) => a + " " + b).Trim();
          }
 
