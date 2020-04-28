@@ -31,7 +31,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             int length = 0;
             while (true) {
                var line = engine.GetMatchingLine(model, address + length);
-               if (line?.IsEndingCommand ?? true) break;
+               if (line == null) break;
                length += line.LineCode.Count;
                foreach (var arg in line.Args) {
                   if (arg.Type == ArgType.Pointer) {
@@ -45,6 +45,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   }
                   length += arg.Length;
                }
+               if (line.IsEndingCommand) break;
             }
          }
 
