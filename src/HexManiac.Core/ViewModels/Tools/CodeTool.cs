@@ -295,10 +295,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set {
             if (!TryUpdate(ref caretPosition, value)) return;
             var lines = content.Split(Environment.NewLine).ToList();
+            var contentBoundaryCount = 0;
             while (caretPosition > lines[0].Length) {
+               if (lines[0].Trim() == "{") contentBoundaryCount += 1;
+               if (lines[0].Trim() == "}") contentBoundaryCount -= 1;
                caretPosition -= lines[0].Length + Environment.NewLine.Length;
                lines.RemoveAt(0);
             }
+
+            // only show help if we're not within content curlies.
+            if (contentBoundaryCount != 0) return;
             HelpSourceChanged?.Invoke(this, lines[0]);
          }
       }

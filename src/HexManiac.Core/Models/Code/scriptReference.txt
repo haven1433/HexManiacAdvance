@@ -59,7 +59,7 @@
 23 callasm code<>
 24 setcode pointer<>                         # puts a pointer to some assembly code at a specific place in RAM
 25 special function:                         # calls a piece of ASM code from a table located at <15FD60>
-26 special variable: function:               # calls a special and puts the ASM's return value in the variable you listed
+26 special2 variable: function:              # calls a special and puts the ASM's return value in the variable you listed
 27 waitstate                                 # blocks the script until it gets unblocked by a command or some ASM code.
 28 pause time:                               # blocks the script for 'time' ticks
 29 setflag flag:                             # flag = 1
@@ -166,7 +166,7 @@
 72 showbox x. y. width. height.
 73 hidebox x. y. width. height.              # ruby/sapphire only
 74 clearbox x. y. width. height.             # clear only a part of a custom box
-75 showpokepic species: x. y.                # show the pokemon in a box. Can be a literal or a variable.
+75 showpokepic species:pokenames x. y.       # show the pokemon in a box. Can be a literal or a variable.
 76 hidepokepic                               # hides all shown pokepics
 77 showcontestwinner contest.                # nop in FireRed. Shows the painting of a wenner of the given contest.
 78 braille text<>                            # displays a message in braille. The text must be formatted to use braille.
