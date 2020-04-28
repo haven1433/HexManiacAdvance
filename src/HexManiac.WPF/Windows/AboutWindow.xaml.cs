@@ -7,6 +7,9 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       public AboutWindow(IMetadataInfo metadata) {
          InitializeComponent();
          Version.Text = $"Version {metadata.VersionNumber}";
+#if STABLE
+         Usage.Text = "This is a preview release. Please report any bugs via GitHub or Discord.";
+#endif
       }
 
       private void Navigate(object sender, RequestNavigateEventArgs e) {

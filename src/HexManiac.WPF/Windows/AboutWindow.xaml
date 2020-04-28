@@ -15,7 +15,7 @@
       <Image Source="..\Resources\AppImage.png" DockPanel.Dock="Left" RenderOptions.BitmapScalingMode="Fant" Width="200"/>
       <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
          <TextBlock Name="Version"/>
-         <TextBlock TextWrapping="Wrap">This is a prerelease debug version: use at your own risk!</TextBlock>
+         <TextBlock Name="Usage" TextWrapping="Wrap">This is an unstable version: use at your own risk!</TextBlock>
          <TextBlock>
             <Hyperlink Foreground="{DynamicResource Accent}" NavigateUri="https://github.com/haven1433/HexManiacAdvance/blob/master/LICENSE" RequestNavigate="Navigate">MIT License</Hyperlink>
          </TextBlock>
