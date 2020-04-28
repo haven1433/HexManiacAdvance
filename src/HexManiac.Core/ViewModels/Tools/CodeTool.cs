@@ -14,8 +14,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class CodeTool : ViewModelCore, IToolViewModel {
       public string Name => "Code Tool";
 
-      private bool useMultiScriptContent = true; // feature toggle
-
       private string content;
       private CodeMode mode;
       private readonly ThumbParser thumb;
@@ -26,9 +24,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public event EventHandler<ErrorInfo> ModelDataChanged;
 
-      public bool IsReadOnly => Mode != CodeMode.Script;
+      public bool IsReadOnly => Mode == CodeMode.Raw;
       public bool UseSingleContent => !UseMultiContent;
-      public bool UseMultiContent => Mode == CodeMode.Script && useMultiScriptContent;
+      public bool UseMultiContent => Mode == CodeMode.Script;
 
       private bool showErrorText;
       public bool ShowErrorText { get => showErrorText; private set => TryUpdate(ref showErrorText, value); }
@@ -96,11 +94,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                TryUpdate(ref content, string.Empty, nameof(Content));
                UpdateContents(-1);
             } else if (mode == CodeMode.Script) {
-               if (useMultiScriptContent) {
-                  UpdateContents(start);
-               } else {
-                  TryUpdate(ref content, script.Parse(model, start, end - start + 1), nameof(Content));
-               }
+               UpdateContents(start);
             } else if (mode == CodeMode.Thumb) {
                TryUpdate(ref content, thumb.Parse(model, start, end - start + 1), nameof(Content));
             } else {
@@ -180,7 +174,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private void CompileChanges() {
          using (ModelCacheScope.CreateScope(model)) {
             if (mode == CodeMode.Thumb) CompileThumbChanges();
-            if (mode == CodeMode.Script && !useMultiScriptContent) CompileScriptChanges();
          }
       }
 
