@@ -86,7 +86,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          while (index < input.Length) {
             for (int i = 0; i < 0x100; i++) {
                if (PCS[i] == null) continue;
-               if (!input.Substring(index).StartsWith(PCS[i])) continue;
+               if (input.Substring(index).Length < PCS[i].Length || input.Substring(index, PCS[i].Length) != PCS[i]) continue;
                result.Add((byte)i);
                index += PCS[i].Length - 1;
                if (i == Escape && input.Length > index + 2) {
