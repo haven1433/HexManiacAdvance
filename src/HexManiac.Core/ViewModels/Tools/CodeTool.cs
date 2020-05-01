@@ -175,7 +175,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void UpdateScriptHelpFromLine(object sender, string line) {
          var codeBody = (CodeBody)sender;
-         var help = ScriptParser.GetHelp(line);
+         string help = null;
+         if (mode == CodeMode.Script) help = ScriptParser.GetHelp(line);
+         else if (mode == CodeMode.BattleScript) BattleScriptParser.GetHelp(line);
+         else throw new NotImplementedException();
          codeBody.HelpContent = help;
       }
 

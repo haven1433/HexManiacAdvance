@@ -55,6 +55,8 @@
     <Compile Include="Models\Runs\ArrayRunElementSegment.cs" />
     <Compile Include="Models\Runs\AsciiRun.cs" />
     <Compile Include="Models\Runs\EggMoveRun.cs" />
+    <Compile Include="Models\Runs\Factory\LzTilemapRunContentStrategy.cs" />
+    <Compile Include="Models\Runs\Factory\LzTilesetRunContentStrategy.cs" />
     <Compile Include="Models\Runs\HeaderRow.cs" />
     <Compile Include="Models\Runs\ModelCacheScope.cs" />
     <Compile Include="Models\Runs\PLMRun.cs" />

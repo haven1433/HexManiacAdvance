@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
@@ -296,7 +297,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var args = new List<ScriptArg>();
 
          foreach (var token in tokens) {
-            if (token.Length == 2 && token.All(Hex.Contains)) {
+            if (token.Length == 2 && token.All(ViewPort.AllHexCharacters.Contains)) {
                lineCode.Add(byte.Parse(token, NumberStyles.HexNumber));
                continue;
             }
@@ -424,7 +425,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
    public class BSEScriptLine : ScriptLine {
       public BSEScriptLine(string engineLine) : base(engineLine) { }
 
-      public override bool IsEndingCommand => true;
+      public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x28, 0x3c, 0x3d, 0x3e, 0x3f);
       public override bool PointsToNextScript => false;
       public override bool PointsToText => false;
       public override bool PointsToMovement => false;
