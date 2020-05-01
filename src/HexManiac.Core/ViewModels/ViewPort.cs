@@ -640,7 +640,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var address = Model.GetAddressFromAnchor(noChange, -1, anchor);
                var run = Model.GetNextRun(address);
                if (run is XSERun) {
-                  tools.CodeTool.ScriptParser.FormatScript(noChange, Model, address);
+                  tools.CodeTool.ScriptParser.FormatScript<XSERun>(noChange, Model, address);
                }
             }
          }
@@ -1403,7 +1403,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Model.ClearFormat(CurrentChange, address, length - 1);
 
          using (ModelCacheScope.CreateScope(Model)) {
-            tools.CodeTool.ScriptParser.FormatScript(CurrentChange, Model, address);
+            tools.CodeTool.ScriptParser.FormatScript<XSERun>(CurrentChange, Model, address);
          }
 
          SelectionStart = scroll.DataIndexToViewPoint(address);

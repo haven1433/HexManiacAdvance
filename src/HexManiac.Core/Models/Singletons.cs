@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -17,23 +18,29 @@ namespace HavenSoft.HexManiac.Core.Models {
       private const string TableReferenceFileName = "resources/tableReference.txt";
       private const string ThumbReferenceFileName = "resources/armReference.txt";
       private const string ScriptReferenceFileName = "resources/scriptReference.txt";
+      private const string BattleScriptReferenceFileName = "resources/battleScriptReference.txt";
 
       public IMetadataInfo MetadataInfo { get; }
       public IReadOnlyDictionary<string, GameReferenceTables> GameReferenceTables { get; }
       public IReadOnlyList<ConditionCode> ThumbConditionalCodes { get; }
       public IReadOnlyList<IInstruction> ThumbInstructionTemplates { get; }
       public IReadOnlyList<ScriptLine> ScriptLines { get; }
+      public IReadOnlyList<ScriptLine> BattleScriptLines { get; }
 
       public Singletons() {
          GameReferenceTables = CreateGameReferenceTables();
          (ThumbConditionalCodes, ThumbInstructionTemplates) = LoadThumbReference();
-         ScriptLines = LoadScriptReference();
+         ScriptLines = LoadScriptReference<XSEScriptLine>(ScriptReferenceFileName);
+         BattleScriptLines = LoadScriptReference<BSEScriptLine>(BattleScriptReferenceFileName);
          MetadataInfo = new MetadataInfo();
       }
 
-      private IReadOnlyList<ScriptLine> LoadScriptReference() {
-         if (!File.Exists(ScriptReferenceFileName)) return new List<ScriptLine>();
-         var lines = File.ReadAllLines(ScriptReferenceFileName);
+      private IReadOnlyList<ScriptLine> LoadScriptReference<TLine>(string file) where TLine : ScriptLine {
+         if (!File.Exists(file)) return new List<ScriptLine>();
+         Func<string, ScriptLine> factory = line => new XSEScriptLine(line);
+         if (typeof(TLine) == typeof(BSEScriptLine)) factory = line => new BSEScriptLine(line);
+
+         var lines = File.ReadAllLines(file);
          var scriptLines = new List<ScriptLine>();
          ScriptLine active = null;
          foreach (var line in lines) {
@@ -43,7 +50,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (line.Trim().StartsWith("#") && active != null) {
                active.AddDocumentation(line.Trim());
             } else {
-               active = new ScriptLine(line);
+               active = factory(line);
                scriptLines.Add(active);
             }
          }
@@ -120,6 +127,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var assembly = Assembly.GetExecutingAssembly();
          var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
          VersionNumber = $"{fvi.FileMajorPart}.{fvi.FileMinorPart}.{fvi.FileBuildPart}";
+         if (fvi.FilePrivatePart != 0) VersionNumber += "." + fvi.FilePrivatePart;
       }
    }
 }

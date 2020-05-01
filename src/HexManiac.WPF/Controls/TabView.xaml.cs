@@ -6,7 +6,6 @@ using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.WPF.Implementations;
 using System;
 using System.ComponentModel;
-using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -45,7 +44,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       public IFileSystem FileSystem => (IFileSystem)Application.Current.MainWindow.Resources["FileSystem"];
       public TabView() {
          InitializeComponent();
-         CodeModeSelector.ItemsSource = Enum.GetValues(typeof(CodeMode)).Cast<CodeMode>();
+         CodeModeSelector.ItemsSource = new[] { CodeMode.Thumb, CodeMode.Script, CodeMode.Raw }; // Enum.GetValues(typeof(CodeMode)).Cast<CodeMode>().ToList();
          timer = new DispatcherTimer(TimeSpan.FromSeconds(.6), DispatcherPriority.ApplicationIdle, BlinkCursor, Dispatcher);
          timer.Stop();
       }

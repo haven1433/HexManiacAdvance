@@ -158,6 +158,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Models\Code\battleScriptReference.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Models\Code\scriptReference.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

@@ -66,7 +66,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       // TODO refactor to rely on CollectScripts rather than duplicate code
-      public void FormatScript(ModelDelta token, IDataModel model, int address, IReadOnlyList<int> sources = null) {
+      public void FormatScript<TSERun>(ModelDelta token, IDataModel model, int address, IReadOnlyList<int> sources = null) where TSERun : IScriptStartRun {
+         Func<int, IReadOnlyList<int>, IScriptStartRun> constructor = (a, s) => new XSERun(a, s);
+         if (typeof(TSERun) == typeof(BSERun)) constructor = (a, s) => new BSERun(a, s);
+
          var processed = new List<int>();
          var toProcess = new List<int> { address };
          while (toProcess.Count > 0) {
@@ -74,9 +77,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             toProcess.RemoveAt(toProcess.Count - 1);
             if (processed.Contains(address)) continue;
             var existingRun = model.GetNextRun(address);
-            if (!(existingRun is XSERun && existingRun.Start == address)) {
+            if (!(existingRun is TSERun && existingRun.Start == address)) {
                if (sources == null && existingRun.Start != address) sources = model.SearchForPointersToAnchor(token, address);
-               model.ObserveAnchorWritten(token, string.Empty, new XSERun(address, sources));
+               model.ObserveAnchorWritten(token, string.Empty, constructor(address, sources));
                sources = null;
             }
             int length = 0;
@@ -265,7 +268,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       string Decompile(IDataModel data, int start);
    }
 
-   public class ScriptLine : IScriptLine {
+   public abstract class ScriptLine : IScriptLine {
       private readonly List<string> documentation = new List<string>();
 
       public const string Hex = "0123456789ABCDEF";
@@ -276,12 +279,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public IReadOnlyList<string> Documentation => documentation;
       public string Usage { get; }
 
-      private static readonly byte[] endCodes = new byte[] { 0x02, 0x03, 0x05, 0x08, 0x0A, 0x0C, 0x0D };
-      public bool IsEndingCommand { get; }
-      public bool PointsToNextScript => LineCode.Count == 1 && LineCode[0].IsAny<byte>(4, 5, 6, 7);
-      public bool PointsToText => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x0F, 0x67);
-      public bool PointsToMovement => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x4F, 0x50);
-      public bool PointsToMart => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x86, 0x87, 0x88);
+      public virtual bool IsEndingCommand { get; }
+      public virtual bool PointsToNextScript { get; }
+      public virtual bool PointsToText { get; }
+      public virtual bool PointsToMovement { get; }
+      public virtual bool PointsToMart { get; }
 
       public ScriptLine(string engineLine) {
          var docSplit = engineLine.Split(new[] { '#' }, 2);
@@ -308,7 +310,6 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          LineCode = lineCode;
          Args = args;
          CompiledByteLength = LineCode.Count + Args.Sum(arg => arg.Length);
-         IsEndingCommand = LineCode.Count == 1 && endCodes.Contains(LineCode[0]);
       }
 
       public void AddDocumentation(string doc) => documentation.Add(doc);
@@ -408,6 +409,26 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var length = PCSString.ReadString(data, start, true);
          return PCSString.Convert(data, start, length);
       }
+   }
+
+   public class XSEScriptLine : ScriptLine {
+      public XSEScriptLine(string engineLine) : base(engineLine) { }
+
+      public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x02, 0x03, 0x05, 0x08, 0x0A, 0x0C, 0x0D);
+      public override bool PointsToNextScript => LineCode.Count == 1 && LineCode[0].IsAny<byte>(4, 5, 6, 7);
+      public override bool PointsToText => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x0F, 0x67);
+      public override bool PointsToMovement => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x4F, 0x50);
+      public override bool PointsToMart => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x86, 0x87, 0x88);
+   }
+
+   public class BSEScriptLine : ScriptLine {
+      public BSEScriptLine(string engineLine) : base(engineLine) { }
+
+      public override bool IsEndingCommand => true;
+      public override bool PointsToNextScript => false;
+      public override bool PointsToText => false;
+      public override bool PointsToMovement => false;
+      public override bool PointsToMart => false;
    }
 
    public class ScriptArg {
