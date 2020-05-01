@@ -617,7 +617,10 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (anchor.Equals(table.LengthFromAnchor)) {
                int targetCount = arrayRun.ElementCount + table.ParentOffset;
                if (table.ElementCount == targetCount) continue;
-               newTable = (ArrayRun)RelocateForExpansion(changeToken, table, targetCount * table.ElementLength);
+               // only relocate if we're not in a loading situation
+               if (!(changeToken is NoDataChangeDeltaModel)) {
+                  newTable = (ArrayRun)RelocateForExpansion(changeToken, table, targetCount * table.ElementLength);
+               }
                newTable = newTable.Append(changeToken, targetCount - table.ElementCount);
                ObserveRunWritten(changeToken, newTable);
             }
