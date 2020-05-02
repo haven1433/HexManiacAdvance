@@ -44,7 +44,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       public IFileSystem FileSystem => (IFileSystem)Application.Current.MainWindow.Resources["FileSystem"];
       public TabView() {
          InitializeComponent();
-         CodeModeSelector.ItemsSource = new[] { CodeMode.Thumb, CodeMode.Script, CodeMode.Raw }; // Enum.GetValues(typeof(CodeMode)).Cast<CodeMode>().ToList();
+         // CodeModeSelector.ItemsSource = new[] { CodeMode.Thumb, CodeMode.Script, CodeMode.Raw };
+         CodeModeSelector.ItemsSource = Enum.GetValues(typeof(CodeMode)).Cast<CodeMode>().ToList();
          timer = new DispatcherTimer(TimeSpan.FromSeconds(.6), DispatcherPriority.ApplicationIdle, BlinkCursor, Dispatcher);
          timer.Stop();
       }
