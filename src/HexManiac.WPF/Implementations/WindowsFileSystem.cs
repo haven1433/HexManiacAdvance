@@ -248,13 +248,28 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                   for (int x = 0; x < frame.PixelWidth; x++) {
                      var outputPoint = y * frame.PixelWidth + x;
                      var inputPoint = outputPoint * 3;
-                     var (r, g, b) = (raw[inputPoint + 2], raw[inputPoint + 1], raw[inputPoint + 0]);
-                     r >>= 3; g >>= 3; b >>= 3;
-                     data[outputPoint] = (short)((r << 10) | (g << 5) | (b << 0));
+                     var color = Color.FromRgb(raw[inputPoint + 2], raw[inputPoint + 1], raw[inputPoint + 0]);
+                     data[outputPoint] = Convert(color);
                   }
                }
+            } else if (format == PixelFormats.Indexed4) {
+               byte[] raw = new byte[frame.PixelWidth * frame.PixelHeight / 2];
+               frame.CopyPixels(raw, frame.PixelWidth / 2, 0);
+               for (int y = 0; y < frame.PixelHeight; y++) {
+                  for (int x = 0; x < frame.PixelWidth / 2; x++) {
+                     var outputPoint1 = y * frame.PixelWidth + x * 2;
+                     var outputPoint2 = y * frame.PixelWidth + x * 2 + 1;
+                     var inputPoint = raw[y * frame.PixelWidth / 2 + x];
+                     var color1 = frame.Palette.Colors[inputPoint >> 4];
+                     var color2 = frame.Palette.Colors[inputPoint & 0xF];
+                     data[outputPoint1] = Convert(color1);
+                     data[outputPoint2] = Convert(color2);
+                  }
+               }
+               if (comparePalette == null) comparePalette = frame.Palette.Colors.Select(Convert).ToArray();
             } else {
-               throw new NotImplementedException();
+               MessageBox.Show($"Current version does not support converting PixelFormats.{format}");
+               return (null, comparePalette, frame.PixelWidth);
             }
 
             return (data, comparePalette, frame.PixelWidth);
@@ -287,6 +302,12 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
       private static SolidColorBrush Brush(string name) {
          return (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][name];
+      }
+
+      private static short Convert(Color color) {
+         var (r, g, b) = (color.R, color.G, color.B);
+         r >>= 3; g >>= 3; b >>= 3;
+         return (short)((r << 10) | (g << 5) | (b << 0));
       }
 
       private static string CreateFilterFromOptions(string description, params string[] extensionOptions) {
