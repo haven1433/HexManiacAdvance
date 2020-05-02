@@ -570,6 +570,19 @@ namespace HavenSoft.HexManiac.Tests {
          else throw new NotImplementedException();
       }
 
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void TrainerPayoutsAreFound(string game) {
+         var model = fixture.LoadModel(game);
+         var address = model.GetAddressFromAnchor(noChange, -1, "trainermoney");
+         var run = model.GetNextRun(address) as ITableRun;
+         var trainerClassesTable = model.GetTable("trainerclassnames");
+
+         if (game.Contains("DarkRisingKAIZO")) Assert.Null(run);
+         else if (game.Contains("Gaia")) Assert.Null(run);
+         else Assert.InRange(run.ElementCount, 0, trainerClassesTable.ElementCount);
+      }
+
       // this one actually changes the data, so I can't use the same shared model as everone else.
       // [SkippableTheory] // test removed until feature is complete.
       // [MemberData(nameof(PokemonGames))]
