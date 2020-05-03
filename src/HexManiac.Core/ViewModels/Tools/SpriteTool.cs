@@ -313,8 +313,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                newPalette.RemoveAt(index);
                newPalette.Insert(i, color);
             }
-            while (newPalette.Count < renderPalette.Length) newPalette.Add(paletteHint.Except(newPalette).FirstOrDefault());
          }
+         while (newPalette.Count < renderPalette.Length) newPalette.Add(paletteHint.Except(newPalette).FirstOrDefault());
 
          var tiles = Tilize(image, width);
          var palettes = SplitPalettes(newPalette);
