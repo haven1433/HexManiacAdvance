@@ -68,7 +68,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                length -= segment.Length;
             }
             if (i + 1 < self.ElementCount) text.Append(Environment.NewLine);
-            offsets = new ArrayOffset(0, 0, offset, 0);
+            offsets = new ArrayOffset(i + 1, 0, offset, 0);
          }
       }
 

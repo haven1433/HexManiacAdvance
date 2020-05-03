@@ -574,8 +574,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
             var left = Math.Min(selectionStart, selectionEnd);
             var length = Math.Abs(selectionEnd - selectionStart) + 1;
-            if (length > 10000) {
-               OnError?.Invoke(this, "Cannot copy more than 9999 bytes at once!");
+            if (length > 20000) {
+               OnError?.Invoke(this, "Cannot copy more than 19999 bytes at once!");
             } else {
                bool usedHistory = false;
                ((IFileSystem)arg).CopyText = Model.Copy(() => { usedHistory = true; return history.CurrentChange; }, left, length);
