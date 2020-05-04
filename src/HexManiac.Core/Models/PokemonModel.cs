@@ -61,7 +61,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          // metadata is more important than anything already found
          foreach (var list in metadata.Lists) {
-            lists.Add(list.Name, list.ToList());
+            lists[list.Name] = list.ToList();
          }
          foreach (var anchor in metadata.NamedAnchors) {
             // since we're loading metadata, we're pretty sure that the anchors in the metadata are right.
