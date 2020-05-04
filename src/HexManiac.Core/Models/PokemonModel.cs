@@ -528,6 +528,10 @@ namespace HavenSoft.HexManiac.Core.Models {
             // if the only thing changed was the anchor, then don't change the format, just merge the anchor
             var existingRun = runs[index];
             changeToken.RemoveRun(existingRun);
+            if (existingRun is PointerRun && !(run is NoInfoRun) && !(run is PointerRun)) {
+               var destination = ReadPointer(existingRun.Start);
+               ClearPointer(changeToken, existingRun.Start, destination);
+            }
             run = run.MergeAnchor(existingRun.PointerSources);
             if (run is NoInfoRun) run = existingRun.MergeAnchor(run.PointerSources); // when writing an anchor with no format, keep the existing format.
             if (existingRun is ArrayRun arrayRun1) {
