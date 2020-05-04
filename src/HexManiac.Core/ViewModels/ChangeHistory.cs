@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 
@@ -144,6 +145,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          if (previouslyWasSaved != IsSaved) NotifyPropertyChanged(nameof(IsSaved));
          if (previouslyHadDataChanged != HasDataChange) NotifyPropertyChanged(nameof(HasDataChange));
+         Debug.Assert(redoStack.Count > 0, "Redo should always be available directly after an Undo!");
       }
 
       private void RedoExecuted() {
