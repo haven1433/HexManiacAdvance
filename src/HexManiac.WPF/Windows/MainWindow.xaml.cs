@@ -84,10 +84,10 @@ namespace HavenSoft.HexManiac.WPF.Windows {
                                  TextWrapping = TextWrapping.Wrap,
                               },
                               new TextBlock(
+                                 string.IsNullOrEmpty(edit.WikiLink) ? (Inline)new Run() :
                                  new Hyperlink(new Run("Click here to learn more.")) {
                                     Foreground = (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][nameof(Theme.Accent)],
                                     NavigateUri = new Uri(edit.WikiLink),
-
                                  }.Fluent(link => link.RequestNavigate += Navigate)
                               ) {
                                  HorizontalAlignment = HorizontalAlignment.Center,

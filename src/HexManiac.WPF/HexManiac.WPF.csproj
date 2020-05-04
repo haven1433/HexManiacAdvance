@@ -59,6 +59,9 @@
     <Compile Include="Controls\CommonTableStreamControl.xaml.cs">
       <DependentUpon>CommonTableStreamControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\DexReorderView.xaml.cs">
+      <DependentUpon>DexReorderView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\Swatch.xaml.cs">
       <DependentUpon>Swatch.xaml</DependentUpon>
     </Compile>
@@ -70,6 +73,10 @@
       <DependentUpon>ThemeSelector.xaml</DependentUpon>
     </Compile>
     <Page Include="Controls\CommonTableStreamControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\DexReorderView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

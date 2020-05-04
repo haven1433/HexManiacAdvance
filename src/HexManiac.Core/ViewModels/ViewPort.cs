@@ -21,6 +21,7 @@ using static HavenSoft.HexManiac.Core.Models.Runs.ArrayRun;
 using static HavenSoft.HexManiac.Core.Models.Runs.BaseRun;
 using static HavenSoft.HexManiac.Core.Models.Runs.PCSRun;
 using static HavenSoft.HexManiac.Core.Models.Runs.PointerRun;
+using HavenSoft.HexManiac.Core.ViewModels.QuickEditItems;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
    /// <summary>
@@ -1343,7 +1344,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public virtual void FindAllSources(int x, int y) {
-         var anchor = this[x, y].Format as DataFormats.Anchor;
+         var anchor = this[x, y].Format as Anchor;
          if (anchor == null) return;
          var title = string.IsNullOrEmpty(anchor.Name) ? (y * Width + x + scroll.DataIndex).ToString("X6") : anchor.Name;
          title = "Sources of " + title;
@@ -1366,6 +1367,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var newTab = new SearchResultsViewPort(title);
          foreach (var pair in matches) newTab.Add(CreateChildView(pair.start, pair.end), pair.start, pair.end);
+         RequestTabChange(this, newTab);
+      }
+
+      public void OpenDexReorderTab() {
+         var dexOrder = ReorderDex.GetTable(Model, HardcodeTablesModel.NationalDexTableName);
+         var dexInfo = ReorderDex.GetTable(Model, HardcodeTablesModel.DexInfoTableName);
+
+         var newTab = new DexReorderTab(Model, dexOrder, dexInfo);
          RequestTabChange(this, newTab);
       }
 

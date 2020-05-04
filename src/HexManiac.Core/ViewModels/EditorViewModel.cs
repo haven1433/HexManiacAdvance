@@ -246,6 +246,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          new MakeTutorsExpandable(),
          new MakeMovesExpandable(),
          new UpdateDexConversionTable(),
+         new ReorderDex(),
          // new MakeTmsExpandable(),   // expanding TMs requires further research.
          // new MakeItemsExpandable(),
       }.Select(edit => new EditItemWrapper(edit)).ToList();

@@ -85,6 +85,7 @@
     <Compile Include="Models\Runs\Factory\TableStreamRunContentStrategy.cs" />
     <Compile Include="Models\Runs\Factory\TrainerPokemonTeamRunContentStrategy.cs" />
     <Compile Include="ViewModels\AutoCompleteSelectionItem.cs" />
+    <Compile Include="ViewModels\DexReorderTab.cs" />
     <Compile Include="ViewModels\QuickEditItems\IQuickEditItem.cs" />
     <Compile Include="ViewModels\QuickEditItems\MakeItemsExpandable.cs" />
     <Compile Include="ViewModels\QuickEditItems\MakeMovesExpandable.cs" />
@@ -92,6 +93,7 @@
     <Compile Include="ViewModels\QuickEditItems\MakeTutorsExpandable.cs" />
     <Compile Include="ViewModels\QuickEditItems\QuickEditItemDecorator.cs" />
     <Compile Include="ViewModels\QuickEditItems\UpdateDexConversionTable.cs" />
+    <Compile Include="ViewModels\QuickEditItems\ReorderDex.cs" />
     <Compile Include="ViewModels\Tools\BitListArrayElementViewModel.cs" />
     <Compile Include="ViewModels\Tools\ButtonArrayElementViewModel.cs" />
     <Compile Include="ViewModels\Tools\CodeTool.cs" />
