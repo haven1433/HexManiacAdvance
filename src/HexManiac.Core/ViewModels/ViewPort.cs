@@ -636,13 +636,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void CascadeScripts() {
          var noChange = new NoDataChangeDeltaModel();
          using (ModelCacheScope.CreateScope(Model)) {
-            foreach (var anchor in Model.Anchors) {
-               var address = Model.GetAddressFromAnchor(noChange, -1, anchor);
-               var run = Model.GetNextRun(address);
+            foreach (var run in Runs(Model).OfType<IScriptStartRun>().ToList()) {
                if (run is XSERun) {
-                  tools.CodeTool.ScriptParser.FormatScript<XSERun>(noChange, Model, address);
+                  tools.CodeTool.ScriptParser.FormatScript<XSERun>(noChange, Model, run.Start);
+               } else if (run is BSERun) {
+                  tools.CodeTool.BattleScriptParser.FormatScript<BSERun>(noChange, Model, run.Start);
                }
             }
+         }
+      }
+
+      private static IEnumerable<IFormattedRun> Runs(IDataModel model) {
+         for (var run = model.GetNextRun(0); run.Start < model.Count; run = model.GetNextRun(run.Start + run.Length)) {
+            yield return run;
          }
       }
 

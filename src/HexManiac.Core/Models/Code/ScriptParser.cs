@@ -426,7 +426,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public BSEScriptLine(string engineLine) : base(engineLine) { }
 
       public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x28, 0x3c, 0x3d, 0x3e, 0x3f);
-      public override bool PointsToNextScript => false;
+      public override bool PointsToNextScript => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x01, 0x28, 0x97);
       public override bool PointsToText => false;
       public override bool PointsToMovement => false;
       public override bool PointsToMart => false;

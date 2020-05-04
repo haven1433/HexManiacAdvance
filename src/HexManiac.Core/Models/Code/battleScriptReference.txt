@@ -1,5 +1,5 @@
 00 attackcanceler
-01 accuracycheck param0:: param1:
+01 accuracycheck param0<> param1:
 02 attackstring
 03 ppreduce
 04 critcalc
@@ -162,7 +162,7 @@
 94 damagetohalftargethp
 95 setsandstorm
 96 weatherdamage
-97 tryinfatuating param0::
+97 tryinfatuating param0<>
 98 updatestatusicon battler.
 99 setmist
 9a setfocusenergy
