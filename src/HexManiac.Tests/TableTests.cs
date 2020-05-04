@@ -257,10 +257,10 @@ namespace HavenSoft.HexManiac.Tests {
 
          // precondition: the format is as expected
          Assert.Equal(@"255
-255
-255
-255
-255", segment.Content);
++255
++255
++255
++255", segment.Content);
 
          // Act: change the content in a way that would change the length of a more dynamic stream.
          segment.Content = "12";

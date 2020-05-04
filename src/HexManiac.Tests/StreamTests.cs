@@ -66,9 +66,9 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Edit("00 01 02 03 FF ^bob CC @00 ^table[value.]!FF ");
          ViewPort.Tools.SelectedIndex = ViewPort.Tools.IndexOf(ViewPort.Tools.StringTool);
          Assert.Equal(@"0
-1
-2
-3", ViewPort.Tools.StringTool.Content);
++1
++2
++3", ViewPort.Tools.StringTool.Content);
 
          ViewPort.Tools.StringTool.Content = @"0
 1
