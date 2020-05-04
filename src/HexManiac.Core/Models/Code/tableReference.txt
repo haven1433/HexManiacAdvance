@@ -111,7 +111,7 @@ titlescreenLogoTileMap,       ,,,, 078A9C, 078A9C, 078AB0, 078AB0, , `lzm8x32x20
 titlescreenPokemonPalette,    ,,,, 078AA0, 078AA0, 078AB4, 078AB4, , `ucp4:D`
 titlescreenPokemonTileset,    ,,,, 078AA4, 078AA4, 078AB8, 078AB8, , `lzt4|titlescreenPokemonPalette`
 titlescreenPokemonTilemap,    ,,,, 078AA8, 078AA8, 078ABC, 078ABC, , `lzm4x32x20|titlescreenPokemonTileset`
-titlescreenPublisherPalette,  ,,,, 078AAC, 078AAC, 078AC0, 078AC0, , `ucp4`
+titlescreenPublisherPalette,  ,,,, 078AAC, 078AAC, 078AC0, 078AC0, , `ucp4:F`
 titlescreenPublisherTileSet,  ,,,, 078AB0, 078AB0, 078AC4, 078AC4, , `lzt4|titlescreenPublisherPalette`
 titlescreenPublisherTileMap,  ,,,, 078AB4, 078AB4, 078AC8, 078AC8, , `lzm4x32x20|titlescreenPublisherTileSet`
 titlescreenWidescreenTileSet, ,,,, 078AB8, 078AB8, 078ACC, 078ACC, , `lzt4|titlescreenPublisherPalette`
