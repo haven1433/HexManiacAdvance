@@ -23,8 +23,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ICommand Save { get; } = new StubCommand();
       public ICommand SaveAs { get; } = new StubCommand();
-      public ICommand Undo { get; } = new StubCommand();
-      public ICommand Redo { get; } = new StubCommand();
+      public ICommand Undo { get; }
+      public ICommand Redo { get; }
       public ICommand Copy { get; } = new StubCommand();
       public ICommand Clear { get; } = new StubCommand();
       public ICommand SelectAll { get; } = new StubCommand();
@@ -32,7 +32,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand ResetAlignment { get; } = new StubCommand();
       public ICommand Back { get; } = new StubCommand();
       public ICommand Forward { get; } = new StubCommand();
-      public ICommand Close { get; } = new StubCommand();
+      public ICommand Close { get; }
 
       public event EventHandler<string> OnError;
       public event EventHandler<string> OnMessage;
@@ -48,9 +48,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          this.model = model;
          this.dexOrder = dexOrder;
          this.dexInfo = dexInfo;
+
+         Close = new StubCommand {
+            CanExecute = arg => true,
+            Execute = arg => Closed?.Invoke(this, EventArgs.Empty),
+         };
+         Undo = history.Undo;
+         Redo = history.Redo;
       }
 
       public void Refresh() {
+         history.ChangeCompleted();
          Elements.Clear();
 
          var elementCount = dexOrder.ElementCount;
@@ -66,6 +74,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Debug.Assert(Elements.All(element => element != null), "Dex Reorder onl works if there are no empty pokedex slots!");
          for (int i = 0; i < elements.Length; i++) Elements.Add(elements[i]);
       }
+
+      public void CompleteCurrentInteraction() => history.ChangeCompleted();
 
       public void UpdateDexFromSortOrder() {
          var token = history.CurrentChange;
