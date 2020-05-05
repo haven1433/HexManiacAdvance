@@ -109,18 +109,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var oldDexInfo = new byte[dexInfo.Length];
          Array.Copy(model.RawData, dexInfo.Start, oldDexInfo, 0, dexInfo.Length);
 
+         // clear dexInfo format
+         if (isNational) model.ClearFormat(token, dexInfo.Start, dexInfo.Length);
+
          // move each dex info / dex order
          for (int i = 1; i < dexInfo.ElementCount; i++) {
             if (isNational) {
                // we only have to update the dex info if this tab is editing the nationaldex.
                var originalIndex = i;
                var newIndex = newOrder.IndexOf(oldOrder[i - 1]) + 1;
-               for (int j = 0; j < dexInfo.ElementLength; j++) {
-                  token.ChangeData(model, dexInfo.Start + dexInfo.ElementLength * newIndex + j, oldDexInfo[dexInfo.ElementLength * originalIndex + j]);
+               if (newIndex != originalIndex) {
+                  // update data
+                  for (int j = 0; j < dexInfo.ElementLength; j++) {
+                     token.ChangeData(model, dexInfo.Start + dexInfo.ElementLength * originalIndex + j, oldDexInfo[dexInfo.ElementLength * newIndex + j]);
+                  }
                }
             }
             model.WriteMultiByteValue(dexOrder.Start + dexOrder.ElementLength * (i - 1), 2, token, newOrder[i - 1]);
          }
+
+         // restore dexInfo format
+         if (isNational) model.ObserveAnchorWritten(token, HardcodeTablesModel.DexInfoTableName, dexInfo);
 
          UpdateDexConversionTable.Run(model, token);
       }
