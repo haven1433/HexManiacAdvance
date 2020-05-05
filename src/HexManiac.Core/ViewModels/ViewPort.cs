@@ -1370,11 +1370,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          RequestTabChange(this, newTab);
       }
 
-      public void OpenDexReorderTab() {
-         var dexOrder = ReorderDex.GetTable(Model, HardcodeTablesModel.NationalDexTableName);
+      public void OpenDexReorderTab(string dexTableName) {
+         var dexOrder = ReorderDex.GetTable(Model, dexTableName);
          var dexInfo = ReorderDex.GetTable(Model, HardcodeTablesModel.DexInfoTableName);
 
-         var newTab = new DexReorderTab(history, Model, dexOrder, dexInfo);
+         var newTab = new DexReorderTab(history, Model, dexOrder, dexInfo, dexTableName == HardcodeTablesModel.NationalDexTableName);
          RequestTabChange(this, newTab);
       }
 

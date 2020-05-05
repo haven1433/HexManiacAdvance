@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
+using HavenSoft.HexManiac.Core.ViewModels.QuickEditItems;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private readonly IDataModel model;
       private readonly ITableRun dexOrder;
       private readonly ITableRun dexInfo;
+      private readonly bool isNational;
 
       public ObservableCollection<SortablePokemon> Elements { get; } = new ObservableCollection<SortablePokemon>();
 
@@ -43,11 +45,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler RequestMenuClose;
       public event PropertyChangedEventHandler PropertyChanged;
 
-      public DexReorderTab(ChangeHistory<ModelDelta> history, IDataModel model, ITableRun dexOrder, ITableRun dexInfo) {
+      public DexReorderTab(ChangeHistory<ModelDelta> history, IDataModel model, ITableRun dexOrder, ITableRun dexInfo, bool isNational) {
          this.history = history;
          this.model = model;
          this.dexOrder = dexOrder;
          this.dexInfo = dexInfo;
+         this.isNational = isNational;
 
          Close = new StubCommand {
             CanExecute = arg => true,
@@ -65,17 +68,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var dexOrderTable = new ModelTable(model, dexOrder.Start);
          var indexName = dexOrder.ElementContent[0].Name;
 
-         var elements = new SortablePokemon[dexInfo.ElementCount];
+         var elements = new SortablePokemon[dexInfo.ElementCount - 1];
          for (int i = 0; i < elementCount; i++) {
             var dexIndex = dexOrderTable[i].GetValue(indexName);
             if (dexIndex >= dexInfo.ElementCount) continue;
             elements[dexIndex - 1] = new SortablePokemon(model, i + 1);
          }
-         Debug.Assert(Elements.All(element => element != null), "Dex Reorder onl works if there are no empty pokedex slots!");
          for (int i = 0; i < elements.Length; i++) Elements.Add(elements[i]);
+         Debug.Assert(Elements.All(element => element != null), "Dex Reorder only works if there are no empty pokedex slots!");
       }
 
-      public void CompleteCurrentInteraction() => history.ChangeCompleted();
+      public void CompleteCurrentInteraction() {
+         UpdateDexFromSortOrder();
+         history.ChangeCompleted();
+      }
+
+      public void HandleMove(int originalIndex, int newIndex) {
+         if (originalIndex == newIndex) return;
+         var element = Elements[originalIndex];
+         Elements.RemoveAt(originalIndex);
+         Elements.Insert(newIndex, element);
+         Debug.Assert(Elements.All(item => item != null), "Dex Reorder only works if there are no empty pokedex slots!");
+      }
 
       public void UpdateDexFromSortOrder() {
          var token = history.CurrentChange;
@@ -89,24 +103,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          // maps from canonical order to new desired dex order
-         var newOrder = Invert(Elements.Select(element => element.CanonicalIndex).ToList());
+         Debug.Assert(Elements.All(item => item != null), "Dex Reorder only works if there are no empty pokedex slots!");
+         var newOrder = Invert(Elements.Select(element => element.CanonicalIndex).ToList(), oldOrder);
 
          var oldDexInfo = new byte[dexInfo.Length];
          Array.Copy(model.RawData, dexInfo.Start, oldDexInfo, 0, dexInfo.Length);
 
          // move each dex info / dex order
-         for (int i = 1; i <= dexInfo.ElementCount; i++) {
-            var originalIndex = oldOrder.IndexOf(i);
-            var newIndex = newOrder.IndexOf(i);
-            for (int j = 0; j < dexInfo.ElementLength; j++) {
-               token.ChangeData(model, dexInfo.Start + dexInfo.ElementLength * newIndex + j, oldDexInfo[dexInfo.ElementLength * originalIndex + j]);
+         for (int i = 1; i < dexInfo.ElementCount; i++) {
+            if (isNational) {
+               // we only have to update the dex info if this tab is editing the nationaldex.
+               var originalIndex = i;
+               var newIndex = newOrder.IndexOf(oldOrder[i - 1]) + 1;
+               for (int j = 0; j < dexInfo.ElementLength; j++) {
+                  token.ChangeData(model, dexInfo.Start + dexInfo.ElementLength * newIndex + j, oldDexInfo[dexInfo.ElementLength * originalIndex + j]);
+               }
             }
             model.WriteMultiByteValue(dexOrder.Start + dexOrder.ElementLength * (i - 1), 2, token, newOrder[i - 1]);
          }
+
+         UpdateDexConversionTable.Run(model, token);
       }
 
-      private IList<int> Invert(IList<int> input) {
-         var result = new int[input.Count];
+      private IList<int> Invert(IList<int> input, IList<int> filler) {
+         var result = new int[filler.Count];
+         for (int i = 0; i < filler.Count; i++) result[i] = filler[i];
          for (int i = 0; i < input.Count; i++) {
             result[input[i] - 1] = i + 1;
          }

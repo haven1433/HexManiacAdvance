@@ -42,7 +42,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var noChange = new NoDataChangeDeltaModel();
          var viewPort = (ViewPort)viewPortInterface;
          var model = viewPort.Model;
-         ArrayRun get(string name) => model.GetNextRun(model.GetAddressFromAnchor(noChange, -1, name)) as ArrayRun;
+         var token = viewPort.CurrentChange;
+
+         Run(model, token);
+
+         return ErrorInfo.NoError;
+      }
+
+      public static void Run(IDataModel model, ModelDelta token) {
+         ArrayRun get(string name) => model.GetNextRun(model.GetAddressFromAnchor(token, -1, name)) as ArrayRun;
          var regional = get(HardcodeTablesModel.RegionalDexTableName);
          var national = get(HardcodeTablesModel.NationalDexTableName);
          var convert = get(HardcodeTablesModel.ConversionDexTableName);
@@ -52,11 +60,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
             var nationalIndex = model.ReadMultiByteValue(national.Start + i * 2, 2);
             var conversionIndex = model.ReadMultiByteValue(convert.Start + (regionalIndex - 1) * 2, 2);
             if (nationalIndex != conversionIndex) {
-               model.WriteMultiByteValue(convert.Start + (regionalIndex - 1) * 2, 2, viewPort.CurrentChange, nationalIndex);
+               model.WriteMultiByteValue(convert.Start + (regionalIndex - 1) * 2, 2, token, nationalIndex);
             }
          }
-
-         return ErrorInfo.NoError;
       }
 
       public void TabChanged() => CanRunChanged?.Invoke(this, EventArgs.Empty);

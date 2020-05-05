@@ -4,25 +4,29 @@ using System;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
    public class ReorderDex : IQuickEditItem {
-      public string Name => "Reorder Dex";
+      private readonly string displayName, dexTableName;
 
-      public string Description => "Open a special UI for interactively reordering the national pokedex.";
+      public string Name => $"Reorder {displayName} Dex";
+
+      public string Description => $"Open a special UI for interactively reordering the {displayName} pokedex.";
 
       public string WikiLink => string.Empty;
 
       public event EventHandler CanRunChanged;
 
+      public ReorderDex(string displayName, string dexTableName) => (this.displayName, this.dexTableName) = (displayName, dexTableName);
+
       public bool CanRun(IViewPort viewPortInterface) {
          if (!(viewPortInterface is ViewPort viewPort)) return false;
          var model = viewPort.Model;
-         var dexOrder = GetTable(model, HardcodeTablesModel.NationalDexTableName);
+         var dexOrder = GetTable(model, dexTableName);
          var dexInfo = GetTable(model, HardcodeTablesModel.DexInfoTableName);
          return dexOrder != null && dexInfo != null;
       }
 
       public ErrorInfo Run(IViewPort viewPortInterface) {
          var viewPort = (ViewPort)viewPortInterface;
-         viewPort.OpenDexReorderTab();
+         viewPort.OpenDexReorderTab(dexTableName);
          return ErrorInfo.NoError;
       }
 

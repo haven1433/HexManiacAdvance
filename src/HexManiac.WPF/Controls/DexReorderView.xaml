@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:hshmwpfc="clr-namespace:HavenSoft.HexManiac.WPF.Controls">
    <ScrollViewer>
-      <ItemsControl ItemsSource="{Binding Elements}">
+      <ItemsControl Name="Container" ItemsSource="{Binding Elements}" MouseDown="StartElementMove" MouseMove="ElementMove" MouseUp="EndElementMove">
          <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
                <WrapPanel/>

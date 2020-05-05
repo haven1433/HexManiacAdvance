@@ -1,25 +1,42 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using HavenSoft.HexManiac.Core.ViewModels;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
-   /// <summary>
-   /// Interaction logic for DexReorderView.xaml
-   /// </summary>
-   public partial class DexReorderView : UserControl {
-      public DexReorderView() {
-         InitializeComponent();
+   public partial class DexReorderView {
+      public DexReorderView() => InitializeComponent();
+
+      private const int ExpectedElementWidth = 64, ExpectedElementHeight = 64;
+
+      private Point interactionPoint;
+      private void StartElementMove(object sender, MouseButtonEventArgs e) {
+         if (e.LeftButton == MouseButtonState.Released) return;
+         interactionPoint = e.GetPosition(this);
+         Container.CaptureMouse();
+      }
+
+      private void ElementMove(object sender, MouseEventArgs e) {
+         if (!Container.IsMouseCaptured) return;
+         var tileWidth = (int)(ActualWidth / ExpectedElementWidth);
+
+         var oldTileX = (int)(interactionPoint.X / ExpectedElementWidth);
+         var oldTileY = (int)(interactionPoint.Y / ExpectedElementHeight);
+         var oldTileIndex = oldTileY * tileWidth + oldTileX;
+
+         interactionPoint = e.GetPosition(this);
+         var newTileX = (int)(interactionPoint.X / ExpectedElementWidth);
+         var newTileY = (int)(interactionPoint.Y / ExpectedElementHeight);
+         var newTileIndex = newTileY * tileWidth + newTileX;
+
+         var viewModel = (DexReorderTab)DataContext;
+         viewModel.HandleMove(oldTileIndex, newTileIndex);
+      }
+
+      private void EndElementMove(object sender, MouseButtonEventArgs e) {
+         if (!Container.IsMouseCaptured) return;
+         Container.ReleaseMouseCapture();
+         var viewModel = (DexReorderTab)DataContext;
+         viewModel.CompleteCurrentInteraction();
       }
    }
 }
