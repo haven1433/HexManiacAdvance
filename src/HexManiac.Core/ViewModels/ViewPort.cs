@@ -721,6 +721,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void Refresh() {
          scroll.DataLength = Model.Count;
          RefreshBackingData();
+         using (ModelCacheScope.CreateScope(Model)) {
+            Tools.TableTool.DataForCurrentRunChanged();
+         }
       }
 
       public void RaiseError(string text) => OnError?.Invoke(this, text);
