@@ -1374,7 +1374,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var dexOrder = ReorderDex.GetTable(Model, HardcodeTablesModel.NationalDexTableName);
          var dexInfo = ReorderDex.GetTable(Model, HardcodeTablesModel.DexInfoTableName);
 
-         var newTab = new DexReorderTab(Model, dexOrder, dexInfo);
+         var newTab = new DexReorderTab(history, Model, dexOrder, dexInfo);
          RequestTabChange(this, newTab);
       }
 
