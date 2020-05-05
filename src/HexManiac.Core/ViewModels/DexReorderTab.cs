@@ -79,19 +79,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void CompleteCurrentInteraction() {
-         UpdateDexFromSortOrder();
+         try {
+            UpdateDexFromSortOrder();
+         } catch (Exception e) {
+            OnError?.Invoke(this, e.Message);
+         }
          history.ChangeCompleted();
       }
 
       public void HandleMove(int originalIndex, int newIndex) {
-         if (originalIndex == newIndex) return;
+         if (originalIndex == newIndex || originalIndex >= Elements.Count || newIndex >= Elements.Count) return;
          var element = Elements[originalIndex];
          Elements.RemoveAt(originalIndex);
          Elements.Insert(newIndex, element);
          Debug.Assert(Elements.All(item => item != null), "Dex Reorder only works if there are no empty pokedex slots!");
       }
 
-      public void UpdateDexFromSortOrder() {
+      private void UpdateDexFromSortOrder() {
          var token = history.CurrentChange;
          // Elements is in the new desired pokedex order
          // update dexOrder / dexInfo to match
