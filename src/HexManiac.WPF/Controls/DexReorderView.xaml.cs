@@ -11,7 +11,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private Point interactionPoint;
       private void StartElementMove(object sender, MouseButtonEventArgs e) {
          if (e.LeftButton == MouseButtonState.Released) return;
-         interactionPoint = e.GetPosition(this);
+         interactionPoint = e.GetPosition(Container);
          Container.CaptureMouse();
       }
 
@@ -23,7 +23,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var oldTileY = (int)(interactionPoint.Y / ExpectedElementHeight);
          var oldTileIndex = oldTileY * tileWidth + oldTileX;
 
-         interactionPoint = e.GetPosition(this);
+         interactionPoint = e.GetPosition(Container);
          var newTileX = (int)(interactionPoint.X / ExpectedElementWidth);
          var newTileY = (int)(interactionPoint.Y / ExpectedElementHeight);
          var newTileIndex = newTileY * tileWidth + newTileX;
