@@ -126,11 +126,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (isNational) {
                // we only have to update the dex info if this tab is editing the nationaldex.
                var originalIndex = i;
-               var newIndex = newOrder.IndexOf(oldOrder[i - 1]) + 1;
+               var newIndex = newOrder[oldOrder.IndexOf(i)];
                if (newIndex != originalIndex) {
                   // update data
                   for (int j = 0; j < dexInfo.ElementLength; j++) {
-                     token.ChangeData(model, dexInfo.Start + dexInfo.ElementLength * originalIndex + j, oldDexInfo[dexInfo.ElementLength * newIndex + j]);
+                     token.ChangeData(model, dexInfo.Start + dexInfo.ElementLength * newIndex + j, oldDexInfo[dexInfo.ElementLength * originalIndex + j]);
                   }
                }
             }
