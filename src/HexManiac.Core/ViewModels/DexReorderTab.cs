@@ -15,8 +15,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    public class DexReorderTab : ViewModelCore, ITabContent {
       private readonly ChangeHistory<ModelDelta> history;
       private readonly IDataModel model;
-      private readonly ITableRun dexOrder;
-      private readonly ITableRun dexInfo;
+      private readonly string dexOrder, dexInfo;
       private readonly bool isNational;
 
       public ObservableCollection<SortablePokemon> Elements { get; } = new ObservableCollection<SortablePokemon>();
@@ -45,7 +44,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler RequestMenuClose;
       public event PropertyChangedEventHandler PropertyChanged;
 
-      public DexReorderTab(ChangeHistory<ModelDelta> history, IDataModel model, ITableRun dexOrder, ITableRun dexInfo, bool isNational) {
+      public DexReorderTab(ChangeHistory<ModelDelta> history, IDataModel model, string dexOrder, string dexInfo, bool isNational) {
          this.history = history;
          this.model = model;
          this.dexOrder = dexOrder;
@@ -63,6 +62,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void Refresh() {
          history.ChangeCompleted();
          Elements.Clear();
+
+         var dexOrder = (ITableRun)model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, this.dexOrder));
+         var dexInfo = (ITableRun)model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, this.dexInfo));
 
          var elementCount = dexOrder.ElementCount;
          var dexOrderTable = new ModelTable(model, dexOrder.Start);
@@ -99,6 +101,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var token = history.CurrentChange;
          // Elements is in the new desired pokedex order
          // update dexOrder / dexInfo to match
+
+         var dexOrder = (ITableRun)model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, this.dexOrder));
+         var dexInfo = (ITableRun)model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, this.dexInfo));
 
          // maps from canonical order to previous desired dex order
          var oldOrder = new List<int>();

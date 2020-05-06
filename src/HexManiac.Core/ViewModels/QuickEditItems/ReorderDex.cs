@@ -21,7 +21,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var model = viewPort.Model;
          var dexOrder = GetTable(model, dexTableName);
          var dexInfo = GetTable(model, HardcodeTablesModel.DexInfoTableName);
-         return dexOrder != null && dexInfo != null;
+         var frontSprites = GetTable(model, SortablePokemon.FrontSpritesTable);
+         var pokepalettes = GetTable(model, SortablePokemon.PokePalettesTable);
+         return dexOrder != null && dexInfo != null && frontSprites != null && pokepalettes != null;
       }
 
       public ErrorInfo Run(IViewPort viewPortInterface) {

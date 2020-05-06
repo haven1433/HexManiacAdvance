@@ -11,7 +11,6 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public ModelArrayElement this[int value] {
          get {
-            var table = model.GetNextRun(arrayAddress) as ITableRun;
             return new ModelArrayElement(model, arrayAddress, value);
          }
       }
