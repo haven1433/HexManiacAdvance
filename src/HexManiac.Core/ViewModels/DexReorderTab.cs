@@ -97,6 +97,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Debug.Assert(Elements.All(item => item != null), "Dex Reorder only works if there are no empty pokedex slots!");
       }
 
+      private static IDictionary<int, (T oldVal, T newVal)> Diff<T>(IList<T> oldList, IList<T> newList) where T : IEquatable<T> {
+         var result = new Dictionary<int, (T oldVal, T newVal)>();
+         Debug.Assert(oldList.Count == newList.Count, "Cannot diff lists unless they're the same length!");
+         for (int i = 0; i < oldList.Count; i++) {
+            if (oldList[i].Equals(newList[i])) continue;
+            result[i] = (oldList[i], newList[i]);
+         }
+         return result;
+      }
+
       private void UpdateDexFromSortOrder() {
          var token = history.CurrentChange;
          // Elements is in the new desired pokedex order
@@ -134,7 +144,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   }
                }
             }
-            model.WriteMultiByteValue(dexOrder.Start + dexOrder.ElementLength * (i - 1), 2, token, newOrder[i - 1]);
+         }
+
+         for (int i = 0; i < newOrder.Count; i++) {
+            int start = dexOrder.Start + dexOrder.ElementLength * i;
+            model.WriteMultiByteValue(start, dexOrder.ElementContent[0].Length, token, newOrder[i]);
          }
 
          // restore dexInfo format
