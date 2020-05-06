@@ -169,6 +169,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          var tileHeight = tiles.GetLength(1);
          var result = new List<int[,]>();
 
+         result.Add(new int[8, 8]); // first tile is always the 'empty' tile. Important for transparency/layering stuff.
          for (int y = 0; y < tileHeight; y++) {
             for (int x = 0; x < tileWidth; x++) {
                var pixels = tiles[x, y].pixels;
