@@ -126,7 +126,8 @@ titlescreenPokemonTileMap,    ,,,, ,,,, 0AA964, `lzm4x32x32|titlescreenPokemonTi
 // TODO find publisher info
 
 
-firstpersonviews, ,,,, 0F80FC, 0F80D4, 0F8174, 0F814C, , [a b c d tileset<`lzt4|firstpersonviews`> tilemap<`lzm4x32x20|firstpersonviews`> pal<`ucp4:DE`>]28
+firstpersonviews,                   ,       ,       ,       , 0F80FC, 0F80D4, 0F8174, 0F814C,       , [a b c d tileset<`lzt4|firstpersonviews`> tilemap<`lzm4x32x20|firstpersonviews`> pal<`ucp4:DE`>]28
+battlebackgrounds,            00D954, 00D954, 00D954, 00D954, 00F2A0, 00F2A0, 00F2B4, 00F2B4, 035940, [battletiles<`lzt4|battlebackgrounds`> battlemap<`lzm4x32x64|battlebackgrounds|battletiles`> introtiles<`lzt4`> intromap<`lzm4x32x14|battlebackgrounds|introtiles`> pal<`lzp4:234`>]
 
 townmapPalette,       ,,,, 0C02EC, 0C02C0, 0C0300, 0C02D4, , `ucp4:01`
 townmapTileSet,       ,,,, 0C0330, 0C0304, 0C0344, 0C0318, , `lzt4|townmapPalette`

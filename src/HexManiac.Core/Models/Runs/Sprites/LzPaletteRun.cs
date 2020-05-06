@@ -21,6 +21,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          PaletteFormat = paletteFormat;
          if ((int)Math.Pow(2, paletteFormat.Bits) * 2 > DecompressedLength) InvalidateLength();
          FormatString = $"`lzp{paletteFormat.Bits}`";
+         if (paletteFormat.InitialBlankPages != 0) {
+            FormatString = $"`lzp{paletteFormat.Bits}:";
+            for (int i = 0; i < paletteFormat.Pages; i++) FormatString += ViewModels.ViewPort.AllHexCharacters[paletteFormat.InitialBlankPages + i];
+            FormatString += "`";
+         }
       }
 
       public static bool TryParsePaletteFormat(string pointerFormat, out PaletteFormat paletteFormat) {

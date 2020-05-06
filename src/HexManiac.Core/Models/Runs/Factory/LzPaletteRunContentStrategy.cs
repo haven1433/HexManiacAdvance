@@ -25,7 +25,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
 
          return true;
       }
-      public override bool Matches(IFormattedRun run) => run is LzPaletteRun palRun && palRun.FormatString == Format;
+      public override bool Matches(IFormattedRun run) => run is LzPaletteRun palRun && palRun.PaletteFormat.Pages == paletteFormat.Pages && palRun.PaletteFormat.Bits == paletteFormat.Bits;
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          var data = LZRun.Compress(new byte[paletteFormat.ExpectedByteLengthPerPage], 0, paletteFormat.ExpectedByteLengthPerPage);
          for (int i = 0; i < data.Count; i++) token.ChangeData(owner, destination + i, data[i]);

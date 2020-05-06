@@ -21,7 +21,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public int Pages => 1;
       public TilemapFormat Format { get; }
 
-      public override string FormatString => $"`lzm{Format.BitsPerPixel}x{Format.TileWidth}x{Format.TileHeight}|{Format.MatchingTileset}`";
+      public override string FormatString =>
+         $"`lzm{Format.BitsPerPixel}x{Format.TileWidth}x{Format.TileHeight}|{Format.MatchingTileset}" +
+         (Format.TilesetTableMember != null ? "|" + Format.TilesetTableMember : string.Empty) +
+         "`";
 
       public LzTilemapRun(TilemapFormat format, IDataModel data, int start, IReadOnlyList<int> sources = null) : base(data, start, sources) {
          Format = format;
@@ -33,11 +36,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          format = format.Substring(4, format.Length - 5);
 
          // parse the tilesetHint
-         string hint = null;
+         string hint = null, tableMember = null;
          var pipeIndex = format.IndexOf('|');
          if (pipeIndex != -1) {
             hint = format.Substring(pipeIndex + 1);
             format = format.Substring(0, pipeIndex);
+            pipeIndex = hint.IndexOf('|');
+            if (pipeIndex != -1) {
+               tableMember = hint.Substring(pipeIndex + 1);
+               hint = hint.Substring(0, pipeIndex);
+            }
          }
 
          var parts = format.Split('x');
@@ -46,7 +54,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          if (!int.TryParse(parts[1], out int width)) return false;
          if (!int.TryParse(parts[2], out int height)) return false;
 
-         tilemapFormat = new TilemapFormat(bits, width, height, hint);
+         tilemapFormat = new TilemapFormat(bits, width, height, hint, tableMember);
          return true;
       }
 
@@ -226,11 +234,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          var segmentOffset = 0;
          for (int i = 0; i < tilemapTable.ElementContent.Count; i++) {
             if (tilemapTable.ElementContent[i] is ArrayRunPointerSegment segment) {
-               if (LzTilesetRun.TryParseTilesetFormat(segment.InnerFormat, out var _)) {
-                  var source = tilemapTable.Start + tilemapTable.ElementLength * tilemapIndex + segmentOffset;
-                  if (model.GetNextRun(model.ReadPointer(source)) is LzTilesetRun tilesetRun) {
-                     arrayTilesetAddress = tilesetRun.Start;
-                     return;
+               if (Format.TilesetTableMember == null || segment.Name == Format.TilesetTableMember) {
+                  if (LzTilesetRun.TryParseTilesetFormat(segment.InnerFormat, out var _)) {
+                     var source = tilemapTable.Start + tilemapTable.ElementLength * tilemapIndex + segmentOffset;
+                     if (model.GetNextRun(model.ReadPointer(source)) is LzTilesetRun tilesetRun) {
+                        arrayTilesetAddress = tilesetRun.Start;
+                        return;
+                     }
                   }
                }
             }
