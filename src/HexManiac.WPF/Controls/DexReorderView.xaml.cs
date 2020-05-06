@@ -1,6 +1,10 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels;
+using HavenSoft.HexManiac.WPF.Windows;
+using System;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
    public partial class DexReorderView {
@@ -30,6 +34,21 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
          var viewModel = (DexReorderTab)DataContext;
          viewModel.HandleMove(oldTileIndex, newTileIndex);
+
+         for (int i = oldTileIndex; i < newTileIndex; i++) {
+            // all these tiles were moved to the left
+            var image = (PixelImage)MainWindow.GetChild(Container, "PixelImage", viewModel.Elements[i]);
+            if (!(image.RenderTransform is TranslateTransform)) image.RenderTransform = new TranslateTransform();
+            var transform = (TranslateTransform)image.RenderTransform;
+            transform.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(ExpectedElementWidth, 0, new Duration(TimeSpan.FromMilliseconds(100))));
+         }
+         for (int i = newTileIndex + 1; i <= oldTileIndex; i++) {
+            // all these tiles were moved to the right
+            var image = (PixelImage)MainWindow.GetChild(Container, "PixelImage", viewModel.Elements[i]);
+            if (!(image.RenderTransform is TranslateTransform)) image.RenderTransform = new TranslateTransform();
+            var transform = (TranslateTransform)image.RenderTransform;
+            transform.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(-ExpectedElementWidth, 0, new Duration(TimeSpan.FromMilliseconds(100))));
+         }
       }
 
       private void EndElementMove(object sender, MouseButtonEventArgs e) {
