@@ -36,6 +36,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    /// Utility base-class that adds the PropertyChanged event and adds utility methods to simplify calling it.
    /// </summary>
    public class ViewModelCore : INotifyPropertyChanged {
+#if DEBUG
+      private static int IDGenerator = 0;
+      public int ID { get; } = ++IDGenerator;
+#endif
+
       public event PropertyChangedEventHandler PropertyChanged;
 
       protected void NotifyPropertyChanged([CallerMemberName]string propertyName = null) {
