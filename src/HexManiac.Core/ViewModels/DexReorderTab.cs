@@ -71,13 +71,33 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var indexName = dexOrder.ElementContent[0].Name;
 
          var elements = new SortablePokemon[dexInfo.ElementCount - 1];
+         var unusedIndeces = new Dictionary<int, int>();
          for (int i = 0; i < elementCount; i++) {
             var dexIndex = dexOrderTable[i].GetValue(indexName);
-            if (dexIndex >= dexInfo.ElementCount) continue;
+            if (dexIndex >= dexInfo.ElementCount) {
+               if (dexIndex > elementCount) {
+                  Debug.Fail($"Dex Reorder Warning: pokemon {i} is set to pokedex slot {dexIndex - 1} which is more than the number of pokemon!");
+               }
+               if (!unusedIndeces.ContainsKey(dexIndex)) {
+                  unusedIndeces[dexIndex] = 0;
+               }
+               unusedIndeces[dexIndex] += 1;
+               continue;
+            }
+            if (elements[dexIndex - 1] != null) Debug.Fail($"Dex Reorder Warning: pokedex slot {dexIndex - 1} is set more than once! See pokemon {i}.");
             elements[dexIndex - 1] = new SortablePokemon(model, i + 1);
          }
-         for (int i = 0; i < elements.Length; i++) Elements.Add(elements[i]);
-         Debug.Assert(Elements.All(element => element != null), "Dex Reorder only works if there are no empty pokedex slots!");
+         for (int i = dexInfo.ElementCount; i < elementCount; i++) {
+            if (!unusedIndeces.ContainsKey(i)) {
+               Debug.Fail($"Dex Reorder Warning: pokedex slot {i} is not used!");
+            } else if (unusedIndeces[i] > 1) {
+               Debug.Fail($"Dex Reorder Warning: pokedex slot {i} is used more than once!");
+            }
+         }
+         for (int i = 0; i < elements.Length; i++) {
+            Debug.Assert(elements[i] != null, $"Dex Reorder warning: pokedex slot {i + 1} is empty!");
+            Elements.Add(elements[i]);
+         }
       }
 
       public void CompleteCurrentInteraction() {
