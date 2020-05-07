@@ -37,21 +37,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var viewModel = (DexReorderTab)DataContext;
          oldTileIndex = Math.Min(Math.Max(0, oldTileIndex), Container.Items.Count - 1);
          newTileIndex = Math.Min(Math.Max(0, newTileIndex), Container.Items.Count - 1);
-         viewModel.HandleMove(oldTileIndex, newTileIndex);
+         var tilesToAnimate = viewModel.HandleMove(oldTileIndex, newTileIndex);
 
-         for (int i = oldTileIndex; i < newTileIndex; i++) {
-            // all these tiles were moved to the left
-            var image = (PixelImage)MainWindow.GetChild(Container, "PixelImage", viewModel.Elements[i]);
+         foreach(var tile in tilesToAnimate) {
+            var image = (PixelImage)MainWindow.GetChild(Container, "PixelImage", viewModel.Elements[tile.index]);
             if (!(image.RenderTransform is TranslateTransform)) image.RenderTransform = new TranslateTransform();
             var transform = (TranslateTransform)image.RenderTransform;
-            transform.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(ExpectedElementWidth, 0, span));
-         }
-         for (int i = newTileIndex + 1; i <= oldTileIndex; i++) {
-            // all these tiles were moved to the right
-            var image = (PixelImage)MainWindow.GetChild(Container, "PixelImage", viewModel.Elements[i]);
-            if (!(image.RenderTransform is TranslateTransform)) image.RenderTransform = new TranslateTransform();
-            var transform = (TranslateTransform)image.RenderTransform;
-            transform.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(-ExpectedElementWidth, 0, span));
+            transform.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(ExpectedElementWidth * tile.direction, 0, span));
          }
       }
 

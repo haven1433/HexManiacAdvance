@@ -119,12 +119,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          history.ChangeCompleted();
       }
 
-      public void HandleMove(int originalIndex, int newIndex) {
-         if (originalIndex == newIndex) return;
+      public IList<(int index, int direction)> HandleMove(int originalIndex, int newIndex) {
+         var otherMovedElements = new List<(int, int)>();
+         if (originalIndex == newIndex) return otherMovedElements;
          var element = Elements[originalIndex];
          Elements.RemoveAt(originalIndex);
          Elements.Insert(newIndex, element);
          Debug.Assert(Elements.All(item => item != null), "Dex Reorder only works if there are no empty pokedex slots!");
+
+         for (int i = originalIndex; i < newIndex; i++) {
+            otherMovedElements.Add((i, 1));
+         }
+         for (int i = newIndex + 1; i <= originalIndex; i++) {
+            otherMovedElements.Add((i, -1));
+         }
+
+         return otherMovedElements;
       }
 
       private static IDictionary<int, (T oldVal, T newVal)> Diff<T>(IList<T> oldList, IList<T> newList) where T : IEquatable<T> {
