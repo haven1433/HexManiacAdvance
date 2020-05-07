@@ -217,7 +217,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   var offsets = array.ConvertByteOffsetToArrayOffset(dataIndex);
                   Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
                   Tools.TableTool.Address = array.Start + array.ElementLength * offsets.ElementIndex;
-                  if (!(run is IStreamRun) || tools.SelectedTool != tools.StringTool) {
+                  if (!(run is IStreamRun || array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.PCS) || tools.SelectedTool != tools.StringTool) {
                      tools.SelectedIndex = tools.IndexOf(tools.TableTool);
                   }
                } else if (run is IStreamRun) {
