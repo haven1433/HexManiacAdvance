@@ -2,18 +2,47 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:hshmwpfc="clr-namespace:HavenSoft.HexManiac.WPF.Controls">
-   <ScrollViewer Background="LightGray">
-      <ItemsControl Name="Container" ItemsSource="{Binding Elements}" MouseDown="StartElementMove" MouseMove="ElementMove" MouseUp="EndElementMove">
-         <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-               <WrapPanel/>
-            </ItemsPanelTemplate>
-         </ItemsControl.ItemsPanel>
-         <ItemsControl.ItemTemplate>
-            <DataTemplate>
-               <hshmwpfc:PixelImage x:Name="PixelImage" DataContext="{Binding}"/>
-            </DataTemplate>
-         </ItemsControl.ItemTemplate>
-      </ItemsControl>
-   </ScrollViewer>
+   <DockPanel>
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" DockPanel.Dock="Top">
+         <TextBlock Text="Filter:" VerticalAlignment="Center"/>
+         <TextBox Width="100" Margin="5" Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}"/>
+      </StackPanel>
+      <ScrollViewer Background="LightGray">
+         <ItemsControl Name="Container" ItemsSource="{Binding Elements}" MouseDown="StartElementMove" MouseMove="ElementMove" MouseUp="EndElementMove">
+            <ItemsControl.ItemsPanel>
+               <ItemsPanelTemplate>
+                  <WrapPanel/>
+               </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+               <DataTemplate>
+                  <hshmwpfc:PixelImage x:Name="PixelImage">
+                     <hshmwpfc:PixelImage.Style>
+                        <Style>
+                           <Style.Triggers>
+                              <DataTrigger Binding="{Binding IsFilteredOut}" Value="True">
+                                 <DataTrigger.EnterActions>
+                                    <BeginStoryboard>
+                                       <Storyboard>
+                                          <DoubleAnimation Storyboard.TargetProperty="Opacity" To=".3" Duration="0:0:.2"/>
+                                       </Storyboard>
+                                    </BeginStoryboard>
+                                 </DataTrigger.EnterActions>
+                                 <DataTrigger.ExitActions>
+                                    <BeginStoryboard>
+                                       <Storyboard>
+                                          <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:.2"/>
+                                       </Storyboard>
+                                    </BeginStoryboard>
+                                 </DataTrigger.ExitActions>
+                              </DataTrigger>
+                           </Style.Triggers>
+                        </Style>
+                     </hshmwpfc:PixelImage.Style>
+                  </hshmwpfc:PixelImage>
+               </DataTemplate>
+            </ItemsControl.ItemTemplate>
+         </ItemsControl>
+      </ScrollViewer>
+   </DockPanel>
 </UserControl>

@@ -22,6 +22,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public string Name => "Adjust Dex Order";
 
+      private string filter = string.Empty;
+      public string Filter {
+         get => filter;
+         set {
+            if (!TryUpdate(ref filter, value)) return;
+            foreach (var mon in Elements) mon.MatchToFilter(filter);
+         }
+      }
+
       public ICommand Save { get; } = new StubCommand();
       public ICommand SaveAs { get; } = new StubCommand();
       public ICommand Undo { get; }
@@ -97,6 +106,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          for (int i = 0; i < elements.Length; i++) {
             Debug.Assert(elements[i] != null, $"Dex Reorder warning: pokedex slot {i + 1} is empty!");
             Elements.Add(elements[i]);
+            elements[i].MatchToFilter(filter);
          }
       }
 
@@ -191,12 +201,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public const string FrontSpritesTable = "frontsprites";
       public const string PokePalettesTable = "pokepalettes";
 
+      private readonly IList<string> filterTerms;
+
       public int CanonicalIndex { get; }
       public int PixelWidth { get; }
       public int PixelHeight { get; }
       public short[] PixelData { get; }
       public double SpriteScale { get; }
-      public event PropertyChangedEventHandler PropertyChanged;
+
+      private bool isFilteredOut;
+      public bool IsFilteredOut {
+         get => isFilteredOut;
+         set => TryUpdate(ref isFilteredOut, value);
+      }
 
       public SortablePokemon(IDataModel model, int index) {
          var sprites = new ModelTable(model, model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, FrontSpritesTable));
@@ -209,6 +226,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          PixelHeight = sprite.GetLength(1);
          PixelData = SpriteTool.Render(sprite, palette, new PaletteFormat(4, 1));
          SpriteScale = 1;
+
+         filterTerms = GenerateFilterTerms(model, index);
+      }
+
+      public void MatchToFilter(string filter) {
+         IsFilteredOut = false;
+         if (filter == string.Empty) return;
+
+         foreach (var term in filterTerms) {
+            if (term.MatchesPartial(filter)) return;
+         }
+
+         IsFilteredOut = true;
+      }
+
+      private static IList<string> GenerateFilterTerms(IDataModel model, int pokemonIndex) {
+         var terms = new List<string>();
+
+         // pokemon name
+         var names = new ModelTable(model, model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, HardcodeTablesModel.PokemonNameTable));
+         var name = names[pokemonIndex].GetStringValue(names[pokemonIndex].GetFieldName(0));
+         terms.Add(name);
+
+         return terms;
       }
    }
 }
