@@ -16,10 +16,13 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
                <DataTemplate>
-                  <hshmwpfc:PixelImage x:Name="PixelImage">
-                     <hshmwpfc:PixelImage.Style>
-                        <Style>
+                  <Border BorderThickness="2" Margin="-1" Name="PixelImage">
+                     <Border.Style>
+                        <Style TargetType="Border">
                            <Style.Triggers>
+                              <DataTrigger Binding="{Binding Selected}" Value="True">
+                                 <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                              </DataTrigger>
                               <DataTrigger Binding="{Binding IsFilteredOut}" Value="True">
                                  <DataTrigger.EnterActions>
                                     <BeginStoryboard>
@@ -38,8 +41,9 @@
                               </DataTrigger>
                            </Style.Triggers>
                         </Style>
-                     </hshmwpfc:PixelImage.Style>
-                  </hshmwpfc:PixelImage>
+                     </Border.Style>
+                     <hshmwpfc:PixelImage/>
+                  </Border>
                </DataTemplate>
             </ItemsControl.ItemTemplate>
          </ItemsControl>

@@ -220,10 +220,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public double SpriteScale { get; }
 
       private bool isFilteredOut;
-      public bool IsFilteredOut {
-         get => isFilteredOut;
-         set => TryUpdate(ref isFilteredOut, value);
-      }
+      public bool IsFilteredOut { get => isFilteredOut; set => TryUpdate(ref isFilteredOut, value); }
+
+      private bool selected;
+      public bool Selected { get => selected; set => TryUpdate(ref selected, value); }
 
       public SortablePokemon(IDataModel model, int index) {
          var sprites = new ModelTable(model, model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, FrontSpritesTable));

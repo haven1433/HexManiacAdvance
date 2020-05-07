@@ -12,7 +12,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       public DexReorderView() => InitializeComponent();
 
-      private const int ExpectedElementWidth = 64, ExpectedElementHeight = 64;
+      private const int ExpectedElementWidth = 66, ExpectedElementHeight = 66;
 
       private Point interactionPoint;
       private void StartElementMove(object sender, MouseButtonEventArgs e) {
@@ -23,7 +23,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private void ElementMove(object sender, MouseEventArgs e) {
          if (!Container.IsMouseCaptured) return;
-         var tileWidth = (int)(ActualWidth / ExpectedElementWidth);
+         var tileWidth = (int)(Container.ActualWidth / ExpectedElementWidth);
 
          var oldTileX = (int)(interactionPoint.X / ExpectedElementWidth);
          var oldTileY = (int)(interactionPoint.Y / ExpectedElementHeight);
@@ -40,7 +40,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var tilesToAnimate = viewModel.HandleMove(oldTileIndex, newTileIndex);
 
          foreach(var tile in tilesToAnimate) {
-            var image = (PixelImage)MainWindow.GetChild(Container, "PixelImage", viewModel.Elements[tile.index]);
+            var image = MainWindow.GetChild(Container, "PixelImage", viewModel.Elements[tile.index]);
             if (!(image.RenderTransform is TranslateTransform)) image.RenderTransform = new TranslateTransform();
             var transform = (TranslateTransform)image.RenderTransform;
             transform.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(ExpectedElementWidth * tile.direction, 0, span));
