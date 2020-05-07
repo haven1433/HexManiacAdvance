@@ -120,7 +120,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void HandleMove(int originalIndex, int newIndex) {
-         if (originalIndex == newIndex || originalIndex >= Elements.Count || newIndex >= Elements.Count) return;
+         if (originalIndex == newIndex) return;
          var element = Elements[originalIndex];
          Elements.RemoveAt(originalIndex);
          Elements.Insert(newIndex, element);

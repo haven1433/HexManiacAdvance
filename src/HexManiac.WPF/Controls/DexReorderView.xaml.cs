@@ -35,6 +35,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var newTileIndex = newTileY * tileWidth + newTileX;
 
          var viewModel = (DexReorderTab)DataContext;
+         oldTileIndex = Math.Min(Math.Max(0, oldTileIndex), Container.Items.Count - 1);
+         newTileIndex = Math.Min(Math.Max(0, newTileIndex), Container.Items.Count - 1);
          viewModel.HandleMove(oldTileIndex, newTileIndex);
 
          for (int i = oldTileIndex; i < newTileIndex; i++) {
