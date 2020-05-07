@@ -249,6 +249,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var name = names[pokemonIndex].GetStringValue(names[pokemonIndex].GetFieldName(0));
          terms.Add(name);
 
+         // pokemon types
+         var statsTable = ReorderDex.GetTable(model, HardcodeTablesModel.PokemonStatsTable);
+         if (statsTable != null) {
+            var stats = new ModelTable(model, statsTable.Start);
+            terms.Add(stats[pokemonIndex].GetEnumValue("type1"));
+            terms.Add(stats[pokemonIndex].GetEnumValue("type2"));
+         }
+
          return terms;
       }
    }
