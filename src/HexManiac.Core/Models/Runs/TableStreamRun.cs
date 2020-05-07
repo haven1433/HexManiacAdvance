@@ -94,7 +94,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public string SerializeRun() {
          var builder = new StringBuilder();
          AppendTo(model, builder, Start, ElementLength * ElementCount);
-         return builder.ToString();
+         var lines = builder.ToString().Split(Environment.NewLine);
+
+         // AppendTo is used in copy/paste scenarios, and includes the required '+' to work in that case.
+         // strip the '+', as it's not needed for stream serialization, which uses newlines instead.
+         return string.Join(Environment.NewLine, lines.Select(line => {
+            if (line.Length == 0) return line;
+            if (line[0] != ArrayRun.ExtendArray) return line;
+            return line.Substring(1);
+         }).ToArray());
       }
 
       public IStreamRun DeserializeRun(string content, ModelDelta token) {
