@@ -53,6 +53,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler RequestMenuClose;
       public event PropertyChangedEventHandler PropertyChanged;
 
+      private int selectionStart;
+      public int SelectionStart {
+         get => selectionStart;
+         set {
+            if (!TryUpdate(ref selectionStart, value)) return;
+            SelectionEnd = selectionStart;
+         }
+      }
+
+      private int selectionEnd;
+      public int SelectionEnd {
+         get => selectionEnd;
+         set {
+            TryUpdate(ref selectionEnd, value);
+            UpdateSelection();
+         }
+      }
+
       public DexReorderTab(ChangeHistory<ModelDelta> history, IDataModel model, string dexOrder, string dexInfo, bool isNational) {
          this.history = history;
          this.model = model;
@@ -108,6 +126,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             Elements.Add(elements[i]);
             elements[i].MatchToFilter(filter);
          }
+      }
+
+      public void UpdateSelection() {
+         var first = Math.Min(selectionStart, selectionEnd);
+         var last = Math.Max(selectionStart, selectionEnd);
+         for (int i = 0; i < Elements.Count; i++) Elements[i].Selected = first <= i && i <= last;
       }
 
       public void CompleteCurrentInteraction() {

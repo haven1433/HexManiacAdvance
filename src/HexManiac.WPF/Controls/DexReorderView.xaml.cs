@@ -10,6 +10,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
    public partial class DexReorderView {
       private readonly Duration span = new Duration(TimeSpan.FromMilliseconds(100));
 
+      private DexReorderTab ViewModel => DataContext as DexReorderTab;
+
       public DexReorderView() => InitializeComponent();
 
       private const int ExpectedElementWidth = 66, ExpectedElementHeight = 66;
@@ -18,6 +20,19 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void StartElementMove(object sender, MouseButtonEventArgs e) {
          if (e.LeftButton == MouseButtonState.Released) return;
          interactionPoint = e.GetPosition(Container);
+
+         var tileWidth = (int)(Container.ActualWidth / ExpectedElementWidth);
+         var newTileX = (int)(interactionPoint.X / ExpectedElementWidth);
+         var newTileY = (int)(interactionPoint.Y / ExpectedElementHeight);
+         var tileIndex = newTileY * tileWidth + newTileX;
+         tileIndex = Math.Min(Math.Max(0, tileIndex), Container.Items.Count - 1);
+
+         if (Keyboard.Modifiers == ModifierKeys.Shift) {
+            ViewModel.SelectionEnd = tileIndex;
+         } else {
+            ViewModel.SelectionStart = tileIndex;
+         }
+
          Container.CaptureMouse();
       }
 
@@ -34,13 +49,12 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var newTileY = (int)(interactionPoint.Y / ExpectedElementHeight);
          var newTileIndex = newTileY * tileWidth + newTileX;
 
-         var viewModel = (DexReorderTab)DataContext;
          oldTileIndex = Math.Min(Math.Max(0, oldTileIndex), Container.Items.Count - 1);
          newTileIndex = Math.Min(Math.Max(0, newTileIndex), Container.Items.Count - 1);
-         var tilesToAnimate = viewModel.HandleMove(oldTileIndex, newTileIndex);
+         var tilesToAnimate = ViewModel.HandleMove(oldTileIndex, newTileIndex);
 
          foreach(var tile in tilesToAnimate) {
-            var image = MainWindow.GetChild(Container, "PixelImage", viewModel.Elements[tile.index]);
+            var image = MainWindow.GetChild(Container, "PixelImage", ViewModel.Elements[tile.index]);
             if (!(image.RenderTransform is TranslateTransform)) image.RenderTransform = new TranslateTransform();
             var transform = (TranslateTransform)image.RenderTransform;
             transform.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(ExpectedElementWidth * tile.direction, 0, span));
@@ -50,8 +64,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void EndElementMove(object sender, MouseButtonEventArgs e) {
          if (!Container.IsMouseCaptured) return;
          Container.ReleaseMouseCapture();
-         var viewModel = (DexReorderTab)DataContext;
-         viewModel.CompleteCurrentInteraction();
+         ViewModel.CompleteCurrentInteraction();
       }
    }
 }
