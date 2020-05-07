@@ -125,6 +125,10 @@ titlescreenPokemonTileSet,    ,,,, ,,,, 0AA95C, `lzt4|titlescreenLogoPalette`
 titlescreenPokemonTileMap,    ,,,, ,,,, 0AA964, `lzm4x32x32|titlescreenPokemonTileSet`
 // TODO find publisher info
 
+bag.male.sprite,   3C1CC8, 3C1D20, 3C1CE4, 3C1D40, 3D41E4, 3D4020, 3D4254, 3D4090, 57FB34, `lzs4x8x8|bag.palette`
+bag.female.sprite, 3C1CD0, 3C1D28, 3C1CEC, 3C1D50, 3D41EC, 3D4028, 3D425C, 3D4098, 57FB3C, `lzs4x8x8|bag.palette`
+bag.palette,       3C1CD8, 3C1D30, 3C1CF4, 3C1D60, 3D41F4, 3D4030, 3D4264, 3D40A0, 57FB44, `lzp4`
+bag.berry,         0A7D7C, 0A7D7C, 0A7D9C, 0A7D9C,       ,       ,       ,       , 0D50C0, [sprite<`lzs4x6x6`> pal<`lzp4`>]
 
 firstpersonviews,                   ,       ,       ,       , 0F80FC, 0F80D4, 0F8174, 0F814C,       , [a b c d tileset<`lzt4|firstpersonviews`> tilemap<`lzm4x32x20|firstpersonviews`> pal<`ucp4:DE`>]28
 battlebackgrounds,            00D954, 00D954, 00D954, 00D954, 00F2A0, 00F2A0, 00F2B4, 00F2B4, 035940, [battletiles<`lzt4|battlebackgrounds`> battlemap<`lzm4x32x64|battlebackgrounds|battletiles`> introtiles<`lzt4`> intromap<`lzm4x32x14|battlebackgrounds|introtiles`> pal<`lzp4:234`>]
