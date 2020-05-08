@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels.Tools;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.ComponentModel;
 using System.Globalization;
@@ -84,7 +85,14 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (newValue != null) newValue.PropertyChanged += HandleDataContextPropertyChanged;
          UpdateSource();
       }
-      private void HandleDataContextPropertyChanged(object sender, PropertyChangedEventArgs e) => UpdateSource();
+      private void HandleDataContextPropertyChanged(object sender, PropertyChangedEventArgs e) {
+         if (!e.PropertyName.IsAny(
+            nameof(ViewModel.PixelWidth),
+            nameof(ViewModel.PixelHeight),
+            nameof(ViewModel.PixelData)
+         )) return;
+         UpdateSource();
+      }
       public void UpdateSource() {
          if (ViewModel == null) return;
          var pixels = ViewModel.PixelData;
