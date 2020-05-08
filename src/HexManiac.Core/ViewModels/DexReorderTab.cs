@@ -57,6 +57,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public int SelectionStart {
          get => selectionStart;
          set {
+            var first = Math.Min(selectionStart, selectionEnd);
+            var last = Math.Max(selectionStart, selectionEnd);
+            if (first <= value && value <= last) return;
             if (!TryUpdate(ref selectionStart, value)) return;
             SelectionEnd = selectionStart;
          }
@@ -146,18 +149,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public IList<(int index, int direction)> HandleMove(int originalIndex, int newIndex) {
          var otherMovedElements = new List<(int, int)>();
          if (originalIndex == newIndex) return otherMovedElements;
-         var element = Elements[originalIndex];
-         Elements.RemoveAt(originalIndex);
-         Elements.Insert(newIndex, element);
+
+         var first = Math.Min(selectionStart, selectionEnd);
+         var last = Math.Max(selectionStart, selectionEnd);
+         newIndex = Math.Max(newIndex, originalIndex - first);
+         newIndex = Math.Min(newIndex, Elements.Count - 1 - last + originalIndex);
+         var targetElements = Enumerable.Range(first, last - first + 1).ToList();
+
+         if (originalIndex < newIndex) targetElements.Reverse();
+         foreach (var index in targetElements) {
+            var element = Elements[index];
+            Elements.RemoveAt(index);
+            Elements.Insert(newIndex - originalIndex + index, element);
+         }
+
          Debug.Assert(Elements.All(item => item != null), "Dex Reorder only works if there are no empty pokedex slots!");
 
-         for (int i = originalIndex; i < newIndex; i++) {
-            otherMovedElements.Add((i, 1));
+         for (int i = first; i < newIndex - (originalIndex - first); i++) {
+            otherMovedElements.Add((i, last - first + 1));
          }
-         for (int i = newIndex + 1; i <= originalIndex; i++) {
-            otherMovedElements.Add((i, -1));
+         for (int i = last; i > newIndex + (last - originalIndex); i--) {
+            otherMovedElements.Add((i, first - last - 1));
          }
 
+         selectionStart += newIndex - originalIndex;
+         SelectionEnd += newIndex - originalIndex;
          return otherMovedElements;
       }
 
