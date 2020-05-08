@@ -17,6 +17,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private readonly IDataModel model;
       private readonly string dexOrder, dexInfo;
       private readonly bool isNational;
+      private readonly StubCommand undo, redo;
 
       public ObservableCollection<SortablePokemon> Elements { get; } = new ObservableCollection<SortablePokemon>();
 
@@ -33,8 +34,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ICommand Save { get; } = new StubCommand();
       public ICommand SaveAs { get; } = new StubCommand();
-      public ICommand Undo { get; }
-      public ICommand Redo { get; }
+      public ICommand Undo => undo;
+      public ICommand Redo => redo;
       public ICommand Copy { get; } = new StubCommand();
       public ICommand Clear { get; } = new StubCommand();
       public ICommand SelectAll { get; } = new StubCommand();
@@ -81,12 +82,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          this.dexInfo = dexInfo;
          this.isNational = isNational;
 
+         undo = new StubCommand {
+            CanExecute = history.Undo.CanExecute,
+            Execute = arg => { history.Undo.Execute(arg); Refresh(); },
+         };
+         history.Undo.CanExecuteChanged += UndoCanExecuteWatcher;
+
+         redo = new StubCommand {
+            CanExecute = history.Redo.CanExecute,
+            Execute = arg => { history.Redo.Execute(arg); Refresh(); },
+         };
+         history.Redo.CanExecuteChanged += RedoCanExecuteWatcher;
+
          Close = new StubCommand {
             CanExecute = arg => true,
-            Execute = arg => Closed?.Invoke(this, EventArgs.Empty),
+            Execute = arg => {
+               Closed?.Invoke(this, EventArgs.Empty);
+               history.Undo.CanExecuteChanged -= UndoCanExecuteWatcher;
+               history.Redo.CanExecuteChanged -= RedoCanExecuteWatcher;
+            },
          };
-         Undo = history.Undo;
-         Redo = history.Redo;
       }
 
       public void Refresh() {
@@ -245,6 +260,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
          return result;
       }
+
+      private void UndoCanExecuteWatcher(object sender, EventArgs e) => undo.CanExecuteChanged.Invoke(undo, EventArgs.Empty);
+      private void RedoCanExecuteWatcher(object sender, EventArgs e) => redo.CanExecuteChanged.Invoke(redo, EventArgs.Empty);
    }
 
    public class SortablePokemon : ViewModelCore, IPixelViewModel {
