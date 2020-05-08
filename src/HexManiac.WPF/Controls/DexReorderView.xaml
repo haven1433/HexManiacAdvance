@@ -4,7 +4,7 @@
              xmlns:hshmwpfc="clr-namespace:HavenSoft.HexManiac.WPF.Controls">
    <DockPanel>
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" DockPanel.Dock="Top">
-         <TextBlock Text="Filter:" VerticalAlignment="Center"/>
+         <TextBlock Text="Filter Name/Type:" VerticalAlignment="Center"/>
          <TextBox Width="100" Margin="5" Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}"/>
       </StackPanel>
       <ScrollViewer Background="LightGray">
