@@ -109,7 +109,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                ClearError.Execute();
                ClearMessage.Execute();
                gotoViewModel.ControlVisible = false;
-               hexConverterVisible = false;
+               HexConverterVisible = false;
             }
             TryUpdate(ref findControlVisible, value);
             if (value) MoveFocusToFind?.Invoke(this, EventArgs.Empty);
@@ -124,7 +124,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                ClearError.Execute();
                ClearMessage.Execute();
                gotoViewModel.ControlVisible = false;
-               findControlVisible = false;
+               FindControlVisible = false;
             }
             TryUpdate(ref hexConverterVisible, value);
             if (value) MoveFocusToHexConverter?.Invoke(this, EventArgs.Empty);
