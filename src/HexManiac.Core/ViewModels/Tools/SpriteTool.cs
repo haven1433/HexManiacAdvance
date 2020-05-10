@@ -9,6 +9,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Configuration;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
@@ -296,11 +297,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          // extract palette
          var renderPalette = GetRenderPalette(model?.GetNextRun(spriteAddress) as ISpriteRun).ToArray();
          paletteHint = paletteHint ?? renderPalette;
+         image = ReduceColors(image, renderPalette);
          var newPalette = image.Distinct().ToList();
-         if (newPalette.Count > renderPalette.Length) {
-            viewPort.RaiseError("The loaded image uses too many colors!");
-            return;
-         }
 
          // sort palette based on the previous palette
          if (newPalette.All(paletteHint.Contains)) {
@@ -317,7 +315,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          while (newPalette.Count < renderPalette.Length) newPalette.Add(paletteHint.Except(newPalette).FirstOrDefault());
 
          var tiles = Tilize(image, width);
-         var palettes = SplitPalettes(newPalette);
+         var palettes = palRun.PaletteFormat.Bits == 4 ? SplitPalettes(newPalette) : new short[][] { newPalette.ToArray() };
          var tilePixels = tiles.Select(tile => ExtractPixelsForTile(tile, palettes, palRun.PaletteFormat.InitialBlankPages)).ToArray();
          var newPixels = Detilize(tilePixels, width / 8);
 
@@ -347,6 +345,55 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          LoadPalette();
          LoadSprite();
+      }
+
+      public static short[] ReduceColors(short[] initialImage, short[] examplePalette) {
+         var targetPaletteLength = examplePalette.Length;
+
+         var initialColorsAndWeight = new Dictionary<short, int>();
+         foreach (var color in initialImage) {
+            if (initialColorsAndWeight.ContainsKey(color)) initialColorsAndWeight[color] += 1;
+            else initialColorsAndWeight[color] = 1;
+         }
+
+         if (initialColorsAndWeight.Count <= targetPaletteLength) return initialImage;
+
+         // organize the initial colors based on their usage
+         var masses = new List<ColorMass>();
+         foreach (var color in initialColorsAndWeight.Keys) {
+            masses.Add(new ColorMass(color, initialColorsAndWeight[color]));
+         }
+
+         // use a 'gravity' metric to reduce the number of colors
+         while (masses.Count > targetPaletteLength) {
+            var mostAttractedIndexPair = (first: 0, second: 0);
+            double greatestAttraction = -1;
+            for (int i = 0; i < masses.Count; i++) {
+               for (int j = i + 1; j < masses.Count; j++) {
+                  var attractor = masses[i] * masses[j];
+                  if (attractor <= greatestAttraction) continue;
+                  mostAttractedIndexPair = (i, j);
+                  greatestAttraction = attractor;
+               }
+            }
+            var first = masses[mostAttractedIndexPair.first];
+            var second = masses[mostAttractedIndexPair.second];
+            masses.RemoveAt(mostAttractedIndexPair.second);
+            masses.RemoveAt(mostAttractedIndexPair.first);
+            masses.Add(first + second);
+         }
+
+         // build a mapping from the full color set to the reduced color set
+         var sourceToTarget = new Dictionary<short, short>();
+         foreach(var mass in masses) {
+            var resultColor = mass.ResultColor;
+            foreach (var color in mass.OriginalColors.Keys) sourceToTarget[color] = resultColor;
+         }
+
+         // replace initial colors with reduced color set
+         var resultImage = new short[initialImage.Length];
+         for (int i = 0; i < initialImage.Length; i++) resultImage[i] = sourceToTarget[initialImage[i]];
+         return resultImage;
       }
 
       private short[][] SplitPalettes(IReadOnlyList<short> colors) {
@@ -426,5 +473,57 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var renderPalette = GetRenderPalette(model?.GetNextRun(spriteAddress) as ISpriteRun).ToArray();
          fileSystem.SaveImage(PixelData, renderPalette, PixelWidth);
       }
+   }
+
+   public class ColorMass {
+      public double R { get; private set; }
+      public double G { get; private set; }
+      public double B { get; private set; }
+      public int Mass { get; private set; }
+
+      private readonly Dictionary<short, int> originalColors = new Dictionary<short, int>();
+      public IReadOnlyDictionary<short, int> OriginalColors => originalColors;
+
+      public short ResultColor => CombineRGB((int)R, (int)G, (int)B);
+
+      private ColorMass() { }
+      public ColorMass(short color, int count) {
+         originalColors[color] = count;
+         (R, G, B) = SplitRGB(color);
+         Mass = count;
+      }
+
+      /// <summary>
+      /// Returns a new color mass that accounts for the positions/masses of the original two.
+      /// </summary>
+      public static ColorMass operator +(ColorMass a, ColorMass b) {
+         var result = new ColorMass();
+         result.Mass = a.Mass + b.Mass;
+         result.R = (a.R * a.Mass + b.R * b.Mass) / result.Mass;
+         result.G = (a.G * a.Mass + b.G * b.Mass) / result.Mass;
+         result.B = (a.B * a.Mass + b.B * b.Mass) / result.Mass;
+         foreach (var key in a.originalColors.Keys) result.originalColors[key] = a.originalColors[key];
+         foreach (var key in b.originalColors.Keys) {
+            if (result.originalColors.ContainsKey(key)) result.originalColors[key] += b.originalColors[key];
+            else result.originalColors[key] = b.originalColors[key];
+         }
+         return result;
+      }
+
+      /// <summary>
+      /// Returns a gravity factor, accounting for the distance/mass between the two color masses.
+      /// </summary>
+      public static double operator *(ColorMass a, ColorMass b) {
+         var distanceR = a.R - b.R;
+         var distanceG = a.G - b.G;
+         var distanceB = a.B - b.B;
+         var distanceSquared = distanceR * distanceR + distanceG * distanceG + distanceB * distanceB;
+         var mass = a.Mass + b.Mass;
+         return mass / distanceSquared;
+      }
+
+      public static (int, int, int) SplitRGB(short color) => (color >> 10, (color >> 5) & 0x1F, color & 0x1F);
+
+      public static short CombineRGB(int r, int g, int b) => (short)((r << 10) | (g << 5) | b);
    }
 }

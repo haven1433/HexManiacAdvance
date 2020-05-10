@@ -249,7 +249,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (i == runs.Count - 1 || runs[i].Start + runs[i].Length <= runs[i + 1].Start) continue;
             var debugRunStart1 = runs[i].Start.ToString("X6");
             var debugRunStart2 = runs[i + 1].Start.ToString("X6");
-            Debug.Fail("Conflict: there's a run that ends after the next run starts!");
+            Debug.Fail($"Conflict: there's a run that ends after the next run starts! {debugRunStart1} and {debugRunStart2}");
          }
 
          // for every table with a matched-length, verify that the length is as expected.
