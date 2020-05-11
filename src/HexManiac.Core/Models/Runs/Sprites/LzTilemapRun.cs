@@ -145,16 +145,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          var tileWidth = width / 8;
          var height = pixels.GetLength(1);
          var tileHeight = height / 8;
+         var mod = Format.BitsPerPixel == 4 ? 16 : 256;
          var result = new (int[,], int)[tileWidth, tileHeight];
          for(int y = 0; y < tileHeight; y++) {
             var yStart = y * 8;
             for(int x = 0; x < tileWidth; x++) {
                var xStart = x * 8;
-               var palette = pixels[xStart, yStart] >> 4;
+               var palette = pixels[xStart, yStart] / mod;
                var tile = new int[8, 8];
                for(int yy = 0; yy < 8; yy++) {
                   for(int xx = 0; xx < 8; xx++) {
-                     tile[xx, yy] = pixels[xStart + xx, yStart + yy] % 16;
+                     tile[xx, yy] = pixels[xStart + xx, yStart + yy] % mod;
                   }
                }
                result[x, y] = (tile, palette);

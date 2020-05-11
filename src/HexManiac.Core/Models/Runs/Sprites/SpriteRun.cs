@@ -94,7 +94,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                for (int x = 0; x < tileWidth; x++) {
                   int xOffset = x * 8;
                   for (int i = 0; i < 64; i++) {
-                     int xx = x % 8, yy = i / 8;
+                     int xx = i % 8, yy = i / 8;
                      data[start] = (byte)pixels[xOffset + xx, yOffset + yy];
                      start += 1;
                   }
