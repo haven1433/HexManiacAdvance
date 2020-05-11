@@ -178,7 +178,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          NotifyPropertyChanged(nameof(PixelHeight));
          prevSpritePage.CanExecuteChanged.Invoke(prevSpritePage, EventArgs.Empty);
          nextSpritePage.CanExecuteChanged.Invoke(nextSpritePage, EventArgs.Empty);
-         NotifyPropertyChanged(PixelData);
+         NotifyPropertyChanged(nameof(PixelData));
 
          // update scale
          if (PixelWidth > MaxSpriteWidth) {
@@ -220,7 +220,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Palette.Clear();
          foreach (var color in palette) Palette.Add(color);
          PixelData = Render(pixels, GetRenderPalette(model?.GetNextRun(spriteAddress) as ISpriteRun), paletteFormat);
-         NotifyPropertyChanged(PixelData);
+         NotifyPropertyChanged(nameof(PixelData));
       }
 
       public static int FindMatchingPalette(IDataModel model, ISpriteRun spriteRun, int defaultAddress) {

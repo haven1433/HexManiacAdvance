@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
@@ -44,10 +45,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event PropertyChangedEventHandler PropertyChanged;
 
       protected void NotifyPropertyChanged([CallerMemberName]string propertyName = null) {
+         Debug.Assert(GetType().GetProperty(propertyName) != null, $"Expected {propertyName} to be a property on type {GetType().Name}!");
          PropertyChanged.Notify(this, propertyName);
       }
 
       protected void NotifyPropertyChanged(object oldValue, [CallerMemberName]string propertyName = null) {
+         Debug.Assert(GetType().GetProperty(propertyName) != null, $"Expected {propertyName} to be a property on type {GetType().Name}!");
          PropertyChanged.Notify(this, oldValue, propertyName);
       }
 
