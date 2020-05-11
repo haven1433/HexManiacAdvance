@@ -27,8 +27,8 @@ ballpalettes,        0473C0, 0473C0, 0473E0, 0473E0, 0001D4, 0001D4, 0001D4, 000
 trainersprites,      031B9C, 031B9C, 031B9C, 031B9C,       ,       ,       ,       ,       , [sprite<`lzs4x8x8|trainerpalettes`> uncompressedLength: index:]83
 trainersprites,            ,       ,       ,       , 03473C, 03473C, 034750, 034750,       , [sprite<`lzs4x8x8|trainerpalettes`> uncompressedLength: index:]148
 trainersprites,            ,       ,       ,       ,       ,       ,       ,       , 05DF78, [sprite<`lzs4x8x8|trainerpalettes`> uncompressedLength: index:]93
-traineranimations,         ,       ,       ,       , 10BDA8,       ,       ,       ,       , [animationPointer<[animation<>]1>]trainersprites
-traineranimations2,        ,       ,       ,       , 158514,       ,       ,       ,       , [value::]trainersprites
+traineranimations,   1436B8, 1436B8, 1436D8, 1436D8, 10BDA8, 10BD80, 10BE20, 10BDF8, 18D1E8, [animationPointer<[animation<>]1>]trainersprites
+traineranimations2,  143858, 143858, 143878, 143878, 158514, 1584F0, 15858C, 158568, 061AD0, [value::]trainersprites
 trainerpalettes,     031B98, 031B98, 031B98, 031B98, 03474C, 03474C, 034760, 034760, 05B784, [palette<`lzp4`> index: unused:]trainersprites
 trainerbacksprites,        ,       ,       ,       , 10BC58, 10BC30, 10BCD0, 10BCA8,       , [sprite<`ucs4x8x8|trainerbackpals`> a b c:]6
 trainerbacksprites,        ,       ,       ,       ,       ,       ,       ,       , 05DFD4, [sprite<`ucs4x8x8|trainerbackpals`> a b c:]8
