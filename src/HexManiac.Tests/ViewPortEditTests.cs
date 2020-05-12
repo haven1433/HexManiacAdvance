@@ -436,5 +436,13 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(4, Model[0]);
       }
+
+      [Fact]
+      public void CanIncludeCommentsInPasteScripts() {
+         var nl = Environment.NewLine;
+         ViewPort.Edit($"FF @00 ^text\"\" Some # Comment Here {nl}Text");
+         var matches = ViewPort.Find("Some Text");
+         Assert.Single(matches);
+      }
    }
 }

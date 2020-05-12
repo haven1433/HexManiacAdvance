@@ -76,6 +76,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                char.IsWhiteSpace(Input) ||
                SpecialAnchorAllowedCharacters.Contains(Input);
             return;
+         } else if (underEdit.CurrentText.StartsWith(ViewPort.CommentStart.ToString())){
+            Result = true;
+            return;
          }
 
          // use the ContinueCellEdit class to continue the edit

@@ -30,6 +30,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    public class ViewPort : ViewModelCore, IViewPort {
       public const string AllHexCharacters = "0123456789ABCDEFabcdef";
       public const char GotoMarker = '@';
+      public const char CommentStart = '#';
 
       private static readonly NotifyCollectionChangedEventArgs ResetArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
       private readonly StubCommand
@@ -45,7 +46,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public Singletons Singletons { get; }
 
       private HexElement[,] currentView;
-      private bool exitEditEarly;
+      private bool exitEditEarly, withinComment;
 
       public string Name {
          get {
@@ -742,6 +743,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void Edit(string input) {
+         input = input.Replace(Environment.NewLine, "\n"); // normalize newline inputs
          exitEditEarly = false;
          using (Tools.DeferUpdates) {
             using (ModelCacheScope.CreateScope(Model)) {
@@ -763,10 +765,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   underEdit = new UnderEdit(underEdit.OriginalFormat, underEdit.AutocompleteOptions[selectedIndex].CompletionText, underEdit.EditWidth);
                   currentView[point.X, point.Y] = new HexElement(element.Value, element.Edited, underEdit);
                   RequestMenuClose?.Invoke(this, EventArgs.Empty);
+                  TryCompleteEdit(point);
                } else {
-                  currentView[point.X, point.Y] = new HexElement(element.Value, element.Edited, underEdit.Edit(" "));
+                  Edit(Environment.NewLine);
                }
-               TryCompleteEdit(point);
                return;
             }
             if (key == ConsoleKey.Enter && run is ITableRun arrayRun1) {
@@ -1439,7 +1441,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var point = GetEditPoint();
          var element = this[point.X, point.Y];
 
-         if (input.IsAny('\r', '\n')) input = ' '; // handle multiline pasting by just treating the newlines as standard whitespace. 
+         if (input.IsAny('\r', '\n')) {
+            input = ' '; // handle multiline pasting by just treating the newlines as standard whitespace.
+            withinComment = false;
+         }
 
          if (!ShouldAcceptInput(point, element, input)) {
             ClearEdits(point);
@@ -1501,6 +1506,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void ClearEdits(Point point) {
          if (this[point.X, point.Y].Format is UnderEdit) RefreshBackingData();
+         withinComment = false;
       }
 
       private Point GetEditPoint() {
@@ -1549,6 +1555,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var autoCompleteOptions = input == GotoMarker ? new AutoCompleteSelectionItem[0] : null;
                var underEdit = new UnderEdit(element.Format, input.ToString(), 4, autoCompleteOptions);
                currentView[point.X, point.Y] = new HexElement(element, underEdit);
+               return true;
+            }
+
+            if (input == CommentStart) {
+               var underEdit = new UnderEdit(element.Format, input.ToString());
+               currentView[point.X, point.Y] = new HexElement(element, underEdit);
+               withinComment = true;
                return true;
             }
          }
@@ -1722,6 +1735,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                result = true;
             }
 
+            return true;
+         }
+
+         // comment
+         if (currentText.StartsWith(CommentStart.ToString())) {
+            result = currentText.EndsWith(" ") && !withinComment;
+            if (result) ClearEdits(point);
             return true;
          }
 
