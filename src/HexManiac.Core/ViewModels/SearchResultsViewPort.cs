@@ -74,6 +74,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand Undo { get; } = new StubCommand();
       public ICommand Redo { get; } = new StubCommand();
       public ICommand Copy { get; } = new StubCommand();
+      public ICommand DeepCopy { get; } = new StubCommand();
       public ICommand Clear { get; } = new StubCommand();
       public ICommand SelectAll { get; } = new StubCommand();
       public ICommand Goto { get; } = new StubCommand();

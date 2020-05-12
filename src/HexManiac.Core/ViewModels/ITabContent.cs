@@ -13,6 +13,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       ICommand Undo { get; }
       ICommand Redo { get; }
       ICommand Copy { get; }   // parameter: IFileSystem
+      ICommand DeepCopy { get; }//parameter: IFileSystem
       ICommand Clear { get; }
       ICommand SelectAll { get; }
       ICommand Goto { get; }   // parameter: target destination as string (example, a hex address)

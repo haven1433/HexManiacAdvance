@@ -35,6 +35,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          redo = new StubCommand(),
          cut = new StubCommand(),
          copy = new StubCommand(),
+         deepCopy = new StubCommand(),
          paste = new StubCommand(),
          delete = new StubCommand(),
          selectAll = new StubCommand(),
@@ -71,6 +72,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand Redo => redo;
       public ICommand Cut => cut;
       public ICommand Copy => copy;
+      public ICommand DeepCopy => deepCopy;
       public ICommand Paste => paste;
       public ICommand Delete => delete;
       public ICommand SelectAll => selectAll;
@@ -297,6 +299,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          ImplementCommands();
 
          copy = CreateWrapperForSelected(tab => tab.Copy);
+         deepCopy = CreateWrapperForSelected(tab => tab.DeepCopy);
          delete = CreateWrapperForSelected(tab => tab.Clear);
          selectAll = CreateWrapperForSelected(tab => tab.SelectAll);
          save = CreateWrapperForSelected(tab => tab.Save);
@@ -313,6 +316,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          forwardExecuteChangeNotifications = new Dictionary<Func<ITabContent, ICommand>, EventHandler> {
             { tab => tab.Copy, (sender, e) => copy.CanExecuteChanged.Invoke(this, e) },
+            { tab => tab.DeepCopy, (sender, e) => deepCopy.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.Clear, (sender, e) => delete.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.SelectAll, (sender, e) => selectAll.CanExecuteChanged.Invoke(this,e) },
             { tab => tab.Save, (sender, e) => save.CanExecuteChanged.Invoke(this, e) },

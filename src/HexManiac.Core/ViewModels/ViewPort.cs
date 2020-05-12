@@ -31,6 +31,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public const string AllHexCharacters = "0123456789ABCDEFabcdef";
       public const char GotoMarker = '@';
       public const char CommentStart = '#';
+      public const int CopyLimit = 20000;
 
       private static readonly NotifyCollectionChangedEventArgs ResetArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
       private readonly StubCommand
@@ -41,6 +42,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          copy = new StubCommand(),
          copyAddress = new StubCommand(),
          copyBytes = new StubCommand(),
+         deepCopy = new StubCommand(),
          isText = new StubCommand();
 
       public Singletons Singletons { get; }
@@ -456,6 +458,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand Copy => copy;
       public ICommand CopyAddress => copyAddress;
       public ICommand CopyBytes => copyBytes;
+      public ICommand DeepCopy => deepCopy;
       public ICommand Clear => clear;
       public ICommand IsText => isText;
 
@@ -576,8 +579,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
             var left = Math.Min(selectionStart, selectionEnd);
             var length = Math.Abs(selectionEnd - selectionStart) + 1;
-            if (length > 20000) {
-               OnError?.Invoke(this, "Cannot copy more than 19999 bytes at once!");
+            if (length > CopyLimit) {
+               OnError?.Invoke(this, $"Cannot copy more than {CopyLimit} bytes at once!");
             } else {
                bool usedHistory = false;
                ((IFileSystem)arg).CopyText = Model.Copy(() => { usedHistory = true; return history.CurrentChange; }, left, length);
@@ -597,6 +600,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          copyBytes.Execute = arg => {
             var fileSystem = (IFileSystem)arg;
             CopyBytesExecute(fileSystem);
+         };
+
+         deepCopy.CanExecute = CanAlwaysExecute;
+         deepCopy.Execute = arg => {
+            var fileSystem = (IFileSystem)arg;
+            DeepCopyExecute(fileSystem);
          };
 
          moveSelectionStart.CanExecute = selection.MoveSelectionStart.CanExecute;
@@ -666,6 +675,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          OnMessage?.Invoke(this, $"'{fileSystem.CopyText}' copied to clipboard.");
       }
 
+      private void DeepCopyExecute(IFileSystem fileSystem) {
+         var selectionStart = scroll.ViewPointToDataIndex(selection.SelectionStart);
+         var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
+         var left = Math.Min(selectionStart, selectionEnd);
+         var length = Math.Abs(selectionEnd - selectionStart) + 1;
+         if (length > CopyLimit) {
+            OnError?.Invoke(this, $"Cannot copy more than {CopyLimit} bytes at once!");
+         } else {
+            bool usedHistory = false;
+            fileSystem.CopyText = Model.Copy(() => { usedHistory = true; return history.CurrentChange; }, left, length, deep: true);
+            RefreshBackingData();
+            if (usedHistory) UpdateToolsFromSelection(left);
+         }
+         RequestMenuClose?.Invoke(this, EventArgs.Empty);
+      }
+
       #endregion
 
       private void MoveSelectionStartExecuted(object arg, Direction direction) {
@@ -705,6 +730,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var results = factory.Results.ToList();
          if (!SelectionStart.Equals(SelectionEnd)) {
             results.Add(new ContextItem("Copy", Copy.Execute) { ShortcutText = "Ctrl+C" });
+            results.Add(new ContextItem("Deep Copy", DeepCopy.Execute) { ShortcutText = "Ctrl+Shift+C" });
          }
          results.Add(new ContextItem("Paste", arg => Edit(((IFileSystem)arg).CopyText)) { ShortcutText = "Ctrl+V" });
          results.Add(new ContextItem("Copy Address", arg => CopyAddressExecute((IFileSystem)arg)));

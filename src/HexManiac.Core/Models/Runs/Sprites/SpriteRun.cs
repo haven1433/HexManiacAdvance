@@ -112,7 +112,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return this;
       }
 
-      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length) {
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) {
          while (length > 0) {
             builder.Append(model[start].ToHexString() + " ");
             start += 1;

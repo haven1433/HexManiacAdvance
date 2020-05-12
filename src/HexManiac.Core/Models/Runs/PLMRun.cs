@@ -129,9 +129,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      public void AppendTo(IDataModel model, StringBuilder text, int start, int length) {
+      public void AppendTo(IDataModel model, StringBuilder text, int start, int length, bool deep) {
          var moveNames = model.GetOptions(HardcodeTablesModel.MoveNamesTable);
-         for (int i = 0; i < length && i < Length - Start; i += 2) {
+         for (int i = 0; i < length && i < Length; i += 2) {
             if (i > 0) text.Append(" ");
             if (i + start - Start == Length - 2) { text.Append("[]"); continue; }
             var (level, move) = SplitToken(model.ReadMultiByteValue(start + i, 2));

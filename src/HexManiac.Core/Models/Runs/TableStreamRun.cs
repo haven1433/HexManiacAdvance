@@ -93,7 +93,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public string SerializeRun() {
          var builder = new StringBuilder();
-         AppendTo(model, builder, Start, ElementLength * ElementCount);
+         AppendTo(model, builder, Start, ElementLength * ElementCount, false);
          var lines = builder.ToString().Split(Environment.NewLine);
 
          // AppendTo is used in copy/paste scenarios, and includes the required '+' to work in that case.
@@ -164,7 +164,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return endStream.Append(this, token, length);
       }
 
-      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length) => ITableRunExtensions.AppendTo(this, model, builder, start, length);
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) => ITableRunExtensions.AppendTo(this, model, builder, start, length, deep);
 
       public IEnumerable<(int, int)> Search(string baseName, int index) {
          int segmentOffset = 0;

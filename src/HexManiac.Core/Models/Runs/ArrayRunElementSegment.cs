@@ -23,7 +23,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public int Length { get; }
       public ArrayRunElementSegment(string name, ElementContentType type, int length) => (Name, Type, Length) = (name, type, length);
 
-      public virtual string ToText(IDataModel rawData, int offset) {
+      private bool recursionStopper;
+      public virtual string ToText(IDataModel rawData, int offset, bool deep = false) {
          switch (Type) {
             case ElementContentType.PCS:
                return PCSString.Convert(rawData, offset, Length);
@@ -33,7 +34,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                var address = rawData.ReadPointer(offset);
                var anchor = rawData.GetAnchorFromAddress(-1, address);
                if (string.IsNullOrEmpty(anchor)) anchor = address.ToString("X6");
-               return $"{PointerRun.PointerStart}{anchor}{PointerRun.PointerEnd}";
+               var run = rawData.GetNextRun(address) as IAppendToBuilderRun;
+               if (!deep || recursionStopper || run == null) return $"{PointerRun.PointerStart}{anchor}{PointerRun.PointerEnd}";
+
+               var builder = new StringBuilder("@{ ");
+               recursionStopper = true;
+               run.AppendTo(rawData, builder, run.Start, run.Length, deep);
+               recursionStopper = false;
+               builder.Append(" @} ");
+
+               return builder.ToString();
             default:
                throw new NotImplementedException();
          }
@@ -85,14 +95,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public ArrayRunEnumSegment(string name, int length, string enumName) : base(name, ElementContentType.Integer, length) => EnumName = enumName;
 
-      public override string ToText(IDataModel model, int offset) {
+      public override string ToText(IDataModel model, int offset, bool deep) {
          var noChange = new NoDataChangeDeltaModel();
          using (ModelCacheScope.CreateScope(model)) {
             var options = GetOptions(model).ToList();
-            if (options == null) return base.ToText(model, offset);
+            if (options == null) return base.ToText(model, offset, deep);
 
             var resultAsInteger = ToInteger(model, offset, Length);
-            if (resultAsInteger >= options.Count || resultAsInteger < 0) return base.ToText(model, offset);
+            if (resultAsInteger >= options.Count || resultAsInteger < 0) return base.ToText(model, offset, deep);
             var value = options[resultAsInteger];
 
             // use ~2 postfix for a value if an earlier entry in the array has the same string
@@ -207,7 +217,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          SourceArrayName = bitSourceName;
       }
 
-      public override string ToText(IDataModel rawData, int offset) {
+      public override string ToText(IDataModel rawData, int offset, bool deep) {
          var result = new StringBuilder(Length * 2);
          for (int i = 0; i < Length; i++) {
             result.Append(rawData[offset + i].ToString("X2"));

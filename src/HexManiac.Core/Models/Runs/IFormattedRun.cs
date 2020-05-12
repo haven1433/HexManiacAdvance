@@ -17,7 +17,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    }
 
    public interface IAppendToBuilderRun : IFormattedRun {
-      void AppendTo(IDataModel model, StringBuilder builder, int start, int length);
+      void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep);
    }
 
    /// <summary>

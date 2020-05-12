@@ -47,7 +47,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       void ClearFormat(ModelDelta changeToken, int start, int length);
       void ClearFormatAndData(ModelDelta changeToken, int start, int length);
       void ClearPointer(ModelDelta currentChange, int source, int destination);
-      string Copy(Func<ModelDelta> changeToken, int start, int length);
+      string Copy(Func<ModelDelta> changeToken, int start, int length, bool deep = false);
 
       void Load(byte[] newData, StoredMetadata metadata);
       void ExpandData(ModelDelta changeToken, int minimumLength);
@@ -101,7 +101,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public abstract void ClearFormatAndData(ModelDelta changeToken, int originalStart, int length);
 
-      public abstract string Copy(Func<ModelDelta> changeToken, int start, int length);
+      public abstract string Copy(Func<ModelDelta> changeToken, int start, int length, bool deep = false);
 
       public void ExpandData(ModelDelta changeToken, int minimumIndex) {
          if (Count > minimumIndex) return;
@@ -485,7 +485,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          WritePointer(changeToken, address, destination);
       }
 
-      public override string Copy(Func<ModelDelta> changeToken, int start, int length) {
+      public override string Copy(Func<ModelDelta> changeToken, int start, int length, bool deep = false) {
          var bytes = Enumerable.Range(start, length).Select(i => RawData[i]);
          return string.Join(" ", bytes.Select(value => value.ToString("X2")));
       }

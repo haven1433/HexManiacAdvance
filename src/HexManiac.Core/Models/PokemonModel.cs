@@ -1149,7 +1149,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          AddPointerToAnchor(segment, changeToken, source);
       }
 
-      public override string Copy(Func<ModelDelta> changeToken, int start, int length) {
+      public override string Copy(Func<ModelDelta> changeToken, int start, int length, bool deep = false) {
          var text = new StringBuilder();
          var run = GetNextRun(start);
 
@@ -1186,12 +1186,8 @@ namespace HavenSoft.HexManiac.Core.Models {
                   text.Append(RawData[run.Start].ToHexString() + " ");
                   start += 1;
                   length -= 1;
-               } else if (run is PCSRun pcsRun) {
-                  text.Append(PCSString.Convert(this, run.Start, run.Length) + " ");
-                  length -= run.Start + run.Length - start;
-                  start += run.Length;
                } else if (run is IAppendToBuilderRun atbRun) {
-                  atbRun.AppendTo(this, text, start, length);
+                  atbRun.AppendTo(this, text, start, length, deep);
                   text.Append(" ");
                   length -= run.Start + run.Length - start;
                   start = run.Start + run.Length;

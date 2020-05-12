@@ -32,7 +32,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var position = index - offsets.SegmentStart;
          if (currentSegment.Type == ElementContentType.Integer) {
             if (currentSegment is ArrayRunEnumSegment enumSegment) {
-               var value = enumSegment.ToText(data, index);
+               var value = enumSegment.ToText(data, index, false);
                return new IntegerEnum(offsets.SegmentStart, position, value, currentSegment.Length);
             } else {
                var value = ArrayRunElementSegment.ToInteger(data, offsets.SegmentStart, currentSegment.Length);
@@ -54,7 +54,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          throw new NotImplementedException();
       }
 
-      public static void AppendTo(ITableRun self, IDataModel data, StringBuilder text, int start, int length) {
+      public static void AppendTo(ITableRun self, IDataModel data, StringBuilder text, int start, int length, bool deep) {
          var offsets = self.ConvertByteOffsetToArrayOffset(start);
          length += offsets.SegmentOffset;
          for (int i = offsets.ElementIndex; i < self.ElementCount && length > 0; i++) {
@@ -62,7 +62,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (offsets.SegmentIndex == 0 && offsets.ElementIndex > 0) text.Append(ArrayRun.ExtendArray);
             for (int j = offsets.SegmentIndex; j < self.ElementContent.Count && length > 0; j++) {
                var segment = self.ElementContent[j];
-               text.Append(segment.ToText(data, offset).Trim());
+               text.Append(segment.ToText(data, offset, deep).Trim());
                if (j + 1 < self.ElementContent.Count) text.Append(" ");
                offset += segment.Length;
                length -= segment.Length;
@@ -499,7 +499,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new ArrayRun(owner, newFormat, LengthFromAnchor, ParentOffset, Start, ElementCount + elementCount, ElementContent, PointerSources, newInnerElementsSources);
       }
 
-      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length) => ITableRunExtensions.AppendTo(this, model, builder, start, length);
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) => ITableRunExtensions.AppendTo(this, model, builder, start, length, deep);
 
       public ArrayRun GrowBitArraySegment(int bitSegmentIndex, int additionalBytes) {
          // all the data has been moved already

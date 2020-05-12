@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
+using System.Linq;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
@@ -79,6 +80,26 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.NotEmpty(Messages);
          var anchorAddress = Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, "table");
          Assert.NotEqual(0, anchorAddress);
+      }
+
+      [Fact]
+      public void CanDeepCopy() {
+         ViewPort.Edit("^table[pointer<\"\">]1 @{ Hello World!\" @} @00 ");
+
+         var fileSystem = new StubFileSystem();
+         var menuItem = ViewPort.GetContextMenuItems(ViewPort.SelectionStart).Single(item => item.Text == "Deep Copy");
+         menuItem.Command.Execute(fileSystem);
+
+         Assert.Equal(@"^table[pointer<"""">]1 @{ ""Hello World!"" @}", fileSystem.CopyText);
+      }
+
+      [Fact]
+      public void CanCopyLvlMovesData() {
+         CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x100, "Adam", "Bob", "Carl", "Dave");
+         CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x180, "Ate", "Bumped", "Crossed", "Dropped");
+         ViewPort.Edit("@00 FF FF @00 ^table`plm` 3 Ate 4 Bumped 5 Crossed @00 ");
+         var content = Model.Copy(() => ViewPort.CurrentChange, 0, 8);
+         Assert.Equal(@"^table`plm` 3 Ate 4 Bumped 5 Crossed []", content);
       }
    }
 }

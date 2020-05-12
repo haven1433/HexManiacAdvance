@@ -24,6 +24,7 @@
       <KeyBinding Key="Y" Modifiers="Ctrl" Command="{Binding Redo}" />
       <KeyBinding Key="X" Modifiers="Ctrl" Command="{Binding Cut}" />
       <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding Copy}" />
+      <KeyBinding Key="C" Modifiers="Ctrl+Shift" Command="{Binding DeepCopy}" />
       <KeyBinding Key="V" Modifiers="Ctrl" Command="{Binding Paste}" />
       <KeyBinding Key="Delete" Command="{Binding Delete}" />
       <KeyBinding Key="F" Modifiers="Ctrl" Command="{Binding ShowFind}">
@@ -103,6 +104,7 @@
                   <Separator />
                   <MenuItem Header="Cu_t" Command="{Binding Cut}" InputGestureText="Ctrl+X"/>
                   <MenuItem Header="_Copy" Command="{Binding Copy}" InputGestureText="Ctrl+C"/>
+                  <MenuItem Header="D_eep Copy" Command="{Binding DeepCopy}" InputGestureText="Ctrl+Shift+C"/>
                   <MenuItem Header="_Paste / Replace" Command="{Binding Paste}" InputGestureText="Ctrl+V"/>
                   <MenuItem Header="_Delete" Command="{Binding Delete}" InputGestureText="Del"/>
                   <MenuItem Header="_Select All" Command="{Binding SelectAll}" InputGestureText="Ctrl+A"/>

@@ -2,9 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
-   public class PCSRun : BaseRun, IStreamRun, IEquatable<IFormattedRun> {
+   public class PCSRun : BaseRun, IStreamRun, IAppendToBuilderRun, IEquatable<IFormattedRun> {
       public const char StringDelimeter = '"';
       public static readonly string SharedFormatString = StringDelimeter + string.Empty + StringDelimeter;
 
@@ -73,5 +74,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public bool DependsOn(string anchorName) => false;
 
       protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new PCSRun(model, Start, Length, newPointerSources);
+
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) => builder.Append(PCSString.Convert(model, Start, Length));
    }
 }
