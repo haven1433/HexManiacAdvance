@@ -90,7 +90,7 @@
 41 warp5 mapbank. map. warp. x: y:           # probably shouldn't use
 42 getplayerpos varX: varY:                  # stores the current player position into varX and varY
 43 countPokemon                              # stores number of pokemon in your party into LASTRESULT (800D)
-44 additem item: quantity:                   # item/quantity can both be either a literal or a variable.
+44 additem item:items quantity:              # item/quantity can both be either a literal or a variable.
                                              # if the operation was succcessful, LASTRESULT (variable 800D) is set to 1.
 45 removeitem item: quantity:                # opposite of additem. 800D is set to 0 if the removal cannot happen
 46 checkitemroom item: quantity:             # 800D is set to 1 if additem would succeed
@@ -170,7 +170,7 @@
 76 hidepokepic                               # hides all shown pokepics
 77 showcontestwinner contest.                # nop in FireRed. Shows the painting of a wenner of the given contest.
 78 braille text<>                            # displays a message in braille. The text must be formatted to use braille.
-79 givePokemon species: level. item: filler:: filler:: filler.
+79 givePokemon species:pokenames level. item: filler:: filler:: filler.
                                              # gives the player one of that pokemon. the last 9 bytes are all 00.
                                              # 800D=0 if it was added to the party
                                              # 800D=1 if it was put in the PC
