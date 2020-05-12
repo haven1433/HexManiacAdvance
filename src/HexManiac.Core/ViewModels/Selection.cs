@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Input;
@@ -240,6 +241,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void GotoAddressAndAlign(int address, int preferredWidth, int tableStart = 0, bool destinationIsArray = false) {
+         Debug.Assert(Scroll.DataLength == model.Count, "I forgot to update the Scroll.DataLength after expanding the data!");
          using (ModelCacheScope.CreateScope(model)) {
             var startAddress = address;
             if (preferredWidth > 1) address -= (address - tableStart) % preferredWidth;

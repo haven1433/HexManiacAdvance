@@ -403,6 +403,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x80, test.Model[0x100]);
       }
 
+      [Fact]
+      public void CanCreatePointerInline() {
+         var test = new BaseViewModelTestClass();
+
+         test.ViewPort.Edit("^table[content<\"\">]2 @{ Hello!\" @}");
+         var matches = test.ViewPort.Find("Hello!");
+
+         Assert.Equal(4, test.ViewPort.DataOffset);
+         Assert.Equal(new Point(0, 0), test.ViewPort.SelectionStart);
+         Assert.Single(matches);
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          model = new PokemonModel(data);

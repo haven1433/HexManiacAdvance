@@ -841,25 +841,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          RequestTabChange?.Invoke(this, child);
       }
 
-      private void CreateNewData(int pointer) {
+      private bool CreateNewData(int pointer) {
          var errorText = "Can only create new data for a pointer with a format within a table.";
          if (!(Model.GetNextRun(pointer) is ITableRun tableRun)) {
             OnError?.Invoke(this, errorText);
-            return;
+            return false;
          }
          var offsets = tableRun.ConvertByteOffsetToArrayOffset(pointer);
          if (!(tableRun.ElementContent[offsets.SegmentIndex] is ArrayRunPointerSegment pointerSegment) || !pointerSegment.IsInnerFormatValid) {
             OnError?.Invoke(this, errorText);
-            return;
+            return false;
          }
 
          var startSearch = (Model as PokemonModel)?.EarliestAllowedAnchor ?? 0;
          var length = FormatRunFactory.GetStrategy(pointerSegment.InnerFormat).LengthForNewRun(Model, pointer);
 
          var insert = Model.FindFreeSpace(startSearch, length);
+         if (insert < 0) {
+            insert = Model.Count;
+            Model.ExpandData(CurrentChange, Model.Count + length);
+            scroll.DataLength = Model.Count;
+         }
          pointerSegment.WriteNewFormat(Model, CurrentChange, pointer, insert, length, tableRun.ElementContent);
          OnMessage?.Invoke(this, "New data added at " + insert.ToString("X6"));
          RefreshBackingData();
+         return true;
       }
 
       private void AcceptBackspace(UnderEdit underEdit, IFormattedRun run, Point point) {
@@ -1686,11 +1692,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (currentText.Length == 2 && currentText[1] == '{') {
                var currentAddress = scroll.ViewPointToDataIndex(point);
                var destination = Model.ReadPointer(currentAddress);
+               if (destination == Pointer.NULL) {
+                  if (CreateNewData(currentAddress)) {
+                     destination = Model.ReadPointer(currentAddress);
+                  } else {
+                     OnError?.Invoke(this, $"Could not jump using pointer at {currentAddress:X6}");
+                  }
+               }
                ClearEdits(point);
                if (destination >= 0 && destination < Model.Count) {
                   Goto.Execute(destination);
                   selection.SetJumpBackPoint(currentAddress + 4);
-               } else {
+               } else if (destination != Pointer.NULL) {
                   OnError?.Invoke(this, $"Could not jump using pointer at {currentAddress:X6}");
                }
                RequestMenuClose?.Invoke(this, EventArgs.Empty);
