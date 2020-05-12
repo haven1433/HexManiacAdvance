@@ -1683,6 +1683,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          // goto marker
          if (currentText.StartsWith(GotoMarker.ToString())) {
+            if (currentText.Length == 2 && currentText[1] == '{') {
+               var currentAddress = scroll.ViewPointToDataIndex(point);
+               var destination = Model.ReadPointer(currentAddress);
+               ClearEdits(point);
+               if (destination >= 0 && destination < Model.Count) {
+                  Goto.Execute(destination);
+                  selection.SetJumpBackPoint(currentAddress + 4);
+               } else {
+                  OnError?.Invoke(this, $"Could not jump using pointer at {currentAddress:X6}");
+               }
+               RequestMenuClose?.Invoke(this, EventArgs.Empty);
+               result = true;
+            } else if (currentText.Length == 2 && currentText[1] == '}') {
+               ClearEdits(point);
+               selection.Back.Execute();
+               RequestMenuClose?.Invoke(this, EventArgs.Empty);
+               result = true;
+            }
             if (char.IsWhiteSpace(currentText[currentText.Length - 1])) {
                var destination = currentText.Substring(1);
                ClearEdits(point);

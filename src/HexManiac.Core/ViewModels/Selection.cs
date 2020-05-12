@@ -220,6 +220,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          GotoAddressHelper(address);
       }
 
+      public void SetJumpBackPoint(int address) {
+         if (backStack.Count > 0) backStack.Pop();
+         backStack.Push(address);
+      }
+
       private static (Point start, Point end) GetDefaultSelectionSpan(Point p) => (p, p);
 
       private void GotoAddressHelper(int address) {

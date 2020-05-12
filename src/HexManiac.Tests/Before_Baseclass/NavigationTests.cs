@@ -394,6 +394,15 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(5, test.ViewPort.DataOffset);
       }
 
+      [Fact]
+      public void CanFollowPointerInline() {
+         var test = new BaseViewModelTestClass();
+         test.ViewPort.Edit("00 01 02 03 <000100> @04 @{ 80 @} ");
+         Assert.Equal(0, test.ViewPort.DataOffset);
+         Assert.Equal(new Point(8, 0), test.ViewPort.SelectionStart);
+         Assert.Equal(0x80, test.Model[0x100]);
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          model = new PokemonModel(data);
