@@ -1766,7 +1766,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          // comment
          if (currentText.StartsWith(CommentStart.ToString())) {
-            result = currentText.EndsWith(" ") && !withinComment;
+            if (currentText.Length > 1 && currentText.EndsWith(CommentStart.ToString())) withinComment = false;
+            result = (currentText.EndsWith(" ") || currentText.EndsWith("#")) && !withinComment;
             if (result) ClearEdits(point);
             return true;
          }

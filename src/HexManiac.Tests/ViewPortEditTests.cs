@@ -444,5 +444,12 @@ namespace HavenSoft.HexManiac.Tests {
          var matches = ViewPort.Find("Some Text");
          Assert.Single(matches);
       }
+
+      [Fact]
+      public void CanEndCommentWithPound() {
+         ViewPort.Edit($"FF @00 ^text\"\" Some # Comment Here #Text");
+         var matches = ViewPort.Find("Some Text");
+         Assert.Single(matches);
+      }
    }
 }
