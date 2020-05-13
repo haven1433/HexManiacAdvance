@@ -137,6 +137,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             i--;
          }
 
+         // remove trailing ',' from tokens
+         for (int i = 0; i < tokens.Count; i++) {
+            if (!tokens[i].EndsWith(",")) continue;
+            tokens[i] = tokens[i].Substring(0, tokens[i].Length - 1);
+         }
+
          return tokens;
       }
 

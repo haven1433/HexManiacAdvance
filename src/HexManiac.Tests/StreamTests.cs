@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using System.Linq;
 using Xunit;
 
@@ -100,6 +101,20 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Edit("@00 FF FF @00 ^table`plm` 3 Ate 4 Bumped 5 Crossed @00 ");
          var content = Model.Copy(() => ViewPort.CurrentChange, 0, 8);
          Assert.Equal(@"^table`plm` 3 Ate, 4 Bumped, 5 Crossed, []", content);
+      }
+
+      [Fact]
+      public void StreamRunSerializeDeserializeIsSymmetric() {
+         CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x100, "Adam", "Bob", "Carl", "Dave");
+
+         ViewPort.Edit($"@00 00 00 01 01 02 02 03 03 FF FF @00 ^table[enum.{HardcodeTablesModel.PokemonNameTable} content.]!FFFF ");
+         var stream = (IStreamRun)Model.GetNextRun(0);
+
+         var text = stream.SerializeRun();
+         Model.ObserveRunWritten(ViewPort.CurrentChange, stream.DeserializeRun(text, ViewPort.CurrentChange));
+
+         var result = new byte[] { 0, 0, 1, 1, 2, 2, 3, 3, 255, 255 };
+         Assert.All(Enumerable.Range(0, result.Length), i => Assert.Equal(Model[i], result[i]));
       }
    }
 }
