@@ -47,7 +47,7 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.SelectionEnd = new Point(7, 0);
          ViewPort.Copy.Execute(fileSystem);
 
-         Assert.Equal("5 Kick 7 Bite 11 Snarl", fileSystem.CopyText);
+         Assert.Equal("5 Kick, 7 Bite, 11 Snarl,", fileSystem.CopyText);
       }
 
       [Fact]
@@ -99,7 +99,7 @@ namespace HavenSoft.HexManiac.Tests {
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x180, "Ate", "Bumped", "Crossed", "Dropped");
          ViewPort.Edit("@00 FF FF @00 ^table`plm` 3 Ate 4 Bumped 5 Crossed @00 ");
          var content = Model.Copy(() => ViewPort.CurrentChange, 0, 8);
-         Assert.Equal(@"^table`plm` 3 Ate 4 Bumped 5 Crossed []", content);
+         Assert.Equal(@"^table`plm` 3 Ate, 4 Bumped, 5 Crossed, []", content);
       }
    }
 }

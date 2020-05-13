@@ -63,7 +63,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             for (int j = offsets.SegmentIndex; j < self.ElementContent.Count && length > 0; j++) {
                var segment = self.ElementContent[j];
                text.Append(segment.ToText(data, offset, deep).Trim());
-               if (j + 1 < self.ElementContent.Count) text.Append(" ");
+               if (j + 1 < self.ElementContent.Count) text.Append(", ");
                offset += segment.Length;
                length -= segment.Length;
             }

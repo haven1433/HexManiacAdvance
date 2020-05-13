@@ -136,7 +136,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (i + start - Start == Length - 2) { text.Append("[]"); continue; }
             var (level, move) = SplitToken(model.ReadMultiByteValue(start + i, 2));
             var moveName = moveNames.Count > move ? moveNames[move] : move.ToString();
-            text.Append($"{level} {moveName}");
+            text.Append($"{level} {moveName},");
          }
       }
    }
