@@ -1472,6 +1472,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             withinComment = false;
          }
 
+         if (element.Format is UnderEdit && input == ',') input = ' ';
+
          if (!ShouldAcceptInput(point, element, input)) {
             ClearEdits(point);
             return;

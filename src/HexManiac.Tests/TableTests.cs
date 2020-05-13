@@ -344,6 +344,12 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(10, viewModel.Options.Count);
       }
 
+      [Fact]
+      public void CanEditInlineWithCommas() {
+         ViewPort.Edit("^table[a. b.]10 0,0 1,1 2,2 3,3 4,4 5,5 6,6 7,7 8,8 ");
+         Assert.Equal(4, Model[8]);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
