@@ -1470,6 +1470,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (input.IsAny('\r', '\n')) {
             input = ' '; // handle multiline pasting by just treating the newlines as standard whitespace.
             withinComment = false;
+            if (element.Format is PCS || element.Format is ErrorPCS) return; // exit early: newlines within strings are ignored, because they're escaped.
          }
 
          if (element.Format is UnderEdit && input == ',') input = ' ';
