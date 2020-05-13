@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
@@ -142,6 +143,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (!tokens[i].EndsWith(",")) continue;
             tokens[i] = tokens[i].Substring(0, tokens[i].Length - 1);
          }
+
+         // remove comments
+         var comment = ViewPort.CommentStart.ToString();
+         tokens = tokens.Where(token => !token.StartsWith(comment)).ToList();
 
          return tokens;
       }

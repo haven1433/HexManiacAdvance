@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+﻿using HavenSoft.HexManiac.Core.ViewModels;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -55,6 +56,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public static void AppendTo(ITableRun self, IDataModel data, StringBuilder text, int start, int length, bool deep) {
+         var names = self.ElementNames;
          var offsets = self.ConvertByteOffsetToArrayOffset(start);
          length += offsets.SegmentOffset;
          for (int i = offsets.ElementIndex; i < self.ElementCount && length > 0; i++) {
@@ -62,6 +64,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (offsets.SegmentIndex == 0 && offsets.ElementIndex > 0) text.Append(ArrayRun.ExtendArray);
             for (int j = offsets.SegmentIndex; j < self.ElementContent.Count && length > 0; j++) {
                var segment = self.ElementContent[j];
+               if (j == 0 && segment.Type != ElementContentType.PCS && names != null && names.Count > i && !string.IsNullOrEmpty(names[i])) {
+                  text.Append($"{ViewPort.CommentStart}{names[i]}{ViewPort.CommentStart}, ");
+               }
+
                text.Append(segment.ToText(data, offset, deep).Trim());
                if (j + 1 < self.ElementContent.Count) text.Append(", ");
                offset += segment.Length;

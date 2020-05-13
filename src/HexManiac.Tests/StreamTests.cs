@@ -91,7 +91,7 @@ namespace HavenSoft.HexManiac.Tests {
          var menuItem = ViewPort.GetContextMenuItems(ViewPort.SelectionStart).Single(item => item.Text == "Deep Copy");
          menuItem.Command.Execute(fileSystem);
 
-         Assert.Equal(@"^table[pointer<"""">]1 @{ ""Hello World!"" @}", fileSystem.CopyText);
+         Assert.Equal(@"^table[pointer<"""">]1 #""Hello World!""#, @{ ""Hello World!"" @}", fileSystem.CopyText);
       }
 
       [Fact]
