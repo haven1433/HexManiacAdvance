@@ -207,27 +207,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return;
          }
 
-         // if the 'Raw' tool is selected, don't auto-update tool selection.
-         if (!(tools.SelectedTool == tools.CodeTool && tools.CodeTool.Mode == CodeMode.Raw)) {
-            using (ModelCacheScope.CreateScope(Model)) {
-               if (run is ISpriteRun) {
-                  tools.SpriteTool.SpriteAddress = run.Start;
-                  tools.SelectedIndex = tools.IndexOf(tools.SpriteTool);
-               } else if (run is IPaletteRun) {
-                  tools.SpriteTool.PaletteAddress = run.Start;
-                  tools.SelectedIndex = tools.IndexOf(tools.SpriteTool);
-               } else if (run is ITableRun array) {
-                  var offsets = array.ConvertByteOffsetToArrayOffset(dataIndex);
-                  Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
-                  Tools.TableTool.Address = array.Start + array.ElementLength * offsets.ElementIndex;
-                  if (!(run is IStreamRun || array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.PCS) || tools.SelectedTool != tools.StringTool) {
-                     tools.SelectedIndex = tools.IndexOf(tools.TableTool);
+         // if the user explicitly closed the tools, don't auto-open them.
+         if (tools.SelectedIndex != -1) {
+            // if the 'Raw' tool is selected, don't auto-update tool selection.
+            if (!(tools.SelectedTool == tools.CodeTool && tools.CodeTool.Mode == CodeMode.Raw)) {
+               using (ModelCacheScope.CreateScope(Model)) {
+                  if (run is ISpriteRun) {
+                     tools.SpriteTool.SpriteAddress = run.Start;
+                     tools.SelectedIndex = tools.IndexOf(tools.SpriteTool);
+                  } else if (run is IPaletteRun) {
+                     tools.SpriteTool.PaletteAddress = run.Start;
+                     tools.SelectedIndex = tools.IndexOf(tools.SpriteTool);
+                  } else if (run is ITableRun array) {
+                     var offsets = array.ConvertByteOffsetToArrayOffset(dataIndex);
+                     Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
+                     Tools.TableTool.Address = array.Start + array.ElementLength * offsets.ElementIndex;
+                     if (!(run is IStreamRun || array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.PCS) || tools.SelectedTool != tools.StringTool) {
+                        tools.SelectedIndex = tools.IndexOf(tools.TableTool);
+                     }
+                  } else if (run is IStreamRun) {
+                     Tools.StringTool.Address = run.Start;
+                     tools.SelectedIndex = tools.IndexOf(tools.StringTool);
+                  } else {
+                     // not a special run, so don't update tools
                   }
-               } else if (run is IStreamRun) {
-                  Tools.StringTool.Address = run.Start;
-                  tools.SelectedIndex = tools.IndexOf(tools.StringTool);
-               } else {
-                  // not a special run, so don't update tools
                }
             }
          }
