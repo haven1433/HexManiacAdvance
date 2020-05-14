@@ -15,7 +15,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          var pcs = new string[0x100];
          pcs[0] = " ";
          Fill(pcs, "ÀÁÂÇÈÉÊËÌ", 0x01);
-         Fill(pcs, "ÎÏÒÓÔŒÙÚÛÑßàáçèéêëì", 0x0B);
+         Fill(pcs, "ÎÏÒÓÔ", 0x0B);
+         Fill(pcs, "ŒÙÚÛÑßàá", 0x10);
+         Fill(pcs, "çèéêëì", 0x19);
          Fill(pcs, "îïòóôœùúûñºª", 0x20);
          Fill(pcs, "& \\+", 0x2D);
          Fill(pcs, "=;", 0x35);
