@@ -324,7 +324,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public string Compile(IDataModel model, string scriptLine, out byte[] result) {
          result = null;
-         var tokens = scriptLine.Split(new[] { " " }, StringSplitOptions.None);
+         var tokens = Tokenize(scriptLine);
          if (tokens[0] != LineCommand) throw new ArgumentException($"Command {LineCommand} was expected, but received {tokens[0]} instead.");
          if (Args.Count != tokens.Length - 1) {
             return $"Command {LineCommand} expects {Args.Count} arguments, but received {tokens.Length - 1} instead.";
@@ -409,6 +409,20 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public static string ReadString(IReadOnlyList<byte> data, int start) {
          var length = PCSString.ReadString(data, start, true);
          return PCSString.Convert(data, start, length);
+      }
+
+      private static string[] Tokenize(string scriptLine) {
+         var result = new List<string>();
+         var quoteCut = scriptLine.Split('"');
+
+         for (int i = 0; i < quoteCut.Length; i++) {
+            if (i % 2 == 0 && quoteCut[i].Length == 0) continue;
+
+            if (i % 2 == 1) result.Add($"\"{quoteCut[i]}\"");
+            else result.AddRange(quoteCut[i].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+         }
+
+         return result.ToArray();
       }
    }
 
