@@ -347,5 +347,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void ClearPopup(object sender, MouseButtonEventArgs e) => CodeContentsPopup.IsOpen = false;
+
+      private void ScrollCodeContent(object sender, MouseWheelEventArgs e) => CodeContentsPopup.IsOpen = false;
    }
 }
