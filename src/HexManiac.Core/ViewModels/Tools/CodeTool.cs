@@ -301,8 +301,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
 
             // only show help if we're not within content curlies.
-            if (contentBoundaryCount != 0) return;
-            HelpSourceChanged?.Invoke(this, lines[0]);
+            if (contentBoundaryCount != 0) HelpContent = string.Empty;
+            else HelpSourceChanged?.Invoke(this, lines[0]);
          }
       }
 
