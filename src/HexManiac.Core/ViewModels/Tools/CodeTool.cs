@@ -152,7 +152,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var body = (CodeBody)viewModel;
          var codeContent = body.Content;
 
-         var run = model.GetNextRun(body.Address) as IScriptStartRun;
+         var run = model.GetNextRun(body.Address);
          if (run == null || run.Start != body.Address) Debug.Fail("How did this happen?");
 
          int length = parser.FindLength(model, run.Start);
@@ -204,7 +204,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          ModelDataChanged?.Invoke(this, ErrorInfo.NoError);
       }
 
-      private void CompileScriptChanges(IScriptStartRun run, int length, ref string codeContent, ScriptParser parser, bool updateSelection) {
+      private void CompileScriptChanges(IFormattedRun run, int length, ref string codeContent, ScriptParser parser, bool updateSelection) {
          ShowErrorText = false;
          ErrorText = string.Empty;
          int start = run.Start;
