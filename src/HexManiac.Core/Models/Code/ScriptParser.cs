@@ -2,9 +2,11 @@
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Security.Principal;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Code {
@@ -225,12 +227,19 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       public string GetHelp(string currentLine) {
+         var tokens = ScriptLine.Tokenize(currentLine);
          var candidates = engine.Where(line => line.LineCommand.Contains(currentLine.Split(' ')[0])).ToList();
          if (candidates.Count > 10) return null;
          if (candidates.Count == 0) return null;
-         if (candidates.Count == 1) return candidates[0].Usage + Environment.NewLine + string.Join(Environment.NewLine, candidates[0].Documentation);
+         if (candidates.Count == 1) {
+            if (candidates[0].Args.Count == tokens.Length - 1) return null;
+            return candidates[0].Usage + Environment.NewLine + string.Join(Environment.NewLine, candidates[0].Documentation);
+         }
          var perfectMatch = candidates.FirstOrDefault(candidate => (currentLine + " ").StartsWith(candidate.LineCommand + " "));
-         if (perfectMatch != null) return perfectMatch.Usage + Environment.NewLine + string.Join(Environment.NewLine, perfectMatch.Documentation);
+         if (perfectMatch != null) {
+            if (perfectMatch.Args.Count == tokens.Length - 1) return null;
+            return perfectMatch.Usage + Environment.NewLine + string.Join(Environment.NewLine, perfectMatch.Documentation);
+         }
          return string.Join(Environment.NewLine, candidates.Select(line => line.Usage));
       }
 
@@ -411,7 +420,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return PCSString.Convert(data, start, length);
       }
 
-      private static string[] Tokenize(string scriptLine) {
+      public static string[] Tokenize(string scriptLine) {
          var result = new List<string>();
          var quoteCut = scriptLine.Split('"');
 
