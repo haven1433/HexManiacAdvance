@@ -257,6 +257,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (run.Start < destination) return false;
          if (run.Start > destination || (run.Start == destination && (run is NoInfoRun || run is PointerRun))) {
             // hard case: no format found, so check the data
+            if (destination < 0 || destination >= owner.Count) return false;
             return FormatRunFactory.GetStrategy(InnerFormat)?.TryAddFormatAtDestination(owner, token, source, destination, Name, sourceSegments) ?? false;
          } else {
             // easy case: already have a useful format, just see if it matches
