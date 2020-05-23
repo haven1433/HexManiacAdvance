@@ -1825,6 +1825,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   ScrollFromRunMove(dataIndex, originalArray, arrayRun);
                }
                RefreshBackingData();
+               SelectionEnd = GetSelectionSpan(SelectionStart).end;
             }
             HandleErrorInfo(errorInfo);
             result = true;
