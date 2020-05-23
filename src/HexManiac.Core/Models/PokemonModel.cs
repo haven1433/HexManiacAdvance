@@ -197,7 +197,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   var run = GetNextRun(source);
                   if (run is PointerRun) {
                      Debug.Assert(run.Start == source);
-                     Debug.Assert(ReadPointer(source) == runs[i].Start);
+                     Debug.Assert(ReadPointer(source) == runs[i].Start, $"Expected {source:X6} to point to {runs[i].Start:X6}");
                   } else if (run is ITableRun) {
                      Debug.Assert(run.Start <= source);
                      Debug.Assert(ReadPointer(source) == runs[i].Start);
@@ -876,7 +876,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public override IFormattedRun RelocateForExpansion(ModelDelta changeToken, IFormattedRun run, int minimumLength) {
          int currentLength = run.Length;
-         if (run is XSERun) currentLength = singletons.ScriptLines.GetScriptSegmentLength(this, run.Start);
+         if (run is IScriptStartRun) currentLength = singletons.ScriptLines.GetScriptSegmentLength(this, run.Start);
          if (minimumLength <= currentLength) return run;
          if (CanSafelyUse(run.Start + currentLength, run.Start + minimumLength)) return run;
 
@@ -1182,7 +1182,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   text.Append($"<{anchorName}> ");
                   start += 4;
                   length -= 4;
-               } else if (run is NoInfoRun noInfoRun) {
+               } else if (run is NoInfoRun || run is IScriptStartRun) {
                   text.Append(RawData[run.Start].ToHexString() + " ");
                   start += 1;
                   length -= 1;

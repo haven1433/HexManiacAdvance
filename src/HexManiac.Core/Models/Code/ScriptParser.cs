@@ -80,9 +80,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             toProcess.RemoveAt(toProcess.Count - 1);
             if (processed.Contains(address)) continue;
             var existingRun = model.GetNextRun(address);
-            if (!(existingRun is TSERun && existingRun.Start == address)) {
+            if (!(existingRun is TSERun) && existingRun.Start == address) {
                if (sources == null && existingRun.Start != address) sources = model.SearchForPointersToAnchor(token, address);
-               model.ObserveAnchorWritten(token, string.Empty, constructor(address, sources));
+               var anchorName = model.GetAnchorFromAddress(-1, address);
+               model.ObserveAnchorWritten(token, anchorName, constructor(address, sources));
                sources = null;
             }
             int length = 0;

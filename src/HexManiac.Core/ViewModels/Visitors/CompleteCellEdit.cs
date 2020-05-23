@@ -502,7 +502,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       private void CompleteHexEdit(string currentText) {
          var byteValue = byte.Parse(currentText, NumberStyles.HexNumber);
          var run = Model.GetNextRun(memoryLocation);
-         if (!(run is NoInfoRun) || run.Start != memoryLocation) Model.ClearFormat(CurrentChange, memoryLocation, 1);
+         if (!(run is NoInfoRun || run is IScriptStartRun) || run.Start != memoryLocation) Model.ClearFormat(CurrentChange, memoryLocation, 1);
          CurrentChange.ChangeData(Model, memoryLocation, byteValue);
          NewDataIndex = memoryLocation + 1;
       }

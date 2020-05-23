@@ -153,11 +153,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var codeContent = body.Content;
 
          var run = model.GetNextRun(body.Address);
-         if (run == null || run.Start != body.Address) Debug.Fail("How did this happen?");
+         if (run != null && run.Start != body.Address) run = null;
 
-         int length = parser.FindLength(model, run.Start);
+         int length = parser.FindLength(model, body.Address);
          using (ModelCacheScope.CreateScope(model)) {
-            CompileScriptChanges(run, length, ref codeContent, parser, body == Contents[0]);
+            CompileScriptChanges<XSERun>(body.Address, run, length, ref codeContent, parser, body == Contents[0]);
 
             body.ContentChanged -= ScriptChanged;
             body.HelpSourceChanged -= UpdateScriptHelpFromLine;
@@ -204,14 +204,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          ModelDataChanged?.Invoke(this, ErrorInfo.NoError);
       }
 
-      private void CompileScriptChanges(IFormattedRun run, int length, ref string codeContent, ScriptParser parser, bool updateSelection) {
+      private void CompileScriptChanges<TSERun>(int start, IFormattedRun run, int length, ref string codeContent, ScriptParser parser, bool updateSelection) where TSERun : IScriptStartRun {
          ShowErrorText = false;
          ErrorText = string.Empty;
-         int start = run.Start;
+         var sources = run?.PointerSources ?? null;
 
          ignoreContentUpdates = true;
          {
-            var oldScripts = parser.CollectScripts(model, run.Start);
+            var oldScripts = parser.CollectScripts(model, start);
             var code = parser.Compile(history.CurrentChange, model, ref codeContent, out var movedData);
             if (code == null) {
                ignoreContentUpdates = false;
@@ -219,29 +219,53 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
 
             if (code.Length > length) {
-               run = (XSERun)model.RelocateForExpansion(history.CurrentChange, run, code.Length);
-               ModelDataMoved?.Invoke(this, (start, run.Start));
+               if (run == null) {
+                  var availableLength = length;
+                  for (int i = start + length; i < start + code.Length; i++) {
+                     if (model[i] == 0xFF) {
+                        availableLength++;
+                        continue;
+                     }
+                     ErrorText = $"Script is {code.Length} bytes long, but only {availableLength} bytes are available.";
+                     ShowErrorText = true;
+                     return;
+                  }
+               } else {
+                  run = (IScriptStartRun)model.RelocateForExpansion(history.CurrentChange, run, code.Length);
+                  if (start != run.Start) {
+                     ModelDataMoved?.Invoke(this, (start, run.Start));
+                     start = run.Start;
+                     sources = run.PointerSources;
+                  }
+               }
             }
 
-            model.ClearAnchor(history.CurrentChange, start, length);
-            for (int i = 0; i < code.Length; i++) history.CurrentChange.ChangeData(model, run.Start + i, code[i]);
-            for (int i = code.Length; i < length; i++) history.CurrentChange.ChangeData(model, run.Start + i, 0xFF);
-            parser.FormatScript<XSERun>(history.CurrentChange, model, run.Start, run.PointerSources);
-            foreach (var source in run.PointerSources) model.ObserveRunWritten(history.CurrentChange, new PointerRun(source));
+            for (int i = 0; i < code.Length; i++) history.CurrentChange.ChangeData(model, start + i, code[i]);
+            for (int i = code.Length; i < length; i++) history.CurrentChange.ChangeData(model, start + i, 0xFF);
+            parser.FormatScript<TSERun>(history.CurrentChange, model, start, sources);
+            if (sources != null) {
+               foreach (var source in sources) model.ObserveRunWritten(history.CurrentChange, new PointerRun(source));
+            }
 
             // this change may have orphaned some existing scripts. Don't lose them!
-            var newScripts = parser.CollectScripts(model, run.Start);
+            var newScripts = parser.CollectScripts(model, start);
             foreach (var orphan in oldScripts.Except(newScripts)) {
                var orphanRun = model.GetNextRun(orphan);
                if (orphanRun.Start == orphan && string.IsNullOrEmpty(model.GetAnchorFromAddress(-1, orphan))) {
-                  parser.FormatScript<XSERun>(history.CurrentChange, model, orphan);
-                  model.ObserveAnchorWritten(history.CurrentChange, $"xse{orphan:X6}", new XSERun(orphan));
+                  parser.FormatScript<TSERun>(history.CurrentChange, model, orphan);
+                  if (typeof(TSERun) == typeof(XSERun)) {
+                     model.ObserveAnchorWritten(history.CurrentChange, $"xse{orphan:X6}", new XSERun(orphan));
+                  } else if (typeof(TSERun) == typeof(BSERun)) {
+                     model.ObserveAnchorWritten(history.CurrentChange, $"bse{orphan:X6}", new BSERun(orphan));
+                  } else {
+                     throw new NotImplementedException();
+                  }
                }
             }
 
             if (updateSelection) {
-               selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(run.Start);
-               selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(run.Start + code.Length - 1);
+               selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(start);
+               selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(start + code.Length - 1);
             }
 
             foreach (var movedResource in movedData) ModelDataMoved?.Invoke(this, movedResource);
