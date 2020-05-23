@@ -239,7 +239,7 @@ B2 nopB2
 B3 checkcoins output:                        # your number of coins is stored to the given variable
 B4 givecoins count:
 B5 removecoins count:
-B6 setwildbattle species: level. item:
+B6 setwildbattle species:pokenames level. item:
 B7 dowildbattle                              # runs a battle setup with setwildbattle
 B8 setvirtualaddress value::                 # some kind of jump? Complicated.
 B9 virtualgoto destination<>                 # ???

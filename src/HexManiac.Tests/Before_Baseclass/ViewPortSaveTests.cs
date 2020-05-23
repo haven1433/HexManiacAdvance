@@ -291,12 +291,12 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0, removeCalls);
 
          tab.FileName = "file.txt";
-         tab.PropertyChanged.Invoke(tab, new ExtendedPropertyChangedEventArgs(null, nameof(tab.FileName)));
+         tab.PropertyChanged.Invoke(tab, new ExtendedPropertyChangedEventArgs<string>(null, nameof(tab.FileName)));
          Assert.Equal(1, addCalls);
          Assert.Equal(0, removeCalls);
 
          tab.FileName = "file2.txt";
-         tab.PropertyChanged.Invoke(tab, new ExtendedPropertyChangedEventArgs("file.txt", nameof(tab.FileName)));
+         tab.PropertyChanged.Invoke(tab, new ExtendedPropertyChangedEventArgs<string>("file.txt", nameof(tab.FileName)));
          Assert.Equal(2, addCalls);
          Assert.Equal(1, removeCalls);
       }

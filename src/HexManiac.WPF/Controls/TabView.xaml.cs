@@ -209,9 +209,9 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void HandleViewPortScrollChanged(object sender, PropertyChangedEventArgs e) {
          if (!AnimateScroll) return;
          if (e.PropertyName != nameof(IViewPort.ScrollValue)) return;
-         if (!(e is ExtendedPropertyChangedEventArgs)) return;
+         if (!(e is ExtendedPropertyChangedEventArgs<int>)) return;
          var viewPort = (IViewPort)sender;
-         var oldValue = (int)((ExtendedPropertyChangedEventArgs)e).OldValue;
+         var oldValue = ((ExtendedPropertyChangedEventArgs<int>)e).OldValue;
          var newValue = viewPort.ScrollValue;
          var scrollChange = newValue - oldValue;
          if (scrollChange == 0) return;

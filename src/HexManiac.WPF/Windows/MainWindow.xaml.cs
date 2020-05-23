@@ -244,9 +244,8 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       // when the ViewModel changes its GotoControlViewModel subsystem, update the event handler
       private void ViewModelPropertyChanged(object sender, PropertyChangedEventArgs e) {
          if (e.PropertyName != nameof(ViewModel.GotoViewModel)) return;
-         var args = (ExtendedPropertyChangedEventArgs)e;
-         var old = (GotoControlViewModel)args.OldValue;
-         old.MoveFocusToGoto -= FocusGotoBox;
+         var args = (ExtendedPropertyChangedEventArgs<GotoControlViewModel>)e;
+         args.OldValue.MoveFocusToGoto -= FocusGotoBox;
          ViewModel.GotoViewModel.MoveFocusToGoto += FocusGotoBox;
       }
 

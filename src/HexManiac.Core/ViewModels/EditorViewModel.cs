@@ -652,8 +652,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void TabPropertyChanged(object sender, PropertyChangedEventArgs e) {
          if (e.PropertyName == nameof(IViewPort.FileName) && sender is IViewPort viewPort) {
-            var args = (ExtendedPropertyChangedEventArgs)e;
-            var oldName = (string)args.OldValue;
+            var args = (ExtendedPropertyChangedEventArgs<string>)e;
+            var oldName = args.OldValue;
 
             if (!string.IsNullOrEmpty(oldName)) fileSystem.RemoveListenerForFile(oldName, viewPort.ConsiderReload);
             if (!string.IsNullOrEmpty(viewPort.FileName)) fileSystem.AddListenerToFile(viewPort.FileName, viewPort.ConsiderReload);
@@ -663,8 +663,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          // this isn't perfect, since tabs shouldn't nessisarily change height at the same pixel.
          // but it'll keep the tabs that are out of view from getting totally out of sync.
          if (e.PropertyName == nameof(IViewPort.Height) && sender is IViewPort viewPort2) {
-            var args = (ExtendedPropertyChangedEventArgs)e;
-            var oldHeight = (int)args.OldValue;
+            var args = (ExtendedPropertyChangedEventArgs<int>)e;
+            var oldHeight = args.OldValue;
             var height = viewPort2.Height;
             foreach (var tab in this) {
                if (tab == viewPort2) continue;

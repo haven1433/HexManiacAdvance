@@ -60,8 +60,13 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          var watcher = new FileSystemWatcher(Path.GetDirectoryName(fileName)) {
             NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName,
          };
+         bool scheduled = false;
          watcher.Changed += (sender, e) => {
-            if (e.FullPath.EndsWith(fileName)) dispatcher.BeginInvoke(listener, this);
+            if (e.FullPath.EndsWith(fileName)) {
+               if (scheduled) return;  // if multiple changes come in fairly quickly, ignore
+               scheduled = true;
+               dispatcher.BeginInvoke((Action)(() => { listener(this); scheduled = false; }), DispatcherPriority.ApplicationIdle);
+            }
          };
          watcher.EnableRaisingEvents = true;
 

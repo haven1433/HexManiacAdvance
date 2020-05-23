@@ -115,12 +115,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void ScrollPropertyChanged(object sender, PropertyChangedEventArgs e) {
          if (e.PropertyName == nameof(scroll.DataIndex)) {
             RefreshBackingData();
-            if (e is ExtendedPropertyChangedEventArgs ex) {
-               var previous = (int)ex.OldValue;
+            if (e is ExtendedPropertyChangedEventArgs<int> ex) {
+               var previous = ex.OldValue;
                if (Math.Abs(scroll.DataIndex - previous) % Width != 0) UpdateColumnHeaders();
             }
          } else if (e.PropertyName != nameof(scroll.DataLength)) {
-            NotifyPropertyChanged(((ExtendedPropertyChangedEventArgs)e).OldValue, e.PropertyName);
+            NotifyPropertyChanged(e);
          }
 
          if (e.PropertyName == nameof(Width) || e.PropertyName == nameof(Height)) {
@@ -1371,6 +1371,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var metadata = fileSystem.MetadataFor(FileName);
             Model.Load(file.Contents, metadata != null ? new StoredMetadata(metadata) : null);
             scroll.DataLength = Model.Count;
+            CascadeScripts();
             RefreshBackingData();
 
             // if the new file is shorter, selection might need to be updated
@@ -1448,8 +1449,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void CascadeScript(int address) {
-         Width = 16;  // hack to make the width right on initial load
-         Height = 16; // hack to make the height right on initial load
+         Width = Math.Max(Width, 16);   // hack to make the width right on initial load
+         Height = Math.Max(Height, 16); // hack to make the height right on initial load
          var addressText = address.ToString("X6");
          Goto.Execute(addressText);
          Debug.Assert(scroll.DataIndex == address - address % 16);
