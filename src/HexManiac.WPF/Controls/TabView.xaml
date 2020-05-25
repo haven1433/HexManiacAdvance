@@ -240,23 +240,27 @@
                         <DataTemplate DataType="{x:Type hsg3hvmtr:PaletteElementViewModel}">
                            <StackPanel>
                               <hsg3hv:CommonTableStreamControl />
-                              <ItemsControl HorizontalAlignment="Center" SnapsToDevicePixels="True" ItemsSource="{Binding Colors}"
-                                            MouseDown="ActivatePalette">
+                              <ItemsControl HorizontalAlignment="Center" SnapsToDevicePixels="True" ItemsSource="{Binding Colors.Elements}"
+                                            MouseDown="StartPaletteColorMove" MouseMove="PaletteColorMove" MouseUp="EndPaletteColorMove">
                                  <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                       <UniformGrid Columns="{Binding ColorWidth}" Rows="{Binding ColorHeight}"/>
+                                       <UniformGrid Columns="{Binding Colors.ColorWidth}" Rows="{Binding Colors.ColorHeight}"/>
                                     </ItemsPanelTemplate>
                                  </ItemsControl.ItemsPanel>
                                  <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                       <Rectangle Fill="{Binding Converter={StaticResource PaletteColorConverter}}" Width="14" Height="14">
-                                          <Rectangle.Stroke>
-                                             <LinearGradientBrush>
-                                                <GradientStop Color="Black" Offset="0" />
-                                                <GradientStop Color="White" Offset="1" />
-                                             </LinearGradientBrush>
-                                          </Rectangle.Stroke>
-                                       </Rectangle>
+                                       <Border BorderThickness="2" Margin="-1" Name="PaletteColor">
+                                          <Border.Style>
+                                             <Style TargetType="Border">
+                                                <Style.Triggers>
+                                                   <DataTrigger Binding="{Binding Selected}" Value="True">
+                                                      <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                                   </DataTrigger>
+                                                </Style.Triggers>
+                                             </Style>
+                                          </Border.Style>
+                                          <Rectangle Fill="{Binding Color, Converter={StaticResource PaletteColorConverter}}" Width="14" Height="14"/>
+                                       </Border>
                                     </DataTemplate>
                                  </ItemsControl.ItemTemplate>
                               </ItemsControl>

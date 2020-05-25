@@ -298,7 +298,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          IStreamArrayElementViewModel streamElement = null;
          if (streamRun == null || streamRun is IStreamRun) streamElement = new TextStreamElementViewModel(viewPort, model, itemAddress);
          if (streamRun is ISpriteRun spriteRun) streamElement = new SpriteElementViewModel(viewPort, spriteRun.SpriteFormat, itemAddress);
-         if (streamRun is IPaletteRun paletteRun) streamElement = new PaletteElementViewModel(viewPort, paletteRun.PaletteFormat, itemAddress);
+         if (streamRun is IPaletteRun paletteRun) streamElement = new PaletteElementViewModel(viewPort, history, paletteRun.PaletteFormat, itemAddress);
          if (streamElement == null) return;
 
          var streamAddress = itemAddress;
@@ -310,7 +310,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
             if (run == null || run is IStreamRun) newStream = new TextStreamElementViewModel(viewPort, model, streamAddress);
             if (run is ISpriteRun spriteRun1) newStream = new SpriteElementViewModel(viewPort, spriteRun1.SpriteFormat, streamAddress);
-            if (run is IPaletteRun paletteRun1) newStream = new PaletteElementViewModel(viewPort, paletteRun1.PaletteFormat, streamAddress);
+            if (run is IPaletteRun paletteRun1) newStream = new PaletteElementViewModel(viewPort, history, paletteRun1.PaletteFormat, streamAddress);
 
             newStream.DataChanged += ForwardModelChanged;
             newStream.DataMoved += ForwardModelDataMoved;

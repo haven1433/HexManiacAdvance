@@ -4,6 +4,7 @@ using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.WPF.Implementations;
+using HavenSoft.HexManiac.WPF.Windows;
 using System;
 using System.ComponentModel;
 using System.Linq;
@@ -181,6 +182,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private RenderTargetBitmap headerBitmap = new RenderTargetBitmap(10, 10, 96, 96, PixelFormats.Pbgra32);
 
       private bool preppedForScrolling;
+
       private void PreviewViewPortScrollChanged(object sender, EventArgs e) {
          if (!AnimateScroll) return;
          if (preppedForScrolling) return; // only prepare for a scroll change if we've handled a scroll since the last time we prepared.
@@ -349,5 +351,70 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void ClearPopup(object sender, MouseButtonEventArgs e) => CodeContentsPopup.IsOpen = false;
 
       private void ScrollCodeContent(object sender, MouseWheelEventArgs e) => CodeContentsPopup.IsOpen = false;
+
+      #region Palette Color Move
+
+      private const int ExpectedElementWidth = 16, ExpectedElementHeight = 16;
+      private readonly Duration span = new Duration(TimeSpan.FromMilliseconds(100));
+      private System.Windows.Point interactionPoint;
+
+      private void StartPaletteColorMove(object sender, MouseButtonEventArgs e) {
+         ActivatePalette(sender, e);
+         var view = (FrameworkElement)sender;
+         var viewModel = ((PaletteElementViewModel)view.DataContext).Colors;
+         if (e.LeftButton == MouseButtonState.Released) return;
+         interactionPoint = e.GetPosition(view);
+
+         var tileWidth = viewModel.ColorWidth;
+         var newTileX = (int)(interactionPoint.X / ExpectedElementWidth);
+         var newTileY = (int)(interactionPoint.Y / ExpectedElementHeight);
+         var tileIndex = newTileY * tileWidth + newTileX;
+         tileIndex = Math.Min(Math.Max(0, tileIndex), viewModel.Elements.Count - 1);
+
+         if (Keyboard.Modifiers == ModifierKeys.Shift) {
+            viewModel.SelectionEnd = tileIndex;
+         } else {
+            viewModel.SelectionStart = tileIndex;
+         }
+
+         view.CaptureMouse();
+      }
+
+      private void PaletteColorMove(object sender, MouseEventArgs e) {
+         var view = (FrameworkElement)sender;
+         var viewModel = ((PaletteElementViewModel)view.DataContext).Colors;
+         if (!view.IsMouseCaptured) return;
+         var tileWidth = viewModel.ColorWidth;
+
+         var oldTileX = (int)(interactionPoint.X / ExpectedElementWidth);
+         var oldTileY = (int)(interactionPoint.Y / ExpectedElementHeight);
+         var oldTileIndex = oldTileY * tileWidth + oldTileX;
+
+         interactionPoint = e.GetPosition(view);
+         var newTileX = (int)(interactionPoint.X / ExpectedElementWidth);
+         var newTileY = (int)(interactionPoint.Y / ExpectedElementHeight);
+         var newTileIndex = newTileY * tileWidth + newTileX;
+
+         oldTileIndex = Math.Min(Math.Max(0, oldTileIndex), viewModel.Elements.Count - 1);
+         newTileIndex = Math.Min(Math.Max(0, newTileIndex), viewModel.Elements.Count - 1);
+         var tilesToAnimate = viewModel.HandleMove(oldTileIndex, newTileIndex);
+
+         foreach (var tile in tilesToAnimate) {
+            var image = MainWindow.GetChild(view, "PaletteColor", viewModel.Elements[tile.index]);
+            if (!(image.RenderTransform is TranslateTransform)) image.RenderTransform = new TranslateTransform();
+            var transform = (TranslateTransform)image.RenderTransform;
+            transform.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(ExpectedElementWidth * tile.direction, 0, span));
+         }
+      }
+
+      private void EndPaletteColorMove(object sender, MouseButtonEventArgs e) {
+         var view = (FrameworkElement)sender;
+         var viewModel = ((PaletteElementViewModel)view.DataContext).Colors;
+         if (!view.IsMouseCaptured) return;
+         view.ReleaseMouseCapture();
+         viewModel.CompleteCurrentInteraction();
+      }
+
+      #endregion
    }
 }

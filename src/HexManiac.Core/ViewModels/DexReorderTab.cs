@@ -147,7 +147,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      public void UpdateSelection() {
+      private void UpdateSelection() {
          var first = Math.Min(selectionStart, selectionEnd);
          var last = Math.Max(selectionStart, selectionEnd);
          for (int i = 0; i < Elements.Count; i++) Elements[i].Selected = first <= i && i <= last;
