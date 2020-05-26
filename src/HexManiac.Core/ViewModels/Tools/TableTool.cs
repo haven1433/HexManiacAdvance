@@ -305,7 +305,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var myIndex = childInsertionIndex;
          Children[parentIndex].DataChanged += (sender, e) => {
             var closure_destination = model.ReadPointer(streamAddress);
-            var run = (IStreamRun)model.GetNextRun(destination);
+            var run = model.GetNextRun(destination) as IStreamRun;
             IStreamArrayElementViewModel newStream = null;
 
             if (run == null || run is IStreamRun) newStream = new TextStreamElementViewModel(viewPort, model, streamAddress);
