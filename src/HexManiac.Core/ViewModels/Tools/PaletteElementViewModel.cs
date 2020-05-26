@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections.Generic;
@@ -17,8 +18,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public PaletteElementViewModel(ViewPort viewPort, ChangeHistory<ModelDelta> history, PaletteFormat format, int itemAddress) : base(viewPort, itemAddress) {
          this.format = format;
-         Colors = new PaletteCollection(history);
-         TableName = viewPort.Model.GetAnchorFromAddress(-1, viewPort.Model.GetNextRun(itemAddress).Start);
+
+         var table = (ITableRun)viewPort.Model.GetNextRun(itemAddress);
+         Colors = new PaletteCollection(viewPort, history);
+         TableName = viewPort.Model.GetAnchorFromAddress(-1, table.Start);
          var destination = Model.ReadPointer(Start);
          var run = viewPort.Model.GetNextRun(destination) as IPaletteRun;
          Pages = run.Pages;
@@ -40,6 +43,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       protected override void PageChanged() => UpdateColors(Start, CurrentPage);
 
       public void Activate() => UpdateSprites(TableName);
+
+      public void UpdateAssociatedPointers() {
+         Colors.RelatedPointers.Clear();
+         foreach (var child in ViewPort.Tools.TableTool.Children) {
+            if (child is SpriteElementViewModel sevm) {
+               // TODO check that this sprite actually uses this palette
+               Colors.RelatedPointers.Add(sevm.Start);
+            } else if (child is PaletteElementViewModel pevm) {
+               Colors.RelatedPointers.Add(pevm.Start);
+            }
+         }
+      }
 
       private void UpdateSprites(string hint = null) {
          foreach (var child in ViewPort.Tools.TableTool.Children) {
@@ -71,7 +86,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    }
 
    public class PaletteCollection : ViewModelCore {
+      private readonly ViewPort viewPort;
       private readonly ChangeHistory<ModelDelta> history;
+
+      public ObservableCollection<int> RelatedPointers { get; } = new ObservableCollection<int>();
       public ObservableCollection<SelectableColor> Elements { get; } = new ObservableCollection<SelectableColor>();
 
       public int ColorWidth => (int)Math.Ceiling(Math.Sqrt(Elements.Count));
@@ -100,7 +118,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
-      public PaletteCollection(ChangeHistory<ModelDelta> history) {
+      public PaletteCollection(ViewPort viewPort, ChangeHistory<ModelDelta> history) {
+         this.viewPort = viewPort;
          this.history = history;
       }
 
@@ -149,10 +168,49 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void ReorderPalette() {
-         // TODO
+         var oldToNew = Enumerable.Range(0, Elements.Count).Select(i => Elements.IndexOf(Elements.Single(element => element.Index == i))).ToArray();
+         var newElements = Enumerable.Range(0, Elements.Count).Select(i => new SelectableColor {
+            Index = i,
+            Color = Elements[Elements[i].Index].Color,
+            Selected = Elements[i].Selected,
+         }).ToList();
+
+         var model = viewPort.Model;
+         foreach (var pointer in RelatedPointers) {
+            var run = model.GetNextRun(model.ReadPointer(pointer));
+            if (run is ISpriteRun spriteRun) {
+               var initialStart = spriteRun.Start;
+               for (int page = 0; page < spriteRun.Pages; page++) {
+                  var pixels = spriteRun.GetPixels(model, 0);
+                  for (int y = 0; y < pixels.GetLength(1); y++) {
+                     for (int x = 0; x < pixels.GetLength(0); x++) {
+                        pixels[x, y] = oldToNew[pixels[x, y]];
+                     }
+                  }
+                  spriteRun = spriteRun.SetPixels(model, history.CurrentChange, page, pixels);
+               }
+               if (initialStart != spriteRun.Start) viewPort.RaiseMessage($"Sprite was moved to {spriteRun.Start:X6}. Pointers were updated.");
+            } else if (run is IPaletteRun paletteRun) {
+               var initalStart = paletteRun.Start;
+               for (int page = 0; page < paletteRun.Pages; page++) {
+                  var colors = paletteRun.GetPalette(model, page);
+                  var newColors = Enumerable.Range(0, Elements.Count).Select(i => colors[Elements[i].Index]).ToList();
+                  paletteRun = paletteRun.SetPalette(model, history.CurrentChange, page, newColors);
+               }
+               if (initalStart != paletteRun.Start) viewPort.RaiseMessage($"Palette was moved to {paletteRun.Start:X6}. Pointers were updated.");
+            } else {
+               // expected this to either be a spriterun or a paletterun, not really sure what to do with it now.
+               throw new NotImplementedException();
+            }
+         }
+
+         viewPort.Refresh();
+
+         for (int i = 0; i < Elements.Count; i++) Elements[i].Selected = newElements[i].Selected;
       }
    }
 
+   [DebuggerDisplay("{Index}:{Color}")]
    public class SelectableColor : ViewModelCore {
       private bool selected;
       public bool Selected { get => selected; set => Set(ref selected, value); }
