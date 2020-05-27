@@ -51,6 +51,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private bool spriteIs256Color;
       public bool SpriteIs256Color { get => spriteIs256Color; set => Set(ref spriteIs256Color, value, oldValue => UpdateSpriteFormat()); }
 
+      private bool spriteIsTilemap;
+      public bool SpriteIsTilemap { get => spriteIsTilemap; set => Set(ref spriteIsTilemap, value, oldValue => UpdateSpriteFormat()); }
+
       private string spritePaletteHint;
       public string SpritePaletteHint { get => spritePaletteHint; set => Set(ref spritePaletteHint, value, oldValue => UpdateSpriteFormat()); }
 
@@ -86,9 +89,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var newFormat = new SpriteFormat(bits, width, height, spritePaletteHint);
 
          var desiredUncompressedLength = newFormat.TileWidth * newFormat.TileHeight * 8 * newFormat.BitsPerPixel;
+         if (spriteIsTilemap) desiredUncompressedLength /= newFormat.BitsPerPixel * 4;
          if (spriteRun is LZRun) availableLength = LZRun.Decompress(model, spriteRun.Start).Length;
          if (availableLength < desiredUncompressedLength) {
             viewPort.RaiseError($"Need {desiredUncompressedLength} bytes, but only {availableLength} bytes available.");
+         } else if (spriteIsTilemap && spriteRun is LZRun) {
+            split = spritePaletteHint.Split("|");
+            var tileset = split[0];
+            string tilesetTableMember = null;
+            if (split.Length > 1) tilesetTableMember = split[1];
+            var tilemapFormat = new TilemapFormat(bits, width, height, tileset, tilesetTableMember);
+            model.ObserveRunWritten(history.CurrentChange, new LzTilemapRun(tilemapFormat, model, spriteRun.Start, spriteRun.PointerSources));
+            viewPort.Refresh();
+            LoadSprite();
+         } else if (spriteIsTilemap && !(spriteRun is LZRun)) {
+            // uncompressed tilemaps are not currently supported, so just no-op.
          } else {
             model.ObserveRunWritten(history.CurrentChange, spriteRun.Duplicate(newFormat));
             viewPort.Refresh();
@@ -141,10 +156,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             ShowNoSpriteAnchorMessage = false;
             spriteWidthHeight = format.TileWidth + "x" + format.TileHeight;
             if (run is LzTilesetRun) spriteWidthHeight = "tiles";
-            spritePaletteHint = format.PaletteHint;
+            if (run is LzTilemapRun mapRun) {
+               spriteIsTilemap = true;
+               spritePaletteHint = mapRun.Format.MatchingTileset + (string.IsNullOrEmpty(mapRun.Format.TilesetTableMember) ? string.Empty : "|" + mapRun.Format.TilesetTableMember);
+            } else {
+               spriteIsTilemap = false;
+               spritePaletteHint = format.PaletteHint;
+            }
             spriteIs256Color = format.BitsPerPixel == 8;
             NotifyPropertyChanged(nameof(SpriteWidthHeight));
             NotifyPropertyChanged(nameof(SpriteIs256Color));
+            NotifyPropertyChanged(nameof(SpriteIsTilemap));
             NotifyPropertyChanged(nameof(SpritePaletteHint));
          } else {
             ShowNoSpriteAnchorMessage = true;
