@@ -330,13 +330,30 @@
                   <Button Content="Export" Command="{Binding SpriteTool.ExportPair}" CommandParameter="{DynamicResource FileSystem}" Margin="5"/>
                </StackPanel>
                <!-- Sprite Address -->
-               <DockPanel Margin="5,15">
+               <DockPanel Margin="5,15,5,1">
                   <TextBlock VerticalAlignment="Center" Text="Image Address:" />
-                  <TextBox Text="{Binding SpriteTool.SpriteAddress, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5" />
+                  <TextBox Text="{Binding SpriteTool.SpriteAddress, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5">
+                     <TextBox.InputBindings>
+                        <KeyBinding Key="Return" Command="{Binding SpriteTool.GotoSpriteAddress}" />
+                     </TextBox.InputBindings>
+                  </TextBox>
                </DockPanel>
 
                <!-- Sprite -->
-               <hsg3hv:PixelImage DataContext="{Binding SpriteTool}" />
+               <StackPanel Visibility="{Binding SpriteTool.ShowSpriteProperties, Converter={StaticResource BoolToVisibility}}">
+                  <CheckBox Margin="5,1" Content="256 Color Image" IsChecked="{Binding SpriteTool.SpriteIs256Color}" />
+                  <DockPanel Margin="5,1">
+                     <TextBlock VerticalAlignment="Center" Text="Tile Size:" />
+                     <TextBox Text="{Binding SpriteTool.SpriteWidthHeight, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                  </DockPanel>
+                  <DockPanel Margin="5,1">
+                     <TextBlock VerticalAlignment="Center" Text="Palette Hint:" />
+                     <TextBox Text="{Binding SpriteTool.SpritePaletteHint, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                  </DockPanel>
+               </StackPanel>
+               <TextBlock Margin="5,1" TextWrapping="Wrap" FontStyle="Italic" Foreground="{DynamicResource Error}" Text="Could not find sprite data starting at that address." Visibility="{Binding SpriteTool.ShowNoSpriteAnchorMessage, Converter={StaticResource BoolToVisibility}}"/>
+
+               <hsg3hv:PixelImage Margin="5,5,5,2" DataContext="{Binding SpriteTool}" />
                <DockPanel Visibility="{Binding SpriteTool.HasMultipleSpritePages, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
                   <Button Content="Previous" Command="{Binding SpriteTool.PreviousSpritePage}" DockPanel.Dock="Left"/>
                   <Button Content="Next" Command="{Binding SpriteTool.NextSpritePage}" DockPanel.Dock="Right"/>

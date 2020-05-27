@@ -58,6 +58,7 @@
     <Compile Include="Models\Runs\EggMoveRun.cs" />
     <Compile Include="Models\Runs\Factory\LzTilemapRunContentStrategy.cs" />
     <Compile Include="Models\Runs\Factory\LzTilesetRunContentStrategy.cs" />
+    <Compile Include="Models\Runs\Factory\TilesetRunContentStrategy.cs" />
     <Compile Include="Models\Runs\HeaderRow.cs" />
     <Compile Include="Models\Runs\ModelCacheScope.cs" />
     <Compile Include="Models\Runs\PLMRun.cs" />
@@ -69,6 +70,7 @@
     <Compile Include="Models\Runs\Sprites\PaletteRun.cs" />
     <Compile Include="Models\Runs\Sprites\SpriteRun.cs" />
     <Compile Include="Models\Runs\Sprites\Sprites.cs" />
+    <Compile Include="Models\Runs\Sprites\TilesetRun.cs" />
     <Compile Include="Models\Runs\TableStreamRun.cs" />
     <Compile Include="Models\Runs\TrainerPokemonTeamRun.cs" />
     <Compile Include="Models\Runs\WordRun.cs" />

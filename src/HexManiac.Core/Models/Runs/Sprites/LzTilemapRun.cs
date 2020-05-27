@@ -251,5 +251,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new LzTilemapRun(Format, Model, Start, newPointerSources);
+
+      public ISpriteRun Duplicate(SpriteFormat format) => new LzTilemapRun(new TilemapFormat(format.BitsPerPixel, format.TileWidth, format.TileHeight, Format.MatchingTileset, Format.TilesetTableMember), Model, Start, PointerSources);
    }
 }

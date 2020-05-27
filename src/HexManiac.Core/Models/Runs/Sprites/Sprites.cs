@@ -26,8 +26,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
    public struct TilesetFormat {
       public int BitsPerPixel { get; }
+      public int Tiles { get; }
       public string PaletteHint { get; }
-      public TilesetFormat(int bitsPerPixel, string paletteHint) => (BitsPerPixel, PaletteHint) = (bitsPerPixel, paletteHint);
+      public TilesetFormat(int bitsPerPixel, string paletteHint) => (BitsPerPixel, Tiles, PaletteHint) = (bitsPerPixel, -1, paletteHint);
+      public TilesetFormat(int bitsPerPixel, int tiles, string paletteHint) : this(bitsPerPixel, paletteHint) => Tiles = tiles;
    }
 
    public struct TilemapFormat {
@@ -54,6 +56,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       SpriteFormat SpriteFormat { get; }
       int[,] GetPixels(IDataModel model, int page);
       ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels);
+      ISpriteRun Duplicate(SpriteFormat newFormat);
    }
 
    public interface IPaletteRun : IPagedRun {

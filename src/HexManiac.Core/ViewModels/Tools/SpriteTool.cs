@@ -20,10 +20,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       double SpriteScale { get; }
    }
 
-   // TODO use the hint on the format (if there is one) to find a matching palette
    public class SpriteTool : ViewModelCore, IToolViewModel, IPixelViewModel {
       public const int MaxSpriteWidth = 265; // From UI
       private readonly ViewPort viewPort;
+      private readonly ChangeHistory<ModelDelta> history;
       private readonly IDataModel model;
 
       private bool paletteWasSetMoreRecently;
@@ -37,6 +37,122 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public string Name => "Image";
 
       public double SpriteScale { get => spriteScale; set => TryUpdate(ref spriteScale, value); }
+
+      #region Sprite Properties
+
+      private bool showNoSpriteAnchorMessage;
+      public bool ShowNoSpriteAnchorMessage { get => showNoSpriteAnchorMessage; set => Set(ref showNoSpriteAnchorMessage, value); }
+
+      public bool ShowSpriteProperties => !showNoSpriteAnchorMessage;
+
+      private string spriteWidthHeight;
+      public string SpriteWidthHeight { get => spriteWidthHeight; set => Set(ref spriteWidthHeight, value, oldValue => UpdateSpriteFormat()); }
+
+      private bool spriteIs256Color;
+      public bool SpriteIs256Color { get => spriteIs256Color; set => Set(ref spriteIs256Color, value, oldValue => UpdateSpriteFormat()); }
+
+      private string spritePaletteHint;
+      public string SpritePaletteHint { get => spritePaletteHint; set => Set(ref spritePaletteHint, value, oldValue => UpdateSpriteFormat()); }
+
+      private void UpdateSpriteFormat() {
+         var spriteRun = model.GetNextRun(spriteAddress) as ISpriteRun;
+         if (spriteRun == null || spriteRun.Start != spriteAddress) return;
+         var bits = SpriteIs256Color ? 8 : 4;
+
+         if (spriteWidthHeight.ToLower().Trim() == "tiles") {
+            if (spriteRun is LZRun lzRun && lzRun.DecompressedLength % (8 * bits) == 0) {
+               model.ObserveRunWritten(history.CurrentChange, new LzTilesetRun(new TilesetFormat(bits, spritePaletteHint), model, spriteAddress));
+               viewPort.Refresh();
+               LoadSprite();
+            }
+         }
+
+         var split = spriteWidthHeight.ToUpper().Trim().Split("X");
+         if (split.Length > 2 || split.Length < 1) return;
+         var availableLength = model.GetNextAnchor(spriteRun.Start + spriteRun.Length).Start - spriteRun.Start;
+         if (split.Length == 1 && int.TryParse(split[0], out int tiles)) {
+            var desiredLength = tiles * 8 * bits;
+            if (availableLength < desiredLength) {
+               viewPort.RaiseError($"Need {desiredLength} bytes, but only {availableLength} bytes available.");
+            } else {
+               model.ObserveRunWritten(history.CurrentChange, new TilesetRun(new TilesetFormat(bits, tiles, spritePaletteHint), model, spriteAddress));
+               viewPort.Refresh();
+               LoadSprite();
+            }
+            return;
+         }
+         if (!int.TryParse(split[0], out int width) || !int.TryParse(split[1], out int height)) return;
+
+         var newFormat = new SpriteFormat(bits, width, height, spritePaletteHint);
+
+         var desiredUncompressedLength = newFormat.TileWidth * newFormat.TileHeight * 8 * newFormat.BitsPerPixel;
+         if (spriteRun is LZRun) availableLength = LZRun.Decompress(model, spriteRun.Start).Length;
+         if (availableLength < desiredUncompressedLength) {
+            viewPort.RaiseError($"Need {desiredUncompressedLength} bytes, but only {availableLength} bytes available.");
+         } else {
+            model.ObserveRunWritten(history.CurrentChange, spriteRun.Duplicate(newFormat));
+            viewPort.Refresh();
+            LoadSprite();
+         }
+      }
+
+      private StubCommand gotoSpriteAddress;
+      public ICommand GotoSpriteAddress => StubCommand(ref gotoSpriteAddress, ExecuteGotoSpriteAddress);
+      private void ExecuteGotoSpriteAddress() {
+         var run = model.GetNextRun(spriteAddress);
+         viewPort.Goto.Execute(spriteAddress);
+
+         if (run is ISpriteRun && run.Start == spriteAddress) { LoadSprite(); UpdateSpriteProperties(); }
+         if (!(run is NoInfoRun) || run.Start != spriteAddress) return;
+
+         var decompressed = LZRun.Decompress(model, run.Start);
+         if (decompressed == null) {
+            var nextRun = model.GetNextAnchor(spriteAddress + 1);
+            var length = nextRun.Start - spriteAddress;
+            if (length % 32 != 0) {
+               viewPort.RaiseError("Could not autodetect an uncompressed sprite at that address.");
+               return;
+            }
+            var tileCount = length / 32;
+            var width = (int)Math.Sqrt(tileCount);
+            var height = width;
+            model.ObserveRunWritten(history.CurrentChange, new SpriteRun(spriteAddress, new SpriteFormat(4, width, height, null)));
+         } else {
+            var pixelCount = decompressed.Length;
+            if (pixelCount % 32 != 0) {
+               viewPort.RaiseError("Could not autodetect a compressed sprite at that address.");
+               return;
+            }
+            var tileCount = pixelCount / 32;
+            var width = (int)Math.Sqrt(tileCount);
+            var height = width;
+            model.ObserveRunWritten(history.CurrentChange, new LzSpriteRun(new SpriteFormat(4, width, height, null), model, spriteAddress));
+         }
+
+         viewPort.Refresh();
+         LoadSprite();
+         UpdateSpriteProperties();
+      }
+
+      private void UpdateSpriteProperties() {
+         var run = model.GetNextRun(spriteAddress) as ISpriteRun;
+         if (run != null && run.Start == spriteAddress) {
+            var format = run.SpriteFormat;
+            ShowNoSpriteAnchorMessage = false;
+            spriteWidthHeight = format.TileWidth + "x" + format.TileHeight;
+            if (run is LzTilesetRun) spriteWidthHeight = "tiles";
+            spritePaletteHint = format.PaletteHint;
+            spriteIs256Color = format.BitsPerPixel == 8;
+            NotifyPropertyChanged(nameof(SpriteWidthHeight));
+            NotifyPropertyChanged(nameof(SpriteIs256Color));
+            NotifyPropertyChanged(nameof(SpritePaletteHint));
+         } else {
+            ShowNoSpriteAnchorMessage = true;
+         }
+         NotifyPropertyChanged(nameof(ShowSpriteProperties));
+      }
+
+      #endregion
 
       private readonly StubCommand
          importPair = new StubCommand(),
@@ -60,7 +176,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             importPair.CanExecuteChanged.Invoke(importPair, EventArgs.Empty);
             exportPair.CanExecuteChanged.Invoke(exportPair, EventArgs.Empty);
 
-            if (run == null) {
+            if (run == null || run.Start != spriteAddress) {
                spritePages = 1;
                spritePage = 0;
             } else {
@@ -68,6 +184,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                if (spritePage >= spritePages) spritePage = 0;
                NotifyPropertyChanged(nameof(HasMultipleSpritePages));
             }
+            UpdateSpriteProperties();
             LoadSprite();
             PaletteAddress = FindMatchingPalette(model, run, PaletteAddress);
          }
@@ -118,11 +235,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public bool IsReadOnly => true;
 
-      public SpriteTool(ViewPort viewPort) {
+      public SpriteTool(ViewPort viewPort, ChangeHistory<ModelDelta> history) {
          this.viewPort = viewPort;
+         this.history = history;
          model = viewPort?.Model;
          spriteAddress = Pointer.NULL;
          paletteAddress = Pointer.NULL;
+         showNoSpriteAnchorMessage = true;
 
          importPair.CanExecute = arg => paletteAddress >= 0 && spriteAddress >= 0;
          exportPair.CanExecute = arg => paletteAddress >= 0 && spriteAddress >= 0;

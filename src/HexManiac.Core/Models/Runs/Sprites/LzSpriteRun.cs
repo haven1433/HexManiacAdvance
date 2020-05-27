@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
    public class LzSpriteRun : LZRun, ISpriteRun {
@@ -44,6 +45,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new LzSpriteRun(SpriteFormat, Model, Start, newPointerSources);
+
+      public ISpriteRun Duplicate(SpriteFormat format) => new LzSpriteRun(format, Model, Start, PointerSources);
 
       public int[,] GetPixels(IDataModel model, int page) {
          var data = Decompress(model, Start);

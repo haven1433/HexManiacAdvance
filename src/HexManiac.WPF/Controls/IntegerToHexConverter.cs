@@ -15,10 +15,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var input = value.ToString();
          if (int.TryParse(value.ToString(), NumberStyles.HexNumber, null, out int result)) {
             return result;
-         } else if (input.ToLower() == "null") {
-            return Pointer.NULL;
          } else {
-            return -1;
+            return Pointer.NULL;
          }
       }
    }

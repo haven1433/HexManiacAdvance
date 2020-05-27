@@ -34,6 +34,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new SpriteRun(Start, SpriteFormat, newPointerSources);
 
+      public ISpriteRun Duplicate(SpriteFormat format) => new SpriteRun(Start, format, PointerSources);
+
       public int[,] GetPixels(IDataModel model, int page) {
          var pageSize = 8 * bitsPerPixel * tileWidth * tileHeight;
          return GetPixels(model, Start + page * pageSize, tileWidth, tileHeight, bitsPerPixel);
