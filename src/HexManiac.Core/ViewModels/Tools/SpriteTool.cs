@@ -40,7 +40,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       #region Sprite Properties
 
-      private bool showNoSpriteAnchorMessage;
+      private bool showNoSpriteAnchorMessage = true;
       public bool ShowNoSpriteAnchorMessage { get => showNoSpriteAnchorMessage; set => Set(ref showNoSpriteAnchorMessage, value); }
 
       public bool ShowSpriteProperties => !showNoSpriteAnchorMessage;
@@ -178,7 +178,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       #region Palette Properties
 
-      private bool showNoPaletteAnchorMessage;
+      private bool showNoPaletteAnchorMessage = true;
       public bool ShowNoPaletteAnchorMessage { get => showNoPaletteAnchorMessage; set => Set(ref showNoPaletteAnchorMessage, value); }
 
       public bool ShowPaletteProperties => !showNoPaletteAnchorMessage;
@@ -337,7 +337,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          model = viewPort?.Model;
          spriteAddress = Pointer.NULL;
          paletteAddress = Pointer.NULL;
-         showNoSpriteAnchorMessage = true;
 
          importPair.CanExecute = arg => paletteAddress >= 0 && spriteAddress >= 0;
          exportPair.CanExecute = arg => paletteAddress >= 0 && spriteAddress >= 0;

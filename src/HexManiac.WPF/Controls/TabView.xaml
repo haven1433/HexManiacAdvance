@@ -405,6 +405,7 @@
                      <TextBox Text="{Binding SpriteTool.PalettePages, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
                   </UniformGrid>
                </StackPanel>
+               <TextBlock Margin="5,1" TextWrapping="Wrap" FontStyle="Italic" Foreground="{DynamicResource Error}" Text="Could not find palette data starting at that address." Visibility="{Binding SpriteTool.ShowNoPaletteAnchorMessage, Converter={StaticResource BoolToVisibility}}"/>
 
                <!-- Palette -->
                <ItemsControl DataContext="{Binding SpriteTool.Colors}" HorizontalAlignment="Center" SnapsToDevicePixels="True" ItemsSource="{Binding Elements}"
