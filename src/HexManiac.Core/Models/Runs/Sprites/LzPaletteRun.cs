@@ -38,6 +38,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          paletteFormat = default;
          var formatContent = format.Substring(4, format.Length - 5);
          var pageSplit = formatContent.Split(':');
+         if (!int.TryParse(pageSplit[0], out var bits)) return false;
          int pages = 1, pageStart = 0;
          if (pageSplit.Length == 2) {
             var lastPageID = pageSplit[1].ToUpper().LastOrDefault();
@@ -49,12 +50,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             pages -= firstPageIndex;
          }
 
-         if (!int.TryParse(pageSplit[0], out var bits)) return false;
          paletteFormat = new PaletteFormat(bits, pages, pageStart);
          return true;
       }
 
       protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new LzPaletteRun(PaletteFormat, Model, Start, newPointerSources);
+
+      public IPaletteRun Duplicate(PaletteFormat newFormat) => new LzPaletteRun(newFormat, Model, Start, PointerSources);
 
       public IReadOnlyList<short> GetPalette(IDataModel model, int page) {
          var data = Decompress(model, Start);

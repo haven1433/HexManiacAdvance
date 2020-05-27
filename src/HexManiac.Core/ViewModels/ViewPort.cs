@@ -438,6 +438,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      if (errorInfo == ErrorInfo.NoError) {
                         OnError?.Invoke(this, string.Empty);
                         var newRun = Model.GetNextRun(index);
+                        if (AnchorText == AnchorStart.ToString()) Model.ClearFormat(history.CurrentChange, run.Start, 1);
                         if (newRun is ArrayRun array) {
                            // if the format changed (ignoring length), run a goto to update the display width
                            if (run is ArrayRun array2 && !array.HasSameSegments(array2)) {

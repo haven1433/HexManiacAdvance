@@ -101,7 +101,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set {
             var first = Math.Min(selectionStart, selectionEnd);
             var last = Math.Max(selectionStart, selectionEnd);
-            if (first <= value && value <= last) return;
+            if (first <= value && value <= last) {
+               for (int i = 0; i < Elements.Count; i++) Elements[i].Selected = first <= i && i <= last;
+               return;
+            }
             if (!TryUpdate(ref selectionStart, value)) return;
             SelectionEnd = selectionStart;
          }

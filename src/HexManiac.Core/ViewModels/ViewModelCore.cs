@@ -76,11 +76,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return PropertyChanged.TryUpdate(this, ref backingField, newValue, propertyName);
       }
 
-      protected void Set<T>(ref T field, T value, Action<T> changeHandler = null, [CallerMemberName]string propertyName = null) where T : IEquatable<T> {
+      protected void Set<T>(ref T field, T value, Action<T> changeHandler, [CallerMemberName]string propertyName = null) where T : IEquatable<T> {
          var oldValue = field;
          if (PropertyChanged.TryUpdate(this, ref field, value, propertyName)) {
             changeHandler?.Invoke(oldValue);
          }
+      }
+
+      protected void Set<T>(ref T field, T value, [CallerMemberName]string propertyName = null) where T : IEquatable<T> {
+         Set(ref field, value, null, propertyName);
       }
 
       protected bool TryUpdateEnum<T>(ref T backingField, T newValue, [CallerMemberName]string propertyName = null) where T : Enum {

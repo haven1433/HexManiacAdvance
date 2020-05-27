@@ -118,7 +118,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          viewPort.Goto.Execute(spriteAddress);
 
          if (run is ISpriteRun && run.Start == spriteAddress) { LoadSprite(); UpdateSpriteProperties(); }
-         if (!(run is NoInfoRun) || run.Start != spriteAddress) return;
+         if ((!(run is NoInfoRun) && !(run is PCSRun)) || run.Start != spriteAddress) return;
 
          var decompressed = LZRun.Decompress(model, run.Start);
          if (decompressed == null) {
@@ -176,6 +176,77 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       #endregion
 
+      #region Palette Properties
+
+      private bool showNoPaletteAnchorMessage;
+      public bool ShowNoPaletteAnchorMessage { get => showNoPaletteAnchorMessage; set => Set(ref showNoPaletteAnchorMessage, value); }
+
+      public bool ShowPaletteProperties => !showNoPaletteAnchorMessage;
+
+      private bool paletteIs256Color;
+      public bool PaletteIs256Color { get => paletteIs256Color; set => Set(ref paletteIs256Color, value, oldValue => UpdatePaletteFormat()); }
+
+      private string palettePages;
+      public string PalettePages { get => palettePages; set => Set(ref palettePages, value, oldValue => UpdatePaletteFormat()); }
+
+      private void UpdatePaletteFormat() {
+         var palRun = model.GetNextRun(paletteAddress) as IPaletteRun;
+         if (palRun == null || palRun.Start != paletteAddress) return;
+         var bits = paletteIs256Color ? 8 : 4;
+         if (!PaletteRun.TryParsePaletteFormat($"{bits}:{PalettePages}", out var newFormat)) return;
+         model.ObserveRunWritten(history.CurrentChange, palRun.Duplicate(newFormat));
+         viewPort.Refresh();
+         LoadPalette();
+      }
+
+      private StubCommand gotoPaletteAddress;
+      public ICommand GotoPaletteAddress => StubCommand(ref gotoPaletteAddress, ExecuteGotoPaletteAddress);
+      private void ExecuteGotoPaletteAddress() {
+         var run = model.GetNextRun(paletteAddress);
+         viewPort.Goto.Execute(paletteAddress);
+         if (run is IPaletteRun && run.Start == paletteAddress) { LoadPalette();UpdatePaletteProperties(); }
+         if ((!(run is NoInfoRun) && !(run is PCSRun)) || run.Start != paletteAddress) return;
+
+         var decompressed = LZRun.Decompress(model, run.Start);
+         if (decompressed == null) {
+            var nextRun = model.GetNextAnchor(paletteAddress + 1);
+            var length = nextRun.Start - paletteAddress;
+            if (length % 32 != 0) {
+               viewPort.RaiseError("Could not autodetect an uncompressed palette at that address.");
+               return;
+            }
+            var pages = Math.Min(length / 32, 16);
+            model.ObserveRunWritten(history.CurrentChange, new PaletteRun(paletteAddress, new PaletteFormat(4, pages)));
+         } else {
+            var byteCount = decompressed.Length;
+            if (byteCount % 32 != 0) {
+               viewPort.RaiseError("Could not autodetect a compressed sprite at that address.");
+               return;
+            }
+            var pages = Math.Min(byteCount / 32, 16);
+            model.ObserveRunWritten(history.CurrentChange, new LzPaletteRun(new PaletteFormat(4, pages), model, paletteAddress));
+         }
+
+         viewPort.Refresh();
+         LoadPalette();
+         UpdatePaletteProperties();
+      }
+
+      private void UpdatePaletteProperties() {
+         var palRun = model.GetNextRun(paletteAddress) as IPaletteRun;
+         if (palRun != null && palRun.Start == paletteAddress) {
+            var format = palRun.PaletteFormat;
+            Set(ref paletteIs256Color, format.Bits == 8, nameof(PaletteIs256Color));
+            Set(ref palettePages, PaletteRun.GetPalettePages(format), nameof(PalettePages));
+            ShowNoPaletteAnchorMessage = false;
+         } else {
+            ShowNoPaletteAnchorMessage = true;
+         }
+         NotifyPropertyChanged(nameof(ShowPaletteProperties));
+      }
+
+      #endregion
+
       private readonly StubCommand
          importPair = new StubCommand(),
          exportPair = new StubCommand(),
@@ -229,6 +300,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                if (palPage >= palPages) palPage = 0;
                NotifyPropertyChanged(nameof(HasMultiplePalettePages));
             }
+            UpdatePaletteProperties();
             LoadPalette();
          }
       }
@@ -253,13 +325,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public short[] PixelData { get; private set; }
 
       // TODO propogate changes back to the paletteAddress in the model
-      public ObservableCollection<short> Palette { get; private set; } = new ObservableCollection<short>();
+      // public ObservableCollection<short> Palette { get; private set; } = new ObservableCollection<short>();
+      public PaletteCollection Colors { get; }
 
       public bool IsReadOnly => true;
 
       public SpriteTool(ViewPort viewPort, ChangeHistory<ModelDelta> history) {
          this.viewPort = viewPort;
          this.history = history;
+         Colors = new PaletteCollection(viewPort, history);
          model = viewPort?.Model;
          spriteAddress = Pointer.NULL;
          paletteAddress = Pointer.NULL;
@@ -358,8 +432,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          prevPalPage.CanExecuteChanged.Invoke(prevPalPage, EventArgs.Empty);
          nextPalPage.CanExecuteChanged.Invoke(nextPalPage, EventArgs.Empty);
 
-         Palette.Clear();
-         foreach (var color in palette) Palette.Add(color);
+         Colors.SetContents(palette);
          PixelData = Render(pixels, GetRenderPalette(model?.GetNextRun(spriteAddress) as ISpriteRun), paletteFormat);
          NotifyPropertyChanged(nameof(PixelData));
       }

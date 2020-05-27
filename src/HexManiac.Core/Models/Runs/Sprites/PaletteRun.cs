@@ -22,10 +22,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          if (bits == 4) Length = Pages * 32;
          var pagesPart = string.Empty;
          if (Pages > 1 || format.InitialBlankPages > 0) {
-            var pageIDs = Enumerable.Range(format.InitialBlankPages, Pages).Select(i => ViewModels.ViewPort.AllHexCharacters[i]);
-            pagesPart = ":" + new string(pageIDs.ToArray());
+            pagesPart = ":" + GetPalettePages(format);
          }
          FormatString = $"`ucp{bits}{pagesPart}`";
+      }
+
+      public static string GetPalettePages(PaletteFormat format) {
+         var pageIDs = Enumerable.Range(format.InitialBlankPages, format.Pages).Select(i => ViewModels.ViewPort.AllHexCharacters[i]);
+         return new string(pageIDs.ToArray());
       }
 
       public static bool TryParsePaletteFormat(string pointerFormat, out PaletteFormat paletteFormat) {
@@ -44,6 +48,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new PaletteRun(Start, PaletteFormat, newPointerSources);
+
+      public IPaletteRun Duplicate(PaletteFormat newFormat) => new PaletteRun(Start, newFormat, PointerSources);
 
       public IReadOnlyList<short> GetPalette(IDataModel model, int page) {
          page %= Pages;

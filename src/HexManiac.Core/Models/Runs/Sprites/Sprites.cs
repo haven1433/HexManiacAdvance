@@ -63,6 +63,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       PaletteFormat PaletteFormat { get; }
       IReadOnlyList<short> GetPalette(IDataModel model, int page);
       IPaletteRun SetPalette(IDataModel model, ModelDelta token, int page, IReadOnlyList<short> colors);
+      IPaletteRun Duplicate(PaletteFormat newFormat);
    }
 
    public static class IPaletteRunExtensions {

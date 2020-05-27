@@ -284,6 +284,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          // Annotate(textbox, textbox.SelectionStart, selectedLine.Split(' ')[0], Brush(nameof(Theme.Accent)));
       }
 
+      // attempt to write text _over_ existing text, to change its color
+      // doesn't work very well: text is partially transparent, lining it up perfectly is difficult, and the selection looks wrong.
       private void Annotate(TextBox box, int index, string annotation, SolidColorBrush brush) {
          var grid = box.Parent as Grid;
          if (grid == null) return;
@@ -359,9 +361,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private System.Windows.Point interactionPoint;
 
       private void StartPaletteColorMove(object sender, MouseButtonEventArgs e) {
-         ActivatePalette(sender, e);
          var view = (FrameworkElement)sender;
-         var viewModel = ((PaletteElementViewModel)view.DataContext).Colors;
+         var viewModel = (PaletteCollection)view.DataContext;
          if (e.LeftButton == MouseButtonState.Released) return;
          interactionPoint = e.GetPosition(view);
 
@@ -382,8 +383,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private void PaletteColorMove(object sender, MouseEventArgs e) {
          var view = (FrameworkElement)sender;
-         var viewModel = ((PaletteElementViewModel)view.DataContext).Colors;
          if (!view.IsMouseCaptured) return;
+         var viewModel = (PaletteCollection)view.DataContext;
          var tileWidth = viewModel.ColorWidth;
 
          var oldTileX = (int)(interactionPoint.X / ExpectedElementWidth);
@@ -409,7 +410,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private void EndPaletteColorMove(object sender, MouseButtonEventArgs e) {
          var view = (FrameworkElement)sender;
-         var viewModel = ((PaletteElementViewModel)view.DataContext).Colors;
+         var viewModel = (PaletteCollection)view.DataContext;
          if (!view.IsMouseCaptured) return;
          view.ReleaseMouseCapture();
          viewModel.CompleteCurrentInteraction();

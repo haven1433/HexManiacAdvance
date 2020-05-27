@@ -52,16 +52,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class SplitterArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
       event EventHandler IArrayElementViewModel.DataChanged { add { } remove { } }
 
+      private readonly IViewPort viewPort;
       private string sectionName;
+      private int sectionLink;
+      private StubCommand followLink;
 
       public bool IsInError => false;
       public string ErrorText => string.Empty;
-      public string SectionName { get => sectionName; set => TryUpdate(ref sectionName, value); }
-      public SplitterArrayElementViewModel(string sectionName) => SectionName = sectionName;
+      public string SectionName { get => sectionName; set => Set(ref sectionName, value); }
+      public int SectionLink { get => sectionLink; set => Set(ref sectionLink, value); }
+      public ICommand FollowLink => StubCommand(ref followLink, () => viewPort.Goto.Execute(SectionLink));
+
+      public SplitterArrayElementViewModel(IViewPort viewPort, string sectionName, int sectionLink) => (this.viewPort, SectionName, SectionLink) = (viewPort, sectionName, sectionLink);
 
       public bool TryCopy(IArrayElementViewModel other) {
          if (!(other is SplitterArrayElementViewModel splitter)) return false;
          SectionName = splitter.SectionName;
+         SectionLink = splitter.SectionLink;
          return true;
       }
    }

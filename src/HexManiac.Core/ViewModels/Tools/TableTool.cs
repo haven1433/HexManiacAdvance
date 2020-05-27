@@ -195,7 +195,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   var negChildOffset = Math.Min(currentArray.ParentOffset, 0);
                   var currentIndex = index + negChildOffset;
                   if (currentIndex >= 0 && currentIndex < currentArray.ElementCount) {
-                     AddChild(new SplitterArrayElementViewModel(currentArrayName));
+                     var elementOffset = currentArray.Start + currentArray.ElementLength * currentIndex;
+                     AddChild(new SplitterArrayElementViewModel(viewPort, currentArrayName, elementOffset));
                      AddChildrenFromTable(currentArray, currentIndex);
                   }
                }

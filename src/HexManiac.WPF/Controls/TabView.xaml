@@ -125,7 +125,20 @@
                   <ItemsControl ItemsSource="{Binding TableTool.Children}" Grid.IsSharedSizeScope="True">
                      <ItemsControl.Resources>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:SplitterArrayElementViewModel}">
-                           <TextBlock Text="{Binding SectionName}" Margin="5" Grid.Column="0" FontSize="20"/>
+                           <DockPanel>
+                              <Button DockPanel.Dock="Right" Command="{Binding FollowLink}" Width="20" Height="20">
+                                 <Button.ToolTip>
+                                    <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                                       <TextBlock TextAlignment="Left">
+                                          Jump to the table<LineBreak/>
+                                          containing this data.
+                                       </TextBlock>
+                                    </ToolTip>
+                                 </Button.ToolTip>
+                                 <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                              </Button>
+                              <TextBlock Text="{Binding SectionName}" Margin="5" FontSize="20"/>
+                           </DockPanel>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:FieldArrayElementViewModel}">
                            <Grid HorizontalAlignment="Stretch" Margin="2">
@@ -238,13 +251,13 @@
                            </StackPanel>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:PaletteElementViewModel}">
-                           <StackPanel>
+                           <StackPanel MouseDown="ActivatePalette">
                               <hsg3hv:CommonTableStreamControl />
-                              <ItemsControl HorizontalAlignment="Center" SnapsToDevicePixels="True" ItemsSource="{Binding Colors.Elements}"
+                              <ItemsControl DataContext="{Binding Colors}" HorizontalAlignment="Center" SnapsToDevicePixels="True" ItemsSource="{Binding Elements}"
                                             MouseDown="StartPaletteColorMove" MouseMove="PaletteColorMove" MouseUp="EndPaletteColorMove">
                                  <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                       <UniformGrid Columns="{Binding Colors.ColorWidth}" Rows="{Binding Colors.ColorHeight}"/>
+                                       <UniformGrid Columns="{Binding ColorWidth}" Rows="{Binding ColorHeight}"/>
                                     </ItemsPanelTemplate>
                                  </ItemsControl.ItemsPanel>
                                  <ItemsControl.ItemTemplate>
@@ -339,7 +352,7 @@
                   </TextBox>
                </UniformGrid>
 
-               <!-- Sprite -->
+               <!-- Sprite Properties -->
                <StackPanel Visibility="{Binding SpriteTool.ShowSpriteProperties, Converter={StaticResource BoolToVisibility}}">
                   <UniformGrid Columns="2">
                      <CheckBox Margin="5,1" Content="256 Color Image" IsChecked="{Binding SpriteTool.SpriteIs256Color}" />
@@ -367,6 +380,7 @@
                </StackPanel>
                <TextBlock Margin="5,1" TextWrapping="Wrap" FontStyle="Italic" Foreground="{DynamicResource Error}" Text="Could not find sprite data starting at that address." Visibility="{Binding SpriteTool.ShowNoSpriteAnchorMessage, Converter={StaticResource BoolToVisibility}}"/>
 
+               <!-- Sprite -->
                <hsg3hv:PixelImage Margin="5,5,5,2" DataContext="{Binding SpriteTool}" />
                <DockPanel Visibility="{Binding SpriteTool.HasMultipleSpritePages, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
                   <Button Content="Previous" Command="{Binding SpriteTool.PreviousSpritePage}" DockPanel.Dock="Left"/>
@@ -374,28 +388,46 @@
                </DockPanel>
 
                <!-- Palette Address -->
-               <DockPanel Margin="5,15">
+               <UniformGrid Columns="2" Margin="5,15,5,1">
                   <TextBlock VerticalAlignment="Center" Text="Palette Address:" />
-                  <TextBox Text="{Binding SpriteTool.PaletteAddress, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5" />
-               </DockPanel>
+                  <TextBox Text="{Binding SpriteTool.PaletteAddress, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5">
+                     <TextBox.InputBindings>
+                        <KeyBinding Key="Return" Command="{Binding SpriteTool.GotoPaletteAddress}" />
+                     </TextBox.InputBindings>
+                  </TextBox>
+               </UniformGrid>
+
+               <!-- Palette Properties -->
+               <StackPanel Visibility="{Binding SpriteTool.ShowPaletteProperties, Converter={StaticResource BoolToVisibility}}">
+                  <CheckBox Margin="5,1" Content="256 Color Palette" IsChecked="{Binding SpriteTool.PaletteIs256Color}"/>
+                  <UniformGrid Columns="2" Margin="5,1">
+                     <TextBlock VerticalAlignment="Center" Text="Pages:" />
+                     <TextBox Text="{Binding SpriteTool.PalettePages, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                  </UniformGrid>
+               </StackPanel>
 
                <!-- Palette -->
-               <ItemsControl HorizontalAlignment="Center" SnapsToDevicePixels="True" ItemsSource="{Binding SpriteTool.Palette}">
+               <ItemsControl DataContext="{Binding SpriteTool.Colors}" HorizontalAlignment="Center" SnapsToDevicePixels="True" ItemsSource="{Binding Elements}"
+                             MouseDown="StartPaletteColorMove" MouseMove="PaletteColorMove" MouseUp="EndPaletteColorMove">
                   <ItemsControl.ItemsPanel>
                      <ItemsPanelTemplate>
-                        <UniformGrid Columns="{Binding SpriteTool.PaletteWidth}" Rows="{Binding SpriteTool.PaletteHeight}"/>
+                        <UniformGrid Columns="{Binding ColorWidth}" Rows="{Binding ColorHeight}"/>
                      </ItemsPanelTemplate>
                   </ItemsControl.ItemsPanel>
                   <ItemsControl.ItemTemplate>
                      <DataTemplate>
-                        <Rectangle Fill="{Binding Converter={StaticResource PaletteColorConverter}}" Width="14" Height="14">
-                           <Rectangle.Stroke>
-                              <LinearGradientBrush>
-                                 <GradientStop Color="Black" Offset="0" />
-                                 <GradientStop Color="White" Offset="1" />
-                              </LinearGradientBrush>
-                           </Rectangle.Stroke>
-                        </Rectangle>
+                        <Border BorderThickness="2" Margin="-1" Name="PaletteColor">
+                           <Border.Style>
+                              <Style TargetType="Border">
+                                 <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Selected}" Value="True">
+                                       <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                    </DataTrigger>
+                                 </Style.Triggers>
+                              </Style>
+                           </Border.Style>
+                           <Rectangle Fill="{Binding Color, Converter={StaticResource PaletteColorConverter}}" Width="14" Height="14"/>
+                        </Border>
                      </DataTemplate>
                   </ItemsControl.ItemTemplate>
                </ItemsControl>
@@ -403,7 +435,6 @@
                   <Button Content="Previous" Command="{Binding SpriteTool.PreviousPalettePage}" DockPanel.Dock="Left"/>
                   <Button Content="Next" Command="{Binding SpriteTool.NextPalettePage}" DockPanel.Dock="Right"/>
                </DockPanel>
-
             </StackPanel>
          </ScrollViewer>
          <DockPanel Name="CodeToolPanel" Width="265">
