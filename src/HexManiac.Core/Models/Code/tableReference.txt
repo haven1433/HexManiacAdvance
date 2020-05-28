@@ -144,7 +144,7 @@ island3TileMap,       ,,,, 0C03A4, 0C0378, 0C03B8, 0C038C, , `lzm4x30x20|townmap
 townmapBorderTileSet, ,,,, 0C033C, 0C0310, 0C0350, 0C0324, , `lzt4|townmapPalette`
 townmapBorderTileMap, ,,,, 0C03C0, 0C0394, 0C03D4, 0C03A8, , `lzm4x30x20|townmapBorderTileSet`
 
-mapbanks,             ,,,, 05524C,,,, , [maps<[map<[size<[width:: height:: s1<> s2<> s3<> s4<> borderwidth. borderheight. unused:]1> events<[e1 e2 e3 e4 ee1<> ee2<> ee3<> ee4<>]1> mapscripts<[type. pointer<>]!00> d<> song: map: label. flash. weather. type. unused: useLabel:]1>]1>]43
+// mapbanks,             ,,,, 05524C,,,, , [maps<[map<[size<[width:: height:: s1<> s2<> s3<> s4<> borderwidth. borderheight. unused:]1> events<[e1 e2 e3 e4 ee1<> ee2<> ee3<> ee4<>]1> mapscripts<[type. pointer<>]!00> d<> song: map: label. flash. weather. type. unused: useLabel:]1>]1>]43
 
 // p4 points to a list of pointers to uncompressed sprite data. The size of the sprite is determined by the width/height fields.
 overworldsprites,     ,,,, 05F2F4,,,, , [data<[a1: a2: length: width: height: c2: d1: d2: p1<> p2<> p3<> p4<> p5<>]1>]152
