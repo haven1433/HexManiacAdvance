@@ -258,8 +258,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (string.IsNullOrEmpty(array.LengthFromAnchor)) continue;
             var parentName = array.LengthFromAnchor;
             var childName = GetAnchorFromAddress(-1, array.Start);
-            var parent = GetNextRun(GetAddressFromAnchor(token, -1, array.LengthFromAnchor)) as ITableRun;
-            if (parent == null) continue;
+            if (!(GetNextRun(GetAddressFromAnchor(token, -1, array.LengthFromAnchor)) is ITableRun parent)) continue;
             Debug.Assert(parent.ElementCount + array.ParentOffset == array.ElementCount);
          }
       }
@@ -1215,8 +1214,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public static string ReadGameCode(IDataModel model) {
          var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, "GameCode");
          if (address == Pointer.NULL) return string.Empty;
-         var gameCode = model.GetNextRun(address) as AsciiRun;
-         if (gameCode == null || gameCode.Start != address) return string.Empty;
+         if (!(model.GetNextRun(address) is AsciiRun gameCode) || gameCode.Start != address) return string.Empty;
          return new string(Enumerable.Range(0, gameCode.Length).Select(i => (char)model[gameCode.Start + i]).ToArray());
       }
 
@@ -1249,8 +1247,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var results = new List<string>();
          foreach (var name in mappedNames) {
             var address = addressForAnchor[name];
-            var run = GetNextRun(address) as ArrayRun;
-            if (run == null || !partial.Contains(ArrayAnchorSeparator)) {
+            if (!(GetNextRun(address) is ArrayRun run) || !partial.Contains(ArrayAnchorSeparator)) {
                if (name.MatchesPartial(partial)) results.Add(name);
             } else {
                var nameParts = partial.Split(ArrayAnchorSeparator);
@@ -1395,8 +1392,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             // can't add a pointer run if the new one starts during an existing one
             if (index > 0 && runs[index - 1].Start + runs[index - 1].Length > i - 3) {
                // ah, but if that run is an array and there's already a pointer here...
-               var array = runs[index - 1] as ArrayRun;
-               if (array != null) {
+               if (runs[index - 1] is ArrayRun array) {
                   var offsets = array.ConvertByteOffsetToArrayOffset(i);
                   if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Pointer) {
                      return true;
