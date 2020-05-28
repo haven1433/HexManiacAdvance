@@ -403,6 +403,35 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
+      /// <summary>
+      /// Returns a list of runs of the expected type that are children of given index in the table.
+      /// </summary>
+      public static IEnumerable<T> GetPointedChildren<T>(this IDataModel model, ITableRun table, int elementIndex) where T : IFormattedRun {
+         int segmentOffset = 0;
+         int elementOffset = table.ElementLength * elementIndex;
+         foreach (var segment in table.ElementContent) {
+            if (segment is ArrayRunPointerSegment pSegment) {
+               var destination = model.ReadPointer(table.Start + elementOffset + segmentOffset);
+               if (model.GetNextRun(destination) is T result) yield return result;
+            }
+            segmentOffset += segment.Length;
+         }
+      }
+
+      /// <summary>
+      /// Returns a list of arrays that use the enumName
+      /// </summary>
+      public static IEnumerable<ArrayRun> GetEnumArrays(this IDataModel model, string enumName) {
+         foreach (var array in model.Arrays) {
+            foreach (var segment in array.ElementContent) {
+               if (!(segment is ArrayRunEnumSegment enumSegment)) continue;
+               if (enumSegment.EnumName != enumName) continue;
+               yield return array;
+               break;
+            }
+         }
+      }
+
       public static IEnumerable<int> FindPointer(this IDataModel model, int address) {
          var low = (byte)address;
          var mid = (byte)(address >> 8);

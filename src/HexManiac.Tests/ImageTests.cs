@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -346,6 +347,70 @@ namespace HavenSoft.HexManiac.Tests {
 
          var anchor = Model.GetAnchorFromAddress(-1, 0);
          Assert.Equal("bob", anchor);
+      }
+
+      [Fact]
+      public void LoosePaletteCanFindSpriteThatUsesIt() {
+         ViewPort.Edit("@00 ^pal`ucp4`");
+         ViewPort.Edit("@40 ^sprite`ucs4x1x1|pal`");
+         ViewPort.Edit("@80 ^tiles`uct4x1|pal`");
+
+         var run = (IPaletteRun)Model.GetNextRun(0x00);
+         IReadOnlyList<ISpriteRun> sprites = run.FindDependentSprites(Model);
+
+         sprites = sprites.OrderBy(sprite => sprite.Start).ToList();
+         Assert.Equal(0x40, sprites[0].Start);
+         Assert.Equal(0x80, sprites[1].Start);
+      }
+
+      [Fact]
+      public void TablePaletteCanFindSpritesThatUseIt() {
+         CreateTextTable("names", 0, "Adam", "Bob");
+         ViewPort.Edit("@10 <0020> <0040> @10 ^sprites[pointer<`ucs4x1x1`>]names "); // note that the sprite doesn't reference the palette by name.
+         ViewPort.Edit("@60 <0070> <0090> @60 ^palettes[pointer<`ucp4`>]names ");    // the palette should pick it up by index
+
+         var run = (IPaletteRun)Model.GetNextRun(0x70);
+         var sprite1 = run.FindDependentSprites(Model).Single();
+         Assert.Equal(0x20, sprite1.Start);
+
+         run = (IPaletteRun)Model.GetNextRun(0x90);
+         var sprite2 = run.FindDependentSprites(Model).Single();
+         Assert.Equal(0x40, sprite2.Start);
+      }
+
+      [Fact]
+      public void IndexPaletteCanFindSpritesThatUseIt() {
+         CreateTextTable("names", 0, "Adam", "Bob");
+         ViewPort.Edit("@10 <0020> <0040> @10 ^palettes[pointer<`ucp4`>]2 ");
+         ViewPort.Edit("@60 ^palindex[id:palettes]names 1 0 ");
+         ViewPort.Edit("@70 <0080> <00A0> @70 ^sprites[pointer<`ucs4x1x1|palindex`>]names ");
+
+         var run = (IPaletteRun)Model.GetNextRun(0x20); // palette 0, used by Bob
+         var sprite = run.FindDependentSprites(Model).Single();
+         Assert.Equal(0xA0, sprite.Start);
+      }
+
+      [Fact]
+      public void CanFindPalettesForSpriteInTable() {
+         CreateTextTable("names", 0, "Adam", "Bob");
+         ViewPort.Edit("@10 <0020> <0040> @10 ^sprites[pointer<`ucs4x1x1`>]names "); // note that the sprite doesn't reference the palette by name.
+         ViewPort.Edit("@60 <0070> <0090> @60 ^palettes[pointer<`ucp4`>]names ");    // the palette should pick it up by index
+
+         var run = (ISpriteRun)Model.GetNextRun(0x20);
+         var palette = run.FindRelatedPalettes(Model).Single();
+
+         Assert.Equal(0x70, palette.Start);
+      }
+
+      [Fact]
+      public void CanFindPalettesForSpriteOutsideTable() {
+         ViewPort.Edit("@00 ^pal`ucp4`");
+         ViewPort.Edit("@40 ^sprite`ucs4x1x1|pal`");
+
+         var run = (ISpriteRun)Model.GetNextRun(0x40);
+         var palette = run.FindRelatedPalettes(Model).Single();
+
+         Assert.Equal(0x0, palette.Start);
       }
 
       private void CreateLzRun(int start, params byte[] data) {
