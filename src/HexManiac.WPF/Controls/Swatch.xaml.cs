@@ -38,8 +38,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          InitializeComponent();
          var stops = new GradientStopCollection();
          for (int i = 0; i < 100; i++) {
-            var rgb = Theme.FromHSB(i / 100.0, 1, 1);
-            var color = Color.FromRgb(rgb.red, rgb.green, rgb.blue);
+            var (red, green, blue) = Theme.FromHSB(i / 100.0, 1, 1);
+            var color = Color.FromRgb(red, green, blue);
             var stop = new GradientStop(color, i / 100.0);
             stops.Add(stop);
          }
@@ -53,8 +53,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void UpdateSBPickerHue() {
-         var rgb = Theme.FromHSB(hsb.hue, 1, 1);
-         var color = Color.FromRgb(rgb.red, rgb.green, rgb.blue);
+         var (red, green, blue) = Theme.FromHSB(hsb.hue, 1, 1);
+         var color = Color.FromRgb(red, green, blue);
          SBPickerContainer.Background = new SolidColorBrush(color);
       }
 

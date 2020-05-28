@@ -61,8 +61,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                CanExecute = arg => optionSource != Pointer.NULL,
                Execute = arg => selection.GotoAddress(optionSource),
             };
-         } else if (segment is ArrayRunEnumSegment enumSegment) {
-            rotatedBitArray = FillBodyFromEnumSegment(enumSegment);
+         } else if (segment is ArrayRunEnumSegment) {
+            rotatedBitArray = FillBodyRotated();
 
             LinkCommand = new StubCommand {
                CanExecute = arg => true,
@@ -90,19 +90,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          return optionSource;
       }
 
-      private ArrayRun FillBodyFromEnumSegment(ArrayRunEnumSegment enumSegment) {
+      private ArrayRun FillBodyRotated() {
          // get 1 bit of each segment and turn them into BitElements
          var array = (ITableRun)model.GetNextRun(start);
          var anchor = model.GetAnchorFromAddress(-1, array.Start);
          ArrayRun rotatedBitArray = null;
 
          foreach (var option in model.Arrays) {
-            if (option.ElementNames.Count != option.ElementCount) continue;
-            var segment = option.ElementContent[0];
+            var segment = option.ElementContent[0]; // TODO should I be using enumSegment?
             if (segment is ArrayRunBitArraySegment match && match.SourceArrayName == anchor && option.ElementContent.Count == 1) {
                rotatedBitArray = option;
                for (int i = 0; i < option.ElementCount; i++) {
-                  var element = new BitElement { BitLabel = option.ElementNames[i] };
+                  var name = option.ElementNames.Count > i ? option.ElementNames[i] : i.ToString();
+                  var element = new BitElement { BitLabel = name };
                   children.Add(element);
                   element.PropertyChanged += ChildChanged;
                }

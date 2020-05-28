@@ -27,8 +27,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          instructionTemplates.Add(new WordInstruction());
       }
 
-      private StringBuilder parseResult = new StringBuilder();
-      private List<string> parsedLines = new List<string>();
+      private readonly StringBuilder parseResult = new StringBuilder();
+      private readonly List<string> parsedLines = new List<string>();
       public string Parse(IDataModel data, int start, int length) {
          if (data.Count < start + length) return string.Empty;
          parseResult.Clear();

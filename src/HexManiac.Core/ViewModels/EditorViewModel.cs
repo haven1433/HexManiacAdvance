@@ -343,12 +343,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       };
 
       public void WriteAppLevelMetadata() {
-         var metadata = new List<string>();
-         metadata.Add("[GeneralSettings]");
-         metadata.Add($"ShowMatrixGrid = {ShowMatrix}");
-         metadata.Add($"ZoomLevel = {ZoomLevel}");
-         metadata.Add($"AnimateScroll = {AnimateScroll}");
-         metadata.Add(string.Empty);
+         var metadata = new List<string> {
+            "[GeneralSettings]",
+            $"ShowMatrixGrid = {ShowMatrix}",
+            $"ZoomLevel = {ZoomLevel}",
+            $"AnimateScroll = {AnimateScroll}",
+            string.Empty
+         };
          metadata.AddRange(Theme.Serialize());
          fileSystem.SaveMetadata(ApplicationName, metadata.ToArray());
       }

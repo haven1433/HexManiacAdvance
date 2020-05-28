@@ -56,10 +56,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       private IReadOnlyList<ArrayRunElementSegment> Initialize() {
-         var segments = new List<ArrayRunElementSegment>();
-         segments.Add(new ArrayRunElementSegment("ivSpread", ElementContentType.Integer, 2));
-         segments.Add(new ArrayRunElementSegment("level", ElementContentType.Integer, 2));
-         segments.Add(new ArrayRunEnumSegment("mon", 2, HardcodeTablesModel.PokemonNameTable));
+         var segments = new List<ArrayRunElementSegment> {
+            new ArrayRunElementSegment("ivSpread", ElementContentType.Integer, 2),
+            new ArrayRunElementSegment("level", ElementContentType.Integer, 2),
+            new ArrayRunEnumSegment("mon", 2, HardcodeTablesModel.PokemonNameTable)
+         };
          if ((StructType & INCLUDE_ITEM) != 0) {
             segments.Add(new ArrayRunEnumSegment("item", 2, HardcodeTablesModel.ItemsTableName));
          }
@@ -198,10 +199,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
 
             // if there's no item, add 2 more bytes to get to the next multiple of 4.
-            if (!data.ItemsIncluded) {
-               model.WriteMultiByteValue(start, 2, token, 0);
-               start += 2;
-            }
+            if (!data.ItemsIncluded) model.WriteMultiByteValue(start, 2, token, 0);
          }
 
          // free space from the original run that's not needed by the new run

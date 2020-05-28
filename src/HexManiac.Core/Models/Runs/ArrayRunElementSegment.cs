@@ -96,7 +96,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public ArrayRunEnumSegment(string name, int length, string enumName) : base(name, ElementContentType.Integer, length) => EnumName = enumName;
 
       public override string ToText(IDataModel model, int offset, bool deep) {
-         var noChange = new NoDataChangeDeltaModel();
          using (ModelCacheScope.CreateScope(model)) {
             var options = GetOptions(model).ToList();
             if (options == null) return base.ToText(model, offset, deep);
@@ -124,16 +123,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       // TODO do some sort of caching: rendering these images every time probably sucks for performance.
       public IEnumerable<ComboOption> GetComboOptions(IDataModel model) {
          var defaultOptions = GetOptions(model).Select(option => new ComboOption(option));
-         var tableRun = model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, EnumName)) as ITableRun;
-         if (tableRun == null) return defaultOptions;
+         if (!(model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, EnumName)) is ITableRun tableRun)) return defaultOptions;
          if (!(tableRun.ElementContent[0] is ArrayRunPointerSegment pointerSegment)) return defaultOptions;
          if (!LzSpriteRun.TryParseSpriteFormat(pointerSegment.InnerFormat, out var _) && !SpriteRun.TryParseSpriteFormat(pointerSegment.InnerFormat, out var _)) return defaultOptions;
 
          var imageOptions = new List<ComboOption>();
          for (int i = 0; i < tableRun.ElementCount; i++) {
             var destination = model.ReadPointer(tableRun.Start + tableRun.ElementLength * i);
-            var run = model.GetNextRun(destination) as ISpriteRun;
-            if (run == null) return defaultOptions;
+            if (!(model.GetNextRun(destination) is ISpriteRun run)) return defaultOptions;
             var sprite = run.GetPixels(model, 0);
             var paletteAddress = SpriteTool.FindMatchingPalette(model, run, 0);
             var paletteRun = model.GetNextRun(paletteAddress) as IPaletteRun;
@@ -202,8 +199,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          // we _need_ options for the table tool
          // if we have none, just create "0", "1", ..., "n-1" based on the length of the EnumName table.
          if (!options.Any()) {
-            var tableRun = model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, EnumName)) as ITableRun;
-            if (tableRun != null) options = Enumerable.Range(0, tableRun.ElementCount).Select(i => i.ToString());
+            if (model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, EnumName)) is ITableRun tableRun) {
+               options = Enumerable.Range(0, tableRun.ElementCount).Select(i => i.ToString());
+            }
          }
 
          return options;
@@ -265,9 +263,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      public void WriteNewFormat(IDataModel owner, ModelDelta token, int source, int destination, int length, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
+      public void WriteNewFormat(IDataModel owner, ModelDelta token, int source, int destination, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          owner.WritePointer(token, source, destination);
-         IFormattedRun run;
          var newRun = FormatRunFactory.GetStrategy(InnerFormat).WriteNewRun(owner, token, source, destination, Name, sourceSegments);
          owner.ObserveRunWritten(token, newRun.MergeAnchor(new[] { source }));
       }

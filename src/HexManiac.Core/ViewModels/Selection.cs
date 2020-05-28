@@ -237,10 +237,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else {
             preferredWidth = DefaultPreferredWidth;
          }
-         GotoAddressAndAlign(address, preferredWidth, destinationIsArray ? destinationRun.Start : 0, destinationIsArray);
+         GotoAddressAndAlign(address, preferredWidth, destinationIsArray ? destinationRun.Start : 0);
       }
 
-      private void GotoAddressAndAlign(int address, int preferredWidth, int tableStart = 0, bool destinationIsArray = false) {
+      private void GotoAddressAndAlign(int address, int preferredWidth, int tableStart = 0) {
          Debug.Assert(Scroll.DataLength == model.Count, "I forgot to update the Scroll.DataLength after expanding the data!");
          using (ModelCacheScope.CreateScope(model)) {
             var startAddress = address;

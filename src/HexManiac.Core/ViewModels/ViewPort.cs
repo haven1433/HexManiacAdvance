@@ -816,7 +816,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
 
             if (key != ConsoleKey.Backspace) return;
-            AcceptBackspace(underEdit, run, point);
+            AcceptBackspace(underEdit, point);
          }
       }
 
@@ -894,13 +894,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             Model.ExpandData(CurrentChange, Model.Count + length);
             scroll.DataLength = Model.Count;
          }
-         pointerSegment.WriteNewFormat(Model, CurrentChange, pointer, insert, length, tableRun.ElementContent);
+         pointerSegment.WriteNewFormat(Model, CurrentChange, pointer, insert, tableRun.ElementContent);
          OnMessage?.Invoke(this, "New data added at " + insert.ToString("X6"));
          RefreshBackingData();
          return true;
       }
 
-      private void AcceptBackspace(UnderEdit underEdit, IFormattedRun run, Point point) {
+      private void AcceptBackspace(UnderEdit underEdit, Point point) {
          // backspace in progress with characters left: just clear a character
          if (underEdit != null && underEdit.CurrentText.Length > 0) {
             var newText = underEdit.CurrentText.Substring(0, underEdit.CurrentText.Length - 1);
@@ -927,7 +927,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             index = scroll.ViewPointToDataIndex(point);
          }
 
-         run = Model.GetNextRun(index);
+         var run = Model.GetNextRun(index);
 
          if (run.Start > index) {
             // no run: doing a raw edit.
@@ -1004,7 +1004,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var text = cellToText.Result;
 
             var editLength = 1;
-            if (element.Format is Pointer pointer) editLength = 4;
+            if (element.Format is Pointer) editLength = 4;
 
             for (int i = 0; i < run.Length; i++) {
                var p = scroll.DataIndexToViewPoint(run.Start + i);
@@ -1166,7 +1166,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
             // option 2: the value is used by learnable moves
             if (child is PLMRun plmRun && parentArrayName == HardcodeTablesModel.MoveNamesTable) {
-               foreach (var result in plmRun.Search(parentArrayName, offsets.ElementIndex)) yield return result;
+               foreach (var result in plmRun.Search(offsets.ElementIndex)) yield return result;
             }
             // option 3: the value is a move used by trainer teams
             if (child is TrainerPokemonTeamRun team) {
@@ -1347,7 +1347,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                SelectionStart = scroll.DataIndexToViewPoint(offsets.SegmentStart);
                SelectionEnd = scroll.DataIndexToViewPoint(offsets.SegmentStart + array.ElementContent[offsets.SegmentIndex].Length - 1);
             }
-         } else if (run is PointerRun pointer) {
+         } else if (run is PointerRun) {
             FollowLink(x, y);
          } else if (run is IScriptStartRun xse) {
             var length = tools.CodeTool.ScriptParser.GetScriptSegmentLength(Model, run.Start);
@@ -1400,15 +1400,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void OpenSearchResultsTab(string title, IReadOnlyList<(int start, int end)> matches) {
          if (matches.Count == 1) {
-            var match = matches[0];
-            selection.GotoAddress(match.start);
-            SelectionStart = scroll.DataIndexToViewPoint(match.start);
-            SelectionEnd = scroll.DataIndexToViewPoint(match.end);
+            var (start, end) = matches[0];
+            selection.GotoAddress(start);
+            SelectionStart = scroll.DataIndexToViewPoint(start);
+            SelectionEnd = scroll.DataIndexToViewPoint(end);
             return;
          }
 
          var newTab = new SearchResultsViewPort(title);
-         foreach (var pair in matches) newTab.Add(CreateChildView(pair.start, pair.end), pair.start, pair.end);
+         foreach (var (start, end) in matches) newTab.Add(CreateChildView(start, end), start, end);
          RequestTabChange(this, newTab);
       }
 
@@ -1638,20 +1638,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          return (p, p);
-      }
-
-      private bool TryCoerceSelectionToStartOfElement(ref Point point, ref HexElement element) {
-         var format = element.Format;
-         var (position, length) = (-1, -1);
-         if (format is Pointer pointer) (position, length) = (pointer.Position, 4);
-         if (format is Integer integer) (position, length) = (integer.Position, integer.Length);
-         if (position == -1) return false;
-
-         point = scroll.DataIndexToViewPoint(scroll.ViewPointToDataIndex(point) - position);
-         element = this[point];
-         UpdateSelectionWithoutNotify(point);
-         PrepareForMultiSpaceEdit(point, length);
-         return true;
       }
 
       private void PrepareForMultiSpaceEdit(Point point, int length) {
@@ -1943,7 +1929,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             int offset = locations.originalLocation - scroll.DataIndex;
             selection.GotoAddress(locations.newLocation - offset);
          }
-         OnMessage?.Invoke(this, $"Data was automatically moved to {locations.newLocation.ToString("X6")}. Pointers were updated.");
+         OnMessage?.Invoke(this, $"Data was automatically moved to {locations.newLocation:X6}. Pointers were updated.");
       }
 
       private void ModelChangedByCodeTool(object sender, ErrorInfo e) {

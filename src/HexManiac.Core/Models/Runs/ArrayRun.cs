@@ -89,11 +89,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (run.Start == destination && run is TrainerPokemonTeamRun teamRun) {
                   var newRun = teamRun.UpdateFromParent(token, segmentIndex, pointerSource);
                   model.ObserveRunWritten(token, newRun);
-                  if (newRun.Start != teamRun.Start) info = new ErrorInfo($"Team was automatically moved to {newRun.Start.ToString("X6")}. Pointers were updated.", isWarningLevel: true);
+                  if (newRun.Start != teamRun.Start) info = new ErrorInfo($"Team was automatically moved to {newRun.Start:X6}. Pointers were updated.", isWarningLevel: true);
                } else if (run.Start == destination && run is TableStreamRun tableStreamRun) {
-                  var newRun = tableStreamRun.UpdateFromParent(token, segmentIndex, pointerSource);
+                  var newRun = tableStreamRun.UpdateFromParent(token, segmentIndex);
                   model.ObserveRunWritten(token, newRun);
-                  if (newRun.Start != tableStreamRun.Start) info = new ErrorInfo($"Stream was automatically moved to {newRun.Start.ToString("X6")}. Pointers were updated.", isWarningLevel: true);
+                  if (newRun.Start != tableStreamRun.Start) info = new ErrorInfo($"Stream was automatically moved to {newRun.Start:X6}. Pointers were updated.", isWarningLevel: true);
                }
             }
             offset += segment.Length;
@@ -382,8 +382,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var matchedArrayName = lengthToken;
             var matchedArrayAddress = data.GetAddressFromAnchor(noChange, -1, matchedArrayName);
             if (matchedArrayAddress == Pointer.NULL) return Pointer.NULL;
-            var matchedRun = data.GetNextRun(matchedArrayAddress) as ArrayRun;
-            if (matchedRun == null) return Pointer.NULL;
+            if (!(data.GetNextRun(matchedArrayAddress) is ArrayRun matchedRun)) return Pointer.NULL;
             bestLength = matchedRun.ElementCount;
          }
 
@@ -494,7 +493,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
             // remove extra elements at the back. Add NoInfoRuns for the pointers to point to.
             for (int i = 0; i < -elementCount; i++) {
-               var noInfoRun = new NoInfoRun(Length - ElementLength * (i + 1), newInnerElementsSources[newInnerElementsSources.Count - 1]);
                newInnerElementsSources.RemoveAt(newInnerElementsSources.Count - 1);
 
                // TODO add the run
@@ -534,8 +532,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          var sources = owner.SearchForPointersToAnchor(changeToken, destinations);
 
-         var results = new List<List<int>>();
-         results.Add(PointerSources?.ToList() ?? new List<int>());
+         var results = new List<List<int>> {
+            PointerSources?.ToList() ?? new List<int>()
+         };
          for (int i = 1; i < ElementCount; i++) results.Add(new List<int>());
 
          foreach (var source in sources) {
@@ -556,13 +555,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          // check if it's a multiple of the array width
          if (columnCount >= ElementLength) {
             if (columnCount % ElementLength != 0) return null;
-            return new[] { new HeaderRow(this, startingDataIndex - Start, columnCount, startingDataIndex) };
+            return new[] { new HeaderRow(this, startingDataIndex - Start, columnCount) };
          }
 
          // check if it's a divisor of the array width
          if (ElementLength % columnCount != 0) return null;
          var segments = ElementLength / columnCount;
-         return Enumerable.Range(0, segments).Select(i => new HeaderRow(this, columnCount * i + startingDataIndex - Start, columnCount, startingDataIndex)).ToList();
+         return Enumerable.Range(0, segments).Select(i => new HeaderRow(this, columnCount * i + startingDataIndex - Start, columnCount)).ToList();
       }
 
       public ArrayRun Move(int newStart) {
@@ -603,8 +602,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          // since the inner pointer sources includes the first row, update the first row
          List<IReadOnlyList<int>> newInnerPointerSources = null;
          if (PointerSourcesForInnerElements != null) {
-            newInnerPointerSources = new List<IReadOnlyList<int>>();
-            newInnerPointerSources.Add(newPointerSources);
+            newInnerPointerSources = new List<IReadOnlyList<int>> { newPointerSources };
             for (int i = 1; i < PointerSourcesForInnerElements.Count; i++) newInnerPointerSources.Add(PointerSourcesForInnerElements[i]);
          }
 
@@ -638,11 +636,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             // check to see if a name or length is part of the format
             if (format == ElementContentType.Integer && segments.Length > formatLength && segments[formatLength] != ' ') {
                segments = segments.Substring(formatLength);
-               if (int.TryParse(segments, out var maxValue)) {
+               if (int.TryParse(segments, out var elementCount)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
                   segments = segments.Substring(endOfToken).Trim();
-                  list.Add(new ArrayRunEnumSegment(name, segmentLength, segments));
+                  list.Add(new ArrayRunEnumSegment(name, segmentLength, elementCount.ToString()));
                } else {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
@@ -730,8 +728,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             return (lengthFromAnchor, parentOffset, 1);
          }
 
-         var run = owner.GetNextRun(address) as ArrayRun;
-         if (run == null || run.Start != address) {
+         if (!(owner.GetNextRun(address) is ArrayRun run) || run.Start != address) {
             // the requested name was not an array, or did not start where anticipated
             // length is zero for now
             return (lengthFromAnchor, parentOffset, 1);

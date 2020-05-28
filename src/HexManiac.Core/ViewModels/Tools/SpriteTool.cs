@@ -4,12 +4,9 @@ using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Net.Configuration;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
@@ -150,8 +147,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void UpdateSpriteProperties() {
-         var run = model.GetNextRun(spriteAddress) as ISpriteRun;
-         if (run != null && run.Start == spriteAddress) {
+         if (model.GetNextRun(spriteAddress) is ISpriteRun run && run.Start == spriteAddress) {
             var format = run.SpriteFormat;
             ShowNoSpriteAnchorMessage = false;
             spriteWidthHeight = format.TileWidth + "x" + format.TileHeight;
@@ -233,8 +229,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void UpdatePaletteProperties() {
-         var palRun = model.GetNextRun(paletteAddress) as IPaletteRun;
-         if (palRun != null && palRun.Start == paletteAddress) {
+         if (model.GetNextRun(paletteAddress) is IPaletteRun palRun && palRun.Start == paletteAddress) {
             var format = palRun.PaletteFormat;
             Set(ref paletteIs256Color, format.Bits == 8, nameof(PaletteIs256Color));
             Set(ref palettePages, PaletteRun.GetPalettePages(format), nameof(PalettePages));
@@ -314,8 +309,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ICommand NextSpritePage => nextSpritePage;
       public ICommand PreviousPalettePage => prevPalPage;
       public ICommand NextPalettePage => nextPalPage;
-
-      public event EventHandler<string> OnMessage;
 
       public int PixelWidth { get; private set; }
       public int PixelHeight { get; private set; }
@@ -466,8 +459,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          // harder case: hint table is index into a different table
-         var segment = hintTableRun.ElementContent[0] as ArrayRunEnumSegment;
-         if (segment == null) return defaultAddress;
+         if (!(hintTableRun.ElementContent[0] is ArrayRunEnumSegment segment)) return defaultAddress;
          var paletteTableAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, segment.EnumName);
          var paletteTableRun = model.GetNextRun(paletteTableAddress) as ITableRun;
          if (paletteTableRun == null) return defaultAddress;
@@ -710,11 +702,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       /// Returns a new color mass that accounts for the positions/masses of the original two.
       /// </summary>
       public static ColorMass operator +(ColorMass a, ColorMass b) {
-         var result = new ColorMass();
-         result.Mass = a.Mass + b.Mass;
-         result.R = (a.R * a.Mass + b.R * b.Mass) / result.Mass;
-         result.G = (a.G * a.Mass + b.G * b.Mass) / result.Mass;
-         result.B = (a.B * a.Mass + b.B * b.Mass) / result.Mass;
+         var mass = a.Mass + b.Mass;
+         var result = new ColorMass {
+            Mass = mass,
+            R = (a.R * a.Mass + b.R * b.Mass) / mass,
+            G = (a.G * a.Mass + b.G * b.Mass) / mass,
+            B = (a.B * a.Mass + b.B * b.Mass) / mass,
+         };
          foreach (var key in a.originalColors.Keys) result.originalColors[key] = a.originalColors[key];
          foreach (var key in b.originalColors.Keys) {
             if (result.originalColors.ContainsKey(key)) result.originalColors[key] += b.originalColors[key];

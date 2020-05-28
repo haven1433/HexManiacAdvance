@@ -126,31 +126,6 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      private IReadOnlyList<int> AllSourcesToSameDestination(int source) {
-         var destination = ReadPointer(source);
-         var run = GetNextRun(destination);
-         return run.PointerSources;
-      }
-
-      private int Find(string bytesText) {
-         var bytes = new List<byte>();
-         while (bytesText.Length > 0) {
-            bytes.Add(byte.Parse(bytesText.Substring(0, 2), NumberStyles.HexNumber));
-            bytesText = bytesText.Substring(2);
-         }
-
-         for (int i = 0; i < RawData.Length; i++) {
-            if (RawData[i] != bytes[0]) continue;
-            if (Enumerable.Range(1, bytes.Count - 1).All(
-               j => i + j < RawData.Length && RawData[i + j] == bytes[j]
-            )) {
-               return i + bytes.Count;
-            }
-         }
-
-         return -1;
-      }
-
       /// <summary>
       /// Find a table given a pointer to that table
       /// </summary>

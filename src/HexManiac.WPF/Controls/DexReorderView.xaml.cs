@@ -53,11 +53,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          newTileIndex = Math.Min(Math.Max(0, newTileIndex), Container.Items.Count - 1);
          var tilesToAnimate = ViewModel.HandleMove(oldTileIndex, newTileIndex);
 
-         foreach(var tile in tilesToAnimate) {
-            var image = MainWindow.GetChild(Container, "PixelImage", ViewModel.Elements[tile.index]);
+         foreach(var (index, direction) in tilesToAnimate) {
+            var image = MainWindow.GetChild(Container, "PixelImage", ViewModel.Elements[index]);
             if (!(image.RenderTransform is TranslateTransform)) image.RenderTransform = new TranslateTransform();
             var transform = (TranslateTransform)image.RenderTransform;
-            transform.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(ExpectedElementWidth * tile.direction, 0, span));
+            transform.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(ExpectedElementWidth * direction, 0, span));
          }
       }
 

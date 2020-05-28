@@ -65,7 +65,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                Version = cleanLine.Split("'''")[1];
             }
 
-            if (cleanLine.Contains('=') && int.TryParse(cleanLine.Split('=')[0].Trim(), out currentItemIndex)) {
+            if (cleanLine.Contains('=') && int.TryParse(cleanLine.Split('=')[0].Trim(), out int currentItemIndex)) {
                if (currentItemChildren == null) currentItemChildren = new List<string>();
                while (currentItemChildren.Count < currentItemIndex) currentItemChildren.Add(null);
                if (!cleanLine.Split("'''")[0].Contains("[")) {
@@ -94,9 +94,9 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public string[] Serialize() {
-         var lines = new List<string>();
-
-         lines.Add("[General]");
+         var lines = new List<string> {
+            "[General]"
+         };
          if (Version != null) lines.Add($"ApplicationVersion = '''{Version}'''");
          lines.Add(string.Empty);
          lines.Add("#################################");
@@ -104,7 +104,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var anchor in NamedAnchors) {
             lines.Add("[[NamedAnchors]]");
             lines.Add($"Name = '''{anchor.Name}'''");
-            lines.Add($"Address = 0x{anchor.Address.ToString("X6")}");
+            lines.Add($"Address = 0x{anchor.Address:X6}");
             lines.Add($"Format = '''{anchor.Format}'''");
             lines.Add(string.Empty);
          }
@@ -114,7 +114,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var pointer in UnmappedPointers) {
             lines.Add("[[UnmappedPointers]]");
             lines.Add($"Name = '''{pointer.Name}'''");
-            lines.Add($"Address = 0x{pointer.Address.ToString("X6")}");
+            lines.Add($"Address = 0x{pointer.Address:X6}");
             lines.Add(string.Empty);
          }
 
@@ -123,7 +123,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var word in MatchedWords) {
             lines.Add("[[MatchedWords]]");
             lines.Add($"Name = '''{word.Name}'''");
-            lines.Add($"Address = 0x{word.Address.ToString("X6")}");
+            lines.Add($"Address = 0x{word.Address:X6}");
             lines.Add(string.Empty);
          }
 
@@ -137,7 +137,6 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       string currentItem, currentItemName, currentItemFormat;
-      int currentItemIndex = 0;
       List<string> currentItemChildren;
       bool continueCurrentItemIndex;
       int currentItemAddress = -1;

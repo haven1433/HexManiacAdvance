@@ -30,7 +30,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          // require that this data actually supports this change
          var model = viewPort.Model;
          var gameCode = model.GetGameCode();
-         var (getTutorMove, canPokemonLearnTutorMove, getTutorMove_Length, canPokemonLearnTutorMove_Length) = GetOffsets(viewPort, gameCode);
+         var (getTutorMove, canPokemonLearnTutorMove, _, _) = GetOffsets(gameCode);
          if (getTutorMove < 0 || canPokemonLearnTutorMove < 0) return false;
 
          // require that this data has a tutormoves and tutorcompatibility table, since we're messing with those
@@ -51,8 +51,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var token = viewPort.CurrentChange;
          var gameCode = model.GetGameCode();
 
-         var (getTutorMove, canPokemonLearnTutorMove, getTutorMove_Length, canPokemonLearnTutorMove_Length) = GetOffsets(viewPort, gameCode);
-         var specialsAddress = model.GetAddressFromAnchor(token, -1, HardcodeTablesModel.SpecialsTable);
+         var (getTutorMove, canPokemonLearnTutorMove, getTutorMove_Length, canPokemonLearnTutorMove_Length) = GetOffsets(gameCode);
+         var specialsAddress = model.GetAddressFromAnchor(token, -1, SpecialsTable);
          var tutorSpecial = model.ReadPointer(specialsAddress + 397 * 4); // Emerald tutors is actually special 477, but we don't need to edit it so it doesn't matter.
          tutorSpecial -= 1; // the pointer is to thumb code, so it's off by one.
 
@@ -70,7 +70,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
       public void TabChanged() => CanRunChanged?.Invoke(this, EventArgs.Empty);
 
-      public static (int getTutorMove, int canPokemonLearnTutorMove, int getTutorMove_Length, int canPokemonLearnTutorMove_Length) GetOffsets(ViewPort viewPort, string gameCode) {
+      public static (int getTutorMove, int canPokemonLearnTutorMove, int getTutorMove_Length, int canPokemonLearnTutorMove_Length) GetOffsets(string gameCode) {
          if (gameCode == FireRed) {
             return (0x120BA8, 0x120BE8, 0x40, 0x54);
          } else if (gameCode == FireRed1_1) {

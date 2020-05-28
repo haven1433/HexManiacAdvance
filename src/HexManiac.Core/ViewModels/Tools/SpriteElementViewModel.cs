@@ -1,7 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
-using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections.Generic;
 
@@ -123,8 +122,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var indexRun = (ITableRun)Model.GetNextRun(comboBox.Start);
          var offsets = indexRun.ConvertByteOffsetToArrayOffset(comboBox.Start);
          if (offsets.SegmentOffset != 0) return false; // for now, require that 
-         var segment = indexRun.ElementContent[offsets.SegmentIndex] as ArrayRunEnumSegment;
-         if (segment == null) return false;
+         if (!(indexRun.ElementContent[offsets.SegmentIndex] is ArrayRunEnumSegment segment)) return false;
          var paletteTable = segment.EnumName;
 
          // figure out which element into the palette run from the value in the index run
@@ -138,8 +136,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          // go get the palette that we want
          var paletteAddress = Model.ReadPointer(pointer);
-         var palRun = Model.GetNextRun(paletteAddress) as IPaletteRun;
-         if (palRun == null) return false;
+         if (!(Model.GetNextRun(paletteAddress) is IPaletteRun palRun)) return false;
 
          // return the values from the palette
          colors = palRun.GetPalette(Model, page);
@@ -163,7 +160,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          if (palette != null) return;
 
-         var defaultPalette = new List<short>();
          int desiredCount = (int)Math.Pow(2, byteLength / 8);
          Palette = CreateDefaultPalette(desiredCount);
       }

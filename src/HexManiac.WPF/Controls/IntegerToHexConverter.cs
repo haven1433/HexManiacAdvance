@@ -13,7 +13,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {
          var input = value.ToString();
-         if (int.TryParse(value.ToString(), NumberStyles.HexNumber, null, out int result)) {
+         if (int.TryParse(input, NumberStyles.HexNumber, null, out int result)) {
             return result;
          } else {
             return Pointer.NULL;

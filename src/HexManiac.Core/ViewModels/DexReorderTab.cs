@@ -47,13 +47,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand Close { get; }
 
       public event EventHandler<string> OnError;
-      public event EventHandler<string> OnMessage;
-      public event EventHandler ClearMessage;
       public event EventHandler Closed;
-      public event EventHandler<ITabContent> RequestTabChange;
-      public event EventHandler<Action> RequestDelayedWork;
-      public event EventHandler RequestMenuClose;
-      public event PropertyChangedEventHandler PropertyChanged;
+      event EventHandler<string> ITabContent.OnMessage { add { } remove { } }
+      event EventHandler ITabContent.ClearMessage { add { } remove { } }
+      event EventHandler<ITabContent> ITabContent.RequestTabChange { add { } remove { } }
+      event EventHandler<Action> ITabContent.RequestDelayedWork { add { } remove { } }
+      event EventHandler ITabContent.RequestMenuClose { add { } remove { } }
 
       private int selectionStart;
       public int SelectionStart {
@@ -191,16 +190,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          selectionStart += newIndex - originalIndex;
          SelectionEnd += newIndex - originalIndex;
          return otherMovedElements;
-      }
-
-      private static IDictionary<int, (T oldVal, T newVal)> Diff<T>(IList<T> oldList, IList<T> newList) where T : IEquatable<T> {
-         var result = new Dictionary<int, (T oldVal, T newVal)>();
-         Debug.Assert(oldList.Count == newList.Count, "Cannot diff lists unless they're the same length!");
-         for (int i = 0; i < oldList.Count; i++) {
-            if (oldList[i].Equals(newList[i])) continue;
-            result[i] = (oldList[i], newList[i]);
-         }
-         return result;
       }
 
       private void UpdateDexFromSortOrder() {

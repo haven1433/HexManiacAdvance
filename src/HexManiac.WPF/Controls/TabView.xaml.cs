@@ -83,16 +83,16 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          StringToolTextBox.SelectionChanged -= StringToolContentSelectionChanged;
          if (e.PropertyName is nameof(PCSTool.ContentIndex)) {
             StringToolTextBox.SelectionStart = tool.ContentIndex;
-            UpdateManualSelection(tool);
+            UpdateManualSelection();
          }
          if (e.PropertyName is nameof(PCSTool.ContentSelectionLength)) {
             StringToolTextBox.SelectionLength = tool.ContentSelectionLength;
-            UpdateManualSelection(tool);
+            UpdateManualSelection();
          }
          StringToolTextBox.SelectionChanged += StringToolContentSelectionChanged;
       }
 
-      private void UpdateManualSelection(PCSTool tool) {
+      private void UpdateManualSelection() {
          var linesBeforeSelection = StringToolTextBox.Text.Substring(0, StringToolTextBox.SelectionStart).Split(Environment.NewLine).Length - 1;
          var lastLineIndex = StringToolTextBox.Text.Split(Environment.NewLine).Length - 1;
          var highestScroll = StringToolTextBox.ExtentHeight - StringToolTextBox.ViewportHeight;
@@ -400,11 +400,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          newTileIndex = Math.Min(Math.Max(0, newTileIndex), viewModel.Elements.Count - 1);
          var tilesToAnimate = viewModel.HandleMove(oldTileIndex, newTileIndex);
 
-         foreach (var tile in tilesToAnimate) {
-            var image = MainWindow.GetChild(view, "PaletteColor", viewModel.Elements[tile.index]);
+         foreach (var (index, direction) in tilesToAnimate) {
+            var image = MainWindow.GetChild(view, "PaletteColor", viewModel.Elements[index]);
             if (!(image.RenderTransform is TranslateTransform)) image.RenderTransform = new TranslateTransform();
             var transform = (TranslateTransform)image.RenderTransform;
-            transform.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(ExpectedElementWidth * tile.direction, 0, span));
+            transform.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(ExpectedElementWidth * direction, 0, span));
          }
       }
 

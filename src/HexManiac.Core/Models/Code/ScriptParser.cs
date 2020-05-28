@@ -156,8 +156,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
                // Let the stream run handle updating itself based on the stream content.
                if (streamLocation >= 0 && streamPointerLocation >= 0) {
-                  var streamRun = model.GetNextRun(streamLocation) as IStreamRun;
-                  if (streamRun != null && streamRun.Start == streamLocation) {
+                  if (model.GetNextRun(streamLocation) is IStreamRun streamRun && streamRun.Start == streamLocation) {
                      streamRun = streamRun.DeserializeRun(stream, token);
                      // alter script content and compiled byte location based on stream move
                      if (streamRun.Start != streamLocation) {
@@ -405,8 +404,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             start += arg.Length;
          }
          if (PointsToText || PointsToMovement || PointsToMart) {
-            var stream = data.GetNextRun(lastAddress) as IStreamRun;
-            if (stream != null) {
+            if (data.GetNextRun(lastAddress) is IStreamRun stream) {
                builder.AppendLine();
                builder.AppendLine("{");
                builder.AppendLine(stream.SerializeRun());

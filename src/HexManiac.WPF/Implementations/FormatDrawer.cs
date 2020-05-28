@@ -13,7 +13,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
       private static readonly Typeface consolas = new Typeface("Consolas");
       private static readonly GlyphTypeface typeface, italicTypeface;
-      private static string[] byteText;
+      private readonly static string[] byteText;
       static FormatDrawer() {
          consolas.TryGetGlyphTypeface(out typeface);
          var consolas2 = new Typeface(new FontFamily("Consolas"), FontStyles.Italic, FontWeights.Light, FontStretches.Normal);
@@ -320,25 +320,6 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          var endPoint = (position.X + 1) * cellSize.Width - (isEnd ? cellSize.Width / 4 : 0);
          double y = (position.Y + 1) * cellSize.Height - 1;
          context.DrawLine(new Pen(brush, 1), new Point(startPoint, y), new Point(endPoint, y));
-      }
-
-      private FormattedText TruncateText(string destination, double fontSize, string brush, int widthInCells, string postText = "", bool italics = false) {
-         var text = CreateText(destination, fontSize, Brush(brush), italics);
-         if (text.Width > cellSize.Width * widthInCells) {
-            var unitWidth = text.Width / destination.Length;
-            var desiredLength = destination.Length;
-            while (unitWidth * desiredLength > cellSize.Width * widthInCells) desiredLength--;
-            destination = destination.Substring(0, desiredLength - 1 - postText.Length) + "…" + postText;
-            text = CreateText(destination, fontSize, Brush(brush), italics);
-         }
-         return text;
-      }
-
-      private Point GetCenteredOffset(int position, int cellWidth, FormattedText text) {
-         var xOffset = (cellSize.Width * cellWidth - text.Width) / 2;
-         xOffset -= (position * cellSize.Width); // centering
-         var yOffset = (cellSize.Height - text.Height) / 2;
-         return new Point(xOffset, yOffset);
       }
 
       private static FormattedText CreateText(string text, double size, SolidColorBrush color, bool italics = false) {

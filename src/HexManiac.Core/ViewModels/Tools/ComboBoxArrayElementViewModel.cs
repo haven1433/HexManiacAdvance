@@ -13,7 +13,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    /// This exists to wrap a string, just so that WPF doesn't mess up the combo-box selection in the case of multiple indexes having the same text.
    /// </summary>
    public class ComboOption : IPixelViewModel {
-      public event PropertyChangedEventHandler PropertyChanged;
+      event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged { add { } remove { } }
       public bool DisplayAsText => Text != null;
       public string Text { get; }
 
@@ -33,7 +33,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
    public class ComboBoxArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
       private readonly ChangeHistory<ModelDelta> history;
-      private readonly Selection selection;
 
       private string name;
       private int start, length;
@@ -91,7 +90,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public ComboBoxArrayElementViewModel(Selection selection, ChangeHistory<ModelDelta> history, IDataModel model, string name, int start, int length) {
-         (this.selection, this.history, Model, Name, Start, Length) = (selection, history, model, name, start, length);
+         (this.history, Model, Name, Start, Length) = (history, model, name, start, length);
          var run = (ITableRun)Model.GetNextRun(Start);
          TableName = model.GetAnchorFromAddress(-1, run.Start);
          var offsets = run.ConvertByteOffsetToArrayOffset(start);

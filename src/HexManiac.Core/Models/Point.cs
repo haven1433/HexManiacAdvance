@@ -6,6 +6,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public int Y { get; }
       public Point(int x, int y) => (X, Y) = (x, y);
       public bool Equals(Point that) => this.X == that.X && this.Y == that.Y;
+      public override bool Equals(object obj) => obj is Point that && Equals(that);
+      public override int GetHashCode() => X * 101 + Y * 37;
       public static Point operator +(Point a, Point b) => new Point(a.X + b.X, a.Y + b.Y);
       public static Point operator -(Point a, Point b) => new Point(a.X - b.X, a.Y - b.Y);
       public static bool operator ==(Point a, Point b) => a.Equals(b);

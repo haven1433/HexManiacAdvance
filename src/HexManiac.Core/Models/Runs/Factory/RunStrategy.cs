@@ -50,7 +50,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
 
    public class FormatRunFactory {
       public static RunStrategy GetStrategy(string format) {
-         RunStrategy strategy = null;
+         RunStrategy strategy;
          if (format == PCSRun.SharedFormatString) {
             strategy = new PCSRunContentStrategy();
          } else if (format.StartsWith(AsciiRun.SharedFormatString)) {

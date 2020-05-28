@@ -120,7 +120,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public bool DependsOn(string anchorName) => anchorName == HardcodeTablesModel.MoveNamesTable;
 
-      public IEnumerable<(int, int)> Search(string parentArrayName, int index) {
+      public IEnumerable<(int, int)> Search(int index) {
          for (int i = 0; i < Length - 2; i += 2) {
             var fullValue = model.ReadMultiByteValue(Start + i, 2);
             if (SplitToken(fullValue).move == index) {

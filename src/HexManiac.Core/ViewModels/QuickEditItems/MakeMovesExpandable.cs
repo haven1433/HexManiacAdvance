@@ -36,7 +36,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var model = viewPort.Model;
          var moveDataAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, "movedata");
          if (moveDataAddress == Pointer.NULL) return false;
-         var game = model.GetGameCode();
          var limiterCode = viewPort.Tools.CodeTool.Parser.Compile(model, 0, @"
     mov   r0, #177
     lsl   r0, r0, #1

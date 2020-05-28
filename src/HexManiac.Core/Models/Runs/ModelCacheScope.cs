@@ -52,10 +52,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          var sourceAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, enumName);
          if (sourceAddress == Pointer.NULL) return null;
-         var sourceRun = model.GetNextRun(sourceAddress) as ArrayRun;
-         if (sourceRun == null) return null;
-         var sourceSegment = sourceRun.ElementContent[0] as ArrayRunEnumSegment;
-         if (sourceSegment == null) {
+         if (!(model.GetNextRun(sourceAddress) is ArrayRun sourceRun)) return null;
+         if (!(sourceRun.ElementContent[0] is ArrayRunEnumSegment sourceSegment)) {
             if (sourceRun.ElementContent[0].Type == ElementContentType.PCS) return sourceRun.ElementNames;
             return null;
          }

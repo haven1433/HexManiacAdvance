@@ -222,7 +222,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var streamResults = new List<(int, int)>();
          foreach (var child in model.Streams) {
             if (!child.DependsOn(basename)) continue;
-            if (child is PLMRun plmRun) plmResults.AddRange(plmRun.Search(basename, index));
+            if (child is PLMRun plmRun) plmResults.AddRange(plmRun.Search(index));
             if (child is EggMoveRun eggRun) eggResults.AddRange(eggRun.Search(basename, index));
             if (child is TrainerPokemonTeamRun trainerRun) trainerResults.AddRange(trainerRun.Search(basename, index));
             if (child is TableStreamRun streamRun) streamResults.AddRange(streamRun.Search(basename, index));

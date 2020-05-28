@@ -193,9 +193,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       #endregion
 
-      public TableStreamRun UpdateFromParent(ModelDelta token, int parentSegmentChange, int pointerSource) {
+      public TableStreamRun UpdateFromParent(ModelDelta token, int parentSegmentChange) {
          if (!(endStream is LengthFromParentStreamStrategy strategy)) return this;
-         return strategy.UpdateFromParentStream(this, token, parentSegmentChange, pointerSource);
+         return strategy.UpdateFromParentStream(this, token, parentSegmentChange);
       }
    }
 
@@ -309,7 +309,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new TableStreamRun(model, newRun.Start, run.PointerSources, run.FormatString, run.ElementContent, this);
       }
 
-      public TableStreamRun UpdateFromParentStream(TableStreamRun run, ModelDelta token, int parentSegmentIndex, int pointerSource) {
+      public TableStreamRun UpdateFromParentStream(TableStreamRun run, ModelDelta token, int parentSegmentIndex) {
          var parentAddress = GetParentIndex(run.PointerSources);
          var parent = model.GetNextRun(parentAddress) as ITableRun;
          if (parent == null) return run;

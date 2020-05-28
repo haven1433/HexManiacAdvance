@@ -15,7 +15,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class HeaderRow {
       public IReadOnlyList<ColumnHeader> ColumnHeaders { get; }
 
-      public HeaderRow(ArrayRun source, int byteStart, int length, int startingDataIndex) {
+      public HeaderRow(ArrayRun source, int byteStart, int length) {
          var headers = new List<ColumnHeader>();
          // we know which 'byte' to start at, but we want to know what 'index' to start at
          // basically, count off each element to figure out how big it is

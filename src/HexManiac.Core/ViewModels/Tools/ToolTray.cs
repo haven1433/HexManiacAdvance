@@ -95,7 +95,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          StringTool.OnError += (sender, e) => OnError?.Invoke(this, e);
          TableTool.OnError += (sender, e) => OnError?.Invoke(this, e);
          TableTool.OnMessage += (sender, e) => OnMessage?.Invoke(this, e);
-         SpriteTool.OnMessage += (sender, e) => OnMessage?.Invoke(this, e);
          TableTool.RequestMenuClose += (sender, e) => RequestMenuClose?.Invoke(this, e);
       }
 

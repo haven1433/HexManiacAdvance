@@ -110,11 +110,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          }
 
          // step 2: render the tokens into a stream
-         var result = new List<byte>();
-         result.Add(0x10); // magic number
-         result.Add((byte)length);
-         result.Add((byte)(length >> 8));
-         result.Add((byte)(length >> 16));
+         var result = new List<byte> {
+            0x10, // magic number
+            (byte)length,
+            (byte)(length >> 8),
+            (byte)(length >> 16)
+         };
          for (int i = 0; i < tokens.Count; i++) {
             if (i % 8 == 0) {
                byte bitfield = 0;

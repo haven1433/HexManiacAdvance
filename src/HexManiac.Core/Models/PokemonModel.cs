@@ -1595,7 +1595,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
          }
 
-         value = default(T);
+         value = default;
          return false;
       }
    }
