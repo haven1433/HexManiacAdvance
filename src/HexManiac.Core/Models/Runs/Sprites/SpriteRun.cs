@@ -20,7 +20,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          tileWidth = format.TileWidth;
          tileHeight = format.TileHeight;
          Length = tileWidth * tileHeight * bitsPerPixel * 8;
-         FormatString = $"`ucs{bitsPerPixel}x{tileWidth}x{tileHeight}`";
+         FormatString = $"`ucs{bitsPerPixel}x{tileWidth}x{tileHeight}";
+         if (!string.IsNullOrEmpty(format.PaletteHint)) FormatString += "|" + format.PaletteHint;
+         FormatString += "`";
       }
 
       public static bool TryParseSpriteFormat(string pointerFormat, out SpriteFormat spriteFormat) {

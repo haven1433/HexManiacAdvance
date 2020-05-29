@@ -423,6 +423,12 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.IsType<LzSpriteRun>(Model.GetNextRun(0));
       }
 
+      [Fact]
+      public void UncompressedImagesFormatIncludesPaletteHint() {
+         ViewPort.Edit("^data`ucs4x4x4|pal`");
+         Assert.Equal("`ucs4x4x4|pal`", Model.GetNextRun(0).FormatString);
+      }
+
       private void CreateLzRun(int start, params byte[] data) {
          for (int i = 0; i < data.Length; i++) Model[start + i] = data[i];
          var run = new LZRun(Model, start);
