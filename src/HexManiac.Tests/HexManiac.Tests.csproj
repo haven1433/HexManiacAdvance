@@ -88,6 +88,7 @@
     <Compile Include="Before_Baseclass\NestedTablesTests.cs" />
     <Compile Include="Before_Baseclass\PointerModelTests.cs" />
     <Compile Include="Before_Baseclass\NavigationTests.cs" />
+    <Compile Include="PaletteCollectionTests.cs" />
     <Compile Include="StreamTests.cs" />
     <Compile Include="Before_Baseclass\StringModelTests.cs" />
     <Compile Include="TableTests.cs" />
