@@ -421,11 +421,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public int Length => 2;
       public short Color { get; }
 
-      public int R => (Color >> 10) & 0x1F;
-      public int G => (Color >> 5) & 0x1F;
-      public int B => (Color >> 0) & 0x1F;
+      public int R { get; }
+      public int G { get; }
+      public int B { get; }
 
-      public UncompressedPaletteColor(int source, int position, short color) => (Source, Position, Color) = (source, position, color);
+      public UncompressedPaletteColor(int source, int position, short color) {
+         (Source, Position, Color) = (source, position, color);
+         (R, G, B) = ToRGB(color);
+      }
+
+      public static string Convert(short color) {
+         var (r, g, b) = ToRGB(color);
+         return $"{r}:{g}:{b}";
+      }
+
+      public static (int r, int g, int b) ToRGB(short color) {
+         int r = (color >> 10) & 0x1F;
+         int g = (color >> 5) & 0x1F;
+         int b = (color >> 0) & 0x1F;
+         return (r, g, b);
+      }
+
+      public static short Pack(int red, int green, int blue) {
+         return (short)((red << 10) | (green << 5) | blue);
+      }
 
       public bool Equals(IDataFormat other) {
          if (!(other is UncompressedPaletteColor that)) return false;
@@ -434,6 +453,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
 
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
 
-      public override string ToString() => $"{R}:{G}:{B}";
+      public override string ToString() => Convert(Color);
    }
 }
