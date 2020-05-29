@@ -492,7 +492,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
 
             // remove extra elements at the back. Add NoInfoRuns for the pointers to point to.
+#pragma warning disable CS0162 // Unreachable code detected: code is not actually unreachable, this is intended to run when elemetCount < 0
             for (int i = 0; i < -elementCount; i++) {
+#pragma warning restore CS0162 // Unreachable code detected
                newInnerElementsSources.RemoveAt(newInnerElementsSources.Count - 1);
 
                // TODO add the run
