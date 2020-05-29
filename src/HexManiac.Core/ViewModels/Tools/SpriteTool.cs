@@ -437,6 +437,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          prevPalPage.CanExecuteChanged.Invoke(prevPalPage, EventArgs.Empty);
          nextPalPage.CanExecuteChanged.Invoke(nextPalPage, EventArgs.Empty);
 
+         Colors.SourcePalette = paletteAddress;
          Colors.SetContents(palette);
          PixelData = Render(pixels, GetRenderPalette(model?.GetNextRun(spriteAddress) as ISpriteRun), paletteFormat);
          NotifyPropertyChanged(nameof(PixelData));

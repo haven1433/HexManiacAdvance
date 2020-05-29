@@ -103,6 +103,7 @@
     <Compile Include="ViewModels\Tools\ComboBoxArrayElementViewModel.cs" />
     <Compile Include="ViewModels\Tools\Interfaces.cs" />
     <Compile Include="ViewModels\Tools\PagedElementViewModel.cs" />
+    <Compile Include="ViewModels\Tools\PaletteCollection.cs" />
     <Compile Include="ViewModels\Tools\PaletteElementViewModel.cs" />
     <Compile Include="ViewModels\Tools\SpriteElementViewModel.cs" />
     <Compile Include="ViewModels\Tools\SpriteTool.cs" />

@@ -211,7 +211,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          // update sprites now that all the associated palettes have been loaded.
          foreach (var child in Children) {
             if (child is SpriteElementViewModel sevm) sevm.UpdateTiles();
-            if (child is PaletteElementViewModel pevm) pevm.UpdateAssociatedPointers();
          }
       }
 

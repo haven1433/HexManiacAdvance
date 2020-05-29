@@ -429,6 +429,19 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("`ucs4x4x4|pal`", Model.GetNextRun(0).FormatString);
       }
 
+      [Fact]
+      public void EditPaletteUpdatesMatchingSprites() {
+         ViewPort.Edit("01 @00 ^sprite`ucs4x1x1|pal`");
+         ViewPort.Edit("@20 ^pal`ucp4`");
+         ViewPort.Refresh();
+
+         ViewPort.Tools.SpriteTool.Colors.HandleMove(0, 1);
+         ViewPort.Tools.SpriteTool.Colors.CompleteCurrentInteraction();
+
+         Assert.Equal(0x10, Model[0]); // 01 changes to 10
+         Assert.Equal(0x11, Model[1]); // 00 changes to 11
+      }
+
       private void CreateLzRun(int start, params byte[] data) {
          for (int i = 0; i < data.Length; i++) Model[start + i] = data[i];
          var run = new LZRun(Model, start);
