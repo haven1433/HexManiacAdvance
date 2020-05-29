@@ -1,10 +1,13 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
+using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class PaletteCollection : ViewModelCore {
@@ -43,6 +46,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             for (int i = 0; i < Elements.Count; i++) Elements[i].Selected = first <= i && i <= last;
          }
       }
+
+      private StubCommand copy;
+      public ICommand Copy => StubCommand<IFileSystem>(ref copy, ExecuteCopy, CanExecuteCopy);
+
+      private StubCommand paste;
+      public ICommand Paste => StubCommand<IFileSystem>(ref paste, ExecutePaste, CanExecutePaste);
 
       public PaletteCollection(ViewPort viewPort, ChangeHistory<ModelDelta> history) {
          this.viewPort = viewPort;
@@ -133,6 +142,69 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          viewPort.Refresh();
          for (int i = 0; i < Elements.Count; i++) Elements[i].Selected = newElements[i].Selected;
       }
+
+      private void ExecuteCopy(IFileSystem fileSystem) {
+         var start = Math.Min(selectionStart, selectionEnd) + 1;
+         var end = Math.Max(selectionStart, selectionEnd) + 1;
+         var result = UncompressedPaletteColor.Convert(Elements[start - 1].Color);
+         for (int i = start; i < end; i++) {
+            result += " " + UncompressedPaletteColor.Convert(Elements[i].Color);
+         }
+         fileSystem.CopyText = result;
+      }
+
+      private bool CanExecuteCopy(IFileSystem fileSystem) => 0 <= selectionStart && selectionStart < Elements.Count;
+
+      private static IReadOnlyList<short> ParseColor(string stream) {
+         var results = new List<short>();
+         var parts = stream.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+         for (int i = 0; i < parts.Length; i++) {
+            if (parts[i].Contains(":")) {
+               var channels = parts[i].Split(':');
+               if (channels.Length != 3) return null;
+               if (!int.TryParse(channels[0], out var red) || !int.TryParse(channels[1], out var green) || !int.TryParse(channels[2], out var blue)) return null;
+               results.Add(UncompressedPaletteColor.Pack(red, green, blue));
+            } else if (parts[i].Length == 4) {
+               if (!short.TryParse(parts[i], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var color)) return null;
+               results.Add(color);
+            } else if (parts[i].Length == 2 && i + 1 < parts.Length && parts[i + 1].Length == 2) {
+               if (!byte.TryParse(parts[i + 0], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var low)) return null;
+               if (!byte.TryParse(parts[i + 1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var high)) return null;
+               i += 1;
+               results.Add((byte)((high << 8) | low));
+            } else {
+               return null;
+            }
+         }
+         return results;
+      }
+
+      private void ExecutePaste(IFileSystem fileSystem) {
+         var model = viewPort.Model;
+         if (!(model.GetNextRun(sourcePalette) is IPaletteRun source)) return;
+
+         // paste data into elements
+         var colors = ParseColor(fileSystem.CopyText);
+         if (colors == null) return;
+         var start = Math.Min(selectionStart, selectionEnd);
+         for (int i = 0; i < colors.Count; i++) {
+            Elements[start].Color = colors[i];
+            if (start < Elements.Count - 1) start += 1;
+         }
+
+         // update model
+         var newPalette = source;
+         for (int page = 0; page < source.Pages; page++) {
+            newPalette = newPalette.SetPalette(model, history.CurrentChange, page, Elements.Select(e => e.Color).ToList());
+         }
+         if (source.Start != newPalette.Start) viewPort.RaiseMessage($"Palette was moved to {newPalette.Start:X6}. Pointers were updated.");
+
+         // update UI
+         viewPort.Refresh();
+         SelectionStart = start;
+      }
+
+      private bool CanExecutePaste(IFileSystem fileSystem) => CanExecuteCopy(fileSystem) && ParseColor(fileSystem.CopyText) != null;
    }
 
    [DebuggerDisplay("{Index}:{Color}")]
