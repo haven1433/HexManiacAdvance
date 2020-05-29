@@ -413,6 +413,16 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x0, palette.Start);
       }
 
+      [Fact]
+      public void CanReplaceTilemapWithSprite() {
+         ViewPort.Edit("@00 10 20 00 00 @00 ^data`lzm4x4x4`");
+         ViewPort.Refresh();
+
+         ViewPort.Tools.SpriteTool.SpriteIsTilemap = false;
+
+         Assert.IsType<LzSpriteRun>(Model.GetNextRun(0));
+      }
+
       private void CreateLzRun(int start, params byte[] data) {
          for (int i = 0; i < data.Length; i++) Model[start + i] = data[i];
          var run = new LZRun(Model, start);

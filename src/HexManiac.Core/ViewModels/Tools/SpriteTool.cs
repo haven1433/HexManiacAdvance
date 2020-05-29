@@ -49,9 +49,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public bool SpriteIs256Color { get => spriteIs256Color; set => Set(ref spriteIs256Color, value, oldValue => UpdateSpriteFormat()); }
 
       private bool spriteIsTilemap;
-      public bool SpriteIsTilemap { get => spriteIsTilemap; set => Set(ref spriteIsTilemap, value, oldValue => UpdateSpriteFormat()); }
+      public bool SpriteIsTilemap { get => spriteIsTilemap; set => Set(ref spriteIsTilemap, value, oldValue => {
+         var split = spriteWidthHeight.ToUpper().Trim().Split("X");
+         if (split.Length == 2 && int.TryParse(split[0], out int width) && int.TryParse(split[1], out int height)) {
+            if (spriteIsTilemap) {
+               width *= 4;
+               height *= 4;
+            } else {
+               width = Math.Max(1, width / 4);
+               height = Math.Max(1, height / 4);
+            }
+            Set(ref spriteWidthHeight, $"{width}x{height}", nameof(SpriteWidthHeight));
+         }
+         UpdateSpriteFormat();
+      }); }
 
-      private string spritePaletteHint;
+      private string spritePaletteHint = string.Empty;
       public string SpritePaletteHint { get => spritePaletteHint; set => Set(ref spritePaletteHint, value, oldValue => UpdateSpriteFormat()); }
 
       private void UpdateSpriteFormat() {
@@ -157,7 +170,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                spritePaletteHint = mapRun.Format.MatchingTileset + (string.IsNullOrEmpty(mapRun.Format.TilesetTableMember) ? string.Empty : "|" + mapRun.Format.TilesetTableMember);
             } else {
                spriteIsTilemap = false;
-               spritePaletteHint = format.PaletteHint;
+               spritePaletteHint = format.PaletteHint ?? string.Empty;
             }
             spriteIs256Color = format.BitsPerPixel == 8;
             NotifyPropertyChanged(nameof(SpriteWidthHeight));
