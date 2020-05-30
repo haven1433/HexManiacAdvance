@@ -350,6 +350,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(4, Model[8]);
       }
 
+      [Fact]
+      public void EnumGotoJumpsToSelectedElement() {
+         CreateTextTable("names", 0x00, "Adam", "Bob", "Carl");
+         CreateEnumTable("enums", 0x10, "names", 2, 2, 2);
+
+         ViewPort.Goto.Execute(0x10);
+         var enumSegment = ViewPort.Tools.TableTool.Children.OfType<ComboBoxArrayElementViewModel>().Single();
+         enumSegment.GotoSource.Execute();
+
+         Assert.Equal(10, ViewPort.DataOffset);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

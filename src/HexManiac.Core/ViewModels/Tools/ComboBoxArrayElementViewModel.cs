@@ -113,7 +113,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
          GotoSource = new StubCommand {
             CanExecute = arg => optionSource != Pointer.NULL,
-            Execute = arg => selection.GotoAddress(optionSource),
+            Execute = arg => {
+               var indexSource = (model.GetNextRun(optionSource) is ITableRun optionSourceTable) ?
+                  optionSourceTable.Start + optionSourceTable.ElementLength * selectedIndex :
+                  optionSource;
+               selection.GotoAddress(indexSource);
+            },
          };
       }
 
