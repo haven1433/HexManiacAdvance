@@ -27,8 +27,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (viewPort == null) return;
             if (TryUpdate(ref text, value)) {
                using (ModelCacheScope.CreateScope(viewPort.Model)) {
-                  var options = viewPort.Model?.GetAutoCompleteAnchorNameOptions(text) ?? new string[0];
-                  if (options.Count == 0) options = viewPort.Model?.GetAutoCompleteAnchorNameOptions("/" + text) ?? new string[0];
+                  var options = new List<string>(viewPort.Model?.GetAutoCompleteAnchorNameOptions(text) ?? new string[0]);
+                  if (!text.Contains("/")) {
+                     options.AddRange(viewPort.Model?.GetAutoCompleteAnchorNameOptions("/" + text) ?? new string[0]);
+                  }
+                  text = text.ToLower();
+                  var bestMatches = options.Where(option => option.ToLower().Contains(text));
+                  options = bestMatches.Concat(options).Distinct().ToList();
                   AutoCompleteOptions = AutoCompleteSelectionItem.Generate(options, completionIndex);
                   ShowAutoCompleteOptions = AutoCompleteOptions.Count > 0;
                }
