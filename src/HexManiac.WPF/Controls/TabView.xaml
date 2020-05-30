@@ -255,6 +255,16 @@
                               <hsg3hv:CommonTableStreamControl />
                               <ItemsControl DataContext="{Binding Colors}" HorizontalAlignment="Center" SnapsToDevicePixels="True" ItemsSource="{Binding Elements}"
                                             MouseDown="StartPaletteColorMove" MouseMove="PaletteColorMove" MouseUp="EndPaletteColorMove">
+                                 <ItemsControl.ContextMenu>
+                                    <ContextMenu>
+                                       <MenuItem Header="Copy" InputGestureText="Ctrl+C" Command="{Binding Copy}" CommandParameter="{DynamicResource FileSystem}"/>
+                                       <MenuItem Header="Paste" InputGestureText="Ctrl+V" Command="{Binding Paste}" CommandParameter="{DynamicResource FileSystem}"/>
+                                    </ContextMenu>
+                                 </ItemsControl.ContextMenu>
+                                 <ItemsControl.InputBindings>
+                                    <KeyBinding Modifiers="Ctrl" Key="C" Command="{Binding Copy}" CommandParameter="{DynamicResource FileSystem}"/>
+                                    <KeyBinding Modifiers="Ctrl" Key="V" Command="{Binding Paste}" CommandParameter="{DynamicResource FileSystem}"/>
+                                 </ItemsControl.InputBindings>
                                  <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
                                        <UniformGrid Columns="{Binding ColorWidth}" Rows="{Binding ColorHeight}"/>
@@ -410,6 +420,16 @@
                <!-- Palette -->
                <ItemsControl DataContext="{Binding SpriteTool.Colors}" HorizontalAlignment="Center" SnapsToDevicePixels="True" ItemsSource="{Binding Elements}"
                              MouseDown="StartPaletteColorMove" MouseMove="PaletteColorMove" MouseUp="EndPaletteColorMove">
+                  <ItemsControl.ContextMenu>
+                     <ContextMenu>
+                        <MenuItem Header="Copy" InputGestureText="Ctrl+C" Command="{Binding Copy}" CommandParameter="{DynamicResource FileSystem}"/>
+                        <MenuItem Header="Paste" InputGestureText="Ctrl+V" Command="{Binding Paste}" CommandParameter="{DynamicResource FileSystem}"/>
+                     </ContextMenu>
+                  </ItemsControl.ContextMenu>
+                  <ItemsControl.InputBindings>
+                     <KeyBinding Modifiers="Ctrl" Key="C" Command="{Binding Copy}" CommandParameter="{DynamicResource FileSystem}"/>
+                     <KeyBinding Modifiers="Ctrl" Key="V" Command="{Binding Paste}" CommandParameter="{DynamicResource FileSystem}"/>
+                  </ItemsControl.InputBindings>
                   <ItemsControl.ItemsPanel>
                      <ItemsPanelTemplate>
                         <UniformGrid Columns="{Binding ColorWidth}" Rows="{Binding ColorHeight}"/>

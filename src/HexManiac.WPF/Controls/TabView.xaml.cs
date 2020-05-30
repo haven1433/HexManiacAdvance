@@ -364,6 +364,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var view = (FrameworkElement)sender;
          var viewModel = (PaletteCollection)view.DataContext;
          if (e.LeftButton == MouseButtonState.Released) return;
+         view.Focus();
          interactionPoint = e.GetPosition(view);
 
          var tileWidth = viewModel.ColorWidth;
@@ -379,6 +380,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          }
 
          view.CaptureMouse();
+         e.Handled = true;
       }
 
       private void PaletteColorMove(object sender, MouseEventArgs e) {

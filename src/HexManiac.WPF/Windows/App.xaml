@@ -338,6 +338,18 @@
          </Style.Triggers>
       </Style>
 
+      <Style TargetType="{x:Type ContextMenu}">
+         <Setter Property="Template">
+            <Setter.Value>
+               <ControlTemplate TargetType="ContextMenu">
+                  <Border Background="{DynamicResource Background}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                     <ItemsPresenter/>
+                  </Border>
+               </ControlTemplate>
+            </Setter.Value>
+         </Setter>
+      </Style>
+
       <!-- Separator Style has to specify that it's the style to use for MenuItems. This has something to do with the Menu searching for this key. -->
       <Style TargetType="{x:Type Separator}" x:Key="{x:Static MenuItem.SeparatorStyleKey}">
          <Setter Property="Background" Value="{DynamicResource Secondary}"/>
