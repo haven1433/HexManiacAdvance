@@ -1,0 +1,42 @@
+﻿<UserControl x:Class="HavenSoft.HexManiac.WPF.Controls.PaletteControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:hsg3hv="clr-namespace:HavenSoft.HexManiac.WPF.Controls">
+   <UserControl.Resources>
+      <hsg3hv:PaletteColorConverter x:Key="PaletteColorConverter"/>
+   </UserControl.Resources>
+   <ItemsControl HorizontalAlignment="Center" SnapsToDevicePixels="True" ItemsSource="{Binding Elements}"
+      MouseDown="StartPaletteColorMove" MouseMove="PaletteColorMove" MouseUp="EndPaletteColorMove">
+      <ItemsControl.ContextMenu>
+         <ContextMenu>
+            <MenuItem Header="Copy" InputGestureText="Ctrl+C" Command="{Binding Copy}" CommandParameter="{DynamicResource FileSystem}"/>
+            <MenuItem Header="Paste" InputGestureText="Ctrl+V" Command="{Binding Paste}" CommandParameter="{DynamicResource FileSystem}"/>
+         </ContextMenu>
+      </ItemsControl.ContextMenu>
+      <ItemsControl.InputBindings>
+         <KeyBinding Modifiers="Ctrl" Key="C" Command="{Binding Copy}" CommandParameter="{DynamicResource FileSystem}"/>
+         <KeyBinding Modifiers="Ctrl" Key="V" Command="{Binding Paste}" CommandParameter="{DynamicResource FileSystem}"/>
+      </ItemsControl.InputBindings>
+      <ItemsControl.ItemsPanel>
+         <ItemsPanelTemplate>
+            <UniformGrid Columns="{Binding ColorWidth}" Rows="{Binding ColorHeight}"/>
+         </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+         <DataTemplate>
+            <Border BorderThickness="2" Margin="-1" Name="PaletteColor">
+               <Border.Style>
+                  <Style TargetType="Border">
+                     <Style.Triggers>
+                        <DataTrigger Binding="{Binding Selected}" Value="True">
+                           <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                        </DataTrigger>
+                     </Style.Triggers>
+                  </Style>
+               </Border.Style>
+               <Rectangle Fill="{Binding Color, Converter={StaticResource PaletteColorConverter}}" Width="14" Height="14"/>
+            </Border>
+         </DataTemplate>
+      </ItemsControl.ItemTemplate>
+   </ItemsControl>
+</UserControl>

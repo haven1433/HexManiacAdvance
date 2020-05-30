@@ -62,6 +62,9 @@
     <Compile Include="Controls\DexReorderView.xaml.cs">
       <DependentUpon>DexReorderView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\PaletteControl.xaml.cs">
+      <DependentUpon>PaletteControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\Swatch.xaml.cs">
       <DependentUpon>Swatch.xaml</DependentUpon>
     </Compile>
@@ -77,6 +80,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\DexReorderView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\PaletteControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

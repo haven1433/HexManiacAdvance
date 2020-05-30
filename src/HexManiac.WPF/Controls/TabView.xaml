@@ -10,7 +10,6 @@
    <UserControl.Resources>
       <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
       <hsg3hv:IntegerToHexConverter x:Key="Hex"/>
-      <hsg3hv:PaletteColorConverter x:Key="PaletteColorConverter"/>
    </UserControl.Resources>
    <DockPanel>
       <!-- Bottom Bar -->
@@ -251,42 +250,9 @@
                            </StackPanel>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:PaletteElementViewModel}">
-                           <StackPanel MouseDown="ActivatePalette">
+                           <StackPanel PreviewMouseDown="ActivatePalette">
                               <hsg3hv:CommonTableStreamControl />
-                              <ItemsControl DataContext="{Binding Colors}" HorizontalAlignment="Center" SnapsToDevicePixels="True" ItemsSource="{Binding Elements}"
-                                            MouseDown="StartPaletteColorMove" MouseMove="PaletteColorMove" MouseUp="EndPaletteColorMove">
-                                 <ItemsControl.ContextMenu>
-                                    <ContextMenu>
-                                       <MenuItem Header="Copy" InputGestureText="Ctrl+C" Command="{Binding Copy}" CommandParameter="{DynamicResource FileSystem}"/>
-                                       <MenuItem Header="Paste" InputGestureText="Ctrl+V" Command="{Binding Paste}" CommandParameter="{DynamicResource FileSystem}"/>
-                                    </ContextMenu>
-                                 </ItemsControl.ContextMenu>
-                                 <ItemsControl.InputBindings>
-                                    <KeyBinding Modifiers="Ctrl" Key="C" Command="{Binding Copy}" CommandParameter="{DynamicResource FileSystem}"/>
-                                    <KeyBinding Modifiers="Ctrl" Key="V" Command="{Binding Paste}" CommandParameter="{DynamicResource FileSystem}"/>
-                                 </ItemsControl.InputBindings>
-                                 <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                       <UniformGrid Columns="{Binding ColorWidth}" Rows="{Binding ColorHeight}"/>
-                                    </ItemsPanelTemplate>
-                                 </ItemsControl.ItemsPanel>
-                                 <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                       <Border BorderThickness="2" Margin="-1" Name="PaletteColor">
-                                          <Border.Style>
-                                             <Style TargetType="Border">
-                                                <Style.Triggers>
-                                                   <DataTrigger Binding="{Binding Selected}" Value="True">
-                                                      <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
-                                                   </DataTrigger>
-                                                </Style.Triggers>
-                                             </Style>
-                                          </Border.Style>
-                                          <Rectangle Fill="{Binding Color, Converter={StaticResource PaletteColorConverter}}" Width="14" Height="14"/>
-                                       </Border>
-                                    </DataTemplate>
-                                 </ItemsControl.ItemTemplate>
-                              </ItemsControl>
+                              <hsg3hv:PaletteControl DataContext="{Binding Colors}" />
                               <DockPanel Visibility="{Binding HasMultiplePages, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
                                  <Button Content="Previous" Command="{Binding PreviousPage}" DockPanel.Dock="Left"/>
                                  <Button Content="Next" Command="{Binding NextPage}" DockPanel.Dock="Right"/>
@@ -418,40 +384,7 @@
                <TextBlock Margin="5,1" TextWrapping="Wrap" FontStyle="Italic" Foreground="{DynamicResource Error}" Text="Could not find palette data starting at that address." Visibility="{Binding SpriteTool.ShowNoPaletteAnchorMessage, Converter={StaticResource BoolToVisibility}}"/>
 
                <!-- Palette -->
-               <ItemsControl DataContext="{Binding SpriteTool.Colors}" HorizontalAlignment="Center" SnapsToDevicePixels="True" ItemsSource="{Binding Elements}"
-                             MouseDown="StartPaletteColorMove" MouseMove="PaletteColorMove" MouseUp="EndPaletteColorMove">
-                  <ItemsControl.ContextMenu>
-                     <ContextMenu>
-                        <MenuItem Header="Copy" InputGestureText="Ctrl+C" Command="{Binding Copy}" CommandParameter="{DynamicResource FileSystem}"/>
-                        <MenuItem Header="Paste" InputGestureText="Ctrl+V" Command="{Binding Paste}" CommandParameter="{DynamicResource FileSystem}"/>
-                     </ContextMenu>
-                  </ItemsControl.ContextMenu>
-                  <ItemsControl.InputBindings>
-                     <KeyBinding Modifiers="Ctrl" Key="C" Command="{Binding Copy}" CommandParameter="{DynamicResource FileSystem}"/>
-                     <KeyBinding Modifiers="Ctrl" Key="V" Command="{Binding Paste}" CommandParameter="{DynamicResource FileSystem}"/>
-                  </ItemsControl.InputBindings>
-                  <ItemsControl.ItemsPanel>
-                     <ItemsPanelTemplate>
-                        <UniformGrid Columns="{Binding ColorWidth}" Rows="{Binding ColorHeight}"/>
-                     </ItemsPanelTemplate>
-                  </ItemsControl.ItemsPanel>
-                  <ItemsControl.ItemTemplate>
-                     <DataTemplate>
-                        <Border BorderThickness="2" Margin="-1" Name="PaletteColor">
-                           <Border.Style>
-                              <Style TargetType="Border">
-                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Selected}" Value="True">
-                                       <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
-                                    </DataTrigger>
-                                 </Style.Triggers>
-                              </Style>
-                           </Border.Style>
-                           <Rectangle Fill="{Binding Color, Converter={StaticResource PaletteColorConverter}}" Width="14" Height="14"/>
-                        </Border>
-                     </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-               </ItemsControl>
+               <hsg3hv:PaletteControl DataContext="{Binding SpriteTool.Colors}" />
                <DockPanel Visibility="{Binding SpriteTool.HasMultiplePalettePages, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
                   <Button Content="Previous" Command="{Binding SpriteTool.PreviousPalettePage}" DockPanel.Dock="Left"/>
                   <Button Content="Next" Command="{Binding SpriteTool.NextPalettePage}" DockPanel.Dock="Right"/>
