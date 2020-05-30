@@ -113,6 +113,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             Selected = Elements[i].Selected,
          }).ToList();
 
+         // early exit if there's no actual changes
+         if (Enumerable.Range(0, Elements.Count).All(i => Elements[i].Index == newElements[i].Index)) return;
+
          var palettesToUpdate = new List<IPaletteRun> { source };
          foreach (var sprite in source.FindDependentSprites(model).Distinct()) {
             var newSprite = sprite;
