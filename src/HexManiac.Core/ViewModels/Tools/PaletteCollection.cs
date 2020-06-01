@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO.Packaging;
 using System.Linq;
 using System.Windows.Input;
 
@@ -45,6 +46,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var first = Math.Min(selectionStart, selectionEnd);
             var last = Math.Max(selectionStart, selectionEnd);
             for (int i = 0; i < Elements.Count; i++) Elements[i].Selected = first <= i && i <= last;
+            createGradient.CanExecuteChanged.Invoke(createGradient, EventArgs.Empty);
          }
       }
 
@@ -53,6 +55,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private StubCommand paste;
       public ICommand Paste => StubCommand<IFileSystem>(ref paste, ExecutePaste, CanExecutePaste);
+
+      private StubCommand createGradient;
+      public ICommand CreateGradient => StubCommand(ref createGradient, ExecuteCreateGradient, CanExecuteCreateGradient);
 
       public PaletteCollection(ViewPort viewPort, ChangeHistory<ModelDelta> history) {
          this.viewPort = viewPort;
@@ -164,6 +169,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          for (int i = 0; i < Elements.Count; i++) Elements[i].Selected = newElements[i].Selected;
       }
 
+      #region Commands
+
       private void ExecuteCopy(IFileSystem fileSystem) {
          var start = Math.Min(selectionStart, selectionEnd) + 1;
          var end = Math.Max(selectionStart, selectionEnd) + 1;
@@ -218,6 +225,36 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private bool CanExecutePaste(IFileSystem fileSystem) => CanExecuteCopy(fileSystem) && ParseColor(fileSystem.CopyText) != null;
+
+      private void ExecuteCreateGradient() {
+         var left = Math.Min(SelectionStart, SelectionEnd);
+         var leftRGB = UncompressedPaletteColor.ToRGB(Elements[left].Color);
+         var leftHSB = Theme.ToHSB((byte)(leftRGB.r << 3), (byte)(leftRGB.g << 3), (byte)(leftRGB.b << 3));
+
+         var right = Math.Max(SelectionStart, SelectionEnd);
+         var rightRGB = UncompressedPaletteColor.ToRGB(Elements[right].Color);
+         var rightHSB = Theme.ToHSB((byte)(rightRGB.r << 3), (byte)(rightRGB.g << 3), (byte)(rightRGB.b << 3));
+
+         var deltaHue = rightHSB.hue - leftHSB.hue;
+         var deltaSat = rightHSB.sat - leftHSB.sat;
+         var deltaBright = rightHSB.bright - leftHSB.bright;
+
+         var distance = right - left;
+         for (int i = 1; i < distance; i++) {
+            var part = (double)i / distance;
+            var hue = leftHSB.hue + deltaHue * part;
+            var sat = leftHSB.sat + deltaSat * part;
+            var bright = leftHSB.bright + deltaBright * part;
+            var rgb = Theme.FromHSB(hue, sat, bright);
+            Elements[left + i].Color = UncompressedPaletteColor.Pack(rgb.red >> 3, rgb.green >> 3, rgb.blue >> 3);
+         }
+
+         PushColorsToModel();
+      }
+
+      private bool CanExecuteCreateGradient() => Elements.Count(element => element.Selected) > 2;
+
+      #endregion
    }
 
    [DebuggerDisplay("{Index}:{Color}")]

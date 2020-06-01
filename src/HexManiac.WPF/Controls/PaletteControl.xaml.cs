@@ -15,7 +15,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private const int ExpectedElementWidth = 16, ExpectedElementHeight = 16;
       private static readonly Duration span = new Duration(TimeSpan.FromMilliseconds(100));
 
-      private readonly Popup swatchPopup = new Popup { Placement = PlacementMode.Top, PopupAnimation = PopupAnimation.Fade, AllowsTransparency = true };
+      private readonly Popup swatchPopup = new Popup { Placement = PlacementMode.Bottom, PopupAnimation = PopupAnimation.Fade, AllowsTransparency = true };
       private readonly Swatch swatch = new Swatch { Width = 230, Height = 200 };
 
       private Point interactionPoint;
@@ -50,12 +50,10 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       protected override void OnLostKeyboardFocus(KeyboardFocusChangedEventArgs e) {
          swatchPopup.IsOpen = false;
          swatch.ResultChanged -= SwatchResultChanged;
-         ViewModel.SelectionStart = -1;
          base.OnLostKeyboardFocus(e);
       }
 
       private void StartPaletteColorMove(object sender, MouseButtonEventArgs e) {
-         if (e.LeftButton == MouseButtonState.Released) return;
          swatch.ResultChanged -= SwatchResultChanged;
          Focus();
 
@@ -64,8 +62,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
          if (Keyboard.Modifiers == ModifierKeys.Shift) {
             ViewModel.SelectionEnd = tileIndex;
-         } else if (ViewModel.SelectionStart == tileIndex) {
-            ViewModel.SelectionStart = -1;
+         } else if (ViewModel.SelectionStart == tileIndex && e.LeftButton == MouseButtonState.Pressed && ViewModel.SelectionEnd == tileIndex && swatchPopup.IsOpen) {
             e.Handled = true;
             swatchPopup.IsOpen = false;
             return;
@@ -78,10 +75,12 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
          if (Keyboard.Modifiers != ModifierKeys.Shift) {
             swatch.Result = ColorFor(tileIndex);
-            swatchPopup.IsOpen = true;
             initialColors = CollectColorList();
             activeSelection = tileIndex;
-            swatch.ResultChanged += SwatchResultChanged;
+            if (e.LeftButton == MouseButtonState.Pressed) {
+               swatchPopup.IsOpen = true;
+               swatch.ResultChanged += SwatchResultChanged;
+            }
          } else {
             swatchPopup.IsOpen = false;
          }
@@ -95,6 +94,10 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var newTileIndex = InteractionTileIndex;
 
          var tilesToAnimate = ViewModel.HandleMove(oldTileIndex, newTileIndex);
+         if (oldTileIndex != newTileIndex) {
+            swatch.ResultChanged -= SwatchResultChanged;
+            swatchPopup.IsOpen = false;
+         }
 
          foreach (var (index, direction) in tilesToAnimate) {
             var tile = MainWindow.GetChild(ItemsControl, "PaletteColor", ViewModel.Elements[index]);

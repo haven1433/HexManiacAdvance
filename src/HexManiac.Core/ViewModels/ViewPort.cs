@@ -1696,6 +1696,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
                   }
                   if (run is ITableRun || run is IStreamRun) Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
+                  if (run is IPaletteRun) tools.Schedule(Tools.SpriteTool.DataForCurrentRunChanged);
                   if (completeEditOperation.MessageText != null) OnMessage?.Invoke(this, completeEditOperation.MessageText);
                   if (completeEditOperation.ErrorText != null) OnError?.Invoke(this, completeEditOperation.ErrorText);
 

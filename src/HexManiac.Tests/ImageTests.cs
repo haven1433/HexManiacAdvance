@@ -442,6 +442,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x11, Model[1]); // 00 changes to 11
       }
 
+      [Fact]
+      public void CanCreateGradientForSelectedColors() {
+         ViewPort.Edit("^palette`ucp4` 0:0:0 0:0:0 30:30:30 ");
+
+         ViewPort.Tools.SpriteTool.Colors.SelectionStart = 0;
+         ViewPort.Tools.SpriteTool.Colors.SelectionEnd = 2;
+         ViewPort.Tools.SpriteTool.Colors.CreateGradient.Execute();
+
+         var color = (UncompressedPaletteColor)ViewPort[2, 0].Format;
+         Assert.Equal("15:15:15", color.ToString());
+      }
+
       private void CreateLzRun(int start, params byte[] data) {
          for (int i = 0; i < data.Length; i++) Model[start + i] = data[i];
          var run = new LZRun(Model, start);
