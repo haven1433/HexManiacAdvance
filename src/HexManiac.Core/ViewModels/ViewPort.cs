@@ -1441,6 +1441,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             OnError?.Invoke(this, "Palettes insertion requires a no-format anchor with exactly 32 bytes of space.");
             return;
          }
+         for (int i = 0; i < 16; i++) {
+            if (Model.ReadMultiByteValue(run1.Start + i * 2, 2) >= 0x8000) {
+               OnError?.Invoke(this, $"Palette colors only use 15 bits, but the high bit it set at {run1.Start + i * 2 + 1:X6}.");
+               return;
+            }
+         }
          var currentName = Model.GetAnchorFromAddress(-1, run1.Start);
          if (string.IsNullOrEmpty(currentName)) currentName = $"pal{run1.Start:X6}";
          Model.ObserveAnchorWritten(CurrentChange, currentName, new PaletteRun(run1.Start, new PaletteFormat(4, 1)));

@@ -454,6 +454,16 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("15:15:15", color.ToString());
       }
 
+      [Fact]
+      public void AutoPaletteFailsIfHighBitsSet() {
+         ViewPort.Edit("FF FF @20 ^somedata @00 ^pal ");
+
+         var makePalette = ViewPort.GetContextMenuItems(new Point(0, 0)).Single(item => item.Text == "View as 16-color palette").Command;
+         makePalette.Execute();
+
+         Assert.NotEmpty(Errors);
+      }
+
       private void CreateLzRun(int start, params byte[] data) {
          for (int i = 0; i < data.Length; i++) Model[start + i] = data[i];
          var run = new LZRun(Model, start);

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
@@ -305,7 +306,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var myIndex = childInsertionIndex;
          Children[parentIndex].DataChanged += (sender, e) => {
             var closure_destination = model.ReadPointer(streamAddress);
-            var run = model.GetNextRun(destination) as IStreamRun;
+            var run = model.GetNextRun(closure_destination) as IStreamRun;
             IStreamArrayElementViewModel newStream = null;
 
             if (run == null || run is IStreamRun) newStream = new TextStreamElementViewModel(viewPort, model, streamAddress);
