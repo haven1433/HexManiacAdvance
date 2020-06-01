@@ -132,9 +132,15 @@
                   </MenuItem>
                </MenuItem>
                <MenuItem Header="_View">
-                  <MenuItem Header="Toggle _Matrix Grid" Command="{Binding ToggleMatrix}" InputGestureText="Ctrl+M"/>
-                  <MenuItem Header="Toggle Scroll _Animation" Command="{Binding ToggleScrollAnimation}"/>
-                  <MenuItem Header="Toggle Table Headers" Command="{Binding ToggleTableHeaders}"/>
+                  <MenuItem Header="Show _Matrix Grid" IsCheckable="True" IsChecked="{Binding ShowMatrix}" InputGestureText="Ctrl+M"/>
+                  <MenuItem Header="_Animate when Scrolling" IsCheckable="True" IsChecked="{Binding AnimateScroll}"/>
+                  <MenuItem Header="Use Table Entry Headers" IsCheckable="True" IsChecked="{Binding UseTableEntryHeaders}">
+                     <MenuItem.ToolTip>
+                        <ToolTip BorderThickness="0" Background="{DynamicResource Backlight}">
+                           <TextBlock Text="Replaces raw address with a name when possible."/>
+                        </ToolTip>
+                     </MenuItem.ToolTip>
+                  </MenuItem>
                   <MenuItem Header="Reset _Zoom" Command="{Binding ResetZoom}">
                      <MenuItem.ToolTip>
                         <ToolTip BorderThickness="0" Background="{DynamicResource Backlight}">

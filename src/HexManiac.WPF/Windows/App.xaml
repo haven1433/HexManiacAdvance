@@ -3,6 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:hsv="clr-namespace:HavenSoft.HexManiac.WPF.Resources">
    <Application.Resources>
+      <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+
       <!-- Icons accessible using IconExtension -->
       <hsv:Icons x:Key="Icons"/>
 
@@ -319,6 +321,14 @@
                               <ColumnDefinition Width="100"/>
                            </Grid.ColumnDefinitions>
                            <ContentPresenter Grid.Column="0" Margin="5,5,0,5" ContentSource="Icon" />
+                           <Border x:Name="Border" Width="13" Height="13"
+                              Background="{DynamicResource Background}" BorderThickness="1" HorizontalAlignment="Center"
+                              VerticalAlignment="Center" BorderBrush="{DynamicResource Secondary}"
+                              Visibility="{TemplateBinding IsCheckable, Converter={StaticResource BoolToVisibility}}">
+                              <Path Width="7" Height="7" StrokeThickness="2" SnapsToDevicePixels="False" 
+                                 x:Name="CheckMark" Stroke="{DynamicResource Accent}" Data="M 0 0 L 7 7 M 0 7 L 7 0" />
+                           </Border>
+
                            <ContentPresenter Grid.Column="1" Name="MainContent" Margin="10,5" VerticalAlignment="Center" ContentSource="Header" RecognizesAccessKey="True" TextBlock.Foreground="{DynamicResource Primary}" />
                            <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{TemplateBinding InputGestureText}" Foreground="{DynamicResource Secondary}" />
                         </Grid>
@@ -329,6 +339,9 @@
                            <Trigger Property="IsEnabled" Value="False">
                               <Setter TargetName="MainContent" Property="TextBlock.Foreground" Value="{DynamicResource Secondary}" />
                               <Setter TargetName="MainContent" Property="TextBlock.FontStyle" Value="Italic" />
+                           </Trigger>
+                           <Trigger Property="IsChecked" Value="False">
+                              <Setter TargetName="CheckMark" Property="Visibility" Value="Collapsed"/>
                            </Trigger>
                         </ControlTemplate.Triggers>
                      </ControlTemplate>
