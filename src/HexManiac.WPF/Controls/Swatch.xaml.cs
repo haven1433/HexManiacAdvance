@@ -20,6 +20,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          set => SetValue(ResultProperty, value);
       }
 
+      public event EventHandler<string> ResultChanged;
+
       private static void ResultPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
          var self = (Swatch)d;
          self.OnResultPropertyChanged(e);
@@ -30,6 +32,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          hsb = Theme.ToHSB(rgb.r, rgb.g, rgb.b);
          UpdateSBPickerHue();
          UpdateSelections();
+         ResultChanged?.Invoke(this, (string)e.OldValue);
       }
 
       #endregion

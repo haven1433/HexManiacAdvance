@@ -1,12 +1,14 @@
 ﻿<UserControl x:Class="HavenSoft.HexManiac.WPF.Controls.PaletteControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:hsg3hv="clr-namespace:HavenSoft.HexManiac.WPF.Controls">
+             xmlns:hsg3hv="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
+             HorizontalAlignment="Center" VerticalAlignment="Center" Focusable="True"
+             Background="Transparent"
+             MouseDown="StartPaletteColorMove" MouseMove="PaletteColorMove" MouseUp="EndPaletteColorMove">
    <UserControl.Resources>
       <hsg3hv:PaletteColorConverter x:Key="PaletteColorConverter"/>
    </UserControl.Resources>
-   <ItemsControl HorizontalAlignment="Center" SnapsToDevicePixels="True" ItemsSource="{Binding Elements}"
-      MouseDown="StartPaletteColorMove" MouseMove="PaletteColorMove" MouseUp="EndPaletteColorMove">
+   <ItemsControl Name="ItemsControl" HorizontalAlignment="Center" SnapsToDevicePixels="True" ItemsSource="{Binding Elements}">
       <ItemsControl.ContextMenu>
          <ContextMenu>
             <MenuItem Header="Copy" InputGestureText="Ctrl+C" Command="{Binding Copy}" CommandParameter="{DynamicResource FileSystem}"/>

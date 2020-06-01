@@ -33,6 +33,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
             if (!TryUpdate(ref selectionStart, value)) return;
             SelectionEnd = selectionStart;
+            if (selectionStart == -1) history.ChangeCompleted();
          }
       }
 
@@ -100,6 +101,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
          NotifyPropertyChanged(nameof(ColorWidth));
          NotifyPropertyChanged(nameof(ColorHeight));
+      }
+
+      public void PushColorsToModel() {
+         var model = viewPort.Model;
+         if (!(model.GetNextRun(sourcePalette) is IPaletteRun source)) return;
+
+         // update model
+         var newPalette = source;
+         for (int page = 0; page < source.Pages; page++) {
+            newPalette = newPalette.SetPalette(model, history.CurrentChange, page, Elements.Select(e => e.Color).ToList());
+         }
+         if (source.Start != newPalette.Start) viewPort.RaiseMessage($"Palette was moved to {newPalette.Start:X6}. Pointers were updated.");
+
+         // update UI
+         var selectionRange = (selectionStart, selectionEnd);
+         viewPort.Refresh();
+         (SelectionStart, SelectionEnd) = selectionRange;
       }
 
       private void ReorderPalette() {
@@ -195,15 +213,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (start < Elements.Count - 1) start += 1;
          }
 
-         // update model
-         var newPalette = source;
-         for (int page = 0; page < source.Pages; page++) {
-            newPalette = newPalette.SetPalette(model, history.CurrentChange, page, Elements.Select(e => e.Color).ToList());
-         }
-         if (source.Start != newPalette.Start) viewPort.RaiseMessage($"Palette was moved to {newPalette.Start:X6}. Pointers were updated.");
-
-         // update UI
-         viewPort.Refresh();
+         PushColorsToModel();
          SelectionStart = start;
       }
 
