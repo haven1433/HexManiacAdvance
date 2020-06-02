@@ -2,9 +2,11 @@
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.WPF.Controls;
+using HavenSoft.HexManiac.WPF.Windows;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -314,6 +316,15 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          using (var fileStream = File.Create(fileName)) {
             encoder.Save(fileStream);
          }
+      }
+
+      public int ShowOptions(string title, string prompt, VisualOption[] options) {
+         var collection = new ObservableCollection<VisualOption>();
+         foreach (var option in options) collection.Add(option);
+
+         var optionDialog = new OptionDialog { Title = title, Prompt = { Text = prompt }, Options = { ItemsSource = collection } };
+         optionDialog.ShowDialog();
+         return optionDialog.Result;
       }
 
       private static SolidColorBrush Brush(string name) {

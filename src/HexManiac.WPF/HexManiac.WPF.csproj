@@ -72,6 +72,9 @@
       <DependentUpon>TabView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\TileImage.cs" />
+    <Compile Include="Windows\OptionDialog.xaml.cs">
+      <DependentUpon>OptionDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Windows\ThemeSelector.xaml.cs">
       <DependentUpon>ThemeSelector.xaml</DependentUpon>
     </Compile>
@@ -138,6 +141,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="..\SharedAssemblyInfo.cs" />
+    <Page Include="Windows\OptionDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Windows\ThemeSelector.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

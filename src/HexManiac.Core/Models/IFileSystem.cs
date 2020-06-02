@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HavenSoft.HexManiac.Core.ViewModels;
+using System;
 
 namespace HavenSoft.HexManiac.Core.Models {
    public interface IFileSystem {
@@ -93,5 +94,17 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// Save this 16bit (5r5g5b) array into that file.
       /// </summary>
       void SaveImage(short[] image, short[] palette, int width);
+
+      int ShowOptions(string title, string prompt, params VisualOption[] options);
+   }
+
+   public class VisualOption : ViewModelCore {
+      private int index;
+      private string option, shortDescription, description;
+
+      public int Index { get => index; set => Set(ref index, value); }
+      public string Option { get => option; set => Set(ref option, value); }
+      public string ShortDescription { get => shortDescription; set => Set(ref shortDescription, value); }
+      public string Description { get => description; set => Set(ref description, value); }
    }
 }

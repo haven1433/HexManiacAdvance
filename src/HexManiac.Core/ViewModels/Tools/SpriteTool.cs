@@ -541,7 +541,49 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var tilePixels = tiles.Select(tile => ExtractPixelsForTile(tile, palettes, palRun.PaletteFormat.InitialBlankPages)).ToArray();
          var newPixels = Detilize(tilePixels, width / 8);
 
-         WriteSpriteAndPalette(spriteRun, newPixels, palRun, palettes, newPalette);
+         WriteSpriteAndPaletteOptions(fileSystem, spriteRun, newPixels, palRun, palettes, newPalette);
+      }
+
+      private void WriteSpriteAndPaletteOptions(IFileSystem fileSystem, ISpriteRun spriteRun, int[,] newPixels, IPaletteRun palRun, short[][] palettes, IReadOnlyList<short> newPalette) {
+         var dependentSprites = palRun.FindDependentSprites(model);
+         if (dependentSprites.Count == 1 && dependentSprites[0].Start == spriteRun.Start) {
+            var relatedPalettes = spriteRun.FindRelatedPalettes(model);
+            // easy case: a single sprite. Sprite uses the palette.
+            // there may be other palettes, but we can leave them be.
+            WriteSpriteAndPalette(spriteRun, newPixels, palRun, palettes, newPalette);
+            return;
+         }
+
+         // there are multiple sprites
+         var choice = fileSystem.ShowOptions("Import Sprite",
+            $"This palette is used by {dependentSprites.Count} images. How do you want to handle the import?",
+            new VisualOption {
+               Option = "Smart",
+               ShortDescription = "Fix Incompatibilites Automatically",
+               Description = "Balance the look of the new image with other images already using this palette.",
+               Index = 0
+            },
+            new VisualOption {
+               Option = "Greedy",
+               ShortDescription = "Ignore other sprites",
+               Description = "Ignore other images that use this palette. They'll probably look broken and that's ok.",
+               Index = 1
+            },
+            new VisualOption {
+               Option = "Cautious",
+               ShortDescription = "Don't change palette",
+               Description = "Match the new image to the existing palette as closely as possible.",
+               Index = 2
+            });
+
+         if (choice == -1) return;
+
+         if (choice == 1) {
+            WriteSpriteAndPalette(spriteRun, newPixels, palRun, palettes, newPalette);
+            return;
+         }
+
+         throw new NotImplementedException();
       }
 
       private void WriteSpriteAndPalette(ISpriteRun spriteRun, int[,] newPixels, IPaletteRun palRun, short[][]palettes, IReadOnlyList<short> newPalette) {
