@@ -541,6 +541,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var tilePixels = tiles.Select(tile => ExtractPixelsForTile(tile, palettes, palRun.PaletteFormat.InitialBlankPages)).ToArray();
          var newPixels = Detilize(tilePixels, width / 8);
 
+         WriteSpriteAndPalette(spriteRun, newPixels, palRun, palettes, newPalette);
+      }
+
+      private void WriteSpriteAndPalette(ISpriteRun spriteRun, int[,] newPixels, IPaletteRun palRun, short[][]palettes, IReadOnlyList<short> newPalette) {
          IFormattedRun newRun = spriteRun.SetPixels(model, viewPort.CurrentChange, spritePage, newPixels);
          bool spriteMoved = newRun.Start != spriteRun.Start;
 
