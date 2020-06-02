@@ -135,7 +135,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var paletteAddress = SpriteTool.FindMatchingPalette(model, run, 0);
             var paletteRun = model.GetNextRun(paletteAddress) as IPaletteRun;
             var palette = paletteRun?.GetPalette(model, paletteRun.PaletteFormat.InitialBlankPages) ?? TileViewModel.CreateDefaultPalette(16);
-            var image = SpriteTool.Render(sprite, palette, paletteRun?.PaletteFormat ?? default);
+            var image = SpriteTool.Render(sprite, palette, paletteRun?.PaletteFormat ?? default, 0);
             var option = ComboOption.CreateFromSprite(image, sprite.GetLength(0));
             imageOptions.Add(option);
          }

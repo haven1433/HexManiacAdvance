@@ -209,7 +209,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void ExecutePaste(IFileSystem fileSystem) {
          var model = viewPort.Model;
-         if (!(model.GetNextRun(sourcePalette) is IPaletteRun source)) return;
+         if (!(model.GetNextRun(sourcePalette) is IPaletteRun)) return;
 
          // paste data into elements
          var colors = ParseColor(fileSystem.CopyText);
@@ -228,8 +228,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void ExecuteCreateGradient() {
          var left = Math.Min(SelectionStart, SelectionEnd);
-         var leftRGB = UncompressedPaletteColor.ToRGB(Elements[left].Color);
-         var leftHSB = Theme.ToHSB((byte)(leftRGB.r << 3), (byte)(leftRGB.g << 3), (byte)(leftRGB.b << 3));
+         var (r, g, b) = UncompressedPaletteColor.ToRGB(Elements[left].Color);
+         var leftHSB = Theme.ToHSB((byte)(r << 3), (byte)(g << 3), (byte)(b << 3));
 
          var right = Math.Max(SelectionStart, SelectionEnd);
          var rightRGB = UncompressedPaletteColor.ToRGB(Elements[right].Color);
@@ -245,8 +245,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var hue = leftHSB.hue + deltaHue * part;
             var sat = leftHSB.sat + deltaSat * part;
             var bright = leftHSB.bright + deltaBright * part;
-            var rgb = Theme.FromHSB(hue, sat, bright);
-            Elements[left + i].Color = UncompressedPaletteColor.Pack(rgb.red >> 3, rgb.green >> 3, rgb.blue >> 3);
+            var (red, green, blue) = Theme.FromHSB(hue, sat, bright);
+            Elements[left + i].Color = UncompressedPaletteColor.Pack(red >> 3, green >> 3, blue >> 3);
          }
 
          PushColorsToModel();

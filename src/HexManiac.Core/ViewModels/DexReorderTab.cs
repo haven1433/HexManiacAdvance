@@ -282,7 +282,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          CanonicalIndex = index;
          PixelWidth = sprite.GetLength(0);
          PixelHeight = sprite.GetLength(1);
-         PixelData = SpriteTool.Render(sprite, palette, new PaletteFormat(4, 1));
+         PixelData = SpriteTool.Render(sprite, palette, new PaletteFormat(4, 1), 0);
          SpriteScale = 1;
 
          filterTerms = GenerateFilterTerms(model, index);

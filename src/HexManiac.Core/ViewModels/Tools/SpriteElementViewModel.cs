@@ -56,7 +56,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          lastPixels = pixels;
          lastColors = palette;
          if (!(run is LzTilemapRun)) paletteFormat = default;
-         PixelData = SpriteTool.Render(pixels, palette, paletteFormat);
+
+         PixelData = SpriteTool.Render(pixels, palette, paletteFormat, CurrentPage);
+         
          NotifyPropertyChanged(nameof(PixelWidth));
          NotifyPropertyChanged(nameof(PixelHeight));
          NotifyPropertyChanged(nameof(PixelData));
@@ -129,8 +131,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var paletteIndex = Model.ReadMultiByteValue(indexRun.Start + indexRun.ElementLength * arrayIndex, segment.Length);
 
          // find the pointer to our palette
-         var array = Model.GetNextRun(Model.GetAddressFromAnchor(ViewPort.CurrentChange, -1, paletteTable)) as ArrayRun;
-         if (array == null) return false;
+         if (!(Model.GetNextRun(Model.GetAddressFromAnchor(ViewPort.CurrentChange, -1, paletteTable)) is ArrayRun array)) return false;
          if (array.ElementContent[0].Type != ElementContentType.Pointer) return false;
          var pointer = array.Start + array.ElementLength * paletteIndex;
 

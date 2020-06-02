@@ -333,8 +333,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public BitArray(int source, int position, int length) => (Source, Position, Length) = (source, position, length);
 
       public bool Equals(IDataFormat other) {
-         var that = other as BitArray;
-         if (that == null) return false;
+         if (!(other is BitArray that)) return false;
          return Source == that.Source && Position == that.Position;
       }
 
@@ -352,8 +351,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public MatchedWord(int source, int position, string name) => (Source, Position, Name) = (source, position, name);
 
       public bool Equals(IDataFormat other) {
-         var that = other as MatchedWord;
-         if (that == null) return false;
+         if (!(other is MatchedWord that)) return false;
          return Source == that.Source && Position == that.Position;
       }
 

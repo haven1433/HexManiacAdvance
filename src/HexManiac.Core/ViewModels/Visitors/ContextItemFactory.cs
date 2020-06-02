@@ -69,9 +69,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             Results.Add(new ContextItem("Open in New Tab", arg => ViewPort.OpenInNewTab(pointerDestination)));
          }
 
-         var arrayRun = ViewPort.Model.GetNextRun(pointerAddress) as ITableRun;
-         if (arrayRun != null && arrayRun.Start <= pointerAddress) Results.AddRange(GetTableChildren(arrayRun));
-         else Results.AddRange(GetFormattedChildren());
+         if (ViewPort.Model.GetNextRun(pointerAddress) is ITableRun arrayRun && arrayRun.Start <= pointerAddress) {
+            Results.AddRange(GetTableChildren());
+         } else {
+            Results.AddRange(GetFormattedChildren());
+         }
       }
 
       public void Visit(Anchor anchor, byte data) {
@@ -111,9 +113,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Results.Add(new ContextItem("Open In Text Tool", arg => ViewPort.FollowLink(point.X, point.Y)) { ShortcutText = "Ctrl+Click" });
 
          var address = ViewPort.ConvertViewPointToAddress(point);
-         var arrayRun = ViewPort.Model.GetNextRun(address) as ITableRun;
-         if (arrayRun != null && arrayRun.Start <= address) Results.AddRange(GetTableChildren(arrayRun));
-         else Results.AddRange(GetFormattedChildren());
+         if (ViewPort.Model.GetNextRun(address) is ITableRun arrayRun && arrayRun.Start <= address) {
+            Results.AddRange(GetTableChildren());
+         } else {
+            Results.AddRange(GetFormattedChildren());
+         }
       }
 
       public void Visit(EscapedPCS pcs, byte data) => Visit((PCS)null, data);
@@ -123,18 +127,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(Ascii ascii, byte data) => Results.AddRange(GetFormattedChildren());
 
       public void Visit(Integer integer, byte data) {
-         var arrayRun = ViewPort.Model.GetNextRun(ViewPort.Tools.TableTool.Address) as ITableRun;
-         if (arrayRun != null) {
-            Results.AddRange(GetTableChildren(arrayRun));
+         if (ViewPort.Model.GetNextRun(ViewPort.Tools.TableTool.Address) is ITableRun) {
+            Results.AddRange(GetTableChildren());
          } else {
             Results.AddRange(GetFormattedChildren());
          }
       }
 
-      public void Visit(IntegerEnum integer, byte data) {
-         var arrayRun = (ITableRun)ViewPort.Model.GetNextRun(ViewPort.Tools.TableTool.Address);
-         Results.AddRange(GetTableChildren(arrayRun));
-      }
+      public void Visit(IntegerEnum integer, byte data) => Results.AddRange(GetTableChildren());
 
       public void Visit(EggSection section, byte data) => Visit((EggItem)null, data);
 
@@ -150,10 +150,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Results.AddRange(GetFormattedChildren());
       }
 
-      public void Visit(BitArray array, byte data) {
-         var arrayRun = (ITableRun)ViewPort.Model.GetNextRun(ViewPort.Tools.TableTool.Address);
-         Results.AddRange(GetTableChildren(arrayRun));
-      }
+      public void Visit(BitArray array, byte data) => Results.AddRange(GetTableChildren());
 
       public void Visit(MatchedWord word, byte data) => Results.AddRange(GetFormattedChildren());
 
@@ -161,7 +158,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(UncompressedPaletteColor color, byte data) => Results.AddRange(GetFormattedChildren());
 
-      private IEnumerable<IContextItem> GetTableChildren(ITableRun array) {
+      private IEnumerable<IContextItem> GetTableChildren() {
          if (ViewPort.Tools.TableTool.Append.CanExecute(null)) {
             yield return new ContextItem("Extend Table", ViewPort.Tools.TableTool.Append.Execute);
          }
@@ -174,16 +171,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          yield return new ContextItem("Clear Format", arg => ViewPort.ClearAnchor());
       }
 
-      public void Visit(LzMagicIdentifier lz, byte data) => VisitLzFormat(lz, data);
+      public void Visit(LzMagicIdentifier lz, byte data) => VisitLzFormat();
 
-      public void Visit(LzGroupHeader lz, byte data) => VisitLzFormat(lz, data);
+      public void Visit(LzGroupHeader lz, byte data) => VisitLzFormat();
 
-      public void Visit(LzCompressed lz, byte data) => VisitLzFormat(lz, data);
+      public void Visit(LzCompressed lz, byte data) => VisitLzFormat();
 
-      public void Visit(LzUncompressed lz, byte data) => VisitLzFormat(lz, data);
+      public void Visit(LzUncompressed lz, byte data) => VisitLzFormat();
 
-      private void VisitLzFormat(IDataFormat format, byte data) {
-         Results.AddRange(GetFormattedChildren());
-      }
+      private void VisitLzFormat() => Results.AddRange(GetFormattedChildren());
    }
 }

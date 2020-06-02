@@ -108,10 +108,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          var quoteCount = CurrentText.Count(c => c == '"');
 
          if (quoteCount == 0 && char.IsWhiteSpace(CurrentText.Last())) {
-            CompleteIntegerEnumEdit(integer);
+            CompleteIntegerEnumEdit();
             Result = true;
          } else if (quoteCount == 2) {
-            CompleteIntegerEnumEdit(integer);
+            CompleteIntegerEnumEdit();
             Result = true;
          }
       }
@@ -152,7 +152,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (initialItemValue == 0xFFFF) {
             var newRun = Model.RelocateForExpansion(CurrentChange, run, run.Length + 2);
             if (newRun.Start != run.Start) {
-               MessageText = $"Level Up Moves were automatically moved to {newRun.Start.ToString("X6")}. Pointers were updated.";
+               MessageText = $"Level Up Moves were automatically moved to {newRun.Start:X6}. Pointers were updated.";
                memoryLocation += newRun.Start - run.Start;
                NewDataIndex = memoryLocation + 2;
                DataMoved = true;
@@ -176,12 +176,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (CurrentText.EndsWith(" ") && !CurrentText.StartsWith("\"")) {
             currentText = CurrentText.Replace(" ", "");
             if (!currentText.All(ViewPort.AllHexCharacters.Contains)) {
-               HandleBitArrayEntry(array, CurrentText);
+               HandleBitArrayEntry(CurrentText);
                return;
             }
          }
          if (CurrentText.StartsWith("\"") && CurrentText.EndsWith("\"") && CurrentText.Length > 1) {
-            HandleBitArrayEntry(array, CurrentText);
+            HandleBitArrayEntry(CurrentText);
             return;
          }
       }
@@ -195,7 +195,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          var newRun = run.Append(CurrentChange, 1);
 
          if (newRun.Start != run.Start) {
-            MessageText = $"Stream was automatically moved to {newRun.Start.ToString("X6")}. Pointers were updated.";
+            MessageText = $"Stream was automatically moved to {newRun.Start:X6}. Pointers were updated.";
             NewDataIndex = memoryLocation + newRun.Start - run.Start;
             DataMoved = true;
          }
@@ -343,7 +343,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          NewDataIndex = run.Start + runIndex + integer.Length;
       }
 
-      private void CompleteIntegerEnumEdit(IntegerEnum integer) {
+      private void CompleteIntegerEnumEdit() {
          var array = (ITableRun)Model.GetNextRun(memoryLocation);
          var offsets = array.ConvertByteOffsetToArrayOffset(memoryLocation);
          var segment = (ArrayRunEnumSegment)array.ElementContent[offsets.SegmentIndex];
@@ -410,7 +410,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
             NewDataIndex = memoryLocation + 4;
          } else {
-            ErrorText = $"Address {fullValue.ToString("X2")} is not within the data.";
+            ErrorText = $"Address {fullValue:X2} is not within the data.";
          }
       }
 
@@ -428,7 +428,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
          // all the bytes are already correct, just move to the next space
          var run = Model.GetNextRun(memoryLocation);
-         if (run is PCSRun pcsRun) {
+         if (run is PCSRun) {
             while (run.Start + run.Length > memoryLocation) {
                CurrentChange.ChangeData(Model, memoryLocation, 0xFF);
                memoryLocation++;
@@ -452,7 +452,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       private void CompleteCharacterEdit(IDataFormat originalFormat) {
          var editText = CurrentText;
          if (editText.StartsWith("\"")) editText = editText.Substring(1);
-         var pcs = originalFormat as IDataFormatStreamInstance;
          var escaped = originalFormat as EscapedPCS;
          var run = Model.GetNextRun(memoryLocation);
 
@@ -460,7 +459,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             byte.Parse(CurrentText, NumberStyles.HexNumber) :
             (byte)Enumerable.Range(0, 0x100).First(i => PCSString.PCS[i] == editText);
 
-         var position = pcs == null ? escaped.Position : pcs.Position;
+         var position = originalFormat is IDataFormatStreamInstance pcs ? pcs.Position : escaped.Position;
          HandleLastCharacterChange(memoryLocation, editText, run, position, byteValue);
       }
 
@@ -472,7 +471,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                // last character edit: might require relocation
                var newRun = Model.RelocateForExpansion(CurrentChange, run, run.Length + extraBytesNeeded);
                if (newRun != run) {
-                  MessageText = $"Text was automatically moved to {newRun.Start.ToString("X6")}. Pointers were updated.";
+                  MessageText = $"Text was automatically moved to {newRun.Start:X6}. Pointers were updated.";
                   memoryLocation += newRun.Start - run.Start;
                   run = newRun;
                   DataMoved = true;
@@ -562,7 +561,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (initialItemValue == 0xFFFF) {
             var newRun = Model.RelocateForExpansion(CurrentChange, run, run.Length + 2);
             if (newRun.Start != run.Start) {
-               MessageText = $"Egg Moves were automatically moved to {newRun.Start.ToString("X6")}. Pointers were updated.";
+               MessageText = $"Egg Moves were automatically moved to {newRun.Start:X6}. Pointers were updated.";
                memoryLocation += newRun.Start - run.Start;
                NewDataIndex = memoryLocation + 2;
                DataMoved = true;
@@ -597,7 +596,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Result = true;
       }
 
-      private void HandleBitArrayEntry(BitArray array, string currentText) {
+      private void HandleBitArrayEntry(string currentText) {
          currentText = currentText.Replace("\"", "").Trim();
          var run = (ITableRun)Model.GetNextRun(memoryLocation);
          var offset = run.ConvertByteOffsetToArrayOffset(memoryLocation);
@@ -635,7 +634,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          var initialStart = run.Start;
          run = run.FixupEnd(Model, CurrentChange);
          Model.ObserveRunWritten(CurrentChange, run);
-         if (run.Start != initialStart) MessageText = $"LZ Compressed data was automatically moved to {run.Start.ToString("X6")}. Pointers were updated.";
+         if (run.Start != initialStart) MessageText = $"LZ Compressed data was automatically moved to {run.Start:X6}. Pointers were updated.";
          return run;
       }
    }

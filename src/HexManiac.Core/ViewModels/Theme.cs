@@ -190,7 +190,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    public static class Extensions {
       public static string ToHexString(this (byte red, byte green, byte blue) rgb) {
          var (red, green, blue) = rgb;
-         return $"#{red.ToString("X2")}{green.ToString("X2")}{blue.ToString("X2")}";
+         return $"#{red:X2}{green:X2}{blue:X2}";
       }
 
       public static (byte, byte, byte) ToRgb(this (double hue, double sat, double bright) hsb) => Theme.FromHSB(hsb.hue, hsb.sat, hsb.bright);

@@ -118,12 +118,9 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private (double hueDif, double satDif, double brightDif) GetColorDif(Color newColor) {
          var oldColor = TileImage.Convert16BitColor(initialColors[activeSelection]);
-         var newHSB = Theme.ToHSB(newColor.R, newColor.G, newColor.B);
-         var oldHSB = Theme.ToHSB(oldColor.R, oldColor.G, oldColor.B);
-         var hueDif = newHSB.hue - oldHSB.hue;
-         var satDif = newHSB.sat - oldHSB.sat;
-         var brightDif = newHSB.bright - oldHSB.bright;
-         return (hueDif, satDif, brightDif);
+         var (hue, sat, bright) = Theme.ToHSB(newColor.R, newColor.G, newColor.B);
+         var (oldHue, oldSat, oldBright) = Theme.ToHSB(oldColor.R, oldColor.G, oldColor.B);
+         return (hue - oldHue, sat - oldSat, bright - oldBright);
       }
 
       /// <summary>
@@ -131,12 +128,12 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       /// </summary>
       private short ApplyDif(int index, (double hueDif, double satDif, double brightDif) colorDif) {
          var originalColor = TileImage.Convert16BitColor(initialColors[index]);
-         var hsb = Theme.ToHSB(originalColor.R, originalColor.G, originalColor.B);
-         hsb.hue += colorDif.hueDif;
-         hsb.sat += colorDif.satDif;
-         hsb.bright += colorDif.brightDif;
-         var currentRGB = Theme.FromHSB(hsb.hue, hsb.sat, hsb.bright);
-         var newColor = Color.FromRgb(currentRGB.red, currentRGB.green, currentRGB.blue);
+         var (hue, sat, bright) = Theme.ToHSB(originalColor.R, originalColor.G, originalColor.B);
+         hue += colorDif.hueDif;
+         sat += colorDif.satDif;
+         bright += colorDif.brightDif;
+         var (red, green, blue) = Theme.FromHSB(hue, sat, bright);
+         var newColor = Color.FromRgb(red, green, blue);
          return TileImage.Convert16BitColor(newColor);
       }
 

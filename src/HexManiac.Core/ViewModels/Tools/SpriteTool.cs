@@ -366,16 +366,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          LoadPalette();
       }
 
-      public static short[] Render(int[,] pixels, IReadOnlyList<short> palette, PaletteFormat format) {
+      public static short[] Render(int[,] pixels, IReadOnlyList<short> palette, PaletteFormat format, int spritePage) {
          if (pixels == null) return new short[0];
          if (palette == null) palette = TileViewModel.CreateDefaultPalette(16);
          var data = new short[pixels.Length];
          var width = pixels.GetLength(0);
-         var pixelOffset = format.InitialBlankPages << 4;
+         var palettePageOffset = format.InitialBlankPages << 4;
+         var spritePageOffset = (spritePage << 4) + palettePageOffset;
          for (int i = 0; i < data.Length; i++) {
             var pixel = pixels[i % width, i / width];
-            while (pixel < pixelOffset) pixel += pixelOffset;
-            var pixelIntoPalette = Math.Max(0, pixel - pixelOffset);
+            while (pixel < spritePageOffset) pixel += spritePageOffset;
+            var pixelIntoPalette = Math.Max(0, pixel - palettePageOffset);
             data[i] = palette[pixelIntoPalette % palette.Count];
          }
          return data;
@@ -393,7 +394,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             PixelHeight = pixels.GetLength(1);
          }
          var renderPalette = GetRenderPalette(run);
-         PixelData = Render(pixels, renderPalette, paletteFormat);
+         PixelData = Render(pixels, renderPalette, paletteFormat, spritePage);
          NotifyPropertyChanged(nameof(PixelWidth));
          NotifyPropertyChanged(nameof(PixelHeight));
          prevSpritePage.CanExecuteChanged.Invoke(prevSpritePage, EventArgs.Empty);
@@ -439,7 +440,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          Colors.SourcePalette = paletteAddress;
          Colors.SetContents(palette);
-         PixelData = Render(pixels, GetRenderPalette(model?.GetNextRun(spriteAddress) as ISpriteRun), paletteFormat);
+         PixelData = Render(pixels, GetRenderPalette(model?.GetNextRun(spriteAddress) as ISpriteRun), paletteFormat, spritePage);
          NotifyPropertyChanged(nameof(PixelData));
       }
 
