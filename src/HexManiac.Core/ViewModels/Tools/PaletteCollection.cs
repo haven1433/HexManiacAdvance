@@ -50,6 +50,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
+      private int page;
+      public int Page { get => page; set => Set(ref page, value); }
+
+      private bool hasMultiplePages;
+      public bool HasMultiplePages { get => hasMultiplePages; set => Set(ref hasMultiplePages, value); }
+
       private StubCommand copy;
       public ICommand Copy => StubCommand<IFileSystem>(ref copy, ExecuteCopy, CanExecuteCopy);
 
@@ -58,6 +64,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private StubCommand createGradient;
       public ICommand CreateGradient => StubCommand(ref createGradient, ExecuteCreateGradient, CanExecuteCreateGradient);
+
+      public event EventHandler<int> RequestPageSet;
 
       public PaletteCollection(ViewPort viewPort, ChangeHistory<ModelDelta> history) {
          this.viewPort = viewPort;
@@ -114,14 +122,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          // update model
          var newPalette = source;
-         for (int page = 0; page < source.Pages; page++) {
-            newPalette = newPalette.SetPalette(model, history.CurrentChange, page, Elements.Select(e => e.Color).ToList());
-         }
+         newPalette = newPalette.SetPalette(model, history.CurrentChange, page, Elements.Select(e => e.Color).ToList());
          if (source.Start != newPalette.Start) viewPort.RaiseMessage($"Palette was moved to {newPalette.Start:X6}. Pointers were updated.");
 
          // update UI
          var selectionRange = (selectionStart, selectionEnd);
-         viewPort.Refresh();
+         Refresh();
          (SelectionStart, SelectionEnd) = selectionRange;
       }
 
@@ -142,31 +148,40 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var palettesToUpdate = new List<IPaletteRun> { source };
          foreach (var sprite in source.FindDependentSprites(model).Distinct()) {
             var newSprite = sprite;
+
+            // TODO this doesn't currently work for tilemaps with multiple palettes, such as the first-person-views
             for (int page = 0; page < newSprite.Pages; page++) {
-               var pixels = newSprite.GetPixels(model, page);
+               if (hasMultiplePages) page += this.page;
+               var pixels = newSprite.GetPixels(model, page % newSprite.Pages);
                for (int y = 0; y < pixels.GetLength(1); y++) {
                   for (int x = 0; x < pixels.GetLength(0); x++) {
                      pixels[x, y] = oldToNew[pixels[x, y]];
                   }
                }
-               newSprite = newSprite.SetPixels(model, history.CurrentChange, page, pixels);
+               newSprite = newSprite.SetPixels(model, history.CurrentChange, page % newSprite.Pages, pixels);
+               if (hasMultiplePages) break;
             }
+
             if (newSprite.Start != sprite.Start) viewPort.RaiseMessage($"Sprite was moved to {newSprite.Start:X6}. Pointers were updated.");
             palettesToUpdate.AddRange(newSprite.FindRelatedPalettes(model));
          }
 
          foreach (var palette in palettesToUpdate.Distinct()) {
             var newPalette = palette;
-            for (int page = 0; page < newPalette.Pages; page++) {
-               var colors = newPalette.GetPalette(model, page);
-               var newColors = Enumerable.Range(0, Elements.Count).Select(i => colors[Elements[i].Index]).ToList();
-               newPalette = newPalette.SetPalette(model, history.CurrentChange, page, newColors);
-            }
+            var colors = newPalette.GetPalette(model, page);
+            var newColors = Enumerable.Range(0, Elements.Count).Select(i => colors[Elements[i].Index]).ToList();
+            newPalette = newPalette.SetPalette(model, history.CurrentChange, page, newColors);
             if (palette.Start != newPalette.Start) viewPort.RaiseMessage($"Palette was moved to {newPalette.Start:X6}. Pointers were updated.");
          }
 
-         viewPort.Refresh();
+         Refresh();
          for (int i = 0; i < Elements.Count; i++) Elements[i].Selected = newElements[i].Selected;
+      }
+
+      private void Refresh() {
+         var currentPage = page;
+         viewPort.Refresh();
+         if (hasMultiplePages) RequestPageSet?.Invoke(this, currentPage);
       }
 
       #region Commands

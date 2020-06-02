@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
+using System;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class PaletteElementViewModel : PagedElementViewModel, IPagedViewModel {
@@ -15,6 +16,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          var table = (ITableRun)viewPort.Model.GetNextRun(itemAddress);
          Colors = new PaletteCollection(viewPort, history);
+         Colors.RequestPageSet += HandleColorsPageSet;
          TableName = viewPort.Model.GetAnchorFromAddress(-1, table.Start);
          var destination = Model.ReadPointer(Start);
          var run = viewPort.Model.GetNextRun(destination) as IPaletteRun;
@@ -51,6 +53,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var run = ViewPort.Model.GetNextRun(destination) as IPaletteRun;
          Colors.SourcePalette = run.Start;
          Colors.SetContents(run.GetPalette(Model, page));
+         Colors.Page = page;
+         Colors.HasMultiplePages = Pages > 1;
+      }
+
+      private void HandleColorsPageSet(object sender, int page) {
+         foreach (var child in ViewPort.Tools.TableTool.Children) {
+            if (!(child is IPagedViewModel pvm)) continue;
+            if (pvm.Pages != Pages) continue;
+            pvm.CurrentPage = page;
+         }
       }
    }
 }

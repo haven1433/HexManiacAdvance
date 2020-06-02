@@ -440,6 +440,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          Colors.SourcePalette = paletteAddress;
          Colors.SetContents(palette);
+         Colors.Page = palPage;
+         Colors.HasMultiplePages = palPages > 1;
          PixelData = Render(pixels, GetRenderPalette(model?.GetNextRun(spriteAddress) as ISpriteRun), paletteFormat, spritePage);
          NotifyPropertyChanged(nameof(PixelData));
       }
