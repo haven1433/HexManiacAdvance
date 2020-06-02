@@ -473,7 +473,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          using (ModelCacheScope.CreateScope(this)) {
             var index = (address - array.Start) / array.ElementLength;
-            if (array.ElementNames.Count == 0) return false;
+            if (array.ElementNames.Count <= index) return false;
             header = array.ElementNames[index];
          }
 
