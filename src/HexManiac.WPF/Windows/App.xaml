@@ -71,6 +71,7 @@
          </Setter>
       </Style>
 
+      <!-- Expander Style -->
       <Style TargetType="Expander">
          <Setter Property="BorderBrush" Value="{DynamicResource Secondary}"/>
          <Setter Property="BorderThickness" Value="1"/>
@@ -79,7 +80,7 @@
          <Setter Property="Template">
             <Setter.Value>
                <ControlTemplate TargetType="Expander">
-                  <DockPanel>
+                  <DockPanel Background="Transparent">
                      <ToggleButton Name="HeaderSite" DockPanel.Dock="Left" BorderThickness="0" Background="Transparent" Width="NaN"
                         IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
                         <StackPanel Orientation="Horizontal">
@@ -108,7 +109,7 @@
          </Setter>
       </Style>
       
-      <!-- Tool Tip Style -->
+      <!-- ToolTip Style -->
       <Style TargetType="ToolTip">
          <Setter Property="Background" Value="{DynamicResource Backlight}"/>
          <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
@@ -463,26 +464,33 @@
       <!-- TextBox Style -->
       <Style TargetType="TextBox">
          <Setter Property="Background" Value="{DynamicResource Backlight}"/>
-         <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
          <Setter Property="Foreground" Value="{DynamicResource Primary}"/>
          <Setter Property="SelectionBrush" Value="{DynamicResource Accent}"/>
          <Setter Property="Template">
             <Setter.Value>
                <ControlTemplate TargetType="TextBox">
-                  <Border Name="Border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
-                     <ScrollViewer Foreground="{TemplateBinding Foreground}" x:Name="PART_ContentHost" />
+                  <Border Name="OuterBorder" BorderThickness="1,1,0,0">
+                     <Border Name="Border" BorderBrush="{DynamicResource Secondary}" BorderThickness="0,0,1,1" Background="{TemplateBinding Background}">
+                        <ScrollViewer Foreground="{TemplateBinding Foreground}" x:Name="PART_ContentHost" />
+                     </Border>
                   </Border>
+                  <ControlTemplate.Triggers>
+                     <Trigger Property="IsKeyboardFocused" Value="True">
+                        <Setter TargetName="OuterBorder" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                        <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                     </Trigger>
+                     <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                     </Trigger>
+                     <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Background" Value="{DynamicResource Background}"/>
+                        <Setter Property="Foreground" Value="{DynamicResource Secondary}"/>
+                        <Setter Property="Opacity" Value=".5"/>
+                     </Trigger>
+                  </ControlTemplate.Triggers>
                </ControlTemplate>
             </Setter.Value>
          </Setter>
-         <Style.Triggers>
-            <Trigger Property="IsEnabled" Value="False">
-               <Setter Property="Background" Value="{DynamicResource Background}"/>
-               <Setter Property="BorderBrush" Value="{DynamicResource Secondary}"/>
-               <Setter Property="Foreground" Value="{DynamicResource Secondary}"/>
-               <Setter Property="Opacity" Value=".5"/>
-            </Trigger>
-         </Style.Triggers>
       </Style>
 
       <!-- TabContol Styles -->
