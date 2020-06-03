@@ -78,6 +78,18 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             InvalidateVisual();
             CursorNeedsUpdate?.Invoke(this, EventArgs.Empty);
          }
+
+         var propertyChangesThatRequireResize = new[] {
+            nameof(IViewPort.StretchData),
+            nameof(IViewPort.AllowMultipleElementsPerLine),
+            nameof(Core.ViewModels.ViewPort.PreferredWidth),
+         };
+
+         if (propertyChangesThatRequireResize.Contains(e.PropertyName)) {
+            UpdateViewPortSize();
+            InvalidateVisual();
+            CursorNeedsUpdate?.Invoke(this, EventArgs.Empty);
+         }
       }
 
       private void OnViewPortRequestMenuClose(object sender, EventArgs e) {
@@ -554,8 +566,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          ViewPort.Height = (int)(ActualHeight / CellHeight);
 
          // add extra width to the cells as able
-         var extraWidth = ActualWidth - ViewPort.Width * CellWidth;
-         if (extraWidth > 0) CellWidth += (int)(extraWidth / ViewPort.Width);
+         var extraWidth = Math.Min(ActualWidth - ViewPort.Width * CellWidth, ViewPort.Width * CellWidth);
+         if (extraWidth > 0 && ViewPort.StretchData) CellWidth += (int)(extraWidth / ViewPort.Width);
 
          // add horizontal scrolling if needed
          var requiredSize = ViewPort.Width * CellWidth;

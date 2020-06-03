@@ -80,6 +80,7 @@
       <PathGeometry x:Name="Exit" Figures="m0,0 l -1,-1 1,-1 1,1 1,-1 1,1 -1,1 1,1 -1,1 -1,-1 -1,1 -1,-1 1,-1"/>
       <PathGeometry x:Name="Tiles" Figures="m0,0 L5,0 5,5 0,5 z M7,0 L12,0 12,5 7,5 z M0,7 L5,7 5,12 0,12 z M7,7 L12,7 12,12 7,12 z"/>
       <PathGeometry x:Name="List" Figures="m0,0 L5,0 5,5 0,5 z M0,7 L5,7 5,12 0,12 z M0,14 L5,14 5,19 0,19 z M7,2 L19,2 19,3 7,3 z M7,9 l12,0 0,1 -12,0 z m0,6 l12,0 0,1 -12,0 z"/>
+      <PathGeometry x:Name="MultiList" Figures="M0,0 l12,0 0,1 -12,0 z M15,0 l12,0 0,1 -12,0 z M0,5 l12,0 0,1 -12,0 z M0,10 l12,0 0,1 -12,0 z M15,5 l12,0 0,1 -12,0 z M15,10 l12,0 0,1 -12,0 z"/>
       <GeometryGroup x:Name="Camera">
          <RectangleGeometry Rect="0,0,50,30" RadiusX="5" RadiusY="5"/>
          <RectangleGeometry Rect="30,-6,12,6"/>

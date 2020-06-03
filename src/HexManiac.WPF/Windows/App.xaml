@@ -37,6 +37,84 @@
          </Setter>
       </Style>
 
+      <Style TargetType="ToggleButton">
+         <Setter Property="BorderBrush" Value="{DynamicResource Backlight}"/>
+         <Setter Property="Background" Value="{DynamicResource Backlight}"/>
+         <Setter Property="BorderThickness" Value="1"/>
+         <Setter Property="Foreground" Value="{DynamicResource Primary}"/>
+         <Setter Property="Template">
+            <Setter.Value>
+               <ControlTemplate TargetType="ToggleButton">
+                  <Border Name="Border"
+                     Padding="{TemplateBinding Padding}"
+                     BorderThickness="{TemplateBinding BorderThickness}"
+                     BorderBrush="{TemplateBinding BorderBrush}"
+                     Background="{TemplateBinding Background}">
+                     <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                  </Border>
+                  <ControlTemplate.Triggers>
+                     <Trigger Property="IsChecked" Value="True">
+                        <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource Secondary}"/>
+                     </Trigger>
+                     <Trigger Property="IsChecked" Value="False">
+                        <Setter Property="Foreground" Value="{DynamicResource Secondary}"/>
+                     </Trigger>
+                     <Trigger SourceName="Border" Property="IsMouseOver" Value="True">
+                        <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                     </Trigger>
+                     <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Background" Value="{DynamicResource Background}"/>
+                     </Trigger>
+                  </ControlTemplate.Triggers>
+               </ControlTemplate>
+            </Setter.Value>
+         </Setter>
+      </Style>
+
+      <Style TargetType="Expander">
+         <Setter Property="BorderBrush" Value="{DynamicResource Secondary}"/>
+         <Setter Property="BorderThickness" Value="1"/>
+         <Setter Property="Foreground" Value="{DynamicResource Primary}"/>
+         <Setter Property="Background" Value="{DynamicResource Backlight}"/>
+         <Setter Property="Template">
+            <Setter.Value>
+               <ControlTemplate TargetType="Expander">
+                  <DockPanel>
+                     <ToggleButton Name="HeaderSite" DockPanel.Dock="Left" BorderThickness="0" Background="Transparent" Width="NaN"
+                        IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                        <StackPanel Orientation="Horizontal">
+                           <Grid>
+                              <Ellipse Name="circle" Stroke="{TemplateBinding BorderBrush}" StrokeThickness="{TemplateBinding BorderThickness}" Fill="{TemplateBinding Background}"/>
+                              <Path Name="arrow" RenderTransformOrigin=".5,.5" Data="{hsv:Icon RightArrow}" Fill="{TemplateBinding Foreground}" Margin="3"/>
+                           </Grid>
+                           <ContentPresenter ContentSource="Header" Margin="3,0"/>
+                        </StackPanel>
+                     </ToggleButton>
+                     <ContentPresenter Name="ExpanderSite" Visibility="{TemplateBinding IsExpanded, Converter={StaticResource BoolToVisibility}}"/>
+                  </DockPanel>
+                  <ControlTemplate.Triggers>
+                     <Trigger Property="IsExpanded" Value="True">
+                        <Setter TargetName="arrow" Property="RenderTransform" Value="-1,0,0,-1,0,0"/>
+                     </Trigger>
+                     <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="circle" Property="Stroke" Value="{DynamicResource Accent}"/>
+                     </Trigger>
+                     <Trigger Property="IsMouseOver" Value="False">
+                        <Setter TargetName="arrow" Property="Fill" Value="Transparent"/>
+                     </Trigger>
+                  </ControlTemplate.Triggers>
+               </ControlTemplate>
+            </Setter.Value>
+         </Setter>
+      </Style>
+      
+      <!-- Tool Tip Style -->
+      <Style TargetType="ToolTip">
+         <Setter Property="Background" Value="{DynamicResource Backlight}"/>
+         <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+         <Setter Property="BorderThickness" Value="1"/>
+      </Style>
+
       <!-- Scrollbar style. Based on normal style, but with custom colors. -->
       <Style x:Key="FocusVisual">
          <Setter Property="Control.Template">

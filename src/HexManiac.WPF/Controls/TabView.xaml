@@ -439,26 +439,60 @@
       </Grid>
       <!-- Anchor Editor -->
       <Border DockPanel.Dock="Top" Height="19" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource Backlight}">
-         <DockPanel Visibility="{Binding AnchorTextVisible, Converter={StaticResource BoolToVisibility}}" >
-            <TextBlock Width="70" Text="Anchor: " TextAlignment="Right" ToolTipService.ShowDuration="15000">
-               <TextBlock.ToolTip>
-                  <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
-                     <TextBlock TextAlignment="Left">
-                        <Bold>Anchor Editor</Bold> <LineBreak/>
-                        Anchors can have a name and a format. <LineBreak/>
-                        <LineBreak/>
-                        Named anchors persist between sessions. <LineBreak/>
-                        You can also use names in pointers and with Goto <Italic Foreground="{DynamicResource Secondary}">(Ctrl+G)</Italic>. <LineBreak/>
-                        <LineBreak/>
-                        Formats change how the data is displayed and edited. <LineBreak/>
-                        For example, "" formats data as text. <LineBreak/>
-                        To learn more about formats, visit the Wiki.
-                     </TextBlock>
-                  </ToolTip>
-               </TextBlock.ToolTip>
-            </TextBlock>
-            <TextBox UndoLimit="0" Text="{Binding AnchorText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,25,0"/>
-         </DockPanel>
+         <Grid>
+            <DockPanel Visibility="{Binding AnchorTextVisible, Converter={StaticResource BoolToVisibility}}" >
+               <TextBlock Width="70" Text="Anchor: " TextAlignment="Right" ToolTipService.ShowDuration="15000">
+                  <TextBlock.ToolTip>
+                     <ToolTip>
+                        <TextBlock TextAlignment="Left">
+                           <Bold>Anchor Editor</Bold> <LineBreak/>
+                           Anchors can have a name and a format. <LineBreak/>
+                           <LineBreak/>
+                           Named anchors persist between sessions. <LineBreak/>
+                           You can also use names in pointers and with Goto <Italic Foreground="{DynamicResource Secondary}">(Ctrl+G)</Italic>. <LineBreak/>
+                           <LineBreak/>
+                           Formats change how the data is displayed and edited. <LineBreak/>
+                           For example, "" formats data as text. <LineBreak/>
+                           To learn more about formats, visit the Wiki.
+                        </TextBlock>
+                     </ToolTip>
+                  </TextBlock.ToolTip>
+               </TextBlock>
+               <TextBox UndoLimit="0" Text="{Binding AnchorText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,25,0"/>
+            </DockPanel>
+            <Expander VerticalAlignment="Center" ExpandDirection="Right" Visibility="{Binding ShowWidthProperties, Converter={StaticResource BoolToVisibility}}">
+               <Expander.Resources>
+                  <Style TargetType="Path">
+                     <Setter Property="Fill" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type ToggleButton}}}"/>
+                     <Setter Property="Stretch" Value="Uniform"/>
+                  </Style>
+                  <Style TargetType="ToggleButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
+                     <Setter Property="Width" Value="30"/>
+                  </Style>
+               </Expander.Resources>
+               <Expander.Header>
+                  <TextBlock Foreground="{DynamicResource Secondary}" Text="Row Width:"/>
+               </Expander.Header>
+               <StackPanel Orientation="Horizontal">
+                  <TextBox Text="{Binding PreferredWidth, UpdateSourceTrigger=PropertyChanged}" Width="30" HorizontalContentAlignment="Right" Margin="5,0"/>
+                  <ToggleButton IsChecked="{Binding StretchData}" ToolTip="Stretch Cells to fill available space.">
+                     <ToggleButton.Content>
+                        <Path Data="{hsv:Icon ArrowsLeftRight}"/>
+                     </ToggleButton.Content>
+                  </ToggleButton>
+                  <ToggleButton IsChecked="{Binding AutoAdjustDataWidth}" VerticalContentAlignment="Center" ToolTip="Adjust Width after Goto">
+                     <ToggleButton.Content>
+                        <TextBlock Text="Auto" VerticalAlignment="Bottom" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type ToggleButton}}}"/>
+                     </ToggleButton.Content>
+                  </ToggleButton>
+                  <ToggleButton IsChecked="{Binding AllowMultipleElementsPerLine}" ToolTip="Allow Multiple Rows per Line.">
+                     <ToggleButton.Content>
+                        <Path Data="{hsv:Icon MultiList}"/>
+                     </ToggleButton.Content>
+                  </ToggleButton>
+               </StackPanel>
+            </Expander>
+         </Grid>
       </Border>
       <!-- Column Headers -->
       <hsg3hv:HorizontalSlantedTextControl DockPanel.Dock="Top"

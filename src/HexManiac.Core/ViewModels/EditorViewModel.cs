@@ -221,16 +221,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private bool showMatrix = true;
-      public bool ShowMatrix {
-         get => showMatrix;
-         set => TryUpdate(ref showMatrix, value);
-      }
+      public bool ShowMatrix { get => showMatrix; set => Set(ref showMatrix, value); }
 
       private bool animateScroll = true;
-      public bool AnimateScroll {
-         get => animateScroll;
-         set => TryUpdate(ref animateScroll, value);
-      }
+      public bool AnimateScroll { get => animateScroll; set => Set(ref animateScroll, value); }
+
+      private bool autoAdjustDataWidth = true;
+      public bool AutoAdjustDataWidth { get => autoAdjustDataWidth; set => Set(ref autoAdjustDataWidth, value); }
+
+      private bool stretchData = true;
+      public bool StretchData { get => stretchData; set => Set(ref stretchData, value); }
+
+      private bool allowMultipleElementsPerLine = true;
+      public bool AllowMultipleElementsPerLine { get => allowMultipleElementsPerLine; set => Set(ref allowMultipleElementsPerLine, value); }
 
       public Theme Theme { get; }
 
@@ -333,6 +336,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Theme = new Theme(metadata);
          ShowMatrix = !metadata.Contains("ShowMatrixGrid = False");
          AnimateScroll = !metadata.Contains("AnimateScroll = False");
+         AutoAdjustDataWidth = !metadata.Contains("AutoAdjustDataWidth = False");
+         StretchData = !metadata.Contains("StretchData = False");
+         AllowMultipleElementsPerLine = !metadata.Contains("AllowMultipleElementsPerLine = False");
          var zoomLine = metadata.FirstOrDefault(line => line.StartsWith("ZoomLevel ="));
          if (zoomLine != null && int.TryParse(zoomLine.Split('=').Last().Trim(), out var zoomLevel)) ZoomLevel = zoomLevel;
       }
@@ -348,6 +354,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             $"ShowMatrixGrid = {ShowMatrix}",
             $"ZoomLevel = {ZoomLevel}",
             $"AnimateScroll = {AnimateScroll}",
+            $"AutoAdjustDataWidth = {AutoAdjustDataWidth}",
+            $"StretchData= {StretchData}",
+            $"AllowMultipleElementsPerLine = {AllowMultipleElementsPerLine}",
             string.Empty
          };
          metadata.AddRange(Theme.Serialize());
@@ -478,11 +487,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          tabs.Add(content);
          SelectedIndex = tabs.Count - 1;
          CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, content));
-         AddContentListeners(content);
          if (content is IViewPort viewModel) {
             viewModel.UseCustomHeaders = useTableEntryHeaders;
+            viewModel.AutoAdjustDataWidth = AutoAdjustDataWidth;
+            viewModel.AllowMultipleElementsPerLine = AllowMultipleElementsPerLine;
+            viewModel.StretchData = StretchData;
             viewModel.ValidateMatchedWords();
          }
+         AddContentListeners(content);
       }
 
       public void SwapTabs(int a, int b) {
@@ -663,15 +675,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          // when one tab's height updates, update other tabs by the same amount.
          // this isn't perfect, since tabs shouldn't nessisarily change height at the same pixel.
          // but it'll keep the tabs that are out of view from getting totally out of sync.
-         if (e.PropertyName == nameof(IViewPort.Height) && sender is IViewPort viewPort2) {
-            var args = (ExtendedPropertyChangedEventArgs<int>)e;
-            var oldHeight = args.OldValue;
-            var height = viewPort2.Height;
+         if (sender is IViewPort viewPort2) {
+            if (e.PropertyName == nameof(IViewPort.AutoAdjustDataWidth)) AutoAdjustDataWidth = viewPort2.AutoAdjustDataWidth;
+            if (e.PropertyName == nameof(IViewPort.StretchData)) StretchData = viewPort2.StretchData;
+            if (e.PropertyName == nameof(IViewPort.AllowMultipleElementsPerLine)) AllowMultipleElementsPerLine = viewPort2.AllowMultipleElementsPerLine;
             foreach (var tab in this) {
                if (tab == viewPort2) continue;
                if (!(tab is IViewPort viewPort3)) continue;
                RemoveContentListeners(tab);
-               viewPort3.Height += height - oldHeight;
+               if (e.PropertyName == nameof(IViewPort.Height)) {
+                  var args = (ExtendedPropertyChangedEventArgs<int>)e;
+                  var oldHeight = args.OldValue;
+                  viewPort3.Height += viewPort2.Height - oldHeight;
+               } else if (e.PropertyName == nameof(IViewPort.AutoAdjustDataWidth)) {
+                  viewPort3.AutoAdjustDataWidth = AutoAdjustDataWidth;
+               } else if (e.PropertyName == nameof(IViewPort.StretchData)) {
+                  viewPort3.StretchData = StretchData;
+               } else if (e.PropertyName == nameof(IViewPort.AllowMultipleElementsPerLine)) {
+                  viewPort3.AllowMultipleElementsPerLine = AllowMultipleElementsPerLine;
+               }
                AddContentListeners(tab);
             }
          }

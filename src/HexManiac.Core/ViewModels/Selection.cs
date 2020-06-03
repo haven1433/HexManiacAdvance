@@ -100,6 +100,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      private bool autoAdjustDataWidth, allowMultipleElementsPerLine;
+      public bool AutoAdjustDataWidth { get => autoAdjustDataWidth; set => Set(ref autoAdjustDataWidth, value); }
+      public bool AllowMultipleElementsPerLine { get => allowMultipleElementsPerLine; set => Set(ref allowMultipleElementsPerLine, value); }
+
       public ICommand MoveSelectionStart => moveSelectionStart;
       public ICommand MoveSelectionEnd => moveSelectionEnd;
       public ICommand Goto => gotoCommand;
@@ -231,12 +235,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void GotoAddressHelper(int address) {
          var destinationRun = model.GetNextRun(address) as ITableRun;
          var destinationIsArray = destinationRun != null && destinationRun.Start <= address;
-         int preferredWidth;
-         if (destinationIsArray) {
-            preferredWidth = destinationRun.ElementLength;
-         } else {
-            preferredWidth = DefaultPreferredWidth;
-         }
+         int preferredWidth = destinationIsArray ? destinationRun.ElementLength : DefaultPreferredWidth;
          GotoAddressAndAlign(address, preferredWidth, destinationIsArray ? destinationRun.Start : 0);
       }
 
@@ -254,7 +253,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             while (Scroll.DataIndex > address) Scroll.Scroll.Execute(Direction.Left);
 
             // update the width
-            PreferredWidth = preferredWidth;
+            if (autoAdjustDataWidth) PreferredWidth = preferredWidth;
 
             // finally, update the selection
             SelectionStart = Scroll.DataIndexToViewPoint(startAddress);
@@ -325,6 +324,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private int CoerceWidth(int width) {
          if (preferredWidth == -1 || preferredWidth == width) return width;
+         if (!allowMultipleElementsPerLine) return preferredWidth;
+
          if (preferredWidth < width) {
             int multiple = 2;
             while (preferredWidth * multiple <= width) multiple++;

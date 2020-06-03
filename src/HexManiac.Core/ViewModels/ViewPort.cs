@@ -139,6 +139,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private readonly Selection selection;
 
+      private bool stretchData;
+      public bool ShowWidthProperties => !AnchorTextVisible;
+      public bool StretchData { get => stretchData; set => Set(ref stretchData, value); }
+      public bool AutoAdjustDataWidth { get => selection.AutoAdjustDataWidth; set => selection.AutoAdjustDataWidth = value; }
+      public bool AllowMultipleElementsPerLine { get => selection.AllowMultipleElementsPerLine; set => selection.AllowMultipleElementsPerLine = value; }
+
       public Point SelectionStart {
          get => selection.SelectionStart;
          set => selection.SelectionStart = value;
@@ -420,7 +426,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private bool anchorTextVisible;
       public bool AnchorTextVisible {
          get => anchorTextVisible;
-         set => TryUpdate(ref anchorTextVisible, value);
+         set => Set(ref anchorTextVisible, value, arg => NotifyPropertyChanged(nameof(ShowWidthProperties)));
       }
 
       private string anchorText;

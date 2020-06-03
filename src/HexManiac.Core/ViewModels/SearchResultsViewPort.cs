@@ -86,6 +86,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public IDataModel Model => null;
 
       public bool HasTools => false;
+      public bool ShowWidthProperties => false;
+      public bool AutoAdjustDataWidth { get; set; }
+      public bool StretchData { get; set; }
+      public bool AllowMultipleElementsPerLine { get; set; }
 
       public IToolTrayViewModel Tools { get; } = new SearchResultsTools();
 
