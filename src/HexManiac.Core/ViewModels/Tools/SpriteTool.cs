@@ -81,9 +81,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          var split = spriteWidthHeight.ToUpper().Trim().Split("X");
-         if (split.Length > 2 || split.Length < 1) return;
          var availableLength = model.GetNextAnchor(spriteRun.Start + spriteRun.Length).Start - spriteRun.Start;
-         if (split.Length == 1 && int.TryParse(split[0], out int tiles)) {
+         if (split.Length == 1 && !(spriteRun is LZRun) && int.TryParse(split[0], out int tiles)) {
             var desiredLength = tiles * 8 * bits;
             if (availableLength < desiredLength) {
                viewPort.RaiseError($"Need {desiredLength} bytes, but only {availableLength} bytes available.");
@@ -94,6 +93,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
             return;
          }
+         if (split.Length != 2) return;
          if (!int.TryParse(split[0], out int width) || !int.TryParse(split[1], out int height)) return;
 
          var newFormat = new SpriteFormat(bits, width, height, spritePaletteHint);
