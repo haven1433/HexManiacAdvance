@@ -157,7 +157,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          int length = parser.FindLength(model, body.Address);
          using (ModelCacheScope.CreateScope(model)) {
-            CompileScriptChanges<XSERun>(body.Address, run, length, ref codeContent, parser, body == Contents[0]);
+            if (mode == CodeMode.Script) {
+               CompileScriptChanges<XSERun>(body.Address, run, length, ref codeContent, parser, body == Contents[0]);
+            }
+            else {
+               CompileScriptChanges<BSERun>(body.Address, run, length, ref codeContent, parser, body == Contents[0]);
+            }
 
             body.ContentChanged -= ScriptChanged;
             body.HelpSourceChanged -= UpdateScriptHelpFromLine;
