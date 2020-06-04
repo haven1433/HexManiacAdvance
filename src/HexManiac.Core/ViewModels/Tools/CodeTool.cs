@@ -246,10 +246,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
 
             for (int i = 0; i < code.Length; i++) history.CurrentChange.ChangeData(model, start + i, code[i]);
-            for (int i = code.Length; i < length; i++) history.CurrentChange.ChangeData(model, start + i, 0xFF);
+            model.ClearFormatAndData(history.CurrentChange, start + code.Length, length - code.Length);
             parser.FormatScript<TSERun>(history.CurrentChange, model, start, sources);
             if (sources != null) {
-               foreach (var source in sources) model.ObserveRunWritten(history.CurrentChange, new PointerRun(source));
+               foreach (var source in sources) {
+                  var existingRun = model.GetNextRun(source);
+                  if (existingRun.Start > source || !(existingRun is ITableRun)) {
+                     model.ObserveRunWritten(history.CurrentChange, new PointerRun(source));
+                  }
+               }
             }
 
             // this change may have orphaned some existing scripts. Don't lose them!

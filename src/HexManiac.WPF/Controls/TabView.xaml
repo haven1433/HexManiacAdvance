@@ -423,7 +423,7 @@
                               <StackPanel>
                                  <TextBlock Text="{Binding Label}" Margin="2,0"/>
                                  <Grid Margin="5">
-                                    <TextBox  Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
+                                    <TextBox  Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" UndoLimit="0"
                                           AcceptsReturn="True" FontFamily="Consolas" SelectionChanged="CodeToolContentsSelectionChanged"/>
                                     <TextBlock Visibility="{Binding IsOpen, ElementName=CodeContentsPopup, Converter={StaticResource BoolToVisibility}}"
                                           HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False" FontFamily="Consolas" FontWeight="Bold"/>

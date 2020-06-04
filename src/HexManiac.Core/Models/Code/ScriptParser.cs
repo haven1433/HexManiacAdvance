@@ -93,21 +93,24 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                length += line.LineCode.Count;
                foreach (var arg in line.Args) {
                   if (arg.Type != ArgType.Pointer) {
-                     length += arg.Length;
-                     continue;
-                  }
-                  var destination = model.ReadPointer(address + length);
-                  if (destination >= 0 && destination < model.Count) {
-                     model.ClearFormat(token, address + length, 4);
-                     model.ObserveRunWritten(token, new PointerRun(address + length));
-                     if (line.PointsToNextScript) toProcess.Add(destination);
-                     if (line.PointsToText) {
-                        var destinationLength = PCSString.ReadString(model, destination, true);
-                        if (destinationLength > 0) model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength));
-                     } else if (line.PointsToMovement) {
-                        WriteMovementStream(model, token, destination, address + length);
-                     } else if (line.PointsToMart) {
-                        WriteMartStream(model, token, destination, address + length);
+                     // there may've previously been a pointer here: the code has changed!
+                     model.ClearFormat(token, address + length, arg.Length);
+                  } else {
+                     var destination = model.ReadPointer(address + length);
+                     if (destination >= 0 && destination < model.Count) {
+                        model.ClearFormat(token, address + length, 4);
+                        model.ObserveRunWritten(token, new PointerRun(address + length));
+                        if (line.PointsToNextScript) toProcess.Add(destination);
+                        if (line.PointsToText) {
+                           var destinationLength = PCSString.ReadString(model, destination, true);
+                           if (destinationLength > 0) model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength));
+                        }
+                        else if (line.PointsToMovement) {
+                           WriteMovementStream(model, token, destination, address + length);
+                        }
+                        else if (line.PointsToMart) {
+                           WriteMartStream(model, token, destination, address + length);
+                        }
                      }
                   }
                   length += arg.Length;

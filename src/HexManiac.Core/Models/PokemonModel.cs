@@ -875,7 +875,12 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public override IFormattedRun RelocateForExpansion(ModelDelta changeToken, IFormattedRun run, int minimumLength) {
          int currentLength = run.Length;
-         if (run is IScriptStartRun) currentLength = singletons.ScriptLines.GetScriptSegmentLength(this, run.Start);
+         if (run is IScriptStartRun) {
+            IReadOnlyList<ScriptLine> lines = null;
+            if (run is XSERun) lines = singletons.ScriptLines;
+            if (run is BSERun) lines = singletons.BattleScriptLines;
+            currentLength = lines.GetScriptSegmentLength(this, run.Start);
+         }
          if (minimumLength <= currentLength) return run;
          if (CanSafelyUse(run.Start + currentLength, run.Start + minimumLength)) return run;
 
