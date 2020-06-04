@@ -558,22 +558,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var choice = fileSystem.ShowOptions("Import Sprite",
             $"This palette is used by {dependentSprites.Count} images. How do you want to handle the import?",
             new VisualOption {
-               Option = "Smart",
+               Option = "Smart", Index = 0,
                ShortDescription = "Fix Incompatibilites Automatically",
                Description = "Balance the look of the new image with other images already using this palette.",
-               Index = 0
             },
             new VisualOption {
-               Option = "Greedy",
+               Option = "Greedy", Index = 1,
                ShortDescription = "Ignore other sprites",
                Description = "Ignore other images that use this palette. They'll probably look broken and that's ok.",
-               Index = 1
             },
             new VisualOption {
-               Option = "Cautious",
+               Option = "Cautious", Index = 2,
                ShortDescription = "Don't change palette",
                Description = "Match the new image to the existing palette as closely as possible.",
-               Index = 2
             });
 
          if (choice == -1) return;
