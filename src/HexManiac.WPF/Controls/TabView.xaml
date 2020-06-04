@@ -460,7 +460,7 @@
                </TextBlock>
                <TextBox UndoLimit="0" Text="{Binding AnchorText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,25,0"/>
             </DockPanel>
-            <Expander VerticalAlignment="Center" ExpandDirection="Right" Visibility="{Binding ShowWidthProperties, Converter={StaticResource BoolToVisibility}}">
+            <Expander VerticalAlignment="Center" HorizontalAlignment="Left" ExpandDirection="Right" Visibility="{Binding ShowWidthProperties, Converter={StaticResource BoolToVisibility}}">
                <Expander.Resources>
                   <Style TargetType="Path">
                      <Setter Property="Fill" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type ToggleButton}}}"/>
