@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Factory;
+using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
@@ -54,6 +55,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var destinationForSource = new SortedList<int, int>();
          SearchForPointers(pointersForDestination, destinationForSource);
          WritePointerRuns(pointersForDestination, destinationForSource);
+         WriteSpriteRuns(pointersForDestination);
          WriteStringRuns(pointersForDestination);
          ResolveConflicts();
 
@@ -152,6 +154,24 @@ namespace HavenSoft.HexManiac.Core.Models {
          while (moreSources) {
             runs.Add(new PointerRun(sources.Current));
             moreSources = sources.MoveNext();
+         }
+      }
+
+      private void WriteSpriteRuns(Dictionary<int, List<int>> pointersForDestination) {
+         var noDataChange = new NoDataChangeDeltaModel();
+         foreach (var destination in pointersForDestination.Keys.OrderBy(i => i)) {
+            var protoRun = new LZRun(this, destination);
+            if (protoRun.Length < 5) continue;
+            if (protoRun.DecompressedLength < 32 || protoRun.DecompressedLength % 32 != 0) continue;
+            if (GetNextRun(destination + 1).Start < destination + protoRun.Length) continue;
+            if (protoRun.DecompressedLength == 32) {
+               ObserveRunWritten(noDataChange, new LzPaletteRun(new PaletteFormat(4, 1), this, destination, pointersForDestination[destination]));
+            } else {
+               var tiles = protoRun.DecompressedLength / 32;
+               var sqrt = (int)Math.Sqrt(tiles);
+               var spriteFormat = new SpriteFormat(4, sqrt, sqrt, null);
+               ObserveRunWritten(noDataChange, new LzSpriteRun(spriteFormat, this, destination, pointersForDestination[destination]));
+            }
          }
       }
 

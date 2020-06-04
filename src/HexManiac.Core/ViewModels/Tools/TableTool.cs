@@ -112,6 +112,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             },
             Execute = parameter => {
                var array = (ITableRun)model.GetNextRun(address);
+               if (selection.Scroll.DataIndex < array.Start || selection.Scroll.DataIndex > array.Start + array.Length) selection.GotoAddress(array.Start);
                selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(Address + array.ElementLength);
                selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selection.Scroll.ViewPointToDataIndex(selection.SelectionStart) + array.ElementLength - 1);
             }

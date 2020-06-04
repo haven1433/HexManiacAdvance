@@ -218,6 +218,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             // if the 'Raw' tool is selected, don't auto-update tool selection.
             if (!(tools.SelectedTool == tools.CodeTool && tools.CodeTool.Mode == CodeMode.Raw)) {
                using (ModelCacheScope.CreateScope(Model)) {
+                  // update the tool from pointers too
+                  if (run is PointerRun) {
+                     run = Model.GetNextRun(Model.ReadPointer(run.Start));
+                     dataIndex = run.Start;
+                  }
                   if (run is ISpriteRun) {
                      tools.SpriteTool.SpriteAddress = run.Start;
                      tools.SelectedIndex = tools.IndexOf(tools.SpriteTool);
