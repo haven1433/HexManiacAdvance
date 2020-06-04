@@ -10,6 +10,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -208,6 +209,9 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       public HexContent() {
          ClipToBounds = true;
          Focusable = true;
+         base.ToolTip = new ToolTip();
+         ToolTipService.SetIsEnabled(this, false);
+         timer.Elapsed += (sender, e) => Dispatcher.BeginInvoke((Action)ShowToolTip);
 
          void AddKeyCommand(string commandPath, object arg, Key key, ModifierKeys modifiers = ModifierKeys.None) {
             var keyBinding = new KeyBinding { CommandParameter = arg, Key = key, Modifiers = modifiers };
@@ -299,6 +303,17 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var newMouseOverPoint = ControlCoordinatesToModelCoordinates(e);
          if (!newMouseOverPoint.Equals(mouseOverPoint)) {
             mouseOverPoint = newMouseOverPoint;
+            if (ViewPort[newMouseOverPoint.X, newMouseOverPoint.Y].Format is Pointer pointer) {
+               if (Equals(pointer.DestinationAsText, ToolTip.Content) && ToolTipService.GetIsEnabled(this)) {
+                  // already set
+               } else {
+                  MakeNewToolTip(pointer.DestinationAsText);
+               }
+            } else {
+               timer.Enabled = false;
+               ToolTipService.SetIsEnabled(this, false);
+               ToolTip.IsOpen = false;
+            }
             InvalidateVisual();
          }
          if (!IsMouseCaptured) return;
@@ -319,7 +334,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          } else {
             viewPort.SelectionEnd = modelPoint;
          }
-
       }
 
       protected override void OnMouseUp(MouseButtonEventArgs e) {
@@ -340,6 +354,18 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          }
          if (!IsMouseCaptured) return;
          ReleaseMouseCapture();
+      }
+
+      private readonly Timer timer = new Timer { Interval = 500, AutoReset = false };
+      private new ToolTip ToolTip => (ToolTip)base.ToolTip;
+      private void ShowToolTip() => ToolTip.IsOpen = true;
+      protected override void OnMouseLeave(MouseEventArgs e) => ToolTip.IsOpen = false;
+      private void MakeNewToolTip(string text) {
+         timer.Enabled = false;
+         ToolTip.IsOpen = false;
+         base.ToolTip = new ToolTip { Content = text }; // have to make a new one to prevent a glitch of text changing as the old one fades to closed.
+         ToolTipService.SetIsEnabled(this, true);
+         timer.Enabled = true;
       }
 
       private IEnumerable<FrameworkElement> BuildContextMenuUI(IReadOnlyList<IContextItem> items) {
