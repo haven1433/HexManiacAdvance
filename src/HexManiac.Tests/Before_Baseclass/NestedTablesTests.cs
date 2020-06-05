@@ -6,6 +6,7 @@ using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
@@ -138,8 +139,8 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Edit("^table[description<\"\">]4 <000000>"); // note that this auto-scrolls, since a table was created
          viewPort.MoveSelectionStart.Execute(Direction.Left);  // select the pointer we just completed
 
-         Assert.Equal(2, viewPort.Tools.TableTool.Children.Count);
-         Assert.IsType<TextStreamElementViewModel>(viewPort.Tools.TableTool.Children[1]);
+         Assert.Equal(3, viewPort.Tools.TableTool.Children.Count); // header, pointer, content
+         Assert.IsType<TextStreamElementViewModel>(viewPort.Tools.TableTool.Children[2]);
       }
 
       [Fact]
@@ -151,12 +152,12 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.SelectionStart = new Point(0, 4);
          viewPort.Edit("^table[description<\"\">]4 <000000>"); // note that this auto-scrolls, since a table was created
          viewPort.SelectionStart = new Point(0, 0);
-         var textViewModel = (TextStreamElementViewModel)viewPort.Tools.TableTool.Children[1];
+         var textViewModel = (TextStreamElementViewModel)viewPort.Tools.TableTool.Children.Single(child => child is TextStreamElementViewModel);
 
          // act: use the tool to change the content, forcing a repoint
          messages.Clear();
          textViewModel.Content = "Xyz";
-         var pointerViewModel = (FieldArrayElementViewModel)viewPort.Tools.TableTool.Children[0];
+         var pointerViewModel = (FieldArrayElementViewModel)viewPort.Tools.TableTool.Children.Single(child => child is FieldArrayElementViewModel);
 
          Assert.Single(messages);                               // we repointed
          Assert.NotEqual("<000000>", pointerViewModel.Content); // other tool field was updated
@@ -357,7 +358,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("tutormoves", segment.SourceArrayName);
          Assert.Equal(8, run.Length);
 
-         var bitList = (BitListArrayElementViewModel)viewPort.Tools.TableTool.Children[0];
+         var bitList = (BitListArrayElementViewModel)viewPort.Tools.TableTool.Children.Single(child => child is BitListArrayElementViewModel);
          Assert.Equal("Four", bitList[2].BitLabel);
 
          bitList[2].IsChecked = true;      // "Adam" should be able to learn "Four"

@@ -42,10 +42,10 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void TableToolUpdatesAfterAnchorChange() {
          viewPort.AnchorText = "^array[data1. b data2.]8";
-         Assert.Equal(3, viewPort.Tools.TableTool.Children.Count);
+         Assert.Equal(4, viewPort.Tools.TableTool.Children.Count); // header + 3 elements
 
          viewPort.AnchorText = "^array[data1. bc data2.]8";
-         Assert.Equal("bc", ((FieldArrayElementViewModel)viewPort.Tools.TableTool.Children[1]).Name);
+         Assert.Equal("bc", ((FieldArrayElementViewModel)viewPort.Tools.TableTool.Children[2]).Name);
       }
    }
 }

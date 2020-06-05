@@ -112,7 +112,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          // update count via table: child run should update
          var tool = ViewPort.Tools.TableTool;
-         var childCountField = (ComboBoxArrayElementViewModel)tool.Children[0];
+         var childCountField = (ComboBoxArrayElementViewModel)tool.Children[1];
          childCountField.SelectedIndex = 3;
          Assert.Equal(0x10, ((ITableRun)Model.GetNextRun(0xA0)).ElementLength);
 
@@ -128,7 +128,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          // update count via table: sibling should update
          var tool = ViewPort.Tools.TableTool;
-         var childCountField = (ComboBoxArrayElementViewModel)tool.Children[0];
+         var childCountField = (ComboBoxArrayElementViewModel)tool.Children[1];
          childCountField.SelectedIndex = 3;
          Assert.Equal(3, Model[0x28]);
 

@@ -553,6 +553,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (existingRun is PointerRun && !(run is NoInfoRun) && !(run is PointerRun)) {
                var destination = ReadPointer(existingRun.Start);
                ClearPointer(changeToken, existingRun.Start, destination);
+               index = BinarySearch(run.Start); // have to recalculate index, because ClearPointer can removed runs.
             }
             run = run.MergeAnchor(existingRun.PointerSources);
             if (run is NoInfoRun) run = existingRun.MergeAnchor(run.PointerSources); // when writing an anchor with no format, keep the existing format.
@@ -917,7 +918,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override int FindFreeSpace(int start, int minimumLength) {
-         start = FreeSpaceStart;
+         if (FreeSpaceStart != 0) start = FreeSpaceStart;
          if (start < EarliestAllowedAnchor) start = EarliestAllowedAnchor;
          const int SpacerLength = 0x100;
          minimumLength += 0x140; // make sure there's plenty of room after, so that we're not in the middle of some other data set
@@ -1025,8 +1026,14 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override void ClearPointer(ModelDelta currentChange, int source, int destination) {
          var index = BinarySearch(destination);
          currentChange.RemoveRun(runs[index]);
-         runs[index] = runs[index].RemoveSource(source);
-         currentChange.AddRun(runs[index]);
+
+         var newRun = runs[index].RemoveSource(source);
+         if (newRun is NoInfoRun nir && nir.PointerSources.Count == 0) {
+            runs.RemoveAt(index);
+         } else {
+            runs[index] = newRun;
+            currentChange.AddRun(newRun);
+         }
       }
 
       private void ClearFormat(ModelDelta changeToken, int start, int length, bool keepInitialAnchorPointers, bool alsoClearData) {

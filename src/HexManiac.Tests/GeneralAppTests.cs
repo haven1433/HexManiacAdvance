@@ -472,7 +472,7 @@ ApplicationVersion = '''0.1.0'''
 
       [Fact]
       public void CanSaveVersionToToml() {
-         var metadata = new StoredMetadata(null, null, null, null, new StubMetadataInfo { VersionNumber = "0.1.0" });
+         var metadata = new StoredMetadata(null, null, null, null, new StubMetadataInfo { VersionNumber = "0.1.0" }, default);
          var lines = metadata.Serialize();
          Assert.Contains("[General]", lines);
          Assert.Contains("ApplicationVersion = '''0.1.0'''", lines);
@@ -480,7 +480,7 @@ ApplicationVersion = '''0.1.0'''
 
       [Fact]
       public void NullVersionIsNotSavedToToml() {
-         var metadata = new StoredMetadata(null, null, null, null, new StubMetadataInfo());
+         var metadata = new StoredMetadata(null, null, null, null, new StubMetadataInfo(), default);
          var lines = metadata.Serialize();
          Assert.All(lines, line => Assert.DoesNotContain("ApplicationVersion = '''", line));
       }

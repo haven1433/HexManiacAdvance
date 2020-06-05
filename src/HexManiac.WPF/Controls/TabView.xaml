@@ -259,7 +259,7 @@
                            <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                               <hsg3hv:CommonTableStreamControl />
                               <hsg3hv:PixelImage SnapsToDevicePixels="True" />
-                              <DockPanel>
+                              <DockPanel Visibility="{Binding HasMultiplePages, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
                                  <Button Content="Previous" Command="{Binding PreviousPage}" DockPanel.Dock="Left"/>
                                  <Button Content="Next" Command="{Binding NextPage}" DockPanel.Dock="Right"/>
                               </DockPanel>

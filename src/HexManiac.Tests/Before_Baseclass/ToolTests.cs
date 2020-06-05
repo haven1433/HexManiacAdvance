@@ -161,7 +161,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          // Assert: Table Tool is updated
          viewPort.Tools.SelectedIndex = Enumerable.Range(0, 10).First(i => viewPort.Tools[i] == viewPort.Tools.TableTool);
-         var field = (FieldArrayElementViewModel)viewPort.Tools.TableTool.Children[0];
+         var field = (FieldArrayElementViewModel)viewPort.Tools.TableTool.Children[1];
          Assert.Equal("Larry", field.Content);
       }
 
@@ -176,7 +176,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          // Act: Update via the Table Tool
          viewPort.Tools.SelectedIndex = Enumerable.Range(0, 10).First(i => viewPort.Tools[i] == viewPort.Tools.TableTool);
-         var field = (FieldArrayElementViewModel)viewPort.Tools.TableTool.Children[0];
+         var field = (FieldArrayElementViewModel)viewPort.Tools.TableTool.Children[1];
          field.Content = "Larry";
 
          // Assert: Text Tool is updated
@@ -218,7 +218,7 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Tools.SelectedIndex = Enumerable.Range(0, 10).First(i => viewPort.Tools[i] == viewPort.Tools.StringTool); // open the string tool
          viewPort.Tools.StringTool.ContentIndex = 12;                                                                       // place the cursor somewhere, like the UI would
          viewPort.Tools.SelectedIndex = Enumerable.Range(0, 10).First(i => viewPort.Tools[i] == viewPort.Tools.TableTool);  // open the table tool
-         var field = (FieldArrayElementViewModel)viewPort.Tools.TableTool.Children[0];
+         var field = (FieldArrayElementViewModel)viewPort.Tools.TableTool.Children[1];
          field.Content = "Larry";                                                                                           // make a change with the table tool
 
          Assert.NotEqual(new Point(), viewPort.SelectionStart);

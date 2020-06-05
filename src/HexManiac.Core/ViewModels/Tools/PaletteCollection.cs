@@ -46,7 +46,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var first = Math.Min(selectionStart, selectionEnd);
             var last = Math.Max(selectionStart, selectionEnd);
             for (int i = 0; i < Elements.Count; i++) Elements[i].Selected = first <= i && i <= last;
-            createGradient.CanExecuteChanged.Invoke(createGradient, EventArgs.Empty);
+            createGradient?.CanExecuteChanged.Invoke(createGradient, EventArgs.Empty);
          }
       }
 

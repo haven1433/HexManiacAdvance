@@ -756,7 +756,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          // act: change the table contents
          viewPort.SelectionStart = new Point(1, 0);
-         var element = (FieldArrayElementViewModel)viewPort.Tools.TableTool.Children[0];
+         var element = (FieldArrayElementViewModel)viewPort.Tools.TableTool.Children.Single(child => child is FieldArrayElementViewModel faevm && faevm.Name == "name");
          element.Content = "dog";
 
          // assert: main view was updated
@@ -784,7 +784,7 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Edit("u");
 
          // assert: main view was updated
-         var element = (FieldArrayElementViewModel)viewPort.Tools.TableTool.Children[0];
+         var element = (FieldArrayElementViewModel)viewPort.Tools.TableTool.Children.Single(child => child is FieldArrayElementViewModel faevm && faevm.Name == "name");
          Assert.Equal("cut", element.Content);
       }
 
