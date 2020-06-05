@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 
 namespace HavenSoft.HexManiac.Core.Models {
    public class StoredMetadata {
@@ -11,15 +12,17 @@ namespace HavenSoft.HexManiac.Core.Models {
       public IReadOnlyList<StoredMatchedWord> MatchedWords { get; }
       public IReadOnlyList<StoredList> Lists { get; }
       public string Version { get; }
+      public int FreeSpaceSearch { get; } = -1;
 
       public bool IsEmpty => NamedAnchors.Count == 0 && UnmappedPointers.Count == 0;
 
-      public StoredMetadata(IReadOnlyList<StoredAnchor> anchors, IReadOnlyList<StoredUnmappedPointer> unmappedPointers, IReadOnlyList<StoredMatchedWord> matchedWords, IReadOnlyList<StoredList> lists, IMetadataInfo generalInfo) {
+      public StoredMetadata(IReadOnlyList<StoredAnchor> anchors, IReadOnlyList<StoredUnmappedPointer> unmappedPointers, IReadOnlyList<StoredMatchedWord> matchedWords, IReadOnlyList<StoredList> lists, IMetadataInfo generalInfo, int freeSpaceSearch) {
          NamedAnchors = anchors ?? new List<StoredAnchor>();
          UnmappedPointers = unmappedPointers ?? new List<StoredUnmappedPointer>();
          MatchedWords = matchedWords ?? new List<StoredMatchedWord>();
          Lists = lists ?? new List<StoredList>();
          Version = generalInfo.VersionNumber;
+         FreeSpaceSearch = freeSpaceSearch;
       }
 
       public StoredMetadata(string[] lines) {
@@ -65,6 +68,10 @@ namespace HavenSoft.HexManiac.Core.Models {
                Version = cleanLine.Split("'''")[1];
             }
 
+            if (cleanLine.StartsWith("FreeSpaceSearch = '''")) {
+               if (int.TryParse(cleanLine.Split("'''")[1], out var fss)) FreeSpaceSearch = fss;
+            }
+
             if (cleanLine.Contains('=') && int.TryParse(cleanLine.Split('=')[0].Trim(), out int currentItemIndex)) {
                if (currentItemChildren == null) currentItemChildren = new List<string>();
                while (currentItemChildren.Count < currentItemIndex) currentItemChildren.Add(null);
@@ -98,6 +105,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             "[General]"
          };
          if (Version != null) lines.Add($"ApplicationVersion = '''{Version}'''");
+         lines.Add($"FreeSpaceSearch = '''{FreeSpaceSearch}'''");
          lines.Add(string.Empty);
          lines.Add("#################################");
 

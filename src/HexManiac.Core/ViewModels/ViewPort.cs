@@ -424,6 +424,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #endregion
 
+      public int FreeSpaceStart { get => Model.FreeSpaceStart; set {
+            if (Model.FreeSpaceStart != value) {
+               Model.FreeSpaceStart = value;
+               NotifyPropertyChanged();
+            }
+         }
+      }
+
       private readonly ToolTray tools;
       public bool HasTools => true;
       public IToolTrayViewModel Tools => tools;
@@ -896,10 +904,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return false;
          }
 
-         var startSearch = (Model as PokemonModel)?.EarliestAllowedAnchor ?? 0;
          var length = FormatRunFactory.GetStrategy(pointerSegment.InnerFormat).LengthForNewRun(Model, pointer);
 
-         var insert = Model.FindFreeSpace(startSearch, length);
+         var insert = Model.FindFreeSpace(0, length);
          if (insert < 0) {
             insert = Model.Count;
             Model.ExpandData(CurrentChange, Model.Count + length);
@@ -1970,6 +1977,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          currentView = new HexElement[Width, Height];
          RequestMenuClose?.Invoke(this, EventArgs.Empty);
          NotifyCollectionChanged(ResetArgs);
+         NotifyPropertyChanged(nameof(FreeSpaceStart));
       }
 
       private void RefreshBackingDataFull() {

@@ -14,10 +14,14 @@
    <DockPanel>
       <!-- Bottom Bar -->
       <DockPanel DockPanel.Dock="Bottom">
-         <TextBlock DockPanel.Dock="Left" Text="{Binding SelectedAddress}" MouseRightButtonUp="AddressShowMenu"/>
-         <Grid HorizontalAlignment="Right">
+         <TextBlock DockPanel.Dock="Left" Width="200" Text="{Binding SelectedAddress}" MouseRightButtonUp="AddressShowMenu"/>
+         <Grid HorizontalAlignment="Right" DockPanel.Dock="Right">
             <TextBlock Margin="10,0,0,0" Text="{Binding SelectedBytes}" MouseRightButtonUp="BytesShowMenu"/>
          </Grid>
+         <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+            <TextBlock Text="Free Space:"/>
+            <TextBox Text="{Binding FreeSpaceStart, Converter={StaticResource Hex}}" Width="70"/>
+         </StackPanel>
       </DockPanel>
       <!-- Tool Headers -->
       <StackPanel DockPanel.Dock="Left" Visibility="{Binding HasTools, Converter={StaticResource BoolToVisibility}}">

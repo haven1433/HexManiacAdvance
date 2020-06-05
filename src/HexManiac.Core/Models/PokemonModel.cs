@@ -58,6 +58,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          WriteSpriteRuns(pointersForDestination);
          WriteStringRuns(pointersForDestination);
          ResolveConflicts();
+         FreeSpaceStart = EarliestAllowedAnchor;
 
          if (metadata == null) return;
 
@@ -87,6 +88,8 @@ namespace HavenSoft.HexManiac.Core.Models {
                runs.Insert(~index, new WordRun(word.Address, word.Name));
             }
          }
+
+         if (metadata.FreeSpaceSearch >= 0) FreeSpaceStart = metadata.FreeSpaceSearch;
 
          ResolveConflicts();
       }
@@ -914,6 +917,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override int FindFreeSpace(int start, int minimumLength) {
+         start = FreeSpaceStart;
+         if (start < EarliestAllowedAnchor) start = EarliestAllowedAnchor;
          const int SpacerLength = 0x100;
          minimumLength += 0x140; // make sure there's plenty of room after, so that we're not in the middle of some other data set
          var runIndex = 0;
@@ -940,6 +945,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
             // found a good spot!
             // move the run
+            FreeSpaceStart = start;
             return start;
          }
 
@@ -1367,7 +1373,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             lists.Add(new StoredList(name, members.ToList()));
          }
 
-         return new StoredMetadata(anchors, unmappedPointers, matchedWords, lists, metadataInfo);
+         return new StoredMetadata(anchors, unmappedPointers, matchedWords, lists, metadataInfo, FreeSpaceStart);
       }
 
       /// <summary>

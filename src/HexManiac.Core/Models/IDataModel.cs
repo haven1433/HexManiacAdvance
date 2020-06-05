@@ -13,6 +13,11 @@ namespace HavenSoft.HexManiac.Core.Models {
       bool HasChanged(int index);
       void ResetChanges();
 
+      /// <summary>
+      /// Used during repointing
+      /// </summary>
+      int FreeSpaceStart { get; set; }
+
       new byte this[int index] { get; set; }
       IReadOnlyList<ArrayRun> Arrays { get; }
       IReadOnlyList<IStreamRun> Streams { get; }
@@ -75,6 +80,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public byte[] RawData { get; private set; }
 
       public BaseModel(byte[] data) => RawData = data;
+
+      public int FreeSpaceStart { get; set; }
 
       public virtual IReadOnlyList<ArrayRun> Arrays { get; } = new List<ArrayRun>();
       public virtual IReadOnlyList<IStreamRun> Streams { get; } = new List<IStreamRun>();
