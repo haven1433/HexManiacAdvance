@@ -118,6 +118,12 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                position += 2;
                if (line.StartsWith("bl ")) position += 2;   // branch-links are double-wide
                if (line.StartsWith(".word")) position += 2; // .word elements are double-wide
+               if (line.StartsWith(".word") && position % 4 != 0) {
+                  // alignment is off! words have to be 4-byte aligned.
+                  position += 2;
+                  var labelToFix = labels.Keys.SingleOrDefault(key => labels[key] == position - 6);
+                  if (labelToFix != null) labels[labelToFix] = position - 4;
+               }
             }
          }
 
@@ -129,6 +135,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             bool foundMatch = false;
             foreach (var instruction in instructionTemplates) {
                if (!instruction.TryAssemble(line, conditionalCodes, start + result.Count, labelLibrary, out byte[] code)) continue;
+               if (instruction.RequiresAlignment && result.Count % 4 != 0) result.AddRange(nop);
                result.AddRange(code);
                foundMatch = true;
                break;
@@ -197,6 +204,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
    public interface IInstruction {
       int ByteLength { get; }
+      bool RequiresAlignment { get; }
       bool Matches(IDataModel data, int index);
       string Disassemble(IDataModel data, int address, IReadOnlyList<ConditionCode> conditionalCodes);
       bool TryAssemble(string line, IReadOnlyList<ConditionCode> conditionCodes, int address, LabelLibrary labels, out byte[] results);
@@ -208,6 +216,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       private readonly string template;
 
       public int ByteLength { get; } = 2;
+      public bool RequiresAlignment => false;
 
       #region Constructor
 
@@ -617,6 +626,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
    public class WordInstruction : IInstruction {
       public int ByteLength => 4;
+      public bool RequiresAlignment => true;
 
       public string Disassemble(IDataModel data, int address, IReadOnlyList<ConditionCode> conditionalCodes) => throw new NotImplementedException();
 
