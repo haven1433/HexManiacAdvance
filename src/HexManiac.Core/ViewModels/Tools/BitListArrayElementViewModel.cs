@@ -42,6 +42,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public ICommand LinkCommand { get; }
 
+      private bool visible = true;
+      public bool Visible { get => visible; set => Set(ref visible, value); }
+
       private EventHandler dataChanged;
       public event EventHandler DataChanged { add => dataChanged += value; remove => dataChanged -= value; }
 
@@ -184,6 +187,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (!children.Select(child => child.BitLabel).SequenceEqual(bitList.children.Select(child => child.BitLabel))) return false;
 
          start = bitList.start;
+         Visible = other.Visible;
          for (int i = 0; i < children.Count; i++) {
             children[i].PropertyChanged -= ChildChanged;
             children[i].IsChecked = bitList.children[i].IsChecked;

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
@@ -185,6 +184,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                CurrentElementName = $"{basename}/{index}";
             }
 
+            AddChild(new SplitterArrayElementViewModel(viewPort, basename, index));
             AddChildrenFromTable(array, index);
 
             if (array is ArrayRun arrayRun) {
@@ -210,9 +210,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          while (Children.Count > childInsertionIndex) Children.RemoveAt(Children.Count - 1);
          foreach (var child in Children) child.DataChanged += ForwardModelChanged;
 
-         // update sprites now that all the associated palettes have been loaded.
          foreach (var child in Children) {
+            // update sprites now that all the associated palettes have been loaded.
             if (child is SpriteElementViewModel sevm) sevm.UpdateTiles();
+            // update 'visible' for children based on their parents.
+            if (child is SplitterArrayElementViewModel splitter) splitter.UpdateCollapsed();
          }
       }
 

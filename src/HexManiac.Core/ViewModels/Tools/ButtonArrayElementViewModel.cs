@@ -12,6 +12,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public string Text { get; private set; }
       public ICommand Command { get; private set; }
 
+      private bool visible = true;
+      public bool Visible { get => visible; set => Set(ref visible, value); }
+
       public ButtonArrayElementViewModel(string text, Action action) {
          Text = text;
          Command = new StubCommand {
@@ -24,6 +27,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (!(other is ButtonArrayElementViewModel button)) return false;
          if (Text != button.Text) return false;
          Command = button.Command;
+         Visible = other.Visible;
          NotifyPropertyChanged(nameof(Command));
          return true;
       }

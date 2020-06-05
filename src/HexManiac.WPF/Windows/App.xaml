@@ -84,11 +84,11 @@
                      <ToggleButton Name="HeaderSite" DockPanel.Dock="Left" BorderThickness="0" Background="Transparent" Width="NaN"
                         IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
                         <StackPanel Orientation="Horizontal">
-                           <Grid>
+                           <Grid Width="16" Height="16">
                               <Ellipse Name="circle" Stroke="{TemplateBinding BorderBrush}" StrokeThickness="{TemplateBinding BorderThickness}" Fill="{TemplateBinding Background}"/>
-                              <Path Name="arrow" RenderTransformOrigin=".5,.5" Data="{hsv:Icon RightArrow}" Fill="{TemplateBinding Foreground}" Margin="3"/>
+                              <Path Name="arrow" RenderTransformOrigin=".5,.5" Data="{hsv:Icon RightArrow}" Fill="{TemplateBinding Foreground}" Stretch="Fill" Margin="3"/>
                            </Grid>
-                           <ContentPresenter ContentSource="Header" Margin="3,0"/>
+                           <ContentPresenter Name="HeaderContent" ContentSource="Header" Margin="3,0"/>
                         </StackPanel>
                      </ToggleButton>
                      <ContentPresenter Name="ExpanderSite" Visibility="{TemplateBinding IsExpanded, Converter={StaticResource BoolToVisibility}}"/>
@@ -102,6 +102,9 @@
                      </Trigger>
                      <Trigger Property="IsMouseOver" Value="False">
                         <Setter TargetName="arrow" Property="Fill" Value="Transparent"/>
+                     </Trigger>
+                     <Trigger Property="Header" Value="{x:Null}">
+                        <Setter TargetName="HeaderContent" Property="Margin" Value="0"/>
                      </Trigger>
                   </ControlTemplate.Triggers>
                </ControlTemplate>

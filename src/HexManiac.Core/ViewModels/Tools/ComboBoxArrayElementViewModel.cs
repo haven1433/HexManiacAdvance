@@ -89,6 +89,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
+      private bool visible = true;
+      public bool Visible { get => visible; set => Set(ref visible, value); }
+
       public ComboBoxArrayElementViewModel(Selection selection, ChangeHistory<ModelDelta> history, IDataModel model, string name, int start, int length) {
          (this.history, Model, Name, Start, Length) = (history, model, name, start, length);
          var run = (ITableRun)Model.GetNextRun(Start);
@@ -128,6 +131,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          TableName = comboBox.TableName;
          Length = comboBox.Length;
          Start = comboBox.Start;
+         Visible = other.Visible;
 
          // only update the options if they're different
          if (!Options.Select(option => option.Text).SequenceEqual(comboBox.Options.Select(option => option.Text))) {

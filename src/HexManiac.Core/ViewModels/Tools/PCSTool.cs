@@ -114,7 +114,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var startPlaces = model.FindPossibleTextStartingPlaces(Address, 1);
             var results = model.ConsiderResultsAsTextRuns(history.CurrentChange, startPlaces);
             if (results == 0) {
-               OnError?.Invoke(this, $"Could not discover text at {address.ToString("X6")}.");
+               OnError?.Invoke(this, $"Could not discover text at {address:X6}.");
             } else {
                runner.Schedule(DataForCurrentRunChanged);
                Enabled = true;
@@ -125,7 +125,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          insertText.CanExecute = arg => ShowMessage;
          insertText.Execute = arg => {
             if (address < 0 || model.Count <= address || model[address] != 0xFF || model.GetNextRun(address).Start <= address) {
-               OnError?.Invoke(this, $"Could not insert text at {address.ToString("X6")}.{Environment.NewLine}The bytes must be usused (FF).");
+               OnError?.Invoke(this, $"Could not insert text at {address:X6}.{Environment.NewLine}The bytes must be usused (FF).");
                return;
             }
             var gameCode = PokemonModel.ReadGameCode(model);
@@ -164,7 +164,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          } else {
             Enabled = false;
             ShowMessage = true;
-            Message = $"{address.ToString("X6")} does not appear to be text.";
+            Message = $"{address:X6} does not appear to be text.";
          }
       }
 

@@ -34,6 +34,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public int Start { get => start; set => TryUpdate(ref start, value); }
       public int Length { get => length; set => TryUpdate(ref length, value); }
 
+      private bool visible = true;
+      public bool Visible { get => visible; set => Set(ref visible, value); }
+
       public ElementContentViewModelType Type => strategy.Type;
 
       public bool IsInError => errorText != string.Empty;
@@ -75,6 +78,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Name = field.Name;
          Start = field.Start;
          Length = field.Length;
+         Visible = other.Visible;
          TryUpdate(ref content, field.Content, nameof(Content));
          ErrorText = field.ErrorText;
          dataChanged = field.dataChanged;
@@ -134,8 +138,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (content.StartsWith(PointerRun.PointerStart.ToString())) content = content.Substring(1);
          if (content.EndsWith(PointerRun.PointerEnd.ToString())) content = content.Substring(0, content.Length - 1);
 
-         int address;
-         if (!int.TryParse(content, NumberStyles.HexNumber, CultureInfo.CurrentCulture.NumberFormat, out address)) {
+         if (!int.TryParse(content, NumberStyles.HexNumber, CultureInfo.CurrentCulture.NumberFormat, out var address)) {
             address = viewModel.Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, content);
             if (address == Pointer.NULL && content != "null") {
                viewModel.ErrorText = "Address should be hexidecimal or an anchor.";

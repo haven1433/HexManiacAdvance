@@ -124,7 +124,13 @@
                   <ItemsControl ItemsSource="{Binding TableTool.Children}" Grid.IsSharedSizeScope="True">
                      <ItemsControl.Resources>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:SplitterArrayElementViewModel}">
-                           <DockPanel>
+                           <DockPanel Background="Transparent">
+                              <DockPanel.ContextMenu>
+                                 <ContextMenu>
+                                    <MenuItem Header="Expand All" Command="{Binding ExpandAll}"/>
+                                    <MenuItem Header="Collapse All" Command="{Binding CollapseAll}"/>
+                                 </ContextMenu>
+                              </DockPanel.ContextMenu>
                               <Button DockPanel.Dock="Right" Command="{Binding FollowLink}" Width="20" Height="20">
                                  <Button.ToolTip>
                                     <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
@@ -136,11 +142,17 @@
                                  </Button.ToolTip>
                                  <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
                               </Button>
-                              <TextBlock Text="{Binding SectionName}" Margin="5" FontSize="20"/>
+                              <Expander VerticalAlignment="Center" IsExpanded="{Binding Visible}" LayoutTransform="0,1,-1,0,0,0"/>
+                              <TextBlock Text="{Binding SectionName}" Margin="5" FontSize="20">
+                                 <TextBlock.InputBindings>
+                                    <MouseBinding MouseAction="LeftClick" Command="{Binding ToggleVisibility}"/>
+                                    <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding ToggleVisibility}"/>
+                                 </TextBlock.InputBindings>
+                              </TextBlock>
                            </DockPanel>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:FieldArrayElementViewModel}">
-                           <Grid HorizontalAlignment="Stretch" Margin="2">
+                           <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                               <Grid.ColumnDefinitions>
                                  <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
                                  <ColumnDefinition Width="*"/>
@@ -150,7 +162,7 @@
                            </Grid>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:ComboBoxArrayElementViewModel}">
-                           <Grid HorizontalAlignment="Stretch" Margin="2">
+                           <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                               <Grid.ColumnDefinitions>
                                  <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
                                  <ColumnDefinition Width="*"/>
@@ -191,7 +203,7 @@
                            </Grid>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:BitListArrayElementViewModel}">
-                           <StackPanel>
+                           <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                               <Grid HorizontalAlignment="Stretch" Margin="2">
                                  <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
@@ -225,7 +237,7 @@
                            </StackPanel>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:StreamElementViewModel}">
-                           <StackPanel>
+                           <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                               <hsg3hv:CommonTableStreamControl />
                               <TextBox UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Margin="20,2,2,2" AcceptsReturn="True"
                                  Visibility="{Binding ShowContent, Converter={StaticResource BoolToVisibility}}">
@@ -237,20 +249,20 @@
                            </StackPanel>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:ButtonArrayElementViewModel}">
-                           <Button HorizontalAlignment="Center" Content="{Binding Text}" Margin="5" Command="{Binding Command}"/>
+                           <Button HorizontalAlignment="Center" Content="{Binding Text}" Margin="5" Command="{Binding Command}" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}"/>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:SpriteElementViewModel}">
-                           <StackPanel>
+                           <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                               <hsg3hv:CommonTableStreamControl />
                               <hsg3hv:PixelImage SnapsToDevicePixels="True" />
-                              <DockPanel Visibility="{Binding HasMultiplePages, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
+                              <DockPanel>
                                  <Button Content="Previous" Command="{Binding PreviousPage}" DockPanel.Dock="Left"/>
                                  <Button Content="Next" Command="{Binding NextPage}" DockPanel.Dock="Right"/>
                               </DockPanel>
                            </StackPanel>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:PaletteElementViewModel}">
-                           <StackPanel PreviewMouseDown="ActivatePalette">
+                           <StackPanel PreviewMouseDown="ActivatePalette"  Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                               <hsg3hv:CommonTableStreamControl />
                               <hsg3hv:PaletteControl DataContext="{Binding Colors}" />
                               <DockPanel Visibility="{Binding HasMultiplePages, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">

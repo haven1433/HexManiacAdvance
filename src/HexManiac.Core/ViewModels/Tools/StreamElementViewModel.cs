@@ -11,6 +11,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public IDataModel Model { get; }
       public int Start { get; private set; }
 
+      private bool visible = true;
+      public bool Visible { get => visible; set => Set(ref visible, value); }
+
       public ICommand Undo { get; }
       public ICommand Redo { get; }
 
@@ -33,7 +36,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public bool CanRepoint => UsageCount > 1;
 
-      private StubCommand repoint = new StubCommand();
+      private readonly StubCommand repoint = new StubCommand();
       public ICommand Repoint => repoint;
 
       public bool CanCreateNew => UsageCount == 0;
@@ -53,7 +56,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public event EventHandler<(int originalStart, int newStart)> DataMoved { add => dataMoved += value; remove => dataMoved -= value; }
       protected void RaiseDataMoved(int originalStart, int newStart) => dataMoved?.Invoke(this, (originalStart, newStart));
 
-      private event EventHandler dataChanged;
+      private EventHandler dataChanged;
       public event EventHandler DataChanged { add => dataChanged += value; remove => dataChanged -= value; }
       protected void RaiseDataChanged() => dataChanged?.Invoke(this, EventArgs.Empty);
 
@@ -99,6 +102,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          dataMoved = that.dataMoved;
          dataChanged = that.dataChanged;
          Start = that.Start;
+         Visible = other.Visible;
 
          return true;
       }
