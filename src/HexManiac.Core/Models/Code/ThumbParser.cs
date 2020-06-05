@@ -449,7 +449,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       private bool MatchLinePartsToTemplateParts(string line, string template, SortedList<int, int> registerValues, LabelLibrary labels, out int numeric, out ushort list) {
          numeric = 0;
          list = 0;
-         while (line.Length > 0) {
+         while (line.Length > 0 && template.Length > 0) {
             // make sure that the basic format matches where it should
             if (template[0] == ' ') {
                template = template.Substring(1);
@@ -543,7 +543,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
 
          // Completed parsing the line. Should've used the entire template.
-         return template.Length == 0;
+         return template.Length == 0 && line.Length == 0;
       }
 
       private static ushort ParseList(string list) {
