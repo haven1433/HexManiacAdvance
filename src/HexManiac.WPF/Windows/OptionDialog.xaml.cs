@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using HavenSoft.HexManiac.Core.Models;
+using System.Windows;
 
 namespace HavenSoft.HexManiac.WPF.Windows {
    /// <summary>
@@ -13,7 +14,9 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       }
 
       private void OptionClicked(object sender, RoutedEventArgs e) {
-         // TODO figure out which button index this is and set result
+         var option = (VisualOption)((FrameworkElement)sender).DataContext;
+         Result = option.Index;
+         DialogResult = true;
       }
    }
 }

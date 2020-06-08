@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO.Packaging;
 using System.Linq;
 using System.Windows.Input;
 
@@ -573,14 +574,54 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                Description = "Match the new image to the existing palette as closely as possible.",
             });
 
-         if (choice == -1) return;
+         if (choice == 0) { // TODO implement Smart
 
-         if (choice == 1) {
+         } else if (choice == 1) { // Greedy
             WriteSpriteAndPalette(spriteRun, newPixels, palRun, palettes, newPalette);
             return;
+         } else if (choice == 2) { // Cautious
+            WriteSpriteWithoutPalette(spriteRun, newPixels, palRun, palettes, newPalette);
+            return;
+         }
+      }
+
+      private void WriteSpriteWithoutPalette(ISpriteRun spriteRun, int[,] newPixels, IPaletteRun palRun, short[][] palettes, IReadOnlyList<short> newPalette) {
+         var existingPalette = palRun.GetPalette(model, 0);
+
+         var masses = new List<ColorMass>();
+         // the new colors are nearly massless (but not completely, so that they still track to nearest neighbor).
+         for (int i = 0; i < newPalette.Count; i++) {
+            masses.Add(new ColorMass(newPalette[i], 1));
+         }
+         // the existing colors are heavy
+         for (int i = 0; i < existingPalette.Count; i++) {
+            masses.Add(new ColorMass(existingPalette[i], int.MaxValue / 2));
+         }
+         Reduce(masses, 16);
+
+         // map from the colors in the new palette to colors in the initial palette
+         var indexMapper = new int[16];
+         for (int i = 0; i < 16; i++) {
+            var m = masses.Single(mass => mass.OriginalColors.ContainsKey(newPalette[i]));
+            indexMapper[i] = existingPalette.IndexOf(m.ResultColor);
+         }
+         for (int x = 0; x < newPixels.GetLength(0); x++) {
+            for (int y = 0; y < newPixels.GetLength(1); y++) {
+               newPixels[x, y] = indexMapper[newPixels[x, y]];
+            }
          }
 
-         throw new NotImplementedException();
+         // write the sprite (not the palette)
+         IFormattedRun newRun = spriteRun.SetPixels(model, viewPort.CurrentChange, spritePage, newPixels);
+         bool spriteMoved = newRun.Start != spriteRun.Start;
+         if (spriteMoved) {
+            viewPort.Goto.Execute(newRun.Start);
+            viewPort.RaiseMessage($"Sprite moved to {newRun.Start:X6}. Pointers have been updated.");
+         } else {
+            viewPort.Refresh();
+         }
+
+         LoadSprite();
       }
 
       private void WriteSpriteAndPalette(ISpriteRun spriteRun, int[,] newPixels, IPaletteRun palRun, short[][]palettes, IReadOnlyList<short> newPalette) {
@@ -630,7 +671,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          // use a 'gravity' metric to reduce the number of colors
-         while (masses.Count > targetPaletteLength) {
+         Reduce(masses, targetPaletteLength);
+
+         // build a mapping from the full color set to the reduced color set
+         var sourceToTarget = new Dictionary<short, short>();
+         foreach (var mass in masses) {
+            var resultColor = mass.ResultColor;
+            foreach (var color in mass.OriginalColors.Keys) sourceToTarget[color] = resultColor;
+         }
+
+         // replace initial colors with reduced color set
+         var resultImage = new short[initialImage.Length];
+         for (int i = 0; i < initialImage.Length; i++) resultImage[i] = sourceToTarget[initialImage[i]];
+         return resultImage;
+      }
+
+      private static void Reduce(List<ColorMass> masses, int targetLength) {
+         while (masses.Count > targetLength) {
             var mostAttractedIndexPair = (first: 0, second: 0);
             double greatestAttraction = -1;
             for (int i = 0; i < masses.Count; i++) {
@@ -647,18 +704,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             masses.RemoveAt(mostAttractedIndexPair.first);
             masses.Add(first + second);
          }
-
-         // build a mapping from the full color set to the reduced color set
-         var sourceToTarget = new Dictionary<short, short>();
-         foreach(var mass in masses) {
-            var resultColor = mass.ResultColor;
-            foreach (var color in mass.OriginalColors.Keys) sourceToTarget[color] = resultColor;
-         }
-
-         // replace initial colors with reduced color set
-         var resultImage = new short[initialImage.Length];
-         for (int i = 0; i < initialImage.Length; i++) resultImage[i] = sourceToTarget[initialImage[i]];
-         return resultImage;
       }
 
       private short[][] SplitPalettes(IReadOnlyList<short> colors) {

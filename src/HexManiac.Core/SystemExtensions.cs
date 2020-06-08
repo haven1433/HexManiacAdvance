@@ -35,9 +35,9 @@ namespace HavenSoft.HexManiac.Core {
 
       public static int Count<T>(this IEnumerable<T> list, T c) where T : struct => list.Count(ch => ch.Equals(c));
 
-      public static int IndexOf<T>(this IReadOnlyList<T> list, T element) where T : class {
+      public static int IndexOf<T>(this IReadOnlyList<T> list, T element) {
          for (int i = 0; i < list.Count; i++) {
-            if (list[i].Equals(element)) return i;
+            if (Equals(list[i], element)) return i;
          }
          return -1;
       }
