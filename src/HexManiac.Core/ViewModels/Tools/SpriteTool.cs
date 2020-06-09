@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO.Packaging;
 using System.Linq;
 using System.Windows.Input;
@@ -575,7 +576,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             });
 
          if (choice == 0) { // TODO implement Smart
-
+            WriteSpriteAndBalancePalette(spriteRun, dependentSprites, newPixels, palRun, palettes, newPalette);
          } else if (choice == 1) { // Greedy
             WriteSpriteAndPalette(spriteRun, newPixels, palRun, palettes, newPalette);
             return;
@@ -584,6 +585,88 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             return;
          }
       }
+
+      private void WriteSpriteAndBalancePalette(ISpriteRun spriteRun, IReadOnlyList<ISpriteRun> allSprites, int[,] newPixels, IPaletteRun palRun, short[][] palettes, IReadOnlyList<short> newPalette) {
+
+         var existingPalette = palRun.GetPalette(model, 0);
+
+         var masses = new List<ColorMass>();
+         // the new colors have mass equal to their usage.
+         var width = newPixels.GetLength(0);
+         for (int i = 0; i < newPalette.Count; i++) {
+            int count = Enumerable.Range(0, newPixels.Length).Count(j => newPixels[j % width, j / width] == i);
+            masses.Add(new ColorMass(newPalette[i], count));
+         }
+         // the existing colors have mass equale to their usage.
+         for (int i = 0; i < existingPalette.Count; i++) {
+            int sum = 0;
+            foreach(var sprite in allSprites) {
+               if (sprite == spriteRun) continue;
+               var existingPixels = sprite.GetPixels(model, 0);
+               sum += Enumerable.Range(0, newPixels.Length).Count(j => existingPixels[j % width, j / width] == i);
+            }
+            masses.Add(new ColorMass(existingPalette[i], sum));
+         }
+         Reduce(masses, 16);
+
+         // map from the colors in the new palette to colors in the initial palette
+         var indexMapper = new int[16];
+         for (int i = 0; i < 16; i++) {
+            var m = masses.Single(mass => mass.OriginalColors.ContainsKey(newPalette[i]));
+            indexMapper[i] = masses.IndexOf(m);
+         }
+         for (int x = 0; x < newPixels.GetLength(0); x++) {
+            for (int y = 0; y < newPixels.GetLength(1); y++) {
+               newPixels[x, y] = indexMapper[newPixels[x, y]];
+            }
+         }
+
+         // remap other sprites using the masses
+         bool remappedOtherSprites = false;
+         foreach(var sprite in allSprites) {
+            if (sprite == spriteRun) continue;
+            var existingPixels = sprite.GetPixels(model, 0);
+            for (int i = 0; i < 16; i++) {
+               var m = masses.Single(mass => mass.OriginalColors.ContainsKey(existingPalette[i]));
+               indexMapper[i] = masses.IndexOf(m);
+            }
+            for (int x = 0; x < newPixels.GetLength(0); x++) {
+               for (int y = 0; y < newPixels.GetLength(1); y++) {
+                  existingPixels[x, y] = indexMapper[existingPixels[x, y]];
+               }
+            }
+            var remappedSprite = sprite.SetPixels(model, history.CurrentChange, 0, existingPixels);
+            remappedOtherSprites |= remappedSprite.Start != sprite.Start;
+         }
+
+         // write sprite
+         IFormattedRun newRun = spriteRun.SetPixels(model, viewPort.CurrentChange, spritePage, newPixels);
+         bool spriteMoved = newRun.Start != spriteRun.Start;
+
+         // write palette
+         var newPal = palRun.SetPalette(model, viewPort.CurrentChange, palPage, masses.Select(m => m.ResultColor).ToList());
+         bool palMoved = palRun.Start != newPal.Start;
+
+         if (spriteMoved && !palMoved && !remappedOtherSprites) {
+            viewPort.Goto.Execute(newRun.Start);
+            viewPort.RaiseMessage($"Sprite moved to {newRun.Start:X6}. Pointers have been updated.");
+         } else if (!spriteMoved && palMoved && !remappedOtherSprites) {
+            viewPort.Goto.Execute(newPal.Start);
+            viewPort.RaiseMessage($"Palette moved to {newPal.Start:X6}. Pointers have been updated.");
+         } else if (remappedOtherSprites) {
+            viewPort.RaiseMessage($"Some sprites were moved. Pointers have been updated.");
+         } else if ((spriteMoved && palMoved)) {
+            viewPort.Goto.Execute(newRun.Start);
+            viewPort.RaiseMessage($"Sprite and Palette moved. Pointers have been updated.");
+         } else {
+            viewPort.Refresh();
+         }
+
+         LoadPalette();
+         LoadSprite();
+      }
+
+      // private int[] MapColors(IReadOnlyList<ColorMass> masses, int[,] pixels, )
 
       private void WriteSpriteWithoutPalette(ISpriteRun spriteRun, int[,] newPixels, IPaletteRun palRun, short[][] palettes, IReadOnlyList<short> newPalette) {
          var existingPalette = palRun.GetPalette(model, 0);
