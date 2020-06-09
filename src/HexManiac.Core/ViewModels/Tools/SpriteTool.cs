@@ -666,8 +666,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          LoadSprite();
       }
 
-      // private int[] MapColors(IReadOnlyList<ColorMass> masses, int[,] pixels, )
-
       private void WriteSpriteWithoutPalette(ISpriteRun spriteRun, int[,] newPixels, IPaletteRun palRun, short[][] palettes, IReadOnlyList<short> newPalette) {
          var existingPalette = palRun.GetPalette(model, 0);
 

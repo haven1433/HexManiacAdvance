@@ -359,7 +359,10 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private readonly Timer timer = new Timer { Interval = 500, AutoReset = false };
       private new ToolTip ToolTip => (ToolTip)base.ToolTip;
       private void ShowToolTip() => ToolTip.IsOpen = true;
-      protected override void OnMouseLeave(MouseEventArgs e) => ToolTip.IsOpen = false;
+      protected override void OnMouseLeave(MouseEventArgs e) {
+         timer.Enabled = false;
+         ToolTip.IsOpen = false;
+      }
       private void MakeNewToolTip(string text) {
          timer.Enabled = false;
          ToolTip.IsOpen = false;
