@@ -20,7 +20,7 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(SampleFiles))]
       public void CanLoad(string file) {
          var data = File.ReadAllBytes(file);
-         var model = new HardcodeTablesModel(singletons, data);
+         new HardcodeTablesModel(singletons, data);
       }
    }
 }

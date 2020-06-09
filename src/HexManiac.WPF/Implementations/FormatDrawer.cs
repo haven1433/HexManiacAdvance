@@ -71,6 +71,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          collector.Initialize<EggSection>(typeface, fontSize * .75);
          collector.Initialize<EggItem>(typeface, fontSize * .75);
          collector.Initialize<IntegerEnum>(typeface, fontSize * .75);
+         collector.Initialize<IntegerHex>(typeface, fontSize);
          collector.Initialize<Integer>(typeface, fontSize);
          collector.Initialize<BitArray>(typeface, fontSize);
          collector.Initialize<MatchedWord>(typeface, fontSize * .75);
@@ -101,6 +102,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                collector.Collect<EggSection>(format, x, 2, eggSection.SectionName);
             } else if (format is IntegerEnum intEnum) {
                collector.Collect<IntegerEnum>(format, x, intEnum.Length, intEnum.DisplayValue);
+            } else if (format is IntegerHex integerHex) {
+               collector.Collect<IntegerHex>(format, x, integerHex.Length, integerHex.ToString());
             } else if (format is Integer integer) {
                collector.Collect<Integer>(format, x, integer.Length, integer.Value.ToString());
             } else if (format is Ascii asc) {
@@ -139,6 +142,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          collector.Render<EggItem>(context, Brush(nameof(Theme.Stream2)));
          collector.Render<EggSection>(context, Brush(nameof(Theme.Stream1)));
          collector.Render<IntegerEnum>(context, Brush(nameof(Theme.Data2)));
+         collector.Render<IntegerHex>(context, Brush(nameof(Theme.Data2)));
          collector.Render<Integer>(context, Brush(nameof(Theme.Data1)));
          collector.Render<Ascii>(context, Brush(nameof(Theme.Text2)));
          collector.Render<None>(context, Brush(nameof(Theme.Primary)));
@@ -234,6 +238,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       public void Visit(Integer integer, byte data) { }
 
       public void Visit(IntegerEnum integerEnum, byte data) { }
+
+      public void Visit(IntegerHex integerHex, byte data) { }
 
       public void Visit(EggSection section, byte data) { }
 

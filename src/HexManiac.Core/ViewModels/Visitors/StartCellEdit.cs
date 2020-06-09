@@ -144,6 +144,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Result = true;
       }
 
+      public void Visit(IntegerHex integerHex, byte data) {
+         if (!integerHex.CanStartWithCharacter(Input)) return;
+
+         NewFormat = new UnderEdit(integerHex, Input.ToString(), integerHex.Length, null);
+         Result = true;
+      }
+
       public void Visit(EggSection section, byte data) => VisitEgg(section);
       public void Visit(EggItem item, byte data) => VisitEgg(item);
       public void VisitEgg(IDataFormat eggFormat) {

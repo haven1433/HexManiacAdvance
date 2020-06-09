@@ -247,8 +247,9 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void ViewPortAdjustsSelectionWhenLoadingAShorterFile() {
-         var viewPort = new ViewPort(new LoadedFile("file.txt", new byte[12]));
-         viewPort.SelectionStart = new Point(3, 3);
+         var viewPort = new ViewPort(new LoadedFile("file.txt", new byte[12])) {
+            SelectionStart = new Point(3, 3)
+         };
          Assert.Equal(4, viewPort.Width);
          Assert.Equal(4, viewPort.Height);
          Assert.Equal(new Point(0, 3), viewPort.SelectionStart);

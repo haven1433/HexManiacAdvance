@@ -136,6 +136,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(IntegerEnum integer, byte data) => Results.AddRange(GetTableChildren());
 
+      public void Visit(IntegerHex integerHex, byte data) => Results.AddRange(GetTableChildren());
+
       public void Visit(EggSection section, byte data) => Visit((EggItem)null, data);
 
       public void Visit(EggItem item, byte data) {

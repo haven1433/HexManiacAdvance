@@ -131,10 +131,10 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private static void FontSizeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
          var self = (HexContent)d;
-         self.OnFontSizeChanged(e);
+         self.OnFontSizeChanged();
       }
 
-      private void OnFontSizeChanged(DependencyPropertyChangedEventArgs e) {
+      private void OnFontSizeChanged() {
          UpdateViewPortSize();
          InvalidateVisual();
          CursorNeedsUpdate?.Invoke(this, EventArgs.Empty);
@@ -153,10 +153,10 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private static void RequestInvalidateVisual(DependencyObject d, DependencyPropertyChangedEventArgs e) {
          var self = (HexContent)d;
-         self.OnRequestInvalidateVisual(e);
+         self.OnRequestInvalidateVisual();
       }
 
-      private void OnRequestInvalidateVisual(DependencyPropertyChangedEventArgs e) {
+      private void OnRequestInvalidateVisual() {
          InvalidateVisual();
          CursorNeedsUpdate?.Invoke(this, EventArgs.Empty);
       }
@@ -441,7 +441,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             RenderSelection(drawingContext);
             {
                drawingContext.PushClip(new RectangleGeometry(new Rect(new Size(ViewPort.Width * CellWidth, ViewPort.Height * CellHeight))));
-               RenderData(drawingContext, visitor);
+               RenderData(visitor);
                drawingContext.Pop();
             }
             if (ShowHorizontalScroll) drawingContext.Pop();
@@ -499,7 +499,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          }
       }
 
-      private void RenderData(DrawingContext drawingContext, FormatDrawer visitor) {
+      private void RenderData(FormatDrawer visitor) {
          for (int x = 0; x < ViewPort.Width; x++) {
             for (int y = 0; y < ViewPort.Height; y++) {
                visitor.MouseIsOverCurrentFormat = mouseOverPoint.Equals(new ModelPoint(x, y));

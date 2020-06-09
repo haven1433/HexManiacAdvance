@@ -92,9 +92,9 @@ namespace HavenSoft.HexManiac.Tests {
       public void HideCommandClosesAnyOpenTools() {
          var model = new PokemonModel(new byte[0x200]);
          var history = new ChangeHistory<ModelDelta>(null);
-         var tools = new ToolTray(singletons, model, new Selection(new ScrollRegion(), model), history, null);
-
-         tools.SelectedIndex = 1;
+         var tools = new ToolTray(singletons, model, new Selection(new ScrollRegion(), model), history, null) {
+            SelectedIndex = 1
+         };
          tools.HideCommand.Execute();
 
          Assert.Equal(-1, tools.SelectedIndex);
@@ -138,9 +138,9 @@ namespace HavenSoft.HexManiac.Tests {
             model,
             new Selection(new ScrollRegion { Width = 0x10, Height = 0x10 }, model),
             new ChangeHistory<ModelDelta>(dm => dm),
-            null);
-
-         tool.Address = 18;
+            null) {
+            Address = 18
+         };
 
          Assert.Equal(18, tool.Address); // address updated correctly
          Assert.False(tool.Enabled);     // run is not one that this tool knows how to edit

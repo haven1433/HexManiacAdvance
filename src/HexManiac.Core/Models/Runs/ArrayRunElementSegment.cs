@@ -208,6 +208,22 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
    }
 
+   public class ArrayRunHexSegment : ArrayRunElementSegment {
+      public ArrayRunHexSegment(string name, int length) : base(name, ElementContentType.Integer, length) {
+      }
+
+      public override string ToText(IDataModel rawData, int offset, bool deep = false) {
+         var hexLength = "X" + (Length * 2);
+         rawData.ReadMultiByteValue(offset, Length).ToString(hexLength);
+         return base.ToText(rawData, offset, deep);
+      }
+
+      public override void Write(IDataModel model, ModelDelta token, int start, string data) {
+         if (!int.TryParse(data, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var intValue)) intValue = 0;
+         model.WriteMultiByteValue(start, Length, token, intValue);
+      }
+   }
+
    public class ArrayRunBitArraySegment : ArrayRunElementSegment {
       public string SourceArrayName { get; }
 

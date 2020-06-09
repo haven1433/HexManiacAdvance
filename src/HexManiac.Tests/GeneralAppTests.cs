@@ -411,8 +411,9 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void ZoomCanReset() {
          var fileSystem = new StubFileSystem();
-         var editor = new EditorViewModel(fileSystem);
-         editor.ZoomLevel = 24;
+         var editor = new EditorViewModel(fileSystem) {
+            ZoomLevel = 24
+         };
 
          editor.ResetZoom.Execute();
 

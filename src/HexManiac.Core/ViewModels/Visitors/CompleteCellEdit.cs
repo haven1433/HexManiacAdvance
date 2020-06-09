@@ -116,6 +116,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
       }
 
+      public void Visit(IntegerHex integerHex, byte data) {
+         if (char.IsWhiteSpace(CurrentText.Last())) {
+            CompleteIntegerHexEdit(integerHex);
+            Result = true;
+         }
+      }
+
       public void Visit(EggSection section, byte data) => CompleteEggEdit();
 
       public void Visit(EggItem item, byte data) => CompleteEggEdit();
@@ -327,6 +334,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
 
          return null;
+      }
+
+      private void CompleteIntegerHexEdit(IntegerHex integerHex) {
+         if(!int.TryParse(CurrentText,NumberStyles.HexNumber,CultureInfo.CurrentCulture,out var result)) {
+            ErrorText = $"Could not parse {CurrentText} as a number";
+            return;
+         }
+
+         Model.WriteMultiByteValue(integerHex.Source, integerHex.Length, CurrentChange, result);
+         if (result >= Math.Pow(2L, integerHex.Length * 8)) ErrorText = $"Warning: number was too big to fit in the available space.";
+         NewDataIndex = integerHex.Source + integerHex.Length;
       }
 
       private void CompleteIntegerEdit(Integer integer) {

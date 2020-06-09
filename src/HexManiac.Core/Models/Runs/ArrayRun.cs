@@ -35,6 +35,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (currentSegment is ArrayRunEnumSegment enumSegment) {
                var value = enumSegment.ToText(data, index, false);
                return new IntegerEnum(offsets.SegmentStart, position, value, currentSegment.Length);
+            } else if (currentSegment is ArrayRunHexSegment) {
+               var value = data.ReadMultiByteValue(offsets.SegmentStart, currentSegment.Length);
+               return new IntegerHex(offsets.SegmentStart, position, value, currentSegment.Length);
             } else {
                var value = ArrayRunElementSegment.ToInteger(data, offsets.SegmentStart, currentSegment.Length);
                return new Integer(offsets.SegmentStart, position, value, currentSegment.Length);
@@ -135,6 +138,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public const char SingleByteIntegerFormat = '.';
       public const char DoubleByteIntegerFormat = ':';
       public const char ArrayAnchorSeparator = '/';
+      public const string HexFormatString = "|h";
 
       private const int JunkLimit = 80;
 
@@ -641,7 +645,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             // check to see if a name or length is part of the format
             if (format == ElementContentType.Integer && segments.Length > formatLength && segments[formatLength] != ' ') {
                segments = segments.Substring(formatLength);
-               if (int.TryParse(segments, out var elementCount)) {
+               if (segments.StartsWith(HexFormatString)) {
+                  var endOfToken = segments.IndexOf(' ');
+                  if (endOfToken == -1) endOfToken = segments.Length;
+                  segments = segments.Substring(endOfToken).Trim();
+                  list.Add(new ArrayRunHexSegment(name, segmentLength));
+               } else if (int.TryParse(segments, out var elementCount)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
                   segments = segments.Substring(endOfToken).Trim();

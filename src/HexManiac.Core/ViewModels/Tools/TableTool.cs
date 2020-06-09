@@ -265,7 +265,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var itemAddress = table.Start + table.ElementLength * index;
          foreach (var item in table.ElementContent) {
             IArrayElementViewModel viewModel = null;
-            if (item.Type == ElementContentType.Unknown) viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, new HexFieldStratgy());
+            if (item.Type == ElementContentType.Unknown) viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, HexFieldStratgy.Instance);
             else if (item.Type == ElementContentType.PCS) viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, new TextFieldStratgy());
             else if (item.Type == ElementContentType.Pointer) viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, new AddressFieldStratgy());
             else if (item.Type == ElementContentType.BitArray) viewModel = new BitListArrayElementViewModel(selection, history, model, item.Name, itemAddress);
@@ -277,6 +277,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                      AddChild(viewModel);
                      viewModel = new BitListArrayElementViewModel(selection, history, model, item.Name, itemAddress);
                   }
+               } else if (item is ArrayRunHexSegment) {
+                  viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, HexFieldStratgy.Instance);
                } else {
                   viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, new NumericFieldStrategy());
                }

@@ -87,6 +87,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    }
 
    public class TextFieldStratgy : IFieldArrayElementViewModelStrategy {
+      public static TextFieldStratgy Instance { get; } = new TextFieldStratgy();
       public ElementContentViewModelType Type => ElementContentViewModelType.TextField;
 
       public void UpdateModelFromViewModel(FieldArrayElementViewModel viewModel) {
@@ -110,6 +111,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    }
 
    public class NumericFieldStrategy : IFieldArrayElementViewModelStrategy {
+      public static NumericFieldStrategy Instance { get; } = new NumericFieldStrategy();
       public ElementContentViewModelType Type => ElementContentViewModelType.NumericField;
 
       public void UpdateModelFromViewModel(FieldArrayElementViewModel viewModel) {
@@ -131,6 +133,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    }
 
    public class AddressFieldStratgy : IFieldArrayElementViewModelStrategy {
+      public static AddressFieldStratgy Instance { get; } = new AddressFieldStratgy();
       public ElementContentViewModelType Type => ElementContentViewModelType.Address;
 
       public void UpdateModelFromViewModel(FieldArrayElementViewModel viewModel) {
@@ -158,6 +161,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    }
 
    public class HexFieldStratgy : IFieldArrayElementViewModelStrategy {
+      public static HexFieldStratgy Instance { get; } = new HexFieldStratgy();
       public ElementContentViewModelType Type => ElementContentViewModelType.HexField;
 
       public void UpdateModelFromViewModel(FieldArrayElementViewModel viewModel) {

@@ -84,6 +84,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             char.IsWhiteSpace(Input);
       }
 
+      public void Visit(IntegerHex integerHex, byte data) => Visit((Integer)integerHex, data);
+
       public void Visit(EggSection section, byte data) => VisitEgg();
       public void Visit(EggItem item, byte data) => VisitEgg();
       public void VisitEgg() {

@@ -29,7 +29,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void ArrayElementsMustHaveNames() {
          var model = new PokemonModel(new byte[0x200]);
-         var errorInfo = ArrayRun.TryParse(model, "[\"\"10]13", 12, null, out var arrayRun); // no name given for the format member
+         var errorInfo = ArrayRun.TryParse(model, "[\"\"10]13", 12, null, out var _); // no name given for the format member
 
          Assert.NotEqual(ErrorInfo.NoError, errorInfo);
       }
@@ -508,7 +508,7 @@ namespace HavenSoft.HexManiac.Tests {
          // arrange: setup the array of strings
          WriteStrings(data, 0x80, "cat", "bat", "hat", "sat");
          var existingAnchor = model.GetNextAnchor(0x80);
-         var error = ArrayRun.TryParse(model, "^[name\"\"4]4", 0x80, existingAnchor.PointerSources, out var arrayRun);
+         ArrayRun.TryParse(model, "^[name\"\"4]4", 0x80, existingAnchor.PointerSources, out var arrayRun);
          model.ObserveAnchorWritten(changeToken, "sample", arrayRun);
 
          // arrange: create the viewmodel
@@ -572,7 +572,7 @@ namespace HavenSoft.HexManiac.Tests {
          // arrange: setup the array of strings
          WriteStrings(data, 0x80, "cat", "bat", "hat", "sat");
          var existingAnchor = model.GetNextAnchor(0x80);
-         var error = ArrayRun.TryParse(model, "^[name\"\"4]4", 0x80, existingAnchor.PointerSources, out var arrayRun);
+         ArrayRun.TryParse(model, "^[name\"\"4]4", 0x80, existingAnchor.PointerSources, out var arrayRun);
          model.ObserveAnchorWritten(changeToken, "sample", arrayRun);
 
          // act: clear the pointer
@@ -586,7 +586,6 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void CanCreateArraySupportingInnerAnchorsFromViewModel() {
          var data = new byte[0x200];
-         var changeToken = new ModelDelta();
          var model = new PokemonModel(data);
          var viewport = new ViewPort("name", model) { Width = 0x10, Height = 0x10 };
 
@@ -599,7 +598,6 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void CanCreateNewPointerUsingArrayNameAndIndex() {
          var data = new byte[0x200];
-         var changeToken = new ModelDelta();
          var model = new PokemonModel(data);
          var viewport = new ViewPort("name", model) { Width = 0x10, Height = 0x10 };
 
@@ -620,11 +618,11 @@ namespace HavenSoft.HexManiac.Tests {
 
          // arrange: setup the anchor used for the enums
          WriteStrings(data, 0x00, "cat", "bat", "hat", "sat");
-         var error = ArrayRun.TryParse(model, "^[name\"\"4]4", 0x00, null, out var arrayRun);
+         ArrayRun.TryParse(model, "^[name\"\"4]4", 0x00, null, out var arrayRun);
          model.ObserveAnchorWritten(changeToken, "sample", arrayRun);
 
          // arrange: setup the anchor with the data
-         error = ArrayRun.TryParse(model, "[option:sample]4", 0x40, null, out arrayRun);
+         ArrayRun.TryParse(model, "[option:sample]4", 0x40, null, out arrayRun);
          model.ObserveAnchorWritten(changeToken, "data", arrayRun);
 
          changeToken.ChangeData(model, 0x42, 2);
@@ -648,11 +646,11 @@ namespace HavenSoft.HexManiac.Tests {
 
          // arrange: setup the anchor used for the enums
          WriteStrings(data, 0x00, "cat", "bat", "hat", "sat");
-         var error = ArrayRun.TryParse(model, "^[name\"\"4]4", 0x00, null, out var arrayRun);
+         ArrayRun.TryParse(model, "^[name\"\"4]4", 0x00, null, out var arrayRun);
          model.ObserveAnchorWritten(changeToken, "sample", arrayRun);
 
          // arrange: setup the anchor with the data
-         error = ArrayRun.TryParse(model, "[option.sample]4", 0x40, null, out arrayRun);
+         ArrayRun.TryParse(model, "[option.sample]4", 0x40, null, out arrayRun);
          model.ObserveAnchorWritten(changeToken, "data", arrayRun);
 
          // act: use a viewmodel to change 0x41 to 'bat'
@@ -698,11 +696,11 @@ namespace HavenSoft.HexManiac.Tests {
 
          // arrange: setup the anchor used for the enums
          WriteStrings(data, 0x00, "cat", "bat", "bat", "sat");
-         var error = ArrayRun.TryParse(model, "^[name\"\"4]4", 0x00, null, out var arrayRun);
+         ArrayRun.TryParse(model, "^[name\"\"4]4", 0x00, null, out var arrayRun);
          model.ObserveAnchorWritten(changeToken, "sample", arrayRun);
 
          // arrange: setup the anchor with the data
-         error = ArrayRun.TryParse(model, "[option.sample]4", 0x40, null, out arrayRun);
+         ArrayRun.TryParse(model, "[option.sample]4", 0x40, null, out arrayRun);
          model.ObserveAnchorWritten(changeToken, "data", arrayRun);
 
          // act: setup a viewmodel
@@ -722,11 +720,11 @@ namespace HavenSoft.HexManiac.Tests {
 
          // arrange: setup the anchor used for the enums
          WriteStrings(data, 0x00, "cat", "bat", "bat", "sat");
-         var error = ArrayRun.TryParse(model, "^[name\"\"4]4", 0x00, null, out var arrayRun);
+         ArrayRun.TryParse(model, "^[name\"\"4]4", 0x00, null, out var arrayRun);
          model.ObserveAnchorWritten(changeToken, "sample", arrayRun);
 
          // arrange: setup the anchor with the data
-         error = ArrayRun.TryParse(model, "[option.sample]4", 0x40, null, out arrayRun);
+         ArrayRun.TryParse(model, "[option.sample]4", 0x40, null, out arrayRun);
          model.ObserveAnchorWritten(changeToken, "data", arrayRun);
 
          // act: setup a viewmodel and change 0x41 to bat~2
@@ -1004,7 +1002,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CanHaveLooseWordRunsReferingToTables() {
-         StandardSetup(out var data, out var model, out var viewPort);
+         StandardSetup(out var _, out var model, out var viewPort);
 
          viewPort.Edit("^table[a:: b::]4 "); // 0x20 bytes
          viewPort.SelectionStart = new Point(0, 5);
@@ -1070,7 +1068,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void AppendToTableMovesTableIfConflictingWithAnchor() {
-         StandardSetup(out var data, out var model, out var viewPort);
+         StandardSetup(out var _, out var model, out var viewPort);
          viewPort.Edit("@0 ^table[data:]parent ");
          viewPort.Edit("@10 ^stuff @20 ^parent[data:]8 ");
 
