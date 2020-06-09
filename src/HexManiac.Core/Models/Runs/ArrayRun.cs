@@ -204,7 +204,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (!format.StartsWith(ArrayStart.ToString()) || closeArray == -1) throw new ArrayRunParseException($"Array Content must be wrapped in {ArrayStart}{ArrayEnd}.");
          var segments = format.Substring(1, closeArray - 1);
          var length = format.Substring(closeArray + 1);
-         if (!length.All(c => char.IsLetterOrDigit(c) || c.IsAny('-', '+'))) throw new ArrayRunParseException("Array length must be an anchor name or a number."); // the name might end with "-1" so also allow +/-
+         if (!length.All(c => IsValidTableNameCharacter(c) || c.IsAny('-', '+'))) throw new ArrayRunParseException("Array length must be an anchor name or a number."); // the name might end with "-1" so also allow +/-
          ElementContent = ParseSegments(segments, data);
          if (ElementContent.Count == 0) throw new ArrayRunParseException("Array Content must not be empty.");
          ElementLength = ElementContent.Sum(e => e.Length);
@@ -265,14 +265,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (startArray == -1 || startArray > closeArray) return new ErrorInfo($"Array Content must be wrapped in {ArrayStart}{ArrayEnd}.");
          var length = format.Substring(closeArray + 1);
 
-         var sourceSegments = 
+         var sourceSegments =
             data.GetUnmappedSourcesToAnchor(name)
             .Select(source => data.GetNextRun(source) as ITableRun)
             .Where(tRun => tRun != null)
             .Select(tRun => tRun.ElementContent)
             .FirstOrDefault();
 
-         if (length.All(c => char.IsLetterOrDigit(c) || c.IsAny('-', '+'))) {
+         if (length.All(c => IsValidTableNameCharacter(c) || c.IsAny('-', '+'))) {
             // option 1: the length looks like a standard table length (or is empty, and thus dynamic). Parse as a table.
             try {
                using (ModelCacheScope.CreateScope(data)) {
@@ -611,6 +611,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new ArrayRun(owner, FormatString, LengthFromAnchor, ParentOffset, Start, ElementCount, ElementContent, newPointerSources, newInnerPointerSources);
       }
 
+      private static bool IsValidFieldNameCharacter(char c) => char.IsLetterOrDigit(c) || c == '_'; // field names can contain underscores
+      private static bool IsValidTableNameCharacter(char c) => char.IsLetterOrDigit(c) || c.IsAny('_', '.'); // table names can contain underscores or dots
+
       public static List<ArrayRunElementSegment> ParseSegments(string segments, IDataModel model) {
          var list = new List<ArrayRunElementSegment>();
          segments = segments.Trim();
@@ -629,7 +632,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
 
             int nameEnd = 0;
-            while (nameEnd < segments.Length && char.IsLetterOrDigit(segments[nameEnd])) nameEnd++;
+            while (nameEnd < segments.Length && IsValidFieldNameCharacter(segments[nameEnd])) nameEnd++;
             var name = segments.Substring(0, nameEnd);
             if (name == string.Empty) throw new ArrayRunParseException("expected name, but none was found: " + segments);
             segments = segments.Substring(nameEnd);
@@ -701,7 +704,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             return (ElementContentType.Pointer, endIndex, 4);
          } else if (segments.StartsWith(BitArray.SharedFormatString)) {
             var endIndex = BitArray.SharedFormatString.Length;
-            while (segments.Length > endIndex && char.IsLetterOrDigit(segments[endIndex])) endIndex++;
+            while (segments.Length > endIndex && IsValidTableNameCharacter(segments[endIndex])) endIndex++;
             var format = segments.Substring(0, endIndex);
             var name = format.Substring(BitArray.SharedFormatString.Length);
             var options = model.GetBitOptions(name);
