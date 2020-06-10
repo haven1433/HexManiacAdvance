@@ -274,8 +274,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (destination < 0 || destination >= owner.Count) return false;
             return FormatRunFactory.GetStrategy(InnerFormat)?.TryAddFormatAtDestination(owner, token, source, destination, Name, sourceSegments) ?? false;
          } else {
-            // easy case: already have a useful format, just see if it matches
-            return FormatRunFactory.GetStrategy(InnerFormat)?.Matches(run) ?? false;
+            // easy case: already have a format, just see if it matches
+            var strategy = FormatRunFactory.GetStrategy(InnerFormat);
+            if (strategy == null) return false;
+            if (strategy.Matches(run)) return true;
+
+            // special test: the format of the data is wrong?
+            return strategy.TryAddFormatAtDestination(owner, token, source, destination, Name, sourceSegments);
          }
       }
 

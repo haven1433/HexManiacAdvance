@@ -162,5 +162,6 @@ credits.trainer.rival.sprite,    ,,,, 0F4AD8, 0F4AB0, 0F4B50, 0F4B28, , `lzs4x8x
 // The palette of the sprites is determined by the palettekey field.
 // the number of sprites is determined by... ???
 // overworld.sprites,     ,,,, 05F2F4,,,, , [data<[a1: paletteid: secondid: length: width: height: slot. overwrite. d2: distribution<> sizedraw<> animation<> sprites<[data<`ucs4x{width/8}x{height/8}|overworld.palettes/{palettekey}`> bytelength::]?> ramstore<>]1>]152
-overworld.sprites,     ,,,, 05F2F4,,,, , [data<[starterbytes:|h paletteid:|h secondid:|h length: width: height: slot.|h overwrite. unused: distribution<> sizedraw<> animation<> sprites<> ramstore<>]1>]152
-overworld.palettes,    ,,,, 05F4D8,,,, , [pal<`ucp4`> id:|h unused:]!0000000000000000
+overworld.sprites,     ,,,, 05F2F4, 05F2F4, 05F308, 05F308, , [data<[starterbytes:|h paletteid:|h secondid:|h length: width: height: slot.|h overwrite. unused: distribution<> sizedraw<> animation<> sprites<> ramstore<>]1>]152
+overworld.sprites,     05BC3C, 05BC40, 05BC5C, 05BC60, ,,,, , [data<[starterbytes:|h paletteid:|h secondid:|h length: width: height: slot.|h overwrite. unused: distribution<> sizedraw<> animation<> sprites<> ramstore<>]1>]218
+overworld.palettes,    05BE20, 05BE24, 05BE40, 05BE44, 05F4D8, 05F4D8, 05F4EC, 05F4EC, , [pal<`ucp4`> id:|h unused:]!0000000000000000
