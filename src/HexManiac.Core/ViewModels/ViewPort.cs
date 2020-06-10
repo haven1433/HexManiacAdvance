@@ -681,7 +681,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private static IEnumerable<IFormattedRun> Runs(IDataModel model) {
-         for (var run = model.GetNextRun(0); run.Start < model.Count; run = model.GetNextRun(run.Start + run.Length)) {
+         for (var run = model.GetNextRun(0); run.Start < model.Count; run = model.GetNextRun(run.Start + Math.Max(1, run.Length))) {
             yield return run;
          }
       }
@@ -1437,7 +1437,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void ValidateMatchedWords() {
          // TODO if this is too slow, add a method to the model to get the set of only MatchedWordRuns.
-         for (var run = Model.GetNextRun(0); run != NoInfoRun.NullRun; run = Model.GetNextRun(run.Start + run.Length)) {
+         for (var run = Model.GetNextRun(0); run != NoInfoRun.NullRun; run = Model.GetNextRun(run.Start + Math.Max(1, run.Length))) {
             if (!(run is WordRun wordRun)) continue;
             var address = Model.GetAddressFromAnchor(history.CurrentChange, -1, wordRun.SourceArrayName);
             if (address == Pointer.NULL) continue;

@@ -37,7 +37,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          foreach (var source in sources) {
             if (!(model.GetNextRun(source) is ITableRun)) continue;
             StructType = model[source - TrainerFormat_PointerOffset];
-            ElementCount = model[source - TrainerFormat_PointerOffset + TrainerFormat_PokemonCountOffset];
+            ElementCount = model.ReadMultiByteValue(source - TrainerFormat_PointerOffset + TrainerFormat_PokemonCountOffset, 4);
             break;
          }
 

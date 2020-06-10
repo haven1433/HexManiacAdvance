@@ -218,7 +218,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          if (length.Length == 0) {
             var nextRun = owner.GetNextAnchor(Start + ElementLength);
-            for (; true; nextRun = owner.GetNextAnchor(nextRun.Start + nextRun.Length)) {
+            for (; true; nextRun = owner.GetNextAnchor(nextRun.Start + Math.Max(1, nextRun.Length))) {
                if (nextRun.Start > owner.Count) break;
                var anchorName = owner.GetAnchorFromAddress(-1, nextRun.Start);
                if (string.IsNullOrEmpty(anchorName)) continue;
