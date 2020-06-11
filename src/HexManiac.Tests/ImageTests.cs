@@ -464,6 +464,21 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.NotEmpty(Errors);
       }
 
+      [Fact]
+      public void CanFindPaletteInTableUsingField() {
+         // make two palettes in a table with keys 0012 and 0055
+         ViewPort.Edit("^pals[id:|h pointer<`ucp4`>]4 0012 @{ @} 0055 @{ 3:3:3 @} ");
+
+         // make a sprite that uses the 2nd palette
+         ViewPort.Edit("@20 ^sprite`ucs4x1x1|pals:id=0055` 11 ");
+
+         var spriteRun = (ISpriteRun)Model.GetNextRun(0x20);
+         var paletteRun = spriteRun.FindRelatedPalettes(Model).Single();
+
+         Assert.Equal("3:3:3", paletteRun.CreateDataFormat(Model, paletteRun.Start).ToString());
+         Assert.NotEqual(0, ViewPort.Tools.SpriteTool.PixelData[0]); // sprite is rendered with correct palette
+      }
+
       private void CreateLzRun(int start, params byte[] data) {
          for (int i = 0; i < data.Length; i++) Model[start + i] = data[i];
          var run = new LZRun(Model, start);

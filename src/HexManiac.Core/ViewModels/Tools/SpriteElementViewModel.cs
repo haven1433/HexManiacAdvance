@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class SpriteElementViewModel : PagedElementViewModel, IPagedViewModel, IPixelViewModel {
@@ -78,33 +79,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private IReadOnlyList<short> GetDesiredPalette(int start, string hint, int page, bool exitEarly, out PaletteFormat paletteFormat) {
          paletteFormat = default;
          hint = format.PaletteHint ?? hint; // if there's a paletteHint, that takes precendence
+         var destination = Model.ReadPointer(Start);
 
-         // search for hint matches in other comboboxes in the viewmodel
-         foreach (var viewModel in ViewPort.Tools.TableTool.Children) {
-            if (viewModel is ComboBoxArrayElementViewModel comboBox) {
-               if (comboBox.TableName != hint) continue;
-               if (TryGetPaletteFromComboBoxInMatchingTable(start, comboBox, page, out var colors)) return colors;
+         if (Model.GetNextRun(destination) is ISpriteRun sRun) {
+            var palette = sRun.FindRelatedPalettes(Model, hint).FirstOrDefault();
+            if (palette != null) {
+               paletteFormat = palette.PaletteFormat;
+               return palette.AllColors(Model);
             }
          }
-
-         // search for hint matches in other palettes in the viewmodel
-         PaletteElementViewModel first = null;
-         foreach (var viewModel in ViewPort.Tools.TableTool.Children) {
-            if (viewModel == this && exitEarly) break;
-            if (!(viewModel is PaletteElementViewModel pevm)) continue;
-            first = first ?? pevm;
-            if (string.IsNullOrEmpty(hint)) break;
-            if (pevm.TableName != hint) continue;
-            var palette = (IPaletteRun)Model.GetNextRun(Model.ReadPointer(pevm.Start));
-
-            paletteFormat = palette.PaletteFormat;
-            return palette.AllColors(Model);
-         }
-
-         if (first == null) return TileViewModel.CreateDefaultPalette(0x10);
-         var paletteRun = (IPaletteRun)Model.GetNextRun(Model.ReadPointer(first.Start));
-         paletteFormat = paletteRun.PaletteFormat;
-         return paletteRun.AllColors(Model);
+         return TileViewModel.CreateDefaultPalette(0x10);
       }
 
       /// <summary>
