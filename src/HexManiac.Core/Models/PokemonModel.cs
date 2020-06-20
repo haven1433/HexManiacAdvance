@@ -749,7 +749,8 @@ namespace HavenSoft.HexManiac.Core.Models {
                   }
                   changeToken.AddRun(existingRun);
                } else {
-                  // it could point to something interesting. Do a full observe.
+                  // it could point to something interesting. Do a full observe. Start by clearing out any existing formats in that area.
+                  ClearFormat(changeToken, existingRun.Start, existingRun.Length);
                   ObserveRunWritten(changeToken, existingRun);
                }
             }

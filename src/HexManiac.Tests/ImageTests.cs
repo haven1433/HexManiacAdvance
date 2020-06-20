@@ -479,6 +479,30 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.NotEqual(0, ViewPort.Tools.SpriteTool.PixelData[0]); // sprite is rendered with correct palette
       }
 
+      [Fact]
+      public void CanCreateOverworldSpriteList() {
+         // setup data elements
+         ViewPort.Edit("@00 00 00 11 00 00 00 40 00 08 00 08 00 00 00 00 00 <null> <null> <null> <060> <null>");     // parent (start, id, backup_id, length, width, height)
+         ViewPort.Edit("@30 <040> 11 00 00 00 @30 ^overworld.palettes[p<`ucp4`> id:|h unused:]1 ");   // palette table. Palette goes from 40 to 60.
+         ViewPort.Edit("@60 <080> 20 00 00 00 <0A0> 20 00 00 00 ");                    // sprite list. Sprites go 80-A0 and A0-C0 (2 sprites)
+
+         // add format to parent
+         // starterbytes:|h paletteid:|h secondid:|h length: width: height: slot.|h overwrite. unused: distribution<> sizedraw<> animation<> sprites<> ramstore<>
+         ViewPort.Edit("@0000 ^parent[starterbytes: paletteid:|h secondid: length: width: height: other:: a<> b<> c<> sprites<`osl`> e<>]1 "); // sprites<`osl`> eventually
+
+         // verify that the correct number of sprites were found
+         var table = Model.GetNextRun(0x60) as ITableRun;
+         Assert.Equal(2, table.ElementCount);
+
+         // verify that the sprite runs were added as expected.
+         var sprite1 = Model.GetNextRun(0x80) as ISpriteRun;
+         Assert.Equal(1, sprite1.SpriteFormat.TileWidth);
+         Assert.Equal(1, sprite1.SpriteFormat.TileHeight);
+         Assert.Equal("overworld.palettes:id=0011", sprite1.SpriteFormat.PaletteHint);
+
+         Assert.IsType<SpriteRun>(Model.GetNextRun(0xA0));
+      }
+
       private void CreateLzRun(int start, params byte[] data) {
          for (int i = 0; i < data.Length; i++) Model[start + i] = data[i];
          var run = new LZRun(Model, start);

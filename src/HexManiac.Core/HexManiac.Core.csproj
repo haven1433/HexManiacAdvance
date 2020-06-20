@@ -58,9 +58,11 @@
     <Compile Include="Models\Runs\EggMoveRun.cs" />
     <Compile Include="Models\Runs\Factory\LzTilemapRunContentStrategy.cs" />
     <Compile Include="Models\Runs\Factory\LzTilesetRunContentStrategy.cs" />
+    <Compile Include="Models\Runs\Factory\OverworldSpriteListContentStrategy.cs" />
     <Compile Include="Models\Runs\Factory\TilesetRunContentStrategy.cs" />
     <Compile Include="Models\Runs\HeaderRow.cs" />
     <Compile Include="Models\Runs\ModelCacheScope.cs" />
+    <Compile Include="Models\Runs\OverworldSpriteListRun.cs" />
     <Compile Include="Models\Runs\PLMRun.cs" />
     <Compile Include="Models\Runs\Sprites\LZRun.cs" />
     <Compile Include="Models\Runs\Sprites\LzPaletteRun.cs" />

@@ -63,6 +63,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
             strategy = new XseRunContentStrategy();
          } else if (format == BSERun.SharedFormatString) {
             strategy = new BseRunContentStrategy();
+         } else if (format == OverworldSpriteListRun.SharedFormatString) {
+            strategy = new OverworldSpriteListContentStrategy();
          } else if (format == TrainerPokemonTeamRun.SharedFormatString) {
             strategy = new TrainerPokemonTeamRunContentStrategy();
          } else if (LzSpriteRun.TryParseSpriteFormat(format, out var spriteFormat)) {
