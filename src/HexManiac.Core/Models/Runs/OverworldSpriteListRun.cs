@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+﻿using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,8 +43,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var keyOffset = GetOffset(parent, seg => seg.Name == "paletteid");
 
          var elementStart = sources[0] - listOffset;
-         var width = Math.Max((byte)1, model[elementStart + widthOffset]);
-         var height = Math.Max((byte)1, model[elementStart + heightOffset]);
+         var width = Math.Max(1, model.ReadMultiByteValue(elementStart + widthOffset, 2));
+         var height = Math.Max(1, model.ReadMultiByteValue(elementStart + heightOffset, 2));
          var tileWidth = (int)Math.Max(1, Math.Ceiling(width / 8.0));
          var tileHeight = (int)Math.Max(1, Math.Ceiling(height / 8.0));
          var key = model.ReadMultiByteValue(elementStart + keyOffset, 2);
@@ -77,9 +78,28 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var segName = tableSource.ElementContent[segmentIndex].Name;
          if (!segName.IsAny("width", "height", "paletteid")) return this;
 
-         // TODO
          // if parent width changed, add/subtract space to the right edge of the sprite. Min width is one tile.
          // if the parent height changed, add/subtract space to the bottom of the sprite. Min height is one tile.
+         if (segName == "width" || segName == "height") {
+            var listOffset = GetOffset<ArrayRunPointerSegment>(parent, pSeg => pSeg.InnerFormat == SharedFormatString);
+            var elementStart = PointerSources[0] - listOffset;
+            var widthOffset = GetOffset(parent, seg => seg.Name == "width");
+            var heightOffset = GetOffset(parent, seg => seg.Name == "height");
+            var width = Math.Max(1, model.ReadMultiByteValue(elementStart + widthOffset, 2));
+            var height = Math.Max(1, model.ReadMultiByteValue(elementStart + heightOffset, 2));
+            var newTileWidth = (int)Math.Max(1, Math.Ceiling(width / 8.0));
+            var newTileHeight = (int)Math.Max(1, Math.Ceiling(height / 8.0));
+            var movedRuns = new List<ISpriteRun>();
+            for (int i = 0; i < ElementCount; i++) {
+               var spriteStart = model.ReadPointer(Start + ElementLength * i);
+               var sprite = model.GetNextRun(spriteStart) as ISpriteRun;
+               if (!movedRuns.Contains(sprite) && sprite != null) {
+                  sprite = Resize(token, sprite, newTileWidth, newTileHeight);
+                  movedRuns.Add(sprite);
+               }
+            }
+         }
+
          // if the parent paletteid changed, we just need to update the format, no data change is required.
          return new OverworldSpriteListRun(model, parent, Start, PointerSources);
       }
@@ -89,5 +109,40 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       private static int GetOffset(IReadOnlyList<ArrayRunElementSegment> segments, Func<ArrayRunElementSegment, bool> segmentIdentifier)
          => segments.Until(segmentIdentifier).Sum(seg => seg.Length);
+
+      const int TileSize = 32;
+      private ISpriteRun Resize(ModelDelta token, ISpriteRun spriteRun, int tileWidth, int tileHeight) {
+         if (spriteRun == null) return spriteRun;
+         spriteRun = (ISpriteRun)model.RelocateForExpansion(token, spriteRun, tileWidth * tileHeight * TileSize);
+         var format = spriteRun.SpriteFormat;
+
+         // extract existing tile data
+         var existingTiles = new byte[format.TileWidth, format.TileHeight][];
+         for (int x = 0; x < format.TileWidth; x++) {
+            for (int y = 0; y < format.TileHeight; y++) {
+               var tileIndex = y * format.TileWidth + x;
+               existingTiles[x, y] = new byte[TileSize];
+               Array.Copy(model.RawData, spriteRun.Start + tileIndex * TileSize, existingTiles[x, y], 0, TileSize);
+            }
+         }
+
+         // rewrite it with the new dimensions
+         for (int x = 0; x < tileWidth; x++) {
+            for (int y = 0; y < tileHeight; y++) {
+               var tileIndex = y * tileWidth + x;
+               var start = spriteRun.Start + tileIndex * TileSize;
+               for (int i = 0; i < TileSize; i++) {
+                  if (x < format.TileWidth && y < format.TileHeight) {
+                     token.ChangeData(model, start + i, existingTiles[x, y][i]);
+                  } else {
+                     token.ChangeData(model, start + i, 0);
+                  }
+               }
+            }
+         }
+
+         return spriteRun;
+      }
+
    }
 }
