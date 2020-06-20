@@ -53,7 +53,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          segments[0] = new ArrayRunPointerSegment("sprite", format);
 
          // calculate the element count
-         var byteLength = tileWidth * tileHeight * 32;
+         var byteLength = tileWidth * tileHeight * TileSize;
          var nextAnchorStart = model.GetNextAnchor(Start + 1).Start;
          ElementCount = 0;
          Length = 0;
@@ -75,7 +75,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) => ITableRunExtensions.AppendTo(this, model, builder, start, length, deep);
 
-      public OverworldSpriteListRun UpdateFromParent(ModelDelta token, int segmentIndex, int pointerSource) {
+      public OverworldSpriteListRun UpdateFromParent(ModelDelta token, int segmentIndex, int pointerSource, out bool spritesMoved) {
+         spritesMoved = false;
          if (!(model.GetNextRun(pointerSource) is ITableRun tableSource)) return this;
          var segName = tableSource.ElementContent[segmentIndex].Name;
          if (!segName.IsAny("width", "height", "paletteid")) return this;
@@ -99,6 +100,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   sprite = Resize(token, sprite, newTileWidth, newTileHeight);
                   movedRuns.Add(sprite);
                }
+               var spriteLengthStart = Start + ElementLength * i + 4;
+               model.WriteMultiByteValue(spriteLengthStart, 4, token, newTileWidth * newTileHeight * TileSize);
+               spritesMoved |= spriteStart != sprite.Start;
             }
          }
 

@@ -94,9 +94,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   model.ObserveRunWritten(token, newRun);
                   if (newRun.Start != teamRun.Start) info = new ErrorInfo($"Team was automatically moved to {newRun.Start:X6}. Pointers were updated.", isWarningLevel: true);
                } else if (run.Start == destination && run is OverworldSpriteListRun oslRun) {
-                  var newRun = oslRun.UpdateFromParent(token, segmentIndex, pointerSource);
+                  var newRun = oslRun.UpdateFromParent(token, segmentIndex, pointerSource, out bool spritesMoved);
                   model.ObserveRunWritten(token, newRun);
                   if (newRun.Start != oslRun.Start) info = new ErrorInfo($"Overworld sprite was automatically moved to {newRun.Start:X6}. Pointers were updated.", isWarningLevel: true);
+                  if (spritesMoved) info = new ErrorInfo($"Overworld sprites were automatically moved after resize. Pointers were updated.", isWarningLevel: true);
                } else if (run.Start == destination && run is TableStreamRun tableStreamRun) {
                   var newRun = tableStreamRun.UpdateFromParent(token, segmentIndex);
                   model.ObserveRunWritten(token, newRun);
