@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
-   public class OverworldSpriteListRun : BaseRun, ITableRun {
+   public class OverworldSpriteListRun : BaseRun, ITableRun, ISpriteRun {
       private readonly IDataModel model;
       private readonly IReadOnlyList<ArrayRunElementSegment> parent;
       public static readonly string SharedFormatString = AsciiRun.StreamDelimeter + "osl" + AsciiRun.StreamDelimeter;
@@ -23,6 +23,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public IReadOnlyList<ArrayRunElementSegment> ElementContent { get; }
 
+      public SpriteFormat SpriteFormat { get; }
+
+      public int Pages => 1;
+
       public OverworldSpriteListRun(IDataModel model, IReadOnlyList<ArrayRunElementSegment> parent, int start, IReadOnlyList<int> sources = null) : base(start, sources) {
          this.model = model;
          this.parent = parent;
@@ -33,6 +37,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          ElementContent = segments;
          ElementCount = 1;
          Length = ElementLength;
+         SpriteFormat = new SpriteFormat(4, 1, 1, string.Empty);
 
          if (sources == null || sources.Count == 0) return;
 
@@ -48,8 +53,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var tileWidth = (int)Math.Max(1, Math.Ceiling(width / 8.0));
          var tileHeight = (int)Math.Max(1, Math.Ceiling(height / 8.0));
          var key = model.ReadMultiByteValue(elementStart + keyOffset, 2);
+         var hint = $"overworld.palettes:id={key:X4}";
 
-         var format = $"`ucs4x{width / 8}x{height / 8}|overworld.palettes:id={key:X4}`";
+         var format = $"`ucs4x{width / 8}x{height / 8}|{hint}`";
          segments[0] = new ArrayRunPointerSegment("sprite", format);
 
          // calculate the element count
@@ -64,6 +70,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             Length += ElementLength;
          }
 
+         SpriteFormat = new SpriteFormat(4, tileWidth * ElementCount, tileHeight, hint);
          ElementNames = Enumerable.Range(0, ElementCount).Select(i => string.Empty).ToList();
       }
 
@@ -148,6 +155,40 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
 
          return spriteRun;
+      }
+
+      public int[,] GetPixels(IDataModel model, int page) {
+         var listOffset = GetOffset<ArrayRunPointerSegment>(parent, pSeg => pSeg.InnerFormat == SharedFormatString);
+         var elementStart = PointerSources[0] - listOffset;
+         var widthOffset = GetOffset(parent, seg => seg.Name == "width");
+         var heightOffset = GetOffset(parent, seg => seg.Name == "height");
+         var width = Math.Max(1, model.ReadMultiByteValue(elementStart + widthOffset, 2));
+         var height = Math.Max(1, model.ReadMultiByteValue(elementStart + heightOffset, 2));
+
+         var overallPixels = new int[width * ElementCount, height];
+
+         for (int i = 0; i < ElementCount; i++) {
+            var spriteStart = model.ReadPointer(Start + ElementLength * i);
+            if (!(model.GetNextRun(spriteStart) is ISpriteRun spriteRun)) continue;
+            var spritePixels = spriteRun.GetPixels(model, 0);
+            if (spritePixels.GetLength(0) < width || spritePixels.GetLength(1) < height) continue;
+            int offset = width * i;
+            for (int x = 0; x < width; x++) {
+               for (int y = 0; y < height; y++) {
+                  overallPixels[offset + x, y] = spritePixels[x, y];
+               }
+            }
+         }
+
+         return overallPixels;
+      }
+
+      public ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels) {
+         throw new NotImplementedException();
+      }
+
+      public ISpriteRun Duplicate(SpriteFormat newFormat) {
+         throw new NotImplementedException();
       }
    }
 }
