@@ -19,7 +19,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public int ElementLength => 8;
 
-      public IReadOnlyList<string> ElementNames => null;
+      public IReadOnlyList<string> ElementNames { get; }
 
       public IReadOnlyList<ArrayRunElementSegment> ElementContent { get; }
 
@@ -63,6 +63,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             ElementCount += 1;
             Length += ElementLength;
          }
+
+         ElementNames = Enumerable.Range(0, ElementCount).Select(i => string.Empty).ToList();
       }
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) => ITableRunExtensions.CreateSegmentDataFormat(this, data, index);
@@ -143,6 +145,5 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          return spriteRun;
       }
-
    }
 }
