@@ -362,6 +362,21 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(10, ViewPort.DataOffset);
       }
 
+      [Fact]
+      public void AddNewToTableWithPlusLength() {
+         // arrange: make a table, and then another table with +1 length
+         CreateTextTable("names", 0x00, "Adam", "Bob", "Carl");
+         ViewPort.Edit("@20 ^data[value:]names+1 00 10 20 40 ");
+
+         // act: extend both tables
+         ViewPort.Edit("@0F +");
+
+         // assert: the new element was inserted, not appended, to the +1 table.
+         // this keeps the +1 element at the end.
+         Assert.Equal(20, Model.ReadMultiByteValue(0x20 + 2 * 3, 2));
+         Assert.Equal(40, Model.ReadMultiByteValue(0x20 + 2 * 4, 2));
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
