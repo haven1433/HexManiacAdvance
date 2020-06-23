@@ -480,13 +480,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
          }
 
-         // pull any end elements off the back
-         var endElements = new byte[endElementCount * ElementLength];
-         var endElementsPosition = Start + Length - endElements.Length;
-         Array.Copy(owner.RawData, endElementsPosition, endElements, 0, endElements.Length);
-
          // set default values based on the bytes from the previous element
          if (!(token is NoDataChangeDeltaModel)) {
+            // pull any end elements off the back
+            var endElements = new byte[endElementCount * ElementLength];
+            var endElementsPosition = Start + Length - endElements.Length;
+            Array.Copy(owner.RawData, endElementsPosition, endElements, 0, endElements.Length);
+
             for (int i = 0; i < elementCount; i++) {
                for (int j = 0; j < ElementLength; j++) {
                   var newDataAddress = endElementsPosition + i * ElementLength + j;
@@ -494,11 +494,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   token.ChangeData(owner, newDataAddress, validData);
                }
             }
-         }
 
-         // push end elements back on the back
-         for (int i = 0; i < endElements.Length; i++) {
-            token.ChangeData(owner, endElementsPosition + (elementCount * ElementLength) + i, endElements[i]);
+            // push end elements back on the back
+            for (int i = 0; i < endElements.Length; i++) {
+               token.ChangeData(owner, endElementsPosition + (elementCount * ElementLength) + i, endElements[i]);
+            }
          }
 
          var newInnerElementsSources = PointerSourcesForInnerElements?.ToList();

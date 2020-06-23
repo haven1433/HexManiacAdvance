@@ -162,9 +162,10 @@ namespace HavenSoft.HexManiac.Tests {
             return;
          }
 
-         var run = (ArrayRun)model.GetNextAnchor(address);
-         if (game.Contains("Altair") || game.Contains("Emerald")) Assert.Equal(377, run.ElementCount);
-         else Assert.Equal(375, run.ElementCount);
+         var imagesTable = model.GetTable("itemimages");
+         var itemsTable = model.GetTable(HardcodeTablesModel.ItemsTableName);
+
+         Assert.Equal(itemsTable.ElementCount + 1, imagesTable.ElementCount);
       }
 
       [SkippableTheory]

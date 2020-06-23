@@ -229,7 +229,7 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Save.Execute(fileSystem);
 
          Assert.Equal("newfile", viewPort.Name);
-         Assert.Equal(2, nameChangedCount);
+         Assert.Equal(3, nameChangedCount);
       }
 
       [Fact]
