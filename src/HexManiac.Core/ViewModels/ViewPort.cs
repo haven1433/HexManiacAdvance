@@ -63,7 +63,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public string FileName {
          get => fileName;
          private set {
-            if (TryUpdate(ref fileName, value) && !string.IsNullOrEmpty(fileName)) FullFileName = Path.GetFullPath(fileName);
+            if (TryUpdate(ref fileName, value) && !string.IsNullOrEmpty(fileName)) {
+               FullFileName = Path.GetFullPath(fileName);
+               NotifyPropertyChanged(nameof(Name));
+            }
          }
       }
 
