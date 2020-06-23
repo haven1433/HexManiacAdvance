@@ -259,8 +259,9 @@
                            <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                               <hsg3hv:CommonTableStreamControl />
                               <hsg3hv:PixelImage SnapsToDevicePixels="True" />
-                              <DockPanel Visibility="{Binding HasMultiplePages, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
+                              <DockPanel Visibility="{Binding ShowPageControls, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
                                  <Button Content="Previous" Command="{Binding PreviousPage}" DockPanel.Dock="Left"/>
+                                 <Button Content="+" Command="{Binding AddPage}" DockPanel.Dock="Right" ToolTip="Add a new page to this sprite and palette"/>
                                  <Button Content="Next" Command="{Binding NextPage}" DockPanel.Dock="Right"/>
                               </DockPanel>
                            </StackPanel>
@@ -269,8 +270,9 @@
                            <StackPanel PreviewMouseDown="ActivatePalette"  Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                               <hsg3hv:CommonTableStreamControl />
                               <hsg3hv:PaletteControl DataContext="{Binding Colors}" />
-                              <DockPanel Visibility="{Binding HasMultiplePages, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
+                              <DockPanel Visibility="{Binding ShowPageControls, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
                                  <Button Content="Previous" Command="{Binding PreviousPage}" DockPanel.Dock="Left"/>
+                                 <Button Content="+" Command="{Binding AddPage}" DockPanel.Dock="Right" ToolTip="Add a new page to this sprite and palette"/>
                                  <Button Content="Next" Command="{Binding NextPage}" DockPanel.Dock="Right"/>
                               </DockPanel>
                            </StackPanel>

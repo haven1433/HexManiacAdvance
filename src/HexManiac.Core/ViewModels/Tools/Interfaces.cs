@@ -109,10 +109,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    }
 
    public interface IPagedViewModel : IStreamArrayElementViewModel {
-      bool HasMultiplePages { get; }
+      bool ShowPageControls { get; }
       int Pages { get; }
       int CurrentPage { get; set; }
       ICommand PreviousPage { get; }
       ICommand NextPage { get; }
+      ICommand AddPage { get; }
+      ICommand DeletePage { get; }
    }
 }

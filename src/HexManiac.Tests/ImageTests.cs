@@ -503,6 +503,36 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.IsType<SpriteRun>(Model.GetNextRun(0xA0));
       }
 
+      [Fact]
+      public void CanAddPageToCompressedSpritesAndPalettes() {
+         // Arrange: place some sprites and palettes, linked to a name table
+         // 000-010  : pokenames table
+         // 010-020  : sprite/palette tables (each is a single pointer)
+         // 100-130  : front sprites
+         // 130-160  : back sprites
+         // 160-190  : normal palettes
+         // 190-1B0  : shiny palettes
+         ViewPort.Edit("FF @00 ^pokenames[name\"\"15]1 Castform\"");
+         ViewPort.Edit("@100 10 20 @130 10 20 @160 10 20 @190 10 20 @10 ");
+         ViewPort.Edit("^front.sprites[sprite<`lzs4x1x1`>]pokenames <100>");
+         ViewPort.Edit("^back.sprites[sprite<`lzs4x1x1`>]pokenames <130>");
+         ViewPort.Edit("^normal.palette[pal<`lzp4`>]pokenames <160>");
+         ViewPort.Edit("^shiny.palette[pal<`lzp4`>]pokenames <190>");
+
+         // Act: expand each by a single page
+         ViewPort.Goto.Execute("pokenames");
+         var sevm = (SpriteElementViewModel)ViewPort.Tools.TableTool.Children.First(child => child is SpriteElementViewModel);
+         sevm.AddPage.Execute();
+
+         // Assert: each has 2 pages now
+         foreach(var child in ViewPort.Tools.TableTool.Children) {
+            if (child is IPagedViewModel pvm) {
+               Assert.Equal(2, pvm.Pages);
+               Assert.Equal(1, pvm.CurrentPage);
+            }
+         }
+      }
+
       private void CreateLzRun(int start, params byte[] data) {
          for (int i = 0; i < data.Length; i++) Model[start + i] = data[i];
          var run = new LZRun(Model, start);

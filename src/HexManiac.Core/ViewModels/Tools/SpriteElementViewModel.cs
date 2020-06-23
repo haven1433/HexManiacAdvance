@@ -1,12 +1,13 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
-   public class SpriteElementViewModel : PagedElementViewModel, IPagedViewModel, IPixelViewModel {
+   public class SpriteElementViewModel : PagedElementViewModel, IPixelViewModel {
       private SpriteFormat format;
       private string paletteHint;
 
@@ -44,6 +45,36 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (Model.GetNextRun(destination) is LzTilemapRun mapRun) mapRun.FindMatchingTileset(Model);
 
          UpdateTiles(Start, page, false);
+      }
+
+      protected override bool CanExecuteAddPage() {
+         var destination = ViewPort.Model.ReadPointer(Start);
+         var run = ViewPort.Model.GetNextRun(destination) as ISpriteRun;
+         return run is LzSpriteRun && CurrentPage == run.Pages - 1 && run.FindRelatedPalettes(Model).All(pal => pal.Pages == run.Pages && pal is LzPaletteRun);
+      }
+
+      protected override void ExecuteAddPage() {
+         var destination = ViewPort.Model.ReadPointer(Start);
+         if (!(ViewPort.Model.GetNextRun(destination) is LzSpriteRun run)) return;
+         var newRun = run.AppendPage(ViewPort.CurrentChange);
+         if (newRun.Start != run.Start) {
+            ViewPort.RaiseMessage($"Sprite moved from {run.Start:X6} to {newRun.Start:X6}. Pointers were updated.");
+         }
+         Pages = newRun.Pages;
+         CurrentPage = newRun.Pages - 1;
+         base.ExecuteAddPage();
+         UpdateTiles(Start, CurrentPage, true); // update the tiles once all the related palettes have their pages added
+      }
+
+      protected override bool CanExecuteDeletePage() {
+         var destination = ViewPort.Model.ReadPointer(Start);
+         var run = ViewPort.Model.GetNextRun(destination) as ISpriteRun;
+         return run is LzSpriteRun && Pages > 1 && run.FindRelatedPalettes(Model).All(pal => pal.Pages == run.Pages && pal is LzPaletteRun);
+      }
+
+      protected override void ExecuteDeletePage() {
+         // TODO
+         base.ExecuteDeletePage();
       }
 
       private int[,] lastPixels;

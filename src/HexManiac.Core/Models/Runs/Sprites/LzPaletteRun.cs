@@ -81,5 +81,25 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          model.ObserveRunWritten(token, newRun);
          return newRun;
       }
+
+      public LzPaletteRun AppendPage(ModelDelta token) {
+         var data = Decompress(Model, Start);
+         var lastPage = Pages - 1;
+         var pageLength = (int)Math.Pow(2, PaletteFormat.Bits) * 2;
+         var newData = new byte[data.Length + pageLength];
+         Array.Copy(data, newData, data.Length);
+         Array.Copy(data, lastPage * pageLength, newData, data.Length, pageLength);
+         var newModelData = Compress(newData, 0, newData.Length);
+
+         var newRun = (LzPaletteRun)Model.RelocateForExpansion(token, this, newModelData.Count);
+         for (int i = 0; i < newModelData.Count; i++) token.ChangeData(Model, newRun.Start + i, newModelData[i]);
+         newRun = new LzPaletteRun(PaletteFormat, Model, newRun.Start, newRun.PointerSources);
+         Model.ObserveRunWritten(token, newRun);
+         return newRun;
+      }
+
+      public LzPaletteRun DeletePage(int page, ModelDelta token) {
+         throw new NotImplementedException();
+      }
    }
 }

@@ -5,7 +5,7 @@ using System.Windows.Input;
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public abstract class PagedElementViewModel : StreamElementViewModel, IPagedViewModel {
 
-      public bool HasMultiplePages => Pages > 1;
+      public bool ShowPageControls => Pages > 1 || CanExecuteAddPage();
 
       private int currentPage;
       public int CurrentPage {
@@ -15,17 +15,42 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             previousPage.CanExecuteChanged.Invoke(previousPage, EventArgs.Empty);
             nextPage.CanExecuteChanged.Invoke(nextPage, EventArgs.Empty);
             UpdateOtherPagedViewModels();
+            addPage?.CanExecuteChanged.Invoke(addPage, EventArgs.Empty);
             PageChanged();
          }
       }
 
       public int Pages { get; protected set; }
 
+      #region Commands
+
       private readonly StubCommand previousPage = new StubCommand();
       public ICommand PreviousPage => previousPage;
 
       private readonly StubCommand nextPage = new StubCommand();
       public ICommand NextPage => nextPage;
+
+      private StubCommand addPage, deletePage;
+      public ICommand AddPage => StubCommand(ref addPage, ExecuteAddPage, CanExecuteAddPage);
+      public ICommand DeletePage => StubCommand(ref deletePage, ExecuteDeletePage, CanExecuteDeletePage);
+      protected abstract bool CanExecuteAddPage();
+      protected abstract bool CanExecuteDeletePage();
+      protected virtual void ExecuteAddPage() {
+         foreach (var child in ViewPort.Tools.TableTool.Children) {
+            if (!(child is PagedElementViewModel pvm)) continue;
+            if (pvm.Pages == Pages - 1) pvm.ExecuteAddPage();
+         }
+         deletePage?.CanExecuteChanged.Invoke(deletePage, EventArgs.Empty);
+      }
+      protected virtual void ExecuteDeletePage() {
+         foreach (var child in ViewPort.Tools.TableTool.Children) {
+            if (!(child is PagedElementViewModel pvm)) continue;
+            if (pvm.Pages == Pages + 1) pvm.ExecuteDeletePage();
+         }
+         deletePage?.CanExecuteChanged.Invoke(deletePage, EventArgs.Empty);
+      }
+
+      #endregion
 
       public PagedElementViewModel(ViewPort viewPort, int start) : base(viewPort, start) {
          Pages = 1;
@@ -54,7 +79,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          currentPage = that.currentPage;
          Pages = that.Pages;
          NotifyPropertyChanged(nameof(Pages));
-         NotifyPropertyChanged(nameof(HasMultiplePages));
+         NotifyPropertyChanged(nameof(ShowPageControls));
+         addPage?.CanExecuteChanged.Invoke(addPage, EventArgs.Empty);
+         deletePage?.CanExecuteChanged.Invoke(deletePage, EventArgs.Empty);
          NotifyPropertyChanged(nameof(CurrentPage));
          previousPage.CanExecuteChanged.Invoke(previousPage, EventArgs.Empty);
          nextPage.CanExecuteChanged.Invoke(nextPage, EventArgs.Empty);

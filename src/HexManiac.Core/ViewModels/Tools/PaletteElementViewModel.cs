@@ -1,10 +1,10 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
-using System;
+using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
-   public class PaletteElementViewModel : PagedElementViewModel, IPagedViewModel {
+   public class PaletteElementViewModel : PagedElementViewModel {
       private PaletteFormat format;
 
       public string TableName { get; private set; }
@@ -39,6 +39,35 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       protected override void PageChanged() => UpdateColors(Start, CurrentPage);
 
       public void Activate() => UpdateSprites(TableName);
+
+      protected override bool CanExecuteAddPage() {
+         var destination = ViewPort.Model.ReadPointer(Start);
+         var run = ViewPort.Model.GetNextRun(destination) as IPaletteRun;
+         return run is LzPaletteRun && CurrentPage == run.Pages - 1 && run.FindDependentSprites(Model).All(sprite => sprite.Pages == run.Pages && sprite is LzSpriteRun);
+      }
+
+      protected override void ExecuteAddPage() {
+         var destination = ViewPort.Model.ReadPointer(Start);
+         if (!(ViewPort.Model.GetNextRun(destination) is LzPaletteRun run)) return;
+         var newRun = run.AppendPage(ViewPort.CurrentChange);
+         if (newRun.Start != run.Start) {
+            ViewPort.RaiseMessage($"Palette moved from {run.Start:X6} to {newRun.Start:X6}. Pointers were updated.");
+         }
+         Pages = newRun.Pages;
+         CurrentPage = newRun.Pages - 1;
+         base.ExecuteAddPage();
+      }
+
+      protected override bool CanExecuteDeletePage() {
+         var destination = ViewPort.Model.ReadPointer(Start);
+         var run = ViewPort.Model.GetNextRun(destination) as IPaletteRun;
+         return run is LzPaletteRun && Pages > 1 && run.FindDependentSprites(Model).All(sprite => sprite.Pages == run.Pages && sprite is LzSpriteRun);
+      }
+
+      protected override void ExecuteDeletePage() {
+         // TODO
+         base.ExecuteDeletePage();
+      }
 
       private void UpdateSprites(string hint = null) {
          foreach (var child in ViewPort.Tools.TableTool.Children) {

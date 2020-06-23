@@ -149,7 +149,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             foreach (var relatedTable in model.GetRelatedArrays(spriteTable)) {
                results.AddRange(model.GetPointedChildren<IPaletteRun>(relatedTable, offset.ElementIndex));
             }
-
+            results.AddRange(model.GetPointedChildren<IPaletteRun>(spriteTable, offset.ElementIndex));
          }
          return results;
       }
