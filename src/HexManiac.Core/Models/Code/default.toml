@@ -243,6 +243,15 @@ Name = '''moveinfo'''
    '''Affected by King's Rock''',
 ]
 
+
+[[List]]
+Name = '''owfootprints'''
+0 = [
+    '''None''',
+    '''Feet''',
+    '''Bike''',
+]
+
 [[List]]
 Name = '''movetarget'''
 0 = [
