@@ -51,6 +51,16 @@ namespace HavenSoft.HexManiac.Core {
 
       public static string[] Split(this string self, string token) => self.Split(new[] { token }, StringSplitOptions.None);
 
+      public static string[] SplitLines(this string self) => Split(self, Environment.NewLine);
+
+      public static string CombineLines(this IReadOnlyList<string> lines) => lines.Aggregate((a, b) => a + Environment.NewLine + b);
+
+      public static string ReplaceOne(this string input, string search, string replacement) {
+         var index = input.IndexOf(search);
+         if (index == -1) return input;
+         return input.Substring(0, index) + replacement + input.Substring(index + search.Length);
+      }
+
       public static bool IsAny<T>(this T self, params T[] options) {
          Debug.Assert(self is IEquatable<T> || self is Enum);
          return options.Contains(self);

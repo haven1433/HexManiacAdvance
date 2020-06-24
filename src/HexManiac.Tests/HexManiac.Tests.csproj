@@ -71,6 +71,7 @@
     </Compile>
     <Compile Include="Before_Baseclass\ArrayColumnHeaderTests.cs" />
     <Compile Include="Before_Baseclass\ArrayRunTests.cs" />
+    <Compile Include="Before_Baseclass\ScriptTests.cs" />
     <Compile Include="Integration\AutoSearchTests.cs" />
     <Compile Include="Integration\BadFileLoadTests.cs" />
     <Compile Include="BaseViewModelTestClass.cs" />

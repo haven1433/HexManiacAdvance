@@ -90,9 +90,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          // find all palettes that could be applied to this sprite run
          var noChange = new NoDataChangeDeltaModel();
          var results = new List<IPaletteRun>();
-         hint = hint ?? spriteRun.SpriteFormat.PaletteHint;
+         hint = hint ?? spriteRun?.SpriteFormat.PaletteHint;
          var primarySource = -1;
-         var pointerCount = spriteRun.PointerSources?.Count ?? 0;
+         var pointerCount = spriteRun?.PointerSources?.Count ?? 0;
          for (int i = 0; i < pointerCount; i++) {
             if (!(model.GetNextRun(spriteRun.PointerSources[i]) is ArrayRun)) continue;
             primarySource = spriteRun.PointerSources[i];

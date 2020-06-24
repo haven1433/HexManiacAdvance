@@ -40,7 +40,7 @@
 27 decrementmultihit value::
 28 goto ptr<>
 29 jumpifbyte ifflag. param1:: param2. param3::
-2a jumpifhalfword ifflag. param1:: param2: param3::
+2a jumpifhalfword ifflag. address:: value: ptr<>
 2b jumpifword ifflag. param1:: param2:: param3::
 2c jumpifarrayequal param0:: param1:: param2. param3::
 2d jumpifarraynotequal param0:: param1:: param2. param3::

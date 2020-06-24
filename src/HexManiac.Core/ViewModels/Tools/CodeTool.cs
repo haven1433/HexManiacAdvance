@@ -68,8 +68,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public CodeTool(Singletons singletons, IDataModel model, Selection selection, ChangeHistory<ModelDelta> history) {
          thumb = new ThumbParser(singletons);
-         script = new ScriptParser(singletons.ScriptLines);
-         battleScript = new ScriptParser(singletons.BattleScriptLines);
+         script = new ScriptParser(singletons.ScriptLines, 0x02);
+         battleScript = new ScriptParser(singletons.BattleScriptLines, 0x3D);
          script.CompileError += ObserveCompileError;
          battleScript.CompileError += ObserveCompileError;
          this.model = model;
@@ -217,7 +217,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          ignoreContentUpdates = true;
          {
             var oldScripts = parser.CollectScripts(model, start);
-            var code = parser.Compile(history.CurrentChange, model, ref codeContent, out var movedData);
+            var code = parser.Compile(history.CurrentChange, model, start, ref codeContent, out var movedData);
             if (code == null) {
                ignoreContentUpdates = false;
                return;

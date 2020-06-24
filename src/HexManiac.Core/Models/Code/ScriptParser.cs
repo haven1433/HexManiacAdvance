@@ -4,6 +4,7 @@ using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.CodeDom;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Security.Principal;
@@ -12,10 +13,11 @@ using System.Text;
 namespace HavenSoft.HexManiac.Core.Models.Code {
    public class ScriptParser {
       private readonly IReadOnlyList<ScriptLine> engine;
+      private readonly byte endToken;
 
       public event EventHandler<string> CompileError;
 
-      public ScriptParser(IReadOnlyList<ScriptLine> engine) => this.engine = engine;
+      public ScriptParser(IReadOnlyList<ScriptLine> engine, byte endToken) => (this.engine, this.endToken) = (engine, endToken);
 
       public int GetScriptSegmentLength(IDataModel model, int address) => engine.GetScriptSegmentLength(model, address);
 
@@ -28,6 +30,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public List<int> CollectScripts(IDataModel model, int address) {
          if (address < 0 || address >= model.Count) return new List<int>();
          var scripts = new List<int> { address };
+         var lengths = new List<int>();
 
          for (int i = 0; i < scripts.Count; i++) {
             address = scripts[i];
@@ -41,7 +44,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      var destination = model.ReadPointer(address + length);
                      if (destination >= 0 && destination < model.Count &&
                         line.PointsToNextScript &&
-                        !scripts.Contains(destination)
+                        !scripts.Contains(destination) &&
+                        Enumerable.Range(0, i).All(j => destination < scripts[j] || scripts[j] + lengths[j] <= destination)
                      ) {
                         scripts.Add(destination);
                      }
@@ -50,6 +54,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                }
                if (line.IsEndingCommand) break;
             }
+            Debug.Assert(Enumerable.Range(0, i).All(j => scripts[j] <= address || scripts[j] > address + length), "How did we get in a situation where we're removing scripts that have already been processed?");
+            scripts.RemoveAll(start => start > address && start < address + length);
+            lengths.Add(length);
          }
 
          return scripts;
@@ -131,7 +138,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          if (tsRun != null) model.ObserveRunWritten(token, tsRun);
       }
 
-      public byte[] Compile(ModelDelta token, IDataModel model, ref string script, out IReadOnlyList<(int originalLocation, int newLocation)> movedData) {
+      public byte[] Compile(ModelDelta token, IDataModel model, int start, ref string script, out IReadOnlyList<(int originalLocation, int newLocation)> movedData) {
          movedData = new List<(int, int)>();
          var lines = script.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
             .Select(line => line.Split('#').First())
@@ -140,8 +147,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var result = new List<byte>();
          int streamLocation = -1, streamPointerLocation = -1;
 
+         var labels = ExtractLocalLabels(lines);
+
          for (var i = 0; i < lines.Length; i++) {
             var line = lines[i].Trim();
+            if (line.EndsWith(":")) continue; // label, not code. Don't parse.
             if (line == "{") {
                var streamStart = i + 1;
                var indentCount = 1;
@@ -193,19 +203,19 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      token.ChangeData(model, newAddress + 1, 0x00);
                   } else if (command.PointsToNextScript) {
                      newAddress = model.FindFreeSpace(0, 0x10);
-                     token.ChangeData(model, newAddress, 0x02);
+                     token.ChangeData(model, newAddress, endToken);
                   }
                   if (newAddress != -1) {
-                     line = line.Replace("<??????>", $"<{newAddress:X6}>");
+                     line = line.ReplaceOne("<??????>", $"<{newAddress:X6}>");
                      if (command.PointsToNextScript) {
-                        script = script.Replace("<??????>", $"<{newAddress:X6}>");
+                        script = script.ReplaceOne("<??????>", $"<{newAddress:X6}>");
                      } else {
-                        script = script.Replace("<??????>", $"<{newAddress:X6}>{Environment.NewLine}{{{Environment.NewLine}}}");
+                        script = script.ReplaceOne("<??????>", $"<{newAddress:X6}>{Environment.NewLine}{{{Environment.NewLine}}}");
                      }
                   }
                }
 
-               var error = command.Compile(model, line, out var code);
+               var error = command.Compile(model, start, line, labels, out var code);
                if (error == null) {
                   result.AddRange(code);
                } else {
@@ -225,8 +235,26 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
          }
 
-         if (result.Count == 0) result.Add(0x02); // end
+         if (result.Count == 0) result.Add(endToken); // end
          return result.ToArray();
+      }
+
+      private IReadOnlyDictionary<string, int> ExtractLocalLabels(string[] lines) {
+         var labels = new Dictionary<string, int>();
+         var length = 0;
+         foreach (var fullLine in lines) {
+            var line = fullLine.Trim();
+            if (line.EndsWith(":")) {
+               labels[line.Substring(0, line.Length - 1)] = length;
+               continue;
+            }
+            foreach (var command in engine) {
+               if (!(line + " ").StartsWith(command.LineCommand + " ")) continue;
+               length += command.CompiledByteLength;
+               break;
+            }
+         }
+         return labels;
       }
 
       public string GetHelp(string currentLine) {
@@ -248,14 +276,20 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       private string[] Decompile(IDataModel data, int index, int length) {
          var results = new List<string>();
+         var nextAnchor = data.GetNextAnchor(index);
          while (length > 0) {
-            var line = engine.FirstOrDefault(option => Enumerable.Range(0, option.LineCode.Count).All(i => data[index + i] == option.LineCode[i]));
+            if (index == nextAnchor.Start) {
+               results.Add($"{nextAnchor.Start:X6}:");
+               nextAnchor = data.GetNextAnchor(nextAnchor.Start + nextAnchor.Length);
+            }
+
+            var line = engine.FirstOrDefault(option => option.Matches(data, index));
             if (line == null) {
                results.Add($".raw {data[index]:X2}");
                index += 1;
                length -= 1;
             } else {
-               results.Add(line.Decompile(data, index));
+               results.Add("  " + line.Decompile(data, index));
                index += line.CompiledByteLength;
                length -= line.CompiledByteLength;
                if (line.IsEndingCommand) break;
@@ -277,7 +311,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       bool PointsToMart { get; }
 
       bool Matches(IReadOnlyList<byte> data, int index);
-      string Compile(IDataModel model, string scriptLine, out byte[] result);
+      string Compile(IDataModel model, int start, string scriptLine, IReadOnlyDictionary<string, int> labels, out byte[] result);
       string Decompile(IDataModel data, int start);
    }
 
@@ -334,7 +368,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return Enumerable.Range(0, LineCode.Count).All(i => data[index + i] == LineCode[i]);
       }
 
-      public string Compile(IDataModel model, string scriptLine, out byte[] result) {
+      public string Compile(IDataModel model, int start, string scriptLine, IReadOnlyDictionary<string, int> labels, out byte[] result) {
+         // TODO utilize the start/labels when parsing pointer text
          result = null;
          var tokens = Tokenize(scriptLine);
          if (tokens[0] != LineCommand) throw new ArgumentException($"Command {LineCommand} was expected, but received {tokens[0]} instead.");
@@ -451,7 +486,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public BSEScriptLine(string engineLine) : base(engineLine) { }
 
       public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x28, 0x3c, 0x3d, 0x3e, 0x3f);
-      public override bool PointsToNextScript => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x01, 0x28, 0x97);
+      public override bool PointsToNextScript => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x01, 0x28, 0x2A, 0x7A, 0x97);
       public override bool PointsToText => false;
       public override bool PointsToMovement => false;
       public override bool PointsToMart => false;
