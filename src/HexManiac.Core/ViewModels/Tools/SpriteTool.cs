@@ -511,7 +511,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void WriteSpriteAndPaletteOptions(IFileSystem fileSystem, ISpriteRun spriteRun, int[,] newPixels, IPaletteRun palRun, short[][] palettes, IReadOnlyList<short> newPalette) {
          var dependentSprites = palRun.FindDependentSprites(model);
-         if (dependentSprites.Count == 1 && dependentSprites[0].Start == spriteRun.Start) {
+         if (dependentSprites.Count < 2 && dependentSprites[0].Start == spriteRun.Start) {
             var relatedPalettes = spriteRun.FindRelatedPalettes(model);
             // easy case: a single sprite. Sprite uses the palette.
             // there may be other palettes, but we can leave them be.
@@ -538,7 +538,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                Description = "Match the new image to the existing palette as closely as possible.",
             });
 
-         if (choice == 0) { // TODO implement Smart
+         if (choice == 0) { // Smart
             WriteSpriteAndBalancePalette(spriteRun, dependentSprites, newPixels, palRun, palettes, newPalette);
          } else if (choice == 1) { // Greedy
             WriteSpriteAndPalette(spriteRun, newPixels, palRun, palettes, newPalette);
