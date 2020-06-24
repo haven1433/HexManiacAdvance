@@ -5,9 +5,9 @@
    <Application.Resources>
       <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
 
-      <DrawingBrush x:Key="HexBrush" TileMode="FlipX" ViewportUnits="Absolute" Viewport="0,0,12,14">
+      <DrawingBrush x:Key="HexBrush" TileMode="FlipX" ViewportUnits="Absolute" Viewport="0,0,33,38">
          <DrawingBrush.Drawing>
-            <GeometryDrawing Geometry="{hsv:Icon HexGrid}">
+            <GeometryDrawing Geometry="{hsv:Icon LargeHexGrid}">
                <GeometryDrawing.Pen>
                   <Pen Brush="{DynamicResource Backlight}" Thickness="1"/>
                </GeometryDrawing.Pen>

@@ -227,6 +227,7 @@
             <RectangleGeometry Rect="0,-5,2,12"/>
          </CombinedGeometry.Geometry2>
       </CombinedGeometry>
-      <PathGeometry x:Name="HexGrid" Figures="M0,7 l4,0 l 4,-7 4,0 M4,7 l 4,7"/>
+      <PathGeometry x:Name="SmallHexGrid" Figures="M0,7 l4,0 l 4,-7 4,0 M4,7 l 4,7"/>
+      <PathGeometry x:Name="LargeHexGrid" Figures="M0,19 l11,0 l 11,-19 11,0 M11,19 l 11,19"/>
    </ItemsControl.Items>
 </ItemsControl>
