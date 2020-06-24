@@ -9,12 +9,13 @@
              HorizontalAlignment="Stretch">
    <Grid.ColumnDefinitions>
       <ColumnDefinition/>
+      <ColumnDefinition Width="2*" MinWidth="100"/>
       <ColumnDefinition Width="20"/>
       <ColumnDefinition Width="400"/>
-      <ColumnDefinition Width="20"/>
+      <ColumnDefinition/>
    </Grid.ColumnDefinitions>
-   <Border Grid.ColumnSpan="4" Background="{StaticResource HexBrush}"/>
-   <TextBlock Grid.Column="0" Foreground="{DynamicResource Primary}" HorizontalAlignment="Right" TextWrapping="Wrap" VerticalAlignment="Center">
+   <Border Grid.ColumnSpan="5" Background="{StaticResource HexBrush}"/>
+   <TextBlock Grid.Column="1" Foreground="{DynamicResource Primary}" HorizontalAlignment="Right" TextWrapping="Wrap" VerticalAlignment="Center">
       Drag-n-Drop to open a file.
       <LineBreak/> <LineBreak/>
       Tip: Try typing these words into Goto <Italic>(Ctrl+G)</Italic>. <LineBreak/>
@@ -31,7 +32,7 @@
       <LineBreak/>
       See resources/tableReference.txt for the full list.
    </TextBlock>
-   <StackPanel Grid.Column="2" VerticalAlignment="Center" TextBlock.Foreground="{DynamicResource Primary}" >
+   <StackPanel Grid.Column="3" VerticalAlignment="Center" TextBlock.Foreground="{DynamicResource Primary}" >
       <Border Margin="5" Padding="5" Background="{DynamicResource Background}" BorderBrush="{DynamicResource Secondary}" CornerRadius="5,5,5,5" BorderThickness="1" Cursor="Hand" MouseLeftButtonDown="PointerHelp">
          <Grid>
             <Grid.RowDefinitions>
