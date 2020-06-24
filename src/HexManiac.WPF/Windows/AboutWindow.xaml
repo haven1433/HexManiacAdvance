@@ -4,21 +4,23 @@
         Background="{DynamicResource Background}"
         WindowStyle="ToolWindow"
         Title="About Hex Maniac Advance" Height="300" Width="400">
-   <DockPanel Margin="15">
-      <TextBlock DockPanel.Dock="Bottom" FontStyle="Italic" TextWrapping="Wrap">
-         Hex Maniac Advance is a non-profit open-source fan-made tool.
-         Only use it with legally purchased software.
-         Pokemon is the property of Nintendo and GameFreak.
-         Please support the official release.
-      </TextBlock>
-      <TextBlock DockPanel.Dock="Top" VerticalAlignment="Center" FontWeight="Bold" Text="Hex Maniac Advance" FontSize="20"/>
-      <Image Source="..\Resources\AppImage.png" DockPanel.Dock="Left" RenderOptions.BitmapScalingMode="Fant" Width="200"/>
-      <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-         <TextBlock Name="Version"/>
-         <TextBlock Name="Usage" TextWrapping="Wrap">This is an unstable version: use at your own risk!</TextBlock>
-         <TextBlock>
-            <Hyperlink Foreground="{DynamicResource Accent}" NavigateUri="https://github.com/haven1433/HexManiacAdvance/blob/master/LICENSE" RequestNavigate="Navigate">MIT License</Hyperlink>
+   <Border Background="{StaticResource HexBrush}">
+      <DockPanel Margin="15" TextOptions.TextFormattingMode="Display">
+         <TextBlock DockPanel.Dock="Bottom" FontStyle="Italic" TextWrapping="Wrap">
+            Hex Maniac Advance is a non-profit open-source fan-made tool.
+            Only use it with legally purchased software.
+            Pokemon is the property of Nintendo and GameFreak.
+            Please support the official release.
          </TextBlock>
-      </StackPanel>
-   </DockPanel>
+         <TextBlock DockPanel.Dock="Top" VerticalAlignment="Center" FontWeight="Bold" Text="Hex Maniac Advance" FontSize="20"/>
+         <Image Source="..\Resources\AppImage.png" DockPanel.Dock="Left" RenderOptions.BitmapScalingMode="Fant" Width="200"/>
+         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBlock Name="Version"/>
+            <TextBlock Name="Usage" TextWrapping="Wrap">This is an unstable version: use at your own risk!</TextBlock>
+            <TextBlock>
+               <Hyperlink Foreground="{DynamicResource Accent}" NavigateUri="https://github.com/haven1433/HexManiacAdvance/blob/master/LICENSE" RequestNavigate="Navigate">MIT License</Hyperlink>
+            </TextBlock>
+         </StackPanel>
+      </DockPanel>
+   </Border>
 </Window>

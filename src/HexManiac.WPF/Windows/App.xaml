@@ -5,6 +5,16 @@
    <Application.Resources>
       <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
 
+      <DrawingBrush x:Key="HexBrush" TileMode="FlipX" ViewportUnits="Absolute" Viewport="0,0,12,14">
+         <DrawingBrush.Drawing>
+            <GeometryDrawing Geometry="{hsv:Icon HexGrid}">
+               <GeometryDrawing.Pen>
+                  <Pen Brush="{DynamicResource Backlight}" Thickness="1"/>
+               </GeometryDrawing.Pen>
+            </GeometryDrawing>
+         </DrawingBrush.Drawing>
+      </DrawingBrush>
+
       <!-- Icons accessible using IconExtension -->
       <hsv:Icons x:Key="Icons"/>
 
