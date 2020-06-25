@@ -377,6 +377,20 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(40, Model.ReadMultiByteValue(0x20 + 2 * 4, 2));
       }
 
+      [Fact]
+      public void RepointToOffScreenScrollsWell() {
+         ViewPort.UseCustomHeaders = false;
+         CreateTextTable("names", 0x00, "Audacity", "Bloomer", "Captain", "Dodongo", "Elephant");
+         ViewPort.Edit("@30 22 "); // data at 48, to get in the way of an expand
+
+         ViewPort.Edit("@names/5 +"); // do an expand
+
+         var table = Model.GetTable("names");
+         var newAddress = table.Start + table.ElementLength * 5;
+         Assert.Equal(0, ViewPort.SelectionStart.X); // new element should be at start of line
+         Assert.Equal(ViewPort.Headers[ViewPort.SelectionStart.Y], newAddress.ToString("X6")); // selection should be at start of new element
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
