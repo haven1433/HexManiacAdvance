@@ -109,6 +109,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          return info;
       }
+
+      public static bool DataFormatMatches(this ITableRun self, ITableRun other) {
+         if (self.ElementContent.Count != other.ElementContent.Count) return false;
+         for (int i = 0; i < self.ElementContent.Count; i++) {
+            if (self.ElementContent[i].Type != other.ElementContent[i].Type) return false;
+            if (self.ElementContent[i].Length != other.ElementContent[i].Length) return false;
+            if (self.ElementContent[i] is ArrayRunPointerSegment pSegment) {
+               if (!(other.ElementContent[i] is ArrayRunPointerSegment pSegment2)) return false;
+               if (pSegment.InnerFormat != pSegment2.InnerFormat) return false;
+            }
+            if (other.ElementContent[i] is ArrayRunPointerSegment && !(self.ElementContent[i] is ArrayRunPointerSegment)) return false;
+         }
+         return true;
+      }
    }
 
    public class ArrayOffset {

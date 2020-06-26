@@ -534,6 +534,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          var index = BinarySearch(run.Start);
+         IFormattedRun existingRun = null;
          if (index < 0) {
             index = ~index;
             if (runs.Count == index || (runs[index].Start >= run.Start + run.Length && (index == 0 || runs[index - 1].Start + runs[index - 1].Length <= run.Start))) {
@@ -549,7 +550,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          } else {
             // replace / merge with existing
             // if the only thing changed was the anchor, then don't change the format, just merge the anchor
-            var existingRun = runs[index];
+            existingRun = runs[index];
             changeToken.RemoveRun(existingRun);
             if (existingRun is PointerRun && !(run is NoInfoRun) && !(run is PointerRun)) {
                var destination = ReadPointer(existingRun.Start);
@@ -558,8 +559,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
             run = run.MergeAnchor(existingRun.PointerSources);
             if (run is NoInfoRun) run = existingRun.MergeAnchor(run.PointerSources); // when writing an anchor with no format, keep the existing format.
-            if (existingRun is ArrayRun arrayRun1) {
-               ModifyAnchorsFromPointerArray(changeToken, arrayRun1, ClearPointerFormat);
+            if (existingRun is ITableRun arrayRun1) {
+               ModifyAnchorsFromPointerArray(changeToken, arrayRun1, run as ITableRun, ClearPointerFormat);
                index = BinarySearch(run.Start); // have to recalculate index, because ClearPointerFormat can removed runs.
             }
             runs[index] = run;
@@ -567,7 +568,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          if (run is PointerRun) AddPointerToAnchor(null, changeToken, run.Start);
-         if (run is ITableRun tableRun) ModifyAnchorsFromPointerArray(changeToken, tableRun, AddPointerToAnchor);
+         if (run is ITableRun tableRun) ModifyAnchorsFromPointerArray(changeToken, tableRun, existingRun as ITableRun, AddPointerToAnchor);
          if (run is ArrayRun arrayRun) UpdateDependantArrayLengths(changeToken, arrayRun);
 
          if (run is WordRun word) {
@@ -587,13 +588,15 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// When we make a new pointer, we need to update anchors to include the new pointer.
       /// So update all the anchors based on any new pointers in this newly added array.
       /// </summary>
-      private void ModifyAnchorsFromPointerArray(ModelDelta changeToken, ITableRun arrayRun, Action<ArrayRunElementSegment, ModelDelta, int> changeAnchors) {
+      private void ModifyAnchorsFromPointerArray(ModelDelta changeToken, ITableRun arrayRun, ITableRun previousTable, Action<ArrayRunElementSegment, ModelDelta, int> changeAnchors) {
          int segmentOffset = arrayRun.Start;
+         var formatMatches = previousTable != null && arrayRun.DataFormatMatches(previousTable);
          // i loops over the different segments in the array
          for (int i = 0; i < arrayRun.ElementContent.Count; i++) {
             if (arrayRun.ElementContent[i].Type != ElementContentType.Pointer) { segmentOffset += arrayRun.ElementContent[i].Length; continue; }
             // for a pointer segment, j loops over all the elements in the array
             for (int j = 0; j < arrayRun.ElementCount; j++) {
+               if (formatMatches && previousTable.ElementCount > j) continue; // we can skip this one
                var start = segmentOffset + arrayRun.ElementLength * j;
                changeAnchors(arrayRun.ElementContent[i], changeToken, start);
             }
@@ -1047,7 +1050,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
             if (run.Start >= start + length) return;
             if (run is PointerRun) ClearPointerFormat(null, changeToken, run.Start);
-            if (run is ITableRun arrayRun) ModifyAnchorsFromPointerArray(changeToken, arrayRun, ClearPointerFormat);
+            if (run is ITableRun arrayRun) ModifyAnchorsFromPointerArray(changeToken, arrayRun, null, ClearPointerFormat);
             if (run is WordRun wordRun) {
                changeToken.RemoveMatchedWord(wordRun.Start, wordRun.SourceArrayName);
                matchedWords[wordRun.SourceArrayName].Remove(wordRun.Start);
