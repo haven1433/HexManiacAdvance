@@ -42,6 +42,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
 
       public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) {
          run = new OverworldSpriteListRun(model, parentTemplate, run.Start, run.PointerSources);
+
+         // backup: we may get asked to make a pointer format even when it's not an overworld sprite list.
+         // if that happens, fall back to a NoInfoRun.
+         if (run.Length == 0) run = new NoInfoRun(run.Start, run.PointerSources);
       }
 
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
