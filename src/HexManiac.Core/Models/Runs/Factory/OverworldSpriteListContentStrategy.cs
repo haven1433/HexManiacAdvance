@@ -21,13 +21,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       public override int LengthForNewRun(IDataModel model, int pointerAddress) {
          var destination = model.ReadPointer(pointerAddress);
          if (destination < 0 || destination >= model.Count) return -1;
-         return new OverworldSpriteListRun(model, parentTemplate, destination, new[] { pointerAddress }).Length;
+         return new OverworldSpriteListRun(model, parentTemplate, destination, new SortedSpan<int>(pointerAddress)).Length;
       }
 
       public override bool Matches(IFormattedRun run) => run is OverworldSpriteListRun;
 
       public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
-         var attempt = new OverworldSpriteListRun(owner, parentTemplate, destination, new[] { source });
+         var attempt = new OverworldSpriteListRun(owner, parentTemplate, destination, new SortedSpan<int>(source));
          return attempt.Length > 0;
       }
 
@@ -45,7 +45,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       }
 
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
-         return new OverworldSpriteListRun(owner, sourceSegments, destination, new[] { source });
+         return new OverworldSpriteListRun(owner, sourceSegments, destination, new SortedSpan<int>(source));
       }
    }
 }

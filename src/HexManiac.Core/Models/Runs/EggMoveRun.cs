@@ -19,7 +19,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public override int Length { get; }
       public override string FormatString => SharedFormatString;
 
-      public EggMoveRun(IDataModel dataModel, int dataIndex, IReadOnlyList<int> pointerSources = null) : base(dataIndex, pointerSources) {
+      public EggMoveRun(IDataModel dataModel, int dataIndex, SortedSpan<int> pointerSources = null) : base(dataIndex, pointerSources) {
          model = dataModel;
          Length = 0;
          if (Start < 0) return;
@@ -105,7 +105,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new EggMoveRun(model, Start, newPointerSources);
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new EggMoveRun(model, Start, newPointerSources);
 
       public int GetPokemonNumber(string input) {
          var cachedPokenames = model.GetOptions(PokemonNameTable);

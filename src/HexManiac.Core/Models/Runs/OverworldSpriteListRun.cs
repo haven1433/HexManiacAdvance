@@ -27,7 +27,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public int Pages => 1;
 
-      public OverworldSpriteListRun(IDataModel model, IReadOnlyList<ArrayRunElementSegment> parent, int start, IReadOnlyList<int> sources = null) : base(start, sources) {
+      public OverworldSpriteListRun(IDataModel model, IReadOnlyList<ArrayRunElementSegment> parent, int start, SortedSpan<int> sources = null) : base(start, sources) {
          this.model = model;
          this.parent = parent;
          var segments = new List<ArrayRunElementSegment> {
@@ -76,7 +76,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) => ITableRunExtensions.CreateSegmentDataFormat(this, data, index);
 
-      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new OverworldSpriteListRun(model, parent, Start, newPointerSources);
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new OverworldSpriteListRun(model, parent, Start, newPointerSources);
 
       public ITableRun Append(ModelDelta token, int length) => throw new NotImplementedException();
 

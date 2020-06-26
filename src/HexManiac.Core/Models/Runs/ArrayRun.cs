@@ -179,7 +179,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       /// This is the set of sources that points to each index of the array.
       /// The first set of sources (PointerSourcesForInnerElements[0]) should always be the same as PointerSources.
       /// </summary>
-      public IReadOnlyList<IReadOnlyList<int>> PointerSourcesForInnerElements { get; }
+      public IReadOnlyList<SortedSpan<int>> PointerSourcesForInnerElements { get; }
 
       // composition of each element
       public IReadOnlyList<ArrayRunElementSegment> ElementContent { get; }
@@ -204,7 +204,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      private ArrayRun(IDataModel data, string format, int start, IReadOnlyList<int> pointerSources) : base(start, pointerSources) {
+      private ArrayRun(IDataModel data, string format, int start, SortedSpan<int> pointerSources) : base(start, pointerSources) {
          owner = data;
          FormatString = format;
          SupportsPointersToElements = format.StartsWith(AnchorStart.ToString());
@@ -251,7 +251,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          Length = ElementLength * ElementCount;
       }
 
-      private ArrayRun(IDataModel data, string format, string lengthFromAnchor, int parentOffset, int start, int elementCount, IReadOnlyList<ArrayRunElementSegment> segments, IReadOnlyList<int> pointerSources, IReadOnlyList<IReadOnlyList<int>> pointerSourcesForInnerElements) : base(start, pointerSources) {
+      private ArrayRun(IDataModel data, string format, string lengthFromAnchor, int parentOffset, int start, int elementCount, IReadOnlyList<ArrayRunElementSegment> segments, SortedSpan<int> pointerSources, IReadOnlyList<SortedSpan<int>> pointerSourcesForInnerElements) : base(start, pointerSources) {
          owner = data;
          FormatString = format;
          ElementContent = segments;
@@ -265,9 +265,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          PointerSourcesForInnerElements = pointerSourcesForInnerElements;
       }
 
-      public static ErrorInfo TryParse(IDataModel data, string format, int start, IReadOnlyList<int> pointerSources, out ITableRun self) => TryParse(data, "UNUSED", format, start, pointerSources, out self);
+      public static ErrorInfo TryParse(IDataModel data, string format, int start, SortedSpan<int> pointerSources, out ITableRun self) => TryParse(data, "UNUSED", format, start, pointerSources, out self);
 
-      public static ErrorInfo TryParse(IDataModel data, string name, string format, int start, IReadOnlyList<int> pointerSources, out ITableRun self) {
+      public static ErrorInfo TryParse(IDataModel data, string name, string format, int start, SortedSpan<int> pointerSources, out ITableRun self) {
          self = null;
          var startArray = format.IndexOf(ArrayStart);
          var closeArray = format.LastIndexOf(ArrayEnd);
@@ -504,11 +504,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var newInnerElementsSources = PointerSourcesForInnerElements?.ToList();
 
          if (newInnerElementsSources != null) {
-            newInnerElementsSources = new List<IReadOnlyList<int>>(PointerSourcesForInnerElements);
+            newInnerElementsSources = new List<SortedSpan<int>>(PointerSourcesForInnerElements);
 
             // add extra elements at the back. Since this is a new element being added, it's fair to think that nothing points to it.
             for (int i = 0; i < elementCount; i++) {
-               newInnerElementsSources.Add(new List<int>());
+               newInnerElementsSources.Add(SortedSpan<int>.None);
             }
 
             // remove extra elements at the back. Add NoInfoRuns for the pointers to point to.
@@ -542,7 +542,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (index < 0 || index >= ElementCount) throw new IndexOutOfRangeException();
          if (index == 0) throw new NotImplementedException();
          var newInnerPointerSources = PointerSourcesForInnerElements.ToList();
-         newInnerPointerSources[index] = newInnerPointerSources[index].Concat(new[] { source }).ToList();
+         newInnerPointerSources[index] = newInnerPointerSources[index].Add1(source);
          return new ArrayRun(owner, FormatString, LengthFromAnchor, ParentOffset, Start, ElementCount, ElementContent, PointerSources, newInnerPointerSources);
       }
 
@@ -554,18 +554,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          var sources = owner.SearchForPointersToAnchor(changeToken, destinations);
 
-         var results = new List<List<int>> {
-            PointerSources?.ToList() ?? new List<int>()
+         var results = new List<SortedSpan<int>> {
+            PointerSources ?? SortedSpan<int>.None
          };
-         for (int i = 1; i < ElementCount; i++) results.Add(new List<int>());
+         for (int i = 1; i < ElementCount; i++) results.Add(SortedSpan<int>.None);
 
          foreach (var source in sources) {
             var destination = owner.ReadPointer(source);
             int destinationIndex = (destination - Start) / ElementLength;
-            results[destinationIndex].Add(source);
+            results[destinationIndex] = results[destinationIndex].Add1(source);
          }
 
-         var pointerSourcesForInnerElements = results.Cast<IReadOnlyList<int>>().ToList();
+         var pointerSourcesForInnerElements = results.Cast<SortedSpan<int>>().ToList();
          return new ArrayRun(owner, FormatString, LengthFromAnchor, ParentOffset, Start, ElementCount, ElementContent, PointerSources, pointerSourcesForInnerElements);
       }
 
@@ -592,10 +592,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public override IFormattedRun RemoveSource(int source) {
          if (!SupportsPointersToElements) return base.RemoveSource(source);
-         var newPointerSources = PointerSources.Where(item => item != source).ToList();
-         var newInnerPointerSources = new List<IReadOnlyList<int>>();
+         var newPointerSources = PointerSources.Remove1(source);
+         var newInnerPointerSources = new List<SortedSpan<int>>();
          foreach (var list in PointerSourcesForInnerElements) {
-            newInnerPointerSources.Add(list.Where(item => item != source).ToList());
+            newInnerPointerSources.Add(list.Remove1(source));
          }
 
          return new ArrayRun(owner, FormatString, LengthFromAnchor, ParentOffset, Start, ElementCount, ElementContent, newPointerSources, newInnerPointerSources);
@@ -620,11 +620,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return true;
       }
 
-      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) {
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) {
          // since the inner pointer sources includes the first row, update the first row
-         List<IReadOnlyList<int>> newInnerPointerSources = null;
+         List<SortedSpan<int>> newInnerPointerSources = null;
          if (PointerSourcesForInnerElements != null) {
-            newInnerPointerSources = new List<IReadOnlyList<int>> { newPointerSources };
+            newInnerPointerSources = new List<SortedSpan<int>> { newPointerSources };
             for (int i = 1; i < PointerSourcesForInnerElements.Count; i++) newInnerPointerSources.Add(PointerSourcesForInnerElements[i]);
          }
 

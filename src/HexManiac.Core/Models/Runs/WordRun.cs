@@ -9,10 +9,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public override string FormatString => "::";
 
-      public WordRun(int start, string name, IReadOnlyList<int> sources = null) : base(start, sources) => SourceArrayName = name;
+      public WordRun(int start, string name, SortedSpan<int> sources = null) : base(start, sources) => SourceArrayName = name;
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) => new MatchedWord(Start, index - Start, "::" + SourceArrayName);
 
-      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new WordRun(Start, SourceArrayName, newPointerSources);
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new WordRun(Start, SourceArrayName, newPointerSources);
    }
 }

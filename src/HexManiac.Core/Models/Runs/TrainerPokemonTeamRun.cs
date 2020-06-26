@@ -26,7 +26,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       #region Constructors
 
-      public TrainerPokemonTeamRun(IDataModel model, int start, IReadOnlyList<int> sources) : base(start, sources) {
+      public TrainerPokemonTeamRun(IDataModel model, int start, SortedSpan<int> sources) : base(start, sources) {
          this.model = model;
 
          // trainer format (abbreviated):
@@ -46,7 +46,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          ElementLength = ElementContent.Sum(segment => segment.Length);
       }
 
-      private TrainerPokemonTeamRun(IDataModel model, int start, IReadOnlyList<int> sources, int primarySource) : base(start, sources) {
+      private TrainerPokemonTeamRun(IDataModel model, int start, SortedSpan<int> sources, int primarySource) : base(start, sources) {
          this.model = model;
          StructType = model[primarySource - TrainerFormat_PointerOffset];
          ElementCount = model[primarySource - TrainerFormat_PointerOffset + TrainerFormat_PokemonCountOffset];
@@ -108,7 +108,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) => this.CreateSegmentDataFormat(data, index);
 
-      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new TrainerPokemonTeamRun(model, Start, newPointerSources);
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new TrainerPokemonTeamRun(model, Start, newPointerSources);
 
       #endregion
 

@@ -16,7 +16,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public override int Length { get; }
       public override string FormatString => SharedFormatString;
 
-      public PLMRun(IDataModel dataModel, int start, IReadOnlyList<int> pointerSources = null) : base(start, pointerSources) {
+      public PLMRun(IDataModel dataModel, int start, SortedSpan<int> pointerSources = null) : base(start, pointerSources) {
          model = dataModel;
          var moveNames = dataModel.GetOptions(HardcodeTablesModel.MoveNamesTable);
          Length = 1;
@@ -53,7 +53,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new PlmItem(groupStart + Start, position, level, move, moveName);
       }
 
-      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new PLMRun(model, Start, newPointerSources);
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new PLMRun(model, Start, newPointerSources);
 
       public bool TryGetMoveNumber(string moveName, out int move) {
          moveName = moveName.Trim('"').ToLower();

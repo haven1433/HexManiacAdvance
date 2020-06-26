@@ -16,7 +16,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public override int Length { get; }
       public override string FormatString => SharedFormatString;
 
-      public PCSRun(IDataModel model, int start, int length, IReadOnlyList<int> sources = null) : base(start, sources) => (this.model, Length) = (model, length);
+      public PCSRun(IDataModel model, int start, int length, SortedSpan<int> sources = null) : base(start, sources) => (this.model, Length) = (model, length);
 
       public bool Equals(IFormattedRun run) {
          if (!(run is PCSRun other)) return false;
@@ -73,7 +73,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public bool DependsOn(string anchorName) => false;
 
-      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new PCSRun(model, Start, Length, newPointerSources);
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new PCSRun(model, Start, Length, newPointerSources);
 
       public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) => builder.Append(PCSString.Convert(model, Start, Length));
    }

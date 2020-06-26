@@ -57,13 +57,13 @@ namespace HavenSoft.HexManiac.Core.Models {
       void Load(byte[] newData, StoredMetadata metadata);
       void ExpandData(ModelDelta changeToken, int minimumLength);
 
-      IReadOnlyList<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses);
+      SortedSpan<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses);
       void WritePointer(ModelDelta changeToken, int address, int pointerDestination);
       void WriteValue(ModelDelta changeToken, int address, int value);
       int ReadPointer(int address);
       int ReadValue(int address);
 
-      int[] GetUnmappedSourcesToAnchor(string anchor);
+      SortedSpan<int> GetUnmappedSourcesToAnchor(string anchor);
       int GetAddressFromAnchor(ModelDelta changeToken, int requestSource, string anchor);
       string GetAnchorFromAddress(int requestSource, int destination);
       IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial);
@@ -118,7 +118,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          RawData = newData;
       }
 
-      public virtual int[] GetUnmappedSourcesToAnchor(string anchor) => new int[0];
+      public virtual SortedSpan<int> GetUnmappedSourcesToAnchor(string anchor) => SortedSpan<int>.None;
 
       public abstract int GetAddressFromAnchor(ModelDelta changeToken, int requestSource, string anchor);
 
@@ -148,7 +148,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public abstract int FindFreeSpace(int start, int length);
 
-      public abstract IReadOnlyList<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses);
+      public abstract SortedSpan<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses);
 
       public abstract void UpdateArrayPointer(ModelDelta currentChange, ArrayRunElementSegment segment, int index, int fullValue);
 
@@ -515,7 +515,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public override void ClearPointer(ModelDelta currentChange, int source, int destination) => throw new NotImplementedException();
 
-      public override IReadOnlyList<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses) => throw new NotImplementedException();
+      public override SortedSpan<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses) => throw new NotImplementedException();
 
       public override void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, int address, int destination) {
          WritePointer(changeToken, address, destination);

@@ -26,7 +26,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          (Format.TilesetTableMember != null ? "|" + Format.TilesetTableMember : string.Empty) +
          "`";
 
-      public LzTilemapRun(TilemapFormat format, IDataModel data, int start, IReadOnlyList<int> sources = null) : base(data, start, sources) {
+      public LzTilemapRun(TilemapFormat format, IDataModel data, int start, SortedSpan<int> sources = null) : base(data, start, sources) {
          Format = format;
       }
 
@@ -250,7 +250,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          }
       }
 
-      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new LzTilemapRun(Format, Model, Start, newPointerSources);
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new LzTilemapRun(Format, Model, Start, newPointerSources);
 
       public ISpriteRun Duplicate(SpriteFormat format) => new LzSpriteRun(format, Model, Start, PointerSources);
    }

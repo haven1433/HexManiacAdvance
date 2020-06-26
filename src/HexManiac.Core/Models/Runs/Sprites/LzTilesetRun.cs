@@ -11,7 +11,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public override string FormatString => $"`lzt{Format.BitsPerPixel}" + (!string.IsNullOrEmpty(Format.PaletteHint) ? "|" + Format.PaletteHint : string.Empty) + "`";
 
-      public LzTilesetRun(TilesetFormat format, IDataModel data, int start, IReadOnlyList<int> sources = null) : base(data, start, sources) {
+      public LzTilesetRun(TilesetFormat format, IDataModel data, int start, SortedSpan<int> sources = null) : base(data, start, sources) {
          Format = format;
          var tileSize = format.BitsPerPixel * 8;
          var uncompressedSize = data.ReadMultiByteValue(start + 1, 3);
@@ -48,7 +48,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          throw new NotImplementedException();
       }
 
-      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new LzTilesetRun(Format, Model, Start, newPointerSources);
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new LzTilesetRun(Format, Model, Start, newPointerSources);
 
       public ISpriteRun Duplicate(SpriteFormat format) => new LzTilesetRun(new TilesetFormat(format.BitsPerPixel, Format.PaletteHint), Model, Start, PointerSources);
 

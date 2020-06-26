@@ -1,5 +1,4 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
-using System.Collections.Generic;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class AsciiRun : BaseRun {
@@ -10,12 +9,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public override string FormatString => "`asc`" + Length;
 
-      public AsciiRun(int start, int length, IReadOnlyList<int> pointerSources = null) : base(start, pointerSources) => Length = length;
+      public AsciiRun(int start, int length, SortedSpan<int> pointerSources = null) : base(start, pointerSources) => Length = length;
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) {
          return new Ascii(Start, index - Start, (char)data[index]);
       }
 
-      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new AsciiRun(Start, Length, newPointerSources);
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new AsciiRun(Start, Length, newPointerSources);
    }
 }

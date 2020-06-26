@@ -12,7 +12,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       #region Constructors
 
-      public static bool TryParseTableStream(IDataModel model, int start, IReadOnlyList<int> sources, string fieldName, string content, IReadOnlyList<ArrayRunElementSegment> sourceSegments, out TableStreamRun tableStream) {
+      public static bool TryParseTableStream(IDataModel model, int start, SortedSpan<int> sources, string fieldName, string content, IReadOnlyList<ArrayRunElementSegment> sourceSegments, out TableStreamRun tableStream) {
          tableStream = null;
 
          if (content.Length < 4 || content[0] != '[') return false;
@@ -30,7 +30,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          if (start < 0) return false; // not a valid data location, so the data can't possibly be valid
 
-         if (model.GetUnmappedSourcesToAnchor(fieldName).Length > 0) {
+         if (model.GetUnmappedSourcesToAnchor(fieldName).Count > 0) {
             // we're pasting this format and something else is expecting it. Don't expect the content to match yet.
             return tableStream.ElementCount > 0; 
          }
@@ -65,7 +65,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return null;
       }
 
-      public TableStreamRun(IDataModel model, int start, IReadOnlyList<int> sources, string formatString, IReadOnlyList<ArrayRunElementSegment> segments, IStreamEndStrategy endStream) : base(start, sources) {
+      public TableStreamRun(IDataModel model, int start, SortedSpan<int> sources, string formatString, IReadOnlyList<ArrayRunElementSegment> segments, IStreamEndStrategy endStream) : base(start, sources) {
          this.model = model;
          ElementContent = segments;
          this.endStream = endStream;
@@ -86,7 +86,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return this.CreateSegmentDataFormat(data, index);
       }
 
-      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new TableStreamRun(model, Start, newPointerSources, FormatString, ElementContent, endStream);
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new TableStreamRun(model, Start, newPointerSources, FormatString, ElementContent, endStream);
 
       #endregion
 

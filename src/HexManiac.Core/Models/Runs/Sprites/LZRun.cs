@@ -17,7 +17,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public override string FormatString => "`lz`";
 
-      public LZRun(IDataModel data, int start, IReadOnlyList<int> sources = null) : base(start, sources) {
+      public LZRun(IDataModel data, int start, SortedSpan<int> sources = null) : base(start, sources) {
          this.Model = data;
          length = IsCompressedLzData(data, start);
          DecompressedLength = data.ReadMultiByteValue(start + 1, 3);
@@ -148,7 +148,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          var newStart = newRun.Start;
          for (int i = 0; i < newData.Count; i++) token.ChangeData(model, newStart + i, newData[i]);
          for (int i = newData.Count; i < Length; i++) token.ChangeData(model, newStart + i, 0xFF);
-         return (LZRun)Duplicate(newStart, newRun.PointerSources?.ToArray());
+         return (LZRun)Duplicate(newStart, newRun.PointerSources);
       }
 
       #region StreamRun
@@ -179,7 +179,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          }
          for (int i = 0; i < compressed.Count; i++) token.ChangeData(Model, run.Start + i, compressed[i]);
          for (int i = compressed.Count; i < Length; i++) token.ChangeData(Model, run.Start + i, 0xFF);
-         return (LZRun)Duplicate(run.Start, PointerSources?.ToArray());
+         return (LZRun)Duplicate(run.Start, PointerSources);
       }
 
       public bool DependsOn(string anchorName) => false;
@@ -280,7 +280,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          }
       }
 
-      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new LZRun(Model, Start, newPointerSources);
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new LZRun(Model, Start, newPointerSources);
 
       private static int ReadHeader(IReadOnlyList<byte> data, ref int start) {
          if (start < 0 || start + 4 > data.Count) return -1;

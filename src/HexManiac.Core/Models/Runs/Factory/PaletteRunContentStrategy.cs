@@ -14,7 +14,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
 
       public override int LengthForNewRun(IDataModel model, int pointerAddress) => paletteFormat.ExpectedByteLengthPerPage;
       public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
-         var palRun = new PaletteRun(destination, paletteFormat, new[] { source });
+         var palRun = new PaletteRun(destination, paletteFormat, new SortedSpan<int>(source));
          // TODO deal with the run being too long?
          if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, palRun);
          return true;

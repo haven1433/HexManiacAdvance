@@ -76,8 +76,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       // TODO refactor to rely on CollectScripts rather than duplicate code
-      public void FormatScript<TSERun>(ModelDelta token, IDataModel model, int address, IReadOnlyList<int> sources = null) where TSERun : IScriptStartRun {
-         Func<int, IReadOnlyList<int>, IScriptStartRun> constructor = (a, s) => new XSERun(a, s);
+      public void FormatScript<TSERun>(ModelDelta token, IDataModel model, int address, SortedSpan<int> sources = null) where TSERun : IScriptStartRun {
+         Func<int, SortedSpan<int>, IScriptStartRun> constructor = (a, s) => new XSERun(a, s);
          if (typeof(TSERun) == typeof(BSERun)) constructor = (a, s) => new BSERun(a, s);
 
          var processed = new List<int>();
@@ -129,12 +129,12 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       private void WriteMovementStream(IDataModel model, ModelDelta token, int start, int source) {
-         TableStreamRun.TryParseTableStream(model, start, new[] { source }, string.Empty, "[move.movementtypes]!FE", null, out var tsRun);
+         TableStreamRun.TryParseTableStream(model, start, new SortedSpan<int>(source), string.Empty, "[move.movementtypes]!FE", null, out var tsRun);
          if (tsRun != null) model.ObserveRunWritten(token, tsRun);
       }
 
       private void WriteMartStream(IDataModel model, ModelDelta token, int start, int source) {
-         TableStreamRun.TryParseTableStream(model, start, new[] { source }, string.Empty, $"[move:{HardcodeTablesModel.ItemsTableName}]!0000", null, out var tsRun);
+         TableStreamRun.TryParseTableStream(model, start, new SortedSpan<int>(source), string.Empty, $"[move:{HardcodeTablesModel.ItemsTableName}]!0000", null, out var tsRun);
          if (tsRun != null) model.ObserveRunWritten(token, tsRun);
       }
 

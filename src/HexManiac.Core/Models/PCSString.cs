@@ -32,6 +32,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          pcs[0x68] = "â";
          pcs[0x6F] = "í";
 
+         Fill(pcs, "\\au \\ad \\al \\ar", 0x79); // arrows
+
          Fill(pcs, "\\< \\>", 0x85);
 
          Fill(pcs, "0123456789", 0xA1);

@@ -14,7 +14,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public override string FormatString { get; }
 
-      public SpriteRun(int start, SpriteFormat format, IReadOnlyList<int> sources = null) : base(start, sources) {
+      public SpriteRun(int start, SpriteFormat format, SortedSpan<int> sources = null) : base(start, sources) {
          SpriteFormat = format;
          bitsPerPixel = format.BitsPerPixel;
          tileWidth = format.TileWidth;
@@ -34,7 +34,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       // not actually LZ, but it is uncompressed and acts much the same way.
       public override IDataFormat CreateDataFormat(IDataModel data, int index) => LzUncompressed.Instance;
 
-      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new SpriteRun(Start, SpriteFormat, newPointerSources);
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new SpriteRun(Start, SpriteFormat, newPointerSources);
 
       public ISpriteRun Duplicate(SpriteFormat format) => new SpriteRun(Start, format, PointerSources);
 

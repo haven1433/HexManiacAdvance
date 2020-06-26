@@ -287,7 +287,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public void WriteNewFormat(IDataModel owner, ModelDelta token, int source, int destination, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          owner.WritePointer(token, source, destination);
          var newRun = FormatRunFactory.GetStrategy(InnerFormat).WriteNewRun(owner, token, source, destination, Name, sourceSegments);
-         owner.ObserveRunWritten(token, newRun.MergeAnchor(new[] { source }));
+         owner.ObserveRunWritten(token, newRun.MergeAnchor(new SortedSpan<int>(source)));
       }
    }
 }

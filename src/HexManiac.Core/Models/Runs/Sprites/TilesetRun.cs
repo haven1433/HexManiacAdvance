@@ -24,7 +24,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public override string FormatString => $"`uct4x{TilesetFormat.Tiles}" + (string.IsNullOrEmpty(TilesetFormat.PaletteHint) ? string.Empty : $"|{TilesetFormat.PaletteHint}") + "`";
 
-      public TilesetRun(TilesetFormat tilesetFormat, IDataModel model, int start, IReadOnlyList<int> sources = null) : base(start, sources) {
+      public TilesetRun(TilesetFormat tilesetFormat, IDataModel model, int start, SortedSpan<int> sources = null) : base(start, sources) {
          if (tilesetFormat.Tiles == -1) {
             var nextRun = model.GetNextAnchor(start + 1);
             if (nextRun.Start <= start) nextRun = model.GetNextAnchor(nextRun.Start + nextRun.Length);
@@ -78,6 +78,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return this;
       }
 
-      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new TilesetRun(TilesetFormat, model, Start, newPointerSources);
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new TilesetRun(TilesetFormat, model, Start, newPointerSources);
    }
 }

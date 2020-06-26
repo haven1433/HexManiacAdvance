@@ -16,7 +16,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          }
       }
 
-      public LzPaletteRun(PaletteFormat paletteFormat, IDataModel data, int start, IReadOnlyList<int> sources = null)
+      public LzPaletteRun(PaletteFormat paletteFormat, IDataModel data, int start, SortedSpan<int> sources = null)
          : base(data, start, sources) {
          PaletteFormat = paletteFormat;
          if ((int)Math.Pow(2, paletteFormat.Bits) * 2 > DecompressedLength) InvalidateLength();
@@ -54,7 +54,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return true;
       }
 
-      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new LzPaletteRun(PaletteFormat, Model, Start, newPointerSources);
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new LzPaletteRun(PaletteFormat, Model, Start, newPointerSources);
 
       public IPaletteRun Duplicate(PaletteFormat newFormat) => new LzPaletteRun(newFormat, Model, Start, PointerSources);
 

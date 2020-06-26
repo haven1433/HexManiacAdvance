@@ -26,7 +26,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       // for a name not actually in the file, what pointers point to it?
       // for a pointer pointing to something not actually in the file, what name is it pointing to?
-      private readonly Dictionary<string, List<int>> unmappedNameToSources = new Dictionary<string, List<int>>();
+      private readonly Dictionary<string, SortedSpan<int>> unmappedNameToSources = new Dictionary<string, SortedSpan<int>>();
       private readonly Dictionary<int, string> sourceToUnmappedName = new Dictionary<int, string>();
 
       // for a name of a table (which may not actually be in the file),
@@ -51,7 +51,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private void Initialize(StoredMetadata metadata) {
-         var pointersForDestination = new Dictionary<int, List<int>>();
+         var pointersForDestination = new Dictionary<int, SortedSpan<int>>();
          var destinationForSource = new SortedList<int, int>();
          SearchForPointers(pointersForDestination, destinationForSource);
          WritePointerRuns(pointersForDestination, destinationForSource);
@@ -75,8 +75,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
          foreach (var unmappedPointer in metadata.UnmappedPointers) {
             sourceToUnmappedName[unmappedPointer.Address] = unmappedPointer.Name;
-            if (!unmappedNameToSources.ContainsKey(unmappedPointer.Name)) unmappedNameToSources[unmappedPointer.Name] = new List<int>();
-            unmappedNameToSources[unmappedPointer.Name].Add(unmappedPointer.Address);
+            if (!unmappedNameToSources.ContainsKey(unmappedPointer.Name)) unmappedNameToSources[unmappedPointer.Name] = SortedSpan<int>.None;
+            unmappedNameToSources[unmappedPointer.Name] = unmappedNameToSources[unmappedPointer.Name].Add1(unmappedPointer.Address);
          }
          foreach (var word in metadata.MatchedWords) {
             if (!matchedWords.ContainsKey(word.Name)) matchedWords.Add(word.Name, new List<int>());
@@ -98,7 +98,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// Finds pointers based on Heuristics.
       /// This is definitely wrong, but it's pretty good.
       /// </summary>
-      private void SearchForPointers(Dictionary<int, List<int>> pointersForDestination, SortedList<int, int> destinationForSource) {
+      private void SearchForPointers(Dictionary<int, SortedSpan<int>> pointersForDestination, SortedList<int, int> destinationForSource) {
          // pointers must be 4-byte aligned
          for (int i = 0; i < RawData.Length - 3; i += 4) {
 
@@ -122,13 +122,13 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (pointsToManyFF) continue;
 
             // we found a pointer!
-            if (!pointersForDestination.ContainsKey(destination)) pointersForDestination[destination] = new List<int>();
-            pointersForDestination[destination].Add(source);
+            if (!pointersForDestination.ContainsKey(destination)) pointersForDestination[destination] = SortedSpan<int>.None;
+            pointersForDestination[destination] = pointersForDestination[destination].Add1(source);
             destinationForSource.Add(source, destination);
          }
       }
 
-      private void WritePointerRuns(Dictionary<int, List<int>> pointersForDestination, SortedList<int, int> destinationForSource) {
+      private void WritePointerRuns(Dictionary<int, SortedSpan<int>> pointersForDestination, SortedList<int, int> destinationForSource) {
          var destinations = pointersForDestination.Keys.OrderBy(i => i).GetEnumerator();
          var sources = destinationForSource.Keys.GetEnumerator();
 
@@ -160,7 +160,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      private void WriteSpriteRuns(Dictionary<int, List<int>> pointersForDestination) {
+      private void WriteSpriteRuns(Dictionary<int, SortedSpan<int>> pointersForDestination) {
          var noDataChange = new NoDataChangeDeltaModel();
          foreach (var destination in pointersForDestination.Keys.OrderBy(i => i)) {
             var protoRun = new LZRun(this, destination);
@@ -178,7 +178,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      private void WriteStringRuns(Dictionary<int, List<int>> pointersForDestination) {
+      private void WriteStringRuns(Dictionary<int, SortedSpan<int>> pointersForDestination) {
          var noDataChange = new NoDataChangeDeltaModel();
          foreach (var destination in pointersForDestination.Keys.OrderBy(i => i)) {
             var length = PCSString.ReadString(RawData, destination, false);
@@ -373,9 +373,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          return false;
       }
 
-      public override int[] GetUnmappedSourcesToAnchor(string anchor) {
-         if (!unmappedNameToSources.TryGetValue(anchor, out var list)) return new int[0];
-         return list.ToArray();
+      public override SortedSpan<int> GetUnmappedSourcesToAnchor(string anchor) {
+         if (!unmappedNameToSources.TryGetValue(anchor, out var list)) return SortedSpan<int>.None;
+         return list;
       }
 
       public override int GetAddressFromAnchor(ModelDelta changeToken, int requestSource, string anchor) {
@@ -394,9 +394,9 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          // the named anchor does not exist! Add it to the list of desired anchors
          if (!unmappedNameToSources.ContainsKey(anchor)) {
-            unmappedNameToSources[anchor] = new List<int>();
+            unmappedNameToSources[anchor] = SortedSpan<int>.None;
          }
-         unmappedNameToSources[anchor].Add(requestSource);
+         unmappedNameToSources[anchor] = unmappedNameToSources[anchor].Add1(requestSource);
          sourceToUnmappedName[requestSource] = anchor;
          changeToken.AddUnmappedPointer(requestSource, anchor);
 
@@ -622,7 +622,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                var destinationRun = GetNextRun(destination);
                changeToken.RemoveRun(destinationRun);
                destinationRun = destinationRun.RemoveSource(originalStart);
-               destinationRun = destinationRun.MergeAnchor(new[] { movedStart });
+               destinationRun = destinationRun.MergeAnchor(new SortedSpan<int>(movedStart));
                changeToken.AddRun(destinationRun);
                var runIndex = BinarySearch(destinationRun.Start);
                runs[runIndex] = destinationRun;
@@ -726,7 +726,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             changeToken.AddRun(runs[index]);
          } else if (index < 0) {
             // the pointer points to a location between existing runs
-            IFormattedRun newRun = new NoInfoRun(destination, new[] { start });
+            IFormattedRun newRun = new NoInfoRun(destination, new SortedSpan<int>(start));
             UpdateNewRunFromPointerFormat(ref newRun, segment as ArrayRunPointerSegment, changeToken);
             if (newRun != null) {
                ClearFormat(changeToken, newRun.Start, newRun.Length); // adding a new destination, so clear anything in the way.
@@ -736,7 +736,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             // the pointer points to a known normal anchor
             var existingRun = runs[index];
             changeToken.RemoveRun(existingRun);
-            existingRun = existingRun.MergeAnchor(new[] { start });
+            existingRun = existingRun.MergeAnchor(new SortedSpan<int>(start));
             UpdateNewRunFromPointerFormat(ref existingRun, segment as ArrayRunPointerSegment, changeToken);
             if (existingRun != null) {
                if (segment == null) {
@@ -855,15 +855,15 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          foreach (var kvp in unmappedPointersToRemove) {
             var (address, name) = (kvp.Key, kvp.Value);
-            unmappedNameToSources[name].Remove(address);
+            unmappedNameToSources[name] = unmappedNameToSources[name].Remove1(address);
             if (unmappedNameToSources[name].Count == 0) unmappedNameToSources.Remove(name);
             sourceToUnmappedName.Remove(address);
          }
 
          foreach (var kvp in unmappedPointersToAdd) {
             var (address, name) = (kvp.Key, kvp.Value);
-            if (!unmappedNameToSources.ContainsKey(name)) unmappedNameToSources[name] = new List<int>();
-            unmappedNameToSources[name].Add(address);
+            if (!unmappedNameToSources.ContainsKey(name)) unmappedNameToSources[name] = SortedSpan<int>.None;
+            unmappedNameToSources[name] = unmappedNameToSources[name].Add1(address);
             sourceToUnmappedName[address] = name;
          }
 
@@ -1080,7 +1080,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   changeToken.AddUnmappedPointer(source, name);
                   sourceToUnmappedName[source] = name;
                }
-               unmappedNameToSources[name] = new List<int>(run.PointerSources);
+               unmappedNameToSources[name] = run.PointerSources;
             } else if (!keepPointers) {
                // Clear pointer formats to it. They're not actually pointers.
                foreach (var source in run.PointerSources) ClearFormat(changeToken, source, 4);
@@ -1099,7 +1099,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (!keepPointers) {
             // by removing the unnamed anchor here, we're claiming that these were never really pointers to begin with.
             // as such, we should not change their data, just remove their pointer format
-            foreach (var source in run.PointerSources ?? new int[0]) {
+            foreach (var source in run.PointerSources ?? SortedSpan<int>.None) {
                var sourceRunIndex = BinarySearch(source);
                if (sourceRunIndex >= 0 && runs[sourceRunIndex] is PointerRun) {
                   var pointerRun = runs[sourceRunIndex];
@@ -1152,7 +1152,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (unmappedNameToSources[name].Count == 1) {
                unmappedNameToSources.Remove(name);
             } else {
-               unmappedNameToSources[name].Remove(start);
+               unmappedNameToSources[name] = unmappedNameToSources[name].Remove1(start);
             }
          }
       }
@@ -1388,8 +1388,9 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// <summary>
       /// This method might be called in parallel with the same changeToken
       /// </summary>
-      public override IReadOnlyList<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses) {
-         var results = new List<int>();
+      public override SortedSpan<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses) {
+         var lockObj = new object();
+         var results = SortedSpan<int>.None;
 
          var chunkLength = 0x10000;
          var groups = (int)Math.Ceiling((double)RawData.Length / chunkLength);
@@ -1402,7 +1403,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                var destination = ReadPointer(i - 3);
                if (!addresses.Contains(destination)) continue;
                if (IsValidResult(changeToken, i)) {
-                  lock (results) results.Add(i - 3);
+                  lock (lockObj) results = results.Add1(i - 3);
                }
             }
          });
@@ -1510,13 +1511,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          runs.RemoveAt(index);
          var oldAnchorName = anchorForAddress[oldAnchor.Start];
 
-         foreach (var source in oldAnchor.PointerSources ?? new int[0]) {
+         foreach (var source in oldAnchor.PointerSources ?? SortedSpan<int>.None) {
             WriteValue(changeToken, source, 0);
             sourceToUnmappedName[source] = oldAnchorName;
             changeToken.AddUnmappedPointer(source, oldAnchorName);
          }
 
-         unmappedNameToSources[oldAnchorName] = new List<int>(oldAnchor.PointerSources);
+         unmappedNameToSources[oldAnchorName] = oldAnchor.PointerSources;
          var nameToRemove = anchorForAddress[oldAnchor.Start];
          addressForAnchor.Remove(nameToRemove);
          anchorForAddress.Remove(oldAnchor.Start);
@@ -1529,14 +1530,14 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// <returns>
       /// The list of sources that point at the new anchor
       /// </returns>
-      private IReadOnlyList<int> GetSourcesPointingToNewAnchor(ModelDelta changeToken, string anchorName, bool seakPointers) {
-         if (!addressForAnchor.TryGetValue(anchorName, out int location)) return new List<int>();     // new anchor is unnamed, so nothing points to it yet
+      private SortedSpan<int> GetSourcesPointingToNewAnchor(ModelDelta changeToken, string anchorName, bool seakPointers) {
+         if (!addressForAnchor.TryGetValue(anchorName, out int location)) return SortedSpan<int>.None;     // new anchor is unnamed, so nothing points to it yet
 
          if (!unmappedNameToSources.TryGetValue(anchorName, out var sources)) {
             // no pointer was waiting for this anchor to be created
             // but the user thinks there's something pointing here
             if (seakPointers) return SearchForPointersToAnchor(changeToken, location);
-            return new List<int>();
+            return SortedSpan<int>.None;
          }
 
          foreach (var source in sources) {
@@ -1571,7 +1572,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          // move run
-         var newRun = run.Duplicate(newStart, run.PointerSources.ToArray());
+         var newRun = run.Duplicate(newStart, run.PointerSources);
          if (newRun is ITableRun array) {
             UpdateAnchorsFromArrayMove(changeToken, (ITableRun)run, array);
          }

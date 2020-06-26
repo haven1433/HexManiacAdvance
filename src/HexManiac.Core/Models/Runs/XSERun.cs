@@ -11,11 +11,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public override string FormatString => SharedFormatString;
 
-      public XSERun(int start, IReadOnlyList<int> sources = null) : base(start, sources) { }
+      public XSERun(int start, SortedSpan<int> sources = null) : base(start, sources) { }
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) => None.Instance;
 
-      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new XSERun(Start, newPointerSources);
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new XSERun(Start, newPointerSources);
    }
 
    public class BSERun : BaseRun, IScriptStartRun {
@@ -25,10 +25,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public override string FormatString => SharedFormatString;
 
-      public BSERun(int start, IReadOnlyList<int> sources = null) : base(start, sources) { }
+      public BSERun(int start, SortedSpan<int> sources = null) : base(start, sources) { }
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) => None.Instance;
 
-      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new BSERun(Start, newPointerSources);
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new BSERun(Start, newPointerSources);
    }
 }

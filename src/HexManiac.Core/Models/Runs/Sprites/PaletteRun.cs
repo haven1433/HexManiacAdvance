@@ -14,7 +14,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public override string FormatString { get; }
 
-      public PaletteRun(int start, PaletteFormat format, IReadOnlyList<int> sources = null) : base(start, sources) {
+      public PaletteRun(int start, PaletteFormat format, SortedSpan<int> sources = null) : base(start, sources) {
          PaletteFormat = format;
          bits = format.Bits;
          Pages = format.Pages;
@@ -47,7 +47,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return new UncompressedPaletteColor(colorStart, colorPosition, color);
       }
 
-      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new PaletteRun(Start, PaletteFormat, newPointerSources);
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new PaletteRun(Start, PaletteFormat, newPointerSources);
 
       public IPaletteRun Duplicate(PaletteFormat newFormat) => new PaletteRun(Start, newFormat, PointerSources);
 

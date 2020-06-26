@@ -15,7 +15,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          }
       }
 
-      public LzSpriteRun(SpriteFormat spriteFormat, IDataModel data, int start, IReadOnlyList<int> sources = null)
+      public LzSpriteRun(SpriteFormat spriteFormat, IDataModel data, int start, SortedSpan<int> sources = null)
          : base(data, start, sources) {
          SpriteFormat = spriteFormat;
          if (spriteFormat.ExpectedByteLength > DecompressedLength) InvalidateLength();
@@ -44,7 +44,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return true;
       }
 
-      protected override BaseRun Clone(IReadOnlyList<int> newPointerSources) => new LzSpriteRun(SpriteFormat, Model, Start, newPointerSources);
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new LzSpriteRun(SpriteFormat, Model, Start, newPointerSources);
 
       public ISpriteRun Duplicate(SpriteFormat format) => new LzSpriteRun(format, Model, Start, PointerSources);
 
