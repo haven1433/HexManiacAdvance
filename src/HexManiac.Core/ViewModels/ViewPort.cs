@@ -811,7 +811,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void Edit(string input, IFileSystem continuation = null) {
          // allow chunking at newline boundaries only
-         const int ChunkSize = 50;
+         const int ChunkSize = 200;
          var maxSize = input.Length;
          if (continuation != null && input.Length > ChunkSize) {
             var nextNewline = input.Substring(ChunkSize).IndexOf('\n');
