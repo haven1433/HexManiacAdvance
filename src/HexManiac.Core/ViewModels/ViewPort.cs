@@ -284,12 +284,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                // we are an anchor that's pointed to from an array
                var offset = array2.ConvertByteOffsetToArrayOffset(run.PointerSources[0]);
                var index = offset.ElementIndex;
-               var segment = array2.ElementContent[offset.SegmentIndex];
-               var basename = Model.GetAnchorFromAddress(-1, array2.Start);
-               if (array2.ElementNames.Count > index) {
-                  result += $" | {basename}/{array2.ElementNames[index]}/{segment.Name}";
-               } else {
-                  result += $" | {basename}/{index}/{segment.Name}";
+               if (index >= 0) {
+                  var segment = array2.ElementContent[offset.SegmentIndex];
+                  var basename = Model.GetAnchorFromAddress(-1, array2.Start);
+                  if (array2.ElementNames.Count > index) {
+                     result += $" | {basename}/{array2.ElementNames[index]}/{segment.Name}";
+                  } else {
+                     result += $" | {basename}/{index}/{segment.Name}";
+                  }
                }
             }
          }
