@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.WPF.Implementations;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -63,21 +64,31 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
       private void UpdateThemeDictionary(EditorViewModel viewModel) {
          if (Resources.MergedDictionaries.Count == 0) Resources.MergedDictionaries.Add(new ResourceDictionary());
-         var dict = new ResourceDictionary {
-            { nameof(viewModel.Theme.Primary), Brush(viewModel.Theme.Primary) },
-            { nameof(viewModel.Theme.Secondary), Brush(viewModel.Theme.Secondary) },
-            { nameof(viewModel.Theme.Background), Brush(viewModel.Theme.Background) },
-            { nameof(viewModel.Theme.Backlight), Brush(viewModel.Theme.Backlight) },
-            { nameof(viewModel.Theme.Error), Brush(viewModel.Theme.Error) },
-            { nameof(viewModel.Theme.Text1), Brush(viewModel.Theme.Text1) },
-            { nameof(viewModel.Theme.Text2), Brush(viewModel.Theme.Text2) },
-            { nameof(viewModel.Theme.Data1), Brush(viewModel.Theme.Data1) },
-            { nameof(viewModel.Theme.Data2), Brush(viewModel.Theme.Data2) },
-            { nameof(viewModel.Theme.Accent), Brush(viewModel.Theme.Accent) },
-            { nameof(viewModel.Theme.Stream1), Brush(viewModel.Theme.Stream1) },
-            { nameof(viewModel.Theme.Stream2), Brush(viewModel.Theme.Stream2) },
-            { nameof(viewModel.Theme.EditBackground), Brush(viewModel.Theme.EditBackground) },
+
+         var sources = new List<string> {
+            nameof(viewModel.Theme.Primary),
+            nameof(viewModel.Theme.Secondary),
+            nameof(viewModel.Theme.Background),
+            nameof(viewModel.Theme.Backlight),
+            nameof(viewModel.Theme.Error),
+            nameof(viewModel.Theme.Text1),
+            nameof(viewModel.Theme.Text2),
+            nameof(viewModel.Theme.Data1),
+            nameof(viewModel.Theme.Data2),
+            nameof(viewModel.Theme.Accent),
+            nameof(viewModel.Theme.Stream1),
+            nameof(viewModel.Theme.Stream2),
+            nameof(viewModel.Theme.EditBackground),
          };
+
+         var dict = new ResourceDictionary();
+         var theme = viewModel.Theme.GetType();
+         sources.ForEach(source => {
+            var rawValue = (string)theme.GetProperty(source).GetValue(viewModel.Theme);
+            dict.Add(source, Brush(rawValue));
+            dict.Add(source + "Color", ColorConverter.ConvertFromString(rawValue));
+         });
+
          Resources.MergedDictionaries[0] = dict;
       }
 

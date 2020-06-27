@@ -13,16 +13,28 @@
    </UserControl.Resources>
    <DockPanel>
       <!-- Bottom Bar -->
-      <DockPanel DockPanel.Dock="Bottom" LastChildFill="False">
-         <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-            <TextBlock Text="Free Space:"/>
-            <TextBox Text="{Binding FreeSpaceStart, Converter={StaticResource Hex}}" Width="70"/>
-         </StackPanel>
-         <TextBlock DockPanel.Dock="Left" Text="{Binding SelectedAddress}" MouseRightButtonUp="AddressShowMenu" Margin="10,0,0,0"/>
-         <Grid HorizontalAlignment="Right" DockPanel.Dock="Right">
-            <TextBlock Margin="10,0,0,0" Text="{Binding SelectedBytes}" MouseRightButtonUp="BytesShowMenu"/>
-         </Grid>
-      </DockPanel>
+      <Grid DockPanel.Dock="Bottom">
+         <DockPanel LastChildFill="False">
+            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+               <TextBlock Text="Free Space:"/>
+               <TextBox Text="{Binding FreeSpaceStart, Converter={StaticResource Hex}}" Width="70"/>
+            </StackPanel>
+            <TextBlock DockPanel.Dock="Left" Text="{Binding SelectedAddress}" MouseRightButtonUp="AddressShowMenu" Margin="10,0,0,0"/>
+            <Grid HorizontalAlignment="Right" DockPanel.Dock="Right">
+               <TextBlock Margin="10,0,0,0" Text="{Binding SelectedBytes}" MouseRightButtonUp="BytesShowMenu"/>
+            </Grid>
+         </DockPanel>
+         <Rectangle Visibility="{Binding UpdateInProgress, Converter={StaticResource BoolToVisibility}}">
+            <Rectangle.Fill>
+               <LinearGradientBrush>
+                  <GradientStop Offset="0" Color="{DynamicResource Stream2Color}"/>
+                  <GradientStop Offset="{Binding Progress}" Color="{DynamicResource Stream2Color}"/>
+                  <GradientStop Offset="{Binding Progress}" Color="Transparent"/>
+                  <GradientStop Offset="1" Color="Transparent"/>
+               </LinearGradientBrush>
+            </Rectangle.Fill>
+         </Rectangle>
+      </Grid>
       <!-- Tool Headers -->
       <StackPanel DockPanel.Dock="Left" Visibility="{Binding HasTools, Converter={StaticResource BoolToVisibility}}">
          <StackPanel.Resources>
