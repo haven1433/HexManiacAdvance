@@ -95,7 +95,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          watchers[fileName].RemoveAt(index);
       }
 
-      public void DispatchWork(Action action) => dispatcher.BeginInvoke(action, DispatcherPriority.DataBind);
+      public void DispatchWork(Action action) => dispatcher.BeginInvoke(action, DispatcherPriority.Input);
 
       public string RequestNewName(string currentName, string extensionDescription = null, params string[] extensionOptions) {
          var dialog = new SaveFileDialog { FileName = currentName, Filter = CreateFilterFromOptions(extensionDescription, extensionOptions) };

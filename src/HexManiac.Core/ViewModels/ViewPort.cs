@@ -810,13 +810,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void Edit(string input, IFileSystem continuation = null) {
-         var maxSize = continuation == null ? input.Length : 50;
+         // allow chunking at newline boundaries only
+         const int ChunkSize = 50;
+         var maxSize = input.Length;
+         if (continuation != null && input.Length > ChunkSize) {
+            var nextNewline = input.Substring(ChunkSize).IndexOf('\n');
+            if (nextNewline != -1) maxSize = ChunkSize + nextNewline + 1;
+         }
 
          if (!UpdateInProgress) {
             UpdateInProgress = true;
             CurrentProgressScopes.Insert(0, tools.DeferUpdates);
             CurrentProgressScopes.Insert(0, ModelCacheScope.CreateScope(Model));
-            input = input.Replace(Environment.NewLine, "\n"); // normalize newline inputs
             initialWorkLoad = input.Length;
          }
 
