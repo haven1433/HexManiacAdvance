@@ -53,6 +53,8 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       void RemoveListenerForFile(string fileName, Action<IFileSystem> listener);
 
+      void DispatchWork(Action action);
+
       /// <summary>
       /// Saves the file without prompting the user for permission.
       /// </summary>

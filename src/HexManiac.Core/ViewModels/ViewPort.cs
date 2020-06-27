@@ -427,6 +427,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #endregion
 
+      #region Progress
+
+      private double progress;
+      public double Progress { get => progress; set => Set(ref progress, value); }
+
+      private bool updateInProgress;
+      public bool UpdateInProgress { get => updateInProgress; set => Set(ref updateInProgress, value); }
+
+      private int initialWorkLoad;
+      private List<IDisposable> CurrentProgressScopes = new List<IDisposable>();
+
+      #endregion
+
       public int FreeSpaceStart { get => Model.FreeSpaceStart; set {
             if (Model.FreeSpaceStart != value) {
                Model.FreeSpaceStart = value;
@@ -794,14 +807,37 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          RefreshBackingData();
       }
 
-      public void Edit(string input) {
-         input = input.Replace(Environment.NewLine, "\n"); // normalize newline inputs
-         exitEditEarly = false;
-         using (Tools.DeferUpdates) {
-            using (ModelCacheScope.CreateScope(Model)) {
-               for (int i = 0; i < input.Length && !exitEditEarly; i++) Edit(input[i]);
-            }
+      public void Edit(string input, IFileSystem continuation = null) {
+         var maxSize = continuation == null ? input.Length : 50;
+
+         if (!UpdateInProgress) {
+            UpdateInProgress = true;
+            CurrentProgressScopes.Insert(0, tools.DeferUpdates);
+            CurrentProgressScopes.Insert(0, ModelCacheScope.CreateScope(Model));
+            input = input.Replace(Environment.NewLine, "\n"); // normalize newline inputs
+            initialWorkLoad = input.Length;
          }
+
+         exitEditEarly = false;
+         try {
+            for (int i = 0; i < input.Length && i < maxSize && !exitEditEarly; i++) Edit(input[i]);
+         } catch {
+            ClearEditWork();
+            throw;
+         }
+
+         if (input.Length > maxSize) {
+            Progress = (double)(initialWorkLoad - input.Length) / initialWorkLoad;
+            continuation.DispatchWork(() => Edit(input.Substring(maxSize), continuation));
+         } else {
+            ClearEditWork();
+         }
+      }
+
+      private void ClearEditWork() {
+         CurrentProgressScopes.ForEach(scope => scope.Dispose());
+         CurrentProgressScopes.Clear();
+         UpdateInProgress = false;
       }
 
       public void Edit(ConsoleKey key) {

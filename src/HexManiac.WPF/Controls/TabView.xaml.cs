@@ -227,6 +227,20 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       #endregion
 
+      #region Block Interactions
+
+      protected override void OnPreviewMouseDown(MouseButtonEventArgs e) {
+         if (DataContext is IViewPort viewPort) e.Handled = viewPort.UpdateInProgress;
+         base.OnPreviewMouseDown(e);
+      }
+
+      protected override void OnPreviewKeyDown(KeyEventArgs e) {
+         if (DataContext is IViewPort viewPort) e.Handled = viewPort.UpdateInProgress;
+         base.OnPreviewKeyDown(e);
+      }
+
+      #endregion
+
       private void StringToolContentSelectionChanged(object sender, RoutedEventArgs e) {
          var textbox = (TextBox)sender;
          var tools = textbox.DataContext as ToolTray;

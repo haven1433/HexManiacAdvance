@@ -436,7 +436,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var copyText = fileSystem.CopyText;
             // if the paste is long, add whitespace to complete any pasted elements
             if (copyText.Contains(Environment.NewLine)) copyText += " ";
-            (SelectedTab as ViewPort)?.Edit(copyText);
+            (SelectedTab as ViewPort)?.Edit(copyText, fileSystem);
          };
       }
 

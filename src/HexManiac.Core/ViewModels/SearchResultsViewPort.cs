@@ -83,6 +83,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand Forward { get; } = new StubCommand();
       public ICommand Close => close;
 
+      public bool UpdateInProgress => false;
+      public double Progress => 0;
+
       public IDataModel Model => null;
 
       public bool HasTools => false;
