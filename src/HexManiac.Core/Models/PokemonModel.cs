@@ -560,7 +560,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             run = run.MergeAnchor(existingRun.PointerSources);
             if (run is NoInfoRun) run = existingRun.MergeAnchor(run.PointerSources); // when writing an anchor with no format, keep the existing format.
             if (existingRun is ITableRun arrayRun1) {
-               ModifyAnchorsFromPointerArray(changeToken, arrayRun1, run as ITableRun, ClearPointerFormat);
+               ModifyAnchorsFromPointerArray(changeToken, run as ITableRun, arrayRun1, ClearPointerFormat);
                index = BinarySearch(run.Start); // have to recalculate index, because ClearPointerFormat can removed runs.
             }
             runs[index] = run;
@@ -591,12 +591,14 @@ namespace HavenSoft.HexManiac.Core.Models {
       private void ModifyAnchorsFromPointerArray(ModelDelta changeToken, ITableRun arrayRun, ITableRun previousTable, Action<ArrayRunElementSegment, ModelDelta, int> changeAnchors) {
          int segmentOffset = arrayRun.Start;
          var formatMatches = previousTable != null && arrayRun.DataFormatMatches(previousTable);
+         var parentOffset = 0;
+         if (arrayRun is ArrayRun arrayRun1) parentOffset = Math.Max(arrayRun1.ParentOffset, 0);
          // i loops over the different segments in the array
          for (int i = 0; i < arrayRun.ElementContent.Count; i++) {
             if (arrayRun.ElementContent[i].Type != ElementContentType.Pointer) { segmentOffset += arrayRun.ElementContent[i].Length; continue; }
             // for a pointer segment, j loops over all the elements in the array
             for (int j = 0; j < arrayRun.ElementCount; j++) {
-               if (formatMatches && previousTable.ElementCount > j) continue; // we can skip this one
+               if (formatMatches && previousTable.ElementCount - parentOffset > j) continue; // we can skip this one
                var start = segmentOffset + arrayRun.ElementLength * j;
                changeAnchors(arrayRun.ElementContent[i], changeToken, start);
             }
@@ -615,7 +617,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          int segmentOffset = moved.Start;
          // i loops over the different segments in the array
          for (int i = 0; i < moved.ElementContent.Count; i++) {
-            if (moved.ElementContent[i].Type != ElementContentType.Pointer) { segmentOffset += moved.ElementContent[i].Length; continue; }
+            if (moved.ElementContent[i].Type != ElementContentType.Pointer) {
+               originalOffset += original.ElementContent[i].Length;
+               segmentOffset += moved.ElementContent[i].Length;
+               continue;
+            }
             // for a pointer segment, j loops over all the elements in the array
             for (int j = 0; j < moved.ElementCount; j++) {
                var originalStart = originalOffset + original.ElementLength * j;

@@ -502,10 +502,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             Array.Copy(owner.RawData, endElementsPosition, endElements, 0, endElements.Length);
 
             for (int i = 0; i < elementCount; i++) {
-               for (int j = 0; j < ElementLength; j++) {
-                  var newDataAddress = endElementsPosition + i * ElementLength + j;
-                  var validData = owner[endElementsPosition - ElementLength + j];
-                  token.ChangeData(owner, newDataAddress, validData);
+               int j = 0;
+               foreach (var segment in ElementContent) {
+                  var readPosition = endElementsPosition - ElementLength + j;
+                  var writePosition = endElementsPosition + i * ElementLength + j;
+                  if (segment.Type == ElementContentType.Pointer) {
+                     var destination = owner.ReadPointer(readPosition);
+                     owner.UpdateArrayPointer(token, segment, writePosition, destination);
+                  } else {
+                     for (int k = 0; k < segment.Length; k++) {
+                        var validData = owner[readPosition + k];
+                        token.ChangeData(owner, writePosition + k, validData);
+                     }
+                  }
+                  j += segment.Length;
                }
             }
 

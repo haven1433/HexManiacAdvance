@@ -142,6 +142,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                      }
                   }
                   RequestMenuClose?.Invoke(this, EventArgs.Empty);
+                  if (model is PokemonModel pModel) pModel.ResolveConflicts();
                }
             }
          };
