@@ -39,7 +39,17 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public virtual int EarliestAllowedAnchor => 0;
 
-      public override IReadOnlyList<ArrayRun> Arrays => anchorForAddress.Keys.Select(address => runs[BinarySearch(address)]).OfType<ArrayRun>().ToList();
+      public override IReadOnlyList<ArrayRun> Arrays {
+         get {
+            var results = new List<ArrayRun>();
+            foreach(var address in anchorForAddress.Keys) {
+               var index = BinarySearch(address);
+               if (index < 0) continue;
+               if (runs[index] is ArrayRun arrayRun) results.Add(arrayRun);
+            }
+            return results;
+         }
+      }
       public override IReadOnlyList<IStreamRun> Streams => runs.Where(run => run is IStreamRun).Select(run => (IStreamRun)run).ToList();
       public override IReadOnlyList<string> Anchors => addressForAnchor.Keys.ToList();
 
@@ -202,7 +212,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   Debug.Assert(arrayRun1.PointerSourcesForInnerElements[offsets.ElementIndex].Contains(pointerRun.Start));
                   if (offsets.ElementIndex == 0) Debug.Assert(run.PointerSources.Contains(pointerRun.Start));
                } else if (run != NoInfoRun.NullRun) {
-                  Debug.Assert(run.PointerSources.Contains(pointerRun.Start));
+                  Debug.Assert(run.PointerSources != null && run.PointerSources.Contains(pointerRun.Start));
                }
             }
 
@@ -658,8 +668,16 @@ namespace HavenSoft.HexManiac.Core.Models {
                if (!(changeToken is NoDataChangeDeltaModel)) {
                   newTable = (ArrayRun)RelocateForExpansion(changeToken, table, targetCount * table.ElementLength);
                }
+               int originalLength = newTable.Length;
                newTable = newTable.Append(changeToken, targetCount - table.ElementCount);
-               ObserveRunWritten(changeToken, newTable);
+               var tableAnchor = GetAnchorFromAddress(-1, newTable.Start);
+               // ObserveRunWritten(changeToken, newTable);
+               if (newTable.Length < originalLength) ClearFormat(changeToken, newTable.Start, originalLength);
+               if (string.IsNullOrEmpty(tableAnchor)) {
+                  ObserveRunWritten(changeToken, newTable);
+               } else {
+                  ObserveAnchorWritten(changeToken, tableAnchor, newTable);
+               }
             }
             // option 2: this table includes a bit-array based on the given table
             var requiredByteLength = (int)Math.Ceiling(arrayRun.ElementCount / 8.0);
@@ -835,7 +853,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                changeToken.AddName(location, anchorName);
             }
 
-            var seekPointers = existingRun?.PointerSources == null || existingRun?.Start != location;
+            var seekPointers = run.PointerSources == null && (existingRun?.PointerSources == null || existingRun?.Start != location);
             var sources = GetSourcesPointingToNewAnchor(changeToken, anchorName, seekPointers);
 
             // if we're adding an array, a few extra updates
@@ -1366,7 +1384,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          var anchors = new List<StoredAnchor>();
          foreach (var kvp in anchorForAddress) {
             var (address, name) = (kvp.Key, kvp.Value);
-            var format = runs[BinarySearch(address)].FormatString;
+            var index = BinarySearch(address);
+            if (index < 0) continue;
+            var format = runs[index].FormatString;
             anchors.Add(new StoredAnchor(address, name, format));
          }
 
