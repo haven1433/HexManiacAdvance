@@ -113,7 +113,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var destination = Model.ReadPointer(Start);
 
          if (Model.GetNextRun(destination) is ISpriteRun sRun) {
-            var palette = sRun.FindRelatedPalettes(Model, hint).FirstOrDefault();
+            var palette = sRun.FindRelatedPalettes(Model, Start, hint).FirstOrDefault();
             if (palette != null) {
                paletteFormat = palette.PaletteFormat;
                return palette.AllColors(Model);

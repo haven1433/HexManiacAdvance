@@ -86,17 +86,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       /// (4) if the sprite's hint is a table name, return all palettes within the matching index of that table. Example: trainer sprites/palettes.
       /// (5) if the sprite has no hint, return all palettes in arrays with matching length from the same index. Example: pokemon sprites. Leaving it empty allows both normal and shiny palettes to match.
       /// </summary>
-      public static IReadOnlyList<IPaletteRun> FindRelatedPalettes(this ISpriteRun spriteRun, IDataModel model, string hint = null) {
+      public static IReadOnlyList<IPaletteRun> FindRelatedPalettes(this ISpriteRun spriteRun, IDataModel model, int primarySource = -1, string hint = null) {
          // find all palettes that could be applied to this sprite run
          var noChange = new NoDataChangeDeltaModel();
          var results = new List<IPaletteRun>();
          hint = hint ?? spriteRun?.SpriteFormat.PaletteHint;
-         var primarySource = -1;
-         var pointerCount = spriteRun?.PointerSources?.Count ?? 0;
-         for (int i = 0; i < pointerCount; i++) {
-            if (!(model.GetNextRun(spriteRun.PointerSources[i]) is ArrayRun)) continue;
-            primarySource = spriteRun.PointerSources[i];
-            break;
+         if (primarySource == -1) {
+            var pointerCount = spriteRun?.PointerSources?.Count ?? 0;
+            for (int i = 0; i < pointerCount; i++) {
+               if (!(model.GetNextRun(spriteRun.PointerSources[i]) is ArrayRun)) continue;
+               primarySource = spriteRun.PointerSources[i];
+               break;
+            }
          }
          var spriteTable = model.GetNextRun(primarySource) as ArrayRun;
          var offset = spriteTable?.ConvertByteOffsetToArrayOffset(primarySource) ?? new ArrayOffset(-1, -1, -1, -1);
