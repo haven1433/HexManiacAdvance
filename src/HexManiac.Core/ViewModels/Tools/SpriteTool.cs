@@ -511,7 +511,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void WriteSpriteAndPaletteOptions(IFileSystem fileSystem, ISpriteRun spriteRun, int[,] newPixels, IPaletteRun palRun, short[][] palettes, IReadOnlyList<short> newPalette) {
          var dependentSprites = palRun.FindDependentSprites(model);
-         if (dependentSprites.Count < 2 && dependentSprites[0].Start == spriteRun.Start) {
+         if (dependentSprites.Count == 0 || (dependentSprites.Count == 1 && dependentSprites[0].Start == spriteRun.Start)) {
             var relatedPalettes = spriteRun.FindRelatedPalettes(model);
             // easy case: a single sprite. Sprite uses the palette.
             // there may be other palettes, but we can leave them be.
