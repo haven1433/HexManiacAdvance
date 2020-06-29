@@ -927,7 +927,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public override IFormattedRun RelocateForExpansion(ModelDelta changeToken, IFormattedRun run, int minimumLength) {
+      public override T RelocateForExpansion<T>(ModelDelta changeToken, T run, int minimumLength) {
          int currentLength = run.Length;
          if (run is IScriptStartRun) {
             IReadOnlyList<ScriptLine> lines = null;
@@ -1589,7 +1589,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          return sources;
       }
 
-      private IFormattedRun MoveRun(ModelDelta changeToken, IFormattedRun run, int length, int newStart) {
+      private T MoveRun<T>(ModelDelta changeToken, T run, int length, int newStart) where T : IFormattedRun {
          // repoint
          foreach (var source in run.PointerSources) {
             WritePointer(changeToken, source, newStart);
@@ -1602,7 +1602,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          // move run
-         var newRun = run.Duplicate(newStart, run.PointerSources);
+         var newRun = (T)run.Duplicate(newStart, run.PointerSources);
          if (newRun is ITableRun array) {
             UpdateAnchorsFromArrayMove(changeToken, (ITableRun)run, array);
          }
