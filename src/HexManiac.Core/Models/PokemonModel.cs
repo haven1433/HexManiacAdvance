@@ -570,7 +570,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             run = run.MergeAnchor(existingRun.PointerSources);
             if (run is NoInfoRun) run = existingRun.MergeAnchor(run.PointerSources); // when writing an anchor with no format, keep the existing format.
             if (existingRun is ITableRun arrayRun1) {
-               ModifyAnchorsFromPointerArray(changeToken, run as ITableRun, arrayRun1, ClearPointerFormat);
+               ModifyAnchorsFromPointerArray(changeToken, run as ITableRun, arrayRun1, arrayRun1.ElementCount, ClearPointerFormat);
                index = BinarySearch(run.Start); // have to recalculate index, because ClearPointerFormat can removed runs.
             }
             runs[index] = run;
@@ -578,7 +578,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          if (run is PointerRun) AddPointerToAnchor(null, changeToken, run.Start);
-         if (run is ITableRun tableRun) ModifyAnchorsFromPointerArray(changeToken, tableRun, existingRun as ITableRun, AddPointerToAnchor);
+         if (run is ITableRun tableRun) ModifyAnchorsFromPointerArray(changeToken, tableRun, existingRun as ITableRun, tableRun.ElementCount, AddPointerToAnchor);
          if (run is ArrayRun arrayRun) UpdateDependantArrayLengths(changeToken, arrayRun);
 
          if (run is WordRun word) {
@@ -598,17 +598,18 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// When we make a new pointer, we need to update anchors to include the new pointer.
       /// So update all the anchors based on any new pointers in this newly added array.
       /// </summary>
-      private void ModifyAnchorsFromPointerArray(ModelDelta changeToken, ITableRun arrayRun, ITableRun previousTable, Action<ArrayRunElementSegment, ModelDelta, int> changeAnchors) {
+      private void ModifyAnchorsFromPointerArray(ModelDelta changeToken, ITableRun arrayRun, ITableRun previousTable, int elementCount, Action<ArrayRunElementSegment, ModelDelta, int> changeAnchors) {
          int segmentOffset = arrayRun.Start;
          var formatMatches = previousTable != null && arrayRun.DataFormatMatches(previousTable);
          var parentOffset = 0;
          if (arrayRun is ArrayRun arrayRun1) parentOffset = Math.Max(arrayRun1.ParentOffset, 0);
+         var shorterTable = Math.Min(arrayRun.ElementCount, previousTable?.ElementCount ?? arrayRun.ElementCount);
          // i loops over the different segments in the array
          for (int i = 0; i < arrayRun.ElementContent.Count; i++) {
             if (arrayRun.ElementContent[i].Type != ElementContentType.Pointer) { segmentOffset += arrayRun.ElementContent[i].Length; continue; }
             // for a pointer segment, j loops over all the elements in the array
-            for (int j = 0; j < arrayRun.ElementCount; j++) {
-               if (formatMatches && previousTable.ElementCount - parentOffset > j) continue; // we can skip this one
+            for (int j = 0; j < elementCount; j++) {
+               if (formatMatches && shorterTable - parentOffset > j) continue; // we can skip this one
                var start = segmentOffset + arrayRun.ElementLength * j;
                changeAnchors(arrayRun.ElementContent[i], changeToken, start);
             }
@@ -1074,7 +1075,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
             if (run.Start >= start + length) return;
             if (run is PointerRun) ClearPointerFormat(null, changeToken, run.Start);
-            if (run is ITableRun arrayRun) ModifyAnchorsFromPointerArray(changeToken, arrayRun, null, ClearPointerFormat);
+            if (run is ITableRun arrayRun) ModifyAnchorsFromPointerArray(changeToken, arrayRun, null, arrayRun.ElementCount, ClearPointerFormat);
             if (run is WordRun wordRun) {
                changeToken.RemoveMatchedWord(wordRun.Start, wordRun.SourceArrayName);
                matchedWords[wordRun.SourceArrayName].Remove(wordRun.Start);
