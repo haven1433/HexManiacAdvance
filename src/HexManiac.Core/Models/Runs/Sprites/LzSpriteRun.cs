@@ -3,17 +3,19 @@ using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
-   public class LzSpriteRun : LZRun, ISpriteRun {
+   public class LzSpriteRun : PagedLZRun, ISpriteRun {
       public SpriteFormat SpriteFormat { get; }
 
       public override string FormatString { get; }
 
-      public int Pages {
+      public override int Pages {
          get {
             var length = Model.ReadMultiByteValue(Start + 1, 3);
             return length / SpriteFormat.ExpectedByteLength;
          }
       }
+
+      protected override int UncompressedPageLength => SpriteFormat.ExpectedByteLength;
 
       public LzSpriteRun(SpriteFormat spriteFormat, IDataModel data, int start, SortedSpan<int> sources = null)
          : base(data, start, sources) {
@@ -66,37 +68,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          for (int i = newModelData.Count; i < Length; i++) token.ChangeData(model, newRun.Start + i, 0xFF);
          newRun = new LzSpriteRun(SpriteFormat, model, newRun.Start, newRun.PointerSources);
          model.ObserveRunWritten(token, newRun);
-         return newRun;
-      }
-
-      public LzSpriteRun AppendPage(ModelDelta token) {
-         var data = Decompress(Model, Start);
-         var lastPage = Pages - 1;
-         var pageLength = SpriteFormat.TileWidth * SpriteFormat.TileHeight * 8 * SpriteFormat.BitsPerPixel;
-         var newData = new byte[data.Length + pageLength];
-         Array.Copy(data, newData, data.Length);
-         Array.Copy(data, lastPage * pageLength, newData, data.Length, pageLength);
-         var newModelData = Compress(newData, 0, newData.Length);
-
-         var newRun = (LzSpriteRun)Model.RelocateForExpansion(token, this, newModelData.Count);
-         for (int i = 0; i < newModelData.Count; i++) token.ChangeData(Model, newRun.Start + i, newModelData[i]);
-         newRun = new LzSpriteRun(SpriteFormat, Model, newRun.Start, newRun.PointerSources);
-         Model.ObserveRunWritten(token, newRun);
-         return newRun;
-      }
-
-      public LzSpriteRun DeletePage(int page, ModelDelta token) {
-         var data = Decompress(Model, Start);
-         var pageLength = SpriteFormat.TileWidth * SpriteFormat.TileHeight * 8 * SpriteFormat.BitsPerPixel;
-         var newData = new byte[data.Length - pageLength];
-         Array.Copy(data, newData, page * pageLength);
-         Array.Copy(data, (page + 1) * pageLength, newData, page * pageLength, (Pages - page - 1) * pageLength);
-         var newModelData = Compress(newData, 0, newData.Length);
-
-         for (int i = 0; i < newModelData.Count; i++) token.ChangeData(Model, Start + i, newModelData[i]);
-         for (int i = newModelData.Count; i < Length; i++) token.ChangeData(Model, Start + i, 0xFF);
-         var newRun = new LzSpriteRun(SpriteFormat, Model, Start, PointerSources);
-         Model.ObserveRunWritten(token, newRun);
          return newRun;
       }
    }

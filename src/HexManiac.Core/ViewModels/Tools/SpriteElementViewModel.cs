@@ -50,36 +50,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       protected override bool CanExecuteAddPage() {
          var destination = ViewPort.Model.ReadPointer(Start);
          var run = ViewPort.Model.GetNextRun(destination) as ISpriteRun;
-         return run is LzSpriteRun && CurrentPage == run.Pages - 1 && run.FindRelatedPalettes(Model).All(pal => pal.Pages == run.Pages && pal is LzPaletteRun);
-      }
-
-      protected override void ExecuteAddPage() {
-         var destination = ViewPort.Model.ReadPointer(Start);
-         if (!(ViewPort.Model.GetNextRun(destination) is LzSpriteRun run)) return;
-         var newRun = run.AppendPage(ViewPort.CurrentChange);
-         if (newRun.Start != run.Start) {
-            ViewPort.RaiseMessage($"Sprite moved from {run.Start:X6} to {newRun.Start:X6}. Pointers were updated.");
-         }
-         Pages = newRun.Pages;
-         CurrentPage = newRun.Pages - 1;
-         base.ExecuteAddPage();
-         UpdateTiles(Start, CurrentPage, true); // update the tiles once all the related palettes have their pages added
+         var canExecute = run is LzSpriteRun && CurrentPage == run.Pages - 1 && run.FindRelatedPalettes(Model).All(pal => pal.Pages == run.Pages && pal is LzPaletteRun);
+         return canExecute;
       }
 
       protected override bool CanExecuteDeletePage() {
          var destination = ViewPort.Model.ReadPointer(Start);
          var run = ViewPort.Model.GetNextRun(destination) as ISpriteRun;
          return run is LzSpriteRun && Pages > 1 && run.FindRelatedPalettes(Model).All(pal => pal.Pages == run.Pages && pal is LzPaletteRun);
-      }
-
-      protected override void ExecuteDeletePage() {
-         var destination = ViewPort.Model.ReadPointer(Start);
-         if (!(ViewPort.Model.GetNextRun(destination) is LzSpriteRun run)) return;
-         var newRun = run.DeletePage(CurrentPage, ViewPort.CurrentChange);
-         Pages = newRun.Pages;
-         if (CurrentPage >= Pages) CurrentPage = Pages - 1;
-         base.ExecuteDeletePage();
-         UpdateTiles(Start, CurrentPage, true);
       }
 
       private int[,] lastPixels;

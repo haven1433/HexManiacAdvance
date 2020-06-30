@@ -36,18 +36,39 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       protected abstract bool CanExecuteAddPage();
       protected abstract bool CanExecuteDeletePage();
       protected virtual void ExecuteAddPage() {
+         var destination = ViewPort.Model.ReadPointer(Start);
+         if (!(ViewPort.Model.GetNextRun(destination) is PagedLZRun run)) return;
+         var newRun = run.AppendPage(ViewPort.CurrentChange);
+         if (newRun.Start != run.Start) {
+            ViewPort.RaiseMessage($"Data moved from {run.Start:X6} to {newRun.Start:X6}. Pointers were updated.");
+         }
+         Pages = newRun.Pages;
+         currentPage = newRun.Pages - 1;
+
          foreach (var child in ViewPort.Tools.TableTool.Children) {
             if (!(child is PagedElementViewModel pvm)) continue;
             if (pvm.Pages == Pages - 1) pvm.ExecuteAddPage();
          }
          deletePage?.CanExecuteChanged.Invoke(deletePage, EventArgs.Empty);
+         previousPage?.CanExecuteChanged.Invoke(previousPage, EventArgs.Empty);
+
+         PageChanged();
       }
       protected virtual void ExecuteDeletePage() {
+         var destination = ViewPort.Model.ReadPointer(Start);
+         if (!(ViewPort.Model.GetNextRun(destination) is PagedLZRun run)) return;
+         var newRun = run.DeletePage(CurrentPage, ViewPort.CurrentChange);
+         Pages = newRun.Pages;
+         if (CurrentPage >= Pages) currentPage = Pages - 1;
+
          foreach (var child in ViewPort.Tools.TableTool.Children) {
             if (!(child is PagedElementViewModel pvm)) continue;
             if (pvm.Pages == Pages + 1) pvm.ExecuteDeletePage();
          }
          deletePage?.CanExecuteChanged.Invoke(deletePage, EventArgs.Empty);
+         nextPage.CanExecuteChanged.Invoke(nextPage, EventArgs.Empty);
+
+         PageChanged();
       }
 
       #endregion
@@ -79,6 +100,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          currentPage = that.currentPage;
          Pages = that.Pages;
          NotifyPropertyChanged(nameof(Pages));
+         Start = that.Start; // required in order to update the ShowPageControls value
          NotifyPropertyChanged(nameof(ShowPageControls));
          addPage?.CanExecuteChanged.Invoke(addPage, EventArgs.Empty);
          deletePage?.CanExecuteChanged.Invoke(deletePage, EventArgs.Empty);

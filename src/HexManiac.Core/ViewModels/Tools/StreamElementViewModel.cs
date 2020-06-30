@@ -9,7 +9,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public ViewPort ViewPort { get; }
       public IDataModel Model { get; }
-      public int Start { get; private set; }
+      public int Start { get; protected set; }
 
       private bool visible = true;
       public bool Visible { get => visible; set => Set(ref visible, value); }

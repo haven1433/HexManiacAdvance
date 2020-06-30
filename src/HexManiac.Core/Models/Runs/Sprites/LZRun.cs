@@ -400,4 +400,42 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          }
       }
    }
+
+   public abstract class PagedLZRun : LZRun {
+      public abstract int Pages { get; }
+      protected abstract int UncompressedPageLength { get; }
+
+      public PagedLZRun(IDataModel data, int start, SortedSpan<int> sources = null) : base(data, start, sources) { }
+
+      public PagedLZRun AppendPage(ModelDelta token) {
+         var data = Decompress(Model, Start);
+         var lastPage = Pages - 1;
+         var pageLength = UncompressedPageLength;
+         var newData = new byte[data.Length + pageLength];
+         Array.Copy(data, newData, data.Length);
+         Array.Copy(data, lastPage * pageLength, newData, data.Length, pageLength);
+         var newModelData = Compress(newData, 0, newData.Length);
+
+         var newRun = Model.RelocateForExpansion(token, this, newModelData.Count);
+         for (int i = 0; i < newModelData.Count; i++) token.ChangeData(Model, newRun.Start + i, newModelData[i]);
+         newRun = (PagedLZRun)newRun.Duplicate(newRun.Start, newRun.PointerSources);
+         Model.ObserveRunWritten(token, newRun);
+         return newRun;
+      }
+
+      public PagedLZRun DeletePage(int page, ModelDelta token) {
+         var data = Decompress(Model, Start);
+         var pageLength = UncompressedPageLength;
+         var newData = new byte[data.Length - pageLength];
+         Array.Copy(data, newData, page * pageLength);
+         Array.Copy(data, (page + 1) * pageLength, newData, page * pageLength, (Pages - page - 1) * pageLength);
+         var newModelData = Compress(newData, 0, newData.Length);
+
+         for (int i = 0; i < newModelData.Count; i++) token.ChangeData(Model, Start + i, newModelData[i]);
+         for (int i = newModelData.Count; i < Length; i++) token.ChangeData(Model, Start + i, 0xFF);
+         var newRun = (PagedLZRun)Duplicate(Start, PointerSources);
+         Model.ObserveRunWritten(token, newRun);
+         return newRun;
+      }
+   }
 }

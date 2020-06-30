@@ -3,18 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
-   public class LzPaletteRun : LZRun, IPaletteRun {
+   public class LzPaletteRun : PagedLZRun, IPaletteRun {
       public PaletteFormat PaletteFormat { get; }
 
       public override string FormatString { get; }
 
-      public int Pages {
+      public override int Pages {
          get {
             var length = Model.ReadMultiByteValue(Start + 1, 3);
             var paletteLength = (int)Math.Pow(2, PaletteFormat.Bits) * 2;
             return length / paletteLength;
          }
       }
+
+      protected override int UncompressedPageLength => PaletteFormat.ExpectedByteLengthPerPage;
 
       public LzPaletteRun(PaletteFormat paletteFormat, IDataModel data, int start, SortedSpan<int> sources = null)
          : base(data, start, sources) {
@@ -79,37 +81,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          for (int i = newModelData.Count; i < Length; i++) token.ChangeData(model, newRun.Start + i, 0xFF);
          newRun = new LzPaletteRun(PaletteFormat, model, newRun.Start, newRun.PointerSources);
          model.ObserveRunWritten(token, newRun);
-         return newRun;
-      }
-
-      public LzPaletteRun AppendPage(ModelDelta token) {
-         var data = Decompress(Model, Start);
-         var lastPage = Pages - 1;
-         var pageLength = (int)Math.Pow(2, PaletteFormat.Bits) * 2;
-         var newData = new byte[data.Length + pageLength];
-         Array.Copy(data, newData, data.Length);
-         Array.Copy(data, lastPage * pageLength, newData, data.Length, pageLength);
-         var newModelData = Compress(newData, 0, newData.Length);
-
-         var newRun = Model.RelocateForExpansion(token, this, newModelData.Count);
-         for (int i = 0; i < newModelData.Count; i++) token.ChangeData(Model, newRun.Start + i, newModelData[i]);
-         newRun = new LzPaletteRun(PaletteFormat, Model, newRun.Start, newRun.PointerSources);
-         Model.ObserveRunWritten(token, newRun);
-         return newRun;
-      }
-
-      public LzPaletteRun DeletePage(int page, ModelDelta token) {
-         var data = Decompress(Model, Start);
-         var pageLength = (int)Math.Pow(2, PaletteFormat.Bits) * 2;
-         var newData = new byte[data.Length - pageLength];
-         Array.Copy(data, newData, page * pageLength);
-         Array.Copy(data, (page + 1) * pageLength, newData, page * pageLength, (Pages - page - 1) * pageLength);
-         var newModelData = Compress(newData, 0, newData.Length);
-
-         for (int i = 0; i < newModelData.Count; i++) token.ChangeData(Model, Start + i, newModelData[i]);
-         for (int i = newModelData.Count; i < Length; i++) token.ChangeData(Model, Start + i, 0xFF);
-         var newRun = new LzPaletteRun(PaletteFormat, Model, Start, PointerSources);
-         Model.ObserveRunWritten(token, newRun);
          return newRun;
       }
    }
