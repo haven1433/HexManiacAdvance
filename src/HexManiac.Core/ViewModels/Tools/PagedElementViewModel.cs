@@ -12,10 +12,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          get => currentPage;
          set {
             if (!TryUpdate(ref currentPage, value % Pages)) return;
-            previousPage.CanExecuteChanged.Invoke(previousPage, EventArgs.Empty);
-            nextPage.CanExecuteChanged.Invoke(nextPage, EventArgs.Empty);
+            previousPage.RaiseCanExecuteChanged();
+            nextPage.RaiseCanExecuteChanged();
             UpdateOtherPagedViewModels();
-            addPage?.CanExecuteChanged.Invoke(addPage, EventArgs.Empty);
+            addPage.RaiseCanExecuteChanged();
             PageChanged();
          }
       }
@@ -49,8 +49,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (!(child is PagedElementViewModel pvm)) continue;
             if (pvm.Pages == Pages - 1) pvm.ExecuteAddPage();
          }
-         deletePage?.CanExecuteChanged.Invoke(deletePage, EventArgs.Empty);
-         previousPage?.CanExecuteChanged.Invoke(previousPage, EventArgs.Empty);
+         deletePage.RaiseCanExecuteChanged();
+         previousPage.RaiseCanExecuteChanged();
 
          PageChanged();
       }
@@ -65,8 +65,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (!(child is PagedElementViewModel pvm)) continue;
             if (pvm.Pages == Pages + 1) pvm.ExecuteDeletePage();
          }
-         deletePage?.CanExecuteChanged.Invoke(deletePage, EventArgs.Empty);
-         nextPage.CanExecuteChanged.Invoke(nextPage, EventArgs.Empty);
+         deletePage.RaiseCanExecuteChanged();
+         nextPage.RaiseCanExecuteChanged();
 
          PageChanged();
       }
@@ -102,11 +102,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          NotifyPropertyChanged(nameof(Pages));
          Start = that.Start; // required in order to update the ShowPageControls value
          NotifyPropertyChanged(nameof(ShowPageControls));
-         addPage?.CanExecuteChanged.Invoke(addPage, EventArgs.Empty);
-         deletePage?.CanExecuteChanged.Invoke(deletePage, EventArgs.Empty);
+         addPage.RaiseCanExecuteChanged();
+         deletePage?.RaiseCanExecuteChanged();
          NotifyPropertyChanged(nameof(CurrentPage));
-         previousPage.CanExecuteChanged.Invoke(previousPage, EventArgs.Empty);
-         nextPage.CanExecuteChanged.Invoke(nextPage, EventArgs.Empty);
+         previousPage.RaiseCanExecuteChanged();
+         nextPage.RaiseCanExecuteChanged();
 
          return true;
       }

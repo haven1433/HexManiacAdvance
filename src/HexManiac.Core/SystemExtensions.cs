@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core {
    public static class SystemExtensions {
@@ -10,6 +11,8 @@ namespace HavenSoft.HexManiac.Core {
 
       private static readonly IReadOnlyList<string> byteToString = Enumerable.Range(0, 0x100).Select(i => i.ToString("X2")).ToArray();
       public static string ToHexString(this byte value) => byteToString[value];
+
+      public static void RaiseCanExecuteChanged(this StubCommand self) => self?.CanExecuteChanged.Invoke(self, EventArgs.Empty);
 
       public static T LimitToRange<T>(this T value, T lower, T upper) where T : IComparable<T> {
          if (upper.CompareTo(lower) < 0) throw new ArgumentException($"upper value {upper} is less than lower value {lower}");
