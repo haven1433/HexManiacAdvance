@@ -4,6 +4,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -65,6 +66,19 @@ namespace HavenSoft.HexManiac.Tests {
             Assert.IsType<LzCompressed>(run.CreateDataFormat(Model, 6));
             Assert.IsType<LzCompressed>(run.CreateDataFormat(Model, 7));
          }
+      }
+
+      [Fact]
+      public void EditUncompressedCellMovesCursorByOne() {
+         var compressed = LZRun.Compress(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 0, 16).ToArray();
+         Array.Copy(compressed, Model.RawData, compressed.Length);
+         Model.ObserveRunWritten(new ModelDelta(), new LZRun(Model, 0));
+         ViewPort.Refresh();
+
+         ViewPort.SelectionStart = new Point(5, 0);
+         ViewPort.Edit("00 ");
+
+         Assert.Equal(new Point(6, 0), ViewPort.SelectionStart);
       }
 
       [Fact]

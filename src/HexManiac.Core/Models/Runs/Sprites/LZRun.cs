@@ -28,7 +28,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          var initialStart = start;
          int length = ReadHeader(data, ref start);
          if (length < 1) return -1;
-         int index = 0;
+         int index = 0; // the index into the uncompressed data
          while (index < length && start < data.Count) {
             var bitField = data[start];
             start++;
@@ -195,10 +195,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          int currentLength = 0;
          int readIndex = Start + 4;
          while (currentLength < uncompressedLength) {
-            int lastBitFieldIndex = readIndex;
+            int lastBitFieldIndex = readIndex - Start; // ranges from 0 to n in the compressed data
             byte bitField = 0;
             if (readIndex < Start + Length) {
-               bitField = Model[lastBitFieldIndex];
+               bitField = Model[lastBitFieldIndex + Start];
                readIndex += 1;
             } else {
                lastBitFieldIndex = newCompressedData.Count;
@@ -231,11 +231,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                }
                var isCompressed = IsNextTokenCompressed(ref bitField);
                if (!isCompressed) {
-                  newCompressedData.Add(Model[Start + readIndex]);
+                  newCompressedData.Add(Model[readIndex]);
                   readIndex += 1;
                   currentLength += 1;
                } else {
                   (int runLength, int runOffset) = ReadCompressedToken(Model, ref readIndex);
+                  if (runOffset > currentLength) runOffset = currentLength; // don't read before the start of the run
                   if (currentLength + runLength > uncompressedLength) {
                      TruncateCompressedToken(newCompressedData, uncompressedLength, ref currentLength, lastBitFieldIndex, ref lastBitFieldValue, i, ref runOffset);
                      break;

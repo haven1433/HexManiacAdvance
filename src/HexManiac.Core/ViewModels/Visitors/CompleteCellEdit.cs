@@ -260,6 +260,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (byte.TryParse(CurrentText, NumberStyles.HexNumber, CultureInfo.CurrentCulture.NumberFormat, out var result)) {
             CurrentChange.ChangeData(Model, memoryLocation, result);
             Result = true;
+            NewDataIndex = memoryLocation + 1;
          }
       }
 
