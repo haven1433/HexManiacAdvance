@@ -369,7 +369,6 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       public string Compile(IDataModel model, int start, string scriptLine, IReadOnlyDictionary<string, int> labels, out byte[] result) {
-         // TODO utilize the start/labels when parsing pointer text
          result = null;
          var tokens = Tokenize(scriptLine);
          if (tokens[0] != LineCommand) throw new ArgumentException($"Command {LineCommand} was expected, but received {tokens[0]} instead.");
@@ -398,10 +397,14 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      return "Unmatched <>";
                   }
                   token = token.Substring(1, token.Length - 2);
-                  if (!int.TryParse(token, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out value)) {
+                  if (labels.TryGetValue(token, out value)) {
+                     value += start;
+                  } else if (int.TryParse(token, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out value)) {
+                     // pointer *is* an address: nothing else to do
+                  } else {
                      return $"Unable to parse {token} as a hex number.";
                   }
-                  value += 0x8000000;
+                  value -= Pointer.NULL;
                } else {
                   value = int.Parse(token, NumberStyles.HexNumber);
                }
