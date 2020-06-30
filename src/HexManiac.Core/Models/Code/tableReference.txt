@@ -156,7 +156,7 @@ credits.trainer.female.sprite,   ,,,, 0F4A44, 0F4A1C, 0F4ABC, 0F4A94, , `lzs4x8x
 credits.trainer.rival.sprite,    ,,,, 0F4AD8, 0F4AB0, 0F4B50, 0F4B28, , `lzs4x8x8|credits.trainer.rival.palette`
 
 
-// mapbanks,             ,,,, 05524C,,,, , [maps<[map<[size<[width:: height:: s1<> s2<> s3<> s4<> borderwidth. borderheight. unused:]1> events<[e1 e2 e3 e4 ee1<> ee2<> ee3<> ee4<>]1> mapscripts<[type. pointer<>]!00> d<> song: map: label. flash. weather. type. unused: useLabel:]1>]1>]43
+mapbanks,             ,,,, 05524C,,,, , [maps<[map<[size<[width:: height:: s1<> s2<> s3<> s4<> borderwidth. borderheight. unused:]1> events<[e1 e2 e3 e4 ee1<> ee2<> ee3<> ee4<>]1> mapscripts<[type. pointer<>]!00> d<> song: map: label. flash. weather. type. unused: useLabel:]1>]1>]43
 
 // The size of the sprites is determined by the width/height fields.
 // The palette of the sprites is determined by the palettekey field.
