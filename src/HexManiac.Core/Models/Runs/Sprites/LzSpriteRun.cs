@@ -86,8 +86,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       public LzSpriteRun DeletePage(int page, ModelDelta token) {
-         // TODO
-         throw new NotImplementedException();
+         var data = Decompress(Model, Start);
+         var pageLength = SpriteFormat.TileWidth * SpriteFormat.TileHeight * 8 * SpriteFormat.BitsPerPixel;
+         var newData = new byte[data.Length - pageLength];
+         Array.Copy(data, newData, page * pageLength);
+         Array.Copy(data, (page + 1) * pageLength, newData, page * pageLength, (Pages - page - 1) * pageLength);
+         var newModelData = Compress(newData, 0, newData.Length);
+
+         for (int i = 0; i < newModelData.Count; i++) token.ChangeData(Model, Start + i, newModelData[i]);
+         for (int i = newModelData.Count; i < Length; i++) token.ChangeData(Model, Start + i, 0xFF);
+         var newRun = new LzSpriteRun(SpriteFormat, Model, Start, PointerSources);
+         Model.ObserveRunWritten(token, newRun);
+         return newRun;
       }
    }
 }

@@ -91,7 +91,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          Array.Copy(data, lastPage * pageLength, newData, data.Length, pageLength);
          var newModelData = Compress(newData, 0, newData.Length);
 
-         var newRun = (LzPaletteRun)Model.RelocateForExpansion(token, this, newModelData.Count);
+         var newRun = Model.RelocateForExpansion(token, this, newModelData.Count);
          for (int i = 0; i < newModelData.Count; i++) token.ChangeData(Model, newRun.Start + i, newModelData[i]);
          newRun = new LzPaletteRun(PaletteFormat, Model, newRun.Start, newRun.PointerSources);
          Model.ObserveRunWritten(token, newRun);
@@ -99,7 +99,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       public LzPaletteRun DeletePage(int page, ModelDelta token) {
-         throw new NotImplementedException();
+         var data = Decompress(Model, Start);
+         var pageLength = (int)Math.Pow(2, PaletteFormat.Bits) * 2;
+         var newData = new byte[data.Length - pageLength];
+         Array.Copy(data, newData, page * pageLength);
+         Array.Copy(data, (page + 1) * pageLength, newData, page * pageLength, (Pages - page - 1) * pageLength);
+         var newModelData = Compress(newData, 0, newData.Length);
+
+         for (int i = 0; i < newModelData.Count; i++) token.ChangeData(Model, Start + i, newModelData[i]);
+         for (int i = newModelData.Count; i < Length; i++) token.ChangeData(Model, Start + i, 0xFF);
+         var newRun = new LzPaletteRun(PaletteFormat, Model, Start, PointerSources);
+         Model.ObserveRunWritten(token, newRun);
+         return newRun;
       }
    }
 }

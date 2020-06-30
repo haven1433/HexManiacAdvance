@@ -56,6 +56,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Pages = newRun.Pages;
          CurrentPage = newRun.Pages - 1;
          base.ExecuteAddPage();
+         UpdateColors(Start, CurrentPage);
       }
 
       protected override bool CanExecuteDeletePage() {
@@ -65,8 +66,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       protected override void ExecuteDeletePage() {
-         // TODO
+         var destination = ViewPort.Model.ReadPointer(Start);
+         if (!(ViewPort.Model.GetNextRun(destination) is LzPaletteRun run)) return;
+         var newRun = run.DeletePage(CurrentPage, ViewPort.CurrentChange);
+         Pages = newRun.Pages;
+         if (CurrentPage >= Pages) CurrentPage = Pages - 1;
          base.ExecuteDeletePage();
+         UpdateColors(Start, CurrentPage);
       }
 
       private void UpdateSprites(string hint = null) {

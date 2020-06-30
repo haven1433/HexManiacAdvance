@@ -73,8 +73,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       protected override void ExecuteDeletePage() {
-         // TODO
+         var destination = ViewPort.Model.ReadPointer(Start);
+         if (!(ViewPort.Model.GetNextRun(destination) is LzSpriteRun run)) return;
+         var newRun = run.DeletePage(CurrentPage, ViewPort.CurrentChange);
+         Pages = newRun.Pages;
+         if (CurrentPage >= Pages) CurrentPage = Pages - 1;
          base.ExecuteDeletePage();
+         UpdateTiles(Start, CurrentPage, true);
       }
 
       private int[,] lastPixels;

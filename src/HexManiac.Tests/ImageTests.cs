@@ -533,6 +533,35 @@ namespace HavenSoft.HexManiac.Tests {
          }
       }
 
+      [Fact]
+      public void CanDeletePageFromCompressedSpritesAndPalettes() {
+         // Arrange: place some sprites and palettes, linked to a name table
+         // 000-010  : pokenames table
+         // 010-020  : sprite/palette tables (each is a single pointer)
+         // 040-0A0  : front sprites
+         // 0A0-100  : back sprites
+         // 100-160  : normal palettes
+         // 160-1C0  : shiny palettes
+         ViewPort.Edit("FF @00 ^pokenames[name\"\"15]1 Castform\"");
+         ViewPort.Edit("@040 10 40 @0A0 10 40 @100 10 40 @160 10 40 @10 ");
+         ViewPort.Edit("^front.sprites[sprite<`lzs4x1x1`>]pokenames <040>");
+         ViewPort.Edit("^back.sprites[sprite<`lzs4x1x1`>]pokenames <0A0>");
+         ViewPort.Edit("^normal.palette[pal<`lzp4`>]pokenames <100>");
+         ViewPort.Edit("^shiny.palette[pal<`lzp4`>]pokenames <160>");
+
+         // Act: contract each by a single page
+         ViewPort.Goto.Execute("pokenames");
+         var sevm = (SpriteElementViewModel)ViewPort.Tools.TableTool.Children.First(child => child is SpriteElementViewModel);
+         sevm.DeletePage.Execute();
+
+         // Assert: each has 1 page now
+         foreach (var child in ViewPort.Tools.TableTool.Children) {
+            if (child is IPagedViewModel pvm) {
+               Assert.Equal(1, pvm.Pages);
+            }
+         }
+      }
+
       private void CreateLzRun(int start, params byte[] data) {
          for (int i = 0; i < data.Length; i++) Model[start + i] = data[i];
          var run = new LZRun(Model, start);
