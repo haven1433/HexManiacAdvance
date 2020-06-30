@@ -97,10 +97,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             while (true) {
                var line = engine.GetMatchingLine(model, address + length);
                if (line == null) break;
+               // there may've previously been a pointer here: the code has changed!
+               if (model.GetNextRun(address + length) is PointerRun pRun && pRun.Start == address + length) model.ClearFormat(token, address + length, line.LineCode.Count);
                length += line.LineCode.Count;
                foreach (var arg in line.Args) {
                   if (arg.Type != ArgType.Pointer) {
                      // there may've previously been a pointer here: the code has changed!
+                     // when clearing args, we actually _do_ want to clear any anchors that point to them.
                      model.ClearFormat(token, address + length, arg.Length);
                   } else {
                      var destination = model.ReadPointer(address + length);
