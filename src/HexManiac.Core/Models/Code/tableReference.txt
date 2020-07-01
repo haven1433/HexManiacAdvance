@@ -148,15 +148,25 @@ island3TileMap,       ,,,, 0C03A4, 0C0378, 0C03B8, 0C038C, , `lzm4x30x20|townmap
 townmapBorderTileSet, ,,,, 0C033C, 0C0310, 0C0350, 0C0324, , `lzt4|townmapPalette`
 townmapBorderTileMap, ,,,, 0C03C0, 0C0394, 0C03D4, 0C03A8, , `lzm4x30x20|townmapBorderTileSet`
 
-credits.trainer.male.palette,    ,,,, 0F4A1C, 0F49F4, 0F4A94, 0F4A6C, , `ucp4`
-credits.trainer.female.palette,  ,,,, 0F4A48, 0F4A20, 0F4AC0, 0F4A98, , `ucp4`
-credits.trainer.rival.palette,   ,,,, 0F4ADC, 0F4AB4, 0F4B54, 0F4B2C, , `ucp4`
-credits.trainer.male.sprite,     ,,,, 0F4A10, 0F49E8, 0F4A88, 0F4A60, , `lzs4x8x8|credits.trainer.male.palette`
-credits.trainer.female.sprite,   ,,,, 0F4A44, 0F4A1C, 0F4ABC, 0F4A94, , `lzs4x8x8|credits.trainer.female.palette`
-credits.trainer.rival.sprite,    ,,,, 0F4AD8, 0F4AB0, 0F4B50, 0F4B28, , `lzs4x8x8|credits.trainer.rival.palette`
-trainer.card.palette, ,,,, 3CD8CC, 3CD708, 3CD93C, 3CD778, , `ucp4:012`
-trainer.card.tileset, ,,,, 089568, 08953C, 08957C, 089550, , `lzt4|trainer.card.palette`
-trainer.card.tilemap, ,,,, 0894F4, 0894C8, 089508, 0894DC, , `lzm4x30x20|trainer.card.tileset`
+credits.trainer.male.palette,                ,,,, 0F4A1C, 0F49F4, 0F4A94, 0F4A6C, , `ucp4`
+credits.trainer.female.palette,              ,,,, 0F4A48, 0F4A20, 0F4AC0, 0F4A98, , `ucp4`
+credits.trainer.rival.palette,               ,,,, 0F4ADC, 0F4AB4, 0F4B54, 0F4B2C, , `ucp4`
+credits.trainer.male.sprite,                 ,,,, 0F4A10, 0F49E8, 0F4A88, 0F4A60, , `lzs4x8x8|credits.trainer.male.palette`
+credits.trainer.female.sprite,               ,,,, 0F4A44, 0F4A1C, 0F4ABC, 0F4A94, , `lzs4x8x8|credits.trainer.female.palette`
+credits.trainer.rival.sprite,                ,,,, 0F4AD8, 0F4AB0, 0F4B50, 0F4B28, , `lzs4x8x8|credits.trainer.rival.palette`
+trainer.card.palette,                        ,,,, 3CD8CC, 3CD708, 3CD93C, 3CD778, , `ucp4:012`
+trainer.card.badges.sprite,                  ,,,, 089530,,,, , `lzs4x16x2`
+trainer.card.stickers.sprite,                ,,,, 089594,,,, , `lzs4x2x8`
+trainer.card.tileset,                        ,,,, 089568, 08953C, 08957C, 089550, , `lzt4|trainer.card.palette`
+trainer.card.tileset2,                       ,,,, 089558,,,, , `lzt4|trainer.card.palette`
+trainer.card.front.tilemap,                  ,,,, 0894F4, 0894C8, 089508, 0894DC, , `lzm4x30x20|trainer.card.tileset`
+trainer.card.front.nobadges.tilemap,         ,,,, 08951C,,,, , `lzm4x30x20|trainer.card.tileset`
+trainer.card.front.unknown.tilemap,          ,,,, 0894E8,,,, , `lzm4x30x20|trainer.card.tileset2`
+trainer.card.front.unknown.nobadges.tilemap, ,,,, 089510,,,, , `lzm4x30x20|trainer.card.tileset2`
+trainer.card.back.tilemap,                   ,,,, 0894BC,,,, , `lzm4x30x20|trainer.card.tileset`
+trainer.card.back.unknown.tilemap,           ,,,, 0894AC,,,, , `lzm4x30x20|trainer.card.tileset2`
+trainer.card.background.tilemap,             ,,,, 089488,,,, , `lzm4x30x20|trainer.card.tileset`
+trainer.card.background.tilemap2,            ,,,, 089478,,,, , `lzm4x30x20|trainer.card.tileset2`
 
 
 mapbanks,             ,,,, 05524C,,,, , [maps<[map<[size<[width:: height:: s1<> s2<> s3<> s4<> borderwidth. borderheight. unused:]1> events<[e1 e2 e3 e4 ee1<> ee2<> ee3<> ee4<>]1> mapscripts<[type. pointer<>]!00> d<> song: map: label. flash. weather. type. unused: useLabel:]1>]1>]43

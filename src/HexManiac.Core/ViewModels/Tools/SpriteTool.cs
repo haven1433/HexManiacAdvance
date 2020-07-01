@@ -20,7 +20,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    }
 
    public class SpriteTool : ViewModelCore, IToolViewModel, IPixelViewModel {
-      public const int MaxSpriteWidth = 265; // From UI
+      public const int MaxSpriteWidth = 255; // From UI
       private readonly ViewPort viewPort;
       private readonly ChangeHistory<ModelDelta> history;
       private readonly IDataModel model;
