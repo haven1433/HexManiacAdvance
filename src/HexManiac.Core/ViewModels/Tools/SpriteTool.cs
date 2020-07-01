@@ -145,15 +145,36 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var height = width;
             model.ObserveRunWritten(history.CurrentChange, new SpriteRun(spriteAddress, new SpriteFormat(4, width, height, null)));
          } else {
-            var pixelCount = decompressed.Length;
-            if (pixelCount % 32 != 0) {
-               viewPort.RaiseError("Could not autodetect a compressed sprite at that address.");
-               return;
+            int tileCount = decompressed.Length / 32;
+            bool isTilemap = false;
+            if (decompressed.Length % 32 != 0) {
+               if (decompressed.Length % 2 == 0) {
+                  // not a sprite, but it is a tileset
+                  tileCount = decompressed.Length / 2;
+                  isTilemap = true;
+               } else {
+                  viewPort.RaiseError("Could not autodetect a compressed sprite at that address.");
+                  return;
+               }
             }
-            var tileCount = pixelCount / 32;
             var width = (int)Math.Sqrt(tileCount);
             var height = width;
-            model.ObserveRunWritten(history.CurrentChange, new LzSpriteRun(new SpriteFormat(4, width, height, null), model, spriteAddress));
+            while (isTilemap && width * height != tileCount) { // tilemaps need to use all the existing data space to allow us to give them a name
+               if (width * height < tileCount) {
+                  width += 1;
+               } else {
+                  height -= 1;
+               }
+               if (height == 1) width = tileCount;
+            }
+            ISpriteRun spriteRun;
+            if (isTilemap) {
+               spriteRun = new LzTilemapRun(new TilemapFormat(4, width, height, string.Empty), model, spriteAddress, run.PointerSources);
+            } else {
+               spriteRun = new LzSpriteRun(new SpriteFormat(4, width, height, null), model, spriteAddress, run.PointerSources);
+            }
+            model.ClearFormat(history.CurrentChange, spriteRun.Start, spriteRun.Length);
+            model.ObserveRunWritten(history.CurrentChange, spriteRun);
          }
 
          viewPort.Refresh();
