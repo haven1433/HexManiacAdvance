@@ -63,14 +63,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
          var mapData = Decompress(model, Start);
          var tilesetAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, Format.MatchingTileset);
-         var tileset = model.GetNextRun(tilesetAddress) as LzTilesetRun;
-         if (tileset == null) tileset = model.GetNextRun(arrayTilesetAddress) as LzTilesetRun;
+         var tileset = model.GetNextRun(tilesetAddress) as ISpriteRun;
+         if (tileset == null) tileset = model.GetNextRun(arrayTilesetAddress) as ISpriteRun;
          
-         if (tileset == null) return result;
+         if (tileset == null || !(tileset is LZRun)) return result; // relax the conditions slightly: if the run we found is an LZSpriteRun, that's close enough, we can use it as a tileset.
 
          var tiles = Decompress(model, tileset.Start);
 
-         var tileSize = tileset.Format.BitsPerPixel * 8;
+         var tileSize = tileset is LzTilesetRun lztsRun ? lztsRun.Format.BitsPerPixel * 8 : tileset.SpriteFormat.BitsPerPixel * 8;
 
          for (int y = 0; y < Format.TileHeight; y++) {
             var yStart = y * 8;
