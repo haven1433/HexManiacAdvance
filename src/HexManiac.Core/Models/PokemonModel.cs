@@ -173,6 +173,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       private void WriteSpriteRuns(Dictionary<int, SortedSpan<int>> pointersForDestination) {
          var noDataChange = new NoDataChangeDeltaModel();
          foreach (var destination in pointersForDestination.Keys.OrderBy(i => i)) {
+            var existingRun = GetNextRun(destination);
+            if (!(existingRun is NoInfoRun)) continue;
             var protoRun = new LZRun(this, destination);
             if (protoRun.Length < 5) continue;
             if (protoRun.DecompressedLength < 32 || protoRun.DecompressedLength % 32 != 0) continue;
