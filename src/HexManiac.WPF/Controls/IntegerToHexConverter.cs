@@ -13,6 +13,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {
          var input = value.ToString();
+         if (input.StartsWith("<")) input = input.Substring(1);
+         if (input.EndsWith(">")) input = input.Substring(0, input.Length - 1);
          if (int.TryParse(input, NumberStyles.HexNumber, null, out int result)) {
             return result;
          } else {
