@@ -185,7 +185,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                CurrentElementName = $"{basename}/{index}";
             }
 
-            AddChild(new SplitterArrayElementViewModel(viewPort, basename, index));
+            var elementOffset = array.Start + array.ElementLength * index;
+            AddChild(new SplitterArrayElementViewModel(viewPort, basename, elementOffset));
             AddChildrenFromTable(array, index);
 
             if (array is ArrayRun arrayRun) {
@@ -198,7 +199,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   var negChildOffset = Math.Min(currentArray.ParentOffset, 0);
                   var currentIndex = index + negChildOffset;
                   if (currentIndex >= 0 && currentIndex < currentArray.ElementCount) {
-                     var elementOffset = currentArray.Start + currentArray.ElementLength * currentIndex;
+                     elementOffset = currentArray.Start + currentArray.ElementLength * currentIndex;
                      AddChild(new SplitterArrayElementViewModel(viewPort, currentArrayName, elementOffset));
                      AddChildrenFromTable(currentArray, currentIndex);
                   }
