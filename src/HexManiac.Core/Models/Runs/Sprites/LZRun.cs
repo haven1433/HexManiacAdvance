@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -142,8 +143,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       /// In response to a change to the raw data,
       /// shorten or lengthen the run.
       /// </summary>
-      public LZRun FixupEnd(IDataModel model, ModelDelta token) {
-         var newData = RecommendedFixup();
+      public LZRun FixupEnd(IDataModel model, ModelDelta token, int fixupStart) {
+         var newData = RecommendedFixup(fixupStart);
+         if (newData == null) return null;
          var newRun = model.RelocateForExpansion(token, this, newData.Count);
          var newStart = newRun.Start;
          for (int i = 0; i < newData.Count; i++) token.ChangeData(model, newStart + i, newData[i]);
@@ -189,96 +191,64 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       /// <summary>
       /// Without worrying about available space, rectify the end of the data to make it the appropriate length.
       /// </summary>
-      private IReadOnlyList<byte> RecommendedFixup() {
+      /// <param name="fixupStart">
+      /// The first index of the compressed data that is allowed to change.
+      /// </param>
+      /// <returns>
+      /// null, only if the data tail cannot safely be modified to make the length correct.
+      /// </returns>
+      private IReadOnlyList<byte> RecommendedFixup(int fixupStart) {
          var newCompressedData = new List<byte>(new[] { Model[Start + 0], Model[Start + 1], Model[Start + 2], Model[Start + 3] });
          var uncompressedLength = newCompressedData.ReadMultiByteValue(1, 3);
-         int currentLength = 0;
-         int readIndex = Start + 4;
+         var currentLength = 0;     // tracks the uncompressed length of newCompressedData so far
+         var readIndex = Start + 4; // tracks the current location we're reading from Model
+         byte header = 0;
+
          while (currentLength < uncompressedLength) {
-            int lastBitFieldIndex = readIndex - Start; // ranges from 0 to n in the compressed data
-            byte bitField = 0;
-            if (readIndex < Start + Length) {
-               bitField = Model[lastBitFieldIndex + Start];
+            if (newCompressedData.Count < fixupStart) {
+               header = Model[readIndex];
                readIndex += 1;
             } else {
-               lastBitFieldIndex = newCompressedData.Count;
+               var remainingLength = uncompressedLength - currentLength;
+               var desiredCompressedTokens = (int)Math.Ceiling(remainingLength / 18.0);
+               if (remainingLength < 3) desiredCompressedTokens = 0;
+               if (desiredCompressedTokens > 8) desiredCompressedTokens = 8;
+               header = (byte)(0xFF << (8 - desiredCompressedTokens));
+               if (readIndex == Start + 4) header &= 0x7F; // if this is the first header, the highest bit must be 0.
             }
-            byte lastBitFieldValue = bitField;
-            newCompressedData.Add(lastBitFieldValue);
+            newCompressedData.Add(header);
             for (int i = 0; i < 8; i++) {
-               if (currentLength == uncompressedLength) {
-                  lastBitFieldValue &= (byte)(0xFF << 8 - i);
-                  newCompressedData[lastBitFieldIndex] = lastBitFieldValue;
-                  break;
-               }
-               if (readIndex == Start + Length) {
-                  // ran out of data to read.
-                  var runLength = (byte)Math.Min(uncompressedLength - currentLength, 18);
-                  if (runLength < 3) {
-                     // too short for a compressed token, add an uncompressed token instead.
-                     lastBitFieldValue &= (byte)(0xFF << 8 - i);
-                     newCompressedData.Add(0);
-                     newCompressedData[lastBitFieldIndex] = lastBitFieldValue;
-                     runLength = 1;
-                  } else {
-                     // Try to fill the rest with a compressed token.
-                     lastBitFieldValue |= (byte)(1 << 7 - i);
-                     newCompressedData[lastBitFieldIndex] = lastBitFieldValue;
-                     newCompressedData.AddRange(new LzCompressedToken(runLength, 1).Render());
-                  }
-                  currentLength += runLength;
-                  continue;
-               }
-               var isCompressed = IsNextTokenCompressed(ref bitField);
-               if (!isCompressed) {
-                  newCompressedData.Add(Model[readIndex]);
-                  readIndex += 1;
-                  currentLength += 1;
-               } else {
-                  (int runLength, int runOffset) = ReadCompressedToken(Model, ref readIndex);
-                  if (runOffset > currentLength) runOffset = currentLength; // don't read before the start of the run
-                  if (currentLength + runLength > uncompressedLength) {
-                     TruncateCompressedToken(newCompressedData, uncompressedLength, ref currentLength, lastBitFieldIndex, ref lastBitFieldValue, i, ref runOffset);
-                     break;
-                  } else {
+               if (currentLength >= uncompressedLength) break;
+               if (IsNextTokenCompressed(ref header)) {
+                  if (newCompressedData.Count < fixupStart) {
+                     var (runLength, runOffset) = ReadCompressedToken(Model, ref readIndex);
                      newCompressedData.AddRange(new LzCompressedToken((byte)runLength, (short)runOffset).Render());
                      currentLength += runLength;
+                  } else {
+                     // get to the end as fast as possible (prefer 18) but no faster than able (make sure we can fulfill our requirements)
+                     var minLeftover = MinimumLengthNeededToFullfillHeader(header);
+                     int desiredLength = uncompressedLength - currentLength - minLeftover;
+                     if (desiredLength > 18) desiredLength = 18;
+                     if (desiredLength < 3) return null; // no fixup can match the current header
+                     newCompressedData.AddRange(new LzCompressedToken((byte)desiredLength, 1).Render());
+                     currentLength += desiredLength;
+                     readIndex += 2;
                   }
+               } else {
+                  if (newCompressedData.Count < fixupStart) {
+                     newCompressedData.Add(Model[readIndex]);
+                  } else {
+                     // we can render anything, we're at the 'end'
+                     newCompressedData.Add(0);
+                  }
+                  readIndex += 1;
+                  currentLength += 1;
                }
             }
          }
 
-         return newCompressedData;
-      }
-
-      private static void TruncateCompressedToken(List<byte> newData, int uncompressedLength, ref int currentLength, int lastBitField, ref byte lastBitFieldValue, int groupIndex, ref int runOffset) {
-         var recommendedCompressedLength = uncompressedLength - currentLength;
-         if (recommendedCompressedLength == 1) {
-            lastBitFieldValue &= (byte)(0xFF << 8 - groupIndex);
-            newData[lastBitField] = lastBitFieldValue;
-            if (runOffset > newData.Count) runOffset = newData.Count;
-            newData.Add(newData[newData.Count - runOffset]);
-            currentLength += 1;
-         } else if (recommendedCompressedLength == 2) {
-            lastBitFieldValue &= (byte)(0xFF << 8 - groupIndex);
-            newData[lastBitField] = lastBitFieldValue;
-            if (runOffset > newData.Count) runOffset = newData.Count;
-            newData.Add(newData[newData.Count - runOffset]);
-            if (groupIndex == 7) {
-               var lastValue = newData[newData.Count - runOffset];
-               newData.Add(0x00); // group header, no compressed data
-               newData.Add(lastValue);
-            } else {
-               newData.Add(newData[newData.Count - runOffset]);
-            }
-            currentLength += 2;
-         } else if (recommendedCompressedLength > 2) {
-            // we can still use a compressed token, just make it shorter
-            lastBitFieldValue &= (byte)(0xFF << 7 - groupIndex);
-            newData[lastBitField] = lastBitFieldValue;
-            newData.AddRange(new LzCompressedToken((byte)recommendedCompressedLength, (short)runOffset).Render());
-            currentLength += recommendedCompressedLength;
-         }
+         if (header == 0 && currentLength == uncompressedLength) return newCompressedData;
+         return null; // no data space left, but high-bits are left. No fixup can fix this.
       }
 
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new LZRun(Model, Start, newPointerSources);
@@ -305,6 +275,19 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          var compressed = (bitField & 0x80) != 0;
          bitField <<= 1;
          return compressed;
+      }
+
+      // returns the minimum number of remaining bytes needed to fullfill a header
+      private static int MinimumLengthNeededToFullfillHeader(byte bitField) {
+         if (bitField == 0) return 0;
+         // at least one bit is high
+         var minimum = 0;
+         while (bitField != 0) {
+            if ((bitField & 0x80) != 0) minimum += 3;
+            else minimum += 1;
+            bitField <<= 1;
+         }
+         return minimum;
       }
 
       private void UpdateCache(IDisposable scope, IReadOnlyList<byte> data) {

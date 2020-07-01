@@ -219,12 +219,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(LzGroupHeader lz, byte data) {
          if (!CurrentText.EndsWith(" ")) return;
          if (byte.TryParse(CurrentText, NumberStyles.HexNumber, CultureInfo.CurrentCulture.NumberFormat, out var result)) {
+            var oldValue = Model[memoryLocation];
             CurrentChange.ChangeData(Model, memoryLocation, result);
             var run = (LZRun)Model.GetNextRun(memoryLocation);
             int runIndex = memoryLocation - run.Start;
-            run = FixupLzRun(run);
-            NewDataIndex = run.Start + runIndex + 1;
             Result = true;
+            if (!TryFixupLzRun(ref run, runIndex + 1)) {
+               CurrentChange.ChangeData(Model, memoryLocation, oldValue);
+               ErrorText = $"Could not write header {result:X2} without making the compressed data invalid.";
+            } else {
+               NewDataIndex = run.Start + runIndex + 1;
+            }
          }
       }
 
@@ -243,13 +248,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             return;
          }
          var result = LZRun.CompressedToken((byte)runLength, (short)runOffset);
+         var previousValue = Model.ReadMultiByteValue(memoryLocation, 2);
          CurrentChange.ChangeData(Model, memoryLocation, result[0]);
          CurrentChange.ChangeData(Model, memoryLocation + 1, result[1]);
          var run = (LZRun)Model.GetNextRun(memoryLocation);
          int runIndex = memoryLocation - run.Start;
-         run = FixupLzRun(run);
-         if (Model[run.Start + runIndex] != result[0] || Model[run.Start + runIndex + 1] != result[1]) {
-            ErrorText = "The run cannot be longer than the header specifies.";
+         if (!TryFixupLzRun(ref run, runIndex + 2)) {
+            Model.WriteMultiByteValue(memoryLocation, 2, CurrentChange, previousValue);
+            ErrorText = $"Could not write {runLength}:{runOffset} without making the compressed data invalid.";
          } else {
             NewDataIndex = run.Start + runIndex + 2;
          }
@@ -358,7 +364,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Model.WriteMultiByteValue(integer.Source, integer.Length, CurrentChange, result);
          if (result >= Math.Pow(2L, integer.Length * 8)) ErrorText = $"Warning: number was too big to fit in the available space.";
          int runIndex = integer.Source - run.Start;
-         if (run is LZRun lzRun) run = FixupLzRun(lzRun);
+         if (run is LZRun lzRun) {
+            TryFixupLzRun(ref lzRun, runIndex + integer.Length); // this is before the first header: it cannot fail.
+            run = lzRun;
+         }
          NewDataIndex = run.Start + runIndex + integer.Length;
       }
 
@@ -649,12 +658,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Model.UpdateArrayPointer(CurrentChange, segment, memoryLocation, pointerDestination);
       }
 
-      private LZRun FixupLzRun(LZRun run) {
+      private bool TryFixupLzRun(ref LZRun run, int runIndex) {
          var initialStart = run.Start;
-         run = run.FixupEnd(Model, CurrentChange);
-         Model.ObserveRunWritten(CurrentChange, run);
-         if (run.Start != initialStart) MessageText = $"LZ Compressed data was automatically moved to {run.Start:X6}. Pointers were updated.";
-         return run;
+         var newRun = run.FixupEnd(Model, CurrentChange, runIndex);
+         if (newRun == null) return false;
+
+         Model.ObserveRunWritten(CurrentChange, newRun);
+         if (newRun.Start != initialStart) MessageText = $"LZ Compressed data was automatically moved to {newRun.Start:X6}. Pointers were updated.";
+         run = newRun;
+         return true;
       }
    }
 }

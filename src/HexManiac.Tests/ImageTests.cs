@@ -95,21 +95,25 @@ namespace HavenSoft.HexManiac.Tests {
             );
 
          // make the actual edit
-         ViewPort.Edit("@07 8:1 ");
+         ViewPort.Edit("@07 8:1 "); // after this run we expect 2 more compressed runs but have only 4 more bytes
+         // edit should fail
 
-         // check that compressed segment 1 got longer
-         Assert.Equal(0x50, Model[6]);
+         Assert.Single(Errors);
+
+         // make the actual edit
+         ViewPort.Edit("@07 6:1 "); // after this run we expect 2 more compressed runs, so they should both be length 3
+
+         // check that compressed segment is 6:1
+         Assert.Equal(0x30, Model[6]);
          Assert.Equal(0x00, Model[7]);
 
-         // check that compressed segment 2 got shorter
-         Assert.Equal(0x10, Model[8]);
+         // check that compressed segment is 3:1
+         Assert.Equal(0x00, Model[8]);
          Assert.Equal(0x00, Model[9]);
 
-         // check that compressed segment 3 is gone
-         Assert.Equal(10, Model.GetNextRun(0).Length);
-         Assert.Equal(0b01100000, Model[4]);
-         Assert.Equal(0xFF, Model[10]);
-         Assert.Equal(0xFF, Model[11]);
+         // check that compressed segment is 3:1
+         Assert.Equal(0x00, Model[10]);
+         Assert.Equal(0x00, Model[11]);
 
          // check that the final uncompressed segment is gone
          Assert.Equal(0xFF, Model[12]);
@@ -174,7 +178,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          ViewPort.Edit("@01 8 "); // overall data should be longer now
 
-         Assert.Equal(10, Model.GetNextRun(0).Length);
+         Assert.Equal(8, LZRun.Decompress(Model, 0).Length);
       }
 
       /// <summary>
@@ -193,13 +197,13 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Edit("@04 00 "); // override bitfield to be 'none compressed'
          // there were 3 bytes after the group header, so an additional 3 bytes are needed to make the uncompressed data length 6
 
-         Assert.Equal(4 + 1 + 3 + 2, Model.GetNextRun(0).Length); // header, group header, 3 uncompressed bytes, auto-fill with a compressed segment
+         Assert.Equal(4 + 1 + 3 + 3, Model.GetNextRun(0).Length); // header, group header, 3 uncompressed bytes, auto-fill with 3 more uncompressed bytes to match the existing group header
+         Assert.Equal(0x00, Model[4]); // the 'none compressed' write was respected
+
+         ViewPort.Edit("@04 10 "); // address 8-9 are now read as a compressed pair (0000=3:1) which gets us exactly to our expected length.
+
+         Assert.Equal(4 + 1 + 3 + 2, Model.GetNextRun(0).Length); // header, group header, 3 uncompressed bytes, then 2 compressed bytes
          Assert.Equal(0x10, Model[4]);
-
-         ViewPort.Edit("@04 08 "); // note that the last compressed segment now straddles into unknown data.
-
-         Assert.Equal(4 + 1 + 4 + 1 + 1, Model.GetNextRun(0).Length); // header, group header, 4 uncompressed bytes, then 2 uncompressed bytes because there's not enough data left to be compressed
-         Assert.Equal(0, Model[4]);
       }
 
       [Fact]
