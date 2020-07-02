@@ -1880,7 +1880,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var dataIndex = scroll.ViewPointToDataIndex(point);
          if (currentText == ExtendArray.ToString() && Model.IsAtEndOfArray(dataIndex, out var arrayRun)) {
             var originalArray = arrayRun;
-            var errorInfo = Model.CompleteArrayExtension(history.CurrentChange, ref arrayRun);
+            var errorInfo = Model.CompleteArrayExtension(history.CurrentChange, 1, ref arrayRun);
             if (!errorInfo.HasError || errorInfo.IsWarning) {
                if (arrayRun != null && arrayRun.Start != originalArray.Start) {
                   ScrollFromTableMove(dataIndex, originalArray, arrayRun);

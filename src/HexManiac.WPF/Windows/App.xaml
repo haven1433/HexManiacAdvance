@@ -81,6 +81,34 @@
          </Setter>
       </Style>
 
+      <Style TargetType="RepeatButton">
+         <Setter Property="Padding" Value="3"/>
+         <Setter Property="BorderBrush" Value="{DynamicResource Backlight}"/>
+         <Setter Property="Background" Value="{DynamicResource Backlight}"/>
+         <Setter Property="BorderThickness" Value="1"/>
+         <Setter Property="Template">
+            <Setter.Value>
+               <ControlTemplate TargetType="RepeatButton">
+                  <Border Name="Border"
+                     Padding="{TemplateBinding Padding}"
+                     BorderThickness="{TemplateBinding BorderThickness}"
+                     BorderBrush="{TemplateBinding BorderBrush}"
+                     Background="{TemplateBinding Background}">
+                     <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                  </Border>
+                  <ControlTemplate.Triggers>
+                     <Trigger SourceName="Border" Property="IsMouseOver" Value="True">
+                        <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                     </Trigger>
+                     <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Background" Value="{DynamicResource Background}"/>
+                     </Trigger>
+                  </ControlTemplate.Triggers>
+               </ControlTemplate>
+            </Setter.Value>
+         </Setter>
+      </Style>
+
       <!-- Expander Style -->
       <Style TargetType="Expander">
          <Setter Property="BorderBrush" Value="{DynamicResource Secondary}"/>
@@ -479,17 +507,23 @@
          <Setter Property="Background" Value="{DynamicResource Backlight}"/>
          <Setter Property="Foreground" Value="{DynamicResource Primary}"/>
          <Setter Property="SelectionBrush" Value="{DynamicResource Accent}"/>
+         <Setter Property="BorderThickness" Value="1,1,1,1"/>
          <Setter Property="Template">
             <Setter.Value>
                <ControlTemplate TargetType="TextBox">
-                  <Border Name="OuterBorder" BorderThickness="1,1,0,0">
-                     <Border Name="Border" BorderBrush="{DynamicResource Secondary}" BorderThickness="0,0,1,1" Background="{TemplateBinding Background}">
-                        <ScrollViewer Foreground="{TemplateBinding Foreground}" x:Name="PART_ContentHost" />
-                     </Border>
+                  <Border Name="Border" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
+                     <Border.BorderBrush>
+                        <LinearGradientBrush EndPoint="0,1">
+                           <GradientStop Offset="0" Color="Transparent"/>
+                           <GradientStop Offset=".5" Color="Transparent"/>
+                           <GradientStop Offset=".5" Color="{DynamicResource SecondaryColor}"/>
+                           <GradientStop Offset="1" Color="{DynamicResource SecondaryColor}"/>
+                        </LinearGradientBrush>
+                     </Border.BorderBrush>
+                     <ScrollViewer Foreground="{TemplateBinding Foreground}" x:Name="PART_ContentHost" />
                   </Border>
                   <ControlTemplate.Triggers>
                      <Trigger Property="IsKeyboardFocused" Value="True">
-                        <Setter TargetName="OuterBorder" Property="BorderBrush" Value="{DynamicResource Accent}"/>
                         <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource Accent}"/>
                      </Trigger>
                      <Trigger Property="IsMouseOver" Value="True">

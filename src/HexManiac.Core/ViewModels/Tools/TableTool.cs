@@ -39,13 +39,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private readonly StubCommand previous, next, append;
+      private StubCommand incrementAdd, decrementAdd;
       public ICommand Previous => previous;
       public ICommand Next => next;
       public ICommand Append => append;
+      public ICommand IncrementAdd => StubCommand(ref incrementAdd, IncrementAddExecute, IncrementAddCanExecute);
+      public ICommand DecrementAdd => StubCommand(ref decrementAdd, DecrementAddExecute, DecrementAddCanExecute);
       private void CommandCanExecuteChanged() {
-         previous.CanExecuteChanged.Invoke(previous, EventArgs.Empty);
-         next.CanExecuteChanged.Invoke(next, EventArgs.Empty);
-         append.CanExecuteChanged.Invoke(append, EventArgs.Empty);
+         previous.RaiseCanExecuteChanged();
+         next.RaiseCanExecuteChanged();
+         append.RaiseCanExecuteChanged();
+         incrementAdd.RaiseCanExecuteChanged();
+         decrementAdd.RaiseCanExecuteChanged();
+      }
+      private void IncrementAddExecute() { AddCount += 1; CommandCanExecuteChanged(); }
+      private void DecrementAddExecute() { AddCount -= 1; CommandCanExecuteChanged(); }
+      private bool IncrementAddCanExecute() => append.CanExecute(null) && addCount < 500;
+      private bool DecrementAddCanExecute() => append.CanExecute(null) && addCount > 1;
+
+      private int addCount = 1;
+      public int AddCount {
+         get => addCount;
+         set {
+            value = Math.Min(Math.Max(1, value), 500);
+            Set(ref addCount, value, arg => CommandCanExecuteChanged());
+         }
       }
 
       public ObservableCollection<IArrayElementViewModel> Children { get; }
@@ -126,7 +144,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                using (ModelCacheScope.CreateScope(model)) {
                   var array = (ITableRun)model.GetNextRun(address);
                   var originalArray = array;
-                  var error = model.CompleteArrayExtension(viewPort.CurrentChange, ref array);
+                  var error = model.CompleteArrayExtension(viewPort.CurrentChange, addCount, ref array);
                   if (array != null) {
                      if (array.Start != originalArray.Start) {
                         ModelDataMoved?.Invoke(this, (originalArray.Start, array.Start));

@@ -1130,13 +1130,13 @@ namespace HavenSoft.HexManiac.Tests {
 
          // Adding via the child should extend the child by 1.
          child = model.GetTable("child");
-         var errorInfo = model.CompleteArrayExtension(token, ref child);
+         var errorInfo = model.CompleteArrayExtension(token, 1, ref child);
          Assert.Equal(ErrorInfo.NoError, errorInfo);
          Assert.Equal(10, child.ElementCount);
 
          // Adding via the parent should extend the child by 1.
          parent = model.GetTable("parent");
-         errorInfo = model.CompleteArrayExtension(token, ref parent);
+         errorInfo = model.CompleteArrayExtension(token, 1, ref parent);
          child = model.GetTable("child");
          Assert.Equal(ErrorInfo.NoError, errorInfo);
          Assert.Equal(11, child.ElementCount);

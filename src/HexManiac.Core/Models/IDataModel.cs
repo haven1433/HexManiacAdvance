@@ -326,7 +326,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          return format;
       }
 
-      public static ErrorInfo CompleteArrayExtension(this IDataModel model, ModelDelta changeToken, ref ITableRun table) {
+      public static ErrorInfo CompleteArrayExtension(this IDataModel model, ModelDelta changeToken, int count, ref ITableRun table) {
          var currentArrayName = model.GetAnchorFromAddress(-1, table.Start);
 
          var initialTableName = model.GetAnchorFromAddress(-1, table.Start);
@@ -349,7 +349,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             table = arrayRun;
          }
 
-         var newTable = ExtendTableAndChildren(model, changeToken, table);
+         var newTable = ExtendTableAndChildren(model, changeToken, table, count);
 
          if (newTable.Start != table.Start && string.IsNullOrEmpty(currentArrayName)) {
             return new ErrorInfo($"Stream was moved. Pointers have been updated.", isWarningLevel: true);
@@ -388,9 +388,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          return string.Empty;
       }
 
-      private static ITableRun ExtendTableAndChildren(IDataModel model, ModelDelta changeToken, ITableRun array) {
-         var newRun = (ITableRun)model.RelocateForExpansion(changeToken, array, array.Length + array.ElementLength);
-         newRun = newRun.Append(changeToken, 1);
+      private static ITableRun ExtendTableAndChildren(IDataModel model, ModelDelta changeToken, ITableRun array, int count) {
+         var newRun = model.RelocateForExpansion(changeToken, array, array.Length + array.ElementLength);
+         newRun = newRun.Append(changeToken, count);
          model.ObserveRunWritten(changeToken, newRun);
          return newRun;
       }
