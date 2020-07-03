@@ -136,10 +136,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void UpdateBlinkyCursor(object sender, EventArgs e) {
+         if (!(HexContent.ViewPort is ViewPort viewPort) || viewPort.UpdateInProgress) return;
          var screenPosition = HexContent.CursorLocation;
          if (screenPosition.X >= 0 && screenPosition.X < HexContent.ActualWidth && screenPosition.Y >= 0 && screenPosition.Y < HexContent.ActualHeight) {
-            var dataPosition = ((ViewPort)HexContent.ViewPort).SelectionStart;
-            var format = HexContent.ViewPort[dataPosition.X, dataPosition.Y].Format;
+            var dataPosition = viewPort.SelectionStart;
+            var format = viewPort[dataPosition.X, dataPosition.Y].Format;
             double offset;
             if (format is UnderEdit edit) {
                offset = FormatDrawer.CalculateTextOffset(edit.CurrentText, HexContent.FontSize, HexContent.CellWidth, edit);

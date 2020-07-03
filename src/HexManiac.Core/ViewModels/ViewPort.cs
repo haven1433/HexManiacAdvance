@@ -568,7 +568,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          tools = new ToolTray(Singletons, Model, selection, history, this);
          Tools.OnError += (sender, e) => OnError?.Invoke(this, e);
-         Tools.OnMessage += (sender, e) => OnMessage?.Invoke(this, e);
+         Tools.OnMessage += (sender, e) => RaiseMessage(e);
          tools.RequestMenuClose += (sender, e) => RequestMenuClose?.Invoke(this, e);
          Tools.StringTool.ModelDataChanged += ModelChangedByTool;
          Tools.StringTool.ModelDataMoved += ModelDataMovedByTool;
@@ -577,6 +577,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Tools.CodeTool.ModelDataChanged += ModelChangedByCodeTool;
          Tools.CodeTool.ModelDataMoved += ModelDataMovedByTool;
 
+         scroll.Scheduler = tools;
          ImplementCommands();
          CascadeScripts();
          RefreshBackingData();
@@ -796,7 +797,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void RaiseError(string text) => OnError?.Invoke(this, text);
 
-      public void RaiseMessage(string text) => OnMessage?.Invoke(this, text);
+      private string deferredMessage;
+      public void RaiseMessage(string text) {
+         // TODO queue multiple messages.
+         deferredMessage = text;
+         tools.Schedule(RaiseMessage);
+      }
+      private void RaiseMessage() => OnMessage?.Invoke(this, deferredMessage);
 
       public void ClearAnchor() {
          var startDataIndex = scroll.ViewPointToDataIndex(SelectionStart);
@@ -810,19 +817,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void Edit(string input, IFileSystem continuation = null) {
-         // allow chunking at newline boundaries only
-         const int ChunkSize = 200;
-         var maxSize = input.Length;
-         if (continuation != null && input.Length > ChunkSize) {
-            var nextNewline = input.Substring(ChunkSize).IndexOf('\n');
-            if (nextNewline != -1) maxSize = ChunkSize + nextNewline + 1;
-         }
-
          if (!UpdateInProgress) {
             UpdateInProgress = true;
             CurrentProgressScopes.Insert(0, tools.DeferUpdates);
             CurrentProgressScopes.Insert(0, ModelCacheScope.CreateScope(Model));
             initialWorkLoad = input.Length;
+         }
+
+         // allow chunking at newline boundaries only
+         int chunkSize = Math.Max(200, initialWorkLoad / 100);
+         var maxSize = input.Length;
+
+         if (continuation != null && input.Length > chunkSize) {
+            var nextNewline = input.Substring(chunkSize).IndexOf('\n');
+            if (nextNewline != -1) maxSize = chunkSize + nextNewline + 1;
          }
 
          exitEditEarly = false;
@@ -959,7 +967,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             scroll.DataLength = Model.Count;
          }
          pointerSegment.WriteNewFormat(Model, CurrentChange, pointer, insert, tableRun.ElementContent);
-         OnMessage?.Invoke(this, "New data added at " + insert.ToString("X6"));
+         RaiseMessage($"New data added at {insert:X6}");
          RefreshBackingData();
          return true;
       }
@@ -2003,7 +2011,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             int offset = locations.originalLocation - scroll.DataIndex;
             selection.GotoAddress(locations.newLocation - offset);
          }
-         OnMessage?.Invoke(this, $"Data was automatically moved to {locations.newLocation:X6}. Pointers were updated.");
+         RaiseMessage($"Data was automatically moved to {locations.newLocation:X6}. Pointers were updated.");
       }
 
       private void ModelChangedByCodeTool(object sender, ErrorInfo e) {
