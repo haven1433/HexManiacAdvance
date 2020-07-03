@@ -686,6 +686,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             foreach (var tab in this) {
                if (tab == viewPort2) continue;
                if (!(tab is IViewPort viewPort3)) continue;
+               var syncedProperties = new[] { nameof(IViewPort.Height), nameof(IViewPort.AutoAdjustDataWidth), nameof(StretchData), nameof(AllowMultipleElementsPerLine) };
+               if (!e.PropertyName.IsAny(syncedProperties)) continue; // filter to only the properties wo care about so we don't Remove/Add Content Listeners unless we need to.
                RemoveContentListeners(tab);
                if (e.PropertyName == nameof(IViewPort.Height)) {
                   var args = (ExtendedPropertyChangedEventArgs<int>)e;
