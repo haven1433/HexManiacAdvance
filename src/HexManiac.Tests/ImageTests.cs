@@ -485,15 +485,15 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void CanFindPaletteInTableUsingField() {
          // make two palettes in a table with keys 0012 and 0055
-         ViewPort.Edit("^pals[id:|h pointer<`ucp4`>]4 0012 @{ @} 0055 @{ 3:3:3 @} ");
+         ViewPort.Edit("^pals[id:|h pointer<`ucp4`>]4 0012 @{ @} 0055 @{ 0:0:0 3:3:3 @} "); // set the 2nd color of the 2nd palette
 
          // make a sprite that uses the 2nd palette
-         ViewPort.Edit("@20 ^sprite`ucs4x1x1|pals:id=0055` 11 ");
+         ViewPort.Edit("@20 ^sprite`ucs4x1x1|pals:id=0055` 11 "); // set this sprite to use the 2nd color for its first pixel
 
          var spriteRun = (ISpriteRun)Model.GetNextRun(0x20);
          var paletteRun = spriteRun.FindRelatedPalettes(Model).Single();
 
-         Assert.Equal("3:3:3", paletteRun.CreateDataFormat(Model, paletteRun.Start).ToString());
+         Assert.Equal("3:3:3", paletteRun.CreateDataFormat(Model, paletteRun.Start + 2).ToString());
          Assert.NotEqual(0, ViewPort.Tools.SpriteTool.PixelData[0]); // sprite is rendered with correct palette
       }
 
