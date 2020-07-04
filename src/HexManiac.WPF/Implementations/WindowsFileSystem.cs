@@ -27,7 +27,16 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       private readonly Dispatcher dispatcher;
 
       public string CopyText {
-         get => Clipboard.ContainsText() ? Clipboard.GetText() : string.Empty;
+         get {
+            try {
+               return Clipboard.ContainsText() ? Clipboard.GetText() : string.Empty;
+            } catch {
+               // we shouldn't be able to get an exception because of the ContainsText() check.
+               // but some users have still been able to get the failure.
+               // so just in case it fails, count that as "no text"
+               return string.Empty;
+            }
+         }
          set => Clipboard.SetText(value);
       }
 
