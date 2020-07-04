@@ -13,7 +13,7 @@ using System.Linq;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
-   public class ToolTests {
+   public class ToolTests : BaseViewModelTestClass {
       [Fact]
       public void ViewPortHasTools() {
          var viewPort = new ViewPort(new LoadedFile("file.txt", new byte[100]));
@@ -549,6 +549,18 @@ namespace HavenSoft.HexManiac.Tests {
          test.ViewPort.SelectionStart = new Point(0, 0);
 
          Assert.Equal(test.ViewPort.Tools.CodeTool, test.ViewPort.Tools.SelectedTool);
+      }
+
+      [Fact]
+      public void NextElementInTableToolWorksEvenIfOtherDataIsCurrentlySelected() {
+         ViewPort.Edit("^table[data<>]3 <020> <030> <040> @04 ");
+         ViewPort.ExpandSelection(4, 0); // follows the pointer to 030
+         var tableTool = ViewPort.Tools.TableTool;
+
+         ViewPort.Tools.SelectedIndex = ViewPort.Tools.IndexOf(tableTool);
+         tableTool.Next.Execute();
+
+         Assert.EndsWith("/2", tableTool.CurrentElementName);
       }
 
       private static readonly Singletons singletons;

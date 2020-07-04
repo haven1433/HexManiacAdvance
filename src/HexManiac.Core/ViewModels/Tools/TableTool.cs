@@ -128,9 +128,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                return array != null && array.Start + array.Length > address + array.ElementLength;
             },
             Execute = parameter => {
+               var address = this.address;
                var array = (ITableRun)model.GetNextRun(address);
                if (selection.Scroll.DataIndex < array.Start || selection.Scroll.DataIndex > array.Start + array.Length) selection.GotoAddress(array.Start);
-               selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(Address + array.ElementLength);
+               selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(address + array.ElementLength);
                selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selection.Scroll.ViewPointToDataIndex(selection.SelectionStart) + array.ElementLength - 1);
             }
          };
