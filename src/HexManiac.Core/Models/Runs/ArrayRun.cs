@@ -211,7 +211,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                // if negative: pull values off the front
                if (ParentOffset < 0) options = options.Skip(-ParentOffset).ToList();
                // if positive: add values onto the back
-               else options = options.Concat(Enumerable.Range(ElementCount, ParentOffset).Select(i => i.ToString())).ToList();
+               else options = options.Concat(Enumerable.Range(ElementCount - ParentOffset, ParentOffset).Select(i => i.ToString())).ToList();
             }
 
             return options;
