@@ -136,7 +136,7 @@
                      <Button Command="{Binding TableTool.Append}">
                         <Button.Content>
                            <StackPanel Orientation="Horizontal">
-                              <TextBlock Text="Add"/>
+                              <TextBlock Text="Add" Margin="0,0,2,0"/>
                               <TextBox Text="{Binding TableTool.AddCount, UpdateSourceTrigger=PropertyChanged}" BorderThickness="0"/>
                               <TextBlock Text="New" Margin="2,0,0,0"/>
                            </StackPanel>
