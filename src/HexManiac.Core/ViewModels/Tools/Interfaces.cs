@@ -6,6 +6,7 @@ using System.Windows.Input;
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public interface IToolViewModel : INotifyPropertyChanged {
       string Name { get; }
+      void DataForCurrentRunChanged();
    }
 
    public class StubTool : IToolViewModel {
@@ -13,6 +14,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public StubTool(string name) { Name = name; }
 
       event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged { add { } remove { } }
+      public void DataForCurrentRunChanged() { }
    }
 
    public interface IToolTrayViewModel : IReadOnlyList<IToolViewModel>, INotifyPropertyChanged {

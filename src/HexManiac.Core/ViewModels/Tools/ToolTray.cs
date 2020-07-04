@@ -77,7 +77,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          StubCommand commandFor(int i) => new StubCommand {
             CanExecute = ICommandExtensions.CanAlwaysExecute,
-            Execute = arg => SelectedIndex = selectedIndex == i ? -1 : i,
+            Execute = arg => {
+               using (ModelCacheScope.CreateScope(model)) {
+                  SelectedIndex = selectedIndex == i ? -1 : i;
+                  tools[i].DataForCurrentRunChanged();
+               }
+            },
          };
 
          tableToolCommand = commandFor(0);

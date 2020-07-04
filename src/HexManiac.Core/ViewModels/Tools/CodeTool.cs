@@ -82,6 +82,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          };
       }
 
+      public void DataForCurrentRunChanged() { }
+
       public void UpdateContent() {
          if (ignoreContentUpdates) return;
          var start = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionStart));
