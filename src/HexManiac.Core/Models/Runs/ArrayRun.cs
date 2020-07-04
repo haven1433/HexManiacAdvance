@@ -506,22 +506,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                foreach (var segment in ElementContent) {
                   var readPosition = endElementsPosition - ElementLength + j;
                   var writePosition = endElementsPosition + i * ElementLength + j;
-                  if (segment.Type == ElementContentType.Pointer) {
-                     var destination = owner.ReadPointer(readPosition);
-                     owner.UpdateArrayPointer(token, segment, writePosition, destination);
-                  } else {
-                     for (int k = 0; k < segment.Length; k++) {
-                        var validData = owner[readPosition + k];
-                        token.ChangeData(owner, writePosition + k, validData);
-                     }
-                  }
+                  WriteSegment(token, segment, owner, readPosition, writePosition);
                   j += segment.Length;
                }
             }
 
             // push end elements back on the back
-            for (int i = 0; i < endElements.Length; i++) {
-               token.ChangeData(owner, endElementsPosition + (elementCount * ElementLength) + i, endElements[i]);
+            for (int i = 0; i < endElementCount; i++) {
+               int j = 0;
+               foreach (var segment in ElementContent) {
+                  var readPosition = ElementLength * i + j;
+                  var writePosition = endElementsPosition + (elementCount + i) * ElementLength + j;
+                  WriteSegment(token, segment, endElements, readPosition, writePosition);
+                  j += segment.Length;
+               }
             }
          }
 
@@ -547,6 +545,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
 
          return new ArrayRun(owner, newFormat, LengthFromAnchor, ParentOffset, Start, ElementCount + elementCount, ElementContent, PointerSources, newInnerElementsSources);
+      }
+
+      private void WriteSegment(ModelDelta token, ArrayRunElementSegment segment, IReadOnlyList<byte> readData, int readPosition, int writePosition) {
+         if (segment.Type == ElementContentType.Pointer) {
+            var destination = readData.ReadMultiByteValue(readPosition, 4) + Pointer.NULL;
+            owner.UpdateArrayPointer(token, segment, writePosition, destination);
+         } else {
+            for (int k = 0; k < segment.Length; k++) {
+               var validData = readData[readPosition + k];
+               token.ChangeData(owner, writePosition + k, validData);
+            }
+         }
       }
 
       public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) => ITableRunExtensions.AppendTo(this, model, builder, start, length, deep);

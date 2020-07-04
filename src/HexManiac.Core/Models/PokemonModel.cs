@@ -674,7 +674,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                int originalLength = newTable.Length;
                newTable = newTable.Append(changeToken, targetCount - table.ElementCount);
                var tableAnchor = GetAnchorFromAddress(-1, newTable.Start);
-               // ObserveRunWritten(changeToken, newTable);
+
                if (newTable.Length < originalLength) ClearFormat(changeToken, newTable.Start, originalLength);
                if (string.IsNullOrEmpty(tableAnchor)) {
                   ObserveRunWritten(changeToken, newTable);
