@@ -2,12 +2,10 @@
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
-using System.CodeDom;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Security.Principal;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Code {
@@ -448,7 +446,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             start += arg.Length;
          }
          if (PointsToText || PointsToMovement || PointsToMart) {
-            if (data.GetNextRun(lastAddress) is IStreamRun stream) {
+            if (data.GetNextRun(lastAddress) is IStreamRun stream && stream.Start == lastAddress) {
                builder.AppendLine();
                builder.AppendLine("{");
                builder.AppendLine(stream.SerializeRun());
