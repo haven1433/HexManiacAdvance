@@ -348,6 +348,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private readonly ChangeHistory<ModelDelta> history;
 
+      public ChangeHistory<ModelDelta> ChangeHistory => history;
+
       public ModelDelta CurrentChange => history.CurrentChange;
 
       public ICommand Undo => undoWrapper;
@@ -579,7 +581,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          scroll.Scheduler = tools;
          ImplementCommands();
-         CascadeScripts();
+         if (changeHistory == null) CascadeScripts(); // if we're sharing history with another viewmodel, our model has already been updated like this.
          RefreshBackingData();
       }
 

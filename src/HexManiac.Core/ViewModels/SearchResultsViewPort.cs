@@ -94,6 +94,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public bool StretchData { get; set; }
       public bool AllowMultipleElementsPerLine { get; set; }
 
+      public ChangeHistory<ModelDelta> ChangeHistory { get; }
       public IToolTrayViewModel Tools { get; } = new SearchResultsTools();
 
       public string SelectedAddress => string.Empty;
