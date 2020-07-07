@@ -431,7 +431,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          // update scale
          if (PixelWidth > MaxSpriteWidth) {
             SpriteScale = .5;
-         } else if (PixelWidth < MaxSpriteWidth / 2) {
+         } else if (PixelWidth * 2 < MaxSpriteWidth) {
             SpriteScale = 2;
          } else {
             SpriteScale = 1;
@@ -454,6 +454,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (run == null) {
             palette = TileViewModel.CreateDefaultPalette(0x10);
          } else {
+            palPages = run.Pages;
+            palPage = Math.Min(palPage, palPages - 1);
             palette = run.GetPalette(model, palPage).ToArray();
             paletteFormat = run.PaletteFormat;
          }
@@ -470,6 +472,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Colors.Page = palPage;
          Colors.HasMultiplePages = palPages > 1;
          PixelData = Render(pixels, GetRenderPalette(model?.GetNextRun(spriteAddress) as ISpriteRun), paletteFormat, spritePage);
+         NotifyPropertyChanged(nameof(HasMultiplePalettePages));
          NotifyPropertyChanged(nameof(PixelData));
       }
 
