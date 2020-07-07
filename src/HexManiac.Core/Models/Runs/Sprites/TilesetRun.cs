@@ -20,6 +20,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public int Pages => 1;
 
+      public bool SupportsImport => false;
+
       public override int Length => TilesetFormat.Tiles * TilesetFormat.BitsPerPixel * 8;
 
       public override string FormatString => $"`uct4x{TilesetFormat.Tiles}" + (string.IsNullOrEmpty(TilesetFormat.PaletteHint) ? string.Empty : $"|{TilesetFormat.PaletteHint}") + "`";

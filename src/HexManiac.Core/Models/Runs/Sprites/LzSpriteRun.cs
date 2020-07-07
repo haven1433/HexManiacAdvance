@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-
-namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
+﻿namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
    public class LzSpriteRun : PagedLZRun, ISpriteRun {
       public SpriteFormat SpriteFormat { get; }
 
@@ -14,6 +10,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             return length / SpriteFormat.ExpectedByteLength;
          }
       }
+
+      public bool SupportsImport => true;
 
       protected override int UncompressedPageLength => SpriteFormat.ExpectedByteLength;
 

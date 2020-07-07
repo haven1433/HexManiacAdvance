@@ -27,6 +27,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public int Pages => 1;
 
+      public bool SupportsImport => false;
+
       public OverworldSpriteListRun(IDataModel model, IReadOnlyList<ArrayRunElementSegment> parent, int start, SortedSpan<int> sources = null) : base(start, sources) {
          this.model = model;
          this.parent = parent;
@@ -187,8 +189,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          throw new NotImplementedException();
       }
 
-      public ISpriteRun Duplicate(SpriteFormat newFormat) {
-         throw new NotImplementedException();
-      }
+      public ISpriteRun Duplicate(SpriteFormat newFormat) => new OverworldSpriteListRun(model, parent, Start, PointerSources);
    }
 }

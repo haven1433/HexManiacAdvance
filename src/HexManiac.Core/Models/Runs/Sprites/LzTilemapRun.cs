@@ -20,6 +20,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
       public int Pages => 1;
       public TilemapFormat Format { get; }
+      public bool SupportsImport => true;
 
       public override string FormatString =>
          $"`lzm{Format.BitsPerPixel}x{Format.TileWidth}x{Format.TileHeight}|{Format.MatchingTileset}" +

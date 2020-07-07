@@ -55,6 +55,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
    }
 
    public interface ISpriteRun : IPagedRun {
+      bool SupportsImport { get; }
       SpriteFormat SpriteFormat { get; }
       int[,] GetPixels(IDataModel model, int page);
       ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels);

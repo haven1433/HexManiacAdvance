@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
    public class LzTilesetRun : LZRun, ISpriteRun {
@@ -8,6 +7,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public int Pages => 1;
       public int Width { get; }
       public int Height { get; }
+      public bool SupportsImport => false;
 
       public override string FormatString => $"`lzt{Format.BitsPerPixel}" + (!string.IsNullOrEmpty(Format.PaletteHint) ? "|" + Format.PaletteHint : string.Empty) + "`";
 

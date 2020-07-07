@@ -367,7 +367,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          spriteAddress = Pointer.NULL;
          paletteAddress = Pointer.NULL;
 
-         importPair.CanExecute = arg => paletteAddress >= 0 && spriteAddress >= 0;
+         importPair.CanExecute = arg => {
+            if (paletteAddress < 0 || spriteAddress < 0) return false;
+            if (!(model.GetNextRun(spriteAddress) is ISpriteRun spriteRun)) return false;
+            return spriteRun.SupportsImport;
+         };
          exportPair.CanExecute = arg => paletteAddress >= 0 && spriteAddress >= 0;
          prevSpritePage.CanExecute = arg => spritePage > 0;
          nextSpritePage.CanExecute = arg => spritePage < spritePages - 1;
