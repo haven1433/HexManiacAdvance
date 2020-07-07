@@ -580,6 +580,15 @@ namespace HavenSoft.HexManiac.Tests {
          }
       }
 
+      [Fact]
+      public void ManuallyTypingPaletteChannelsWorks() {
+         ViewPort.Edit("^pal`ucp4` 1:2:3 ");
+
+         var format = ViewPort[1, 0].Format;
+         var content = format.ToString();
+         Assert.Equal("1:2:3", content);
+      }
+
       private void CreateLzRun(int start, params byte[] data) {
          for (int i = 0; i < data.Length; i++) Model[start + i] = data[i];
          var run = new LZRun(Model, start);

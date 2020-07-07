@@ -301,7 +301,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             byte.TryParse(channels[0], out var red) &&
             byte.TryParse(channels[1], out var green) &&
             byte.TryParse(channels[2], out var blue)) {
-            var newColor = (short)((red << 10) | (green << 5) | (blue));
+            var newColor = (short)((blue << 10) | (green << 5) | red);
             Model.WriteMultiByteValue(memoryLocation, 2, CurrentChange, newColor);
             NewDataIndex = memoryLocation + 2;
             Result = true;
