@@ -8,7 +8,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public static IReadOnlyList<string> PCS;
       public static IReadOnlyList<byte> Newlines;
 
-      public static readonly byte DoubleEscape = 0xFC;
+      public static readonly byte FunctionEscape = 0xFC;
       public static readonly byte Escape = 0xFD;
 
       static PCSString() {
@@ -132,10 +132,25 @@ namespace HavenSoft.HexManiac.Core.Models {
                return length + 1;  // end of string. Add one extra space for the end-of-stream byte
             }
             if (data[start + length] == Escape) length++;               // escape character, skip the next byte
-            else if (data[start + length] == DoubleEscape) length += 2; // double-escape character, skip the next 2 bytes
+            else if (data[start + length] == FunctionEscape) {
+               if (data[start + length + 1] == 0x09) length += 1;      // 09 is just a pause, no variables
+               else if (data[start + length + 1] == 0x10) length += 3; // 10 is a music switch, with a 2-byte variable
+               else if (data[start + length + 1] > 0x14) length += 1;  // 15-18 are all single-byte functions with no variables
+               else length += 2;                                       // most functions have a 1 byte code and a 1 byte variable
+            }
             length++;
          }
          return -1;
+      }
+
+      public static bool IsEscaped(IReadOnlyList<byte> data, int index) {
+         if (index == 0) return false;
+         if (data[index - 1] == Escape) return true;
+         if (index == 1) return false;
+         if (index > 2 && data[index - 3] == FunctionEscape && data[index - 2] == 0x10) return true;
+         if (data[index - 2] != FunctionEscape) return false;
+         if (data[index - 1] == 0x09) return false; // 09 is a pause, no variables
+         return data[index - 1] < 0x15; // all the other functions below 15 have a variable
       }
 
       private static void Fill(string[] array, string characters, int startIndex) {

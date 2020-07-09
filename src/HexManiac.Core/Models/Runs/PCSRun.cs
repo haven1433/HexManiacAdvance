@@ -35,9 +35,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public static IDataFormat CreatePCSFormat(IDataModel model, int start, int index, string fullString) {
-         bool isEscaped = index > start && model[index - 1] == PCSString.Escape;
-         isEscaped |= index > start + 1 && model[index - 2] == PCSString.DoubleEscape;
-         isEscaped |= index > start && model[index - 1] == PCSString.DoubleEscape;
+         bool isEscaped = PCSString.IsEscaped(model, index);
          if (isEscaped) {
             return new EscapedPCS(start, index - start, fullString, model[index]);
          } else {
