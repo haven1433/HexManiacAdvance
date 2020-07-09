@@ -55,6 +55,7 @@ hmmoves,             040A24, 040A24, 040A44, 040A44, 0441DC, 0441DC, 0441F0, 044
 itemimages,                ,       ,       ,       , 09899C, 098970, 0989B0, 098984, 1B0034, [image<`lzs4x3x3`> palette<`lzp4`>]items+1
 trainerdata,         00D890, 00D890, 00D890, 00D890, 00FC00, 00FC00, 00FC14, 00FC14, 03587C, [structType.trainerStructType class.trainerclassnames introMusic. sprite.trainersprites name""12 item1:items item2:items item3:items item4:items doubleBattle:: ai|b[]traineraibits pokemonCount:: pokemon<`tpt`>]
 trainermoney,        024120, 024120, 024120, 024120, 0259CC, 0259CC, 0259E0, 0259E0, 04E6A8, [class.trainerclassnames moneyrate. unused:]!FF050000
+trainer.vsseeker,          ,       ,       ,       , 10C7EC, 10C7C4, 10C864, 10C83C,       , [match1:trainerdata match2:trainerdata match3:trainerdata match4:trainerdata match5:trainerdata match6:trainerdata mapbank: map:]221
 decorations,         0B3AC8, 0B3AC8, 0B3AE8, 0B3AE8, 00014C, 00014C, 00014C, 00014C, 00014C, [id. name""16 permission.decorpermissions shape.decorshape category.decorcategory price:: description<""> graphics<>]
 wild,                084D9C, 084D9C, 084DBC, 084DBC, 082990, 082964, 0829A4, 082978, 0B4D48, [bank. map. unused: grass<[rate:: list<[low. high. species:pokenames]12>]1> surf<[rate:: list<[low. high. species:pokenames]5>]1> tree<[rate:: list<[low. high. species:pokenames]5>]1> fish<[rate:: list<[low. high. species:pokenames]10>]1>]
 specials,            0658B4, 0658B8, 0658D4, 0658D8, 069F18, 069F18, 069F2C, 069F2C, 099314, [code<>]
@@ -131,6 +132,8 @@ titlescreenPokemonTileSet,    ,,,, ,,,, 0AA95C, `lzt4|titlescreenLogoPalette`
 titlescreenPokemonTileMap,    ,,,, ,,,, 0AA964, `lzm4x32x32|titlescreenPokemonTileSet`
 // TODO find publisher info
 
+graphics.textboxes,           ,,,, 06979C, 06979C, 0697B0, 0697B0, , [sprite<`ucs4x3x3`> pal<`ucp4`>]10
+
 bag.male.sprite,   3C1CC8, 3C1D20, 3C1CE4, 3C1D40, 3D41E4, 3D4020, 3D4254, 3D4090, 57FB34, `lzs4x8x8|bag.palette`
 bag.female.sprite, 3C1CD0, 3C1D28, 3C1CEC, 3C1D50, 3D41EC, 3D4028, 3D425C, 3D4098, 57FB3C, `lzs4x8x8|bag.palette`
 bag.palette,       3C1CD8, 3C1D30, 3C1CF4, 3C1D60, 3D41F4, 3D4030, 3D4264, 3D40A0, 57FB44, `lzp4`
@@ -180,3 +183,6 @@ overworld.sprites,       ,,,, ,,,,                    08E6D8, [data<[starterbyte
 # overworld.sprites.more,  ,,,, ,,,,                    08D4EC, [data<[starterbytes:|h paletteid:|h secondid:|h length: width: height: slot.|h footprint.owfootprints unused: distribution<> sizedraw<> animation<> sprites<`osl`> ramstore<>]1>]37  # this data structure is a little different, but seems similar
 overworld.palettes,    05BE20, 05BE24, 05BE40, 05BE44, 05F4D8, 05F4D8, 05F4EC, 05F4EC, 08E8BC, [pal<`ucp4`> id:|h unused:]!0000000000000000
 
+// cry1,           ,,,, 072114,,,, , ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]388
+// cry2,           ,,,, 072104,,,, , ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]388
+// cry.conversion, ,,,, 043328,,,, , [index:]pokenames-277
