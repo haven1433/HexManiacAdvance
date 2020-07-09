@@ -45,7 +45,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public int CompletionIndex {
          get => completionIndex;
          set {
-            if (TryUpdate(ref completionIndex, value.LimitToRange(-1, autoCompleteOptions.Count - 1))) {
+            if (value < -1) value = autoCompleteOptions.Count - 1;
+            if (value >= autoCompleteOptions.Count) value = -1;
+            if (TryUpdate(ref completionIndex, value)) {
                AutoCompleteOptions = AutoCompleteSelectionItem.Generate(AutoCompleteOptions.Select(option => option.CompletionText), completionIndex);
             }
          }
