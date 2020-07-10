@@ -169,7 +169,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var elementLength = data.MovesIncluded ? 16 : 8;
          var totalLength = elementLength * data.Pokemon.Count;
          var workingRun = this;
-         if (totalLength > workingRun.Length) workingRun = (TrainerPokemonTeamRun)model.RelocateForExpansion(token, workingRun, totalLength);
+         if (totalLength > workingRun.Length) workingRun = model.RelocateForExpansion(token, workingRun, totalLength);
 
          // step 3: write the run data
          WriteData(token, workingRun.Start, data);
@@ -222,7 +222,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var buffer = new StringBuilder();
          for (int i = 0; i < ElementCount; i++) {
             var start = Start + ElementLength * i;
-            var ivSpread = model.ReadMultiByteValue(start + 0, 2) * 31 / 255;
+            var ivSpread = (int)Math.Round(model.ReadMultiByteValue(start + 0, 2) * 31.0 / 255);
             var level = model.ReadMultiByteValue(start + 2, 2);
             var pokeID = model.ReadMultiByteValue(start + 4, 2);
             var pokemonNames = cache.GetOptions(HardcodeTablesModel.PokemonNameTable);
@@ -355,7 +355,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (ivTokenized.Length == 2) {
                ivTokenized[1] = ivTokenized[1].Replace(")", "").Trim();
                if (int.TryParse(ivTokenized[1], out int fixedIV)) {
-                  ivs.Add(fixedIV * 255 / 31);
+                  ivs.Add((int)Math.Round(fixedIV * 255.0 / 31));
                } else {
                   ivs.Add(0);
                }
