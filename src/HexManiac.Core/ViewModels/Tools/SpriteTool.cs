@@ -395,7 +395,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public static short[] Render(int[,] pixels, IReadOnlyList<short> palette, PaletteFormat format, int spritePage) {
          if (pixels == null) return new short[0];
-         if (palette == null) palette = TileViewModel.CreateDefaultPalette(16);
+         if (palette == null || palette.Count == 0) palette = TileViewModel.CreateDefaultPalette(16);
          var data = new short[pixels.Length];
          var width = pixels.GetLength(0);
          var palettePageOffset = format.InitialBlankPages << 4;

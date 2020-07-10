@@ -195,7 +195,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   }
                }
             }
-            return;
          } else if (run is IStreamRun stream) {
             using (ModelCacheScope.CreateScope(model)) {
                var newContent = stream.SerializeRun();
@@ -204,10 +203,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   TryUpdate(ref content, newContent, nameof(Content));
                }
             }
-            return;
+         } else {
+            // this may have been text at some point, but it isn't now.
+            Enabled = false;
          }
-
-         throw new NotImplementedException();
       }
 
       private bool AddressIsTextInTableRun(IFormattedRun run, int address) {
