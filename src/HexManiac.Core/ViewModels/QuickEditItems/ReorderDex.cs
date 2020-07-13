@@ -22,8 +22,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var dexOrder = GetTable(model, dexTableName);
          var dexInfo = GetTable(model, HardcodeTablesModel.DexInfoTableName);
          var pokenames = GetTable(model, HardcodeTablesModel.PokemonNameTable);
-         var frontSprites = GetTable(model, SortablePokemon.FrontSpritesTable);
-         var pokepalettes = GetTable(model, SortablePokemon.PokePalettesTable);
+         var frontSprites = GetTable(model, HardcodeTablesModel.FrontSpritesTable);
+         var pokepalettes = GetTable(model, HardcodeTablesModel.PokePalettesTable);
          return dexOrder != null && pokenames != null && dexInfo != null && frontSprites != null && pokepalettes != null;
       }
 

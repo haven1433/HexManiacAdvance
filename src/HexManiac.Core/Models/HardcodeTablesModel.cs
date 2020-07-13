@@ -1,6 +1,4 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
-using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 
@@ -21,13 +19,18 @@ namespace HavenSoft.HexManiac.Core.Models {
          ItemsTableName = "items",
          TypesTableName = "data.pokemon.type.names",
          MoveNamesTable = "data.moves.names",
+         PokeIconsTable = "graphics.pokemon.icons.sprites",
          DexInfoTableName = "dexinfo",
          PokemonNameTable = "data.pokemon.names",
          TrainerTableName = "trainerdata",
          NaturesTableName = "data.pokemon.natures.names",
-         AbilityNamesTable = "data.abilities.names",
-         PokemonStatsTable = "pokestats",
+         BackSpritesTable = "graphics.pokemon.sprites.front",
          EggMovesTableName = "eggmoves",
+         PokemonStatsTable = "pokestats",
+         AbilityNamesTable = "data.abilities.names",
+         FrontSpritesTable = "graphics.pokemon.sprites.front",
+         PokePalettesTable = "graphics.pokemon.palettes.normal",
+         ShinyPalettesTable = "graphics.pokemon.palettes.normal",
          EvolutionTableName = "evolutions",
          TypeChartTableName = "typeChart",
          LevelMovesTableName = "lvlmoves",
@@ -36,9 +39,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          RegionalDexTableName = "regionaldex",
          NationalDexTableName = "nationaldex",
          MoveDescriptionsName = "data.moves.descriptions",
+         PokeIconPalettesTable = "graphics.pokemon.icons.palettes",
          ConversionDexTableName = "hoennToNational",
          TrainerClassNamesTable = "data.trainers.classes.names",
-         AbilityDescriptionsTable = "data.abilities.descriptions";
+         AbilityDescriptionsTable = "data.abilities.descriptions",
+         PokeIconPaletteIndexTable = "graphics.pokemon.icons.index";
 
       public const string
          MoveInfoListName = "moveinfo",

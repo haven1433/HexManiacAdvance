@@ -256,9 +256,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    }
 
    public class SortablePokemon : ViewModelCore, IPixelViewModel {
-      public const string FrontSpritesTable = "frontsprites";
-      public const string PokePalettesTable = "pokepalettes";
-
       private readonly IList<string> filterTerms;
 
       public int CanonicalIndex { get; }
@@ -274,8 +271,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public bool Selected { get => selected; set => TryUpdate(ref selected, value); }
 
       public SortablePokemon(IDataModel model, int index) {
-         var sprites = new ModelTable(model, model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, FrontSpritesTable));
-         var palettes = new ModelTable(model, model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, PokePalettesTable));
+         var sprites = new ModelTable(model, model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, HardcodeTablesModel.FrontSpritesTable));
+         var palettes = new ModelTable(model, model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, HardcodeTablesModel.PokePalettesTable));
          var sprite = sprites[index].GetSprite(sprites[index].GetFieldName(0));
          var palette = palettes[index].GetPalette(palettes[index].GetFieldName(0));
 

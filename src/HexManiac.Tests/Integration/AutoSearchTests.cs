@@ -363,13 +363,13 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void PokeIconsFound(string game) {
          var model = fixture.LoadModel(game);
-         Assert.NotNull(model.GetTable("frontsprites"));
-         Assert.NotNull(model.GetTable("backsprites"));
-         Assert.NotNull(model.GetTable("pokepalettes"));
-         Assert.NotNull(model.GetTable("shinypalettes"));
-         Assert.NotNull(model.GetTable("pokeicons"));
-         Assert.NotNull(model.GetTable("pokeiconpalindex"));
-         Assert.NotNull(model.GetTable("pokeiconpalettes"));
+         Assert.NotNull(model.GetTable(FrontSpritesTable));
+         Assert.NotNull(model.GetTable(BackSpritesTable));
+         Assert.NotNull(model.GetTable(PokePalettesTable));
+         Assert.NotNull(model.GetTable(ShinyPalettesTable));
+         Assert.NotNull(model.GetTable(PokeIconsTable));
+         Assert.NotNull(model.GetTable(PokeIconPaletteIndexTable));
+         Assert.NotNull(model.GetTable(PokeIconPalettesTable));
       }
 
       [SkippableFact]
