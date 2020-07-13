@@ -173,15 +173,41 @@ trainer.card.background.tilemap2,            ,,,, 089478,,,, , `lzm4x30x20|train
 
 
 mapbanks,             ,,,, 05524C,,,, , [maps<[map<[size<[width:: height:: s1<> s2<> s3<> s4<> borderwidth. borderheight. unused:]1> events<[e1 e2 e3 e4 ee1<> ee2<> ee3<> ee4<>]1> mapscripts<[type. pointer<>]!00> d<> song: map: label. flash. weather. type. unused: useLabel:]1>]1>]43
+// minimap.palette,      ,,,, 0BFED8,,,, , `ucp4:012`
+// minimap.sprite,       ,,,, 0C0FC0,,,, , `lzs4x16x8|minimap.palette`
 
 // The size of the sprites is determined by the width/height fields.
 // The palette of the sprites is determined by the palettekey field.
 // the number of sprites is determined by... ???
+overworld.palettes,    05BE20, 05BE24, 05BE40, 05BE44, 05F4D8, 05F4D8, 05F4EC, 05F4EC, 08E8BC, [pal<`ucp4`> id:|h unused:]!0000000000000000
 overworld.sprites,     ,,,, 05F2F4, 05F2F4, 05F308, 05F308, , [data<[starterbytes:|h paletteid:|h secondid:|h length: width: height: slot.|h footprint.owfootprints unused: distribution<> sizedraw<> animation<> sprites<`osl`> ramstore<>]1>]152
 overworld.sprites,     05BC3C, 05BC40, 05BC5C, 05BC60, ,,,, , [data<[starterbytes:|h paletteid:|h secondid:|h length: width: height: slot.|h footprint.owfootprints unused: distribution<> sizedraw<> animation<> sprites<`osl`> ramstore<>]1>]218
-overworld.sprites,       ,,,, ,,,,                    08E6D8, [data<[starterbytes:|h paletteid:|h secondid:|h length: width: height: slot.|h footprint.owfootprints unused: distribution<> sizedraw<> animation<> sprites<`osl`> ramstore<>]1>]246
-# overworld.sprites.more,  ,,,, ,,,,                    08D4EC, [data<[starterbytes:|h paletteid:|h secondid:|h length: width: height: slot.|h footprint.owfootprints unused: distribution<> sizedraw<> animation<> sprites<`osl`> ramstore<>]1>]37  # this data structure is a little different, but seems similar
-overworld.palettes,    05BE20, 05BE24, 05BE40, 05BE44, 05F4D8, 05F4D8, 05F4EC, 05F4EC, 08E8BC, [pal<`ucp4`> id:|h unused:]!0000000000000000
+overworld.sprites,     ,,,, ,,,,                      08E6D8, [data<[starterbytes:|h paletteid:|h secondid:|h length: width: height: slot.|h footprint.owfootprints unused: distribution<> sizedraw<> animation<> sprites<`osl`> ramstore<>]1>]246
+overworld.sprites2,    ,,,, 05DF28, 05DF28, 05DF3C, 05DF3C, , [data<[starterbytes:|h unknown:|h a<> b<> sprites<`osl`> d<> e<>]1>]36
+
+graphics.titlescreen.introscene.gengar.palette,            ,,,, 40BF14, 40BD50, 40BF84, 40BDC0, , `ucp4`
+graphics.titlescreen.introscene.nidorino.palette,          ,,,, 40BF1C, 40BD58, 40BF8C, 40BDC8, , `ucp4`
+graphics.titlescreen.introscene.grass.palette,             ,,,, 40BF24, 40BD60, 40BF94, 40BDD0, , `ucp4`
+graphics.titlescreen.introscene.gengar.sprite,             ,,,, 40BEDC, 40BD18, 40BF4C, 40BD88, , `lzs4x8x8|graphics.titlescreen.introscene.gengar.palette`
+graphics.titlescreen.introscene.nidorino.sprite,           ,,,, 40BEE4, 40BD20, 40BF54, 40BD90, , `lzs4x8x8|graphics.titlescreen.introscene.nidorino.palette`
+graphics.titlescreen.introscene.nidorino.palette1,         ,,,, 0ED304, 0ED2DC, 0ED31C, 0ED2F4, , `ucp4`
+graphics.titlescreen.introscene.nidorino.tileset,          ,,,, 0ED314, 0ED2EC, 0ED32C, 0ED304, , `lzt4|graphics.titlescreen.introscene.nidorino.palette1`
+graphics.titlescreen.introscene.nidorino.tilemap,          ,,,, 0ED318, 0ED2F0, 0ED330, 0ED308, , `lzm4x32x32|graphics.titlescreen.introscene.nidorino.tileset`
+graphics.titlescreen.introscene.gengar.tileset,            ,,,, 0ED31C, 0ED2F4, 0ED334, 0ED30C, , `lzt4|graphics.titlescreen.introscene.gengar.palette`
+graphics.titlescreen.introscene.gengar.tilemap,            ,,,, 0ED320, 0ED2F8, 0ED338, 0ED310, , `lzm4x32x32|graphics.titlescreen.introscene.gengar.tileset`
+graphics.titlescreen.introscene.nidorino.sprite2,          ,,,, 40BEEC, 40BD28, 40BF5C, 40BD98, , `lzs4x8x8|graphics.titlescreen.introscene.nidorino.palette`
+graphics.titlescreen.introscene.grass.sprite,              ,,,, 40BEF4, 40BD30, 40BF64, 40BDA0, , `lzs4x8x4|graphics.titlescreen.introscene.grass.palette`
+graphics.titlescreen.introscene.gengar.sprite2,            ,,,, 40BEFC, 40BD38, 40BF6C, 40BDA8, , `lzs4x8x8|graphics.titlescreen.introscene.gengar.palette`
+graphics.titlescreen.introscene.slash.tiles,               ,,,, 40BF04, 40BD40, 40BF74, 40BDB0, , `lzt4`
+graphics.titlescreen.introscene.forest.palette,            ,,,, 0ED584, 0ED55C, 0ED59C, 0ED574, , `ucp4:12`
+graphics.titlescreen.introscene.forest.tileset,            ,,,, 0ED594, 0ED56C, 0ED5AC, 0ED584, , `lzt4|graphics.titlescreen.introscene.forest.palette`
+graphics.titlescreen.introscene.forest.tilemap,            ,,,, 0ED598, 0ED570, 0ED5B0, 0ED588, , `lzm4x32x20|graphics.titlescreen.introscene.forest.tileset`
+graphics.titlescreen.introscene.forest.palette2,           ,,,, 0ED2FC, 0ED2D4, 0ED314, 0ED2EC, , `ucp4:123`
+graphics.titlescreen.introscene.forest.tileset2,           ,,,, 0ED20C, 0ED1E4, 0ED224, 0ED1FC, , `lzt4|graphics.titlescreen.introscene.forest.palette2`
+graphics.titlescreen.introscene.forest.tilemap2,           ,,,, 0ED210, 0ED1E8, 0ED228, 0ED200, , `lzm4x32x64|graphics.titlescreen.introscene.forest.tileset2`
+graphics.titlescreen.introscene.grass.palette1,            ,,,, 0ECF48, 0ECF20, 0ECF60, 0ECF38, , `ucp4`
+graphics.titlescreen.introscene.grass.tileset,             ,,,, 0ECF9C, 0ECF74, 0ECFB4, 0ECF8C, , `lzt4|graphics.titlescreen.introscene.grass.palette1`
+graphics.titlescreen.introscene.grass.tilemap,             ,,,, 0ECFA0, 0ECF78, 0ECFB8, 0ECF90, , `lzm4x32x64|graphics.titlescreen.introscene.grass.tileset`
 
 // cry1,           ,,,, 072114,,,, , ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]388
 // cry2,           ,,,, 072104,,,, , ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]388
