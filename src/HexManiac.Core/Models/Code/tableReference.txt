@@ -66,6 +66,7 @@ pickupitems,         02AFB8, 02AFB8, 02AFB8, 02AFB8,       ,       ,       ,    
 pickupitems,               ,       ,       ,       , 02CEE4, 02CEE4, 02CEF8, 02CEF8,       , [item:items chance:]16
 pickupitems,               ,       ,       ,       ,       ,       ,       ,       , 055DF4, [item:items]18
 pickupitemsrare,           ,       ,       ,       ,       ,       ,       ,       , 055D2C, [item:items]11
+data.abilities.soundproof.moves,     018ABC, 018ABC, 018ABC, 018ABC, 01A67C, 01A67C, 01A690, 01A690, 042F70, [move:movenames]!FFFF
 battlescriptsource,  012F34, 012F34, 012F34, 012F34, 014C1C, 014C1C, 014C30, 014C30,       , [code<>]248
 battlescriptsource,        ,       ,       ,       ,       ,       ,       ,       , 03CD94, [code<>]249
 
