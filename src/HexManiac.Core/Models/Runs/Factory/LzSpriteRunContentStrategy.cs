@@ -30,7 +30,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          for (int i = 0; i < data.Count; i++) token.ChangeData(owner, destination + i, data[i]);
          return new LzSpriteRun(spriteFormat, owner, destination);
       }
-      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) {
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, ref IFormattedRun run) {
          var runAttempt = new LzSpriteRun(spriteFormat, model, run.Start, run.PointerSources);
          if (runAttempt.Length > 0) {
             run = runAttempt.MergeAnchor(run.PointerSources);

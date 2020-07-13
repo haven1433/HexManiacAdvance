@@ -39,6 +39,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          ElementContent = segments;
          ElementCount = 1;
          Length = ElementLength;
+         int parentLength = parent.Sum(seg => seg.Length);
          SpriteFormat = new SpriteFormat(4, 1, 1, string.Empty);
 
          if (sources == null || sources.Count == 0) return;
@@ -48,16 +49,26 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var widthOffset = GetOffset(parent, seg => seg.Name == "width");
          var heightOffset = GetOffset(parent, seg => seg.Name == "height");
          var keyOffset = GetOffset(parent, seg => seg.Name == "paletteid");
+         if (widthOffset == parentLength) widthOffset = -1;
+         if (heightOffset == parentLength) heightOffset = -1;
+         if (keyOffset == parentLength) keyOffset = -1;
 
          var elementStart = sources[0] - listOffset;
-         var width = Math.Max(1, model.ReadMultiByteValue(elementStart + widthOffset, 2));
-         var height = Math.Max(1, model.ReadMultiByteValue(elementStart + heightOffset, 2));
+         var width = widthOffset >= 0 ? Math.Max(1, model.ReadMultiByteValue(elementStart + widthOffset, 2)) : 0;
+         var height = heightOffset >= 0 ? Math.Max(1, model.ReadMultiByteValue(elementStart + heightOffset, 2)) : 0;
+         // if there was no height/width found, assume that it's square and based on the first element length
+         if (width == 0) width = (int)Math.Sqrt(model.ReadMultiByteValue(start + 4, 4) * 2); // number of pixels is twice the number of bytes for all OW sprites
+         if (height == 0) height = width;
          var tileWidth = (int)Math.Max(1, Math.Ceiling(width / 8.0));
          var tileHeight = (int)Math.Max(1, Math.Ceiling(height / 8.0));
          var key = model.ReadMultiByteValue(elementStart + keyOffset, 2);
          var hint = $"overworld.palettes:id={key:X4}";
 
-         var format = $"`ucs4x{width / 8}x{height / 8}|{hint}`";
+         var format = $"`ucs4x{tileWidth}x{tileHeight}|{hint}`";
+         if (keyOffset == -1) {
+            format = $"`ucs4x{tileWidth}x{tileHeight}`";
+            hint = string.Empty;
+         }
          segments[0] = new ArrayRunPointerSegment("sprite", format);
 
          // calculate the element count
@@ -70,6 +81,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (model.ReadMultiByteValue(start + Length + 4, 4) != byteLength) break;
             ElementCount += 1;
             Length += ElementLength;
+            if (ElementCount == 9) break; // overworld sprite lists are limited to 9 elements
          }
 
          SpriteFormat = new SpriteFormat(4, tileWidth * ElementCount, tileHeight, hint);
@@ -160,19 +172,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public int[,] GetPixels(IDataModel model, int page) {
-         var listOffset = GetOffset<ArrayRunPointerSegment>(parent, pSeg => pSeg.InnerFormat == SharedFormatString);
-         var elementStart = PointerSources[0] - listOffset;
-         var widthOffset = GetOffset(parent, seg => seg.Name == "width");
-         var heightOffset = GetOffset(parent, seg => seg.Name == "height");
-         var width = Math.Max(1, model.ReadMultiByteValue(elementStart + widthOffset, 2));
-         var height = Math.Max(1, model.ReadMultiByteValue(elementStart + heightOffset, 2));
+         var width = SpriteFormat.TileWidth * 8 / ElementCount;
+         var height = SpriteFormat.TileHeight * 8;
 
          var overallPixels = new int[width * ElementCount, height];
 
          for (int i = 0; i < ElementCount; i++) {
             var spriteStart = model.ReadPointer(Start + ElementLength * i);
             if (!(model.GetNextRun(spriteStart) is ISpriteRun spriteRun)) continue;
-            var spritePixels = spriteRun.GetPixels(model, 0);
+            var spritePixels = spriteRun.GetPixels(model, page: 0);
             if (spritePixels.GetLength(0) < width || spritePixels.GetLength(1) < height) continue;
             int offset = width * i;
             for (int x = 0; x < width; x++) {

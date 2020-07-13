@@ -22,7 +22,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          throw new NotImplementedException();
       }
 
-      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) {
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, ref IFormattedRun run) {
          var newRun = new TilesetRun(TilesetFormat, model, run.Start, run.PointerSources);
          if (model.GetNextRun(run.Start + 1).Start < run.Start + newRun.Length) return;
          model.ClearFormat(token, newRun.Start, newRun.Length);

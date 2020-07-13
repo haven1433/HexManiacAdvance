@@ -655,7 +655,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             }
          }
 
-         Model.UpdateArrayPointer(CurrentChange, segment, memoryLocation, pointerDestination);
+         Model.UpdateArrayPointer(CurrentChange, segment, run.ElementContent, memoryLocation, pointerDestination);
       }
 
       private bool TryFixupLzRun(ref LZRun run, int runIndex) {

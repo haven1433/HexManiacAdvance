@@ -534,13 +534,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
 
             // remove extra elements at the back. Add NoInfoRuns for the pointers to point to.
-#pragma warning disable CS0162 // Unreachable code detected: code is not actually unreachable, this is intended to run when elemetCount < 0
             for (int i = 0; i < -elementCount; i++) {
-#pragma warning restore CS0162 // Unreachable code detected
+               var sources = newInnerElementsSources[newInnerElementsSources.Count - 1];
                newInnerElementsSources.RemoveAt(newInnerElementsSources.Count - 1);
 
-               // TODO add the run
-               throw new NotImplementedException();
+               if (sources.Any()) {
+                  var start = Start + Length - ElementLength * (i + 1);
+                  owner.ObserveRunWritten(token, new NoInfoRun(start, sources));
+               }
             }
          }
 
@@ -550,7 +551,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private void WriteSegment(ModelDelta token, ArrayRunElementSegment segment, IReadOnlyList<byte> readData, int readPosition, int writePosition) {
          if (segment.Type == ElementContentType.Pointer) {
             var destination = readData.ReadMultiByteValue(readPosition, 4) + Pointer.NULL;
-            owner.UpdateArrayPointer(token, segment, writePosition, destination);
+            owner.UpdateArrayPointer(token, segment, ElementContent, writePosition, destination);
          } else {
             for (int k = 0; k < segment.Length; k++) {
                var validData = readData[readPosition + k];

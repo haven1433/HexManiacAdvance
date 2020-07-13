@@ -31,7 +31,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          return ErrorInfo.NoError;
       }
 
-      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) {
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, ref IFormattedRun run) {
          var lzRun = new LZRun(model, run.Start);
          if (lzRun.Length < 0) return;
          if (lzRun.DecompressedLength % 0x20 != 0) return;

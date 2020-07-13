@@ -33,7 +33,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       /// A pointer format in a table has changed.
       /// Replace the given run with a new run of the appropriate format.
       /// </summary>
-      public abstract void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run);
+      public abstract void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, ref IFormattedRun run);
 
       /// <summary>
       /// Attempt to parse the existing data into a run of the desired type.
@@ -107,7 +107,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          return ErrorInfo.NoError;
       }
 
-      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) {
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, ref IFormattedRun run) {
          throw new System.NotImplementedException();
       }
 
@@ -131,7 +131,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          return ErrorInfo.NoError;
       }
 
-      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) {
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, ref IFormattedRun run) {
          run = new BSERun(run.Start, run.PointerSources);
       }
 

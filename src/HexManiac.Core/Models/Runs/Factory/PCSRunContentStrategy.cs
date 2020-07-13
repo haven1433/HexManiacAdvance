@@ -25,7 +25,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          // found freespace, so this should already be an FF. Just add the format.
          return new PCSRun(owner, destination, 1);
       }
-      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) {
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, ref IFormattedRun run) {
          var length = PCSString.ReadString(model, run.Start, true);
          if (length > 0) {
             var newRun = new PCSRun(model, run.Start, length, run.PointerSources);

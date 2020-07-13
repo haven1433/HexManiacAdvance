@@ -27,7 +27,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          TableStreamRun.TryParseTableStream(owner, destination, new SortedSpan<int>(source), name, Format, sourceSegments, out var tableStream);
          return tableStream.DeserializeRun("", token);
       }
-      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, ref IFormattedRun run) {
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, ref IFormattedRun run) {
          if (!TableStreamRun.TryParseTableStream(model, run.Start, run.PointerSources, name, Format, null, out var runAttempt)) return;
          model.ClearFormat(token, run.Start, runAttempt.Length);
          run = runAttempt;

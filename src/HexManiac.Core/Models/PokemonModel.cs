@@ -579,7 +579,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             changeToken.AddRun(run);
          }
 
-         if (run is PointerRun) AddPointerToAnchor(null, changeToken, run.Start);
+         if (run is PointerRun) AddPointerToAnchor(null, null, changeToken, run.Start);
          if (run is ITableRun tableRun) ModifyAnchorsFromPointerArray(changeToken, tableRun, existingRun as ITableRun, tableRun.ElementCount, AddPointerToAnchor);
          if (run is ArrayRun arrayRun) UpdateDependantArrayLengths(changeToken, arrayRun);
 
@@ -600,7 +600,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// When we make a new pointer, we need to update anchors to include the new pointer.
       /// So update all the anchors based on any new pointers in this newly added array.
       /// </summary>
-      private void ModifyAnchorsFromPointerArray(ModelDelta changeToken, ITableRun arrayRun, ITableRun previousTable, int elementCount, Action<ArrayRunElementSegment, ModelDelta, int> changeAnchors) {
+      private void ModifyAnchorsFromPointerArray(ModelDelta changeToken, ITableRun arrayRun, ITableRun previousTable, int elementCount, Action<ArrayRunElementSegment, IReadOnlyList<ArrayRunElementSegment>, ModelDelta, int> changeAnchors) {
          int segmentOffset = arrayRun.Start;
          var formatMatches = previousTable != null && arrayRun.DataFormatMatches(previousTable);
          var parentOffset = 0;
@@ -613,7 +613,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             for (int j = 0; j < elementCount; j++) {
                if (formatMatches && shorterTable - parentOffset > j) continue; // we can skip this one
                var start = segmentOffset + arrayRun.ElementLength * j;
-               changeAnchors(arrayRun.ElementContent[i], changeToken, start);
+               changeAnchors(arrayRun.ElementContent[i], arrayRun.ElementContent, changeToken, start);
             }
             segmentOffset += arrayRun.ElementContent[i].Length;
          }
@@ -741,7 +741,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       /// <param name="changeToken"></param>
       /// <param name="start"></param>
-      private void AddPointerToAnchor(ArrayRunElementSegment segment, ModelDelta changeToken, int start) {
+      private void AddPointerToAnchor(ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, ModelDelta changeToken, int start) {
          var destination = ReadPointer(start);
          if (destination < 0 || destination >= Count) return;
          int index = BinarySearch(destination);
@@ -757,7 +757,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          } else if (index < 0) {
             // the pointer points to a location between existing runs
             IFormattedRun newRun = new NoInfoRun(destination, new SortedSpan<int>(start));
-            UpdateNewRunFromPointerFormat(ref newRun, segment as ArrayRunPointerSegment, changeToken);
+            UpdateNewRunFromPointerFormat(ref newRun, segment as ArrayRunPointerSegment, segments, changeToken);
             if (newRun != null) {
                ClearFormat(changeToken, newRun.Start, newRun.Length); // adding a new destination, so clear anything in the way.
                ObserveRunWritten(changeToken, newRun);
@@ -768,7 +768,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             changeToken.RemoveRun(existingRun);
             var previousRun = existingRun;
             existingRun = existingRun.MergeAnchor(new SortedSpan<int>(start));
-            UpdateNewRunFromPointerFormat(ref existingRun, segment as ArrayRunPointerSegment, changeToken);
+            UpdateNewRunFromPointerFormat(ref existingRun, segment as ArrayRunPointerSegment, segments, changeToken);
             if (existingRun != null) {
                if (segment == null) {
                   // it's just a naked pointer, so we have no knowledge about the thing it points to.
@@ -794,7 +794,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// If this new FormattedRun is a pointer to a known stream format,
       /// Update the model so the data we're pointing to is actually that format.
       /// </summary>
-      private void UpdateNewRunFromPointerFormat(ref IFormattedRun run, ArrayRunPointerSegment segment, ModelDelta token) {
+      private void UpdateNewRunFromPointerFormat(ref IFormattedRun run, ArrayRunPointerSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, ModelDelta token) {
          var nextRun = GetNextRun(run.Start);
          if (nextRun == run && nextRun is ITableRun) {
             // the parent table points into a table. The existing table format wins: just keep it the same.
@@ -820,7 +820,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             return;
          }
 
-         FormatRunFactory.GetStrategy(segment.InnerFormat).UpdateNewRunFromPointerFormat(this, token, segment.Name, ref run);
+         FormatRunFactory.GetStrategy(segment.InnerFormat).UpdateNewRunFromPointerFormat(this, token, segment.Name, segments, ref run);
       }
 
       public override void ObserveAnchorWritten(ModelDelta changeToken, string anchorName, IFormattedRun run) {
@@ -1079,7 +1079,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
 
             if (run.Start >= start + length) return;
-            if (run is PointerRun) ClearPointerFormat(null, changeToken, run.Start);
+            if (run is PointerRun) ClearPointerFormat(null, null, changeToken, run.Start);
             if (run is ITableRun arrayRun) ModifyAnchorsFromPointerArray(changeToken, arrayRun, null, arrayRun.ElementCount, ClearPointerFormat);
             if (run is WordRun wordRun) {
                changeToken.RemoveMatchedWord(wordRun.Start, wordRun.SourceArrayName);
@@ -1167,7 +1167,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      private void ClearPointerFormat(ArrayRunElementSegment segment, ModelDelta changeToken, int start) {
+      private void ClearPointerFormat(ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, ModelDelta changeToken, int start) {
          // remove the reference from the anchor we're pointing to as well
          var destination = ReadPointer(start);
          if (destination >= 0 && destination < Count) {
@@ -1215,10 +1215,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          changeToken.AddRun(newArray);
       }
 
-      public override void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, int source, int destination) {
-         ClearPointerFormat(segment, changeToken, source);
+      public override void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int source, int destination) {
+         ClearPointerFormat(segment, null, changeToken, source);
          if (ReadPointer(source) != destination) WritePointer(changeToken, source, destination);
-         AddPointerToAnchor(segment, changeToken, source);
+         AddPointerToAnchor(segment, segments, changeToken, source);
       }
 
       public override string Copy(Func<ModelDelta> changeToken, int start, int length, bool deep = false) {
