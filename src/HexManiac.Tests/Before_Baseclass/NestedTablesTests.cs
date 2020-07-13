@@ -348,7 +348,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          // setup a table for 5 tutor moves
          viewPort.Goto.Execute("000080");
-         viewPort.Edit("^tutormoves[move:movenames]5 One Two Four Five Seven ");
+         viewPort.Edit($"^tutormoves[move:{HardcodeTablesModel.MoveNamesTable}]5 One Two Four Five Seven ");
 
          // create a table that uses tutormoves as a bit array. Note 5 moves should take up 1 byte, so the overall table should by 8 bytes long (because there are 8 pokemon)
          viewPort.Goto.Execute("0000090");
@@ -374,7 +374,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          // setup a table for 5 tutor moves
          viewPort.Goto.Execute("000080");
-         viewPort.Edit("^tutormoves[move:movenames]10 One One Two Two Four Four Five Five Seven Seven "); // note that 10 bits takes 2 bytes
+         viewPort.Edit($"^tutormoves[move:{HardcodeTablesModel.MoveNamesTable}]10 One One Two Two Four Four Five Five Seven Seven "); // note that 10 bits takes 2 bytes
 
          viewPort.Goto.Execute("0000100");
          viewPort.Edit($"^table[moves|b[]tutormoves]{HardcodeTablesModel.PokemonNameTable} ");

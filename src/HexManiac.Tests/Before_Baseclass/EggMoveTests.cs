@@ -26,7 +26,7 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Edit($"^{HardcodeTablesModel.PokemonNameTable}[name\"\"8]8 \"Bob\" \"Steve\" \"Carl\" \"Sam\" \"Bryan\" \"Ryan\" \"Ian\" \"Matt\"");
 
          viewPort.Goto.Execute("000100");
-         viewPort.Edit("^movenames[name\"\"8]8 \"Fire\" \"Water\" \"Earth\" \"Wind\" \"Light\" \"Dark\" \"Normal\" \"Magic\"");
+         viewPort.Edit($"^{HardcodeTablesModel.MoveNamesTable}[name\"\"8]8 \"Fire\" \"Water\" \"Earth\" \"Wind\" \"Light\" \"Dark\" \"Normal\" \"Magic\"");
 
          viewPort.Goto.Execute("000180");
          viewPort.Edit("<000000> Dead Beef 01 00 00 00 <000000>"); // limiter is at 188 for an eggrun at 000

@@ -355,7 +355,7 @@ Fail:
 End:
     pop   pc, {{}}
 movenamesTable:
-    .word <movenames>
+    .word <{MoveNamesTable}>
 itemIDLocation:
     .word 020370C0
 bufferLocation:
@@ -527,7 +527,7 @@ MagicString3:
 MagicString4:
     .word <{MagicBufferStrings[game][4]:X6}>
 MovesTable:
-    .word <movenames>
+    .word <{MoveNamesTable}>
 ".Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
          var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
          for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);

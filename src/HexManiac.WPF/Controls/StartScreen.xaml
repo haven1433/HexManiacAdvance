@@ -17,20 +17,6 @@
    <Border Grid.ColumnSpan="5" Background="{StaticResource HexBrush}"/>
    <TextBlock Grid.Column="1" Foreground="{DynamicResource Primary}" HorizontalAlignment="Right" TextWrapping="Wrap" VerticalAlignment="Center">
       Drag-n-Drop to open a file.
-      <LineBreak/> <LineBreak/>
-      Tip: Try typing these words into Goto <Italic>(Ctrl+G)</Italic>. <LineBreak/>
-      You can jump to tables inside the ROM. <LineBreak/>
-      <LineBreak/>
-      <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>pokestats<LineBreak/>
-      <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>movenames<LineBreak/>
-      <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>abilitynames<LineBreak/>
-      <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>trainerdata<LineBreak/>
-      <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>items<LineBreak/>
-      <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>tmcompatibility<LineBreak/>
-      <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>dexinfo<LineBreak/>      
-      <BulletDecorator><Ellipse VerticalAlignment="Center" Margin="2" Fill="{DynamicResource Primary}" Width="5" Height="5"/></BulletDecorator>wild<LineBreak/>
-      <LineBreak/>
-      See resources/tableReference.txt for the full list.
    </TextBlock>
    <StackPanel Grid.Column="3" VerticalAlignment="Center" TextBlock.Foreground="{DynamicResource Primary}" >
       <Border Margin="5" Padding="5" Background="{DynamicResource Background}" BorderBrush="{DynamicResource Secondary}" CornerRadius="5,5,5,5" BorderThickness="1" Cursor="Hand" MouseLeftButtonDown="PointerHelp">
