@@ -76,7 +76,7 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void NaturesAreFound(string game) {
          var model = fixture.LoadModel(game);
-         var run = model.GetTable("natures");
+         var run = model.GetTable(NaturesTableName);
          Assert.Equal(25, run.ElementCount);
       }
 
