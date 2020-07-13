@@ -352,7 +352,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          // create a table that uses tutormoves as a bit array. Note 5 moves should take up 1 byte, so the overall table should by 8 bytes long (because there are 8 pokemon)
          viewPort.Goto.Execute("0000090");
-         viewPort.Edit("^table[moves|b[]tutormoves]pokenames ");
+         viewPort.Edit($"^table[moves|b[]tutormoves]{HardcodeTablesModel.PokemonNameTable} ");
          var run = (ArrayRun)model.GetNextRun(0x90);
          var segment = (ArrayRunBitArraySegment)run.ElementContent[0];
          Assert.Equal("tutormoves", segment.SourceArrayName);
@@ -377,7 +377,7 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Edit("^tutormoves[move:movenames]10 One One Two Two Four Four Five Five Seven Seven "); // note that 10 bits takes 2 bytes
 
          viewPort.Goto.Execute("0000100");
-         viewPort.Edit("^table[moves|b[]tutormoves]pokenames ");
+         viewPort.Edit($"^table[moves|b[]tutormoves]{HardcodeTablesModel.PokemonNameTable} ");
          var run = (ArrayRun)model.GetNextRun(0x100);
          Assert.Equal(16, run.Length); // 2 bytes each for 8 pokemon
 

@@ -22,7 +22,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          TypesTableName = "types",
          MoveNamesTable = "movenames",
          DexInfoTableName = "dexinfo",
-         PokemonNameTable = "pokenames",
+         PokemonNameTable = "data.pokemon.names",
          TrainerTableName = "trainerdata",
          PokemonStatsTable = "pokestats",
          EggMovesTableName = "eggmoves",

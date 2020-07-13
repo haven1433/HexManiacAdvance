@@ -23,7 +23,7 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort = new ViewPort("file.gba", model);
 
          viewPort.Goto.Execute("000080");
-         viewPort.Edit("^pokenames[name\"\"8]8 \"Bob\" \"Steve\" \"Carl\" \"Sam\" \"Bryan\" \"Ryan\" \"Ian\" \"Matt\"");
+         viewPort.Edit($"^{HardcodeTablesModel.PokemonNameTable}[name\"\"8]8 \"Bob\" \"Steve\" \"Carl\" \"Sam\" \"Bryan\" \"Ryan\" \"Ian\" \"Matt\"");
 
          viewPort.Goto.Execute("000100");
          viewPort.Edit("^movenames[name\"\"8]8 \"Fire\" \"Water\" \"Earth\" \"Wind\" \"Light\" \"Dark\" \"Normal\" \"Magic\"");

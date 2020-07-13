@@ -164,13 +164,13 @@
 70 multichoice2 x. y. list. default. canCancel. # like multichoice, but you can choose which option is selected at the start
 71 multichoice3 x. y. list. per_row. canCancel. # like multichoice, but shows multiple columns.
 72 showbox x. y. width. height.
-73 hidebox x. y. width. height.              # ruby/sapphire only
-74 clearbox x. y. width. height.             # clear only a part of a custom box
-75 showpokepic species:pokenames x. y.       # show the pokemon in a box. Can be a literal or a variable.
-76 hidepokepic                               # hides all shown pokepics
-77 showcontestwinner contest.                # nop in FireRed. Shows the painting of a wenner of the given contest.
-78 braille text<>                            # displays a message in braille. The text must be formatted to use braille.
-79 givePokemon species:pokenames level. item: filler:: filler:: filler.
+73 hidebox x. y. width. height.                 # ruby/sapphire only
+74 clearbox x. y. width. height.                # clear only a part of a custom box
+75 showpokepic species:data.pokemon.names x. y. # show the pokemon in a box. Can be a literal or a variable.
+76 hidepokepic                                  # hides all shown pokepics
+77 showcontestwinner contest.                   # nop in FireRed. Shows the painting of a wenner of the given contest.
+78 braille text<>                               # displays a message in braille. The text must be formatted to use braille.
+79 givePokemon species:data.pokemon.names level. item: filler:: filler:: filler.
                                              # gives the player one of that pokemon. the last 9 bytes are all 00.
                                              # 800D=0 if it was added to the party
                                              # 800D=1 if it was put in the PC
@@ -239,7 +239,7 @@ B2 nopB2
 B3 checkcoins output:                        # your number of coins is stored to the given variable
 B4 givecoins count:
 B5 removecoins count:
-B6 setwildbattle species:pokenames level. item:
+B6 setwildbattle species:data.pokemon.names level. item:
 B7 dowildbattle                              # runs a battle setup with setwildbattle
 B8 setvirtualaddress value::                 # some kind of jump? Complicated.
 B9 virtualgoto destination<>                 # ???

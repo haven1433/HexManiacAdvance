@@ -185,11 +185,11 @@ namespace HavenSoft.HexManiac.Tests {
          var model = new PokemonModel(buffer);
          var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
 
-         viewPort.Edit("^pokenames[name\"\"11] +\"??????????\"+\"BULBASAUR\"");
+         viewPort.Edit($"^{HardcodeTablesModel.PokemonNameTable}[name\"\"11] +\"??????????\"+\"BULBASAUR\"");
          viewPort.SelectionStart = new Point(0, 0);
          viewPort.FollowLink(0, 0);
 
-         Assert.Equal("^pokenames[name\"\"11]2", viewPort.AnchorText); // you don't need a length to make one, but a length gets automatically added.
+         Assert.Equal($"^{HardcodeTablesModel.PokemonNameTable}[name\"\"11]2", viewPort.AnchorText); // you don't need a length to make one, but a length gets automatically added.
          Assert.Equal("BULBASAUR", viewPort.Tools.StringTool.Content.Split(Environment.NewLine).Last());
       }
 

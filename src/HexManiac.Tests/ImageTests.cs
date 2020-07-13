@@ -530,15 +530,15 @@ namespace HavenSoft.HexManiac.Tests {
          // 130-160  : back sprites
          // 160-190  : normal palettes
          // 190-1B0  : shiny palettes
-         ViewPort.Edit("FF @00 ^pokenames[name\"\"15]1 Castform\"");
-         ViewPort.Edit("@100 10 20 @130 10 20 @160 10 20 @190 10 20 @10 ");
-         ViewPort.Edit("^front.sprites[sprite<`lzs4x1x1`>]pokenames <100>");
-         ViewPort.Edit("^back.sprites[sprite<`lzs4x1x1`>]pokenames <130>");
-         ViewPort.Edit("^normal.palette[pal<`lzp4`>]pokenames <160>");
-         ViewPort.Edit("^shiny.palette[pal<`lzp4`>]pokenames <190>");
+         ViewPort.Edit($"FF @00 ^{HardcodeTablesModel.PokemonNameTable}[name\"\"15]1 Castform\"");
+         ViewPort.Edit($"@100 10 20 @130 10 20 @160 10 20 @190 10 20 @10 ");
+         ViewPort.Edit($"^front.sprites[sprite<`lzs4x1x1`>]{HardcodeTablesModel.PokemonNameTable} <100>");
+         ViewPort.Edit($"^back.sprites[sprite<`lzs4x1x1`>]{HardcodeTablesModel.PokemonNameTable} <130>");
+         ViewPort.Edit($"^normal.palette[pal<`lzp4`>]{HardcodeTablesModel.PokemonNameTable} <160>");
+         ViewPort.Edit($"^shiny.palette[pal<`lzp4`>]{HardcodeTablesModel.PokemonNameTable} <190>");
 
          // Act: expand each by a single page
-         ViewPort.Goto.Execute("pokenames");
+         ViewPort.Goto.Execute(HardcodeTablesModel.PokemonNameTable);
          var sevm = (SpriteElementViewModel)ViewPort.Tools.TableTool.Children.First(child => child is SpriteElementViewModel);
          sevm.AddPage.Execute();
 
@@ -560,15 +560,15 @@ namespace HavenSoft.HexManiac.Tests {
          // 0A0-100  : back sprites
          // 100-160  : normal palettes
          // 160-1C0  : shiny palettes
-         ViewPort.Edit("FF @00 ^pokenames[name\"\"15]1 Castform\"");
-         ViewPort.Edit("@040 10 40 @0A0 10 40 @100 10 40 @160 10 40 @10 ");
-         ViewPort.Edit("^front.sprites[sprite<`lzs4x1x1`>]pokenames <040>");
-         ViewPort.Edit("^back.sprites[sprite<`lzs4x1x1`>]pokenames <0A0>");
-         ViewPort.Edit("^normal.palette[pal<`lzp4`>]pokenames <100>");
-         ViewPort.Edit("^shiny.palette[pal<`lzp4`>]pokenames <160>");
+         ViewPort.Edit($"FF @00 ^{HardcodeTablesModel.PokemonNameTable}[name\"\"15]1 Castform\"");
+         ViewPort.Edit($"@040 10 40 @0A0 10 40 @100 10 40 @160 10 40 @10 ");
+         ViewPort.Edit($"^front.sprites[sprite<`lzs4x1x1`>]{HardcodeTablesModel.PokemonNameTable} <040>");
+         ViewPort.Edit($"^back.sprites[sprite<`lzs4x1x1`>]{HardcodeTablesModel.PokemonNameTable} <0A0>");
+         ViewPort.Edit($"^normal.palette[pal<`lzp4`>]{HardcodeTablesModel.PokemonNameTable} <100>");
+         ViewPort.Edit($"^shiny.palette[pal<`lzp4`>]{HardcodeTablesModel.PokemonNameTable} <160>");
 
          // Act: contract each by a single page
-         ViewPort.Goto.Execute("pokenames");
+         ViewPort.Goto.Execute(HardcodeTablesModel.PokemonNameTable);
          var sevm = (SpriteElementViewModel)ViewPort.Tools.TableTool.Children.First(child => child is SpriteElementViewModel);
          sevm.DeletePage.Execute();
 
