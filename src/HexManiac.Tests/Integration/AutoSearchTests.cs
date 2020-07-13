@@ -107,7 +107,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void AbilitiyDescriptionsAreFound(string game) {
          var model = fixture.LoadModel(game);
 
-         var run = model.GetTable("abilitydescriptions");
+         var run = model.GetTable(AbilityDescriptionsTable);
          if (game.Contains("Clover")) Assert.Equal(156, run.ElementCount);
          else if (game.Contains("Gaia")) Assert.Equal(188, run.ElementCount);
          else Assert.Equal(78, run.ElementCount);
@@ -126,7 +126,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void TypesAreFound(string game) {
          var model = fixture.LoadModel(game);
 
-         var run = model.GetTable("types");
+         var run = model.GetTable(TypesTableName);
          if (game.Contains("Clover")) Assert.Equal(24, run.ElementCount);
          else if (game.Contains("Gaia")) Assert.Equal(25, run.ElementCount);
          else Assert.Equal(18, run.ElementCount);

@@ -19,7 +19,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          WildTableName = "wild",
          SpecialsTable = "specials",
          ItemsTableName = "items",
-         TypesTableName = "types",
+         TypesTableName = "data.pokemon.type.names",
          MoveNamesTable = "data.moves.names",
          DexInfoTableName = "dexinfo",
          PokemonNameTable = "data.pokemon.names",
@@ -34,9 +34,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          DecorationsTableName = "decorations",
          RegionalDexTableName = "regionaldex",
          NationalDexTableName = "nationaldex",
-         MoveDescriptionsName = "movedescriptions",
+         MoveDescriptionsName = "data.moves.descriptions",
          ConversionDexTableName = "hoennToNational",
-         TrainerClassNamesTable = "data.trainers.classes.names";
+         TrainerClassNamesTable = "data.trainers.classes.names",
+         AbilityDescriptionsTable = "data.abilities.descriptions";
 
       public const string
          MoveInfoListName = "moveinfo",
