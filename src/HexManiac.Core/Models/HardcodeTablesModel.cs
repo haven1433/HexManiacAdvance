@@ -24,6 +24,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          DexInfoTableName = "dexinfo",
          PokemonNameTable = "data.pokemon.names",
          TrainerTableName = "trainerdata",
+         AbilityNamesTable = "data.abilities.names",
          PokemonStatsTable = "pokestats",
          EggMovesTableName = "eggmoves",
          EvolutionTableName = "evolutions",
@@ -34,7 +35,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          RegionalDexTableName = "regionaldex",
          NationalDexTableName = "nationaldex",
          MoveDescriptionsName = "movedescriptions",
-         ConversionDexTableName = "hoennToNational";
+         ConversionDexTableName = "hoennToNational",
+         TrainerClassNamesTable = "data.trainers.classes.names";
 
       public const string
          MoveInfoListName = "moveinfo",

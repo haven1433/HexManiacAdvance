@@ -96,7 +96,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void AbilitiyNamesAreFound(string game) {
          var model = fixture.LoadModel(game);
 
-         var run = model.GetTable("abilitynames");
+         var run = model.GetTable(AbilityNamesTable);
          if (game.Contains("Clover")) Assert.Equal(156, run.ElementCount);
          else if (game.Contains("Gaia")) Assert.Equal(188, run.ElementCount);
          else Assert.Equal(78, run.ElementCount);
@@ -182,7 +182,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void TrainerClassNamesAreFound(string game) {
          var model = fixture.LoadModel(game);
 
-         var run = model.GetTable("trainerclassnames");
+         var run = model.GetTable(TrainerClassNamesTable);
          if (game.Contains("Altair")) Assert.Equal(66, run.ElementCount);
          else if (game.Contains("Emerald")) Assert.Equal(66, run.ElementCount);
          else if (game.Contains("FireRed")) Assert.Equal(107, run.ElementCount);
@@ -577,7 +577,7 @@ namespace HavenSoft.HexManiac.Tests {
          var model = fixture.LoadModel(game);
          var address = model.GetAddressFromAnchor(noChange, -1, "trainermoney");
          var run = model.GetNextRun(address) as ITableRun;
-         var trainerClassesTable = model.GetTable("trainerclassnames");
+         var trainerClassesTable = model.GetTable(TrainerClassNamesTable);
 
          if (game.Contains("DarkRisingKAIZO")) Assert.Null(run);
          else if (game.Contains("Gaia")) Assert.Null(run);

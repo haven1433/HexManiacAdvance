@@ -405,7 +405,7 @@ namespace HavenSoft.HexManiac.Tests {
             Model.WritePointer(new ModelDelta(), initialOffset + TrainerPokemonTeamRun.TrainerFormat_PointerOffset, 0xA0 + 0x30 * i);
          }
 
-         ViewPort.Edit($"@00 ^trainertable[structType.4 class.trainerclassnames introMusic. sprite. name\"\"12 " +
+         ViewPort.Edit($"@00 ^trainertable[structType.4 class.data.trainers.classes.names introMusic. sprite. name\"\"12 " +
             $"item1:{HardcodeTablesModel.ItemsTableName} item2:{HardcodeTablesModel.ItemsTableName} item3:{HardcodeTablesModel.ItemsTableName} item4:{HardcodeTablesModel.ItemsTableName} " +
             $"doubleBattle:: ai:: pokemonCount:: pokemon<{TrainerPokemonTeamRun.SharedFormatString}>]{trainerCount} @00");
          ViewPort.ResetAlignment.Execute();
