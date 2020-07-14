@@ -36,7 +36,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          ShinyPalettesTable = "graphics.pokemon.palettes.normal",
          EvolutionTableName = "data.pokemon.evolutions",
          TypeChartTableName = "typeChart",
-         LevelMovesTableName = "lvlmoves",
+         LevelMovesTableName = "data.pokemon.moves.levelup",
          MultichoiceTableName = "scripts.text.multichoice",
          DecorationsTableName = "decorations",
          RegionalDexTableName = "regionaldex",
@@ -69,11 +69,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          LeafGreen1_1 = "BPGE1";
 
       public const string
-         TmMoves = "tmmoves",
-         HmMoves = "hmmoves",
-         TmCompatibility = "tmcompatibility",
-         MoveTutors = "tutormoves",
-         TutorCompatibility = "tutorcompatibility";
+         TmMoves = "data.pokemon.moves.tms",
+         HmMoves = "data.pokmeon.moves.hms",
+         TmCompatibility = "data.pokemon.moves.tmcompatibility",
+         MoveTutors = "data.pokemon.moves.tutors",
+         TutorCompatibility = "data.pokemon.moves.tutorcompatibility";
 
       private readonly string gameCode;
       private readonly ModelDelta noChangeDelta = new NoDataChangeDeltaModel();

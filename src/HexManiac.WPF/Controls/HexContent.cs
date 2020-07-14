@@ -303,11 +303,18 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var newMouseOverPoint = ControlCoordinatesToModelCoordinates(e);
          if (!newMouseOverPoint.Equals(mouseOverPoint)) {
             mouseOverPoint = newMouseOverPoint;
-            if (ViewPort[newMouseOverPoint.X, newMouseOverPoint.Y].Format is Pointer pointer) {
+            var format = ViewPort[newMouseOverPoint.X, newMouseOverPoint.Y].Format;
+            if (format is Pointer pointer) {
                if (Equals(pointer.DestinationAsText, ToolTip.Content) && ToolTipService.GetIsEnabled(this)) {
                   // already set
                } else {
                   MakeNewToolTip(pointer.DestinationAsText);
+               }
+            } else if (format is MatchedWord matchedWord) {
+               if (Equals(matchedWord.Name, ToolTip.Content) && ToolTipService.GetIsEnabled(this)) {
+                  // already set
+               } else {
+                  MakeNewToolTip(matchedWord.Name);
                }
             } else {
                timer.Enabled = false;
@@ -595,7 +602,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          ViewPort.Height = (int)(ActualHeight / CellHeight);
 
          // add extra width to the cells as able
-         var extraWidth = Math.Min(ActualWidth - ViewPort.Width * CellWidth, ViewPort.Width * CellWidth);
+         var extraWidth = Math.Min(ActualWidth - ViewPort.Width * CellWidth, ViewPort.Width * CellWidth * 2);
          if (extraWidth > 0 && ViewPort.StretchData) CellWidth += (int)(extraWidth / ViewPort.Width);
 
          // add horizontal scrolling if needed

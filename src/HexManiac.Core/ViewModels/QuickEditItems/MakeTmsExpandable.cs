@@ -91,7 +91,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          Environment.NewLine + "This change will allow you to freely add new TMs, up to 256." +
          Environment.NewLine + "It will also split TMs and HMs into separate lists, making them easier to manage." +
          Environment.NewLine + "After this change, TM moves are based on the name given to the TM/HM instead of the item index." +
-         Environment.NewLine + "For example, an item named 'TM30' will use the 30th move in the 'tmmoves' table.";
+         Environment.NewLine + "For example, an item named 'TM30' will use the 30th move in the 'data.pokemon.moves.tms' table.";
 
       public string WikiLink => throw new NotImplementedException();
 
@@ -261,13 +261,13 @@ HmCompatibilityTable:
 HmMoveCount:
     .word 00
 TmCompatibilityTable:
-    .word <tmcompatibility>
+    .word <{TmCompatibility}>
 TmMoveCount:
     .word 00
 ".Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
          var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
          for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
-         viewPort.Edit($"@{(start + bytes.Count - 4 * 4):X6} <> ::hmmoves <> ::tmmoves ");
+         viewPort.Edit($"@{(start + bytes.Count - 4 * 4):X6} <> ::{HmMoves} <> ::{TmMoves} ");
       }
 
       // original-new   ->   3C-24*
@@ -276,7 +276,7 @@ TmMoveCount:
          var length = 0x3C;
          var model = viewPort.Model;
          model.ClearFormat(viewPort.CurrentChange, start, length);
-         var code = @"
+         var code = $@"
 IsMoveHmMove2:
     ldr   r1, [pc, <table>]
     ldr   r3, [pc, <numberOfMoves>]
@@ -296,13 +296,13 @@ Fail:
 End:
     bx    r14
 table:
-    .word <hmmoves>
+    .word <{HmMoves}>
 numberOfMoves:
     .word 00
 ".Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
          var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
          for (int i = 0; i < bytes.Count - 4; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
-         viewPort.Edit($"@{(start + bytes.Count - 4 * 2):X6} <> ::hmmoves ");
+         viewPort.Edit($"@{(start + bytes.Count - 4 * 2):X6} <> ::{HmMoves} ");
       }
 
       // added          ->   3C-3C (+18)
@@ -559,9 +559,9 @@ DoParse:
     pop   pc, {{r4}}
     nop
 TmMovesTable:
-    .word <tmmoves>
+    .word <{TmMoves}>
 HmMovesTable:
-    .word <hmmoves>
+    .word <{HmMoves}>
 ".Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
          var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
          for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);

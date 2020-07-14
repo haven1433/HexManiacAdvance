@@ -47,13 +47,13 @@ data.items.stats,                      0A98F0, 0A98F0, 0A9910, 0A9910, 0001C8, 0
 data.moves.stats,                      00CA54, 00CA54, 00CA54, 00CA54, 0001CC, 0001CC, 0001CC, 0001CC, 0001CC, [effect.moveeffects power. type.data.pokemon.type.names accuracy. pp. effectAccuracy. target|b[]movetarget priority. info|b[]moveinfo unused. unused:]data.moves.names
 graphics.moves.animations,             075734, 075738, 075754, 075758, 0725D0, 0725D0, 0725E4, 0725E4, 0A3A44, [animation<>]data.moves.names
 scripts.moves.effects,                 0146E4, 0146E4, 0146E4, 0146E4, 016364, 016364, 016378, 016378, 03E854, [effect<`bse`>]moveeffects
-lvlmoves,            03B7BC, 03B7BC, 03B7BC, 03B7BC, 03EA7C, 03EA7C, 03EA90, 03EA90, 06930C, [movesFromLevel<`plm`>]data.pokemon.names
-tutormoves,                ,       ,       ,       , 120BE4, 120BBC, 120C5C, 120C34,       , [move:data.moves.names]15
-tutormoves,                ,       ,       ,       ,       ,       ,       ,       , 1B236C, [move:data.moves.names]30
-tutorcompatibility,        ,       ,       ,       , 120C30, 120C08, 120CA8, 120C80, 1B2390, [moves|b[]tutormoves]data.pokemon.names
-tmmoves,             06F038, 06F03C, 06F058, 06F05C, 125A8C, 125A64, 125B04, 125ADC, 1B6D10, [move:data.moves.names]58
-tmcompatibility,     0403B0, 0403B0, 0403D0, 0403D0, 043C68, 043C68, 043C7C, 043C7C, 06E048, [moves|b[]tmmoves]data.pokemon.names
-hmmoves,             040A24, 040A24, 040A44, 040A44, 0441DC, 0441DC, 0441F0, 0441F0, 06E828, [move:data.moves.names]8
+data.pokemon.moves.levelup,            03B7BC, 03B7BC, 03B7BC, 03B7BC, 03EA7C, 03EA7C, 03EA90, 03EA90, 06930C, [movesFromLevel<`plm`>]data.pokemon.names
+data.pokemon.moves.tutors,                   ,       ,       ,       , 120BE4, 120BBC, 120C5C, 120C34,       , [move:data.moves.names]15
+data.pokemon.moves.tutors,                   ,       ,       ,       ,       ,       ,       ,       , 1B236C, [move:data.moves.names]30
+data.pokemon.moves.tutorcompatibility,       ,       ,       ,       , 120C30, 120C08, 120CA8, 120C80, 1B2390, [moves|b[]data.pokemon.moves.tutors]data.pokemon.names
+data.pokemon.moves.tms,                06F038, 06F03C, 06F058, 06F05C, 125A8C, 125A64, 125B04, 125ADC, 1B6D10, [move:data.moves.names]58
+data.pokemon.moves.tmcompatibility,    0403B0, 0403B0, 0403D0, 0403D0, 043C68, 043C68, 043C7C, 043C7C, 06E048, [moves|b[]data.pokemon.moves.tms]data.pokemon.names
+data.pokmeon.moves.hms,                040A24, 040A24, 040A44, 040A44, 0441DC, 0441DC, 0441F0, 0441F0, 06E828, [move:data.moves.names]8
 itemimages,                ,       ,       ,       , 09899C, 098970, 0989B0, 098984, 1B0034, [image<`lzs4x3x3`> palette<`lzp4`>]data.items.stats+1
 trainerdata,         00D890, 00D890, 00D890, 00D890, 00FC00, 00FC00, 00FC14, 00FC14, 03587C, [structType.trainerStructType class.data.trainers.classes.names introMusic. sprite.graphics.trainers.sprites.front name""12 item1:data.items.stats item2:data.items.stats item3:data.items.stats item4:data.items.stats doubleBattle:: ai|b[]traineraibits pokemonCount:: pokemon<`tpt`>]
 trainermoney,        024120, 024120, 024120, 024120, 0259CC, 0259CC, 0259E0, 0259E0, 04E6A8, [class.data.trainers.classes.names moneyrate. unused:]!FF050000

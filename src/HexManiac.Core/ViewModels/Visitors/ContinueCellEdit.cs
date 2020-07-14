@@ -27,7 +27,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(None dataFormat, byte data) {
          if (UnderEdit.CurrentText.Length > 0) {
             if (UnderEdit.CurrentText[0] == PointerStart) {
-               Result = char.IsLetterOrDigit(Input) || Input == ArrayAnchorSeparator || Input == PointerEnd || Input == ' ';
+               Result = char.IsLetterOrDigit(Input) || Input.IsAny(ArrayAnchorSeparator, PointerEnd, ' ', '.');
                return;
             }
 
@@ -35,7 +35,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                if (UnderEdit.CurrentText.Length == 1) {
                   Result = Input == ':';
                } else {
-                  Result = char.IsLetterOrDigit(Input) || Input == ' ';
+                  Result = char.IsLetterOrDigit(Input) || Input.IsAny(' ', '.');
                }
                return;
             }

@@ -98,7 +98,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
                ldrh  r0, [r0, r1]
                bx    lr
             move_tutor_list:
-               .word <tutormoves>
+               .word <{MoveTutors}>
          ".Split(Environment.NewLine);
 
          var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, address, code);
@@ -130,9 +130,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
                and     r0, r2
                bx      lr
             move_tutor_compatibility:
-               .word <tutorcompatibility>
+               .word <{TutorCompatibility}>
             move_tutor_count:
-               .word 0 @ ::tutormoves
+               .word 0 @ ::{MoveTutors}
          ".Split(Environment.NewLine);
 
          var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, address, code);
