@@ -90,7 +90,7 @@
 41 warp5 mapbank. map. warp. x: y:           # probably shouldn't use
 42 getplayerpos varX: varY:                  # stores the current player position into varX and varY
 43 countPokemon                              # stores number of pokemon in your party into LASTRESULT (800D)
-44 additem item:items quantity:              # item/quantity can both be either a literal or a variable.
+44 additem item:data.items.stats quantity:              # item/quantity can both be either a literal or a variable.
                                              # if the operation was succcessful, LASTRESULT (variable 800D) is set to 1.
 45 removeitem item: quantity:                # opposite of additem. 800D is set to 0 if the removal cannot happen
 46 checkitemroom item: quantity:             # 800D is set to 1 if additem would succeed

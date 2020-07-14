@@ -137,7 +137,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void ItemsAreFound(string game) {
          var model = fixture.LoadModel(game);
 
-         var run = model.GetTable("items");
+         var run = model.GetTable(ItemsTableName);
          if (game.Contains("Altair")) Assert.Equal(377, run.ElementCount);
          else if (game.Contains("Emerald")) Assert.Equal(377, run.ElementCount);
          else if (game.Contains("FireRed")) Assert.Equal(375, run.ElementCount);
@@ -163,7 +163,7 @@ namespace HavenSoft.HexManiac.Tests {
          }
 
          var imagesTable = model.GetTable("itemimages");
-         var itemsTable = model.GetTable(HardcodeTablesModel.ItemsTableName);
+         var itemsTable = model.GetTable(ItemsTableName);
 
          Assert.Equal(itemsTable.ElementCount + 1, imagesTable.ElementCount);
       }
@@ -198,7 +198,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void PokeStatsAreFound(string game) {
          var model = fixture.LoadModel(game);
 
-         var run = model.GetTable("pokestats");
+         var run = model.GetTable(PokemonStatsTable);
 
          var firstPokemonStats = model.Skip(run.Start + run.ElementLength).Take(6).ToArray();
          var compareSet = new[] { 45, 49, 49, 45, 65, 65 }; // Bulbasaur
@@ -271,7 +271,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void MoveDataFound(string game) {
          var model = fixture.LoadModel(game);
 
-         var run = model.GetTable("movedata");
+         var run = model.GetTable(MoveDataTable);
 
          var poundStats = model.Skip(run.Start + run.ElementLength).Take(8).ToArray();
          var compareSet = new[] { 0, 40, 0, 100, 35, 0, 0, 0 };
@@ -536,7 +536,7 @@ namespace HavenSoft.HexManiac.Tests {
          var viewPort = new ViewPort(game, model, fixture.Singletons);
          editor.Add(viewPort);
          var expandMoves = editor.QuickEdits.Single(edit => edit.Name == new MakeMovesExpandable().Name);
-         var originalPointerCount = model.GetTable("movedata").PointerSources.Count;
+         var originalPointerCount = model.GetTable(MoveDataTable).PointerSources.Count;
 
          Assert.True(expandMoves.CanRun(viewPort));
 
@@ -548,7 +548,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.False(expandMoves.CanRun(viewPort));
 
          // verify that new pointers were added to movedata
-         var newPointerCount = model.GetTable("movedata").PointerSources.Count;
+         var newPointerCount = model.GetTable(MoveDataTable).PointerSources.Count;
          Assert.Equal(5, newPointerCount - originalPointerCount);
       }
 
@@ -634,14 +634,14 @@ namespace HavenSoft.HexManiac.Tests {
          expandItems.Run(viewPort);
 
          // extend the table
-         var table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, "items"));
+         var table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, ItemsTableName));
          viewPort.Goto.Execute((table.Start + table.Length).ToString("X6"));
          viewPort.Edit("+");
 
          // 0x14 bytes after the start of the change should store the length of items
          var gameCode = model.GetGameCode();
          var editStart = MakeItemsExpandable.GetPrimaryEditAddress(gameCode);
-         table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, "items")); // note that since we changed the table, we have to get the run again.
+         table = (ArrayRun)model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, ItemsTableName)); // note that since we changed the table, we have to get the run again.
          var word = (WordRun)model.GetNextRun(editStart + 0x14);
          Assert.Equal(table.ElementCount, model.ReadValue(word.Start));
       }

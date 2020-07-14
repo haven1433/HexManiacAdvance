@@ -34,7 +34,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       public bool CanRun(IViewPort viewPort) {
          if (!(viewPort is ViewPort)) return false;
          var model = viewPort.Model;
-         var moveDataAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, "movedata");
+         var moveDataAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, MoveDataTable);
          if (moveDataAddress == Pointer.NULL) return false;
          var limiterCode = viewPort.Tools.CodeTool.Parser.Compile(model, 0, @"
     mov   r0, #177
@@ -51,8 +51,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var thumb = viewPort.Tools.CodeTool.Parser;
          var token = viewPort.CurrentChange;
 
-         var moveDataAddress = model.GetAddressFromAnchor(token, -1, "movedata");
-         if (moveDataAddress == Pointer.NULL) return new ErrorInfo("Expanding moves requires the existence of a 'movedata' table.");
+         var moveDataAddress = model.GetAddressFromAnchor(token, -1, MoveDataTable);
+         if (moveDataAddress == Pointer.NULL) return new ErrorInfo($"Expanding moves requires the existence of a '{MoveDataTable}' table.");
          var originalPpPointer = OriginalPPPointer[game];
          var sourcesToPP = model.FindPointer(originalPpPointer).ToList();
          if (sourcesToPP.Count != 5) {

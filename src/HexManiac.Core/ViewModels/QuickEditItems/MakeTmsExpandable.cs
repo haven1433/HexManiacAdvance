@@ -466,7 +466,7 @@ Fail:
 End:
     bx   r14
 ItemsTable:
-    .word <items>
+    .word <{ItemsTableName}>
 ".Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
          var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
          for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
@@ -515,7 +515,7 @@ CaseTm:
     pop  pc, {{r4-r5}}
     nop
 ItemsTable:
-    .word <items>
+    .word <{ItemsTableName}>
 MagicString0:
     .word <{MagicBufferStrings[game][0]:X6}>
 MagicString1:
