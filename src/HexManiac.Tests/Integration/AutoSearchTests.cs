@@ -336,8 +336,8 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void PokeballSpritesAreFound(string game) {
          var model = fixture.LoadModel(game);
-         var sprites = model.GetTable("ballsprites");
-         var palettes = model.GetTable("ballpalettes");
+         var sprites = model.GetTable(BallSpritesTable);
+         var palettes = model.GetTable(BallPalettesTable);
          Assert.NotNull(sprites);
          Assert.NotNull(palettes);
       }
@@ -346,14 +346,14 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void TrainerSpritesAreFound(string game) {
          var model = fixture.LoadModel(game);
-         var sprites = model.GetTable("trainersprites");
-         var palettes = model.GetTable("trainerpalettes");
+         var sprites = model.GetTable("graphics.trainers.sprites.front");
+         var palettes = model.GetTable("graphics.trainers.palettes");
          Assert.NotNull(sprites);
          Assert.NotNull(palettes);
 
          if (!game.Contains("Ruby") && !game.Contains("Sapphire")) {
-            sprites = model.GetTable("trainerbacksprites");
-            palettes = model.GetTable("trainerbackpals");
+            sprites = model.GetTable("graphics.trainers.sprites.back");
+            palettes = model.GetTable("graphics.trainers.palettes.back");
             Assert.NotNull(sprites);
             Assert.NotNull(palettes);
          }
