@@ -277,10 +277,10 @@ namespace HavenSoft.HexManiac.Tests {
          var compareSet = new[] { 0, 40, 0, 100, 35, 0, 0, 0 };
          for (int i = 0; i < compareSet.Length; i++) Assert.Equal(compareSet[i], poundStats[i]);
 
-         run = model.GetTable("moveanimations");
+         run = model.GetTable("graphics.moves.animations");
          Assert.Equal(ElementContentType.Pointer, run.ElementContent[0].Type);
 
-         run = model.GetTable("moveeffects");
+         run = model.GetTable("scripts.moves.effects");
          Assert.Equal(ElementContentType.Pointer, run.ElementContent[0].Type);
       }
 

@@ -789,8 +789,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          // length is based on another array
          int address = owner.GetAddressFromAnchor(new ModelDelta(), -1, lengthFromAnchor);
          if (address == Pointer.NULL) {
-            // the requested name was unknown... length is zero for now
-            return (lengthFromAnchor, parentOffset, 1);
+            // the requested name was unknown... is it a list name?
+            if (owner.TryGetList(lengthFromAnchor, out var nameArray)) {
+               return (lengthFromAnchor, parentOffset, nameArray.Count);
+            } else {
+               // length is zero for now
+               return (lengthFromAnchor, parentOffset, 1);
+            }
          }
 
          if (!(owner.GetNextRun(address) is ArrayRun run) || run.Start != address) {

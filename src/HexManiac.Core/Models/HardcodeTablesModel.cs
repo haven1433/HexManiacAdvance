@@ -37,7 +37,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          EvolutionTableName = "data.pokemon.evolutions",
          TypeChartTableName = "typeChart",
          LevelMovesTableName = "lvlmoves",
-         MultichoiceTableName = "misc.text.multichoice",
+         MultichoiceTableName = "scripts.text.multichoice",
          DecorationsTableName = "decorations",
          RegionalDexTableName = "regionaldex",
          NationalDexTableName = "nationaldex",
