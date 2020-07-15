@@ -141,6 +141,10 @@
                      <Trigger Property="IsMouseOver" Value="False">
                         <Setter TargetName="arrow" Property="Fill" Value="Transparent"/>
                      </Trigger>
+                     <Trigger Property="Tag" Value="Magic">
+                        <Setter TargetName="circle" Property="Stroke" Value="{DynamicResource Accent}"/>
+                        <Setter TargetName="arrow" Property="Fill" Value="{DynamicResource Primary}"/>
+                     </Trigger>
                      <Trigger Property="Header" Value="{x:Null}">
                         <Setter TargetName="HeaderContent" Property="Margin" Value="0"/>
                      </Trigger>

@@ -119,7 +119,9 @@
                </Style>
             </DockPanel.Style>
             <ComboBox Name="TableSelector" ItemsSource="{Binding TableTool.TableList}" DropDownClosed="TableSelected" SelectedIndex="{Binding TableTool.SelectedTableIndex}" HorizontalAlignment="Center" MaxWidth="200" DockPanel.Dock="Top"/>
-            <TextBlock Text="{Binding TableTool.CurrentElementName}" HorizontalAlignment="Center" Margin="0,2" MaxWidth="200" TextWrapping="Wrap" TextAlignment="Center" DockPanel.Dock="Top"/>
+            <Viewbox HorizontalAlignment="Center" Margin="0,2" DockPanel.Dock="Top" StretchDirection="DownOnly">
+               <TextBlock Text="{Binding TableTool.CurrentElementName}" TextAlignment="Center" />
+            </Viewbox>
             <Grid DockPanel.Dock="Top">
                <Button Margin="5" Content="Previous" Command="{Binding TableTool.Previous}" HorizontalAlignment="Left"/>
                <Button Margin="5" Content="Next" Command="{Binding TableTool.Next}" HorizontalAlignment="Right"/>
@@ -154,76 +156,107 @@
                </StackPanel>
             </Grid>
             <ScrollViewer VerticalScrollBarVisibility="Visible">
-               <StackPanel>
-                  <ItemsControl ItemsSource="{Binding TableTool.Children}" Grid.IsSharedSizeScope="True">
-                     <ItemsControl.Resources>
-                        <DataTemplate DataType="{x:Type hsg3hvmtr:SplitterArrayElementViewModel}">
-                           <DockPanel Background="Transparent">
-                              <DockPanel.ContextMenu>
-                                 <ContextMenu>
-                                    <MenuItem Header="Expand All" Command="{Binding ExpandAll}"/>
-                                    <MenuItem Header="Collapse All" Command="{Binding CollapseAll}"/>
-                                 </ContextMenu>
-                              </DockPanel.ContextMenu>
-                              <Button DockPanel.Dock="Right" Command="{Binding FollowLink}" Width="20" Height="20">
-                                 <Button.ToolTip>
-                                    <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
-                                       <TextBlock TextAlignment="Left">
-                                          Jump to the table<LineBreak/>
-                                          containing this data.
-                                       </TextBlock>
-                                    </ToolTip>
-                                 </Button.ToolTip>
-                                 <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                              </Button>
-                              <Expander VerticalAlignment="Center" IsExpanded="{Binding Visible}" LayoutTransform="0,1,-1,0,0,0"/>
-                              <TextBlock Text="{Binding SectionName}" Margin="5" FontSize="20">
+               <ItemsControl ItemsSource="{Binding TableTool.Children}" Grid.IsSharedSizeScope="True">
+                  <ItemsControl.Resources>
+                     <DataTemplate DataType="{x:Type hsg3hvmtr:SplitterArrayElementViewModel}">
+                        <DockPanel Name="ContainerPanel" Background="Transparent">
+                           <DockPanel.Style>
+                              <Style TargetType="DockPanel">
+                                 <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                       <Setter Property="Tag" Value="Magic"/>
+                                    </Trigger>
+                                 </Style.Triggers>
+                              </Style>
+                           </DockPanel.Style>
+                           <DockPanel.ContextMenu>
+                              <ContextMenu>
+                                 <MenuItem Header="Expand All" Command="{Binding ExpandAll}"/>
+                                 <MenuItem Header="Collapse All" Command="{Binding CollapseAll}"/>
+                              </ContextMenu>
+                           </DockPanel.ContextMenu>
+                           <Button DockPanel.Dock="Right" Command="{Binding FollowLink}" Width="20" Height="20">
+                              <Button.ToolTip>
+                                 <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                                    <TextBlock TextAlignment="Left">
+                                       Jump to the table<LineBreak/>
+                                       containing this data.
+                                    </TextBlock>
+                                 </ToolTip>
+                              </Button.ToolTip>
+                              <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                           </Button>
+                           <Expander VerticalAlignment="Center" IsExpanded="{Binding Visible}" LayoutTransform="0,1,-1,0,0,0" Tag="{Binding Tag, ElementName=ContainerPanel}"/>
+                           <Viewbox StretchDirection="DownOnly" Margin="5">
+                              <TextBlock Text="{Binding SectionName}" FontSize="20">
                                  <TextBlock.InputBindings>
                                     <MouseBinding MouseAction="LeftClick" Command="{Binding ToggleVisibility}"/>
                                     <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding ToggleVisibility}"/>
                                  </TextBlock.InputBindings>
                               </TextBlock>
-                           </DockPanel>
-                        </DataTemplate>
-                        <DataTemplate DataType="{x:Type hsg3hvmtr:FieldArrayElementViewModel}">
-                           <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                           </Viewbox>
+                        </DockPanel>
+                     </DataTemplate>
+                     <DataTemplate DataType="{x:Type hsg3hvmtr:FieldArrayElementViewModel}">
+                        <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                           <Grid.ColumnDefinitions>
+                              <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
+                              <ColumnDefinition Width="*"/>
+                           </Grid.ColumnDefinitions>
+                           <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
+                           <TextBox UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1"/>
+                        </Grid>
+                     </DataTemplate>
+                     <DataTemplate DataType="{x:Type hsg3hvmtr:ComboBoxArrayElementViewModel}">
+                        <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                           <Grid.ColumnDefinitions>
+                              <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
+                              <ColumnDefinition Width="*"/>
+                              <ColumnDefinition Width="Auto"/>
+                           </Grid.ColumnDefinitions>
+                           <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
+                           <ComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" Margin="0,0,2,0" Grid.Column="1">
+                              <ComboBox.ItemTemplate>
+                                 <DataTemplate>
+                                    <StackPanel>
+                                       <TextBlock Text="{Binding Text}" Visibility="{Binding DisplayAsText, Converter={StaticResource BoolToVisibility}}"/>
+                                       <hsg3hv:PixelImage x:Name="OptionImage">
+                                          <hsg3hv:PixelImage.Style>
+                                             <Style TargetType="hsg3hv:PixelImage">
+                                                <Style.Triggers>
+                                                   <DataTrigger Binding="{Binding DisplayAsText}" Value="True">
+                                                      <Setter Property="Visibility" Value="Collapsed"/>
+                                                   </DataTrigger>
+                                                </Style.Triggers>
+                                             </Style>
+                                          </hsg3hv:PixelImage.Style>
+                                       </hsg3hv:PixelImage>
+                                    </StackPanel>
+                                 </DataTemplate>
+                              </ComboBox.ItemTemplate>
+                           </ComboBox>
+                           <Button Grid.Column="2" Command="{Binding GotoSource}" Width="20" Height="20">
+                              <Button.ToolTip>
+                                 <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                                    <TextBlock TextAlignment="Left">
+                                       Jump to the table used as<LineBreak/>
+                                       a source for the options.
+                                    </TextBlock>
+                                 </ToolTip>
+                              </Button.ToolTip>
+                              <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                           </Button>
+                        </Grid>
+                     </DataTemplate>
+                     <DataTemplate DataType="{x:Type hsg3hvmtr:BitListArrayElementViewModel}">
+                        <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                           <Grid HorizontalAlignment="Stretch" Margin="2">
                               <Grid.ColumnDefinitions>
                                  <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
                                  <ColumnDefinition Width="*"/>
                               </Grid.ColumnDefinitions>
                               <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
-                              <TextBox UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1"/>
-                           </Grid>
-                        </DataTemplate>
-                        <DataTemplate DataType="{x:Type hsg3hvmtr:ComboBoxArrayElementViewModel}">
-                           <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
-                              <Grid.ColumnDefinitions>
-                                 <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
-                                 <ColumnDefinition Width="*"/>
-                                 <ColumnDefinition Width="Auto"/>
-                              </Grid.ColumnDefinitions>
-                              <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
-                              <ComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" Margin="0,0,2,0" Grid.Column="1">
-                                 <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                       <StackPanel>
-                                          <TextBlock Text="{Binding Text}" Visibility="{Binding DisplayAsText, Converter={StaticResource BoolToVisibility}}"/>
-                                          <hsg3hv:PixelImage x:Name="OptionImage">
-                                             <hsg3hv:PixelImage.Style>
-                                                <Style TargetType="hsg3hv:PixelImage">
-                                                   <Style.Triggers>
-                                                      <DataTrigger Binding="{Binding DisplayAsText}" Value="True">
-                                                         <Setter Property="Visibility" Value="Collapsed"/>
-                                                      </DataTrigger>
-                                                   </Style.Triggers>
-                                                </Style>
-                                             </hsg3hv:PixelImage.Style>
-                                          </hsg3hv:PixelImage>
-                                       </StackPanel>
-                                    </DataTemplate>
-                                 </ComboBox.ItemTemplate>
-                              </ComboBox>
-                              <Button Grid.Column="2" Command="{Binding GotoSource}" Width="20" Height="20">
+                              <Button Grid.Column="1" HorizontalAlignment="Right" Command="{Binding LinkCommand}" Width="20" Height="20">
                                  <Button.ToolTip>
                                     <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
                                        <TextBlock TextAlignment="Left">
@@ -235,83 +268,61 @@
                                  <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
                               </Button>
                            </Grid>
-                        </DataTemplate>
-                        <DataTemplate DataType="{x:Type hsg3hvmtr:BitListArrayElementViewModel}">
-                           <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
-                              <Grid HorizontalAlignment="Stretch" Margin="2">
-                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
-                                    <ColumnDefinition Width="*"/>
-                                 </Grid.ColumnDefinitions>
-                                 <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
-                                 <Button Grid.Column="1" HorizontalAlignment="Right" Command="{Binding LinkCommand}" Width="20" Height="20">
-                                    <Button.ToolTip>
-                                       <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
-                                          <TextBlock TextAlignment="Left">
-                                             Jump to the table used as<LineBreak/>
-                                             a source for the options.
-                                          </TextBlock>
-                                       </ToolTip>
-                                    </Button.ToolTip>
-                                    <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                                 </Button>
-                              </Grid>
-                              <ItemsControl ItemsSource="{Binding}">
-                                 <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                       <WrapPanel/>
-                                    </ItemsPanelTemplate>
-                                 </ItemsControl.ItemsPanel>
-                                 <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                       <CheckBox Margin="5,1,0,1" Width="115" IsChecked="{Binding IsChecked}" Content="{Binding BitLabel}"/>
-                                    </DataTemplate>
-                                 </ItemsControl.ItemTemplate>
-                              </ItemsControl>
-                           </StackPanel>
-                        </DataTemplate>
-                        <DataTemplate DataType="{x:Type hsg3hvmtr:StreamElementViewModel}">
-                           <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
-                              <hsg3hv:CommonTableStreamControl />
-                              <TextBox UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Margin="20,2,2,2" AcceptsReturn="True"
-                                 Visibility="{Binding ShowContent, Converter={StaticResource BoolToVisibility}}">
-                                 <TextBox.InputBindings>
-                                    <KeyBinding Modifiers="Ctrl" Key="Z" Command="{Binding Undo}"/>
-                                    <KeyBinding Modifiers="Ctrl" Key="Y" Command="{Binding Redo}"/>
-                                 </TextBox.InputBindings>
-                              </TextBox>
-                           </StackPanel>
-                        </DataTemplate>
-                        <DataTemplate DataType="{x:Type hsg3hvmtr:ButtonArrayElementViewModel}">
-                           <Button HorizontalAlignment="Center" Content="{Binding Text}" Margin="5" Command="{Binding Command}" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}"/>
-                        </DataTemplate>
-                        <DataTemplate DataType="{x:Type hsg3hvmtr:SpriteElementViewModel}">
-                           <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
-                              <hsg3hv:CommonTableStreamControl />
-                              <hsg3hv:PixelImage SnapsToDevicePixels="True" />
-                              <DockPanel Visibility="{Binding ShowPageControls, Converter={StaticResource BoolToVisibility}}">
-                                 <Button Content="Previous" Command="{Binding PreviousPage}" DockPanel.Dock="Left"/>
-                                 <Button Content="+" Command="{Binding AddPage}" DockPanel.Dock="Right" ToolTip="Add a new page to this sprite and palette"/>
-                                 <Button Content="Next" Command="{Binding NextPage}" DockPanel.Dock="Right"/>
-                                 <Button Content="-" Command="{Binding DeletePage}" HorizontalAlignment="Center" ToolTip="Delete the current page of this sprite and palette"/>
-                              </DockPanel>
-                           </StackPanel>
-                        </DataTemplate>
-                        <DataTemplate DataType="{x:Type hsg3hvmtr:PaletteElementViewModel}">
-                           <StackPanel PreviewMouseDown="ActivatePalette"  Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
-                              <hsg3hv:CommonTableStreamControl />
-                              <hsg3hv:PaletteControl DataContext="{Binding Colors}" />
-                              <DockPanel Visibility="{Binding ShowPageControls, Converter={StaticResource BoolToVisibility}}">
-                                 <Button Content="Previous" Command="{Binding PreviousPage}" DockPanel.Dock="Left"/>
-                                 <Button Content="+" Command="{Binding AddPage}" DockPanel.Dock="Right" ToolTip="Add a new page to this sprite and palette"/>
-                                 <Button Content="Next" Command="{Binding NextPage}" DockPanel.Dock="Right"/>
-                                 <Button Content="-" Command="{Binding DeletePage}" HorizontalAlignment="Center" ToolTip="Delete the current page of this sprite and palette"/>
-                              </DockPanel>
-                           </StackPanel>
-                        </DataTemplate>
-                     </ItemsControl.Resources>
-                  </ItemsControl>
-               </StackPanel>
+                           <ItemsControl ItemsSource="{Binding}">
+                              <ItemsControl.ItemsPanel>
+                                 <ItemsPanelTemplate>
+                                    <WrapPanel/>
+                                 </ItemsPanelTemplate>
+                              </ItemsControl.ItemsPanel>
+                              <ItemsControl.ItemTemplate>
+                                 <DataTemplate>
+                                    <CheckBox Margin="5,1,0,1" Width="115" IsChecked="{Binding IsChecked}" Content="{Binding BitLabel}"/>
+                                 </DataTemplate>
+                              </ItemsControl.ItemTemplate>
+                           </ItemsControl>
+                        </StackPanel>
+                     </DataTemplate>
+                     <DataTemplate DataType="{x:Type hsg3hvmtr:StreamElementViewModel}">
+                        <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                           <hsg3hv:CommonTableStreamControl />
+                           <TextBox UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Margin="20,2,2,2" AcceptsReturn="True"
+                              Visibility="{Binding ShowContent, Converter={StaticResource BoolToVisibility}}">
+                              <TextBox.InputBindings>
+                                 <KeyBinding Modifiers="Ctrl" Key="Z" Command="{Binding Undo}"/>
+                                 <KeyBinding Modifiers="Ctrl" Key="Y" Command="{Binding Redo}"/>
+                              </TextBox.InputBindings>
+                           </TextBox>
+                        </StackPanel>
+                     </DataTemplate>
+                     <DataTemplate DataType="{x:Type hsg3hvmtr:ButtonArrayElementViewModel}">
+                        <Button HorizontalAlignment="Center" Content="{Binding Text}" Margin="5" Command="{Binding Command}" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}"/>
+                     </DataTemplate>
+                     <DataTemplate DataType="{x:Type hsg3hvmtr:SpriteElementViewModel}">
+                        <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                           <hsg3hv:CommonTableStreamControl />
+                           <hsg3hv:PixelImage SnapsToDevicePixels="True" />
+                           <DockPanel Visibility="{Binding ShowPageControls, Converter={StaticResource BoolToVisibility}}">
+                              <Button Content="Previous" Command="{Binding PreviousPage}" DockPanel.Dock="Left"/>
+                              <Button Content="+" Command="{Binding AddPage}" DockPanel.Dock="Right" ToolTip="Add a new page to this sprite and palette"/>
+                              <Button Content="Next" Command="{Binding NextPage}" DockPanel.Dock="Right"/>
+                              <Button Content="-" Command="{Binding DeletePage}" HorizontalAlignment="Center" ToolTip="Delete the current page of this sprite and palette"/>
+                           </DockPanel>
+                        </StackPanel>
+                     </DataTemplate>
+                     <DataTemplate DataType="{x:Type hsg3hvmtr:PaletteElementViewModel}">
+                        <StackPanel PreviewMouseDown="ActivatePalette"  Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                           <hsg3hv:CommonTableStreamControl />
+                           <hsg3hv:PaletteControl DataContext="{Binding Colors}" />
+                           <DockPanel Visibility="{Binding ShowPageControls, Converter={StaticResource BoolToVisibility}}">
+                              <Button Content="Previous" Command="{Binding PreviousPage}" DockPanel.Dock="Left"/>
+                              <Button Content="+" Command="{Binding AddPage}" DockPanel.Dock="Right" ToolTip="Add a new page to this sprite and palette"/>
+                              <Button Content="Next" Command="{Binding NextPage}" DockPanel.Dock="Right"/>
+                              <Button Content="-" Command="{Binding DeletePage}" HorizontalAlignment="Center" ToolTip="Delete the current page of this sprite and palette"/>
+                           </DockPanel>
+                        </StackPanel>
+                     </DataTemplate>
+                  </ItemsControl.Resources>
+               </ItemsControl>
             </ScrollViewer>
          </DockPanel>
          <DockPanel Name="StringToolPanel">
