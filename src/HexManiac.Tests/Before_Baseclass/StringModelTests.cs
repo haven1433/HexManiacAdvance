@@ -461,5 +461,36 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal("+\"\"", text);
       }
+
+      [Fact]
+      public void CanAutoDetectMultipleTextRunsAtOnce() {
+         var test = new BaseViewModelTestClass();
+         var token = test.ViewPort.CurrentChange;
+
+         // Arrange some undetected pointers to some undetected text
+         test.Model.WritePointer(token, 0, 0x10);
+         test.Model.WritePointer(token, 4, 0x15);
+         int write = 0x10;
+         test.Model[0xF] = 0xFF;
+         PCSString.Convert("text").ForEach(b => test.Model[write++] = b);
+         PCSString.Convert("more").ForEach(b => test.Model[write++] = b);
+
+         // add some more text/pointers later on that *are* detected
+         test.Model.WritePointer(token, 8, 0x40);
+         test.Model[0x40] = 0xFF;
+         test.ViewPort.Edit("@40 ^discovered\"\" Blob\" @00 ");
+
+         // select from partway through the first text to partway through the second text and "Display as Text"
+         test.ViewPort.SelectionStart = new Point(1, 1);
+         test.ViewPort.SelectionEnd = new Point(7, 1);
+         var button = test.ViewPort.GetContextMenuItems(new Point(4, 1)).Single(item => item.Text == "Display as Text");
+         button.Command.Execute();
+
+         // Verify that we found both
+         Assert.Equal(0, test.Model.GetNextRun(0).Start);       // first pointer
+         Assert.Equal(4, test.Model.GetNextRun(4).Start);       // second pointer
+         Assert.Equal(0x10, test.Model.GetNextRun(0x10).Start); // first text
+         Assert.Equal(0x15, test.Model.GetNextRun(0x15).Start); // second text
+      }
    }
 }
