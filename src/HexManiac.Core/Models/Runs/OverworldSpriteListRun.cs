@@ -29,6 +29,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public bool SupportsImport => false;
 
+      public bool CanAppend => false;
+
       public OverworldSpriteListRun(IDataModel model, IReadOnlyList<ArrayRunElementSegment> parent, int start, SortedSpan<int> sources = null) : base(start, sources) {
          this.model = model;
          this.parent = parent;

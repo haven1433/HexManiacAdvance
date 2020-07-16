@@ -24,6 +24,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public byte StructType { get; }
 
+      public bool CanAppend => ElementCount < 6;
+
       #region Constructors
 
       public TrainerPokemonTeamRun(IDataModel model, int start, SortedSpan<int> sources) : base(start, sources) {

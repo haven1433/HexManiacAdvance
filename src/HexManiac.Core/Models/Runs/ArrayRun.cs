@@ -12,6 +12,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       int ElementLength { get; }
       IReadOnlyList<string> ElementNames { get; }
       IReadOnlyList<ArrayRunElementSegment> ElementContent { get; }
+      bool CanAppend { get; }
       ITableRun Append(ModelDelta token, int length);
    }
 
@@ -215,6 +216,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
 
             return options;
+         }
+      }
+
+      public bool CanAppend {
+         get {
+            // if length is numeric, we can append
+            if (string.IsNullOrEmpty(LengthFromAnchor)) return true;
+
+            // if length is from a list, we cannot append
+            return !owner.TryGetList(LengthFromAnchor, out var _);
          }
       }
 

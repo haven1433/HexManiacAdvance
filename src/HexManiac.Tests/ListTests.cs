@@ -68,6 +68,20 @@ Name = '''Input'''
 ".Split(Environment.NewLine).ToList(), lines);
       }
 
+      [Fact]
+      public void ListLengthedArraysCannotBeExpanded() {
+         var input = new List<string> { "bob", "tom", "steve" };
+         Model.SetList("list", input);
+         ViewPort.Edit("^table[content:]list ");
+
+         var run = (ITableRun)Model.GetNextRun(0);
+         Assert.Equal(3, run.ElementCount);
+         Assert.False(run.CanAppend);
+
+         ViewPort.Edit("@06 +");
+         Assert.Single(Errors);
+      }
+
       // TODO add tests to verify that the model loads and saves stored lists correctly.
    }
 }

@@ -10,6 +10,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private readonly IDataModel model;
       private readonly IStreamEndStrategy endStream;
 
+      public bool CanAppend => !(endStream is FixedLengthStreamStrategy);
+
       #region Constructors
 
       public static bool TryParseTableStream(IDataModel model, int start, SortedSpan<int> sources, string fieldName, string content, IReadOnlyList<ArrayRunElementSegment> sourceSegments, out TableStreamRun tableStream) {
