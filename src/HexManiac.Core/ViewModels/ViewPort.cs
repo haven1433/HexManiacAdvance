@@ -1188,6 +1188,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
             yield return (result, result + pcsBytes.Count - 1);
          }
+
+         // it could also be a list token. Look for matches among list enums.
+         foreach (var dataResult in Model.FindListUsages(cleanedSearchString)) yield return dataResult;
       }
 
       /// <summary>
@@ -1295,7 +1298,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                continue;
             }
 
-            if (errorOnParseError) OnError(this, $"Could not parse search term {cleanedSearchString.Substring(i)}");
+            if (errorOnParseError) OnError?.Invoke(this, $"Could not parse search term {cleanedSearchString.Substring(i)}");
             return false;
          }
 

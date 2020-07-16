@@ -19,6 +19,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       int FreeSpaceStart { get; set; }
 
       new byte this[int index] { get; set; }
+      IReadOnlyList<string> ListNames { get; }
       IReadOnlyList<ArrayRun> Arrays { get; }
       IReadOnlyList<IStreamRun> Streams { get; }
       IReadOnlyList<string> Anchors { get; }
@@ -83,6 +84,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public int FreeSpaceStart { get; set; }
 
+      public virtual IReadOnlyList<string> ListNames { get; } = new List<string>();
       public virtual IReadOnlyList<ArrayRun> Arrays { get; } = new List<ArrayRun>();
       public virtual IReadOnlyList<IStreamRun> Streams { get; } = new List<IStreamRun>();
       public virtual IReadOnlyList<string> Anchors { get; } = new List<string>();
@@ -475,6 +477,29 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
          }
          searchBytes.Clear();
+      }
+
+      public static IEnumerable<(int start, int end)> FindListUsages(this IDataModel model, string searchstring) {
+         searchstring = searchstring.ToLower();
+         foreach (var listName in model.ListNames) {
+            if (!model.TryGetList(listName, out var elementNames)) continue;
+            for (int i = 0; i < elementNames.Count; i++) {
+               if (elementNames[i].ToLower() != searchstring) continue;
+               foreach (var table in model.Arrays) {
+                  foreach (var field in table.ElementContent) {
+                     if (!(field is ArrayRunEnumSegment enumSegment)) continue;
+                     if (enumSegment.EnumName.ToLower() != listName) continue;
+                     var fieldOffset = table.ElementContent.Until(seg => seg == enumSegment).Sum(seg => seg.Length);
+                     for (int j = 0; j < table.ElementCount; j++) {
+                        var start = table.Start + j * table.ElementLength + fieldOffset;
+                        var modelValue = model.ReadMultiByteValue(start, enumSegment.Length);
+                        if (modelValue != i) continue;
+                        yield return (start, start + enumSegment.Length - 1);
+                     }
+                  }
+               }
+            }
+         }
       }
 
       public static IReadOnlyList<string> GetOptions(this IDataModel model, string tableName) => ModelCacheScope.GetCache(model).GetOptions(tableName);

@@ -584,6 +584,15 @@ namespace HavenSoft.HexManiac.Tests {
          else Assert.InRange(run.ElementCount, 0, trainerClassesTable.ElementCount);
       }
 
+      [SkippableFact]
+      public void CanSearchForListContent() {
+         var game = PokemonGames.Skip(2).First()[0] as string; // fire red
+         var model = fixture.LoadModel(game);
+         var viewPort = new ViewPort(string.Empty, model, fixture.Singletons);
+         var results = viewPort.Find("BurnRaiseSpeed");
+         Assert.Equal(2, results.Count);
+      }
+
       // this one actually changes the data, so I can't use the same shared model as everone else.
       // [SkippableTheory] // test removed until feature is complete.
       // [MemberData(nameof(PokemonGames))]

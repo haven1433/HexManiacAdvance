@@ -39,6 +39,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public virtual int EarliestAllowedAnchor => 0;
 
+      public override IReadOnlyList<string> ListNames => lists.Keys.ToList();
       public override IReadOnlyList<ArrayRun> Arrays {
          get {
             var results = new List<ArrayRun>();
