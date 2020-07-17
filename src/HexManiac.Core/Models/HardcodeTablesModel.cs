@@ -14,8 +14,8 @@ namespace HavenSoft.HexManiac.Core.Models {
    /// </summary>
    public class HardcodeTablesModel : PokemonModel {
       public const string
-         WildTableName = "wild",
-         SpecialsTable = "specials",
+         WildTableName = "data.pokemon.wild",
+         SpecialsTable = "scripts.specials.thumb",
          MoveDataTable = "data.moves.stats",
          ItemsTableName = "data.items.stats",
          TypesTableName = "data.pokemon.type.names",
@@ -24,7 +24,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          DexInfoTableName = "dexinfo",
          PokemonNameTable = "data.pokemon.names",
          BallSpritesTable = "graphics.items.ball.sprites",
-         TrainerTableName = "trainerdata",
+         TrainerTableName = "data.trainer.stats",
          NaturesTableName = "data.pokemon.natures.names",
          BackSpritesTable = "graphics.pokemon.sprites.front",
          EggMovesTableName = "eggmoves",
@@ -36,9 +36,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          ShinyPalettesTable = "graphics.pokemon.palettes.normal",
          EvolutionTableName = "data.pokemon.evolutions",
          TypeChartTableName = "typeChart",
+         ItemImagesTableName = "graphics.items.sprites",
          LevelMovesTableName = "data.pokemon.moves.levelup",
          MultichoiceTableName = "scripts.text.multichoice",
-         DecorationsTableName = "decorations",
+         DecorationsTableName = "data.decorations.stats",
          RegionalDexTableName = "regionaldex",
          NationalDexTableName = "nationaldex",
          MoveDescriptionsName = "data.moves.descriptions",

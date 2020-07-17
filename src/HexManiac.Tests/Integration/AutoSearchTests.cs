@@ -156,13 +156,13 @@ namespace HavenSoft.HexManiac.Tests {
       public void ItemImagesAreFound(string game) {
          var model = fixture.LoadModel(game);
 
-         var address = model.GetAddressFromAnchor(noChange, -1, "itemimages");
+         var address = model.GetAddressFromAnchor(noChange, -1, ItemImagesTableName);
          if (game.Contains("Ruby") || game.Contains("Sapphire")) {
             Assert.Equal(Pointer.NULL, address);
             return;
          }
 
-         var imagesTable = model.GetTable("itemimages");
+         var imagesTable = model.GetTable(ItemImagesTableName);
          var itemsTable = model.GetTable(ItemsTableName);
 
          Assert.Equal(itemsTable.ElementCount + 1, imagesTable.ElementCount);
@@ -575,7 +575,7 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void TrainerPayoutsAreFound(string game) {
          var model = fixture.LoadModel(game);
-         var address = model.GetAddressFromAnchor(noChange, -1, "trainermoney");
+         var address = model.GetAddressFromAnchor(noChange, -1, "data.trainer.money");
          var run = model.GetNextRun(address) as ITableRun;
          var trainerClassesTable = model.GetTable(TrainerClassNamesTable);
 
