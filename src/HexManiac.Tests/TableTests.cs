@@ -391,6 +391,26 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(ViewPort.Headers[ViewPort.SelectionStart.Y], newAddress.ToString("X6")); // selection should be at start of new element
       }
 
+      [Fact]
+      public void ExpandTableViaAnchorEditorDoesNotRepointTables() {
+         // setup some default tables
+         ViewPort.Edit("@00 ^parent[items:]10 ");
+         ViewPort.Edit("@40 ^child[items:]parent ");
+
+         // setup some data that's part of the tables, but wasn't recognized.
+         ViewPort.Edit("@14 20 00 @54 20 00 ");
+
+         // Act: edit the anchor, which should not change any data, but just is a way for the user to express that the anchor was wrong.
+         ViewPort.Edit("@00 ");
+         ViewPort.AnchorText = "parent[items:]12";
+
+         // Assert: the tables didn't move, but are longer
+         Assert.Equal(0x00, Model.GetAddressFromAnchor(ViewPort.CurrentChange, -1, "parent"));
+         Assert.Equal(0x40, Model.GetAddressFromAnchor(ViewPort.CurrentChange, -1, "child"));
+         Assert.Equal(12 * 2, Model.GetNextRun(0x00).Length);
+         Assert.Equal(12 * 2, Model.GetNextRun(0x40).Length);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

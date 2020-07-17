@@ -473,11 +473,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   var index = scroll.ViewPointToDataIndex(SelectionStart);
                   var run = Model.GetNextRun(index);
                   if (run.Start == index) {
-                     var errorInfo = PokemonModel.ApplyAnchor(Model, history.CurrentChange, index, AnchorText);
+                     var token = new NoDataChangeDeltaModel();
+                     var errorInfo = PokemonModel.ApplyAnchor(Model, token, index, AnchorText);
                      if (errorInfo == ErrorInfo.NoError) {
                         OnError?.Invoke(this, string.Empty);
                         var newRun = Model.GetNextRun(index);
-                        if (AnchorText == AnchorStart.ToString()) Model.ClearFormat(history.CurrentChange, run.Start, 1);
+                        if (AnchorText == AnchorStart.ToString()) Model.ClearFormat(token, run.Start, 1);
                         if (newRun is ArrayRun array) {
                            // if the format changed (ignoring length), run a goto to update the display width
                            if (run is ArrayRun array2 && !array.HasSameSegments(array2)) {
@@ -492,6 +493,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      } else {
                         OnError?.Invoke(this, errorInfo.ErrorMessage);
                      }
+                     if (token.HasAnyChange) history.InsertCustomChange(token);
                   }
                }
             }
