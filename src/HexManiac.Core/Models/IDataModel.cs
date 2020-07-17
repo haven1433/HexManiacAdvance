@@ -487,6 +487,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var listName in model.ListNames) {
             if (!model.TryGetList(listName, out var elementNames)) continue;
             for (int i = 0; i < elementNames.Count; i++) {
+               if (elementNames[i] == null) continue;
                if (elementNames[i].ToLower() != searchstring) continue;
                foreach (var table in model.Arrays) {
                   foreach (var field in table.ElementContent) {

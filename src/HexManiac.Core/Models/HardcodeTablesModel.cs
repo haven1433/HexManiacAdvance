@@ -16,7 +16,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public const string
          WildTableName = "data.pokemon.wild",
          SpecialsTable = "scripts.specials.thumb",
-         MoveDataTable = "data.moves.stats",
+         MoveDataTable = "data.moves.stats.battle",
          ItemsTableName = "data.items.stats",
          TypesTableName = "data.pokemon.type.names",
          MoveNamesTable = "data.moves.names",

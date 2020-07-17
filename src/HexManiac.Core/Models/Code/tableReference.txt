@@ -7,6 +7,7 @@ data.moves.names,                      02E18C, 02E18C, 02E18C, 02E18C, 000148, 0
 data.abilities.names,                  09FE64, 09FE64, 09FE84, 09FE84, 0001C0, 0001C0, 0001C0, 0001C0, 0001C0, [name""13]
 data.trainers.classes.names,           1217BC, 1217BC, 0F70A8, 0F70A8, 0D80A0, 0D8074, 0D80B4, 0D8088, 0183B4, [name""13]
 data.pokemon.type.names,               02E3A8, 02E3A8, 02E3A8, 02E3A8, 0309C8, 0309C8, 0309DC, 0309DC, 0166F4, ^[name""7]
+data.pokemon.type.contest.names,       1338A0, 1338A0, 1338C0, 1338C0,       ,       ,       ,       , 09B210, [name<"">]5
 data.abilities.descriptions,           09FE68, 09FE68, 09FE88, 09FE88, 0001C4, 0001C4, 0001C4, 0001C4, 0001C4, [description<"">]data.abilities.names
 data.moves.descriptions,               0A0494, 0A0494, 0A04B4, 0A04B4, 0E5440, 0E5418, 0E5454, 0E542C, 1C3EFC, [description<"">]data.moves.names-1
 scripts.text.multichoice,              0B50A0, 0B50A0, 0B50C0, 0B50C0, 09CB58, 09CB2C, 09CB6C, 09CB40, 0E1FB8, [options<[text<""> unused::]/count> count::]
@@ -44,7 +45,8 @@ graphics.pokemon.animations.frames           ,       ,       ,       ,       ,  
 data.pokemon.stats,                    010B64, 010B64, 010B64, 010B64, 0001BC, 0001BC, 0001BC, 0001BC, 0001BC, [hp. attack. def. speed. spatk. spdef. type1.data.pokemon.type.names type2.data.pokemon.type.names catchRate. baseExp. evs|b[]evbits item1:data.items.stats item2:data.items.stats genderratio. steps2hatch. basehappiness. growthrate. egg1. egg2. ability1.data.abilities.names ability2.data.abilities.names runrate. unknown. padding:]data.pokemon.names
 data.pokemon.evolutions,               03F534, 03F534, 03F534, 03F534, 042F6C, 042F6C, 042F80, 042F80, 06D140, [[method:evolutionmethods arg: species:data.pokemon.names unused:]5]data.pokemon.names
 data.items.stats,                      0A98F0, 0A98F0, 0A9910, 0A9910, 0001C8, 0001C8, 0001C8, 0001C8, 0001C8, [name""14 index: price: holdeffect. param. description<""> keyitemvalue. bagkeyitem. pocket. type. fieldeffect<> battleusage:: battleeffect<> battleextra::]
-data.moves.stats,                      00CA54, 00CA54, 00CA54, 00CA54, 0001CC, 0001CC, 0001CC, 0001CC, 0001CC, [effect.moveeffects power. type.data.pokemon.type.names accuracy. pp. effectAccuracy. target|b[]movetarget priority. info|b[]moveinfo unused. unused:]data.moves.names
+data.moves.stats.battle,               00CA54, 00CA54, 00CA54, 00CA54, 0001CC, 0001CC, 0001CC, 0001CC, 0001CC, [effect.moveeffects power. type.data.pokemon.type.names accuracy. pp. effectAccuracy. target|b[]movetarget priority. info|b[]moveinfo unused. unused:]data.moves.names
+data.moves.stats.contest,              0A0290, 13389C, 1338BC, 1338BC,       ,       ,       ,       , 0D85F0, [appeal. type.data.pokemon.type.contest.names combo_key. combo_a. combo_b. combo_c. padding:]data.moves.names
 graphics.moves.animations,             075734, 075738, 075754, 075758, 0725D0, 0725D0, 0725E4, 0725E4, 0A3A44, [animation<>]data.moves.names
 scripts.moves.effects,                 0146E4, 0146E4, 0146E4, 0146E4, 016364, 016364, 016378, 016378, 03E854, [effect<`bse`>]moveeffects
 data.pokemon.moves.levelup,            03B7BC, 03B7BC, 03B7BC, 03B7BC, 03EA7C, 03EA7C, 03EA90, 03EA90, 06930C, [movesFromLevel<`plm`>]data.pokemon.names
