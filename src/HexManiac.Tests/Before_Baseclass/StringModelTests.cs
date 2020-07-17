@@ -401,7 +401,7 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.ExpandSelection(0, 3);
          viewPort.Copy.Execute(fileSystem);
 
-         Assert.Contains("^This", fileSystem.CopyText);
+         Assert.Contains(".This", fileSystem.CopyText);
          Assert.Contains("\"\" \"This", fileSystem.CopyText); // format, then space, then start of text
       }
 

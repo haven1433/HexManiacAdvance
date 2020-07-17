@@ -1279,7 +1279,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var textSample = GetSampleText(run);
          var initialAddress = run.Start.ToString("X6");
 
-         return textSample + gameCodeText + initialAddress;
+         return $"misc.{gameCodeText}_{initialAddress}{textSample}";
       }
 
       /// <summary>
@@ -1301,7 +1301,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var words = text.Split(' ');
          if (words.Length > 3) words = words.Take(3).ToArray();
          text = string.Concat(words);
-         return new string(text.Where(char.IsLetterOrDigit).ToArray());
+         return "." + new string(text.Where(char.IsLetterOrDigit).ToArray());
       }
 
       public override void Load(byte[] newData, StoredMetadata metadata) {
