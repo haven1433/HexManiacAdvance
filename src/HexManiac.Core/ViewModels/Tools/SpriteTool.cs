@@ -143,7 +143,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var tileCount = length / 32;
             var width = (int)Math.Sqrt(tileCount);
             var height = width;
-            model.ObserveRunWritten(history.CurrentChange, new SpriteRun(spriteAddress, new SpriteFormat(4, width, height, null)));
+            var newRun = new SpriteRun(spriteAddress, new SpriteFormat(4, width, height, null));
+            if (string.IsNullOrEmpty(model.GetAnchorFromAddress(-1, spriteAddress))) {
+               model.ObserveAnchorWritten(history.CurrentChange, $"{HardcodeTablesModel.DefaultSpriteNamespace}.{spriteAddress:X6}", newRun);
+            } else {
+               model.ObserveRunWritten(history.CurrentChange, newRun);
+            }
          } else {
             int tileCount = decompressed.Length / 32;
             bool isTilemap = false;
@@ -168,13 +173,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                if (height == 1) width = tileCount;
             }
             ISpriteRun spriteRun;
+            string newRunName;
             if (isTilemap) {
+               newRunName = $"{HardcodeTablesModel.DefaultTilemapNamespace}.{spriteAddress:X6}";
                spriteRun = new LzTilemapRun(new TilemapFormat(4, width, height, string.Empty), model, spriteAddress, run.PointerSources);
             } else {
+               newRunName = $"{HardcodeTablesModel.DefaultSpriteNamespace}.{spriteAddress:X6}";
                spriteRun = new LzSpriteRun(new SpriteFormat(4, width, height, null), model, spriteAddress, run.PointerSources);
             }
+            var existingName = model.GetAnchorFromAddress(-1, spriteAddress);
+            if (!string.IsNullOrEmpty(existingName)) newRunName = existingName;
             model.ClearFormat(history.CurrentChange, spriteRun.Start, spriteRun.Length);
-            model.ObserveRunWritten(history.CurrentChange, spriteRun);
+            model.ObserveAnchorWritten(history.CurrentChange, newRunName, spriteRun);
          }
 
          viewPort.Refresh();
@@ -236,9 +246,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private void ExecuteGotoPaletteAddress() {
          var run = model.GetNextRun(paletteAddress);
          viewPort.Goto.Execute(paletteAddress);
-         if (run is IPaletteRun && run.Start == paletteAddress) { LoadPalette();UpdatePaletteProperties(); }
+         if (run is IPaletteRun && run.Start == paletteAddress) { LoadPalette(); UpdatePaletteProperties(); }
          if ((!(run is NoInfoRun) && !(run is PCSRun)) || run.Start != paletteAddress) return;
 
+         var existingName = model.GetAnchorFromAddress(-1, paletteAddress);
+         var newName = $"{HardcodeTablesModel.DefaultPaletteNamespace}.{paletteAddress:X6}";
+         if (!string.IsNullOrEmpty(existingName)) newName = existingName;
          var decompressed = LZRun.Decompress(model, run.Start);
          if (decompressed == null) {
             var nextRun = model.GetNextAnchor(paletteAddress + 1);
@@ -248,7 +261,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                return;
             }
             var pages = Math.Min(length / 32, 16);
-            model.ObserveRunWritten(history.CurrentChange, new PaletteRun(paletteAddress, new PaletteFormat(4, pages)));
+            model.ObserveAnchorWritten(history.CurrentChange, newName, new PaletteRun(paletteAddress, new PaletteFormat(4, pages)));
          } else {
             var byteCount = decompressed.Length;
             if (byteCount % 32 != 0) {
@@ -256,7 +269,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                return;
             }
             var pages = Math.Min(byteCount / 32, 16);
-            model.ObserveRunWritten(history.CurrentChange, new LzPaletteRun(new PaletteFormat(4, pages), model, paletteAddress));
+            model.ObserveAnchorWritten(history.CurrentChange, newName, new LzPaletteRun(new PaletteFormat(4, pages), model, paletteAddress));
          }
 
          viewPort.Refresh();

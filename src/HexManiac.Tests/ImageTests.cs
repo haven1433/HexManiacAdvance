@@ -483,6 +483,39 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
+      public void AutoPaletteNameHasNamespace() {
+         ViewPort.Edit("@20 ^somedata @30 <000> @00 ");
+
+         var makePalette = ViewPort.GetContextMenuItems(new Point(0, 0)).Single(item => item.Text == "View as 16-color palette").Command;
+         makePalette.Execute();
+
+         var anchor = Model.GetAnchorFromAddress(-1, 0);
+         Assert.Equal($"{HardcodeTablesModel.DefaultPaletteNamespace}.000000", anchor);
+      }
+
+      [Fact]
+      public void AutoPaletteNameFromImageToolHasNamespace() {
+         ViewPort.Edit("@20 ^somedata @30 <000> @00 ");
+
+         ViewPort.Tools.SpriteTool.PaletteAddress = 0;
+         ViewPort.Tools.SpriteTool.GotoPaletteAddress.Execute();
+
+         var anchor = Model.GetAnchorFromAddress(-1, 0);
+         Assert.Equal($"{HardcodeTablesModel.DefaultPaletteNamespace}.000000", anchor);
+      }
+
+      [Fact]
+      public void AutoSpriteNameFromImageToolHasNamespace() {
+         ViewPort.Edit("@20 ^somedata @30 <000> @00 ");
+
+         ViewPort.Tools.SpriteTool.SpriteAddress = 0;
+         ViewPort.Tools.SpriteTool.GotoSpriteAddress.Execute();
+
+         var anchor = Model.GetAnchorFromAddress(-1, 0);
+         Assert.Equal($"{HardcodeTablesModel.DefaultSpriteNamespace}.000000", anchor);
+      }
+
+      [Fact]
       public void CanFindPaletteInTableUsingField() {
          // make two palettes in a table with keys 0012 and 0055
          ViewPort.Edit("^pals[id:|h pointer<`ucp4`>]4 0012 @{ @} 0055 @{ 0:0:0 3:3:3 @} "); // set the 2nd color of the 2nd palette

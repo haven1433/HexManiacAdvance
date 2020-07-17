@@ -1527,7 +1527,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          }
          var currentName = Model.GetAnchorFromAddress(-1, run1.Start);
-         if (string.IsNullOrEmpty(currentName)) currentName = $"pal{run1.Start:X6}";
+         if (string.IsNullOrEmpty(currentName)) currentName = $"{HardcodeTablesModel.DefaultPaletteNamespace}.{run1.Start:X6}";
          Model.ObserveAnchorWritten(CurrentChange, currentName, new PaletteRun(run1.Start, new PaletteFormat(4, 1)));
          Refresh();
          RequestMenuClose?.Invoke(this, EventArgs.Empty);
