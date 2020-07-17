@@ -221,7 +221,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void TradeDataIsFound(string game) {
          var model = fixture.LoadModel(game);
 
-         var run = model.GetTable("tradedata");
+         var run = model.GetTable("data.pokemon.trades");
          Assert.NotNull(run);
       }
 
@@ -450,11 +450,11 @@ namespace HavenSoft.HexManiac.Tests {
       public void PickupItemsAreFound(string game) {
          var model = fixture.LoadModel(game);
 
-         var pickupitems = model.GetTable("pickupitems");
+         var pickupitems = model.GetTable("data.abilities.pickup.items");
          Assert.IsType<ArrayRun>(pickupitems);
 
          if (model.GetGameCode() == Emerald) {
-            var rarepickupitems = model.GetTable("pickupitemsrare");
+            var rarepickupitems = model.GetTable("data.abilities.pickup.rareitems");
             Assert.IsType<ArrayRun>(rarepickupitems);
          }
       }
@@ -464,7 +464,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void BattleScriptSourceIsFound(string game) {
          var model = fixture.LoadModel(game);
 
-         var pickupitems = model.GetTable("battlescriptsource");
+         var pickupitems = model.GetTable("scripts.battle.thumb");
          Assert.IsType<ArrayRun>(pickupitems);
       }
 

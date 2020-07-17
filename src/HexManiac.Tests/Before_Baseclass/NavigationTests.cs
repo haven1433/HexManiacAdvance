@@ -430,6 +430,26 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Empty(test.Errors);
       }
 
+      [Fact]
+      public void NoNamespaceHasMoreThanSevenElements() {
+         var singletons = BaseViewModelTestClass.Singletons;
+         foreach (var game in singletons.GameReferenceTables.Keys) {
+            var gameTables = singletons.GameReferenceTables[game];
+            var namespaces = new Dictionary<string, int>();
+            foreach (var table in gameTables) {
+               var namespaceLength = table.Name.LastIndexOf('.');
+               if (namespaceLength < 0) continue;
+               var currentNamespace = table.Name.Substring(0, namespaceLength);
+               if (!namespaces.ContainsKey(currentNamespace)) namespaces[currentNamespace] = 0;
+               namespaces[currentNamespace] += 1;
+            }
+            foreach (var currentNamespace in namespaces.Keys) {
+               var elements = namespaces[currentNamespace];
+               Assert.InRange(elements, 0, 7); // we shouldn't have found more than 7
+            }
+         }
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          model = new PokemonModel(data);
