@@ -415,6 +415,21 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Single(matches);
       }
 
+      [Fact]
+      public void CanGotoSingleOptionEvenWithoutPerfectMatch() {
+         var test = new BaseViewModelTestClass();
+         test.ViewPort.Edit("^pizza @piza ");
+         Assert.Empty(test.Errors);
+
+         test.ViewPort.Edit("@20 ^candy ");
+         var editor = new EditorViewModel(new StubFileSystem { DispatchWork = arg => arg() });
+         editor.Add(test.ViewPort);
+         editor.GotoViewModel.Text = "cady";
+         editor.GotoViewModel.Goto.Execute();
+
+         Assert.Empty(test.Errors);
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          model = new PokemonModel(data);
