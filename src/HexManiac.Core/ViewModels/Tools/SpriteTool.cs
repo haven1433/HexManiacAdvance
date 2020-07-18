@@ -607,7 +607,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             foreach(var sprite in allSprites) {
                if (sprite == spriteRun) continue;
                var existingPixels = sprite.GetPixels(model, 0);
-               sum += Enumerable.Range(0, newPixels.Length).Count(j => existingPixels[j % width, j / width] == i);
+               sum += Enumerable.Range(0, existingPixels.Length).Count(j => existingPixels[j % width, j / width] == i);
             }
             masses.Add(new ColorMass(existingPalette[i], sum));
          }
@@ -634,8 +634,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                var m = masses.Single(mass => mass.OriginalColors.ContainsKey(existingPalette[i]));
                indexMapper[i] = masses.IndexOf(m);
             }
-            for (int x = 0; x < newPixels.GetLength(0); x++) {
-               for (int y = 0; y < newPixels.GetLength(1); y++) {
+            for (int x = 0; x < existingPixels.GetLength(0); x++) {
+               for (int y = 0; y < existingPixels.GetLength(1); y++) {
                   existingPixels[x, y] = indexMapper[existingPixels[x, y]];
                }
             }
