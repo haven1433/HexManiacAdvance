@@ -534,7 +534,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void CanCreateOverworldSpriteList() {
          // setup data elements
          ViewPort.Edit("@00 00 00 11 00 00 00 40 00 08 00 08 00 00 00 00 00 <null> <null> <null> <060> <null>");     // parent (start, id, backup_id, length, width, height)
-         ViewPort.Edit("@30 <040> 11 00 00 00 @30 ^overworld.palettes[p<`ucp4`> id:|h unused:]1 ");   // palette table. Palette goes from 40 to 60.
+         ViewPort.Edit($"@30 <040> 11 00 00 00 @30 ^{HardcodeTablesModel.OverworldPalettes}[p<`ucp4`> id:|h unused:]1 ");   // palette table. Palette goes from 40 to 60.
          ViewPort.Edit("@60 <080> 20 00 00 00 <0A0> 20 00 00 00 ");                    // sprite list. Sprites go 80-A0 and A0-C0 (2 sprites)
 
          // add format to parent
@@ -549,7 +549,7 @@ namespace HavenSoft.HexManiac.Tests {
          var sprite1 = Model.GetNextRun(0x80) as ISpriteRun;
          Assert.Equal(1, sprite1.SpriteFormat.TileWidth);
          Assert.Equal(1, sprite1.SpriteFormat.TileHeight);
-         Assert.Equal("overworld.palettes:id=0011", sprite1.SpriteFormat.PaletteHint);
+         Assert.Equal($"{HardcodeTablesModel.OverworldPalettes}:id=0011", sprite1.SpriteFormat.PaletteHint);
 
          Assert.IsType<SpriteRun>(Model.GetNextRun(0xA0));
       }

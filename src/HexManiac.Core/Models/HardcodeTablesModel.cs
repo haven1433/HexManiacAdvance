@@ -30,6 +30,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          EggMovesTableName = "data.pokemon.moves.egg",
          PokemonStatsTable = "data.pokemon.stats",
          AbilityNamesTable = "data.abilities.names",
+         OverworldPalettes = "graphics.overworld.palettes",
          BallPalettesTable = "graphics.items.ball.palettes",
          FrontSpritesTable = "graphics.pokemon.sprites.front",
          PokePalettesTable = "graphics.pokemon.palettes.normal",

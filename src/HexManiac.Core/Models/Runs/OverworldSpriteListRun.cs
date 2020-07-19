@@ -64,7 +64,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var tileWidth = (int)Math.Max(1, Math.Ceiling(width / 8.0));
          var tileHeight = (int)Math.Max(1, Math.Ceiling(height / 8.0));
          var key = model.ReadMultiByteValue(elementStart + keyOffset, 2);
-         var hint = $"overworld.palettes:id={key:X4}";
+         var hint = $"{HardcodeTablesModel.OverworldPalettes}:id={key:X4}";
 
          var format = $"`ucs4x{tileWidth}x{tileHeight}|{hint}`";
          if (keyOffset == -1) {
