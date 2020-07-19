@@ -627,7 +627,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          // remap other sprites using the masses
          bool remappedOtherSprites = false;
-         foreach(var sprite in allSprites) {
+         foreach (var sprite in allSprites) {
             if (sprite == spriteRun) continue;
             var existingPixels = sprite.GetPixels(model, 0);
             for (int i = 0; i < 16; i++) {
