@@ -258,12 +258,12 @@ namespace HavenSoft.HexManiac.Tests {
       public void PokedexSearchDataIsFound(string game) {
          var model = fixture.LoadModel(game);
 
-         Assert.NotNull(model.GetTable("searchalpha"));
-         Assert.NotNull(model.GetTable("searchweight"));
-         Assert.NotNull(model.GetTable("searchsize"));
+         Assert.NotNull(model.GetTable("data.pokedex.search.alpha"));
+         Assert.NotNull(model.GetTable("data.pokedex.search.weight"));
+         Assert.NotNull(model.GetTable("data.pokedex.search.size"));
 
          if (model.GetGameCode().IsAny(Ruby, Ruby1_1, Sapphire, Sapphire1_1, Emerald)) return;
-         Assert.NotNull(model.GetTable("searchtype"));
+         Assert.NotNull(model.GetTable("data.pokedex.search.type"));
       }
 
       [SkippableTheory]
@@ -430,8 +430,8 @@ namespace HavenSoft.HexManiac.Tests {
       public void HabitatsAreFound(string game) {
          var model = fixture.LoadModel(game);
 
-         var habitatNamesAddress = model.GetAddressFromAnchor(noChange, -1, "habitatnames");
-         var habitatsAddress = model.GetAddressFromAnchor(noChange, -1, "habitats");
+         var habitatNamesAddress = model.GetAddressFromAnchor(noChange, -1, "data.pokedex.habitat.names");
+         var habitatsAddress = model.GetAddressFromAnchor(noChange, -1, "data.pokedex.habitat.pages");
 
          // ruby / sapphire / emerald have no habitats
          if (model.GetGameCode().IsAny(Ruby, Ruby1_1, Sapphire, Sapphire1_1, Emerald)) {

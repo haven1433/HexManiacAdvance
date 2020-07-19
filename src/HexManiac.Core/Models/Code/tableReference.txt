@@ -75,37 +75,37 @@ scripts.battle.thumb,                  012F34, 012F34, 012F34, 012F34, 014C1C, 0
 scripts.battle.thumb,                        ,       ,       ,       ,       ,       ,       ,       , 03CD94, [code<>]249
 
 // pokedex
-regionaldex,         03F7F0, 03F7F0, 03F7F0, 03F7F0, 0431F0, 0431F0, 043204, 043204, 06D3FC, [index:]data.pokemon.names-1
-nationaldex,         03F83C, 03F83C, 03F83C, 03F83C, 04323C, 04323C, 043250, 043250, 06D448, [index:]data.pokemon.names-1
+data.pokedex.regional,                 03F7F0, 03F7F0, 03F7F0, 03F7F0, 0431F0, 0431F0, 043204, 043204, 06D3FC, [index:]data.pokemon.names-1
+data.pokedex.national,                 03F83C, 03F83C, 03F83C, 03F83C, 04323C, 04323C, 043250, 043250, 06D448, [index:]data.pokemon.names-1
 // hoenn[treecko]  =   1, national[treecko]  = 252, HoeennToNationalDex[ 1]= 252
 // hoenn[bulbasaur]= 203, national[bulbasaur]=   1, HoennToNationalDex[203]=   1
 // -> this table's values can be determined automatically based on the first two
-hoennToNational,     03F888, 03F888, 03F888, 03F888, 043288, 043288, 04329C, 04329C, 06D494, [index:]data.pokemon.names-1
-dexinfo,             08F508, 08F508, 08F528, 08F528, 088E34, 088E30, 088E48, 088E1C,       , [species""12 height: weight: description1<""> description2<""> unused: pokemonScale: pokemonOffset: trainerScale: trainerOffset: unused:]
-dexinfo,                   ,       ,       ,       ,       ,       ,       ,       , 0BFA20, [species""12 height: weight: description<""> unused: pokemonScale: pokemonOffset: trainerScale: trainerOffset: unused:]
-searchalpha,         08D930, 08D930, 08D950, 08D950, 103694, 10366C, 10370C, 1036E4, 0BCB74, [species:nationaldex]nationaldex
-searchweight,        08D9BC, 08D9BC, 08D9DC, 08D9DC, 1037CC, 1037A4, 103844, 10381C, 0BCC00, [species:nationaldex]386
-searchsize,          08DAE4, 08DAE4, 08DB04, 08DB04, 103868, 103840, 1038E0, 1038B8, 0BCD28, [species:nationaldex]386
-searchtype,                ,       ,       ,       , 103734, 10370C, 1037AC, 103784,       , [species:data.pokemon.names]nationaldex
-habitatnames,              ,       ,       ,       , 104F84, 104F5C, 104FFC, 104FD4,       , [name<"">]
-habitats,                  ,       ,       ,       , 106888, 106860, 106900, 1068D8,       , [data<[pokemon<[species:data.pokemon.names]/pokecount> pokecount::]/count> count::]habitatnames
+data.pokedex.hoennToNational,          03F888, 03F888, 03F888, 03F888, 043288, 043288, 04329C, 04329C, 06D494, [index:]data.pokemon.names-1
+data.pokedex.stats,                    08F508, 08F508, 08F528, 08F528, 088E34, 088E30, 088E48, 088E1C,       , [species""12 height: weight: description1<""> description2<""> unused: pokemonScale: pokemonOffset: trainerScale: trainerOffset: unused:]
+data.pokedex.stats,                          ,       ,       ,       ,       ,       ,       ,       , 0BFA20, [species""12 height: weight: description<""> unused: pokemonScale: pokemonOffset: trainerScale: trainerOffset: unused:]
+data.pokedex.search.alpha,             08D930, 08D930, 08D950, 08D950, 103694, 10366C, 10370C, 1036E4, 0BCB74, [species:data.pokedex.national]data.pokedex.national
+data.pokedex.search.weight,            08D9BC, 08D9BC, 08D9DC, 08D9DC, 1037CC, 1037A4, 103844, 10381C, 0BCC00, [species:data.pokedex.national]386
+data.pokedex.search.size,              08DAE4, 08DAE4, 08DB04, 08DB04, 103868, 103840, 1038E0, 1038B8, 0BCD28, [species:data.pokedex.national]386
+data.pokedex.search.type,                    ,       ,       ,       , 103734, 10370C, 1037AC, 103784,       , [species:data.pokemon.names]data.pokedex.national
+data.pokedex.habitat.names,                  ,       ,       ,       , 104F84, 104F5C, 104FFC, 104FD4,       , [name<"">]
+data.pokedex.habitat.pages,                  ,       ,       ,       , 106888, 106860, 106900, 1068D8,       , [data<[pokemon<[species:data.pokemon.names]/pokecount> pokecount::]/count> count::]data.pokedex.habitat.names
 
 // non-tables
-eggmoves,            041B44, 041B44, 041B64, 041B64, 045C50, 045C50, 045C64, 045C64, 0703F0, `egg`
-typeChart,           01CDC8, 01CDC8, 01CDC8, 01CDC8, 01E944, 01E944, 01E958, 01E958, 047134, [attack.data.pokemon.type.names defend.data.pokemon.type.names strength.]!FFFF00
-typeicons,                 ,       ,       ,       , 107DB0, 107D88, 107E28, 107E00,       , `ucs4x16x16|typeiconpalette`
-typeiconpalette,           ,       ,       ,       , 107D64, 107D3C, 107DDC, 107DB4,       , `ucp4`
-typetoiconmap,             ,       ,       ,       , 107DAC, 107D84, 107E24, 107DFC,       , [width. height. xy:]24
-typeicons,                 ,       ,       ,       ,       ,       ,       ,       , 61CFBC, `lzs4x4x46|typeiconpalette`
-typeiconindex,             ,       ,       ,       ,       ,       ,       ,       , 1C439C, [index.]23
+data.pokemon.moves.egg,                041B44, 041B44, 041B64, 041B64, 045C50, 045C50, 045C64, 045C64, 0703F0, `egg`
+data.pokemon.type.chart,               01CDC8, 01CDC8, 01CDC8, 01CDC8, 01E944, 01E944, 01E958, 01E958, 047134, [attack.data.pokemon.type.names defend.data.pokemon.type.names strength.]!FFFF00
+graphics.pokemon.type.icons,                 ,       ,       ,       , 107DB0, 107D88, 107E28, 107E00,       , `ucs4x16x16|graphics.pokemon.type.palettes`
+graphics.pokemon.type.palettes,              ,       ,       ,       , 107D64, 107D3C, 107DDC, 107DB4,       , `ucp4`
+graphics.pokemon.type.map,                   ,       ,       ,       , 107DAC, 107D84, 107E24, 107DFC,       , [width. height. xy:]24
+graphics.pokemon.type.icons,                 ,       ,       ,       ,       ,       ,       ,       , 61CFBC, `lzs4x4x46|graphics.pokemon.type.palettes`
+graphics.pokemon.type.index,                 ,       ,       ,       ,       ,       ,       ,       , 1C439C, [index.]23
 // 0D, 0E, 0F are the 3 palettes (0, 1, 2)
-typeiconpalette,           ,       ,       ,       ,       ,       ,       ,       , 1C0080, `lzp4`
-typeicontilepositions      ,       ,       ,       ,       ,       ,       ,       , 61CFCC, [pointer<[start:: unused::]1>]typeiconindex
+graphics.pokemon.type.palettes,              ,       ,       ,       ,       ,       ,       ,       , 1C0080, `lzp4`
+graphics.pokemon.type.tilepositions          ,       ,       ,       ,       ,       ,       ,       , 61CFCC, [pointer<[start:: unused::]1>]graphics.pokemon.type.index
 // the 'start' value is the index of the tile from typeicons where that type's icon starts. Since each icon is 4x2 tiles, each 'start' value is a multiple of 8.
-// @Emerald:61CFC0 :typeiconindex
-bagtypeicon,               ,       ,       ,       ,       ,       ,       ,       , 19A340, `ucs4x16x16|bagtypepalette`
-bagtypepalette,            ,       ,       ,       ,       ,       ,       ,       , 19A2E0, `ucp4`
-bagtypeiconmap,            ,       ,       ,       ,       ,       ,       ,       , 19A33C, [width. height. xy:]24
+// @Emerald:61CFC0 :graphics.pokemon.type.index
+graphics.pokemon.bag.type.icon,              ,       ,       ,       ,       ,       ,       ,       , 19A340, `ucs4x16x16|graphics.pokemon.bag.type.palette`
+graphics.pokemon.bag.type.palette,           ,       ,       ,       ,       ,       ,       ,       , 19A2E0, `ucp4`
+graphics.pokemon.bag.type.map,               ,       ,       ,       ,       ,       ,       ,       , 19A33C, [width. height. xy:]24
 
 titlescreenPokemonPalette,    07C298, 07C29C, 07C2B8, 07C2BC, ,,,, , `ucp4:01`
 titlescreenPokemonTileset,    07C280, 07C284, 07C2A0, 07C2A4, ,,,, , `lzt4|titlescreenPokemonPalette`
