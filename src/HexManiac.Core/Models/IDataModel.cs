@@ -185,6 +185,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
    public static class IDataModelExtensions {
       public static string GetGameCode(this IDataModel model) {
+         if (model.Count <= 0xBC) return string.Empty;
          var code = new string(Enumerable.Range(0xAC, 4).Select(i => (char)model[i]).ToArray());
          code += model[0xBC]; // should be "0" or "1"
          return code;

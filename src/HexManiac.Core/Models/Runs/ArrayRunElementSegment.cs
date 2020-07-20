@@ -21,6 +21,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public string Name { get; }
       public ElementContentType Type { get; }
       public int Length { get; }
+      public virtual string SerializeFormat {
+         get {
+            if (Type == ElementContentType.PCS) return $"{Name}\"\"{Length}";
+            if (Type == ElementContentType.Pointer) return $"{Name}<>";
+            if (Type == ElementContentType.Integer && Length == 1) return $"{Name}.";
+            if (Type == ElementContentType.Integer && Length == 2) return $"{Name}:";
+            if (Type == ElementContentType.Integer && Length == 3) return $"{Name}:.";
+            if (Type == ElementContentType.Integer && Length == 4) return $"{Name}::";
+            throw new NotImplementedException();
+         }
+      }
+
       public ArrayRunElementSegment(string name, ElementContentType type, int length) => (Name, Type, Length) = (name, type, length);
 
       private bool recursionStopper;
@@ -92,6 +104,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
    public class ArrayRunEnumSegment : ArrayRunElementSegment {
       public string EnumName { get; }
+
+      public override string SerializeFormat => base.SerializeFormat + EnumName;
 
       public ArrayRunEnumSegment(string name, int length, string enumName) : base(name, ElementContentType.Integer, length) => EnumName = enumName;
 
@@ -209,6 +223,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    }
 
    public class ArrayRunHexSegment : ArrayRunElementSegment {
+      public override string SerializeFormat => base.SerializeFormat + ArrayRun.HexFormatString;
+
       public ArrayRunHexSegment(string name, int length) : base(name, ElementContentType.Integer, length) {
       }
 
@@ -226,6 +242,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
    public class ArrayRunBitArraySegment : ArrayRunElementSegment {
       public string SourceArrayName { get; }
+
+      public override string SerializeFormat => $"{Name}{BitArray.SharedFormatString}{SourceArrayName}";
 
       public ArrayRunBitArraySegment(string name, int length, string bitSourceName) : base(name, ElementContentType.BitArray, length) {
          SourceArrayName = bitSourceName;
@@ -260,6 +278,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public string InnerFormat { get; }
 
       public bool IsInnerFormatValid => FormatRunFactory.GetStrategy(InnerFormat) != null;
+
+      public override string SerializeFormat => $"{Name}<{InnerFormat}>";
 
       public ArrayRunPointerSegment(string name, string innerFormat) : base(name, ElementContentType.Pointer, 4) {
          InnerFormat = innerFormat;

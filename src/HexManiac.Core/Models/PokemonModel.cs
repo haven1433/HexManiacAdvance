@@ -102,7 +102,77 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          if (metadata.FreeSpaceSearch >= 0) FreeSpaceStart = metadata.FreeSpaceSearch;
 
+         if (!metadata.IsEmpty && StoredMetadata.NeedVersionUpdate(metadata.Version, singletons?.MetadataInfo.VersionNumber ?? "0")) {
+            if (singletons.GameReferenceTables.TryGetValue(this.GetGameCode(), out var tables)) {
+               UpdateRuns(tables);
+            }
+         }
+
          ResolveConflicts();
+      }
+
+      private void UpdateRuns(GameReferenceTables referenceTables) {
+         var noChange = new NoDataChangeDeltaModel();
+         foreach (var reference in referenceTables) {
+            var destination = ReadPointer(reference.Address);
+            if (!anchorForAddress.ContainsKey(destination) && !addressForAnchor.ContainsKey(reference.Name)) {
+               using (ModelCacheScope.CreateScope(this)) {
+                  ApplyAnchor(this, noChange, destination, "^" + reference.Name + reference.Format, allowAnchorOverwrite: true);
+               }
+               continue;
+            }
+
+            if (!anchorForAddress.TryGetValue(destination, out var anchor)) continue;
+            if (anchor == reference.Name) continue;
+            if (TryParseFormat(this, reference.Name, reference.Format, destination, out var run).HasError) continue;
+
+            // update this anchor
+            anchorForAddress[destination] = reference.Name;
+            addressForAnchor.Remove(anchor);
+            addressForAnchor[reference.Name] = destination;
+
+            // update runs
+            for (int i = 0; i < runs.Count; i++) {
+               // update matched-length lengths
+               if (runs[i] is ArrayRun array) {
+                  var parentName = array.LengthFromAnchor.Split('+')[0].Split('-')[0];
+                  if (parentName == anchor) {
+                     var newLengthToken = reference.Name + array.LengthFromAnchor.Substring(parentName.Length);
+                     var newFormat = array.FormatString.Substring(0, array.FormatString.Length - array.LengthFromAnchor.Length);
+                     TryParse(this, newFormat + newLengthToken, array.Start, array.PointerSources, out var newRun);
+                     runs[i] = newRun;
+                  }
+               }
+
+               // update enum names
+               if (runs[i] is ITableRun table) {
+                  for (int j = 0; j < table.ElementContent.Count; j++) {
+                     if (!(table.ElementContent[j] is ArrayRunEnumSegment enumSegment) || enumSegment.EnumName != anchor) continue;
+                     var segments = table.ElementContent.ToList();
+                     segments[j] = new ArrayRunEnumSegment(enumSegment.Name, enumSegment.Length, reference.Name);
+                     table = table.Duplicate(table.Start, table.PointerSources, segments);
+                     runs[i] = table;
+                  }
+               }
+
+               // update palette hints
+               if (runs[i] is ISpriteRun sprite) {
+                  if (sprite is LzTilemapRun) continue;
+                  var format = sprite.SpriteFormat;
+                  if (format.PaletteHint != anchor) continue;
+                  sprite = sprite.Duplicate(new SpriteFormat(format.BitsPerPixel, format.TileWidth, format.TileHeight, reference.Name));
+                  runs[i] = sprite;
+               }
+
+               // update tileset hints
+               if (runs[i] is LzTilemapRun tilemap) {
+                  var format = tilemap.Format;
+                  if (format.MatchingTileset != anchor) continue;
+                  tilemap = tilemap.Duplicate(new TilemapFormat(format.BitsPerPixel, format.TileWidth, format.TileHeight, reference.Name, format.TilesetTableMember));
+                  runs[i] = tilemap;
+               }
+            }
+         }
       }
 
       /// <summary>

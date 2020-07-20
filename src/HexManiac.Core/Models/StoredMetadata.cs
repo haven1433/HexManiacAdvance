@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.ExceptionServices;
 
 namespace HavenSoft.HexManiac.Core.Models {
    public class StoredMetadata {
@@ -98,6 +97,28 @@ namespace HavenSoft.HexManiac.Core.Models {
          UnmappedPointers = pointers;
          MatchedWords = matchedWords;
          Lists = lists;
+      }
+
+      /// <summary>
+      /// Compares to version strings, in the format major.minor.update.release
+      /// </summary>
+      /// <returns>True if the previous verison is less than the current version.</returns>
+      public static bool NeedVersionUpdate(string previousVersion, string currentVersion) {
+         if (previousVersion == null && currentVersion != null) return true;
+         while (previousVersion.Count(c => c == '.') < currentVersion.Count(c => c == '.')) previousVersion += ".0";
+         while (currentVersion.Count(c => c == '.') < previousVersion.Count(c => c == '.')) currentVersion += ".0";
+
+         var previousParts = previousVersion.Split('.');
+         var currentParts = currentVersion.Split('.');
+
+         for (int i = 0; i < previousParts.Length; i++) {
+            if (!int.TryParse(previousParts[i], out int previous)) return false;
+            if (!int.TryParse(currentParts[i], out int current)) return false;
+            if (previous < current) return true;
+            if (previous > current) return false;
+         }
+
+         return false;
       }
 
       public string[] Serialize() {

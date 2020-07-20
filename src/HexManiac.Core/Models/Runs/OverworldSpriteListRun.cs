@@ -96,6 +96,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public ITableRun Append(ModelDelta token, int length) => throw new NotImplementedException();
 
+      public ITableRun Duplicate(int start, SortedSpan<int> pointerSources, IReadOnlyList<ArrayRunElementSegment> segments) => throw new NotImplementedException();
+
       public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) => ITableRunExtensions.AppendTo(this, model, builder, start, length, deep);
 
       public OverworldSpriteListRun UpdateFromParent(ModelDelta token, int segmentIndex, int pointerSource, out bool spritesMoved) {

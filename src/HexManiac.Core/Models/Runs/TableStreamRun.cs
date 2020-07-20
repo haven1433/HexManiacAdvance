@@ -193,6 +193,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
+      public ITableRun Duplicate(int start, SortedSpan<int> pointerSources, IReadOnlyList<ArrayRunElementSegment> segments) {
+         var closeSegments = FormatString.LastIndexOf(']');
+         var endToken = FormatString.Substring(closeSegments + 1);
+
+         var format = segments.Select(segment => segment.SerializeFormat).Aggregate((a, b) => a + " " + b);
+         format = $"[{format}]{endToken}";
+         return new TableStreamRun(model, start, pointerSources, format, segments, endStream);
+      }
+
       #endregion
 
       public TableStreamRun UpdateFromParent(ModelDelta token, int parentSegmentChange) {

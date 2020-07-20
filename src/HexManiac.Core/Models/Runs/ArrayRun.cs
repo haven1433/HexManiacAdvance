@@ -14,6 +14,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       IReadOnlyList<ArrayRunElementSegment> ElementContent { get; }
       bool CanAppend { get; }
       ITableRun Append(ModelDelta token, int length);
+      ITableRun Duplicate(int start, SortedSpan<int> pointerSources, IReadOnlyList<ArrayRunElementSegment> segments); // exists so that the segments can be replaced. Should not be used with fixed-style table runs, like osl and tpt.
    }
 
    public static class ITableRunExtensions {
@@ -282,7 +283,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          ElementContent = segments;
          ElementLength = ElementContent.Sum(e => e.Length);
          ElementCount = elementCount;
-         var closeArray = format.LastIndexOf(ArrayEnd.ToString());
          LengthFromAnchor = lengthFromAnchor;
          ParentOffset = parentOffset;
          Length = ElementLength * ElementCount;
@@ -354,6 +354,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          if (allowPointersToEntries) self = self.AddSourcesPointingWithinArray(changeToken);
          return true;
+      }
+
+      public ITableRun Duplicate(int start, SortedSpan<int> pointerSources, IReadOnlyList<ArrayRunElementSegment> segments) {
+         var format = segments.Select(segment => segment.SerializeFormat).Aggregate((a, b) => a + " " + b);
+         format = $"[{format}]{LengthFromAnchor}";
+         return new ArrayRun(owner, format, LengthFromAnchor, ParentOffset, start, ElementCount, segments, pointerSources, PointerSourcesForInnerElements);
       }
 
       private static int StandardSearch(IDataModel data, List<ArrayRunElementSegment> elementContent, int elementLength, out int bestLength, Func<IFormattedRun, bool> runFilter) {

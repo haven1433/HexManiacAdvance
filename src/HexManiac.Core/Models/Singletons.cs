@@ -28,11 +28,16 @@ namespace HavenSoft.HexManiac.Core.Models {
       public IReadOnlyList<ScriptLine> BattleScriptLines { get; }
 
       public Singletons() {
+         MetadataInfo = new MetadataInfo();
          GameReferenceTables = CreateGameReferenceTables();
          (ThumbConditionalCodes, ThumbInstructionTemplates) = LoadThumbReference();
          ScriptLines = LoadScriptReference<XSEScriptLine>(ScriptReferenceFileName);
          BattleScriptLines = LoadScriptReference<BSEScriptLine>(BattleScriptReferenceFileName);
-         MetadataInfo = new MetadataInfo();
+      }
+
+      public Singletons(IMetadataInfo metadataInfo, IReadOnlyDictionary<string, GameReferenceTables> gameReferenceTables) {
+         MetadataInfo = metadataInfo;
+         GameReferenceTables = gameReferenceTables;
       }
 
       private IReadOnlyList<ScriptLine> LoadScriptReference<TLine>(string file) where TLine : ScriptLine {

@@ -147,6 +147,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new TrainerPokemonTeamRun(model, workingRun.Start, workingRun.PointerSources);
       }
 
+      public ITableRun Duplicate(int start, SortedSpan<int> pointerSources, IReadOnlyList<ArrayRunElementSegment> segments) => throw new NotImplementedException();
+
       public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) => ITableRunExtensions.AppendTo(this, model, builder, start, length, deep);
 
       #endregion
