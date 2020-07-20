@@ -141,7 +141,7 @@ Name = '''moveeffects'''
    '''Present''',
    '''WeakerWithFriendship''',
    '''PreventStatus5Turns''',
-   '''BurnRaiseSpeed''',
+   '''BurnDefrost''',
    '''Magnitude''',
    '''BatonPass''',
    '''DoublePowerIfOpponentSwitching''',
