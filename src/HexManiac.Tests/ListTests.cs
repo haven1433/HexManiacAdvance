@@ -8,7 +8,7 @@ using System.Text;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
-   public class List : BaseViewModelTestClass {
+   public class ListTests : BaseViewModelTestClass {
       [Fact]
       public void MetadataCanLoadList() {
          var lines = new List<string>();
