@@ -95,9 +95,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void UpdateManualSelection() {
          var linesBeforeSelection = StringToolTextBox.Text.Substring(0, StringToolTextBox.SelectionStart).Split(Environment.NewLine).Length - 1;
          var lastLineIndex = StringToolTextBox.Text.Split(Environment.NewLine).Length - 1;
-         var highestScroll = StringToolTextBox.ExtentHeight - StringToolTextBox.ViewportHeight;
+         var highestScroll = Math.Max(StringToolTextBox.ExtentHeight - StringToolTextBox.ViewportHeight, 0);
          var verticalOffset = linesBeforeSelection * highestScroll / lastLineIndex;
-         StringToolTextBox.ScrollToVerticalOffset(verticalOffset);
+         if (StringToolTextBox.VerticalOffset != verticalOffset) {
+            StringToolTextBox.ScrollToVerticalOffset(verticalOffset);
+         } else {
+            UpdateManualSelectionFromScroll(default, default);
+         }
       }
 
       private void UpdateManualSelectionFromScroll(object sender, EventArgs e) {
@@ -118,7 +122,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          }
 
          var selectionStart = StringToolTextBox.Text.Substring(0, StringToolTextBox.SelectionStart).Split(Environment.NewLine).Last().Length;
-         const int fontWidth = 7; // FormattedText.Width gives more like 6.5, but 7 actually looks better.
+         const double fontWidth = 6.6;
          var horizontalStart = selectionStart * fontWidth + 2;
          var width = tool.ContentSelectionLength * fontWidth;
          ManualHighlight.Opacity = 0.4;
