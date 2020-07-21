@@ -151,7 +151,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      if (result >= BaseModel.PointerOffset) result -= BaseModel.PointerOffset;
                      GotoAddress(result);
                   } else {
-                     var options = model.GetNewPointerAutocompleteOptions(address.Trim(), -1);
+                     var options = model.GetNewPointerAutocompleteOptions(" " + address.Trim(), -1);
                      if (options.Count == 1) {
                         anchor = this.model.GetAddressFromAnchor(new ModelDelta(), -1, options[0].CompletionText);
                         GotoAddress(anchor);
