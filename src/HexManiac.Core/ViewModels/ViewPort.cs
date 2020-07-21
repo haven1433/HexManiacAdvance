@@ -710,15 +710,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void CopyAddressExecute(IFileSystem fileSystem) {
-         fileSystem.CopyText = scroll.ViewPointToDataIndex(selection.SelectionStart).ToString("X6");
+         var copyText = scroll.ViewPointToDataIndex(selection.SelectionStart).ToString("X6");
+         fileSystem.CopyText = copyText;
          RequestMenuClose?.Invoke(this, EventArgs.Empty);
-         OnMessage?.Invoke(this, $"'{fileSystem.CopyText}' copied to clipboard.");
+         OnMessage?.Invoke(this, $"'{copyText}' copied to clipboard.");
       }
 
       private void CopyBytesExecute(IFileSystem fileSystem) {
-         fileSystem.CopyText = GetSelectedByteContents();
+         var copyText = GetSelectedByteContents();
+         fileSystem.CopyText = copyText;
          RequestMenuClose?.Invoke(this, EventArgs.Empty);
-         OnMessage?.Invoke(this, $"'{fileSystem.CopyText}' copied to clipboard.");
+         OnMessage?.Invoke(this, $"'{copyText}' copied to clipboard.");
       }
 
       private void DeepCopyExecute(IFileSystem fileSystem) {
