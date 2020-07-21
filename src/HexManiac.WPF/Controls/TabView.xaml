@@ -86,7 +86,7 @@
          </Button>
       </StackPanel>
       <!-- Tools -->
-      <Grid DockPanel.Dock="Left" DataContext="{Binding Tools}">
+      <Grid DockPanel.Dock="Left" DataContext="{Binding Tools}" Width="275">
          <Grid.Style>
             <Style TargetType="Grid">
                <Style.Triggers>
@@ -107,7 +107,7 @@
                </StackPanel>
             </Border>
          </Popup>
-         <DockPanel Width="265" Name="TableToolPanel">
+         <DockPanel Name="TableToolPanel">
             <DockPanel.Style>
                <Style TargetType="DockPanel">
                   <Setter Property="Visibility" Value="Collapsed"/>
@@ -338,13 +338,13 @@
             </DockPanel.Style>
             <TextBlock Text="Address:" Margin="5,15,0,0" DockPanel.Dock="Top"/>
             <TextBox Text="{Binding StringTool.Address, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5" DockPanel.Dock="Top"/>
-            <TextBlock DockPanel.Dock="Top" Text="{Binding StringTool.Message}" Width="255" HorizontalAlignment="Center" TextWrapping="Wrap" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
+            <TextBlock DockPanel.Dock="Top" Text="{Binding StringTool.Message}" HorizontalAlignment="Center" TextWrapping="Wrap" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
             <Button Margin="0,3" Command="{Binding StringTool.CheckIsText}" Content="Show As Text" HorizontalAlignment="Right" DockPanel.Dock="Top" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
             <Button Command="{Binding StringTool.InsertText}" Content="Insert New Text" HorizontalAlignment="Right" DockPanel.Dock="Top" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
             <TextBlock Text="Content:" Margin="5,30,0,0" DockPanel.Dock="Top"/>
 
             <Button Command="{Binding StringTool.Search}" Margin="5,0" Content="Search" HorizontalAlignment="Right" DockPanel.Dock="Bottom" />
-            <TextBox Margin="5,0" Width="255" FontFamily="Consolas" Text="{Binding StringTool.SearchText, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding StringTool.Enabled}" DockPanel.Dock="Bottom">
+            <TextBox Margin="5,0" FontFamily="Consolas" Text="{Binding StringTool.SearchText, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding StringTool.Enabled}" DockPanel.Dock="Bottom">
                <TextBox.InputBindings>
                   <KeyBinding Key="Return" Command="{Binding StringTool.Search}"/>
                   <KeyBinding Key="F3" Command="{Binding StringTool.Search}"/>
@@ -352,7 +352,7 @@
             </TextBox>
             <TextBlock Text="Search:" Margin="5,0" DockPanel.Dock="Bottom"/>
 
-            <Grid Margin="5,5" MinHeight="50" Width="255">
+            <Grid Margin="5,5" MinHeight="50">
                <TextBox Name="StringToolTextBox" AcceptsReturn="True" TextWrapping="Wrap" FontFamily="Consolas" VerticalScrollBarVisibility="Auto" UndoLimit="0"
                   SelectionChanged="StringToolContentSelectionChanged"
                   LostFocus="ShowManualSelection"
@@ -363,7 +363,7 @@
                <Rectangle Name="ManualHighlight" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="14" Fill="{DynamicResource Accent}" Opacity=".4"/>
             </Grid>
          </DockPanel>
-         <ScrollViewer Width="265" Name="ImageToolPanel" VerticalScrollBarVisibility="Visible">
+         <ScrollViewer Name="ImageToolPanel" VerticalScrollBarVisibility="Visible">
             <ScrollViewer.Style>
                <Style TargetType="ScrollViewer">
                   <Setter Property="Visibility" Value="Collapsed"/>
@@ -452,7 +452,7 @@
                </DockPanel>
             </StackPanel>
          </ScrollViewer>
-         <DockPanel Name="CodeToolPanel" Width="265">
+         <DockPanel Name="CodeToolPanel">
             <DockPanel.Style>
                <Style TargetType="DockPanel">
                   <Setter Property="Visibility" Value="Collapsed"/>
