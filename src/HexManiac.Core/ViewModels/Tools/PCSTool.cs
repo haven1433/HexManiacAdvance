@@ -38,7 +38,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
-      private string searchText;
+      private string searchText = string.Empty;
       public string SearchText {
          get => searchText;
          set => TryUpdate(ref searchText, value);
