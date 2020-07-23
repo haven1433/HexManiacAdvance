@@ -91,6 +91,10 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             InvalidateVisual();
             CursorNeedsUpdate?.Invoke(this, EventArgs.Empty);
          }
+
+         if (e.PropertyName == nameof(ViewPort.UpdateInProgress) && !ViewPort.UpdateInProgress) {
+            CursorNeedsUpdate?.Invoke(this, EventArgs.Empty);
+         }
       }
 
       private void OnViewPortRequestMenuClose(object sender, EventArgs e) {
