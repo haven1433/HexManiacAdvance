@@ -172,6 +172,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public SortedSpan<T> Add(SortedSpan<T> other) {
+         if (other == null || other.Count == 0) return this;
+         if (Count == 0) return other;
          var newElements = new T[Count + other.Count];
          int a = 0, b = 0, d = 0, compare = 0;
          while (a < Count && b < other.Count) {

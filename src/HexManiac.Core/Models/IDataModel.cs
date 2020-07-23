@@ -395,7 +395,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private static ITableRun ExtendTableAndChildren(IDataModel model, ModelDelta changeToken, ITableRun array, int count) {
-         var newRun = model.RelocateForExpansion(changeToken, array, array.Length + array.ElementLength);
+         var additionalLength = Math.Max(0, array.ElementLength * count);
+         var newRun = model.RelocateForExpansion(changeToken, array, array.Length + additionalLength);
          newRun = newRun.Append(changeToken, count);
          model.ObserveRunWritten(changeToken, newRun);
          return newRun;

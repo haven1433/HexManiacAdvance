@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -112,6 +113,12 @@ namespace HavenSoft.HexManiac.Core.Models {
          ResolveConflicts();
       }
 
+      [Conditional("DEBUG")]
+      private void CheckForEmptyAnchors(int destination, string anchor) {
+         var run = GetNextRun(destination);
+         Debug.Assert(run.PointerSources.Count > 0, $"{anchor} refers to {destination:X6}, but has no pointers. So how did we find it?");
+      }
+
       private void LoadDefaultMetadata(string code) {
          if (File.Exists("resources/default.toml")) {
             var lines = File.ReadAllLines("resources/default.toml");
@@ -155,13 +162,20 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (interruptingRun.Start < destination && interruptingRun is ArrayRun array) {
             var elementCount = (destination - array.Start) / array.ElementLength;
             var desiredChange = elementCount - array.ElementCount;
+            string currentName = name;
             while (!string.IsNullOrEmpty(array.LengthFromAnchor)) {
                var nextArray = GetNextRun(GetAddressFromAnchor(noChangeDelta, -1, array.LengthFromAnchor)) as ArrayRun;
+               currentName = array.LengthFromAnchor;
                if (nextArray == null) break;
                array = nextArray;
             }
-            array = array.Append(noChangeDelta, desiredChange);
-            ObserveAnchorWritten(noChangeDelta, GetAnchorFromAddress(-1, array.Start), array);
+            if (array.ElementCount + desiredChange <= 0) {
+               // erase the entire run
+               ClearFormat(noChangeDelta, array.Start, array.Length);
+            } else {
+               array = array.Append(noChangeDelta, desiredChange);
+               ObserveAnchorWritten(noChangeDelta, GetAnchorFromAddress(-1, array.Start), array);
+            }
          }
 
          AddTableDirect(destination, name, format);
@@ -174,6 +188,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          using (ModelCacheScope.CreateScope(this)) {
             ApplyAnchor(this, noChangeDelta, destination, "^" + name + format, allowAnchorOverwrite: true);
          }
+
+         CheckForEmptyAnchors(destination, name);
       }
    }
 }

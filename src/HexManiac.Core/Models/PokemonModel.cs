@@ -43,7 +43,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override IReadOnlyList<ArrayRun> Arrays {
          get {
             var results = new List<ArrayRun>();
-            foreach(var address in anchorForAddress.Keys) {
+            foreach (var address in anchorForAddress.Keys) {
                var index = BinarySearch(address);
                if (index < 0) continue;
                if (runs[index] is ArrayRun arrayRun) results.Add(arrayRun);
@@ -124,7 +124,9 @@ namespace HavenSoft.HexManiac.Core.Models {
 
             if (!anchorForAddress.TryGetValue(destination, out var anchor)) continue;
             if (anchor == reference.Name) continue;
-            if (TryParseFormat(this, reference.Name, reference.Format, destination, out var run).HasError) continue;
+            using (ModelCacheScope.CreateScope(this)) {
+               if (TryParseFormat(this, reference.Name, reference.Format, destination, out var run).HasError) continue;
+            }
 
             // update this anchor
             anchorForAddress[destination] = reference.Name;
@@ -273,6 +275,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       [Conditional("DEBUG")]
       public void ResolveConflicts() {
+         return;
          for (int i = 0; i < runs.Count; i++) {
             // for every pointer run, make sure that the thing it points to knows about it
             if (runs[i] is PointerRun pointerRun) {
@@ -740,7 +743,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                if (table.ElementCount == targetCount) continue;
                // only relocate if we're not in a loading situation
                if (!(changeToken is NoDataChangeDeltaModel)) {
-                  newTable = (ArrayRun)RelocateForExpansion(changeToken, table, targetCount * table.ElementLength);
+                  newTable = RelocateForExpansion(changeToken, table, targetCount * table.ElementLength);
                }
                int originalLength = newTable.Length;
                newTable = newTable.Append(changeToken, targetCount - table.ElementCount);
@@ -902,14 +905,14 @@ namespace HavenSoft.HexManiac.Core.Models {
          var existingRun = (index >= 0 && index < runs.Count) ? runs[index] : null;
 
          using (ModelCacheScope.CreateScope(this)) {
-            if (existingRun == null) {
+            if (existingRun == null || existingRun.Start != run.Start) {
                // no format starts exactly at this anchor, so clear any format that goes over this anchor.
                ClearFormat(changeToken, location, run.Length);
             } else if (!(run is NoInfoRun)) {
                // a format starts exactly at this anchor.
-               // but the new format may extend further. If so, clear the existing format.
+               // but the new format may extend further. If so, clear the excess space.
                if (existingRun.Length < run.Length) {
-                  ClearFormat(changeToken, run.Start, run.Length);
+                  ClearFormat(changeToken, existingRun.Start + existingRun.Length, run.Length - existingRun.Length);
                }
             }
 
@@ -930,7 +933,9 @@ namespace HavenSoft.HexManiac.Core.Models {
                changeToken.AddName(location, anchorName);
             }
 
-            var seekPointers = run.PointerSources == null && (existingRun?.PointerSources == null || existingRun?.Start != location);
+            var seekPointers = existingRun?.PointerSources == null || existingRun?.Start != location;
+            var noKnownPointers = run.PointerSources == null || run.PointerSources.Count == 0;
+            seekPointers = seekPointers && noKnownPointers;
             var sources = GetSourcesPointingToNewAnchor(changeToken, anchorName, seekPointers);
 
             // if we're adding an array, a few extra updates
