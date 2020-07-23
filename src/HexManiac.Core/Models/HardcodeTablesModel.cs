@@ -138,7 +138,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private void DecodeHeader() {
          if (!gameCode.IsAny(Ruby, Sapphire, Ruby1_1, Sapphire1_1)) {
-            ObserveAnchorWritten(noChangeDelta, "RomName", new AsciiRun(0x108, 0x20));
+            ObserveAnchorWritten(noChangeDelta, "data.header.romname", new AsciiRun(0x108, 0x20));
          }
       }
 

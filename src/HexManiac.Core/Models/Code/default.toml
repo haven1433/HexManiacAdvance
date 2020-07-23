@@ -1,15 +1,15 @@
 ﻿[[NamedAnchors]]
-Name = '''GameTitle'''
+Name = '''data.header.title'''
 Address = 0x0000A0
 Format = '''`asc`12'''
 
 [[NamedAnchors]]
-Name = '''GameCode'''
+Name = '''data.header.gamecode'''
 Address = 0x0000AC
 Format = '''`asc`4'''
 
 [[NamedAnchors]]
-Name = '''MakerCode'''
+Name = '''data.header.makercode'''
 Address = 0x0000B0
 Format = '''`asc`2'''
 
