@@ -589,7 +589,7 @@ namespace HavenSoft.HexManiac.Tests {
          var game = PokemonGames.Skip(2).First()[0] as string; // fire red
          var model = fixture.LoadModel(game);
          var viewPort = new ViewPort(string.Empty, model, fixture.Singletons);
-         var results = viewPort.Find("BurnRaiseSpeed");
+         var results = viewPort.Find("BurnDefrost");
          Assert.Equal(2, results.Count);
       }
 
