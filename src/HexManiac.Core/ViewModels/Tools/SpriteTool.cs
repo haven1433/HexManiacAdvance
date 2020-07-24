@@ -627,7 +627,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                // the mapping doesn't matter.
                indexMapper[i] = 0;
             } else if (matches.Count > 1) {
-               Debug.Fail("How did we get multiple matches? That shouldn't be possible.");
                indexMapper[i] = masses.IndexOf(matches[0]);
             }
          }
@@ -651,7 +650,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   // the mapping doesn't matter.
                   indexMapper[i] = 0;
                } else if (matches.Count > 1) {
-                  Debug.Fail("How did we get multiple matches? That shouldn't be possible.");
                   indexMapper[i] = masses.IndexOf(matches[0]);
                }
             }
