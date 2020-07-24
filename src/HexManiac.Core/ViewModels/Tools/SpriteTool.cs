@@ -599,16 +599,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var width = newPixels.GetLength(0);
          for (int i = 0; i < newPalette.Count; i++) {
             int count = Enumerable.Range(0, newPixels.Length).Count(j => newPixels[j % width, j / width] == i);
+            if (count == 0) continue;
             masses.Add(new ColorMass(newPalette[i], count));
          }
          // the existing colors have mass equale to their usage.
          for (int i = 0; i < existingPalette.Count; i++) {
             int sum = 0;
-            foreach(var sprite in allSprites) {
+            foreach (var sprite in allSprites) {
                if (sprite == spriteRun) continue;
                var existingPixels = sprite.GetPixels(model, 0);
+               width = existingPixels.GetLength(0);
                sum += Enumerable.Range(0, existingPixels.Length).Count(j => existingPixels[j % width, j / width] == i);
             }
+            if (sum == 0) continue;
             masses.Add(new ColorMass(existingPalette[i], sum));
          }
          Reduce(masses, 16);
@@ -616,8 +619,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          // map from the colors in the new palette to colors in the initial palette
          var indexMapper = new int[16];
          for (int i = 0; i < 16; i++) {
-            var m = masses.Single(mass => mass.OriginalColors.ContainsKey(newPalette[i]));
-            indexMapper[i] = masses.IndexOf(m);
+            var matches = masses.Where(mass => mass.OriginalColors.ContainsKey(newPalette[i])).ToList();
+            if (matches.Count == 1) {
+               indexMapper[i] = masses.IndexOf(matches[0]);
+            } else if (matches.Count == 0) {
+               // no matches: this color, from the original palette, was never actually used in the image.
+               // the mapping doesn't matter.
+               indexMapper[i] = 0;
+            } else if (matches.Count > 1) {
+               Debug.Fail("How did we get multiple matches? That shouldn't be possible.");
+               indexMapper[i] = masses.IndexOf(matches[0]);
+            }
          }
          for (int x = 0; x < newPixels.GetLength(0); x++) {
             for (int y = 0; y < newPixels.GetLength(1); y++) {
@@ -631,8 +643,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (sprite == spriteRun) continue;
             var existingPixels = sprite.GetPixels(model, 0);
             for (int i = 0; i < 16; i++) {
-               var m = masses.Single(mass => mass.OriginalColors.ContainsKey(existingPalette[i]));
-               indexMapper[i] = masses.IndexOf(m);
+               var matches = masses.Where(mass => mass.OriginalColors.ContainsKey(existingPalette[i])).ToList();
+               if (matches.Count == 1) {
+                  indexMapper[i] = masses.IndexOf(matches[0]);
+               } else if (matches.Count == 0) {
+                  // no matches: this color, from the original palette, was never actually used in the image.
+                  // the mapping doesn't matter.
+                  indexMapper[i] = 0;
+               } else if (matches.Count > 1) {
+                  Debug.Fail("How did we get multiple matches? That shouldn't be possible.");
+                  indexMapper[i] = masses.IndexOf(matches[0]);
+               }
             }
             for (int x = 0; x < existingPixels.GetLength(0); x++) {
                for (int y = 0; y < existingPixels.GetLength(1); y++) {
@@ -687,8 +708,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          // map from the colors in the new palette to colors in the initial palette
          var indexMapper = new int[16];
          for (int i = 0; i < 16; i++) {
-            var m = masses.Single(mass => mass.OriginalColors.ContainsKey(newPalette[i]));
-            indexMapper[i] = existingPalette.IndexOf(m.ResultColor);
+            var matches = masses.Where(mass => mass.OriginalColors.ContainsKey(newPalette[i])).ToList();
+            indexMapper[i] = existingPalette.IndexOf(matches[0].ResultColor);
          }
          for (int x = 0; x < newPixels.GetLength(0); x++) {
             for (int y = 0; y < newPixels.GetLength(1); y++) {
@@ -883,6 +904,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private ColorMass() { }
       public ColorMass(short color, int count) {
+         Debug.Assert(count > 0);
          originalColors[color] = count;
          (R, G, B) = SplitRGB(color);
          Mass = count;
