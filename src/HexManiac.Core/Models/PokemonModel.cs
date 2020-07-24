@@ -146,14 +146,20 @@ namespace HavenSoft.HexManiac.Core.Models {
                   }
                }
 
-               // update enum names
+               // update enum names / bitarray names
                if (runs[i] is ITableRun table) {
                   for (int j = 0; j < table.ElementContent.Count; j++) {
-                     if (!(table.ElementContent[j] is ArrayRunEnumSegment enumSegment) || enumSegment.EnumName != anchor) continue;
-                     var segments = table.ElementContent.ToList();
-                     segments[j] = new ArrayRunEnumSegment(enumSegment.Name, enumSegment.Length, reference.Name);
-                     table = table.Duplicate(table.Start, table.PointerSources, segments);
-                     runs[i] = table;
+                     if (table.ElementContent[j] is ArrayRunEnumSegment enumSegment && enumSegment.EnumName == anchor) {
+                        var segments = table.ElementContent.ToList();
+                        segments[j] = new ArrayRunEnumSegment(enumSegment.Name, enumSegment.Length, reference.Name);
+                        table = table.Duplicate(table.Start, table.PointerSources, segments);
+                        runs[i] = table;
+                     } else if (table.ElementContent[j] is ArrayRunBitArraySegment bitSegment && bitSegment.SourceArrayName == anchor) {
+                        var segments = table.ElementContent.ToList();
+                        segments[j] = new ArrayRunBitArraySegment(bitSegment.Name, bitSegment.Length, reference.Name);
+                        table = table.Duplicate(table.Start, table.PointerSources, segments);
+                        runs[i] = table;
+                     }
                   }
                }
 

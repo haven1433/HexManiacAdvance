@@ -377,7 +377,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void UpdateOldTableWithNewNameTest() {
-         // setup data with a pointer from 0x60 to 0x00
+         // setup data with a pointer from 0x60 to 0x10
          var data = new byte[0x200];
          data[0x63] = 0x08;
 
@@ -402,6 +402,39 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("tom", model.GetAnchorFromAddress(-1, 0x00));
          Assert.Equal("tom", ((ArrayRunEnumSegment)((ITableRun)model.GetNextRun(0x20)).ElementContent[0]).EnumName);
          Assert.Equal("tom", ((ArrayRun)model.GetNextRun(0x40)).LengthFromAnchor);
+      }
+
+      [Fact]
+      public void UpdateOldTableWithNewName_UpdatesBitArrays() {
+         // setup data with a pointer from 0x60 to 0x00 and some strings from 0x00 to 0x10
+         var data = new byte[0x200];
+         data[0x60] = 0x10;
+         data[0x63] = 0x08;
+         int i = 0;
+         foreach (byte b in PCSString.Convert("aaa")) data[i++] = b;
+         foreach (byte b in PCSString.Convert("bbb")) data[i++] = b;
+         foreach (byte b in PCSString.Convert("ccc")) data[i++] = b;
+         foreach (byte b in PCSString.Convert("ddd")) data[i++] = b;
+
+         // setup the metadata loaded from file
+         var anchor1 = new StoredAnchor(0x00, "names", "[name\"\"4]4");
+         var anchor2 = new StoredAnchor(0x10, "bob", "[number::]names");
+         var anchor3 = new StoredAnchor(0x20, "user1", "[number|b[]bob]4"); // should be 4 bytes long
+         var metadataInfo = new StubMetadataInfo { VersionNumber = "0.3.0.0" };
+         var metadata = new StoredMetadata(new[] { anchor1, anchor2, anchor3 }, null, null, null, metadataInfo, default);
+
+         // setup the current reference, loaded from singletons
+         var gameReferenceTables = new GameReferenceTables(new[] { new ReferenceTable("tom", 0x60, "[number::]names") });
+         var singletons = new Singletons(
+            new StubMetadataInfo { VersionNumber = "0.4.0.0" },
+            new Dictionary<string, GameReferenceTables> { { new string((char)0, 4) + "0", gameReferenceTables }
+         });
+
+         // create a model, which should notice and resolve the conflict
+         var model = new PokemonModel(data, metadata, singletons);
+
+         // 'bob' updated to 'tom'
+         Assert.Equal("tom", ((ArrayRunBitArraySegment)((ITableRun)model.GetNextRun(0x20)).ElementContent[0]).SourceArrayName);
       }
    }
 }
