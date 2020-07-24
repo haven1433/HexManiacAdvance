@@ -296,6 +296,27 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                   }
                }
                if (comparePalette == null) comparePalette = frame.Palette.Colors.Select(Convert).ToArray();
+            } else if (format == PixelFormats.Indexed2) {
+               byte[] raw = new byte[frame.PixelWidth * frame.PixelHeight / 2];
+               frame.CopyPixels(raw, frame.PixelWidth / 2, 0);
+               for (int y = 0; y < frame.PixelHeight; y++) {
+                  for (int x = 0; x < frame.PixelWidth / 4; x++) {
+                     var outputPoint1 = y * frame.PixelWidth + x * 4;
+                     var outputPoint2 = y * frame.PixelWidth + x * 4 + 1;
+                     var outputPoint3 = y * frame.PixelWidth + x * 4 + 2;
+                     var outputPoint4 = y * frame.PixelWidth + x * 4 + 3;
+                     var inputPoint = raw[y * frame.PixelWidth / 2 + x];
+                     var color1 = frame.Palette.Colors[inputPoint >> 6];
+                     var color2 = frame.Palette.Colors[(inputPoint >> 4) & 0x3];
+                     var color3 = frame.Palette.Colors[(inputPoint >> 2) & 0x3];
+                     var color4 = frame.Palette.Colors[inputPoint & 0x3];
+                     data[outputPoint1] = Convert(color1);
+                     data[outputPoint2] = Convert(color2);
+                     data[outputPoint3] = Convert(color3);
+                     data[outputPoint4] = Convert(color4);
+                  }
+               }
+               if (comparePalette == null) comparePalette = frame.Palette.Colors.Select(Convert).ToArray();
             } else {
                MessageBox.Show($"Current version does not support converting PixelFormats.{format}");
                return (null, comparePalette, frame.PixelWidth);
