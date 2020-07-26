@@ -85,14 +85,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var split = spriteWidthHeight.ToUpper().Trim().Split("X");
          var availableLength = model.GetNextAnchor(spriteRun.Start + spriteRun.Length).Start - spriteRun.Start;
          if (split.Length == 1 && !(spriteRun is LZRun) && int.TryParse(split[0], out int tiles)) {
-            var desiredLength = tiles * 8 * bits;
-            if (availableLength < desiredLength) {
-               viewPort.RaiseError($"Need {desiredLength} bytes, but only {availableLength} bytes available.");
-            } else {
-               model.ObserveRunWritten(history.CurrentChange, new TilesetRun(new TilesetFormat(bits, tiles, spritePaletteHint), model, spriteAddress));
-               viewPort.Refresh();
-               LoadSprite();
-            }
+            //var desiredLength = tiles * 8 * bits;
+            //if (availableLength < desiredLength) {
+            //   viewPort.RaiseError($"Need {desiredLength} bytes, but only {availableLength} bytes available.");
+            //} else {
+            //   model.ObserveRunWritten(history.CurrentChange, new TilesetRun(new TilesetFormat(bits, tiles, spritePaletteHint), model, spriteAddress));
+            //   viewPort.Refresh();
+            //   LoadSprite();
+            //}
             return;
          }
          if (split.Length != 2) return;
@@ -551,7 +551,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void WriteSpriteAndPaletteOptions(IFileSystem fileSystem, ISpriteRun spriteRun, int[,] newPixels, IPaletteRun palRun, short[][] palettes, IReadOnlyList<short> newPalette) {
          var dependentSprites = palRun.FindDependentSprites(model);
-         if (dependentSprites.Count == 0 || (dependentSprites.Count == 1 && dependentSprites[0].Start == spriteRun.Start)) {
+         if (dependentSprites.Count == 0 || // no sprites are associated with this palette. So just use the currently loaded sprite.
+            (dependentSprites.Count == 1 && dependentSprites[0].Start == spriteRun.Start) || // 'I am the only sprite' case
+            (dependentSprites.Count == 1 && dependentSprites[0] is LzTilesetRun && spriteRun is LzTilemapRun) // 'My tileset is the only sprite' case
+            ) {
             var relatedPalettes = spriteRun.FindRelatedPalettes(model);
             // easy case: a single sprite. Sprite uses the palette.
             // there may be other palettes, but we can leave them be.

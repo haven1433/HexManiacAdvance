@@ -19,6 +19,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          var roughSize = Math.Sqrt(tileCount);
          Width = (int)Math.Ceiling(roughSize);
          Height = (int)roughSize;
+         if (Width * Height < tileCount) Height += 1;
       }
 
       public static bool TryParseTilesetFormat(string format, out TilesetFormat tilesetFormat) {
@@ -45,7 +46,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       public ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels) {
-         throw new NotImplementedException();
+         // TODO handle the fact that pixels[,] may contain a different number of tiles compared to the existing tileset
+         var data = Decompress(model, Start);
+         SpriteRun.SetPixels(data, 0, pixels, Format.BitsPerPixel);
+         var newModelData = Compress(data, 0, data.Length);
+         var newRun = model.RelocateForExpansion(token, this, newModelData.Count);
+         for (int i = 0; i < newModelData.Count; i++) token.ChangeData(model, newRun.Start + i, newModelData[i]);
+         for (int i = newModelData.Count; i < Length; i++) token.ChangeData(model, newRun.Start + i, 0xFF);
+         newRun = new LzTilesetRun(Format, model, newRun.Start, newRun.PointerSources);
+         model.ObserveRunWritten(token, newRun);
+         return newRun;
       }
 
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new LzTilesetRun(Format, Model, Start, newPointerSources);

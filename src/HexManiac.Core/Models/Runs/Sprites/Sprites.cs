@@ -175,7 +175,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                // find all sprites within tables of the same length that reference this table or reference nothing at all
                foreach (var table in model.GetRelatedArrays(tableRun)) {
                   var elementOffset = table.ElementLength * offset.ElementIndex;
-                  foreach(var spriteRun in model.GetPointedChildren<ISpriteRun>(table, offset.ElementIndex)) {
+                  foreach (var spriteRun in model.GetPointedChildren<ISpriteRun>(table, offset.ElementIndex)) {
+                     if (spriteRun is LzTilemapRun) continue; // don't count tilemaps
                      var paletteHint = spriteRun.SpriteFormat.PaletteHint;
                      if (!string.IsNullOrEmpty(paletteHint) && paletteHint != primaryName) continue;
                      results.Add(spriteRun);
@@ -203,6 +204,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                            var elementOffset = payloadTable.ElementLength * i;
                            var destination = model.ReadPointer(payloadTable.Start + elementOffset + elementPartOffset);
                            if (!(model.GetNextRun(destination) is ISpriteRun spriteRun)) continue;
+                           if (spriteRun is LzTilemapRun) continue; // don't count tilemaps
                            results.Add(spriteRun);
                         }
                      }
@@ -218,6 +220,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, anchor);
             var anchorRun = model.GetNextRun(address);
             if (!(anchorRun is ISpriteRun spriteRun)) continue;
+            if (spriteRun is LzTilemapRun) continue; // don't count tilemaps
             if (spriteRun.SpriteFormat.PaletteHint != name) continue;
             results.Add(spriteRun);
          }

@@ -86,6 +86,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                for (int x = 0; x < tileWidth; x++) {
                   int xOffset = x * 8;
                   for (int i = 0; i < 32; i++) {
+                     if (start >= data.Length) break; // don't write the blank 'bonus' tiles for tilesets
                      int xx = i % 4, yy = i / 4;
                      var low = pixels[xOffset + xx * 2 + 0, yOffset + yy];
                      var high = pixels[xOffset + xx * 2 + 1, yOffset + yy];
@@ -100,6 +101,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                for (int x = 0; x < tileWidth; x++) {
                   int xOffset = x * 8;
                   for (int i = 0; i < 64; i++) {
+                     if (start >= data.Length) break; // don't write the blank 'bonus' tiles for tilesets
                      int xx = i % 8, yy = i / 8;
                      data[start] = (byte)pixels[xOffset + xx, yOffset + yy];
                      start += 1;
