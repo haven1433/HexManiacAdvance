@@ -281,6 +281,18 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                      data[outputPoint] = Convert(color);
                   }
                }
+            } else if (format == PixelFormats.Indexed8) {
+               byte[] raw = new byte[frame.PixelWidth * frame.PixelHeight];
+               frame.CopyPixels(raw, frame.PixelWidth, 0);
+               for (int y = 0; y < frame.PixelHeight; y++) {
+                  for (int x = 0; x < frame.PixelWidth; x++) {
+                     var outputPoint = y * frame.PixelWidth + x;
+                     var inputPoint = raw[y * frame.PixelWidth + x];
+                     var color = frame.Palette.Colors[inputPoint];
+                     data[outputPoint] = Convert(color);
+                  }
+               }
+               if (comparePalette == null) comparePalette = frame.Palette.Colors.Select(Convert).ToArray();
             } else if (format == PixelFormats.Indexed4) {
                byte[] raw = new byte[frame.PixelWidth * frame.PixelHeight / 2];
                frame.CopyPixels(raw, frame.PixelWidth / 2, 0);
