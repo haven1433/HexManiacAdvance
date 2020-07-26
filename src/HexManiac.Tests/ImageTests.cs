@@ -369,9 +369,13 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void LoosePaletteCanFindSpriteThatUsesIt() {
+         // setup an lz run header at 0x80
+         Model[0x80] = 0x10;
+         Model[0x81] = 32;
+
          ViewPort.Edit("@00 ^pal`ucp4`");
          ViewPort.Edit("@40 ^sprite`ucs4x1x1|pal`");
-         ViewPort.Edit("@80 ^tiles`uct4x1|pal`");
+         ViewPort.Edit("@80 ^tiles`lzt4|pal`");
 
          var run = (IPaletteRun)Model.GetNextRun(0x00);
          IReadOnlyList<ISpriteRun> sprites = run.FindDependentSprites(Model);
