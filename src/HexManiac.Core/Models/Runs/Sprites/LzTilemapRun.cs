@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
@@ -20,7 +19,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
       public int Pages => 1;
       public TilemapFormat Format { get; }
-      public bool SupportsImport => true;
+
+      /// <summary>
+      /// Only allow import if our tileset is actually a tileset
+      /// </summary>
+      public bool SupportsImport {
+         get {
+            var tilesetAddress = Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, Format.MatchingTileset);
+            var tileset = Model.GetNextRun(tilesetAddress) as LzTilesetRun;
+            if (tileset == null) tileset = Model.GetNextRun(arrayTilesetAddress) as LzTilesetRun;
+            return tileset != null;
+         }
+      }
 
       public override string FormatString =>
          $"`lzm{Format.BitsPerPixel}x{Format.TileWidth}x{Format.TileHeight}|{Format.MatchingTileset}" +
@@ -100,7 +110,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       public ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels) {
-
          var tileData = Tilize(pixels);
          var tiles = GetUniqueTiles(tileData);
          var tilesetAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, Format.MatchingTileset);
