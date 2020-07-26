@@ -60,7 +60,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new LzTilesetRun(Format, Model, Start, newPointerSources);
 
-      public ISpriteRun Duplicate(SpriteFormat format) => new LzTilesetRun(new TilesetFormat(format.BitsPerPixel, Format.PaletteHint), Model, Start, PointerSources);
+      public ISpriteRun Duplicate(SpriteFormat format) => new LzSpriteRun(format, Model, Start, PointerSources);
 
       public ISpriteRun SetPixels(IDataModel model, ModelDelta token, int[][,] tiles) {
          var tileSize = 8 * Format.BitsPerPixel;
