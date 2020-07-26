@@ -66,6 +66,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ICommand CreateGradient => StubCommand(ref createGradient, ExecuteCreateGradient, CanExecuteCreateGradient);
 
       public event EventHandler<int> RequestPageSet;
+      public event EventHandler ColorsChanged;
 
       public PaletteCollection(ViewPort viewPort, ChangeHistory<ModelDelta> history) {
          this.viewPort = viewPort;
@@ -146,7 +147,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (Enumerable.Range(0, Elements.Count).All(i => Elements[i].Index == newElements[i].Index)) return;
 
          var palettesToUpdate = new List<IPaletteRun> { source };
-         foreach (var sprite in source.FindDependentSprites(model).Distinct()) {
+         var sprites = source.FindDependentSprites(model).Distinct().ToList();
+         foreach (var sprite in sprites) {
             var newSprite = sprite;
 
             // TODO this doesn't currently work for tilemaps with multiple palettes, such as the first-person-views
@@ -174,14 +176,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (palette.Start != newPalette.Start) viewPort.RaiseMessage($"Palette was moved to {newPalette.Start:X6}. Pointers were updated.");
          }
 
+         for (int i = 0; i < Elements.Count; i++) {
+            Elements[i].Selected = newElements[i].Selected;
+            Elements[i].Index = newElements[i].Index;
+            // the elements order changed, so the element should already have the right color.
+         }
          Refresh();
-         for (int i = 0; i < Elements.Count; i++) Elements[i].Selected = newElements[i].Selected;
       }
 
       private void Refresh() {
          var currentPage = page;
          viewPort.Refresh();
          if (hasMultiplePages) RequestPageSet?.Invoke(this, currentPage);
+         ColorsChanged?.Invoke(this, EventArgs.Empty);
       }
 
       #region Commands

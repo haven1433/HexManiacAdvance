@@ -366,8 +366,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public short[] PixelData { get; private set; }
 
-      // TODO propogate changes back to the paletteAddress in the model
-      // public ObservableCollection<short> Palette { get; private set; } = new ObservableCollection<short>();
       public PaletteCollection Colors { get; }
 
       public bool IsReadOnly => true;
@@ -376,6 +374,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          this.viewPort = viewPort;
          this.history = history;
          Colors = new PaletteCollection(viewPort, history);
+         Colors.ColorsChanged += (sender, e) => { LoadPalette(); LoadSprite(); };
          model = viewPort?.Model;
          spriteAddress = Pointer.NULL;
          paletteAddress = Pointer.NULL;
