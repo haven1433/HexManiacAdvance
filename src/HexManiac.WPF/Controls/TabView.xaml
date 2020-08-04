@@ -418,7 +418,7 @@
                <TextBlock Margin="5,1" TextWrapping="Wrap" FontStyle="Italic" Foreground="{DynamicResource Error}" Text="Could not find sprite data starting at that address." Visibility="{Binding SpriteTool.ShowNoSpriteAnchorMessage, Converter={StaticResource BoolToVisibility}}"/>
 
                <!-- Sprite -->
-               <hsg3hv:PixelImage Margin="5,5,5,2" DataContext="{Binding SpriteTool}" />
+               <hsg3hv:PixelImage Margin="0,5,0,2" DataContext="{Binding SpriteTool}" />
                <DockPanel Visibility="{Binding SpriteTool.HasMultipleSpritePages, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
                   <Button Content="Previous" Command="{Binding SpriteTool.PreviousSpritePage}" DockPanel.Dock="Left"/>
                   <Button Content="Next" Command="{Binding SpriteTool.NextSpritePage}" DockPanel.Dock="Right"/>
