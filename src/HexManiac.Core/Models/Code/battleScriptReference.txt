@@ -39,7 +39,7 @@
 26 setmultihit value.
 27 decrementmultihit value::
 28 goto ptr<>
-29 jumpifbyte ifflag. param1:: param2. param3::
+29 jumpifbyte ifflag. param1:: param2. ptr<>
 2a jumpifhalfword ifflag. address:: value: ptr<>
 2b jumpifword ifflag. param1:: param2:: param3::
 2c jumpifarrayequal param0:: param1:: param2. param3::
@@ -148,7 +148,7 @@
 86 stockpiletobasedamage param0::
 87 stockpiletohpheal param0::
 88 negativedamage
-89 statbuffchange param0. param1::
+89 statbuffchange param0. ptr<>
 8a normalisebuffs
 8b setbide
 8c confuseifrepeatingattackends
