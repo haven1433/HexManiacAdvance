@@ -75,6 +75,9 @@ scripts.moves.effects,                 0146E4, 0146E4, 0146E4, 0146E4, 016364, 0
 scripts.specials.thumb,                0658B4, 0658B8, 0658D4, 0658D8, 069F18, 069F18, 069F2C, 069F2C, 099314, [code<>]
 scripts.battle.thumb,                  012F34, 012F34, 012F34, 012F34, 014C1C, 014C1C, 014C30, 014C30,       , [code<>]248
 scripts.battle.thumb,                        ,       ,       ,       ,       ,       ,       ,       , 03CD94, [code<>]249
+graphics.pokemon.castform.sprite.coordinates.front, 077DAC, 077DB0, 077DCC, 077DD0, 074720, 074720, 074734, 074734, 0A5F74, [size. yOffset. unused:]4
+graphics.pokemon.castform.sprite.elevations,        077E18, 077E1C, 077E38, 077E3C, 074780, 074780, 074794, 074794, 0A5FE0, [elevation.]graphics.pokemon.castform.sprite.coordinates.front
+graphics.pokemon.castform.sprite.coordinates.back,  077CE4, 077CE8, 077D04, 077D08, 074650, 074650, 074664, 074664, 0A5EA8, [yOffset.]graphics.pokemon.castform.sprite.coordinates.front
 
 
 data.pokedex.regional,                 03F7F0, 03F7F0, 03F7F0, 03F7F0, 0431F0, 0431F0, 043204, 043204, 06D3FC, [index:]data.pokemon.names-1
