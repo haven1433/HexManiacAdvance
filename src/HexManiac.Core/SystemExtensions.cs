@@ -117,17 +117,21 @@ namespace HavenSoft.HexManiac.Core {
          }
       }
 
+      public static bool MatchesPartialWithReordering(this string full, string partial) {
+         var parts = full.Split('.');
+         foreach (var possibleOrder in EnumerateOrders(parts)) {
+            if (!MatchesPartial(possibleOrder, partial)) continue;
+            return true;
+         }
+         return false;
+      }
+
       public static IList<int> FindMatches(string input, IList<string> options) {
          var result = new List<int>();
          for (int i = 0; i < options.Count; i++) {
             if (!input.All(options[i].Contains)) continue;
             if (!input.Contains(".")) {
-               var parts = options[i].Split(".");
-               foreach (var possibleOrder in EnumerateOrders(parts)) {
-                  if (!MatchesPartial(possibleOrder, input)) continue;
-                  result.Add(i);
-                  break;
-               }
+               if (options[i].MatchesPartialWithReordering(input)) result.Add(i);
             } else {
                if (MatchesPartial(options[i], input)) result.Add(i);
             }

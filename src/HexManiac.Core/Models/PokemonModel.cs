@@ -1397,6 +1397,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial) {
+         const int MaxResults = 50;
          partial = partial.ToLower();
          var mappedNames = addressForAnchor.Keys.ToList();
 
@@ -1405,7 +1406,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (!partial.Contains(ArrayAnchorSeparator)) {
             foreach (var index in SystemExtensions.FindMatches(partial, mappedNames)) {
                results.Add(mappedNames[index]);
-               if (results.Count == 80) break;
+               if (results.Count == MaxResults) break;
             }
             return results;
          }
@@ -1414,13 +1415,14 @@ namespace HavenSoft.HexManiac.Core.Models {
             var address = addressForAnchor[name];
             if (GetNextRun(address) is ArrayRun run) {
                var nameParts = partial.Split(ArrayAnchorSeparator);
-               if (!name.MatchesPartial(nameParts[0])) continue;
+
+               if (!name.MatchesPartialWithReordering(nameParts[0])) continue;
                results.AddRange(GetAutoCompleteOptions(name + ArrayAnchorSeparator, run, nameParts.Skip(1).ToArray()));
             }
          }
 
-         // limit it to the first 80 options for performance
-         if (results.Count > 80) results.RemoveRange(80, results.Count - 80);
+         // limit it to the first MaxResults options for performance
+         if (results.Count > MaxResults) results.RemoveRange(MaxResults, results.Count - MaxResults);
          return results;
       }
 
