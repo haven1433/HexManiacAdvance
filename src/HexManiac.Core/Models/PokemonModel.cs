@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
@@ -1397,14 +1398,21 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public override IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial) {
          partial = partial.ToLower();
-         var mappedNames = addressForAnchor.Keys;
+         var mappedNames = addressForAnchor.Keys.ToList();
 
          var results = new List<string>();
+
+         if (!partial.Contains(ArrayAnchorSeparator)) {
+            foreach (var index in SystemExtensions.FindMatches(partial, mappedNames)) {
+               results.Add(mappedNames[index]);
+               if (results.Count == 80) break;
+            }
+            return results;
+         }
+
          foreach (var name in mappedNames) {
             var address = addressForAnchor[name];
-            if (!(GetNextRun(address) is ArrayRun run) || !partial.Contains(ArrayAnchorSeparator)) {
-               if (name.MatchesPartial(partial)) results.Add(name);
-            } else {
+            if (GetNextRun(address) is ArrayRun run) {
                var nameParts = partial.Split(ArrayAnchorSeparator);
                if (!name.MatchesPartial(nameParts[0])) continue;
                results.AddRange(GetAutoCompleteOptions(name + ArrayAnchorSeparator, run, nameParts.Skip(1).ToArray()));
