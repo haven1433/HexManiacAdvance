@@ -102,5 +102,37 @@ namespace HavenSoft.HexManiac.Core {
 
          return -1;
       }
+
+      public static IEnumerable<string> EnumerateOrders(IReadOnlyList<string> parts) {
+         if (parts.Count == 1) {
+            yield return parts[0];
+            yield break;
+         }
+
+         foreach (var token in parts) {
+            var otherTokens = parts.Except(new[] { token }).ToList();
+            foreach (var result in EnumerateOrders(otherTokens)) {
+               yield return token + '.' + result;
+            }
+         }
+      }
+
+      public static IList<int> FindMatches(string input, IList<string> options) {
+         var result = new List<int>();
+         for (int i = 0; i < options.Count; i++) {
+            if (!input.All(options[i].Contains)) continue;
+            if (!input.Contains(".")) {
+               var parts = options[i].Split(".");
+               foreach (var possibleOrder in EnumerateOrders(parts)) {
+                  if (!MatchesPartial(possibleOrder, input)) continue;
+                  result.Add(i);
+                  break;
+               }
+            } else {
+               if (MatchesPartial(options[i], input)) result.Add(i);
+            }
+         }
+         return result;
+      }
    }
 }
