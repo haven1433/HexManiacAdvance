@@ -202,10 +202,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          int length = end - start + 1;
          var code = thumb.Compile(model, start, Content.Split(Environment.NewLine));
 
-         if (code.Count != length) return;
+         // if more length is needed and the next available bytes are free, allow it.
+         while (code.Count > length && model.Count > start + length + 1 && model[start + length] == 0xFF && model[start + length + 1] == 0xFF) length += 2;
+
+         if (code.Count > length) return;
 
          for (int i = 0; i < code.Count; i++) {
             history.CurrentChange.ChangeData(model, start + i, code[i]);
+         }
+         for (int i = code.Count; i < length; i++) {
+            history.CurrentChange.ChangeData(model, start + i, 0xFF);
          }
 
          ModelDataChanged?.Invoke(this, ErrorInfo.NoError);
