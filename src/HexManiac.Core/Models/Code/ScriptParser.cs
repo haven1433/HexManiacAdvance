@@ -141,7 +141,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public byte[] Compile(ModelDelta token, IDataModel model, int start, ref string script, out IReadOnlyList<(int originalLocation, int newLocation)> movedData) {
          movedData = new List<(int, int)>();
-         var lines = script.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
+         var lines = script.Split(new[] { '\n', '\r' }, StringSplitOptions.None)
             .Select(line => line.Split('#').First())
             .Where(line => !string.IsNullOrWhiteSpace(line))
             .ToArray();
