@@ -204,7 +204,11 @@
                               <ColumnDefinition Width="*"/>
                            </Grid.ColumnDefinitions>
                            <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
-                           <TextBox UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1"/>
+                           <TextBox UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1">
+                              <TextBox.InputBindings>
+                                 <KeyBinding Key="Enter" Command="{Binding Accept}"/>
+                              </TextBox.InputBindings>
+                           </TextBox>
                         </Grid>
                      </DataTemplate>
                      <DataTemplate DataType="{x:Type hsg3hvmtr:ComboBoxArrayElementViewModel}">

@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Globalization;
+using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public enum ElementContentViewModelType {
@@ -65,6 +66,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
+      private StubCommand acceptCommand;
+      public ICommand Accept => StubCommand(ref acceptCommand, ExecuteAccept);
+
       public FieldArrayElementViewModel(ViewPort viewPort, string name, int start, int length, IFieldArrayElementViewModelStrategy strategy) {
          this.strategy = strategy;
          (ViewPort, Model, Name, Start, Length) = (viewPort, viewPort.Model, name, start, length);
@@ -84,10 +88,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          dataChanged = field.dataChanged;
          return true;
       }
+
+      private void ExecuteAccept() {
+         // If we add more accept commands, move this logic into the strategy classes.
+         // right now, don't bother, since there's just one.
+         if (Type == ElementContentViewModelType.Address) {
+            ViewPort.Goto.Execute(Content);
+         }
+      }
    }
 
-   public class TextFieldStratgy : IFieldArrayElementViewModelStrategy {
-      public static TextFieldStratgy Instance { get; } = new TextFieldStratgy();
+   public class TextFieldStrategy : IFieldArrayElementViewModelStrategy {
+      public static TextFieldStrategy Instance { get; } = new TextFieldStrategy();
       public ElementContentViewModelType Type => ElementContentViewModelType.TextField;
 
       public void UpdateModelFromViewModel(FieldArrayElementViewModel viewModel) {
