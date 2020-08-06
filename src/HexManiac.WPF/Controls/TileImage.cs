@@ -77,6 +77,16 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
    public class PixelImage : Image {
       private IPixelViewModel ViewModel => DataContext as IPixelViewModel;
+
+      private bool showDebugGrid;
+      public bool ShowDebugGrid {
+         get => showDebugGrid;
+         set {
+            showDebugGrid = value;
+            UpdateSource();
+         }
+      }
+
       public PixelImage() {
          DataContextChanged += (sender, e) => UpdateDataContext(e);
          SnapsToDevicePixels = true;
@@ -109,6 +119,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (pixels.Length < expectedLength || pixels.Length == 0) { Source = null; return; }
          int stride = ViewModel.PixelWidth * 2;
          var format = PixelFormats.Bgr555;
+         if (ShowDebugGrid) { pixels = pixels.ToArray(); DrawDebugGrid(pixels, ViewModel.PixelWidth); }
 
          if (!(Source is WriteableBitmap wSource) ||
             wSource.PixelWidth != ViewModel.PixelWidth ||
@@ -120,6 +131,15 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var source = (WriteableBitmap)Source;
          var rect = new Int32Rect(0, 0, ViewModel.PixelWidth, ViewModel.PixelHeight);
          source.WritePixels(rect, pixels, stride, 0);
+      }
+
+      private void DrawDebugGrid(short[] pixels, int width) {
+         for (int y = 0; y < pixels.Length; y += width * 8) {
+            for (int x = 0; x < width; x += 2) pixels[y + x] = 0b_10000_10000_10000;
+         }
+         for (int x = 0; x < width; x += 8) {
+            for (int y = 0; y < pixels.Length; y += width * 2) pixels[y + x] = 0b_10000_10000_10000;
+         }
       }
    }
 }
