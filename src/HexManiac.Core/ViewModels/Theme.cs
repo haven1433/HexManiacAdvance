@@ -65,11 +65,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                text.Substring(0, 2) + text.Substring(0, 2) +
                text.Substring(0, 3) + text.Substring(0, 3);
             if (text.Length == 8) text = text.Substring(2);
-            byte r = (byte)(hex.IndexOf(text[0]) * 16 + hex.IndexOf(text[1]));
-            byte g = (byte)(hex.IndexOf(text[2]) * 16 + hex.IndexOf(text[3]));
-            byte b = (byte)(hex.IndexOf(text[4]) * 16 + hex.IndexOf(text[5]));
-            color = (r, g, b);
-            return true;
+            if (text.Length == 6) {
+               byte r = (byte)(hex.IndexOf(text[0]) * 16 + hex.IndexOf(text[1]));
+               byte g = (byte)(hex.IndexOf(text[2]) * 16 + hex.IndexOf(text[3]));
+               byte b = (byte)(hex.IndexOf(text[4]) * 16 + hex.IndexOf(text[5]));
+               color = (r, g, b);
+               return true;
+            } else {
+               color = default;
+               return false;
+            }
          } catch {
             color = default;
             return false;
