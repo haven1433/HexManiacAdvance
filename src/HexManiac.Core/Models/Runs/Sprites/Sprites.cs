@@ -156,19 +156,22 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return results;
       }
 
+      /// <summary>
+      /// Find all sprites that depend on a palette, either explicitly or implicitly
+      /// </summary>
       public static IReadOnlyList<ISpriteRun> FindDependentSprites(this IPaletteRun run, IDataModel model) {
          var results = new List<ISpriteRun>();
 
-         // part of a table
-         if (run.PointerSources.Count > 0) {
-            var primarySource = run.PointerSources[0];
-            for (int i = 0; i < run.PointerSources.Count; i++) {
-               if (!(model.GetNextRun(run.PointerSources[i]) is ArrayRun)) continue;
-               primarySource = run.PointerSources[i];
-               break;
-            }
+         var tableSources = new List<int>();
+         for (int i = 0; i < run.PointerSources.Count; i++) {
+            if (!(model.GetNextRun(run.PointerSources[i]) is ArrayRun)) continue;
+            tableSources.Add(run.PointerSources[i]);
+         }
 
-            if (model.GetNextRun(primarySource) is ArrayRun tableRun) {
+         // part of a table
+         if (tableSources.Count > 0) {
+            foreach (var primarySource in tableSources) {
+               var tableRun = (ArrayRun)model.GetNextRun(primarySource);
                var primaryName = model.GetAnchorFromAddress(-1, tableRun.Start);
                var offset = tableRun.ConvertByteOffsetToArrayOffset(primarySource);
 
@@ -192,10 +195,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                      if (payloadTable.ElementCount != indexTable.ElementCount) continue;
                      foreach (var segment in payloadTable.ElementContent) {
                         if (!(segment is ArrayRunPointerSegment pSegment)) continue;
-                        var (parseSuccess, format) = (false, default(SpriteFormat));
-                        if (SpriteRun.TryParseSpriteFormat(pSegment.InnerFormat, out var sf1)) (parseSuccess, format) = (true, sf1);
-                        if (LzSpriteRun.TryParseSpriteFormat(pSegment.InnerFormat, out var sf2)) (parseSuccess, format) = (true, sf2);
-                        if (!parseSuccess) continue;
+                        var format = default(SpriteFormat);
+                        if (SpriteRun.TryParseSpriteFormat(pSegment.InnerFormat, out var sf1)) format = sf1;
+                        if (LzSpriteRun.TryParseSpriteFormat(pSegment.InnerFormat, out var sf2)) format = sf2;
+                        if (format.BitsPerPixel == default) continue;
                         if (format.PaletteHint != indexTableName) continue;
                         var elementPartOffset = payloadTable.ElementContent.Until(content => content == segment).Sum(content => content.Length);
                         for (int i = 0; i < indexTable.ElementCount; i++) {
@@ -223,6 +226,41 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             if (spriteRun is LzTilemapRun) continue; // don't count tilemaps
             if (spriteRun.SpriteFormat.PaletteHint != name) continue;
             results.Add(spriteRun);
+         }
+
+         return results;
+      }
+
+      public static IReadOnlyList<LzTilemapRun> FindDependentTilemaps(this LzTilesetRun tileset, IDataModel model) {
+         var results = new List<LzTilemapRun>();
+
+         // if the tileset is part of a table, find other tilemaps at the same index in the table
+         if (tileset.PointerSources.Count > 0 && model.GetNextRun(tileset.PointerSources[0]) is ArrayRun table) {
+            var offset = table.ConvertByteOffsetToArrayOffset(tileset.PointerSources[0]);
+            foreach (var relatedTable in model.GetRelatedArrays(table)) {
+               foreach (var spriteRun in model.GetPointedChildren<ISpriteRun>(relatedTable, offset.ElementIndex)) {
+                  var tableName = model.GetAnchorFromAddress(-1, table.Start);
+
+                  // we only care about tilemaps that specifically want _this_ tileset
+                  if (!(spriteRun is LzTilemapRun tilemap)) continue;
+                  if (tilemap.Format.MatchingTileset != tableName) continue;
+                  if (!string.IsNullOrEmpty(tilemap.Format.TilesetTableMember) && tilemap.Format.TilesetTableMember != table.ElementContent[offset.SegmentIndex].Name) continue;
+
+                  results.Add(tilemap);
+               }
+            }
+         }
+
+         // if the tileset has a name, find tilemaps that depend on that name
+         var tilesetName = model.GetAnchorFromAddress(-1, tileset.Start);
+         if (!string.IsNullOrWhiteSpace(tilesetName)) {
+            foreach (var anchor in model.Anchors) {
+               var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, anchor);
+               var anchorRun = model.GetNextRun(address);
+               if (!(anchorRun is LzTilemapRun tilemap)) continue;
+               if (tilemap.Format.MatchingTileset != tilesetName) continue;
+               results.Add(tilemap);
+            }
          }
 
          return results;

@@ -214,6 +214,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                if (!string.IsNullOrEmpty(arrayRun.LengthFromAnchor)) basename = arrayRun.LengthFromAnchor; // basename is now a 'parent table' name, if there is one
 
                foreach (var currentArray in model.GetRelatedArrays(arrayRun)) {
+                  if (currentArray == arrayRun) continue;
                   var currentArrayName = model.GetAnchorFromAddress(-1, currentArray.Start);
                   var negChildOffset = Math.Min(currentArray.ParentOffset, 0);
                   var currentIndex = index + negChildOffset;
@@ -287,7 +288,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          foreach (var item in table.ElementContent) {
             IArrayElementViewModel viewModel = null;
             if (item.Type == ElementContentType.Unknown) viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, HexFieldStratgy.Instance);
-            else if (item.Type == ElementContentType.PCS) viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, new TextFieldStratgy());
+            else if (item.Type == ElementContentType.PCS) viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, new TextFieldStrategy());
             else if (item.Type == ElementContentType.Pointer) viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, new AddressFieldStratgy());
             else if (item.Type == ElementContentType.BitArray) viewModel = new BitListArrayElementViewModel(selection, history, model, item.Name, itemAddress);
             else if (item.Type == ElementContentType.Integer) {

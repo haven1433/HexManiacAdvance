@@ -151,17 +151,39 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          foreach (var sprite in sprites) {
             var newSprite = sprite;
 
-            // TODO this doesn't currently work for tilemaps with multiple palettes, such as the first-person-views
-            for (int page = 0; page < newSprite.Pages; page++) {
-               if (hasMultiplePages) page += this.page;
-               var pixels = newSprite.GetPixels(model, page % newSprite.Pages);
-               for (int y = 0; y < pixels.GetLength(1); y++) {
-                  for (int x = 0; x < pixels.GetLength(0); x++) {
-                     pixels[x, y] = oldToNew[pixels[x, y]];
+            if (sprite is LzTilesetRun tileset) {
+               // find all tilemaps that use this tileset and update them
+               foreach (var tilemap in tileset.FindDependentTilemaps(model)) {
+                  var pixels = tilemap.GetPixels(model, 0);
+                  for (int y = 0; y < pixels.GetLength(1); y++) {
+                     for (int x = 0; x < pixels.GetLength(0); x++) {
+                        int tilesetPalettePage = source.PaletteFormat.InitialBlankPages;
+                        if (hasMultiplePages) tilesetPalettePage = pixels[x, y] >> 4;
+                        // note that if a tilemap has a tile with a palette of 'zero', this page calculation comes out as negative, and no swapping will be done.
+                        // in the game, this only happens for tiles filled with the fully transparent color, so leaving them alone is actually the right thing to do.
+                        if (tilesetPalettePage - source.PaletteFormat.InitialBlankPages != this.page) continue;
+                        var oldPaletteColorIndex = pixels[x, y] - (tilesetPalettePage << 4);
+                        var newPaletteColorIndex = oldToNew[oldPaletteColorIndex];
+                        pixels[x, y] = newPaletteColorIndex + (tilesetPalettePage << 4);
+                     }
                   }
+                  tilemap.SetPixels(model, history.CurrentChange, 0, pixels);
                }
-               newSprite = newSprite.SetPixels(model, history.CurrentChange, page % newSprite.Pages, pixels);
-               if (hasMultiplePages) break;
+               // find the new tileset sprite, since it could've moved
+               newSprite = model.GetNextRun(model.ReadPointer(sprite.PointerSources[0])) as ISpriteRun ?? sprite;
+            } else {
+               // get/set the sprite data for each relavent page
+               for (int page = 0; page < newSprite.Pages; page++) {
+                  if (hasMultiplePages) page += this.page;
+                  var pixels = newSprite.GetPixels(model, page % newSprite.Pages);
+                  for (int y = 0; y < pixels.GetLength(1); y++) {
+                     for (int x = 0; x < pixels.GetLength(0); x++) {
+                        pixels[x, y] = oldToNew[pixels[x, y]];
+                     }
+                  }
+                  newSprite = newSprite.SetPixels(model, history.CurrentChange, page % newSprite.Pages, pixels);
+                  if (hasMultiplePages) break;
+               }
             }
 
             if (newSprite.Start != sprite.Start) viewPort.RaiseMessage($"Sprite was moved to {newSprite.Start:X6}. Pointers were updated.");

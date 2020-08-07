@@ -6,8 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.IO.Packaging;
 using System.Linq;
 using System.Windows.Input;
 
@@ -20,7 +18,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    }
 
    public class SpriteTool : ViewModelCore, IToolViewModel, IPixelViewModel {
-      public const int MaxSpriteWidth = 255; // From UI
+      public const int MaxSpriteWidth = 275 - 17; // From UI: Panel Width - Scroll Bar Width
       private readonly ViewPort viewPort;
       private readonly ChangeHistory<ModelDelta> history;
       private readonly IDataModel model;
@@ -504,67 +502,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void ImportSpriteAndPalette(IFileSystem fileSystem) {
          (short[] image, short[] paletteHint, int width) = fileSystem.LoadImage();
-         if (image == null) {
-            if (width % 8 != 0) viewPort.RaiseError("The width/height of the loaded image be a multiple of 8!");
-            return;
-         }
-         int height = image.Length / width;
-         if (width != PixelWidth || height != PixelHeight) {
-            viewPort.RaiseError("The width/height of the loaded image must match the current width/height!");
-            return;
-         }
+         if (!TryValidate(image, width, out var height, out var spriteRun, out var paletteRun)) return;
 
-         var spriteRun = model.GetNextRun(spriteAddress) as ISpriteRun;
-         var palRun = model.GetNextRun(paletteAddress) as IPaletteRun;
-         if (spriteRun == null || palRun == null) {
-            viewPort.RaiseError("The sprite/palette addresses are not valid!");
-            return;
-         }
-
-         // extract palette
-         var renderPalette = GetRenderPalette(model?.GetNextRun(spriteAddress) as ISpriteRun).ToArray();
-         paletteHint = paletteHint ?? renderPalette;
-         image = ReduceColors(image, renderPalette);
-         var newPalette = image.Distinct().ToList();
-
-         // sort palette based on the previous palette
-         if (newPalette.All(paletteHint.Contains)) {
-            newPalette = paletteHint.ToList();
-         } else {
-            for (int i = 0; i < paletteHint.Length && i < newPalette.Count; i++) {
-               var color = paletteHint[i];
-               var index = newPalette.Skip(i).ToList().IndexOf(color) + i;
-               if (index == i - 1) continue;
-               newPalette.RemoveAt(index);
-               newPalette.Insert(i, color);
-            }
-         }
-         while (newPalette.Count < renderPalette.Length) newPalette.Add(paletteHint.Except(newPalette).FirstOrDefault());
-
-         var tiles = Tilize(image, width);
-         var palettes = palRun.PaletteFormat.Bits == 4 ? SplitPalettes(newPalette) : new short[][] { newPalette.ToArray() };
-         var tilePixels = tiles.Select(tile => ExtractPixelsForTile(tile, palettes, palRun.PaletteFormat.InitialBlankPages)).ToArray();
-         var newPixels = Detilize(tilePixels, width / 8);
-
-         WriteSpriteAndPaletteOptions(fileSystem, spriteRun, newPixels, palRun, palettes, newPalette);
-      }
-
-      private void WriteSpriteAndPaletteOptions(IFileSystem fileSystem, ISpriteRun spriteRun, int[,] newPixels, IPaletteRun palRun, short[][] palettes, IReadOnlyList<short> newPalette) {
-         var dependentSprites = palRun.FindDependentSprites(model);
+         var dependentSprites = paletteRun.FindDependentSprites(model);
          if (dependentSprites.Count == 0 || // no sprites are associated with this palette. So just use the currently loaded sprite.
-            (dependentSprites.Count == 1 && dependentSprites[0].Start == spriteRun.Start) || // 'I am the only sprite' case
+            (dependentSprites.Count == 1 && dependentSprites[0].Start == spriteRun.Start && (spriteRun.Pages == 1 || spriteRun.Pages == paletteRun.Pages)) || // 'I am the only sprite' case
             (dependentSprites.Count == 1 && dependentSprites[0] is LzTilesetRun && spriteRun is LzTilemapRun) // 'My tileset is the only sprite' case
             ) {
-            var relatedPalettes = spriteRun.FindRelatedPalettes(model);
             // easy case: a single sprite. Sprite uses the palette.
             // there may be other palettes, but we can leave them be.
-            WriteSpriteAndPalette(spriteRun, newPixels, palRun, palettes, newPalette);
+            WriteSpriteAndPalette(spriteRun, paletteRun, image);
+            LoadSprite();
+            LoadPalette();
             return;
          }
 
          // there are multiple sprites
+         var dependentPageCount = dependentSprites.Sum(s => s.Pages);
+         if (paletteRun.Pages > 1) dependentPageCount = dependentSprites.Count; // for multi-page palettes, only count each sprite once.
          var choice = fileSystem.ShowOptions("Import Sprite",
-            $"This palette is used by {dependentSprites.Count} images. How do you want to handle the import?",
+            $"This palette is used by {dependentPageCount} images. How do you want to handle the import?",
             new VisualOption {
                Option = "Smart", Index = 0,
                ShortDescription = "Fix Incompatibilites Automatically",
@@ -582,241 +539,226 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             });
 
          if (choice == 0) { // Smart
-            WriteSpriteAndBalancePalette(spriteRun, dependentSprites, newPixels, palRun, palettes, newPalette);
+            var otherSprites = dependentSprites.Except(new[] { spriteRun }).ToList();
+            WriteSpriteAndBalancePalette(spriteRun, paletteRun, otherSprites, image);
          } else if (choice == 1) { // Greedy
-            WriteSpriteAndPalette(spriteRun, newPixels, palRun, palettes, newPalette);
-            return;
+            WriteSpriteAndPalette(spriteRun, paletteRun, image);
          } else if (choice == 2) { // Cautious
-            WriteSpriteWithoutPalette(spriteRun, newPixels, palRun, palettes, newPalette);
-            return;
-         }
-      }
-
-      private void WriteSpriteAndBalancePalette(ISpriteRun spriteRun, IReadOnlyList<ISpriteRun> allSprites, int[,] newPixels, IPaletteRun palRun, short[][] palettes, IReadOnlyList<short> newPalette) {
-
-         var existingPalette = palRun.GetPalette(model, 0);
-
-         var masses = new List<ColorMass>();
-         // the new colors have mass equal to their usage.
-         var width = newPixels.GetLength(0);
-         for (int i = 0; i < newPalette.Count; i++) {
-            int count = Enumerable.Range(0, newPixels.Length).Count(j => newPixels[j % width, j / width] == i);
-            if (count == 0) continue;
-            masses.Add(new ColorMass(newPalette[i], count));
-         }
-         // the existing colors have mass equale to their usage.
-         for (int i = 0; i < existingPalette.Count; i++) {
-            int sum = 0;
-            foreach (var sprite in allSprites) {
-               if (sprite == spriteRun) continue;
-               var existingPixels = sprite.GetPixels(model, 0);
-               width = existingPixels.GetLength(0);
-               sum += Enumerable.Range(0, existingPixels.Length).Count(j => existingPixels[j % width, j / width] == i);
-            }
-            if (sum == 0) continue;
-            masses.Add(new ColorMass(existingPalette[i], sum));
-         }
-         Reduce(masses, 16);
-
-         // map from the colors in the new palette to colors in the initial palette
-         var indexMapper = new int[16];
-         for (int i = 0; i < 16; i++) {
-            var matches = masses.Where(mass => mass.OriginalColors.ContainsKey(newPalette[i])).ToList();
-            if (matches.Count == 1) {
-               indexMapper[i] = masses.IndexOf(matches[0]);
-            } else if (matches.Count == 0) {
-               // no matches: this color, from the original palette, was never actually used in the image.
-               // the mapping doesn't matter.
-               indexMapper[i] = 0;
-            } else if (matches.Count > 1) {
-               indexMapper[i] = masses.IndexOf(matches[0]);
-            }
-         }
-         for (int x = 0; x < newPixels.GetLength(0); x++) {
-            for (int y = 0; y < newPixels.GetLength(1); y++) {
-               newPixels[x, y] = indexMapper[newPixels[x, y]];
-            }
+            WriteSpriteWithoutPalette(spriteRun, paletteRun, image);
          }
 
-         // remap other sprites using the masses
-         bool remappedOtherSprites = false;
-         foreach (var sprite in allSprites) {
-            if (sprite == spriteRun) continue;
-            var existingPixels = sprite.GetPixels(model, 0);
-            for (int i = 0; i < 16; i++) {
-               var matches = masses.Where(mass => mass.OriginalColors.ContainsKey(existingPalette[i])).ToList();
-               if (matches.Count == 1) {
-                  indexMapper[i] = masses.IndexOf(matches[0]);
-               } else if (matches.Count == 0) {
-                  // no matches: this color, from the original palette, was never actually used in the image.
-                  // the mapping doesn't matter.
-                  indexMapper[i] = 0;
-               } else if (matches.Count > 1) {
-                  indexMapper[i] = masses.IndexOf(matches[0]);
-               }
-            }
-            for (int x = 0; x < existingPixels.GetLength(0); x++) {
-               for (int y = 0; y < existingPixels.GetLength(1); y++) {
-                  existingPixels[x, y] = indexMapper[existingPixels[x, y]];
-               }
-            }
-            var remappedSprite = sprite.SetPixels(model, history.CurrentChange, 0, existingPixels);
-            remappedOtherSprites |= remappedSprite.Start != sprite.Start;
-         }
-
-         // write sprite
-         IFormattedRun newRun = spriteRun.SetPixels(model, viewPort.CurrentChange, spritePage, newPixels);
-         bool spriteMoved = newRun.Start != spriteRun.Start;
-
-         // write palette
-         var newPal = palRun.SetPalette(model, viewPort.CurrentChange, palPage, masses.Select(m => m.ResultColor).ToList());
-         bool palMoved = palRun.Start != newPal.Start;
-
-         if (spriteMoved && !palMoved && !remappedOtherSprites) {
-            viewPort.Goto.Execute(newRun.Start);
-            viewPort.RaiseMessage($"Sprite moved to {newRun.Start:X6}. Pointers have been updated.");
-         } else if (!spriteMoved && palMoved && !remappedOtherSprites) {
-            viewPort.Goto.Execute(newPal.Start);
-            viewPort.RaiseMessage($"Palette moved to {newPal.Start:X6}. Pointers have been updated.");
-         } else if (remappedOtherSprites) {
-            viewPort.RaiseMessage($"Some sprites were moved. Pointers have been updated.");
-         } else if ((spriteMoved && palMoved)) {
-            viewPort.Goto.Execute(newRun.Start);
-            viewPort.RaiseMessage($"Sprite and Palette moved. Pointers have been updated.");
-         } else {
-            viewPort.Refresh();
-         }
-
+         LoadSprite();
          LoadPalette();
-         LoadSprite();
       }
 
-      private void WriteSpriteWithoutPalette(ISpriteRun spriteRun, int[,] newPixels, IPaletteRun palRun, short[][] palettes, IReadOnlyList<short> newPalette) {
-         var existingPalette = palRun.GetPalette(model, 0);
+      private bool TryValidate(short[] image, int width, out int height, out ISpriteRun spriteRun, out IPaletteRun paletteRun) {
+         height = default;
+         spriteRun = model.GetNextRun(spriteAddress) as ISpriteRun;
+         paletteRun = model.GetNextRun(paletteAddress) as IPaletteRun;
 
-         var masses = new List<ColorMass>();
-         // the new colors are nearly massless (but not completely, so that they still track to nearest neighbor).
-         for (int i = 0; i < newPalette.Count; i++) {
-            masses.Add(new ColorMass(newPalette[i], 1));
+         // check 0: we actually have a sprite/palette to import on top of
+         if (spriteRun == null || paletteRun == null) {
+            viewPort.RaiseError("The sprite/palette addresses are not valid!");
+            return false;
          }
-         // the existing colors are heavy
-         for (int i = 0; i < existingPalette.Count; i++) {
-            masses.Add(new ColorMass(existingPalette[i], int.MaxValue / 2));
-         }
-         Reduce(masses, 16);
 
-         // map from the colors in the new palette to colors in the initial palette
-         var indexMapper = new int[16];
-         for (int i = 0; i < 16; i++) {
-            var matches = masses.Where(mass => mass.OriginalColors.ContainsKey(newPalette[i])).ToList();
-            indexMapper[i] = existingPalette.IndexOf(matches[0].ResultColor);
+         // check 1: we're allowed to import to this sprite
+         if (!spriteRun.SupportsImport) {
+            viewPort.RaiseError("This format does not support importing.");
+            return false;
          }
-         for (int x = 0; x < newPixels.GetLength(0); x++) {
-            for (int y = 0; y < newPixels.GetLength(1); y++) {
-               newPixels[x, y] = indexMapper[newPixels[x, y]];
+
+         // check 2: image was actually loaded
+         if (image == null) return false;
+
+         // check 3: loaded image width matches
+         if (width != PixelWidth) {
+            viewPort.RaiseError("The width/height of the loaded image must match the current width/height!");
+            return false;
+         }
+
+         // check 4: loaded image height matches
+         height = image.Length / width;
+         if (height != PixelHeight) {
+            viewPort.RaiseError("The width/height of the loaded image must match the current width/height!");
+            return false;
+         }
+
+         return true;
+      }
+
+      private void WriteSpriteAndPalette(ISpriteRun spriteRun, IPaletteRun paletteRun, short[] image) {
+         var tiles = Tilize(image, spriteRun.SpriteFormat.TileWidth * 8);
+         var expectedPalettePages = paletteRun.Pages;
+         if (spriteRun.Pages == paletteRun.Pages) expectedPalettePages = 1; // handle the Castfrom case
+         var palettes = DiscoverPalettes(tiles, paletteRun.PaletteFormat.Bits, expectedPalettePages);
+         var indexedTiles = new int[tiles.Length][,];
+         for (int i = 0; i < indexedTiles.Length; i++) indexedTiles[i] = Index(tiles[i], palettes, paletteRun.PaletteFormat.InitialBlankPages);
+         var sprite = Detilize(indexedTiles, spriteRun.SpriteFormat.TileWidth);
+
+         var newSprite = spriteRun.SetPixels(model, viewPort.CurrentChange, spritePage, sprite);
+
+         var newPalette = paletteRun;
+         if (palettes.Length == paletteRun.Pages) {
+            for (int i = 0; i < palettes.Length; i++) newPalette = newPalette.SetPalette(model, viewPort.CurrentChange, i, palettes[i]);
+         } else {
+            newPalette = newPalette.SetPalette(model, viewPort.CurrentChange, palPage, palettes[0]);
+         }
+
+         ExplainMoves(spriteRun, newSprite, paletteRun, newPalette);
+      }
+
+      private void WriteSpriteWithoutPalette(ISpriteRun spriteRun, IPaletteRun paletteRun, short[] image) {
+         var tiles = Tilize(image, spriteRun.SpriteFormat.TileWidth * 8);
+         IReadOnlyList<short>[] palettes;
+         if (spriteRun.Pages == paletteRun.Pages) {
+            palettes = new IReadOnlyList<short>[1];
+            palettes[0] = paletteRun.GetPalette(model, palPage);
+         } else {
+            palettes = new IReadOnlyList<short>[paletteRun.Pages];
+            for (int i = 0; i < palettes.Length; i++) palettes[i] = paletteRun.GetPalette(model, i);
+         }
+         var indexedTiles = new int[tiles.Length][,];
+         for (int i = 0; i < indexedTiles.Length; i++) indexedTiles[i] = Index(tiles[i], palettes, paletteRun.PaletteFormat.InitialBlankPages);
+         var sprite = Detilize(indexedTiles, spriteRun.SpriteFormat.TileWidth);
+
+         var newSprite = spriteRun.SetPixels(model, viewPort.CurrentChange, spritePage, sprite);
+
+         ExplainMoves(spriteRun, newSprite, paletteRun, paletteRun);
+      }
+
+      private void WriteSpriteAndBalancePalette(ISpriteRun spriteRun, IPaletteRun paletteRun, IList<ISpriteRun> otherSprites, short[] image) {
+         var tiles = Tilize(image, spriteRun.SpriteFormat.TileWidth * 8);
+         var palettes = Enumerable.Range(0, paletteRun.Pages).Select(i => paletteRun.GetPalette(model, i)).ToArray();
+         if (spriteRun.Pages == paletteRun.Pages) palettes = new[] { palettes[palPage] };
+         var initialBlankPages = paletteRun.PaletteFormat.InitialBlankPages;
+         var bits = paletteRun.PaletteFormat.Bits;
+
+         // part 1: weigh everything using the current palettes, so we know how much force it should resist
+         var weightedPalettes = palettes.Select(p => new WeightedPalette(p, p.Count)).ToList();
+         foreach (var spriteSet in otherSprites) {
+            IReadOnlyList<ISpriteRun> spritesToWeigh = new List<ISpriteRun> { spriteSet };
+            if (spriteSet is LzTilesetRun tileset) spritesToWeigh = tileset.FindDependentTilemaps(model);
+            foreach (var sprite in spritesToWeigh) {
+               if (sprite.Pages == paletteRun.Pages) {
+                  // weigh only the current page
+                  weightedPalettes[0] = weightedPalettes[0].Merge(WeightedPalette.Weigh(sprite.GetPixels(model, palPage), palettes[0], palettes[0].Count), out var _);
+               } else {
+                  // weigh all pages
+                  // we generally expect to either only have one sprite page, and want to weigh every palette it uses...
+                  // ... or have one palette page, and want to weight every sprite page that uses it.
+                  for (int page = 0; page < sprite.Pages; page++) {
+                     var newWeights = WeightedPalette.Weigh(sprite.GetPixels(model, page), palettes, bits, initialBlankPages);
+                     for (int j = 0; j < weightedPalettes.Count; j++) weightedPalettes[j] = weightedPalettes[j].Merge(newWeights[j], out var _);
+                  }
+               }
+            }
+         }
+         if (spriteRun.Pages != paletteRun.Pages) {
+            for (int page = 0; page < spriteRun.Pages; page++) {
+               if (page == spritePage) continue;
+               var newWeights = WeightedPalette.Weigh(spriteRun.GetPixels(model, page), palettes, bits, initialBlankPages);
+               for (int j = 0; j < weightedPalettes.Count; j++) weightedPalettes[j] = weightedPalettes[j].Merge(newWeights[j], out var _);
             }
          }
 
-         // write the sprite (not the palette)
-         IFormattedRun newRun = spriteRun.SetPixels(model, viewPort.CurrentChange, spritePage, newPixels);
-         bool spriteMoved = newRun.Start != spriteRun.Start;
-         if (spriteMoved) {
-            viewPort.Goto.Execute(newRun.Start);
-            viewPort.RaiseMessage($"Sprite moved to {newRun.Start:X6}. Pointers have been updated.");
-         } else {
-            viewPort.Refresh();
+         // part 2: build palettes for the new tiles
+         var expectedPalettePages = paletteRun.Pages;
+         if (spriteRun.Pages == paletteRun.Pages) expectedPalettePages = 1; // handle the Castfrom case
+         var newPalettes = DiscoverPalettes(tiles, bits, palettes.Length);
+         var indexedTiles = new int[tiles.Length][,];
+         for (int i = 0; i < indexedTiles.Length; i++) indexedTiles[i] = Index(tiles[i], newPalettes, initialBlankPages);
+         var spriteData = Detilize(indexedTiles, spriteRun.SpriteFormat.TileWidth);
+         var newWeightedPalettes = WeightedPalette.Weigh(spriteData, newPalettes, bits, initialBlankPages);
+
+         // part 3: merge the new desired palettes with the existing palettes
+         weightedPalettes = WeightedPalette.MergeLists(weightedPalettes, newWeightedPalettes).ToList();
+         newPalettes = weightedPalettes.Select(wp => wp.Palette).ToArray();
+
+         // part 4: update all the other sprites to use the new palettes
+         bool otherSpritesMoved = false;
+         foreach (var spriteSet in otherSprites) {
+            IReadOnlyList<ISpriteRun> spritesToWeigh = new List<ISpriteRun> { spriteSet };
+            if (spriteSet is LzTilesetRun tileset) spritesToWeigh = tileset.FindDependentTilemaps(model);
+            foreach (var sprite in spritesToWeigh) {
+               if (WeightedPalette.Update(model, viewPort.CurrentChange, sprite, palettes, newPalettes, initialBlankPages).Start != sprite.Start) otherSpritesMoved = true;
+            }
+         }
+         var currentSpriteRun = spriteRun;
+         if (spriteRun.Pages != paletteRun.Pages) {
+            for (int page = 0; page < spriteRun.Pages; page++) {
+               if (page == spritePage) continue;
+               currentSpriteRun = WeightedPalette.Update(model, viewPort.CurrentChange, currentSpriteRun, palettes, newPalettes, initialBlankPages, page);
+            }
          }
 
-         LoadSprite();
+         // part 5: update the current sprite to use the new palette
+         for (int i = 0; i < indexedTiles.Length; i++) indexedTiles[i] = Index(tiles[i], newPalettes, initialBlankPages);
+         spriteData = Detilize(indexedTiles, spriteRun.SpriteFormat.TileWidth);
+         currentSpriteRun = currentSpriteRun.SetPixels(model, viewPort.CurrentChange, spritePage, spriteData);
+
+         // part 6: update the palette
+         var newPalette = paletteRun;
+         if (palettes.Length == paletteRun.Pages) {
+            for (int i = 0; i < palettes.Length; i++) newPalette = newPalette.SetPalette(model, viewPort.CurrentChange, i, newPalettes[i]);
+         } else {
+            newPalette = newPalette.SetPalette(model, viewPort.CurrentChange, palPage, palettes[0]);
+         }
+
+         if (otherSpritesMoved) {
+            viewPort.RaiseMessage($"Other sprites using this palette were moved. Pointers have been updated.");
+         }
+         ExplainMoves(spriteRun, currentSpriteRun, paletteRun, newPalette);
       }
 
-      private void WriteSpriteAndPalette(ISpriteRun spriteRun, int[,] newPixels, IPaletteRun palRun, short[][]palettes, IReadOnlyList<short> newPalette) {
-         IFormattedRun newRun = spriteRun.SetPixels(model, viewPort.CurrentChange, spritePage, newPixels);
-         bool spriteMoved = newRun.Start != spriteRun.Start;
-
-         var initialPalletteRun = palRun;
-         if (palettes.Length == palRun.Pages) {
-            for (int i = 0; i < palettes.Length; i++) palRun = palRun.SetPalette(model, viewPort.CurrentChange, i, palettes[i]);
-         } else {
-            palRun = palRun.SetPalette(model, viewPort.CurrentChange, palPage, newPalette);
+      private IReadOnlyList<short>[] DiscoverPalettes(short[][] tiles, int bitness, int paletteCount) {
+         var targetColors = (int)Math.Pow(2, bitness);
+         var palettes = new WeightedPalette[paletteCount];
+         for (int i = 0; i < paletteCount; i++) palettes[i] = WeightedPalette.Reduce(tiles[i], targetColors);
+         for (int i = paletteCount; i < tiles.Length; i++) {
+            var newPalette = WeightedPalette.Reduce(tiles[i], targetColors);
+            var (a, b) = WeightedPalette.CheapestMerge(palettes, newPalette);
+            if (b < paletteCount) {
+               palettes[a] = palettes[a].Merge(palettes[b], out var _);
+               palettes[b] = newPalette;
+            } else {
+               palettes[a] = palettes[a].Merge(newPalette, out var _);
+            }
          }
-         bool paletteMoved = initialPalletteRun.Start != palRun.Start;
+         return palettes.Select(p => p.Palette).ToArray();
+      }
+
+      private int[,] Index(short[] tile, IReadOnlyList<short>[] palettes, int initialPageIndex) {
+         var cheapestIndex = 0;
+         var cheapest = WeightedPalette.CostToUse(tile, palettes[0]);
+         for (int i = 1; i < palettes.Length; i++) {
+            if (cheapest == 0) break;
+            var cost = WeightedPalette.CostToUse(tile, palettes[i]);
+            if (cost >= cheapest) continue;
+            cheapest = cost;
+            cheapestIndex = i;
+         }
+         var index = WeightedPalette.Index(tile, palettes[cheapestIndex]);
+         for (int x = 0; x < index.GetLength(0); x++) for (int y = 0; y < index.GetLength(1); y++) index[x, y] += (initialPageIndex + cheapestIndex) << 4;
+         return index;
+      }
+
+      private void ExplainMoves(ISpriteRun originalSprite, ISpriteRun newSprite, IPaletteRun originalPalette, IPaletteRun newPalette) {
+         bool spriteMoved = originalSprite.Start != newSprite.Start;
+         bool paletteMoved = originalPalette.Start != newPalette.Start;
 
          if (spriteMoved && !paletteMoved) {
-            viewPort.Goto.Execute(newRun.Start);
-            viewPort.RaiseMessage($"Sprite moved to {newRun.Start:X6}. Pointers have been updated.");
+            viewPort.Goto.Execute(newSprite.Start);
+            viewPort.RaiseMessage($"Sprite moved to {newSprite.Start:X6}. Pointers have been updated.");
          } else if (paletteMoved && !spriteMoved) {
-            viewPort.Goto.Execute(palRun.Start);
-            viewPort.RaiseMessage($"Palette moved to {palRun.Start:X6}. Pointers have been updated.");
-         } else if (paletteMoved && spriteMoved) {
-            viewPort.Goto.Execute(newRun.Start);
-            viewPort.RaiseMessage($"Sprite and palette moved to {newRun.Start:X6} and {palRun.Start:X6}.");
+            viewPort.Goto.Execute(newPalette.Start);
+            viewPort.RaiseMessage($"Palette moved to {newPalette.Start:X6}. Pointers have been updated.");
+         } else if (spriteMoved && paletteMoved) {
+            viewPort.Goto.Execute(newSprite.Start);
+            viewPort.RaiseMessage($"Sprite and palette moved to {newSprite.Start:X6} and {newPalette.Start:X6}.");
          } else {
             viewPort.Refresh();
          }
-
-         LoadPalette();
-         LoadSprite();
-      }
-
-      public static short[] ReduceColors(short[] initialImage, short[] examplePalette) {
-         var targetPaletteLength = examplePalette.Length;
-
-         var initialColorsAndWeight = new Dictionary<short, int>();
-         foreach (var color in initialImage) {
-            if (initialColorsAndWeight.ContainsKey(color)) initialColorsAndWeight[color] += 1;
-            else initialColorsAndWeight[color] = 1;
-         }
-
-         if (initialColorsAndWeight.Count <= targetPaletteLength) return initialImage;
-
-         // organize the initial colors based on their usage
-         var masses = new List<ColorMass>();
-         foreach (var color in initialColorsAndWeight.Keys) {
-            masses.Add(new ColorMass(color, initialColorsAndWeight[color]));
-         }
-
-         // use a 'gravity' metric to reduce the number of colors
-         Reduce(masses, targetPaletteLength);
-
-         // build a mapping from the full color set to the reduced color set
-         var sourceToTarget = new Dictionary<short, short>();
-         foreach (var mass in masses) {
-            var resultColor = mass.ResultColor;
-            foreach (var color in mass.OriginalColors.Keys) sourceToTarget[color] = resultColor;
-         }
-
-         // replace initial colors with reduced color set
-         var resultImage = new short[initialImage.Length];
-         for (int i = 0; i < initialImage.Length; i++) resultImage[i] = sourceToTarget[initialImage[i]];
-         return resultImage;
-      }
-
-      private static void Reduce(List<ColorMass> masses, int targetLength) {
-         while (masses.Count > targetLength) {
-            var mostAttractedIndexPair = (first: 0, second: 0);
-            double greatestAttraction = -1;
-            for (int i = 0; i < masses.Count; i++) {
-               for (int j = i + 1; j < masses.Count; j++) {
-                  var attractor = masses[i] * masses[j];
-                  if (attractor <= greatestAttraction) continue;
-                  mostAttractedIndexPair = (i, j);
-                  greatestAttraction = attractor;
-               }
-            }
-            var first = masses[mostAttractedIndexPair.first];
-            var second = masses[mostAttractedIndexPair.second];
-            masses.RemoveAt(mostAttractedIndexPair.second);
-            masses.RemoveAt(mostAttractedIndexPair.first);
-            masses.Add(first + second);
-         }
-      }
-
-      private short[][] SplitPalettes(IReadOnlyList<short> colors) {
-         Debug.Assert(colors.Count % 16 == 0);
-         var result = new short[colors.Count / 16][];
-         for (int i = 0; i < result.Length; i++) result[i] = colors.Skip(i * 16).Take(16).ToArray();
-         return result;
       }
 
       private short[][] Tilize(short[] image, int width) {
@@ -836,29 +778,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                      result[tileIndex][yy * 8 + xx] = image[index];
                   }
                }
-            }
-         }
-         return result;
-      }
-
-      private int WhichPalette(short[] tile, short[][] palettes) {
-         for (int i = 0; i < palettes.Length; i++) {
-            if (tile.All(palettes[i].Contains)) return i;
-         }
-         return -1;
-      }
-
-      private int[,] ExtractPixelsForTile(short[] tile, short[][]palettes, int paletteOffset) {
-         var paletteIndex = WhichPalette(tile, palettes);
-         var palette = palettes[paletteIndex];
-         paletteIndex = (paletteIndex + paletteOffset) << 4;
-         var palIndex = new Dictionary<short, int>();
-         var result = new int[8, 8];
-         for (int i = 0; i < palette.Length; i++) palIndex[palette[i]] = i;
-         for (int y = 0; y < 8; y++) {
-            for (int x = 0; x < 8; x++) {
-               var pixel = tile[y * 8 + x];
-               result[x, y] = palIndex[pixel] + paletteIndex;
             }
          }
          return result;
@@ -891,6 +810,275 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
    }
 
+   public class WeightedPalette {
+      public int TargetLength { get; }
+      public IReadOnlyList<int> Weight { get; }
+      public IReadOnlyList<short> Palette { get; }
+
+      public WeightedPalette(IReadOnlyList<short> palette, int targetLength) : this(palette, new int[palette.Count], targetLength) { }
+
+      private WeightedPalette(IReadOnlyList<short> palette, IReadOnlyList<int> weight, int targetLength) => (Palette, Weight, TargetLength) = (palette, weight, targetLength);
+
+      public static WeightedPalette Weigh(int[,] sprite, IReadOnlyList<short> palette, int targetLength) {
+         var weight = new int[targetLength];
+         foreach (var num in sprite) weight[num % targetLength]++;
+         return new WeightedPalette(palette, weight, targetLength);
+      }
+
+      /// <summary>
+      /// Build a set of weighted palettes from a sprite that uses a set fo palettes.
+      /// </summary>
+      public static IReadOnlyList<WeightedPalette> Weigh(int[,] sprite, IReadOnlyList<short>[] palettes, int bitness, int pageOffset) {
+         var targetLength = (int)Math.Pow(2, bitness);
+         var weights = new int[palettes.Length][];
+         for (int i = 0; i < palettes.Length; i++) weights[i] = new int[targetLength];
+
+         for (int x = 0; x < sprite.GetLength(0); x++) {
+            for (int y = 0; y < sprite.GetLength(1); y++) {
+               var index = sprite[x, y] - (pageOffset << 4);
+               var paletteIndex = (index >> 4) % palettes.Length;
+               if (index < 0) continue; // we don't care about weighing colors from a palette that's out-of-range
+               index -= paletteIndex << 4;
+               if (index > weights[paletteIndex].Length) continue; // we don't care about weighing colors from a palette that's out-of-range
+               weights[paletteIndex][index]++;
+            }
+         }
+
+         var results = new List<WeightedPalette>();
+         for (int i = 0; i < palettes.Length; i++) {
+            results.Add(new WeightedPalette(palettes[i], weights[i], targetLength));
+         }
+         return results;
+      }
+
+      /// <summary>
+      /// Given two sets of n palettes, merge them into a single set of n palettes
+      /// </summary>
+      public static IReadOnlyList<WeightedPalette> MergeLists(IReadOnlyList<WeightedPalette> set1, IReadOnlyList<WeightedPalette> set2) {
+         Debug.Assert(set1.Count == set2.Count);
+         var result = set1.ToList();
+         foreach (var palette in set2) {
+            var bestMerge = result[0].Merge(palette, out var bestCost);
+            var bestIndex = 0;
+            for (int i = 1; i < result.Count; i++) {
+               if (bestCost == 0) break;
+               var currentMerge = result[i].Merge(palette, out var currentCost);
+               if (currentCost >= bestCost) continue;
+               bestCost = currentCost;
+               bestMerge = currentMerge;
+               bestIndex = i;
+            }
+            result[bestIndex] = bestMerge;
+         }
+         return result;
+      }
+
+      public static ISpriteRun Update(IDataModel model, ModelDelta token, ISpriteRun spriteRun, IReadOnlyList<short>[] originalPalettes, IReadOnlyList<short>[] newPalettes, int initialPaletteOffset) {
+         for (int i = 0; i < spriteRun.Pages; i++) {
+            spriteRun = Update(model, token, spriteRun, originalPalettes, newPalettes, initialPaletteOffset, i);
+         }
+         return spriteRun;
+      }
+
+      /// <summary>
+      /// Update a sprite to use a new palette
+      /// </summary>
+      public static ISpriteRun Update(IDataModel model, ModelDelta token, ISpriteRun spriteRun, IReadOnlyList<short>[] originalPalettes, IReadOnlyList<short>[] newPalettes, int initialPaletteOffset, int page) {
+         var pixels = spriteRun.GetPixels(model, page);
+
+         var indexMapping = CreatePixelMapping(originalPalettes, newPalettes, initialPaletteOffset);
+
+         for (int x = 0; x < pixels.GetLength(0); x++) {
+            for (int y = 0; y < pixels.GetLength(1); y++) {
+               var pixel = pixels[x, y];
+               while (pixel < (initialPaletteOffset << 4)) pixel += initialPaletteOffset << 4; // handle tiles mapped to no palette. Map them to the first palette.
+               pixels[x, y] = pixel >= indexMapping.Count ? pixel : indexMapping[pixel];  // don't remap any pixel that's using an unknown palette
+            }
+         }
+
+         spriteRun = spriteRun.SetPixels(model, token, page, pixels);
+         return spriteRun;
+      }
+
+      public static IDictionary<int, int> CreatePixelMapping(IReadOnlyList<short>[] originalPalettes, IReadOnlyList<short>[] newPalettes, int initialPaletteOffset) {
+         var result = new Dictionary<int, int>();
+         for (int i = 0; i < originalPalettes.Length; i++) {
+            var originalPaletteGroup = (i + initialPaletteOffset) << 4;
+            var originalPalette = originalPalettes[i];
+            var newPaletteIndex = TargetPalette(newPalettes, originalPalette);
+            var newPalette = newPalettes[newPaletteIndex];
+            var newPaletteGroup = (newPaletteIndex + initialPaletteOffset) << 4;
+            for (int j = 0; j < originalPalette.Count; j++) {
+               var colorIndex = BestMatch(originalPalette[j], newPalette);
+               result[originalPaletteGroup + j] = newPaletteGroup + colorIndex;
+            }
+         }
+         return result;
+      }
+
+      public static int TargetPalette(IReadOnlyList<short>[] options, IReadOnlyList<short> oldPalette) {
+         var bestDistance = double.PositiveInfinity;
+         var bestIndex = -1;
+         for (int i = 0; i < options.Length; i++) {
+            var currentDistance = 0.0;
+            for (int j = 0; j < oldPalette.Count; j++) {
+               var index = BestMatch(oldPalette[j], options[i]);
+               currentDistance += Distance(options[i][index], oldPalette[j]);
+            }
+            if (bestDistance <= currentDistance) continue;
+            bestDistance = currentDistance;
+            bestIndex = i;
+         }
+         return bestIndex;
+      }
+
+      /// <summary>
+      /// Creates a WeightedPalette from a non-indexed tile
+      /// </summary>
+      public static WeightedPalette Reduce(short[] rawColors, int targetColors) {
+         var allColors = new Dictionary<short, ColorMass>();
+         for (int i = 0; i < rawColors.Length; i++) {
+            var color = rawColors[i];
+            if (!allColors.ContainsKey(color)) allColors[color] = new ColorMass(color, 0);
+            allColors[color] = new ColorMass(color, allColors[color].Mass + 1);
+         }
+         var palette = allColors.Values.ToList();
+         return Reduce(palette, targetColors, out var _);
+      }
+
+      /// <summary>
+      /// Reduces a number of colors to a target length or shorter, and reports how much force was needed to do it.
+      /// </summary>
+      public static WeightedPalette Reduce(IList<ColorMass> palette, int targetColors, out double cost) {
+         cost = 0;
+         if (palette.Count <= targetColors) return new WeightedPalette(palette.Select(p => p.ResultColor).ToList(), palette.Select(p => p.Mass).ToList(), targetColors);
+         while (palette.Count > targetColors) {
+            var bestPair = (0, 1);
+            var bestCost = double.PositiveInfinity;
+            for (int i = 0; i < palette.Count - 1; i++) {
+               for (int j = i + 1; j < palette.Count; j++) {
+                  var currentCost = palette[i] * palette[j];
+                  if (currentCost >= bestCost) continue;
+                  bestCost = currentCost;
+                  bestPair = (i, j);
+               }
+            }
+            var combine1 = palette[bestPair.Item1];
+            var combine2 = palette[bestPair.Item2];
+            palette.RemoveAt(bestPair.Item2);
+            palette[bestPair.Item1] = combine1 + combine2;
+            cost += bestCost;
+         }
+         var resultPalette = palette.Select(p => p.ResultColor).ToList();
+         var resultMasses = palette.Select(p => p.Mass).ToList();
+         return new WeightedPalette(resultPalette, resultMasses, targetColors);
+      }
+
+      public static (int a, int b) CheapestMerge(IReadOnlyList<WeightedPalette> palettes, WeightedPalette newPalette) {
+         if (palettes.Count == 1) return (0, 1);
+
+         var bestPair = (0, 0);
+         double bestCost = double.PositiveInfinity;
+
+         for (int i = 0; i < palettes.Count; i++) {
+            for (int j = i + 1; j < palettes.Count; j++) {
+               if (bestCost == 0) break;
+               palettes[i].Merge(palettes[j], out var currentCost);
+               if (currentCost >= bestCost) continue;
+               bestCost = currentCost;
+               bestPair = (i, j);
+            }
+            if (bestCost == 0) break;
+            palettes[i].Merge(newPalette, out var newCost);
+            if (newCost >= bestCost) continue;
+            bestCost = newCost;
+            bestPair = (i, palettes.Count);
+         }
+
+         return bestPair;
+      }
+
+      public static int[,] Index(short[] rawColors, IReadOnlyList<short> palette) {
+         Debug.Assert(rawColors.Length == 64, "Expected to index a tile, but was not handed 64 pixels!");
+         var result = new int[8, 8];
+         for (int i = 0; i < rawColors.Length; i++) {
+            int x = i % 8, y = i / 8;
+            result[x, y] = BestMatch(rawColors[i], palette);
+         }
+         return result;
+      }
+
+      public static double CostToUse(short[] rawColors, IReadOnlyList<short> palette) {
+         var allColors = new Dictionary<short, ColorMass>();
+         for (int i = 0; i < rawColors.Length; i++) {
+            var color = rawColors[i];
+            if (!allColors.ContainsKey(color)) allColors[color] = new ColorMass(color, 0);
+            allColors[color] = new ColorMass(color, allColors[color].Mass + 1);
+         }
+
+         double total = 0;
+         foreach (var key in allColors.Keys) {
+            var bestDistance = double.PositiveInfinity;
+            for (int i = 0; i < palette.Count; i++) {
+               var currentDistance = Distance(key, palette[i]);
+               if (currentDistance < bestDistance) bestDistance = currentDistance;
+               if (bestDistance == 0) break;
+            }
+            total += bestDistance * allColors[key].Mass;
+         }
+
+         return total;
+      }
+
+      public static int BestMatch(short input, IReadOnlyList<short> palette) {
+         // TODO use best-match caching to reduce the number of distance calculations
+         var bestIndex = 0;
+         var bestDistance = Distance(input, palette[0]);
+         for (int i = 1; i < palette.Count; i++) {
+            if (bestDistance == 0) return bestIndex;
+            var currentDistance = Distance(input, palette[i]);
+            if (bestDistance <= currentDistance) continue;
+            bestIndex = i;
+            bestDistance = currentDistance;
+         }
+         return bestIndex;
+      }
+
+      public static double Distance(short a, short b) {
+         var channel1A = a >> 10;
+         var channel2A = (a >> 5) & 0x1F;
+         var channel3A = a & 0x1F;
+
+         var channel1B = b >> 10;
+         var channel2B = (b >> 5) & 0x1F;
+         var channel3B = b & 0x1F;
+
+         var diff1 = channel1A - channel1B;
+         var diff2 = channel2A - channel2B;
+         var diff3 = channel3A - channel3B;
+
+         return Math.Sqrt(diff1 * diff1 + diff2 * diff2 + diff3 * diff3);
+      }
+
+      public WeightedPalette Merge(WeightedPalette other, out double cost) {
+         var masses = new List<ColorMass>();
+         for (int i = 0; i < Palette.Count; i++) masses.Add(new ColorMass(Palette[i], Weight[i]));
+         for (int i = 0; i < other.Palette.Count; i++) {
+            var perfectMatchFound = false;
+            for (int j = 0; j < masses.Count; j++) {
+               if (masses[j].ResultColor != other.Palette[i]) continue;
+               perfectMatchFound = true;
+               masses[j] = new ColorMass(other.Palette[i], other.Weight[i] + masses[j].Mass);
+               break;
+            }
+            if (!perfectMatchFound) {
+               masses.Add(new ColorMass(other.Palette[i], other.Weight[i]));
+            }
+         }
+         return Reduce(masses, TargetLength, out cost);
+      }
+   }
+
    public class ColorMass {
       public double R { get; private set; }
       public double G { get; private set; }
@@ -904,7 +1092,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private ColorMass() { }
       public ColorMass(short color, int count) {
-         Debug.Assert(count > 0);
          originalColors[color] = count;
          (R, G, B) = SplitRGB(color);
          Mass = count;
@@ -914,6 +1101,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       /// Returns a new color mass that accounts for the positions/masses of the original two.
       /// </summary>
       public static ColorMass operator +(ColorMass a, ColorMass b) {
+         if (a.Mass == 0) return b;
+         if (b.Mass == 0) return a;
          var mass = a.Mass + b.Mass;
          var result = new ColorMass {
             Mass = mass,
@@ -930,19 +1119,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       /// <summary>
-      /// Returns a gravity factor, accounting for the distance/mass between the two color masses.
+      /// Returns an inverse gravity factor, accounting for the distance/mass between the two color masses.
+      /// Smaller numbers mean that it's a smaller change to merge the two. Larger numbers mean merging them should be avoided.
       /// </summary>
       public static double operator *(ColorMass a, ColorMass b) {
-         var distanceR = a.R - b.R;
-         var distanceG = a.G - b.G;
-         var distanceB = a.B - b.B;
-         var distanceSquared = distanceR * distanceR + distanceG * distanceG + distanceB * distanceB;
-         var mass = a.Mass + b.Mass;
-         return mass / distanceSquared;
+         if (a.Mass == 0 || b.Mass == 0) return 0;
+         var dR = a.R - b.R;
+         var dG = a.G - b.G;
+         var dB = a.B - b.B;
+         var distanceSquared = dR * dR + dG * dG + dB * dB;
+
+         if (distanceSquared == 0) return 0; // no distance: merging is free
+
+         // as the masses get farther apart, the force needed to merge them grows
+         // as the masses get heavier, the force needed to merge them grows
+         var force = a.Mass * b.Mass * distanceSquared;
+         return force;
       }
 
       public static (int, int, int) SplitRGB(short color) => (color >> 10, (color >> 5) & 0x1F, color & 0x1F);
 
       public static short CombineRGB(int r, int g, int b) => (short)((r << 10) | (g << 5) | b);
+
+      public override string ToString() => $"{Mass}, {R}:{G}:{B}";
    }
 }

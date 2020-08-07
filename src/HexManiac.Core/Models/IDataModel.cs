@@ -513,6 +513,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public static IReadOnlyList<string> GetBitOptions(this IDataModel model, string tableName) => ModelCacheScope.GetCache(model).GetBitOptions(tableName);
 
       public static IEnumerable<ArrayRun> GetRelatedArrays(this IDataModel model, ArrayRun table) {
+         yield return table; // a table is related to itself
          var basename = model.GetAnchorFromAddress(-1, table.Start);
          if (!string.IsNullOrEmpty(table.LengthFromAnchor)) basename = table.LengthFromAnchor;
          foreach (var array in model.Arrays) {
