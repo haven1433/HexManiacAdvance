@@ -282,11 +282,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
             foreach (var line in lines) {
                if (line.Trim() is "") continue;
-               if (line.StartsWith("-")) {
+               if (line.Trim().StartsWith("-")) {
                   if (pokemons.Count == 0) continue;
                   if (currentPokemonMoveCount > 3) continue;
                   MovesIncluded = true;
-                  var move = line.Substring(1).Trim();
+                  var move = line.Trim().Substring(1).Trim(' ', '"');
                   var moveIndex = moveNames.IndexOfPartial(move);
                   if (moveIndex < 0) moveIndex = 0;
                   moves[(pokemons.Count - 1) * 4 + currentPokemonMoveCount] = moveIndex;

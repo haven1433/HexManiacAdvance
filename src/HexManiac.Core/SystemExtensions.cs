@@ -78,8 +78,9 @@ namespace HavenSoft.HexManiac.Core {
 
       ////// these are some specific string extensions to deal with smart auto-complete //////
 
-      public static bool MatchesPartial(this string full, string partial) {
+      public static bool MatchesPartial(this string full, string partial, bool onlyCheckLettersAndDigits = false) {
          foreach (var character in partial) {
+            if (onlyCheckLettersAndDigits && !char.IsLetterOrDigit(character)) continue;
             var index = full.IndexOf(character.ToString(), StringComparison.CurrentCultureIgnoreCase);
             if (index == -1) return false;
             full = full.Substring(index + 1);
@@ -92,12 +93,18 @@ namespace HavenSoft.HexManiac.Core {
          var matchIndex = names.IndexOf(input);
          if (matchIndex != -1) return matchIndex;
 
-         // no perfect match found. How about a partial match?
+         // no perfect match found. How about a substring match?
          var match = names.FirstOrDefault(name => name.Contains(input));
          if (match != null) names.IndexOf(match);
 
+         // well how about just "all the characters are in the right order"?
          for (var i = 0; i < names.Count; i++) {
             if (names[i].MatchesPartial(input)) return i;
+         }
+
+         // last ditch effort: "all the letters/numbers are in the right order"
+         for (var i = 0; i < names.Count; i++) {
+            if (names[i].MatchesPartial(input, true)) return i;
          }
 
          return -1;

@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
@@ -106,6 +107,12 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Empty(errors);                                   // no errors
          Assert.NotEqual(0, viewPort.Model.GetNextRun(0).Start); // no run was added
+      }
+
+      [Theory]
+      [InlineData("SAND-ATTACK", "sand attack")]
+      public void StringMatchingTests(string full, string partial) {
+         Assert.True(full.MatchesPartial(partial, true));
       }
    }
 }
