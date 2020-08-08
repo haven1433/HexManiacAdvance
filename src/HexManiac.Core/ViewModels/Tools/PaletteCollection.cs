@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO.Packaging;
 using System.Linq;
 using System.Windows.Input;
 
@@ -64,6 +63,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private StubCommand createGradient;
       public ICommand CreateGradient => StubCommand(ref createGradient, ExecuteCreateGradient, CanExecuteCreateGradient);
+
+      private StubCommand singleReduce;
+      public ICommand SingleReduce => StubCommand(ref singleReduce, ExecuteSingleReduce, CanExecuteSingleReduce);
 
       public event EventHandler<int> RequestPageSet;
       public event EventHandler ColorsChanged;
@@ -163,6 +165,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                         // in the game, this only happens for tiles filled with the fully transparent color, so leaving them alone is actually the right thing to do.
                         if (tilesetPalettePage - source.PaletteFormat.InitialBlankPages != this.page) continue;
                         var oldPaletteColorIndex = pixels[x, y] - (tilesetPalettePage << 4);
+                        if (oldPaletteColorIndex.IsAny(6, 7)) ;
                         var newPaletteColorIndex = oldToNew[oldPaletteColorIndex];
                         pixels[x, y] = newPaletteColorIndex + (tilesetPalettePage << 4);
                      }
@@ -297,6 +300,62 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private bool CanExecuteCreateGradient() => Elements.Count(element => element.Selected) > 2;
+
+      private void ExecuteSingleReduce() {
+         var model = viewPort.Model;
+         if (!(model.GetNextRun(sourcePalette) is IPaletteRun paletteRun)) return;
+         int pageOffset = (paletteRun.PaletteFormat.InitialBlankPages + Page) << 4;
+
+         var masses = new List<ColorMass>();
+         for (int i = 0; i < Elements.Count; i++) {
+            if (!Elements[i].Selected) continue;
+            int count = 0;
+            foreach (var dependent in paletteRun.FindDependentSprites(model)) {
+               var items = new List<ISpriteRun> { dependent };
+               if (dependent is LzTilesetRun tileset) {
+                  items.Clear();
+                  items.AddRange(tileset.FindDependentTilemaps(model));
+               }
+               foreach (var sprite in items) {
+                  for (int j = 0; j < sprite.Pages; j++) {
+                     foreach (int pixelIndex in sprite.GetPixels(model, j)) {
+                        if (pixelIndex == pageOffset + i) count += 1;
+                     }
+                  }
+               }
+            }
+            masses.Add(new ColorMass(Elements[i].Color, count));
+         }
+
+         var (keepIndex, mergeIndex) = WeightedPalette.CheapestMerge(masses, out var _);
+         int elementKeepIndex = Elements.Where(e => e.Selected).Skip(keepIndex).First().Index;
+         int elementMergeIndex = Elements.Where(e => e.Selected).Skip(mergeIndex).First().Index;
+
+         foreach (var dependent in paletteRun.FindDependentSprites(model)) {
+            var items = new List<ISpriteRun> { dependent };
+            if (dependent is LzTilesetRun tileset) {
+               items.Clear();
+               items.AddRange(tileset.FindDependentTilemaps(model));
+            }
+            foreach (var sprite in items) {
+               for (int j = 0; j < sprite.Pages; j++) {
+                  var pixels = sprite.GetPixels(model, j);
+                  for (int x = 0; x < pixels.GetLength(0); x++) {
+                     for (int y = 0; y < pixels.GetLength(1); y++) {
+                        if (pixels[x, y] == elementMergeIndex + pageOffset) pixels[x, y] = elementKeepIndex + pageOffset;
+                     }
+                  }
+                  sprite.SetPixels(model, viewPort.CurrentChange, j, pixels);
+               }
+            }
+         }
+
+         Elements[elementKeepIndex].Color = (masses[keepIndex] + masses[mergeIndex]).ResultColor;
+         Elements[elementMergeIndex].Color = default;
+         PushColorsToModel();
+      }
+
+      private bool CanExecuteSingleReduce() => Elements.Count(element => element.Selected) > 1;
 
       #endregion
    }

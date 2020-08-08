@@ -12,13 +12,15 @@
       <ContextMenu>
          <MenuItem Header="Copy" InputGestureText="Ctrl+C" Command="{Binding Copy}" CommandParameter="{DynamicResource FileSystem}"/>
          <MenuItem Header="Paste" InputGestureText="Ctrl+V" Command="{Binding Paste}" CommandParameter="{DynamicResource FileSystem}"/>
-         <MenuItem Header="Create Gradient" InputGestureText="Ctrl+M" Command="{Binding CreateGradient}" />
+         <MenuItem Header="Create Gradient" InputGestureText="Ctrl+G" Command="{Binding CreateGradient}" />
+         <MenuItem Header="Reduce Colors" InputGestureText="Ctrl+R" Command="{Binding SingleReduce}" />
       </ContextMenu>
    </UserControl.ContextMenu>
    <UserControl.InputBindings>
       <KeyBinding Modifiers="Ctrl" Key="C" Command="{Binding Copy}" CommandParameter="{DynamicResource FileSystem}"/>
       <KeyBinding Modifiers="Ctrl" Key="V" Command="{Binding Paste}" CommandParameter="{DynamicResource FileSystem}"/>
-      <KeyBinding Modifiers="Ctrl" Key="M" Command="{Binding CreateGradient}"/>
+      <KeyBinding Modifiers="Ctrl" Key="G" Command="{Binding CreateGradient}"/>
+      <KeyBinding Modifiers="Ctrl" Key="R" Command="{Binding SingleReduce}"/>
    </UserControl.InputBindings>
    <ItemsControl Name="ItemsControl" HorizontalAlignment="Center" SnapsToDevicePixels="True" ItemsSource="{Binding Elements}">
       <ItemsControl.ItemsPanel>

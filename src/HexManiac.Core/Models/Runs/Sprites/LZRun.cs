@@ -262,8 +262,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       private static (int runLength, int runOffset) FindLongestMatch(IReadOnlyList<byte> data, int start, int earliest, int end) {
+         //return (2, -1); // temporary
+         // do not allow compression tokens to start on an odd byte
+         // see https://www.akkit.org/info/gbatek.htm : SWI 11h (GBA/NDS7/NDS9) - LZ77UnCompWram
+         if (start % 2 == 1) return (2, -1);
+
          int bestLength = 2, bestOffset = -1;
-         for (int runOffset = 1; runOffset <= 0x1000 && start - runOffset >= earliest; runOffset++) {
+         for (int runOffset = 2; runOffset <= 0x1000 && start - runOffset >= earliest; runOffset += 2) {
             int runLength = 0;
             while (start + runLength < end && runLength < 18 && data[start - runOffset + runLength] == data[start + runLength]) runLength++;
             if (runLength > bestLength) (bestLength, bestOffset) = (runLength, runOffset);
