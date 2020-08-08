@@ -21,6 +21,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       new byte this[int index] { get; set; }
       IReadOnlyList<string> ListNames { get; }
       IReadOnlyList<ArrayRun> Arrays { get; }
+      IEnumerable<T> All<T>() where T : IFormattedRun;
       IReadOnlyList<IStreamRun> Streams { get; }
       IReadOnlyList<string> Anchors { get; }
 
@@ -86,6 +87,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public virtual IReadOnlyList<string> ListNames { get; } = new List<string>();
       public virtual IReadOnlyList<ArrayRun> Arrays { get; } = new List<ArrayRun>();
+      public virtual IEnumerable<T> All<T>() where T : IFormattedRun { yield break; }
       public virtual IReadOnlyList<IStreamRun> Streams { get; } = new List<IStreamRun>();
       public virtual IReadOnlyList<string> Anchors { get; } = new List<string>();
 

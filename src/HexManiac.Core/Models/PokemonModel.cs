@@ -52,6 +52,11 @@ namespace HavenSoft.HexManiac.Core.Models {
             return results;
          }
       }
+      public override IEnumerable<T> All<T>() {
+         foreach (var run in runs) {
+            if (run is T t) yield return t;
+         }
+      }
       public override IReadOnlyList<IStreamRun> Streams => runs.Where(run => run is IStreamRun).Select(run => (IStreamRun)run).ToList();
       public override IReadOnlyList<string> Anchors => addressForAnchor.Keys.ToList();
 

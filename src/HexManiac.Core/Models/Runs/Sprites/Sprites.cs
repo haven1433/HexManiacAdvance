@@ -164,53 +164,75 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
          var tableSources = new List<int>();
          for (int i = 0; i < run.PointerSources.Count; i++) {
-            if (!(model.GetNextRun(run.PointerSources[i]) is ArrayRun)) continue;
+            if (!(model.GetNextRun(run.PointerSources[i]) is ITableRun)) continue;
             tableSources.Add(run.PointerSources[i]);
          }
 
          // part of a table
          if (tableSources.Count > 0) {
             foreach (var primarySource in tableSources) {
-               var tableRun = (ArrayRun)model.GetNextRun(primarySource);
+               var tableRun = (ITableRun)model.GetNextRun(primarySource);
                var primaryName = model.GetAnchorFromAddress(-1, tableRun.Start);
                var offset = tableRun.ConvertByteOffsetToArrayOffset(primarySource);
 
                // find all sprites within tables of the same length that reference this table or reference nothing at all
-               foreach (var table in model.GetRelatedArrays(tableRun)) {
-                  var elementOffset = table.ElementLength * offset.ElementIndex;
-                  foreach (var spriteRun in model.GetPointedChildren<ISpriteRun>(table, offset.ElementIndex)) {
-                     if (spriteRun is LzTilemapRun) continue; // don't count tilemaps
-                     var paletteHint = spriteRun.SpriteFormat.PaletteHint;
-                     if (!string.IsNullOrEmpty(paletteHint) && paletteHint != primaryName) continue;
-                     results.Add(spriteRun);
+               if (tableRun is ArrayRun arrayRun) {
+                  foreach (var table in model.GetRelatedArrays(arrayRun)) {
+                     var elementOffset = table.ElementLength * offset.ElementIndex;
+                     foreach (var spriteRun in model.GetPointedChildren<ISpriteRun>(table, offset.ElementIndex)) {
+                        if (spriteRun is LzTilemapRun) continue; // don't count tilemaps
+                        var paletteHint = spriteRun.SpriteFormat.PaletteHint;
+                        if (!string.IsNullOrEmpty(paletteHint) && paletteHint != primaryName) continue;
+                        results.Add(spriteRun);
+                     }
                   }
                }
 
                // if tableRun is used as an enum in indexTable, we care about payload tables with the same length as the index table that have sprites that use the index table as a paletteHint.
                // in that case, we want every sprite from the payload where the index matches the current tableRun index
-               foreach (var indexTable in model.GetEnumArrays(primaryName)) {
-                  if (indexTable.ElementContent.Count != 1) continue;
-                  var indexTableName = model.GetAnchorFromAddress(-1, indexTable.Start);
-                  foreach (var payloadTable in model.GetRelatedArrays(indexTable)) {
-                     if (payloadTable.ElementCount != indexTable.ElementCount) continue;
-                     foreach (var segment in payloadTable.ElementContent) {
-                        if (!(segment is ArrayRunPointerSegment pSegment)) continue;
-                        var format = default(SpriteFormat);
-                        if (SpriteRun.TryParseSpriteFormat(pSegment.InnerFormat, out var sf1)) format = sf1;
-                        if (LzSpriteRun.TryParseSpriteFormat(pSegment.InnerFormat, out var sf2)) format = sf2;
-                        if (format.BitsPerPixel == default) continue;
-                        if (format.PaletteHint != indexTableName) continue;
-                        var elementPartOffset = payloadTable.ElementContent.Until(content => content == segment).Sum(content => content.Length);
-                        for (int i = 0; i < indexTable.ElementCount; i++) {
-                           var index = model.ReadMultiByteValue(indexTable.Start + indexTable.ElementLength * i, indexTable.ElementLength);
-                           if (offset.ElementIndex != index) continue;
-                           var elementOffset = payloadTable.ElementLength * i;
-                           var destination = model.ReadPointer(payloadTable.Start + elementOffset + elementPartOffset);
-                           if (!(model.GetNextRun(destination) is ISpriteRun spriteRun)) continue;
-                           if (spriteRun is LzTilemapRun) continue; // don't count tilemaps
-                           results.Add(spriteRun);
+               if (!string.IsNullOrEmpty(primaryName)) {
+                  foreach (var indexTable in model.GetEnumArrays(primaryName)) {
+                     if (indexTable.ElementContent.Count != 1) continue;
+                     var indexTableName = model.GetAnchorFromAddress(-1, indexTable.Start);
+                     foreach (var payloadTable in model.GetRelatedArrays(indexTable)) {
+                        if (payloadTable.ElementCount != indexTable.ElementCount) continue;
+                        foreach (var segment in payloadTable.ElementContent) {
+                           if (!(segment is ArrayRunPointerSegment pSegment)) continue;
+                           var format = default(SpriteFormat);
+                           if (SpriteRun.TryParseSpriteFormat(pSegment.InnerFormat, out var sf1)) format = sf1;
+                           if (LzSpriteRun.TryParseSpriteFormat(pSegment.InnerFormat, out var sf2)) format = sf2;
+                           if (format.BitsPerPixel == default) continue;
+                           if (format.PaletteHint != indexTableName) continue;
+                           var elementPartOffset = payloadTable.ElementContent.Until(content => content == segment).Sum(content => content.Length);
+                           for (int i = 0; i < indexTable.ElementCount; i++) {
+                              var index = model.ReadMultiByteValue(indexTable.Start + indexTable.ElementLength * i, indexTable.ElementLength);
+                              if (offset.ElementIndex != index) continue;
+                              var elementOffset = payloadTable.ElementLength * i;
+                              var destination = model.ReadPointer(payloadTable.Start + elementOffset + elementPartOffset);
+                              if (!(model.GetNextRun(destination) is ISpriteRun spriteRun)) continue;
+                              if (spriteRun is LzTilemapRun) continue; // don't count tilemaps
+                              results.Add(spriteRun);
+                           }
                         }
                      }
+                  }
+
+                  // look for sprites that specify that they use this palette from this table, found via a key (example: overworld sprites)
+                  foreach (var sprite in model.All<ISpriteRun>()) {
+                     var hint = sprite.SpriteFormat.PaletteHint;
+                     if (string.IsNullOrEmpty(hint)) continue;
+                     var tableKeyPair = hint.Split(':');
+                     if (tableKeyPair[0] != primaryName) continue;
+                     var identifierValuePair = tableKeyPair.Length == 2 ? tableKeyPair[1].Split("=") : new string[0];
+                     if (identifierValuePair.Length != 2) continue;
+                     var (tableName, keyName, keyValue) = (tableKeyPair[0], identifierValuePair[0], identifierValuePair[1]);
+                     var keyOffset = tableRun.ElementContent.Until(seg => seg.Name == keyName).Sum(seg => seg.Length);
+                     if (keyOffset == tableRun.ElementLength) continue;
+                     var keySegment = tableRun.ElementContent.First(seg => seg.Name == keyName);
+                     var actualValue = model.ReadMultiByteValue(tableRun.Start + tableRun.ElementLength * offset.ElementIndex + keyOffset, keySegment.Length);
+                     if (!int.TryParse(keyValue, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int expectedValue)) continue;
+                     if (actualValue != expectedValue) continue;
+                     results.Add(sprite);
                   }
                }
             }
