@@ -953,16 +953,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          cost = 0;
          if (palette.Count <= targetColors) return new WeightedPalette(palette.Select(p => p.ResultColor).ToList(), palette.Select(p => p.Mass).ToList(), targetColors);
          while (palette.Count > targetColors) {
-            var bestPair = (0, 1);
-            var bestCost = double.PositiveInfinity;
-            for (int i = 0; i < palette.Count - 1; i++) {
-               for (int j = i + 1; j < palette.Count; j++) {
-                  var currentCost = palette[i] * palette[j];
-                  if (currentCost >= bestCost) continue;
-                  bestCost = currentCost;
-                  bestPair = (i, j);
-               }
-            }
+            var bestPair = CheapestMerge(palette, out var bestCost);
             var combine1 = palette[bestPair.Item1];
             var combine2 = palette[bestPair.Item2];
             palette.RemoveAt(bestPair.Item2);
@@ -972,6 +963,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var resultPalette = palette.Select(p => p.ResultColor).ToList();
          var resultMasses = palette.Select(p => p.Mass).ToList();
          return new WeightedPalette(resultPalette, resultMasses, targetColors);
+      }
+
+      public static (int a, int b) CheapestMerge(IList<ColorMass> palette, out double cost) {
+         var bestPair = (0, 1);
+         var bestCost = double.PositiveInfinity;
+         for (int i = 0; i < palette.Count - 1; i++) {
+            for (int j = i + 1; j < palette.Count; j++) {
+               var currentCost = palette[i] * palette[j];
+               if (currentCost >= bestCost) continue;
+               bestCost = currentCost;
+               bestPair = (i, j);
+            }
+         }
+         cost = bestCost;
+         return bestPair;
       }
 
       public static (int a, int b) CheapestMerge(IReadOnlyList<WeightedPalette> palettes, WeightedPalette newPalette) {

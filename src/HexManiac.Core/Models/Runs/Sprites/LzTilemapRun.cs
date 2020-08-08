@@ -70,27 +70,29 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       public int[,] GetPixels(IDataModel model, int page) {
-         var result = new int[Format.TileWidth * 8, Format.TileHeight * 8];
-
          var mapData = Decompress(model, Start);
          var tilesetAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, Format.MatchingTileset);
          var tileset = model.GetNextRun(tilesetAddress) as ISpriteRun;
          if (tileset == null) tileset = model.GetNextRun(arrayTilesetAddress) as ISpriteRun;
          
-         if (tileset == null || !(tileset is LZRun)) return result; // relax the conditions slightly: if the run we found is an LZSpriteRun, that's close enough, we can use it as a tileset.
+         if (tileset == null || !(tileset is LZRun)) return new int[Format.TileWidth * 8, Format.TileHeight * 8]; // relax the conditions slightly: if the run we found is an LZSpriteRun, that's close enough, we can use it as a tileset.
 
          var tiles = Decompress(model, tileset.Start);
 
-         var tileSize = tileset is LzTilesetRun lztsRun ? lztsRun.Format.BitsPerPixel * 8 : tileset.SpriteFormat.BitsPerPixel * 8;
+         return GetPixels(mapData, tiles, Format);
+      }
 
-         for (int y = 0; y < Format.TileHeight; y++) {
+      public static int[,] GetPixels(byte[] mapData, byte[] tiles, TilemapFormat format) {
+         var tileSize = format.BitsPerPixel * 8;
+         var result = new int[format.TileWidth * 8, format.TileHeight * 8];
+         for (int y = 0; y < format.TileHeight; y++) {
             var yStart = y * 8;
-            for (int x = 0; x < Format.TileWidth; x++) {
-               var map = mapData.ReadMultiByteValue((Format.TileWidth * y + x) * 2, 2);
+            for (int x = 0; x < format.TileWidth; x++) {
+               var map = mapData.ReadMultiByteValue((format.TileWidth * y + x) * 2, 2);
                var tile = map & 0x3FF;
 
                var tileStart = tile * tileSize;
-               var pixels = SpriteRun.GetPixels(tiles, tileStart, 1, 1, Format.BitsPerPixel); // TODO cache this during this method so we don't load the same tile more than once
+               var pixels = SpriteRun.GetPixels(tiles, tileStart, 1, 1, format.BitsPerPixel); // TODO cache this during this method so we don't load the same tile more than once
                var hFlip = (map >> 10) & 0x1;
                var vFlip = (map >> 11) & 0x1;
                var pal = (map >> 12) & 0xF;
@@ -110,7 +112,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       public ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels) {
-         var tileData = Tilize(pixels);
+         var tileData = Tilize(pixels, Format.BitsPerPixel);
          var tiles = GetUniqueTiles(tileData);
          var tilesetAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, Format.MatchingTileset);
          var tileset = model.GetNextRun(tilesetAddress) as LzTilesetRun;
@@ -153,12 +155,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return (paletteIndex << 12) | (vFlip << 11) | (hFlip << 10) | tileIndex;
       }
 
-      private (int[,] pixels,int palette)[,] Tilize(int[,] pixels) {
+      public static (int[,] pixels,int palette)[,] Tilize(int[,] pixels, int bitsPerPixel) {
          var width = pixels.GetLength(0);
          var tileWidth = width / 8;
          var height = pixels.GetLength(1);
          var tileHeight = height / 8;
-         var mod = Format.BitsPerPixel == 4 ? 16 : 256;
+         var mod = bitsPerPixel == 4 ? 16 : 256;
          var result = new (int[,], int)[tileWidth, tileHeight];
          for(int y = 0; y < tileHeight; y++) {
             var yStart = y * 8;
@@ -178,7 +180,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       // TODO include an append mode, where existing unique tiles from an existing tileset are passed in.
-      private int[][,] GetUniqueTiles((int[,] pixels, int palette)[,] tiles) {
+      public static int[][,] GetUniqueTiles((int[,] pixels, int palette)[,] tiles) {
          var tileWidth = tiles.GetLength(0);
          var tileHeight = tiles.GetLength(1);
          var result = new List<int[,]> {
@@ -195,32 +197,42 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return result.ToArray();
       }
 
-      // TODO mark the tiles as 'matching' if they're identical after horizantol/vertical flipping
-      private TileMatchType TilesMatch(int[,] a, int[,] b) {
+      public static TileMatchType TilesMatch(int[,] a, int[,] b) {
          Debug.Assert(a.GetLength(0) == 8);
          Debug.Assert(a.GetLength(1) == 8);
          Debug.Assert(b.GetLength(0) == 8);
          Debug.Assert(b.GetLength(1) == 8);
 
+         bool normal_possible = true;
+         bool hFlip_possible = true;
+         bool vFlip_possible = true;
+         bool bFlip_possible = true;
+
          for (int y = 0; y < 8; y++) {
             for (int x = 0; x < 8; x++) {
-               if (a[x, y] != b[x, y]) return TileMatchType.None;
+               normal_possible &= a[x, y] == b[x, y];
+               hFlip_possible &= a[x, y] == b[7 - x, y];
+               vFlip_possible &= a[x, y] == b[x, 7 - y];
+               bFlip_possible &= a[x, y] == b[7 - x, 7 - y];
             }
+            if (!normal_possible && !hFlip_possible && !vFlip_possible && !bFlip_possible) return TileMatchType.None;
          }
 
-         return TileMatchType.Normal;
+         if (normal_possible) return TileMatchType.Normal;
+         if (hFlip_possible) return TileMatchType.HFlip;
+         if (vFlip_possible) return TileMatchType.VFlip;
+         if (bFlip_possible) return TileMatchType.BFlip;
+         return TileMatchType.None;
       }
 
-      private (int, TileMatchType) FindMatch(int[,] tile, int[][,] collection) {
-         for(int i = 0; i < collection.Length; i++) {
+      public static (int, TileMatchType) FindMatch(int[,] tile, int[][,] collection) {
+         for (int i = 0; i < collection.Length; i++) {
             var match = TilesMatch(tile, collection[i]);
             if (match == TileMatchType.None) continue;
             return (i, match);
          }
          return (-1, default);
       }
-
-      private enum TileMatchType { None, Normal, HFlip, VFlip, BFlip }
 
       private int arrayTilesetAddress;
       public void FindMatchingTileset(IDataModel model) {
@@ -269,4 +281,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public LzTilemapRun Duplicate(TilemapFormat format) => new LzTilemapRun(format, Model, Start, PointerSources);
    }
+
+   public enum TileMatchType { None, Normal, HFlip, VFlip, BFlip }
 }
