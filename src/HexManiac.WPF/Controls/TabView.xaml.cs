@@ -262,7 +262,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var viewPort = DataContext as IViewPort;
          var tool = viewPort?.Tools?.CodeTool;
          if (tool == null) return;
-         var codebody = (CodeBody)textbox.DataContext;
+         var codebody = textbox.DataContext as CodeBody;
+         if (codebody == null) return;
 
          codebody.CaretPosition = textbox.SelectionStart;
          if (string.IsNullOrEmpty(codebody.HelpContent) || !textbox.IsFocused) {
