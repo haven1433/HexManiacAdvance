@@ -210,24 +210,25 @@ namespace HavenSoft.HexManiac.Tests {
       public void CanEditLzDataViaStreamTool() {
          SetFullModel(0xFF);
          CreateLzRun(0,
-            0x10, 6, 0, 0, // header (uncompressed length = 6)
+            0x10, 8, 0, 0, // header (uncompressed length = 8)
             0b01000000,     // group
             0x30,           // uncompressed 30
-            0x20, 0x00);    // compressed   5:1
+            0x40, 0x00);    // compressed   7:1
 
          ViewPort.Edit("@04 ");
-         Assert.Equal("30 30 30 30 30 30", ViewPort.Tools.StringTool.Content);
+         Assert.Equal("30 30 30 30 30 30 30 30", ViewPort.Tools.StringTool.Content);
 
-         ViewPort.Tools.StringTool.Content = "30 20 30 30 30 30"; // should result in 30 20 30 (3:1)
+         ViewPort.Tools.StringTool.Content = "30 20 30 30 30 30 30 30"; // should result in 30 20 30 30 (4:2)
 
          var run = Model.GetNextRun(0);
-         Assert.Equal(0b00010000, Model[4]);
+         Assert.Equal(0b00001000, Model[4]);
          Assert.Equal(0x30, Model[5]);
          Assert.Equal(0x20, Model[6]);
          Assert.Equal(0x30, Model[7]);
-         Assert.Equal(0x00, Model[8]);
-         Assert.Equal(0x00, Model[9]);
-         Assert.Equal(10, run.Length);
+         Assert.Equal(0x30, Model[8]);
+         Assert.Equal(0x10, Model[9]);
+         Assert.Equal(0x01, Model[10]);
+         Assert.Equal(11, run.Length);
          Assert.IsAssignableFrom<IStreamRun>(run);
       }
 
