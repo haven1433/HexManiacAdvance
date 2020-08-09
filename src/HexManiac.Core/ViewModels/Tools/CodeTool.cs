@@ -94,7 +94,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          using (ModelCacheScope.CreateScope(model)) {
             if (length > 0x1000) {
-               Content = "Too many bytes selected.";
+               Set(ref content, "Too many bytes selected.", nameof(Content));
             } else if (mode == CodeMode.Raw) {
                Content = RawParse(model, start, end - start + 1);
             } else if (length < 2 && mode != CodeMode.Script) {
