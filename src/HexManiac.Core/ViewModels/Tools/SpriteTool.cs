@@ -681,6 +681,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             IReadOnlyList<ISpriteRun> spritesToWeigh = new List<ISpriteRun> { spriteSet };
             if (spriteSet is LzTilesetRun tileset) spritesToWeigh = tileset.FindDependentTilemaps(model);
             foreach (var sprite in spritesToWeigh) {
+               if (sprite == spriteRun) continue; // don't update the current sprite, we're going to do that later
                if (WeightedPalette.Update(model, viewPort.CurrentChange, sprite, palettes, newPalettes, initialBlankPages).Start != sprite.Start) otherSpritesMoved = true;
             }
          }
