@@ -151,9 +151,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      if (result >= BaseModel.PointerOffset) result -= BaseModel.PointerOffset;
                      GotoAddress(result);
                   } else {
-                     var options = model.GetNewPointerAutocompleteOptions(" " + address.Trim(), -1);
+                     address = address.Trim();
+                     var options = model.GetAutoCompleteAnchorNameOptions(address);
+                     if (options.Count == 0 && !address.Contains("/")) {
+                        options = model.GetAutoCompleteAnchorNameOptions("/" + address);
+                     }
                      if (options.Count == 1) {
-                        anchor = this.model.GetAddressFromAnchor(new ModelDelta(), -1, options[0].CompletionText);
+                        anchor = this.model.GetAddressFromAnchor(new ModelDelta(), -1, options[0]);
                         GotoAddress(anchor);
                      } else {
                         OnError?.Invoke(this, $"Unable to goto address '{address}'");
