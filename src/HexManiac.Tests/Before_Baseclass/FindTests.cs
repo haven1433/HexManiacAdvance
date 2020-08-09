@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
@@ -395,6 +396,42 @@ namespace HavenSoft.HexManiac.Tests {
          editor.Find.Execute("05 06 07 08");
 
          Assert.NotEqual(viewPort.SelectionStart, viewPort.SelectionEnd);
+      }
+
+      [Fact]
+      public void SameModelDoesNotGetSearchedMultipleTimes() {
+         int findCalls = 0;
+         IReadOnlyList<(int, int)> Find(string input) {
+            findCalls += 1;
+            return new List<(int, int)>();
+         }
+         var viewPort1 = new StubViewPort { Model = new StubDataModel(), Find = Find };
+         var viewPort2 = new StubViewPort { Model = viewPort1.Model, Find = Find };
+         var editor = new EditorViewModel(new StubFileSystem());
+         editor.Add(viewPort1);
+         editor.Add(viewPort2);
+
+         editor.Find.Execute("sample");
+
+         Assert.Equal(1, findCalls);
+      }
+
+      [Fact]
+      public void DifferentModelsAllGetSearched() {
+         int findCalls = 0;
+         IReadOnlyList<(int, int)> Find(string input) {
+            findCalls += 1;
+            return new List<(int, int)>();
+         }
+         var viewPort1 = new StubViewPort { Model = new StubDataModel(), Find = Find };
+         var viewPort2 = new StubViewPort { Model = new StubDataModel(), Find = Find };
+         var editor = new EditorViewModel(new StubFileSystem());
+         editor.Add(viewPort1);
+         editor.Add(viewPort2);
+
+         editor.Find.Execute("sample");
+
+         Assert.Equal(2, findCalls);
       }
    }
 }

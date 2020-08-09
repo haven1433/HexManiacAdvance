@@ -567,8 +567,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void FindExecuted(string search) {
          var results = new List<(IViewPort, int start, int end)>();
+
+         var searchedModels = new List<IDataModel>();
          foreach (var tab in tabs) {
-            if (tab is IViewPort viewPort) results.AddRange(viewPort.Find(search).Select(offset => (viewPort, offset.start, offset.end)));
+            if (tab is IViewPort viewPort && searchedModels.All(model => model != viewPort.Model)) {
+               results.AddRange(viewPort.Find(search).Select(offset => (viewPort, offset.start, offset.end)));
+               searchedModels.Add(viewPort.Model);
+            }
          }
 
          FindControlVisible = false;
