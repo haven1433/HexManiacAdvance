@@ -101,6 +101,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                paletteFormat = palette.PaletteFormat;
                return palette.AllColors(Model);
             }
+            if (sRun.SpriteFormat.BitsPerPixel == 1) return TileViewModel.CreateDefaultPalette(2);
          }
          return TileViewModel.CreateDefaultPalette(0x10);
       }

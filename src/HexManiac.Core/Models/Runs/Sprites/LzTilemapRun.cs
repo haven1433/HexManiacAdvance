@@ -129,6 +129,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
          var tileWidth = tileData.GetLength(0);
          var tileHeight = tileData.GetLength(1);
+
          for (int y = 0; y < tileHeight; y++) {
             for (int x = 0; x < tileWidth; x++) {
                var i = y * tileWidth + x;

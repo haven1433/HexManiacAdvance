@@ -91,6 +91,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          // find all palettes that could be applied to this sprite run
          var noChange = new NoDataChangeDeltaModel();
          var results = new List<IPaletteRun>();
+         if (spriteRun.SpriteFormat.BitsPerPixel == 1) return results; // 1-bit sprites don't have palettes
          hint = hint ?? spriteRun?.SpriteFormat.PaletteHint;
          if (primarySource == -1) {
             var pointerCount = spriteRun?.PointerSources?.Count ?? 0;
@@ -218,21 +219,24 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                   }
 
                   // look for sprites that specify that they use this palette from this table, found via a key (example: overworld sprites)
-                  foreach (var sprite in model.All<ISpriteRun>()) {
-                     var hint = sprite.SpriteFormat.PaletteHint;
-                     if (string.IsNullOrEmpty(hint)) continue;
-                     var tableKeyPair = hint.Split(':');
-                     if (tableKeyPair[0] != primaryName) continue;
-                     var identifierValuePair = tableKeyPair.Length == 2 ? tableKeyPair[1].Split("=") : new string[0];
-                     if (identifierValuePair.Length != 2) continue;
-                     var (tableName, keyName, keyValue) = (tableKeyPair[0], identifierValuePair[0], identifierValuePair[1]);
-                     var keyOffset = tableRun.ElementContent.Until(seg => seg.Name == keyName).Sum(seg => seg.Length);
-                     if (keyOffset == tableRun.ElementLength) continue;
-                     var keySegment = tableRun.ElementContent.First(seg => seg.Name == keyName);
-                     var actualValue = model.ReadMultiByteValue(tableRun.Start + tableRun.ElementLength * offset.ElementIndex + keyOffset, keySegment.Length);
-                     if (!int.TryParse(keyValue, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int expectedValue)) continue;
-                     if (actualValue != expectedValue) continue;
-                     results.Add(sprite);
+                  // this is time consuming, so only do it if we haven't found any sprites yet
+                  if (results.Count == 0) {
+                     foreach (var sprite in model.All<SpriteRun>()) {
+                        var hint = sprite.SpriteFormat.PaletteHint;
+                        if (string.IsNullOrEmpty(hint)) continue;
+                        var tableKeyPair = hint.Split(':');
+                        if (tableKeyPair[0] != primaryName) continue;
+                        var identifierValuePair = tableKeyPair.Length == 2 ? tableKeyPair[1].Split("=") : new string[0];
+                        if (identifierValuePair.Length != 2) continue;
+                        var (tableName, keyName, keyValue) = (tableKeyPair[0], identifierValuePair[0], identifierValuePair[1]);
+                        var keyOffset = tableRun.ElementContent.Until(seg => seg.Name == keyName).Sum(seg => seg.Length);
+                        if (keyOffset == tableRun.ElementLength) continue;
+                        var keySegment = tableRun.ElementContent.First(seg => seg.Name == keyName);
+                        var actualValue = model.ReadMultiByteValue(tableRun.Start + tableRun.ElementLength * offset.ElementIndex + keyOffset, keySegment.Length);
+                        if (!int.TryParse(keyValue, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int expectedValue)) continue;
+                        if (actualValue != expectedValue) continue;
+                        results.Add(sprite);
+                     }
                   }
                }
             }

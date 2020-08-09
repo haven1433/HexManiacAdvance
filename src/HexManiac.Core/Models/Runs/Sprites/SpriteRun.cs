@@ -50,7 +50,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       /// </summary>
       public static int[,] GetPixels(IReadOnlyList<byte> data, int start, int tileWidth, int tileHeight, int bitsPerPixel) {
          var result = new int[8 * tileWidth, 8 * tileHeight];
-         Debug.Assert(bitsPerPixel == 8 || bitsPerPixel == 4);
+         Debug.Assert(bitsPerPixel.IsAny(1, 4, 8));
          for (int y = 0; y < tileHeight; y++) {
             int yOffset = y * 8;
             for (int x = 0; x < tileWidth; x++) {
@@ -60,17 +60,31 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                   for (int i = 0; i < 32; i++) {
                      int xx = i % 4; // ranges from 0 to 3
                      int yy = i / 4; // ranges from 0 to 7
-                     var raw = (byte)(tileStart + i < data.Count ? data[tileStart + i] : 0);
+                     var raw = tileStart + i < data.Count ? data[tileStart + i] : 0;
                      result[xOffset + xx * 2 + 0, yOffset + yy] = (raw & 0xF);
                      result[xOffset + xx * 2 + 1, yOffset + yy] = raw >> 4;
                   }
-               } else {
+               } else if (bitsPerPixel == 8) {
                   for (int i = 0; i < 64; i++) {
                      int xx = i % 8;
                      int yy = i / 8;
                      var raw = tileStart + i < data.Count ? data[tileStart + i] : 0;
                      result[xOffset + xx, yOffset + yy] = raw;
                   }
+               } else if (bitsPerPixel == 1) {
+                  for (int i = 0; i < 8; i++) {
+                     var raw = tileStart + i < data.Count ? data[tileStart + i] : 0;
+                     result[xOffset + 0, yOffset + i] = ((raw >> 0) & 1);
+                     result[xOffset + 1, yOffset + i] = ((raw >> 1) & 1);
+                     result[xOffset + 2, yOffset + i] = ((raw >> 2) & 1);
+                     result[xOffset + 3, yOffset + i] = ((raw >> 3) & 1);
+                     result[xOffset + 4, yOffset + i] = ((raw >> 4) & 1);
+                     result[xOffset + 5, yOffset + i] = ((raw >> 5) & 1);
+                     result[xOffset + 6, yOffset + i] = ((raw >> 6) & 1);
+                     result[xOffset + 7, yOffset + i] = ((raw >> 7) & 1);
+                  }
+               } else {
+                  // unsure what to do here...
                }
             }
          }
