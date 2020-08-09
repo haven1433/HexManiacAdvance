@@ -29,7 +29,7 @@ Name = '''moveeffects'''
    '''RaiseAttackPrimary''',
    '''RaiseDefensePrimary''',
    '''???RaiseSpeedPrimary???''',
-   '''RaiseAttackSpAttackPrimary''',
+   '''RaiseSpAttackPrimary''',
    '''unknown1''',
    '''???RaiseAccuracyPrimary???''',
    '''RaiseEvasivenessPrimary''',
