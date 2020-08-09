@@ -320,6 +320,12 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                } else {
                   MakeNewToolTip(matchedWord.Name);
                }
+            } else if (format is IntegerEnum intEnum) {
+               if (Equals(intEnum.DisplayValue, ToolTip.Content) && ToolTipService.GetIsEnabled(this)) {
+                  // already set
+               } else {
+                  MakeNewToolTip(intEnum.DisplayValue);
+               }
             } else {
                timer.Enabled = false;
                ToolTipService.SetIsEnabled(this, false);
