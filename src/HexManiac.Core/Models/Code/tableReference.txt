@@ -16,33 +16,35 @@ data.pokemon.natures.names,            0443D8, 0443D8, 0443F8, 0443F8, 0488B8, 0
 // mapnames,                           0FB550, 0FB550, 0FB570, 0FB570,       ,       ,       ,       , 123B44, [a b c d name<"">]
 
 
-//                                     +28 pokemon are for egg and unown sprites (B-Z, !, ?), 
-graphics.pokemon.sprites.front,        00D324, 00D324, 00D324, 00D324, 000128, 000128, 000128, 000128, 000128, [sprite<`lzs4x8x8`> uncompressedLength: index:]data.pokemon.names+28
-graphics.pokemon.sprites.back,         00D3D8, 00D3D8, 00D3D8, 00D3D8, 00012C, 00012C, 00012C, 00012C, 00012C, [sprite<`lzs4x8x8`> uncompressedLength: index:]data.pokemon.names+28
-graphics.pokemon.sprites.elevation,    032974, 032974, 032974, 032974, 0356F8, 0356F8, 03570C, 03570C, 05EE44, [elevation.]data.pokemon.names
-graphics.pokemon.sprites.footprint,    0917C8, 0917C8, 0917E8, 0917E8, 105E14, 105DEC, 105E8C, 105E64, 0C0DBC, [footprint<`ucs1x2x2`>]data.pokemon.names+1
-graphics.pokemon.palettes.normal,      040954, 040954, 040974, 040974, 000130, 000130, 000130, 000130, 000130, [palette<`lzp4`> index: unused:]data.pokemon.names+28
-graphics.pokemon.palettes.shiny,       04098C, 04098C, 0409AC, 0409AC, 000134, 000134, 000134, 000134, 000134, [palette<`lzp4`> index: unused:]data.pokemon.names+28
-graphics.pokemon.icons.sprites,        099AA0, 099AA0, 099AC0, 099AC0, 000138, 000138, 000138, 000138, 000138, [icon<`ucs4x4x8|graphics.pokemon.icons.index`>]data.pokemon.names+28
-graphics.pokemon.icons.index,          099BB0, 099BB0, 099BD0, 099BD0, 00013C, 00013C, 00013C, 00013C, 00013C, [index.graphics.pokemon.icons.palettes]data.pokemon.names+28
-graphics.pokemon.icons.palettes,       09D53C, 09D53C, 09D55C, 09D55C, 000140, 000140, 000140, 000140, 000140, [palette<`ucp4`> id::]3
-graphics.items.ball.sprites,           0473BC, 0473BC, 0473DC, 0473DC, 0001D0, 0001D0, 0001D0, 0001D0, 0001D0, [sprite<`lzs4x2x6|graphics.items.ball.palettes`> uncompressedLength: a b]12
-graphics.items.ball.palettes,          0473C0, 0473C0, 0473E0, 0473E0, 0001D4, 0001D4, 0001D4, 0001D4, 0001D4, [palette<`lzp4`> a b unused:]graphics.items.ball.sprites
-graphics.trainers.sprites.front,       031B9C, 031B9C, 031B9C, 031B9C,       ,       ,       ,       ,       , [sprite<`lzs4x8x8|graphics.trainers.palettes`> uncompressedLength: index:]83
-graphics.trainers.sprites.front,             ,       ,       ,       , 03473C, 03473C, 034750, 034750,       , [sprite<`lzs4x8x8|graphics.trainers.palettes`> uncompressedLength: index:]148
-graphics.trainers.sprites.front,             ,       ,       ,       ,       ,       ,       ,       , 05DF78, [sprite<`lzs4x8x8|graphics.trainers.palettes`> uncompressedLength: index:]93
-graphics.trainers.animations.frames,   1436B8, 1436B8, 1436D8, 1436D8, 10BDA8, 10BD80, 10BE20, 10BDF8, 18D1E8, [animationPointer<[animation<>]1>]graphics.trainers.sprites.front
-graphics.trainers.animations.details,  143858, 143858, 143878, 143878, 158514, 1584F0, 15858C, 158568, 061AD0, [value::]graphics.trainers.sprites.front
-graphics.trainers.palettes,            031B98, 031B98, 031B98, 031B98, 03474C, 03474C, 034760, 034760, 05B784, [palette<`lzp4`> index: unused:]graphics.trainers.sprites.front
-graphics.trainers.sprites.back,              ,       ,       ,       , 10BC58, 10BC30, 10BCD0, 10BCA8,       , [sprite<`ucs4x8x8|graphics.trainers.palettes.back`> a b c:]6
-graphics.trainers.sprites.back,              ,       ,       ,       ,       ,       ,       ,       , 05DFD4, [sprite<`ucs4x8x8|graphics.trainers.palettes.back`> a b c:]8
-graphics.trainers.palettes.back,             ,       ,       ,       , 0335D4, 0335D4, 0335E8, 0335E8, 05DFDC, [pal<`lzp4`> sprite::]graphics.trainers.sprites.back
-graphics.pokemon.animations.options,         ,       ,       ,       ,       ,       ,       ,       , 17F53C, [thumb<>]
-graphics.pokemon.animations.front,           ,       ,       ,       ,       ,       ,       ,       , 06EDE8, [index.graphics.pokemon.animations.options]data.pokemon.names-1
-graphics.pokemon.animations.back,            ,       ,       ,       ,       ,       ,       ,       , 17F488, [index.]data.pokemon.names
-graphics.pokemon.animations.frames,          ,       ,       ,       ,       ,       ,       ,       , 05E7BC, [data<[frames<[frame: time:]!FFFF0000>]1>]data.pokemon.names  // every pokemon has at least 2 (expcept Spinda), and some have 3.
-graphics.moves.animations,             075734, 075738, 075754, 075758, 0725D0, 0725D0, 0725E4, 0725E4, 0A3A44, [animation<>]data.moves.names
-graphics.items.sprites,                      ,       ,       ,       , 09899C, 098970, 0989B0, 098984, 1B0034, [sprite<`lzs4x3x3`> palette<`lzp4`>]data.items.stats+1
+//                                          +28 pokemon are for egg and unown sprites (B-Z, !, ?), 
+graphics.pokemon.sprites.front,             00D324, 00D324, 00D324, 00D324, 000128, 000128, 000128, 000128, 000128, [sprite<`lzs4x8x8`> uncompressedLength: index:]data.pokemon.names+28
+graphics.pokemon.sprites.back,              00D3D8, 00D3D8, 00D3D8, 00D3D8, 00012C, 00012C, 00012C, 00012C, 00012C, [sprite<`lzs4x8x8`> uncompressedLength: index:]data.pokemon.names+28
+graphics.pokemon.sprites.elevation,         032974, 032974, 032974, 032974, 0356F8, 0356F8, 03570C, 03570C, 05EE44, [elevation.]data.pokemon.names
+graphics.pokemon.sprites.footprint,         0917C8, 0917C8, 0917E8, 0917E8, 105E14, 105DEC, 105E8C, 105E64, 0C0DBC, [footprint<`ucs1x2x2`>]data.pokemon.names+1
+graphics.pokemon.sprites.coordinates.front, 00B2BC, 00B2BC, 00B2BC, 00B2BC, 011F4C, 011F4C, 011F60, 011F60, 02DC78, [size. yOffset. unused:]data.pokemon.names+28
+graphics.pokemon.sprites.coordinates.back,  0319A8, 0319A8, 0319A8, 0319A8, 074634, 074634, 074648, 074648, 0A5E8C, [size. yOffset. unused:]data.pokemon.names+28
+graphics.pokemon.palettes.normal,           040954, 040954, 040974, 040974, 000130, 000130, 000130, 000130, 000130, [palette<`lzp4`> index: unused:]data.pokemon.names+28
+graphics.pokemon.palettes.shiny,            04098C, 04098C, 0409AC, 0409AC, 000134, 000134, 000134, 000134, 000134, [palette<`lzp4`> index: unused:]data.pokemon.names+28
+graphics.pokemon.icons.sprites,             099AA0, 099AA0, 099AC0, 099AC0, 000138, 000138, 000138, 000138, 000138, [icon<`ucs4x4x8|graphics.pokemon.icons.index`>]data.pokemon.names+28
+graphics.pokemon.icons.index,               099BB0, 099BB0, 099BD0, 099BD0, 00013C, 00013C, 00013C, 00013C, 00013C, [index.graphics.pokemon.icons.palettes]data.pokemon.names+28
+graphics.pokemon.icons.palettes,            09D53C, 09D53C, 09D55C, 09D55C, 000140, 000140, 000140, 000140, 000140, [palette<`ucp4`> id::]3
+graphics.items.ball.sprites,                0473BC, 0473BC, 0473DC, 0473DC, 0001D0, 0001D0, 0001D0, 0001D0, 0001D0, [sprite<`lzs4x2x6|graphics.items.ball.palettes`> uncompressedLength: a b]12
+graphics.items.ball.palettes,               0473C0, 0473C0, 0473E0, 0473E0, 0001D4, 0001D4, 0001D4, 0001D4, 0001D4, [palette<`lzp4`> a b unused:]graphics.items.ball.sprites
+graphics.trainers.sprites.front,            031B9C, 031B9C, 031B9C, 031B9C,       ,       ,       ,       ,       , [sprite<`lzs4x8x8|graphics.trainers.palettes`> uncompressedLength: index:]83
+graphics.trainers.sprites.front,                  ,       ,       ,       , 03473C, 03473C, 034750, 034750,       , [sprite<`lzs4x8x8|graphics.trainers.palettes`> uncompressedLength: index:]148
+graphics.trainers.sprites.front,                  ,       ,       ,       ,       ,       ,       ,       , 05DF78, [sprite<`lzs4x8x8|graphics.trainers.palettes`> uncompressedLength: index:]93
+graphics.trainers.animations.frames,        1436B8, 1436B8, 1436D8, 1436D8, 10BDA8, 10BD80, 10BE20, 10BDF8, 18D1E8, [animationPointer<[animation<>]1>]graphics.trainers.sprites.front
+graphics.trainers.animations.details,       143858, 143858, 143878, 143878, 158514, 1584F0, 15858C, 158568, 061AD0, [value::]graphics.trainers.sprites.front
+graphics.trainers.palettes,                 031B98, 031B98, 031B98, 031B98, 03474C, 03474C, 034760, 034760, 05B784, [palette<`lzp4`> index: unused:]graphics.trainers.sprites.front
+graphics.trainers.sprites.back,                   ,       ,       ,       , 10BC58, 10BC30, 10BCD0, 10BCA8,       , [sprite<`ucs4x8x8|graphics.trainers.palettes.back`> a b c:]6
+graphics.trainers.sprites.back,                   ,       ,       ,       ,       ,       ,       ,       , 05DFD4, [sprite<`ucs4x8x8|graphics.trainers.palettes.back`> a b c:]8
+graphics.trainers.palettes.back,                  ,       ,       ,       , 0335D4, 0335D4, 0335E8, 0335E8, 05DFDC, [pal<`lzp4`> sprite::]graphics.trainers.sprites.back
+graphics.pokemon.animations.options,              ,       ,       ,       ,       ,       ,       ,       , 17F53C, [thumb<>]
+graphics.pokemon.animations.front,                ,       ,       ,       ,       ,       ,       ,       , 06EDE8, [index.graphics.pokemon.animations.options]data.pokemon.names-1
+graphics.pokemon.animations.back,                 ,       ,       ,       ,       ,       ,       ,       , 17F488, [index.]data.pokemon.names
+graphics.pokemon.animations.frames,               ,       ,       ,       ,       ,       ,       ,       , 05E7BC, [data<[frames<[frame: time:]!FFFF0000>]1>]data.pokemon.names  // every pokemon has at least 2 (expcept Spinda), and some have 3.
+graphics.moves.animations,                  075734, 075738, 075754, 075758, 0725D0, 0725D0, 0725E4, 0725E4, 0A3A44, [animation<>]data.moves.names
+graphics.items.sprites,                           ,       ,       ,       , 09899C, 098970, 0989B0, 098984, 1B0034, [sprite<`lzs4x3x3`> palette<`lzp4`>]data.items.stats+1
 
 
 data.pokemon.stats,                    010B64, 010B64, 010B64, 010B64, 0001BC, 0001BC, 0001BC, 0001BC, 0001BC, [hp. attack. def. speed. spatk. spdef. type1.data.pokemon.type.names type2.data.pokemon.type.names catchRate. baseExp. evs|b[]evbits item1:data.items.stats item2:data.items.stats genderratio. steps2hatch. basehappiness. growthrate. egg1. egg2. ability1.data.abilities.names ability2.data.abilities.names runrate. unknown. padding:]data.pokemon.names
