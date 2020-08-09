@@ -225,6 +225,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          ignoreContentUpdates = true;
          {
             var oldScripts = parser.CollectScripts(model, start);
+            var originalCodeContent = codeContent;
             var code = parser.Compile(history.CurrentChange, model, start, ref codeContent, out var movedData);
             if (code == null) {
                ignoreContentUpdates = false;
@@ -248,6 +249,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   if (start != run.Start) {
                      ModelDataMoved?.Invoke(this, (start, run.Start));
                      start = run.Start;
+                     code = parser.Compile(history.CurrentChange, model, start, ref codeContent, out movedData); // recompile for the new location. Could update pointers.
                      sources = run.PointerSources;
                   }
                }

@@ -26,8 +26,14 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       public List<int> CollectScripts(IDataModel model, int address) {
-         if (address < 0 || address >= model.Count) return new List<int>();
-         var scripts = new List<int> { address };
+         // do some basic validation to make sure this is actually a reasonable thing to decode
+         var currentRun = model.GetNextRun(address);
+         var scripts = new List<int>();
+         if (address < 0 || address >= model.Count) return scripts;
+         if (currentRun.Start < address) return scripts;
+         if (currentRun.Start == address && !(currentRun is IScriptStartRun)) return scripts;
+
+         scripts.Add(address);
          var lengths = new List<int>();
 
          for (int i = 0; i < scripts.Count; i++) {
@@ -490,7 +496,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public BSEScriptLine(string engineLine) : base(engineLine) { }
 
       public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x28, 0x3c, 0x3d, 0x3e, 0x3f);
-      public override bool PointsToNextScript => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x01, 0x28, 0x2A, 0x7A, 0x97);
+      public override bool PointsToNextScript => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x01, 0x1C, 0x1D, 0x20, 0x21, 0x28, 0x2A, 0x7A, 0x97);
       public override bool PointsToText => false;
       public override bool PointsToMovement => false;
       public override bool PointsToMart => false;
