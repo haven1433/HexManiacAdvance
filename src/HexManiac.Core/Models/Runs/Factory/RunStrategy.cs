@@ -63,6 +63,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
             strategy = new XseRunContentStrategy();
          } else if (format == BSERun.SharedFormatString) {
             strategy = new BseRunContentStrategy();
+         } else if (format == ASERun.SharedFormatString) {
+            strategy = new AseRunContentStrategy();
          } else if (format == OverworldSpriteListRun.SharedFormatString) {
             strategy = new OverworldSpriteListContentStrategy();
          } else if (format == TrainerPokemonTeamRun.SharedFormatString) {
@@ -136,6 +138,33 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
 
       public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, ref IFormattedRun run) {
          run = new BSERun(run.Start, run.PointerSources);
+      }
+
+      public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
+         throw new System.NotImplementedException();
+      }
+   }
+
+   public class AseRunContentStrategy : RunStrategy {
+      public override int LengthForNewRun(IDataModel model, int pointerAddress) => 1;
+
+      public override bool Matches(IFormattedRun run) => run is ASERun;
+
+      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
+         var run = new ASERun(destination, new SortedSpan<int>(source));
+         if (run.Length < 1) return false;
+         owner.ObserveRunWritten(token, run);
+         return true;
+      }
+
+      // TODO
+      public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+         run = new ASERun(dataIndex, run.PointerSources);
+         return ErrorInfo.NoError;
+      }
+
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, ref IFormattedRun run) {
+         run = new ASERun(run.Start, run.PointerSources);
       }
 
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {

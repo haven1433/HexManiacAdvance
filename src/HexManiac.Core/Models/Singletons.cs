@@ -19,6 +19,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       private const string ThumbReferenceFileName = "resources/armReference.txt";
       private const string ScriptReferenceFileName = "resources/scriptReference.txt";
       private const string BattleScriptReferenceFileName = "resources/battleScriptReference.txt";
+      private const string AnimationScriptReferenceFileName = "resources/animationScriptReference.txt";
 
       public IMetadataInfo MetadataInfo { get; }
       public IReadOnlyDictionary<string, GameReferenceTables> GameReferenceTables { get; }
@@ -26,6 +27,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public IReadOnlyList<IInstruction> ThumbInstructionTemplates { get; }
       public IReadOnlyList<ScriptLine> ScriptLines { get; }
       public IReadOnlyList<ScriptLine> BattleScriptLines { get; }
+      public IReadOnlyList<ScriptLine> AnimationScriptLines { get; }
 
       public Singletons() {
          MetadataInfo = new MetadataInfo();
@@ -33,6 +35,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          (ThumbConditionalCodes, ThumbInstructionTemplates) = LoadThumbReference();
          ScriptLines = LoadScriptReference<XSEScriptLine>(ScriptReferenceFileName);
          BattleScriptLines = LoadScriptReference<BSEScriptLine>(BattleScriptReferenceFileName);
+         AnimationScriptLines = LoadScriptReference<ASEScriptLine>(AnimationScriptReferenceFileName);
       }
 
       public Singletons(IMetadataInfo metadataInfo, IReadOnlyDictionary<string, GameReferenceTables> gameReferenceTables) {
@@ -44,6 +47,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (!File.Exists(file)) return new List<ScriptLine>();
          Func<string, ScriptLine> factory = line => new XSEScriptLine(line);
          if (typeof(TLine) == typeof(BSEScriptLine)) factory = line => new BSEScriptLine(line);
+         if (typeof(TLine) == typeof(ASEScriptLine)) factory = line => new ASEScriptLine(line);
 
          var lines = File.ReadAllLines(file);
          var scriptLines = new List<ScriptLine>();

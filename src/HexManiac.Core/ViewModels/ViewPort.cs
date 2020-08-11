@@ -698,6 +698,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   tools.CodeTool.ScriptParser.FormatScript<XSERun>(noChange, Model, run.Start);
                } else if (run is BSERun) {
                   tools.CodeTool.BattleScriptParser.FormatScript<BSERun>(noChange, Model, run.Start);
+               } else if (run is ASERun) {
+                  tools.CodeTool.AnimationScriptParser.FormatScript<ASERun>(noChange, Model, run.Start);
                }
             }
          }
@@ -1433,10 +1435,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else if (run is IScriptStartRun xse) {
             var length = tools.CodeTool.ScriptParser.GetScriptSegmentLength(Model, run.Start);
             if (xse is BSERun) length = tools.CodeTool.BattleScriptParser.GetScriptSegmentLength(Model, run.Start);
+            if (xse is ASERun) length = tools.CodeTool.AnimationScriptParser.GetScriptSegmentLength(Model, run.Start);
             SelectionStart = scroll.DataIndexToViewPoint(run.Start);
             SelectionEnd = scroll.DataIndexToViewPoint(run.Start + length - 1);
             tools.CodeTool.Mode = CodeMode.Script;
             if (xse is BSERun) tools.CodeTool.Mode = CodeMode.BattleScript;
+            if (xse is ASERun) tools.CodeTool.Mode = CodeMode.AnimationScript;
             tools.SelectedIndex = tools.IndexOf(tools.CodeTool);
          } else {
             SelectionStart = scroll.DataIndexToViewPoint(run.Start);

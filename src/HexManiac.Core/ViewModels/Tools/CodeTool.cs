@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
-   public enum CodeMode { Thumb, Script, BattleScript, Raw }
+   public enum CodeMode { Thumb, Script, BattleScript, AnimationScript, Raw }
 
    public class CodeTool : ViewModelCore, IToolViewModel {
       public string Name => "Code Tool";
@@ -18,7 +18,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private string content;
       private CodeMode mode;
       private readonly ThumbParser thumb;
-      private readonly ScriptParser script, battleScript;
+      private readonly ScriptParser script, battleScript, animationScript;
       private readonly IDataModel model;
       private readonly Selection selection;
       private readonly ChangeHistory<ModelDelta> history;
@@ -27,7 +27,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public bool IsReadOnly => Mode == CodeMode.Raw;
       public bool UseSingleContent => !UseMultiContent;
-      public bool UseMultiContent => Mode.IsAny(CodeMode.Script, CodeMode.BattleScript);
+      public bool UseMultiContent => Mode.IsAny(CodeMode.Script, CodeMode.BattleScript, CodeMode.AnimationScript);
 
       private bool showErrorText;
       public bool ShowErrorText { get => showErrorText; private set => TryUpdate(ref showErrorText, value); }
@@ -64,14 +64,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public ScriptParser BattleScriptParser => battleScript;
 
+      public ScriptParser AnimationScriptParser => animationScript;
+
       public event EventHandler<(int originalLocation, int newLocation)> ModelDataMoved;
 
       public CodeTool(Singletons singletons, IDataModel model, Selection selection, ChangeHistory<ModelDelta> history) {
          thumb = new ThumbParser(singletons);
          script = new ScriptParser(singletons.ScriptLines, 0x02);
          battleScript = new ScriptParser(singletons.BattleScriptLines, 0x3D);
+         animationScript = new ScriptParser(singletons.AnimationScriptLines, 0x08);
          script.CompileError += ObserveCompileError;
          battleScript.CompileError += ObserveCompileError;
+         animationScript.CompileError += ObserveCompileError;
          this.model = model;
          this.selection = selection;
          this.history = history;
@@ -104,6 +108,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                UpdateContents(start, script);
             } else if (mode == CodeMode.BattleScript) {
                UpdateContents(start, battleScript);
+            } else if (mode == CodeMode.AnimationScript) {
+               UpdateContents(start, animationScript);
             } else if (mode == CodeMode.Thumb) {
                TryUpdate(ref content, thumb.Parse(model, start, end - start + 1), nameof(Content));
             } else {
@@ -161,8 +167,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          using (ModelCacheScope.CreateScope(model)) {
             if (mode == CodeMode.Script) {
                CompileScriptChanges<XSERun>(body.Address, run, length, ref codeContent, parser, body == Contents[0]);
-            }
-            else {
+            } else if (mode == CodeMode.AnimationScript) {
+               CompileScriptChanges<ASERun>(body.Address, run, length, ref codeContent, parser, body == Contents[0]);
+            } else {
                CompileScriptChanges<BSERun>(body.Address, run, length, ref codeContent, parser, body == Contents[0]);
             }
 
@@ -185,6 +192,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          string help = null;
          if (mode == CodeMode.Script) help = ScriptParser.GetHelp(line);
          else if (mode == CodeMode.BattleScript) BattleScriptParser.GetHelp(line);
+         else if (mode == CodeMode.AnimationScript) AnimationScriptParser.GetHelp(line);
          else throw new NotImplementedException();
          codeBody.HelpContent = help;
       }
@@ -277,6 +285,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                      model.ObserveAnchorWritten(history.CurrentChange, $"xse{orphan:X6}", new XSERun(orphan));
                   } else if (typeof(TSERun) == typeof(BSERun)) {
                      model.ObserveAnchorWritten(history.CurrentChange, $"bse{orphan:X6}", new BSERun(orphan));
+                  } else if (typeof(TSERun) == typeof(ASERun)) {
+                     model.ObserveAnchorWritten(history.CurrentChange, $"ase{orphan:X6}", new ASERun(orphan));
                   } else {
                      throw new NotImplementedException();
                   }

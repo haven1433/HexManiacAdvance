@@ -31,4 +31,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new BSERun(Start, newPointerSources);
    }
+
+   public class ASERun : BaseRun, IScriptStartRun {
+      public static string SharedFormatString => "`ase`";
+
+      public override int Length => 1;
+
+      public override string FormatString => SharedFormatString;
+
+      public ASERun(int start, SortedSpan<int> sources = null) : base(start, sources) { }
+
+      public override IDataFormat CreateDataFormat(IDataModel data, int index) => None.Instance;
+
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new ASERun(Start, newPointerSources);
+   }
 }

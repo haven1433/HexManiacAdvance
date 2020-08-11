@@ -31,7 +31,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var scripts = new List<int>();
          if (address < 0 || address >= model.Count) return scripts;
          if (currentRun.Start < address) return scripts;
-         if (currentRun.Start == address && !(currentRun is IScriptStartRun)) return scripts;
+         if (currentRun.Start == address && !(currentRun is IScriptStartRun) && !(currentRun is NoInfoRun)) return scripts;
 
          scripts.Add(address);
          var lengths = new List<int>();
@@ -54,7 +54,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                         scripts.Add(destination);
                      }
                   }
-                  length += arg.Length;
+                  length += arg.Length(model, address + length);
                }
                if (line.IsEndingCommand) break;
             }
@@ -72,7 +72,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          while (true) {
             var line = engine.GetMatchingLine(model, address + length);
             if (line == null) break;
-            length += line.CompiledByteLength;
+            length += line.CompiledByteLength(model, address + length);
             if (line.IsEndingCommand) break;
          }
 
@@ -83,6 +83,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public void FormatScript<TSERun>(ModelDelta token, IDataModel model, int address, SortedSpan<int> sources = null) where TSERun : IScriptStartRun {
          Func<int, SortedSpan<int>, IScriptStartRun> constructor = (a, s) => new XSERun(a, s);
          if (typeof(TSERun) == typeof(BSERun)) constructor = (a, s) => new BSERun(a, s);
+         if (typeof(TSERun) == typeof(ASERun)) constructor = (a, s) => new ASERun(a, s);
 
          var processed = new List<int>();
          var toProcess = new List<int> { address };
@@ -108,7 +109,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   if (arg.Type != ArgType.Pointer) {
                      // there may've previously been a pointer here: the code has changed!
                      // when clearing args, we actually _do_ want to clear any anchors that point to them.
-                     model.ClearFormat(token, address + length, arg.Length);
+                     model.ClearFormat(token, address + length, arg.Length(model, address + length));
                   } else {
                      var destination = model.ReadPointer(address + length);
                      if (destination >= 0 && destination < model.Count) {
@@ -127,7 +128,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                         }
                      }
                   }
-                  length += arg.Length;
+                  length += arg.Length(model, address + length);
                }
                if (line.IsEndingCommand) break;
             }
@@ -154,7 +155,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var result = new List<byte>();
          int streamLocation = -1, streamPointerLocation = -1;
 
-         var labels = ExtractLocalLabels(lines);
+         var labels = ExtractLocalLabels(model, lines);
 
          for (var i = 0; i < lines.Length; i++) {
             var line = lines[i].Trim();
@@ -230,7 +231,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   return null;
                }
                if (command.PointsToMovement || command.PointsToText || command.PointsToMart) {
-                  var pointerOffset = command.Args.Until(arg => arg.Type == ArgType.Pointer).Sum(arg => arg.Length) + command.LineCode.Count;
+                  var pointerOffset = command.Args.Until(arg => arg.Type == ArgType.Pointer).Sum(arg => arg.Length(model, -1)) + command.LineCode.Count;
                   var destination = result.ReadMultiByteValue(currentSize + pointerOffset, 4) - 0x8000000;
                   if (destination >= 0) {
                      streamPointerLocation = currentSize + pointerOffset;
@@ -246,7 +247,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return result.ToArray();
       }
 
-      private IReadOnlyDictionary<string, int> ExtractLocalLabels(string[] lines) {
+      private IReadOnlyDictionary<string, int> ExtractLocalLabels(IDataModel model, string[] lines) {
          var labels = new Dictionary<string, int>();
          var length = 0;
          foreach (var fullLine in lines) {
@@ -257,7 +258,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
             foreach (var command in engine) {
                if (!(line + " ").StartsWith(command.LineCommand + " ")) continue;
-               length += command.CompiledByteLength;
+               length += command.CompiledByteLength(model, line);
                break;
             }
          }
@@ -297,8 +298,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                length -= 1;
             } else {
                results.Add("  " + line.Decompile(data, index));
-               index += line.CompiledByteLength;
-               length -= line.CompiledByteLength;
+               var compiledByteLength = line.CompiledByteLength(data, index);
+               index += compiledByteLength;
+               length -= compiledByteLength;
                if (line.IsEndingCommand) break;
             }
          }
@@ -307,16 +309,18 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
    }
 
    public interface IScriptLine {
-      IReadOnlyList<ScriptArg> Args { get; }
+      IReadOnlyList<IScriptArg> Args { get; }
       IReadOnlyList<byte> LineCode { get; }
       string LineCommand { get; }
-      int CompiledByteLength { get; }
+
       bool IsEndingCommand { get; }
       bool PointsToNextScript { get; }
       bool PointsToText { get; }
       bool PointsToMovement { get; }
       bool PointsToMart { get; }
 
+      int CompiledByteLength(IDataModel model, int start); // compile from the bytes in the model, at that start location
+      int CompiledByteLength(IDataModel model, string line); // compile from the line of code passed in
       bool Matches(IReadOnlyList<byte> data, int index);
       string Compile(IDataModel model, int start, string scriptLine, IReadOnlyDictionary<string, int> labels, out byte[] result);
       string Decompile(IDataModel data, int start);
@@ -326,10 +330,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       private readonly List<string> documentation = new List<string>();
 
       public const string Hex = "0123456789ABCDEF";
-      public IReadOnlyList<ScriptArg> Args { get; }
+      public IReadOnlyList<IScriptArg> Args { get; }
       public IReadOnlyList<byte> LineCode { get; }
       public string LineCommand { get; }
-      public int CompiledByteLength { get; }
       public IReadOnlyList<string> Documentation => documentation;
       public string Usage { get; }
 
@@ -339,6 +342,23 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public virtual bool PointsToMovement { get; }
       public virtual bool PointsToMart { get; }
 
+      public int CompiledByteLength(IDataModel model, int start) {
+         var length = LineCode.Count;
+         foreach (var arg in Args) {
+            length += arg.Length(model, start + length);
+         }
+         return length;
+      }
+      public int CompiledByteLength(IDataModel model, string line) {
+         var length = LineCode.Count;
+         var tokens = line.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+         for (var i = 0; i < Args.Count; i++) {
+            if (Args[i] is ScriptArg sarg) length += sarg.Length(default, -1);
+            if (Args[i] is ArrayArg aarg) length += aarg.ConvertMany(model, tokens.Skip(i)).Count() * aarg.TokenLength + 1;
+         }
+         return length;
+      }
+
       public ScriptLine(string engineLine) {
          var docSplit = engineLine.Split(new[] { '#' }, 2);
          if (docSplit.Length > 1) documentation.Add('#' + docSplit[1]);
@@ -347,23 +367,23 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          var tokens = engineLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
          var lineCode = new List<byte>();
-         var args = new List<ScriptArg>();
+         var args = new List<IScriptArg>();
 
          foreach (var token in tokens) {
             if (token.Length == 2 && token.All(ViewPort.AllHexCharacters.Contains)) {
                lineCode.Add(byte.Parse(token, NumberStyles.HexNumber));
-               continue;
-            }
-            if ("<> : .".Split(' ').Any(token.Contains)) {
+            } else if (token.StartsWith("[") && token.EndsWith("]")) {
+               var content = token.Substring(1, token.Length - 2);
+               args.Add(new ArrayArg(content));
+            } else if ("<> : .".Split(' ').Any(token.Contains)) {
                args.Add(new ScriptArg(token));
-               continue;
+            } else {
+               LineCommand = token;
             }
-            LineCommand = token;
          }
 
          LineCode = lineCode;
          Args = args;
-         CompiledByteLength = LineCode.Count + Args.Sum(arg => arg.Length);
       }
 
       public void AddDocumentation(string doc) => documentation.Add(doc);
@@ -385,42 +405,61 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var results = new List<byte>(LineCode);
          for (int i = 0; i < Args.Count; i++) {
             var token = tokens[i + 1];
-            if (Args[i].Type == ArgType.Byte) {
-               results.Add((byte)Args[i].Convert(model, token));
-            } else if (Args[i].Type == ArgType.Short) {
-               var value = Args[i].Convert(model, token);
-               results.Add((byte)value);
-               results.Add((byte)(value >> 8));
-            } else if (Args[i].Type == ArgType.Word) {
-               var value = Args[i].Convert(model, token);
-               results.Add((byte)value);
-               results.Add((byte)(value >> 0x8));
-               results.Add((byte)(value >> 0x10));
-               results.Add((byte)(value >> 0x18));
-            } else if (Args[i].Type == ArgType.Pointer) {
-               int value;
-               if (token.StartsWith("<")) {
-                  if (!token.EndsWith(">")) {
-                     return "Unmatched <>";
-                  }
-                  token = token.Substring(1, token.Length - 2);
-                  if (labels.TryGetValue(token, out value)) {
-                     value += start;
-                  } else if (int.TryParse(token, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out value)) {
-                     // pointer *is* an address: nothing else to do
+            if (Args[i] is ScriptArg scriptArg) {
+               if (Args[i].Type == ArgType.Byte) {
+                  results.Add((byte)scriptArg.Convert(model, token));
+               } else if (Args[i].Type == ArgType.Short) {
+                  var value = scriptArg.Convert(model, token);
+                  results.Add((byte)value);
+                  results.Add((byte)(value >> 8));
+               } else if (Args[i].Type == ArgType.Word) {
+                  var value = scriptArg.Convert(model, token);
+                  results.Add((byte)value);
+                  results.Add((byte)(value >> 0x8));
+                  results.Add((byte)(value >> 0x10));
+                  results.Add((byte)(value >> 0x18));
+               } else if (Args[i].Type == ArgType.Pointer) {
+                  int value;
+                  if (token.StartsWith("<")) {
+                     if (!token.EndsWith(">")) {
+                        return "Unmatched <>";
+                     }
+                     token = token.Substring(1, token.Length - 2);
+                     if (labels.TryGetValue(token, out value)) {
+                        value += start;
+                     } else if (int.TryParse(token, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out value)) {
+                        // pointer *is* an address: nothing else to do
+                     } else {
+                        return $"Unable to parse {token} as a hex number.";
+                     }
+                     value -= Pointer.NULL;
                   } else {
-                     return $"Unable to parse {token} as a hex number.";
+                     value = int.Parse(token, NumberStyles.HexNumber);
                   }
-                  value -= Pointer.NULL;
+                  results.Add((byte)value);
+                  results.Add((byte)(value >> 0x8));
+                  results.Add((byte)(value >> 0x10));
+                  results.Add((byte)(value >> 0x18));
                } else {
-                  value = int.Parse(token, NumberStyles.HexNumber);
+                  throw new NotImplementedException();
                }
-               results.Add((byte)value);
-               results.Add((byte)(value >> 0x8));
-               results.Add((byte)(value >> 0x10));
-               results.Add((byte)(value >> 0x18));
-            } else {
-               throw new NotImplementedException();
+            } else if (Args[i] is ArrayArg arrayArg) {
+               var values = arrayArg.ConvertMany(model, tokens.Skip(i + 1));
+               foreach (var value in values) {
+                  if (Args[i].Type == ArgType.Byte) {
+                     results.Add((byte)value);
+                  } else if (Args[i].Type == ArgType.Short) {
+                     results.Add((byte)value);
+                     results.Add((byte)(value >> 8));
+                  } else if (Args[i].Type == ArgType.Word) {
+                     results.Add((byte)value);
+                     results.Add((byte)(value >> 0x8));
+                     results.Add((byte)(value >> 0x10));
+                     results.Add((byte)(value >> 0x18));
+                  } else {
+                     throw new NotImplementedException();
+                  }
+               }
             }
          }
          result = results.ToArray();
@@ -436,20 +475,26 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          int lastAddress = -1;
          foreach (var arg in Args) {
             builder.Append(" ");
-            if (arg.Type == ArgType.Byte) builder.Append($"{arg.Convert(data, data[start])}");
-            if (arg.Type == ArgType.Short) builder.Append($"{arg.Convert(data, data.ReadMultiByteValue(start, 2))}");
-            if (arg.Type == ArgType.Word) builder.Append($"{arg.Convert(data, data.ReadMultiByteValue(start, 4))}");
-            if (arg.Type == ArgType.Pointer) {
-               var address = data.ReadMultiByteValue(start, 4);
-               if (address < 0x8000000) {
-                  builder.Append(address.ToString("X6"));
-               } else {
-                  address -= 0x8000000;
-                  builder.Append($"<{address:X6}>");
-                  lastAddress = address;
+            if (arg is ScriptArg scriptArg) {
+               if (arg.Type == ArgType.Byte) builder.Append(scriptArg.Convert(data, data[start]));
+               if (arg.Type == ArgType.Short) builder.Append(scriptArg.Convert(data, data.ReadMultiByteValue(start, 2)));
+               if (arg.Type == ArgType.Word) builder.Append(scriptArg.Convert(data, data.ReadMultiByteValue(start, 4)));
+               if (arg.Type == ArgType.Pointer) {
+                  var address = data.ReadMultiByteValue(start, 4);
+                  if (address < 0x8000000) {
+                     builder.Append($"{address:X6}");
+                  } else {
+                     address -= 0x8000000;
+                     builder.Append($"<{address:X6}>");
+                     lastAddress = address;
+                  }
                }
+            } else if (arg is ArrayArg arrayArg) {
+               builder.Append(arrayArg.ConvertMany(data, start));
+            } else {
+               throw new NotImplementedException();
             }
-            start += arg.Length;
+            start += arg.Length(data, start);
          }
          if (PointsToText || PointsToMovement || PointsToMart) {
             if (data.GetNextRun(lastAddress) is IStreamRun stream && stream.Start == lastAddress) {
@@ -502,37 +547,68 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public override bool PointsToMart => false;
    }
 
-   public class ScriptArg {
+   public class ASEScriptLine : ScriptLine {
+      public ASEScriptLine(string engineLine) : base(engineLine) { }
+
+      public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x08, 0x0F, 0x11, 0x13);
+      public override bool PointsToNextScript => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x11, 0x13);
+      public override bool PointsToText => false;
+      public override bool PointsToMovement => false;
+      public override bool PointsToMart => false;
+   }
+
+   public interface IScriptArg {
+      ArgType Type { get; }
+      string Name { get; }
+      string EnumTableName { get; }
+
+      int Length(IDataModel model, int start);
+   }
+
+   public class ScriptArg : IScriptArg {
+      private int length;
+
       public ArgType Type { get; }
       public string Name { get; }
       public string EnumTableName { get; }
-      public int Length { get; }
+
+      public int Length(IDataModel model, int start) => length;
+
       public ScriptArg(string token) {
+         (Type, Name, EnumTableName, length) = Construct(token);
+      }
+
+      public static (ArgType type, string name, string enumTableName, int length) Construct(string token) {
          if (token.Contains("<>")) {
-            (Type, Length) = (ArgType.Pointer, 4);
-            Name = token.Split(new[] { "<>" }, StringSplitOptions.None).First();
+            var (type, length) = (ArgType.Pointer, 4);
+            var name = token.Split(new[] { "<>" }, StringSplitOptions.None).First();
+            return (type, name, default, length);
          } else if (token.Contains(".")) {
-            (Type, Length) = (ArgType.Byte, 1);
-            Name = token.Split('.').First();
-            EnumTableName = token.Split('.').Last();
+            var (type, length) = (ArgType.Byte, 1);
+            var name = token.Split('.').First();
+            var enumTableName = token.Split('.').Last();
+            return (type, name, enumTableName, length);
          } else if (token.Contains("::")) {
-            (Type, Length) = (ArgType.Word, 4);
-            Name = token.Split(new[] { "::" }, StringSplitOptions.None).First();
-            EnumTableName = token.Split("::").Last();
+            var (type, length) = (ArgType.Word, 4);
+            var name = token.Split(new[] { "::" }, StringSplitOptions.None).First();
+            var enumTableName = token.Split("::").Last();
+            return (type, name, enumTableName, length);
          } else if (token.Contains(":")) {
-            (Type, Length) = (ArgType.Short, 2);
-            Name = token.Split(':').First();
-            EnumTableName = token.Split(':').Last();
+            var (type, length) = (ArgType.Short, 2);
+            var name = token.Split(':').First();
+            var enumTableName = token.Split(':').Last();
+            return (type, name, enumTableName, length);
          } else {
             // didn't find a token :(
             // I guess it's a byte?
-            (Type, Length) = (ArgType.Byte, 1);
-            Name = token;
+            var (type, length) = (ArgType.Byte, 1);
+            var name = token;
+            return (type, name, default, length);
          }
       }
 
       public string Convert(IDataModel model, int value) {
-         var byteText = value.ToString($"X{Length * 2}");
+         var byteText = value.ToString($"X{length * 2}");
          if (string.IsNullOrEmpty(EnumTableName)) return byteText;
          var table = model.GetOptions(EnumTableName);
          if ((table?.Count ?? 0) <= value) return byteText;
@@ -547,6 +623,55 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
          if (ArrayRunEnumSegment.TryParse(EnumTableName, model, value, out result)) return result;
          return 0;
+      }
+   }
+
+   public class ArrayArg : IScriptArg {
+      public ArgType Type { get; }
+      public string Name { get; }
+      public string EnumTableName { get; }
+      public int TokenLength { get; }
+
+      public int Length(IDataModel model, int start) {
+         return model[start] * TokenLength + 1;
+      }
+
+      public ArrayArg(string token) {
+         (Type, Name, EnumTableName, TokenLength) = ScriptArg.Construct(token);
+      }
+
+      public string ConvertMany(IDataModel model, int start) {
+         var result = new StringBuilder();
+         var count = model[start];
+         start++;
+         for (int i = 0; i < count; i++) {
+            var value = model.ReadMultiByteValue(start, TokenLength);
+            start += TokenLength;
+            var tokenText = value.ToString($"X{TokenLength * 2}");
+            if (!string.IsNullOrEmpty(EnumTableName)) {
+               var table = model.GetOptions(EnumTableName);
+               if ((table?.Count ?? 0) > value) {
+                  tokenText = table[value];
+               }
+            }
+            result.Append(tokenText);
+            if (i < count - 1) result.Append(' ');
+         }
+         return result.ToString();
+      }
+
+      public IEnumerable<int> ConvertMany(IDataModel model, IEnumerable<string> info) {
+         foreach (var token in info) {
+            if (string.IsNullOrEmpty(EnumTableName)) {
+               if (int.TryParse(token, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var value)) {
+                  yield return value;
+               }
+            } else if (ArrayRunEnumSegment.TryParse(EnumTableName, model, token, out var enumValue)) {
+               yield return enumValue;
+            } else {
+               yield return 0;
+            }
+         }
       }
    }
 
@@ -565,7 +690,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          while (true) {
             var line = self.GetMatchingLine(model, address + length);
             if (line == null) break;
-            length += line.CompiledByteLength;
+            length += line.CompiledByteLength(model, address + length);
             if (line.IsEndingCommand) break;
          }
          return length;

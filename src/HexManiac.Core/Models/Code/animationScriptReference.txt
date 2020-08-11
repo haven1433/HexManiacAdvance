@@ -1,0 +1,50 @@
+﻿
+
+00 loadspritegfx tag:
+01 unloadspritegfx tag:
+02 createsprite template<> subpriority_offset. [argv:]
+03 createvisualtask address<> priority. [argv:]
+04 delay time.
+05 waitforvisualfinish
+06 hang1
+07 hang2
+08 end
+09 playse effect:
+0A monbg battler.
+0B clearmonbg battler.
+0C setalpha ev:
+0D blendoff
+0E call param::
+0F return
+10 setarg param0. param1:
+11 choosetwoturnanim option1<> option2<>
+12 jumpifmoveturn param0. ptr<>
+13 goto ptr<>
+14 fadetobg bg.
+15 restorebg
+16 waitbgfadeout
+17 waitbgfadein
+18 changebg
+19 playsewithpan se: pan.
+1A setpan pan.
+1B panse_1B se: param1. param2. param3. param4.
+1C loopsewithpan se: pan. wait. times.
+1D waitplaysewithpan se: pan. wait.
+1E setbldcnt param0:
+1F createsoundtask address<> task. argv:
+20 waitsound
+21 jumpargeq param0. param1: ptr<>
+22 monbg_22 battler.
+23 clearmonbg_23 battler.
+24 jumpifcontest ptr<>
+25 fadetobgfromset param0. praam1. param2.
+26 panse_26 se: param1. param2. param3. param4.
+27 panse_27 se: param1. param2. param3. param4.
+28 monbgprio_28 battler.
+29 monbgprio_29
+2A monbgprio_2A battler.
+2B invisible battler.
+2C visible battler.
+2D doublebattle_2D battler.
+2E doublebattle_2E battler.
+2F stopsound

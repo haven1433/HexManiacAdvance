@@ -1026,6 +1026,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             IReadOnlyList<ScriptLine> lines = null;
             if (run is XSERun) lines = singletons.ScriptLines;
             if (run is BSERun) lines = singletons.BattleScriptLines;
+            if (run is ASERun) lines = singletons.AnimationScriptLines;
             currentLength = Math.Max(currentLength, lines.GetScriptSegmentLength(this, run.Start));
          }
          if (minimumLength <= currentLength) return run;
