@@ -417,11 +417,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
 
          int fullValue;
+         int offset = 0;
          if (destination == string.Empty) {
             fullValue = Model.ReadPointer(memoryLocation);
          } else if (destination.All(ViewPort.AllHexCharacters.Contains) && destination.Length <= 7) {
             while (destination.Length < 6) destination = "0" + destination;
             fullValue = int.Parse(destination, NumberStyles.HexNumber);
+         } else if (destination.Contains("+") && !destination.Contains("-")) {
+            var destinationParts = destination.Split("+");
+            destination = destinationParts[0];
+            while (destination.Length < 6) destination = "0" + destination;
+            bool parsePass = int.TryParse(destinationParts[0], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out fullValue);
+            parsePass &= int.TryParse(destinationParts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
+            if (!parsePass) ErrorText = $"Could not parse {destinationParts[0]}+{destinationParts[1]} into an address.";
+         } else if (destination.Contains("-") && !destination.Contains("+")) {
+            var destinationParts = destination.Split("-");
+            destination = destinationParts[0];
+            while (destination.Length < 6) destination = "0" + destination;
+            bool parsePass = int.TryParse(destinationParts[0], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out fullValue);
+            parsePass &= int.TryParse(destinationParts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
+            offset = -offset;
+            if (!parsePass) ErrorText = $"Could not parse {destinationParts[0]}-{destinationParts[1]} into an adress.";
          } else {
             fullValue = Model.GetAddressFromAnchor(CurrentChange, memoryLocation, destination);
          }
@@ -433,7 +449,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                if (Model.ReadPointer(memoryLocation) != fullValue) {
                   Model.WritePointer(CurrentChange, memoryLocation, fullValue);
                }
-               Model.ObserveRunWritten(CurrentChange, new PointerRun(memoryLocation, sources));
+               var newRun = new PointerRun(memoryLocation, sources);
+               if (offset != 0) newRun = new OffsetPointerRun(memoryLocation, offset, sources);
+               Model.ObserveRunWritten(CurrentChange, newRun);
             }
 
             NewDataIndex = memoryLocation + 4;

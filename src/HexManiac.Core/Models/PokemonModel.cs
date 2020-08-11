@@ -670,10 +670,6 @@ namespace HavenSoft.HexManiac.Core.Models {
             changeToken.AddRun(run);
          }
 
-         if (run is PointerRun) AddPointerToAnchor(null, null, changeToken, run.Start);
-         if (run is ITableRun tableRun) ModifyAnchorsFromPointerArray(changeToken, tableRun, existingRun as ITableRun, tableRun.ElementCount, AddPointerToAnchor);
-         if (run is ArrayRun arrayRun) UpdateDependantArrayLengths(changeToken, arrayRun);
-
          if (run is WordRun word) {
             if (!matchedWords.ContainsKey(word.SourceArrayName)) matchedWords[word.SourceArrayName] = new List<int>();
             matchedWords[word.SourceArrayName].Add(word.Start);
@@ -682,6 +678,10 @@ namespace HavenSoft.HexManiac.Core.Models {
             pointerOffsets[offsetPointer.Start] = offsetPointer.Offset;
             changeToken.AddOffsetPointer(offsetPointer.Start, offsetPointer.Offset);
          }
+
+         if (run is PointerRun) AddPointerToAnchor(null, null, changeToken, run.Start);
+         if (run is ITableRun tableRun) ModifyAnchorsFromPointerArray(changeToken, tableRun, existingRun as ITableRun, tableRun.ElementCount, AddPointerToAnchor);
+         if (run is ArrayRun arrayRun) UpdateDependantArrayLengths(changeToken, arrayRun);
 
          if (run is NoInfoRun && run.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(run.Start)) {
             // this run has no useful information. Remove it.

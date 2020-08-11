@@ -27,7 +27,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(None dataFormat, byte data) {
          if (UnderEdit.CurrentText.Length > 0) {
             if (UnderEdit.CurrentText[0] == PointerStart) {
-               Result = char.IsLetterOrDigit(Input) || Input.IsAny(ArrayAnchorSeparator, PointerEnd, ' ', '.');
+               Result = char.IsLetterOrDigit(Input) || Input.IsAny(ArrayAnchorSeparator, PointerEnd, ' ', '.', '+', '-');
                return;
             }
 

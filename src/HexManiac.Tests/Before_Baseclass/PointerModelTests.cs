@@ -791,6 +791,8 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(0x08000000, model.ReadMultiByteValue(0, 4));
          Assert.Equal(0x30, model.ReadPointer(0));
+         Assert.IsType<NoInfoRun>(model.GetNextRun(0x30));
+         Assert.Equal(0x30, model.GetNextRun(0x30).Start);
       }
 
       [Fact]
@@ -807,6 +809,14 @@ namespace HavenSoft.HexManiac.Tests {
 
          var metadata = model.ExportMetadata(metaInfo);
          Assert.Empty(metadata.OffsetPointers);
+      }
+
+      [Fact]
+      public void CanCreateOffsetPointerFromViewModel() {
+         StandardSetup(out var _, out var model, out var viewPort);
+         viewPort.Edit("<000100+20>");
+         Assert.Equal(0x08000100, model.ReadMultiByteValue(0, 4));
+         Assert.Equal(0x120, model.ReadPointer(0));
       }
 
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
