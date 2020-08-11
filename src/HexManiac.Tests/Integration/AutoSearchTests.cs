@@ -584,6 +584,21 @@ namespace HavenSoft.HexManiac.Tests {
          else Assert.InRange(run.ElementCount, 0, trainerClassesTable.ElementCount);
       }
 
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void ParticleSpritesAndPalettesAreFound(string game) {
+         var model = fixture.LoadModel(game);
+
+         var sprites = model.GetTable(BattleParticleSpriteTable);
+         var palettes = model.GetTable(BattleParticlePaletteTable);
+
+         Assert.Equal(289, sprites.ElementCount);
+         Assert.Equal(289, palettes.ElementCount);
+
+         var refTable = fixture.Singletons.GameReferenceTables[model.GetGameCode()].Single(grt => grt.Name == BattleParticlePaletteTable);
+         Assert.IsType<OffsetPointerRun>(model.GetNextRun(refTable.Address));
+      }
+
       [SkippableFact]
       public void CanSearchForListContent() {
          var game = PokemonGames.Skip(2).First()[0] as string; // fire red

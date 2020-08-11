@@ -52,7 +52,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          DefaultTilemapNamespace = "graphics.new.tilemap",
          DefaultPaletteNamespace = "graphics.new.palette",
          AbilityDescriptionsTable = "data.abilities.descriptions",
-         PokeIconPaletteIndexTable = "graphics.pokemon.icons.index";
+         PokeIconPaletteIndexTable = "graphics.pokemon.icons.index",
+         BattleParticleSpriteTable = "graphics.moves.particles.sprites",
+         BattleParticlePaletteTable = "graphics.moves.particles.palettes";
 
       public const string
          MoveInfoListName = "moveinfo",
@@ -145,17 +147,18 @@ namespace HavenSoft.HexManiac.Core.Models {
       private void DecodeTablesFromReference(GameReferenceTables tables) {
          foreach (var table in tables) {
             using (ModelCacheScope.CreateScope(this)) {
-               AddTable(table.Address, table.Name, table.Format);
+               AddTable(table.Address, table.Offset, table.Name, table.Format);
             }
          }
       }
 
       /// <summary>
       /// Find a table given a pointer to that table
+      /// The pointer at the source may not point directly to the table: it make point to an offset from the start of the table.
       /// </summary>
-      private void AddTable(int source, string name, string format) {
+      private void AddTable(int source, int offset, string name, string format) {
          if (source < 0 || source > RawData.Length) return;
-         var destination = ReadPointer(source);
+         var destination = ReadPointer(source) + offset;
          if (destination < 0 || destination > RawData.Length) return;
 
          var interruptingRun = GetNextRun(destination);
@@ -178,18 +181,21 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
          }
 
-         AddTableDirect(destination, name, format);
+         AddTableDirect(destination, name, format, validatePointerFound: offset == 0);
+         if (offset != 0) ObserveRunWritten(noChangeDelta, new OffsetPointerRun(source, offset));
       }
 
       /// <summary>
       /// Find a table given an address for that table
       /// </summary>
-      private void AddTableDirect(int destination, string name, string format) {
+      private void AddTableDirect(int destination, string name, string format, bool validatePointerFound = false) {
          using (ModelCacheScope.CreateScope(this)) {
             ApplyAnchor(this, noChangeDelta, destination, "^" + name + format, allowAnchorOverwrite: true);
          }
 
-         CheckForEmptyAnchors(destination, name);
+         if (validatePointerFound) {
+            CheckForEmptyAnchors(destination, name);
+         }
       }
    }
 }

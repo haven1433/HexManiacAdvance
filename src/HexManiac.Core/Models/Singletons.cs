@@ -79,12 +79,23 @@ namespace HavenSoft.HexManiac.Core.Models {
             var segments = row.Split("//")[0].Split(",");
             if (segments.Length != referenceOrder.Length) continue;
             var name = segments[0].Trim();
+            var offset = 0;
+            if (name.Contains("+")) {
+               var parts = name.Split("+");
+               name = parts[0];
+               int.TryParse(parts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
+            } else if (name.Contains("-")) {
+               var parts = name.Split("-");
+               name = parts[0];
+               int.TryParse(parts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
+               offset = -offset;
+            }
             var format = segments.Last().Trim();
             for (int i = 0; i < referenceOrder.Length - 2; i++) {
                var addressHex = segments[i + 1].Trim();
                if (addressHex == string.Empty) continue;
                if (!int.TryParse(addressHex, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int address)) continue;
-               tables[referenceOrder[i + 1]].Add(new ReferenceTable(name, address, format));
+               tables[referenceOrder[i + 1]].Add(new ReferenceTable(name, offset, address, format));
             }
          }
 
@@ -120,10 +131,11 @@ namespace HavenSoft.HexManiac.Core.Models {
 
    public class ReferenceTable {
       public string Name { get; }
+      public int Offset { get; }
       public int Address { get; }
       public string Format { get; }
-      public ReferenceTable(string name, int address, string format) => (Name, Address, Format) = (name, address, format);
-      public override string ToString() => $"{Address:X6} -> {Name}, {Format}";
+      public ReferenceTable(string name, int offset, int address, string format) => (Name, Offset, Address, Format) = (name, offset, address, format);
+      public override string ToString() => $"{Address:X6} -> {Name}, {Offset}, {Format}";
    }
 
    public interface IMetadataInfo {

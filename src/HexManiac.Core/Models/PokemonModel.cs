@@ -2,7 +2,6 @@
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
-using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
@@ -655,10 +654,14 @@ namespace HavenSoft.HexManiac.Core.Models {
             // if the only thing changed was the anchor, then don't change the format, just merge the anchor
             existingRun = runs[index];
             changeToken.RemoveRun(existingRun);
-            if (existingRun is PointerRun && !(run is NoInfoRun) && !(run is PointerRun)) {
-               var destination = ReadPointer(existingRun.Start);
-               ClearPointer(changeToken, existingRun.Start, destination);
-               index = BinarySearch(run.Start); // have to recalculate index, because ClearPointer can removed runs.
+            if (existingRun is PointerRun) {
+               bool needClearPointerRun = !(run is NoInfoRun) && !(run is PointerRun);
+               if (((run as OffsetPointerRun)?.Offset ?? 0) != ((existingRun as OffsetPointerRun)?.Offset ?? 0)) needClearPointerRun = true;
+               if (needClearPointerRun) {
+                  var destination = ReadPointer(existingRun.Start);
+                  ClearPointer(changeToken, existingRun.Start, destination);
+                  index = BinarySearch(run.Start); // have to recalculate index, because ClearPointer can removed runs.
+               }
             }
             run = run.MergeAnchor(existingRun.PointerSources);
             if (run is NoInfoRun) run = existingRun.MergeAnchor(run.PointerSources); // when writing an anchor with no format, keep the existing format.
