@@ -67,6 +67,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          collector.Initialize<EscapedPCS>(typeface, fontSize);
          collector.Initialize<Ascii>(typeface, fontSize);
          collector.Initialize<Pointer>(typeface, fontSize);
+         collector.Initialize<IDataFormat>(typeface, fontSize);     // actually offset pointers
          collector.Initialize<PlmItem>(typeface, fontSize * .75);
          collector.Initialize<EggSection>(typeface, fontSize * .75);
          collector.Initialize<EggItem>(typeface, fontSize * .75);
@@ -93,6 +94,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                collector.Collect<EscapedPCS>(format, x, 1, escapedPCS.ThisValue.ToString("X2"));
             } else if (format is Pointer pointer) {
                if (pointer.HasError) collector.Collect<ErrorPCS>(format, x, 4, pointer.DestinationAsText);
+               else if (pointer.OffsetValue != 0) collector.Collect<IDataFormat>(format, x, 4, pointer.DestinationAsText);
                else collector.Collect<Pointer>(format, x, 4, pointer.DestinationAsText);
             } else if (format is PlmItem plm) {
                collector.Collect<PlmItem>(format, x, 2, plm.ToString());
@@ -138,6 +140,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          collector.Render<PCS>(context, Brush(nameof(Theme.Text1)));
          collector.Render<EscapedPCS>(context, Brush(nameof(Theme.Text1)));
          collector.Render<Pointer>(context, Brush(nameof(Theme.Accent)));
+         collector.Render<IDataFormat>(context, Brush(nameof(Theme.Data2)));
          collector.Render<PlmItem>(context, Brush(nameof(Theme.Stream2)));
          collector.Render<EggItem>(context, Brush(nameof(Theme.Stream2)));
          collector.Render<EggSection>(context, Brush(nameof(Theme.Stream1)));
@@ -207,6 +210,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
       public void Visit(Pointer dataFormat, byte data) {
          var brush = nameof(Theme.Accent);
+         if (dataFormat.OffsetValue != 0) brush = nameof(Theme.Data2);
          if (dataFormat.Destination < 0) brush = nameof(Theme.Error);
          Underline(brush, dataFormat.Position == 0, dataFormat.Position == 3);
       }
