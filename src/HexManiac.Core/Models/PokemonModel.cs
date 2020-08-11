@@ -143,11 +143,13 @@ namespace HavenSoft.HexManiac.Core.Models {
             for (int i = 0; i < runs.Count; i++) {
                // update matched-length lengths
                if (runs[i] is ArrayRun array) {
-                  var parentName = array.LengthFromAnchor.Split('+')[0].Split('-')[0];
+                  var parentName = array.LengthFromAnchor;
                   if (parentName == anchor) {
+                     var lengthModifier = array.FormatString.Split(parentName).Last();
                      var newLengthToken = reference.Name + array.LengthFromAnchor.Substring(parentName.Length);
-                     var newFormat = array.FormatString.Substring(0, array.FormatString.Length - array.LengthFromAnchor.Length);
-                     TryParse(this, newFormat + newLengthToken, array.Start, array.PointerSources, out var newRun);
+                     var arrayClose = array.FormatString.LastIndexOf(']');
+                     var newFormat = array.FormatString.Substring(0, arrayClose + 1);
+                     TryParse(this, newFormat + newLengthToken + lengthModifier, array.Start, array.PointerSources, out var newRun);
                      runs[i] = newRun;
                   }
                }
