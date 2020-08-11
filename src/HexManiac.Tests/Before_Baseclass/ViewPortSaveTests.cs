@@ -389,7 +389,7 @@ namespace HavenSoft.HexManiac.Tests {
          var metadata = new StoredMetadata(new[] { anchor1, anchor2, anchor3 }, null, null, null, null, metadataInfo, default);
 
          // setup the current reference, loaded from singletons
-         var gameReferenceTables = new GameReferenceTables(new[] { new ReferenceTable("tom", 0x60, "[number::]4") });
+         var gameReferenceTables = new GameReferenceTables(new[] { new ReferenceTable("tom", 0, 0x60, "[number::]4") });
          var singletons = new Singletons(
             new StubMetadataInfo { VersionNumber = "0.4.0.0" },
             new Dictionary<string, GameReferenceTables> { { new string((char)0, 4) + "0", gameReferenceTables }
@@ -424,7 +424,7 @@ namespace HavenSoft.HexManiac.Tests {
          var metadata = new StoredMetadata(new[] { anchor1, anchor2, anchor3 }, null, null, null, null, metadataInfo, default);
 
          // setup the current reference, loaded from singletons
-         var gameReferenceTables = new GameReferenceTables(new[] { new ReferenceTable("tom", 0x60, "[number::]names") });
+         var gameReferenceTables = new GameReferenceTables(new[] { new ReferenceTable("tom", 0, 0x60, "[number::]names") });
          var singletons = new Singletons(
             new StubMetadataInfo { VersionNumber = "0.4.0.0" },
             new Dictionary<string, GameReferenceTables> { { new string((char)0, 4) + "0", gameReferenceTables }

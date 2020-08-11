@@ -734,6 +734,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       private void UpdateAnchorsFromArrayMove(ModelDelta changeToken, ITableRun original, ITableRun moved) {
          int originalOffset = original.Start;
          int segmentOffset = moved.Start;
+         if (original.ElementContent.Count != moved.ElementContent.Count) return; // if the number of elements changed during the move, nop out
          // i loops over the different segments in the array
          for (int i = 0; i < moved.ElementContent.Count; i++) {
             if (moved.ElementContent[i].Type != ElementContentType.Pointer) {

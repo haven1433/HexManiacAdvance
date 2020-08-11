@@ -395,7 +395,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var data = new TeamData(model, newRun.Start, StructType, newElementCount);
             if ((newStructType & INCLUDE_MOVES) != 0 && !data.MovesIncluded) {
                data.SetDefaultMoves(this);
-               newRun = (TrainerPokemonTeamRun)model.RelocateForExpansion(token, newRun, newRun.Length * 2);
+               var initialStart = newRun.Start;
+               newRun = model.RelocateForExpansion(token, newRun, newRun.Length * 2);
             } else if ((newStructType & INCLUDE_MOVES) == 0 && data.MovesIncluded) {
                data.RemoveMoves();
             }

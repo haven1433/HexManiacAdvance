@@ -32,15 +32,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    }
 
    public class ComboBoxArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
-      private readonly ChangeHistory<ModelDelta> history;
-
       private string name;
       private int start, length;
 
       private EventHandler dataChanged;
       public event EventHandler DataChanged { add => dataChanged += value; remove => dataChanged -= value; }
 
-      public IDataModel Model { get; }
+      public ViewPort ViewPort { get; }
       public string TableName { get; private set; }
       public string Name { get => name; set => TryUpdate(ref name, value); }
       public int Start {
@@ -71,9 +69,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public int SelectedIndex {
          get => selectedIndex;
          set {
-            using (ModelCacheScope.CreateScope(Model)) {
+            using (ModelCacheScope.CreateScope(ViewPort.Model)) {
                if (!TryUpdate(ref selectedIndex, value)) return;
-               var run = (ITableRun)Model.GetNextRun(Start);
+               var run = (ITableRun)ViewPort.Model.GetNextRun(Start);
                var offsets = run.ConvertByteOffsetToArrayOffset(Start);
                var segment = (ArrayRunEnumSegment)run.ElementContent[offsets.SegmentIndex];
 
@@ -82,8 +80,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   value = parsedValue;
                }
 
-               Model.WriteMultiByteValue(Start, Length, history.CurrentChange, value);
-               run.NotifyChildren(Model, history.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
+               ViewPort.Model.WriteMultiByteValue(Start, Length, ViewPort.ChangeHistory.CurrentChange, value);
+               var info = run.NotifyChildren(ViewPort.Model, ViewPort.ChangeHistory.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
+               if (info.HasError && info.IsWarning) ViewPort.RaiseMessage(info.ErrorMessage);
+               else if (info.HasError) ViewPort.RaiseError(info.ErrorMessage);
                dataChanged?.Invoke(this, EventArgs.Empty);
             }
          }
@@ -92,32 +92,32 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private bool visible = true;
       public bool Visible { get => visible; set => Set(ref visible, value); }
 
-      public ComboBoxArrayElementViewModel(Selection selection, ChangeHistory<ModelDelta> history, IDataModel model, string name, int start, int length) {
-         (this.history, Model, Name, Start, Length) = (history, model, name, start, length);
-         var run = (ITableRun)Model.GetNextRun(Start);
-         TableName = model.GetAnchorFromAddress(-1, run.Start);
+      public ComboBoxArrayElementViewModel(ViewPort viewPort, Selection selection, string name, int start, int length) {
+         (ViewPort, Name, Start, Length) = (viewPort, name, start, length);
+         var run = (ITableRun)ViewPort.Model.GetNextRun(Start);
+         TableName = viewPort.Model.GetAnchorFromAddress(-1, run.Start);
          var offsets = run.ConvertByteOffsetToArrayOffset(start);
          var segment = run.ElementContent[offsets.SegmentIndex] as ArrayRunEnumSegment;
          int optionSource = Pointer.NULL;
          Debug.Assert(segment != null);
          if (segment != null) {
-            optionSource = Model.GetAddressFromAnchor(history.CurrentChange, -1, segment.EnumName);
-            Options = new List<ComboOption>(segment.GetComboOptions(Model));
+            optionSource = ViewPort.Model.GetAddressFromAnchor(ViewPort.ChangeHistory.CurrentChange, -1, segment.EnumName);
+            Options = new List<ComboOption>(segment.GetComboOptions(ViewPort.Model));
          } else {
             Options = new List<ComboOption>();
          }
-         var modelValue = Model.ReadMultiByteValue(start, length);
+         var modelValue = ViewPort.Model.ReadMultiByteValue(start, length);
          if (modelValue >= Options.Count) {
             Options.Add(modelValue.ToString());
             selectedIndex = Options.Count - 1;
             containsUniqueOption = true;
          } else {
-            selectedIndex = Model.ReadMultiByteValue(start, length);
+            selectedIndex = ViewPort.Model.ReadMultiByteValue(start, length);
          }
          GotoSource = new StubCommand {
             CanExecute = arg => optionSource != Pointer.NULL,
             Execute = arg => {
-               var indexSource = (model.GetNextRun(optionSource) is ITableRun optionSourceTable) ?
+               var indexSource = (viewPort.Model.GetNextRun(optionSource) is ITableRun optionSourceTable) ?
                   optionSourceTable.Start + optionSourceTable.ElementLength * selectedIndex :
                   optionSource;
                selection.GotoAddress(indexSource);
