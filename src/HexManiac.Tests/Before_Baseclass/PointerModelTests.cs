@@ -782,6 +782,33 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0, address);
       }
 
+      [Fact]
+      public void OffsetPointersWork() {
+         StandardSetup(out var data, out var model, out var _);
+
+         data[3] = 8;
+         model.ObserveRunWritten(new ModelDelta(), new OffsetPointerRun(0, 0x30));
+
+         Assert.Equal(0x08000000, model.ReadMultiByteValue(0, 4));
+         Assert.Equal(0x30, model.ReadPointer(0));
+      }
+
+      [Fact]
+      public void CanUndoOffsetPointerChange() {
+         StandardSetup(out var data, out var model, out var viewPort);
+         var metaInfo = new StubMetadataInfo { VersionNumber = string.Empty };
+
+         data[3] = 8;
+         model.ObserveRunWritten(viewPort.CurrentChange, new OffsetPointerRun(0, 0x30));
+
+         Assert.Single(model.ExportMetadata(metaInfo).OffsetPointers);
+
+         viewPort.Undo.Execute();
+
+         var metadata = model.ExportMetadata(metaInfo);
+         Assert.Empty(metadata.OffsetPointers);
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);

@@ -50,7 +50,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var destination = data.ReadPointer(offsets.SegmentStart);
             var destinationName = data.GetAnchorFromAddress(offsets.SegmentStart, destination);
             var hasError = destination < 0 || data.GetNextRun(destination).Start != destination; // table pointers might not point at anchors
-            return new Pointer(offsets.SegmentStart, position, destination, destinationName, hasError);
+            return new Pointer(offsets.SegmentStart, position, destination, 0, destinationName, hasError);
          }
 
          if (currentSegment.Type == ElementContentType.BitArray) {

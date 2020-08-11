@@ -34,6 +34,9 @@ namespace HavenSoft.HexManiac.Core.Models {
       // get the list of addresses in the file that want to store a number that matches the length of the table.
       private readonly Dictionary<string, List<int>> matchedWords = new Dictionary<string, List<int>>();
 
+      // a list of all the offsets for all known offset pointers. This information is duplicated in the OffsetPointerRun.
+      private readonly Dictionary<int, int> pointerOffsets = new Dictionary<int, int>();
+
       private readonly Dictionary<string, List<string>> lists = new Dictionary<string, List<string>>();
 
       private readonly Singletons singletons;
@@ -674,6 +677,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (run is WordRun word) {
             if (!matchedWords.ContainsKey(word.SourceArrayName)) matchedWords[word.SourceArrayName] = new List<int>();
             matchedWords[word.SourceArrayName].Add(word.Start);
+            changeToken.AddMatchedWord(this, word.Start, word.SourceArrayName);
+         } else if (run is OffsetPointerRun offsetPointer) {
+            pointerOffsets[offsetPointer.Start] = offsetPointer.Offset;
+            changeToken.AddOffsetPointer(offsetPointer.Start, offsetPointer.Offset);
          }
 
          if (run is NoInfoRun && run.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(run.Start)) {
@@ -681,6 +688,17 @@ namespace HavenSoft.HexManiac.Core.Models {
             changeToken.RemoveRun(runs[index]);
             runs.RemoveAt(index);
          }
+      }
+
+      public override int ReadPointer(int index) {
+         var destination = base.ReadPointer(index);
+         if (pointerOffsets.TryGetValue(index, out int offset)) destination += offset;
+         return destination;
+      }
+
+      public override void WritePointer(ModelDelta changeToken, int address, int pointerDestination) {
+         if (pointerOffsets.TryGetValue(address, out int offset)) pointerDestination -= offset;
+         base.WritePointer(changeToken, address, pointerDestination);
       }
 
       /// <summary>
@@ -963,7 +981,18 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public override void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd, IReadOnlyDictionary<int, string> matchedWordsToRemove, IReadOnlyDictionary<int, string> matchedWordsToAdd) {
+      public override void MassUpdateFromDelta(
+         IReadOnlyDictionary<int, IFormattedRun> runsToRemove,
+         IReadOnlyDictionary<int, IFormattedRun> runsToAdd,
+         IReadOnlyDictionary<int, string> namesToRemove,
+         IReadOnlyDictionary<int, string> namesToAdd,
+         IReadOnlyDictionary<int, string> unmappedPointersToRemove,
+         IReadOnlyDictionary<int, string> unmappedPointersToAdd,
+         IReadOnlyDictionary<int, string> matchedWordsToRemove,
+         IReadOnlyDictionary<int, string> matchedWordsToAdd,
+         IReadOnlyDictionary<int,int> offsetPointersToRemove,
+         IReadOnlyDictionary<int,int> offsetPointersToAdd
+      ) {
          foreach (var kvp in namesToRemove) {
             var (address, name) = (kvp.Key, kvp.Value);
             addressForAnchor.Remove(name);
@@ -1001,6 +1030,12 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (!matchedWords.ContainsKey(name)) matchedWords[name] = new List<int>();
             matchedWords[name].Add(address);
          }
+
+         foreach (var kvp in offsetPointersToRemove) {
+            if (pointerOffsets.ContainsKey(kvp.Key)) pointerOffsets.Remove(kvp.Key);
+         }
+
+         foreach (var kvp in offsetPointersToAdd) pointerOffsets[kvp.Key] = kvp.Value;
 
          foreach (var kvp in runsToRemove) {
             var index = BinarySearch(kvp.Key);
@@ -1175,6 +1210,9 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (run is WordRun wordRun) {
                changeToken.RemoveMatchedWord(wordRun.Start, wordRun.SourceArrayName);
                matchedWords[wordRun.SourceArrayName].Remove(wordRun.Start);
+            } else if (run is OffsetPointerRun offsetPointer) {
+               changeToken.RemoveOffsetPointer(offsetPointer.Start, offsetPointer.Offset);
+               pointerOffsets.Remove(offsetPointer.Start);
             }
 
             if (GetNextRun(run.Start).Start == run.Start) {
@@ -1510,6 +1548,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
          }
 
+         var offsetPointers = pointerOffsets.Select(kvp => new StoredOffsetPointer(kvp.Key, kvp.Value)).ToList();
+
          var lists = new List<StoredList>();
          foreach (var kvp in this.lists) {
             var name = kvp.Key;
@@ -1517,7 +1557,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             lists.Add(new StoredList(name, members.ToList()));
          }
 
-         return new StoredMetadata(anchors, unmappedPointers, matchedWords, lists, metadataInfo, FreeSpaceStart);
+         return new StoredMetadata(anchors, unmappedPointers, matchedWords, offsetPointers, lists, metadataInfo, FreeSpaceStart);
       }
 
       /// <summary>

@@ -16,14 +16,17 @@ namespace HavenSoft.HexManiac.Core.Models {
       private readonly Dictionary<int, IFormattedRun> addedRuns = new Dictionary<int, IFormattedRun>();
       private readonly Dictionary<int, IFormattedRun> removedRuns = new Dictionary<int, IFormattedRun>();
 
-      private readonly Dictionary<int, string> addedNames = new Dictionary<int, string>();
-      private readonly Dictionary<int, string> removedNames = new Dictionary<int, string>();
+      private readonly Dictionary<int, string>
+         addedNames = new Dictionary<int, string>(),
+         removedNames = new Dictionary<int, string>(),
+         addedUnmappedPointers = new Dictionary<int, string>(),
+         removedUnmappedPointers = new Dictionary<int, string>(),
+         addedMatchedWords = new Dictionary<int, string>(),
+         removedMatchedWords = new Dictionary<int, string>();
 
-      private readonly Dictionary<int, string> addedUnmappedPointers = new Dictionary<int, string>();
-      private readonly Dictionary<int, string> removedUnmappedPointers = new Dictionary<int, string>();
-
-      private readonly Dictionary<int, string> addedMatchedWords = new Dictionary<int, string>();
-      private readonly Dictionary<int, string> removedMatchedWords = new Dictionary<int, string>();
+      private readonly Dictionary<int, int>
+         addedOffsetPointers = new Dictionary<int, int>(),
+         removedOffsetPointers = new Dictionary<int, int>();
 
       public event EventHandler OnNewDataChange;
       public bool HasDataChange { get; private set; }
@@ -129,8 +132,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var kvp in removedUnmappedPointers) reverse.addedUnmappedPointers[kvp.Key] = kvp.Value;
          foreach (var kvp in addedMatchedWords) reverse.removedMatchedWords[kvp.Key] = kvp.Value;
          foreach (var kvp in removedMatchedWords) reverse.addedMatchedWords[kvp.Key] = kvp.Value;
+         foreach (var kvp in addedOffsetPointers) reverse.removedOffsetPointers[kvp.Key] = kvp.Value;
+         foreach (var kvp in removedOffsetPointers) reverse.addedOffsetPointers[kvp.Key] = kvp.Value;
 
-         model.MassUpdateFromDelta(addedRuns, removedRuns, addedNames, removedNames, addedUnmappedPointers, removedUnmappedPointers, addedMatchedWords, removedMatchedWords);
+         model.MassUpdateFromDelta(addedRuns, removedRuns, addedNames, removedNames, addedUnmappedPointers, removedUnmappedPointers, addedMatchedWords, removedMatchedWords, addedOffsetPointers, removedOffsetPointers);
 
          return reverse;
       }
@@ -146,11 +151,20 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (addedMatchedWords.ContainsKey(memoryLocation)) addedMatchedWords.Remove(memoryLocation);
          else removedMatchedWords[memoryLocation] = parentName;
       }
+
+      public void AddOffsetPointer(int start, int offset) {
+         addedOffsetPointers[start] = offset;
+      }
+
+      public void RemoveOffsetPointer(int start, int offset) {
+         if (addedOffsetPointers.ContainsKey(start)) addedMatchedWords.Remove(start);
+         else removedOffsetPointers[start] = offset;
+      }
    }
 
    public class NoDataChangeDeltaModel : ModelDelta {
       public override void ChangeData(IDataModel model, int index, byte data) {
-         throw new System.InvalidOperationException("This operation is not allowed to change model data!");
+         throw new InvalidOperationException("This operation is not allowed to change model data!");
       }
    }
 }

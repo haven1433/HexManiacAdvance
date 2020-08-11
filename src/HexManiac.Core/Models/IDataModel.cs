@@ -47,7 +47,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       void ObserveRunWritten(ModelDelta changeToken, IFormattedRun run);
       void ObserveAnchorWritten(ModelDelta changeToken, string anchorName, IFormattedRun run);
-      void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd, IReadOnlyDictionary<int, string> matchedWordsToRemove, IReadOnlyDictionary<int, string> matchedWordsToAdd);
+      void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd, IReadOnlyDictionary<int, string> matchedWordsToRemove, IReadOnlyDictionary<int, string> matchedWordsToAdd, IReadOnlyDictionary<int, int> offsetPointersToRemove, IReadOnlyDictionary<int, int> offsetPointersToAdd);
       T RelocateForExpansion<T>(ModelDelta changeToken, T run, int minimumLength) where T : IFormattedRun;
       int FindFreeSpace(int start, int length);
       void ClearAnchor(ModelDelta changeToken, int start, int length);
@@ -146,7 +146,17 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public abstract void ObserveRunWritten(ModelDelta changeToken, IFormattedRun run);
 
-      public abstract void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd, IReadOnlyDictionary<int, string> matchedWordsToRemove, IReadOnlyDictionary<int, string> matchedWordsToAdd);
+      public abstract void MassUpdateFromDelta(
+         IReadOnlyDictionary<int, IFormattedRun> runsToRemove,
+         IReadOnlyDictionary<int, IFormattedRun> runsToAdd,
+         IReadOnlyDictionary<int, string> namesToRemove,
+         IReadOnlyDictionary<int, string> namesToAdd,
+         IReadOnlyDictionary<int, string> unmappedPointersToRemove,
+         IReadOnlyDictionary<int, string> unmappedPointersToAdd,
+         IReadOnlyDictionary<int, string> matchedWordsToRemove,
+         IReadOnlyDictionary<int, string> matchedWordsToAdd,
+         IReadOnlyDictionary<int, int> offsetPointersToRemove,
+         IReadOnlyDictionary<int, int> offsetPointersToAdd);
 
       public abstract T RelocateForExpansion<T>(ModelDelta changeToken, T run, int minimumLength) where T : IFormattedRun;
 
@@ -167,9 +177,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          changeToken.ChangeData(this, index + 3, (byte)(word >> 24));
       }
 
-      public int ReadPointer(int index) => ReadValue(index) - PointerOffset;
+      public virtual int ReadPointer(int index) => ReadValue(index) - PointerOffset;
 
-      public void WritePointer(ModelDelta changeToken, int address, int pointerDestination) => WriteValue(changeToken, address, pointerDestination + PointerOffset);
+      public virtual void WritePointer(ModelDelta changeToken, int address, int pointerDestination) => WriteValue(changeToken, address, pointerDestination + PointerOffset);
 
       /// <summary>
       /// Returns the number of new runs found.
@@ -538,7 +548,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override bool IsAtEndOfArray(int dataIndex, out ITableRun tableRun) { tableRun = null; return false; }
       public override void ObserveRunWritten(ModelDelta changeToken, IFormattedRun run) { }
       public override void ObserveAnchorWritten(ModelDelta changeToken, string anchorName, IFormattedRun run) { }
-      public override void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd, IReadOnlyDictionary<int, string> matchedWordsToRemove, IReadOnlyDictionary<int, string> matchedWordsToAdd) { }
+      public override void MassUpdateFromDelta(IReadOnlyDictionary<int, IFormattedRun> runsToRemove, IReadOnlyDictionary<int, IFormattedRun> runsToAdd, IReadOnlyDictionary<int, string> namesToRemove, IReadOnlyDictionary<int, string> namesToAdd, IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd, IReadOnlyDictionary<int, string> matchedWordsToRemove, IReadOnlyDictionary<int, string> matchedWordsToAdd, IReadOnlyDictionary<int, int> offsetPointersToRemove, IReadOnlyDictionary<int, int> offsetPointersToAdd) { }
       public override T RelocateForExpansion<T>(ModelDelta changeToken, T run, int minimumLength) => throw new NotImplementedException();
       public override int FindFreeSpace(int start, int length) => throw new NotImplementedException();
       public override void ClearAnchor(ModelDelta changeToken, int start, int length) { }

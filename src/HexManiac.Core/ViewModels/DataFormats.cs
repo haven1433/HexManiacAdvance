@@ -110,6 +110,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public int Source { get; }      // 6 hex digits
       public int Position { get; }    // 0 through 3
       public int Destination { get; } // 6 hex digits
+      public int OffsetValue { get; } // non-zero if this pointer's intended Destination is offset from its actual value in the model.
       public int Length => 4;
       public bool HasError { get; }
       public string DestinationName { get; } // null if there is no name for that anchor
@@ -121,10 +122,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          }
       }
 
-      public Pointer(int source, int positionInPointer, int destination, string destinationName, bool hasError) {
+      public Pointer(int source, int positionInPointer, int destination, int offset, string destinationName, bool hasError) {
          Source = source;
          Position = positionInPointer;
          Destination = destination;
+         OffsetValue = offset;
          DestinationName = destinationName;
          HasError = hasError;
       }

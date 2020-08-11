@@ -9,16 +9,18 @@ namespace HavenSoft.HexManiac.Core.Models {
       public IReadOnlyList<StoredAnchor> NamedAnchors { get; }
       public IReadOnlyList<StoredUnmappedPointer> UnmappedPointers { get; }
       public IReadOnlyList<StoredMatchedWord> MatchedWords { get; }
+      public IReadOnlyList<StoredOffsetPointer> OffsetPointers { get; }
       public IReadOnlyList<StoredList> Lists { get; }
       public string Version { get; }
       public int FreeSpaceSearch { get; } = -1;
 
       public bool IsEmpty => NamedAnchors.Count == 0 && UnmappedPointers.Count == 0;
 
-      public StoredMetadata(IReadOnlyList<StoredAnchor> anchors, IReadOnlyList<StoredUnmappedPointer> unmappedPointers, IReadOnlyList<StoredMatchedWord> matchedWords, IReadOnlyList<StoredList> lists, IMetadataInfo generalInfo, int freeSpaceSearch) {
+      public StoredMetadata(IReadOnlyList<StoredAnchor> anchors, IReadOnlyList<StoredUnmappedPointer> unmappedPointers, IReadOnlyList<StoredMatchedWord> matchedWords, IReadOnlyList<StoredOffsetPointer> offsetPointers, IReadOnlyList<StoredList> lists, IMetadataInfo generalInfo, int freeSpaceSearch) {
          NamedAnchors = anchors ?? new List<StoredAnchor>();
          UnmappedPointers = unmappedPointers ?? new List<StoredUnmappedPointer>();
          MatchedWords = matchedWords ?? new List<StoredMatchedWord>();
+         OffsetPointers = offsetPointers ?? new List<StoredOffsetPointer>();
          Lists = lists ?? new List<StoredList>();
          Version = generalInfo.VersionNumber;
          FreeSpaceSearch = freeSpaceSearch;
@@ -28,13 +30,14 @@ namespace HavenSoft.HexManiac.Core.Models {
          var anchors = new List<StoredAnchor>();
          var pointers = new List<StoredUnmappedPointer>();
          var matchedWords = new List<StoredMatchedWord>();
+         var offsetPointers = new List<StoredOffsetPointer>();
          var lists = new List<StoredList>();
 
          foreach (var line in lines) {
             var cleanLine = line.Split('#').First().Trim();
             if (cleanLine == string.Empty) continue;
             if (cleanLine.StartsWith("[")) {
-               CloseCurrentItem(anchors, pointers, matchedWords, lists);
+               CloseCurrentItem(anchors, pointers, matchedWords, offsetPointers, lists);
                currentItem = cleanLine;
                continue;
             }
@@ -53,6 +56,11 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (cleanLine.StartsWith("Address = 0x")) {
                var start = cleanLine.IndexOf("x") + 1;
                currentItemAddress = int.Parse(cleanLine.Substring(start), NumberStyles.HexNumber);
+            }
+
+            if (cleanLine.StartsWith("Offset = 0x")) {
+               var start = cleanLine.IndexOf("x") + 1;
+               currentItemOffset = int.Parse(cleanLine.Substring(start), NumberStyles.HexNumber);
             }
 
             if (cleanLine.StartsWith("Name = '''")) {
@@ -91,11 +99,12 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
          }
 
-         CloseCurrentItem(anchors, pointers, matchedWords, lists);
+         CloseCurrentItem(anchors, pointers, matchedWords, offsetPointers, lists);
 
          NamedAnchors = anchors;
          UnmappedPointers = pointers;
          MatchedWords = matchedWords;
+         OffsetPointers = offsetPointers;
          Lists = lists;
       }
 
@@ -158,6 +167,15 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          lines.Add("#################################");
 
+         foreach (var offsetPointer in OffsetPointers) {
+            lines.Add("[[OffsetPointer]]");
+            lines.Add($"Address = 0x{offsetPointer.Address:X6}");
+            lines.Add($"Offset = 0x{offsetPointer.Offset:X6}");
+            lines.Add(string.Empty);
+         }
+
+         lines.Add("#################################");
+
          foreach (var list in Lists) {
             list.AppendContents(lines);
          }
@@ -169,8 +187,9 @@ namespace HavenSoft.HexManiac.Core.Models {
       List<string> currentItemChildren;
       bool continueCurrentItemIndex;
       int currentItemAddress = -1;
+      int currentItemOffset = -1;
 
-      private void CloseCurrentItem(IList<StoredAnchor> anchors, IList<StoredUnmappedPointer> pointers, IList<StoredMatchedWord> matchedWords, IList<StoredList> lists) {
+      private void CloseCurrentItem(IList<StoredAnchor> anchors, IList<StoredUnmappedPointer> pointers, IList<StoredMatchedWord> matchedWords, IList<StoredOffsetPointer> offsetPointers, IList<StoredList> lists) {
          if (currentItem == "[[UnmappedPointers]]") {
             if (currentItemName == null) throw new ArgumentNullException("The Metadata file has an UnmappedPointer that didn't specify a name!");
             if (currentItemAddress == -1) throw new ArgumentOutOfRangeException("The Metadata file has an UnmappedPointer that didn't specify an Address!");
@@ -189,6 +208,12 @@ namespace HavenSoft.HexManiac.Core.Models {
             matchedWords.Add(new StoredMatchedWord(currentItemAddress, currentItemName));
          }
 
+         if (currentItem == "[[OffsetPointer]]") {
+            if (currentItemAddress == -1) throw new ArgumentOutOfRangeException("The Metadata file has an OffsetPointer that didn't specify an Address!");
+            if (currentItemOffset == -1) throw new ArgumentOutOfRangeException("The Metadata file has an OffsetPointer that didn't specify an Offset!");
+            offsetPointers.Add(new StoredOffsetPointer(currentItemAddress, currentItemOffset));
+         }
+
          if (currentItem == "[[List]]") {
             if (currentItemName == null) throw new ArgumentNullException("The Metadata file has a list that didn't specify a name!");
             if (currentItemChildren == null) throw new ArgumentNullException("The Metadata file has a list that didn't specify any children!");
@@ -199,6 +224,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          currentItemName = null;
          currentItemFormat = null;
          currentItemAddress = -1;
+         currentItemOffset = -1;
          continueCurrentItemIndex = false;
          currentItemChildren = null;
       }
@@ -230,6 +256,12 @@ namespace HavenSoft.HexManiac.Core.Models {
       public int Address { get; }
       public string Name { get; }
       public StoredMatchedWord(int address, string name) => (Address, Name) = (address, name);
+   }
+
+   public class StoredOffsetPointer {
+      public int Address { get; }
+      public int Offset { get; }
+      public StoredOffsetPointer(int address, int offset) => (Address, Offset) = (address, offset);
    }
 
    /// <summary>
