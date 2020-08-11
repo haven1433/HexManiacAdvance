@@ -819,6 +819,23 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x120, model.ReadPointer(0));
       }
 
+      [Fact]
+      public void CanOffsetPointToAnchor() {
+         StandardSetup(out var _, out var model, out var viewPort);
+
+         model.WritePointer(viewPort.CurrentChange, 0, 0x10);
+         model.ObserveAnchorWritten(viewPort.CurrentChange, "bob", new NoInfoRun(0x20));
+         model.ObserveRunWritten(viewPort.CurrentChange, new OffsetPointerRun(0, 0x10)); // with a value of 0x10 and an offset of 0x10, this should now point to bob
+
+         // move the anchor
+         model.ClearFormat(viewPort.CurrentChange, 0x20, 1); // clear the anchor
+         viewPort.Edit("@40 ^bob ");
+
+         // pointer should point to the new location (with offset)
+         Assert.Equal(0x08000030, model.ReadValue(0));
+         Assert.Equal(0x40, model.ReadPointer(0));
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);
