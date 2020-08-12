@@ -182,6 +182,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                      var elementOffset = table.ElementLength * offset.ElementIndex;
                      foreach (var spriteRun in model.GetPointedChildren<ISpriteRun>(table, offset.ElementIndex)) {
                         if (spriteRun is LzTilemapRun) continue; // don't count tilemaps
+                        if (spriteRun.SpriteFormat.BitsPerPixel != run.PaletteFormat.Bits) continue; // only worry about sprites that could use this palette
                         var paletteHint = spriteRun.SpriteFormat.PaletteHint;
                         if (!string.IsNullOrEmpty(paletteHint) && paletteHint != primaryName) continue;
                         results.Add(spriteRun);
