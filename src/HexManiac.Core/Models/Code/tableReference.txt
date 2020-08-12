@@ -44,8 +44,8 @@ graphics.pokemon.animations.front,                ,       ,       ,       ,     
 graphics.pokemon.animations.back,                 ,       ,       ,       ,       ,       ,       ,       , 17F488, [index.]data.pokemon.names
 graphics.pokemon.animations.frames,               ,       ,       ,       ,       ,       ,       ,       , 05E7BC, [data<[frames<[frame: time:]!FFFF0000>]1>]data.pokemon.names  // every pokemon has at least 2 (expcept Spinda), and some have 3.
 graphics.moves.animations,                  075734, 075738, 075754, 075758, 0725D0, 0725D0, 0725E4, 0725E4, 0A3A44, [animation<`ase`>]data.moves.names
-graphics.moves.particles.sprites+13880,     075A60, 075A64, 075A80, 075A84, 0728B8, 0728B8, 0728CC, 0728CC, 0A3D74, [ptr<> size: index:]289
-graphics.moves.particles.palettes+13880,    075A64, 075A68, 075A84, 075A88, 0728BC, 0728BC, 0728D0, 0728D0, 0A3D78, [ptr<> index: unused:]graphics.moves.particles.sprites
+graphics.moves.particles.sprites+13880,     075A60, 075A64, 075A80, 075A84, 0728B8, 0728B8, 0728CC, 0728CC, 0A3D74, [ptr<`lzt4`> size: index:]289
+graphics.moves.particles.palettes+13880,    075A64, 075A68, 075A84, 075A88, 0728BC, 0728BC, 0728D0, 0728D0, 0A3D78, [ptr<`lzp4`> index: unused:]graphics.moves.particles.sprites
 graphics.items.sprites,                           ,       ,       ,       , 09899C, 098970, 0989B0, 098984, 1B0034, [sprite<`lzs4x3x3`> palette<`lzp4`>]data.items.stats+1
 
 
