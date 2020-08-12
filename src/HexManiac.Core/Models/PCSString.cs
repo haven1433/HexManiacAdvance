@@ -145,7 +145,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public static bool IsEscaped(IReadOnlyList<byte> data, int index) {
          if (index == 0) return false;
-         if (data[index - 1] == Escape) return true;
+         if (data[index - 1].IsAny(Escape, FunctionEscape)) return true;
          if (index == 1) return false;
          if (index > 2 && data[index - 3] == FunctionEscape && data[index - 2] == 0x10) return true;
          if (data[index - 2] != FunctionEscape) return false;

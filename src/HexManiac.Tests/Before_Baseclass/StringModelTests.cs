@@ -492,5 +492,10 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x10, test.Model.GetNextRun(0x10).Start); // first text
          Assert.Equal(0x15, test.Model.GetNextRun(0x15).Start); // second text
       }
+
+      [Fact]
+      public void PCSStringControlCodeForFuncionEscapesIsEscaped() {
+         Assert.True(PCSString.IsEscaped(new byte[] { PCSString.FunctionEscape, 0x0A }, 1));
+      }
    }
 }
