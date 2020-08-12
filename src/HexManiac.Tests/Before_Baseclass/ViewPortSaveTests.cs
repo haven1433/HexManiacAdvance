@@ -4,6 +4,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Xunit;
@@ -435,6 +436,76 @@ namespace HavenSoft.HexManiac.Tests {
 
          // 'bob' updated to 'tom'
          Assert.Equal("tom", ((ArrayRunBitArraySegment)((ITableRun)model.GetNextRun(0x20)).ElementContent[0]).SourceArrayName);
+      }
+
+      [Fact]
+      public void UpdateOldTableWithNewName_MatchedLengthTableWithLengthModifier_UpdatesLengthCorrectly() {
+         var data = new byte[0x200];
+         data[0x33] = 0x08; // pointer from 0x30 to 0x00
+
+         // metadata, loaded from the file
+         var metadata = new StoredMetadata(
+            new[] {
+               new StoredAnchor(0x00, "bob", "[data:]4"),
+               new StoredAnchor(0x10, "sam", "[data:]bob+2")
+            },
+            default, default, default, default,
+            new StubMetadataInfo { VersionNumber = "0.3.0.0" },
+            default
+            );
+
+         // setup the current reference, loaded from singletons
+         var gameReferenceTables = new GameReferenceTables(new[] { new ReferenceTable("tom", 0, 0x30, "[data:]4") });
+         var singletons = new Singletons(
+            new StubMetadataInfo { VersionNumber = "0.4.0.0" },
+            new Dictionary<string, GameReferenceTables> { { new string((char)0, 4) + "0", gameReferenceTables } }
+            );
+
+         // create a model, which should notice and resolve the conflict
+         var model = new PokemonModel(data, metadata, singletons);
+
+         // 'bob' updated to 'tom' in sam's length
+         Assert.Equal("[data:]tom+2", model.GetNextRun(0x10).FormatString);
+      }
+
+      [Fact]
+      public void UpdateOldTableWithNewName_UpdatesTilemapTilesetHints() {
+         var data = new byte[0x200];
+
+         // header for compressed tilemap
+         data[0] = 0x10;
+         data[1] = 2; // 2 bytes = 1 tile. 0000 = use tile 0, palette 0. Next 3 bytes represent the compressed data.
+
+         // header for the compressed tileset
+         data[8] = 0x10;
+         data[9] = 0x20; // 0x20 bytes = 1 tile. Next 0x24 bytes represent the compressed data.
+
+         (data[0x33], data[0x32], data[0x31], data[0x30]) = (0x08, 0x00, 0x00, 0x00); // pointer to tilemap
+         (data[0x37], data[0x36], data[0x35], data[0x34]) = (0x08, 0x00, 0x00, 0x08); // pointer to tileset
+
+         // metadata, loaded from the file
+         var metadata = new StoredMetadata(
+            new[] {
+               new StoredAnchor(0x00, "bob", "`lzm4x1x1|tileset1`"),
+               new StoredAnchor(0x08, "tileset1", "`lzt4`")
+            },
+            default, default, default, default,
+            new StubMetadataInfo { VersionNumber = "0.3.0.0" },
+            default
+            );
+
+         // setup the current reference, loaded from singletons
+         var gameReferenceTables = new GameReferenceTables(new[] { new ReferenceTable("tileset2", 0, 0x34, "`lzt4`") });
+         var singletons = new Singletons(
+            new StubMetadataInfo { VersionNumber = "0.4.0.0" },
+            new Dictionary<string, GameReferenceTables> { { new string((char)0, 4) + "0", gameReferenceTables } }
+            );
+
+         // create a model, which should notice and resolve the conflict
+         var model = new PokemonModel(data, metadata, singletons);
+
+         // assert that 'tileset1' was replaced with 'tileset2'
+         Assert.Equal("`lzm4x1x1|tileset2`", model.GetNextRun(0x00).FormatString);
       }
    }
 }

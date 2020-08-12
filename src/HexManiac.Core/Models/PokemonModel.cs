@@ -173,6 +173,14 @@ namespace HavenSoft.HexManiac.Core.Models {
                   }
                }
 
+               // update tileset hints
+               if (runs[i] is LzTilemapRun tilemap) {
+                  var format = tilemap.Format;
+                  if (format.MatchingTileset != anchor) continue;
+                  tilemap = tilemap.Duplicate(new TilemapFormat(format.BitsPerPixel, format.TileWidth, format.TileHeight, reference.Name, format.TilesetTableMember));
+                  runs[i] = tilemap;
+               }
+
                // update palette hints
                if (runs[i] is ISpriteRun sprite) {
                   if (sprite is LzTilemapRun) continue;
@@ -180,14 +188,6 @@ namespace HavenSoft.HexManiac.Core.Models {
                   if (format.PaletteHint != anchor) continue;
                   sprite = sprite.Duplicate(new SpriteFormat(format.BitsPerPixel, format.TileWidth, format.TileHeight, reference.Name));
                   runs[i] = sprite;
-               }
-
-               // update tileset hints
-               if (runs[i] is LzTilemapRun tilemap) {
-                  var format = tilemap.Format;
-                  if (format.MatchingTileset != anchor) continue;
-                  tilemap = tilemap.Duplicate(new TilemapFormat(format.BitsPerPixel, format.TileWidth, format.TileHeight, reference.Name, format.TilesetTableMember));
-                  runs[i] = tilemap;
                }
             }
          }
