@@ -194,7 +194,7 @@
 87 pokemart2 products<>                      # clone
 88 pokemart3 products<>                      # clone
 89 pokecasino index:
-8A nop8A                                     # does nothing
+8A setberrytree plantID. berryID. growth.    # in R/S/E, sets a specific berry-growing spot on the map with the specific berry and growth level.
 8B choosecontextpkmn                         # in FireRed, 03000EA8 = '1'. In R/S/E, prompt for a pokemon to enter contest
 8C startcontest                              # nop in FireRed. Starts a contest.
 8D showcontestresults                        # nop in FireRed. Shows contest results.
