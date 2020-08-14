@@ -313,6 +313,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   currentPokemonMoveCount = 0;
                }
             }
+
+            if (pokemons.Count == 0) {
+               pokemons.Add(0);
+               ivs.Add(0);
+               levels.Add(0);
+               moves.AddRange(new[] { 0, 0, 0, 0 });
+            }
          }
 
          public TeamData(IDataModel model, int start, int structType, int count) {

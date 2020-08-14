@@ -520,8 +520,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          // there are multiple sprites
          var dependentPageCount = dependentSprites.Sum(s => s.Pages);
          if (paletteRun.Pages > 1) dependentPageCount = dependentSprites.Count; // for multi-page palettes, only count each sprite once.
+         string imageType = "images";
+         if (dependentSprites.Any(ds => ds is LzTilesetRun)) imageType = "tilesets";
          var choice = fileSystem.ShowOptions("Import Sprite",
-            $"This palette is used by {dependentPageCount} images. How do you want to handle the import?",
+            $"This palette is used by {dependentPageCount} {imageType}. How do you want to handle the import?",
             new VisualOption {
                Option = "Smart", Index = 0,
                ShortDescription = "Fix Incompatibilites Automatically",
