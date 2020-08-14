@@ -599,6 +599,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var sprite = Detilize(indexedTiles, spriteRun.SpriteFormat.TileWidth);
 
          var newSprite = spriteRun.SetPixels(model, viewPort.CurrentChange, spritePage, sprite);
+         if (newSprite is LzTilemapRun tilemap && model.GetNextRun(tilemap.FindMatchingTileset(model)) is LzTilesetRun tileset && model.ReadMultiByteValue(tileset.Start + 1, 3) / (tileset.Format.BitsPerPixel * 8) == 1024) {
+            viewPort.RaiseMessage("Maxed out number of available tiles. Simplify your image.");
+         }
 
          var newPalette = paletteRun;
          if (palettes.Length == paletteRun.Pages) {
