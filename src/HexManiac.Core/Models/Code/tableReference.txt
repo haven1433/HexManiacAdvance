@@ -184,6 +184,17 @@ graphics.titlescreen.copyright.tileset,            ,,,, 0EC610, 0EC5E8, 0EC624, 
 graphics.titlescreen.copyright.tilemap,            ,,,, 0EC614, 0EC5EC, 0EC628, 0EC600, , `lzm4x32x32|graphics.titlescreen.copyright.tileset`
 graphics.titlescreen.copyright.palette,            ,,,, 0EC618, 0EC5F0, 0EC62C, 0EC604, , `ucp4`
 
+graphics.newgame.player.male.palette,          ,       ,       ,       , 131228, 131200, 1312A0, 131278,       , `ucp4:45`
+graphics.newgame.player.male.sprite,           ,       ,       ,       , 13122C, 131204, 1312A4, 13127C,       , `lzs8x8x12|graphics.newgame.player.male.sprite`
+graphics.newgame.player.female.palette,        ,       ,       ,       , 131240, 131218, 1312B8, 131290,       , `ucp4:45`
+graphics.newgame.player.female.sprite,         ,       ,       ,       , 131244, 13121C, 1312BC, 131294,       , `lzs8x8x12|graphics.newgame.player.female.palette`
+graphics.newgame.rival.palette,                ,       ,       ,       , 131260, 131238, 1312D8, 1312B0,       , `ucp4:67`
+graphics.newgame.rival.sprite,                 ,       ,       ,       , 131264, 13123C, 1312DC, 1312B4,       , `lzs8x8x12|graphics.newgame.rival.palette`
+graphics.newgame.professor.palette,            ,       ,       ,       , 131300, 1312D8, 131378, 131350,       , `ucp4:67`
+graphics.newgame.professor.sprite,             ,       ,       ,       , 131304, 1312DC, 13137C, 131354,       , `lzs8x8x12|graphics.newgame.professor.palette`
+graphics.newgame.professor.palette,      39F114, 39EF5C, 39F12C, 39EF74,       ,       ,       ,       , 55C230, `ucp4`
+graphics.newgame.professor.sprite,       39F10C, 39EF54, 39F124, 39EF6C,       ,       ,       ,       , 55C228, `ucs4x8x8|graphics.newgame.professor.palette`
+
 graphics.townmap.palette,                      ,       ,       ,       , 0C02EC, 0C02C0, 0C0300, 0C02D4, , `ucp4:01`
 graphics.townmap.tileset,                      ,       ,       ,       , 0C0330, 0C0304, 0C0344, 0C0318, , `lzt4|graphics.townmap.palette`
 graphics.townmap.tilemap,                      ,       ,       ,       , 0C035C, 0C0330, 0C0370, 0C0344, , `lzm4x30x20|graphics.townmap.tileset`
