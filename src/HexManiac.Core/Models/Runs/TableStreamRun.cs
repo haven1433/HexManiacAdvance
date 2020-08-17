@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using HavenSoft.HexManiac.Core.ViewModels;
@@ -95,6 +96,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       #region StreamRun
 
       public string SerializeRun() {
+         if (endStream is FixedLengthStreamStrategy flss && flss.Count == 1) return SerializeSingleElementStream();
          var builder = new StringBuilder();
          AppendTo(model, builder, Start, ElementLength * ElementCount, false);
          var lines = builder.ToString().Split(Environment.NewLine);
@@ -109,6 +111,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public IStreamRun DeserializeRun(string content, ModelDelta token) {
+         if (endStream is FixedLengthStreamStrategy flss && flss.Count == 1) return DeserializeSingleElementStream(content, token);
          var lines = content.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
          if (lines.Length == 0) lines = content.Split(Environment.NewLine);
          var newRun = this;
@@ -127,6 +130,43 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             start += ElementLength;
          }
          return newRun;
+      }
+
+      private string SerializeSingleElementStream() {
+         Debug.Assert(endStream is FixedLengthStreamStrategy flss && flss.Count == 1);
+         var result = new StringBuilder();
+         int offset = Start;
+         var longestLabel = ElementContent.Select(seg => seg.Name.Length).Max();
+         for (int i = 0; i < ElementContent.Count; i++) {
+            var segment = ElementContent[i];
+            var rawValue = model.ReadMultiByteValue(offset, segment.Length);
+            var value = rawValue.ToString();
+            if (segment is ArrayRunEnumSegment enumSeg) {
+               var options = enumSeg.GetOptions(model).ToList();
+               if (options.Count > rawValue) value = options[rawValue];
+            } else if (segment.Type == ElementContentType.Pointer) {
+               var pointerValue = rawValue - BaseModel.PointerOffset;
+               value = $"<{pointerValue:X6}>";
+               if (pointerValue == Pointer.NULL) value = "<null>";
+            }
+            var extraWhitespace = new string(' ', longestLabel - segment.Name.Length);
+            result.Append($"  {segment.Name}:{extraWhitespace} {value}");
+            if (i < ElementContent.Count - 1) result.AppendLine();
+            offset += segment.Length;
+         }
+         return result.ToString();
+      }
+
+      private IStreamRun DeserializeSingleElementStream(string content, ModelDelta token) {
+         Debug.Assert(endStream is FixedLengthStreamStrategy flss && flss.Count == 1);
+         var fields = content.SplitLines();
+         int segmentOffset = 0;
+         for (int j = 0; j < ElementContent.Count; j++) {
+            var data = j < fields.Length ? fields[j].Split(new[] { ':' }, 2).Last() : string.Empty;
+            ElementContent[j].Write(model, token, Start + segmentOffset, data);
+            segmentOffset += ElementContent[j].Length;
+         }
+         return this;
       }
 
       private IReadOnlyList<string> Tokenize(string line) {

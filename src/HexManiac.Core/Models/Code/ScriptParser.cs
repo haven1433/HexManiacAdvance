@@ -119,12 +119,12 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                         if (line.PointsToText) {
                            var destinationLength = PCSString.ReadString(model, destination, true);
                            if (destinationLength > 0) model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength));
-                        }
-                        else if (line.PointsToMovement) {
+                        } else if (line.PointsToMovement) {
                            WriteMovementStream(model, token, destination, address + length);
-                        }
-                        else if (line.PointsToMart) {
+                        } else if (line.PointsToMart) {
                            WriteMartStream(model, token, destination, address + length);
+                        } else if (line.PointsToSpriteTemplate) {
+                           WriteSpriteTemplateStream(model, token, destination, address + length);
                         }
                      }
                   }
@@ -143,6 +143,12 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       private void WriteMartStream(IDataModel model, ModelDelta token, int start, int source) {
          TableStreamRun.TryParseTableStream(model, start, new SortedSpan<int>(source), string.Empty, $"[move:{HardcodeTablesModel.ItemsTableName}]!0000", null, out var tsRun);
+         if (tsRun != null) model.ObserveRunWritten(token, tsRun);
+      }
+
+      private void WriteSpriteTemplateStream(IDataModel model, ModelDelta token, int start, int source) {
+         var format = "[tileTag: paletteTag: oam<> anims<> images<> affineAnims<> callback<>]1";
+         TableStreamRun.TryParseTableStream(model, start, new SortedSpan<int>(source), string.Empty, format, null, out var tsRun);
          if (tsRun != null) model.ObserveRunWritten(token, tsRun);
       }
 
@@ -209,6 +215,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      newAddress = model.FindFreeSpace(0, 0x10);
                      token.ChangeData(model, newAddress, 0x00);
                      token.ChangeData(model, newAddress + 1, 0x00);
+                  } else if (command.PointsToSpriteTemplate) {
+                     newAddress = model.FindFreeSpace(0, 0x18);
+                     for (int j = 0; j < 0x18; j++) token.ChangeData(model, newAddress + j, 0x00);
                   } else if (command.PointsToNextScript) {
                      newAddress = model.FindFreeSpace(0, 0x10);
                      token.ChangeData(model, newAddress, endToken);
@@ -230,7 +239,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   CompileError?.Invoke(this, i + ": " + error);
                   return null;
                }
-               if (command.PointsToMovement || command.PointsToText || command.PointsToMart) {
+               if (command.PointsToMovement || command.PointsToText || command.PointsToMart || command.PointsToSpriteTemplate) {
                   var pointerOffset = command.Args.Until(arg => arg.Type == ArgType.Pointer).Sum(arg => arg.Length(model, -1)) + command.LineCode.Count;
                   var destination = result.ReadMultiByteValue(currentSize + pointerOffset, 4) - 0x8000000;
                   if (destination >= 0) {
@@ -318,6 +327,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       bool PointsToText { get; }
       bool PointsToMovement { get; }
       bool PointsToMart { get; }
+      bool PointsToSpriteTemplate { get; }
 
       int CompiledByteLength(IDataModel model, int start); // compile from the bytes in the model, at that start location
       int CompiledByteLength(IDataModel model, string line); // compile from the line of code passed in
@@ -341,6 +351,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public virtual bool PointsToText { get; }
       public virtual bool PointsToMovement { get; }
       public virtual bool PointsToMart { get; }
+      public virtual bool PointsToSpriteTemplate { get; }
 
       public int CompiledByteLength(IDataModel model, int start) {
          var length = LineCode.Count;
@@ -496,7 +507,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
             start += arg.Length(data, start);
          }
-         if (PointsToText || PointsToMovement || PointsToMart) {
+         if (PointsToText || PointsToMovement || PointsToMart || PointsToSpriteTemplate) {
             if (data.GetNextRun(lastAddress) is IStreamRun stream && stream.Start == lastAddress) {
                builder.AppendLine();
                builder.AppendLine("{");
@@ -542,9 +553,6 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x28, 0x3c, 0x3d, 0x3e, 0x3f);
       public override bool PointsToNextScript => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x01, 0x1C, 0x1D, 0x20, 0x21, 0x28, 0x2A, 0x7A, 0x97);
-      public override bool PointsToText => false;
-      public override bool PointsToMovement => false;
-      public override bool PointsToMart => false;
    }
 
    public class ASEScriptLine : ScriptLine {
@@ -552,9 +560,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x08, 0x0F, 0x11, 0x13);
       public override bool PointsToNextScript => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x11, 0x13);
-      public override bool PointsToText => false;
-      public override bool PointsToMovement => false;
-      public override bool PointsToMart => false;
+      public override bool PointsToSpriteTemplate => LineCode.Count == 1 && LineCode[0] == 0x02;
    }
 
    public interface IScriptArg {
