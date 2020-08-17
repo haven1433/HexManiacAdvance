@@ -592,10 +592,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private void WriteSpriteAndPalette(ISpriteRun spriteRun, IPaletteRun paletteRun, short[] image) {
          var tiles = Tilize(image, spriteRun.SpriteFormat.TileWidth * 8);
          var expectedPalettePages = paletteRun.Pages;
-         if (spriteRun.Pages == paletteRun.Pages) expectedPalettePages = 1; // handle the Castfrom case
+         if (spriteRun.Pages == paletteRun.Pages) expectedPalettePages = 1; // handle the Castform case
          var palettes = DiscoverPalettes(tiles, paletteRun.PaletteFormat.Bits, expectedPalettePages);
          var indexedTiles = new int[tiles.Length][,];
-         for (int i = 0; i < indexedTiles.Length; i++) indexedTiles[i] = Index(tiles[i], palettes, paletteRun.PaletteFormat.InitialBlankPages);
+         for (int i = 0; i < indexedTiles.Length; i++) indexedTiles[i] = Index(tiles[i], palettes, spriteRun.SpriteFormat.BitsPerPixel, paletteRun.PaletteFormat.InitialBlankPages);
          var sprite = Detilize(indexedTiles, spriteRun.SpriteFormat.TileWidth);
 
          var newSprite = spriteRun.SetPixels(model, viewPort.CurrentChange, spritePage, sprite);
@@ -624,7 +624,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             for (int i = 0; i < palettes.Length; i++) palettes[i] = paletteRun.GetPalette(model, i);
          }
          var indexedTiles = new int[tiles.Length][,];
-         for (int i = 0; i < indexedTiles.Length; i++) indexedTiles[i] = Index(tiles[i], palettes, paletteRun.PaletteFormat.InitialBlankPages);
+         for (int i = 0; i < indexedTiles.Length; i++) indexedTiles[i] = Index(tiles[i], palettes, spriteRun.SpriteFormat.BitsPerPixel, paletteRun.PaletteFormat.InitialBlankPages);
          var sprite = Detilize(indexedTiles, spriteRun.SpriteFormat.TileWidth);
 
          var newSprite = spriteRun.SetPixels(model, viewPort.CurrentChange, spritePage, sprite);
@@ -672,7 +672,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (spriteRun.Pages == paletteRun.Pages) expectedPalettePages = 1; // handle the Castfrom case
          var newPalettes = DiscoverPalettes(tiles, bits, palettes.Length);
          var indexedTiles = new int[tiles.Length][,];
-         for (int i = 0; i < indexedTiles.Length; i++) indexedTiles[i] = Index(tiles[i], newPalettes, initialBlankPages);
+         for (int i = 0; i < indexedTiles.Length; i++) indexedTiles[i] = Index(tiles[i], newPalettes, spriteRun.SpriteFormat.BitsPerPixel, initialBlankPages);
          var spriteData = Detilize(indexedTiles, spriteRun.SpriteFormat.TileWidth);
          var newWeightedPalettes = WeightedPalette.Weigh(spriteData, newPalettes, bits, initialBlankPages);
 
@@ -699,7 +699,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          // part 5: update the current sprite to use the new palette
-         for (int i = 0; i < indexedTiles.Length; i++) indexedTiles[i] = Index(tiles[i], newPalettes, initialBlankPages);
+         for (int i = 0; i < indexedTiles.Length; i++) indexedTiles[i] = Index(tiles[i], newPalettes, spriteRun.SpriteFormat.BitsPerPixel, initialBlankPages);
          spriteData = Detilize(indexedTiles, spriteRun.SpriteFormat.TileWidth);
          currentSpriteRun = currentSpriteRun.SetPixels(model, viewPort.CurrentChange, spritePage, spriteData);
 
@@ -734,7 +734,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          return palettes.Select(p => p.Palette).ToArray();
       }
 
-      private int[,] Index(short[] tile, IReadOnlyList<short>[] palettes, int initialPageIndex) {
+      private int[,] Index(short[] tile, IReadOnlyList<short>[] palettes, int bitness, int initialPageIndex) {
          var cheapestIndex = 0;
          var cheapest = WeightedPalette.CostToUse(tile, palettes[0]);
          for (int i = 1; i < palettes.Length; i++) {
@@ -745,7 +745,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             cheapestIndex = i;
          }
          var index = WeightedPalette.Index(tile, palettes[cheapestIndex]);
-         for (int x = 0; x < index.GetLength(0); x++) for (int y = 0; y < index.GetLength(1); y++) index[x, y] += (initialPageIndex + cheapestIndex) << 4;
+         for (int x = 0; x < index.GetLength(0); x++) {
+            for (int y = 0; y < index.GetLength(1); y++) {
+               // special case: 256-color sprites are still allowed to use the transparent color
+               if (bitness == 8 && index[x, y] == 0) continue;
+               index[x, y] += (initialPageIndex + cheapestIndex) << 4;
+            }
+         }
          return index;
       }
 
