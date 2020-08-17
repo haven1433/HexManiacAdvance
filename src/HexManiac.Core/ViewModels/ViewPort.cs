@@ -1216,9 +1216,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private IEnumerable<(int start, int end)> FindTableUsages(ArrayOffset offsets, string parentArrayName) {
-         foreach (var child in Model.Arrays) {
+         foreach (var child in Model.All<ITableRun>()) {
             // option 1: another table has a row named after this element
-            if (child.LengthFromAnchor == parentArrayName) {
+            if (child is ArrayRun arrayRun && arrayRun.LengthFromAnchor == parentArrayName) {
                var address = child.Start + child.ElementLength * offsets.ElementIndex;
                yield return (address, address + child.ElementLength - 1);
             }
