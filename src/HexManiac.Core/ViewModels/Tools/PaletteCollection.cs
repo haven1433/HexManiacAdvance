@@ -45,7 +45,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var first = Math.Min(selectionStart, selectionEnd);
             var last = Math.Max(selectionStart, selectionEnd);
             for (int i = 0; i < Elements.Count; i++) Elements[i].Selected = first <= i && i <= last;
-            createGradient?.CanExecuteChanged.Invoke(createGradient, EventArgs.Empty);
+            createGradient.RaiseCanExecuteChanged();
+            singleReduce.RaiseCanExecuteChanged();
          }
       }
 
@@ -338,14 +339,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                items.AddRange(tileset.FindDependentTilemaps(model));
             }
             foreach (var sprite in items) {
-               for (int j = 0; j < sprite.Pages; j++) {
-                  var pixels = sprite.GetPixels(model, j);
+               var newSprite = sprite;
+               for (int j = 0; j < newSprite.Pages; j++) {
+                  var pixels = newSprite.GetPixels(model, j);
                   for (int x = 0; x < pixels.GetLength(0); x++) {
                      for (int y = 0; y < pixels.GetLength(1); y++) {
                         if (pixels[x, y] == elementMergeIndex + pageOffset) pixels[x, y] = elementKeepIndex + pageOffset;
                      }
                   }
-                  sprite.SetPixels(model, viewPort.CurrentChange, j, pixels);
+                  newSprite = newSprite.SetPixels(model, viewPort.CurrentChange, j, pixels);
+               }
+               if (newSprite.Start != sprite.Start) {
+                  viewPort.RaiseMessage($"Sprite was moved to {newSprite.Start:X6}. Pointers were updated.");
+                  viewPort.Goto.Execute(newSprite.Start);
                }
             }
          }
