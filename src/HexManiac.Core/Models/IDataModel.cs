@@ -275,6 +275,31 @@ namespace HavenSoft.HexManiac.Core.Models {
          return true;
       }
 
+      /// <summary>
+      /// If anchorName is a table with enums based on another enum, return the appropriate names taken from the original enum list.
+      /// </summary>
+      public static bool TryGetDerivedEnumNames(this IDataModel model, string anchorName, out IReadOnlyList<string> names) {
+         names = null;
+         var mainEnumAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, anchorName);
+         var enumArray = model.GetNextRun(mainEnumAddress) as ArrayRun;
+         if (enumArray == null) return false;
+         if (enumArray.ElementContent.Count != 1) return false;
+         if (!(enumArray.ElementContent[0] is ArrayRunEnumSegment mainEnumSegment)) return false;
+         var enumSourceAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, mainEnumSegment.EnumName);
+         var sourceArray = model.GetNextRun(enumSourceAddress) as ArrayRun;
+         if (sourceArray == null) return false;
+         var allNames = sourceArray.ElementNames;
+         var list = new List<string>();
+
+         for (int i = 0; i < enumArray.ElementCount; i++) {
+            var enumValue = model.ReadMultiByteValue(enumArray.Start + enumArray.ElementLength * i, mainEnumSegment.Length);
+            list.Add(allNames[enumValue]);
+         }
+
+         names = list;
+         return true;
+      }
+
       public static List<int> FindPossibleTextStartingPlaces(this IDataModel model, int left, int length) {
          // part 1: find a previous FF, which is possibly the end of another text
          var startPlaces = new List<int>();

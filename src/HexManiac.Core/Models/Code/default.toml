@@ -350,6 +350,17 @@ Name = '''evbits'''
 ]
 
 [[List]]
+Name = '''battletowerEvFlags'''
+0 = [
+    '''Hp''',
+    '''Attack''',
+    '''Defense''',
+    '''Speed''',
+    '''SpAttack''',
+    '''SpDefense''',
+]
+
+[[List]]
 Name = '''traineraibits'''
 0 = [
    '''CheckBadMove''',

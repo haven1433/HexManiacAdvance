@@ -80,6 +80,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          if (!model.TryGetNameArray(enumName, out var enumArray)) {
             if (model.TryGetIndexNames(enumName, out var indexArray)) return indexArray;
+            if (model.TryGetDerivedEnumNames(enumName, out var derivedEnumArray)) return derivedEnumArray;
             return new string[0];
          }
 

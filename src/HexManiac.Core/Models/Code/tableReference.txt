@@ -106,6 +106,14 @@ data.pokedex.search.type,                    ,       ,       ,       , 103734, 1
 data.pokedex.habitat.names,                  ,       ,       ,       , 104F84, 104F5C, 104FFC, 104FD4,       , [name<"">]
 data.pokedex.habitat.pages,                  ,       ,       ,       , 106888, 106860, 106900, 1068D8,       , [data<[pokemon<[species:data.pokemon.names]/pokecount> pokecount::]/count> count::]data.pokedex.habitat.names
 
+data.battletower.items,                ,,,, 0E637C, 0E6354, 0E6390, 0E6368, , [item:data.items.stats]64
+data.battletower.pokemon.level50,      ,,,, 0E6378, 0E6350, 0E638C, 0E6364, , [species:data.pokemon.names heldItem.data.battletower.items flags.|h move1:data.moves.names move2:data.moves.names move3:data.moves.names move4:data.moves.names evSpread|b[]battletowerEvFlags nature.data.pokemon.natures.names unused:]300
+data.battletower.pokemon.level100,     ,,,, 0E631C, 0E62F4, 0E6330, 0E6308, , [species:data.pokemon.names heldItem.data.battletower.items flags.|h move1:data.moves.names move2:data.moves.names move3:data.moves.names move4:data.moves.names evSpread|b[]battletowerEvFlags nature.data.pokemon.natures.names unused:]300
+data.battlefrontier.items,             ,,,, ,,,, 163440, [item:data.items.stats]63
+data.battlefrontier.trainerclass,      ,,,, ,,,, 068C10, [class.data.trainers.classes.names]82
+data.battlefrontier.pokemon,           ,,,, ,,,, 165C80, [species:data.pokemon.names move1:data.moves.names move2:data.moves.names move3:data.moves.names move4:data.moves.names item.data.battlefrontier.items iv|b[]battletowerEvFlags nature::data.pokemon.natures.names]882
+data.battlefrontier.trainers,          ,,,, ,,,, 165C78, [facilityclass::data.battlefrontier.trainerclass trainername""8 before1:|h before2:|h before3:|h before4:|h before5:|h before6:|h win1:|h win2:|h win3:|h win4:|h win5:|h win6:|h lose1:|h lose2:|h lose3:|h lose4:|h lose5:|h lose6:|h teamoptions<[pokemon:data.battlefrontier.pokemon]!FFFF>]100
+//data.ec.words+8,                       ,,,, ,,,, 11EAA0, [list<[text<""> a:: b::]/count> count: other:]21 // before1-lose6 use the high 7 bits to select a group, and the low 9 bits to select a phrase.
 
 graphics.pokemon.type.icons,                 ,       ,       ,       , 107DB0, 107D88, 107E28, 107E00,       , `ucs4x16x16|graphics.pokemon.type.palettes`
 graphics.pokemon.type.palettes,              ,       ,       ,       , 107D64, 107D3C, 107DDC, 107DB4,       , `ucp4`
