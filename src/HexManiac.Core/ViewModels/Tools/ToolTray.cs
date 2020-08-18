@@ -22,8 +22,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (TryUpdate(ref selectedIndex, value)) {
                hideCommand.CanExecuteChanged.Invoke(hideCommand, EventArgs.Empty);
                RequestMenuClose?.Invoke(this, EventArgs.Empty);
-               if (SelectedTool == TableTool) TableTool.DataForCurrentRunChanged();
-               if (SelectedTool == SpriteTool) SpriteTool.DataForCurrentRunChanged();
+               using (ModelCacheScope.CreateScope(model)) {
+                  if (SelectedTool == TableTool) TableTool.DataForCurrentRunChanged();
+                  if (SelectedTool == SpriteTool) SpriteTool.DataForCurrentRunChanged();
+               }
             }
          }
       }

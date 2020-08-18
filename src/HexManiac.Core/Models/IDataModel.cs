@@ -288,16 +288,19 @@ namespace HavenSoft.HexManiac.Core.Models {
          var enumSourceAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, mainEnumSegment.EnumName);
          var sourceArray = model.GetNextRun(enumSourceAddress) as ArrayRun;
          if (sourceArray == null) return false;
-         var allNames = sourceArray.ElementNames;
-         var list = new List<string>();
+         using (ModelCacheScope.CreateScope(model)) {
+            var allNames = sourceArray.ElementNames;
+            if (allNames.Count == 0) return false;
+            var list = new List<string>();
 
-         for (int i = 0; i < enumArray.ElementCount; i++) {
-            var enumValue = model.ReadMultiByteValue(enumArray.Start + enumArray.ElementLength * i, mainEnumSegment.Length);
-            list.Add(allNames[enumValue]);
+            for (int i = 0; i < enumArray.ElementCount; i++) {
+               var enumValue = model.ReadMultiByteValue(enumArray.Start + enumArray.ElementLength * i, mainEnumSegment.Length);
+               list.Add(allNames[enumValue]);
+            }
+
+            names = list;
+            return true;
          }
-
-         names = list;
-         return true;
       }
 
       public static List<int> FindPossibleTextStartingPlaces(this IDataModel model, int left, int length) {

@@ -72,7 +72,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          lastColors = palette;
          if (!(run is LzTilemapRun)) paletteFormat = default;
 
-         PixelData = SpriteTool.Render(pixels, palette, paletteFormat, CurrentPage);
+         PixelData = SpriteTool.Render(pixels, palette, paletteFormat.InitialBlankPages, CurrentPage);
          
          NotifyPropertyChanged(nameof(PixelWidth));
          NotifyPropertyChanged(nameof(PixelHeight));
