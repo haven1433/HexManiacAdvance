@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
@@ -118,6 +119,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                      if (start >= data.Length) break; // don't write the blank 'bonus' tiles for tilesets
                      int xx = i % 8, yy = i / 8;
                      data[start] = (byte)pixels[xOffset + xx, yOffset + yy];
+                     start += 1;
+                  }
+               }
+            }
+         } else if (bitsPerPixel == 1) {
+            for (int y = 0; y < tileHeight; y++) {
+               int yOffset = y * 8;
+               for (int x = 0; x < tileWidth; x++) {
+                  int xOffset = x * 8;
+                  for (int i = 0; i < 8; i++) {
+                     if (start >= data.Length) break; // don't write the blank 'bonus' tiles for tilesets
+                     byte newValue = 0;
+                     for (int j = 0; j < 8; j++) newValue |= (byte)(pixels[xOffset + j, yOffset + i] << j);
+                     data[start] = newValue;
                      start += 1;
                   }
                }
