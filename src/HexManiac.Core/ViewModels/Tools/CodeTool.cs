@@ -101,7 +101,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                Set(ref content, "Too many bytes selected.", nameof(Content));
             } else if (mode == CodeMode.Raw) {
                Content = RawParse(model, start, end - start + 1);
-            } else if (length < 2 && mode != CodeMode.Script) {
+            } else if (length < 2 && mode == CodeMode.Thumb) {
                TryUpdate(ref content, string.Empty, nameof(Content));
                UpdateContents(-1, null);
             } else if (mode == CodeMode.Script) {

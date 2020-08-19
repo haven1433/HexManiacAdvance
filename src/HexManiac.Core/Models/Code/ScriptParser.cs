@@ -58,7 +58,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                }
                if (line.IsEndingCommand) break;
             }
-            Debug.Assert(Enumerable.Range(0, i).All(j => scripts[j] < address || scripts[j] >= address + length), "How did we get in a situation where we're removing scripts that have already been processed?");
+            // Debug.Assert(Enumerable.Range(0, i).All(j => scripts[j] < address || scripts[j] >= address + length), "How did we get in a situation where we're removing scripts that have already been processed?");
             scripts.RemoveAll(start => start > address && start < address + length);
             lengths.Add(length);
          }

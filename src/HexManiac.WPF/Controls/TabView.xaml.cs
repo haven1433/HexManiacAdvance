@@ -245,6 +245,40 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       #endregion
 
+      #region Anchor Text Selection
+
+      /// <summary>
+      /// When a change comes in from the UI
+      /// </summary>
+      private void AnchorSelectionChanged(object sender, RoutedEventArgs e) {
+         var viewPort = DataContext as ViewPort;
+         if (viewPort == null) return;
+
+         viewPort.PropertyChanged -= HandleViewportPropertyChanged;
+         viewPort.AnchorTextSelectionStart = AnchorTextBox.SelectionStart;
+         viewPort.AnchorTextSelectionLength = AnchorTextBox.SelectionLength;
+         viewPort.PropertyChanged += HandleViewportPropertyChanged;
+      }
+
+      /// <summary>
+      /// When a change comes in from the ViewModel
+      /// </summary>
+      private void HandleViewportPropertyChanged(object sender, PropertyChangedEventArgs e) {
+         var viewPort = (ViewPort)sender;
+
+         AnchorTextBox.SelectionChanged -= AnchorSelectionChanged;
+         if (e.PropertyName == nameof(viewPort.AnchorTextSelectionStart)) {
+            AnchorTextBox.Focus();
+            AnchorTextBox.SelectionStart = viewPort.AnchorTextSelectionStart;
+            NavigationCommands.NavigateJournal.Execute(AnchorTextBox, this);
+         } else if (e.PropertyName == nameof(viewPort.AnchorTextSelectionLength)) {
+            AnchorTextBox.SelectionLength = viewPort.AnchorTextSelectionLength;
+         }
+         AnchorTextBox.SelectionChanged += AnchorSelectionChanged;
+      }
+
+      #endregion
+
       private void StringToolContentSelectionChanged(object sender, RoutedEventArgs e) {
          var textbox = (TextBox)sender;
          var tools = textbox.DataContext as ToolTray;

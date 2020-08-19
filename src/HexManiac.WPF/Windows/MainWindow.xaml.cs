@@ -264,13 +264,14 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       }
 
       private void AnimateFocusToCorner(object sender, DependencyPropertyChangedEventArgs e) {
+         var duration = TimeSpan.FromSeconds(.3);
          var element = (FrameworkElement)sender;
          if (element.Visibility != Visibility.Visible) return;
          element.Arrange(new Rect());
 
          FocusAnimationElement.Visibility = Visibility.Visible;
-         var widthAnimation = new DoubleAnimation(ActualWidth, element.ActualWidth, TimeSpan.FromSeconds(.3));
-         var heightAnimation = new DoubleAnimation(ActualHeight, element.ActualHeight, TimeSpan.FromSeconds(.3));
+         var widthAnimation = new DoubleAnimation(ContentPanel.ActualWidth, element.ActualWidth, duration);
+         var heightAnimation = new DoubleAnimation(ContentPanel.ActualHeight, element.ActualHeight, duration);
          heightAnimation.Completed += (sender1, e1) => FocusAnimationElement.Visibility = Visibility.Collapsed;
 
          FocusAnimationElement.BeginAnimation(WidthProperty, widthAnimation);
@@ -282,6 +283,30 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             themeWindow = new ThemeSelector { DataContext = ViewModel.Theme };
             themeWindow.Show();
          }
+      }
+
+      private void ExecuteAnimation(object sender, ExecutedRoutedEventArgs e) {
+         var duration = TimeSpan.FromSeconds(.3);
+         var element = (FrameworkElement)e.Parameter;
+
+         var point = element.TranslatePoint(new System.Windows.Point(), ContentPanel);
+
+         FocusAnimationElement.Visibility = Visibility.Visible;
+         FocusAnimationElement.RenderTransform = new TranslateTransform();
+
+         var xAnimation = new DoubleAnimation(-ContentPanel.ActualWidth + point.X + element.ActualWidth, duration);
+         var yAnimation = new DoubleAnimation(point.Y, duration);
+         var widthAnimation = new DoubleAnimation(ContentPanel.ActualWidth, element.ActualWidth, duration);
+         var heightAnimation = new DoubleAnimation(ContentPanel.ActualHeight, element.ActualHeight, duration);
+         heightAnimation.Completed += (sender1, e1) => {
+            FocusAnimationElement.Visibility = Visibility.Collapsed;
+            FocusAnimationElement.RenderTransform = null;
+         };
+
+         FocusAnimationElement.RenderTransform.BeginAnimation(TranslateTransform.XProperty, xAnimation);
+         FocusAnimationElement.RenderTransform.BeginAnimation(TranslateTransform.YProperty, yAnimation);
+         FocusAnimationElement.BeginAnimation(WidthProperty, widthAnimation);
+         FocusAnimationElement.BeginAnimation(HeightProperty, heightAnimation);
       }
    }
 }

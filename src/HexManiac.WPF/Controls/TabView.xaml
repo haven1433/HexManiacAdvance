@@ -523,7 +523,7 @@
                      </ToolTip>
                   </TextBlock.ToolTip>
                </TextBlock>
-               <TextBox UndoLimit="0" Text="{Binding AnchorText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,25,0"/>
+               <TextBox Name="AnchorTextBox" SelectionChanged="AnchorSelectionChanged" UndoLimit="0" Text="{Binding AnchorText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,25,0"/>
             </DockPanel>
             <Expander VerticalAlignment="Center" HorizontalAlignment="Left" ExpandDirection="Right" Visibility="{Binding ShowWidthProperties, Converter={StaticResource BoolToVisibility}}">
                <Expander.Resources>

@@ -206,10 +206,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             UpdateSelectedAddress();
             UpdateSelectedBytes();
          }
-         RequestMenuClose?.Invoke(this, EventArgs.Empty);
       }
 
-      private void UpdateToolsFromSelection(int dataIndex) {
+      public void UpdateToolsFromSelection(int dataIndex) {
          var run = Model.GetNextRun(dataIndex);
          if (run.Start > dataIndex) {
             AnchorTextVisible = false;
@@ -242,6 +241,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   } else if (run is IStreamRun) {
                      Tools.StringTool.Address = run.Start;
                      tools.SelectedIndex = tools.IndexOf(tools.StringTool);
+                  } else if (run is IScriptStartRun) {
+                     tools.SelectedIndex = tools.IndexOf(tools.CodeTool);
+                     if (run is XSERun) tools.CodeTool.Mode = CodeMode.Script;
+                     if (run is BSERun) tools.CodeTool.Mode = CodeMode.BattleScript;
+                     if (run is ASERun) tools.CodeTool.Mode = CodeMode.AnimationScript;
                   } else {
                      // not a special run, so don't update tools
                   }
@@ -255,6 +259,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else {
             AnchorTextVisible = false;
          }
+
+         RequestMenuClose?.Invoke(this, EventArgs.Empty);
       }
 
       private string selectedAddress;
@@ -499,6 +505,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          }
       }
+
+      private int anchorTextSelectionStart;
+      public int AnchorTextSelectionStart { get => anchorTextSelectionStart; set => Set(ref anchorTextSelectionStart, value); }
+
+      private int anchorTextSelectionLength;
+      public int AnchorTextSelectionLength { get => anchorTextSelectionLength; set => Set(ref anchorTextSelectionLength, value); }
 
       public ICommand Copy => copy;
       public ICommand CopyAddress => copyAddress;
@@ -1536,7 +1548,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (string.IsNullOrEmpty(currentName)) currentName = $"{HardcodeTablesModel.DefaultPaletteNamespace}.{run1.Start:X6}";
          Model.ObserveAnchorWritten(CurrentChange, currentName, new PaletteRun(run1.Start, new PaletteFormat(4, 1)));
          Refresh();
-         RequestMenuClose?.Invoke(this, EventArgs.Empty);
          UpdateToolsFromSelection(run1.Start);
       }
 

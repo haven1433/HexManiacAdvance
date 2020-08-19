@@ -2,7 +2,9 @@
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
+using System.Linq;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
@@ -41,6 +43,24 @@ namespace HavenSoft.HexManiac.Tests {
          var run = (PointerRun)Model.GetNextRun(0x13);
          Assert.Equal(0x13, run.Start);
          Assert.Equal(0x17, Model.ReadPointer(0x13));
+      }
+
+      [Fact]
+      public void CanCreateXseScriptFromContextMenu() {
+         Model[0x22] = 0xFF;
+         ViewPort.Refresh();
+
+         ViewPort.SelectionStart = new Point(2, 2);
+         var item = ViewPort.GetContextMenuItems(new Point(2, 2)).Single(cmi => cmi.Text == "Create New XSE Script");
+         item.Command.Execute();
+
+         Assert.Equal(ViewPort.Tools.CodeTool, ViewPort.Tools.SelectedTool);
+         Assert.Equal(CodeMode.Script, ViewPort.Tools.CodeTool.Mode);
+         Assert.EndsWith("end", ViewPort.Tools.CodeTool.Contents.Single().Content.Trim());
+         Assert.IsType<XSERun>(Model.GetNextRun(0x22));
+         var anchorName = Model.GetAnchorFromAddress(-1, 0x22);
+         Assert.NotEmpty(anchorName);
+         Assert.Equal(anchorName, ViewPort.AnchorText.Substring(ViewPort.AnchorTextSelectionStart, ViewPort.AnchorTextSelectionLength));
       }
 
       private string Script(params string[] lines) => lines.CombineLines();

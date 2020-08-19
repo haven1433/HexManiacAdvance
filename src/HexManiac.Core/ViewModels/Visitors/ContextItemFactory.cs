@@ -49,6 +49,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(None dataFormat, byte data) {
          Results.Add(new ContextItem("Display as Text", ViewPort.IsText.Execute));
+         if (data == 0xFF && ViewPort.SelectionEnd == ViewPort.SelectionStart && ViewPort[ ViewPort.SelectionStart].Format is None) Results.Add(new ContextItem("Create New XSE Script", arg => {
+            var newScriptStart = ViewPort.ConvertViewPointToAddress(ViewPort.SelectionStart);
+            // write the 'end' command
+            ViewPort.CurrentChange.ChangeData(ViewPort.Model, newScriptStart, 2);
+            ViewPort.Model.ObserveAnchorWritten(ViewPort.CurrentChange, $"xse_{newScriptStart:X6}", new XSERun(newScriptStart));
+            var name = ViewPort.Model.GetAnchorFromAddress(-1, newScriptStart);
+            ViewPort.Refresh();
+            ViewPort.UpdateToolsFromSelection(newScriptStart);
+            ViewPort.AnchorTextSelectionStart = 1;
+            ViewPort.AnchorTextSelectionLength = name.Length;
+         }));
       }
 
       public void Visit(UnderEdit dataFormat, byte data) { }

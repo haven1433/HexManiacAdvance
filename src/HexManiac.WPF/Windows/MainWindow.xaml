@@ -52,7 +52,10 @@
 
       <KeyBinding Key="Esc" Command="{Binding ClearError}"/>
    </Window.InputBindings>
-   <Grid>
+   <Window.CommandBindings>
+      <CommandBinding Command="NavigateJournal" Executed="ExecuteAnimation"/>
+   </Window.CommandBindings>
+   <Grid Name="ContentPanel">
       <DockPanel>
          <DockPanel DockPanel.Dock="Top" Background="{DynamicResource Background}">
             <DockPanel.Resources>
