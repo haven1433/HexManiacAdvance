@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models.Runs;
+﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,7 +30,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var text = this.text;
                using (ModelCacheScope.CreateScope(viewPort.Model)) {
                   var options = new List<string>(viewPort.Model?.GetAutoCompleteAnchorNameOptions(text) ?? new string[0]);
-                  if (!text.Contains("/")) {
+                  if (!text.Contains("/") && options.Count < PokemonModel.MaxAutoCompleteResults) {
                      options.AddRange(viewPort.Model?.GetAutoCompleteAnchorNameOptions("/" + text) ?? new string[0]);
                   }
                   text = text.ToLower();

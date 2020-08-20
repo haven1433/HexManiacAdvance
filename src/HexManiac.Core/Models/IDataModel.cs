@@ -295,6 +295,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
             for (int i = 0; i < enumArray.ElementCount; i++) {
                var enumValue = model.ReadMultiByteValue(enumArray.Start + enumArray.ElementLength * i, mainEnumSegment.Length);
+               if (enumValue >= allNames.Count || enumValue < 0) return false;
                list.Add(allNames[enumValue]);
             }
 
