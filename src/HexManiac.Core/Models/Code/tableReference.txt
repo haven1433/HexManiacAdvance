@@ -240,6 +240,8 @@ graphics.overworld.sprites,                  ,       ,       ,       , 05F2F4, 0
 graphics.overworld.sprites,                  ,       ,       ,       ,       ,       ,       ,       , 08E6D8, [data<[starterbytes:|h paletteid:|h secondid:|h length: width: height: slot.|h footprint.owfootprints unused: distribution<> sizedraw<> animation<> sprites<`osl`> ramstore<>]1>]246
 graphics.overworld.sprites2,                 ,       ,       ,       , 05DF28, 05DF28, 05DF3C, 05DF3C,       , [data<[starterbytes:|h unknown:|h a<> b<> sprites<`osl`> d<> e<>]1>]36
 
+data.text.menu.pause,                  071160, 071164, 071180, 071184, 06EF9C, 06EF9C, 06EFB0, 06EFB0, 09F818, [text<""> code<>]
+
 // cry1,           ,,,, 072114, 072114, 072128, 072128, , ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]388
 // cry2,           ,,,, 072104, 072104, 072118, 072118, , ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]388
 // cry.conversion, ,,,, 043328, 043328, 04333C, 04333C, , [index:]data.pokemon.names-277
