@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.QuickEditItems;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
@@ -435,7 +436,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          paste.Execute = arg => {
             var copyText = fileSystem.CopyText;
             // if the paste is long, add whitespace to complete any pasted elements
-            if (copyText.Contains(Environment.NewLine)) {
+            if (copyText.Contains(Environment.NewLine) || copyText.Contains(BaseRun.AnchorStart)) {
                copyText += " ";
                copyText = copyText.Replace(Environment.NewLine, "\n"); // normalize newline inputs
             }
