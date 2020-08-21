@@ -245,6 +245,18 @@ Name = '''moveinfo'''
 
 
 [[List]]
+Name = '''contestPokemonFlags'''
+0 = [
+    '''whichRankHigh''',
+    '''whichRankLow''',
+    '''Cool''',
+    '''Beauty''',
+    '''Cute''',
+    '''Smart''',
+    '''Tough''',
+]
+
+[[List]]
 Name = '''owfootprints'''
 0 = [
     '''None''',

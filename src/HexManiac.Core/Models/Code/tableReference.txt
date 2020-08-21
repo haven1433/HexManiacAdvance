@@ -89,6 +89,8 @@ graphics.pokemon.castform.sprite.coordinates.back,  077CE4, 077CE8, 077D04, 077D
 data.battle.text,                                   112A40, 112A40, 112A60, 112A60,        ,       ,       ,      ,       , [text<"">]351
 data.battle.text,                                         ,       ,       ,       , 0CEFEC, 0CEFC0, 0CF000, 0CEFD4,       , [text<"">]374
 data.battle.text,                                         ,       ,       ,       ,       ,       ,       ,       , 13EC60, [text<"">]369
+data.pokemon.contest.stats,            0AE470, 0AE470, 0AE490, 0AE490, ,,,,       , [species:data.pokemon.names nickname""11 trainerName""8 trainerGfxId. unused: aiChecks::|h flags|b[]contestPokemonFlags unused. move1:data.moves.names move2:data.moves.names move3:data.moves.names move4:data.moves.names cool. beauty. cute. smart. tough. sheen. highestRank. gameCleared. unused""10 personality::|h otId:|h unused:]60
+data.pokemon.contest.stats,                  ,       ,       ,       , ,,,, 0DABE4, [species:data.pokemon.names nickname""11 trainerName""8 trainerGfxId. unused: aiChecks::|h flags|b[]contestPokemonFlags unused. move1:data.moves.names move2:data.moves.names move3:data.moves.names move4:data.moves.names cool. beauty. cute. smart. tough. sheen. highestRank. gameCleared. unused""10 personality::|h otId:|h unused:]96
 
 
 data.pokedex.regional,                 03F7F0, 03F7F0, 03F7F0, 03F7F0, 0431F0, 0431F0, 043204, 043204, 06D3FC, [index:]data.pokemon.names-1
