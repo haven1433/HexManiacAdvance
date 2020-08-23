@@ -243,8 +243,14 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          var fileName = dialog.FileName;
 
          using (var fileStream = File.Open(fileName, FileMode.Open)) {
-            var decoder = new PngBitmapDecoder(fileStream, BitmapCreateOptions.None, BitmapCacheOption.None);
-            var frame = decoder.Frames[0];
+            BitmapFrame frame;
+            try {
+               var decoder = new PngBitmapDecoder(fileStream, BitmapCreateOptions.None, BitmapCacheOption.None);
+               frame = decoder.Frames[0];
+            } catch (FileFormatException) {
+               MessageBox.Show("Could not decode bitmap. The file may not be a valid PNG.");
+               return default;
+            }
             var metadata = (BitmapMetadata)frame.Metadata;
             short[] comparePalette = null;
             var comparePaletteMetadata = metadata.GetQuery(QueryPalette) as string;
