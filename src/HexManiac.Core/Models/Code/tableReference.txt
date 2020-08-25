@@ -108,9 +108,10 @@ data.pokedex.search.type,                    ,       ,       ,       , 103734, 1
 data.pokedex.habitat.names,                  ,       ,       ,       , 104F84, 104F5C, 104FFC, 104FD4,       , [name<"">]
 data.pokedex.habitat.pages,                  ,       ,       ,       , 106888, 106860, 106900, 1068D8,       , [data<[pokemon<[species:data.pokemon.names]/pokecount> pokecount::]/count> count::]data.pokedex.habitat.names
 
-data.battletower.items,                ,,,, 0E637C, 0E6354, 0E6390, 0E6368, , [item:data.items.stats]64
-data.battletower.pokemon.level50,      ,,,, 0E6378, 0E6350, 0E638C, 0E6364, , [species:data.pokemon.names heldItem.data.battletower.items flags.|h move1:data.moves.names move2:data.moves.names move3:data.moves.names move4:data.moves.names evSpread|b[]battletowerEvFlags nature.data.pokemon.natures.names unused:]300
-data.battletower.pokemon.level100,     ,,,, 0E631C, 0E62F4, 0E6330, 0E6308, , [species:data.pokemon.names heldItem.data.battletower.items flags.|h move1:data.moves.names move2:data.moves.names move3:data.moves.names move4:data.moves.names evSpread|b[]battletowerEvFlags nature.data.pokemon.natures.names unused:]300
+data.battletower.items,                135098, 135098, 1350B8, 1350B8, 0E637C, 0E6354, 0E6390, 0E6368, , [item:data.items.stats]64
+data.battletower.pokemon.level50,      134F54, 134F54, 134F74, 134F74, 0E6378, 0E6350, 0E638C, 0E6364, , [species:data.pokemon.names heldItem.data.battletower.items flags.|h move1:data.moves.names move2:data.moves.names move3:data.moves.names move4:data.moves.names evSpread|b[]battletowerEvFlags nature.data.pokemon.natures.names unused:]300
+data.battletower.pokemon.level100,     134EFC, 134EFC, 134F1C, 134F1C, 0E631C, 0E62F4, 0E6330, 0E6308, , [species:data.pokemon.names heldItem.data.battletower.items flags.|h move1:data.moves.names move2:data.moves.names move3:data.moves.names move4:data.moves.names evSpread|b[]battletowerEvFlags nature.data.pokemon.natures.names unused:]300
+data.trainertower.trainers,            ,,,, 15DD24, 15DD00, 15DD9C, 15DD78, , [trainer<[header:: name""11 class. a. unused. a1: a2: a3: a4: a5: a6: b1: b2: b3: b4: b5: b6: c1: c2: c3: c4: c5: c6: d1: d2: d3: d4: d5: d6: unused:]1>]32
 data.battlefrontier.items,             ,,,, ,,,, 163440, [item:data.items.stats]63
 data.battlefrontier.trainerclass,      ,,,, ,,,, 068C10, [class.data.trainers.classes.names]82
 data.battlefrontier.pokemon,           ,,,, ,,,, 165C80, [species:data.pokemon.names move1:data.moves.names move2:data.moves.names move3:data.moves.names move4:data.moves.names item.data.battlefrontier.items iv|b[]battletowerEvFlags nature::data.pokemon.natures.names]882

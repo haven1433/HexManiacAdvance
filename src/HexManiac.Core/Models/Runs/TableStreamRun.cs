@@ -82,10 +82,25 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       #region BaseRun
 
+      private string cachedCurrentString;
+      private int currentCachedStartIndex = -1, currentCachedIndex = -1;
       public override IDataFormat CreateDataFormat(IDataModel data, int index) {
          var naturalLength = ElementCount * ElementLength;
          var naturalStop = Start + naturalLength;
          if (index >= naturalStop) return new EndStream(naturalStop, index - naturalStop, Length - naturalLength);
+
+         var offsets = this.ConvertByteOffsetToArrayOffset(index);
+         var currentSegment = ElementContent[offsets.SegmentIndex];
+         if (currentSegment.Type == ElementContentType.PCS) {
+            if (currentCachedStartIndex != offsets.SegmentStart || currentCachedIndex > offsets.SegmentOffset) {
+               currentCachedStartIndex = offsets.SegmentStart;
+               currentCachedIndex = offsets.SegmentOffset;
+               cachedCurrentString = PCSString.Convert(data, offsets.SegmentStart, currentSegment.Length);
+            }
+
+            return PCSRun.CreatePCSFormat(data, offsets.SegmentStart, index, cachedCurrentString);
+         }
+
          return this.CreateSegmentDataFormat(data, index);
       }
 
@@ -148,6 +163,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                var pointerValue = rawValue - BaseModel.PointerOffset;
                value = $"<{pointerValue:X6}>";
                if (pointerValue == Pointer.NULL) value = "<null>";
+            } else if (segment.Type == ElementContentType.PCS) {
+               value = PCSString.Convert(model, offset, segment.Length);
             }
             var extraWhitespace = new string(' ', longestLabel - segment.Name.Length);
             result.Append($"  {segment.Name}:{extraWhitespace} {value}");

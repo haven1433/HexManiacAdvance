@@ -57,6 +57,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             return new BitArray(offsets.SegmentStart, position, currentSegment.Length);
          }
 
+         if (currentSegment.Type == ElementContentType.PCS) {
+            return new PCS(offsets.SegmentStart, offsets.SegmentOffset, PCSString.Convert(data, offsets.SegmentStart, currentSegment.Length), PCSString.PCS[index]);
+         }
+
          throw new NotImplementedException();
       }
 
