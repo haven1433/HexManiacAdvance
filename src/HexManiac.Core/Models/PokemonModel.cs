@@ -111,15 +111,17 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (metadata.FreeSpaceSearch >= 0) FreeSpaceStart = metadata.FreeSpaceSearch;
 
          if (!metadata.IsEmpty && StoredMetadata.NeedVersionUpdate(metadata.Version, singletons?.MetadataInfo.VersionNumber ?? "0")) {
-            if (singletons.GameReferenceTables.TryGetValue(this.GetGameCode(), out var tables)) {
-               UpdateRuns(tables);
+            var gameCode = this.GetGameCode();
+            if (singletons.GameReferenceTables.TryGetValue(gameCode, out var tables)) {
+               var metadatas = GetDefaultMetadatas(gameCode);
+               UpdateRuns(tables, metadatas);
             }
          }
 
          ResolveConflicts();
       }
 
-      private void UpdateRuns(GameReferenceTables referenceTables) {
+      private void UpdateRuns(GameReferenceTables referenceTables, IEnumerable<StoredMetadata> metadatas) {
          var noChange = new NoDataChangeDeltaModel();
          foreach (var reference in referenceTables) {
             var destination = ReadPointer(reference.Address);
@@ -190,6 +192,13 @@ namespace HavenSoft.HexManiac.Core.Models {
                   runs[i] = sprite;
                }
             }
+         }
+
+         // if there's any differences between the previous metadata and the new metadata, go ahead and use the new metadata.
+         // this allows for default metadata updates when member names change, but may overwrite manual changes made by the user.
+         // We're not currently worried about that, since we don't expect that to be a common use case.
+         foreach (var metadata in metadatas) {
+            this.LoadMetadata(metadata);
          }
       }
 
@@ -1131,7 +1140,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          ClearFormat(changeToken, originalStart, length, keepInitialAnchorPointers: false, alsoClearData: true);
       }
 
-      public void SetList(string name, IReadOnlyList<string> list) {
+      public override void SetList(string name, IReadOnlyList<string> list) {
          if (list == null && lists.ContainsKey(name)) lists.Remove(name);
          else lists[name] = list.ToList();
       }

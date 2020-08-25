@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models {
@@ -53,6 +54,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       void ClearAnchor(ModelDelta changeToken, int start, int length);
       void ClearFormat(ModelDelta changeToken, int start, int length);
       void ClearFormatAndData(ModelDelta changeToken, int start, int length);
+      void SetList(string name, IReadOnlyList<string> list);
       void ClearPointer(ModelDelta currentChange, int source, int destination);
       string Copy(Func<ModelDelta> changeToken, int start, int length, bool deep = false);
 
@@ -106,11 +108,28 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public int Count => RawData.Length;
 
+      public static IEnumerable<StoredMetadata> GetDefaultMetadatas(string code) {
+         if (File.Exists("resources/default.toml")) {
+            var lines = File.ReadAllLines("resources/default.toml");
+            var metadata = new StoredMetadata(lines);
+            yield return metadata;
+         }
+
+         foreach (var fileName in Directory.GetFiles("resources", "default.*.toml")) {
+            if (!fileName.ToLower().Contains($".{code}.")) continue;
+            var lines = File.ReadAllLines(fileName);
+            var metadata = new StoredMetadata(lines);
+            yield return metadata;
+         }
+      }
+
       public abstract void ClearAnchor(ModelDelta changeToken, int start, int length);
 
       public abstract void ClearFormat(ModelDelta changeToken, int start, int length);
 
       public abstract void ClearFormatAndData(ModelDelta changeToken, int originalStart, int length);
+
+      public virtual void SetList(string name, IReadOnlyList<string> list) => throw new NotImplementedException();
 
       public abstract string Copy(Func<ModelDelta> changeToken, int start, int length, bool deep = false);
 
@@ -368,6 +387,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          return format;
+      }
+
+      public static void LoadMetadata(this IDataModel model, StoredMetadata metadata) {
+         foreach (var list in metadata.Lists) model.SetList(list.Name, list.Contents);
+         foreach (var anchor in metadata.NamedAnchors) PokemonModel.ApplyAnchor(model, new NoDataChangeDeltaModel(), anchor.Address, BaseRun.AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
       }
 
       public static ErrorInfo CompleteArrayExtension(this IDataModel model, ModelDelta changeToken, int count, ref ITableRun table) {
