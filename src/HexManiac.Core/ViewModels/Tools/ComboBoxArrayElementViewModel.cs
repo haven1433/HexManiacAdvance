@@ -12,19 +12,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    /// <summary>
    /// This exists to wrap a string, just so that WPF doesn't mess up the combo-box selection in the case of multiple indexes having the same text.
    /// </summary>
-   public class ComboOption : IPixelViewModel {
+   public class ComboOption : INotifyPropertyChanged {
       event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged { add { } remove { } }
-      public bool DisplayAsText => Text != null;
+      public virtual bool DisplayAsText => true;
       public string Text { get; }
 
+      public int Index { get; }
+
+      public ComboOption(string text, int index) { Text = text; Index = index; }
+
+      public override string ToString() => Text;
+   }
+
+   public class VisualComboOption : ComboOption, IPixelViewModel {
       public int PixelWidth { get; private set; }
       public int PixelHeight { get; private set; }
       public short[] PixelData { get; private set; }
       public double SpriteScale => 1;
+      public override bool DisplayAsText => false;
 
-      public ComboOption(string text) { Text = text; PixelData = new short[0]; }
-      public static implicit operator ComboOption(string text) => new ComboOption(text);
-      public static ComboOption CreateFromSprite(short[] pixelData, int width) => new ComboOption(null) {
+      private VisualComboOption(string text, int index) : base(text, index) { PixelData = new short[0]; }
+      public static ComboOption CreateFromSprite(string text, short[] pixelData, int width, int index) => new VisualComboOption(text, index) {
          PixelData = pixelData,
          PixelWidth = width,
          PixelHeight = pixelData.Length / width,
@@ -37,6 +45,36 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private EventHandler dataChanged;
       public event EventHandler DataChanged { add => dataChanged += value; remove => dataChanged -= value; }
+
+      private int recursionCheck;
+      private bool isFiltering;
+      public bool IsFiltering { get => isFiltering; set => Set(ref isFiltering, value); }
+
+      public bool CanFilter => fullOptions[0].DisplayAsText;
+      private string filterText;
+      public string FilterText {
+         get => filterText;
+         set => Set(ref filterText, value, FilterTextChanged);
+      }
+      private void FilterTextChanged(string oldValue) {
+         if (recursionCheck != 0 || !isFiltering) return;
+         recursionCheck++;
+         Options = fullOptions.Where(option => option.Text.MatchesPartial(filterText)).ToList();
+         if (selectedIndex >= 0 && selectedIndex < fullOptions.Count && Options.Contains(fullOptions[selectedIndex])) {
+            // selected index is already fine
+         } else if (Options.Count > 0) {
+            // based on typing filter text, we can change the selection
+            selectedIndex = Options[0].Index;
+            var options = Options;
+            SelectionChanged(default);
+            Options = options;
+         }
+         NotifyPropertyChanged(nameof(Options));
+         recursionCheck--;
+      }
+      public void ConfirmSelection() {
+         SelectedIndex = 0;
+      }
 
       public ViewPort ViewPort { get; }
       public string TableName { get; private set; }
@@ -62,6 +100,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private bool containsUniqueOption;
+      private List<ComboOption> fullOptions;
       public List<ComboOption> Options { get; private set; }
 
       private int selectedIndex;
@@ -69,23 +108,34 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public int SelectedIndex {
          get => selectedIndex;
          set {
-            using (ModelCacheScope.CreateScope(ViewPort.Model)) {
-               if (!TryUpdate(ref selectedIndex, value)) return;
-               var run = (ITableRun)ViewPort.Model.GetNextRun(Start);
-               var offsets = run.ConvertByteOffsetToArrayOffset(Start);
-               var segment = (ArrayRunEnumSegment)run.ElementContent[offsets.SegmentIndex];
-
-               // special case: the last option might be a weird value that came in, not normally available in the enum
-               if (containsUniqueOption && selectedIndex == Options.Count - 1 && int.TryParse(Options[selectedIndex].Text, out var parsedValue)) {
-                  value = parsedValue;
-               }
-
-               ViewPort.Model.WriteMultiByteValue(Start, Length, ViewPort.ChangeHistory.CurrentChange, value);
-               var info = run.NotifyChildren(ViewPort.Model, ViewPort.ChangeHistory.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
-               if (info.HasError && info.IsWarning) ViewPort.RaiseMessage(info.ErrorMessage);
-               else if (info.HasError) ViewPort.RaiseError(info.ErrorMessage);
-               dataChanged?.Invoke(this, EventArgs.Empty);
+            if (recursionCheck != 0) return;
+            IsFiltering = false;
+            if (value < 0) value = 0;
+            if (Options.Count > 0) value = Options[value].Index;
+            FilterText = fullOptions[value].Text;
+            if (Options.Count != fullOptions.Count) {
+               Options = fullOptions.ToList();
+               NotifyPropertyChanged(nameof(Options));
             }
+            Set(ref selectedIndex, value, SelectionChanged);
+         }
+      }
+      private void SelectionChanged(int oldSelection) {
+         using (ModelCacheScope.CreateScope(ViewPort.Model)) {
+            var run = (ITableRun)ViewPort.Model.GetNextRun(Start);
+            var offsets = run.ConvertByteOffsetToArrayOffset(Start);
+            var segment = (ArrayRunEnumSegment)run.ElementContent[offsets.SegmentIndex];
+
+            // special case: the last option might be a weird value that came in, not normally available in the enum
+            if (containsUniqueOption && selectedIndex == fullOptions.Count - 1 && int.TryParse(fullOptions[selectedIndex].Text, out var parsedValue)) {
+               selectedIndex = parsedValue;
+            }
+
+            ViewPort.Model.WriteMultiByteValue(Start, Length, ViewPort.ChangeHistory.CurrentChange, selectedIndex);
+            var info = run.NotifyChildren(ViewPort.Model, ViewPort.ChangeHistory.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
+            if (info.HasError && info.IsWarning) ViewPort.RaiseMessage(info.ErrorMessage);
+            else if (info.HasError) ViewPort.RaiseError(info.ErrorMessage);
+            dataChanged?.Invoke(this, EventArgs.Empty);
          }
       }
 
@@ -93,6 +143,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public bool Visible { get => visible; set => Set(ref visible, value); }
 
       public ComboBoxArrayElementViewModel(ViewPort viewPort, Selection selection, string name, int start, int length) {
+         fullOptions = new List<ComboOption>();
          (ViewPort, Name, Start, Length) = (viewPort, name, start, length);
          var run = (ITableRun)ViewPort.Model.GetNextRun(Start);
          TableName = viewPort.Model.GetAnchorFromAddress(-1, run.Start);
@@ -102,18 +153,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Debug.Assert(segment != null);
          if (segment != null) {
             optionSource = ViewPort.Model.GetAddressFromAnchor(ViewPort.ChangeHistory.CurrentChange, -1, segment.EnumName);
-            Options = new List<ComboOption>(segment.GetComboOptions(ViewPort.Model));
+            fullOptions = new List<ComboOption>(segment.GetComboOptions(ViewPort.Model));
          } else {
-            Options = new List<ComboOption>();
+            fullOptions = new List<ComboOption>();
          }
          var modelValue = ViewPort.Model.ReadMultiByteValue(start, length);
-         if (modelValue >= Options.Count) {
-            Options.Add(modelValue.ToString());
-            selectedIndex = Options.Count - 1;
+         if (modelValue >= fullOptions.Count) {
+            fullOptions.Add(new ComboOption(modelValue.ToString(), fullOptions.Count));
+            selectedIndex = fullOptions.Count - 1;
             containsUniqueOption = true;
          } else {
             selectedIndex = ViewPort.Model.ReadMultiByteValue(start, length);
          }
+         filterText = fullOptions[selectedIndex].Text;
+         Options = fullOptions.ToList();
          GotoSource = new StubCommand {
             CanExecute = arg => optionSource != Pointer.NULL,
             Execute = arg => {
@@ -132,16 +185,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Length = comboBox.Length;
          Start = comboBox.Start;
          Visible = other.Visible;
+         FilterText = comboBox.filterText;
 
          // only update the options if they're different
-         if (!Options.Select(option => option.Text).SequenceEqual(comboBox.Options.Select(option => option.Text))) {
+         if (!fullOptions.Select(option => option.Text).SequenceEqual(comboBox.fullOptions.Select(option => option.Text))) {
             selectedIndex = -1; // changing options will make the UIElement update the SelectedIndex automatically. Set it first so that we don't cause a data change.
+            fullOptions = comboBox.fullOptions;
             Options = comboBox.Options;
             NotifyPropertyChanged(nameof(Options));
+            NotifyPropertyChanged(nameof(CanFilter));
          }
 
          containsUniqueOption = comboBox.containsUniqueOption;
          TryUpdate(ref selectedIndex, comboBox.SelectedIndex, nameof(SelectedIndex));
+         FilterText = comboBox.filterText;
          ErrorText = comboBox.ErrorText;
          GotoSource = comboBox.GotoSource;
          NotifyPropertyChanged(nameof(GotoSource));

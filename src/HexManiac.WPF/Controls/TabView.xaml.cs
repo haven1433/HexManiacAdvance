@@ -406,5 +406,21 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void ClearPopup(object sender, MouseButtonEventArgs e) => CodeContentsPopup.IsOpen = false;
 
       private void ScrollCodeContent(object sender, MouseWheelEventArgs e) => CodeContentsPopup.IsOpen = false;
+
+      private void ComboBoxArrayElementViewTextInput(object sender, TextCompositionEventArgs e) {
+         var element = (FrameworkElement)sender;
+         var viewModel = (ComboBoxArrayElementViewModel)element.DataContext;
+         var keyString = e.Text;
+         var filter = false;
+         if (keyString.Length == 1 && char.IsLetterOrDigit(keyString[0])) filter = true;
+         else if (keyString.Length == 1 && keyString[0].IsAny(" '?\"-_".ToCharArray())) filter = true;
+         viewModel.IsFiltering = filter;
+      }
+
+      private void ComboBoxArrayElementViewKeyDown(object sender, KeyEventArgs e) {
+         var element = (FrameworkElement)sender;
+         var viewModel = (ComboBoxArrayElementViewModel)element.DataContext;
+         if (e.Key == Key.Enter) viewModel.ConfirmSelection();
+      }
    }
 }

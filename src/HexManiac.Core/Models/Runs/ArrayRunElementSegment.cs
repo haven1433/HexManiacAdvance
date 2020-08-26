@@ -136,7 +136,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       // TODO do some sort of caching: rendering these images every time probably sucks for performance.
       public IEnumerable<ComboOption> GetComboOptions(IDataModel model) {
-         var defaultOptions = GetOptions(model).Select(option => new ComboOption(option));
+         var defaultOptions = GetOptions(model).Select((option, i) => new ComboOption(option, i)).ToList();
          if (!(model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, EnumName)) is ITableRun tableRun)) return defaultOptions;
          if (!(tableRun.ElementContent[0] is ArrayRunPointerSegment pointerSegment)) return defaultOptions;
          if (!LzSpriteRun.TryParseSpriteFormat(pointerSegment.InnerFormat, out var _) && !SpriteRun.TryParseSpriteFormat(pointerSegment.InnerFormat, out var _)) return defaultOptions;
@@ -150,7 +150,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var paletteRun = model.GetNextRun(paletteAddress) as IPaletteRun;
             var palette = paletteRun?.GetPalette(model, paletteRun.PaletteFormat.InitialBlankPages) ?? TileViewModel.CreateDefaultPalette(16);
             var image = SpriteTool.Render(sprite, palette, paletteRun?.PaletteFormat.InitialBlankPages ?? default, 0);
-            var option = ComboOption.CreateFromSprite(image, sprite.GetLength(0));
+            var option = VisualComboOption.CreateFromSprite(defaultOptions[i].Text, image, sprite.GetLength(0), i);
             imageOptions.Add(option);
          }
 
