@@ -66,7 +66,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             // based on typing filter text, we can change the selection
             selectedIndex = Options[0].Index;
             var options = Options;
-            SelectionChanged(default);
+            SelectionChanged();
             Options = options;
          }
          NotifyPropertyChanged(nameof(Options));
@@ -110,17 +110,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set {
             if (recursionCheck != 0) return;
             IsFiltering = false;
-            if (value < 0) value = 0;
-            if (Options.Count > 0) value = Options[value].Index;
-            FilterText = fullOptions[value].Text;
+            if (Options.Count > value && value >= 0) value = Options[value].Index;
+            if (value >= 0) FilterText = fullOptions[value].Text;
             if (Options.Count != fullOptions.Count) {
                Options = fullOptions.ToList();
                NotifyPropertyChanged(nameof(Options));
             }
-            Set(ref selectedIndex, value, SelectionChanged);
+
+            Set(ref selectedIndex, value, prev => SelectionChanged());
          }
       }
-      private void SelectionChanged(int oldSelection) {
+      private void SelectionChanged() {
          using (ModelCacheScope.CreateScope(ViewPort.Model)) {
             var run = (ITableRun)ViewPort.Model.GetNextRun(Start);
             var offsets = run.ConvertByteOffsetToArrayOffset(Start);

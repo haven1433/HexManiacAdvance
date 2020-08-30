@@ -212,7 +212,7 @@
                         </Grid>
                      </DataTemplate>
                      <DataTemplate DataType="{x:Type hsg3hvmtr:ComboBoxArrayElementViewModel}">
-                        <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                        <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}" PreviewKeyDown="ComboBoxArrayElementViewKeyDown">
                            <Grid.ColumnDefinitions>
                               <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
                               <ColumnDefinition Width="*"/>
@@ -220,7 +220,7 @@
                            </Grid.ColumnDefinitions>
                            <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
                            <ComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" Margin="0,0,2,0" Grid.Column="1"
-                                     IsEditable="{Binding CanFilter}" Text="{Binding FilterText}" IsTextSearchEnabled="False" PreviewKeyDown="ComboBoxArrayElementViewKeyDown" PreviewTextInput="ComboBoxArrayElementViewTextInput">
+                                     IsEditable="{Binding CanFilter}" Text="{Binding FilterText}" IsTextSearchEnabled="False" PreviewTextInput="ComboBoxArrayElementViewTextInput">
                               <ComboBox.ItemTemplate>
                                  <DataTemplate>
                                     <StackPanel>
