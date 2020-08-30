@@ -275,32 +275,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var left = Math.Min(dataIndex1, dataIndex2);
          var result = "Address: " + left.ToString("X6");
 
-         var run = Model.GetNextRun(left);
-         if (run is ITableRun array1 && array1.Start <= left) {
-            var index = array1.ConvertByteOffsetToArrayOffset(left).ElementIndex;
-            var basename = Model.GetAnchorFromAddress(-1, array1.Start);
-            if (array1.ElementNames.Count > index) {
-               result += $" | {basename}/{array1.ElementNames[index]}";
-            } else {
-               result += $" | {basename}/{index}";
-            }
-         } else if (run.PointerSources != null && run.PointerSources.Count > 0 && string.IsNullOrEmpty(Model.GetAnchorFromAddress(-1, run.Start))) {
-            var sourceRun = Model.GetNextRun(run.PointerSources[0]);
-            if (sourceRun is ITableRun array2) {
-               // we are an anchor that's pointed to from an array
-               var offset = array2.ConvertByteOffsetToArrayOffset(run.PointerSources[0]);
-               var index = offset.ElementIndex;
-               if (index >= 0) {
-                  var segment = array2.ElementContent[offset.SegmentIndex];
-                  var basename = Model.GetAnchorFromAddress(-1, array2.Start);
-                  if (array2.ElementNames.Count > index) {
-                     result += $" | {basename}/{array2.ElementNames[index]}/{segment.Name}";
-                  } else {
-                     result += $" | {basename}/{index}/{segment.Name}";
-                  }
-               }
-            }
-         }
+         var elementName = BuildElementName(Model, left);
+         if (!string.IsNullOrWhiteSpace(elementName)) result += $" | {elementName}";
 
          if (!SelectionStart.Equals(SelectionEnd)) {
             int length = Math.Abs(dataIndex1 - dataIndex2) + 1;
@@ -308,6 +284,37 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          SelectedAddress = result;
+      }
+
+      public static string BuildElementName(IDataModel model, int address) {
+         var run = model.GetNextRun(address);
+         if (run is ITableRun array1 && array1.Start <= address) {
+            var index = array1.ConvertByteOffsetToArrayOffset(address).ElementIndex;
+            var basename = model.GetAnchorFromAddress(-1, array1.Start);
+            if (array1.ElementNames.Count > index) {
+               return $"{basename}/{array1.ElementNames[index]}";
+            } else {
+               return $"{basename}/{index}";
+            }
+         } else if (run.PointerSources != null && run.PointerSources.Count > 0 && string.IsNullOrEmpty(model.GetAnchorFromAddress(-1, run.Start))) {
+            var sourceRun = model.GetNextRun(run.PointerSources[0]);
+            if (sourceRun is ITableRun array2) {
+               // we are an anchor that's pointed to from an array
+               var offset = array2.ConvertByteOffsetToArrayOffset(run.PointerSources[0]);
+               var index = offset.ElementIndex;
+               if (index >= 0) {
+                  var segment = array2.ElementContent[offset.SegmentIndex];
+                  var basename = model.GetAnchorFromAddress(-1, array2.Start);
+                  if (array2.ElementNames.Count > index) {
+                     return $"{basename}/{array2.ElementNames[index]}/{segment.Name}";
+                  } else {
+                     return $"{basename}/{index}/{segment.Name}";
+                  }
+               }
+            }
+         }
+
+         return string.Empty;
       }
 
       private string selectedBytes;

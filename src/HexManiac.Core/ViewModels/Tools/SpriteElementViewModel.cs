@@ -4,23 +4,53 @@ using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class SpriteElementViewModel : PagedElementViewModel, IPixelViewModel {
       private SpriteFormat format;
-      private string paletteHint;
 
       public short[] PixelData { get; private set; }
       public int PixelWidth => format.TileWidth * 8;
       public int PixelHeight => format.TileHeight * 8;
       public double SpriteScale { get; private set; }
 
+      public bool HasMultiplePalettes => MaxPalette > 0;
+      private int currentPalette;
+      public int CurrentPalette { get => currentPalette; set => Set(ref currentPalette, value, arg => {
+         UpdateTiles(CurrentPage);
+         foreach (var child in ViewPort.Tools.TableTool.Children) {
+            if (child is SpriteElementViewModel sevm && sevm != this && sevm.MaxPalette == MaxPalette) sevm.CurrentPalette = CurrentPalette;
+         }
+         UpdatePaletteSelection();
+      }); }
+      public int MaxPalette { get; private set; }
+
       public SpriteElementViewModel(ViewPort viewPort, SpriteFormat format, int itemAddress) : base(viewPort, itemAddress) {
          this.format = format;
          var destination = ViewPort.Model.ReadPointer(Start);
          var run = ViewPort.Model.GetNextRun(destination) as ISpriteRun;
          Pages = run.Pages;
+         UpdateAvailablePalettes();
+      }
+
+      private void UpdateAvailablePalettes() {
+         var destination = ViewPort.Model.ReadPointer(Start);
+         var run = ViewPort.Model.GetNextRun(destination) as ISpriteRun;
+         PaletteSelection.Clear();
+         foreach (var palette in run.FindRelatedPalettes(ViewPort.Model)) {
+            var name = ViewPort.BuildElementName(ViewPort.Model, palette.Start);
+            var ps = new PaletteSelection { Name = name, Selected = PaletteSelection.Count == currentPalette };
+            ps.Bind(nameof(ps.Selected), (o, e) => { if (o.Selected) CurrentPalette = PaletteSelection.IndexOf(o); });
+            PaletteSelection.Add(ps);
+         }
+         MaxPalette = PaletteSelection.Count - 1;
+      }
+
+      public ObservableCollection<PaletteSelection> PaletteSelection { get; } = new ObservableCollection<PaletteSelection>(); // TODO when the UI changes the palette selection, update the CurrentPalette value
+      private void UpdatePaletteSelection() {
+         for (int i = 0; i <= MaxPalette; i++) PaletteSelection[i].Selected = i == currentPalette;
       }
 
       /// <summary>
@@ -31,14 +61,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       protected override bool TryCopy(PagedElementViewModel other) {
          if (!(other is SpriteElementViewModel that)) return false;
          format = that.format;
+         MaxPalette = that.MaxPalette;
+         NotifyPropertyChanged(nameof(MaxPalette));
          return true;
       }
 
-      protected override void PageChanged() => UpdateTiles(CurrentPage, paletteHint);
+      protected override void PageChanged() => UpdateTiles(CurrentPage);
 
-      public void UpdateTiles(int? pageOption = null, string hint = null) {
+      public void UpdateTiles(int? pageOption = null) {
          // TODO support multiple layers
-         paletteHint = hint ?? paletteHint;
          int page = pageOption ?? CurrentPage;
 
          var destination = ViewPort.Model.ReadPointer(Start);
@@ -66,7 +97,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var destination = ViewPort.Model.ReadPointer(start);
          var run = ViewPort.Model.GetNextRun(destination) as ISpriteRun;
          var pixels = run.GetPixels(ViewPort.Model, page);
-         var palette = GetDesiredPalette(start, paletteHint, page, exitPaletteSearchEarly, out var paletteFormat);
+         var palette = GetDesiredPalette(start, page, exitPaletteSearchEarly, out var paletteFormat);
          if (pixels == lastPixels && palette == lastColors) return;
          lastPixels = pixels;
          lastColors = palette;
@@ -90,13 +121,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       /// <summary>
       /// If the hint is a table name, only match palettes from that table.
       /// </summary>
-      private IReadOnlyList<short> GetDesiredPalette(int start, string hint, int page, bool exitEarly, out PaletteFormat paletteFormat) {
+      private IReadOnlyList<short> GetDesiredPalette(int start, int page, bool exitEarly, out PaletteFormat paletteFormat) {
          paletteFormat = default;
-         hint = format.PaletteHint ?? hint; // if there's a paletteHint, that takes precendence
          var destination = Model.ReadPointer(Start);
 
          if (Model.GetNextRun(destination) is ISpriteRun sRun) {
-            var palette = sRun.FindRelatedPalettes(Model, Start, hint).FirstOrDefault();
+            var palettes = sRun.FindRelatedPalettes(Model, Start, format.PaletteHint).ToList();
+            var palette = palettes.FirstOrDefault();
+            if (palettes.Count > 1 && palettes.Count > CurrentPalette) palette = palettes[CurrentPalette];
             if (palette != null) {
                paletteFormat = palette.PaletteFormat;
                return palette.AllColors(Model);
@@ -175,5 +207,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
          return palette;
       }
+   }
+
+   public class PaletteSelection : ViewModelCore {
+      private bool selected;
+      public bool Selected { get => selected; set => Set(ref selected, value); }
+
+      private string name;
+      public string Name { get => name; set => Set(ref name, value); }
    }
 }

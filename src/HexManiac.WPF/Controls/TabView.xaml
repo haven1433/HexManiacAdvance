@@ -305,6 +305,19 @@
                      <DataTemplate DataType="{x:Type hsg3hvmtr:SpriteElementViewModel}">
                         <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                            <hsg3hv:CommonTableStreamControl />
+                           <!--<Slider Value="{Binding CurrentPalette}" Maximum="{Binding MaxPalette}" Visibility="{Binding HasMultiplePalettes, Converter={StaticResource BoolToVisibility}}" Width="50"/>-->
+                           <ItemsControl ItemsSource="{Binding PaletteSelection}" Visibility="{Binding HasMultiplePalettes, Converter={StaticResource BoolToVisibility}}" HorizontalAlignment="Center">
+                              <ItemsControl.ItemsPanel>
+                                 <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" />
+                                 </ItemsPanelTemplate>
+                              </ItemsControl.ItemsPanel>
+                              <ItemsControl.ItemTemplate>
+                                 <DataTemplate>
+                                    <RadioButton IsChecked="{Binding Selected}" ToolTip="{Binding Name}" />
+                                 </DataTemplate>
+                              </ItemsControl.ItemTemplate>
+                           </ItemsControl>
                            <hsg3hv:PixelImage SnapsToDevicePixels="True" />
                            <DockPanel Visibility="{Binding ShowPageControls, Converter={StaticResource BoolToVisibility}}">
                               <Button Content="Previous" Command="{Binding PreviousPage}" DockPanel.Dock="Left"/>

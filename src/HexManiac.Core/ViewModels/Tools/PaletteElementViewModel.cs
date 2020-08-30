@@ -38,7 +38,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       protected override void PageChanged() => UpdateColors(Start, CurrentPage);
 
-      public void Activate() => UpdateSprites(TableName);
+      public void Activate() { }
 
       protected override bool CanExecuteAddPage() {
          var destination = ViewPort.Model.ReadPointer(Start);
@@ -50,14 +50,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var destination = ViewPort.Model.ReadPointer(Start);
          var run = ViewPort.Model.GetNextRun(destination) as IPaletteRun;
          return run is LzPaletteRun && Pages > 1 && run.FindDependentSprites(Model).All(sprite => sprite.Pages == run.Pages && sprite is LzSpriteRun);
-      }
-
-      private void UpdateSprites(string hint = null) {
-         foreach (var child in ViewPort.Tools.TableTool.Children) {
-            if (child == this) break;
-            if (!(child is SpriteElementViewModel sevm)) continue;
-            sevm.UpdateTiles(hint: hint);
-         }
       }
 
       private void UpdateColors(int start, int page) {
