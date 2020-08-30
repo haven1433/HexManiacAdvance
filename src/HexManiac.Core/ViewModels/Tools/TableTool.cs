@@ -320,7 +320,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          IFormattedRun streamRun = null;
          if (destination != Pointer.NULL) {
             streamRun = model.GetNextRun(destination);
-            if (!pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), itemAddress, destination, null)) return;
+            if (!pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), itemAddress, destination, null, parentIndex)) return;
          }
 
          IStreamArrayElementViewModel streamElement = null;

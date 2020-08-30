@@ -261,7 +261,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
             var byteLength = 0;
             var elementCount = 0;
-            while (Start + byteLength + ElementLength <= nextRun.Start && DataMatchesElementFormat(owner, Start + byteLength, ElementContent, flags, nextRun)) {
+            while (Start + byteLength + ElementLength <= nextRun.Start && DataMatchesElementFormat(owner, Start + byteLength, ElementContent, elementCount, flags, nextRun)) {
                byteLength += ElementLength;
                elementCount++;
                if (elementCount == JunkLimit) flags |= FormatMatchFlags.AllowJunkAfterText;
@@ -389,7 +389,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             while (true) {
                if (currentLength > JunkLimit) flags |= FormatMatchFlags.AllowJunkAfterText; // we've gone long enough without junk data to be fairly sure that we're looking at something real
                if (nextArray.Start < currentAddress) nextArray = data.GetNextAnchor(nextArray.Start + 1);
-               if (DataMatchesElementFormat(data, currentAddress, elementContent, flags, nextArray)) {
+               if (DataMatchesElementFormat(data, currentAddress, elementContent, currentLength, flags, nextArray)) {
                   currentLength++;
                   currentAddress += elementLength;
                } else {
@@ -451,7 +451,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             bool earlyExit = false;
             for (int i = 0; i < bestLength; i++) {
                var nextArray = data.GetNextAnchor(currentAddress + 1);
-               bool match = DataMatchesElementFormat(data, currentAddress, elementContent, flags, nextArray);
+               bool match = DataMatchesElementFormat(data, currentAddress, elementContent, i, flags, nextArray);
                currentLength++;
                currentAddress += elementLength;
                if (match) {
@@ -572,7 +572,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private void WriteSegment(ModelDelta token, ArrayRunElementSegment segment, IReadOnlyList<byte> readData, int readPosition, int writePosition) {
          if (segment.Type == ElementContentType.Pointer) {
             var destination = readData.ReadMultiByteValue(readPosition, 4) + Pointer.NULL;
-            owner.UpdateArrayPointer(token, segment, ElementContent, writePosition, destination);
+            var offset = this.ConvertByteOffsetToArrayOffset(writePosition);
+            owner.UpdateArrayPointer(token, segment, ElementContent, offset.ElementIndex, writePosition, destination);
          } else {
             for (int k = 0; k < segment.Length; k++) {
                var validData = readData[readPosition + k];
@@ -828,17 +829,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return (lengthFromAnchor, parentOffset, run.ElementCount + parentOffset);
       }
 
-      private static bool DataMatchesElementFormat(IDataModel owner, int start, IReadOnlyList<ArrayRunElementSegment> segments, FormatMatchFlags flags, IFormattedRun nextAnchor) {
+      private static bool DataMatchesElementFormat(IDataModel owner, int start, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, FormatMatchFlags flags, IFormattedRun nextAnchor) {
          foreach (var segment in segments) {
             if (start + segment.Length > owner.Count) return false;
             if (start + segment.Length > nextAnchor.Start && nextAnchor is ArrayRun) return false; // don't blap over existing arrays
-            if (!DataMatchesSegmentFormat(owner, start, segment, flags, segments)) return false;
+            if (!DataMatchesSegmentFormat(owner, start, segment, flags, segments, parentIndex)) return false;
             start += segment.Length;
          }
          return true;
       }
 
-      public static bool DataMatchesSegmentFormat(IDataModel owner, int start, ArrayRunElementSegment segment, FormatMatchFlags flags, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
+      public static bool DataMatchesSegmentFormat(IDataModel owner, int start, ArrayRunElementSegment segment, FormatMatchFlags flags, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
          Debug.Assert(sourceSegments.Contains(segment), "Expected segment to be one among sourceSegments.");
          switch (segment.Type) {
             case ElementContentType.PCS:
@@ -879,7 +880,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (destination == Pointer.NULL) return true;
                if (0 > destination || destination > owner.Count) return false;
                if (segment is ArrayRunPointerSegment pointerSegment) {
-                  if (!pointerSegment.DestinationDataMatchesPointerFormat(owner, new NoDataChangeDeltaModel(), start, destination, sourceSegments)) return false;
+                  if (!pointerSegment.DestinationDataMatchesPointerFormat(owner, new NoDataChangeDeltaModel(), start, destination, sourceSegments, parentIndex)) return false;
                }
                return true;
             case ElementContentType.BitArray:

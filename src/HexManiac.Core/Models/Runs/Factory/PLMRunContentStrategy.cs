@@ -8,7 +8,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
    /// </summary>
    public class PLMRunContentStrategy : RunStrategy {
       public override int LengthForNewRun(IDataModel model, int pointerAddress) => 2;
-      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
+      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
          var plmRun = new PLMRun(owner, destination);
          var length = plmRun.Length;
          if (length < 2) return false;
@@ -22,7 +22,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          // PLM ends with FFFF, and this is already freespace, so just add the format.
          return new PLMRun(owner, destination);
       }
-      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, ref IFormattedRun run) {
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
          var runAttempt = new PLMRun(model, run.Start);
          if (runAttempt.Length > 0) {
             run = runAttempt.MergeAnchor(run.PointerSources);

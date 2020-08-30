@@ -17,7 +17,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          var data = LZRun.Compress(new byte[paletteFormat.ExpectedByteLengthPerPage], 0, paletteFormat.ExpectedByteLengthPerPage);
          return data.Count;
       }
-      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
+      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
          var lzRun = new LzPaletteRun(paletteFormat, owner, destination, new SortedSpan<int>(source));
          if (lzRun.Length <= 5 && owner.ReadMultiByteValue(destination + 1, 3) != Math.Pow(2, paletteFormat.Bits + 1)) return false;
 
@@ -31,7 +31,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          for (int i = 0; i < data.Count; i++) token.ChangeData(owner, destination + i, data[i]);
          return new LzPaletteRun(paletteFormat, owner, destination);
       }
-      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, ref IFormattedRun run) {
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
          var runAttempt = new LzPaletteRun(paletteFormat, model, run.Start, run.PointerSources);
          if (runAttempt.Length > 0) {
             run = runAttempt.MergeAnchor(run.PointerSources);

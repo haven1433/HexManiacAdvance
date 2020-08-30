@@ -13,7 +13,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
 
       public override bool Matches(IFormattedRun run) => run is LzTilemapRun tmRun && tmRun.Format.BitsPerPixel == TilemapFormat.BitsPerPixel;
 
-      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
+      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
          var lzRun = new LZRun(owner, destination);
          if (lzRun.DecompressedLength != TilemapFormat.ExpectedUncompressedLength) return false;
          var newRun = new LzTilemapRun(TilemapFormat, owner, destination);
@@ -35,7 +35,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          return ErrorInfo.NoError;
       }
 
-      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, ref IFormattedRun run) {
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
          var lzRun = new LZRun(model, run.Start);
          if (lzRun.Length < 0) return;
          if (lzRun.DecompressedLength != TilemapFormat.ExpectedUncompressedLength) return;

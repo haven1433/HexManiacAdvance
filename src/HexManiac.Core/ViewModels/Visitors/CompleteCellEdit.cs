@@ -667,13 +667,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          var offsets = run.ConvertByteOffsetToArrayOffset(memoryLocation);
          var segment = run.ElementContent[offsets.SegmentIndex];
          if (segment is ArrayRunPointerSegment pointerSegment) {
-            if (!pointerSegment.DestinationDataMatchesPointerFormat(Model, CurrentChange, offsets.SegmentStart, pointerDestination, run.ElementContent)) {
+            if (!pointerSegment.DestinationDataMatchesPointerFormat(Model, CurrentChange, offsets.SegmentStart, pointerDestination, run.ElementContent, -1)) {
                ErrorText = $"This pointer must point to {pointerSegment.InnerFormat} data.";
                return;
             }
          }
 
-         Model.UpdateArrayPointer(CurrentChange, segment, run.ElementContent, memoryLocation, pointerDestination);
+         Model.UpdateArrayPointer(CurrentChange, segment, run.ElementContent, offsets.ElementIndex, memoryLocation, pointerDestination);
       }
 
       private bool TryFixupLzRun(ref LZRun run, int runIndex) {

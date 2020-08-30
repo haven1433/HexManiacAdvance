@@ -285,14 +285,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          InnerFormat = innerFormat;
       }
 
-      public bool DestinationDataMatchesPointerFormat(IDataModel owner, ModelDelta token, int source, int destination, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
+      public bool DestinationDataMatchesPointerFormat(IDataModel owner, ModelDelta token, int source, int destination, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
          if (destination == Pointer.NULL) return true;
          var run = owner.GetNextAnchor(destination);
          if (run.Start < destination) return false;
          if (run.Start > destination || (run.Start == destination && (run is NoInfoRun || run is PointerRun))) {
             // hard case: no format found, so check the data
             if (destination < 0 || destination >= owner.Count) return false;
-            return FormatRunFactory.GetStrategy(InnerFormat)?.TryAddFormatAtDestination(owner, token, source, destination, Name, sourceSegments) ?? false;
+            return FormatRunFactory.GetStrategy(InnerFormat)?.TryAddFormatAtDestination(owner, token, source, destination, Name, sourceSegments, parentIndex) ?? false;
          } else {
             // easy case: already have a format, just see if it matches
             var strategy = FormatRunFactory.GetStrategy(InnerFormat);
@@ -300,7 +300,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (strategy.Matches(run)) return true;
 
             // special test: the format of the data is wrong?
-            return strategy.TryAddFormatAtDestination(owner, token, source, destination, Name, sourceSegments);
+            return strategy.TryAddFormatAtDestination(owner, token, source, destination, Name, sourceSegments, parentIndex);
          }
       }
 

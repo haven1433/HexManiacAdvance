@@ -128,6 +128,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                   var paletteTable = model.GetNextRun(model.GetAddressFromAnchor(noChange, -1, tableKeyPair[0])) as ITableRun;
                   var segment = paletteTable?.ElementContent.FirstOrDefault(seg => seg.Name == identifierValuePair[0]);
                   var pSegment = paletteTable?.ElementContent.FirstOrDefault(seg => seg is ArrayRunPointerSegment pSeg && PaletteRun.TryParsePaletteFormat(pSeg.InnerFormat, out var _));
+                  if (pSegment == null) pSegment = paletteTable?.ElementContent.FirstOrDefault(seg => seg is ArrayRunPointerSegment pSeg && LzPaletteRun.TryParsePaletteFormat(pSeg.InnerFormat, out var _));
                   var rawValue = identifierValuePair[1];
                   int keyValue;
                   if (segment is ArrayRunEnumSegment eSegment) keyValue = eSegment.GetOptions(model).ToList().IndexOf(rawValue);

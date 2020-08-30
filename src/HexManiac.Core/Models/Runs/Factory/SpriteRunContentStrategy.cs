@@ -12,7 +12,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       public SpriteRunContentStrategy(SpriteFormat spriteFormat) => this.spriteFormat = spriteFormat;
 
       public override int LengthForNewRun(IDataModel model, int pointerAddress) => spriteFormat.ExpectedByteLength;
-      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
+      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
          var spriteRun = new SpriteRun(destination, spriteFormat, new SortedSpan<int>(source));
          // TODO deal with the run being too long?
          if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, spriteRun);
@@ -27,7 +27,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          for (int i = 0; i < spriteFormat.ExpectedByteLength; i++) token.ChangeData(owner, destination + i, 0);
          return new SpriteRun(destination, spriteFormat);
       }
-      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, ref IFormattedRun run) {
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
          var runAttempt = new SpriteRun(run.Start, spriteFormat, run.PointerSources);
          if (runAttempt.Length > 0) {
             run = runAttempt.MergeAnchor(run.PointerSources);

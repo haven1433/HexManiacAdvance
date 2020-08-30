@@ -14,7 +14,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          TableStreamRun.TryParseTableStream(model, -1, new SortedSpan<int>(pointerAddress), pointerSegment.Name, pointerSegment.InnerFormat, tableRun.ElementContent, out var newStream);
          return newStream.Length;
       }
-      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
+      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
          if (TableStreamRun.TryParseTableStream(owner, destination, new SortedSpan<int>(source), name, Format, sourceSegments, out var tsRun)) {
             if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, tsRun);
             return true;
@@ -27,7 +27,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          TableStreamRun.TryParseTableStream(owner, destination, new SortedSpan<int>(source), name, Format, sourceSegments, out var tableStream);
          return tableStream.DeserializeRun("", token);
       }
-      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, ref IFormattedRun run) {
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
          if (!TableStreamRun.TryParseTableStream(model, run.Start, run.PointerSources, name, Format, null, out var runAttempt)) return;
          model.ClearFormat(token, run.Start, runAttempt.Length);
          run = runAttempt;

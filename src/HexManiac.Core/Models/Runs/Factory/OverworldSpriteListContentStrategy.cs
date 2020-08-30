@@ -18,21 +18,30 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          new ArrayRunElementSegment(string.Empty, ElementContentType.Pointer, 4),
       };
 
+      public string Hint { get; }
+
+      public OverworldSpriteListContentStrategy(string format) {
+         if (format.Contains("|")) {
+            Hint = format.Split("|")[1].Split("`")[0];
+         }
+      }
+
       public override int LengthForNewRun(IDataModel model, int pointerAddress) {
          var destination = model.ReadPointer(pointerAddress);
          if (destination < 0 || destination >= model.Count) return -1;
-         return new OverworldSpriteListRun(model, parentTemplate, destination, new SortedSpan<int>(pointerAddress)).Length;
+         return new OverworldSpriteListRun(model, parentTemplate, Hint, 0, destination, new SortedSpan<int>(pointerAddress)).Length;
       }
 
       public override bool Matches(IFormattedRun run) => run is OverworldSpriteListRun;
 
-      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
-         var attempt = new OverworldSpriteListRun(owner, sourceSegments, destination, new SortedSpan<int>(source));
+      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
+         if (sourceSegments == null) return false;
+         var attempt = new OverworldSpriteListRun(owner, sourceSegments, Hint, 0, destination, new SortedSpan<int>(source));
          return attempt.Length > 0;
       }
 
       public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
-         var newRun = new OverworldSpriteListRun(model, parentTemplate, dataIndex, run.PointerSources);
+         var newRun = new OverworldSpriteListRun(model, parentTemplate, Hint, 0, dataIndex, run.PointerSources);
          if (newRun.Length > 0) {
             run = newRun;
             return ErrorInfo.NoError;
@@ -40,8 +49,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          return new ErrorInfo($"Could not at overworld sprite at {dataIndex}");
       }
 
-      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, ref IFormattedRun run) {
-         run = new OverworldSpriteListRun(model, sourceSegments, run.Start, run.PointerSources);
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
+         run = new OverworldSpriteListRun(model, sourceSegments, Hint, parentIndex, run.Start, run.PointerSources);
 
          // backup: we may get asked to make a pointer format even when it's not an overworld sprite list.
          // if that happens, fall back to a NoInfoRun.
@@ -49,7 +58,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       }
 
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
-         return new OverworldSpriteListRun(owner, sourceSegments, destination, new SortedSpan<int>(source));
+         return new OverworldSpriteListRun(owner, sourceSegments, Hint, 0, destination, new SortedSpan<int>(source));
       }
    }
 }

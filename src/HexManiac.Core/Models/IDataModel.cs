@@ -72,7 +72,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       string GetAnchorFromAddress(int requestSource, int destination);
       IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial);
       StoredMetadata ExportMetadata(IMetadataInfo metadataInfo);
-      void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int address, int destination);
+      void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, int address, int destination);
       int ConsiderResultsAsTextRuns(ModelDelta changeToken, IReadOnlyList<int> startLocations);
    }
 
@@ -183,7 +183,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public abstract SortedSpan<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses);
 
-      public abstract void UpdateArrayPointer(ModelDelta currentChange, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int index, int fullValue);
+      public abstract void UpdateArrayPointer(ModelDelta currentChange, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, int index, int fullValue);
 
       public abstract void ClearPointer(ModelDelta currentChange, int source, int destination);
 
@@ -614,7 +614,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public override SortedSpan<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses) => throw new NotImplementedException();
 
-      public override void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int address, int destination) {
+      public override void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, int address, int destination) {
          WritePointer(changeToken, address, destination);
       }
 

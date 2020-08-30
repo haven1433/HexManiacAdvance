@@ -9,7 +9,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
    /// </summary>
    public class TrainerPokemonTeamRunContentStrategy : RunStrategy {
       public override int LengthForNewRun(IDataModel model, int pointerAdress) => new TrainerPokemonTeamRun(model, -1, new SortedSpan<int>(pointerAdress)).Length;
-      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
+      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
          var teamRun = new TrainerPokemonTeamRun(owner, destination, new SortedSpan<int>(source));
          var length = teamRun.Length;
          if (length < 2) return false;
@@ -22,7 +22,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          return new TrainerPokemonTeamRun(owner, destination, new SortedSpan<int>(source)).DeserializeRun("0 ???", token);
       }
-      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, ref IFormattedRun run) {
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
          var runAttempt = new TrainerPokemonTeamRun(model, run.Start, run.PointerSources);
          model.ClearFormat(token, run.Start, runAttempt.Length);
          run = runAttempt;

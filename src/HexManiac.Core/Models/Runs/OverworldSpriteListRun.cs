@@ -16,7 +16,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public int ElementCount { get; }
 
-      public override string FormatString => SharedFormatString;
+      public string PaletteHint { get; }
+
+      public override string FormatString {
+         get {
+            if (string.IsNullOrEmpty(PaletteHint)) return SharedFormatString;
+            return AsciiRun.StreamDelimeter + "osl|" + PaletteHint + AsciiRun.StreamDelimeter;
+         }
+      }
 
       public int ElementLength => 8;
 
@@ -28,13 +35,29 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public int Pages => 1;
 
+      public int RunIndex { get; }
+
       public bool SupportsImport => false;
 
       public bool CanAppend => false;
 
-      public OverworldSpriteListRun(IDataModel model, IReadOnlyList<ArrayRunElementSegment> parent, int start, SortedSpan<int> sources = null) : base(start, sources) {
+      public OverworldSpriteListRun(IDataModel model, IReadOnlyList<ArrayRunElementSegment> parent, string paletteHint, int runIndex, int start, SortedSpan<int> sources = null) : base(start, sources) {
          this.model = model;
          this.parent = parent;
+         PaletteHint = paletteHint;
+         RunIndex = runIndex;
+
+         var nextStartBuilder = new List<int>();
+         int parentLength = parent.Sum(seg => seg.Length);
+         if (parent != null && sources != null && sources.Count > 0) {
+            for (int nextSource = sources[0] + parentLength; true; nextSource += parentLength) {
+               var nextDest = model.ReadPointer(nextSource);
+               if (nextDest < 0 || nextDest >= model.Count) break;
+               nextStartBuilder.Add(nextDest);
+            }
+         }
+         var nextStart = nextStartBuilder.ToArray();
+
          var segments = new List<ArrayRunElementSegment> {
             new ArrayRunPointerSegment("sprite", "`ucs4x1x2`"),
             new ArrayRunElementSegment("length", ElementContentType.Integer, 4),
@@ -42,7 +65,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          ElementContent = segments;
          ElementCount = 1;
          Length = ElementLength;
-         int parentLength = parent.Sum(seg => seg.Length);
          SpriteFormat = new SpriteFormat(4, 1, 1, string.Empty);
 
          if (sources == null || sources.Count == 0) return;
@@ -66,9 +88,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var tileHeight = (int)Math.Max(1, Math.Ceiling(height / 8.0));
          var key = model.ReadMultiByteValue(elementStart + keyOffset, 2);
          var hint = $"{HardcodeTablesModel.OverworldPalettes}:id={key:X4}";
+         if (!string.IsNullOrEmpty(paletteHint)) hint = PaletteHint + $"={runIndex}";
 
          var format = $"`ucs4x{tileWidth}x{tileHeight}|{hint}`";
-         if (keyOffset == -1) {
+         if (keyOffset == -1 && string.IsNullOrEmpty(paletteHint)) {
             format = $"`ucs4x{tileWidth}x{tileHeight}`";
             hint = string.Empty;
          }
@@ -82,6 +105,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          while (Start + Length < nextAnchorStart) {
             if (model[start + Length + 3] != 0x08) break;
             if (model.ReadMultiByteValue(start + Length + 4, 4) != byteLength) break;
+            var nextRun = model.GetNextRun(start + Length);
+            if ((start + Length).IsAny(nextStart)) break; // metric: if there's a pointer in the parent table that points here, then it's the next list, not this list.
             ElementCount += 1;
             Length += ElementLength;
             if (ElementCount == MaxOverworldSprites) break; // overworld sprite lists can only have so many elements
@@ -93,7 +118,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) => ITableRunExtensions.CreateSegmentDataFormat(this, data, index);
 
-      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new OverworldSpriteListRun(model, parent, Start, newPointerSources);
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new OverworldSpriteListRun(model, parent, PaletteHint, RunIndex, Start, newPointerSources);
 
       public ITableRun Append(ModelDelta token, int length) => throw new NotImplementedException();
 
@@ -133,7 +158,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
 
          // if the parent paletteid changed, we just need to update the format, no data change is required.
-         return new OverworldSpriteListRun(model, parent, Start, PointerSources);
+         return new OverworldSpriteListRun(model, parent, PaletteHint, RunIndex, Start, PointerSources);
       }
 
       private static int GetOffset<T>(IReadOnlyList<ArrayRunElementSegment> segments, Func<T, bool> segmentIdentifier) where T : ArrayRunElementSegment
@@ -202,6 +227,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          throw new NotImplementedException();
       }
 
-      public ISpriteRun Duplicate(SpriteFormat newFormat) => new OverworldSpriteListRun(model, parent, Start, PointerSources);
+      public ISpriteRun Duplicate(SpriteFormat newFormat) => new OverworldSpriteListRun(model, parent, PaletteHint, RunIndex, Start, PointerSources);
    }
 }

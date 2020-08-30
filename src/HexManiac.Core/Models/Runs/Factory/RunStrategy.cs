@@ -14,7 +14,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       /// Returns true if the format is capable of being added for the pointer at source.
       /// If the token is such that edits are allowed, actually add the format.
       /// </summary>
-      public abstract bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments);
+      public abstract bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex);
 
       /// <summary>
       /// Returns true if the input run is valid for this run 'type'.
@@ -33,7 +33,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       /// A pointer format in a table has changed.
       /// Replace the given run with a new run of the appropriate format.
       /// </summary>
-      public abstract void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, ref IFormattedRun run);
+      public abstract void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run);
 
       /// <summary>
       /// Attempt to parse the existing data into a run of the desired type.
@@ -65,8 +65,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
             strategy = new BseRunContentStrategy();
          } else if (format == ASERun.SharedFormatString) {
             strategy = new AseRunContentStrategy();
-         } else if (format == OverworldSpriteListRun.SharedFormatString) {
-            strategy = new OverworldSpriteListContentStrategy();
+         } else if (format.StartsWith(OverworldSpriteListRun.SharedFormatString.Substring(0, OverworldSpriteListRun.SharedFormatString.Length - 1))) {
+            strategy = new OverworldSpriteListContentStrategy(format);
          } else if (format == TrainerPokemonTeamRun.SharedFormatString) {
             strategy = new TrainerPokemonTeamRunContentStrategy();
          } else if (LzSpriteRun.TryParseSpriteFormat(format, out var spriteFormat)) {
@@ -74,7 +74,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          } else if (LzPaletteRun.TryParsePaletteFormat(format, out var paletteFormat)) {
             strategy = new LzPaletteRunContentStrategy(paletteFormat);
          //} else if (TilesetRun.TryParseTilesetFormat(format, out var tilesetFormat)) {
-         //   strategy = new TilesetRunContentStrategy(tilesetFormat);
+            //   strategy = new TilesetRunContentStrategy(tilesetFormat);
          } else if (LzTilesetRun.TryParseTilesetFormat(format, out var tilesetFormat)) {
             strategy = new LzTilesetRunContentStrategy(tilesetFormat);
          } else if (LzTilemapRun.TryParseTilemapFormat(format, out var tilemapFormat)) {
@@ -99,7 +99,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
 
       public override bool Matches(IFormattedRun run) => run is XSERun;
 
-      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
+      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
          throw new System.NotImplementedException();
       }
 
@@ -109,7 +109,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          return ErrorInfo.NoError;
       }
 
-      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, ref IFormattedRun run) {
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
          throw new System.NotImplementedException();
       }
 
@@ -123,7 +123,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
 
       public override bool Matches(IFormattedRun run) => run is BSERun;
 
-      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
+      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
          var run = new BSERun(destination, new SortedSpan<int>(source));
          if (run.Length < 1) return false;
          owner.ObserveRunWritten(token, run);
@@ -136,7 +136,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          return ErrorInfo.NoError;
       }
 
-      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, ref IFormattedRun run) {
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
          run = new BSERun(run.Start, run.PointerSources);
       }
 
@@ -150,7 +150,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
 
       public override bool Matches(IFormattedRun run) => run is ASERun;
 
-      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
+      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
          var run = new ASERun(destination, new SortedSpan<int>(source));
          if (run.Length < 1) return false;
          owner.ObserveRunWritten(token, run);
@@ -163,7 +163,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          return ErrorInfo.NoError;
       }
 
-      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, ref IFormattedRun run) {
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
          run = new ASERun(run.Start, run.PointerSources);
       }
 

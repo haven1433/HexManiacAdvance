@@ -8,7 +8,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
    /// </summary>
    public class PCSRunContentStrategy : RunStrategy {
       public override int LengthForNewRun(IDataModel model, int pointerAdress) => 1;
-      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
+      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
          var length = PCSString.ReadString(owner, destination, true);
 
          if (length < 1) return false;
@@ -25,7 +25,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          // found freespace, so this should already be an FF. Just add the format.
          return new PCSRun(owner, destination, 1);
       }
-      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, ref IFormattedRun run) {
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
          var length = PCSString.ReadString(model, run.Start, true);
          if (length > 0) {
             var newRun = new PCSRun(model, run.Start, length, run.PointerSources);

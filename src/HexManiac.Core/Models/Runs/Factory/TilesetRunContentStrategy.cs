@@ -9,7 +9,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
 
       public override int LengthForNewRun(IDataModel model, int pointerAddress) => TilesetFormat.Tiles * TilesetFormat.BitsPerPixel * 8;
 
-      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
+      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
          var newRun = new TilesetRun(TilesetFormat, owner, destination);
          if (owner.GetNextRun(destination + 1).Start < destination + newRun.Length) return false;
          if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, newRun);
@@ -22,7 +22,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          throw new NotImplementedException();
       }
 
-      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, ref IFormattedRun run) {
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
          var newRun = new TilesetRun(TilesetFormat, model, run.Start, run.PointerSources);
          if (model.GetNextRun(run.Start + 1).Start < run.Start + newRun.Length) return;
          model.ClearFormat(token, newRun.Start, newRun.Length);
