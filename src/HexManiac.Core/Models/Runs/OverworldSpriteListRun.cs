@@ -7,6 +7,7 @@ using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class OverworldSpriteListRun : BaseRun, ITableRun, ISpriteRun {
+      private const int MaxOverworldSprites = 20;
       private readonly IDataModel model;
       private readonly IReadOnlyList<ArrayRunElementSegment> parent;
       public static readonly string SharedFormatString = AsciiRun.StreamDelimeter + "osl" + AsciiRun.StreamDelimeter;
@@ -83,7 +84,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (model.ReadMultiByteValue(start + Length + 4, 4) != byteLength) break;
             ElementCount += 1;
             Length += ElementLength;
-            if (ElementCount == 9) break; // overworld sprite lists are limited to 9 elements
+            if (ElementCount == MaxOverworldSprites) break; // overworld sprite lists can only have so many elements
          }
 
          SpriteFormat = new SpriteFormat(4, tileWidth * ElementCount, tileHeight, hint);
