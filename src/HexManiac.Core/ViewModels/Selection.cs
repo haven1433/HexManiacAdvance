@@ -298,12 +298,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             dif = new Point(0, -Scroll.Height);
          } else if (direction == Direction.PageDown) {
             dif = new Point(0, Scroll.Height);
+         } else if (direction == Direction.Home) {
+            var currentStart = Scroll.ViewPointToDataIndex(selectionStart);
+            var currentRun = model.GetNextRun(currentStart);
+            if (currentRun.Start > currentStart) {
+               dif = new Point(-selectionStart.X, 0); // no run -> jump to start of line
+            } else {
+               var newStart = currentRun.Start;
+               dif = Scroll.DataIndexToViewPoint(newStart) - selectionStart;
+            }
+         } else if (direction == Direction.End) {
+            var currentStart = Scroll.ViewPointToDataIndex(selectionStart);
+            var currentRun = model.GetNextRun(currentStart);
+            if (currentRun.Start > currentStart) {
+               dif = new Point(Scroll.Width - 1 - selectionStart.X, 0); // no run -> jump to end of line
+            } else {
+               var newStart = currentRun.Start + currentRun.Length - 1;
+               dif = Scroll.DataIndexToViewPoint(newStart) - selectionStart;
+            }
          } else {
             dif = ScrollRegion.DirectionToDif[direction];
          }
 
          var (start, end) = getSpan(rawSelectionEnd);
-         if (dif.X < 0 || dif.Y < 0) {
+         if (dif.X < 0 || dif.Y < 0 || direction == Direction.End) {
             // start from the _front_ of selectionEnd
             SelectionStart = start + dif;
          } else {
@@ -318,17 +336,35 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             dif = new Point(0, -Scroll.Height);
          } else if (direction == Direction.PageDown) {
             dif = new Point(0, Scroll.Height);
+         } else if (direction == Direction.Home) {
+            var currentStart = Scroll.ViewPointToDataIndex(selectionEnd);
+            var currentRun = model.GetNextRun(currentStart);
+            if (currentRun.Start > currentStart) {
+               dif = new Point(-selectionEnd.X, 0); // no run -> jump to start of line
+            } else {
+               var newStart = currentRun.Start;
+               dif = Scroll.DataIndexToViewPoint(newStart) - selectionEnd;
+            }
+         } else if (direction == Direction.End) {
+            var currentStart = Scroll.ViewPointToDataIndex(selectionEnd);
+            var currentRun = model.GetNextRun(currentStart);
+            if (currentRun.Start > currentStart) {
+               dif = new Point(Scroll.Width - 1 - selectionEnd.X, 0); // no run -> jump to end of line
+            } else {
+               var newStart = currentRun.Start + currentRun.Length - 1;
+               dif = Scroll.DataIndexToViewPoint(newStart) - selectionEnd;
+            }
          } else {
             dif = ScrollRegion.DirectionToDif[direction];
          }
 
          var (start, end) = getSpan(rawSelectionEnd);
-         if (dif.X < 0 || dif.Y < 0) {
-            // start from the _front_ of selectionEnd
-            SelectionEnd = start + dif;
-         } else {
+         if (dif.X > 0 || dif.Y > 0 || direction == Direction.Home) {
             // start from the _back_ of selectionEnd
             SelectionEnd = end + dif;
+         } else {
+            // start from the _front_ of selectionEnd
+            SelectionEnd = start + dif;
          }
       }
 

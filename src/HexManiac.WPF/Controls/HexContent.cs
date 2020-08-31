@@ -226,8 +226,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
          AddKeyCommand(nameof(Core.ViewModels.ViewPort.MoveSelectionStart), Direction.PageUp, Key.PageUp);
          AddKeyCommand(nameof(Core.ViewModels.ViewPort.MoveSelectionStart), Direction.PageDown, Key.PageDown);
+         AddKeyCommand(nameof(Core.ViewModels.ViewPort.MoveSelectionStart), Direction.Home, Key.Home);
+         AddKeyCommand(nameof(Core.ViewModels.ViewPort.MoveSelectionStart), Direction.End, Key.End);
+
          AddKeyCommand(nameof(Core.ViewModels.ViewPort.MoveSelectionEnd), Direction.PageUp, Key.PageUp, ModifierKeys.Shift);
          AddKeyCommand(nameof(Core.ViewModels.ViewPort.MoveSelectionEnd), Direction.PageDown, Key.PageDown, ModifierKeys.Shift);
+         AddKeyCommand(nameof(Core.ViewModels.ViewPort.MoveSelectionEnd), Direction.Home, Key.Home, ModifierKeys.Shift);
+         AddKeyCommand(nameof(Core.ViewModels.ViewPort.MoveSelectionEnd), Direction.End, Key.End, ModifierKeys.Shift);
 
          AddKeyCommand(nameof(Core.ViewModels.ViewPort.MoveSelectionStart), Direction.Up, Key.Up);
          AddKeyCommand(nameof(Core.ViewModels.ViewPort.MoveSelectionStart), Direction.Down, Key.Down);
