@@ -795,7 +795,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Debug.Assert(IsSelected(selectionPoint));
          var factory = new ContextItemFactory(this);
          var cell = this[SelectionStart.X, SelectionStart.Y];
-         cell.Format.Visit(factory, cell.Value);
+         (cell?.Format ?? None.Instance).Visit(factory, cell.Value);
          var results = factory.Results.ToList();
          if (!SelectionStart.Equals(SelectionEnd)) {
             results.Add(new ContextItem("Copy", Copy.Execute) { ShortcutText = "Ctrl+C" });
