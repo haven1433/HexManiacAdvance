@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
+using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -369,7 +370,8 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.SelectionStart = new Point();
          var items = viewPort.GetContextMenuItems(new Point());
 
-         items.Single(item => item.Text.StartsWith("Repoint")).Command.Execute();
+         var group = (ContextItemGroup)items.Single(menuItem => menuItem.Text == "Pointer Operations");
+         group.Single(item => item.Text.StartsWith("Repoint")).Command.Execute();
 
          Assert.NotEqual(0x08, model.ReadPointer(0));
          var originalRun = (PCSRun)model.GetNextRun(8);

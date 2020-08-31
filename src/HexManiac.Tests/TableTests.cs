@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Linq;
 using Xunit;
@@ -285,8 +286,9 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Edit("^table[number: value: pointer<\"\">]8 @04 ");
 
          // verify that it's in the context menu
-         var items = ViewPort.GetContextMenuItems(new Point(4, 0));
-         var createNewItem = items.Single(item => item.Text == "Create New Data");
+         var items = ViewPort.GetContextMenuItems(new Point(4, 0)).ToList();
+         var group = (ContextItemGroup)items.Single(menuItem => menuItem.Text == "Pointer Operations");
+         var createNewItem = group.Single(item => item.Text == "Create New Data");
 
          // verify that it's in the table
          var toolElements = ViewPort.Tools.TableTool.Children;

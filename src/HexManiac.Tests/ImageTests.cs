@@ -4,6 +4,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -625,6 +626,32 @@ namespace HavenSoft.HexManiac.Tests {
          var format = ViewPort[1, 0].Format;
          var content = format.ToString();
          Assert.Equal("1:2:3", content);
+      }
+
+      [Fact]
+      public void CanCreateSpriteFromRightClick() {
+         ViewPort.Edit("^anchor 10 20 00 00");
+
+         ViewPort.SelectionStart = new Point(1, 0);
+         var group = (ContextItemGroup)ViewPort.GetContextMenuItems(new Point(1, 0)).Single(item => item.Text == "Display As...");
+         var contextItem = group.Single(item => item.Text == "Sprite");
+         contextItem.Command.Execute();
+
+         Assert.Equal(ViewPort.Tools.SpriteTool, ViewPort.Tools.SelectedTool);
+         Assert.IsType<LzSpriteRun>(Model.GetNextRun(0));
+      }
+
+      [Fact]
+      public void CanCreatePaletteFromRightClick() {
+         ViewPort.Edit("^anchor 10 20 00 00");
+
+         ViewPort.SelectionStart = new Point(1, 0);
+         var group = (ContextItemGroup)ViewPort.GetContextMenuItems(new Point(1, 0)).Single(item => item.Text == "Display As...");
+         var contextItem = group.Single(item => item.Text == "Palette");
+         contextItem.Command.Execute();
+
+         Assert.Equal(ViewPort.Tools.SpriteTool, ViewPort.Tools.SelectedTool);
+         Assert.IsType<LzPaletteRun>(Model.GetNextRun(0));
       }
 
       private void CreateLzRun(int start, params byte[] data) {

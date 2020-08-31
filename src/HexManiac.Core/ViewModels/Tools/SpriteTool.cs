@@ -121,7 +121,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
-      private StubCommand gotoSpriteAddress;
+      private StubCommand gotoSpriteAddress, isSprite;
+      public ICommand IsSprite => StubCommand(ref isSprite, ExecuteIsSprite);
       public ICommand GotoSpriteAddress => StubCommand(ref gotoSpriteAddress, ExecuteGotoSpriteAddress);
       private void ExecuteGotoSpriteAddress() {
          var run = model.GetNextRun(spriteAddress);
@@ -189,6 +190,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          LoadSprite();
          UpdateSpriteProperties();
       }
+      private void ExecuteIsSprite() {
+         var initialStart = viewPort.ConvertViewPointToAddress(viewPort.SelectionStart);
+         var checkAddress = initialStart;
+         while (model.GetNextRun(checkAddress).Start > checkAddress && checkAddress > initialStart - 0x20) checkAddress--;
+         SpriteAddress = checkAddress;
+         ExecuteGotoSpriteAddress();
+         viewPort.Tools.SelectedIndex = viewPort.Tools.IndexOf(this);
+      }
 
       private void UpdateSpriteProperties() {
          if (model.GetNextRun(spriteAddress) is ISpriteRun run && run.Start == spriteAddress) {
@@ -239,7 +248,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          LoadPalette();
       }
 
-      private StubCommand gotoPaletteAddress;
+      private StubCommand gotoPaletteAddress, isPalette;
+      public ICommand IsPalette => StubCommand(ref isPalette, ExecuteIsPalette);
       public ICommand GotoPaletteAddress => StubCommand(ref gotoPaletteAddress, ExecuteGotoPaletteAddress);
       private void ExecuteGotoPaletteAddress() {
          var run = model.GetNextRun(paletteAddress);
@@ -273,6 +283,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          viewPort.Refresh();
          LoadPalette();
          UpdatePaletteProperties();
+      }
+      private void ExecuteIsPalette() {
+         var initialStart = viewPort.ConvertViewPointToAddress(viewPort.SelectionStart);
+         var checkAddress = initialStart;
+         while (model.GetNextRun(checkAddress).Start > checkAddress && checkAddress > initialStart - 0x20) checkAddress--;
+         PaletteAddress = checkAddress;
+         ExecuteGotoPaletteAddress();
+         viewPort.Tools.SelectedIndex = viewPort.Tools.IndexOf(this);
       }
 
       private void UpdatePaletteProperties() {

@@ -98,6 +98,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void OnViewPortRequestMenuClose(object sender, EventArgs e) {
+         if (ContextMenu != null) ContextMenu.IsOpen = false;
          if (recentMenu == null) return;
          recentMenu.IsOpen = false;
       }
@@ -388,47 +389,25 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          timer.Enabled = true;
       }
 
-      private IEnumerable<FrameworkElement> BuildContextMenuUI(IReadOnlyList<IContextItem> items) {
+      private IEnumerable<MenuItem> BuildContextMenuUI(IReadOnlyList<IContextItem> items) {
          foreach (var item in items) {
-            if (item is IReadOnlyList<IContextItem> composite) {
-               yield return new ListBox {
-                  MaxHeight = 120,
-                  ItemsSource = composite,
-                  DisplayMemberPath = "Text",
-               }.SetEvent(Selector.SelectionChangedEvent, (sender, e) => {
-                  var control = (ListBox)sender;
-                  var command = composite[control.SelectedIndex].Command;
-                  var parameter = composite[control.SelectedIndex].Parameter ?? FileSystem;
-                  command.Execute(parameter);
-               });
-            } else if (item.Command != null) {
-               var button = new Button {
-                  Command = item.Command,
-                  CommandParameter = item.Parameter ?? FileSystem,
-               };
-               if (item.ShortcutText == null) {
-                  button.Content = item.Text;
-               } else {
-                  button.Content = new StackPanel {
-                     Orientation = Orientation.Horizontal,
-                     Children = {
-                        new TextBlock { Text = item.Text },
-                        new TextBlock { Foreground = Brush(nameof(Theme.Secondary)), FontStyle = FontStyles.Italic, Margin = new Thickness(20, 0, 0, 0), Text = item.ShortcutText }
-                     }
-                  };
+            if (item is ContextItemGroup group) {
+               var menuItem = new MenuItem { Header = group.Text };
+               foreach (var subItem in BuildContextMenuUI(group)) {
+                  menuItem.Items.Add(subItem);
                }
-               yield return button;
+               yield return menuItem;
+            } else if (item is CompositeContextItem composite) {
+               foreach(var subItem in BuildContextMenuUI(composite)) {
+                  yield return subItem;
+               }
             } else {
-               var textBlock = new TextBlock {
-                  Text = item.Text,
-                  HorizontalAlignment = HorizontalAlignment.Center,
-                  Margin = new Thickness(0, 0, 0, 10),
+               yield return new MenuItem {
+                  Header = item.Text,
+                  InputGestureText = item.ShortcutText,
+                  CommandParameter = item.Parameter ?? FileSystem,
+                  Command = item.Command
                };
-               if (textBlock.Text.Contains("(")) {
-                  textBlock.FontStyle = FontStyles.Italic;
-                  textBlock.Foreground = Brush(nameof(Theme.Secondary));
-               }
-               yield return textBlock;
             }
          }
       }
@@ -536,6 +515,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          // close any currently open menu
          if (autocompleteOptions.Count == 0) {
             if (recentMenu != null && recentMenu.IsOpen) recentMenu.IsOpen = false;
+            if (ContextMenu != null) ContextMenu.IsOpen = false;
             return;
          }
 
@@ -546,6 +526,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                var text = ((Button)sender).Content.ToString();
                ((ViewPort)ViewPort).Autocomplete(text);
                recentMenu.IsOpen = false;
+               if (ContextMenu != null) ContextMenu.IsOpen = false;
             };
             if (option.IsSelected) button.BorderBrush = Brush(nameof(Theme.Accent));
             children.Add(button);
@@ -579,13 +560,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void ShowMenu(IList<FrameworkElement> children) {
          if (children.Count == 0) return;
 
-         recentMenu = new Popup {
-            Placement = PlacementMode.Mouse,
-            Child = FillPopup(children),
-            StaysOpen = false,
-         };
-
-         recentMenu.IsOpen = true;
+         ContextMenu = new ContextMenu();
+         foreach (var item in children) ContextMenu.Items.Add(item);
       }
 
       private static FrameworkElement FillPopup(IList<FrameworkElement> children) {

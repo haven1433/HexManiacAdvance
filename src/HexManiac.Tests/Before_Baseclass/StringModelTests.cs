@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -483,7 +484,8 @@ namespace HavenSoft.HexManiac.Tests {
          // select from partway through the first text to partway through the second text and "Display as Text"
          test.ViewPort.SelectionStart = new Point(1, 1);
          test.ViewPort.SelectionEnd = new Point(7, 1);
-         var button = test.ViewPort.GetContextMenuItems(new Point(4, 1)).Single(item => item.Text == "Display as Text");
+         var group = (ContextItemGroup)test.ViewPort.GetContextMenuItems(new Point(4, 1)).Single(item => item.Text == "Display As...");
+         var button = group.Single(item => item.Text == "Text");
          button.Command.Execute();
 
          // Verify that we found both

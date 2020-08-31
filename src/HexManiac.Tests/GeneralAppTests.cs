@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
+using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Linq;
 using System.Windows.Input;
@@ -438,7 +439,8 @@ namespace HavenSoft.HexManiac.Tests {
          editor.Add(test.ViewPort);
          test.ViewPort.Edit("<000100> @00 "); // create a pointer for us to follow
 
-         var item = test.ViewPort.GetContextMenuItems(new Point()).Single(menuItem => menuItem.Text == "Open in New Tab");
+         var group = (ContextItemGroup)test.ViewPort.GetContextMenuItems(new Point()).Single(menuItem => menuItem.Text == "Pointer Operations");
+         var item = group.Single(menuItem => menuItem.Text == "Open in New Tab");
          item.Command.Execute();
 
          var newTab = (ViewPort)editor[1];

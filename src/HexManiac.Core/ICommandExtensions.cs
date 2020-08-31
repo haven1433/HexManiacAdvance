@@ -10,6 +10,6 @@ namespace HavenSoft.HexManiac.Core {
       /// <summary>
       /// Utility implementation of CanExecute for commands that can always execute.
       /// </summary>
-      public static bool CanAlwaysExecute(object sender) => true;
+      public static bool CanAlwaysExecute(object parameter) => true;
    }
 }

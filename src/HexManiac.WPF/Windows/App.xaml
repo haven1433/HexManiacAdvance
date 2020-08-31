@@ -434,6 +434,60 @@
                   </Setter.Value>
                </Setter>
             </Trigger>
+            <Trigger Property="Role" Value="SubmenuHeader">
+               <Setter Property="Template">
+                  <Setter.Value>
+                     <ControlTemplate TargetType="{x:Type MenuItem}">
+                        <Grid Name="ItemBorder" Background="Transparent">
+                           <Grid.ColumnDefinitions>
+                              <ColumnDefinition Width="30"/>
+                              <ColumnDefinition Width="*"/>
+                              <ColumnDefinition Width="12"/>
+                           </Grid.ColumnDefinitions>
+                           <ContentPresenter Grid.Column="0" Margin="5,5,0,5" ContentSource="Icon" />
+                           <Border x:Name="Border" Width="13" Height="13"
+                              Background="{DynamicResource Background}" BorderThickness="1" HorizontalAlignment="Center"
+                              VerticalAlignment="Center" BorderBrush="{DynamicResource Secondary}"
+                              Visibility="{TemplateBinding IsCheckable, Converter={StaticResource BoolToVisibility}}">
+                              <Path Width="7" Height="7" StrokeThickness="2" SnapsToDevicePixels="False" 
+                                 x:Name="CheckMark" Stroke="{DynamicResource Accent}" Data="M 0 0 L 7 7 M 0 7 L 7 0" />
+                           </Border>
+                           <ContentPresenter Grid.Column="1" Name="MainContent" Margin="10,5" VerticalAlignment="Center" ContentSource="Header" RecognizesAccessKey="True" TextBlock.Foreground="{DynamicResource Primary}" />
+                           <Path Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Fill="{DynamicResource Secondary}" Data="M0,0 L0,2 1,1 Z" Stretch="Uniform" Width="10" Height="10"/>
+                           <Popup x:Name="Popup"
+                                 Placement="Right"
+                                 HorizontalOffset="-4"
+                                 IsOpen="{TemplateBinding IsSubmenuOpen}"
+                                 AllowsTransparency="True"
+                                 Focusable="False"
+                                 PopupAnimation="Fade">
+                              <Border x:Name="SubmenuBorder"
+                                    SnapsToDevicePixels="True"
+                                    Background="{DynamicResource Background}"
+                                    BorderBrush="{DynamicResource Accent}"
+                                    BorderThickness="1">
+                                 <ScrollViewer CanContentScroll="True" MaxHeight="200" VerticalScrollBarVisibility="Auto">
+                                    <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" />
+                                 </ScrollViewer>
+                              </Border>
+                           </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                           <Trigger Property="IsMouseOver" Value="True">
+                              <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource Backlight}" />
+                           </Trigger>
+                           <Trigger Property="IsEnabled" Value="False">
+                              <Setter TargetName="MainContent" Property="TextBlock.Foreground" Value="{DynamicResource Secondary}" />
+                              <Setter TargetName="MainContent" Property="TextBlock.FontStyle" Value="Italic" />
+                           </Trigger>
+                           <Trigger Property="IsChecked" Value="False">
+                              <Setter TargetName="CheckMark" Property="Visibility" Value="Collapsed"/>
+                           </Trigger>
+                        </ControlTemplate.Triggers>
+                     </ControlTemplate>
+                  </Setter.Value>
+               </Setter>
+            </Trigger>
             <Trigger Property="Role" Value="SubmenuItem">
                <Setter Property="Template">
                   <Setter.Value>
