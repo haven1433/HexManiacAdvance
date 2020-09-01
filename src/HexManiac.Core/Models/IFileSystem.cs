@@ -53,8 +53,6 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       void RemoveListenerForFile(string fileName, Action<IFileSystem> listener);
 
-      void DispatchWork(Action action);
-
       /// <summary>
       /// Saves the file without prompting the user for permission.
       /// </summary>
@@ -98,6 +96,18 @@ namespace HavenSoft.HexManiac.Core.Models {
       void SaveImage(short[] image, short[] palette, int width);
 
       int ShowOptions(string title, string prompt, params VisualOption[] options);
+   }
+
+   public interface IWorkDispatcher {
+      /// <summary>
+      /// If there's a long-running task, you can use this to break it up into chunks.
+      /// </summary>
+      void DispatchWork(Action action);
+   }
+
+   public class InstantDispatch : IWorkDispatcher {
+      public static IWorkDispatcher Instance { get; } = new InstantDispatch();
+      public void DispatchWork(Action action) => action?.Invoke();
    }
 
    public class VisualOption : ViewModelCore {

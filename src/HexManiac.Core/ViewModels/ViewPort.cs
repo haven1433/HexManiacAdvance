@@ -859,7 +859,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          RefreshBackingData();
       }
 
-      public void Edit(string input, IFileSystem continuation = null) {
+      public void Edit(string input, IWorkDispatcher continuation = null) {
          if (!UpdateInProgress) {
             UpdateInProgress = true;
             CurrentProgressScopes.Insert(0, tools.DeferUpdates);

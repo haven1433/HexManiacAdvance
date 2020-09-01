@@ -18,7 +18,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 namespace HavenSoft.HexManiac.WPF.Implementations {
-   public class WindowsFileSystem : IFileSystem {
+   public class WindowsFileSystem : IFileSystem, IWorkDispatcher {
       private const string QueryPalette = "/Text/HexManiacAdvance_Palette";
 
       private readonly Dictionary<string, List<FileSystemWatcher>> watchers = new Dictionary<string, List<FileSystemWatcher>>();

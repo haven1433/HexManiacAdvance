@@ -103,10 +103,10 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          }
       }
 
-      private static EditorViewModel GetViewModel(string fileName, int address, IFileSystem fileSystem, bool useMetadata) {
+      private static EditorViewModel GetViewModel(string fileName, int address, WindowsFileSystem fileSystem, bool useMetadata) {
          if (fileName != string.Empty) fileName = Path.GetFullPath(fileName);
          SetInitialWorkingDirectory();
-         var editor = new EditorViewModel(fileSystem, useMetadata);
+         var editor = new EditorViewModel(fileSystem, fileSystem, allowLoadingMetadata: useMetadata);
          if (!File.Exists(fileName)) return editor;
          var loadedFile = fileSystem.LoadFile(fileName);
          editor.Open.Execute(loadedFile);

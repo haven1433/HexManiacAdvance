@@ -19,6 +19,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private const int MaxReasonableResults = 400; // limit for performance reasons
 
       private readonly IFileSystem fileSystem;
+      private readonly IWorkDispatcher workDispatcher;
       private readonly bool allowLoadingMetadata;
       private readonly List<ITabContent> tabs;
 
@@ -313,8 +314,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #endregion
 
-      public EditorViewModel(IFileSystem fileSystem, bool allowLoadingMetadata = true) {
+      public EditorViewModel(IFileSystem fileSystem, IWorkDispatcher workDispatcher = null, bool allowLoadingMetadata = true) {
          this.fileSystem = fileSystem;
+         this.workDispatcher = workDispatcher ?? InstantDispatch.Instance;
          this.allowLoadingMetadata = allowLoadingMetadata;
          tabs = new List<ITabContent>();
          selectedIndex = -1;
@@ -460,7 +462,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                copyText = copyText.Replace(Environment.NewLine, "\n"); // normalize newline inputs
             }
 
-            (SelectedTab as ViewPort)?.Edit(copyText, fileSystem);
+            (SelectedTab as ViewPort)?.Edit(copyText, workDispatcher);
          };
       }
 
