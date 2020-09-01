@@ -1,0 +1,64 @@
+﻿
+# https://github.com/pret/pokeemerald/blob/25f45ffa8441b0f0a999355c9755782ccb4809dc/src/main_menu.c
+# NewGameBirchSpeech_CreateLotadSprite
+[[MatchedWords]]
+Name = '''scripts.shiny.odds'''
+Address = 0x031910
+Length = 1
+Offset = -1
+
+# https://github.com/pret/pokeemerald/blob/cd895e497d68bf9adbaa067dc411cc99a3bd1a4b/src/pokemon.c
+# CreateBoxMon
+[[MatchedWords]]
+Name = '''scripts.shiny.odds'''
+Address = 0x067C56
+Length = 1
+Offset = -1
+
+# https://github.com/pret/pokeemerald/blob/cd895e497d68bf9adbaa067dc411cc99a3bd1a4b/src/pokemon.c
+# GetMonSpritePalFromSpeciesAndPersonality
+[[MatchedWords]]
+Name = '''scripts.shiny.odds'''
+Address = 0x06E76C
+Length = 1
+Offset = -1
+
+# https://github.com/pret/pokeemerald/blob/cd895e497d68bf9adbaa067dc411cc99a3bd1a4b/src/pokemon.c
+# GetMonSpritePalStructFromOtIdPersonality
+[[MatchedWords]]
+Name = '''scripts.shiny.odds'''
+Address = 0x06E7E2
+Length = 1
+Offset = -1
+
+# https://github.com/pret/pokeemerald/blob/cd895e497d68bf9adbaa067dc411cc99a3bd1a4b/src/pokemon.c
+# IsShinyOtIdPersonality
+[[MatchedWords]]
+Name = '''scripts.shiny.odds'''
+Address = 0x06EBE4
+Length = 1
+Offset = -1
+
+# https://github.com/pret/pokeemerald/blob/5735609629b3bee1fab33c77ab66225200c1c434/src/pokedex.c
+# CreateMonSpriteFromNationalDexNumber
+[[MatchedWords]]
+Name = '''scripts.shiny.odds'''
+Address = 0x0C0EE0
+Length = 1
+Offset = 0
+
+# https://github.com/pret/pokeemerald/blob/7ada56f0395ca6d4d6810c6f3762f8e03dc60cb7/src/starter_choose.c
+# CreatePokemonFrontSprite
+[[MatchedWords]]
+Name = '''scripts.shiny.odds'''
+Address = 0x1346AC
+Length = 1
+Offset = -1
+
+# https://github.com/pret/pokeemerald/blob/51cd0ac08116674a8ebd258af0620c2f7de9dc0e/src/battle_anim_special.c
+# sub_8172EF0
+[[MatchedWords]]
+Name = '''scripts.shiny.odds'''
+Address = 0x172F46
+Length = 1
+Offset = -1

@@ -1,0 +1,64 @@
+﻿
+
+
+
+
+
+
+
+
+# https://github.com/pret/pokefirered/blob/6001e107993d1da69decdf479abf8a661ad57dda/src/pokemon.c
+# CreateBoxMon
+[[MatchedWords]]
+Name = '''scripts.shiny.odds'''
+Address = 0x03DB5E
+Length = 1
+Offset = -1
+
+# https://github.com/pret/pokefirered/blob/6001e107993d1da69decdf479abf8a661ad57dda/src/pokemon.c
+# GetMonSpritePalFromSpeciesAndPersonality
+[[MatchedWords]]
+Name = '''scripts.shiny.odds'''
+Address = 0x044120
+Length = 1
+Offset = -1
+
+# https://github.com/pret/pokefirered/blob/6001e107993d1da69decdf479abf8a661ad57dda/src/pokemon.c
+# GetMonSpritePalStructFromOtIdPersonality
+[[MatchedWords]]
+Name = '''scripts.shiny.odds'''
+Address = 0x044196
+Length = 1
+Offset = -1
+
+# https://github.com/pret/pokefirered/blob/6001e107993d1da69decdf479abf8a661ad57dda/src/pokemon.c
+# IsShinyOtIdPersonality
+[[MatchedWords]]
+Name = '''scripts.shiny.odds'''
+Address = 0x0444B0
+Length = 1
+Offset = -1
+
+
+# apparently used for pokedex pokemon palette choosing, although I can't find the function in pokefirered
+[[MatchedWords]]
+Name = '''scripts.shiny.odds'''
+Address = 0x1049FC
+Length = 1
+Offset = 0
+
+
+
+
+
+
+
+
+
+# https://github.com/pret/pokefirered/blob/4cf09577950db22d7f0acf6ede45b8dca1c97156/src/battle_anim_special.c
+# sub_80F1720
+[[MatchedWords]]
+Name = '''scripts.shiny.odds'''
+Address = 0x0F174E
+Length = 1
+Offset = -1
