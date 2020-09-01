@@ -165,6 +165,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      private int searchByte = -1;
+      public int SearchByte {
+         get => searchByte;
+         set => Set(ref searchByte, value);
+      }
+
+      private string findText;
+      public string FindText {
+         get => findText;
+         set => Set(ref findText, value, FindTextChanged);
+      }
+      private void FindTextChanged(string oldValue) {
+         if (findText.Length == 2 && int.TryParse(findText, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var result)) {
+            SearchByte = result;
+         } else {
+            SearchByte = -1;
+         }
+      }
+
       private int zoomLevel = 16;
       public int ZoomLevel {
          get => zoomLevel;
@@ -567,6 +586,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void FindExecuted(string search) {
+         if (search == null) search = findText;
          var results = new List<(IViewPort, int start, int end)>();
 
          var searchedModels = new List<IDataModel>();

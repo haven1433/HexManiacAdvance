@@ -422,7 +422,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Empty(test.Errors);
 
          test.ViewPort.Edit("@20 ^candy ");
-         var editor = new EditorViewModel(new StubFileSystem { DispatchWork = arg => arg() });
+         var editor = new EditorViewModel(new StubFileSystem());
          editor.Add(test.ViewPort);
          editor.GotoViewModel.Text = "cady";
          editor.GotoViewModel.Goto.Execute();

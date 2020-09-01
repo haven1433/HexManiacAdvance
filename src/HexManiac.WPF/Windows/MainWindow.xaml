@@ -210,7 +210,7 @@
             <!-- Find -->
             <StackPanel Name="FindPanel" Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding FindControlVisible, Converter={StaticResource BoolToVisibility}}">
                <TextBlock Text="Find :" Margin="10,0" />
-               <TextBox Name="FindBox" MinWidth="200" IsVisibleChanged="EditBoxVisibilityChanged">
+               <TextBox Name="FindBox" MinWidth="200" IsVisibleChanged="EditBoxVisibilityChanged" Text="{Binding FindText, UpdateSourceTrigger=PropertyChanged}">
                   <TextBox.InputBindings>
                      <KeyBinding Key="Esc" Command="{Binding ShowFind}">
                         <KeyBinding.CommandParameter>

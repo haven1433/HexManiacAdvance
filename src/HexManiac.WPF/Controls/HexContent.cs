@@ -204,6 +204,22 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       #endregion
 
+      #region SearchByte
+
+      public static readonly DependencyProperty SearchByteProperty = DependencyProperty.Register(nameof(SearchByte), typeof(int), typeof(HexContent), new FrameworkPropertyMetadata(-1, SearchByteChanged));
+
+      public int SearchByte {
+         get => (int)GetValue(SearchByteProperty);
+         set => SetValue(SearchByteProperty, value);
+      }
+
+      private static void SearchByteChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+         var self = (HexContent)d;
+         self.OnRequestInvalidateVisual();
+      }
+
+      #endregion
+
       public ScreenPoint CursorLocation {
          get {
             if (!(ViewPort is ViewPort viewPort)) return new ScreenPoint(-1, -1);
@@ -439,7 +455,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       protected override void OnRender(DrawingContext drawingContext) {
          base.OnRender(drawingContext);
          if (ViewPort == null || ViewPort.UpdateInProgress) return;
-         var visitor = new FormatDrawer(drawingContext, ViewPort, ViewPort.Width, ViewPort.Height, CellWidth, CellHeight, FontSize);
+         var visitor = new FormatDrawer(drawingContext, ViewPort, ViewPort.Width, ViewPort.Height, CellWidth, CellHeight, FontSize, SearchByte);
 
          // clear
          drawingContext.DrawRectangle(Brush(nameof(Theme.Background)), null, new Rect(0, 0, ActualWidth, ActualHeight));

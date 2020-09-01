@@ -498,7 +498,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void ExpandableTutorsWorks(string game) {
          var fileSystem = new StubFileSystem();
          var model = fixture.LoadModelNoCache(game);
-         var editor = new EditorViewModel(fileSystem, false);
+         var editor = new EditorViewModel(fileSystem, allowLoadingMetadata: false);
          var viewPort = new ViewPort(game, model);
          editor.Add(viewPort);
          var expandTutors = editor.QuickEdits.Single(edit => edit.Name == new MakeTutorsExpandable().Name);
@@ -532,7 +532,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void ExpandableMovesWorks(string game) {
          var fileSystem = new StubFileSystem();
          var model = fixture.LoadModelNoCache(game);
-         var editor = new EditorViewModel(fileSystem, false);
+         var editor = new EditorViewModel(fileSystem, allowLoadingMetadata: false);
          var viewPort = new ViewPort(game, model, fixture.Singletons);
          editor.Add(viewPort);
          var expandMoves = editor.QuickEdits.Single(edit => edit.Name == new MakeMovesExpandable().Name);
@@ -614,7 +614,7 @@ namespace HavenSoft.HexManiac.Tests {
       private void ExpandableTMsWorks(string game) {
          var fileSystem = new StubFileSystem();
          var model = fixture.LoadModelNoCache(game);
-         var editor = new EditorViewModel(fileSystem, false);
+         var editor = new EditorViewModel(fileSystem, allowLoadingMetadata: false);
          var viewPort = new ViewPort(game, model);
          editor.Add(viewPort);
          var expandTMs = editor.QuickEdits.Single(edit => edit.Name == "Make TMs Expandable");
@@ -649,7 +649,7 @@ namespace HavenSoft.HexManiac.Tests {
       private void ExpandableItemsWorks(string game) {
          var fileSystem = new StubFileSystem();
          var model = fixture.LoadModelNoCache(game);
-         var editor = new EditorViewModel(fileSystem, false);
+         var editor = new EditorViewModel(fileSystem, allowLoadingMetadata: false);
          var viewPort = new ViewPort(game, model);
          editor.Add(viewPort);
          var expandItems = editor.QuickEdits.Single(edit => edit.Name == "Make Items Expandable");

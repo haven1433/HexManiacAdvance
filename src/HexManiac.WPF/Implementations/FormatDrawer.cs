@@ -21,7 +21,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          byteText = Enumerable.Range(0, 0x100).Select(i => i.ToString("X2")).ToArray();
       }
 
-      private readonly int fontSize = 16;
+      private readonly int fontSize = 16, searchByte = -1;
 
       private readonly Point CellTextOffset;
 
@@ -43,10 +43,11 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          }
       }
 
-      public FormatDrawer(DrawingContext drawingContext, IViewPort viewModel, int width, int height, double cellWidth, double cellHeight, int fontSize) {
+      public FormatDrawer(DrawingContext drawingContext, IViewPort viewModel, int width, int height, double cellWidth, double cellHeight, int fontSize, int searchByte) {
          (context, viewPort, modelWidth, modelHeight, cellSize) = (drawingContext, viewModel, width, height, new Size(cellWidth, cellHeight));
          rectangleGeometry = new RectangleGeometry(new Rect(new Point(0, 0), cellSize));
          this.fontSize = fontSize;
+         this.searchByte = searchByte;
          var testText = CreateText("00", fontSize, null);
          CellTextOffset = new Point((cellWidth - testText.Width) / 2, (cellHeight - testText.Height) / 2);
       }
@@ -113,7 +114,9 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             } else if (format is None none) {
                if (cell.Value == 0x00) collector.Collect<UnderEdit>(format, x, 1, "00");
                else if (cell.Value == 0xFF) collector.Collect<Undefined>(format, x, 1, "FF");
-               else collector.Collect<None>(format, x, 1, byteText[cell.Value]);
+               else if (searchByte == -1) collector.Collect<None>(format, x, 1, byteText[cell.Value]);
+               else if (cell.Value == searchByte) collector.Collect<None>(format, x, 1, byteText[cell.Value]);
+               else collector.Collect<UnderEdit>(format, x, 1, byteText[cell.Value]);
             } else if (format is BitArray array) {
                collector.Collect<BitArray>(format, x, 1, byteText[cell.Value]);
             } else if (format is MatchedWord word) {

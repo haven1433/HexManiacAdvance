@@ -622,7 +622,14 @@
                      <TranslateTransform/>
                   </Rectangle.RenderTransform>
                </Rectangle>
-               <hsg3hv:HexContent x:Name="HexContent" GotFocus="ShowCursor" LostFocus="HideCursor" ViewPort="{Binding}" FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=ZoomLevel}"  ShowGrid="{Binding DataContext.ShowMatrix, RelativeSource={RelativeSource AncestorType=hsg3hw:MainWindow}}" CursorNeedsUpdate="UpdateBlinkyCursor"/>
+               <hsg3hv:HexContent x:Name="HexContent"
+                  GotFocus="ShowCursor"
+                  LostFocus="HideCursor"
+                  ViewPort="{Binding}"
+                  FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=ZoomLevel}"
+                  ShowGrid="{Binding DataContext.ShowMatrix, RelativeSource={RelativeSource AncestorType=hsg3hw:MainWindow}}"
+                  SearchByte="{Binding DataContext.SearchByte, RelativeSource={RelativeSource AncestorType=hsg3hw:MainWindow}}"
+                  CursorNeedsUpdate="UpdateBlinkyCursor"/>
                <Rectangle Width="1" Fill="{DynamicResource Secondary}" Visibility="Collapsed" IsHitTestVisible="False" Name="BlinkyCursor" HorizontalAlignment="Left" VerticalAlignment="Top"/>
             </Grid>
          </Grid>
