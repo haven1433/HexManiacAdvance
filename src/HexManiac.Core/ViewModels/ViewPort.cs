@@ -166,11 +166,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          moveSelectionEnd = new StubCommand();
       public ICommand MoveSelectionStart => moveSelectionStart;
       public ICommand MoveSelectionEnd => moveSelectionEnd;
-      public ICommand Goto => selection.Goto;
+      public ICommand Goto => StubCommand<object>(ref gotoCommand, ExecuteGoto, selection.Goto.CanExecute);
       public ICommand Back => selection.Back;
       public ICommand Forward => selection.Forward;
       public ICommand ResetAlignment => selection.ResetAlignment;
       public ICommand SelectAll => selectAll;
+
+      private StubCommand gotoCommand;
+      private void ExecuteGoto(object arg) {
+         if (arg is string str) {
+            var words = Model.GetMatchedWords(str).Where(word => Model.GetNextRun(word).Length == 1).ToList();
+            if (words.Count == 1) {
+               selection.Goto.Execute(words[0]);
+               return;
+            } else if (words.Count > 1) {
+               OpenSearchResultsTab(str, words.Select(word => (word, word)).ToList());
+               return;
+            }
+         }
+
+         selection.Goto.Execute(arg);
+      }
 
       private void ClearActiveEditBeforeSelectionChanges(object sender, Point location) {
          if (location.X >= 0 && location.X < scroll.Width && location.Y >= 0 && location.Y < scroll.Height) {
@@ -925,8 +941,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var element = this[point.X, point.Y];
          var underEdit = element.Format as UnderEdit;
          if (underEdit == null) return;
-         var index = underEdit.AutocompleteOptions.Select(option => option.CompletionText).ToList().IndexOf(input);
-         underEdit = new UnderEdit(underEdit.OriginalFormat, underEdit.AutocompleteOptions[index].CompletionText, underEdit.EditWidth);
+         if (underEdit.AutocompleteOptions != null) {
+            var index = underEdit.AutocompleteOptions.Select(option => option.CompletionText).ToList().IndexOf(input);
+            underEdit = new UnderEdit(underEdit.OriginalFormat, underEdit.AutocompleteOptions[index].CompletionText, underEdit.EditWidth);
+         } else {
+            underEdit = new UnderEdit(underEdit.OriginalFormat, input, underEdit.EditWidth);
+         }
          currentView[point.X, point.Y] = new HexElement(element.Value, element.Edited, underEdit);
          TryCompleteEdit(point);
       }
@@ -1127,6 +1147,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          // it might be a string with no quotes, we should check for matches for that.
          if (cleanedSearchString.Length > 3 && !cleanedSearchString.Contains(StringDelimeter) && !cleanedSearchString.All(AllHexCharacters.Contains)) {
             results.AddRange(FindUnquotedText(cleanedSearchString, searchBytes));
+         }
+
+         // it might be a matched-word
+         var matchedWords = Model.GetMatchedWords(rawSearch);
+         if (matchedWords.Count > 0) {
+            results.AddRange(matchedWords.Select(word => (word, word)));
          }
 
          // it might be a pointer without angle braces

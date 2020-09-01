@@ -143,7 +143,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public void AddMatchedWord(IDataModel model, int memoryLocation, string parentName) {
          var parentAddress = model.GetAddressFromAnchor(this, -1, parentName);
          var parent = model.GetNextRun(parentAddress) as ArrayRun;
-         model.WriteValue(this, memoryLocation, parent?.ElementCount ?? default);
+         if (parent != null) model.WriteValue(this, memoryLocation, parent.ElementCount);
          addedMatchedWords[memoryLocation] = parentName;
       }
 

@@ -102,9 +102,9 @@ namespace HavenSoft.HexManiac.Core.Models {
             matchedWords[word.Name].Add(word.Address);
             var index = BinarySearch(word.Address);
             if (index > 0) {
-               runs[index] = new WordRun(word.Address, word.Name, runs[index].PointerSources);
+               runs[index] = new WordRun(word.Address, word.Name, word.Length, word.Offset, runs[index].PointerSources);
             } else {
-               runs.Insert(~index, new WordRun(word.Address, word.Name));
+               runs.Insert(~index, new WordRun(word.Address, word.Name, word.Length, word.Offset));
             }
          }
 
@@ -482,6 +482,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          return false;
+      }
+
+      public override IReadOnlyList<int> GetMatchedWords(string name) {
+         if (matchedWords.TryGetValue(name, out var list)) return list.ToList();
+         return new int[0];
       }
 
       public override SortedSpan<int> GetUnmappedSourcesToAnchor(string anchor) {
@@ -1485,6 +1490,16 @@ namespace HavenSoft.HexManiac.Core.Models {
          return results;
       }
 
+      public override IReadOnlyList<string> GetAutoCompleteByteNameOptions(string text) {
+         var results = new List<string>(0);
+         foreach (var key in matchedWords.Keys) {
+            if (key.MatchesPartial(text)) {
+               results.Add(key);
+            }
+         }
+         return results;
+      }
+
       /// <summary>
       /// This recursively looks through parts[], alternating looking for two things:
       /// (1) Find which index of an array we're looking at.
@@ -1557,7 +1572,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var kvp in this.matchedWords) {
             var name = kvp.Key;
             foreach (var address in kvp.Value) {
-               matchedWords.Add(new StoredMatchedWord(address, name));
+               var run = GetNextRun(address) as WordRun;
+               matchedWords.Add(new StoredMatchedWord(address, name, run?.Length ?? 4, run?.ValueOffset ?? 0));
             }
          }
 

@@ -1,18 +1,22 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
-using System.Collections.Generic;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class WordRun : BaseRun {
       public string SourceArrayName { get; }
 
-      public override int Length => 4;
+      public override int Length { get; }
 
-      public override string FormatString => "::";
+      public int ValueOffset { get; }
 
-      public WordRun(int start, string name, SortedSpan<int> sources = null) : base(start, sources) => SourceArrayName = name;
+      public override string FormatString => Length == 4 ? "::" : ".";
 
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) => new MatchedWord(Start, index - Start, "::" + SourceArrayName);
+      public WordRun(int start, string name, int length, int valueOffset, SortedSpan<int> sources = null) : base(start, sources) => (SourceArrayName, Length, ValueOffset) = (name, length, valueOffset);
 
-      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new WordRun(Start, SourceArrayName, newPointerSources);
+      public override IDataFormat CreateDataFormat(IDataModel data, int index) {
+         if (Length == 4) return new MatchedWord(Start, index - Start, "::" + SourceArrayName);
+         return new Integer(Start, 0, data[index], 1);
+      }
+
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new WordRun(Start, SourceArrayName, Length, ValueOffset, newPointerSources);
    }
 }

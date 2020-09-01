@@ -61,6 +61,14 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (cleanLine.StartsWith("Offset = 0x")) {
                var start = cleanLine.IndexOf("x") + 1;
                currentItemOffset = int.Parse(cleanLine.Substring(start), NumberStyles.HexNumber);
+            } else if (cleanLine.StartsWith("Offset = ")) {
+               var start = cleanLine.IndexOf(" = ") + 3;
+               currentItemOffset = int.Parse(cleanLine.Substring(start));
+            }
+
+            if (cleanLine.StartsWith("Length = ")) {
+               var start = cleanLine.IndexOf(" = ") + 3;
+               currentItemLength = int.Parse(cleanLine.Substring(start));
             }
 
             if (cleanLine.StartsWith("Name = '''")) {
@@ -162,6 +170,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             lines.Add("[[MatchedWords]]");
             lines.Add($"Name = '''{word.Name}'''");
             lines.Add($"Address = 0x{word.Address:X6}");
+            lines.Add($"Length = {word.Length}");
+            lines.Add($"Offset = {word.Offset}");
             lines.Add(string.Empty);
          }
 
@@ -186,8 +196,9 @@ namespace HavenSoft.HexManiac.Core.Models {
       string currentItem, currentItemName, currentItemFormat;
       List<string> currentItemChildren;
       bool continueCurrentItemIndex;
+      int currentItemLength = -1;
       int currentItemAddress = -1;
-      int currentItemOffset = -1;
+      int currentItemOffset = int.MinValue;
 
       private void CloseCurrentItem(IList<StoredAnchor> anchors, IList<StoredUnmappedPointer> pointers, IList<StoredMatchedWord> matchedWords, IList<StoredOffsetPointer> offsetPointers, IList<StoredList> lists) {
          if (currentItem == "[[UnmappedPointers]]") {
@@ -203,14 +214,16 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          if (currentItem == "[[MatchedWords]]") {
-            if (currentItemName == null) throw new ArgumentNullException("The Metadata file has a MatchedWords that didn't specify a name!");
-            if (currentItemAddress == -1) throw new ArgumentOutOfRangeException("The Metadata file has an UnmappedPointer that didn't specify an Address!");
-            matchedWords.Add(new StoredMatchedWord(currentItemAddress, currentItemName));
+            if (currentItemName == null) throw new ArgumentNullException("The Metadata file has a MatchedWords that didn't specify a Name!");
+            if (currentItemAddress == -1) throw new ArgumentOutOfRangeException("The Metadata file has a MatchedWord that didn't specify an Address!");
+            if (currentItemLength == -1) currentItemLength = 4;
+            if (currentItemOffset == int.MinValue) currentItemOffset = 0;
+            matchedWords.Add(new StoredMatchedWord(currentItemAddress, currentItemName, currentItemLength, currentItemOffset));
          }
 
          if (currentItem == "[[OffsetPointer]]") {
             if (currentItemAddress == -1) throw new ArgumentOutOfRangeException("The Metadata file has an OffsetPointer that didn't specify an Address!");
-            if (currentItemOffset == -1) throw new ArgumentOutOfRangeException("The Metadata file has an OffsetPointer that didn't specify an Offset!");
+            if (currentItemOffset == int.MinValue) throw new ArgumentOutOfRangeException("The Metadata file has an OffsetPointer that didn't specify an Offset!");
             offsetPointers.Add(new StoredOffsetPointer(currentItemAddress, currentItemOffset));
          }
 
@@ -224,7 +237,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          currentItemName = null;
          currentItemFormat = null;
          currentItemAddress = -1;
-         currentItemOffset = -1;
+         currentItemOffset = int.MinValue;
+         currentItemLength = -1;
          continueCurrentItemIndex = false;
          currentItemChildren = null;
       }
@@ -255,7 +269,9 @@ namespace HavenSoft.HexManiac.Core.Models {
    public class StoredMatchedWord {
       public int Address { get; }
       public string Name { get; }
-      public StoredMatchedWord(int address, string name) => (Address, Name) = (address, name);
+      public int Length { get; }
+      public int Offset { get; }
+      public StoredMatchedWord(int address, string name, int length, int offset) => (Address, Name, Length, Offset) = (address, name, length, offset);
    }
 
    public class StoredOffsetPointer {

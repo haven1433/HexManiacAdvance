@@ -106,7 +106,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          var gamesToDecode = new[] { Ruby, Sapphire, Emerald, FireRed, LeafGreen, Ruby1_1, Sapphire1_1, FireRed1_1, LeafGreen1_1 };
          if (gamesToDecode.Contains(gameCode)) {
-            foreach (var defaultMetadata in GetDefaultMetadatas(gameCode.Substring(0, 4).ToLower())) {
+            foreach (var defaultMetadata in GetDefaultMetadatas(gameCode.Substring(0, 4).ToLower(), gameCode.ToLower())) {
                this.LoadMetadata(defaultMetadata);
             }
             DecodeHeader();

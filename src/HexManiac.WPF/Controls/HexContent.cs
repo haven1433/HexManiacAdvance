@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
@@ -331,6 +332,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                   // already set
                } else {
                   MakeNewToolTip(intEnum.DisplayValue);
+               }
+            } else if (format is Integer integer && ViewPort is ViewPort editableViewport && editableViewport.Model.GetNextRun(editableViewport.ConvertViewPointToAddress(newMouseOverPoint)) is WordRun wordRun) {
+               var desiredToolTip = wordRun.SourceArrayName + ((wordRun.ValueOffset > 0) ? "+" + wordRun.ValueOffset.ToString() : ((wordRun.ValueOffset < 0) ? wordRun.ValueOffset.ToString() : string.Empty));
+               if (Equals(desiredToolTip, ToolTip.Content) && ToolTipService.GetIsEnabled(this)) {
+                  // already set
+               } else {
+                  MakeNewToolTip(desiredToolTip);
                }
             } else {
                timer.Enabled = false;

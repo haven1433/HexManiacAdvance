@@ -39,6 +39,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                }
                return;
             }
+
+            if (UnderEdit.CurrentText[0] == '.') {
+               Result = char.IsLetterOrDigit(Input) || Input.IsAny(" .+-".ToCharArray());
+               return;
+            }
          }
 
          Result = ViewPort.AllHexCharacters.Contains(Input);

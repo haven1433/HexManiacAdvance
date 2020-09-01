@@ -45,6 +45,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             if (CurrentText.Last() != ' ') return;
             CompleteWordEdit();
             Result = true;
+         } else if (CurrentText.StartsWith(".")) {
+            if (CurrentText.Last() != ' ') return;
+            CompleteNamedByteEdit();
+            Result = true;
          } else {
             if (CurrentText.Length < 2) return;
             CompleteHexEdit(CurrentText);
@@ -361,12 +365,33 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
 
          var run = Model.GetNextRun(memoryLocation);
+         if (run is WordRun wordRun1) {
+            var desiredValue = result - wordRun1.ValueOffset;
+            if (desiredValue < 0 || desiredValue > 255) {
+               ErrorText = "Virtual value out of range!";
+               return;
+            }
+         }
          Model.WriteMultiByteValue(integer.Source, integer.Length, CurrentChange, result);
          if (result >= Math.Pow(2L, integer.Length * 8)) ErrorText = $"Warning: number was too big to fit in the available space.";
          int runIndex = integer.Source - run.Start;
          if (run is LZRun lzRun) {
             TryFixupLzRun(ref lzRun, runIndex + integer.Length); // this is before the first header: it cannot fail.
             run = lzRun;
+         }
+         if (run is WordRun wordRun) {
+            // update the other word runs with the same token name
+            var desiredValue = result - wordRun.ValueOffset;
+            foreach (var address in Model.GetMatchedWords(wordRun.SourceArrayName)) {
+               if (address == run.Start) continue; // don't write the current run
+               if (!(Model.GetNextRun(address) is WordRun currentRun)) continue;
+               var writeValue = desiredValue + currentRun.ValueOffset;
+               if (writeValue < 0 || writeValue > 255) {
+                  NewDataIndex = currentRun.Start;
+                  ErrorText = $"{currentRun.Start:X6}: value out of range!";
+               }
+               Model.WriteMultiByteValue(address, currentRun.Length, CurrentChange, writeValue);
+            }
          }
          NewDataIndex = run.Start + runIndex + integer.Length;
       }
@@ -465,8 +490,35 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Model.ExpandData(CurrentChange, memoryLocation + 3);
          Model.ClearFormat(CurrentChange, memoryLocation, 4);
          CurrentChange.AddMatchedWord(Model, memoryLocation, parentName);
-         Model.ObserveRunWritten(CurrentChange, new WordRun(memoryLocation, parentName));
+         Model.ObserveRunWritten(CurrentChange, new WordRun(memoryLocation, parentName, 4, 0));
          NewDataIndex = memoryLocation + 4;
+      }
+
+      private void CompleteNamedByteEdit() {
+         var byteName = CurrentText.Substring(1).Trim();
+         var offset = 0;
+         if (byteName.Contains("+")) {
+            var split = byteName.Split('+');
+            int.TryParse(split[1], out offset);
+            byteName = split[0];
+         }
+         if (byteName.Contains("-")) {
+            var split = byteName.Split('-');
+            int.TryParse(split[1], out offset);
+            byteName = split[0];
+            offset = -offset;
+         }
+
+         var coreValue = Model[memoryLocation] - offset;
+         if (coreValue < 0) {
+            ErrorText = $"Could not create {byteName} with offset {offset} because then the virtual value would be below 0.";
+         } else if (coreValue > 255) {
+            ErrorText = $"Could not create {byteName} with offset {offset} because then the virtual value would be above 255.";
+         } else {
+            CurrentChange.AddMatchedWord(Model, memoryLocation, byteName);
+            Model.ObserveRunWritten(CurrentChange, new WordRun(memoryLocation, byteName, 1, offset));
+            NewDataIndex = memoryLocation;
+         }
       }
 
       private void CompleteStringEdit() {

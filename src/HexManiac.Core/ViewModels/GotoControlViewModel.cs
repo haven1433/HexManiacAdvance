@@ -30,6 +30,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var text = this.text;
                using (ModelCacheScope.CreateScope(viewPort.Model)) {
                   var options = new List<string>(viewPort.Model?.GetAutoCompleteAnchorNameOptions(text) ?? new string[0]);
+                  options.AddRange(viewPort.Model?.GetAutoCompleteByteNameOptions(text) ?? new string[0]);
                   if (!text.Contains("/") && options.Count < PokemonModel.MaxAutoCompleteResults) {
                      options.AddRange(viewPort.Model?.GetAutoCompleteAnchorNameOptions("/" + text) ?? new string[0]);
                   }

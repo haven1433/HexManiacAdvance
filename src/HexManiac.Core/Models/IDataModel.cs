@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 
 namespace HavenSoft.HexManiac.Core.Models {
    public interface IDataModel : IReadOnlyList<byte>, IEquatable<IDataModel> {
@@ -74,6 +75,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       StoredMetadata ExportMetadata(IMetadataInfo metadataInfo);
       void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, int address, int destination);
       int ConsiderResultsAsTextRuns(ModelDelta changeToken, IReadOnlyList<int> startLocations);
+      IReadOnlyList<string> GetAutoCompleteByteNameOptions(string text);
+      IReadOnlyList<int> GetMatchedWords(string name);
    }
 
    public abstract class BaseModel : IDataModel {
@@ -108,7 +111,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public int Count => RawData.Length;
 
-      public static IEnumerable<StoredMetadata> GetDefaultMetadatas(string code) {
+      public static IEnumerable<StoredMetadata> GetDefaultMetadatas(params string[] codes) {
          if (File.Exists("resources/default.toml")) {
             var lines = File.ReadAllLines("resources/default.toml");
             var metadata = new StoredMetadata(lines);
@@ -116,10 +119,12 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          foreach (var fileName in Directory.GetFiles("resources", "default.*.toml")) {
-            if (!fileName.ToLower().Contains($".{code}.")) continue;
-            var lines = File.ReadAllLines(fileName);
-            var metadata = new StoredMetadata(lines);
-            yield return metadata;
+            foreach (var code in codes) {
+               if (!fileName.ToLower().Contains($".{code}.")) continue;
+               var lines = File.ReadAllLines(fileName);
+               var metadata = new StoredMetadata(lines);
+               yield return metadata;
+            }
          }
       }
 
@@ -140,6 +145,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          Array.Copy(RawData, newData, RawData.Length);
          RawData = newData;
       }
+
+      public virtual IReadOnlyList<int> GetMatchedWords(string name) => new int[0];
 
       public virtual SortedSpan<int> GetUnmappedSourcesToAnchor(string anchor) => SortedSpan<int>.None;
 
@@ -206,6 +213,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public virtual int ConsiderResultsAsTextRuns(ModelDelta changeToken, IReadOnlyList<int> startLocations) => 0;
 
       public virtual IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial) => new string[0];
+
+      public virtual IReadOnlyList<string> GetAutoCompleteByteNameOptions(string text) => new string[0];
 
       public virtual StoredMetadata ExportMetadata(IMetadataInfo metadataInfo) => null;
 
@@ -364,9 +373,18 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public static IReadOnlyList<AutoCompleteSelectionItem> GetNewWordAutocompleteOptions(this IDataModel model, string text, int selectedIndex) {
+         IReadOnlyList<string> options;
+
+         if (text.StartsWith(".")) {
+            text = text.Substring(1);
+            options = model.GetAutoCompleteByteNameOptions(text);
+            options = options.Select(option => $".{option} ").ToList();
+            return AutoCompleteSelectionItem.Generate(options, selectedIndex);
+         }
+
          if (text.Length >= 2) text = text.Substring(2);
          else return null;
-         var options = model.GetAutoCompleteAnchorNameOptions(text);
+         options = model.GetAutoCompleteAnchorNameOptions(text);
          options = options.Select(option => $"::{option} ").ToList();
          return AutoCompleteSelectionItem.Generate(options, selectedIndex);
       }
@@ -390,8 +408,10 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public static void LoadMetadata(this IDataModel model, StoredMetadata metadata) {
+         var noChange = new NoDataChangeDeltaModel();
          foreach (var list in metadata.Lists) model.SetList(list.Name, list.Contents);
-         foreach (var anchor in metadata.NamedAnchors) PokemonModel.ApplyAnchor(model, new NoDataChangeDeltaModel(), anchor.Address, BaseRun.AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
+         foreach (var anchor in metadata.NamedAnchors) PokemonModel.ApplyAnchor(model, noChange, anchor.Address, BaseRun.AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
+         foreach (var match in metadata.MatchedWords) model.ObserveRunWritten(noChange, new WordRun(match.Address, match.Name, match.Length, match.Offset));
       }
 
       public static ErrorInfo CompleteArrayExtension(this IDataModel model, ModelDelta changeToken, int count, ref ITableRun table) {
