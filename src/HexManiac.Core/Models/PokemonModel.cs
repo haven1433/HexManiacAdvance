@@ -1493,7 +1493,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override IReadOnlyList<string> GetAutoCompleteByteNameOptions(string text) {
          var results = new List<string>(0);
          foreach (var key in matchedWords.Keys) {
-            if (key.MatchesPartial(text)) {
+            if (key.MatchesPartialWithReordering(text)) {
                results.Add(key);
             }
          }
