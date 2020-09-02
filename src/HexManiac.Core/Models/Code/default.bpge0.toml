@@ -62,3 +62,54 @@ Name = '''scripts.shiny.odds'''
 Address = 0x0F174E
 Length = 1
 Offset = -1
+
+##################################################################### scripts.pokedex.regional.length (originally 151 in FireRed)
+
+# https://github.com/pret/pokefirered/blob/f1d821ecc28d8355b83fae6f0a2a890992c6929f/src/pokedex.c
+# GetKantoPokedexCount
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x088EEC
+Length = 1
+Offset = -1
+
+# https://github.com/pret/pokefirered/blob/f1d821ecc28d8355b83fae6f0a2a890992c6929f/src/pokedex.c
+# HasAllKantoMons
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x088F4A
+Length = 1
+Offset = -2
+
+# https://github.com/pret/pokefirered/blob/83806d0f95f9298bfa6d8775f5ea79a8204cc910/src/pokedex_screen.c
+# sub_8103518
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x103504
+Length = 1
+Offset = 0
+
+# https://github.com/pret/pokefirered/blob/83806d0f95f9298bfa6d8775f5ea79a8204cc910/src/pokedex_screen.c
+# sub_8103518
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x1035CE
+Length = 1
+Offset = -1
+
+# https://github.com/pret/pokefirered/blob/83806d0f95f9298bfa6d8775f5ea79a8204cc910/src/pokedex_screen.c
+# sub_8104BBC
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x104BCA
+Length = 1
+Offset = -1
+
+# https://github.com/pret/pokefirered/blob/4cf09577950db22d7f0acf6ede45b8dca1c97156/src/party_menu.c
+# MonCanEvolve
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x126C22
+Length = 1
+Offset = 0
+

@@ -1,4 +1,6 @@
 ﻿
+##################################################################### scripts.shiny.odds (originally 8 in Emerald)
+
 # https://github.com/pret/pokeemerald/blob/25f45ffa8441b0f0a999355c9755782ccb4809dc/src/main_menu.c
 # NewGameBirchSpeech_CreateLotadSprite
 [[MatchedWords]]
@@ -62,3 +64,86 @@ Name = '''scripts.shiny.odds'''
 Address = 0x172F46
 Length = 1
 Offset = -1
+
+##################################################################### scripts.pokedex.regional.length (originally 202 in Emerald)
+
+# https://github.com/pret/pokeemerald/blob/a9719c92bfa4c6b6dcf57e9516f184721152ad80/src/pokemon.c
+# SpeciesToPokedexNum
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x06E3E2
+Length = 1
+Offset = 0
+
+# https://github.com/pret/pokeemerald/blob/a9719c92bfa4c6b6dcf57e9516f184721152ad80/src/pokemon.c
+# IsSpeciesInHoennDex
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x06E406
+Length = 1
+Offset = 0
+
+https://github.com/pret/pokeemerald/blob/09cfed64b5a10a51ca246ce7a4f57b95cf4b4456/src/pokedex.c
+# CreatePokedexList
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x0BC8FE
+Length = 1
+Offset = 0
+
+https://github.com/pret/pokeemerald/blob/09cfed64b5a10a51ca246ce7a4f57b95cf4b4456/src/pokedex.c
+# CreatePokedexList
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x0BC926
+Length = 1
+Offset = 0
+
+https://github.com/pret/pokeemerald/blob/09cfed64b5a10a51ca246ce7a4f57b95cf4b4456/src/pokedex.c
+# GetHoennPokedexCount
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x0C0890
+Length = 1
+Offset = -1
+
+https://github.com/pret/pokeemerald/blob/09cfed64b5a10a51ca246ce7a4f57b95cf4b4456/src/pokedex.c
+# HasAllHoennMons
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x0C090A
+Length = 1
+Offset = -3
+
+# https://github.com/pret/pokeemerald/blob/a0b3f5d9e34e65c1948325bd4177a734bfde6bb4/src/birch_pc.c
+# GetPokedexRatingText
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x137B7C
+Length = 1
+Offset = -3
+
+# https://github.com/pret/pokeemerald/blob/a0b3f5d9e34e65c1948325bd4177a734bfde6bb4/src/birch_pc.c
+# GetPokedexRatingText
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x137B80
+Length = 1
+Offset = -2
+
+# https://github.com/pret/pokeemerald/blob/a0b3f5d9e34e65c1948325bd4177a734bfde6bb4/src/birch_pc.c
+# GetPokedexRatingText
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x137BB8
+Length = 1
+Offset = -1
+
+# https://github.com/pret/pokeemerald/blob/a0b3f5d9e34e65c1948325bd4177a734bfde6bb4/src/birch_pc.c
+# GetPokedexRatingText
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x137BF8
+Length = 1
+Offset = 0
+

@@ -62,3 +62,86 @@ Name = '''scripts.shiny.odds'''
 Address = 0x14187A
 Length = 1
 Offset = -1
+
+##################################################################### scripts.pokedex.regional.length (originally 202 in Ruby)
+
+# https://github.com/pret/pokeruby/blob/69ce45f71f49c859ca7adc07902842503c07d405/src/pokemon_3.c
+# SpeciesToPokedexNum
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x0406FA
+Length = 1
+Offset = 0
+
+
+
+
+
+
+
+
+
+https://github.com/pret/pokeemerald/blob/09cfed64b5a10a51ca246ce7a4f57b95cf4b4456/src/pokedex.c
+# CreatePokedexList
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x08D6BA
+Length = 1
+Offset = 0
+
+https://github.com/pret/pokeemerald/blob/09cfed64b5a10a51ca246ce7a4f57b95cf4b4456/src/pokedex.c
+# CreatePokedexList
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x08D6E2
+Length = 1
+Offset = 0
+
+https://github.com/pret/pokeemerald/blob/09cfed64b5a10a51ca246ce7a4f57b95cf4b4456/src/pokedex.c
+# GetHoennPokedexCount
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x090FB4
+Length = 1
+Offset = -1
+
+https://github.com/pret/pokeemerald/blob/09cfed64b5a10a51ca246ce7a4f57b95cf4b4456/src/pokedex.c
+# HasAllHoennMons
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x090FE6
+Length = 1
+Offset = -3
+
+# https://github.com/pret/pokeemerald/blob/a0b3f5d9e34e65c1948325bd4177a734bfde6bb4/src/birch_pc.c
+# GetPokedexRatingText
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x10D56C
+Length = 1
+Offset = -3
+
+# https://github.com/pret/pokeemerald/blob/a0b3f5d9e34e65c1948325bd4177a734bfde6bb4/src/birch_pc.c
+# GetPokedexRatingText
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x10D570
+Length = 1
+Offset = -2
+
+# https://github.com/pret/pokeemerald/blob/a0b3f5d9e34e65c1948325bd4177a734bfde6bb4/src/birch_pc.c
+# GetPokedexRatingText
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x10D5A8
+Length = 1
+Offset = -1
+
+# https://github.com/pret/pokeemerald/blob/a0b3f5d9e34e65c1948325bd4177a734bfde6bb4/src/birch_pc.c
+# GetPokedexRatingText
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x10D5E8
+Length = 1
+Offset = 0
+
