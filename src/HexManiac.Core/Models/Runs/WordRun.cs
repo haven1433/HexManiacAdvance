@@ -1,7 +1,8 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
-   public class WordRun : BaseRun {
+   public class WordRun : BaseRun, IAppendToBuilderRun {
       public string SourceArrayName { get; }
 
       public override int Length { get; }
@@ -18,5 +19,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new WordRun(Start, SourceArrayName, Length, ValueOffset, newPointerSources);
+
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) {
+         if (Length == 4) {
+            builder.Append(FormatString + SourceArrayName);
+         } else {
+            builder.Append(model[start]);
+         }
+      }
    }
 }
