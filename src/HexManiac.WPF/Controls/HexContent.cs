@@ -351,6 +351,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                }
             } else if (format is Integer integer && ViewPort is ViewPort editableViewport && editableViewport.Model.GetNextRun(editableViewport.ConvertViewPointToAddress(newMouseOverPoint)) is WordRun wordRun) {
                var desiredToolTip = wordRun.SourceArrayName + ((wordRun.ValueOffset > 0) ? "+" + wordRun.ValueOffset.ToString() : ((wordRun.ValueOffset < 0) ? wordRun.ValueOffset.ToString() : string.Empty));
+               if (!string.IsNullOrEmpty(wordRun.Note)) desiredToolTip += Environment.NewLine + wordRun.Note;
                if (Equals(desiredToolTip, ToolTip.Content) && ToolTipService.GetIsEnabled(this)) {
                   // already set
                } else {

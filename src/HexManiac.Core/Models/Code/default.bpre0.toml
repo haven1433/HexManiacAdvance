@@ -113,3 +113,20 @@ Address = 0x126C4A
 Length = 1
 Offset = 0
 
+##################################################################### scripts.daycare.exp.multiplier
+# https://github.com/pret/pokefirered/blob/4cf09577950db22d7f0acf6ede45b8dca1c97156/src/daycare.c
+# TryProduceOrHatchEgg
+[[MatchedWords]]
+Name = '''scripts.daycare.exp.multiplier'''
+Address = 0x0462E8
+Length = 1
+Offset = 0
+Note = '''Picking an even number will prevent new eggs from being created.'''
+# ShouldEggHatch
+[[MatchedWords]]
+Name = '''scripts.daycare.exp.multiplier'''
+Address = 0x0463D4
+Length = 1
+Offset = 0
+Note = '''Picking an even number will prevent new eggs from being created.'''
+
