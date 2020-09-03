@@ -23,8 +23,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly ChangeHistory<ModelDelta> history;
       private readonly IDataModel model;
 
-      private bool paletteWasSetMoreRecently;
-
       private double spriteScale;
       private int spritePages = 1, palPages = 1, spritePage = 0, palPage = 0;
       private int[,] pixels;
@@ -321,8 +319,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set {
             var run = model.GetNextRun(value) as ISpriteRun;
             if (!TryUpdate(ref spriteAddress, value)) {
-               if (paletteWasSetMoreRecently) PaletteAddress = FindMatchingPalette(model, run, PaletteAddress);
-               paletteWasSetMoreRecently = false;
                if (!RunPropertiesChanged(run)) return;
             }
 
@@ -352,7 +348,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             importPair.CanExecuteChanged.Invoke(importPair, EventArgs.Empty);
             exportPair.CanExecuteChanged.Invoke(exportPair, EventArgs.Empty);
             openInImageTab?.CanExecuteChanged.Invoke(openInImageTab, EventArgs.Empty);
-            paletteWasSetMoreRecently = true;
             var paletteRun = model.GetNextRun(value) as IPaletteRun;
             if (paletteRun == null) {
                palPages = 1;
@@ -522,7 +517,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public static int FindMatchingPalette(IDataModel model, ISpriteRun spriteRun, int defaultAddress) {
          var palettes = spriteRun.FindRelatedPalettes(model);
-         if (palettes.Count == 1) return palettes[0].Start;
+         if (palettes.Select(run => run.Start).Contains(defaultAddress)) return defaultAddress;
+         if (palettes.Count > 0) return palettes[0].Start;
          return defaultAddress;
       }
 
