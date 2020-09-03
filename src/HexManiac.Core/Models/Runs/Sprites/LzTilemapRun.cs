@@ -11,7 +11,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             if (address >= 0 && address < Model.Count) {
                var tileset = Model.GetNextRun(address) as ISpriteRun;
                if (tileset == null) tileset = Model.GetNextRun(arrayTilesetAddress) as ISpriteRun;
-               if (tileset != null) hint = tileset.SpriteFormat.PaletteHint;
+               if (tileset != null && !(tileset is LzTilemapRun)) hint = tileset.SpriteFormat.PaletteHint;
             }
 
             return new SpriteFormat(Format.BitsPerPixel, Format.TileWidth, Format.TileHeight, hint);
