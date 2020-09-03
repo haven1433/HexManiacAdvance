@@ -328,6 +328,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
             importPair.CanExecuteChanged.Invoke(importPair, EventArgs.Empty);
             exportPair.CanExecuteChanged.Invoke(exportPair, EventArgs.Empty);
+            openInImageTab?.CanExecuteChanged.Invoke(openInImageTab, EventArgs.Empty);
 
             if (run == null || run.Start != spriteAddress) {
                spritePages = 1;
@@ -350,6 +351,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (!TryUpdate(ref paletteAddress, value)) return;
             importPair.CanExecuteChanged.Invoke(importPair, EventArgs.Empty);
             exportPair.CanExecuteChanged.Invoke(exportPair, EventArgs.Empty);
+            openInImageTab?.CanExecuteChanged.Invoke(openInImageTab, EventArgs.Empty);
             paletteWasSetMoreRecently = true;
             var paletteRun = model.GetNextRun(value) as IPaletteRun;
             if (paletteRun == null) {
@@ -374,6 +376,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ICommand NextSpritePage => nextSpritePage;
       public ICommand PreviousPalettePage => prevPalPage;
       public ICommand NextPalettePage => nextPalPage;
+
+      private StubCommand openInImageTab;
+      public ICommand OpenInImageTab => StubCommand(ref openInImageTab, () => viewPort.OpenImageEditorTab(spriteAddress), () => exportPair.CanExecute(null));
 
       public int PixelWidth { get; private set; }
       public int PixelHeight { get; private set; }

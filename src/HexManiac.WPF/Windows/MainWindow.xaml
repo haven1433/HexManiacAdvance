@@ -330,6 +330,9 @@
                            <DataTemplate DataType="{x:Type hshmcvm:DexReorderTab}">
                               <hsg3hv:DexReorderView />
                            </DataTemplate>
+                           <DataTemplate DataType="{x:Type hshmcvm:ImageEditorViewModel}">
+                              <hsg3hv:ImageEditorView />
+                           </DataTemplate>
                         </ContentControl.Resources>
                      </ContentControl>
                   </DataTemplate>

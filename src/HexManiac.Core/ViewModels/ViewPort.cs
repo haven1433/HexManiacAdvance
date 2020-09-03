@@ -1547,6 +1547,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          RequestTabChange(this, newTab);
       }
 
+      public void OpenImageEditorTab(int address) {
+         var newTab = new  ImageEditorViewModel(history, Model, address);
+         RequestTabChange(this, newTab);
+      }
+
       public void ValidateMatchedWords() {
          // TODO if this is too slow, add a method to the model to get the set of only MatchedWordRuns.
          for (var run = Model.GetNextRun(0); run != NoInfoRun.NullRun; run = Model.GetNextRun(run.Start + Math.Max(1, run.Length))) {
