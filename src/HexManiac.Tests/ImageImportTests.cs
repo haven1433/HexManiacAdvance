@@ -222,7 +222,7 @@ namespace HavenSoft.HexManiac.Tests {
             Assert.NotEqual(TileMatchType.None, matchType);
          }
 
-         Assert.InRange(newTiles.Length, 3, originalTiles.Length);
+         Assert.InRange(newTiles.Count, 3, originalTiles.Length);
       }
 
       private static byte[] Parse(string data) => data.Split(' ').Select(s => byte.Parse(s, NumberStyles.HexNumber)).ToArray();
