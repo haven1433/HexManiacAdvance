@@ -124,6 +124,8 @@ namespace HavenSoft.HexManiac.Core {
          }
       }
 
+      public static IEnumerable<T> Except<T>(this IEnumerable<T> collection, params T[] remove) => Enumerable.Except(collection, remove);
+
       public static bool MatchesPartialWithReordering(this string full, string partial) {
          var parts = full.Split('.');
          foreach (var possibleOrder in EnumerateOrders(parts)) {

@@ -120,6 +120,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             FindMatchingTileset(model);
             tileset = model.GetNextRun(arrayTilesetAddress) as LzTilesetRun;
          }
+
+         var tilesToKeep = new HashSet<int>();
+         foreach (var tilemap in tileset.FindDependentTilemaps(model).Except(this)) {
+            tilesToKeep.AddRange(tilemap.GetUsedTiles());
+         }
+         var oldTileDataRaw = Decompress(model, tileset.Start);
+         var previousTiles = Tilize(oldTileDataRaw, Format.BitsPerPixel);
+         tiles = MergeTilesets(previousTiles, tilesToKeep, tiles);
          tileset.SetPixels(model, token, tiles);
          var mapData = Decompress(model, Start);
 
@@ -147,10 +155,51 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return newRun;
       }
 
+      public IEnumerable<int> GetUsedTiles() {
+         var mapData = Decompress(Model, Start);
+         for (int y = 0; y < Format.TileHeight; y++) {
+            for (int x = 0; x < Format.TileWidth; x++) {
+               var map = mapData.ReadMultiByteValue((Format.TileWidth * y + x) * 2, 2);
+               var tile = map & 0x3FF;
+               yield return tile;
+            }
+         }
+      }
+
       private int PackMapping(int paletteIndex, TileMatchType matchType, int tileIndex) {
          var hFlip = (matchType == TileMatchType.HFlip || matchType == TileMatchType.BFlip) ? 1 : 0;
          var vFlip = (matchType == TileMatchType.VFlip || matchType == TileMatchType.BFlip) ? 1 : 0;
          return (paletteIndex << 12) | (vFlip << 11) | (hFlip << 10) | tileIndex;
+      }
+
+      public static IReadOnlyList<int[,]> MergeTilesets(IReadOnlyList<int[,]> previous, ISet<int> tilesToKeep, IReadOnlyList<int[,]> newTiles) {
+         var newListIndex = 0;
+         var mergedList = new List<int[,]>();
+         for (int i = 0; i < previous.Count; i++) {
+            if (tilesToKeep.Contains(i)) {
+               mergedList.Add(previous[i]);
+            } else {
+               while (newListIndex < newTiles.Count && FindMatch(newTiles[newListIndex], mergedList).index != -1) newListIndex += 1;
+               if (newListIndex == newTiles.Count) break;
+               mergedList.Add(newTiles[newListIndex]);
+               newListIndex += 1;
+            }
+         }
+         for (int i = mergedList.Count; i < previous.Count; i++) mergedList.Add(previous[i]);
+         for (; newListIndex < newTiles.Count; newListIndex++) {
+            if (FindMatch(newTiles[newListIndex], mergedList).index != -1) continue;
+            mergedList.Add(newTiles[newListIndex]);
+         }
+         return mergedList;
+      }
+
+      public static IReadOnlyList<int[,]> Tilize(byte[] rawData, int bitsPerPixel) {
+         var results = new List<int[,]>();
+         var tileSize = 8 * bitsPerPixel;
+         for (int i = 0; i < rawData.Length; i += tileSize) {
+            results.Add(SpriteRun.GetPixels(rawData, i, 1, 1, bitsPerPixel));
+         }
+         return results;
       }
 
       public static (int[,] pixels,int palette)[,] Tilize(int[,] pixels, int bitsPerPixel) {
@@ -177,8 +226,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return result;
       }
 
-      // TODO include an append mode, where existing unique tiles from an existing tileset are passed in.
-      public static int[][,] GetUniqueTiles((int[,] pixels, int palette)[,] tiles) {
+      public static IReadOnlyList<int[,]> GetUniqueTiles((int[,] pixels, int palette)[,] tiles) {
          var tileWidth = tiles.GetLength(0);
          var tileHeight = tiles.GetLength(1);
          var result = new List<int[,]> {
@@ -193,7 +241,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             }
          }
 
-         return result.ToArray();
+         return result;
       }
 
       public static TileMatchType TilesMatch(int[,] a, int[,] b) {
@@ -224,8 +272,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return TileMatchType.None;
       }
 
-      public static (int, TileMatchType) FindMatch(int[,] tile, int[][,] collection) {
-         for (int i = 0; i < collection.Length; i++) {
+      public static (int index, TileMatchType matchType) FindMatch(int[,] tile, IReadOnlyList<int[,]> collection) {
+         for (int i = 0; i < collection.Count; i++) {
             var match = TilesMatch(tile, collection[i]);
             if (match == TileMatchType.None) continue;
             return (i, match);

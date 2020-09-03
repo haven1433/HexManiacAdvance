@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
    public class LzTilesetRun : LZRun, ISpriteRun {
@@ -62,11 +63,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public ISpriteRun Duplicate(SpriteFormat format) => new LzSpriteRun(format, Model, Start, PointerSources);
 
-      public ISpriteRun SetPixels(IDataModel model, ModelDelta token, int[][,] tiles) {
+      public ISpriteRun SetPixels(IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles) {
          var tileSize = 8 * Format.BitsPerPixel;
-         var data = new byte[tiles.Length * tileSize];
+         var data = new byte[tiles.Count * tileSize];
 
-         for (int i = 0; i < tiles.Length; i++) {
+         for (int i = 0; i < tiles.Count; i++) {
             SpriteRun.SetPixels(data, i * tileSize, tiles[i], Format.BitsPerPixel);
          }
 
