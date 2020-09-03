@@ -250,10 +250,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public override string ToText(IDataModel rawData, int offset, bool deep) {
-         var result = new StringBuilder(Length * 2);
+         var result = new StringBuilder("-");
+         var options = rawData.GetBitOptions(SourceArrayName);
+
          for (int i = 0; i < Length; i++) {
-            result.Append(rawData[offset + i].ToString("X2"));
+            var bits = rawData[offset + i];
+            var optionOffset = i << 3;
+            for (int j = 0; j < 8; j++) {
+               if ((bits & (1 << j)) == 0) continue;
+               result.Append(" ");
+               result.Append(options[optionOffset + j]);
+            }
          }
+
+         result.Append(" /");
          return result.ToString();
       }
 

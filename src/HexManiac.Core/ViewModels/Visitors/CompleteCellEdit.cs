@@ -195,6 +195,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             HandleBitArrayEntry(CurrentText);
             return;
          }
+         if (CurrentText == "/") {
+            NewDataIndex = memoryLocation + array.Length;
+            Result = true;
+         }
       }
 
       public void Visit(MatchedWord word, byte data) => Visit((None)null, data);

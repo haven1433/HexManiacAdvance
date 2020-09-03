@@ -178,7 +178,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
       }
       public void Visit(BitArray array, byte data) {
-         Result = char.IsLetterOrDigit(Input) || Input.IsAny('"', '-');
+         Result = char.IsLetterOrDigit(Input) || Input.IsAny('"', '-', '/');
          if (Result) NewFormat = new UnderEdit(array, Input.ToString(), array.Length);
       }
       public void Visit(MatchedWord word, byte data) => BasicVisit(word, data);
