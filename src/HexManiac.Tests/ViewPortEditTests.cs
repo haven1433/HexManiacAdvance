@@ -303,7 +303,7 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Goto.Execute("00");
          ViewPort.SelectionStart = new Point(0x4, 0xB);
          ViewPort.Copy.Execute(fileSystem);
-         Assert.Contains("0400", fileSystem.CopyText);
+         Assert.Contains("Carl", fileSystem.CopyText);
 
          // verify that direct entry works
          ViewPort.Edit("0100");
