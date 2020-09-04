@@ -932,7 +932,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
 
             if (key != ConsoleKey.Backspace) return;
-            AcceptBackspace(underEdit, point);
+            AcceptBackspace(underEdit, element.Value, point);
          }
       }
 
@@ -1019,14 +1019,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return true;
       }
 
-      private void AcceptBackspace(UnderEdit underEdit, Point point) {
+      private void AcceptBackspace(UnderEdit underEdit, byte cellValue, Point point) {
          // backspace in progress with characters left: just clear a character
          if (underEdit != null && underEdit.CurrentText.Length > 0) {
             var newText = underEdit.CurrentText.Substring(0, underEdit.CurrentText.Length - 1);
             var options = underEdit.AutocompleteOptions;
             if (options != null) {
                var selectedIndex = AutoCompleteSelectionItem.SelectedIndex(underEdit.AutocompleteOptions);
-               options = GetAutocompleteOptions(underEdit.OriginalFormat, newText, selectedIndex);
+               options = GetAutocompleteOptions(underEdit.OriginalFormat, cellValue, newText, selectedIndex);
             }
             var newFormat = new UnderEdit(underEdit.OriginalFormat, newText, underEdit.EditWidth, options);
             currentView[point.X, point.Y] = new HexElement(this[point.X, point.Y], newFormat);
@@ -1631,7 +1631,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             UnderEdit newFormat;
             if (element.Format is UnderEdit underEdit && underEdit.AutocompleteOptions != null) {
                var newText = underEdit.CurrentText + input;
-               var autoCompleteOptions = GetAutocompleteOptions(underEdit.OriginalFormat, newText);
+               var autoCompleteOptions = GetAutocompleteOptions(underEdit.OriginalFormat, element.Value, newText);
                newFormat = new UnderEdit(underEdit.OriginalFormat, newText, underEdit.EditWidth, autoCompleteOptions);
             } else {
                newFormat = element.Format.Edit(input.ToString());
@@ -1647,34 +1647,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      private IReadOnlyList<AutoCompleteSelectionItem> GetAutocompleteOptions(IDataFormat originalFormat, string newText, int selectedIndex = -1) {
+      private IReadOnlyList<AutoCompleteSelectionItem> GetAutocompleteOptions(IDataFormat originalFormat, byte value, string newText, int selectedIndex = -1) {
          using (ModelCacheScope.CreateScope(Model)) {
-            if (originalFormat is Anchor anchor) originalFormat = anchor.OriginalFormat;
-            if (newText.StartsWith(PointerStart.ToString())) {
-               return Model.GetNewPointerAutocompleteOptions(newText, selectedIndex);
-            } else if (newText.StartsWith(GotoMarker.ToString())) {
-               return Model.GetNewPointerAutocompleteOptions(newText, selectedIndex);
-            } else if (originalFormat is IntegerEnum intEnum) {
-               var array = (ITableRun)Model.GetNextRun(intEnum.Source);
-               var segment = (ArrayRunEnumSegment)array.ElementContent[array.ConvertByteOffsetToArrayOffset(intEnum.Source).SegmentIndex];
-               var options = segment.GetOptions(Model).Select(option => option + " "); // autocomplete needs to complete after selection, so add a space
-               return AutoCompleteSelectionItem.Generate(options.Where(option => option.MatchesPartial(newText)), selectedIndex);
-            } else if (originalFormat is EggSection || originalFormat is EggItem) {
-               var eggRun = (EggMoveRun)Model.GetNextRun(((IDataFormatInstance)originalFormat).Source);
-               var allOptions = eggRun.GetAutoCompleteOptions();
-               return AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(newText)), selectedIndex);
-            } else if (originalFormat is PlmItem) {
-               if (!newText.Contains(" ")) return AutoCompleteSelectionItem.Generate(Enumerable.Empty<string>(), -1);
-               var moveName = newText.Substring(newText.IndexOf(' ')).Trim();
-               if (moveName.Length == 0) return AutoCompleteSelectionItem.Generate(Enumerable.Empty<string>(), -1);
-               var plmRun = (PLMRun)Model.GetNextRun(((IDataFormatInstance)originalFormat).Source);
-               var allOptions = plmRun.GetAutoCompleteOptions(newText.Split(' ')[0]);
-               return AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(moveName)), selectedIndex);
-            } else if (newText.StartsWith(":")) {
-               return Model.GetNewWordAutocompleteOptions(newText, selectedIndex);
-            } else {
-               return null;
-            }
+            var visitor = new AutocompleteCell(Model, newText, selectedIndex);
+            originalFormat.Visit(visitor, value);
+            return visitor.Result;
          }
       }
 

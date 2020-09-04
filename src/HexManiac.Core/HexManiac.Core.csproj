@@ -112,6 +112,7 @@
     <Compile Include="ViewModels\Tools\SpriteTool.cs" />
     <Compile Include="ViewModels\Tools\StreamElementViewModel.cs" />
     <Compile Include="ViewModels\Tools\TextStreamElementViewModel.cs" />
+    <Compile Include="ViewModels\Visitors\AutocompleteCell.cs" />
     <Compile Include="ViewModels\Visitors\CompleteCellEdit.cs" />
     <Compile Include="ViewModels\Visitors\ContextItemFactory.cs" />
     <Compile Include="ViewModels\Visitors\ContinueCellEdit.cs" />
