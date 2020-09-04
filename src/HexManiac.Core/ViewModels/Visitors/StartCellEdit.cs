@@ -1,7 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
-using System.Collections.Generic;
 using System.Linq;
 using static HavenSoft.HexManiac.Core.Models.Runs.ArrayRun;
 using static HavenSoft.HexManiac.Core.Models.Runs.AsciiRun;
@@ -34,15 +33,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public bool Result { get; private set; }
 
       public StartCellEdit(IDataModel model, int memoryLocation, char input) => (Model, MemoryLocation, Input) = (model, memoryLocation, input);
-
-      public static IReadOnlyList<AutoCompleteSelectionItem> GetSegmentAutoComplete<T>(IDataModel model, int memoryLocation, string input) where T : ArrayRunElementSegment, IHasOptions {
-         var arrayRun = (ITableRun)model.GetNextRun(memoryLocation);
-         var offsets = arrayRun.ConvertByteOffsetToArrayOffset(memoryLocation);
-         var segment = (T)arrayRun.ElementContent[offsets.SegmentIndex];
-         var allOptions = segment.GetOptions(model).Select(option => option + " ");
-         var autocomplete = AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(input)), -1);
-         return autocomplete;
-      }
 
       // Undefined edits happen when you try to edit the byte after the end of the file.
       // Treat it the same as a None.
@@ -152,7 +142,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(IntegerEnum integer, byte data) {
          if (!integer.CanStartWithCharacter(Input)) return;
 
-         var autocomplete = GetSegmentAutoComplete<ArrayRunEnumSegment>(Model, MemoryLocation, Input.ToString());
+         var autocomplete = AutocompleteCell.GetSegmentAutoComplete(Model, MemoryLocation, Input.ToString());
          NewFormat = new UnderEdit(integer, Input.ToString(), integer.Length, autocomplete);
          Result = true;
       }
@@ -185,7 +175,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(BitArray array, byte data) {
          Result = char.IsLetterOrDigit(Input) || Input.IsAny('"', '-', '/');
          if (Result) NewFormat = new UnderEdit(array, Input.ToString(), array.Length);
-         if (Result) NewFormat = new UnderEdit(array, Input.ToString(), array.Length, autocomplete);
       }
       public void Visit(MatchedWord word, byte data) => BasicVisit(word, data);
       public void Visit(EndStream endStream, byte data) => Result = Input == ExtendArray;
