@@ -885,7 +885,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                return true;
             case ElementContentType.BitArray:
                var bitArraySegment = (ArrayRunBitArraySegment)segment;
-               var bits = bitArraySegment.GetOptions(owner).Count;
+               var bits = bitArraySegment.GetOptions(owner).Count();
                bits %= 8;
                if (bits == 0) return true;
                var finalByte = owner[start + bitArraySegment.Length - 1];

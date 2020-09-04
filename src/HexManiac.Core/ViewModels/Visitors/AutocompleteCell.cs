@@ -46,10 +46,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(Integer integer, byte data) { }
 
       public void Visit(IntegerEnum intEnum, byte data) {
-         var array = (ITableRun)Model.GetNextRun(intEnum.Source);
-         var segment = (ArrayRunEnumSegment)array.ElementContent[array.ConvertByteOffsetToArrayOffset(intEnum.Source).SegmentIndex];
-         var options = segment.GetOptions(Model).Select(option => option + " "); // autocomplete needs to complete after selection, so add a space
-         Result = AutoCompleteSelectionItem.Generate(options.Where(option => option.MatchesPartial(InputText)), SelectionIndex);
+         Result = StartCellEdit.GetSegmentAutoComplete<ArrayRunEnumSegment>(Model, intEnum.Source, InputText);
       }
 
       public void Visit(IntegerHex integer, byte data) { }

@@ -17,6 +17,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       BitArray,
    }
 
+   public interface IHasOptions {
+      IEnumerable<string> GetOptions(IDataModel model);
+   }
+
    public class ArrayRunElementSegment {
       public string Name { get; }
       public ElementContentType Type { get; }
@@ -102,7 +106,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
    }
 
-   public class ArrayRunEnumSegment : ArrayRunElementSegment {
+   public class ArrayRunEnumSegment : ArrayRunElementSegment, IHasOptions {
       public string EnumName { get; }
 
       public override string SerializeFormat => base.SerializeFormat + EnumName;
@@ -240,7 +244,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
    }
 
-   public class ArrayRunBitArraySegment : ArrayRunElementSegment {
+   public class ArrayRunBitArraySegment : ArrayRunElementSegment, IHasOptions {
       public string SourceArrayName { get; }
 
       public override string SerializeFormat => $"{Name}{BitArray.SharedFormatString}{SourceArrayName}";
@@ -274,7 +278,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      public IReadOnlyList<string> GetOptions(IDataModel model) {
+      public IEnumerable<string> GetOptions(IDataModel model) {
          var cache = ModelCacheScope.GetCache(model);
          return cache.GetBitOptions(SourceArrayName);
       }
