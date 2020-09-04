@@ -191,7 +191,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                return;
             }
          }
-         if (CurrentText.StartsWith("\"") && CurrentText.EndsWith("\"") && CurrentText.Length > 1) {
+         if (CurrentText.StartsWith("\"") && CurrentText.Trim().EndsWith("\"") && CurrentText.Length > 1) {
             HandleBitArrayEntry(CurrentText);
             return;
          }
