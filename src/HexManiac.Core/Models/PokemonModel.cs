@@ -80,6 +80,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          FreeSpaceStart = EarliestAllowedAnchor;
 
          if (metadata == null) return;
+         var noChange = new NoDataChangeDeltaModel();
 
          // metadata is more important than anything already found
          foreach (var list in metadata.Lists) {
@@ -89,7 +90,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             // since we're loading metadata, we're pretty sure that the anchors in the metadata are right.
             // therefore, allow those anchors to overwrite anything we found during the initial quick-search phase.
             using (ModelCacheScope.CreateScope(this)) {
-               ApplyAnchor(this, new NoDataChangeDeltaModel(), anchor.Address, AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
+               ApplyAnchor(this, noChange, anchor.Address, AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
             }
          }
          foreach (var unmappedPointer in metadata.UnmappedPointers) {
@@ -106,6 +107,12 @@ namespace HavenSoft.HexManiac.Core.Models {
             } else {
                runs.Insert(~index, new WordRun(word.Address, word.Name, word.Length, word.Offset));
             }
+         }
+         foreach (var offsetPointer in metadata.OffsetPointers) {
+            var newRun = new OffsetPointerRun(offsetPointer.Address, offsetPointer.Offset);
+            ClearFormat(noChange, newRun.Start, newRun.Length);
+            pointerOffsets.Add(offsetPointer.Address, offsetPointer.Offset);
+            ObserveRunWritten(noChange, newRun);
          }
 
          if (metadata.FreeSpaceSearch >= 0) FreeSpaceStart = metadata.FreeSpaceSearch;

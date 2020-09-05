@@ -507,5 +507,23 @@ namespace HavenSoft.HexManiac.Tests {
          // assert that 'tileset1' was replaced with 'tileset2'
          Assert.Equal("`lzm4x1x1|tileset2`", model.GetNextRun(0x00).FormatString);
       }
+
+      [Fact]
+      public void Model_OffsetPointerMetadata_ContainsOffsetPointers() {
+         var storedOffsetPointer = new StoredOffsetPointer(0x100, -Pointer.NULL);
+         var singletons = BaseViewModelTestClass.Singletons;
+         var metadata = new StoredMetadata(default, default, default, new[] { storedOffsetPointer }, default, singletons.MetadataInfo, default);
+
+         var model = new PokemonModel(new byte[0x200], metadata, singletons);
+
+         // assert that the offset pointer was created
+         var run = (OffsetPointerRun)model.GetNextRun(0x100);
+         Assert.Equal(-Pointer.NULL, run.Offset);
+
+         // assert that the destination knows about it
+         var anchor = model.GetNextRun(0);
+         Assert.Equal(0, anchor.Start);
+         Assert.Equal(0x100, anchor.PointerSources.Single());
+      }
    }
 }
