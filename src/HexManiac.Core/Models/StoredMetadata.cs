@@ -126,6 +126,10 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// <returns>True if the previous verison is less than the current version.</returns>
       public static bool NeedVersionUpdate(string previousVersion, string currentVersion) {
          if (previousVersion == null && currentVersion != null) return true;
+
+         if (previousVersion.StartsWith("v")) previousVersion = previousVersion.Substring(1);
+         if (currentVersion.StartsWith("v")) currentVersion = currentVersion.Substring(1);
+
          while (previousVersion.Count(c => c == '.') < currentVersion.Count(c => c == '.')) previousVersion += ".0";
          while (currentVersion.Count(c => c == '.') < previousVersion.Count(c => c == '.')) currentVersion += ".0";
 

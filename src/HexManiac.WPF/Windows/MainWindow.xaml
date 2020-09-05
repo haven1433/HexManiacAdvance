@@ -166,11 +166,25 @@
                </MenuItem>
                <MenuItem Name="QuickEdits" Header="Utilities"/>
                <MenuItem Header="_Help">
+                  <MenuItem Header="_Update" IsEnabled="{Binding IsNewVersionAvailable}" Click="UpdateClick">
+                     <MenuItem.ToolTip>
+                        <ToolTip>
+                           <ToolTip.Content>
+                              <TextBlock>
+                                 Takes you to the releases page so you
+                                 <LineBreak/>
+                                 can download the new version.
+                              </TextBlock>
+                           </ToolTip.Content>
+                        </ToolTip>
+                     </MenuItem.ToolTip>
+                  </MenuItem>
                   <MenuItem Header="_Wiki" Click="WikiClick"/>
                   <MenuItem Header="_Tutorials" Click="TutorialsClick"/>
                   <MenuItem Header="_Report an Issue" Click="ReportIssueClick"/>
-                     <MenuItem Header="_About" Click="AboutClick"/>
-                  </MenuItem>
+                  <MenuItem Header="_Discord" Click="DiscordClick"/>
+                  <MenuItem Header="_About" Click="AboutClick"/>
+               </MenuItem>
             </Menu>
             <!-- Goto -->
             <StackPanel Name="GotoPanel" Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}">

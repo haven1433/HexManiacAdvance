@@ -241,6 +241,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      public bool IsNewVersionAvailable { get; set; }
+      public DateTime LastUpdateCheck { get; set; }
+
       private bool showMatrix = true;
       public bool ShowMatrix { get => showMatrix; set => Set(ref showMatrix, value); }
 
@@ -360,7 +363,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          AnimateScroll = !metadata.Contains("AnimateScroll = False");
          AutoAdjustDataWidth = !metadata.Contains("AutoAdjustDataWidth = False");
          StretchData = !metadata.Contains("StretchData = False");
+         IsNewVersionAvailable = metadata.Contains("IsNewVersionAvailable = True");
          AllowMultipleElementsPerLine = !metadata.Contains("AllowMultipleElementsPerLine = False");
+         var lastUpdateCheckLine = metadata.FirstOrDefault(line => line.StartsWith("LastUpdateCheck = "));
+         if (lastUpdateCheckLine != null && DateTime.TryParse(lastUpdateCheckLine.Split('=').Last().Trim(), out var lastUpdateCheck)) LastUpdateCheck = lastUpdateCheck;
          var zoomLine = metadata.FirstOrDefault(line => line.StartsWith("ZoomLevel ="));
          if (zoomLine != null && int.TryParse(zoomLine.Split('=').Last().Trim(), out var zoomLevel)) ZoomLevel = zoomLevel;
       }
@@ -379,6 +385,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             $"AutoAdjustDataWidth = {AutoAdjustDataWidth}",
             $"StretchData= {StretchData}",
             $"AllowMultipleElementsPerLine = {AllowMultipleElementsPerLine}",
+            $"IsNewVersionAvailable = {IsNewVersionAvailable}",
+            $"LastUpdateCheck = {LastUpdateCheck}",
             string.Empty
          };
          metadata.AddRange(Theme.Serialize());

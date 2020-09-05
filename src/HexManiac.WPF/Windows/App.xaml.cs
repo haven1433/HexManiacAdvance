@@ -2,10 +2,12 @@
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.WPF.Implementations;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Media;
@@ -14,6 +16,8 @@ using System.Windows.Media;
 
 namespace HavenSoft.HexManiac.WPF.Windows {
    partial class App {
+      public const string ReleaseUrl = "https://github.com/haven1433/HexManiacAdvance/releases";
+
       protected override void OnStartup(StartupEventArgs e) {
          base.OnStartup(e);
 
@@ -107,12 +111,27 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          if (fileName != string.Empty) fileName = Path.GetFullPath(fileName);
          SetInitialWorkingDirectory();
          var editor = new EditorViewModel(fileSystem, fileSystem, allowLoadingMetadata: useMetadata);
+         CheckIsNewerVersionAvailable(editor);
          if (!File.Exists(fileName)) return editor;
          var loadedFile = fileSystem.LoadFile(fileName);
          editor.Open.Execute(loadedFile);
          var tab = editor[editor.SelectedIndex] as ViewPort;
          if (tab != null && address >= 0) tab.CascadeScript(address);
          return editor;
+      }
+
+      private static void CheckIsNewerVersionAvailable(EditorViewModel viewModel) {
+         if (DateTime.Now < viewModel.LastUpdateCheck + TimeSpan.FromDays(1)) return;
+         viewModel.LastUpdateCheck = DateTime.Now;
+         using (var client = new WebClient()) {
+            string content = client.DownloadString(ReleaseUrl);
+            var mostRecentVersion = content
+               .Split('\n')
+               .Where(line => line.Contains("/haven1433/HexManiacAdvance/tree/"))
+               .Select(line => line.Split("title=").Last().Split('"')[1])
+               .First();
+            viewModel.IsNewVersionAvailable = StoredMetadata.NeedVersionUpdate(viewModel.Singletons.MetadataInfo.VersionNumber, mostRecentVersion);
+         }
       }
    }
 }
