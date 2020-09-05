@@ -1871,7 +1871,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (char.IsWhiteSpace(currentText[currentText.Length - 1])) {
                var destination = currentText.Substring(1);
                ClearEdits(point);
-               Goto.Execute(destination);
+               if (currentText.Contains("=")) {
+                  UpdateConstant(destination);
+               } else {
+                  Goto.Execute(destination);
+               }
                RequestMenuClose?.Invoke(this, EventArgs.Empty);
                result = true;
             }
@@ -1941,6 +1945,33 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          return false;
+      }
+
+      private void UpdateConstant(string expression) {
+         var parts = expression.Split('=');
+         if (parts.Length != 2) {
+            RaiseError("Could not parse constant assignment expression.");
+            return;
+         }
+         if (!int.TryParse(parts[1], out var value)) {
+            RaiseError("Could not parse constant assignment expression.");
+            return;
+         }
+
+         var locations = Model.GetMatchedWords(parts[0]);
+         if (locations == null || locations.Count == 0) {
+            RaiseError($"{parts[0]} is not a named constant!");
+            return;
+         }
+
+         foreach (var address in locations) {
+            if (!(Model.GetNextRun(address) is WordRun currentRun)) continue;
+            var writeValue = value + currentRun.ValueOffset;
+            if (writeValue < 0 || writeValue > 255) {
+               RaiseError($"{currentRun.Start:X6}: value out of range!");
+            }
+            Model.WriteMultiByteValue(address, currentRun.Length, CurrentChange, writeValue);
+         }
       }
 
       /// <returns>True if it was completed successfully, false if some sort of error occurred and we should abort the remainder of the edit.</returns>

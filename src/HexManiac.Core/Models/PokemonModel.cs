@@ -512,6 +512,20 @@ namespace HavenSoft.HexManiac.Core.Models {
             return address;
          }
 
+         // check if it's a named constant with a valid index specifier
+         if (anchor.Contains("~")) {
+            var constantParts = anchor.Split('~');
+            if (
+               constantParts.Length == 2 &&
+               int.TryParse(constantParts[1], out int constantIndex) &&
+               matchedWords.TryGetValue(constantParts[0], out var constantAddresses) &&
+               constantAddresses.Count >= constantIndex &&
+               constantIndex > 0
+            ) {
+               return constantAddresses[constantIndex - 1];
+            }
+         }
+
          if (requestSource < 0) return Pointer.NULL;
          if (anchor.ToLower() == "null") return Pointer.NULL;
 

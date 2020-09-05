@@ -450,6 +450,27 @@ namespace HavenSoft.HexManiac.Tests {
          }
       }
 
+      [Fact]
+      public void NamedConstant_PasteScriptAtEquals_ValueChange() {
+         StandardSetup(out var data, out var model, out var viewPort);
+         viewPort.Edit("@00 .number @10 .number @20 ");
+
+         viewPort.Edit("@number=7 ");
+
+         Assert.Equal(7, model[0x00]);
+         Assert.Equal(7, model[0x10]);
+      }
+
+      [Fact]
+      public void NamedConstant_PasteScriptGotoSpecifyIndex2_GotoSecondInstance() {
+         StandardSetup(out var data, out var model, out var viewPort);
+         viewPort.Edit("@00 .number @10 .number @20 ");
+
+         viewPort.Edit("@number~2 ");
+
+         Assert.Equal(0x10, viewPort.ConvertViewPointToAddress(viewPort.SelectionStart));
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          model = new PokemonModel(data);
