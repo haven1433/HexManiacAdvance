@@ -63,6 +63,14 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(anchorName, ViewPort.AnchorText.Substring(ViewPort.AnchorTextSelectionStart, ViewPort.AnchorTextSelectionLength));
       }
 
+      [Fact]
+      public void ScriptLine_MultibyteEnum_Loads() {
+         var args = Singletons.ScriptLines[0x44].Args;
+
+         Assert.Equal(HardcodeTablesModel.ItemsTableName, args[0].EnumTableName);
+         Assert.Equal(2, args[0].Length(null, 0));
+      }
+
       private string Script(params string[] lines) => lines.CombineLines();
    }
 }

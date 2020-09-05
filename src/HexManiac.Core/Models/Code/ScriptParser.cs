@@ -589,11 +589,6 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             var (type, length) = (ArgType.Pointer, 4);
             var name = token.Split(new[] { "<>" }, StringSplitOptions.None).First();
             return (type, name, default, length);
-         } else if (token.Contains(".")) {
-            var (type, length) = (ArgType.Byte, 1);
-            var name = token.Split('.').First();
-            var enumTableName = token.Split('.').Last();
-            return (type, name, enumTableName, length);
          } else if (token.Contains("::")) {
             var (type, length) = (ArgType.Word, 4);
             var name = token.Split(new[] { "::" }, StringSplitOptions.None).First();
@@ -603,6 +598,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             var (type, length) = (ArgType.Short, 2);
             var name = token.Split(':').First();
             var enumTableName = token.Split(':').Last();
+            return (type, name, enumTableName, length);
+         } else if (token.Contains(".")) {
+            var (type, length) = (ArgType.Byte, 1);
+            var name = token.Split('.').First();
+            var enumTableName = token.Split('.').Last();
             return (type, name, enumTableName, length);
          } else {
             // didn't find a token :(
