@@ -151,6 +151,7 @@
     <Compile Include="ViewModels\Tools\TableTool.cs" />
     <Compile Include="ViewModels\ViewModelCore.cs" />
     <Compile Include="ViewModels\ViewPort.cs" />
+    <Compile Include="ViewModels\Visitors\ToolTipContentVisitor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Models\Code\default.axpe1.toml">
