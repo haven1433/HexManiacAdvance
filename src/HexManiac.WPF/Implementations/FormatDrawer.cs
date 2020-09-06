@@ -118,7 +118,9 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                else if (cell.Value == searchByte) collector.Collect<None>(format, x, 1, byteText[cell.Value]);
                else collector.Collect<UnderEdit>(format, x, 1, byteText[cell.Value]);
             } else if (format is BitArray array) {
-               collector.Collect<BitArray>(format, x, 1, byteText[cell.Value]);
+               var text = string.Join(" ", Enumerable.Range(0, array.Length)
+                  .Select(i => byteText[viewPort.Model[array.Source + i]]));
+               collector.Collect<BitArray>(format, x, array.Length, text);
             } else if (format is MatchedWord word) {
                collector.Collect<MatchedWord>(format, x, 4, word.Name);
             } else if (format is EndStream endStream) {

@@ -1,7 +1,9 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
    public class ToolTipContentVisitor : IDataFormatVisitor {
@@ -36,6 +38,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             var desiredToolTip = wordRun.SourceArrayName;
             if (wordRun.ValueOffset > 0) desiredToolTip += "+" + wordRun.ValueOffset;
             if (wordRun.ValueOffset < 0) desiredToolTip += wordRun.ValueOffset;
+            if (!string.IsNullOrEmpty(wordRun.Note)) desiredToolTip += Environment.NewLine + wordRun.Note;
             Content.Add(desiredToolTip);
          }
       }
@@ -50,7 +53,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(PlmItem item, byte data) { }
 
-      public void Visit(BitArray array, byte data) { }
+      public void Visit(BitArray array, byte data) {
+         using (ModelCacheScope.CreateScope(model)) {
+            var table = (ITableRun)model.GetNextRun(array.Source);
+            var offset = table.ConvertByteOffsetToArrayOffset(array.Source);
+            var segment = (ArrayRunBitArraySegment)table.ElementContent[offset.SegmentIndex];
+            var options = segment.GetOptions(model).ToList();
+
+            for (int i = 0; i < array.Length; i++) {
+               var group = i * 8;
+               for (int j = 0; j < 8 && group + j < options.Count; j++) {
+                  var bit = ((model[array.Source + i] >> j) & 1);
+                  if (bit != 0) Content.Add(options[group + j]);
+               }
+            }
+
+            if (Content.Count == 0) Content.Add("- None -");
+         }
+      }
 
       public void Visit(MatchedWord word, byte data) => Content.Add(word.Name);
 
