@@ -204,11 +204,12 @@
                               <ColumnDefinition Width="*"/>
                            </Grid.ColumnDefinitions>
                            <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
-                           <TextBox UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1">
-                              <TextBox.InputBindings>
-                                 <KeyBinding Key="Enter" Command="{Binding Accept}"/>
-                              </TextBox.InputBindings>
-                           </TextBox>
+                           <UserControl Margin="5,0" Grid.Column="1"
+                              GotKeyboardFocus="UpdateFieldTextBox" LostKeyboardFocus="UpdateFieldTextBox"
+                              MouseEnter="UpdateFieldTextBox" MouseLeave="UpdateFieldTextBox"
+                              GotFocus="UpdateFieldTextBox" LostFocus="UpdateFieldTextBox">
+                              <hsg3hv:TextBoxLookAlike />
+                           </UserControl>
                         </Grid>
                      </DataTemplate>
                      <DataTemplate DataType="{x:Type hsg3hvmtr:ComboBoxArrayElementViewModel}">
@@ -305,7 +306,6 @@
                      <DataTemplate DataType="{x:Type hsg3hvmtr:SpriteElementViewModel}">
                         <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                            <hsg3hv:CommonTableStreamControl />
-                           <!--<Slider Value="{Binding CurrentPalette}" Maximum="{Binding MaxPalette}" Visibility="{Binding HasMultiplePalettes, Converter={StaticResource BoolToVisibility}}" Width="50"/>-->
                            <ItemsControl ItemsSource="{Binding PaletteSelection}" Visibility="{Binding HasMultiplePalettes, Converter={StaticResource BoolToVisibility}}" HorizontalAlignment="Center">
                               <ItemsControl.ItemsPanel>
                                  <ItemsPanelTemplate>

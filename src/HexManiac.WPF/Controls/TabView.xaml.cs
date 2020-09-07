@@ -11,6 +11,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
@@ -421,6 +422,26 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var element = (FrameworkElement)sender;
          var viewModel = (ComboBoxArrayElementViewModel)element.DataContext;
          if (e.Key == Key.Enter) viewModel.ConfirmSelection();
+      }
+
+      /// <summary>
+      /// TextBlock is a lot faster than TextBox.
+      /// And we only ever really need to have the focus in a single textbox at a time.
+      /// Therefore, for performance reasons, we'd rather have all the non-active textboxes just
+      /// *look* like TextBoxes, and really be TextBlocks instead.
+      /// </summary>
+      private void UpdateFieldTextBox(object sender, RoutedEventArgs e) {
+         var control = (UserControl)sender;
+         var isAcitve = control.IsMouseOver || control.IsFocused || control.IsKeyboardFocusWithin;
+         if (isAcitve && control.Content is TextBoxLookAlike) {
+            var keyBinding = new KeyBinding { Key = Key.Enter };
+            BindingOperations.SetBinding(keyBinding, InputBinding.CommandProperty, new Binding(nameof(FieldArrayElementViewModel.Accept)));
+            var textBox = new TextBox { UndoLimit = 0, InputBindings = { keyBinding } };
+            textBox.SetBinding(TextBox.TextProperty, new Binding(nameof(FieldArrayElementViewModel.Content)));
+            control.Content = textBox;
+         } else if (!isAcitve && !(control.Content is TextBoxLookAlike)) {
+            control.Content = new TextBoxLookAlike();
+         }
       }
    }
 }
