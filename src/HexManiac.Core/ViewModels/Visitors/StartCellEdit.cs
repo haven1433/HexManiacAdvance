@@ -142,7 +142,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(IntegerEnum integer, byte data) {
          if (!integer.CanStartWithCharacter(Input)) return;
 
-         var autocomplete = AutocompleteCell.GetSegmentAutoComplete(Model, MemoryLocation, Input.ToString());
+         var autocompleteVisitor = new AutocompleteCell(Model, Input.ToString(), MemoryLocation);
+         integer.Visit(autocompleteVisitor, data);
+         var autocomplete = autocompleteVisitor.Result;
+
          NewFormat = new UnderEdit(integer, Input.ToString(), integer.Length, autocomplete);
          Result = true;
       }

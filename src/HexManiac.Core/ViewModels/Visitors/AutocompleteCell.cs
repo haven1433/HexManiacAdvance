@@ -15,15 +15,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public AutocompleteCell(IDataModel model, string input, int index) => (Model, InputText, SelectionIndex) = (model, input, index);
 
-      public static IReadOnlyList<AutoCompleteSelectionItem> GetSegmentAutoComplete(IDataModel model, int memoryLocation, string input) {
-         var arrayRun = (ITableRun)model.GetNextRun(memoryLocation);
-         var offsets = arrayRun.ConvertByteOffsetToArrayOffset(memoryLocation);
-         var segment = (ArrayRunEnumSegment)arrayRun.ElementContent[offsets.SegmentIndex];
-         var allOptions = segment.GetOptions(model).Select(option => option + " ");
-         var autocomplete = AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(input)), -1);
-         return autocomplete;
-      }
-
       private void VisitNormal() {
          if (InputText.StartsWith(PointerRun.PointerStart.ToString())) {
             Result = Model.GetNewPointerAutocompleteOptions(InputText, SelectionIndex);
@@ -55,7 +46,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(Integer integer, byte data) { }
 
       public void Visit(IntegerEnum intEnum, byte data) {
-         Result = GetSegmentAutoComplete(Model, intEnum.Source, InputText);
+         var arrayRun = (ITableRun)Model.GetNextRun(intEnum.Source);
+         var offsets = arrayRun.ConvertByteOffsetToArrayOffset(intEnum.Source);
+         var segment = (ArrayRunEnumSegment)arrayRun.ElementContent[offsets.SegmentIndex];
+         var allOptions = segment.GetOptions(Model).Select(option => option + " ");
+         Result = AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(InputText)), -1);
       }
 
       public void Visit(IntegerHex integer, byte data) { }

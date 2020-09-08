@@ -437,7 +437,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             var keyBinding = new KeyBinding { Key = Key.Enter };
             BindingOperations.SetBinding(keyBinding, InputBinding.CommandProperty, new Binding(nameof(FieldArrayElementViewModel.Accept)));
             var textBox = new TextBox { UndoLimit = 0, InputBindings = { keyBinding } };
-            textBox.SetBinding(TextBox.TextProperty, new Binding(nameof(FieldArrayElementViewModel.Content)));
+            textBox.SetBinding(TextBox.TextProperty, new Binding(nameof(FieldArrayElementViewModel.Content)) { UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
             control.Content = textBox;
          } else if (!isAcitve && !(control.Content is TextBoxLookAlike)) {
             control.Content = new TextBoxLookAlike();
