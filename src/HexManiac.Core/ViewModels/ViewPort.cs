@@ -664,9 +664,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                OnError?.Invoke(this, $"Cannot copy more than {CopyLimit} bytes at once!");
             } else {
                bool usedHistory = false;
-               ((IFileSystem)arg).CopyText = Model.Copy(() => { usedHistory = true; return history.CurrentChange; }, left, length);
-               RefreshBackingData();
-               if (usedHistory) UpdateToolsFromSelection(left);
+               if (left + length > Model.Count) {
+                  OnError?.Invoke(this, $"Cannot copy beyond the end of the data.");
+               } else if (left < 0) {
+                  OnError?.Invoke(this, $"Cannot copy before the start of the data.");
+               } else {
+                  ((IFileSystem)arg).CopyText = Model.Copy(() => { usedHistory = true; return history.CurrentChange; }, left, length);
+                  RefreshBackingData();
+                  if (usedHistory) UpdateToolsFromSelection(left);
+               }
             }
             RequestMenuClose?.Invoke(this, EventArgs.Empty);
          };
