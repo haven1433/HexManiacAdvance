@@ -233,7 +233,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          Focusable = true;
          base.ToolTip = new ToolTip();
          ToolTipService.SetIsEnabled(this, false);
-         timer.Elapsed += (sender, e) => Dispatcher.BeginInvoke((Action)ShowToolTip);
 
          void AddKeyCommand(string commandPath, object arg, Key key, ModifierKeys modifiers = ModifierKeys.None) {
             var keyBinding = new KeyBinding { CommandParameter = arg, Key = key, Modifiers = modifiers };
@@ -338,7 +337,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                   MakeNewToolTip(dfi);
                }
             } else {
-               timer.Enabled = false;
                ToolTipService.SetIsEnabled(this, false);
                ToolTip.IsOpen = false;
                InvalidateVisual();
@@ -385,23 +383,20 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private IDataFormatInstance previousToolTipFormat;
-      private readonly Timer timer = new Timer { Interval = 500, AutoReset = false };
       private new ToolTip ToolTip => (ToolTip)base.ToolTip;
       private void ShowToolTip() => ToolTip.IsOpen = true;
       protected override void OnMouseLeave(MouseEventArgs e) {
-         timer.Enabled = false;
          ToolTip.IsOpen = false;
       }
       private void MakeNewToolTip(IDataFormatInstance instance) {
          var visitor = new ToolTipContentVisitor(ViewPort.Model);
          instance.Visit(visitor, default);
+         ToolTip.IsOpen = false;
          if (visitor.Content.Count == 0) return;
          previousToolTipFormat = instance;
-         timer.Enabled = false;
-         ToolTip.IsOpen = false;
          base.ToolTip = new HexContentToolTip(visitor.Content); // have to make a new one to prevent a glitch of text changing as the old one fades to closed.
          ToolTipService.SetIsEnabled(this, true);
-         timer.Enabled = true;
+         ShowToolTip();
          InvalidateVisual();
       }
 

@@ -1,9 +1,11 @@
 ﻿<Application x:Class="HavenSoft.HexManiac.WPF.Windows.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:hsc="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
              xmlns:hsv="clr-namespace:HavenSoft.HexManiac.WPF.Resources">
    <Application.Resources>
       <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+      <hsc:PaletteColorConverter x:Key="PaletteColorConverter"/>
 
       <DrawingBrush x:Key="HexBrush" TileMode="FlipX" ViewportUnits="Absolute" Viewport="0,0,33,38">
          <DrawingBrush.Drawing>

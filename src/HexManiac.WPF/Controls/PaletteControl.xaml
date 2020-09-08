@@ -5,9 +5,6 @@
              HorizontalAlignment="Center" VerticalAlignment="Center" Focusable="True"
              Background="Transparent"
              MouseDown="StartPaletteColorMove" MouseMove="PaletteColorMove" MouseUp="EndPaletteColorMove">
-   <UserControl.Resources>
-      <hsg3hv:PaletteColorConverter x:Key="PaletteColorConverter"/>
-   </UserControl.Resources>
    <UserControl.ContextMenu>
       <ContextMenu>
          <MenuItem Header="Copy" InputGestureText="Ctrl+C" Command="{Binding Copy}" CommandParameter="{DynamicResource FileSystem}"/>

@@ -1,6 +1,8 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -21,7 +23,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(UnderEdit dataFormat, byte data) { }
 
-      public void Visit(Pointer pointer, byte data) => Content.Add(pointer.DestinationAsText);
+      public void Visit(Pointer pointer, byte data) {
+         Content.Add(pointer.DestinationAsText);
+         var destinationRun = model.GetNextRun(pointer.Destination);
+         if (destinationRun is PCSRun pcs) {
+            Content.Add(PCSString.Convert(model, pcs.Start, pcs.Length));
+         } else if (destinationRun is ISpriteRun sprite) {
+            var paletteRun = sprite.FindRelatedPalettes(model).FirstOrDefault();
+            var pixels = sprite.GetPixels(model, 0);
+            var colors = paletteRun.AllColors(model);
+            var imageData = SpriteTool.Render(pixels, colors, paletteRun.PaletteFormat.InitialBlankPages, 0);
+            Content.Add(new ReadonlyPixelViewModel(sprite.SpriteFormat, imageData));
+         } else if (destinationRun is IPaletteRun paletteRun) {
+            var colors = paletteRun.GetPalette(model, 0);
+            Content.Add(new ReadonlyPaletteCollection(colors));
+         }
+      }
 
       public void Visit(Anchor anchor, byte data) { }
 

@@ -17,6 +17,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       double SpriteScale { get; }
    }
 
+   public class ReadonlyPixelViewModel : ViewModelCore, IPixelViewModel {
+      public int PixelWidth { get; }
+      public int PixelHeight { get; }
+      public short[] PixelData { get; }
+      public double SpriteScale => 1;
+      public ReadonlyPixelViewModel(SpriteFormat sf, short[] data) => (PixelWidth, PixelHeight, PixelData) = (sf.TileWidth * 8, sf.TileHeight * 8, data);
+   }
+
    public class SpriteTool : ViewModelCore, IToolViewModel, IPixelViewModel {
       public const int MaxSpriteWidth = 275 - 17; // From UI: Panel Width - Scroll Bar Width
       private readonly ViewPort viewPort;

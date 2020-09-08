@@ -10,6 +10,15 @@ using System.Linq;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
+   public class ReadonlyPaletteCollection : ViewModelCore {
+      public int ColorWidth => (int)Math.Ceiling(Math.Sqrt(Colors.Count));
+      public int ColorHeight => (int)Math.Sqrt(Colors.Count);
+      public ObservableCollection<short> Colors { get; } = new ObservableCollection<short>();
+      public ReadonlyPaletteCollection(IEnumerable<short> colors) {
+         foreach (var color in colors) Colors.Add(color);
+      }
+   }
+
    public class PaletteCollection : ViewModelCore {
       private readonly ViewPort viewPort;
       private readonly ChangeHistory<ModelDelta> history;
