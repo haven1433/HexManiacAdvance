@@ -35,7 +35,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var position = index - offsets.SegmentStart;
          if (currentSegment.Type == ElementContentType.Integer) {
             if (currentSegment is ArrayRunEnumSegment enumSegment) {
-               var value = enumSegment.ToText(data, index, false);
+               var value = enumSegment.ToText(data, offsets.SegmentStart, false);
                return new IntegerEnum(offsets.SegmentStart, position, value, currentSegment.Length);
             } else if (currentSegment is ArrayRunHexSegment) {
                var value = data.ReadMultiByteValue(offsets.SegmentStart, currentSegment.Length);
