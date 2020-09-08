@@ -1366,7 +1366,12 @@ namespace HavenSoft.HexManiac.Core.Models {
          // the only run that is allowed to exist with nothing pointing to it and no name is a pointer run.
          // if it's any other kind of run with no name and no pointers to it, remove it.
          if (newAnchorRun.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(newAnchorRun.Start) && !(newAnchorRun is PointerRun)) {
-            ClearFormat(changeToken, anchorRun.Start, anchorRun.Length, false, false);
+            if (anchorRun.Start <= start && anchorRun.Start + anchorRun.Length > start) {
+               // calling ClearFormat would try to clear the element we're already removing
+               // no need to do that: This element should get removed higher up the callstack.
+            } else {
+               ClearFormat(changeToken, anchorRun.Start, anchorRun.Length, false, false);
+            }
          } else if (newAnchorRun.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(newAnchorRun.Start) && newAnchorRun is PointerRun) {
             // if it IS a pointer run, we still need to remove the anchor by setting the pointerSources to null.
             runs[index] = new PointerRun(newAnchorRun.Start);
