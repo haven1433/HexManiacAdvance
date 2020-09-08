@@ -69,6 +69,7 @@ nv=1111  @    never
 0101111 rm rn rd    |     ldrsh rd, [rn, rm]
 01100 # rn rd       |     str   rd, [rn, #]
 01101 # rn rd       |     ldr   rd, [rn, #]
+0110100000 rn rd    |     ldr   rd, [rn]
 01110 # rn rd       |     strb  rd, [rn, #]
 01111 # rn rd       |     ldrb  rd, [rn, #]
 10000 # rn rd       |     strh  rd, [rn, #]
