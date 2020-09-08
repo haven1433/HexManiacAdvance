@@ -1656,7 +1656,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private IReadOnlyList<AutoCompleteSelectionItem> GetAutocompleteOptions(IDataFormat originalFormat, byte value, string newText, int selectedIndex = -1) {
          using (ModelCacheScope.CreateScope(Model)) {
             var visitor = new AutocompleteCell(Model, newText, selectedIndex);
-            originalFormat.Visit(visitor, value);
+            (originalFormat ?? Undefined.Instance).Visit(visitor, value);
             return visitor.Result;
          }
       }
@@ -1795,7 +1795,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var dataIndex = scroll.ViewPointToDataIndex(point);
             var completeEditOperation = new CompleteCellEdit(Model, dataIndex, underEdit.CurrentText, history.CurrentChange);
             using (ModelCacheScope.CreateScope(Model)) {
-               underEdit.OriginalFormat.Visit(completeEditOperation, element.Value);
+               (underEdit.OriginalFormat ?? Undefined.Instance).Visit(completeEditOperation, element.Value);
 
                if (completeEditOperation.Result) {
                   // if the data we just changed was in a table, notify children of that table about the change

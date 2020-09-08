@@ -90,7 +90,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
          // use the ContinueCellEdit class to continue the edit
          var editor = new ContinueCellEdit(Model, MemoryLocation, Input, underEdit);
-         underEdit.OriginalFormat.Visit(editor, data);
+         (underEdit.OriginalFormat ?? Undefined.Instance).Visit(editor, data);
          Result = editor.Result;
       }
 
