@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -108,6 +109,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          // first pass: look for labels
          var labels = new Dictionary<string, int>();
+         var inlineWords = new Queue<DeferredLoadRegisterToken>();
          int position = start;
          foreach (var line in lines) {
             if (line == string.Empty) continue;
@@ -124,7 +126,21 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   var labelToFix = labels.Keys.SingleOrDefault(key => labels[key] == position - 6);
                   if (labelToFix != null) labels[labelToFix] = position - 4;
                }
+               if (line.StartsWith("ldr ") && line.Contains("=")) {
+                  inlineWords.Enqueue(null); // we only care about the count during this step
+               }
+               if (DeferredLoadRegisterToken.IsEndOfSection(line) && inlineWords.Count > 0) {
+                  if (position % 4 != 0) position += 2;
+                  position += 4 * inlineWords.Count;
+                  inlineWords.Clear();
+               }
             }
+         }
+         // any words that haven't been added yet get added to the end
+         if (inlineWords.Count > 0) {
+            if (position % 4 != 0) position += 2;
+            position += 4 * inlineWords.Count;
+            inlineWords.Clear();
          }
 
          var labelLibrary = new LabelLibrary(model, labels);
@@ -140,8 +156,31 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                foundMatch = true;
                break;
             }
-            if (!foundMatch) result.AddRange(nop);
+            if (!foundMatch) {
+               if (DeferredLoadRegisterToken.TryCompile(result.Count, line, inlineWords)) {
+                  result.AddRange(nop); // we'll come back to this once we know the offset
+               } else {
+                  result.AddRange(nop);
+               }
+            } else if (DeferredLoadRegisterToken.IsEndOfSection(line) && inlineWords.Count > 0) {
+               if (result.Count % 4 != 0) result.AddRange(nop);
+               while (inlineWords.Count > 0) {
+                  var token = inlineWords.Dequeue();
+                  result.AddRange(new byte[] { 0, 0, 0, 0 }); // add space for the new word
+                  token.Write(result, result.Count - 4);
+               }
+            }
          }
+         // any words that haven't been added yet get added to the end
+         if (inlineWords.Count > 0) {
+            if (position % 4 != 0) result.AddRange(nop);
+            while (inlineWords.Count > 0) {
+               var token = inlineWords.Dequeue();
+               result.AddRange(new byte[] { 0, 0, 0, 0 }); // add space for the new word
+               token.Write(result, result.Count - 4);
+            }
+         }
+
          return result;
       }
    }
@@ -655,6 +694,79 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             (byte)(result>>16),
             (byte)(result>>24),
          };
+         return true;
+      }
+   }
+
+   /// <summary>
+   /// Represents an instruction like `ldr r0, =(0x8000000)`
+   /// The word to load and instruction address get cached, but nothing gets written.
+   /// Later, after an unconditional branch statement (b, bx, or pop pc), the new address is used.
+   /// </summary>
+   public class DeferredLoadRegisterToken {
+      public int InstructionAddress { get; }
+      public int Register { get; }
+      public int WordToLoad { get; }
+
+      public DeferredLoadRegisterToken(int address, int register, string word) {
+         if (word.StartsWith("=")) word = word.Substring(1);
+         if (word.StartsWith("(")) word = word.Substring(1);
+         if (word.EndsWith(")")) word = word.Substring(0, word.Length - 1);
+
+         var more = 0;
+         if (word.Contains("+")) {
+            var parts = word.Split("+");
+            if (parts.Length == 2) int.TryParse(parts[1], out more);
+            word = parts[0];
+         }
+
+         int wordValue = 0;
+         if (word.StartsWith("<") && word.EndsWith(">")) {
+            word = word.Substring(1, word.Length - 1);
+            int.TryParse(word, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out wordValue);
+         } else if (word.StartsWith("0x")) {
+            int.TryParse(word.Substring(2), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out wordValue);
+         } else {
+            int.TryParse(word, out wordValue);
+         }
+
+         InstructionAddress = address;
+         Register = register;
+         WordToLoad = wordValue;
+      }
+
+      public void Write(IList<byte> data, int wordAddress) {
+         //build instruction
+         var offset = (wordAddress - InstructionAddress - 4) / 4;
+         var instruction = 0b01001;
+         instruction <<= 3;
+         instruction |= Register;
+         instruction <<= 8;
+         instruction |= offset;
+
+         // insert instruction
+         data[InstructionAddress] = (byte)instruction;
+         data[InstructionAddress + 1] = (byte)(instruction >> 8);
+
+         // insert word
+         for (int i = 0; i < 4; i++) data[wordAddress + i] = (byte)(WordToLoad >> 8 * i);
+      }
+
+      public static bool IsEndOfSection(string line) {
+         return line.StartsWith("b ") || line.StartsWith("bx ") || (line.StartsWith("pop ") && line.Contains(" pc"));
+      }
+
+      public static bool TryCompile(int address, string line, Queue<DeferredLoadRegisterToken> inlineWords) {
+         if (!line.StartsWith("ldr ")) return false;
+         line = line.Substring(4);
+         var parts = line.Split("=");
+         if (parts.Length != 2) return false;
+         var registerText = parts[0].Trim().Split(',')[0];
+         if (registerText.Length != 2) return false;
+         if (registerText[0] != 'r') return false;
+         int register = registerText[1] - '0';
+         if (register < 0 || register > 7) return false;
+         inlineWords.Enqueue(new DeferredLoadRegisterToken(address, register, parts[1].Trim()));
          return true;
       }
    }

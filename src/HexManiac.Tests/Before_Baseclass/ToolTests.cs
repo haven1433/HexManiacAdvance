@@ -505,6 +505,31 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
+      public void ThumbCode_InlineLoad_Compiles() {
+         var model = new PokemonModel(new byte[0x200]);
+         var result = parser.Compile(model, 0x100,
+            "    ldr  r0, =256",
+            "    mov  r0, #0",
+            "    b    <end>",
+            // implicit nop for alignment
+            // implicit .word 256
+            "end:",
+            "    pop pc, {}"
+         );
+
+         var expected = new byte[] {
+            0x01, 0b01001_000,
+            0x00, 0b00100_000,
+            0x02, 0b11100_000,
+            0x00, 0b00000_000, // inserted nop to align for .word value
+            0, 1, 0, 0,        // inserted word
+            0x00, 0b1011110_1,
+         };
+
+         for (int i = 0; i < expected.Length; i++) Assert.Equal(expected[i], result[i]);
+      }
+
+      [Fact]
       public void RawCodeToolWorks() {
          var viewPort = new ViewPort(new LoadedFile("file.txt", new byte[100]));
          viewPort.Tools.CodeTool.Mode = CodeMode.Raw;
