@@ -443,6 +443,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var newTable = ExtendTableAndChildren(model, changeToken, table, count);
 
          if (newTable.Start != table.Start && string.IsNullOrEmpty(currentArrayName)) {
+            table = newTable;
             return new ErrorInfo($"Stream was moved. Pointers have been updated.", isWarningLevel: true);
          }
 

@@ -480,6 +480,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          }
       }
+      private StubCommand gotoFreeSpaceStart;
+      public ICommand GotoFreeSpaceStart => StubCommand(ref gotoFreeSpaceStart, () => Goto.Execute(Model.FreeSpaceStart));
 
       private readonly ToolTray tools;
       public bool HasTools => true;

@@ -471,6 +471,16 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x10, viewPort.ConvertViewPointToAddress(viewPort.SelectionStart));
       }
 
+      [Fact]
+      public void FreeSpaceStart_GotoFreeSpaceStart() {
+         var test = new BaseViewModelTestClass();
+
+         test.ViewPort.FreeSpaceStart = 0x100;
+         test.ViewPort.GotoFreeSpaceStart.Execute();
+
+         Assert.Equal(0x100, test.ViewPort.DataOffset);
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          model = new PokemonModel(data);

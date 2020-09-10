@@ -127,18 +127,25 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public ITableRun Append(ModelDelta token, int length) {
          var totalLength = ElementLength * (ElementCount + length);
          var workingRun = this;
-         if (totalLength > workingRun.Length) workingRun = (TrainerPokemonTeamRun)model.RelocateForExpansion(token, workingRun, totalLength);
+         if (totalLength > workingRun.Length) workingRun = model.RelocateForExpansion(token, workingRun, totalLength);
 
          // delete old elements
          for (int i = -1; i >= length; i--) {
-            var start = workingRun.Start + workingRun.Length + i * ElementLength;
+            var start = workingRun.Start + Length + i * ElementLength;
             for (int j = 0; j < ElementLength; j++) token.ChangeData(model, start + j, 0xFF);
          }
 
          // add new elements
          for (int i = 0; i < length; i++) {
-            var start = workingRun.Start + workingRun.Length + i * ElementLength;
-            for (int j = 0; j < ElementLength; j++) token.ChangeData(model, start + j, 0x00);
+            var start = workingRun.Start + Length + i * ElementLength;
+            for (int j = 0; j < ElementLength; j++) {
+               if (ElementCount > 0) {
+                  var previousMemberValue = model[start + j - ElementLength];
+                  token.ChangeData(model, start + j, previousMemberValue);
+               } else {
+                  token.ChangeData(model, start + j, 0x00);
+               }
+            }
          }
 
          // update parent

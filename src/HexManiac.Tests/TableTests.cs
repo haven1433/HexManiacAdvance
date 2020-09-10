@@ -427,6 +427,25 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("adam", content);
       }
 
+      [Fact]
+      public void TrainerTeam_ExpandPokemon_NewPokemonHasValidValues() {
+         ArrangeTrainerPokemonTeamData(default, 3, 3);
+
+         ViewPort.Edit("@trainertable/0/pokemon/3 10 ");       // put some random data after the run, so that expanding causes a repoint
+         ViewPort.Edit("@trainertable/0/pokemon/2 0 10 F 0 "); // write some dummy data to the run so it's not just all 0's
+         var currentLocation = ViewPort.DataOffset;
+         ViewPort.Edit("+");                                   // expand the trainer's pokemon
+
+         var trainers = (ITableRun)Model.GetNextRun(0);
+         var destination = Model.ReadPointer(trainers.ElementLength - 4);
+         var team = (ITableRun)Model.GetNextRun(destination);
+
+         Assert.All(Enumerable.Range(team.Start + team.ElementLength * 3, team.ElementLength),
+            i => Assert.Equal(Model[i - team.ElementLength], Model[i])
+         );
+         Assert.NotEqual(currentLocation, ViewPort.DataOffset);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

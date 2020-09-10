@@ -17,7 +17,18 @@
          <DockPanel LastChildFill="False">
             <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
                <TextBlock Text="Free Space:"/>
-               <TextBox Text="{Binding FreeSpaceStart, Converter={StaticResource Hex}}" Width="70"/>
+               <TextBox Text="{Binding FreeSpaceStart, Converter={StaticResource Hex}}" Width="70">
+                  <TextBox.InputBindings>
+                     <KeyBinding Key="Enter" Command="{Binding GotoFreeSpaceStart}"/>
+                  </TextBox.InputBindings>
+                  <TextBox.ToolTip>
+                     <TextBlock>
+                        Free Space searching will begin at <Run Text="{Binding FreeSpaceStart}"/> and continue until free space is found.
+                        <LineBreak/>
+                        Whenever something is moved to free space, this will change to the last used address.
+                     </TextBlock>
+                  </TextBox.ToolTip>
+               </TextBox>
             </StackPanel>
             <TextBlock DockPanel.Dock="Left" Text="{Binding SelectedAddress}" MouseRightButtonUp="AddressShowMenu" Margin="10,0,0,0"/>
             <Grid HorizontalAlignment="Right" DockPanel.Dock="Right">
