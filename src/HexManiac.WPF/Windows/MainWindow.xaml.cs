@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -16,6 +17,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Navigation;
+using System.Windows.Threading;
 
 namespace HavenSoft.HexManiac.WPF.Windows {
    partial class MainWindow {
@@ -52,15 +54,28 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             }
          };
 
-         Application.Current.DispatcherUnhandledException += (sender, e) => {
-            File.AppendAllText("crash.log", e.Exception.Message + Environment.NewLine + e.Exception.StackTrace);
-            FileSystem.ShowCustomMessageBox("An unhandled error occured. Please report it on Discord or open an issue on GitHub." + Environment.NewLine +
-               "HexManiac might be in a bad state. You should close as soon as possible." + Environment.NewLine +
-               "The error has been logged to crash.log", showYesNoCancel: false);
-            e.Handled = true;
-         };
+         Application.Current.DispatcherUnhandledException += HandleException;
 
          FillQuickEditMenu();
+      }
+
+      private void HandleException(object sender, DispatcherUnhandledExceptionEventArgs e) {
+         var text = new StringBuilder();
+         text.AppendLine("Version Number:" + ViewModel.Singletons.MetadataInfo.VersionNumber);
+#if DEBUG
+         text.AppendLine("Debug Version");
+#else
+            text.AppendLine("Release Version");
+#endif
+         text.AppendLine(e.Exception.Message);
+         text.AppendLine(e.Exception.StackTrace);
+         text.AppendLine("-------------------------------------------");
+         text.AppendLine(Environment.NewLine);
+         File.AppendAllText("crash.log", text.ToString());
+         FileSystem.ShowCustomMessageBox("An unhandled error occured. Please report it on Discord or open an issue on GitHub." + Environment.NewLine +
+            "HexManiac might be in a bad state. You should close as soon as possible." + Environment.NewLine +
+            "The error has been logged to crash.log", showYesNoCancel: false);
+         e.Handled = true;
       }
 
       private void FillQuickEditMenu() {
