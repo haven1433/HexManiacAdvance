@@ -271,15 +271,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public IToolTrayViewModel Tools => (SelectedTab as IViewPort)?.Tools;
 
-      public IReadOnlyList<IQuickEditItem> QuickEdits { get; } = new List<IQuickEditItem> {
-         new MakeTutorsExpandable(),
-         new MakeMovesExpandable(),
-         new UpdateDexConversionTable(),
-         new ReorderDex("National", HardcodeTablesModel.NationalDexTableName),
-         new ReorderDex("Regional", HardcodeTablesModel.RegionalDexTableName),
-         // new MakeTmsExpandable(),   // expanding TMs requires further research.
-         // new MakeItemsExpandable(),
-      }.Select(edit => new EditItemWrapper(edit)).ToList();
+      public IReadOnlyList<IQuickEditItem> QuickEdits { get; }
 
       public Singletons Singletons { get; } = new Singletons();
 
@@ -317,10 +309,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #endregion
 
-      public EditorViewModel(IFileSystem fileSystem, IWorkDispatcher workDispatcher = null, bool allowLoadingMetadata = true) {
+      public EditorViewModel(IFileSystem fileSystem, IWorkDispatcher workDispatcher = null, bool allowLoadingMetadata = true, IReadOnlyList<IQuickEditItem> utilities = null) {
          this.fileSystem = fileSystem;
          this.workDispatcher = workDispatcher ?? InstantDispatch.Instance;
          this.allowLoadingMetadata = allowLoadingMetadata;
+         QuickEdits = utilities ?? new List<IQuickEditItem> {
+            new MakeTutorsExpandable(),
+            new MakeMovesExpandable(),
+            new UpdateDexConversionTable(),
+            new ReorderDex("National", HardcodeTablesModel.NationalDexTableName),
+            new ReorderDex("Regional", HardcodeTablesModel.RegionalDexTableName),
+            // new MakeTmsExpandable(),   // expanding TMs requires further research.
+            // new MakeItemsExpandable(),
+         }.Select(edit => new EditItemWrapper(edit)).ToList();
+
          tabs = new List<ITabContent>();
          selectedIndex = -1;
 
@@ -649,7 +651,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             using (WorkWithoutListeningToCommandsFromCurrentTab()) {
                tabs.Remove(tab);
                RemoveContentListeners(tab);
-               if (selectedIndex == tabs.Count) TryUpdate(ref selectedIndex, tabs.Count - 1, nameof(SelectedIndex));
+               if (selectedIndex == tabs.Count) SelectedIndex = tabs.Count - 1;
                CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, tab, index));
             }
             UpdateGotoViewModel();
@@ -767,7 +769,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void AdjustNotificationsFromCurrentTab(Action<ICommand, EventHandler> adjust) {
-         if (selectedIndex == -1) return;
+         if (selectedIndex < 0 || selectedIndex >= tabs.Count) return;
          var tab = tabs[selectedIndex];
          foreach (var kvp in forwardExecuteChangeNotifications) {
             var getCommand = kvp.Key;

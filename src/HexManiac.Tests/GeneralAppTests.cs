@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
+using HavenSoft.HexManiac.Core.ViewModels.QuickEditItems;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Linq;
@@ -486,6 +487,21 @@ ApplicationVersion = '''0.1.0'''
          var metadata = new StoredMetadata(null, null, null, null, null, new StubMetadataInfo(), default);
          var lines = metadata.Serialize();
          Assert.All(lines, line => Assert.DoesNotContain("ApplicationVersion = '''", line));
+      }
+
+      [Fact]
+      public void ClosingTabUpdatesQuickEdits() {
+         int tabChangedCalls = 0;
+         var qItem = new StubQuickEditItem { TabChanged = () => tabChangedCalls += 1 };
+         var editor = new EditorViewModel(new StubFileSystem(), utilities: new[] { qItem });
+         var tabToClose = new StubTabContent();
+         editor.Add(new StubTabContent());
+         editor.Add(tabToClose);
+
+         tabChangedCalls = 0;
+         tabToClose.Closed.Invoke(tabToClose, EventArgs.Empty);
+
+         Assert.Equal(1, tabChangedCalls);
       }
 
       private StubTabContent CreateClosableTab() {

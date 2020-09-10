@@ -132,12 +132,13 @@
     <PreBuildEvent>
 if not exist $(SolutionDir)artifacts\$(AssemblyName)\codegen mkdir $(SolutionDir)artifacts\$(AssemblyName)\codegen
 
-$(SolutionDir)packages\HavenSoft.AutoImplement.1.1.1\AutoImplement $(SolutionDir)artifacts\HexManiac.Core\bin\$(ConfigurationName)\HexManiac.Core.dll ITabContent IFileSystem IViewPort IDataModel IMetadataInfo
+$(SolutionDir)packages\HavenSoft.AutoImplement.1.1.1\AutoImplement $(SolutionDir)artifacts\HexManiac.Core\bin\$(ConfigurationName)\HexManiac.Core.dll ITabContent IFileSystem IViewPort IDataModel IMetadataInfo IQuickEditItem
 move /Y StubTabContent.cs $(SolutionDir)artifacts\$(AssemblyName)\codegen
 move /Y StubFileSystem.cs $(SolutionDir)artifacts\$(AssemblyName)\codegen
 move /Y StubViewPort.cs $(SolutionDir)artifacts\$(AssemblyName)\codegen
 move /Y StubDataModel.cs $(SolutionDir)artifacts\$(AssemblyName)\codegen
 move /Y StubMetadataInfo.cs $(SolutionDir)artifacts\$(AssemblyName)\codegen
+move /Y StubQuickEditItem.cs $(SolutionDir)artifacts\$(AssemblyName)\codegen
 
 del *.cs</PreBuildEvent>
     <PostBuildEvent>
