@@ -324,7 +324,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("    ldr   r0, [pc, <000004>]", lines[1]);
          Assert.Equal("    b     <00000C>", lines[2]);
          Assert.Equal("000004:", lines[3]);
-         Assert.Equal("    .word 56781234", lines[4]);
+         Assert.Equal("    .word 0x56781234", lines[4]);
          Assert.Equal("00000C:", lines[5]);
          Assert.Equal("    bx    r0", lines[6]);
       }
@@ -351,7 +351,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("    ldr   r0, [pc, <000008>]", lines[2]);
          Assert.Equal("    pop   pc, {}", lines[3]);
          Assert.Equal("000008:", lines[4]);
-         Assert.Equal("    .word DEADBEEF", lines[5]);
+         Assert.Equal("    .word 0xDEADBEEF", lines[5]);
       }
 
       /// <summary>
@@ -509,6 +509,31 @@ namespace HavenSoft.HexManiac.Tests {
          var model = new PokemonModel(new byte[0x200]);
          var result = parser.Compile(model, 0x100,
             "    ldr  r0, =256",
+            "    mov  r0, #0",
+            "    b    <end>",
+            // implicit nop for alignment
+            // implicit .word 256
+            "end:",
+            "    pop pc, {}"
+         );
+
+         var expected = new byte[] {
+            0x01, 0b01001_000,
+            0x00, 0b00100_000,
+            0x02, 0b11100_000,
+            0x00, 0b00000_000, // inserted nop to align for .word value
+            0, 1, 0, 0,        // inserted word
+            0x00, 0b1011110_1,
+         };
+
+         for (int i = 0; i < expected.Length; i++) Assert.Equal(expected[i], result[i]);
+      }
+
+      [Fact]
+      public void ThumbCode_InlineWithOffset_Compiles() {
+         var model = new PokemonModel(new byte[0x200]);
+         var result = parser.Compile(model, 0x100,
+            "    ldr  r0, =(0xFF+1)",
             "    mov  r0, #0",
             "    b    <end>",
             // implicit nop for alignment

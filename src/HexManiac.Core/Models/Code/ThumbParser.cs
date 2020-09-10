@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,6 +27,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          conditionalCodes.AddRange(singletons.ThumbConditionalCodes);
          instructionTemplates.AddRange(singletons.ThumbInstructionTemplates);
          instructionTemplates.Add(new WordInstruction());
+         instructionTemplates.Add(new AlignInstruction());
       }
 
       private readonly StringBuilder parseResult = new StringBuilder();
@@ -77,7 +79,14 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
             // check if it's a word
             if (wordLocations.Contains(address)) {
-               parsedLines[index] = $"    .word {data.ReadValue(address):X8}";
+               var wordValue = data.ReadValue(address);
+               parsedLines[index] = "    .word ";
+               var anchor = data.GetAnchorFromAddress(-1, wordValue - BaseModel.PointerOffset);
+               if (string.IsNullOrEmpty(anchor)) {
+                  parsedLines[index] += $"0x{wordValue:X8}";
+               } else {
+                  parsedLines[index] += $"<{anchor}>";
+               }
                if (index < parsedLines.Count - 1) parsedLines.RemoveAt(index + 1);
                // remove anything in this area after the word until the next address of interest (denoted by starting with no spaces)
                while (index < parsedLines.Count - 1 && parsedLines[index + 1].StartsWith(" ")) parsedLines.RemoveAt(index + 1);
@@ -105,14 +114,24 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       private static readonly IReadOnlyCollection<byte> nop = new byte[] { 0, 0 };
       public IReadOnlyList<byte> Compile(IDataModel model, int start, params string[] lines) {
          var result = new List<byte>();
-         lines = lines.Select(line => line.ToLower().Split('@')[0].Trim()).ToArray();
+         // labels are allowed to be on the same line as code, and code can end with comments.
+         // remove excess whitespace/comments and splitting labels from code
+         lines = lines.SelectMany(line => {
+            line = line.ToLower().Split('@')[0].Trim();
+            if (line == string.Empty) return Enumerable.Empty<string>();
+            var parts = line.Split(":");
+            if (parts.Length > 1 && parts[1].Length > 0) {
+               return new[] { parts[0].Trim() + ":", parts[1].Trim() };
+            } else {
+               return new[] { line };
+            }
+         }).ToArray();
 
          // first pass: look for labels
          var labels = new Dictionary<string, int>();
          var inlineWords = new Queue<DeferredLoadRegisterToken>();
          int position = start;
          foreach (var line in lines) {
-            if (line == string.Empty) continue;
             if (line.EndsWith(":")) {
                var label = line.Substring(0, line.Length - 1);
                if (!labels.ContainsKey(label)) labels.Add(label, position);
@@ -146,7 +165,6 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var labelLibrary = new LabelLibrary(model, labels);
 
          foreach (var line in lines) {
-            if (line == string.Empty) continue; // don't compile blank lines
             if (line.EndsWith(":")) continue;   // don't compile labels
             bool foundMatch = false;
             foreach (var instruction in instructionTemplates) {
@@ -514,7 +532,15 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                continue;
             }
             if (template[0] == '[') {
-               if (line[0] != '[') return false;
+               if (line[0] != '[') {
+                  if (template.StartsWith("[pc, ") && template.EndsWith("]") && labels.ResolveLabel(line) != Pointer.NULL) {
+                     template = template.Substring(5);
+                     template = template.Substring(0, template.Length - 1);
+                     continue;
+                  } else {
+                     return false;
+                  }
+               }
                template = template.Substring(1);
                line = line.Substring(1);
                continue;
@@ -547,13 +573,14 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
             // read a pointer
             if (template.StartsWith("#=pc")) {
-               if (line[0] != '<') return false;
-               if (!line.Contains('>')) return false;
-               var content = line.Substring(1).Split('>')[0];
+               if (line[0] == '<') line = line.Substring(1);
+               var content = line;
+               if (content.Contains('>')) content = content.Split('>')[0];
                numeric = labels.ResolveLabel(content);
                if (numeric == Pointer.NULL && !int.TryParse(content, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out numeric)) return false;
-               if (line.Length < content.Length + 2) return false;
-               line = line.Substring(content.Length + 2);
+               if (line.Length < content.Length) return false;
+               line = line.Substring(content.Length);
+               if (line.StartsWith(">")) line = line.Substring(1);
                template = template.Substring(template.IndexOf('+') + 1);
                template = template.Substring(template.IndexOf('+') + 2);
                continue;
@@ -686,6 +713,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             if (result == Pointer.NULL && !int.TryParse(line, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out result)) return false;
             result -= Pointer.NULL;
          } else {
+            if (line.StartsWith("0x")) line = line.Substring(2);
             if (!int.TryParse(line, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out result)) return false;
          }
          results = new[] {
@@ -695,6 +723,22 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             (byte)(result>>24),
          };
          return true;
+      }
+   }
+
+   public class AlignInstruction : IInstruction {
+      public int ByteLength => 4;
+      public bool RequiresAlignment => true;
+
+      public string Disassemble(IDataModel data, int address, IReadOnlyList<ConditionCode> conditionalCodes) {
+         throw new NotImplementedException();
+      }
+
+      public bool Matches(IDataModel data, int index) => false;
+
+      public bool TryAssemble(string line, IReadOnlyList<ConditionCode> conditionCodes, int address, LabelLibrary labels, out byte[] results) {
+         results = new byte[0];
+         return line.StartsWith(".align");
       }
    }
 
@@ -732,7 +776,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          InstructionAddress = address;
          Register = register;
-         WordToLoad = wordValue;
+         WordToLoad = wordValue + more;
       }
 
       public void Write(IList<byte> data, int wordAddress) {
