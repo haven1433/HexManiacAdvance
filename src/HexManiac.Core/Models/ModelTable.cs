@@ -65,7 +65,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
          if (seg is ArrayRunPointerSegment pointerSeg) {
             valueAddress = model.ReadPointer(valueAddress);
-            var spriteRun = (ISpriteRun)model.GetNextRun(valueAddress);
+            if (!(model.GetNextRun(valueAddress) is ISpriteRun spriteRun)) return null;
             return spriteRun.GetPixels(model, 0);
          } else {
             throw new NotImplementedException();

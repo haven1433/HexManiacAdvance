@@ -290,9 +290,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          extraIndices = new List<int>();
 
          CanonicalIndex = index;
-         PixelWidth = sprite.GetLength(0);
-         PixelHeight = sprite.GetLength(1);
-         PixelData = SpriteTool.Render(sprite, palette, 0, 0);
+         PixelWidth = sprite?.GetLength(0) ?? 64;
+         PixelHeight = sprite?.GetLength(1) ?? 64;
+         PixelData = sprite != null && palette != null ? SpriteTool.Render(sprite, palette, 0, 0) : new short[64 * 64];
          SpriteScale = 1;
 
          filterTerms = GenerateFilterTerms(model, index);
