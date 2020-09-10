@@ -870,7 +870,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             case ElementContentType.Integer:
                if (segment is ArrayRunEnumSegment enumSegment) {
                   var options = enumSegment.GetOptions(owner).ToList();
-                  return owner.ReadMultiByteValue(start, segment.Length) < options.Count;
+                  var modelValue = owner.ReadMultiByteValue(start, segment.Length);
+                  if (segment.Length == 2 && (short)modelValue == -2) return true; // allow FFFE short tokens: they often have special meaning
+                  return modelValue < options.Count;
                } else {
                   if (flags.HasFlag(FormatMatchFlags.AllowJunkAfterText)) return true; // don't bother verifying if junk is allowed
                   return segment.Length < 4 || owner[start + 3] < 0x08; // we want an integer, not a pointer
