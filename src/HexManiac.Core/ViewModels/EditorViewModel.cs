@@ -779,14 +779,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      bool withinNotListeningScope = false;
       private IDisposable WorkWithoutListeningToCommandsFromCurrentTab() {
+         if (withinNotListeningScope) return new StubDisposable();
          void add(ICommand command, EventHandler notify) => command.CanExecuteChanged += notify;
          void remove(ICommand command, EventHandler notify) => command.CanExecuteChanged -= notify;
+         withinNotListeningScope = true;
          AdjustNotificationsFromCurrentTab(remove);
          return new StubDisposable {
             Dispose = () => {
                commandsToRefreshOnTabChange.ForEach(command => command.CanExecuteChanged.Invoke(command, EventArgs.Empty));
                AdjustNotificationsFromCurrentTab(add);
+               withinNotListeningScope = false;
             }
          };
       }
