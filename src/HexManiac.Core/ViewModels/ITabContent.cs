@@ -32,4 +32,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       void Refresh();
    }
+
+   public interface IRaiseMessageTab : ITabContent {
+      void RaiseMessage(string message);
+   }
 }

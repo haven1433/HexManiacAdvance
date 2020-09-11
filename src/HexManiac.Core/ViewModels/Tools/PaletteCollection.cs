@@ -20,7 +20,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    }
 
    public class PaletteCollection : ViewModelCore {
-      private readonly ViewPort viewPort;
+      private readonly IRaiseMessageTab tab;
+      private readonly IDataModel model;
       private readonly ChangeHistory<ModelDelta> history;
 
       private int sourcePalette;
@@ -80,8 +81,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public event EventHandler<int> RequestPageSet;
       public event EventHandler ColorsChanged;
 
-      public PaletteCollection(ViewPort viewPort, ChangeHistory<ModelDelta> history) {
-         this.viewPort = viewPort;
+      public PaletteCollection(IRaiseMessageTab tab, IDataModel model, ChangeHistory<ModelDelta> history) {
+         this.tab = tab;
+         this.model = model;
          this.history = history;
       }
 
@@ -130,13 +132,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public void PushColorsToModel() {
-         var model = viewPort.Model;
          if (!(model.GetNextRun(sourcePalette) is IPaletteRun source)) return;
 
          // update model
          var newPalette = source;
          newPalette = newPalette.SetPalette(model, history.CurrentChange, page, Elements.Select(e => e.Color).ToList());
-         if (source.Start != newPalette.Start) viewPort.RaiseMessage($"Palette was moved to {newPalette.Start:X6}. Pointers were updated.");
+         if (source.Start != newPalette.Start) tab.RaiseMessage($"Palette was moved to {newPalette.Start:X6}. Pointers were updated.");
 
          // update UI
          var selectionRange = (selectionStart, selectionEnd);
@@ -145,7 +146,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void ReorderPalette() {
-         var model = viewPort.Model;
          if (!(model.GetNextRun(sourcePalette) is IPaletteRun source)) return;
 
          var oldToNew = Enumerable.Range(0, Elements.Count).Select(i => Elements.IndexOf(Elements.Single(element => element.Index == i))).ToArray();
@@ -199,7 +199,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                }
             }
 
-            if (newSprite.Start != sprite.Start) viewPort.RaiseMessage($"Sprite was moved to {newSprite.Start:X6}. Pointers were updated.");
+            if (newSprite.Start != sprite.Start) tab.RaiseMessage($"Sprite was moved to {newSprite.Start:X6}. Pointers were updated.");
             palettesToUpdate.AddRange(newSprite.FindRelatedPalettes(model));
          }
 
@@ -208,7 +208,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var colors = newPalette.GetPalette(model, page);
             var newColors = Enumerable.Range(0, Elements.Count).Select(i => colors[Elements[i].Index]).ToList();
             newPalette = newPalette.SetPalette(model, history.CurrentChange, page, newColors);
-            if (palette.Start != newPalette.Start) viewPort.RaiseMessage($"Palette was moved to {newPalette.Start:X6}. Pointers were updated.");
+            if (palette.Start != newPalette.Start) tab.RaiseMessage($"Palette was moved to {newPalette.Start:X6}. Pointers were updated.");
          }
 
          for (int i = 0; i < Elements.Count; i++) {
@@ -221,7 +221,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void Refresh() {
          var currentPage = page;
-         viewPort.Refresh();
+         tab.Refresh();
          if (hasMultiplePages) RequestPageSet?.Invoke(this, currentPage);
          ColorsChanged?.Invoke(this, EventArgs.Empty);
       }
@@ -265,7 +265,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void ExecutePaste(IFileSystem fileSystem) {
-         var model = viewPort.Model;
          if (!(model.GetNextRun(sourcePalette) is IPaletteRun)) return;
 
          // paste data into elements
@@ -312,7 +311,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private bool CanExecuteCreateGradient() => Elements.Count(element => element.Selected) > 2;
 
       private void ExecuteSingleReduce() {
-         var model = viewPort.Model;
          if (!(model.GetNextRun(sourcePalette) is IPaletteRun paletteRun)) return;
          int pageOffset = (paletteRun.PaletteFormat.InitialBlankPages + Page) << 4;
 
@@ -356,11 +354,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                         if (pixels[x, y] == elementMergeIndex + pageOffset) pixels[x, y] = elementKeepIndex + pageOffset;
                      }
                   }
-                  newSprite = newSprite.SetPixels(model, viewPort.CurrentChange, j, pixels);
+                  newSprite = newSprite.SetPixels(model, history.CurrentChange, j, pixels);
                }
                if (newSprite.Start != sprite.Start) {
-                  viewPort.RaiseMessage($"Sprite was moved to {newSprite.Start:X6}. Pointers were updated.");
-                  viewPort.Goto.Execute(newSprite.Start);
+                  tab.RaiseMessage($"Sprite was moved to {newSprite.Start:X6}. Pointers were updated.");
+                  if (tab is IViewPort viewPort) {
+                     viewPort.Goto.Execute(newSprite.Start);
+                  }
                }
             }
          }

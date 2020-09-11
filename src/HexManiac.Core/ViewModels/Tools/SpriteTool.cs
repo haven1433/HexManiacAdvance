@@ -397,7 +397,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public SpriteTool(ViewPort viewPort, ChangeHistory<ModelDelta> history) {
          this.viewPort = viewPort;
          this.history = history;
-         Colors = new PaletteCollection(viewPort, history);
+         Colors = new PaletteCollection(viewPort, viewPort.Model, history);
          Colors.ColorsChanged += (sender, e) => { LoadPalette(); LoadSprite(); };
          model = viewPort?.Model;
          spriteAddress = Pointer.NULL;

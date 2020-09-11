@@ -16,7 +16,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    // cursor size is in terms of destination pixels (1x1, 2x2, 4x4, 8x8)
    // cursor sprite position is in terms of the sprite (ranging from 0,0 to width,height)
 
-   public class ImageEditorViewModel : ViewModelCore, ITabContent, IPixelViewModel {
+   public class ImageEditorViewModel : ViewModelCore, ITabContent, IPixelViewModel, IRaiseMessageTab {
       private readonly ChangeHistory<ModelDelta> history;
       private readonly IDataModel model;
       private int spriteAddress;
@@ -46,6 +46,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler<Action> RequestDelayedWork;
       public event EventHandler RequestMenuClose;
 
+      public void RaiseMessage(string message) => OnMessage?.Invoke(this, message);
+
       #endregion
 
       private Tools selectedTool;
@@ -66,8 +68,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public short[] PixelData { get; private set; }
 
-      private double spriteScale;
+      private double spriteScale = 1;
       public double SpriteScale { get => spriteScale; set => Set(ref spriteScale, value); }
+      public PaletteCollection Palette { get; set; }
 
       public ImageEditorViewModel(ChangeHistory<ModelDelta> history, IDataModel model, int address) {
          this.history = history;
@@ -82,12 +85,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var pixels = spriteRun.GetPixels(model, 0);
          PixelData = SpriteTool.Render(pixels, palRun.AllColors(model), palRun.PaletteFormat.InitialBlankPages, 0);
+         PixelWidth = spriteRun.SpriteFormat.TileWidth * 8;
+         PixelHeight = spriteRun.SpriteFormat.TileHeight * 8;
+         Palette = new PaletteCollection(this, model, history) { SourcePalette = paletteAddress };
+         RefreshPaletteColors();
       }
 
       public void Hover(Point point) { }
       public void ZoomIn(Point point) { }
       public void ZoomOut(Point point) { }
-      public void ToolDown(Point point) { }
+      public void ToolDown(Point point) {
+         if (selectedTool == Tools.Draw) {
+            var color = (Palette.Elements.FirstOrDefault(sc => sc.Selected) ?? Palette.Elements[0]).Color;
+            point = ToSpriteSpace(point);
+            PixelData[PixelIndex(point)] = color;
+         }
+      }
       public void ToolUp(Point point) { }
       public void EyeDropperDown(Point point) { }
       public void EyeDropperUp(Point point) { }
@@ -96,6 +109,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void WriteImage() {
 
+      }
+
+      public int PixelIndex(Point spriteSpace) => spriteSpace.Y * PixelWidth + spriteSpace.X;
+
+      private Point ToSpriteSpace(Point point) {
+         var x = point.X;
+         var y = point.Y;
+         x += PixelWidth / 2 - xOffset;
+         y += PixelHeight / 2 - yOffset;
+         return new Point(x, y);
+      }
+
+      private void RefreshPaletteColors() {
+         var palRun = (IPaletteRun)model.GetNextRun(paletteAddress);
+         Palette.SetContents(palRun.GetPalette(model, 0));
+         foreach (var e in Palette.Elements) {
+            e.Bind(nameof(e.Selected), (sc, args) => {
+               if (sc.Selected) {
+                  SelectedTool = Tools.Draw;
+               }
+            });
+         }
       }
 
       public enum Tools {
