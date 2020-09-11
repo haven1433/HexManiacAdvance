@@ -21,6 +21,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public string Name => "Adjust Dex Order";
 
+      public string FullFileName { get; }
+
       private string filter = string.Empty;
       public string Filter {
          get => filter;
@@ -73,7 +75,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      public DexReorderTab(ChangeHistory<ModelDelta> history, IDataModel model, string dexOrder, string dexInfo, bool isNational) {
+      public DexReorderTab(string filename, ChangeHistory<ModelDelta> history, IDataModel model, string dexOrder, string dexInfo, bool isNational) {
+         FullFileName = filename;
          this.history = history;
          this.model = model;
          this.dexOrder = dexOrder;
