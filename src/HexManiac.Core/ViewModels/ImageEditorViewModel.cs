@@ -83,10 +83,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          spriteAddress = spriteRun.Start;
          paletteAddress = palRun.Start;
 
-         var pixels = spriteRun.GetPixels(model, 0);
-         PixelData = SpriteTool.Render(pixels, palRun.AllColors(model), palRun.PaletteFormat.InitialBlankPages, 0);
-         PixelWidth = spriteRun.SpriteFormat.TileWidth * 8;
-         PixelHeight = spriteRun.SpriteFormat.TileHeight * 8;
+         Render();
          Palette = new PaletteCollection(this, model, history) { SourcePalette = paletteAddress };
          RefreshPaletteColors();
       }
@@ -107,11 +104,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void Refresh() { }
 
+      public int PixelIndex(Point spriteSpace) => spriteSpace.Y * PixelWidth + spriteSpace.X;
+
       private void WriteImage() {
 
       }
-
-      public int PixelIndex(Point spriteSpace) => spriteSpace.Y * PixelWidth + spriteSpace.X;
 
       private Point ToSpriteSpace(Point point) {
          var x = point.X;
@@ -125,13 +122,35 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var palRun = (IPaletteRun)model.GetNextRun(paletteAddress);
          Palette.SetContents(palRun.GetPalette(model, 0));
          foreach (var e in Palette.Elements) {
-            e.Bind(nameof(e.Selected), (sc, args) => {
-               if (sc.Selected) {
-                  SelectedTool = Tools.Draw;
+            e.PropertyChanged += (sender, args) => {
+               var sc = (SelectableColor)sender;
+               switch (args.PropertyName) {
+                  case nameof(sc.Selected):
+                     if (sc.Selected) {
+                        SelectedTool = Tools.Draw;
+                     }
+                     break;
+                  case nameof(sc.Color):
+                     Palette.PushColorsToModel();
+                     Render();
+                     break;
                }
-            });
+            };
          }
       }
+
+      private void Render() {
+         var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
+         var palRun = (IPaletteRun)model.GetNextRun(paletteAddress);
+
+         var pixels = spriteRun.GetPixels(model, 0);
+
+         PixelWidth = spriteRun.SpriteFormat.TileWidth * 8;
+         PixelHeight = spriteRun.SpriteFormat.TileHeight * 8;
+         PixelData = SpriteTool.Render(pixels, palRun.AllColors(model), palRun.PaletteFormat.InitialBlankPages, 0);
+      }
+
+      #region Nested Types
 
       public enum Tools {
          Pan,        // a
@@ -140,5 +159,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Fill,       // f
          EyeDropper, // e
       }
+
+      #endregion
    }
 }

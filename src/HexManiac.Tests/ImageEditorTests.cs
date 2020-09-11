@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
+using System.Linq;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
@@ -35,10 +36,22 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
+      public void Palette_Default_NoColorsSelected() {
+         Assert.Empty(editor.Palette.Elements.Where(sc => sc.Selected));
+      }
+
+      [Fact]
+      public void Palette_ChangeColor_PixelsUpdate() {
+         editor.Palette.Elements[0].Color = Rgb(1, 1, 1);
+
+         Assert.Equal((1, 1, 1), Rgb(GetPixel(0, 0)));
+      }
+
+      [Fact]
       public void NewColor_Draw_PixelsChange() {
          var palette = editor.Palette;
+         palette.SelectionStart = 1;
          palette.Elements[1].Color = Rgb(31, 31, 31);
-         palette.Elements[1].Selected = true;
 
          editor.ToolDown(new Point(0, 0));
          editor.ToolUp(new Point(0, 0));
