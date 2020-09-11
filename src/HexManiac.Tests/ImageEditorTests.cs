@@ -37,8 +37,8 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void NewColor_Draw_PixelsChange() {
          var palette = editor.Palette;
-         palette.Elements[0].Color = Rgb(31, 31, 31);
-         palette.Elements[0].Selected = true;
+         palette.Elements[1].Color = Rgb(31, 31, 31);
+         palette.Elements[1].Selected = true;
 
          editor.ToolDown(new Point(0, 0));
          editor.ToolUp(new Point(0, 0));

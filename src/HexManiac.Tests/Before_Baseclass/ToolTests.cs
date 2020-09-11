@@ -14,6 +14,9 @@ using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
    public class ToolTests : BaseViewModelTestClass {
+      private readonly ThumbParser parser;
+      public ToolTests() => parser = new ThumbParser(Singletons);
+
       [Fact]
       public void ViewPortHasTools() {
          var viewPort = new ViewPort(new LoadedFile("file.txt", new byte[100]));
@@ -90,11 +93,8 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void HideCommandClosesAnyOpenTools() {
-         var model = new PokemonModel(new byte[0x200]);
-         var history = new ChangeHistory<ModelDelta>(null);
-         var tools = new ToolTray(singletons, model, new Selection(new ScrollRegion(), model), history, null) {
-            SelectedIndex = 1
-         };
+         var tools = ViewPort.Tools;
+         tools.SelectedIndex = 1;
          tools.HideCommand.Execute();
 
          Assert.Equal(-1, tools.SelectedIndex);
@@ -613,13 +613,6 @@ namespace HavenSoft.HexManiac.Tests {
          tableTool.Next.Execute();
 
          Assert.EndsWith("/2", tableTool.CurrentElementName);
-      }
-
-      private static readonly Singletons singletons;
-      private static readonly ThumbParser parser;
-      static ToolTests() {
-         singletons = new Singletons();
-         parser = new ThumbParser(singletons);
       }
    }
 }
