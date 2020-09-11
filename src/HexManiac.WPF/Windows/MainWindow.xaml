@@ -159,10 +159,10 @@
                <MenuItem Header="_Tools">
                   <MenuItem Header="_Hide All Tools" Command="{Binding Tools.HideCommand}"/>
                   <Separator/>
-                  <MenuItem Header="Toggle _Text Tool" Command="{Binding Tools.StringToolCommand}"/>
                   <MenuItem Header="Toggle T_able Tool" Command="{Binding Tools.TableToolCommand}"/>
+                  <MenuItem Header="Toggle _Text Tool" Command="{Binding Tools.StringToolCommand}"/>
+                  <MenuItem Header="Toggle _Image Tool" Command="{Binding Tools.SpriteToolCommand}"/>
                   <MenuItem Header="Toggle _Code Tool" Command="{Binding Tools.CodeToolCommand}"/>
-                  <Separator/>
                </MenuItem>
                <MenuItem Name="QuickEdits" Header="Utilities"/>
                <MenuItem Header="_Help">
