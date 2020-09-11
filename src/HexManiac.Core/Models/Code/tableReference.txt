@@ -143,7 +143,11 @@ graphics.bag.palette,                  3C1CD8, 3C1D30, 3C1CF4, 3C1D60, 3D41F4, 3
 graphics.bag.berry.sprites,            0A7D7C, 0A7D7C, 0A7D9C, 0A7D9C,       ,       ,       ,       , 0D50C0, [sprite<`lzs4x6x6`> pal<`lzp4`>]
 graphics.firstpersonview.sprites,            ,       ,       ,       , 0F80FC, 0F80D4, 0F8174, 0F814C,       , [a b c d tileset<`lzt4|graphics.firstpersonview.sprites`> tilemap<`lzm4x32x20|graphics.firstpersonview.sprites`> pal<`ucp4:DE`>]28
 graphics.battle.background.sprites,    00D954, 00D954, 00D954, 00D954, 00F2A0, 00F2A0, 00F2B4, 00F2B4, 035940, [battletiles<`lzt4|graphics.battle.background.sprites`> battlemap<`lzm4x32x64|graphics.battle.background.sprites|battletiles`> introtiles<`lzt4`> intromap<`lzm4x32x14|graphics.battle.background.sprites|introtiles`> pal<`lzp4:234`>]
-//graphics.battle.particles,             ,,,, 072914,,,, , [particle<`lzt4`> size: index:]578 // this table has both sprites and palettes, but as separate elements. Might need to get smart...
+graphics.battle.hud.opponent.sprite,   ,,,, 260210, 2601F0, 260280, 260260, , `lzs4x8x8|graphics.battle.hud.palette`
+graphics.battle.hud.player.sprite,     ,,,, 260208, 2601E8, 260278, 260258, , `lzs4x8x16|graphics.battle.hud.palette`
+graphics.battle.hud.palette,           ,,,, 260260, 260240, 2602D0, 2602B0, , `ucp4`
+graphics.battle.hud.hpbar.sprite,      ,,,, 0480B4, 0480B4, 0480C8, 0480C8, , `ucs4x11x6|graphics.battle.hud.hpbar.palette`
+graphics.battle.hud.hpbar.palette,     ,,,, 260268, 260248, 2602D8, 2602B8, , `ucp4`
 
 graphics.titlescreen.pokemon.palette,              07C298, 07C29C, 07C2B8, 07C2BC, ,,,, , `ucp4:01`
 graphics.titlescreen.pokemon.tileset,              07C280, 07C284, 07C2A0, 07C2A4, ,,,, , `lzt4|graphics.titlescreen.pokemon.palette`
