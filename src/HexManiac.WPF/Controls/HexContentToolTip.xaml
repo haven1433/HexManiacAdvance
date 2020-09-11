@@ -13,7 +13,7 @@
             <ItemsControl SnapsToDevicePixels="True" ItemsSource="{Binding Colors}">
                <ItemsControl.ItemsPanel>
                   <ItemsPanelTemplate>
-                     <UniformGrid Columns="{Binding ColorWidth}" Rows="{Binding ColorHeight}"/>
+                     <UniformGrid Columns="{Binding ColorWidth}" Rows="{Binding ColorHeight}" HorizontalAlignment="Center"/>
                   </ItemsPanelTemplate>
                </ItemsControl.ItemsPanel>
                <ItemsControl.ItemTemplate>
