@@ -406,6 +406,7 @@
             <StackPanel>
                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                   <Button Content="Import" Command="{Binding SpriteTool.ImportPair}" CommandParameter="{DynamicResource FileSystem}" Margin="5"/>
+                  <Button Content="Edit" Command="{Binding SpriteTool.OpenInImageTab}" CommandParameter="{DynamicResource FileSystem}" Margin="5"/>
                   <Button Content="Export" Command="{Binding SpriteTool.ExportPair}" CommandParameter="{DynamicResource FileSystem}" Margin="5"/>
                </StackPanel>
                <!-- Sprite Address -->

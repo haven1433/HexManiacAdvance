@@ -125,6 +125,21 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(4, editor.XOffset);
       }
 
+      [InlineData(-4, -4)]
+      [InlineData(3, 3)]
+      [InlineData(-4, 3)]
+      [InlineData(3, -4)]
+      [Theory]
+      public void Zoom_Unzoom_Symmetric(int x, int y) {
+         editor.ZoomIn(new Point(x, y));
+         editor.ZoomIn(new Point(x, y));
+         editor.ZoomOut(new Point(x, y));
+         editor.ZoomOut(new Point(x, y));
+
+         Assert.Equal(0, editor.XOffset);
+         Assert.Equal(0, editor.YOffset);
+      }
+
       [Fact]
       public void Draw_Drag_Line() {
          editor.Palette.SelectionStart = 1;
@@ -161,6 +176,21 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.True(editor.Palette.Elements[0].Selected);
          Assert.False(editor.Palette.Elements[1].Selected);
+      }
+
+      [Fact]
+      public void EyeDropper_OutOfRange_Noop() {
+         editor.EyeDropperDown(new Point(-50, 0));
+         editor.EyeDropperUp(new Point(-50, 0));
+      }
+
+      [Fact]
+      public void BigPan_SmallImage_PanHitsLimit() {
+         editor.ToolDown(new Point(0, 0));
+         editor.Hover(new Point(50, 0));
+         editor.ToolUp(new Point(50, 0));
+
+         Assert.Equal(4, editor.XOffset);
       }
    }
 }

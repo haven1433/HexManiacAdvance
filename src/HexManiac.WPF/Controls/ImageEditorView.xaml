@@ -6,7 +6,21 @@
              xmlns:local="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-            
-    </Grid>
+   <Grid Name="ImageContainer" Background="Transparent"
+      VerticalAlignment="Center" HorizontalAlignment="Center"
+      MouseLeftButtonDown="MousePrimaryDown"
+      MouseLeftButtonUp="MousePrimaryUp"
+      MouseRightButtonDown="MouseSecondaryDown"
+      MouseRightButtonUp="MouseSecondaryUp"
+      MouseMove="MoveMouse"
+      MouseWheel="WheelMouse">
+      <local:PixelImage LayoutTransform="{x:Null}" RenderTransformOrigin=".5,.5">
+         <local:PixelImage.RenderTransform>
+            <TransformGroup>
+               <ScaleTransform ScaleX="{Binding SpriteScale}" ScaleY="{Binding SpriteScale}"/>
+               <TranslateTransform X="{Binding XOffset}" Y="{Binding YOffset}"/>
+            </TransformGroup>
+         </local:PixelImage.RenderTransform>
+      </local:PixelImage>
+   </Grid>
 </UserControl>

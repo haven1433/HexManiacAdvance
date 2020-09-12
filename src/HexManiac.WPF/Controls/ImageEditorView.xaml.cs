@@ -1,25 +1,42 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using HavenSoft.HexManiac.Core.ViewModels;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
-   /// <summary>
-   /// Interaction logic for ImageEditorView.xaml
-   /// </summary>
    public partial class ImageEditorView : UserControl {
-      public ImageEditorView() {
-         InitializeComponent();
+      private ImageEditorViewModel ViewModel => (ImageEditorViewModel)DataContext;
+
+      public ImageEditorView() => InitializeComponent();
+
+      private Core.Models.Point Point(MouseEventArgs e) {
+         var p = e.GetPosition(ImageContainer);
+         p.X -= ImageContainer.ActualWidth / 2;
+         p.Y -= ImageContainer.ActualHeight / 2;
+         return new Core.Models.Point((int)p.X, (int)p.Y);
+      }
+
+      private void MousePrimaryDown(object sender, MouseButtonEventArgs e) {
+         ImageContainer.CaptureMouse();
+         ViewModel.ToolDown(Point(e));
+      }
+      private void MouseSecondaryDown(object sender, MouseButtonEventArgs e) {
+         ImageContainer.CaptureMouse();
+         ViewModel.EyeDropperDown(Point(e));
+      }
+      private void MoveMouse(object sender, MouseEventArgs e) => ViewModel.Hover(Point(e));
+      private void MousePrimaryUp(object sender, MouseButtonEventArgs e) {
+         if (!ImageContainer.IsMouseCaptured) return;
+         ImageContainer.ReleaseMouseCapture();
+         ViewModel.ToolUp(Point(e));
+      }
+      private void MouseSecondaryUp(object sender, MouseButtonEventArgs e) {
+         if (!ImageContainer.IsMouseCaptured) return;
+         ImageContainer.ReleaseMouseCapture();
+         ViewModel.EyeDropperUp(Point(e));
+      }
+      private void WheelMouse(object sender, MouseWheelEventArgs e) {
+         if (e.Delta > 0) ViewModel.ZoomIn(Point(e));
+         if (e.Delta < 0) ViewModel.ZoomOut(Point(e));
       }
    }
 }

@@ -97,18 +97,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void ZoomIn(Point point) {
          if (SpriteScale > 15) return;
-         XOffset += (int)(XOffset / SpriteScale);
-         YOffset += (int)(YOffset / SpriteScale);
+         var (x, y) = (point.X, point.Y);
+         xOffset -= x;
+         yOffset -= y;
+         var xPartial  = xOffset / SpriteScale;
+         var yPartial = yOffset / SpriteScale;
          SpriteScale += 1;
-         XOffset -= point.X;
-         YOffset -= point.Y;
+         XOffset = (int)(xPartial * SpriteScale) + x;
+         YOffset = (int)(yPartial * SpriteScale) + y;
       }
 
       public void ZoomOut(Point point) {
          if (SpriteScale < 2) return;
+         var (x, y) = (point.X, point.Y);
+         xOffset -= x;
+         yOffset -= y;
+         var xPartial = xOffset / SpriteScale;
+         var yPartial = yOffset / SpriteScale;
          SpriteScale -= 1;
-         XOffset += point.X;
-         YOffset += point.Y;
+         var xRange = (int)(PixelWidth * SpriteScale / 2);
+         var yRange = (int)(PixelWidth * SpriteScale / 2);
+         XOffset = ((int)(xPartial * SpriteScale) + x).LimitToRange(-xRange, xRange);
+         YOffset = ((int)(yPartial * SpriteScale) + y).LimitToRange(-yRange, yRange);
       }
 
       public void ToolDown(Point point) {
@@ -132,9 +142,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             PixelData[PixelIndex(point)] = element.Color;
             pixels[point.X, point.Y] = element.Index;
          } else if (selectedTool == Tools.Pan) {
-            XOffset += point.X - interactionStart.X;
-            YOffset += point.Y - interactionStart.Y;
-            interactionStart = point;
+            var xRange = (int)(PixelWidth * SpriteScale / 2);
+            var yRange = (int)(PixelWidth * SpriteScale / 2);
+            var (originalX, originalY) = (xOffset, yOffset);
+            XOffset = (XOffset + point.X - interactionStart.X).LimitToRange(-xRange, xRange);
+            YOffset = (YOffset + point.Y - interactionStart.Y).LimitToRange(-yRange, yRange);
+            interactionStart = new Point(interactionStart.X + XOffset - originalX, interactionStart.Y + YOffset - originalY);
          } else if (selectedTool == Tools.Fill) {
 
          }
@@ -153,6 +166,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void EyeDropperUp(Point point) {
          point = ToSpriteSpace(point);
+         if (!WithinImage(point)) return;
          var index = pixels[point.X, point.Y];
          Palette.SelectionStart = index;
       }
@@ -168,8 +182,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private Point ToSpriteSpace(Point point) {
          var x = point.X;
          var y = point.Y;
-         x += PixelWidth / 2 - xOffset;
-         y += PixelHeight / 2 - yOffset;
+         x += PixelWidth / 2 - (int)(xOffset / SpriteScale);
+         y += PixelHeight / 2 - (int)(yOffset / SpriteScale);
+         return new Point(x, y);
+      }
+      private Point FromSpriteScale(Point spriteScale) {
+         var x = spriteScale.X;
+         var y = spriteScale.Y;
+         x -= PixelWidth / 2 - (int)(xOffset / SpriteScale);
+         y -= PixelHeight / 2 - (int)(yOffset / SpriteScale);
          return new Point(x, y);
       }
 
@@ -193,6 +214,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             };
          }
       }
+
+      private bool WithinImage(Point p) => p.X >= 0 && p.X < PixelWidth && p.Y >= 0 && p.Y < PixelHeight;
 
       private void Render() {
          var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
@@ -225,15 +248,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
             pixels[current.X, current.Y] = targetColorIndex;
             PixelData[PixelIndex(current)] = element.Color;
-            Point
-               left = new Point(current.X - 1, current.Y),
-               right = new Point(current.X + 1, current.Y),
-               up = new Point(current.X, current.Y - 1),
-               down = new Point(current.X, current.Y + 1);
-            if (left.X >= 0 && !processed.Contains(left)) toProcess.Enqueue(left);
-            if (right.X < PixelWidth && !processed.Contains(right)) toProcess.Enqueue(right);
-            if (up.Y >= 0 && !processed.Contains(up)) toProcess.Enqueue(up);
-            if (down.Y < PixelHeight && !processed.Contains(down)) toProcess.Enqueue(down);
+            foreach (var next in new[]{
+               new Point(current.X - 1, current.Y),
+               new Point(current.X + 1, current.Y),
+               new Point(current.X, current.Y - 1),
+               new Point(current.X, current.Y + 1) }
+            ) {
+               if (WithinImage(next) && !processed.Contains(next)) toProcess.Enqueue(next);
+            }
          }
 
          UpdateSpriteModel();
