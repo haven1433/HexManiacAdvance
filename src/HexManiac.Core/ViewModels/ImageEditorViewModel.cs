@@ -2,6 +2,8 @@
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
 
@@ -21,6 +23,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private readonly IDataModel model;
       private int spriteAddress;
       private int paletteAddress;
+      private int[,] pixels;
+
+      private bool withinInteraction;
+      private Point interactionStart;
 
       #region ITabContent Properties
 
@@ -82,25 +88,74 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (palRun == null) palRun = spriteRun.FindRelatedPalettes(model).First();
          spriteAddress = spriteRun.Start;
          paletteAddress = palRun.Start;
+         pixels = spriteRun.GetPixels(model, 0);
 
          Render();
          Palette = new PaletteCollection(this, model, history) { SourcePalette = paletteAddress };
          RefreshPaletteColors();
       }
 
-      public void Hover(Point point) { }
-      public void ZoomIn(Point point) { }
-      public void ZoomOut(Point point) { }
+      public void ZoomIn(Point point) {
+         if (SpriteScale > 15) return;
+         XOffset += (int)(XOffset / SpriteScale);
+         YOffset += (int)(YOffset / SpriteScale);
+         SpriteScale += 1;
+         XOffset -= point.X;
+         YOffset -= point.Y;
+      }
+
+      public void ZoomOut(Point point) {
+         if (SpriteScale < 2) return;
+         SpriteScale -= 1;
+         XOffset += point.X;
+         YOffset += point.Y;
+      }
+
       public void ToolDown(Point point) {
+         withinInteraction = true;
+         interactionStart = point;
+
          if (selectedTool == Tools.Draw) {
-            var color = (Palette.Elements.FirstOrDefault(sc => sc.Selected) ?? Palette.Elements[0]).Color;
-            point = ToSpriteSpace(point);
-            PixelData[PixelIndex(point)] = color;
+            Hover(point);
+         } else if (selectedTool == Tools.Pan) {
+         } else if (selectedTool == Tools.Fill) {
+         } else {
+            throw new NotImplementedException();
          }
       }
-      public void ToolUp(Point point) { }
+
+      public void Hover(Point point) {
+         if (!withinInteraction) return;
+         if (selectedTool == Tools.Draw) {
+            var element = (Palette.Elements.FirstOrDefault(sc => sc.Selected) ?? Palette.Elements[0]);
+            point = ToSpriteSpace(point);
+            PixelData[PixelIndex(point)] = element.Color;
+            pixels[point.X, point.Y] = element.Index;
+         } else if (selectedTool == Tools.Pan) {
+            XOffset += point.X - interactionStart.X;
+            YOffset += point.Y - interactionStart.Y;
+            interactionStart = point;
+         } else if (selectedTool == Tools.Fill) {
+
+         }
+      }
+
+      public void ToolUp(Point point) {
+         if (selectedTool == Tools.Draw) {
+            UpdateSpriteModel();
+         } else if (selectedTool == Tools.Fill) {
+            FillSpace(interactionStart, point);
+         }
+         withinInteraction = false;
+      }
+
       public void EyeDropperDown(Point point) { }
-      public void EyeDropperUp(Point point) { }
+
+      public void EyeDropperUp(Point point) {
+         point = ToSpriteSpace(point);
+         var index = pixels[point.X, point.Y];
+         Palette.SelectionStart = index;
+      }
 
       public void Refresh() { }
 
@@ -143,11 +198,45 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
          var palRun = (IPaletteRun)model.GetNextRun(paletteAddress);
 
-         var pixels = spriteRun.GetPixels(model, 0);
-
          PixelWidth = spriteRun.SpriteFormat.TileWidth * 8;
          PixelHeight = spriteRun.SpriteFormat.TileHeight * 8;
          PixelData = SpriteTool.Render(pixels, palRun.AllColors(model), palRun.PaletteFormat.InitialBlankPages, 0);
+      }
+
+      private void UpdateSpriteModel() {
+         var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
+         spriteRun.SetPixels(model, history.CurrentChange, 0, pixels);
+      }
+
+      private void FillSpace(Point a, Point b) {
+         a = ToSpriteSpace(a);
+         b = ToSpriteSpace(b);
+         if (a != b) throw new NotImplementedException();
+         var element = (Palette.Elements.FirstOrDefault(sc => sc.Selected) ?? Palette.Elements[0]);
+         int originalColorIndex = pixels[a.X, a.Y];
+         var targetColorIndex = element.Index;
+
+         var toProcess = new Queue<Point>(new[] { a });
+         var processed = new HashSet<Point>();
+         while (toProcess.Count > 0) {
+            var current = toProcess.Dequeue();
+            processed.Add(current);
+            if (pixels[current.X, current.Y] != originalColorIndex) continue;
+
+            pixels[current.X, current.Y] = targetColorIndex;
+            PixelData[PixelIndex(current)] = element.Color;
+            Point
+               left = new Point(current.X - 1, current.Y),
+               right = new Point(current.X + 1, current.Y),
+               up = new Point(current.X, current.Y - 1),
+               down = new Point(current.X, current.Y + 1);
+            if (left.X >= 0 && !processed.Contains(left)) toProcess.Enqueue(left);
+            if (right.X < PixelWidth && !processed.Contains(right)) toProcess.Enqueue(right);
+            if (up.Y >= 0 && !processed.Contains(up)) toProcess.Enqueue(up);
+            if (down.Y < PixelHeight && !processed.Contains(down)) toProcess.Enqueue(down);
+         }
+
+         UpdateSpriteModel();
       }
 
       #region Nested Types
