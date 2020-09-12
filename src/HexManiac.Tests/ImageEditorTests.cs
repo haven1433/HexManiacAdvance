@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
@@ -191,6 +192,16 @@ namespace HavenSoft.HexManiac.Tests {
          editor.ToolUp(new Point(50, 0));
 
          Assert.Equal(4, editor.XOffset);
+      }
+
+      [Fact]
+      public void Editor_Close_InvokesClosed() {
+         var count = 0;
+         editor.Closed += (sender, e) => count += 1;
+
+         editor.Close.Execute();
+
+         Assert.Equal(1, count);
       }
    }
 }

@@ -30,6 +30,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #region ITabContent Properties
 
+      private StubCommand close;
+
       public string Name => "Image Editor";
       public ICommand Save => null;
       public ICommand SaveAs => null;
@@ -43,7 +45,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand ResetAlignment => null;
       public ICommand Back => null;
       public ICommand Forward => null;
-      public ICommand Close => null;
+      public ICommand Close => StubCommand(ref close, () => Closed?.Invoke(this, EventArgs.Empty));
       public event EventHandler<string> OnError;
       public event EventHandler<string> OnMessage;
       public event EventHandler ClearMessage;
