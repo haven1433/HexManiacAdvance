@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
@@ -107,6 +108,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          RefreshPaletteColors();
       }
 
+      // convenience methods
+      public void ZoomIn(int x, int y) => ZoomIn(new Point(x, y));
+      public void ZoomOut(int x, int y) => ZoomOut(new Point(x, y));
+      public void ToolDown(int x, int y) => ToolDown(new Point(x, y));
+      public void Hover(int x, int y) => Hover(new Point(x, y));
+      public void ToolUp(int x, int y) => ToolUp(new Point(x, y));
+      public void EyeDropperDown(int x, int y) => EyeDropperDown(new Point(x, y));
+      public void EyeDropperUp(int x, int y) => EyeDropperUp(new Point(x, y));
+
       public void ZoomIn(Point point) {
          if (SpriteScale > 15) return;
          Debug.WriteLine($"Zoom In: {point}");
@@ -155,9 +165,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             Debug.WriteLine($"Draw: {point}");
             var element = (Palette.Elements.FirstOrDefault(sc => sc.Selected) ?? Palette.Elements[0]);
             point = ToSpriteSpace(point);
-            PixelData[PixelIndex(point)] = element.Color;
-            pixels[point.X, point.Y] = element.Index;
-            NotifyPropertyChanged(nameof(PixelData));
+            if (WithinImage(point)) {
+               PixelData[PixelIndex(point)] = element.Color;
+               pixels[point.X, point.Y] = element.Index;
+               NotifyPropertyChanged(nameof(PixelData));
+            }
          } else if (selectedTool == ImageEditorTools.Pan) {
             Debug.WriteLine($"Pan: {interactionStart} to {point}");
             var xRange = (int)(PixelWidth * SpriteScale / 2);
@@ -200,15 +212,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private Point ToSpriteSpace(Point point) {
          var x = point.X;
          var y = point.Y;
-         x += PixelWidth / 2 - (int)(xOffset / SpriteScale);
-         y += PixelHeight / 2 - (int)(yOffset / SpriteScale);
-         return new Point(x, y);
-      }
-      private Point FromSpriteScale(Point spriteScale) {
-         var x = spriteScale.X;
-         var y = spriteScale.Y;
-         x -= PixelWidth / 2 - (int)(xOffset / SpriteScale);
-         y -= PixelHeight / 2 - (int)(yOffset / SpriteScale);
+         var scale = (int)SpriteScale;
+         x = (x - xOffset) / scale + PixelWidth / 2;
+         y = (y - yOffset) / scale + PixelHeight / 2;
          return new Point(x, y);
       }
 

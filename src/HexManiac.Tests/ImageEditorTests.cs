@@ -3,11 +3,8 @@ using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels;
-using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
-using System.Dynamic;
 using System.Linq;
-using System.Resources;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
@@ -246,6 +243,27 @@ namespace HavenSoft.HexManiac.Tests {
          editor.SelectedTool = ImageEditorTools.Draw;
          editor.ToolDown(default);
          editor.ToolUp(default);
+      }
+
+      [Fact]
+      public void Zoom_Draw_ColorChanges() {
+         editor.ZoomIn(-4, -4);
+
+         editor.Palette.SelectionStart = 1;
+         editor.ToolDown(-4, -4);
+         editor.ToolUp(-4, -4);
+
+         Assert.Equal(1, model[0]);
+      }
+
+      [Fact]
+      public void Draw_OutOfBounds_Noop() {
+         editor.Palette.SelectionStart = 1;
+
+         editor.ToolDown(50, 50);
+         editor.ToolUp(50, 50);
+
+         Assert.All(Enumerable.Range(0, 0x20), i => Assert.Equal(0, model[0]));
       }
    }
 }
