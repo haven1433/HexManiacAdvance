@@ -60,6 +60,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #endregion
 
+      #region Draw Rect info
+      private Point drawPoint;
+      private int drawSize;
+      #endregion
+
       private ImageEditorTools selectedTool;
       public ImageEditorTools SelectedTool { get => selectedTool; set => TryUpdateEnum(ref selectedTool, value); }
       private StubCommand selectTool;
@@ -116,6 +121,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void ToolUp(int x, int y) => ToolUp(new Point(x, y));
       public void EyeDropperDown(int x, int y) => EyeDropperDown(new Point(x, y));
       public void EyeDropperUp(int x, int y) => EyeDropperUp(new Point(x, y));
+      public bool ShowSelectionRect(int x, int y) => ShowSelectionRect(new Point(x, y));
 
       public void ZoomIn(Point point) {
          if (SpriteScale > 15) return;
@@ -160,7 +166,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void Hover(Point point) {
-         if (!withinInteraction) return;
+         if (withinInteraction) {
+            Drag(point);
+            return;
+         }
+
+         if (selectedTool == ImageEditorTools.Draw) {
+            point = ToSpriteSpace(point);
+            if (WithinImage(point)) {
+               drawPoint = point;
+               drawSize = 1;
+            } else {
+               drawPoint = default;
+               drawSize = 0;
+            }
+         }
+      }
+
+      private void Drag(Point point) {
          if (selectedTool == ImageEditorTools.Draw) {
             Debug.WriteLine($"Draw: {point}");
             var element = (Palette.Elements.FirstOrDefault(sc => sc.Selected) ?? Palette.Elements[0]);
@@ -199,6 +222,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (!WithinImage(point)) return;
          var index = pixels[point.X, point.Y];
          Palette.SelectionStart = index;
+      }
+
+      public bool ShowSelectionRect(Point point) {
+         var x = point.X / (int)SpriteScale;
+         var y = point.Y / (int)SpriteScale;
+
+         if (x < drawPoint.X) return false;
+         if (y < drawPoint.Y) return false;
+         if (x >= drawPoint.X + drawSize) return false;
+         if (y >= drawPoint.Y + drawSize) return false;
+
+         return true;
       }
 
       public void Refresh() { }

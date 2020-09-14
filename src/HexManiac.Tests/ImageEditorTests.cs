@@ -16,7 +16,7 @@ namespace HavenSoft.HexManiac.Tests {
       private Func<ModelDelta, ModelDelta> Revert { get; set; }
 
       private ModelDelta RevertHistoryChange(ModelDelta change) {
-         return Revert?.Invoke(change) ?? change;
+         return Revert?.Invoke(change) ?? change.Revert(model);
       }
 
       private short Rgb(int r, int g, int b) => (short)((r << 10) | (g << 5) | b);
@@ -264,6 +264,20 @@ namespace HavenSoft.HexManiac.Tests {
          editor.ToolUp(50, 50);
 
          Assert.All(Enumerable.Range(0, 0x20), i => Assert.Equal(0, model[0]));
+      }
+
+      [Fact]
+      public void New_NothingSelected() {
+         Assert.All(Enumerable.Range(0, 64), i => Assert.False(editor.ShowSelectionRect(i % 8, i / 8)));
+      }
+
+      [Fact]
+      public void DrawTool_Hover_ShowSelectionRect() {
+         editor.SelectedTool = ImageEditorTools.Draw;
+
+         editor.Hover(0, 0);
+
+         Assert.True(editor.ShowSelectionRect(4, 4));
       }
    }
 }
