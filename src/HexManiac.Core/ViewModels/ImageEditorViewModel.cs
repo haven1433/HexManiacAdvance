@@ -22,8 +22,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    public class ImageEditorViewModel : ViewModelCore, ITabContent, IPixelViewModel, IRaiseMessageTab {
       private readonly ChangeHistory<ModelDelta> history;
       private readonly IDataModel model;
-      private int spriteAddress;
-      private int paletteAddress;
+      private int spritePointerAddress;
+      private int palettePointerAddress;
       private int[,] pixels;
 
       private bool withinInteraction;
@@ -81,7 +81,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private double spriteScale = 1;
       public double SpriteScale { get => spriteScale; set => Set(ref spriteScale, value); }
-      public PaletteCollection Palette { get; set; }
+
+      private PaletteCollection palette;
+      public PaletteCollection Palette {
+         get => palette;
+         set { palette = value; NotifyPropertyChanged(); }
+      }
+
+      public int SpritePointer => spritePointerAddress;
 
       public ImageEditorViewModel(ChangeHistory<ModelDelta> history, IDataModel model, int address) {
          this.history = history;
@@ -91,12 +98,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var palRun = inputRun as IPaletteRun;
          if (spriteRun == null) spriteRun = palRun.FindDependentSprites(model).First();
          if (palRun == null) palRun = spriteRun.FindRelatedPalettes(model).First();
-         spriteAddress = spriteRun.Start;
-         paletteAddress = palRun.Start;
+         spritePointerAddress = spriteRun.PointerSources[0];
+         palettePointerAddress = palRun.PointerSources[0];
          pixels = spriteRun.GetPixels(model, 0);
 
          Render();
-         Palette = new PaletteCollection(this, model, history) { SourcePalette = paletteAddress };
+         Palette = new PaletteCollection(this, model, history) { SourcePalette = palRun.Start };
          RefreshPaletteColors();
       }
 
@@ -150,6 +157,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             point = ToSpriteSpace(point);
             PixelData[PixelIndex(point)] = element.Color;
             pixels[point.X, point.Y] = element.Index;
+            NotifyPropertyChanged(nameof(PixelData));
          } else if (selectedTool == ImageEditorTools.Pan) {
             Debug.WriteLine($"Pan: {interactionStart} to {point}");
             var xRange = (int)(PixelWidth * SpriteScale / 2);
@@ -205,6 +213,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void RefreshPaletteColors() {
+         var paletteAddress = model.ReadPointer(palettePointerAddress);
          var palRun = (IPaletteRun)model.GetNextRun(paletteAddress);
          Palette.SetContents(palRun.GetPalette(model, 0));
          foreach (var e in Palette.Elements) {
@@ -228,15 +237,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private bool WithinImage(Point p) => p.X >= 0 && p.X < PixelWidth && p.Y >= 0 && p.Y < PixelHeight;
 
       private void Render() {
+         var spriteAddress = model.ReadPointer(spritePointerAddress);
+         var paletteAddress = model.ReadPointer(palettePointerAddress);
+
          var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
          var palRun = (IPaletteRun)model.GetNextRun(paletteAddress);
 
          PixelWidth = spriteRun.SpriteFormat.TileWidth * 8;
          PixelHeight = spriteRun.SpriteFormat.TileHeight * 8;
          PixelData = SpriteTool.Render(pixels, palRun.AllColors(model), palRun.PaletteFormat.InitialBlankPages, 0);
+         NotifyPropertyChanged(nameof(PixelData));
       }
 
       private void UpdateSpriteModel() {
+         var spriteAddress = model.ReadPointer(spritePointerAddress);
          var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
          spriteRun.SetPixels(model, history.CurrentChange, 0, pixels);
       }

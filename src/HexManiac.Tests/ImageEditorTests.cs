@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
@@ -29,11 +30,14 @@ namespace HavenSoft.HexManiac.Tests {
          model = new PokemonModel(new byte[0x200], singletons: BaseViewModelTestClass.Singletons);
          history = new ChangeHistory<ModelDelta>(RevertHistoryChange);
 
-         var palette = new PaletteRun(0x40, new PaletteFormat(4, 1));
-         model.ObserveAnchorWritten(history.CurrentChange, "palette", palette);
+         model.WritePointer(history.CurrentChange, 0x80, 0);
+         model.WritePointer(history.CurrentChange, 0x88, 0x40);
 
-         var sprite = new SpriteRun(0, new SpriteFormat(4, 1, 1, "palette"));
+         var sprite = new SpriteRun(0, new SpriteFormat(4, 1, 1, "palette"), new SortedSpan<int>(0x80));
          model.ObserveAnchorWritten(history.CurrentChange, "sprite", sprite);
+
+         var palette = new PaletteRun(0x40, new PaletteFormat(4, 1), new SortedSpan<int>(0x88));
+         model.ObserveAnchorWritten(history.CurrentChange, "palette", palette);
 
          editor = new ImageEditorViewModel(history, model, 0);
       }
@@ -45,9 +49,12 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void Palette_ChangeColor_PixelsUpdate() {
+         var notifyPixelData = 0;
+         editor.Bind(nameof(editor.PixelData), (sender, e) => notifyPixelData += 1);
          editor.Palette.Elements[0].Color = Rgb(1, 1, 1);
 
          Assert.Equal((1, 1, 1), Rgb(GetPixel(0, 0)));
+         Assert.Equal(1, notifyPixelData);
       }
 
       [Fact]
@@ -55,6 +62,8 @@ namespace HavenSoft.HexManiac.Tests {
          var palette = editor.Palette;
          palette.SelectionStart = 1;
          palette.Elements[1].Color = Rgb(31, 31, 31);
+         var notifyPixelData = 0;
+         editor.Bind(nameof(editor.PixelData), (sender, e) => notifyPixelData += 1);
 
          editor.ToolDown(new Point(0, 0));
          editor.ToolUp(new Point(0, 0));
@@ -62,6 +71,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal((31, 31, 31), Rgb(GetPixel(4, 4)));
          Assert.Equal(1, ((ISpriteRun)model.GetNextRun(0)).GetPixels(model, 0)[4, 4]);
          Assert.Equal(Rgb(31, 31, 31), ((IPaletteRun)model.GetNextRun(0x40)).GetPalette(model, 0)[1]);
+         Assert.Equal(1, notifyPixelData);
       }
 
       [Fact]
@@ -222,6 +232,20 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(1, xOffsetNotify);
          Assert.Equal(1, yOffsetNotify);
+      }
+
+      [Fact]
+      public void Image_Repoint_ToolStillWorks() {
+         var source = editor.SpritePointer;
+         var destination = model.ReadPointer(editor.SpritePointer);
+         var spriteRun = (ISpriteRun)model.GetNextRun(destination);
+
+         model.RelocateForExpansion(history.CurrentChange, spriteRun, spriteRun.Length + 1);
+
+         // if this doesn't throw, we're happy
+         editor.SelectedTool = ImageEditorTools.Draw;
+         editor.ToolDown(default);
+         editor.ToolUp(default);
       }
    }
 }
