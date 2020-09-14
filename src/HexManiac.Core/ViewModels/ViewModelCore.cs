@@ -37,8 +37,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public static void Bind<T>(this T viewModel, string propertyName, Action<T, PropertyChangedEventArgs> handler) where T : INotifyPropertyChanged {
          viewModel.PropertyChanged += (sender, e) => {
-            var instance = (T)sender;
-            handler(instance, e);
+            if (propertyName == e.PropertyName) {
+               var instance = (T)sender;
+               handler(instance, e);
+            }
          };
       }
    }

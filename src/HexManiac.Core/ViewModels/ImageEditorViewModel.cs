@@ -4,6 +4,7 @@ using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows.Input;
 
@@ -58,8 +59,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #endregion
 
-      private Tools selectedTool;
-      public Tools SelectedTool { get => selectedTool; set => TryUpdateEnum(ref selectedTool, value); }
+      private ImageEditorTools selectedTool;
+      public ImageEditorTools SelectedTool { get => selectedTool; set => TryUpdateEnum(ref selectedTool, value); }
+      private StubCommand selectTool;
+      public ICommand SelectTool => StubCommand<ImageEditorTools>(ref selectTool, arg => SelectedTool = arg);
 
       private int cursorSize, cursorSpritePositionX, cursorSpritePositionY, xOffset, yOffset, width, height, selectedColor, selectedPage;
       public int CursorSize { get => cursorSize; private set => Set(ref cursorSize, value); }
@@ -99,14 +102,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void ZoomIn(Point point) {
          if (SpriteScale > 15) return;
+         Debug.WriteLine($"Zoom In: {point}");
          var (x, y) = (point.X, point.Y);
          xOffset -= x;
          yOffset -= y;
          var xPartial  = xOffset / SpriteScale;
          var yPartial = yOffset / SpriteScale;
          SpriteScale += 1;
-         XOffset = (int)(xPartial * SpriteScale) + x;
-         YOffset = (int)(yPartial * SpriteScale) + y;
+         xOffset = (int)(xPartial * SpriteScale) + x;
+         yOffset = (int)(yPartial * SpriteScale) + y;
+         NotifyPropertyChanged(nameof(XOffset));
+         NotifyPropertyChanged(nameof(YOffset));
       }
 
       public void ZoomOut(Point point) {
@@ -127,10 +133,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          withinInteraction = true;
          interactionStart = point;
 
-         if (selectedTool == Tools.Draw) {
+         if (selectedTool == ImageEditorTools.Draw) {
             Hover(point);
-         } else if (selectedTool == Tools.Pan) {
-         } else if (selectedTool == Tools.Fill) {
+         } else if (selectedTool == ImageEditorTools.Pan) {
+         } else if (selectedTool == ImageEditorTools.Fill) {
          } else {
             throw new NotImplementedException();
          }
@@ -138,27 +144,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void Hover(Point point) {
          if (!withinInteraction) return;
-         if (selectedTool == Tools.Draw) {
+         if (selectedTool == ImageEditorTools.Draw) {
+            Debug.WriteLine($"Draw: {point}");
             var element = (Palette.Elements.FirstOrDefault(sc => sc.Selected) ?? Palette.Elements[0]);
             point = ToSpriteSpace(point);
             PixelData[PixelIndex(point)] = element.Color;
             pixels[point.X, point.Y] = element.Index;
-         } else if (selectedTool == Tools.Pan) {
+         } else if (selectedTool == ImageEditorTools.Pan) {
+            Debug.WriteLine($"Pan: {interactionStart} to {point}");
             var xRange = (int)(PixelWidth * SpriteScale / 2);
             var yRange = (int)(PixelWidth * SpriteScale / 2);
             var (originalX, originalY) = (xOffset, yOffset);
             XOffset = (XOffset + point.X - interactionStart.X).LimitToRange(-xRange, xRange);
             YOffset = (YOffset + point.Y - interactionStart.Y).LimitToRange(-yRange, yRange);
             interactionStart = new Point(interactionStart.X + XOffset - originalX, interactionStart.Y + YOffset - originalY);
-         } else if (selectedTool == Tools.Fill) {
+         } else if (selectedTool == ImageEditorTools.Fill) {
 
          }
       }
 
       public void ToolUp(Point point) {
-         if (selectedTool == Tools.Draw) {
+         if (selectedTool == ImageEditorTools.Draw) {
             UpdateSpriteModel();
-         } else if (selectedTool == Tools.Fill) {
+         } else if (selectedTool == ImageEditorTools.Fill) {
             FillSpace(interactionStart, point);
          }
          withinInteraction = false;
@@ -205,7 +213,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                switch (args.PropertyName) {
                   case nameof(sc.Selected):
                      if (sc.Selected) {
-                        SelectedTool = Tools.Draw;
+                        SelectedTool = ImageEditorTools.Draw;
                      }
                      break;
                   case nameof(sc.Color):
@@ -262,17 +270,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          UpdateSpriteModel();
       }
+   }
 
-      #region Nested Types
-
-      public enum Tools {
-         Pan,        // a
-         Select,     // s
-         Draw,       // d
-         Fill,       // f
-         EyeDropper, // e
-      }
-
-      #endregion
+   public enum ImageEditorTools {
+      Pan,        // a
+      Select,     // s
+      Draw,       // d
+      Fill,       // f
+      EyeDropper, // e
    }
 }

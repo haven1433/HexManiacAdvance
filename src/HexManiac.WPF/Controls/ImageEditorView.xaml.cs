@@ -26,13 +26,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void MoveMouse(object sender, MouseEventArgs e) => ViewModel.Hover(Point(e));
       private void MousePrimaryUp(object sender, MouseButtonEventArgs e) {
          if (!ImageContainer.IsMouseCaptured) return;
-         ImageContainer.ReleaseMouseCapture();
          ViewModel.ToolUp(Point(e));
+         ImageContainer.ReleaseMouseCapture();
       }
       private void MouseSecondaryUp(object sender, MouseButtonEventArgs e) {
          if (!ImageContainer.IsMouseCaptured) return;
-         ImageContainer.ReleaseMouseCapture();
          ViewModel.EyeDropperUp(Point(e));
+         ImageContainer.ReleaseMouseCapture();
       }
       private void WheelMouse(object sender, MouseWheelEventArgs e) {
          if (e.Delta > 0) ViewModel.ZoomIn(Point(e));

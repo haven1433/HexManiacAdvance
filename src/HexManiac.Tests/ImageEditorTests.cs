@@ -6,6 +6,7 @@ using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Dynamic;
 using System.Linq;
+using System.Resources;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
@@ -93,7 +94,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void Center_Pan2_Offset2() {
-         editor.SelectedTool = ImageEditorViewModel.Tools.Pan;
+         editor.SelectedTool = ImageEditorTools.Pan;
 
          editor.ToolDown(new Point(0, 0));
          editor.Hover(new Point(2, 0));
@@ -104,7 +105,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void Zoom_Pan2_Offset2() {
-         editor.SelectedTool = ImageEditorViewModel.Tools.Pan;
+         editor.SelectedTool = ImageEditorTools.Pan;
 
          editor.ZoomIn(new Point(0, 0));
          editor.ToolDown(new Point(0, 0));
@@ -116,7 +117,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void Pan2_Zoom_Offset4() {
-         editor.SelectedTool = ImageEditorViewModel.Tools.Pan;
+         editor.SelectedTool = ImageEditorTools.Pan;
 
          editor.ToolDown(new Point(0, 0));
          editor.Hover(new Point(2, 0));
@@ -145,7 +146,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void Draw_Drag_Line() {
          editor.Palette.SelectionStart = 1;
          editor.Palette.Elements[1].Color = Rgb(31, 31, 31);
-         editor.SelectedTool = ImageEditorViewModel.Tools.Draw;
+         editor.SelectedTool = ImageEditorTools.Draw;
 
          editor.ToolDown(new Point(0, 0));
          editor.Hover(new Point(1, 0));
@@ -159,7 +160,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void Fill_Blank_FillAll() {
          editor.Palette.SelectionStart = 1;
          editor.Palette.Elements[1].Color = Rgb(31, 31, 31);
-         editor.SelectedTool = ImageEditorViewModel.Tools.Fill;
+         editor.SelectedTool = ImageEditorTools.Fill;
 
          editor.ToolDown(new Point(0, 0));
          editor.ToolUp(new Point(0, 0));
@@ -202,6 +203,25 @@ namespace HavenSoft.HexManiac.Tests {
          editor.Close.Execute();
 
          Assert.Equal(1, count);
+      }
+
+      [Fact]
+      public void Pan_SelectFill_FillSelected() {
+         editor.SelectTool.Execute(ImageEditorTools.Fill);
+
+         Assert.Equal(ImageEditorTools.Fill, editor.SelectedTool);
+      }
+
+      [Fact]
+      public void NoZoom_Zoom_OffsetChangeNotify() {
+         int xOffsetNotify = 0, yOffsetNotify = 0;
+         editor.Bind(nameof(editor.XOffset), (sender, e) => xOffsetNotify += 1);
+         editor.Bind(nameof(editor.YOffset), (sender, e) => yOffsetNotify += 1);
+
+         editor.ZoomIn(new Point(-4, 3));
+
+         Assert.Equal(1, xOffsetNotify);
+         Assert.Equal(1, yOffsetNotify);
       }
    }
 }
