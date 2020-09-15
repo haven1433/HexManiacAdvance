@@ -68,10 +68,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       #region Selection Rect info
       private Point selectionStart;
       private int selectionWidth, selectionHeight;
+      private int[,] underPixels; // the pixels that are 'under' the current selection. As the selection moves, this changes.
       #endregion
 
       private ImageEditorTools selectedTool;
-      public ImageEditorTools SelectedTool { get => selectedTool; set => TryUpdateEnum(ref selectedTool, value); }
+      public ImageEditorTools SelectedTool {
+         get => selectedTool;
+         set {
+            if (TryUpdateEnum(ref selectedTool, value)) {
+               underPixels = null; // too changed, clear selection cache
+            }
+         }
+      }
       private StubCommand selectTool;
       public ICommand SelectTool => StubCommand<ImageEditorTools>(ref selectTool, arg => SelectedTool = arg);
 
@@ -166,8 +174,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else if (selectedTool == ImageEditorTools.Pan) {
          } else if (selectedTool == ImageEditorTools.Fill) {
          } else if (selectedTool == ImageEditorTools.Select) {
-            selectionStart = ToSpriteSpace(point);
-            selectionWidth = selectionHeight = 0;
+            var hoverPoint = ToSpriteSpace(point);
+            if (selectionStart.X <= hoverPoint.X && selectionStart.Y <= hoverPoint.Y && selectionStart.X + selectionWidth > hoverPoint.X && selectionStart.Y + selectionHeight > hoverPoint.Y) {
+               // tool down over an existing selection
+               if (underPixels == null) {
+                  underPixels = new int[selectionWidth, selectionHeight];
+                  for (int x = 0; x < selectionWidth; x++) for (int y = 0; y < selectionHeight; y++) {
+                        underPixels[x, y] = 0;
+                     }
+               }
+            } else {
+               underPixels = null; // old selection lost
+               selectionStart = hoverPoint;
+               selectionWidth = selectionHeight = 0;
+            }
          } else {
             throw new NotImplementedException();
          }
@@ -212,10 +232,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else if (selectedTool == ImageEditorTools.Fill) {
 
          } else if (selectedTool == ImageEditorTools.Select) {
-            point = ToSpriteSpace(point);
-            if (WithinImage(point)) {
-               selectionWidth = point.X - selectionStart.X;
-               selectionHeight = point.Y - selectionStart.Y;
+            if (underPixels != null) {
+               var previousPoint = ToSpriteSpace(interactionStart);
+               var currentPoint = ToSpriteSpace(point);
+               if (previousPoint == currentPoint) return;
+               if (!WithinImage(currentPoint)) return;
+               var delta = currentPoint - previousPoint;
+               if (!WithinImage(selectionStart + delta)) return;
+               if (!WithinImage(selectionStart + delta + new Point(selectionWidth, selectionHeight))) return;
+
+               SwapUnderPixelsWithCurrentPixels();
+               selectionStart += delta;
+               SwapUnderPixelsWithCurrentPixels();
+               NotifyPropertyChanged(nameof(PixelData));
+
+               interactionStart = point;
+            } else {
+               point = ToSpriteSpace(point);
+               if (WithinImage(point)) {
+                  selectionWidth = point.X - selectionStart.X;
+                  selectionHeight = point.Y - selectionStart.Y;
+               }
             }
          }
       }
@@ -226,16 +263,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else if (selectedTool == ImageEditorTools.Fill) {
             FillSpace(interactionStart, point);
          } else if (selectedTool == ImageEditorTools.Select) {
-            if (selectionWidth < 0) {
-               selectionStart = new Point(selectionStart.X + selectionWidth, selectionStart.Y);
-               selectionWidth = -selectionWidth;
+            if (underPixels != null) {
+               UpdateSpriteModel();
+            } else {
+               if (selectionWidth < 0) {
+                  selectionStart = new Point(selectionStart.X + selectionWidth, selectionStart.Y);
+                  selectionWidth = -selectionWidth;
+               }
+               if (selectionHeight < 0) {
+                  selectionStart = new Point(selectionStart.X, selectionStart.Y + selectionHeight);
+                  selectionHeight = -selectionHeight;
+               }
+               selectionWidth += 1;
+               selectionHeight += 1;
             }
-            if (selectionHeight < 0) {
-               selectionStart = new Point(selectionStart.X, selectionStart.Y + selectionHeight);
-               selectionHeight = -selectionHeight;
-            }
-            selectionWidth += 1;
-            selectionHeight += 1;
          }
          withinInteraction = false;
       }
@@ -363,6 +404,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          UpdateSpriteModel();
+      }
+
+      private void SwapUnderPixelsWithCurrentPixels() {
+         for (int x = 0; x < selectionWidth; x++) {
+            for (int y = 0; y < selectionHeight; y++) {
+               var (xx, yy) = (selectionStart.X + x, selectionStart.Y + y);
+               (underPixels[x, y], pixels[xx, yy]) = (pixels[xx, yy], underPixels[x, y]);
+
+               var color = Palette.Elements[pixels[xx, yy]].Color;
+               PixelData[PixelIndex(new Point(xx, yy))] = color;
+            }
+         }
       }
    }
 

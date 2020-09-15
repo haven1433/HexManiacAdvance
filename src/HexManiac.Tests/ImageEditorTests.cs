@@ -324,5 +324,20 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(Rgb(31, 31, 31), editor.PixelData[editor.PixelIndex(new Point(2, 1))]);
       }
+
+      [Fact]
+      public void SelectDrag_DragBack_OriginalPixelsBack() {
+         editor.Palette.Elements[1].Color = Rgb(31, 31, 31);
+         DrawBox(1, new Point(-4, -4), 2, 2);
+         ToolMove(new Point(-2, -4)); // sentinel pixel
+         editor.SelectedTool = ImageEditorTools.Select;
+         ToolMove(new Point(-4, -4), new Point(-3, -3));
+
+         // move it back and forth
+         ToolMove(new Point(-4, -4), new Point(-3, -4));
+         ToolMove(new Point(-3, -4), new Point(-4, -4));
+
+         Assert.Equal(Rgb(31, 31, 31), editor.PixelData[editor.PixelIndex(new Point(2, 0))]);
+      }
    }
 }
