@@ -19,6 +19,23 @@ namespace HavenSoft.HexManiac.Tests {
          return Revert?.Invoke(change) ?? change.Revert(model);
       }
 
+      private void DrawBox(int colorIndex, Point start, int width, int height) {
+         editor.Palette.SelectionStart = colorIndex;
+
+         editor.ToolDown(start);
+         for (int x = 1; x < width; x++) editor.Hover(start = new Point(start.X + 1, start.Y));
+         for (int y = 1; y < height; y++) editor.Hover(start = new Point(start.X, start.Y + 1));
+         for (int x = 1; x < width; x++) editor.Hover(start = new Point(start.X - 1, start.Y));
+         for (int y = 1; y < height; y++) editor.Hover(start = new Point(start.X, start.Y - 1));
+         editor.ToolUp(start);
+      }
+
+      private void ToolMove(params Point[] motion) {
+         editor.ToolDown(motion[0]);
+         for (int i = 1; i < motion.Length; i++) editor.Hover(motion[i]);
+         editor.ToolUp(motion[motion.Length - 1]);
+      }
+
       private short Rgb(int r, int g, int b) => (short)((r << 10) | (g << 5) | b);
       private short GetPixel(int x, int y) => editor.PixelData[editor.PixelIndex(new Point(x, y))];
       private (int r, int g, int b) Rgb(short color) => (color >> 10, (color >> 5) & 31, color & 31);
@@ -62,8 +79,7 @@ namespace HavenSoft.HexManiac.Tests {
          var notifyPixelData = 0;
          editor.Bind(nameof(editor.PixelData), (sender, e) => notifyPixelData += 1);
 
-         editor.ToolDown(new Point(0, 0));
-         editor.ToolUp(new Point(0, 0));
+         ToolMove(new Point());
 
          Assert.Equal((31, 31, 31), Rgb(GetPixel(4, 4)));
          Assert.Equal(1, ((ISpriteRun)model.GetNextRun(0)).GetPixels(model, 0)[4, 4]);
@@ -103,9 +119,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void Center_Pan2_Offset2() {
          editor.SelectedTool = ImageEditorTools.Pan;
 
-         editor.ToolDown(new Point(0, 0));
-         editor.Hover(new Point(2, 0));
-         editor.ToolUp(new Point(2, 0));
+         ToolMove(default, new Point(2, 0));
 
          Assert.Equal(2, editor.XOffset);
       }
@@ -115,9 +129,7 @@ namespace HavenSoft.HexManiac.Tests {
          editor.SelectedTool = ImageEditorTools.Pan;
 
          editor.ZoomIn(new Point(0, 0));
-         editor.ToolDown(new Point(0, 0));
-         editor.Hover(new Point(2, 0));
-         editor.ToolUp(new Point(2, 0));
+         ToolMove(default, new Point(2, 0));
 
          Assert.Equal(2, editor.XOffset);
       }
@@ -155,9 +167,7 @@ namespace HavenSoft.HexManiac.Tests {
          editor.Palette.Elements[1].Color = Rgb(31, 31, 31);
          editor.SelectedTool = ImageEditorTools.Draw;
 
-         editor.ToolDown(new Point(0, 0));
-         editor.Hover(new Point(1, 0));
-         editor.ToolUp(new Point(1, 0));
+         ToolMove(default, new Point(1, 0));
 
          Assert.Equal((31, 31, 31), Rgb(GetPixel(4, 4)));
          Assert.Equal((31, 31, 31), Rgb(GetPixel(5, 4)));
@@ -169,8 +179,7 @@ namespace HavenSoft.HexManiac.Tests {
          editor.Palette.Elements[1].Color = Rgb(31, 31, 31);
          editor.SelectedTool = ImageEditorTools.Fill;
 
-         editor.ToolDown(new Point(0, 0));
-         editor.ToolUp(new Point(0, 0));
+         ToolMove(new Point());
 
          Assert.All(Enumerable.Range(0, 64),
             i => Assert.Equal((31, 31, 31), Rgb(GetPixel(i % 8, i / 8))));
@@ -241,8 +250,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          // if this doesn't throw, we're happy
          editor.SelectedTool = ImageEditorTools.Draw;
-         editor.ToolDown(default);
-         editor.ToolUp(default);
+         ToolMove(new Point());
       }
 
       [Fact]
@@ -250,8 +258,7 @@ namespace HavenSoft.HexManiac.Tests {
          editor.ZoomIn(-4, -4);
 
          editor.Palette.SelectionStart = 1;
-         editor.ToolDown(-4, -4);
-         editor.ToolUp(-4, -4);
+         ToolMove(new Point(-4, -4));
 
          Assert.Equal(1, model[0]);
       }
@@ -260,8 +267,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void Draw_OutOfBounds_Noop() {
          editor.Palette.SelectionStart = 1;
 
-         editor.ToolDown(50, 50);
-         editor.ToolUp(50, 50);
+         ToolMove(new Point(50, 50));
 
          Assert.All(Enumerable.Range(0, 0x20), i => Assert.Equal(0, model[0]));
       }
@@ -297,9 +303,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void SelectTool_Drag_ShowSelectionRect() {
          editor.SelectedTool = ImageEditorTools.Select;
 
-         editor.ToolDown(default);
-         editor.Hover(2, 1);
-         editor.ToolUp(2, 1);
+         ToolMove(default, new Point(2, 1));
 
          Assert.True(editor.ShowSelectionRect(4, 4));
          Assert.True(editor.ShowSelectionRect(5, 4));
@@ -307,6 +311,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.True(editor.ShowSelectionRect(4, 5));
          Assert.True(editor.ShowSelectionRect(5, 5));
          Assert.True(editor.ShowSelectionRect(6, 5));
+      }
+
+      [Fact]
+      public void Select_Drag_MovePixels() {
+         editor.Palette.Elements[1].Color = Rgb(31, 31, 31);
+         DrawBox(1, new Point(-4, -4), 2, 2);
+         editor.SelectedTool = ImageEditorTools.Select;
+         ToolMove(new Point(-4, -4), new Point(-3, -3));
+
+         ToolMove(new Point(-3, -3), new Point(-2, -3));
+
+         Assert.Equal(Rgb(31, 31, 31), editor.PixelData[editor.PixelIndex(new Point(2, 1))]);
       }
    }
 }
