@@ -279,5 +279,34 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.True(editor.ShowSelectionRect(4, 4));
       }
+
+      [Fact]
+      public void DrawToolAndZoom_Hover_ShowLargeSelectionRect() {
+         editor.SelectedTool = ImageEditorTools.Draw;
+         editor.ZoomIn(default);
+
+         editor.Hover(0, 0);
+
+         Assert.True(editor.ShowSelectionRect(8, 8));
+         Assert.True(editor.ShowSelectionRect(8, 9));
+         Assert.True(editor.ShowSelectionRect(9, 8));
+         Assert.True(editor.ShowSelectionRect(9, 9));
+      }
+
+      [Fact]
+      public void SelectTool_Drag_ShowSelectionRect() {
+         editor.SelectedTool = ImageEditorTools.Select;
+
+         editor.ToolDown(default);
+         editor.Hover(2, 1);
+         editor.ToolUp(2, 1);
+
+         Assert.True(editor.ShowSelectionRect(4, 4));
+         Assert.True(editor.ShowSelectionRect(5, 4));
+         Assert.True(editor.ShowSelectionRect(6, 4));
+         Assert.True(editor.ShowSelectionRect(4, 5));
+         Assert.True(editor.ShowSelectionRect(5, 5));
+         Assert.True(editor.ShowSelectionRect(6, 5));
+      }
    }
 }

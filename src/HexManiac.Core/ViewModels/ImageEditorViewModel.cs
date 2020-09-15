@@ -65,6 +65,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private int drawSize;
       #endregion
 
+      #region Selection Rect info
+      private Point selectionStart;
+      private int selectionWidth, selectionHeight;
+      #endregion
+
       private ImageEditorTools selectedTool;
       public ImageEditorTools SelectedTool { get => selectedTool; set => TryUpdateEnum(ref selectedTool, value); }
       private StubCommand selectTool;
@@ -160,6 +165,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             Hover(point);
          } else if (selectedTool == ImageEditorTools.Pan) {
          } else if (selectedTool == ImageEditorTools.Fill) {
+         } else if (selectedTool == ImageEditorTools.Select) {
+            selectionStart = ToSpriteSpace(point);
+            selectionWidth = selectionHeight = 0;
          } else {
             throw new NotImplementedException();
          }
@@ -203,6 +211,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             interactionStart = new Point(interactionStart.X + XOffset - originalX, interactionStart.Y + YOffset - originalY);
          } else if (selectedTool == ImageEditorTools.Fill) {
 
+         } else if (selectedTool == ImageEditorTools.Select) {
+            point = ToSpriteSpace(point);
+            if (WithinImage(point)) {
+               selectionWidth = point.X - selectionStart.X;
+               selectionHeight = point.Y - selectionStart.Y;
+            }
          }
       }
 
@@ -211,6 +225,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             UpdateSpriteModel();
          } else if (selectedTool == ImageEditorTools.Fill) {
             FillSpace(interactionStart, point);
+         } else if (selectedTool == ImageEditorTools.Select) {
+            if (selectionWidth < 0) {
+               selectionStart = new Point(selectionStart.X + selectionWidth, selectionStart.Y);
+               selectionWidth = -selectionWidth;
+            }
+            if (selectionHeight < 0) {
+               selectionStart = new Point(selectionStart.X, selectionStart.Y + selectionHeight);
+               selectionHeight = -selectionHeight;
+            }
+            selectionWidth += 1;
+            selectionHeight += 1;
          }
          withinInteraction = false;
       }
@@ -225,15 +250,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public bool ShowSelectionRect(Point point) {
-         var x = point.X / (int)SpriteScale;
-         var y = point.Y / (int)SpriteScale;
+         if (selectedTool == ImageEditorTools.Draw) {
+            var x = point.X / (int)SpriteScale;
+            var y = point.Y / (int)SpriteScale;
 
-         if (x < drawPoint.X) return false;
-         if (y < drawPoint.Y) return false;
-         if (x >= drawPoint.X + drawSize) return false;
-         if (y >= drawPoint.Y + drawSize) return false;
+            if (x < drawPoint.X) return false;
+            if (y < drawPoint.Y) return false;
+            if (x >= drawPoint.X + drawSize) return false;
+            if (y >= drawPoint.Y + drawSize) return false;
 
-         return true;
+            return true;
+         } else if (selectedTool == ImageEditorTools.Select) {
+            var x = point.X / (int)SpriteScale;
+            var y = point.Y / (int)SpriteScale;
+
+            if (x < selectionStart.X) return false;
+            if (y < selectionStart.Y) return false;
+            if (x >= selectionStart.X + selectionWidth) return false;
+            if (y >= selectionStart.Y + selectionHeight) return false;
+
+            return true;
+         } else {
+            return false;
+         }
       }
 
       public void Refresh() { }
