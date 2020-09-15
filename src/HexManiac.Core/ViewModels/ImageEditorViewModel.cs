@@ -23,7 +23,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    public class ImageEditorViewModel : ViewModelCore, ITabContent, IPixelViewModel, IRaiseMessageTab {
       private readonly ChangeHistory<ModelDelta> history;
       private readonly IDataModel model;
-      private int spritePointerAddress;
       private int palettePointerAddress;
       private int[,] pixels;
 
@@ -60,41 +59,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #endregion
 
-      #region Draw Rect info
-      private Point drawPoint;
-      private int drawSize;
-      #endregion
-
-      #region Selection Rect info
-      private Point selectionStart;
-      private int selectionWidth, selectionHeight;
-      private int[,] underPixels; // the pixels that are 'under' the current selection. As the selection moves, this changes.
-      #endregion
-
+      private IImageToolStrategy toolStrategy;
       private ImageEditorTools selectedTool;
       public ImageEditorTools SelectedTool {
          get => selectedTool;
          set {
             if (TryUpdateEnum(ref selectedTool, value)) {
-               underPixels = null; // too changed, clear selection cache
+               toolStrategy = selectedTool == ImageEditorTools.Draw ? new DrawTool(this)
+                            : selectedTool == ImageEditorTools.Select ? new SelectionTool(this)
+                            : selectedTool == ImageEditorTools.Pan ? new PanTool(this)
+                            : selectedTool == ImageEditorTools.Fill ? new FillTool(this)
+                            : (IImageToolStrategy)default;
             }
          }
       }
       private StubCommand selectTool;
       public ICommand SelectTool => StubCommand<ImageEditorTools>(ref selectTool, arg => SelectedTool = arg);
 
-      private int cursorSize, cursorSpritePositionX, cursorSpritePositionY, xOffset, yOffset, width, height, selectedColor, selectedPage;
-      public int CursorSize { get => cursorSize; private set => Set(ref cursorSize, value); }
-      public int CursorDrawPositionX => (cursorSpritePositionX - width / 2) * (int)spriteScale + xOffset;
-      public int CursorDrawPositionY => (cursorSpritePositionY - height / 2) * (int)spriteScale + yOffset;
-      public int CursorSpritePositionX { get => cursorSpritePositionX; private set => Set(ref cursorSpritePositionX, value); }
-      public int CursorSpritePositionY { get => cursorSpritePositionY; private set => Set(ref cursorSpritePositionY, value); }
+      private int xOffset, yOffset, width, height;
       public int XOffset { get => xOffset; private set => Set(ref xOffset, value); }
       public int YOffset { get => yOffset; private set => Set(ref yOffset, value); }
       public int PixelWidth { get => width; private set => Set(ref width, value); }
       public int PixelHeight { get => height; private set => Set(ref height, value); }
-      public int SelectedColor { get => selectedColor; private set => Set(ref selectedColor, value); }
-      public int SelectedPage { get => selectedPage; private set => Set(ref selectedPage, value); }
 
       public short[] PixelData { get; private set; }
 
@@ -107,17 +93,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          set { palette = value; NotifyPropertyChanged(); }
       }
 
-      public int SpritePointer => spritePointerAddress;
+      public int SpritePointer { get; }
 
       public ImageEditorViewModel(ChangeHistory<ModelDelta> history, IDataModel model, int address) {
          this.history = history;
          this.model = model;
+         this.toolStrategy = new PanTool(this);
          var inputRun = model.GetNextRun(address);
          var spriteRun = inputRun as ISpriteRun;
          var palRun = inputRun as IPaletteRun;
          if (spriteRun == null) spriteRun = palRun.FindDependentSprites(model).First();
          if (palRun == null) palRun = spriteRun.FindRelatedPalettes(model).First();
-         spritePointerAddress = spriteRun.PointerSources[0];
+         SpritePointer = spriteRun.PointerSources[0];
          palettePointerAddress = palRun.PointerSources[0];
          pixels = spriteRun.GetPixels(model, 0);
 
@@ -168,116 +155,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void ToolDown(Point point) {
          withinInteraction = true;
          interactionStart = point;
-
-         if (selectedTool == ImageEditorTools.Draw) {
-            Hover(point);
-         } else if (selectedTool == ImageEditorTools.Pan) {
-         } else if (selectedTool == ImageEditorTools.Fill) {
-         } else if (selectedTool == ImageEditorTools.Select) {
-            var hoverPoint = ToSpriteSpace(point);
-            if (selectionStart.X <= hoverPoint.X && selectionStart.Y <= hoverPoint.Y && selectionStart.X + selectionWidth > hoverPoint.X && selectionStart.Y + selectionHeight > hoverPoint.Y) {
-               // tool down over an existing selection
-               if (underPixels == null) {
-                  underPixels = new int[selectionWidth, selectionHeight];
-                  for (int x = 0; x < selectionWidth; x++) for (int y = 0; y < selectionHeight; y++) {
-                        underPixels[x, y] = 0;
-                     }
-               }
-            } else {
-               underPixels = null; // old selection lost
-               selectionStart = hoverPoint;
-               selectionWidth = selectionHeight = 0;
-            }
-         } else {
-            throw new NotImplementedException();
-         }
+         toolStrategy.ToolDown(point);
       }
 
       public void Hover(Point point) {
          if (withinInteraction) {
-            Drag(point);
-            return;
-         }
-
-         if (selectedTool == ImageEditorTools.Draw) {
-            point = ToSpriteSpace(point);
-            if (WithinImage(point)) {
-               drawPoint = point;
-               drawSize = 1;
-            } else {
-               drawPoint = default;
-               drawSize = 0;
-            }
-         }
-      }
-
-      private void Drag(Point point) {
-         if (selectedTool == ImageEditorTools.Draw) {
-            Debug.WriteLine($"Draw: {point}");
-            var element = (Palette.Elements.FirstOrDefault(sc => sc.Selected) ?? Palette.Elements[0]);
-            point = ToSpriteSpace(point);
-            if (WithinImage(point)) {
-               PixelData[PixelIndex(point)] = element.Color;
-               pixels[point.X, point.Y] = element.Index;
-               NotifyPropertyChanged(nameof(PixelData));
-            }
-         } else if (selectedTool == ImageEditorTools.Pan) {
-            Debug.WriteLine($"Pan: {interactionStart} to {point}");
-            var xRange = (int)(PixelWidth * SpriteScale / 2);
-            var yRange = (int)(PixelWidth * SpriteScale / 2);
-            var (originalX, originalY) = (xOffset, yOffset);
-            XOffset = (XOffset + point.X - interactionStart.X).LimitToRange(-xRange, xRange);
-            YOffset = (YOffset + point.Y - interactionStart.Y).LimitToRange(-yRange, yRange);
-            interactionStart = new Point(interactionStart.X + XOffset - originalX, interactionStart.Y + YOffset - originalY);
-         } else if (selectedTool == ImageEditorTools.Fill) {
-
-         } else if (selectedTool == ImageEditorTools.Select) {
-            if (underPixels != null) {
-               var previousPoint = ToSpriteSpace(interactionStart);
-               var currentPoint = ToSpriteSpace(point);
-               if (previousPoint == currentPoint) return;
-               if (!WithinImage(currentPoint)) return;
-               var delta = currentPoint - previousPoint;
-               if (!WithinImage(selectionStart + delta)) return;
-               if (!WithinImage(selectionStart + delta + new Point(selectionWidth, selectionHeight))) return;
-
-               SwapUnderPixelsWithCurrentPixels();
-               selectionStart += delta;
-               SwapUnderPixelsWithCurrentPixels();
-               NotifyPropertyChanged(nameof(PixelData));
-
-               interactionStart = point;
-            } else {
-               point = ToSpriteSpace(point);
-               if (WithinImage(point)) {
-                  selectionWidth = point.X - selectionStart.X;
-                  selectionHeight = point.Y - selectionStart.Y;
-               }
-            }
+            toolStrategy.ToolDrag(point);
+         } else {
+            toolStrategy.ToolHover(point);
          }
       }
 
       public void ToolUp(Point point) {
-         if (selectedTool == ImageEditorTools.Draw) {
-            UpdateSpriteModel();
-         } else if (selectedTool == ImageEditorTools.Fill) {
-            FillSpace(interactionStart, point);
-         } else if (selectedTool == ImageEditorTools.Select) {
-            if (underPixels != null) {
-               UpdateSpriteModel();
-            } else {
-               if (selectionWidth < 0) {
-                  selectionStart = new Point(selectionStart.X + selectionWidth, selectionStart.Y);
-                  selectionWidth = -selectionWidth;
-               }
-               if (selectionHeight < 0) {
-                  selectionStart = new Point(selectionStart.X, selectionStart.Y + selectionHeight);
-                  selectionHeight = -selectionHeight;
-               }
-               selectionWidth += 1;
-               selectionHeight += 1;
-            }
-         }
+         toolStrategy.ToolUp(point);
          withinInteraction = false;
       }
 
@@ -291,38 +181,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public bool ShowSelectionRect(Point point) {
-         if (selectedTool == ImageEditorTools.Draw) {
-            var x = point.X / (int)SpriteScale;
-            var y = point.Y / (int)SpriteScale;
-
-            if (x < drawPoint.X) return false;
-            if (y < drawPoint.Y) return false;
-            if (x >= drawPoint.X + drawSize) return false;
-            if (y >= drawPoint.Y + drawSize) return false;
-
-            return true;
-         } else if (selectedTool == ImageEditorTools.Select) {
-            var x = point.X / (int)SpriteScale;
-            var y = point.Y / (int)SpriteScale;
-
-            if (x < selectionStart.X) return false;
-            if (y < selectionStart.Y) return false;
-            if (x >= selectionStart.X + selectionWidth) return false;
-            if (y >= selectionStart.Y + selectionHeight) return false;
-
-            return true;
-         } else {
-            return false;
-         }
+         return toolStrategy.ShowSelectionRect(point);
       }
 
       public void Refresh() { }
 
       public int PixelIndex(Point spriteSpace) => spriteSpace.Y * PixelWidth + spriteSpace.X;
-
-      private void WriteImage() {
-
-      }
 
       private Point ToSpriteSpace(Point point) {
          var x = point.X;
@@ -358,7 +222,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private bool WithinImage(Point p) => p.X >= 0 && p.X < PixelWidth && p.Y >= 0 && p.Y < PixelHeight;
 
       private void Render() {
-         var spriteAddress = model.ReadPointer(spritePointerAddress);
+         var spriteAddress = model.ReadPointer(SpritePointer);
          var paletteAddress = model.ReadPointer(palettePointerAddress);
 
          var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
@@ -371,7 +235,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void UpdateSpriteModel() {
-         var spriteAddress = model.ReadPointer(spritePointerAddress);
+         var spriteAddress = model.ReadPointer(SpritePointer);
          var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
          spriteRun.SetPixels(model, history.CurrentChange, 0, pixels);
       }
@@ -406,17 +270,207 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          UpdateSpriteModel();
       }
 
-      private void SwapUnderPixelsWithCurrentPixels() {
-         for (int x = 0; x < selectionWidth; x++) {
-            for (int y = 0; y < selectionHeight; y++) {
-               var (xx, yy) = (selectionStart.X + x, selectionStart.Y + y);
-               (underPixels[x, y], pixels[xx, yy]) = (pixels[xx, yy], underPixels[x, y]);
+      #region Nested Types
+      private interface IImageToolStrategy {
+         void ToolDown(Point screenPosition);
+         void ToolHover(Point screenPosition);
+         void ToolDrag(Point screenPosition);
+         void ToolUp(Point screenPosition);
+         bool ShowSelectionRect(Point subPixelPosition);
+      }
 
-               var color = Palette.Elements[pixels[xx, yy]].Color;
-               PixelData[PixelIndex(new Point(xx, yy))] = color;
+      private class DrawTool : IImageToolStrategy {
+         private readonly ImageEditorViewModel parent;
+
+         private Point drawPoint;
+         private int drawSize;
+
+         public DrawTool(ImageEditorViewModel parent) => this.parent = parent;
+
+         public void ToolDown(Point point) {
+            ToolDrag(point);
+         }
+
+         public void ToolDrag(Point point) {
+            Debug.WriteLine($"Draw: {point}");
+            var element = (parent.Palette.Elements.FirstOrDefault(sc => sc.Selected) ?? parent.Palette.Elements[0]);
+            point = parent.ToSpriteSpace(point);
+            if (parent.WithinImage(point)) {
+               parent.PixelData[parent.PixelIndex(point)] = element.Color;
+               parent.pixels[point.X, point.Y] = element.Index;
+               parent.NotifyPropertyChanged(nameof(PixelData));
+            }
+         }
+
+         public void ToolHover(Point point) {
+            point = parent.ToSpriteSpace(point);
+            if (parent.WithinImage(point)) {
+               drawPoint = point;
+               drawSize = 1;
+            } else {
+               drawPoint = default;
+               drawSize = 0;
+            }
+         }
+
+         public void ToolUp(Point screenPosition) {
+            parent.UpdateSpriteModel();
+         }
+
+         public bool ShowSelectionRect(Point point) {
+            var x = point.X / (int)parent.SpriteScale;
+            var y = point.Y / (int)parent.SpriteScale;
+
+            if (x < drawPoint.X) return false;
+            if (y < drawPoint.Y) return false;
+            if (x >= drawPoint.X + drawSize) return false;
+            if (y >= drawPoint.Y + drawSize) return false;
+
+            return true;
+         }
+      }
+
+      private class SelectionTool : IImageToolStrategy {
+         private readonly ImageEditorViewModel parent;
+
+         private Point selectionStart;
+         private int selectionWidth, selectionHeight;
+         private int[,] underPixels; // the pixels that are 'under' the current selection. As the selection moves, this changes.
+
+         public SelectionTool(ImageEditorViewModel parent) => this.parent = parent;
+
+         public void ToolDown(Point point) {
+            var hoverPoint = parent.ToSpriteSpace(point);
+            if (selectionStart.X > hoverPoint.X ||
+               selectionStart.Y > hoverPoint.Y ||
+               selectionStart.X + selectionWidth <= hoverPoint.X ||
+               selectionStart.Y + selectionHeight <= hoverPoint.Y
+            ) {
+               underPixels = null; // old selection lost
+               selectionStart = hoverPoint;
+               selectionWidth = selectionHeight = 0;
+            }
+         }
+
+         public void ToolDrag(Point point) {
+            if (underPixels != null) {
+               var previousPoint = parent.ToSpriteSpace(parent.interactionStart);
+               var currentPoint = parent.ToSpriteSpace(point);
+               if (previousPoint == currentPoint) return;
+               if (!parent.WithinImage(currentPoint)) return;
+               var delta = currentPoint - previousPoint;
+               if (!parent.WithinImage(selectionStart + delta)) return;
+               if (!parent.WithinImage(selectionStart + delta + new Point(selectionWidth, selectionHeight))) return;
+
+               SwapUnderPixelsWithCurrentPixels();
+               selectionStart += delta;
+               SwapUnderPixelsWithCurrentPixels();
+               parent.NotifyPropertyChanged(nameof(PixelData));
+
+               parent.interactionStart = point;
+            } else {
+               point = parent.ToSpriteSpace(point);
+               if (parent.WithinImage(point)) {
+                  selectionWidth = point.X - selectionStart.X;
+                  selectionHeight = point.Y - selectionStart.Y;
+               }
+            }
+         }
+
+         public void ToolHover(Point screenPosition) { }
+
+         public void ToolUp(Point point) {
+            if (underPixels != null) {
+               parent.UpdateSpriteModel();
+            } else {
+               (selectionStart, selectionWidth, selectionHeight) = BuildRect(selectionStart, selectionWidth, selectionHeight);
+
+               underPixels = new int[selectionWidth, selectionHeight];
+               for (int x = 0; x < selectionWidth; x++) for (int y = 0; y < selectionHeight; y++) {
+                  underPixels[x, y] = 0;
+               }
+            }
+         }
+
+         public bool ShowSelectionRect(Point point) {
+            var x = point.X / (int)parent.SpriteScale;
+            var y = point.Y / (int)parent.SpriteScale;
+
+            if (x < selectionStart.X) return false;
+            if (y < selectionStart.Y) return false;
+            if (x >= selectionStart.X + selectionWidth) return false;
+            if (y >= selectionStart.Y + selectionHeight) return false;
+
+            return true;
+         }
+
+         private (Point point, int width, int height) BuildRect(Point start, int dragX, int dragY) {
+            if (dragX < 0) {
+               start += new Point(dragX, 0);
+               dragX = -dragX;
+            }
+            if (dragY < 0) {
+               start += new Point(0, dragY);
+               dragY = -dragY;
+            }
+
+            return (start, dragX + 1, dragY + 1);
+         }
+
+         private void SwapUnderPixelsWithCurrentPixels() {
+            for (int x = 0; x < selectionWidth; x++) {
+               for (int y = 0; y < selectionHeight; y++) {
+                  var (xx, yy) = (selectionStart.X + x, selectionStart.Y + y);
+                  (underPixels[x, y], parent.pixels[xx, yy]) = (parent.pixels[xx, yy], underPixels[x, y]);
+
+                  var color = parent.Palette.Elements[parent.pixels[xx, yy]].Color;
+                  parent.PixelData[parent.PixelIndex(new Point(xx, yy))] = color;
+               }
             }
          }
       }
+
+      private class PanTool : IImageToolStrategy {
+         private readonly ImageEditorViewModel parent;
+         public PanTool(ImageEditorViewModel parent) => this.parent = parent;
+
+         public void ToolDown(Point screenPosition) { }
+
+         public void ToolDrag(Point point) {
+            Debug.WriteLine($"Pan: {parent.interactionStart} to {point}");
+            var xRange = (int)(parent.PixelWidth * parent.SpriteScale / 2);
+            var yRange = (int)(parent.PixelWidth * parent.SpriteScale / 2);
+            var (originalX, originalY) = (parent.xOffset, parent.yOffset);
+            parent.XOffset = (parent.XOffset + point.X - parent.interactionStart.X).LimitToRange(-xRange, xRange);
+            parent.YOffset = (parent.YOffset + point.Y - parent.interactionStart.Y).LimitToRange(-yRange, yRange);
+            parent.interactionStart = new Point(parent.interactionStart.X + parent.XOffset - originalX, parent.interactionStart.Y + parent.YOffset - originalY);
+         }
+
+         public void ToolHover(Point screenPosition) { }
+
+         public void ToolUp(Point screenPosition) { }
+
+         public bool ShowSelectionRect(Point subPixelPosition) => false;
+      }
+
+      private class FillTool : IImageToolStrategy {
+         private readonly ImageEditorViewModel parent;
+         public FillTool(ImageEditorViewModel parent) => this.parent = parent;
+
+         public void ToolDown(Point screenPosition) { }
+
+         public void ToolDrag(Point screenPosition) { }
+
+         public void ToolHover(Point screenPosition) { }
+
+         public void ToolUp(Point point) {
+            parent.FillSpace(parent.interactionStart, point);
+         }
+
+         public bool ShowSelectionRect(Point subPixelPosition) => false;
+      }
+
+      #endregion
    }
 
    public enum ImageEditorTools {
