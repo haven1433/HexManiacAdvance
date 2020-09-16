@@ -394,9 +394,9 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void DrawTool_Hover_RaiseRefreshSelection() {
+         editor.SelectedTool = ImageEditorTools.Draw;
          var refreshCount = 0;
          editor.RefreshSelection += (sender, e) => refreshCount += 1;
-         editor.SelectedTool = ImageEditorTools.Draw;
 
          editor.Hover(default);
 
