@@ -339,5 +339,45 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(Rgb(31, 31, 31), editor.PixelData[editor.PixelIndex(new Point(2, 0))]);
       }
+
+      [Fact]
+      public void Selection_MidInteraction_SelectionRectIsCorrect() {
+         editor.SelectedTool = ImageEditorTools.Select;
+
+         editor.ToolDown(default);
+         editor.Hover(new Point(-1, 0));
+
+         Assert.False(editor.ShowSelectionRect(2, 4));
+         Assert.True(editor.ShowSelectionRect(3, 4));
+         Assert.True(editor.ShowSelectionRect(4, 4));
+         Assert.False(editor.ShowSelectionRect(5, 4));
+      }
+
+      [Fact]
+      public void Color1Selected_EyeDropColor0_Color0Selected() {
+         editor.Palette.SelectionStart = 1;
+         editor.SelectedTool = ImageEditorTools.EyeDropper;
+
+         ToolMove(new Point(0, 0));
+
+         Assert.Equal(0, editor.Palette.SelectionStart);
+         Assert.Equal(0, editor.Palette.SelectionEnd);
+      }
+
+      [Fact]
+      public void EyeDropper_Drag_DrawBlock() {
+         editor.Palette.Elements[1].Color = Rgb(31, 31, 31);
+         DrawBox(1, new Point(-4, -4), 2, 2);
+
+         editor.EyeDropperDown(-4, -4);
+         editor.Hover(-3, -3);
+         editor.EyeDropperUp(-3, -3);
+         ToolMove(new Point(0, 0));
+
+         Assert.Equal(Rgb(31, 31, 31), editor.PixelData[editor.PixelIndex(4, 4)]);
+         Assert.Equal(Rgb(31, 31, 31), editor.PixelData[editor.PixelIndex(4, 5)]);
+         Assert.Equal(Rgb(31, 31, 31), editor.PixelData[editor.PixelIndex(5, 4)]);
+         Assert.Equal(Rgb(31, 31, 31), editor.PixelData[editor.PixelIndex(5, 5)]);
+      }
    }
 }

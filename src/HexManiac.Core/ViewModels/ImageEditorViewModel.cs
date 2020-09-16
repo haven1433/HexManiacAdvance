@@ -26,7 +26,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private int palettePointerAddress;
       private int[,] pixels;
 
-      private bool withinInteraction;
+      private bool withinInteraction, withinDropperInteraction;
       private Point interactionStart;
 
       #region ITabContent Properties
@@ -60,6 +60,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       #endregion
 
       private IImageToolStrategy toolStrategy;
+      private EyeDropperTool eyeDropperStrategy; // stored separately because of right-click
       private ImageEditorTools selectedTool;
       public ImageEditorTools SelectedTool {
          get => selectedTool;
@@ -69,6 +70,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                             : selectedTool == ImageEditorTools.Select ? new SelectionTool(this)
                             : selectedTool == ImageEditorTools.Pan ? new PanTool(this)
                             : selectedTool == ImageEditorTools.Fill ? new FillTool(this)
+                            : selectedTool == ImageEditorTools.EyeDropper ? eyeDropperStrategy
                             : (IImageToolStrategy)default;
             }
          }
@@ -99,6 +101,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          this.history = history;
          this.model = model;
          this.toolStrategy = new PanTool(this);
+         this.eyeDropperStrategy = new EyeDropperTool(this);
          var inputRun = model.GetNextRun(address);
          var spriteRun = inputRun as ISpriteRun;
          var palRun = inputRun as IPaletteRun;
@@ -154,15 +157,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void ToolDown(Point point) {
          withinInteraction = true;
+         withinDropperInteraction = false;
          interactionStart = point;
          toolStrategy.ToolDown(point);
       }
 
       public void Hover(Point point) {
-         if (withinInteraction) {
+         if (!withinInteraction) {
+            toolStrategy.ToolHover(point);
+         } else if (!withinDropperInteraction) {
             toolStrategy.ToolDrag(point);
          } else {
-            toolStrategy.ToolHover(point);
+            eyeDropperStrategy.ToolDrag(point);
          }
       }
 
@@ -171,21 +177,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          withinInteraction = false;
       }
 
-      public void EyeDropperDown(Point point) { }
+      public void EyeDropperDown(Point point) {
+         withinInteraction = withinDropperInteraction = true;
+         interactionStart = point;
+         eyeDropperStrategy.ToolDown(point);
+      }
 
       public void EyeDropperUp(Point point) {
-         point = ToSpriteSpace(point);
-         if (!WithinImage(point)) return;
-         var index = pixels[point.X, point.Y];
-         Palette.SelectionStart = index;
+         eyeDropperStrategy.ToolUp(point);
+         withinInteraction = false;
       }
 
       public bool ShowSelectionRect(Point point) {
-         return toolStrategy.ShowSelectionRect(point);
+         if (withinInteraction && withinDropperInteraction) {
+            return eyeDropperStrategy.ShowSelectionRect(point);
+         } else {
+            return toolStrategy.ShowSelectionRect(point);
+         }
       }
 
       public void Refresh() { }
 
+      public int PixelIndex(int x, int y) => PixelIndex(new Point(x, y));
       public int PixelIndex(Point spriteSpace) => spriteSpace.Y * PixelWidth + spriteSpace.X;
 
       private Point ToSpriteSpace(Point point) {
@@ -296,8 +309,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var element = (parent.Palette.Elements.FirstOrDefault(sc => sc.Selected) ?? parent.Palette.Elements[0]);
             point = parent.ToSpriteSpace(point);
             if (parent.WithinImage(point)) {
-               parent.PixelData[parent.PixelIndex(point)] = element.Color;
-               parent.pixels[point.X, point.Y] = element.Index;
+               var tile = parent.eyeDropperStrategy.Tile;
+               if (tile == null) {
+                  parent.PixelData[parent.PixelIndex(point)] = element.Color;
+                  parent.pixels[point.X, point.Y] = element.Index;
+               } else {
+                  drawSize = tile.GetLength(0);
+                  drawPoint = new Point(point.X - point.X % drawSize, point.Y - point.Y % drawSize);
+                  for (int x = 0; x < drawSize; x++) {
+                     for (int y = 0; y < drawSize; y++) {
+                        var (xx, yy) = (drawPoint.X + x, drawPoint.Y + y);
+                        parent.PixelData[parent.PixelIndex(xx, yy)] = parent.palette.Elements[tile[x, y]].Color;
+                        parent.pixels[xx, yy] = tile[x, y];
+                     }
+                  }
+               }
                parent.NotifyPropertyChanged(nameof(PixelData));
             }
          }
@@ -305,8 +331,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          public void ToolHover(Point point) {
             point = parent.ToSpriteSpace(point);
             if (parent.WithinImage(point)) {
-               drawPoint = point;
-               drawSize = 1;
+               var tile = parent.eyeDropperStrategy.Tile;
+               if (tile == null) {
+                  drawPoint = point;
+                  drawSize = 1;
+               } else {
+                  drawSize = tile.GetLength(0);
+                  drawPoint = new Point(point.X - point.X % drawSize, point.Y - point.Y % drawSize);
+               }
             } else {
                drawPoint = default;
                drawSize = 0;
@@ -396,15 +428,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var x = point.X / (int)parent.SpriteScale;
             var y = point.Y / (int)parent.SpriteScale;
 
-            if (x < selectionStart.X) return false;
-            if (y < selectionStart.Y) return false;
-            if (x >= selectionStart.X + selectionWidth) return false;
-            if (y >= selectionStart.Y + selectionHeight) return false;
+            var (start, width, height) = (selectionStart, selectionWidth, selectionHeight);
+
+            if (parent.withinInteraction && underPixels == null) {
+               (start, width, height) = BuildRect(selectionStart, selectionWidth, selectionHeight);
+            }
+
+            if (x < start.X) return false;
+            if (y < start.Y) return false;
+            if (x >= start.X + width) return false;
+            if (y >= start.Y + height) return false;
 
             return true;
          }
 
-         private (Point point, int width, int height) BuildRect(Point start, int dragX, int dragY) {
+         public static (Point point, int width, int height) BuildRect(Point start, int dragX, int dragY) {
             if (dragX < 0) {
                start += new Point(dragX, 0);
                dragX = -dragX;
@@ -468,6 +506,64 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          public bool ShowSelectionRect(Point subPixelPosition) => false;
+      }
+
+      // TODO make this able to display the selected tile
+      private class EyeDropperTool : IImageToolStrategy {
+         private readonly ImageEditorViewModel parent;
+
+         private Point selectionStart;
+         private int selectionWidth, selectionHeight;
+         private int[,] underPixels; // the pixels that are 'under' the current selection. As the selection moves, this changes.
+
+         public int[,] Tile {
+            get {
+               if (selectionWidth < 2) return null;
+               return underPixels;
+            }
+         }
+
+         public EyeDropperTool(ImageEditorViewModel parent) => this.parent = parent;
+
+         public bool ShowSelectionRect(Point subPixelPosition) => false;
+
+         public void ToolDown(Point point) {
+            underPixels = null; // old selection lost
+            selectionStart = parent.ToSpriteSpace(point);
+            selectionWidth = selectionHeight = 0;
+         }
+
+         public void ToolDrag(Point point) {
+            point = parent.ToSpriteSpace(point);
+            if (parent.WithinImage(point)) {
+               selectionWidth = point.X - selectionStart.X;
+               selectionHeight = point.Y - selectionStart.Y;
+            }
+         }
+
+         public void ToolHover(Point screenPosition) { }
+
+         public void ToolUp(Point point) {
+            (selectionStart, selectionWidth, selectionHeight) = SelectionTool.BuildRect(selectionStart, selectionWidth, selectionHeight);
+
+            // make sure the selection is a power-of-2 box
+            selectionWidth = Math.Min(selectionWidth, selectionHeight);
+            var log = (int)Math.Log(selectionWidth, 2);
+            selectionWidth = (int)Math.Pow(2, log);
+            selectionHeight = selectionWidth;
+
+            if (selectionWidth == 1 && selectionHeight == 1) {
+               point = parent.ToSpriteSpace(point);
+               if (!parent.WithinImage(point)) return;
+               var index = parent.pixels[point.X, point.Y];
+               parent.Palette.SelectionStart = index;
+            } else {
+               underPixels = new int[selectionWidth, selectionHeight];
+               for (int x = 0; x < selectionWidth; x++) for (int y = 0; y < selectionHeight; y++) {
+                  underPixels[x, y] = parent.pixels[selectionStart.X + x, selectionStart.Y + y];
+               }
+            }
+         }
       }
 
       #endregion
