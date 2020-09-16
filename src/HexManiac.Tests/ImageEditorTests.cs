@@ -379,5 +379,17 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(Rgb(31, 31, 31), editor.PixelData[editor.PixelIndex(5, 4)]);
          Assert.Equal(Rgb(31, 31, 31), editor.PixelData[editor.PixelIndex(5, 5)]);
       }
+
+      [Fact]
+      public void ModelChange_Refresh_PixelsChanged() {
+         editor.Palette.Elements[15].Color = Rgb(31, 31, 31);
+         editor.Palette.PushColorsToModel();
+         model[0] = 0xFF;
+
+         editor.Refresh();
+
+         Assert.Equal(Rgb(31, 31, 31), editor.PixelData[0]);
+         Assert.Equal(Rgb(31, 31, 31), editor.PixelData[1]);
+      }
    }
 }

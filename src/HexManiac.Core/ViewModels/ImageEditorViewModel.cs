@@ -109,11 +109,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (palRun == null) palRun = spriteRun.FindRelatedPalettes(model).First();
          SpritePointer = spriteRun.PointerSources[0];
          palettePointerAddress = palRun.PointerSources[0];
-         pixels = spriteRun.GetPixels(model, 0);
-
-         Render();
          Palette = new PaletteCollection(this, model, history) { SourcePalette = palRun.Start };
-         RefreshPaletteColors();
+         Refresh();
       }
 
       // convenience methods
@@ -196,7 +193,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      public void Refresh() { }
+      public void Refresh() {
+         var spriteAddress = model.ReadPointer(SpritePointer);
+         var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
+         pixels = spriteRun.GetPixels(model, 0);
+         Render();
+         RefreshPaletteColors();
+      }
 
       public int PixelIndex(int x, int y) => PixelIndex(new Point(x, y));
       public int PixelIndex(Point spriteSpace) => spriteSpace.Y * PixelWidth + spriteSpace.X;
@@ -224,8 +227,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      }
                      break;
                   case nameof(sc.Color):
-                     Palette.PushColorsToModel();
-                     Render();
+                     Palette.PushColorsToModel(); // this causes a Render
                      break;
                }
             };
