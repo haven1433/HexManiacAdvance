@@ -181,7 +181,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          ToolMove(new Point());
 
-         Assert.All(Enumerable.Range(0, 64),
+         Assert.All(64.Range(),
             i => Assert.Equal((31, 31, 31), Rgb(GetPixel(i % 8, i / 8))));
       }
 
@@ -269,12 +269,12 @@ namespace HavenSoft.HexManiac.Tests {
 
          ToolMove(new Point(50, 50));
 
-         Assert.All(Enumerable.Range(0, 0x20), i => Assert.Equal(0, model[0]));
+         Assert.All(0x20.Range(), i => Assert.Equal(0, model[0]));
       }
 
       [Fact]
       public void New_NothingSelected() {
-         Assert.All(Enumerable.Range(0, 64), i => Assert.False(editor.ShowSelectionRect(i % 8, i / 8)));
+         Assert.All(64.Range(), i => Assert.False(editor.ShowSelectionRect(i % 8, i / 8)));
       }
 
       [Fact]

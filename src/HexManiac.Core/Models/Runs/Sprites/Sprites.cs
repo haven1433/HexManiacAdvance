@@ -137,7 +137,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                   if (segment != null) {
                      var segmentOffset = paletteTable.ElementContent.Until(seg => seg == segment).Sum(seg => seg.Length);
                      var pSegmentOffset = paletteTable.ElementContent.Until(seg => seg == pSegment).Sum(seg => seg.Length);
-                     var tableIndex = Enumerable.Range(0, paletteTable.ElementCount).FirstOrDefault(i => model.ReadMultiByteValue(paletteTable.Start + i * paletteTable.ElementLength + segmentOffset, segment.Length) == keyValue);
+                     var tableIndex = paletteTable.ElementCount.Range().FirstOrDefault(i => model.ReadMultiByteValue(paletteTable.Start + i * paletteTable.ElementLength + segmentOffset, segment.Length) == keyValue);
                      var paletteStart = model.ReadPointer(paletteTable.Start + tableIndex * paletteTable.ElementLength + pSegmentOffset);
                      if (model.GetNextRun(paletteStart) is IPaletteRun pRun) results.Add(pRun);
                   }

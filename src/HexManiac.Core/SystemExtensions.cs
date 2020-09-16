@@ -9,7 +9,7 @@ namespace HavenSoft.HexManiac.Core {
 
       ////// Random utility functions on basic types, mostly added to make code easier to read. //////
 
-      private static readonly IReadOnlyList<string> byteToString = Enumerable.Range(0, 0x100).Select(i => i.ToString("X2")).ToArray();
+      private static readonly IReadOnlyList<string> byteToString = 0x100.Range().Select(i => i.ToString("X2")).ToArray();
       public static string ToHexString(this byte value) => byteToString[value];
 
       public static void RaiseCanExecuteChanged(this StubCommand self) => self?.CanExecuteChanged.Invoke(self, EventArgs.Empty);
@@ -20,6 +20,9 @@ namespace HavenSoft.HexManiac.Core {
          if (upper.CompareTo(value) < 0) return upper;
          return value;
       }
+
+      // allows writing 5.Range() instead of Enumerable.Range(0, 5)
+      public static IEnumerable<int> Range(this int count) => Enumerable.Range(0, count);
 
       public static IEnumerable<T> Until<T>(this IEnumerable<T> list, Func<T, bool> func) {
          foreach (var element in list) {

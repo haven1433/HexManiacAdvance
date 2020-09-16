@@ -640,7 +640,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          // check if it's a divisor of the array width
          if (ElementLength % columnCount != 0) return null;
          var segments = ElementLength / columnCount;
-         return Enumerable.Range(0, segments).Select(i => new HeaderRow(this, columnCount * i + startingDataIndex - Start, columnCount)).ToList();
+         return segments.Range().Select(i => new HeaderRow(this, columnCount * i + startingDataIndex - Start, columnCount)).ToList();
       }
 
       public ArrayRun Move(int newStart) {

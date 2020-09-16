@@ -49,7 +49,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      if (destination >= 0 && destination < model.Count &&
                         line.PointsToNextScript &&
                         !scripts.Contains(destination) &&
-                        Enumerable.Range(0, i).All(j => destination < scripts[j] || scripts[j] + lengths[j] <= destination)
+                        i.Range().All(j => destination < scripts[j] || scripts[j] + lengths[j] <= destination)
                      ) {
                         scripts.Add(destination);
                      }
@@ -58,7 +58,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                }
                if (line.IsEndingCommand) break;
             }
-            // Debug.Assert(Enumerable.Range(0, i).All(j => scripts[j] < address || scripts[j] >= address + length), "How did we get in a situation where we're removing scripts that have already been processed?");
+
             scripts.RemoveAll(start => start > address && start < address + length);
             lengths.Add(length);
          }
@@ -403,7 +403,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public bool Matches(IReadOnlyList<byte> data, int index) {
          if (index + LineCode.Count >= data.Count) return false;
-         return Enumerable.Range(0, LineCode.Count).All(i => data[index + i] == LineCode[i]);
+         return LineCode.Count.Range().All(i => data[index + i] == LineCode[i]);
       }
 
       public string Compile(IDataModel model, int start, string scriptLine, IReadOnlyDictionary<string, int> labels, out byte[] result) {

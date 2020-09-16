@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.WPF.Controls;
 using System;
@@ -13,12 +14,10 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
       private static readonly Typeface consolas = new Typeface("Consolas");
       private static readonly GlyphTypeface typeface, italicTypeface;
-      private readonly static string[] byteText;
       static FormatDrawer() {
          consolas.TryGetGlyphTypeface(out typeface);
          var consolas2 = new Typeface(new FontFamily("Consolas"), FontStyles.Italic, FontWeights.Light, FontStretches.Normal);
          consolas2.TryGetGlyphTypeface(out italicTypeface);
-         byteText = Enumerable.Range(0, 0x100).Select(i => i.ToString("X2")).ToArray();
       }
 
       private readonly int fontSize = 16, searchByte = -1;
@@ -114,12 +113,12 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             } else if (format is None none) {
                if (cell.Value == 0x00) collector.Collect<UnderEdit>(format, x, 1, "00");
                else if (cell.Value == 0xFF) collector.Collect<Undefined>(format, x, 1, "FF");
-               else if (searchByte == -1) collector.Collect<None>(format, x, 1, byteText[cell.Value]);
-               else if (cell.Value == searchByte) collector.Collect<None>(format, x, 1, byteText[cell.Value]);
-               else collector.Collect<UnderEdit>(format, x, 1, byteText[cell.Value]);
+               else if (searchByte == -1) collector.Collect<None>(format, x, 1, cell.Value.ToHexString());
+               else if (cell.Value == searchByte) collector.Collect<None>(format, x, 1, cell.Value.ToHexString());
+               else collector.Collect<UnderEdit>(format, x, 1, cell.Value.ToHexString());
             } else if (format is BitArray array) {
-               var text = string.Join(" ", Enumerable.Range(0, array.Length)
-                  .Select(i => byteText[viewPort.Model[array.Source + i]]));
+               var text = string.Join(" ", array.Length.Range()
+                  .Select(i => viewPort.Model[array.Source + i].ToHexString()));
                collector.Collect<BitArray>(format, x, array.Length, text);
             } else if (format is MatchedWord word) {
                collector.Collect<MatchedWord>(format, x, 4, word.Name);
@@ -130,9 +129,9 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             } else if (format is LzMagicIdentifier lzMagic) {
                collector.Collect<LzMagicIdentifier>(format, x, 1, "lz");
             } else if (format is LzGroupHeader lzGroup) {
-               collector.Collect<LzGroupHeader>(format, x, 1, byteText[cell.Value]);
+               collector.Collect<LzGroupHeader>(format, x, 1, cell.Value.ToHexString());
             } else if (format is LzUncompressed lzUncompressed) {
-               collector.Collect<LzUncompressed>(format, x, 1, byteText[cell.Value]);
+               collector.Collect<LzUncompressed>(format, x, 1, cell.Value.ToHexString());
             } else if (format is LzCompressed lzCompressed) {
                collector.Collect<LzGroupHeader>(format, x, 2, $"{lzCompressed.RunLength}:{lzCompressed.RunOffset}");
             } else if (format is UncompressedPaletteColor color) {

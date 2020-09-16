@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -322,7 +323,7 @@ namespace HavenSoft.HexManiac.Tests {
          int selectedCellCount = 0;
          for (int x = 0; x < resultsTab.Width; x++) {
             selectedCellCount +=
-               Enumerable.Range(0, resultsTab.Height)
+               resultsTab.Height.Range()
                .Select(y => new Point(x, y))
                .Count(resultsTab.IsSelected);
          }
@@ -352,7 +353,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void SearchCanFindTableRows() {
          // Arrange two tables, one that depends on the other
-         var data = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         var data = 0x200.Range().Select(i => (byte)0xFF).ToArray();
          var model = new PokemonModel(data);
          var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^names[entry\"\"8] +\"bob\" +\"sam\" +\"carl\" +\"steve\" ");
@@ -370,7 +371,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void SearchCanFindEnumUsages() {
          // Arrange two tables, one that depends on the other
-         var data = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         var data = 0x200.Range().Select(i => (byte)0xFF).ToArray();
          var model = new PokemonModel(data);
          var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^names[entry\"\"8] +\"bob\" +\"sam\" +\"carl\" +\"steve\" ");
@@ -387,7 +388,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void FindingSingleResultHighlightsEntireResult() {
-         var data = Enumerable.Range(0, 0x100).Select(i => (byte)i).ToArray();
+         var data = 0x100.Range().Select(i => (byte)i).ToArray();
          var model = new PokemonModel(data);
          var viewPort = new ViewPort("name.txt", model) { Height = 0x10, Width = 0x10 };
          var editor = new EditorViewModel(new StubFileSystem());

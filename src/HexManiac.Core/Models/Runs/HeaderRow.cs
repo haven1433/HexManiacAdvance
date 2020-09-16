@@ -54,7 +54,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (columnCount > 0x10 && columnCount % 0x10 != 0) return new List<HeaderRow>();
          if (columnCount < 0x10 && 0x10 % columnCount != 0) return new List<HeaderRow>();
          if (columnCount >= 0x10) return new[] { new HeaderRow(startingDataIndex, columnCount) };
-         return Enumerable.Range(0, 0x10 / columnCount).Select(i => new HeaderRow(columnCount * i + startingDataIndex, columnCount)).ToList();
+         return (0x10 / columnCount).Range().Select(i => new HeaderRow(columnCount * i + startingDataIndex, columnCount)).ToList();
       }
    }
 }

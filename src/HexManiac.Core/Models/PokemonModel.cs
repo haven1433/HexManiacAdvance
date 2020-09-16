@@ -865,13 +865,13 @@ namespace HavenSoft.HexManiac.Core.Models {
             foreach (var movingSegment in table.ElementContent.Reverse()) {
                // if we're at the segment that's expanding, expand it by filling with 0's
                if (movingSegment == segment) {
-                  foreach (var _ in Enumerable.Range(0, newLength - segment.Length)) {
+                  foreach (var _ in (newLength - segment.Length).Range()) {
                      changeToken.ChangeData(this, destinationIndex, 0);
                      destinationIndex--;
                   }
                }
                // move the source data to the destination point
-               foreach (var _ in Enumerable.Range(0, movingSegment.Length)) {
+               foreach (var _ in movingSegment.Length.Range()) {
                   changeToken.ChangeData(this, destinationIndex, RawData[sourceIndex]);
                   sourceIndex--;
                   destinationIndex--;
@@ -1461,7 +1461,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, "GameCode");
          if (address == Pointer.NULL) return string.Empty;
          if (!(model.GetNextRun(address) is AsciiRun gameCode) || gameCode.Start != address) return string.Empty;
-         return new string(Enumerable.Range(0, gameCode.Length).Select(i => (char)model[gameCode.Start + i]).ToArray());
+         return new string(gameCode.Length.Range().Select(i => (char)model[gameCode.Start + i]).ToArray());
       }
 
       /// <summary>

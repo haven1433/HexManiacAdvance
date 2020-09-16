@@ -296,7 +296,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void CanCopyPasteBitArray() {
          var fileSystem = new StubFileSystem();
          CreateTextTable("names", 0x10, "Adam", "Bob", "Carl", "David", "Evan", "Fred", "Greg", "Holly", "Iggy", "Jay", "Kelly", "Lucy", "Mary", "Nate", "Ogre", "Phil"); // 0x60
-         CreateEnumTable("enums", 0x80, "names", Enumerable.Range(0, 12).ToArray());
+         CreateEnumTable("enums", 0x80, "names", 12.Range().ToArray());
          CreateBitArrayTable("bitArray", 0xB0, "enums", 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80);
 
          // verify that copy works

@@ -424,7 +424,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void CanUseViewPortToAutoFindTextWithoutKnowingAboutPointersToIt() {
          var text = PCSString.Convert("This is some text.");
-         var buffer = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         var buffer = 0x200.Range().Select(i => (byte)0xFF).ToArray();
          text.CopyTo(buffer, 0x10);
          var model = new PokemonModel(buffer);
          model.WritePointer(new ModelDelta(), 0x00, 0x10);

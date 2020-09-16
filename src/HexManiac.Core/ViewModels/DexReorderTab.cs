@@ -228,7 +228,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (isNational) {
                // we only have to update the dex info if this tab is editing the nationaldex.
                var originalIndex = i;
-               var previousIndices = Enumerable.Range(0, oldOrder.Count).Where(j => oldOrder[j] == i).ToList();
+               var previousIndices = oldOrder.Count.Range().Where(j => oldOrder[j] == i).ToList();
                var newIndices = previousIndices.Select(j => newOrder[j]).Distinct().ToList();
                // var newIndex = newOrder[oldOrder.IndexOf(i)];
                foreach (var newIndex in newIndices) {

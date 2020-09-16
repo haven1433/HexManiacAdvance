@@ -123,7 +123,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public void SetContents(IReadOnlyList<short> colors) {
          Elements.Clear();
-         foreach (var element in Enumerable.Range(0, colors.Count)
+         foreach (var element in colors.Count.Range()
             .Select(i => new SelectableColor { Color = colors[i], Index = i })) {
             Elements.Add(element);
          }
@@ -148,15 +148,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private void ReorderPalette() {
          if (!(model.GetNextRun(sourcePalette) is IPaletteRun source)) return;
 
-         var oldToNew = Enumerable.Range(0, Elements.Count).Select(i => Elements.IndexOf(Elements.Single(element => element.Index == i))).ToArray();
-         var newElements = Enumerable.Range(0, Elements.Count).Select(i => new SelectableColor {
+         var oldToNew = Elements.Count.Range().Select(i => Elements.IndexOf(Elements.Single(element => element.Index == i))).ToArray();
+         var newElements = Elements.Count.Range().Select(i => new SelectableColor {
             Index = i,
             Color = Elements[Elements[i].Index].Color,
             Selected = Elements[i].Selected,
          }).ToList();
 
          // early exit if there's no actual changes
-         if (Enumerable.Range(0, Elements.Count).All(i => Elements[i].Index == newElements[i].Index)) return;
+         if (Elements.Count.Range().All(i => Elements[i].Index == newElements[i].Index)) return;
 
          var palettesToUpdate = new List<IPaletteRun> { source };
          var sprites = source.FindDependentSprites(model).Distinct().ToList();
@@ -206,7 +206,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          foreach (var palette in palettesToUpdate.Distinct()) {
             var newPalette = palette;
             var colors = newPalette.GetPalette(model, page);
-            var newColors = Enumerable.Range(0, Elements.Count).Select(i => colors[Elements[i].Index]).ToList();
+            var newColors = Elements.Count.Range().Select(i => colors[Elements[i].Index]).ToList();
             newPalette = newPalette.SetPalette(model, history.CurrentChange, page, newColors);
             if (palette.Start != newPalette.Start) tab.RaiseMessage($"Palette was moved to {newPalette.Start:X6}. Pointers were updated.");
          }

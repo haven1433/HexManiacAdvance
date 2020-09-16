@@ -18,7 +18,7 @@ namespace HavenSoft.HexManiac.Tests {
       #region Setup
 
       public EggMoveTests() {
-         data = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         data = 0x200.Range().Select(i => (byte)0xFF).ToArray();
          model = new PokemonModel(data);
          viewPort = new ViewPort("file.gba", model);
 

@@ -248,7 +248,7 @@ namespace HavenSoft.HexManiac.Tests {
          // arrange
          var delta = new ModelDelta();
          var elements = new[] { "123", "alice", "candy land", "hello world", "fortify" };
-         var buffer = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         var buffer = 0x200.Range().Select(i => (byte)0xFF).ToArray();
          for (int i = 0; i < elements.Length; i++) {
             var content = PCSString.Convert(elements[i]);
             while (content.Count < 0x10) content.Add(0x00);
@@ -296,7 +296,7 @@ namespace HavenSoft.HexManiac.Tests {
          var delta = new ModelDelta();
          var errors = new List<string>();
          var elements = new[] { "123", "alice", "candy land", "hello world", "fortify" };
-         var buffer = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         var buffer = 0x200.Range().Select(i => (byte)0xFF).ToArray();
          for (int i = 0; i < elements.Length; i++) {
             var content = PCSString.Convert(elements[i]);
             while (content.Count < 0x10) content.Add(0x00);
@@ -335,7 +335,7 @@ namespace HavenSoft.HexManiac.Tests {
          var delta = new ModelDelta();
          var errors = new List<string>();
          var elements = new[] { "123", "alice", "candy land", "hello world", "fortify" };
-         var buffer = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         var buffer = 0x200.Range().Select(i => (byte)0xFF).ToArray();
          for (int i = 0; i < elements.Length; i++) {
             var content = PCSString.Convert(elements[i]);
             while (content.Count < 0x10) content.Add(0x00);
@@ -375,7 +375,7 @@ namespace HavenSoft.HexManiac.Tests {
          var delta = new ModelDelta();
          var errors = new List<string>();
          var elements = new[] { "123", "alice", "candy land", "hello world", "fortify" };
-         var buffer = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         var buffer = 0x200.Range().Select(i => (byte)0xFF).ToArray();
          for (int i = 0; i < elements.Length; i++) {
             var content = PCSString.Convert(elements[i]);
             while (content.Count < 0x10) content.Add(0x00);
@@ -977,7 +977,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void ParentTableAutoMoveNotifies() {
          // Arrange
-         var data = Enumerable.Range(0, 0x200).Select(i => (byte)0x42).ToArray(); // fill with 'stuff' so that the parent table will have to move.
+         var data = 0x200.Range().Select(i => (byte)0x42).ToArray(); // fill with 'stuff' so that the parent table will have to move.
          var model = new PokemonModel(data);
 
          ArrayRun.TryParse(model, "[a: b:]8", 0x20, null, out var table); // parent table starts directly after child table

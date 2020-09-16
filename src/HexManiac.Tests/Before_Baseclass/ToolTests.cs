@@ -149,18 +149,18 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void TableToolUpdatesWhenTextToolDataChanges() {
          // Arrange
-         var data = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         var data = 0x200.Range().Select(i => (byte)0xFF).ToArray();
          var model = new PokemonModel(data);
          var viewPort = new ViewPort("name.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^array[name\"\"16]3 ");
          viewPort.SelectionStart = new Point(8, 1);
 
          // Act: Update via the Text Tool
-         viewPort.Tools.SelectedIndex = Enumerable.Range(0, 10).First(i => viewPort.Tools[i] == viewPort.Tools.StringTool);
+         viewPort.Tools.SelectedIndex = 10.Range().First(i => viewPort.Tools[i] == viewPort.Tools.StringTool);
          viewPort.Tools.StringTool.Content = Environment.NewLine + "Larry";
 
          // Assert: Table Tool is updated
-         viewPort.Tools.SelectedIndex = Enumerable.Range(0, 10).First(i => viewPort.Tools[i] == viewPort.Tools.TableTool);
+         viewPort.Tools.SelectedIndex = 10.Range().First(i => viewPort.Tools[i] == viewPort.Tools.TableTool);
          var field = (FieldArrayElementViewModel)viewPort.Tools.TableTool.Children[1];
          Assert.Equal("Larry", field.Content);
       }
@@ -168,19 +168,19 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void TextToolToolUpdatesWhenTableToolDataChanges() {
          // Arrange
-         var data = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         var data = 0x200.Range().Select(i => (byte)0xFF).ToArray();
          var model = new PokemonModel(data);
          var viewPort = new ViewPort("name.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^array[name\"\"16]3 ");
          viewPort.SelectionStart = new Point(8, 1);
 
          // Act: Update via the Table Tool
-         viewPort.Tools.SelectedIndex = Enumerable.Range(0, 10).First(i => viewPort.Tools[i] == viewPort.Tools.TableTool);
+         viewPort.Tools.SelectedIndex = 10.Range().First(i => viewPort.Tools[i] == viewPort.Tools.TableTool);
          var field = (FieldArrayElementViewModel)viewPort.Tools.TableTool.Children[1];
          field.Content = "Larry";
 
          // Assert: Text Tool is updated
-         viewPort.Tools.SelectedIndex = Enumerable.Range(0, 10).First(i => viewPort.Tools[i] == viewPort.Tools.StringTool);
+         viewPort.Tools.SelectedIndex = 10.Range().First(i => viewPort.Tools[i] == viewPort.Tools.StringTool);
          var textToolContent = viewPort.Tools.StringTool.Content.Split(Environment.NewLine)[1];
          Assert.Equal("Larry", textToolContent);
       }
@@ -188,7 +188,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void TableToolUpdatesIndexOnCursorMove() {
          // Arrange
-         var data = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         var data = 0x200.Range().Select(i => (byte)0xFF).ToArray();
          var model = new PokemonModel(data);
          var viewPort = new ViewPort("name.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^array[name\"\"16]3 ");
@@ -203,7 +203,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void ContentUpdateFromAnotherToolDoesNotResetCaretInStringTool() {
          // Arrange
-         var data = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         var data = 0x200.Range().Select(i => (byte)0xFF).ToArray();
          var model = new PokemonModel(data);
          var viewPort = new ViewPort("name.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^array[name\"\"16]3 ");
@@ -215,9 +215,9 @@ namespace HavenSoft.HexManiac.Tests {
          };
 
          viewPort.SelectionStart = new Point(8, 1);                                                                         // move the cursor
-         viewPort.Tools.SelectedIndex = Enumerable.Range(0, 10).First(i => viewPort.Tools[i] == viewPort.Tools.StringTool); // open the string tool
+         viewPort.Tools.SelectedIndex = 10.Range().First(i => viewPort.Tools[i] == viewPort.Tools.StringTool); // open the string tool
          viewPort.Tools.StringTool.ContentIndex = 12;                                                                       // place the cursor somewhere, like the UI would
-         viewPort.Tools.SelectedIndex = Enumerable.Range(0, 10).First(i => viewPort.Tools[i] == viewPort.Tools.TableTool);  // open the table tool
+         viewPort.Tools.SelectedIndex = 10.Range().First(i => viewPort.Tools[i] == viewPort.Tools.TableTool);  // open the table tool
          var field = (FieldArrayElementViewModel)viewPort.Tools.TableTool.Children[1];
          field.Content = "Larry";                                                                                           // make a change with the table tool
 
@@ -227,11 +227,11 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void TableToolCanExtendTable() {
          // Arrange
-         var data = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         var data = 0x200.Range().Select(i => (byte)0xFF).ToArray();
          var model = new PokemonModel(data);
          var viewPort = new ViewPort("name.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^array[name\"\"16]3 ");
-         viewPort.Tools.SelectedIndex = Enumerable.Range(0, viewPort.Tools.Count).Single(i => viewPort.Tools[i] == viewPort.Tools.TableTool);
+         viewPort.Tools.SelectedIndex = viewPort.Tools.Count.Range().Single(i => viewPort.Tools[i] == viewPort.Tools.TableTool);
          Assert.True(viewPort.Tools.TableTool.Next.CanExecute(null)); // table has 3 entries
 
          // Act: move to end of table
@@ -246,7 +246,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void TableToolNotOfferedOnNormalText() {
          // Arrange
-         var data = Enumerable.Range(0, 0x200).Select(i => (byte)0xFF).ToArray();
+         var data = 0x200.Range().Select(i => (byte)0xFF).ToArray();
          var model = new PokemonModel(data);
          var viewPort = new ViewPort("name.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.Edit("^array[name\"\"16]3 ");

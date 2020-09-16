@@ -25,6 +25,6 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
       public bool Match(byte value) => value == match1 || value == match2;
-      private static int IndexOf(IReadOnlyList<string> pcs, string value) => Enumerable.Range(0, 0x100).Single(i => pcs[i] == value);
+      private static int IndexOf(IReadOnlyList<string> pcs, string value) => 0x100.Range().Single(i => pcs[i] == value);
    }
 }

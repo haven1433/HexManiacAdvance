@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels;
@@ -36,7 +37,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       private void SetupTilemaps() {
          var delta = new ModelDelta();
-         var data = Enumerable.Range(0, 0x5000 * 6).Select(i => (byte)0xFF).ToArray();
+         var data = (0x5000 * 6).Range().Select(i => (byte)0xFF).ToArray();
          Insert(data, 0x20, tileset1);
          Insert(data, 0x05000, tilemap1);
          Insert(data, 0x0A000, palette1);
@@ -61,7 +62,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       private void SetupSprites() {
          var delta = new ModelDelta();
-         var data = Enumerable.Range(0, 0x5000 * 4).Select(i => (byte)0xFF).ToArray();
+         var data = (0x5000 * 4).Range().Select(i => (byte)0xFF).ToArray();
          Insert(data, 0x20, spriteA);
          Insert(data, 0x05000, paletteA);
          Insert(data, 0x0A000, spriteB);

@@ -680,7 +680,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void WriteSpriteAndBalancePalette(ISpriteRun spriteRun, IPaletteRun paletteRun, IList<ISpriteRun> otherSprites, short[] image) {
          var tiles = Tilize(image, spriteRun.SpriteFormat.TileWidth * 8);
-         var palettes = Enumerable.Range(0, paletteRun.Pages).Select(i => paletteRun.GetPalette(model, i)).ToArray();
+         var palettes = paletteRun.Pages.Range().Select(i => paletteRun.GetPalette(model, i)).ToArray();
          if (spriteRun.Pages == paletteRun.Pages) palettes = new[] { palettes[palPage] };
          var initialBlankPages = paletteRun.PaletteFormat.InitialBlankPages;
          var bits = paletteRun.PaletteFormat.Bits;

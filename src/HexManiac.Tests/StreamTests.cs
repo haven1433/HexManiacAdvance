@@ -114,7 +114,7 @@ namespace HavenSoft.HexManiac.Tests {
          Model.ObserveRunWritten(ViewPort.CurrentChange, stream.DeserializeRun(text, ViewPort.CurrentChange));
 
          var result = new byte[] { 0, 0, 1, 1, 2, 2, 3, 3, 255, 255 };
-         Assert.All(Enumerable.Range(0, result.Length), i => Assert.Equal(Model[i], result[i]));
+         Assert.All(result.Length.Range(), i => Assert.Equal(Model[i], result[i]));
       }
    }
 }

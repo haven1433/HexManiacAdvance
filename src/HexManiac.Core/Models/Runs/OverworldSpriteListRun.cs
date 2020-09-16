@@ -113,7 +113,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
 
          SpriteFormat = new SpriteFormat(4, tileWidth * ElementCount, tileHeight, hint);
-         ElementNames = Enumerable.Range(0, ElementCount).Select(i => string.Empty).ToList();
+         ElementNames = ElementCount.Range().Select(i => string.Empty).ToList();
       }
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) => ITableRunExtensions.CreateSegmentDataFormat(this, data, index);

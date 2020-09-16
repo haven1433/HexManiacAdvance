@@ -608,6 +608,19 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(2, results.Count);
       }
 
+      [SkippableFact]
+      public void FireRed_OverworldSprites_ParseAll() {
+         var game = PokemonGames.Skip(2).First()[0] as string; // fire red
+         var model = fixture.LoadModel(game);
+
+         var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, OverworldSprites);
+         var run = (ITableRun)model.GetNextRun(address);
+         Assert.All(run.ElementCount.Range(), i => {
+            var elementAddress = model.ReadPointer(run.Start + run.ElementLength * i);
+            Assert.IsNotType<NoInfoRun>(model.GetNextRun(elementAddress));
+         });
+      }
+
       // this one actually changes the data, so I can't use the same shared model as everone else.
       // [SkippableTheory] // test removed until feature is complete.
       // [MemberData(nameof(PokemonGames))]
