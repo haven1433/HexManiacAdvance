@@ -451,5 +451,18 @@ namespace HavenSoft.HexManiac.Tests {
          var matches = ViewPort.Find("Some Text");
          Assert.Single(matches);
       }
+
+      [Fact]
+      public void HexSegment_Copy_CopyHexBytes() {
+         var filesystem = new StubFileSystem();
+         ArrayRun.TryParse(Model, "[some: data:|h]4", 0, default, out var arrayRun);
+         Model.ObserveRunWritten(ViewPort.CurrentChange, arrayRun);
+         ViewPort.Refresh();
+
+         ViewPort.SelectionStart = new Point(2, 0);
+         ViewPort.Copy.Execute(filesystem);
+
+         Assert.Equal("0000", filesystem.CopyText.value.Trim());
+      }
    }
 }

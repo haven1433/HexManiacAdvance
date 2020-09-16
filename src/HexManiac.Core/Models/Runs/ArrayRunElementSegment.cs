@@ -234,8 +234,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public override string ToText(IDataModel rawData, int offset, bool deep = false) {
          var hexLength = "X" + (Length * 2);
-         rawData.ReadMultiByteValue(offset, Length).ToString(hexLength);
-         return base.ToText(rawData, offset, deep);
+         var hex = rawData.ReadMultiByteValue(offset, Length).ToString(hexLength);
+         return hex;
       }
 
       public override void Write(IDataModel model, ModelDelta token, int start, string data) {
