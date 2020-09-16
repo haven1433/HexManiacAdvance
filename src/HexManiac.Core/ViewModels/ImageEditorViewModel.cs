@@ -72,11 +72,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                             : selectedTool == ImageEditorTools.Fill ? new FillTool(this)
                             : selectedTool == ImageEditorTools.EyeDropper ? eyeDropperStrategy
                             : (IImageToolStrategy)default;
+               RaiseRefreshSelection();
             }
          }
       }
       private StubCommand selectTool;
       public ICommand SelectTool => StubCommand<ImageEditorTools>(ref selectTool, arg => SelectedTool = arg);
+
+      public event EventHandler RefreshSelection;
+      private void RaiseRefreshSelection() => RefreshSelection?.Invoke(this, EventArgs.Empty);
 
       private int xOffset, yOffset, width, height;
       public int XOffset { get => xOffset; private set => Set(ref xOffset, value); }
@@ -328,6 +332,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                }
                parent.NotifyPropertyChanged(nameof(PixelData));
             }
+
+            parent.RaiseRefreshSelection();
          }
 
          public void ToolHover(Point point) {
@@ -345,6 +351,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                drawPoint = default;
                drawSize = 0;
             }
+
+            parent.RaiseRefreshSelection();
          }
 
          public void ToolUp(Point screenPosition) {

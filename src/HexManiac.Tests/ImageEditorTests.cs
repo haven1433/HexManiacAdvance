@@ -391,5 +391,16 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(Rgb(31, 31, 31), editor.PixelData[0]);
          Assert.Equal(Rgb(31, 31, 31), editor.PixelData[1]);
       }
+
+      [Fact]
+      public void DrawTool_Hover_RaiseRefreshSelection() {
+         var refreshCount = 0;
+         editor.RefreshSelection += (sender, e) => refreshCount += 1;
+         editor.SelectedTool = ImageEditorTools.Draw;
+
+         editor.Hover(default);
+
+         Assert.Equal(1, refreshCount);
+      }
    }
 }

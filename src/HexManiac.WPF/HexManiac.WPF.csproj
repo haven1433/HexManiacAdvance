@@ -71,6 +71,7 @@
     <Compile Include="Controls\PaletteControl.xaml.cs">
       <DependentUpon>PaletteControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\SelectionRender.cs" />
     <Compile Include="Controls\Swatch.xaml.cs">
       <DependentUpon>Swatch.xaml</DependentUpon>
     </Compile>
