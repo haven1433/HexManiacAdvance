@@ -106,7 +106,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (model[start + Length + 3] != 0x08) break;
             if (model.ReadMultiByteValue(start + Length + 4, 4) != byteLength) break;
             var nextRun = model.GetNextRun(start + Length);
-            if ((start + Length).IsAny(nextStart)) break; // metric: if there's a pointer in the parent table that points here, then it's the next list, not this list.
+            if (Length > 0 && (start + Length).IsAny(nextStart)) break; // metric: if there's a pointer in the parent table that points here, then it's the next list, not this list.
             ElementCount += 1;
             Length += ElementLength;
             if (ElementCount == MaxOverworldSprites) break; // overworld sprite lists can only have so many elements
