@@ -33,13 +33,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #region ITabContent Properties
 
-      private StubCommand close;
+      private StubCommand close, undoWrapper, redoWrapper;
 
       public string Name => "Image Editor";
       public ICommand Save => null;
       public ICommand SaveAs => null;
-      public ICommand Undo => history.Undo;
-      public ICommand Redo => history.Redo;
+      public ICommand Undo => StubCommand(ref undoWrapper, ExecuteUndo, () => history.Undo.CanExecute(default));
+      public ICommand Redo => StubCommand(ref redoWrapper, ExecuteRedo, () => history.Redo.CanExecute(default));
       public ICommand Copy => null;
       public ICommand DeepCopy => null;
       public ICommand Clear => null;
@@ -58,6 +58,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler RequestMenuClose;
 
       public void RaiseMessage(string message) => OnMessage?.Invoke(this, message);
+
+      private void ExecuteUndo() {
+         history.Undo.Execute();
+         Refresh();
+      }
+
+      private void ExecuteRedo() {
+         history.Redo.Execute();
+         Refresh();
+      }
 
       #endregion
 
@@ -167,6 +177,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void ToolDown(Point point) {
+         history.ChangeCompleted();
          withinInteraction = true;
          interactionStart = point;
          toolStrategy.ToolDown(point);
@@ -187,6 +198,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void ToolUp(Point point) {
          toolStrategy.ToolUp(point);
          withinInteraction = false;
+         history.ChangeCompleted();
       }
 
       public void EyeDropperDown(Point point) {
@@ -380,18 +392,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             parent.UpdateSpriteModel();
          }
 
-         public bool ShowSelectionRect(Point point) {
-            var x = point.X / (int)parent.SpriteScale;
-            var y = point.Y / (int)parent.SpriteScale;
-
-            if (x < drawPoint.X) return false;
-            if (y < drawPoint.Y) return false;
-            if (x >= drawPoint.X + drawSize) return false;
-            if (y >= drawPoint.Y + drawSize) return false;
-
-            return true;
-         }
-
          private void RaiseRefreshSelection() {
             var selectionPoints = new Point[drawSize * drawSize];
             for (int x = 0; x < drawSize; x++) for (int y = 0; y < drawSize; y++) selectionPoints[y * drawSize + x] = drawPoint + new Point(x, y);
@@ -526,19 +526,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private class FillTool : IImageToolStrategy {
          private readonly ImageEditorViewModel parent;
+
+         private Point drawPoint;
+
          public FillTool(ImageEditorViewModel parent) => this.parent = parent;
 
          public void ToolDown(Point screenPosition) { }
 
          public void ToolDrag(Point screenPosition) { }
 
-         public void ToolHover(Point screenPosition) { }
+         public void ToolHover(Point point) {
+            parent.RaiseRefreshSelection(parent.ToSpriteSpace(point));
+         }
 
          public void ToolUp(Point point) {
             parent.FillSpace(parent.interactionStart, point);
          }
-
-         public bool ShowSelectionRect(Point subPixelPosition) => false;
       }
 
       // TODO make this able to display the selected tile

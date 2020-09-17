@@ -435,5 +435,25 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(ImageEditorTools.Fill, editor.SelectedTool);
       }
+
+      [Fact]
+      public void FillTool_Hover_Selection() {
+         editor.SelectedTool = ImageEditorTools.Fill;
+
+         editor.Hover(default);
+
+         Assert.True(editor.ShowSelectionRect(4, 4));
+      }
+
+      [Fact]
+      public void Change_Undo_Refresh() {
+         editor.Palette.Elements[1].Color = Rgb(31, 31, 31);
+         editor.Palette.SelectionStart = 1;
+         ToolMove(new Point(0, 0));
+
+         editor.Undo.Execute();
+
+         Assert.Equal(0, editor.PixelData[editor.PixelIndex(4, 4)]);
+      }
    }
 }
