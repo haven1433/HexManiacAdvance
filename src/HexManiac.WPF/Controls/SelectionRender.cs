@@ -50,7 +50,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var format = PixelFormats.Indexed8;
          Width = desiredWidth;
          Height = desiredHeight;
-         FillSelection(pixels, desiredWidth, desiredHeight, stride);
+         FillSelection(pixels, stride);
 
          if (!(Source is WriteableBitmap wSource) ||
             wSource.PixelWidth != desiredWidth ||
@@ -68,18 +68,38 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private const byte FULL = 1;
-      private void FillSelection(byte[] pixels, int width, int height, int stride) {
-         for (int x = 0; x < width - 2; x++) {
-            for (int y = 0; y < height - 2; y++) {
+      private void FillSelection(byte[] pixels, int stride) {
+         var zoom = (int)ViewModel.SpriteScale;
+         void Line(int start, int next) {
+            for (int i = 0; i < zoom; i++) {
+               pixels[start] = FULL;
+               start += next;
+            }
+         }
+
+         for (int x = 0; x < ViewModel.PixelWidth; x++) {
+            for (int y = 0; y < ViewModel.PixelHeight; y++) {
                if (!ViewModel.ShowSelectionRect(x, y)) continue;
-               if (!ViewModel.ShowSelectionRect(x - 1, y - 1)) pixels[x + 0 + stride * (y + 0)] = FULL;
-               if (!ViewModel.ShowSelectionRect(x - 1, y + 1)) pixels[x + 0 + stride * (y + 2)] = FULL;
-               if (!ViewModel.ShowSelectionRect(x + 1, y - 1)) pixels[x + 2 + stride * (y + 0)] = FULL;
-               if (!ViewModel.ShowSelectionRect(x + 1, y + 1)) pixels[x + 2 + stride * (y + 2)] = FULL;
-               if (!ViewModel.ShowSelectionRect(x - 1, y - 0)) pixels[x + 0 + stride * (y + 1)] = FULL;
-               if (!ViewModel.ShowSelectionRect(x - 0, y - 1)) pixels[x + 1 + stride * (y + 0)] = FULL;
-               if (!ViewModel.ShowSelectionRect(x + 1, y + 0)) pixels[x + 2 + stride * (y + 1)] = FULL;
-               if (!ViewModel.ShowSelectionRect(x + 0, y + 1)) pixels[x + 1 + stride * (y + 2)] = FULL;
+
+               // each diagonal maps to a single pixel being placed
+               if (!ViewModel.ShowSelectionRect(x - 1, y - 1)) pixels[(y * stride + x) * zoom] = FULL;
+               if (!ViewModel.ShowSelectionRect(x - 1, y + 1)) pixels[((y + 1) * zoom + 1) * stride + x * zoom] = FULL;
+               if (!ViewModel.ShowSelectionRect(x + 1, y - 1)) pixels[(y * stride + x + 1) * zoom + 1] = FULL;
+               if (!ViewModel.ShowSelectionRect(x + 1, y + 1)) pixels[((y + 1) * zoom + 1) * stride + (x + 1) * zoom + 1] = FULL;
+
+               // each edge maps to a line being placed
+               if (!ViewModel.ShowSelectionRect(x - 1, y)) {
+                  Line((y * zoom + 1) * stride + x * zoom, stride);
+               }
+               if (!ViewModel.ShowSelectionRect(x + 1, y)) {
+                  Line((y * zoom + 1) * stride + (x + 1) * zoom + 1, stride);
+               }
+               if (!ViewModel.ShowSelectionRect(x, y - 1)) {
+                  Line(y * zoom * stride + x * zoom + 1, 1);
+               }
+               if (!ViewModel.ShowSelectionRect(x, y + 1)) {
+                  Line(((y + 1) * zoom + 1) * stride + x * zoom + 1, 1);
+               }
             }
          }
       }

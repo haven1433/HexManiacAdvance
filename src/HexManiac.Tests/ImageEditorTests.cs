@@ -293,10 +293,11 @@ namespace HavenSoft.HexManiac.Tests {
 
          editor.Hover(0, 0);
 
-         Assert.True(editor.ShowSelectionRect(8, 8));
-         Assert.True(editor.ShowSelectionRect(8, 9));
-         Assert.True(editor.ShowSelectionRect(9, 8));
-         Assert.True(editor.ShowSelectionRect(9, 9));
+         Assert.True(editor.ShowSelectionRect(4, 4));
+         Assert.False(editor.ShowSelectionRect(4, 5));
+         Assert.False(editor.ShowSelectionRect(4, 3));
+         Assert.False(editor.ShowSelectionRect(5, 4));
+         Assert.False(editor.ShowSelectionRect(3, 4));
       }
 
       [Fact]

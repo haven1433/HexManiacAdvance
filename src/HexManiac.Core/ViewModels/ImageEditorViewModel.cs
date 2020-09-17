@@ -29,6 +29,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private bool withinInteraction, withinDropperInteraction, withinPanInteraction;
       private Point interactionStart;
 
+      private bool[,] selectedPixels;
+
       #region ITabContent Properties
 
       private StubCommand close;
@@ -81,7 +83,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand SelectTool => StubCommand<ImageEditorTools>(ref selectTool, arg => SelectedTool = arg);
 
       public event EventHandler RefreshSelection;
-      private void RaiseRefreshSelection() => RefreshSelection?.Invoke(this, EventArgs.Empty);
+      private void RaiseRefreshSelection(params Point[] toSelect) {
+         selectedPixels = new bool[PixelWidth, PixelHeight];
+         foreach (var s in toSelect) selectedPixels[s.X, s.Y] = true;
+         RefreshSelection?.Invoke(this, EventArgs.Empty);
+      }
 
       private int xOffset, yOffset, width, height;
       public int XOffset { get => xOffset; private set => Set(ref xOffset, value); }
@@ -116,6 +122,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          palettePointerAddress = palRun.PointerSources[0];
          Palette = new PaletteCollection(this, model, history) { SourcePalette = palRun.Start };
          Refresh();
+         selectedPixels = new bool[PixelWidth, PixelHeight];
       }
 
       // convenience methods
@@ -205,11 +212,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public bool ShowSelectionRect(Point point) {
-         if (withinInteraction && withinDropperInteraction) {
-            return eyeDropperStrategy.ShowSelectionRect(point);
-         } else {
-            return toolStrategy.ShowSelectionRect(point);
-         }
+         if (point.X < 0 || point.X >= PixelWidth || point.Y < 0 || point.Y >= PixelHeight) return false;
+         return selectedPixels[point.X, point.Y];
       }
 
       public void Refresh() {
@@ -285,6 +289,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var processed = new HashSet<Point>();
          while (toProcess.Count > 0) {
             var current = toProcess.Dequeue();
+            if (processed.Contains(current)) continue;
             processed.Add(current);
             if (pixels[current.X, current.Y] != originalColorIndex) continue;
 
@@ -301,6 +306,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          UpdateSpriteModel();
+         NotifyPropertyChanged(nameof(PixelData));
       }
 
       #region Nested Types
@@ -309,7 +315,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          void ToolHover(Point screenPosition);
          void ToolDrag(Point screenPosition);
          void ToolUp(Point screenPosition);
-         bool ShowSelectionRect(Point subPixelPosition);
       }
 
       private class DrawTool : IImageToolStrategy {
@@ -331,6 +336,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (parent.WithinImage(point)) {
                var tile = parent.eyeDropperStrategy.Tile;
                if (tile == null) {
+                  drawSize = 1;
+                  drawPoint = point;
                   parent.PixelData[parent.PixelIndex(point)] = element.Color;
                   parent.pixels[point.X, point.Y] = element.Index;
                } else {
@@ -347,7 +354,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                parent.NotifyPropertyChanged(nameof(PixelData));
             }
 
-            parent.RaiseRefreshSelection();
+            RaiseRefreshSelection();
          }
 
          public void ToolHover(Point point) {
@@ -366,7 +373,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                drawSize = 0;
             }
 
-            parent.RaiseRefreshSelection();
+            RaiseRefreshSelection();
          }
 
          public void ToolUp(Point screenPosition) {
@@ -383,6 +390,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (y >= drawPoint.Y + drawSize) return false;
 
             return true;
+         }
+
+         private void RaiseRefreshSelection() {
+            var selectionPoints = new Point[drawSize * drawSize];
+            for (int x = 0; x < drawSize; x++) for (int y = 0; y < drawSize; y++) selectionPoints[y * drawSize + x] = drawPoint + new Point(x, y);
+            parent.RaiseRefreshSelection(selectionPoints);
          }
       }
 
@@ -431,6 +444,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   selectionHeight = point.Y - selectionStart.Y;
                }
             }
+
+            RaiseRefreshSelection();
          }
 
          public void ToolHover(Point screenPosition) { }
@@ -448,24 +463,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          }
 
-         public bool ShowSelectionRect(Point point) {
-            var x = point.X / (int)parent.SpriteScale;
-            var y = point.Y / (int)parent.SpriteScale;
-
-            var (start, width, height) = (selectionStart, selectionWidth, selectionHeight);
-
-            if (parent.withinInteraction && underPixels == null) {
-               (start, width, height) = BuildRect(selectionStart, selectionWidth, selectionHeight);
-            }
-
-            if (x < start.X) return false;
-            if (y < start.Y) return false;
-            if (x >= start.X + width) return false;
-            if (y >= start.Y + height) return false;
-
-            return true;
-         }
-
          public static (Point point, int width, int height) BuildRect(Point start, int dragX, int dragY) {
             if (dragX < 0) {
                start += new Point(dragX, 0);
@@ -477,6 +474,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
 
             return (start, dragX + 1, dragY + 1);
+         }
+
+         private void RaiseRefreshSelection() {
+            var (start, width, height) = (selectionStart, selectionWidth, selectionHeight);
+
+            if (parent.withinInteraction && underPixels == null) {
+               (start, width, height) = BuildRect(selectionStart, selectionWidth, selectionHeight);
+            }
+
+            var selectionPoints = new Point[width * height];
+            for (int x = 0; x < width; x++) for (int y = 0; y < height; y++) selectionPoints[y * width + x] = start + new Point(x, y);
+            parent.RaiseRefreshSelection(selectionPoints);
          }
 
          private void SwapUnderPixelsWithCurrentPixels() {
