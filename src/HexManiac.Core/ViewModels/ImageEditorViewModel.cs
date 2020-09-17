@@ -240,7 +240,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var sc = (SelectableColor)sender;
                switch (args.PropertyName) {
                   case nameof(sc.Selected):
-                     if (sc.Selected) {
+                     if (sc.Selected && SelectedTool != ImageEditorTools.Fill) {
                         SelectedTool = ImageEditorTools.Draw;
                      }
                      break;
