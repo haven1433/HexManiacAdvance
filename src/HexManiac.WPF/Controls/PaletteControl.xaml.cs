@@ -53,6 +53,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          base.OnLostKeyboardFocus(e);
       }
 
+      protected override void OnMouseLeave(MouseEventArgs e) {
+         base.OnMouseLeave(e);
+         ViewModel.HoverIndex = -1;
+      }
+
       private void StartPaletteColorMove(object sender, MouseButtonEventArgs e) {
          swatch.ResultChanged -= SwatchResultChanged;
          Focus();
@@ -87,11 +92,14 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void PaletteColorMove(object sender, MouseEventArgs e) {
-         if (!IsMouseCaptured) return;
-
          var oldTileIndex = InteractionTileIndex;
          interactionPoint = e.GetPosition(this);
          var newTileIndex = InteractionTileIndex;
+
+         if (!IsMouseCaptured) {
+            ViewModel.HoverIndex = newTileIndex;
+            return;
+         }
 
          var tilesToAnimate = ViewModel.HandleMove(oldTileIndex, newTileIndex);
          if (oldTileIndex != newTileIndex) {

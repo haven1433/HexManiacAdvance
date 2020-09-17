@@ -455,5 +455,16 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(0, editor.PixelData[editor.PixelIndex(4, 4)]);
       }
+
+      [Fact]
+      public void DifferentPixel_HoverColor_SelectPixel() {
+         editor.Palette.Elements[1].Color = Rgb(31, 31, 31);
+         editor.Palette.SelectionStart = 1;
+         ToolMove(new Point(0, 0));
+
+         editor.Palette.HoverIndex = 1;
+
+         Assert.True(editor.ShowSelectionRect(4, 4));
+      }
    }
 }

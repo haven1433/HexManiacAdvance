@@ -4,6 +4,7 @@ using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -110,11 +111,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private double spriteScale = 1;
       public double SpriteScale { get => spriteScale; set => Set(ref spriteScale, value); }
 
-      private PaletteCollection palette;
-      public PaletteCollection Palette {
-         get => palette;
-         set { palette = value; NotifyPropertyChanged(); }
-      }
+      public PaletteCollection Palette { get; }
 
       public int SpritePointer { get; }
 
@@ -131,6 +128,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          SpritePointer = spriteRun.PointerSources[0];
          palettePointerAddress = palRun.PointerSources[0];
          Palette = new PaletteCollection(this, model, history) { SourcePalette = palRun.Start };
+         Palette.Bind(nameof(Palette.HoverIndex), UpdateSelectionFromPaletteHover);
          Refresh();
          selectedPixels = new bool[PixelWidth, PixelHeight];
       }
@@ -321,6 +319,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          NotifyPropertyChanged(nameof(PixelData));
       }
 
+      private void UpdateSelectionFromPaletteHover(PaletteCollection sender, PropertyChangedEventArgs e) {
+         var matches = new List<Point>();
+         for(int x = 0; x < PixelWidth; x++) {
+            for(int y = 0; y < PixelHeight; y++) {
+               if (pixels[x, y] != Palette.HoverIndex) continue;
+               matches.Add(new Point(x, y));
+            }
+         }
+         RaiseRefreshSelection(matches.ToArray());
+      }
+
       #region Nested Types
       private interface IImageToolStrategy {
          void ToolDown(Point screenPosition);
@@ -358,7 +367,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   for (int x = 0; x < drawSize; x++) {
                      for (int y = 0; y < drawSize; y++) {
                         var (xx, yy) = (drawPoint.X + x, drawPoint.Y + y);
-                        parent.PixelData[parent.PixelIndex(xx, yy)] = parent.palette.Elements[tile[x, y]].Color;
+                        parent.PixelData[parent.PixelIndex(xx, yy)] = parent.Palette.Elements[tile[x, y]].Color;
                         parent.pixels[xx, yy] = tile[x, y];
                      }
                   }

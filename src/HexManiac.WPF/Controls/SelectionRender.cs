@@ -58,6 +58,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             wSource.Format != format) {
             Source = new WriteableBitmap(desiredWidth, desiredHeight, 96, 96, format, new BitmapPalette(new List<Color> {
                Colors.Transparent,
+               Colors.Black,
                Colors.White,
             }));
          }
@@ -67,12 +68,14 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          source.WritePixels(rect, pixels, stride, 0);
       }
 
-      private const byte FULL = 1;
+      private const byte BLACK = 1;
+      private const byte WHITE = 2;
       private void FillSelection(byte[] pixels, int stride) {
+         var currentEdgeColor = WHITE;
          var zoom = (int)ViewModel.SpriteScale;
          void Line(int start, int next) {
             for (int i = 0; i < zoom; i++) {
-               pixels[start] = FULL;
+               pixels[start] = currentEdgeColor;
                start += next;
             }
          }
@@ -80,12 +83,15 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          for (int x = 0; x < ViewModel.PixelWidth; x++) {
             for (int y = 0; y < ViewModel.PixelHeight; y++) {
                if (!ViewModel.ShowSelectionRect(x, y)) continue;
+               var pixelColor = ViewModel.PixelData[y * ViewModel.PixelWidth + x];
+               var grayScale = (pixelColor >> 10) + ((pixelColor >> 5) & 31) + (pixelColor & 31);
+               currentEdgeColor = grayScale > 46 ? BLACK : WHITE;
 
                // each diagonal maps to a single pixel being placed
-               if (!ViewModel.ShowSelectionRect(x - 1, y - 1)) pixels[(y * stride + x) * zoom] = FULL;
-               if (!ViewModel.ShowSelectionRect(x - 1, y + 1)) pixels[((y + 1) * zoom + 1) * stride + x * zoom] = FULL;
-               if (!ViewModel.ShowSelectionRect(x + 1, y - 1)) pixels[(y * stride + x + 1) * zoom + 1] = FULL;
-               if (!ViewModel.ShowSelectionRect(x + 1, y + 1)) pixels[((y + 1) * zoom + 1) * stride + (x + 1) * zoom + 1] = FULL;
+               if (!ViewModel.ShowSelectionRect(x - 1, y - 1)) pixels[(y * stride + x) * zoom] = currentEdgeColor;
+               if (!ViewModel.ShowSelectionRect(x - 1, y + 1)) pixels[((y + 1) * zoom + 1) * stride + x * zoom] = currentEdgeColor;
+               if (!ViewModel.ShowSelectionRect(x + 1, y - 1)) pixels[(y * stride + x + 1) * zoom + 1] = currentEdgeColor;
+               if (!ViewModel.ShowSelectionRect(x + 1, y + 1)) pixels[((y + 1) * zoom + 1) * stride + (x + 1) * zoom + 1] = currentEdgeColor;
 
                // each edge maps to a line being placed
                if (!ViewModel.ShowSelectionRect(x - 1, y)) {

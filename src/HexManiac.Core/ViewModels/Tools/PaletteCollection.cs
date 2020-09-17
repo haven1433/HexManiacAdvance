@@ -63,6 +63,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private int page;
       public int Page { get => page; set => Set(ref page, value); }
 
+      private int hoverIndex;
+      public int HoverIndex { get => hoverIndex; set => Set(ref hoverIndex, value); }
+
       private bool hasMultiplePages;
       public bool HasMultiplePages { get => hasMultiplePages; set => Set(ref hasMultiplePages, value); }
 
