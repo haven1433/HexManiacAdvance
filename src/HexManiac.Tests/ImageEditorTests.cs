@@ -402,5 +402,28 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(1, refreshCount);
       }
+
+      [Fact]
+      public void Zoom_OddPixel_RoundLeft() {
+         editor.Palette.Elements[1].Color = Rgb(31, 31, 31);
+         editor.Palette.SelectionStart = 1;
+         editor.ZoomIn(default);
+         editor.ZoomIn(default);
+
+         ToolMove(new Point(-1, -1));
+
+         Assert.Equal(Rgb(31, 31, 31), editor.PixelData[editor.PixelIndex(3, 3)]);
+      }
+
+      [Fact]
+      public void DrawToolSelected_PanMethod_Pan() {
+         editor.SelectedTool = ImageEditorTools.Draw;
+
+         editor.PanDown(default);
+         editor.Hover(2, 0);
+         editor.PanUp(2, 0);
+
+         Assert.Equal(2, editor.XOffset);
+      }
    }
 }

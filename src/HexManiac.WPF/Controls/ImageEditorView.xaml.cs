@@ -19,6 +19,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          ImageContainer.CaptureMouse();
          ViewModel.ToolDown(Point(e));
       }
+      private void MouseMiddleDown(object sender, MouseButtonEventArgs e) {
+         if (e.ChangedButton != MouseButton.Middle) return;
+         ImageContainer.CaptureMouse();
+         ViewModel.PanDown(Point(e));
+      }
       private void MouseSecondaryDown(object sender, MouseButtonEventArgs e) {
          ImageContainer.CaptureMouse();
          ViewModel.EyeDropperDown(Point(e));
@@ -27,6 +32,12 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void MousePrimaryUp(object sender, MouseButtonEventArgs e) {
          if (!ImageContainer.IsMouseCaptured) return;
          ViewModel.ToolUp(Point(e));
+         ImageContainer.ReleaseMouseCapture();
+      }
+      private void MouseMiddleUp(object sender, MouseButtonEventArgs e) {
+         if (!ImageContainer.IsMouseCaptured) return;
+         if (e.ChangedButton != MouseButton.Middle) return;
+         ViewModel.PanUp(Point(e));
          ImageContainer.ReleaseMouseCapture();
       }
       private void MouseSecondaryUp(object sender, MouseButtonEventArgs e) {

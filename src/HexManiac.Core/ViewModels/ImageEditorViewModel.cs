@@ -26,7 +26,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private int palettePointerAddress;
       private int[,] pixels;
 
-      private bool withinInteraction, withinDropperInteraction;
+      private bool withinInteraction, withinDropperInteraction, withinPanInteraction;
       private Point interactionStart;
 
       #region ITabContent Properties
@@ -61,6 +61,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private IImageToolStrategy toolStrategy;
       private EyeDropperTool eyeDropperStrategy; // stored separately because of right-click
+      private PanTool panStrategy; // stored separately because of center-click
       private ImageEditorTools selectedTool;
       public ImageEditorTools SelectedTool {
          get => selectedTool;
@@ -68,7 +69,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (TryUpdateEnum(ref selectedTool, value)) {
                toolStrategy = selectedTool == ImageEditorTools.Draw ? new DrawTool(this)
                             : selectedTool == ImageEditorTools.Select ? new SelectionTool(this)
-                            : selectedTool == ImageEditorTools.Pan ? new PanTool(this)
+                            : selectedTool == ImageEditorTools.Pan ? panStrategy
                             : selectedTool == ImageEditorTools.Fill ? new FillTool(this)
                             : selectedTool == ImageEditorTools.EyeDropper ? eyeDropperStrategy
                             : (IImageToolStrategy)default;
@@ -104,7 +105,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ImageEditorViewModel(ChangeHistory<ModelDelta> history, IDataModel model, int address) {
          this.history = history;
          this.model = model;
-         this.toolStrategy = new PanTool(this);
+         this.toolStrategy = this.panStrategy = new PanTool(this);
          this.eyeDropperStrategy = new EyeDropperTool(this);
          var inputRun = model.GetNextRun(address);
          var spriteRun = inputRun as ISpriteRun;
@@ -125,6 +126,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void ToolUp(int x, int y) => ToolUp(new Point(x, y));
       public void EyeDropperDown(int x, int y) => EyeDropperDown(new Point(x, y));
       public void EyeDropperUp(int x, int y) => EyeDropperUp(new Point(x, y));
+      public void PanDown(int x, int y) => PanDown(new Point(x, y));
+      public void PanUp(int x, int y) => PanUp(new Point(x, y));
       public bool ShowSelectionRect(int x, int y) => ShowSelectionRect(new Point(x, y));
 
       public void ZoomIn(Point point) {
@@ -158,7 +161,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void ToolDown(Point point) {
          withinInteraction = true;
-         withinDropperInteraction = false;
          interactionStart = point;
          toolStrategy.ToolDown(point);
       }
@@ -166,10 +168,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void Hover(Point point) {
          if (!withinInteraction) {
             toolStrategy.ToolHover(point);
-         } else if (!withinDropperInteraction) {
-            toolStrategy.ToolDrag(point);
-         } else {
+         } else if (withinDropperInteraction) {
             eyeDropperStrategy.ToolDrag(point);
+         } else if (withinPanInteraction) {
+            panStrategy.ToolDrag(point);
+         } else {
+            toolStrategy.ToolDrag(point);
          }
       }
 
@@ -186,7 +190,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void EyeDropperUp(Point point) {
          eyeDropperStrategy.ToolUp(point);
-         withinInteraction = false;
+         withinInteraction = withinDropperInteraction = false;
+      }
+
+      public void PanDown(Point point) {
+         withinInteraction = withinPanInteraction = true;
+         interactionStart = point;
+         panStrategy.ToolDown(point);
+      }
+
+      public void PanUp(Point point) {
+         panStrategy.ToolUp(point);
+         withinInteraction = withinPanInteraction = false;
       }
 
       public bool ShowSelectionRect(Point point) {
@@ -211,9 +226,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private Point ToSpriteSpace(Point point) {
          var x = point.X;
          var y = point.Y;
-         var scale = (int)SpriteScale;
-         x = (x - xOffset) / scale + PixelWidth / 2;
-         y = (y - yOffset) / scale + PixelHeight / 2;
+         x = (int)Math.Floor((x - xOffset) / SpriteScale) + PixelWidth / 2;
+         y = (int)Math.Floor((y - yOffset) / SpriteScale) + PixelHeight / 2;
          return new Point(x, y);
       }
 

@@ -4,30 +4,8 @@
              xmlns:hshmcvm="clr-namespace:HavenSoft.HexManiac.Core.ViewModels;assembly=HexManiac.Core"
              xmlns:hshmwpfc="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
              xmlns:local="clr-namespace:HavenSoft.HexManiac.WPF.Controls">
-   <Grid>
-      <Grid Name="ImageContainer" Background="Transparent"
-         VerticalAlignment="Center" HorizontalAlignment="Center"
-         MouseLeftButtonDown="MousePrimaryDown"
-         MouseLeftButtonUp="MousePrimaryUp"
-         MouseRightButtonDown="MouseSecondaryDown"
-         MouseRightButtonUp="MouseSecondaryUp"
-         MouseMove="MoveMouse"
-         MouseWheel="WheelMouse">
-         <local:PixelImage LayoutTransform="{x:Null}" RenderTransformOrigin=".5,.5">
-            <local:PixelImage.RenderTransform>
-               <TransformGroup>
-                  <ScaleTransform ScaleX="{Binding SpriteScale}" ScaleY="{Binding SpriteScale}"/>
-                  <TranslateTransform X="{Binding XOffset}" Y="{Binding YOffset}"/>
-               </TransformGroup>
-            </local:PixelImage.RenderTransform>
-         </local:PixelImage>
-         <local:SelectionRender Stretch="None" IsHitTestVisible="False" VerticalAlignment="Center" HorizontalAlignment="Center">
-            <local:SelectionRender.RenderTransform>
-               <TranslateTransform X="{Binding XOffset}" Y="{Binding YOffset}"/>
-            </local:SelectionRender.RenderTransform>
-         </local:SelectionRender>
-      </Grid>
-      <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Center">
+   <DockPanel>
+      <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" HorizontalAlignment="Center">
          <StackPanel.Resources>
             <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
                <Setter Property="Command" Value="{Binding SelectTool}"/>
@@ -46,6 +24,29 @@
          <RadioButton Content="F" CommandParameter="{x:Static hshmcvm:ImageEditorTools.Fill}"
             IsChecked="{Binding SelectedTool, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter={x:Static hshmcvm:ImageEditorTools.Fill}}"/>
       </StackPanel>
-      <hshmwpfc:PaletteControl DataContext="{Binding Palette}" VerticalAlignment="Center" HorizontalAlignment="Left" />
-   </Grid>
+      <hshmwpfc:PaletteControl DataContext="{Binding Palette}" VerticalAlignment="Center" DockPanel.Dock="Left" />
+      <Grid Name="ImageContainer" Background="Transparent" ClipToBounds="True"
+         MouseLeftButtonDown="MousePrimaryDown"
+         MouseLeftButtonUp="MousePrimaryUp"
+         MouseDown="MouseMiddleDown"
+         MouseUp="MouseMiddleUp"
+         MouseRightButtonDown="MouseSecondaryDown"
+         MouseRightButtonUp="MouseSecondaryUp"
+         MouseMove="MoveMouse"
+         MouseWheel="WheelMouse">
+         <local:PixelImage LayoutTransform="{x:Null}" RenderTransformOrigin=".5,.5" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <local:PixelImage.RenderTransform>
+               <TransformGroup>
+                  <ScaleTransform ScaleX="{Binding SpriteScale}" ScaleY="{Binding SpriteScale}"/>
+                  <TranslateTransform X="{Binding XOffset}" Y="{Binding YOffset}"/>
+               </TransformGroup>
+            </local:PixelImage.RenderTransform>
+         </local:PixelImage>
+         <local:SelectionRender Stretch="None" IsHitTestVisible="False" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <local:SelectionRender.RenderTransform>
+               <TranslateTransform X="{Binding XOffset}" Y="{Binding YOffset}"/>
+            </local:SelectionRender.RenderTransform>
+         </local:SelectionRender>
+      </Grid>
+   </DockPanel>
 </UserControl>
