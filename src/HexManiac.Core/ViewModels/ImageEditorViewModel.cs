@@ -90,8 +90,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          }
       }
-      private StubCommand selectTool;
+      private StubCommand selectTool, selectColor;
       public ICommand SelectTool => StubCommand<ImageEditorTools>(ref selectTool, arg => SelectedTool = arg);
+      public ICommand SelectColor => StubCommand<string>(ref selectColor, arg => Palette.SelectionStart = int.Parse(arg));
 
       public event EventHandler RefreshSelection;
       private void RaiseRefreshSelection(params Point[] toSelect) {
@@ -536,8 +537,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private class FillTool : IImageToolStrategy {
          private readonly ImageEditorViewModel parent;
 
-         private Point drawPoint;
-
          public FillTool(ImageEditorViewModel parent) => this.parent = parent;
 
          public void ToolDown(Point screenPosition) { }
@@ -545,7 +544,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          public void ToolDrag(Point screenPosition) { }
 
          public void ToolHover(Point point) {
-            parent.RaiseRefreshSelection(parent.ToSpriteSpace(point));
+            point = parent.ToSpriteSpace(point);
+            if (parent.WithinImage(point)) {
+               parent.RaiseRefreshSelection(point);
+            } else {
+               parent.RaiseRefreshSelection();
+            }
          }
 
          public void ToolUp(Point point) {
@@ -615,10 +619,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    }
 
    public enum ImageEditorTools {
-      Pan,        // a
-      Select,     // s
-      Draw,       // d
-      Fill,       // f
-      EyeDropper, // e
+      Pan,        // arrange position
+      Select,     // select section
+      Draw,       // draw pixel
+      Fill,       // fill area
+      EyeDropper, // grab color
    }
 }

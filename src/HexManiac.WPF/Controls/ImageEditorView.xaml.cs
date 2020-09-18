@@ -6,7 +6,10 @@ namespace HavenSoft.HexManiac.WPF.Controls {
    public partial class ImageEditorView : UserControl {
       private ImageEditorViewModel ViewModel => (ImageEditorViewModel)DataContext;
 
-      public ImageEditorView() => InitializeComponent();
+      public ImageEditorView() {
+         InitializeComponent();
+         Loaded += (sender, e) => Focus();
+      }
 
       private Core.Models.Point Point(MouseEventArgs e) {
          var p = e.GetPosition(ImageContainer);

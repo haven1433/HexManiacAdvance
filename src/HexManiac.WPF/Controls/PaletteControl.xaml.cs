@@ -43,7 +43,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       protected override void OnLostFocus(RoutedEventArgs e) {
          swatchPopup.IsOpen = false;
          swatch.ResultChanged -= SwatchResultChanged;
-         ViewModel.SelectionStart = -1;
+         if (ViewModel != null) ViewModel.SelectionStart = -1;
          base.OnLostFocus(e);
       }
 
