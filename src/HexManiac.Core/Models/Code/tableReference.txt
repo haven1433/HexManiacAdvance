@@ -257,6 +257,6 @@ graphics.overworld.sprites2,                 ,       ,       ,       , 05DF28, 0
 
 data.text.menu.pause,                  071160, 071164, 071180, 071184, 06EF9C, 06EF9C, 06EFB0, 06EFB0, 09F818, [text<""> code<>]
 
-// cry1,           ,,,, 072114, 072114, 072128, 072128, , ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]388
-// cry2,           ,,,, 072104, 072104, 072118, 072118, , ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]388
-// cry.conversion, ,,,, 043328, 043328, 04333C, 04333C, , [index:]data.pokemon.names-277
+data.pokemon.cry.growl,            0752D8, 0752DC, 0752F8, 0752FC, 072104, 072104, 072118, 072118, 0A35DC, ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]388
+data.pokemon.cry.normal,           0752E8, 0752EC, 075308, 07530C, 072114, 072114, 072128, 072128, 0A35EC, ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]388
+data.pokemon.cry.hoennconversion,  03F928, 03F928, 03F928, 03F928, 043328, 043328, 04333C, 04333C, 06D534, [index:]data.pokemon.names-277
