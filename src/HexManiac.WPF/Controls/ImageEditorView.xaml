@@ -22,120 +22,124 @@
       <KeyBinding Key="D7" CommandParameter="7" Command="{Binding SelectColor}"/>
    </UserControl.InputBindings>
    <DockPanel>
-      <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" HorizontalAlignment="Center">
-         <StackPanel.Resources>
-            <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
-               <Setter Property="Command" Value="{Binding SelectTool}"/>
-               <Setter Property="Width" Value="30"/>
-               <Setter Property="Height" Value="30"/>
-               <Setter Property="HorizontalContentAlignment" Value="Center"/>
-               <Setter Property="VerticalContentAlignment" Value="Center"/>
-            </Style>
-            <Style TargetType="Path">
-               <Setter Property="Fill" Value="{DynamicResource Secondary}"/>
-               <Setter Property="Stretch" Value="Uniform"/>
-               <Setter Property="Width" Value="24"/>
-               <Setter Property="Height" Value="24"/>
-               <Style.Triggers>
-                  <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=RadioButton}}" Value="True">
-                     <Setter Property="Fill" Value="{DynamicResource Primary}"/>
-                  </DataTrigger>
-               </Style.Triggers>
-            </Style>
-         </StackPanel.Resources>
-         <RadioButton CommandParameter="{x:Static hshmcvm:ImageEditorTools.Pan}"
-            IsChecked="{Binding SelectedTool, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter={x:Static hshmcvm:ImageEditorTools.Pan}}">
-            <RadioButton.Content>
-               <Path Data="{hshmwpfr:Icon FourDirectionArrows}"/>
-            </RadioButton.Content>
-            <RadioButton.ToolTip>
-               <ToolTip>
-                  <DockPanel>
-                     <Path Data="{hshmwpfr:Icon MiddleMouseButton}" Fill="{DynamicResource Secondary}" DockPanel.Dock="Right" VerticalAlignment="Top"/>
-                     <TextBlock>
+      <DockPanel DockPanel.Dock="Left">
+         <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" HorizontalAlignment="Center">
+            <StackPanel.Resources>
+               <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
+                  <Setter Property="Command" Value="{Binding SelectTool}"/>
+                  <Setter Property="Width" Value="30"/>
+                  <Setter Property="Height" Value="30"/>
+                  <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                  <Setter Property="VerticalContentAlignment" Value="Center"/>
+               </Style>
+               <Style TargetType="Path">
+                  <Setter Property="Fill" Value="{DynamicResource Secondary}"/>
+                  <Setter Property="Stretch" Value="Uniform"/>
+                  <Setter Property="Width" Value="24"/>
+                  <Setter Property="Height" Value="24"/>
+                  <Style.Triggers>
+                     <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=RadioButton}}" Value="True">
+                        <Setter Property="Fill" Value="{DynamicResource Primary}"/>
+                     </DataTrigger>
+                  </Style.Triggers>
+               </Style>
+            </StackPanel.Resources>
+            <RadioButton CommandParameter="{x:Static hshmcvm:ImageEditorTools.Pan}"
+               IsChecked="{Binding SelectedTool, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter={x:Static hshmcvm:ImageEditorTools.Pan}}">
+               <RadioButton.Content>
+                  <Path Data="{hshmwpfr:Icon FourDirectionArrows}"/>
+               </RadioButton.Content>
+               <RadioButton.ToolTip>
+                  <ToolTip>
+                     <DockPanel>
+                        <Path Data="{hshmwpfr:Icon MiddleMouseButton}" Fill="{DynamicResource Secondary}" DockPanel.Dock="Right" VerticalAlignment="Top"/>
+                        <TextBlock>
                         (A)rrange Position <LineBreak/>
                         <Italic Foreground="{DynamicResource Secondary}">
                            Move the sprite around on the screen to see it better.
                         </Italic>
-                     </TextBlock>
-                  </DockPanel>
-               </ToolTip>
-            </RadioButton.ToolTip>
-         </RadioButton>
-         <RadioButton CommandParameter="{x:Static hshmcvm:ImageEditorTools.Select}"
-            IsChecked="{Binding SelectedTool, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter={x:Static hshmcvm:ImageEditorTools.Select}}">
-            <RadioButton.Content>
-               <Path Data="{hshmwpfr:Icon Selection}"/>
-            </RadioButton.Content>
-            <RadioButton.ToolTip>
-               <ToolTip>
-                  <TextBlock>
+                        </TextBlock>
+                     </DockPanel>
+                  </ToolTip>
+               </RadioButton.ToolTip>
+            </RadioButton>
+            <RadioButton CommandParameter="{x:Static hshmcvm:ImageEditorTools.Select}"
+               IsChecked="{Binding SelectedTool, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter={x:Static hshmcvm:ImageEditorTools.Select}}">
+               <RadioButton.Content>
+                  <Path Data="{hshmwpfr:Icon Selection}"/>
+               </RadioButton.Content>
+               <RadioButton.ToolTip>
+                  <ToolTip>
+                     <TextBlock>
                      (S)elect Section<LineBreak/>
                      <Italic Foreground="{DynamicResource Secondary}">
                         Drag to select a rectangle of pixels. <LineBreak/>
                         Then drag again to move them around.
                      </Italic>
-                  </TextBlock>
-               </ToolTip>
-            </RadioButton.ToolTip>
-         </RadioButton>
-         <RadioButton CommandParameter="{x:Static hshmcvm:ImageEditorTools.Draw}"
-            IsChecked="{Binding SelectedTool, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter={x:Static hshmcvm:ImageEditorTools.Draw}}">
-            <RadioButton.Content>
-               <Path Data="{hshmwpfr:Icon Pencil}"/>
-            </RadioButton.Content>
-            <RadioButton.ToolTip>
-               <ToolTip>
-                  <TextBlock>
+                     </TextBlock>
+                  </ToolTip>
+               </RadioButton.ToolTip>
+            </RadioButton>
+            <RadioButton CommandParameter="{x:Static hshmcvm:ImageEditorTools.Draw}"
+               IsChecked="{Binding SelectedTool, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter={x:Static hshmcvm:ImageEditorTools.Draw}}">
+               <RadioButton.Content>
+                  <Path Data="{hshmwpfr:Icon Pencil}"/>
+               </RadioButton.Content>
+               <RadioButton.ToolTip>
+                  <ToolTip>
+                     <TextBlock>
                      (D)raw Pixels <LineBreak/>
                      <Italic Foreground="{DynamicResource Secondary}">
                         Draw individual pixels by selecting a color. <LineBreak/>
                         If you use (g)rab color to select a block, <LineBreak/>
                         you can draw entire blocks or patterns at once.
                      </Italic>
-                  </TextBlock>
-               </ToolTip>
-            </RadioButton.ToolTip>
-         </RadioButton>
-         <RadioButton CommandParameter="{x:Static hshmcvm:ImageEditorTools.Fill}"
-            IsChecked="{Binding SelectedTool, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter={x:Static hshmcvm:ImageEditorTools.Fill}}">
-            <RadioButton.Content>
-               <Path Data="{hshmwpfr:Icon FillBucket}"/>
-            </RadioButton.Content>
-            <RadioButton.ToolTip>
-               <ToolTip>
-                  <TextBlock>
+                     </TextBlock>
+                  </ToolTip>
+               </RadioButton.ToolTip>
+            </RadioButton>
+            <RadioButton CommandParameter="{x:Static hshmcvm:ImageEditorTools.Fill}"
+               IsChecked="{Binding SelectedTool, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter={x:Static hshmcvm:ImageEditorTools.Fill}}">
+               <RadioButton.Content>
+                  <Path Data="{hshmwpfr:Icon FillBucket}"/>
+               </RadioButton.Content>
+               <RadioButton.ToolTip>
+                  <ToolTip>
+                     <TextBlock>
                      (F)ill Area<LineBreak/>
                      <Italic Foreground="{DynamicResource Secondary}">
                         Fill an entire region with a color. <LineBreak/>
                         Click and drag to fill a region with a gradient.
                      </Italic>
-                  </TextBlock>
-               </ToolTip>
-            </RadioButton.ToolTip>
-         </RadioButton>
-         <RadioButton CommandParameter="{x:Static hshmcvm:ImageEditorTools.EyeDropper}"
-            IsChecked="{Binding SelectedTool, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter={x:Static hshmcvm:ImageEditorTools.EyeDropper}}">
-            <RadioButton.Content>
-               <Path Data="{hshmwpfr:Icon EyeDropper}"/>
-            </RadioButton.Content>
-            <RadioButton.ToolTip>
-               <ToolTip>
-                  <DockPanel>
-                     <Path Data="{hshmwpfr:Icon RightMouseButton}" Fill="{DynamicResource Secondary}" DockPanel.Dock="Right" VerticalAlignment="Top"/>
-                     <TextBlock>
+                     </TextBlock>
+                  </ToolTip>
+               </RadioButton.ToolTip>
+            </RadioButton>
+            <RadioButton CommandParameter="{x:Static hshmcvm:ImageEditorTools.EyeDropper}"
+               IsChecked="{Binding SelectedTool, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter={x:Static hshmcvm:ImageEditorTools.EyeDropper}}">
+               <RadioButton.Content>
+                  <Path Data="{hshmwpfr:Icon EyeDropper}"/>
+               </RadioButton.Content>
+               <RadioButton.ToolTip>
+                  <ToolTip>
+                     <DockPanel>
+                        <Path Data="{hshmwpfr:Icon RightMouseButton}" Fill="{DynamicResource Secondary}" DockPanel.Dock="Right" VerticalAlignment="Top"/>
+                        <TextBlock>
                         (G)rab Color <LineBreak/>
                         <Italic Foreground="{DynamicResource Secondary}">
                            Select a specific color by clicking it. <LineBreak/>
                            Click and drag to grab a block of colors instead.
                         </Italic>
-                     </TextBlock>
-                  </DockPanel>
-               </ToolTip>
-            </RadioButton.ToolTip>
-         </RadioButton>
-      </StackPanel>
-      <hshmwpfc:PaletteControl DataContext="{Binding Palette}" VerticalAlignment="Center" DockPanel.Dock="Left" />
+                        </TextBlock>
+                     </DockPanel>
+                  </ToolTip>
+               </RadioButton.ToolTip>
+            </RadioButton>
+         </StackPanel>
+         <local:PixelImage DataContext="{Binding BlockPreview}" Visibility="{Binding Enabled, Converter={StaticResource BoolToVisibility}}" DockPanel.Dock="Top"/>
+         <hshmwpfc:PaletteControl DataContext="{Binding Palette}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+      </DockPanel>
+
       <Grid Name="ImageContainer" Background="Transparent" ClipToBounds="True"
          MouseLeftButtonDown="MousePrimaryDown"
          MouseLeftButtonUp="MousePrimaryUp"

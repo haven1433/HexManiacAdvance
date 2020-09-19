@@ -466,5 +466,99 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.True(editor.ShowSelectionRect(4, 4));
       }
+
+      [Fact]
+      public void EyeDropper_Hover_ShowSelection() {
+         editor.SelectedTool = ImageEditorTools.EyeDropper;
+
+         editor.Hover(0, 0);
+
+         Assert.True(editor.ShowSelectionRect(4, 4));
+      }
+
+      [Fact]
+      public void EyeDropper_Drag_ShowSelection() {
+         editor.SelectedTool = ImageEditorTools.EyeDropper;
+
+         editor.ToolDown(0, 0);
+         editor.Hover(1, 1);
+
+         Assert.All(new[] {
+            new Point(4, 4), new Point(4, 5), new Point(5, 4), new Point(5, 5),
+         }, point => Assert.True(editor.ShowSelectionRect(point)));
+      }
+
+      [Fact]
+      public void BlockPreview_Default_NotEnabled() {
+         Assert.False(editor.BlockPreview.Enabled);
+      }
+
+      [Fact]
+      public void EyeDropper_BlockSelected_BlockPreview() {
+         editor.Palette.Elements[0].Color = Rgb(31, 31, 31);
+         editor.SelectedTool = ImageEditorTools.EyeDropper;
+
+         ToolMove(new Point(0, 0), new Point(1, 1));
+
+         Assert.True(editor.BlockPreview.Enabled);
+         Assert.Equal(2, editor.BlockPreview.PixelWidth);
+         Assert.Equal(2, editor.BlockPreview.PixelHeight);
+         Assert.Equal(4, editor.BlockPreview.PixelData.Length);
+         Assert.All(4.Range(), i => Assert.Equal(Rgb(31, 31, 31), editor.BlockPreview.PixelData[i]));
+      }
+
+      [Fact]
+      public void BlockSelected_ColorSelected_BlockCleared() {
+         editor.SelectedTool = ImageEditorTools.EyeDropper;
+         ToolMove(new Point(0, 0), new Point(1, 1));
+
+         editor.Palette.SelectionStart = 0;
+
+         Assert.False(editor.BlockPreview.Enabled);
+      }
+
+      [Fact]
+      public void BlockSelected_EyeDropperSinglePixel_BlockCleared() {
+         editor.SelectedTool = ImageEditorTools.EyeDropper;
+         ToolMove(new Point(0, 0), new Point(1, 1));
+
+         ToolMove(new Point(-1, -1));
+
+         Assert.False(editor.BlockPreview.Enabled);
+      }
+
+      [Fact]
+      public void BlockSelected_Small_LargeScale() {
+         editor.SelectedTool = ImageEditorTools.EyeDropper;
+
+         ToolMove(new Point(0, 0), new Point(1, 1));
+
+         Assert.Equal(32, editor.BlockPreview.SpriteScale);
+      }
+
+      [Fact]
+      public void BlockSelected_Large_SmallScale() {
+         editor.SelectedTool = ImageEditorTools.EyeDropper;
+
+         ToolMove(new Point(-4, -4), new Point(3, 3));
+
+         Assert.Equal(8, editor.BlockPreview.SpriteScale);
+      }
+
+      [Fact]
+      public void EyeDropper_SelectRect_SelectionIsSquare() {
+         editor.EyeDropperDown(0, 0);
+         editor.Hover(3, 2);
+
+         Assert.False(editor.ShowSelectionRect(6, 4));
+      }
+
+      [Fact]
+      public void EyeDropper_SelectUpRight_RectangleAnchorsToBottomLeft() {
+         editor.EyeDropperDown(0, 0);
+         editor.Hover(1, -2);
+
+         Assert.False(editor.ShowSelectionRect(4, 2));
+      }
    }
 }

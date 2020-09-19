@@ -94,6 +94,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand SelectTool => StubCommand<ImageEditorTools>(ref selectTool, arg => SelectedTool = arg);
       public ICommand SelectColor => StubCommand<string>(ref selectColor, arg => Palette.SelectionStart = int.Parse(arg));
 
+      public BlockPreview BlockPreview { get; }
+
       public event EventHandler RefreshSelection;
       private void RaiseRefreshSelection(params Point[] toSelect) {
          selectedPixels = new bool[PixelWidth, PixelHeight];
@@ -132,6 +134,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Palette.Bind(nameof(Palette.HoverIndex), UpdateSelectionFromPaletteHover);
          Refresh();
          selectedPixels = new bool[PixelWidth, PixelHeight];
+         BlockPreview = new BlockPreview();
       }
 
       // convenience methods
@@ -258,6 +261,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      if (sc.Selected && SelectedTool != ImageEditorTools.Fill) {
                         SelectedTool = ImageEditorTools.Draw;
                      }
+                     BlockPreview.Clear();
                      break;
                   case nameof(sc.Color):
                      Palette.PushColorsToModel(); // this causes a Render
@@ -332,6 +336,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       #region Nested Types
+
       private interface IImageToolStrategy {
          void ToolDown(Point screenPosition);
          void ToolHover(Point screenPosition);
@@ -486,6 +491,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return (start, dragX + 1, dragY + 1);
          }
 
+         public static void RaiseRefreshSelection(ImageEditorViewModel parent, Point start, int width, int height) {
+            var selectionPoints = new Point[width * height];
+            for (int x = 0; x < width; x++) for (int y = 0; y < height; y++) selectionPoints[y * width + x] = start + new Point(x, y);
+            parent.RaiseRefreshSelection(selectionPoints);
+         }
+
          private void RaiseRefreshSelection() {
             var (start, width, height) = (selectionStart, selectionWidth, selectionHeight);
 
@@ -493,9 +504,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                (start, width, height) = BuildRect(selectionStart, selectionWidth, selectionHeight);
             }
 
-            var selectionPoints = new Point[width * height];
-            for (int x = 0; x < width; x++) for (int y = 0; y < height; y++) selectionPoints[y * width + x] = start + new Point(x, y);
-            parent.RaiseRefreshSelection(selectionPoints);
+            RaiseRefreshSelection(parent, start, width, height);
          }
 
          private void SwapUnderPixelsWithCurrentPixels() {
@@ -587,19 +596,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (parent.WithinImage(point)) {
                selectionWidth = point.X - selectionStart.X;
                selectionHeight = point.Y - selectionStart.Y;
+
+               var (start, width, height) = SelectionTool.BuildRect(selectionStart, selectionWidth, selectionHeight);
+
+               MakeSquare(ref width, ref height);
+               if (selectionHeight < 0) start -= new Point(0, selectionHeight + height - 1);
+               if (selectionWidth < 0) start -= new Point(selectionWidth + width - 1, 0);
+
+               SelectionTool.RaiseRefreshSelection(parent, start, width, height);
             }
          }
 
-         public void ToolHover(Point screenPosition) { }
+         public void ToolHover(Point point) {
+            parent.RaiseRefreshSelection(parent.ToSpriteSpace(point));
+         }
 
          public void ToolUp(Point point) {
-            (selectionStart, selectionWidth, selectionHeight) = SelectionTool.BuildRect(selectionStart, selectionWidth, selectionHeight);
+            var (start, width, height) = SelectionTool.BuildRect(selectionStart, selectionWidth, selectionHeight);
 
             // make sure the selection is a power-of-2 box
-            selectionWidth = Math.Min(selectionWidth, selectionHeight);
-            var log = (int)Math.Log(selectionWidth, 2);
-            selectionWidth = (int)Math.Pow(2, log);
-            selectionHeight = selectionWidth;
+            MakeSquare(ref width, ref height);
+            if (selectionHeight < 0) start -= new Point(0, selectionHeight + height - 1);
+            if (selectionWidth < 0) start -= new Point(selectionWidth + width - 1, 0);
+            (selectionStart, selectionWidth, selectionHeight) = (start, width, height);
 
             if (selectionWidth == 1 && selectionHeight == 1) {
                point = parent.ToSpriteSpace(point);
@@ -611,7 +630,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                for (int x = 0; x < selectionWidth; x++) for (int y = 0; y < selectionHeight; y++) {
                   underPixels[x, y] = parent.pixels[selectionStart.X + x, selectionStart.Y + y];
                }
+               parent.BlockPreview.Set(parent.PixelData, parent.PixelWidth, selectionStart, selectionWidth);
             }
+         }
+
+         private void MakeSquare(ref int width, ref int height) {
+            width = Math.Min(width, height);
+            var log = (int)Math.Log(width, 2);
+            width = (int)Math.Pow(2, log);
+            height = width;
          }
       }
 
@@ -624,5 +651,39 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       Draw,       // draw pixel
       Fill,       // fill area
       EyeDropper, // grab color
+   }
+
+   public class BlockPreview : ViewModelCore, IPixelViewModel {
+      private int width, height;
+      public int PixelWidth { get => width; private set => Set(ref width, value); }
+      public int PixelHeight { get => height; private set => Set(ref height, value); }
+
+      public short[] PixelData { get; private set; }
+
+      private double scale;
+      public double SpriteScale { get => scale; set => Set(ref scale, value); }
+
+      private bool enabled;
+      public bool Enabled { get => enabled; private set => Set(ref enabled, value); }
+
+      public void Set(short[] full, int fullWidth, Point start, int size) {
+         Enabled = true;
+         PixelWidth = PixelHeight = size;
+
+         var data = new short[size * size];
+         for (int y = 0; y < size; y++) {
+            for (int x = 0; x < size; x++) {
+               data[y * width + x] = full[fullWidth * (start.Y + y) + start.X + x];
+            }
+         }
+         PixelData = data;
+         NotifyPropertyChanged(nameof(PixelData));
+
+         SpriteScale = 64 / size;
+      }
+
+      public void Clear() {
+         Enabled = false;
+      }
    }
 }
