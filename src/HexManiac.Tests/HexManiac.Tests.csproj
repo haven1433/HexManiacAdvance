@@ -69,6 +69,9 @@
     <Compile Include="..\..\artifacts\HexManiac.Tests\codegen\StubMetadataInfo.cs">
       <Link>StubMetadataInfo.cs</Link>
     </Compile>
+    <Compile Include="..\..\artifacts\HexManiac.Tests\codegen\StubQuickEditItem.cs">
+      <Link>StubQuickEditItem.cs</Link>
+    </Compile>
     <Compile Include="Before_Baseclass\ArrayColumnHeaderTests.cs" />
     <Compile Include="Before_Baseclass\ArrayRunTests.cs" />
     <Compile Include="Before_Baseclass\ScriptTests.cs" />
