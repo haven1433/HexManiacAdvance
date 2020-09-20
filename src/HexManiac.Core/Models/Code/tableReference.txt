@@ -248,7 +248,6 @@ graphics.trainer.card.back.unknown.tilemap,           ,,,,               0894AC,
 graphics.trainer.card.background.tilemap,             ,,,,               089488, 08945C, 08949C, 089470, , `lzm4x30x20|graphics.trainer.card.tileset`
 graphics.trainer.card.background.tilemap2,            ,,,,               089478, 08944C, 08948C, 089460, , `lzm4x30x20|graphics.trainer.card.tileset2`
 
-
 graphics.overworld.palettes,           05BE20, 05BE24, 05BE40, 05BE44, 05F4D8, 05F4D8, 05F4EC, 05F4EC, 08E8BC, [pal<`ucp4`> id:|h unused:]!0000000000000000
 graphics.overworld.sprites,            05BC3C, 05BC40, 05BC5C, 05BC60,       ,       ,       ,       ,       , [data<[starterbytes:|h paletteid:|h secondid:|h length: width: height: slot.|h footprint.owfootprints unused: distribution<> sizedraw<> animation<> sprites<`osl`> ramstore<>]1>]218
 graphics.overworld.sprites,                  ,       ,       ,       , 05F2F4, 05F2F4, 05F308, 05F308,       , [data<[starterbytes:|h paletteid:|h secondid:|h length: width: height: slot.|h footprint.owfootprints unused: distribution<> sizedraw<> animation<> sprites<`osl`> ramstore<>]1>]152
@@ -257,6 +256,8 @@ graphics.overworld.sprites2,                 ,       ,       ,       , 05DF28, 0
 
 data.text.menu.pause,                  071160, 071164, 071180, 071184, 06EF9C, 06EF9C, 06EFB0, 06EFB0, 09F818, [text<""> code<>]
 
-data.pokemon.cry.growl,            0752D8, 0752DC, 0752F8, 0752FC, 072104, 072104, 072118, 072118, 0A35DC, ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]388
-data.pokemon.cry.normal,           0752E8, 0752EC, 075308, 07530C, 072114, 072114, 072128, 072128, 0A35EC, ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]388
-data.pokemon.cry.hoennconversion,  03F928, 03F928, 03F928, 03F928, 043328, 043328, 04333C, 04333C, 06D534, [index:]data.pokemon.names-277
+
+sound.tracks,                                                     ,,,, 1DD11C, 1DD0F8, 1DD18C, 1DD168,       , [pointer<> musicplayer: unknown:]songnames
+sound.pokemon.cry.growl,               0752D8, 0752DC, 0752F8, 0752FC, 072104, 072104, 072118, 072118, 0A35DC, ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]388
+sound.pokemon.cry.normal,              0752E8, 0752EC, 075308, 07530C, 072114, 072114, 072128, 072128, 0A35EC, ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]388
+sound.pokemon.cry.hoennconversion,     03F928, 03F928, 03F928, 03F928, 043328, 043328, 04333C, 04333C, 06D534, [index:]data.pokemon.names-277
