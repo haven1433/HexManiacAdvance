@@ -19,7 +19,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       protected override int UncompressedPageLength => PaletteFormat.ExpectedByteLengthPerPage;
 
       public LzPaletteRun(PaletteFormat paletteFormat, IDataModel data, int start, SortedSpan<int> sources = null)
-         : base(data, start, sources) {
+         : base(data, start, allowLengthErrors: false, sources) {
          PaletteFormat = paletteFormat;
          if ((int)Math.Pow(2, paletteFormat.Bits) * 2 > DecompressedLength) InvalidateLength();
          FormatString = $"`lzp{paletteFormat.Bits}`";

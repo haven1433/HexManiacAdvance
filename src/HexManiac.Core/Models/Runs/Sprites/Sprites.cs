@@ -10,10 +10,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public int TileHeight { get; }
       public int ExpectedByteLength { get; }
       public string PaletteHint { get; }
-      public SpriteFormat(int bitsPerPixel, int width, int height, string paletteHint) {
+      public bool AllowLengthErrors { get; }
+      public SpriteFormat(int bitsPerPixel, int width, int height, string paletteHint, bool allowLengthErrors = false) {
          (BitsPerPixel, TileWidth, TileHeight) = (bitsPerPixel, width, height);
          PaletteHint = paletteHint;
          ExpectedByteLength = 8 * BitsPerPixel * TileWidth * TileHeight;
+         AllowLengthErrors = allowLengthErrors;
       }
    }
 

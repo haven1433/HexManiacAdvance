@@ -18,14 +18,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public override string FormatString => "`lz`";
 
-      public LZRun(IDataModel data, int start, SortedSpan<int> sources = null) : base(start, sources) {
+      public bool AllowLengthErrors { get; }
+
+      public LZRun(IDataModel data, int start, bool allowLengthErrors = false, SortedSpan<int> sources = null) : base(start, sources) {
          this.Model = data;
-         length = IsCompressedLzData(data, start);
+         this.AllowLengthErrors = allowLengthErrors;
+         length = IsCompressedLzData(data, start, allowLengthErrors);
          DecompressedLength = data.ReadMultiByteValue(start + 1, 3);
       }
 
       /// <returns>The length of the compressed data</returns>
-      public static int IsCompressedLzData(IReadOnlyList<byte> data, int start) {
+      public static int IsCompressedLzData(IReadOnlyList<byte> data, int start, bool allowLengthErrors = false) {
          var initialStart = start;
          int length = ReadHeader(data, ref start);
          if (length < 1) return -1;
@@ -34,7 +37,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             var bitField = data[start];
             start++;
             for (int i = 0; i < 8; i++) {
-               if (index > length) return -1;
+               if (index > length) break;
                if (index == length) return bitField == 0 ? start - initialStart : -1;
                var compressed = IsNextTokenCompressed(ref bitField);
                if (!compressed) {
@@ -48,12 +51,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             }
          }
 
+         if (allowLengthErrors) return start - initialStart;
          return index == length && start <= data.Count ? start - initialStart : -1;
       }
 
-      public static bool TryDecompress(IReadOnlyList<byte> data, int start, out byte[] result) => (result = Decompress(data, start)) != null;
+      public static bool TryDecompress(IReadOnlyList<byte> data, int start, bool allowLengthErrors, out byte[] result) => (result = Decompress(data, start, allowLengthErrors)) != null;
 
-      public static byte[] Decompress(IReadOnlyList<byte> data, int start) {
+      public static byte[] Decompress(IReadOnlyList<byte> data, int start, bool allowLengthErrors = false) {
          int length = ReadHeader(data, ref start);
          if (length < 1) return null;
          var index = 0;
@@ -62,7 +66,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             var bitField = data[start];
             start++;
             for (int i = 0; i < 8; i++) {
-               if (index > length) return null;
+               if (index > length) break;
                if (index == length) return bitField == 0 ? result : null;
                if (start >= data.Count) return null;
                var compressed = IsNextTokenCompressed(ref bitField);
@@ -73,15 +77,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                } else {
                   if (start + 2 > data.Count) return null;
                   var (runLength, runOffset) = ReadCompressedToken(data, ref start);
-                  if (index + runLength > result.Length) return null;
                   if (index - runOffset < 0) return null;
-                  for (int j = 0; j < runLength; j++) result[index + j] = result[index + j - runOffset];
+                  for (int j = 0; j < runLength; j++) {
+                     if (index + j < result.Length) result[index + j] = result[index + j - runOffset];
+                  }
                   index += runLength;
                }
             }
             if (bitField != 0) return null;
          }
 
+         if (allowLengthErrors) return result;
          return index == length ? result : null;
       }
 
@@ -156,7 +162,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       #region StreamRun
 
       public string SerializeRun() {
-         var uncompressed = Decompress(Model, Start);
+         var uncompressed = Decompress(Model, Start, AllowLengthErrors);
          var builder = new StringBuilder();
          for (int i = 0; i < uncompressed.Length; i++) {
             if (i % 16 != 0) {
@@ -251,7 +257,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return null; // no data space left, but high-bits are left. No fixup can fix this.
       }
 
-      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new LZRun(Model, Start, newPointerSources);
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new LZRun(Model, Start, AllowLengthErrors, newPointerSources);
 
       private static int ReadHeader(IReadOnlyList<byte> data, ref int start) {
          if (start < 0 || start + 4 > data.Count) return -1;
@@ -394,7 +400,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public abstract int Pages { get; }
       protected abstract int UncompressedPageLength { get; }
 
-      public PagedLZRun(IDataModel data, int start, SortedSpan<int> sources = null) : base(data, start, sources) { }
+      public PagedLZRun(IDataModel data, int start, bool allowLengthErrors = false, SortedSpan<int> sources = null) : base(data, start, allowLengthErrors, sources) { }
 
       public PagedLZRun AppendPage(ModelDelta token) {
          var data = Decompress(Model, Start);

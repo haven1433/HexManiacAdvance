@@ -37,7 +37,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          (Format.TilesetTableMember != null ? "|" + Format.TilesetTableMember : string.Empty) +
          "`";
 
-      public LzTilemapRun(TilemapFormat format, IDataModel data, int start, SortedSpan<int> sources = null) : base(data, start, sources) {
+      public LzTilemapRun(TilemapFormat format, IDataModel data, int start, SortedSpan<int> sources = null) : base(data, start, allowLengthErrors: false, sources) {
          Format = format;
       }
 

@@ -12,7 +12,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public override string FormatString => $"`lzt{Format.BitsPerPixel}" + (!string.IsNullOrEmpty(Format.PaletteHint) ? "|" + Format.PaletteHint : string.Empty) + "`";
 
-      public LzTilesetRun(TilesetFormat format, IDataModel data, int start, SortedSpan<int> sources = null) : base(data, start, sources) {
+      public LzTilesetRun(TilesetFormat format, IDataModel data, int start, SortedSpan<int> sources = null) : base(data, start, allowLengthErrors: false, sources) {
          Format = format;
          var tileSize = format.BitsPerPixel * 8;
          var uncompressedSize = data.ReadMultiByteValue(start + 1, 3);

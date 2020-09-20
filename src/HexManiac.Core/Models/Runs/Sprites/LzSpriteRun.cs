@@ -16,7 +16,8 @@
       protected override int UncompressedPageLength => SpriteFormat.ExpectedByteLength;
 
       public LzSpriteRun(SpriteFormat spriteFormat, IDataModel data, int start, SortedSpan<int> sources = null)
-         : base(data, start, sources) {
+         : base(data, start, spriteFormat.AllowLengthErrors, sources) {
+         if (start== 0xB9E8C4) { }
          SpriteFormat = spriteFormat;
          if (spriteFormat.ExpectedByteLength > DecompressedLength) InvalidateLength();
          var hintContent = string.Empty;
@@ -49,7 +50,7 @@
       public ISpriteRun Duplicate(SpriteFormat format) => new LzSpriteRun(format, Model, Start, PointerSources);
 
       public int[,] GetPixels(IDataModel model, int page) {
-         var data = Decompress(model, Start);
+         var data = Decompress(model, Start, AllowLengthErrors);
          return SpriteRun.GetPixels(data, SpriteFormat.ExpectedByteLength * page, SpriteFormat.TileWidth, SpriteFormat.TileHeight, SpriteFormat.BitsPerPixel);
       }
 

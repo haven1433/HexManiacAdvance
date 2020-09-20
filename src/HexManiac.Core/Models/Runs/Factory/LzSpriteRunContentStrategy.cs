@@ -31,7 +31,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          return new LzSpriteRun(spriteFormat, owner, destination);
       }
       public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
-         var runAttempt = new LzSpriteRun(spriteFormat, model, run.Start, run.PointerSources);
+         var localSpriteFormat = spriteFormat;
+         if (sourceSegments != null && parentIndex >= 0) localSpriteFormat = new SpriteFormat(spriteFormat.BitsPerPixel, spriteFormat.TileWidth, spriteFormat.TileHeight, spriteFormat.PaletteHint, allowLengthErrors: true);
+         var runAttempt = new LzSpriteRun(localSpriteFormat, model, run.Start, run.PointerSources);
          if (runAttempt.Length > 0) {
             run = runAttempt.MergeAnchor(run.PointerSources);
             model.ClearFormat(token, run.Start, run.Length);
