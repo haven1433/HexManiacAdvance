@@ -77,11 +77,28 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
    public class EqualityToBooleanConverter : IValueConverter {
       public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
-         return Equals(value, parameter);
+         return Equals(value.ToString(), parameter.ToString());
       }
 
       public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {
          throw new NotImplementedException();
+      }
+   }
+
+   public class BooleanToVisibilityConverter : IValueConverter {
+      private readonly System.Windows.Controls.BooleanToVisibilityConverter core = new System.Windows.Controls.BooleanToVisibilityConverter();
+      public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
+         if (value is bool b) {
+            if (parameter == null) return b ? Visibility.Visible : Visibility.Hidden;
+            if (parameter is Visibility v && v == Visibility.Hidden) return b ? Visibility.Visible : Visibility.Hidden;
+         }
+         return core.Convert(value, targetType, parameter, culture);
+      }
+      public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {
+         if (value is Visibility vis) {
+            return vis == Visibility.Visible;
+         }
+         return core.ConvertBack(value, targetType, parameter, culture);
       }
    }
 

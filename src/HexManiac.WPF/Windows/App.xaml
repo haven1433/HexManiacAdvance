@@ -4,7 +4,7 @@
              xmlns:hsc="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
              xmlns:hsv="clr-namespace:HavenSoft.HexManiac.WPF.Resources">
    <Application.Resources>
-      <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+      <hsc:BooleanToVisibilityConverter x:Key="BoolToVisibility" />
       <hsc:PaletteColorConverter x:Key="PaletteColorConverter"/>
       <hsc:EqualityToBooleanConverter x:Key="EqualityCheck"/>
 

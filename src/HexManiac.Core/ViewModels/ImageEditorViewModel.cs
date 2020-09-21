@@ -99,7 +99,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler RefreshSelection;
       private void RaiseRefreshSelection(params Point[] toSelect) {
          selectedPixels = new bool[PixelWidth, PixelHeight];
-         foreach (var s in toSelect) selectedPixels[s.X, s.Y] = true;
+         foreach (var s in toSelect) {
+            if (WithinImage(s)) selectedPixels[s.X, s.Y] = true;
+         }
          RefreshSelection?.Invoke(this, EventArgs.Empty);
       }
 
@@ -117,6 +119,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public PaletteCollection Palette { get; }
 
       public int SpritePointer { get; }
+
+      private StubCommand setCursorSize;
+      public ICommand SetCursorSize => StubCommand<string>(ref setCursorSize, arg => CursorSize = int.Parse(arg));
+      private int cursorSize = 1;
+      public int CursorSize { get => cursorSize; set => Set(ref cursorSize, value, arg => BlockPreview.Clear()); }
 
       public ImageEditorViewModel(ChangeHistory<ModelDelta> history, IDataModel model, int address) {
          this.history = history;
@@ -262,6 +269,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                         SelectedTool = ImageEditorTools.Draw;
                      }
                      BlockPreview.Clear();
+                     if (CursorSize == 0) CursorSize = 1;
                      break;
                   case nameof(sc.Color):
                      Palette.PushColorsToModel(); // this causes a Render
@@ -362,20 +370,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             point = parent.ToSpriteSpace(point);
             if (parent.WithinImage(point)) {
                var tile = parent.eyeDropperStrategy.Tile;
-               if (tile == null) {
-                  drawSize = 1;
-                  drawPoint = point;
-                  parent.PixelData[parent.PixelIndex(point)] = element.Color;
-                  parent.pixels[point.X, point.Y] = element.Index;
+               if (tile == null || !parent.BlockPreview.Enabled) {
+                  drawSize = parent.CursorSize;
+                  tile = new int[drawSize, drawSize];
+                  for (int x = 0; x < drawSize; x++) for (int y = 0; y < drawSize; y++) tile[x, y] = element.Index;
                } else {
                   drawSize = tile.GetLength(0);
-                  drawPoint = new Point(point.X - point.X % drawSize, point.Y - point.Y % drawSize);
-                  for (int x = 0; x < drawSize; x++) {
-                     for (int y = 0; y < drawSize; y++) {
-                        var (xx, yy) = (drawPoint.X + x, drawPoint.Y + y);
-                        parent.PixelData[parent.PixelIndex(xx, yy)] = parent.Palette.Elements[tile[x, y]].Color;
-                        parent.pixels[xx, yy] = tile[x, y];
-                     }
+               }
+
+               drawPoint = new Point(point.X - point.X % drawSize, point.Y - point.Y % drawSize);
+               for (int x = 0; x < drawSize; x++) {
+                  for (int y = 0; y < drawSize; y++) {
+                     var (xx, yy) = (drawPoint.X + x, drawPoint.Y + y);
+                     parent.PixelData[parent.PixelIndex(xx, yy)] = parent.Palette.Elements[tile[x, y]].Color;
+                     parent.pixels[xx, yy] = tile[x, y];
                   }
                }
                parent.NotifyPropertyChanged(nameof(PixelData));
@@ -388,13 +396,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             point = parent.ToSpriteSpace(point);
             if (parent.WithinImage(point)) {
                var tile = parent.eyeDropperStrategy.Tile;
-               if (tile == null) {
-                  drawPoint = point;
-                  drawSize = 1;
+               if (tile == null || !parent.BlockPreview.Enabled) {
+                  drawSize = parent.CursorSize;
                } else {
                   drawSize = tile.GetLength(0);
-                  drawPoint = new Point(point.X - point.X % drawSize, point.Y - point.Y % drawSize);
                }
+
+               drawPoint = new Point(point.X - point.X % drawSize, point.Y - point.Y % drawSize);
             } else {
                drawPoint = default;
                drawSize = 0;
@@ -583,8 +591,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          public EyeDropperTool(ImageEditorViewModel parent) => this.parent = parent;
 
-         public bool ShowSelectionRect(Point subPixelPosition) => false;
-
          public void ToolDown(Point point) {
             underPixels = null; // old selection lost
             selectionStart = parent.ToSpriteSpace(point);
@@ -630,6 +636,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                for (int x = 0; x < selectionWidth; x++) for (int y = 0; y < selectionHeight; y++) {
                   underPixels[x, y] = parent.pixels[selectionStart.X + x, selectionStart.Y + y];
                }
+               parent.CursorSize = 0;
                parent.BlockPreview.Set(parent.PixelData, parent.PixelWidth, selectionStart, selectionWidth);
             }
          }

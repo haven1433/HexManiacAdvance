@@ -505,6 +505,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(2, editor.BlockPreview.PixelHeight);
          Assert.Equal(4, editor.BlockPreview.PixelData.Length);
          Assert.All(4.Range(), i => Assert.Equal(Rgb(31, 31, 31), editor.BlockPreview.PixelData[i]));
+         Assert.Equal(0, editor.CursorSize);
       }
 
       [Fact]
@@ -559,6 +560,37 @@ namespace HavenSoft.HexManiac.Tests {
          editor.Hover(1, -2);
 
          Assert.False(editor.ShowSelectionRect(4, 2));
+      }
+
+      [Fact]
+      public void Draw_SetCursorSize_LargeCursor() {
+         editor.SelectedTool = ImageEditorTools.Draw;
+
+         editor.SetCursorSize.Execute("2");
+         editor.Hover(default);
+
+         Assert.All( new[] {
+            new Point(4, 4),
+            new Point(4, 5),
+            new Point(5, 4),
+            new Point(5, 5),
+         }, p => Assert.True(editor.ShowSelectionRect(p)));
+      }
+
+      [Fact]
+      public void EyeDropperBlock_SelectColor_DrawSinglePixel() {
+         editor.EyeDropperDown(0, 0);
+         editor.Hover(1, 1);
+         editor.EyeDropperUp(1, 1);
+
+         editor.Palette.SelectionStart = 1;
+         editor.Hover(0, 0);
+
+         Assert.All(new[] {
+            new Point(4, 5),
+            new Point(5, 4),
+            new Point(5, 5),
+         }, p => Assert.False(editor.ShowSelectionRect(p)));
       }
    }
 }

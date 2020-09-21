@@ -23,6 +23,19 @@
    </UserControl.InputBindings>
    <DockPanel>
       <DockPanel DockPanel.Dock="Left">
+         <DockPanel.Resources>
+            <Style TargetType="Path">
+               <Setter Property="Fill" Value="{DynamicResource Secondary}"/>
+               <Setter Property="Stretch" Value="Uniform"/>
+               <Setter Property="Width" Value="24"/>
+               <Setter Property="Height" Value="24"/>
+               <Style.Triggers>
+                  <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=RadioButton}}" Value="True">
+                     <Setter Property="Fill" Value="{DynamicResource Primary}"/>
+                  </DataTrigger>
+               </Style.Triggers>
+            </Style>
+         </DockPanel.Resources>
          <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" HorizontalAlignment="Center">
             <StackPanel.Resources>
                <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
@@ -31,17 +44,6 @@
                   <Setter Property="Height" Value="30"/>
                   <Setter Property="HorizontalContentAlignment" Value="Center"/>
                   <Setter Property="VerticalContentAlignment" Value="Center"/>
-               </Style>
-               <Style TargetType="Path">
-                  <Setter Property="Fill" Value="{DynamicResource Secondary}"/>
-                  <Setter Property="Stretch" Value="Uniform"/>
-                  <Setter Property="Width" Value="24"/>
-                  <Setter Property="Height" Value="24"/>
-                  <Style.Triggers>
-                     <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=RadioButton}}" Value="True">
-                        <Setter Property="Fill" Value="{DynamicResource Primary}"/>
-                     </DataTrigger>
-                  </Style.Triggers>
                </Style>
             </StackPanel.Resources>
             <RadioButton CommandParameter="{x:Static hshmcvm:ImageEditorTools.Pan}"
@@ -136,7 +138,30 @@
                </RadioButton.ToolTip>
             </RadioButton>
          </StackPanel>
-         <local:PixelImage DataContext="{Binding BlockPreview}" Visibility="{Binding Enabled, Converter={StaticResource BoolToVisibility}}" DockPanel.Dock="Top"/>
+
+         <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" HorizontalAlignment="Center"
+               Visibility="{Binding Tag, RelativeSource={RelativeSource Self}, Converter={StaticResource BoolToVisibility}, ConverterParameter={x:Static Visibility.Hidden}}"
+               Tag="{Binding SelectedTool, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter={x:Static hshmcvm:ImageEditorTools.Draw}}">
+            <StackPanel.Resources>
+               <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
+                  <Setter Property="Command" Value="{Binding SetCursorSize}"/>
+                  <Setter Property="Width" Value="30"/>
+                  <Setter Property="Height" Value="30"/>
+                  <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                  <Setter Property="VerticalContentAlignment" Value="Center"/>
+               </Style>
+            </StackPanel.Resources>
+            <RadioButton CommandParameter="1" Content="1"
+               IsChecked="{Binding CursorSize, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter=1}"/>
+            <RadioButton CommandParameter="2" Content="2"
+               IsChecked="{Binding CursorSize, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter=2}"/>
+            <RadioButton CommandParameter="4" Content="4"
+               IsChecked="{Binding CursorSize, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter=4}"/>
+            <RadioButton CommandParameter="8" Content="8" Margin="0,0,30,0"
+               IsChecked="{Binding CursorSize, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter=8}"/>
+         </StackPanel>
+
+         <local:PixelImage DataContext="{Binding BlockPreview}" Visibility="{Binding Enabled, Converter={StaticResource BoolToVisibility}, ConverterParameter={x:Static Visibility.Hidden}}" DockPanel.Dock="Top"/>
          <hshmwpfc:PaletteControl DataContext="{Binding Palette}" HorizontalAlignment="Center" VerticalAlignment="Center" />
       </DockPanel>
 
