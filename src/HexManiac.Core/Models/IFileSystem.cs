@@ -4,6 +4,7 @@ using System;
 namespace HavenSoft.HexManiac.Core.Models {
    public interface IFileSystem {
       string CopyText { get; set; }
+      (short[] image, int width) CopyImage { get; set; }
 
       /// <summary>
       /// Have the filesystem ask the user for a new name for a file.
@@ -87,13 +88,13 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// Show the user a dialog so they can select an image.
       /// Load the image into a 16bit (5r5g5b) array.
       /// </summary>
-      (short[] image, short[] paletteHint, int width) LoadImage();
+      (short[] image, int width) LoadImage();
 
       /// <summary>
       /// Show the user a dialog so they can create a file.
       /// Save this 16bit (5r5g5b) array into that file.
       /// </summary>
-      void SaveImage(short[] image, short[] palette, int width);
+      void SaveImage(short[] image, int width);
 
       int ShowOptions(string title, string prompt, params VisualOption[] options);
    }

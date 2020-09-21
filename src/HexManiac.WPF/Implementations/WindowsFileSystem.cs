@@ -40,6 +40,21 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          set => Clipboard.SetText(value);
       }
 
+      public (short[] image, int width) CopyImage {
+         get {
+            if (Clipboard.ContainsImage()) {
+               var bitmapSource = Clipboard.GetImage();
+               return DecodeImage(bitmapSource);
+            } else {
+               return (default, default);
+            }
+         }
+         set {
+            var frame = EncodeImage(value.image, value.width);
+            Clipboard.SetImage(frame);
+         }
+      }
+
       public WindowsFileSystem(Dispatcher uiDispatcher) => dispatcher = uiDispatcher;
 
       public LoadedFile OpenFile(string extensionDescription = null, params string[] extensionOptions) {
@@ -236,7 +251,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          return lines;
       }
 
-      public (short[] image, short[] paletteHint, int width) LoadImage() {
+      public (short[] image, int width) LoadImage() {
          var dialog = new OpenFileDialog { Filter = CreateFilterFromOptions("Image Files", "png") };
          var result = dialog.ShowDialog();
          if (result != true) return default;
@@ -260,112 +275,117 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                   .ToArray();
             }
 
-            if (frame.PixelWidth % 8 != 0) return (default, default, frame.PixelWidth);
-            if (frame.PixelHeight % 8 != 0) return (default, default, frame.PixelHeight);
-            var format = frame.Format;
-            short[] data = new short[frame.PixelWidth * frame.PixelHeight];
+            if (frame.PixelWidth % 8 != 0) return (default, frame.PixelWidth);
+            if (frame.PixelHeight % 8 != 0) return (default, frame.PixelHeight);
 
-            if (format == PixelFormats.Bgr24) {
-               byte[] raw = new byte[frame.PixelWidth * frame.PixelHeight * 3];
-               frame.CopyPixels(raw, frame.PixelWidth * 3, 0);
-               for (int y = 0; y < frame.PixelHeight; y++) {
-                  for (int x = 0; x < frame.PixelWidth; x++) {
-                     var outputPoint = y * frame.PixelWidth + x;
-                     var inputPoint = outputPoint * 3;
-                     var color = Color.FromRgb(raw[inputPoint + 2], raw[inputPoint + 1], raw[inputPoint + 0]);
-                     data[outputPoint] = Convert(color);
-                  }
-               }
-            } else if (format == PixelFormats.Bgra32) {
-               byte[] raw = new byte[frame.PixelWidth * frame.PixelHeight * 4];
-               frame.CopyPixels(raw, frame.PixelWidth * 4, 0);
-               for (int y = 0; y < frame.PixelHeight; y++) {
-                  for (int x = 0; x < frame.PixelWidth; x++) {
-                     var outputPoint = y * frame.PixelWidth + x;
-                     var inputPoint = outputPoint * 4;
-                     var color = Color.FromRgb(raw[inputPoint + 2], raw[inputPoint + 1], raw[inputPoint + 0]);
-                     data[outputPoint] = Convert(color);
-                  }
-               }
-            } else if (format == PixelFormats.Indexed8) {
-               byte[] raw = new byte[frame.PixelWidth * frame.PixelHeight];
-               frame.CopyPixels(raw, frame.PixelWidth, 0);
-               for (int y = 0; y < frame.PixelHeight; y++) {
-                  for (int x = 0; x < frame.PixelWidth; x++) {
-                     var outputPoint = y * frame.PixelWidth + x;
-                     var inputPoint = raw[y * frame.PixelWidth + x];
-                     var color = frame.Palette.Colors[inputPoint];
-                     data[outputPoint] = Convert(color);
-                  }
-               }
-               if (comparePalette == null) comparePalette = frame.Palette.Colors.Select(Convert).ToArray();
-            } else if (format == PixelFormats.Indexed4) {
-               byte[] raw = new byte[frame.PixelWidth * frame.PixelHeight / 2];
-               frame.CopyPixels(raw, frame.PixelWidth / 2, 0);
-               for (int y = 0; y < frame.PixelHeight; y++) {
-                  for (int x = 0; x < frame.PixelWidth / 2; x++) {
-                     var outputPoint1 = y * frame.PixelWidth + x * 2;
-                     var outputPoint2 = y * frame.PixelWidth + x * 2 + 1;
-                     var inputPoint = raw[y * frame.PixelWidth / 2 + x];
-                     var color1 = frame.Palette.Colors[inputPoint >> 4];
-                     var color2 = frame.Palette.Colors[inputPoint & 0xF];
-                     data[outputPoint1] = Convert(color1);
-                     data[outputPoint2] = Convert(color2);
-                  }
-               }
-               if (comparePalette == null) comparePalette = frame.Palette.Colors.Select(Convert).ToArray();
-            } else if (format == PixelFormats.Indexed2) {
-               byte[] raw = new byte[frame.PixelWidth * frame.PixelHeight / 2];
-               frame.CopyPixels(raw, frame.PixelWidth / 2, 0);
-               for (int y = 0; y < frame.PixelHeight; y++) {
-                  for (int x = 0; x < frame.PixelWidth / 4; x++) {
-                     var outputPoint1 = y * frame.PixelWidth + x * 4;
-                     var outputPoint2 = y * frame.PixelWidth + x * 4 + 1;
-                     var outputPoint3 = y * frame.PixelWidth + x * 4 + 2;
-                     var outputPoint4 = y * frame.PixelWidth + x * 4 + 3;
-                     var inputPoint = raw[y * frame.PixelWidth / 2 + x];
-                     var color1 = frame.Palette.Colors[inputPoint >> 6];
-                     var color2 = frame.Palette.Colors[(inputPoint >> 4) & 0x3];
-                     var color3 = frame.Palette.Colors[(inputPoint >> 2) & 0x3];
-                     var color4 = frame.Palette.Colors[inputPoint & 0x3];
-                     data[outputPoint1] = Convert(color1);
-                     data[outputPoint2] = Convert(color2);
-                     data[outputPoint3] = Convert(color3);
-                     data[outputPoint4] = Convert(color4);
-                  }
-               }
-               if (comparePalette == null) comparePalette = frame.Palette.Colors.Select(Convert).ToArray();
-            } else {
-               MessageBox.Show($"Current version does not support converting PixelFormats.{format}");
-               return (null, comparePalette, frame.PixelWidth);
-            }
+            var (data, width) = DecodeImage(frame);
 
-            return (data, comparePalette, frame.PixelWidth);
+            return (data, frame.PixelWidth);
          }
       }
 
-      public void SaveImage(short[] image, short[] palette, int width) {
-         int height = image.Length / width;
+      private static (short[] image, int width) DecodeImage(BitmapSource frame) {
+         var format = frame.Format;
+         short[] data = new short[frame.PixelWidth * frame.PixelHeight];
 
+         if (format == PixelFormats.Bgr24) {
+            byte[] raw = new byte[frame.PixelWidth * frame.PixelHeight * 3];
+            frame.CopyPixels(raw, frame.PixelWidth * 3, 0);
+            for (int y = 0; y < frame.PixelHeight; y++) {
+               for (int x = 0; x < frame.PixelWidth; x++) {
+                  var outputPoint = y * frame.PixelWidth + x;
+                  var inputPoint = outputPoint * 3;
+                  var color = Color.FromRgb(raw[inputPoint + 2], raw[inputPoint + 1], raw[inputPoint + 0]);
+                  data[outputPoint] = Convert(color);
+               }
+            }
+         } else if (format == PixelFormats.Bgra32) {
+            byte[] raw = new byte[frame.PixelWidth * frame.PixelHeight * 4];
+            frame.CopyPixels(raw, frame.PixelWidth * 4, 0);
+            for (int y = 0; y < frame.PixelHeight; y++) {
+               for (int x = 0; x < frame.PixelWidth; x++) {
+                  var outputPoint = y * frame.PixelWidth + x;
+                  var inputPoint = outputPoint * 4;
+                  var color = Color.FromRgb(raw[inputPoint + 2], raw[inputPoint + 1], raw[inputPoint + 0]);
+                  data[outputPoint] = Convert(color);
+               }
+            }
+         } else if (format == PixelFormats.Indexed8) {
+            byte[] raw = new byte[frame.PixelWidth * frame.PixelHeight];
+            frame.CopyPixels(raw, frame.PixelWidth, 0);
+            for (int y = 0; y < frame.PixelHeight; y++) {
+               for (int x = 0; x < frame.PixelWidth; x++) {
+                  var outputPoint = y * frame.PixelWidth + x;
+                  var inputPoint = raw[y * frame.PixelWidth + x];
+                  var color = frame.Palette.Colors[inputPoint];
+                  data[outputPoint] = Convert(color);
+               }
+            }
+         } else if (format == PixelFormats.Indexed4) {
+            byte[] raw = new byte[frame.PixelWidth * frame.PixelHeight / 2];
+            frame.CopyPixels(raw, frame.PixelWidth / 2, 0);
+            for (int y = 0; y < frame.PixelHeight; y++) {
+               for (int x = 0; x < frame.PixelWidth / 2; x++) {
+                  var outputPoint1 = y * frame.PixelWidth + x * 2;
+                  var outputPoint2 = y * frame.PixelWidth + x * 2 + 1;
+                  var inputPoint = raw[y * frame.PixelWidth / 2 + x];
+                  var color1 = frame.Palette.Colors[inputPoint >> 4];
+                  var color2 = frame.Palette.Colors[inputPoint & 0xF];
+                  data[outputPoint1] = Convert(color1);
+                  data[outputPoint2] = Convert(color2);
+               }
+            }
+         } else if (format == PixelFormats.Indexed2) {
+            byte[] raw = new byte[frame.PixelWidth * frame.PixelHeight / 2];
+            frame.CopyPixels(raw, frame.PixelWidth / 2, 0);
+            for (int y = 0; y < frame.PixelHeight; y++) {
+               for (int x = 0; x < frame.PixelWidth / 4; x++) {
+                  var outputPoint1 = y * frame.PixelWidth + x * 4;
+                  var outputPoint2 = y * frame.PixelWidth + x * 4 + 1;
+                  var outputPoint3 = y * frame.PixelWidth + x * 4 + 2;
+                  var outputPoint4 = y * frame.PixelWidth + x * 4 + 3;
+                  var inputPoint = raw[y * frame.PixelWidth / 2 + x];
+                  var color1 = frame.Palette.Colors[inputPoint >> 6];
+                  var color2 = frame.Palette.Colors[(inputPoint >> 4) & 0x3];
+                  var color3 = frame.Palette.Colors[(inputPoint >> 2) & 0x3];
+                  var color4 = frame.Palette.Colors[inputPoint & 0x3];
+                  data[outputPoint1] = Convert(color1);
+                  data[outputPoint2] = Convert(color2);
+                  data[outputPoint3] = Convert(color3);
+                  data[outputPoint4] = Convert(color4);
+               }
+            }
+         } else {
+            MessageBox.Show($"Current version does not support converting PixelFormats.{format}");
+            return (null, frame.PixelWidth);
+         }
+
+         return (data, frame.PixelWidth);
+      }
+
+      public void SaveImage(short[] image, int width) {
          var dialog = new SaveFileDialog { Filter = CreateFilterFromOptions("Image Files", "png") };
          var result = dialog.ShowDialog();
          if (result != true) return;
          var fileName = dialog.FileName;
 
-         var stride = width * 2;
-         var bitmap = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgr555, null);
-         var rect = new Int32Rect(0, 0, width, height);
-         bitmap.WritePixels(rect, image, stride, 0);
+         var frame = EncodeImage(image, width);
 
          var encoder = new PngBitmapEncoder();
-         var metadata = new BitmapMetadata("png");
-         var framePalette = palette.Select(c => c.ToString("X4")).Aggregate((a, b) => a + "," + b);
-         metadata.SetQuery(QueryPalette, framePalette);
-         var frame = BitmapFrame.Create(bitmap, null, metadata, null);
          encoder.Frames.Add(frame);
          using (var fileStream = File.Create(fileName)) {
             encoder.Save(fileStream);
          }
+      }
+
+      private static BitmapFrame EncodeImage(short[] image, int width) {
+         int height = image.Length / width;
+         var stride = width * 2;
+         var bitmap = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgr555, null);
+         var rect = new Int32Rect(0, 0, width, height);
+         bitmap.WritePixels(rect, image, stride, 0);
+         var metadata = new BitmapMetadata("png");
+         return BitmapFrame.Create(bitmap, null, metadata, null);
       }
 
       public int ShowOptions(string title, string prompt, VisualOption[] options) {

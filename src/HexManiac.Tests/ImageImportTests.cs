@@ -93,11 +93,11 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void ImportImage1OverImage2ResultsInCorrectData() {
          SetupTilemaps();
-         short[] pixelData = null, renderPalette = null;
+         short[] pixelData = null;
          int width = 0;
          var fs = new StubFileSystem {
-            SaveImage = (p, r, w) => (pixelData, renderPalette, width) = (p, r, w),
-            LoadImage = () => (pixelData, renderPalette, width),
+            SaveImage = (p, w) => (pixelData, width) = (p, w),
+            LoadImage = () => (pixelData, width),
          };
 
          ViewPort.SelectionStart = new Point(4, 0);
@@ -121,11 +121,11 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void ImportSpriteAOverSpriteBResultsInCorrectData() {
          SetupSprites();
-         short[] pixelData = null, renderPalette = null;
+         short[] pixelData = null;
          int width = 0;
          var fs = new StubFileSystem {
-            SaveImage = (p, r, w) => (pixelData, renderPalette, width) = (p, r, w),
-            LoadImage = () => (pixelData, renderPalette, width),
+            SaveImage = (p, w) => (pixelData, width) = (p, w),
+            LoadImage = () => (pixelData, width),
          };
 
          ViewPort.SelectionStart = new Point(2, 0);
@@ -150,11 +150,11 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void CautiousImportCreatesCorrectImage() {
          SetupTilemaps();
-         short[] pixelData = null, renderPalette = null;
+         short[] pixelData = null;
          int width = 0;
          var fs = new StubFileSystem {
-            SaveImage = (p, r, w) => (pixelData, renderPalette, width) = (p, r, w),
-            LoadImage = () => (pixelData, renderPalette, width),
+            SaveImage = (p, w) => (pixelData, width) = (p, w),
+            LoadImage = () => (pixelData, width),
             ShowOptions = (_0, _1, _2) => 2, // use Cautious
          };
 

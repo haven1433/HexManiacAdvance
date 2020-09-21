@@ -539,7 +539,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void ImportSpriteAndPalette(IFileSystem fileSystem) {
-         (short[] image, short[] paletteHint, int width) = fileSystem.LoadImage();
+         (short[] image, int width) = fileSystem.LoadImage();
          if (!TryValidate(image, width, out var height, out var spriteRun, out var paletteRun)) return;
 
          var dependentSprites = paletteRun?.FindDependentSprites(model) ?? new List<ISpriteRun>();
@@ -864,8 +864,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void ExportSpriteAndPalette(IFileSystem fileSystem) {
-         var renderPalette = GetRenderPalette(model?.GetNextRun(spriteAddress) as ISpriteRun).ToArray();
-         fileSystem.SaveImage(PixelData, renderPalette, PixelWidth);
+         fileSystem.SaveImage(PixelData, PixelWidth);
       }
    }
 
