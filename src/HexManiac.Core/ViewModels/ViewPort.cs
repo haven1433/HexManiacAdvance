@@ -893,7 +893,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          if (input.Length > maxSize) {
             Progress = (double)(initialWorkLoad - input.Length) / initialWorkLoad;
-            continuation.DispatchWork(() => Edit(input.Substring(maxSize), continuation));
+            continuation.DispatchWork(() => {
+               if (!exitEditEarly) {
+                  Edit(input.Substring(maxSize), continuation);
+               } else {
+                  ClearEditWork();
+                  Refresh();
+               }
+            });
          } else {
             ClearEditWork();
          }
