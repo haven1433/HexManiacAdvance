@@ -300,38 +300,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          spriteRun.SetPixels(model, history.CurrentChange, 0, pixels);
       }
 
-      private void FillSpace(Point a, Point b) {
-         a = ToSpriteSpace(a);
-         b = ToSpriteSpace(b);
-         if (a != b) throw new NotImplementedException();
-         var element = (Palette.Elements.FirstOrDefault(sc => sc.Selected) ?? Palette.Elements[0]);
-         int originalColorIndex = pixels[a.X, a.Y];
-         var targetColorIndex = element.Index;
-
-         var toProcess = new Queue<Point>(new[] { a });
-         var processed = new HashSet<Point>();
-         while (toProcess.Count > 0) {
-            var current = toProcess.Dequeue();
-            if (processed.Contains(current)) continue;
-            processed.Add(current);
-            if (pixels[current.X, current.Y] != originalColorIndex) continue;
-
-            pixels[current.X, current.Y] = targetColorIndex;
-            PixelData[PixelIndex(current)] = element.Color;
-            foreach (var next in new[]{
-               new Point(current.X - 1, current.Y),
-               new Point(current.X + 1, current.Y),
-               new Point(current.X, current.Y - 1),
-               new Point(current.X, current.Y + 1) }
-            ) {
-               if (WithinImage(next) && !processed.Contains(next)) toProcess.Enqueue(next);
-            }
-         }
-
-         UpdateSpriteModel();
-         NotifyPropertyChanged(nameof(PixelData));
-      }
-
       private void UpdateSelectionFromPaletteHover(PaletteCollection sender, PropertyChangedEventArgs e) {
          var matches = new List<Point>();
          for(int x = 0; x < PixelWidth; x++) {
@@ -558,7 +526,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          public void ToolDown(Point screenPosition) { }
 
-         public void ToolDrag(Point screenPosition) { }
+         public void ToolDrag(Point point) {
+            point = parent.ToSpriteSpace(point);
+            if (parent.WithinImage(point)) {
+               parent.RaiseRefreshSelection(point);
+            } else {
+               parent.RaiseRefreshSelection();
+            }
+         }
 
          public void ToolHover(Point point) {
             point = parent.ToSpriteSpace(point);
@@ -570,7 +545,57 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          public void ToolUp(Point point) {
-            parent.FillSpace(parent.interactionStart, point);
+            FillSpace(parent.interactionStart, point);
+         }
+
+         private void FillSpace(Point a, Point b) {
+            a = parent.ToSpriteSpace(a);
+            b = parent.ToSpriteSpace(b);
+            int originalColorIndex = parent.pixels[a.X, a.Y];
+            var direction = Math.Sign(parent.Palette.SelectionEnd - parent.Palette.SelectionStart);
+            var targetColors = new List<int> { parent.Palette.SelectionStart };
+            for (int i = parent.Palette.SelectionStart + direction; i != parent.Palette.SelectionEnd; i++) {
+               targetColors.Add(i);
+            }
+            if (parent.Palette.SelectionEnd != parent.Palette.SelectionStart) targetColors.Add(parent.Palette.SelectionEnd);
+
+            var toProcess = new Queue<Point>(new[] { a });
+            var processed = new HashSet<Point>();
+            while (toProcess.Count > 0) {
+               var current = toProcess.Dequeue();
+               if (processed.Contains(current)) continue;
+               processed.Add(current);
+               if (parent.pixels[current.X, current.Y] != originalColorIndex) continue;
+
+               var targetColorIndex = PickColorIndex(a, b, current, targetColors);
+
+               parent.pixels[current.X, current.Y] = targetColorIndex;
+               parent.PixelData[parent.PixelIndex(current)] = parent.Palette.Elements[targetColorIndex].Color;
+               foreach (var next in new[]{
+                  new Point(current.X - 1, current.Y),
+                  new Point(current.X + 1, current.Y),
+                  new Point(current.X, current.Y - 1),
+                  new Point(current.X, current.Y + 1) }
+               ) {
+                  if (parent.WithinImage(next) && !processed.Contains(next)) toProcess.Enqueue(next);
+               }
+            }
+
+            parent.UpdateSpriteModel();
+            parent.NotifyPropertyChanged(nameof(PixelData));
+         }
+
+         private int PickColorIndex(Point a, Point b, Point current, List<int> options) {
+            if (a == b) return options[0];
+
+            // a is the center
+            // b-a is the radius
+            var d = b - a;
+            var gradientRadius = Math.Sqrt(d.X * d.X + d.Y * d.Y);
+            d = current - a;
+            var pointRadius = Math.Sqrt(d.X * d.X + d.Y * d.Y);
+            var index = Math.Round(pointRadius / gradientRadius * options.Count);
+            return options[(int)Math.Min(index, options.Count - 1)];
          }
       }
 

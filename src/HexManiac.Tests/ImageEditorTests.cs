@@ -36,9 +36,14 @@ namespace HavenSoft.HexManiac.Tests {
          editor.ToolUp(motion[motion.Length - 1]);
       }
 
-      private short Rgb(int r, int g, int b) => (short)((r << 10) | (g << 5) | b);
+      private static short Rgb(int r, int g, int b) => (short)((r << 10) | (g << 5) | b);
       private short GetPixel(int x, int y) => editor.PixelData[editor.PixelIndex(new Point(x, y))];
-      private (int r, int g, int b) Rgb(short color) => (color >> 10, (color >> 5) & 31, color & 31);
+      private static (int r, int g, int b) Rgb(short color) => (color >> 10, (color >> 5) & 31, color & 31);
+
+      private static readonly short Black = Rgb(0, 0, 0);
+      private static readonly short White = Rgb(31, 31, 31);
+      private static readonly short Red = Rgb(31, 0, 0);
+      private static readonly short Blue = Rgb(0, 0, 31);
 
       public ImageEditorTests() {
          model = new PokemonModel(new byte[0x200], singletons: BaseViewModelTestClass.Singletons);
@@ -591,6 +596,34 @@ namespace HavenSoft.HexManiac.Tests {
             new Point(5, 4),
             new Point(5, 5),
          }, p => Assert.False(editor.ShowSelectionRect(p)));
+      }
+
+      [Fact]
+      public void FillTool_HorizontalDrag_FillAreaWithHorizontalGradient() {
+         editor.Palette.Elements[1].Color = White;
+         editor.Palette.Elements[2].Color = Red;
+         editor.Palette.Elements[3].Color = Blue;
+         DrawBox(1, default, 4, 4);
+
+         editor.Palette.SelectionStart = 2;
+         editor.Palette.SelectionEnd = 3;
+         editor.SelectedTool = ImageEditorTools.Fill;
+         ToolMove(new Point(1, 1), new Point(2, 1));
+
+         Assert.Equal(Red, editor.PixelData[editor.PixelIndex(5, 5)]);
+         Assert.Equal(Blue, editor.PixelData[editor.PixelIndex(5, 6)]);
+         Assert.Equal(Blue, editor.PixelData[editor.PixelIndex(6, 5)]);
+         Assert.Equal(Blue, editor.PixelData[editor.PixelIndex(6, 6)]);
+      }
+
+      [Fact]
+      public void FillTool_Drag_UpdateCursor() {
+         editor.SelectedTool = ImageEditorTools.Fill;
+
+         editor.ToolDown(default);
+         editor.Hover(1, 1);
+
+         Assert.True(editor.ShowSelectionRect(5, 5));
       }
    }
 }
