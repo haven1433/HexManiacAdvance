@@ -158,7 +158,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       }
 
       public void Visit(EggSection section, byte data) => VisitEgg(section);
+
       public void Visit(EggItem item, byte data) => VisitEgg(item);
+
       public void VisitEgg(IDataFormat eggFormat) {
          if (!char.IsLetterOrDigit(Input) && !$"{StringDelimeter}[".Contains(Input)) return;
 
@@ -168,6 +170,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          NewFormat = new UnderEdit(eggFormat, Input.ToString(), 2, autocomplete);
          Result = true;
       }
+
       public void Visit(PlmItem item, byte data) {
          Result = char.IsDigit(Input) || Input == '[';
          if (Result) {
@@ -175,11 +178,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             NewFormat = new UnderEdit(item, Input.ToString(), 2, autocomplete);
          }
       }
+
       public void Visit(BitArray array, byte data) {
          Result = char.IsLetterOrDigit(Input) || Input.IsAny('"', '-', '/');
-         if (Result) NewFormat = new UnderEdit(array, Input.ToString(), array.Length);
+
+         if (Result) {
+            var autocompleteVisitor = new AutocompleteCell(Model, Input.ToString(), MemoryLocation);
+            array.Visit(autocompleteVisitor, data);
+            var autocomplete = autocompleteVisitor.Result;
+
+            NewFormat = new UnderEdit(array, Input.ToString(), array.Length, autocomplete);
+         }
       }
+
       public void Visit(MatchedWord word, byte data) => BasicVisit(word, data);
+
       public void Visit(EndStream endStream, byte data) => Result = Input == ExtendArray;
 
       public void Visit(LzMagicIdentifier lz, byte data) => Result = char.ToLower(Input) == 'l';

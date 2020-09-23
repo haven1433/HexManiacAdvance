@@ -45,13 +45,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(Integer integer, byte data) { }
 
-      public void Visit(IntegerEnum intEnum, byte data) {
-         var arrayRun = (ITableRun)Model.GetNextRun(intEnum.Source);
-         var offsets = arrayRun.ConvertByteOffsetToArrayOffset(intEnum.Source);
-         var segment = (ArrayRunEnumSegment)arrayRun.ElementContent[offsets.SegmentIndex];
-         var allOptions = segment.GetOptions(Model).Select(option => option + " ");
-         Result = AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(InputText)), -1);
-      }
+      public void Visit(IntegerEnum intEnum, byte data) => GenerateOptions(intEnum);
 
       public void Visit(IntegerHex integer, byte data) { }
 
@@ -82,7 +76,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Result = AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(moveName)), SelectionIndex);
       }
 
-      public void Visit(BitArray array, byte data) { }
+      public void Visit(BitArray array, byte data) => GenerateOptions(array);
 
       public void Visit(MatchedWord word, byte data) => VisitNormal();
 
@@ -97,5 +91,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(LzUncompressed lz, byte data) { }
 
       public void Visit(UncompressedPaletteColor color, byte data) { }
+
+      private void GenerateOptions(IDataFormatInstance format) {
+         var arrayRun = (ITableRun)Model.GetNextRun(format.Source);
+         var offsets = arrayRun.ConvertByteOffsetToArrayOffset(format.Source);
+         var segment = (IHasOptions)arrayRun.ElementContent[offsets.SegmentIndex];
+         var allOptions = segment.GetOptions(Model).Select(option => option + " ");
+         Result = AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(InputText)), -1);
+      }
    }
 }

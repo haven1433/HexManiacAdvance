@@ -446,6 +446,20 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.NotEqual(currentLocation, ViewPort.DataOffset);
       }
 
+      [Fact]
+      public void BitArray_Edit_Autocomplete() {
+         CreateTextTable("names", 0x100, "beforeTEXT", "TEXTafter", "TEmiddleXT", "somethingelse");
+         CreateEnumTable("enums", 0x180, "names", 0, 1, 2, 3);
+         CreateBitArrayTable("bits", 0, "enums", 0b1, 0b10, 0b100, 0b1000);
+         ViewPort.Refresh();
+
+         ViewPort.Edit("TEXT");
+
+         var cell = (UnderEdit)ViewPort[0, 0].Format;
+         var options = cell.AutocompleteOptions.Select(option => option.CompletionText.Trim()).ToArray();
+         Assert.Equal(new[] { "beforeTEXT", "TEXTafter", "TEmiddleXT" }, options);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
