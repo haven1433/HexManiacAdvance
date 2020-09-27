@@ -122,18 +122,17 @@
 5A faceplayer                                # if the script was called by a person event, make that person face the player
 5B spriteface npc: direction.
 
-5C trainerbattle 0. trainer: 0: start<> playerwin<>
-5C trainerbattle 1. trainer: 0: start<> playerwin<> winscript<>            # doesn't play encounter music
-5C trainerbattle 2. trainer: 0: start<> playerwin<> winscript<>            # plays encounter music
-5C trainerbattle 3. trainer: 0: start<>                                    # continues caller
-5C trainerbattle 4. trainer: 0: start<> playerwin<> needmorepokemonText<>  # double battles
-5C trainerbattle 5. trainer: 0: start<> playerwin<>                        # clone of 0, but with rematch potential
-5C trainerbattle 6. trainer: 0: start<> playerwin<> needmorepokemonText<> unknown<> # double battles
-5C trainerbattle 7. trainer: 0: start<> playerwin<> needmorepokemonText<>  # clone of 4, but with rematch potential
-5C trainerbattle 8. trainer: 0: start<> playerwin<> needmorepokemonText<> unknown<> # clone of 6
-5C trainerbattle 9. trainer: 0: start<> playerwin<> # tutorial battle (can't lose)
-5C trainerbattle 9. trainer: 3: start<> playerwin<> # tutorial battle with oak's naration
-5C trainerbattle *. trainer: 0: start<> playerwin<> # same as 0
+5C trainerbattle 00 trainer: arg: start<> playerwin<>
+5C trainerbattle 01 trainer: arg: start<> playerwin<> winscript<>            # doesn't play encounter music
+5C trainerbattle 02 trainer: arg: start<> playerwin<> winscript<>            # plays encounter music
+5C trainerbattle 03 trainer: arg: start<>                                    # continues caller
+5C trainerbattle 04 trainer: arg: start<> playerwin<> needmorepokemonText<>  # double battles
+5C trainerbattle 05 trainer: arg: start<> playerwin<>                        # clone of 0, but with rematch potential
+5C trainerbattle 06 trainer: arg: start<> playerwin<> needmorepokemonText<> unknown<> # double battles
+5C trainerbattle 07 trainer: arg: start<> playerwin<> needmorepokemonText<>  # clone of 4, but with rematch potential
+5C trainerbattle 08 trainer: arg: start<> playerwin<> needmorepokemonText<> unknown<> # clone of 6
+5C trainerbattle 09 trainer: arg: start<> playerwin<> # tutorial battle (can't lose) (set arg=3 for oak's naration)
+5C trainerbattle other. trainer: arg: start<> playerwin<> # same as 0
                                              # trainer battle takes different parameters depending on the
                                              # 'type', or the first parameter.
                                              # 'trainer' is the ID of the trainer battle

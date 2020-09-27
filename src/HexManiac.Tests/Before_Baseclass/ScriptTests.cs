@@ -71,6 +71,20 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(2, args[0].Length(null, 0));
       }
 
+      [Fact]
+      public void TrainerBattle3_Decode_Has3Arguments() {
+         Model[0] = 0x5C;
+         Model[1] = 3;
+         Model[10] = 2;
+         Model[14] = 2;
+
+         var scriptText = ViewPort.Tools.CodeTool.ScriptParser.Parse(Model, 0, 2);
+
+         var trainerBattleLine = scriptText.SplitLines()[0].Trim();
+         var parts = trainerBattleLine.Split(' ');
+         Assert.Equal(5, parts.Length);
+      }
+
       private string Script(params string[] lines) => lines.CombineLines();
    }
 }

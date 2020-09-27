@@ -483,6 +483,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
          start += LineCode.Count;
          var builder = new StringBuilder(LineCommand);
+         for (int i = 1; i < LineCode.Count; i++) {
+            builder.Append(" " + LineCode[i].ToHexString());
+         }
          int lastAddress = -1;
          foreach (var arg in Args) {
             builder.Append(" ");
@@ -535,6 +538,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
 
          return result.ToArray();
+      }
+
+      public override string ToString() {
+         return string.Join(" ", LineCode.Select(code => code.ToHexString()).Concat(Args.Select(arg => arg.Name)).ToArray());
       }
    }
 
