@@ -90,9 +90,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          }
       }
-      private StubCommand selectTool, selectColor;
+      private StubCommand selectTool, selectColor, zoomInCommand, zoomOutCommand;
       public ICommand SelectTool => StubCommand<ImageEditorTools>(ref selectTool, arg => SelectedTool = arg);
       public ICommand SelectColor => StubCommand<string>(ref selectColor, arg => Palette.SelectionStart = int.Parse(arg));
+      public ICommand ZoomInCommand => StubCommand(ref zoomInCommand, () => ZoomIn(0, 0));
+      public ICommand ZoomOutCommand => StubCommand(ref zoomOutCommand, () => ZoomOut(0, 0));
 
       public BlockPreview BlockPreview { get; }
 

@@ -7,11 +7,14 @@
              xmlns:local="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
              Focusable="True">
    <UserControl.InputBindings>
+      <KeyBinding Key="Add" Command="{Binding ZoomInCommand}"/>
+      <KeyBinding Key="Subtract" Command="{Binding ZoomOutCommand}"/>
       <KeyBinding Key="A" CommandParameter="{x:Static hshmcvm:ImageEditorTools.Pan}" Command="{Binding SelectTool}"/>
       <KeyBinding Key="S" CommandParameter="{x:Static hshmcvm:ImageEditorTools.Select}" Command="{Binding SelectTool}"/>
       <KeyBinding Key="D" CommandParameter="{x:Static hshmcvm:ImageEditorTools.Draw}" Command="{Binding SelectTool}"/>
       <KeyBinding Key="F" CommandParameter="{x:Static hshmcvm:ImageEditorTools.Fill}" Command="{Binding SelectTool}"/>
       <KeyBinding Key="G" CommandParameter="{x:Static hshmcvm:ImageEditorTools.EyeDropper}" Command="{Binding SelectTool}"/>
+      <KeyBinding Key="Space" CommandParameter="0" Command="{Binding SelectColor}"/>
       <KeyBinding Key="D0" CommandParameter="0" Command="{Binding SelectColor}"/>
       <KeyBinding Key="D1" CommandParameter="1" Command="{Binding SelectColor}"/>
       <KeyBinding Key="D2" CommandParameter="2" Command="{Binding SelectColor}"/>
@@ -36,6 +39,7 @@
                </Style.Triggers>
             </Style>
          </DockPanel.Resources>
+         <Rectangle Width="1" DockPanel.Dock="Right" Fill="{DynamicResource Backlight}"/>
          <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" HorizontalAlignment="Center">
             <StackPanel.Resources>
                <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
@@ -46,6 +50,18 @@
                   <Setter Property="VerticalContentAlignment" Value="Center"/>
                </Style>
             </StackPanel.Resources>
+            <StackPanel>
+               <Button Command="{Binding ZoomInCommand}" Width="30" Height="15" ToolTip="(+) Zoom In">
+                  <Button.Content>
+                     <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource Secondary}">+</TextBlock>
+                  </Button.Content>
+               </Button>
+               <Button Command="{Binding ZoomOutCommand}" Width="30" Height="15" ToolTip="(-) Zoom Out">
+                  <Button.Content>
+                     <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource Secondary}">-</TextBlock>
+                  </Button.Content>
+               </Button>
+            </StackPanel>
             <RadioButton CommandParameter="{x:Static hshmcvm:ImageEditorTools.Pan}"
                IsChecked="{Binding SelectedTool, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter={x:Static hshmcvm:ImageEditorTools.Pan}}">
                <RadioButton.Content>
