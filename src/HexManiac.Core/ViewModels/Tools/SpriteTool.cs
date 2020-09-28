@@ -223,6 +223,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             NotifyPropertyChanged(nameof(SpriteIs256Color));
             NotifyPropertyChanged(nameof(SpriteIsTilemap));
             NotifyPropertyChanged(nameof(SpritePaletteHint));
+            importPair.RaiseCanExecuteChanged();
+            exportPair.RaiseCanExecuteChanged();
+            openInImageTab.RaiseCanExecuteChanged();
          } else {
             ShowNoSpriteAnchorMessage = true;
          }
@@ -381,7 +384,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ICommand NextPalettePage => nextPalPage;
 
       private StubCommand openInImageTab;
-      public ICommand OpenInImageTab => StubCommand(ref openInImageTab, () => viewPort.OpenImageEditorTab(spriteAddress), () => exportPair.CanExecute(null));
+      public ICommand OpenInImageTab => StubCommand(ref openInImageTab, () => viewPort.OpenImageEditorTab(spriteAddress), () => {
+         if (model.GetNextRun(spriteAddress) is ISpriteRun spriteRun && !spriteRun.SupportsEdit) return false;
+         return exportPair.CanExecute(null);
+      });
 
       public int PixelWidth { get; private set; }
       public int PixelHeight { get; private set; }

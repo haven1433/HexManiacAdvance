@@ -1,6 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
@@ -21,6 +20,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public int Pages => 1;
 
       public bool SupportsImport => false;
+      public bool SupportsEdit => false;
 
       public override int Length => TilesetFormat.Tiles * TilesetFormat.BitsPerPixel * 8;
 

@@ -12,6 +12,7 @@
       }
 
       public bool SupportsImport => true;
+      public bool SupportsEdit => true;
 
       protected override int UncompressedPageLength => SpriteFormat.ExpectedByteLength;
 

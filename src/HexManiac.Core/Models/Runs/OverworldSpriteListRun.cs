@@ -38,6 +38,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public int RunIndex { get; }
 
       public bool SupportsImport => false;
+      public bool SupportsEdit => false;
 
       public bool CanAppend => false;
 

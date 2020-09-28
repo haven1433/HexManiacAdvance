@@ -9,6 +9,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public int Width { get; }
       public int Height { get; }
       public bool SupportsImport => false;
+      public bool SupportsEdit => false;
 
       public override string FormatString => $"`lzt{Format.BitsPerPixel}" + (!string.IsNullOrEmpty(Format.PaletteHint) ? "|" + Format.PaletteHint : string.Empty) + "`";
 

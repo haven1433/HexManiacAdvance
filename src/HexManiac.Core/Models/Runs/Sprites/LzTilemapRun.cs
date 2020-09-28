@@ -31,6 +31,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             return tileset != null;
          }
       }
+      public bool SupportsEdit => false;
 
       public override string FormatString =>
          $"`lzm{Format.BitsPerPixel}x{Format.TileWidth}x{Format.TileHeight}|{Format.MatchingTileset}" +
