@@ -1706,6 +1706,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          run = new NoInfoRun(dataIndex);
          var existingRun = model.GetNextRun(dataIndex);
          if (existingRun.Start == run.Start) run = run.MergeAnchor(existingRun.PointerSources);
+         if (dataIndex >= model.Count || dataIndex < 0) return new ErrorInfo($"{name} cannot start at 0x{dataIndex:X6}, which is outside the file size ({model.Count:X6}).");
 
          // special case: empty format, stick with the no-info run
          if (format == string.Empty) return ErrorInfo.NoError;
