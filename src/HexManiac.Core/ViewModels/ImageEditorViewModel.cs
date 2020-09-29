@@ -24,7 +24,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    public class ImageEditorViewModel : ViewModelCore, ITabContent, IPixelViewModel, IRaiseMessageTab {
       private readonly ChangeHistory<ModelDelta> history;
       private readonly IDataModel model;
-      private int palettePointerAddress;
       private int[,] pixels;
 
       private bool withinInteraction, withinDropperInteraction, withinPanInteraction;
@@ -121,6 +120,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public PaletteCollection Palette { get; }
 
       public int SpritePointer { get; }
+      public int PalettePointer { get; }
 
       private StubCommand setCursorSize;
       public ICommand SetCursorSize => StubCommand<string>(ref setCursorSize, arg => CursorSize = int.Parse(arg));
@@ -138,7 +138,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (spriteRun == null) spriteRun = palRun.FindDependentSprites(model).First();
          if (palRun == null) palRun = spriteRun.FindRelatedPalettes(model).First();
          SpritePointer = spriteRun.PointerSources[0];
-         palettePointerAddress = palRun.PointerSources[0];
+         PalettePointer = palRun.PointerSources[0];
          Palette = new PaletteCollection(this, model, history) { SourcePalette = palRun.Start };
          Palette.Bind(nameof(Palette.HoverIndex), UpdateSelectionFromPaletteHover);
          Refresh();
@@ -259,7 +259,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void RefreshPaletteColors() {
-         var paletteAddress = model.ReadPointer(palettePointerAddress);
+         var paletteAddress = model.ReadPointer(PalettePointer);
          var palRun = (IPaletteRun)model.GetNextRun(paletteAddress);
          Palette.SetContents(palRun.GetPalette(model, 0));
          foreach (var e in Palette.Elements) {
@@ -285,7 +285,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void Render() {
          var spriteAddress = model.ReadPointer(SpritePointer);
-         var paletteAddress = model.ReadPointer(palettePointerAddress);
+         var paletteAddress = model.ReadPointer(PalettePointer);
 
          var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
          var palRun = (IPaletteRun)model.GetNextRun(paletteAddress);

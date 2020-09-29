@@ -58,6 +58,9 @@ namespace HavenSoft.HexManiac.Tests {
          var palette = new PaletteRun(0x40, new PaletteFormat(4, 1), new SortedSpan<int>(0x88));
          model.ObserveAnchorWritten(history.CurrentChange, "palette", palette);
 
+         model[0x20] = 0x23; // random data after the sprite, so expanding it causes a repoint
+         model[0x60] = 0x23; // random data after the palette, so expanding it causes a repoint
+
          editor = new ImageEditorViewModel(history, model, 0);
       }
 
@@ -247,15 +250,25 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void Image_Repoint_ToolStillWorks() {
-         var source = editor.SpritePointer;
          var destination = model.ReadPointer(editor.SpritePointer);
          var spriteRun = (ISpriteRun)model.GetNextRun(destination);
 
-         model.RelocateForExpansion(history.CurrentChange, spriteRun, spriteRun.Length + 1);
+        spriteRun = model.RelocateForExpansion(history.CurrentChange, spriteRun, spriteRun.Length + 1);
 
          // if this doesn't throw, we're happy
          editor.SelectedTool = ImageEditorTools.Draw;
          ToolMove(new Point());
+      }
+
+      [Fact]
+      public void Palette_Repoint_AdressUpdate() {
+         var destination = model.ReadPointer(editor.PalettePointer);
+         var palRun = (IPaletteRun)model.GetNextRun(destination);
+
+         palRun = model.RelocateForExpansion(history.CurrentChange, palRun, palRun.Length + 1);
+
+         editor.Palette.Elements[0].Color = Rgb(31, 31, 31);
+         Assert.Equal(Rgb(31, 31, 31), model.ReadMultiByteValue(palRun.Start, 2));
       }
 
       [Fact]
