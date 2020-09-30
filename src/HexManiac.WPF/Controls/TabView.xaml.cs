@@ -396,7 +396,10 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       /// to know the user input so the ViewModel can Goto the table.
       /// </summary>
       private void TableSelected(object sender, EventArgs e) {
-         if (DataContext is IViewPort viewPort) viewPort.Tools.TableTool.SelectedTableIndex = TableSelector.SelectedIndex;
+         if (DataContext is IViewPort viewPort) {
+            viewPort.Tools.TableTool.SelectedTableSection = SectionSelector.SelectedIndex;
+            viewPort.Tools.TableTool.SelectedTableIndex = TableSelector.SelectedIndex;
+         }
       }
 
       private void ActivatePalette(object sender, MouseButtonEventArgs e) {

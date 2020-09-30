@@ -567,9 +567,9 @@ namespace HavenSoft.HexManiac.Tests {
          var test = new BaseViewModelTestClass();
 
          test.ViewPort.Edit("^table1[data\"\"6]4 @30 ^table2[data\"\"6]4 ");
-         Assert.Equal(2, test.ViewPort.Tools.TableTool.TableList.Count());
+         Assert.Equal(2, test.ViewPort.Tools.TableTool.TableSections.Count());
 
-         test.ViewPort.Tools.TableTool.SelectedTableIndex = 1;
+         test.ViewPort.Tools.TableTool.SelectedTableSection = 1;
          Assert.Equal("000030", test.ViewPort.Headers[0]);
       }
 

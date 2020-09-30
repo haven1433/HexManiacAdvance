@@ -80,7 +80,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public const string
          TmMoves = "data.pokemon.moves.tms",
-         HmMoves = "data.pokmeon.moves.hms",
+         HmMoves = "data.pokemon.moves.hms",
          TmCompatibility = "data.pokemon.moves.tmcompatibility",
          MoveTutors = "data.pokemon.moves.tutors",
          TutorCompatibility = "data.pokemon.moves.tutorcompatibility";

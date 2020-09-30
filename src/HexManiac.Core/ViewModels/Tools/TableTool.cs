@@ -18,7 +18,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public string Name => "Table";
 
-      public IEnumerable<string> TableList => model.Arrays.Select(array => model.GetAnchorFromAddress(-1, array.Start));
+      public IReadOnlyList<string> TableSections => UnmatchedArrays.Select(array => {
+         var parts = model.GetAnchorFromAddress(-1, array.Start).Split('.');
+         if (parts.Length > 2) return string.Join(".", parts.Take(2));
+         return parts[0];
+      }).Distinct().ToList();
+
+      private int selectedTableSection;
+      public int SelectedTableSection {
+         get => selectedTableSection;
+         set => Set(ref selectedTableSection, value, UpdateAddressFromSectionAndSelection);
+      }
+
+      public IReadOnlyList<string> TableList {
+         get {
+            if (selectedTableSection == -1) return new string[0];
+            var selectedSection = TableSections[selectedTableSection];
+            return UnmatchedArrays
+               .Select(array => model.GetAnchorFromAddress(-1, array.Start))
+               .Where(name => name.StartsWith(selectedSection) && name.Contains("."))
+               .Select(name => name.Substring(selectedSection.Length + 1))
+               .ToList();
+         }
+      }
 
       private int selectedTableIndex;
       public int SelectedTableIndex {
@@ -26,11 +48,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set {
             TryUpdate(ref selectedTableIndex, value);
             if (selectedTableIndex == -1) return;
-            var array = model.Arrays[selectedTableIndex];
-            selection.GotoAddress(array.Start);
-            Address = array.Start;
+            UpdateAddressFromSectionAndSelection();
          }
       }
+      private void UpdateAddressFromSectionAndSelection(int oldValue = default) {
+         if (selectedTableSection == -1 || selectedTableIndex == -1) return;
+         var arrayName = TableSections[selectedTableSection];
+         var tableList = TableList;
+         if (selectedTableIndex >= tableList.Count) TryUpdate(ref selectedTableIndex, 0, nameof(SelectedTableIndex));
+         arrayName += '.' + tableList[selectedTableIndex];
+         var start = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, arrayName);
+         selection.GotoAddress(start);
+         Address = start;
+      }
+
+      private IReadOnlyList<ArrayRun> UnmatchedArrays => model.Arrays.Where(a => string.IsNullOrEmpty(a.LengthFromAnchor)).ToList();
 
       private string currentElementName;
       public string CurrentElementName {
@@ -190,10 +222,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             return;
          }
 
+         NotifyPropertyChanged(nameof(TableSections));
          NotifyPropertyChanged(nameof(TableList));
-         TryUpdate(ref selectedTableIndex, model.Arrays.IndexOf(array), nameof(SelectedTableIndex));
-
          var basename = model.GetAnchorFromAddress(-1, array.Start);
+         var anchorParts = basename.Split('.');
+         if (anchorParts.Length == 1) {
+            TryUpdate(ref selectedTableSection, TableSections.IndexOf(anchorParts[0]));
+         } else if (anchorParts.Length == 2) {
+            TryUpdate(ref selectedTableSection, TableSections.IndexOf(anchorParts[0]));
+            TryUpdate(ref selectedTableIndex, TableList.IndexOf(anchorParts[1]));
+         } else {
+            TryUpdate(ref selectedTableSection, TableSections.IndexOf(anchorParts[0] + "." + anchorParts[2]));
+            TryUpdate(ref selectedTableIndex, TableList.IndexOf(string.Join(".", anchorParts.Skip(2))));
+         }
+
          if (string.IsNullOrEmpty(basename)) basename = array.Start.ToString("X6");
          var index = (Address - array.Start) / array.ElementLength;
 

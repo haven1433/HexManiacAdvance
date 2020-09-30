@@ -7,9 +7,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public string CompletionText { get; }
       public bool IsSelected { get; }
 
-#pragma warning disable 0067 // it's ok if events are never used after implementing an interface
-      public event PropertyChangedEventHandler PropertyChanged;
-#pragma warning restore 0067
+      event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged { add { } remove { } }
 
       public AutoCompleteSelectionItem(string text, bool selection) => (CompletionText, IsSelected) = (text, selection);
 
