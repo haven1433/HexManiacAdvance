@@ -68,7 +68,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(EggItem item, byte data) { }
 
-      public void Visit(PlmItem item, byte data) { }
+      public void Visit(PlmItem item, byte data) => Content.Add(item.ToString());
 
       public void Visit(BitArray array, byte data) {
          using (ModelCacheScope.CreateScope(model)) {
