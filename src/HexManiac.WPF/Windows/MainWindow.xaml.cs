@@ -294,7 +294,10 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             if (element == GotoPanel) Tabs.Effect = null;
             return;
          } else if (element == GotoPanel) {
-            Tabs.Effect = new BlurEffect { Radius = 5 };
+            var effect = new BlurEffect { Radius = 0 };
+            Tabs.Effect = effect;
+            effect.BeginAnimation(BlurEffect.RadiusProperty, new DoubleAnimation(5, fastTime));
+            GotoBackground.BeginAnimation(FrameworkElement.OpacityProperty, new DoubleAnimation(0, .7, fastTime));
          }
          element.Arrange(new Rect());
 
@@ -318,17 +321,17 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          Dispatcher.BeginInvoke((Action<FrameworkElement>)DispatchAnimation, DispatcherPriority.ApplicationIdle, element);
       }
 
+      private static readonly Duration fastTime = TimeSpan.FromSeconds(.3);
       private void DispatchAnimation(FrameworkElement element) {
-         var duration = TimeSpan.FromSeconds(.3);
          var point = element.TranslatePoint(new System.Windows.Point(), ContentPanel);
 
          FocusAnimationElement.Visibility = Visibility.Visible;
          FocusAnimationElement.RenderTransform = new TranslateTransform();
 
-         var xAnimation = new DoubleAnimation(-ContentPanel.ActualWidth + point.X + element.ActualWidth, duration);
-         var yAnimation = new DoubleAnimation(point.Y, duration);
-         var widthAnimation = new DoubleAnimation(ContentPanel.ActualWidth, element.ActualWidth, duration);
-         var heightAnimation = new DoubleAnimation(ContentPanel.ActualHeight, element.ActualHeight, duration);
+         var xAnimation = new DoubleAnimation(-ContentPanel.ActualWidth + point.X + element.ActualWidth, fastTime);
+         var yAnimation = new DoubleAnimation(point.Y, fastTime);
+         var widthAnimation = new DoubleAnimation(ContentPanel.ActualWidth, element.ActualWidth, fastTime);
+         var heightAnimation = new DoubleAnimation(ContentPanel.ActualHeight, element.ActualHeight, fastTime);
          heightAnimation.Completed += (sender1, e1) => {
             FocusAnimationElement.Visibility = Visibility.Collapsed;
             FocusAnimationElement.RenderTransform = null;

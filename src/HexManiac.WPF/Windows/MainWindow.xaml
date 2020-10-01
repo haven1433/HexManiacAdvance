@@ -355,7 +355,8 @@
                </TabControl.ContentTemplate>
             </TabControl>
             <!---->
-            <ScrollViewer Name="GotoPanel" VerticalScrollBarVisibility="Auto" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}">
+            <Rectangle Fill="{DynamicResource Background}" Opacity="0" Name="GotoBackground" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}"/>
+            <ScrollViewer Name="GotoPanel" VerticalScrollBarVisibility="Auto" HorizontalAlignment="Center" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}">
                <Grid>
                   <Grid.RowDefinitions>
                      <RowDefinition Height="*"/>
@@ -364,26 +365,55 @@
                      <RowDefinition Height="Auto"/>
                      <RowDefinition Height="*"/>
                   </Grid.RowDefinitions>
-                  <Rectangle Grid.RowSpan="5" Fill="{DynamicResource Background}" Opacity=".7"/>
                   <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
-                     <TextBlock Text="Goto :"/>
-                     <TextBox Name="GotoBox" FontSize="30" Text="{Binding GotoViewModel.Text, UpdateSourceTrigger=PropertyChanged}" MinWidth="400" IsVisibleChanged="EditBoxVisibilityChanged">
-                        <TextBox.InputBindings>
-                           <KeyBinding Key="Esc" Command="{Binding GotoViewModel.ShowGoto}">
-                              <KeyBinding.CommandParameter>
-                                 <sys:Boolean>false</sys:Boolean>
-                              </KeyBinding.CommandParameter>
-                           </KeyBinding>
-                           <KeyBinding Key="Return" Command="{Binding GotoViewModel.Goto}"/>
-                        </TextBox.InputBindings>
-                     </TextBox>
+                     <DockPanel>
+                        <Canvas Width="0" Height="0" VerticalAlignment="Bottom" DockPanel.Dock="Left">
+                           <TextBlock Text="Edit → " Canvas.Right="0" Canvas.Bottom="0" Foreground="{DynamicResource Secondary}"/>
+                        </Canvas>
+                        <Button Background="{DynamicResource Background}" BorderBrush="{DynamicResource Secondary}" Command="{Binding GotoViewModel.ShowGoto}" Padding="4"
+                              DockPanel.Dock="Right" Width="20" Height="20" VerticalAlignment="Top" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                           <Button.CommandParameter>
+                              <sys:Boolean>false</sys:Boolean>
+                           </Button.CommandParameter>
+                           <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                        </Button>
+                        <TextBlock Text="Goto:" FontSize="20"/>
+                     </DockPanel>
+                     <StackPanel Orientation="Horizontal">
+                        <Grid>
+                           <TextBox Name="GotoBox" FontSize="30" Text="{Binding GotoViewModel.Text, UpdateSourceTrigger=PropertyChanged}" MinWidth="400" IsVisibleChanged="EditBoxVisibilityChanged">
+                              <TextBox.InputBindings>
+                                 <KeyBinding Key="Esc" Command="{Binding GotoViewModel.ShowGoto}">
+                                    <KeyBinding.CommandParameter>
+                                       <sys:Boolean>false</sys:Boolean>
+                                    </KeyBinding.CommandParameter>
+                                 </KeyBinding>
+                                 <KeyBinding Key="Return" Command="{Binding GotoViewModel.Goto}"/>
+                              </TextBox.InputBindings>
+                           </TextBox>
+                           <TextBlock IsHitTestVisible="False" Foreground="{DynamicResource Secondary}" FontStyle="Italic" FontSize="25" VerticalAlignment="Bottom" Margin="3">
+                              <TextBlock.Style>
+                                 <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                       <DataTrigger Binding="{Binding GotoViewModel.Text}" Value="">
+                                          <Setter Property="Visibility" Value="Visible"/>
+                                       </DataTrigger>
+                                    </Style.Triggers>
+                                 </Style>
+                              </TextBlock.Style>
+                              type an address or anchor name
+                           </TextBlock>
+                        </Grid>
+                        <Button Content="Go" VerticalAlignment="Stretch" Padding="12,0" Command="{Binding GotoViewModel.Goto}" Background="{DynamicResource Accent}"/>
+                     </StackPanel>
                   </StackPanel>
                   <ItemsControl ItemsSource="{Binding GotoViewModel.PrefixSelections}" Grid.Row="3">
                      <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                           <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                           <StackPanel>
                               <Rectangle HorizontalAlignment="Stretch" Height="1" Fill="{DynamicResource Secondary}"/>
-                              <ItemsControl ItemsSource="{Binding Tokens}">
+                              <ItemsControl ItemsSource="{Binding Tokens}" HorizontalAlignment="Center">
                                  <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
                                        <UniformGrid Rows="{Binding Height}" Columns="{Binding Width}"/>
@@ -391,7 +421,7 @@
                                  </ItemsControl.ItemsPanel>
                                  <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                       <ToggleButton Content="{Binding Content}" IsChecked="{Binding IsSelected}" Margin="5" Padding="6" FontSize="15"/>
+                                       <ToggleButton BorderBrush="{DynamicResource Primary}" Content="{Binding Content}" IsChecked="{Binding IsSelected}" Margin="5" Padding="6" FontSize="15"/>
                                     </DataTemplate>
                                  </ItemsControl.ItemTemplate>
                               </ItemsControl>
