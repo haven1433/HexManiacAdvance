@@ -195,6 +195,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    }
 
    public class GotoLabelSection : ViewModelCore {
+      private const int MaxCategories = 49;
       private int width, height;
       public int Width { get => width; set => Set(ref width, value); }
       public int Height { get => height; set => Set(ref height, value); }
@@ -213,14 +214,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          }
          Tokens = GotoToken.Generate(thisLevel);
+         var count = Tokens.Count;
+         if (count > MaxCategories) {
+            Tokens.Clear();
+            Tokens.Add(new GotoToken { Content = $"({count} options)", IsSelectable = false });
+         }
          Initialize();
       }
 
       public GotoLabelSection(string prefix, IList<GotoToken> tokens) {
          Tokens = new ObservableCollection<GotoToken>();
-         foreach (var token in tokens) Tokens.Add(new GotoToken { Content = prefix + "." + token.Content, IsSelected = token.IsSelected });
+         foreach (var token in tokens) Tokens.Add(new GotoToken { Content = prefix + "." + token.Content, IsSelected = token.IsSelected, IsSelectable = token.IsSelectable });
          if (tokens.Count == 0) {
             Tokens.Add(new GotoToken { Content = prefix });
+            if (prefix.EndsWith(" options)")) Tokens[0].IsSelectable = false;
          }
          Initialize();
       }
@@ -268,6 +275,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    public class GotoToken : ViewModelCore {
       private bool isSelected;
       public bool IsSelected { get => isSelected; set => Set(ref isSelected, value); }
+
+      private bool isSelectable = true;
+      public bool IsSelectable { get => isSelectable; set => Set(ref isSelectable, value); }
 
       private string content;
       public string Content { get => content; set => Set(ref content, value); }
