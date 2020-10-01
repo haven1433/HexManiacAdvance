@@ -356,7 +356,7 @@
             </TabControl>
             <!---->
             <Rectangle Fill="{DynamicResource Background}" Opacity="0" Name="GotoBackground" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}"/>
-            <ScrollViewer Name="GotoPanel" VerticalScrollBarVisibility="Auto" HorizontalAlignment="Center" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}">
+            <ScrollViewer Name="GotoPanel" VerticalScrollBarVisibility="Auto" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}">
                <Grid>
                   <Grid.RowDefinitions>
                      <RowDefinition Height="*"/>
@@ -412,7 +412,7 @@
                      <ItemsControl.ItemTemplate>
                         <DataTemplate>
                            <StackPanel>
-                              <Rectangle HorizontalAlignment="Stretch" Height="1" Fill="{DynamicResource Secondary}"/>
+                              <Rectangle HorizontalAlignment="Stretch" Height="1" Margin="0,3" Fill="{DynamicResource Secondary}" Width="{Binding ActualWidth, ElementName=GotoBox}"/>
                               <ItemsControl ItemsSource="{Binding Tokens}" HorizontalAlignment="Center">
                                  <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
@@ -421,7 +421,38 @@
                                  </ItemsControl.ItemsPanel>
                                  <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                       <ToggleButton BorderBrush="{DynamicResource Primary}" Content="{Binding Content}" IsChecked="{Binding IsSelected}" Margin="5" Padding="6" FontSize="15"/>
+                                       <Border Margin="5" BorderThickness="1">
+                                          <Border.Style>
+                                             <Style TargetType="Border">
+                                                <Setter Property="BorderBrush" Value="Transparent"/>
+                                                <Style.Triggers>
+                                                   <Trigger Property="IsMouseOver" Value="True">
+                                                      <Setter Property="BorderBrush" Value="{DynamicResource Primary}"/>
+                                                   </Trigger>
+                                                   <MultiDataTrigger>
+                                                      <MultiDataTrigger.Conditions>
+                                                         <Condition Binding="{Binding IsSelected}" Value="True"/>
+                                                         <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                      </MultiDataTrigger.Conditions>
+                                                      <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                                   </MultiDataTrigger>
+                                                </Style.Triggers>
+                                             </Style>
+                                          </Border.Style>
+                                          <Border BorderThickness="1">
+                                             <Border.Style>
+                                                <Style TargetType="Border">
+                                                   <Setter Property="BorderBrush" Value="{DynamicResource Primary}"/>
+                                                   <Style.Triggers>
+                                                      <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                         <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                                      </DataTrigger>
+                                                   </Style.Triggers>
+                                                </Style>
+                                             </Border.Style>
+                                             <ToggleButton BorderThickness="0" Content="{Binding Content}" IsChecked="{Binding IsSelected}" Padding="6" FontSize="15"/>
+                                          </Border>
+                                       </Border>
                                     </DataTemplate>
                                  </ItemsControl.ItemTemplate>
                               </ItemsControl>
