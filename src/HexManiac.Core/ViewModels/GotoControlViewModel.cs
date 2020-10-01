@@ -30,11 +30,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          set {
             if (viewPort?.Model == null) return;
             if (TryUpdate(ref text, value)) {
-               var text = this.text;
                withinTextChange = true;
                using (new StubDisposable { Dispose = () => withinTextChange = false }) {
                   using (ModelCacheScope.CreateScope(viewPort.Model)) {
-                     var options = GetExtendedAutocompleteOptions();
+                     var options = viewPort.Model.GetExtendedAutocompleteOptions(text);
                      AutoCompleteOptions = AutoCompleteSelectionItem.Generate(options, completionIndex);
                      ShowAutoCompleteOptions = AutoCompleteOptions.Count > 0;
                      UpdatePrefixSelectionsAfterTextChange();
@@ -42,23 +41,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                }
             }
          }
-      }
-
-      /// <summary>
-      /// Returns a list of autocomplete options, based on the current Text.
-      /// If there are very few options and there are no / characters, this also looks for elements with those names.
-      /// This allows the user to get results when searching for "charizard" or "brock"
-      /// </summary>
-      private List<string> GetExtendedAutocompleteOptions() {
-         var options = new List<string>(viewPort.Model?.GetAutoCompleteAnchorNameOptions(text, int.MaxValue) ?? new string[0]);
-         options.AddRange(viewPort.Model?.GetAutoCompleteByteNameOptions(text) ?? new string[0]);
-         if (!text.Contains("/") && options.Count < 30) {
-            options.AddRange(viewPort.Model?.GetAutoCompleteAnchorNameOptions("/" + text) ?? new string[0]);
-         }
-         text = text.ToLower();
-         var bestMatches = options.Where(option => option.ToLower().Contains(text));
-         options = bestMatches.Concat(options).Distinct().ToList();
-         return options;
       }
 
       private int completionIndex = -1;
@@ -181,6 +163,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
    }
 
+   public static class IDataModelExtensions {
+      /// <summary>
+      /// Returns a list of autocomplete options, based on the current Text.
+      /// If there are very few options and there are no / characters, this also looks for elements with those names.
+      /// This allows the user to get results when searching for "charizard" or "brock"
+      /// </summary>
+      public static IReadOnlyList<string> GetExtendedAutocompleteOptions(this IDataModel model, string text) {
+         var options = new List<string>(model?.GetAutoCompleteAnchorNameOptions(text, int.MaxValue) ?? new string[0]);
+         options.AddRange(model?.GetAutoCompleteByteNameOptions(text) ?? new string[0]);
+         if (!text.Contains("/") && options.Count < 30) {
+            options.AddRange(model?.GetAutoCompleteAnchorNameOptions("/" + text) ?? new string[0]);
+         }
+         text = text.ToLower();
+         var bestMatches = options.Where(option => option.ToLower().Contains(text));
+         options = bestMatches.Concat(options).Distinct().ToList();
+         return options;
+      }
+   }
+
    public class GotoLabelSection : ViewModelCore {
       private int width, height;
       public int Width { get => width; set => Set(ref width, value); }
@@ -237,7 +238,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public static GotoLabelSection Build(IDataModel model, string filter, IEnumerable<GotoLabelSection> previousSections) {
          using (ModelCacheScope.CreateScope(model)) {
-            var allOptions = model.GetAutoCompleteAnchorNameOptions(filter, int.MaxValue);
+            var allOptions = model.GetExtendedAutocompleteOptions(filter);
             var selections = GetSectionSelections(previousSections).ToList();
 
             var newSection = new GotoLabelSection(allOptions ?? new string[0], selections);
