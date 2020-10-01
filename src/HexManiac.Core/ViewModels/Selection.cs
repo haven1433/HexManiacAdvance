@@ -154,7 +154,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      address = address.Trim();
                      var options = model.GetAutoCompleteAnchorNameOptions(address);
                      if (!address.Contains("/") && options.All(option => !option.ToLower().Contains(address))) {
-                        options = model.GetAutoCompleteAnchorNameOptions("/" + address);
+                        options = options.Concat(model.GetAutoCompleteAnchorNameOptions("/" + address)).ToList();
                      }
                      if (options.Count == 1) {
                         anchor = this.model.GetAddressFromAnchor(new ModelDelta(), -1, options[0]);
