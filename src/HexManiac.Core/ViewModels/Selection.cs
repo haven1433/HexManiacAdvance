@@ -153,10 +153,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   } else {
                      address = address.Trim();
                      var options = model.GetAutoCompleteAnchorNameOptions(address);
-                     if (options.Count == 0 && !address.Contains("/")) {
+                     if (!address.Contains("/") && options.All(option => !option.ToLower().Contains(address))) {
                         options = model.GetAutoCompleteAnchorNameOptions("/" + address);
                      }
                      if (options.Count == 1) {
+                        anchor = this.model.GetAddressFromAnchor(new ModelDelta(), -1, options[0]);
+                        GotoAddress(anchor);
+                     } else if (options.Count > 1) {
+                        var bestMatches = options.Where(option => option.ToLower().Contains(address));
+                        options = bestMatches.Concat(options.Take(1).Distinct()).ToList();
                         anchor = this.model.GetAddressFromAnchor(new ModelDelta(), -1, options[0]);
                         GotoAddress(anchor);
                      } else {
