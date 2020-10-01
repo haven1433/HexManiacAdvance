@@ -71,7 +71,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       SortedSpan<int> GetUnmappedSourcesToAnchor(string anchor);
       int GetAddressFromAnchor(ModelDelta changeToken, int requestSource, string anchor);
       string GetAnchorFromAddress(int requestSource, int destination);
-      IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial);
+      IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial, int maxResults = 30);
       StoredMetadata ExportMetadata(IMetadataInfo metadataInfo);
       void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, int address, int destination);
       int ConsiderResultsAsTextRuns(ModelDelta changeToken, IReadOnlyList<int> startLocations);
@@ -212,7 +212,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       public virtual int ConsiderResultsAsTextRuns(ModelDelta changeToken, IReadOnlyList<int> startLocations) => 0;
 
-      public virtual IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial) => new string[0];
+      public virtual IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial, int maxResults = 30) => new string[0];
 
       public virtual IReadOnlyList<string> GetAutoCompleteByteNameOptions(string text) => new string[0];
 

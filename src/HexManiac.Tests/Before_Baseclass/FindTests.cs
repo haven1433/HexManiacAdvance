@@ -406,7 +406,7 @@ namespace HavenSoft.HexManiac.Tests {
             findCalls += 1;
             return new List<(int, int)>();
          }
-         var viewPort1 = new StubViewPort { Model = new StubDataModel(), Find = Find };
+         var viewPort1 = new StubViewPort { Model = SelfEqualStub(), Find = Find };
          var viewPort2 = new StubViewPort { Model = viewPort1.Model, Find = Find };
          var editor = new EditorViewModel(new StubFileSystem());
          editor.Add(viewPort1);
@@ -424,8 +424,8 @@ namespace HavenSoft.HexManiac.Tests {
             findCalls += 1;
             return new List<(int, int)>();
          }
-         var viewPort1 = new StubViewPort { Model = new StubDataModel(), Find = Find };
-         var viewPort2 = new StubViewPort { Model = new StubDataModel(), Find = Find };
+         var viewPort1 = new StubViewPort { Model = SelfEqualStub(), Find = Find };
+         var viewPort2 = new StubViewPort { Model = SelfEqualStub(), Find = Find };
          var editor = new EditorViewModel(new StubFileSystem());
          editor.Add(viewPort1);
          editor.Add(viewPort2);
@@ -433,6 +433,12 @@ namespace HavenSoft.HexManiac.Tests {
          editor.Find.Execute("sample");
 
          Assert.Equal(2, findCalls);
+      }
+
+      private static StubDataModel SelfEqualStub() {
+         var model = new StubDataModel();
+         model.Equals = input => input == model;
+         return model;
       }
    }
 }

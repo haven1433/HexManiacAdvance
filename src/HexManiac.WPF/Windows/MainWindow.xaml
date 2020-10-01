@@ -187,6 +187,7 @@
                </MenuItem>
             </Menu>
             <!-- Goto -->
+            <!--
             <StackPanel Name="GotoPanel" Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}">
                <TextBlock Text="Goto :" Margin="10,0" />
                <TextBox Name="GotoBox" Text="{Binding GotoViewModel.Text, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" IsVisibleChanged="EditBoxVisibilityChanged">
@@ -221,6 +222,7 @@
                   </ItemsControl>
                </Popup>
             </StackPanel>
+            -->
             <!-- Find -->
             <StackPanel Name="FindPanel" Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding FindControlVisible, Converter={StaticResource BoolToVisibility}}">
                <TextBlock Text="Find :" Margin="10,0" />
@@ -352,6 +354,54 @@
                   </DataTemplate>
                </TabControl.ContentTemplate>
             </TabControl>
+            <!---->
+            <ScrollViewer Name="GotoPanel" VerticalScrollBarVisibility="Auto" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}">
+               <Grid>
+                  <Grid.RowDefinitions>
+                     <RowDefinition Height="*"/>
+                     <RowDefinition Height="Auto"/>
+                     <RowDefinition Height="*"/>
+                     <RowDefinition Height="Auto"/>
+                     <RowDefinition Height="*"/>
+                  </Grid.RowDefinitions>
+                  <Rectangle Grid.RowSpan="5" Fill="{DynamicResource Background}" Opacity=".7"/>
+                  <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                     <TextBlock Text="Goto :"/>
+                     <TextBox Name="GotoBox" FontSize="30" Text="{Binding GotoViewModel.Text, UpdateSourceTrigger=PropertyChanged}" MinWidth="400" IsVisibleChanged="EditBoxVisibilityChanged">
+                        <TextBox.InputBindings>
+                           <KeyBinding Key="Esc" Command="{Binding GotoViewModel.ShowGoto}">
+                              <KeyBinding.CommandParameter>
+                                 <sys:Boolean>false</sys:Boolean>
+                              </KeyBinding.CommandParameter>
+                           </KeyBinding>
+                           <KeyBinding Key="Return" Command="{Binding GotoViewModel.Goto}"/>
+                        </TextBox.InputBindings>
+                     </TextBox>
+                  </StackPanel>
+                  <ItemsControl ItemsSource="{Binding GotoViewModel.PrefixSelections}" Grid.Row="3">
+                     <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                           <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                              <Rectangle HorizontalAlignment="Stretch" Height="1" Fill="{DynamicResource Secondary}"/>
+                              <ItemsControl ItemsSource="{Binding Tokens}">
+                                 <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                       <UniformGrid Rows="{Binding Height}" Columns="{Binding Width}"/>
+                                    </ItemsPanelTemplate>
+                                 </ItemsControl.ItemsPanel>
+                                 <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                       <ToggleButton Content="{Binding Content}" IsChecked="{Binding IsSelected}" Margin="5" Padding="6" FontSize="15"/>
+                                    </DataTemplate>
+                                 </ItemsControl.ItemTemplate>
+                              </ItemsControl>
+                           </StackPanel>
+                        </DataTemplate>
+                     </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+               </Grid>
+            </ScrollViewer>
+            <!---->
          </Grid>
       </DockPanel>
       <Rectangle Name="FocusAnimationElement" StrokeThickness="2" Stroke="{DynamicResource Accent}" Visibility="Visible" HorizontalAlignment="Right" VerticalAlignment="Top"/>

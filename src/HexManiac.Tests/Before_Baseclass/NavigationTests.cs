@@ -214,7 +214,7 @@ namespace HavenSoft.HexManiac.Tests {
          var tab = new StubViewPort {
             Goto = new StubCommand { CanExecute = ICommandExtensions.CanAlwaysExecute },
             Model = new StubDataModel {
-               GetAutoCompleteAnchorNameOptions = str => new List<string> {
+               GetAutoCompleteAnchorNameOptions = (str, max) => new List<string> {
                   "Option 1",
                   "Option 2",
                   "Option 3",

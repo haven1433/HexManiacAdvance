@@ -16,6 +16,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Effects;
 using System.Windows.Navigation;
 using System.Windows.Threading;
 
@@ -178,6 +179,11 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          }
       }
 
+      protected override void OnActivated(EventArgs e) {
+         base.OnActivated(e);
+         if (ViewModel.GotoViewModel.ControlVisible) FocusGotoBox();
+      }
+
       public static FrameworkElement GetChild(DependencyObject depObj, string name, object dataContext) {
          for (int i = 0; i < VisualTreeHelper.GetChildrenCount(depObj); i++) {
             var child = VisualTreeHelper.GetChild(depObj, i);
@@ -266,7 +272,9 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          ViewModel.GotoViewModel.MoveFocusToGoto += FocusGotoBox;
       }
 
-      private void FocusGotoBox(object sender, EventArgs e) => FocusTextBox(GotoBox);
+      private void FocusGotoBox(object sender = default, EventArgs e = default) {
+         FocusTextBox(GotoBox);
+      }
 
       private void FocusTextBox(TextBox textBox) {
          textBox.SelectAll();
@@ -281,18 +289,20 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       }
 
       private void AnimateFocusToCorner(object sender, DependencyPropertyChangedEventArgs e) {
-         var duration = TimeSpan.FromSeconds(.3);
          var element = (FrameworkElement)sender;
-         if (element.Visibility != Visibility.Visible) return;
+         if (element.Visibility != Visibility.Visible) {
+            if (element == GotoPanel) Tabs.Effect = null;
+            return;
+         } else if (element == GotoPanel) {
+            Tabs.Effect = new BlurEffect { Radius = 5 };
+         }
          element.Arrange(new Rect());
 
-         FocusAnimationElement.Visibility = Visibility.Visible;
-         var widthAnimation = new DoubleAnimation(ContentPanel.ActualWidth, element.ActualWidth, duration);
-         var heightAnimation = new DoubleAnimation(ContentPanel.ActualHeight, element.ActualHeight, duration);
-         heightAnimation.Completed += (sender1, e1) => FocusAnimationElement.Visibility = Visibility.Collapsed;
-
-         FocusAnimationElement.BeginAnimation(WidthProperty, widthAnimation);
-         FocusAnimationElement.BeginAnimation(HeightProperty, heightAnimation);
+         if (element == GotoPanel) {
+            NavigationCommands.NavigateJournal.Execute(GotoBox, this);
+         } else {
+            NavigationCommands.NavigateJournal.Execute(element, this);
+         }
       }
 
       private void ShowThemeSelector(object sender, RoutedEventArgs e) {
@@ -303,9 +313,13 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       }
 
       private void ExecuteAnimation(object sender, ExecutedRoutedEventArgs e) {
-         var duration = TimeSpan.FromSeconds(.3);
+         if (!IsActive) return;
          var element = (FrameworkElement)e.Parameter;
+         Dispatcher.BeginInvoke((Action<FrameworkElement>)DispatchAnimation, DispatcherPriority.ApplicationIdle, element);
+      }
 
+      private void DispatchAnimation(FrameworkElement element) {
+         var duration = TimeSpan.FromSeconds(.3);
          var point = element.TranslatePoint(new System.Windows.Point(), ContentPanel);
 
          FocusAnimationElement.Visibility = Visibility.Visible;

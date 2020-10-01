@@ -530,6 +530,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             viewModel.AllowMultipleElementsPerLine = AllowMultipleElementsPerLine;
             viewModel.StretchData = StretchData;
             viewModel.ValidateMatchedWords();
+            if (content is ViewPort viewPort) {
+               bool anyTabsHaveMatchingViewModel = false;
+               foreach (var tab in tabs) {
+                  if (!(tab is ViewPort vp)) continue;
+                  if (tab == viewPort) continue;
+                  anyTabsHaveMatchingViewModel |= vp.Model == viewPort.Model;
+               }
+               if (!anyTabsHaveMatchingViewModel && !showMessage) gotoViewModel.ControlVisible = true;
+            }
          }
       }
 

@@ -1,7 +1,9 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
 using static HavenSoft.HexManiac.Core.ICommandExtensions;
@@ -9,6 +11,7 @@ using static HavenSoft.HexManiac.Core.ICommandExtensions;
 namespace HavenSoft.HexManiac.Core.ViewModels {
    public class GotoControlViewModel : ViewModelCore {
       private readonly IViewPort viewPort;
+      private bool withinTextChange = false;
 
       #region NotifyProperties
 
@@ -28,20 +31,34 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (viewPort?.Model == null) return;
             if (TryUpdate(ref text, value)) {
                var text = this.text;
-               using (ModelCacheScope.CreateScope(viewPort.Model)) {
-                  var options = new List<string>(viewPort.Model?.GetAutoCompleteAnchorNameOptions(text) ?? new string[0]);
-                  options.AddRange(viewPort.Model?.GetAutoCompleteByteNameOptions(text) ?? new string[0]);
-                  if (!text.Contains("/") && options.Count < PokemonModel.MaxAutoCompleteResults) {
-                     options.AddRange(viewPort.Model?.GetAutoCompleteAnchorNameOptions("/" + text) ?? new string[0]);
+               withinTextChange = true;
+               using (new StubDisposable { Dispose = () => withinTextChange = false }) {
+                  using (ModelCacheScope.CreateScope(viewPort.Model)) {
+                     var options = GetExtendedAutocompleteOptions();
+                     AutoCompleteOptions = AutoCompleteSelectionItem.Generate(options, completionIndex);
+                     ShowAutoCompleteOptions = AutoCompleteOptions.Count > 0;
+                     UpdatePrefixSelectionsAfterTextChange();
                   }
-                  text = text.ToLower();
-                  var bestMatches = options.Where(option => option.ToLower().Contains(text));
-                  options = bestMatches.Concat(options).Distinct().ToList();
-                  AutoCompleteOptions = AutoCompleteSelectionItem.Generate(options, completionIndex);
-                  ShowAutoCompleteOptions = AutoCompleteOptions.Count > 0;
                }
             }
          }
+      }
+
+      /// <summary>
+      /// Returns a list of autocomplete options, based on the current Text.
+      /// If there are very few options and there are no / characters, this also looks for elements with those names.
+      /// This allows the user to get results when searching for "charizard" or "brock"
+      /// </summary>
+      private List<string> GetExtendedAutocompleteOptions() {
+         var options = new List<string>(viewPort.Model?.GetAutoCompleteAnchorNameOptions(text, int.MaxValue) ?? new string[0]);
+         options.AddRange(viewPort.Model?.GetAutoCompleteByteNameOptions(text) ?? new string[0]);
+         if (!text.Contains("/") && options.Count < 30) {
+            options.AddRange(viewPort.Model?.GetAutoCompleteAnchorNameOptions("/" + text) ?? new string[0]);
+         }
+         text = text.ToLower();
+         var bestMatches = options.Where(option => option.ToLower().Contains(text));
+         options = bestMatches.Concat(options).Distinct().ToList();
+         return options;
       }
 
       private int completionIndex = -1;
@@ -81,6 +98,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public event EventHandler MoveFocusToGoto;
 
+      public ObservableCollection<GotoLabelSection> PrefixSelections { get; }
+
       public GotoControlViewModel(ITabContent tabContent) {
          viewPort = (tabContent as IViewPort);
          MoveAutoCompleteSelectionUp = new StubCommand {
@@ -109,6 +128,141 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             CanExecute = arg => viewPort?.Goto != null && arg is bool,
             Execute = arg => ControlVisible = (bool)arg,
          };
+         PrefixSelections = new ObservableCollection<GotoLabelSection>();
+         UpdatePrefixSelectionsAfterTextChange();
+      }
+
+      private void UpdatePrefixSelectionsAfterTextChange() {
+         var previousSelections = GotoLabelSection.GetSectionSelections(PrefixSelections).ToArray();
+         PrefixSelections.Clear();
+         if (viewPort == null || viewPort.Model == null) return;
+         var section = GotoLabelSection.Build(viewPort.Model, Text, PrefixSelections);
+         PrefixSelections.Add(AddListeners(section));
+         for (int i = 0; i < previousSelections.Length; i++) {
+            if (PrefixSelections.Count <= i) break;
+            var matchingToken = PrefixSelections[i].Tokens.FirstOrDefault(token => token.Content == previousSelections[i]);
+            if (matchingToken == null) break;
+            matchingToken.IsSelected = true;
+         }
+      }
+
+      private void UpdatePrefixSelectionsAfterSelectionMade() {
+         var currentSelection = string.Join(".", GotoLabelSection.GetSectionSelections(PrefixSelections));
+         var address = Pointer.NULL;
+         using (ModelCacheScope.CreateScope(viewPort.Model)) {
+            address = viewPort.Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, currentSelection);
+         }
+         if (address != Pointer.NULL && !withinTextChange) {
+            viewPort?.Goto?.Execute(address);
+            ControlVisible = false;
+            ShowAutoCompleteOptions = false;
+            // deselect the last thing so it's not selected next time they bring up the Goto
+            foreach (var token in PrefixSelections.Last().Tokens) token.IsSelected = false;
+         } else if (address != Pointer.NULL) {
+            // we could go to the address, but this is a text change.
+            // The user may try to click the button.
+            // Deselect it.
+            foreach (var token in PrefixSelections.Last().Tokens) token.IsSelected = false;
+         } else {
+            var newSection = GotoLabelSection.Build(viewPort.Model, Text, PrefixSelections);
+            PrefixSelections.Add(AddListeners(newSection));
+         }
+      }
+
+      private GotoLabelSection AddListeners(GotoLabelSection section) {
+         section.ClearLowerRows += (sender, e) => {
+            var index = PrefixSelections.IndexOf(sender);
+            while (index >= 0 && PrefixSelections.Count > index + 1) PrefixSelections.RemoveAt(PrefixSelections.Count - 1);
+         };
+         section.GenerateLowerRow += (sender, e) => {
+            UpdatePrefixSelectionsAfterSelectionMade();
+         };
+         return section;
+      }
+   }
+
+   public class GotoLabelSection : ViewModelCore {
+      private int width, height;
+      public int Width { get => width; set => Set(ref width, value); }
+      public int Height { get => height; set => Set(ref height, value); }
+      public ObservableCollection<GotoToken> Tokens { get; }
+
+      public event EventHandler GenerateLowerRow;
+      public event EventHandler ClearLowerRows;
+
+      public GotoLabelSection(IEnumerable<string> allOptions, IEnumerable<string> previousSectionSelections) {
+         var prefix = string.Join(".", previousSectionSelections);
+         if (prefix.Length > 0) prefix += ".";
+         var thisLevel = new HashSet<string>();
+         foreach (var option in allOptions) {
+            if (option.StartsWith(prefix)) {
+               thisLevel.Add(option.Substring(prefix.Length).Split(".")[0]);
+            }
+         }
+         Tokens = GotoToken.Generate(thisLevel);
+         Initialize();
+      }
+
+      public GotoLabelSection(string prefix, IList<GotoToken> tokens) {
+         Tokens = new ObservableCollection<GotoToken>();
+         foreach (var token in tokens) Tokens.Add(new GotoToken { Content = prefix + "." + token.Content, IsSelected = token.IsSelected });
+         if (tokens.Count == 0) {
+            Tokens.Add(new GotoToken { Content = prefix });
+         }
+         Initialize();
+      }
+
+      private void Initialize() {
+         height = (int)Math.Floor(Math.Sqrt(Tokens.Count));
+         width = (int)Math.Ceiling(Tokens.Count / (double)height);
+         foreach (var token in Tokens) {
+            token.Bind(nameof(GotoToken.IsSelected), (obj, e) => {
+               if (!obj.IsSelected) {
+                  ClearLowerRows?.Invoke(this, EventArgs.Empty);
+               } else {
+                  foreach (var t in Tokens) t.IsSelected = t == token;
+                  GenerateLowerRow?.Invoke(this, EventArgs.Empty);
+               }
+            });
+         }
+      }
+
+      public static IEnumerable<string> GetSectionSelections(IEnumerable<GotoLabelSection> sections) {
+         foreach (var section in sections) {
+            var selectedToken = section.Tokens.FirstOrDefault(token => token.IsSelected);
+            if (selectedToken == null) yield break;
+            yield return selectedToken.Content;
+         }
+      }
+
+      public static GotoLabelSection Build(IDataModel model, string filter, IEnumerable<GotoLabelSection> previousSections) {
+         using (ModelCacheScope.CreateScope(model)) {
+            var allOptions = model.GetAutoCompleteAnchorNameOptions(filter, int.MaxValue);
+            var selections = GetSectionSelections(previousSections).ToList();
+
+            var newSection = new GotoLabelSection(allOptions ?? new string[0], selections);
+            if (newSection.Tokens.Count == 1) {
+               newSection.Tokens[0].IsSelected = true;
+               var child = Build(model, filter, previousSections.Concat(new[] { newSection })); // recursion ftw
+               newSection = new GotoLabelSection(newSection.Tokens[0].Content, child.Tokens);
+            }
+
+            return newSection;
+         }
+      }
+   }
+
+   public class GotoToken : ViewModelCore {
+      private bool isSelected;
+      public bool IsSelected { get => isSelected; set => Set(ref isSelected, value); }
+
+      private string content;
+      public string Content { get => content; set => Set(ref content, value); }
+
+      public static ObservableCollection<GotoToken> Generate(IEnumerable<string> content) {
+         var collection = new ObservableCollection<GotoToken>();
+         foreach (var c in content) collection.Add(new GotoToken { Content = c });
+         return collection;
       }
    }
 }
