@@ -131,6 +131,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void UpdatePrefixSelectionsAfterSelectionMade() {
          var currentSelection = string.Join(".", GotoLabelSection.GetSectionSelections(PrefixSelections));
          var address = Pointer.NULL;
+         var matchedWords = viewPort.Model.GetMatchedWords(currentSelection);
+         if (matchedWords.Count > 0) {
+            viewPort?.Goto?.Execute(currentSelection);
+            ControlVisible = false;
+            ShowAutoCompleteOptions = false;
+            DeselectLastRow();
+            return;
+         }
+
          using (ModelCacheScope.CreateScope(viewPort.Model)) {
             address = viewPort.Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, currentSelection);
          }
@@ -138,17 +147,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             viewPort?.Goto?.Execute(address);
             ControlVisible = false;
             ShowAutoCompleteOptions = false;
-            // deselect the last thing so it's not selected next time they bring up the Goto
-            foreach (var token in PrefixSelections.Last().Tokens) token.IsSelected = false;
+            DeselectLastRow();
          } else if (address != Pointer.NULL) {
             // we could go to the address, but this is a text change.
             // The user may try to click the button.
             // Deselect it.
-            foreach (var token in PrefixSelections.Last().Tokens) token.IsSelected = false;
+            DeselectLastRow();
          } else {
             var newSection = GotoLabelSection.Build(viewPort.Model, Text, PrefixSelections);
             PrefixSelections.Add(AddListeners(newSection));
          }
+      }
+
+      private void DeselectLastRow() {
+         foreach (var token in PrefixSelections.Last().Tokens) token.IsSelected = false;
       }
 
       private GotoLabelSection AddListeners(GotoLabelSection section) {
