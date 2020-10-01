@@ -66,8 +66,8 @@ data.pokemon.moves.tms,                06F038, 06F03C, 06F058, 06F05C, 125A8C, 1
 data.pokemon.moves.tmcompatibility,    0403B0, 0403B0, 0403D0, 0403D0, 043C68, 043C68, 043C7C, 043C7C, 06E048, [moves|b[]data.pokemon.moves.tms]data.pokemon.names
 data.pokemon.moves.hms,                040A24, 040A24, 040A44, 040A44, 0441DC, 0441DC, 0441F0, 0441F0, 06E828, [move:data.moves.names]8
 data.trainers.stats,                   00D890, 00D890, 00D890, 00D890, 00FC00, 00FC00, 00FC14, 00FC14, 03587C, [structType.trainerStructType class.data.trainers.classes.names introMusic. sprite.graphics.trainers.sprites.front name""12 item1:data.items.stats item2:data.items.stats item3:data.items.stats item4:data.items.stats doubleBattle:: ai|b[]traineraibits pokemonCount:: pokemon<`tpt`>]
-data.trainer.money,                    024120, 024120, 024120, 024120, 0259CC, 0259CC, 0259E0, 0259E0, 04E6A8, [class.data.trainers.classes.names moneyrate. unused:]!FF050000
-data.trainer.vsseeker,                       ,       ,       ,       , 10C7EC, 10C7C4, 10C864, 10C83C,       , [match1:data.trainers.stats match2:data.trainers.stats match3:data.trainers.stats match4:data.trainers.stats match5:data.trainers.stats match6:data.trainers.stats mapbank: map:]221
+data.trainers.money,                    024120, 024120, 024120, 024120, 0259CC, 0259CC, 0259E0, 0259E0, 04E6A8, [class.data.trainers.classes.names moneyrate. unused:]!FF050000
+data.trainers.vsseeker,                       ,       ,       ,       , 10C7EC, 10C7C4, 10C864, 10C83C,       , [match1:data.trainers.stats match2:data.trainers.stats match3:data.trainers.stats match4:data.trainers.stats match5:data.trainers.stats match6:data.trainers.stats mapbank: map:]221
 data.decorations.stats,                0B3AC8, 0B3AC8, 0B3AE8, 0B3AE8, 00014C, 00014C, 00014C, 00014C, 00014C, [id. name""16 permission.decorpermissions shape.decorshape category.decorcategory price:: description<""> graphics<>]
 data.pokemon.wild,                     084D9C, 084D9C, 084DBC, 084DBC, 082990, 082964, 0829A4, 082978, 0B4D48, [bank. map. unused: grass<[rate:: list<[low. high. species:data.pokemon.names]12>]1> surf<[rate:: list<[low. high. species:data.pokemon.names]5>]1> tree<[rate:: list<[low. high. species:data.pokemon.names]5>]1> fish<[rate:: list<[low. high. species:data.pokemon.names]10>]1>]
 data.pokemon.trades,                   04D8D4, 04D8D4, 04D8F4, 04D8F4,       ,       ,       ,       ,       , [nickname""12 receive:data.pokemon.names hp attack defense speed spatk spdef abilitynum:: trainerid:: cool. tough. beauty. smart. cute. unused. unused: personality:: helditem:data.items.stats mailnum. trainername""11 trainergender. sheen. give::data.pokemon.names]3
@@ -240,19 +240,19 @@ graphics.credits.trainer.rival.palette,               ,,,,               0F4ADC,
 graphics.credits.trainer.male.sprite,                 ,,,,               0F4A10, 0F49E8, 0F4A88, 0F4A60, , `lzs4x8x8|graphics.credits.trainer.male.palette`
 graphics.credits.trainer.female.sprite,               ,,,,               0F4A44, 0F4A1C, 0F4ABC, 0F4A94, , `lzs4x8x8|graphics.credits.trainer.female.palette`
 graphics.credits.trainer.rival.sprite,                ,,,,               0F4AD8, 0F4AB0, 0F4B50, 0F4B28, , `lzs4x8x8|graphics.credits.trainer.rival.palette`
-graphics.trainer.card.palette,                        ,,,,               3CD8CC, 3CD708, 3CD93C, 3CD778, , `ucp4:012`
-graphics.trainer.card.badges.sprite,                  ,,,,               089530, 089504, 089544, 089518, , `lzs4x16x2`
-graphics.trainer.card.stickers.sprite,                ,,,,               089594, 089568, 0895A8, 08957C, , `lzs4x2x8`
-graphics.trainer.card.tileset,                        ,,,,               089568, 08953C, 08957C, 089550, , `lzt4|graphics.trainer.card.palette`
-graphics.trainer.card.tileset2,                       ,,,,               089558, 08952C, 08956C, 089540, , `lzt4|graphics.trainer.card.palette`
-graphics.trainer.card.front.tilemap,                  ,,,,               0894F4, 0894C8, 089508, 0894DC, , `lzm4x30x20|graphics.trainer.card.tileset`
-graphics.trainer.card.front.nobadges.tilemap,         ,,,,               08951C, 0894F0, 089530, 089504, , `lzm4x30x20|graphics.trainer.card.tileset`
-graphics.trainer.card.front.unknown.tilemap,          ,,,,               0894E8, 0894BC, 0894FC, 0894D0, , `lzm4x30x20|graphics.trainer.card.tileset2`
-graphics.trainer.card.front.unknown.nobadges.tilemap, ,,,,               089510, 0894E4, 089524, 0894F8, , `lzm4x30x20|graphics.trainer.card.tileset2`
-graphics.trainer.card.back.tilemap,                   ,,,,               0894BC, 089490, 0894D0, 0894A4, , `lzm4x30x20|graphics.trainer.card.tileset`
-graphics.trainer.card.back.unknown.tilemap,           ,,,,               0894AC, 089480, 0894C0, 089494, , `lzm4x30x20|graphics.trainer.card.tileset2`
-graphics.trainer.card.background.tilemap,             ,,,,               089488, 08945C, 08949C, 089470, , `lzm4x30x20|graphics.trainer.card.tileset`
-graphics.trainer.card.background.tilemap2,            ,,,,               089478, 08944C, 08948C, 089460, , `lzm4x30x20|graphics.trainer.card.tileset2`
+graphics.trainercard.palette,                        ,,,,               3CD8CC, 3CD708, 3CD93C, 3CD778, , `ucp4:012`
+graphics.trainercard.badges.sprite,                  ,,,,               089530, 089504, 089544, 089518, , `lzs4x16x2`
+graphics.trainercard.stickers.sprite,                ,,,,               089594, 089568, 0895A8, 08957C, , `lzs4x2x8`
+graphics.trainercard.tileset,                        ,,,,               089568, 08953C, 08957C, 089550, , `lzt4|graphics.trainercard.palette`
+graphics.trainercard.tileset2,                       ,,,,               089558, 08952C, 08956C, 089540, , `lzt4|graphics.trainercard.palette`
+graphics.trainercard.front.tilemap,                  ,,,,               0894F4, 0894C8, 089508, 0894DC, , `lzm4x30x20|graphics.trainercard.tileset`
+graphics.trainercard.front.nobadges.tilemap,         ,,,,               08951C, 0894F0, 089530, 089504, , `lzm4x30x20|graphics.trainercard.tileset`
+graphics.trainercard.front.unknown.tilemap,          ,,,,               0894E8, 0894BC, 0894FC, 0894D0, , `lzm4x30x20|graphics.trainercard.tileset2`
+graphics.trainercard.front.unknown.nobadges.tilemap, ,,,,               089510, 0894E4, 089524, 0894F8, , `lzm4x30x20|graphics.trainercard.tileset2`
+graphics.trainercard.back.tilemap,                   ,,,,               0894BC, 089490, 0894D0, 0894A4, , `lzm4x30x20|graphics.trainercard.tileset`
+graphics.trainercard.back.unknown.tilemap,           ,,,,               0894AC, 089480, 0894C0, 089494, , `lzm4x30x20|graphics.trainercard.tileset2`
+graphics.trainercard.background.tilemap,             ,,,,               089488, 08945C, 08949C, 089470, , `lzm4x30x20|graphics.trainercard.tileset`
+graphics.trainercard.background.tilemap2,            ,,,,               089478, 08944C, 08948C, 089460, , `lzm4x30x20|graphics.trainercard.tileset2`
 
 graphics.overworld.palettes,           05BE20, 05BE24, 05BE40, 05BE44, 05F4D8, 05F4D8, 05F4EC, 05F4EC, 08E8BC, [pal<`ucp4`> id:|h unused:]!0000000000000000
 graphics.overworld.sprites,            05BC3C, 05BC40, 05BC5C, 05BC60,       ,       ,       ,       ,       , [data<[starterbytes:|h paletteid:|h secondid:|h length: width: height: slot.|h footprint.owfootprints unused: distribution<> sizedraw<> animation<> sprites<`osl`> ramstore<>]1>]218

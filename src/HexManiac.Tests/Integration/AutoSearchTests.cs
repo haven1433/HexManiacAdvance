@@ -575,7 +575,7 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void TrainerPayoutsAreFound(string game) {
          var model = fixture.LoadModel(game);
-         var address = model.GetAddressFromAnchor(noChange, -1, "data.trainer.money");
+         var address = model.GetAddressFromAnchor(noChange, -1, "data.trainers.money");
          var run = model.GetNextRun(address) as ITableRun;
          var trainerClassesTable = model.GetTable(TrainerClassNamesTable);
 
