@@ -643,7 +643,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var tiles = Tilize(image, spriteRun.SpriteFormat.TileWidth * 8);
          var expectedPalettePages = paletteRun?.Pages ?? 1;
          if (spriteRun.Pages == expectedPalettePages) expectedPalettePages = 1; // handle the Castform case
-         var palettes = DiscoverPalettes(tiles, paletteRun?.PaletteFormat.Bits ?? 1, expectedPalettePages);
+         var palettes = paletteRun?.Pages.Range().Select(i => paletteRun.GetPalette(model, i)).ToArray();
+         palettes = DiscoverPalettes(tiles, paletteRun?.PaletteFormat.Bits ?? 1, expectedPalettePages, palettes);
          var indexedTiles = new int[tiles.Length][,];
          for (int i = 0; i < indexedTiles.Length; i++) indexedTiles[i] = Index(tiles[i], palettes, spriteRun.SpriteFormat.BitsPerPixel, paletteRun?.PaletteFormat.InitialBlankPages ?? 0);
          var sprite = Detilize(indexedTiles, spriteRun.SpriteFormat.TileWidth);
@@ -722,7 +723,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          // part 2: build palettes for the new tiles
          var expectedPalettePages = paletteRun.Pages;
          if (spriteRun.Pages == paletteRun.Pages) expectedPalettePages = 1; // handle the Castfrom case
-         var newPalettes = DiscoverPalettes(tiles, bits, palettes.Length);
+         var newPalettes = DiscoverPalettes(tiles, bits, palettes.Length, palettes);
          var indexedTiles = new int[tiles.Length][,];
          for (int i = 0; i < indexedTiles.Length; i++) indexedTiles[i] = Index(tiles[i], newPalettes, spriteRun.SpriteFormat.BitsPerPixel, initialBlankPages);
          var spriteData = Detilize(indexedTiles, spriteRun.SpriteFormat.TileWidth);
@@ -769,9 +770,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          ExplainMoves(spriteRun, currentSpriteRun, paletteRun, newPalette);
       }
 
-      private IReadOnlyList<short>[] DiscoverPalettes(short[][] tiles, int bitness, int paletteCount) {
+      private IReadOnlyList<short>[] DiscoverPalettes(short[][] tiles, int bitness, int paletteCount, IReadOnlyList<short>[] existingPalettes) {
          if (bitness == 1) return new[] { new short[] { 0, 0b11111_11111_11111 } };
          var targetColors = (int)Math.Pow(2, bitness);
+
+         // special case: we don't need to run palette discovery if the existing palette works
+         bool allTilesFitExistingPalettes = true;
+         foreach (var tile in tiles) {
+            if (existingPalettes?.Any(pal => tile.All(pal.Contains)) ?? false) continue;
+            allTilesFitExistingPalettes = false;
+         }
+         if (allTilesFitExistingPalettes && paletteCount == existingPalettes.Length) return existingPalettes;
+
          var palettes = new WeightedPalette[paletteCount];
          for (int i = 0; i < paletteCount; i++) palettes[i] = WeightedPalette.Reduce(tiles[i], targetColors);
          for (int i = paletteCount; i < tiles.Length; i++) {
