@@ -186,43 +186,6 @@
                   <MenuItem Header="_About" Click="AboutClick"/>
                </MenuItem>
             </Menu>
-            <!-- Goto -->
-            <!--
-            <StackPanel Name="GotoPanel" Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}">
-               <TextBlock Text="Goto :" Margin="10,0" />
-               <TextBox Name="GotoBox" Text="{Binding GotoViewModel.Text, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" IsVisibleChanged="EditBoxVisibilityChanged">
-                  <TextBox.InputBindings>
-                     <KeyBinding Key="Esc" Command="{Binding GotoViewModel.ShowGoto}">
-                        <KeyBinding.CommandParameter>
-                           <sys:Boolean>false</sys:Boolean>
-                        </KeyBinding.CommandParameter>
-                     </KeyBinding>
-                     <KeyBinding Key="Up" Command="{Binding GotoViewModel.MoveAutoCompleteSelectionUp}"/>
-                     <KeyBinding Key="Down" Command="{Binding GotoViewModel.MoveAutoCompleteSelectionDown}"/>
-                     <KeyBinding Key="Return" Command="{Binding GotoViewModel.Goto}"/>
-                  </TextBox.InputBindings>
-               </TextBox>
-               <Popup IsOpen="{Binding GotoViewModel.ShowAutoCompleteOptions}" PlacementTarget="{Binding ElementName=GotoBox}">
-                  <ItemsControl ItemsSource="{Binding GotoViewModel.AutoCompleteOptions}" Background="{DynamicResource Backlight}">
-                     <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                           <Button Content="{Binding CompletionText}" Command="{Binding ElementName=GotoBox, Path=DataContext.GotoViewModel.Goto}" CommandParameter="{Binding CompletionText}">
-                              <Button.Style>
-                                 <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                                    <Style.Triggers>
-                                       <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                          <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
-                                       </DataTrigger>
-                                    </Style.Triggers>
-                                 </Style>
-                              </Button.Style>
-                           </Button>
-                        </DataTemplate>
-                     </ItemsControl.ItemTemplate>
-                  </ItemsControl>
-               </Popup>
-            </StackPanel>
-            -->
             <!-- Find -->
             <StackPanel Name="FindPanel" Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding FindControlVisible, Converter={StaticResource BoolToVisibility}}">
                <TextBlock Text="Find :" Margin="10,0" />
@@ -354,7 +317,6 @@
                   </DataTemplate>
                </TabControl.ContentTemplate>
             </TabControl>
-            <!---->
             <Rectangle Fill="{DynamicResource Background}" Opacity="0" Name="GotoBackground" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}"/>
             <ScrollViewer Name="GotoPanel" VerticalScrollBarVisibility="Auto" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}">
                <Grid>
@@ -465,7 +427,6 @@
                   </ItemsControl>
                </Grid>
             </ScrollViewer>
-            <!---->
          </Grid>
       </DockPanel>
       <Rectangle Name="FocusAnimationElement" StrokeThickness="2" Stroke="{DynamicResource Accent}" Visibility="Visible" HorizontalAlignment="Right" VerticalAlignment="Top"/>
