@@ -64,6 +64,23 @@ namespace HavenSoft.HexManiac.Tests {
          editor = new ImageEditorViewModel(history, model, 0);
       }
 
+      private void Create2PageCompressedSprite() {
+         // header: 10 40 00 00
+         // body: 0b00111000 00 00 1F0 1F0 1F0 00 00 00
+         //       0x00       00 00 00 00 00
+
+         model.WriteValue(history.CurrentChange, 0, 0x4010);
+         model[4] = 0b00111000;
+         model.WriteMultiByteValue(7, 2, history.CurrentChange, 0x1F0);
+         model.WriteMultiByteValue(9, 2, history.CurrentChange, 0x1F0);
+         model.WriteMultiByteValue(11, 2, history.CurrentChange, 0x1F0);
+
+         var sprite = new LzSpriteRun(new SpriteFormat(4, 1, 1, "palette"), model, 0, new SortedSpan<int>(0x80));
+         model.ObserveAnchorWritten(history.CurrentChange, "sprite", sprite);
+
+         editor.Refresh();
+      }
+
       [Fact]
       public void Palette_Default_NoColorsSelected() {
          Assert.Empty(editor.Palette.Elements.Where(sc => sc.Selected));
@@ -637,6 +654,19 @@ namespace HavenSoft.HexManiac.Tests {
          editor.Hover(1, 1);
 
          Assert.True(editor.ShowSelectionRect(5, 5));
+      }
+
+      [Fact]
+      public void TwoPageSprite_RequestSecondPage_EditsSecondPage() {
+         Create2PageCompressedSprite();
+         editor.SpritePage = 1;
+         editor.Palette.Elements[1].Color = White;
+         editor.Palette.SelectionStart = 1;
+
+         ToolMove(new Point(-4, -4));
+
+         var decompress = LZRun.Decompress(model, 0);
+         Assert.Equal(1, decompress[0x20] & 0xF);
       }
    }
 }

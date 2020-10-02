@@ -384,7 +384,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ICommand NextPalettePage => nextPalPage;
 
       private StubCommand openInImageTab;
-      public ICommand OpenInImageTab => StubCommand(ref openInImageTab, () => viewPort.OpenImageEditorTab(spriteAddress), () => {
+      public ICommand OpenInImageTab => StubCommand(ref openInImageTab, () => viewPort.OpenImageEditorTab(spriteAddress, spritePage, palPage), () => {
          if (model.GetNextRun(spriteAddress) is ISpriteRun spriteRun && !spriteRun.SupportsEdit) return false;
          return exportPair.CanExecute(null);
       });

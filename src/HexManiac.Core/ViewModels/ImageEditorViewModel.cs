@@ -71,6 +71,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #endregion
 
+      #region Pages
+      private int spritePage;
+      public int SpritePage { get => spritePage; set => Set(ref spritePage, value, _ => Refresh()); }
+      #endregion
+
       private IImageToolStrategy toolStrategy;
       private EyeDropperTool eyeDropperStrategy; // stored separately because of right-click
       private PanTool panStrategy; // stored separately because of center-click
@@ -242,7 +247,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void Refresh() {
          var spriteAddress = model.ReadPointer(SpritePointer);
          var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
-         pixels = spriteRun.GetPixels(model, 0);
+         pixels = spriteRun.GetPixels(model, SpritePage);
          Render();
          RefreshPaletteColors();
       }
@@ -299,7 +304,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void UpdateSpriteModel() {
          var spriteAddress = model.ReadPointer(SpritePointer);
          var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
-         spriteRun.SetPixels(model, history.CurrentChange, 0, pixels);
+         spriteRun.SetPixels(model, history.CurrentChange, SpritePage, pixels);
       }
 
       private void UpdateSelectionFromPaletteHover(PaletteCollection sender, PropertyChangedEventArgs e) {

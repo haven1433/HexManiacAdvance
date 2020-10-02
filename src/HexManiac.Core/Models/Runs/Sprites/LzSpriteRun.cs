@@ -18,7 +18,6 @@
 
       public LzSpriteRun(SpriteFormat spriteFormat, IDataModel data, int start, SortedSpan<int> sources = null)
          : base(data, start, spriteFormat.AllowLengthErrors, sources) {
-         if (start== 0xB9E8C4) { }
          SpriteFormat = spriteFormat;
          if (spriteFormat.ExpectedByteLength > DecompressedLength) InvalidateLength();
          var hintContent = string.Empty;

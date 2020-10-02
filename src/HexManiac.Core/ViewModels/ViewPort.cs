@@ -1561,8 +1561,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          RequestTabChange(this, newTab);
       }
 
-      public void OpenImageEditorTab(int address) {
-         var newTab = new  ImageEditorViewModel(history, Model, address);
+      public void OpenImageEditorTab(int address, int spritePage, int palettePage) {
+         var newTab = new ImageEditorViewModel(history, Model, address) { SpritePage = spritePage };
          RequestTabChange(this, newTab);
       }
 
