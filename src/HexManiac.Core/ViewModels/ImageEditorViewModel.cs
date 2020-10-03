@@ -72,8 +72,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       #endregion
 
       #region Pages
-      private int spritePage;
+      private int spritePage, palettePage;
       public int SpritePage { get => spritePage; set => Set(ref spritePage, value, _ => Refresh()); }
+      public int PalettePage { get => palettePage; set => Set(ref palettePage, value, _ => Refresh()); }
       #endregion
 
       private IImageToolStrategy toolStrategy;
@@ -266,7 +267,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void RefreshPaletteColors() {
          var paletteAddress = model.ReadPointer(PalettePointer);
          var palRun = (IPaletteRun)model.GetNextRun(paletteAddress);
-         Palette.SetContents(palRun.GetPalette(model, 0));
+         Palette.SetContents(palRun.GetPalette(model, palettePage));
          foreach (var e in Palette.Elements) {
             e.PropertyChanged += (sender, args) => {
                var sc = (SelectableColor)sender;
@@ -279,6 +280,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      if (CursorSize == 0) CursorSize = 1;
                      break;
                   case nameof(sc.Color):
+                     Palette.Page = palettePage;
                      Palette.PushColorsToModel(); // this causes a Render
                      break;
                }
@@ -297,7 +299,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          PixelWidth = spriteRun.SpriteFormat.TileWidth * 8;
          PixelHeight = spriteRun.SpriteFormat.TileHeight * 8;
-         PixelData = SpriteTool.Render(pixels, palRun.AllColors(model), palRun.PaletteFormat.InitialBlankPages, 0);
+         PixelData = SpriteTool.Render(pixels, palRun.AllColors(model), palRun.PaletteFormat.InitialBlankPages, palettePage);
          NotifyPropertyChanged(nameof(PixelData));
       }
 

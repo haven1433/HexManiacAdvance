@@ -443,17 +443,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          LoadPalette();
       }
 
-      public static short[] Render(int[,] pixels, IReadOnlyList<short> palette, int initialBlankPages, int spritePage) {
+      public static short[] Render(int[,] pixels, IReadOnlyList<short> palette, int initialBlankPages, int palettePage) {
          if (pixels == null) return new short[0];
          if (palette == null || palette.Count == 0) palette = TileViewModel.CreateDefaultPalette(16);
          var data = new short[pixels.Length];
          var width = pixels.GetLength(0);
-         var palettePageOffset = initialBlankPages << 4;
-         var spritePageOffset = (spritePage << 4) + palettePageOffset;
+         var initialPageOffset = initialBlankPages << 4;
+         var palettePageOffset = (palettePage << 4) + initialPageOffset;
          for (int i = 0; i < data.Length; i++) {
             var pixel = pixels[i % width, i / width];
-            while (pixel < spritePageOffset) pixel += spritePageOffset;
-            var pixelIntoPalette = Math.Max(0, pixel - palettePageOffset);
+            while (pixel < palettePageOffset) pixel += palettePageOffset;
+            var pixelIntoPalette = Math.Max(0, pixel - initialPageOffset);
             data[i] = palette[pixelIntoPalette % palette.Count];
          }
          return data;

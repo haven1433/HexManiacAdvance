@@ -45,17 +45,19 @@ namespace HavenSoft.HexManiac.Tests {
       private static readonly short Red = Rgb(31, 0, 0);
       private static readonly short Blue = Rgb(0, 0, 31);
 
+      private static readonly int SpriteStart = 0x00;
+      private static readonly int PaletteStart = 0x40;
       public ImageEditorTests() {
          model = new PokemonModel(new byte[0x200], singletons: BaseViewModelTestClass.Singletons);
          history = new ChangeHistory<ModelDelta>(RevertHistoryChange);
 
-         model.WritePointer(history.CurrentChange, 0x80, 0);
-         model.WritePointer(history.CurrentChange, 0x88, 0x40);
+         model.WritePointer(history.CurrentChange, 0x80, SpriteStart);
+         model.WritePointer(history.CurrentChange, 0x88, PaletteStart);
 
-         var sprite = new SpriteRun(0, new SpriteFormat(4, 1, 1, "palette"), new SortedSpan<int>(0x80));
+         var sprite = new SpriteRun(SpriteStart, new SpriteFormat(4, 1, 1, "palette"), new SortedSpan<int>(0x80));
          model.ObserveAnchorWritten(history.CurrentChange, "sprite", sprite);
 
-         var palette = new PaletteRun(0x40, new PaletteFormat(4, 1), new SortedSpan<int>(0x88));
+         var palette = new PaletteRun(PaletteStart, new PaletteFormat(4, 1), new SortedSpan<int>(0x88));
          model.ObserveAnchorWritten(history.CurrentChange, "palette", palette);
 
          model[0x20] = 0x23; // random data after the sprite, so expanding it causes a repoint
@@ -64,19 +66,31 @@ namespace HavenSoft.HexManiac.Tests {
          editor = new ImageEditorViewModel(history, model, 0);
       }
 
-      private void Create2PageCompressedSprite() {
+      private void Insert64CompressedBytes(int start) {
          // header: 10 40 00 00
          // body: 0b00111000 00 00 1F0 1F0 1F0 00 00 00
          //       0x00       00 00 00 00 00
+         model.WriteValue(history.CurrentChange, start, 0x4010);
+         model[start + 4] = 0b00111000;
+         model.WriteMultiByteValue(start + 7, 2, history.CurrentChange, 0x1F0);
+         model.WriteMultiByteValue(start + 9, 2, history.CurrentChange, 0x1F0);
+         model.WriteMultiByteValue(start + 11, 2, history.CurrentChange, 0x1F0);
+      }
 
-         model.WriteValue(history.CurrentChange, 0, 0x4010);
-         model[4] = 0b00111000;
-         model.WriteMultiByteValue(7, 2, history.CurrentChange, 0x1F0);
-         model.WriteMultiByteValue(9, 2, history.CurrentChange, 0x1F0);
-         model.WriteMultiByteValue(11, 2, history.CurrentChange, 0x1F0);
+      private void Create2PageCompressedSprite() {
+         Insert64CompressedBytes(SpriteStart);
 
-         var sprite = new LzSpriteRun(new SpriteFormat(4, 1, 1, "palette"), model, 0, new SortedSpan<int>(0x80));
+         var sprite = new LzSpriteRun(new SpriteFormat(4, 1, 1, "palette"), model, SpriteStart, new SortedSpan<int>(0x80));
          model.ObserveAnchorWritten(history.CurrentChange, "sprite", sprite);
+
+         editor.Refresh();
+      }
+
+      private void Create2PageCompressedPalette() {
+         Insert64CompressedBytes(PaletteStart);
+
+         var pal = new LzPaletteRun(new PaletteFormat(4, 2), model, PaletteStart, new SortedSpan<int>(0x88));
+         model.ObserveAnchorWritten(history.CurrentChange, "palette", pal);
 
          editor.Refresh();
       }
@@ -107,8 +121,8 @@ namespace HavenSoft.HexManiac.Tests {
          ToolMove(new Point());
 
          Assert.Equal((31, 31, 31), Rgb(GetPixel(4, 4)));
-         Assert.Equal(1, ((ISpriteRun)model.GetNextRun(0)).GetPixels(model, 0)[4, 4]);
-         Assert.Equal(Rgb(31, 31, 31), ((IPaletteRun)model.GetNextRun(0x40)).GetPalette(model, 0)[1]);
+         Assert.Equal(1, ((ISpriteRun)model.GetNextRun(SpriteStart)).GetPixels(model, 0)[4, 4]);
+         Assert.Equal(Rgb(31, 31, 31), ((IPaletteRun)model.GetNextRun(PaletteStart)).GetPalette(model, 0)[1]);
          Assert.Equal(1, notifyPixelData);
       }
 
@@ -667,6 +681,17 @@ namespace HavenSoft.HexManiac.Tests {
 
          var decompress = LZRun.Decompress(model, 0);
          Assert.Equal(1, decompress[0x20] & 0xF);
+      }
+
+      [Fact]
+      public void TwoPagePalette_RequestSecondPalette_EditsSecondPage() {
+         Create2PageCompressedPalette();
+         editor.PalettePage = 1;
+
+         editor.Palette.Elements[0].Color = White;
+
+         var decompress = LZRun.Decompress(model, PaletteStart);
+         Assert.Equal(White, decompress.ReadMultiByteValue(0x20, 2));
       }
    }
 }

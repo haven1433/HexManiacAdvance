@@ -1562,7 +1562,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void OpenImageEditorTab(int address, int spritePage, int palettePage) {
-         var newTab = new ImageEditorViewModel(history, Model, address) { SpritePage = spritePage };
+         var newTab = new ImageEditorViewModel(history, Model, address) {
+            SpritePage = spritePage,
+            PalettePage = palettePage,
+         };
          RequestTabChange(this, newTab);
       }
 
