@@ -39,16 +39,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var destination = ViewPort.Model.ReadPointer(Start);
          var run = ViewPort.Model.GetNextRun(destination) as ISpriteRun;
          PaletteSelection.Clear();
+         var index = 0;
          foreach (var palette in run.FindRelatedPalettes(ViewPort.Model)) {
             var name = ViewPort.BuildElementName(ViewPort.Model, palette.Start);
-            var ps = new PaletteSelection { Name = name, Selected = PaletteSelection.Count == currentPalette };
-            ps.Bind(nameof(ps.Selected), (o, e) => { if (o.Selected) CurrentPalette = PaletteSelection.IndexOf(o); });
+            var ps = new SelectionViewModel { Name = name, Selected = PaletteSelection.Count == currentPalette, Index = index };
+            ps.Bind(nameof(ps.Selected), (o, e) => { if (o.Selected) CurrentPalette = o.Index; });
             PaletteSelection.Add(ps);
+            index += 1;
          }
          MaxPalette = PaletteSelection.Count - 1;
       }
 
-      public ObservableCollection<PaletteSelection> PaletteSelection { get; } = new ObservableCollection<PaletteSelection>(); // TODO when the UI changes the palette selection, update the CurrentPalette value
+      public ObservableCollection<SelectionViewModel> PaletteSelection { get; } = new ObservableCollection<SelectionViewModel>();
       private void UpdatePaletteSelection() {
          for (int i = 0; i <= MaxPalette; i++) PaletteSelection[i].Selected = i == currentPalette;
       }
@@ -207,13 +209,5 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
          return palette;
       }
-   }
-
-   public class PaletteSelection : ViewModelCore {
-      private bool selected;
-      public bool Selected { get => selected; set => Set(ref selected, value); }
-
-      private string name;
-      public string Name { get => name; set => Set(ref name, value); }
    }
 }

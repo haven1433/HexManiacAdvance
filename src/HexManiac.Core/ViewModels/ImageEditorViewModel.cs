@@ -4,6 +4,7 @@ using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -75,6 +76,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private int spritePage, palettePage;
       public int SpritePage { get => spritePage; set => Set(ref spritePage, value, _ => Refresh()); }
       public int PalettePage { get => palettePage; set => Set(ref palettePage, value, _ => Refresh()); }
+      public int SpritePages => SpritePageOptions.Count;
+      public int PalettePages => PalettePageOptions.Count;
+      public ObservableCollection<SelectionViewModel> SpritePageOptions { get; } = new ObservableCollection<SelectionViewModel>();
+      public ObservableCollection<SelectionViewModel> PalettePageOptions { get; } = new ObservableCollection<SelectionViewModel>();
+      private void SetupPageOptions() {
+         int spritePages = ((ISpriteRun)model.GetNextRun(model.ReadPointer(SpritePointer))).Pages;
+         SpritePageOptions.Clear();
+         for (int i = 0; i < spritePages; i++) {
+            var option = new SelectionViewModel { Selected = i == spritePage, Name = i.ToString(), Index = i };
+            option.Bind(nameof(option.Selected), (sender, e) => { if (sender.Selected) SpritePage = sender.Index; });
+            SpritePageOptions.Add(option);
+         }
+         NotifyPropertyChanged(nameof(SpritePages));
+
+         int palPages = ((IPaletteRun)model.GetNextRun(model.ReadPointer(PalettePointer))).Pages;
+         PalettePageOptions.Clear();
+         for (int i = 0; i < palPages; i++) {
+            var option = new SelectionViewModel { Selected = i == palettePage, Name = i.ToString(), Index = i };
+            option.Bind(nameof(option.Selected), (sender, e) => { if (sender.Selected) PalettePage = sender.Index; });
+            PalettePageOptions.Add(option);
+         }
+         NotifyPropertyChanged(nameof(PalettePages));
+      }
       #endregion
 
       private IImageToolStrategy toolStrategy;
@@ -150,6 +174,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Refresh();
          selectedPixels = new bool[PixelWidth, PixelHeight];
          BlockPreview = new BlockPreview();
+         SetupPageOptions();
       }
 
       // convenience methods
@@ -251,6 +276,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          pixels = spriteRun.GetPixels(model, SpritePage);
          Render();
          RefreshPaletteColors();
+         SetupPageOptions();
       }
 
       public int PixelIndex(int x, int y) => PixelIndex(new Point(x, y));

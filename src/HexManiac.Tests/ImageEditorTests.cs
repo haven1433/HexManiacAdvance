@@ -693,5 +693,26 @@ namespace HavenSoft.HexManiac.Tests {
          var decompress = LZRun.Decompress(model, PaletteStart);
          Assert.Equal(White, decompress.ReadMultiByteValue(0x20, 2));
       }
+
+      [Fact]
+      public void TwoPageContent_CheckPageCount_ReturnsTwo() {
+         Create2PageCompressedSprite();
+         Create2PageCompressedPalette();
+
+         Assert.Equal(2, editor.SpritePages);
+         Assert.Equal(2, editor.PalettePages);
+      }
+
+      [Fact]
+      public void TwoPageContent_SwitchPageCommand_SwitchPages() {
+         Create2PageCompressedSprite();
+         Create2PageCompressedPalette();
+
+         editor.SpritePageOptions[1].Selected = true;
+         editor.PalettePageOptions[1].Selected = true;
+
+         Assert.Equal(1, editor.SpritePage);
+         Assert.Equal(1, editor.PalettePage);
+      }
    }
 }
