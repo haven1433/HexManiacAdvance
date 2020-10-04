@@ -93,10 +93,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
     lsl   r0, r0, #9
     cmp   r1, r0
 ".Split(Environment.NewLine)).ToArray();
+         int limiterCount = 0;
          foreach (var limiter in model.Find(limiterCode)) {
             for (int i = 0; i < changedCodeForPpPointer.Length; i++) {
                token.ChangeData(model, limiter + i, newLimiterCode[i]);
             }
+            limiterCount += 1;
+            viewPort.Goto.Execute(limiter);
          }
 
          // update PP pointers
@@ -106,7 +109,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
             model.ObserveRunWritten(token, new PointerRun(source));
          }
 
-         return ErrorInfo.NoError;
+         return new ErrorInfo($"Update {sourcesToPP.Count} PP pointers and {limiterCount} limiters.", isWarningLevel: true);
       }
 
       public void TabChanged() => CanRunChanged?.Invoke(this, EventArgs.Empty);

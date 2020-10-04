@@ -542,7 +542,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          // run the actual quick-edit
          var error = expandMoves.Run(viewPort);
-         Assert.Equal(ErrorInfo.NoError, error);
+         Assert.True(error.IsWarning);
 
          // verify we can't run it again
          Assert.False(expandMoves.CanRun(viewPort));
