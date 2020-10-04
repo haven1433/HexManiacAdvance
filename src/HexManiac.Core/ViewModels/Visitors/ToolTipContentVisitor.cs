@@ -37,6 +37,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          } else if (destinationRun is IPaletteRun paletteRun) {
             var colors = paletteRun.GetPalette(model, 0);
             Content.Add(new ReadonlyPaletteCollection(colors));
+         } else if (destinationRun is IStreamRun streamRun) {
+            using (ModelCacheScope.CreateScope(model)) {
+               Content.Add(streamRun.SerializeRun());
+            }
          }
       }
 
