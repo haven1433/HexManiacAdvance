@@ -1163,7 +1163,9 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override void ClearFormatAndData(ModelDelta changeToken, int originalStart, int length) {
-         ClearFormat(changeToken, originalStart, length, keepInitialAnchorPointers: false, alsoClearData: true);
+         using (ModelCacheScope.CreateScope(this)) {
+            ClearFormat(changeToken, originalStart, length, keepInitialAnchorPointers: false, alsoClearData: true);
+         }
       }
 
       public override void SetList(string name, IReadOnlyList<string> list) {
