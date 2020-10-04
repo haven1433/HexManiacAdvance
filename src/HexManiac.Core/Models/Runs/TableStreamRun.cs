@@ -54,6 +54,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return tableStream.ElementCount > 0;
       }
 
+      public static bool TryWriteNewEndToken(ModelDelta token, ref TableStreamRun tableStream) {
+         if (!(tableStream.endStream is EndCodeStreamStrategy strategy)) return false;
+         for (int i = 0; i < strategy.EndCode.Count; i++) token.ChangeData(tableStream.model, tableStream.Start + i, strategy.EndCode[i]);
+         tableStream = (TableStreamRun)tableStream.Clone(tableStream.PointerSources);
+         return true;
+      }
+
       public static IStreamEndStrategy ParseEndStream(IDataModel model, string fieldName, string endToken, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          if (int.TryParse(endToken, out var number)) {
             return new FixedLengthStreamStrategy(number);
