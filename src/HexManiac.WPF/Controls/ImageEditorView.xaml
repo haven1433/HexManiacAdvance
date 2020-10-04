@@ -178,6 +178,55 @@
          </StackPanel>
 
          <local:PixelImage DataContext="{Binding BlockPreview}" Visibility="{Binding Enabled, Converter={StaticResource BoolToVisibility}, ConverterParameter={x:Static Visibility.Hidden}}" DockPanel.Dock="Top"/>
+
+         <ItemsControl ItemsSource="{Binding SpritePageOptions}"
+                       Visibility="{Binding HasMultipleSpritePages, Converter={StaticResource BoolToVisibility}}"
+                       HorizontalAlignment="Center"
+                       DockPanel.Dock="Top">
+            <ItemsControl.ItemsPanel>
+               <ItemsPanelTemplate>
+                  <StackPanel Orientation="Horizontal"/>
+               </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+               <DataTemplate>
+                  <RadioButton IsChecked="{Binding Selected}">
+                     <RadioButton.ToolTip>
+                        <TextBlock>
+                           <Run Text="Sprite Page "/>
+                           <Run Text="{Binding Name}"/>
+                           <LineBreak/>
+                           <Run FontStyle="Italic" Text="(Shift+Scroll to change pages)"/>
+                        </TextBlock>
+                     </RadioButton.ToolTip>
+                  </RadioButton>
+               </DataTemplate>
+            </ItemsControl.ItemTemplate>
+         </ItemsControl>
+
+         <ItemsControl ItemsSource="{Binding PalettePageOptions}"
+                       Visibility="{Binding HasMultiplePalettePages, Converter={StaticResource BoolToVisibility}}"
+                       HorizontalAlignment="Center"
+                       DockPanel.Dock="Top">
+            <ItemsControl.ItemsPanel>
+               <ItemsPanelTemplate>
+                  <StackPanel Orientation="Horizontal"/>
+               </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+               <DataTemplate>
+                  <RadioButton IsChecked="{Binding Selected}">
+                     <RadioButton.ToolTip>
+                        <TextBlock>
+                           <Run Text="Palette Page "/>
+                           <Run Text="{Binding Name}"/>
+                        </TextBlock>
+                     </RadioButton.ToolTip>
+                  </RadioButton>
+               </DataTemplate>
+            </ItemsControl.ItemTemplate>
+         </ItemsControl>
+
          <hshmwpfc:PaletteControl DataContext="{Binding Palette}" HorizontalAlignment="Center" VerticalAlignment="Center" />
       </DockPanel>
 

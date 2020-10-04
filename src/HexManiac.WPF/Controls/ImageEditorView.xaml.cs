@@ -49,8 +49,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          ImageContainer.ReleaseMouseCapture();
       }
       private void WheelMouse(object sender, MouseWheelEventArgs e) {
-         if (e.Delta > 0) ViewModel.ZoomIn(Point(e));
-         if (e.Delta < 0) ViewModel.ZoomOut(Point(e));
+         if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift)) {
+            if (e.Delta > 0) ViewModel.SpritePage = (ViewModel.SpritePage + 1) % ViewModel.SpritePages;
+            if (e.Delta < 0) ViewModel.SpritePage = ViewModel.SpritePage == 0 ? ViewModel.SpritePages - 1 : ViewModel.SpritePage - 1;
+         } else {
+            if (e.Delta > 0) ViewModel.ZoomIn(Point(e));
+            if (e.Delta < 0) ViewModel.ZoomOut(Point(e));
+         }
       }
    }
 }

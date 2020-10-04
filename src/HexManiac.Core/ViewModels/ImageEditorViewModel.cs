@@ -78,6 +78,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public int PalettePage { get => palettePage; set => Set(ref palettePage, value, _ => Refresh()); }
       public int SpritePages => SpritePageOptions.Count;
       public int PalettePages => PalettePageOptions.Count;
+      public bool HasMultipleSpritePages => SpritePages > 1;
+      public bool HasMultiplePalettePages => PalettePages > 1;
       public ObservableCollection<SelectionViewModel> SpritePageOptions { get; } = new ObservableCollection<SelectionViewModel>();
       public ObservableCollection<SelectionViewModel> PalettePageOptions { get; } = new ObservableCollection<SelectionViewModel>();
       private void SetupPageOptions() {
@@ -89,6 +91,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             SpritePageOptions.Add(option);
          }
          NotifyPropertyChanged(nameof(SpritePages));
+         NotifyPropertyChanged(nameof(HasMultipleSpritePages));
 
          int palPages = ((IPaletteRun)model.GetNextRun(model.ReadPointer(PalettePointer))).Pages;
          PalettePageOptions.Clear();
@@ -98,6 +101,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             PalettePageOptions.Add(option);
          }
          NotifyPropertyChanged(nameof(PalettePages));
+         NotifyPropertyChanged(nameof(HasMultiplePalettePages));
       }
       #endregion
 
