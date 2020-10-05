@@ -27,7 +27,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private int selectedTableSection;
       public int SelectedTableSection {
          get => selectedTableSection;
-         set => Set(ref selectedTableSection, value, UpdateAddressFromSectionAndSelection);
+         set => Set(ref selectedTableSection, value, UpdateTableList);
       }
 
       public IReadOnlyList<string> TableList {
@@ -50,6 +50,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (selectedTableIndex == -1) return;
             UpdateAddressFromSectionAndSelection();
          }
+      }
+      private void UpdateTableList(int oldValue = default) {
+         NotifyPropertyChanged(nameof(TableList));
+         UpdateAddressFromSectionAndSelection();
       }
       private void UpdateAddressFromSectionAndSelection(int oldValue = default) {
          if (selectedTableSection == -1 || selectedTableIndex == -1) return;
@@ -232,7 +236,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             TryUpdate(ref selectedTableSection, TableSections.IndexOf(anchorParts[0]));
             TryUpdate(ref selectedTableIndex, TableList.IndexOf(anchorParts[1]));
          } else {
-            TryUpdate(ref selectedTableSection, TableSections.IndexOf(anchorParts[0] + "." + anchorParts[2]));
+            TryUpdate(ref selectedTableSection, TableSections.IndexOf(anchorParts[0] + "." + anchorParts[1]));
             TryUpdate(ref selectedTableIndex, TableList.IndexOf(string.Join(".", anchorParts.Skip(2))));
          }
 
