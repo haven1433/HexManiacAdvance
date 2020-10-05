@@ -3,7 +3,7 @@
 
 
 data.pokemon.names,                    00FA58, 00FA58, 00FA58, 00FA58, 000144, 000144, 000144, 000144, 000144, [name""11]
-data.moves.names,                      02E18C, 02E18C, 02E18C, 02E18C, 000148, 000148, 000148, 000148, 000148, [name""13]
+data.moves.names,                      02E18C, 02E18C, 02E18C, 02E18C, 000148, 000148, 000148, 000148, 000148, ^[name""13]
 data.abilities.names,                  09FE64, 09FE64, 09FE84, 09FE84, 0001C0, 0001C0, 0001C0, 0001C0, 0001C0, [name""13]
 data.trainers.classes.names,           1217BC, 1217BC, 0F70A8, 0F70A8, 0D80A0, 0D8074, 0D80B4, 0D8088, 0183B4, [name""13]
 data.pokemon.type.names,               02E3A8, 02E3A8, 02E3A8, 02E3A8, 0309C8, 0309C8, 0309DC, 0309DC, 0166F4, ^[name""7]
@@ -261,7 +261,7 @@ graphics.overworld.sprites,                  ,       ,       ,       ,       ,  
 graphics.overworld.sprites2,                 ,       ,       ,       , 05DF28, 05DF28, 05DF3C, 05DF3C,       , [data<[starterbytes:|h unknown:|h a<> b<> sprites<`osl`> d<> e<>]1>]36
 
 data.text.menu.pause,                  071160, 071164, 071180, 071184, 06EF9C, 06EF9C, 06EFB0, 06EFB0, 09F818, [text<""> code<>]
-
+data.text.menu.pokemon.options,        ,,,, 120F74,,,, , [text<""> code<>]
 
 sound.tracks,                                                     ,,,, 1DD11C, 1DD0F8, 1DD18C, 1DD168,       , [pointer<> musicplayer: unknown:]songnames
 sound.pokemon.cry.growl,               0752D8, 0752DC, 0752F8, 0752FC, 072104, 072104, 072118, 072118, 0A35DC, ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]388

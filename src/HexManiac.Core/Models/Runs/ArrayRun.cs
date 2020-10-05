@@ -49,7 +49,19 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (currentSegment.Type == ElementContentType.Pointer) {
             var destination = data.ReadPointer(offsets.SegmentStart);
             var destinationName = data.GetAnchorFromAddress(offsets.SegmentStart, destination);
-            var hasError = destination < 0 || data.GetNextRun(destination).Start != destination; // table pointers might not point at anchors
+            var destinationRun = data.GetNextRun(destination);
+            var hasError = false;
+            if (destination >= 0) {
+               if (destinationRun is ArrayRun arrayRun && arrayRun.SupportsPointersToElements) {
+                  // it's an error unless the arrayRun starts before the destination and the destination is the start of one of the elements
+                  hasError = !(arrayRun.Start <= destination && (destination - arrayRun.Start) % arrayRun.ElementLength == 0);
+               } else {
+                  hasError = destinationRun.Start != destination; // table pointer might not point to anchor
+               }
+            } else {
+               hasError = true;
+            }
+
             return new Pointer(offsets.SegmentStart, position, destination, 0, destinationName, hasError);
          }
 
