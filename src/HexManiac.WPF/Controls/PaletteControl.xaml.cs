@@ -40,9 +40,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          swatchPopup.Child = swatch;
       }
 
-      protected override void OnLostFocus(RoutedEventArgs e) {
+      public void ClosePopup() {
          swatchPopup.IsOpen = false;
          swatch.ResultChanged -= SwatchResultChanged;
+      }
+
+      protected override void OnLostFocus(RoutedEventArgs e) {
+         ClosePopup();
          if (ViewModel != null) ViewModel.SelectionStart = -1;
          base.OnLostFocus(e);
       }

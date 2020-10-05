@@ -19,6 +19,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void MousePrimaryDown(object sender, MouseButtonEventArgs e) {
+         PaletteControl.ClosePopup();
          ImageContainer.CaptureMouse();
          ViewModel.ToolDown(Point(e));
       }

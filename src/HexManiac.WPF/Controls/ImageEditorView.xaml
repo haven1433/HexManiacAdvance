@@ -227,7 +227,7 @@
             </ItemsControl.ItemTemplate>
          </ItemsControl>
 
-         <hshmwpfc:PaletteControl DataContext="{Binding Palette}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+         <hshmwpfc:PaletteControl x:Name="PaletteControl" DataContext="{Binding Palette}" HorizontalAlignment="Center" VerticalAlignment="Center" />
       </DockPanel>
 
       <Grid Name="ImageContainer" Background="Transparent" ClipToBounds="True"
