@@ -261,7 +261,7 @@ graphics.overworld.sprites,                  ,       ,       ,       ,       ,  
 graphics.overworld.sprites2,                 ,       ,       ,       , 05DF28, 05DF28, 05DF3C, 05DF3C,       , [data<[starterbytes:|h unknown:|h a<> b<> sprites<`osl`> d<> e<>]1>]36
 
 data.text.menu.pause,                  071160, 071164, 071180, 071184, 06EF9C, 06EF9C, 06EFB0, 06EFB0, 09F818, [text<""> code<>]
-data.text.menu.pokemon.options,        ,,,, 120F74,,,, , [text<""> code<>]
+data.text.menu.pokemon.options,        089CCC, 089CCC, 089CEC, 089CEC, 120F74, 120F4C, 120FEC, 120FC4, 1B32F8, [text<""> code<>]
 
 sound.tracks,                                                     ,,,, 1DD11C, 1DD0F8, 1DD18C, 1DD168,       , [pointer<> musicplayer: unknown:]songnames
 sound.pokemon.cry.growl,               0752D8, 0752DC, 0752F8, 0752FC, 072104, 072104, 072118, 072118, 0A35DC, ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]388
