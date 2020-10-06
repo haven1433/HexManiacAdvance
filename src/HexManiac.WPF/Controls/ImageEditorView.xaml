@@ -51,15 +51,41 @@
                </Style>
             </StackPanel.Resources>
             <StackPanel>
-               <Button Command="{Binding ZoomInCommand}" Width="30" Height="15" ToolTip="(+) Zoom In">
+               <Button Command="{Binding ZoomInCommand}" Width="30" Height="15">
                   <Button.Content>
                      <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource Secondary}">+</TextBlock>
                   </Button.Content>
+                  <Button.ToolTip>
+                     <ToolTip>
+                        <DockPanel>
+                           <Path Data="{hshmwpfr:Icon MiddleMouseButton}" Fill="{DynamicResource Secondary}" DockPanel.Dock="Right" VerticalAlignment="Top"/>
+                           <TextBlock>
+                              (+) Zoom In<LineBreak/>
+                              <Italic Foreground="{DynamicResource Secondary}">
+                                 Increase the apparent size of each pixel in the image.
+                              </Italic>
+                           </TextBlock>
+                        </DockPanel>
+                     </ToolTip>
+                  </Button.ToolTip>
                </Button>
-               <Button Command="{Binding ZoomOutCommand}" Width="30" Height="15" ToolTip="(-) Zoom Out">
+               <Button Command="{Binding ZoomOutCommand}" Width="30" Height="15">
                   <Button.Content>
                      <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource Secondary}">-</TextBlock>
                   </Button.Content>
+                  <Button.ToolTip>
+                     <ToolTip>
+                        <DockPanel>
+                           <Path Data="{hshmwpfr:Icon MiddleMouseButton}" Fill="{DynamicResource Secondary}" DockPanel.Dock="Right" VerticalAlignment="Top"/>
+                           <TextBlock>
+                              (-) Zoom Out<LineBreak/>
+                              <Italic Foreground="{DynamicResource Secondary}">
+                                 Decrease the apparent size of each pixel in the image.
+                              </Italic>
+                           </TextBlock>
+                        </DockPanel>
+                     </ToolTip>
+                  </Button.ToolTip>
                </Button>
             </StackPanel>
             <RadioButton CommandParameter="{x:Static hshmcvm:ImageEditorTools.Pan}"
@@ -192,12 +218,20 @@
                <DataTemplate>
                   <RadioButton IsChecked="{Binding Selected}">
                      <RadioButton.ToolTip>
-                        <TextBlock>
-                           <Run Text="Sprite Page "/>
-                           <Run Text="{Binding Name}"/>
-                           <LineBreak/>
-                           <Run FontStyle="Italic" Text="(Shift+Scroll to change pages)"/>
-                        </TextBlock>
+                        <ToolTip>
+                           <DockPanel>
+                              <StackPanel Margin="5,0,0,0" Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Top">
+                                 <TextBlock Text="Shift + " VerticalAlignment="Center"/>
+                                 <Path Stretch="Uniform" Data="{hshmwpfr:Icon MiddleMouseButton}" Fill="{DynamicResource Secondary}"/>
+                              </StackPanel>
+                              <TextBlock>
+                                 <Run Text="Sprite Page "/>
+                                 <Run Text="{Binding Name}"/>
+                                 <LineBreak/>
+                                 <Run Foreground="{DynamicResource Secondary}" FontStyle="Italic" Text="(Shift+Scroll to change pages)"/>
+                              </TextBlock>
+                           </DockPanel>
+                        </ToolTip>
                      </RadioButton.ToolTip>
                   </RadioButton>
                </DataTemplate>
