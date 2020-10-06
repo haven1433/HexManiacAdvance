@@ -370,7 +370,7 @@
                         <Button Content="Go" VerticalAlignment="Stretch" Padding="12,0" Command="{Binding GotoViewModel.Goto}" Background="{DynamicResource Accent}"/>
                      </StackPanel>
                   </StackPanel>
-                  <ItemsControl ItemsSource="{Binding GotoViewModel.PrefixSelections}" Grid.Row="3">
+                  <ItemsControl MinHeight="100" ItemsSource="{Binding GotoViewModel.PrefixSelections}" Grid.Row="3">
                      <ItemsControl.ItemTemplate>
                         <DataTemplate>
                            <StackPanel>
