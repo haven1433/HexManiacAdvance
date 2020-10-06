@@ -229,7 +229,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }) { ShortcutText = "Ctrl+Click" } };
       }
 
-      public void Refresh() { }
+      public void Refresh() => children.ForEach(child => child.Refresh());
 
       private void NotifyCollectionChanged() {
          if (children.Count == 0) return;
