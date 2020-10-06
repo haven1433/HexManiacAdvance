@@ -333,6 +333,7 @@
                            <TextBlock Text="Edit → " Canvas.Right="0" Canvas.Bottom="0" Foreground="{DynamicResource Secondary}"/>
                         </Canvas>
                         <Button Background="{DynamicResource Background}" BorderBrush="{DynamicResource Secondary}" Command="{Binding GotoViewModel.ShowGoto}" Padding="4"
+                              ToolTip="Close (esc)"
                               DockPanel.Dock="Right" Width="20" Height="20" VerticalAlignment="Top" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch">
                            <Button.CommandParameter>
                               <sys:Boolean>false</sys:Boolean>
