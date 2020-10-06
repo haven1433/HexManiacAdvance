@@ -61,8 +61,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void RaiseMessage(string message) => OnMessage?.Invoke(this, message);
 
       private void ExecuteUndo() {
+         var selectionStart = Palette.SelectionStart;
+         var selectionEnd = Palette.SelectionEnd;
+
          history.Undo.Execute();
          Refresh();
+
+         Palette.SelectionStart = selectionStart;
+         Palette.SelectionEnd = selectionEnd;
       }
 
       private void ExecuteRedo() {
