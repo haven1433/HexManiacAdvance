@@ -26,8 +26,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public ThumbParser(Singletons singletons) {
          conditionalCodes.AddRange(singletons.ThumbConditionalCodes);
          instructionTemplates.AddRange(singletons.ThumbInstructionTemplates);
-         instructionTemplates.Add(new WordInstruction());
-         instructionTemplates.Add(new AlignInstruction());
+         instructionTemplates.AddRange(new IInstruction[] {
+            new WordInstruction(),
+            new AlignInstruction(),
+            new SkipInstruction(),
+         });
       }
 
       private readonly StringBuilder parseResult = new StringBuilder();
@@ -128,6 +131,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }).ToArray();
 
          // first pass: look for labels
+         var skip = new SkipInstruction();
          var labels = new Dictionary<string, int>();
          var inlineWords = new Queue<DeferredLoadRegisterToken>();
          int position = start;
@@ -153,6 +157,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   position += 4 * inlineWords.Count;
                   inlineWords.Clear();
                }
+               if (skip.TryAssemble(line, default, default, default, out var _)) {
+                  position -= 2; // not an actual instruction
+               }
             }
          }
          // any words that haven't been added yet get added to the end
@@ -164,8 +171,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          var labelLibrary = new LabelLibrary(model, labels);
 
-         foreach (var line in lines) {
-            if (line.EndsWith(":")) continue;   // don't compile labels
+         foreach (var rawLine in lines) {
+            if (rawLine.EndsWith(":")) continue;   // don't compile labels
+            var line = PatchInstruction(rawLine);
             bool foundMatch = false;
             foreach (var instruction in instructionTemplates) {
                if (!instruction.TryAssemble(line, conditionalCodes, start + result.Count, labelLibrary, out byte[] code)) continue;
@@ -200,6 +208,28 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
 
          return result;
+      }
+
+      private string PatchInstruction(string line) {
+         // patch `add sp, #-4` to `sub sp, #4`
+         if (line.StartsWith("add ") && line.Contains(" sp, ") && line.Contains(" #-")) {
+            line = line.Replace("add ", "sub ");
+            line = line.Replace(" #-", " #");
+         } else if (line.StartsWith("add ") && line.Contains(" sp,#-")) {
+            line = line.Replace("add ", "sub ");
+            line = line.Replace(" sp,#-", " sp,#");
+         }
+
+         // patch `push {lr,list}` or `push {list,lr}` to `push lr, {list}`
+         if (line.StartsWith("push ") && line.Contains("{lr,")) {
+            line = line.Replace("push ", "push lr, ");
+            line = line.Replace("{lr,", "{");
+         } else if (line.StartsWith("push ") && line.Contains(",lr}")) {
+            line = line.Replace("push ", "push lr, ");
+            line = line.Replace(",lr}", "}");
+         }
+
+         return line;
       }
    }
 
@@ -739,6 +769,28 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public bool TryAssemble(string line, IReadOnlyList<ConditionCode> conditionCodes, int address, LabelLibrary labels, out byte[] results) {
          results = new byte[0];
          return line.StartsWith(".align");
+      }
+   }
+
+   /// <summary>
+   /// There are a variety of macros available in thumb that we just ignore. If you see one of these, just move along.
+   /// </summary>
+   public class SkipInstruction : IInstruction {
+      public int ByteLength => 0;
+      public bool RequiresAlignment => false;
+
+      public string Disassemble(IDataModel data, int address, IReadOnlyList<ConditionCode> conditionalCodes) {
+         throw new NotImplementedException();
+      }
+
+      public bool Matches(IDataModel data, int index) => false;
+
+      public bool TryAssemble(string line, IReadOnlyList<ConditionCode> conditionCodes, int address, LabelLibrary labels, out byte[] results) {
+         results = new byte[0];
+         foreach (var start in ".text .thumb .thumb_func .global .align".Split(' ')) {
+            if (line.StartsWith(start)) return true;
+         }
+         return false;
       }
    }
 

@@ -70,16 +70,16 @@ nv=1111  @    never
 01100 # rn rd       |     str   rd, [rn, #]
 01101 # rn rd       |     ldr   rd, [rn, #]
 0110100000 rn rd    |     ldr   rd, [rn]
-01110 # rn rd       |     strb  rd, [rn, #]
-01111 # rn rd       |     ldrb  rd, [rn, #]
-10000 # rn rd       |     strh  rd, [rn, #]
-10001 # rn rd       |     ldrh  rd, [rn, #]
-10010 rd #          |     str   rd, [sp, #]
-10011 rd #          |     ldr   rd, [sp, #]
-10100 rd #          |     add   rd, pc, #      @ rd = pc + #*4
-10101 rd #          |     add   rd, sp, #      @ rd = sp + #*4
-101100000 #         |     add   sp, #          @ sp += #*4
-101100001 #         |     sub   sp, #          @ sp -= #*4
+01110 # rn rd       |     strb  rd, [rn, #] @ #=#*4]
+01111 # rn rd       |     ldrb  rd, [rn, #] @ #=#*4]
+10000 # rn rd       |     strh  rd, [rn, #] @ #=#*4]
+10001 # rn rd       |     ldrh  rd, [rn, #] @ #=#*4]
+10010 rd #          |     str   rd, [sp, #] @ #=#*4]
+10011 rd #          |     ldr   rd, [sp, #] @ #=#*4]
+10100 rd #          |     add   rd, pc, # @ =#*4      @ rd = pc + #*4
+10101 rd #          |     add   rd, sp, # @ =#*4      @ rd = sp + #*4
+101100000 #         |     add   sp, #     @ =#*4      @ sp += #*4
+101100001 #         |     sub   sp, #     @ =#*4      @ sp -= #*4
 10110100 list       |     push  {list}
 10110101 list       |     push  lr, {list}     @ note: 'tsil' is a reverse 'list'. The bits are stored in the opposite order.
 10111100 list       |     pop   {list}

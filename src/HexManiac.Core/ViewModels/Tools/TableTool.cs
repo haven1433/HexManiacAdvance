@@ -32,7 +32,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public IReadOnlyList<string> TableList {
          get {
-            if (selectedTableSection == -1) return new string[0];
+            if (selectedTableSection == -1 || selectedTableSection >= TableSections.Count) return new string[0];
             var selectedSection = TableSections[selectedTableSection];
             return UnmatchedArrays
                .Select(array => model.GetAnchorFromAddress(-1, array.Start))

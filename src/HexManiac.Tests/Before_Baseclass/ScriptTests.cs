@@ -4,6 +4,7 @@ using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
+using System.IO;
 using System.Linq;
 using Xunit;
 
@@ -83,6 +84,21 @@ namespace HavenSoft.HexManiac.Tests {
          var trainerBattleLine = scriptText.SplitLines()[0].Trim();
          var parts = trainerBattleLine.Split(' ');
          Assert.Equal(5, parts.Length);
+      }
+
+      // [Theory]
+      [InlineData("Expand01_-_Move_Stats")]
+      [InlineData("Expand02_-_Pokemon_Move_Learn_Table")]
+      [InlineData("Expand03_-_Relearner_move_tutor")]
+      public void Asm_Compile_Thumb(string filename) {
+         var inFile = $"test_code/{filename}.asm";
+         var outFile = $"test_compiled/{filename}.bin";
+         var lines = File.ReadAllLines(inFile);
+         var expected = File.ReadAllBytes(outFile);
+
+         var result = ViewPort.Tools.CodeTool.Parser.Compile(Model, 0, lines);
+
+         Assert.All(expected.Length.Range(), i => Assert.Equal(expected[i], result[i]));
       }
 
       private string Script(params string[] lines) => lines.CombineLines();
