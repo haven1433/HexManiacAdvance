@@ -537,7 +537,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   if (tab == viewPort) continue;
                   anyTabsHaveMatchingViewModel |= vp.Model == viewPort.Model;
                }
-               if (!anyTabsHaveMatchingViewModel && !showMessage) gotoViewModel.ControlVisible = true;
+               if (!anyTabsHaveMatchingViewModel && !showMessage && viewPort.FileName.EndsWith(".gba")) {
+                  gotoViewModel.ControlVisible = true;
+               }
             }
          }
       }
