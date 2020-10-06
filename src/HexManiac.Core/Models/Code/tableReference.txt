@@ -234,6 +234,9 @@ graphics.townmap.islands.tilemap2,             ,       ,       ,       , 0C0388,
 graphics.townmap.islands.tilemap3,             ,       ,       ,       , 0C03A4, 0C0378, 0C03B8, 0C038C, , `lzm4x30x20|graphics.townmap.tileset`
 graphics.townmap.border.tileset,               ,       ,       ,       , 0C033C, 0C0310, 0C0350, 0C0324, , `lzt4|graphics.townmap.palette`
 graphics.townmap.border.tilemap,               ,       ,       ,       , 0C03C0, 0C0394, 0C03D4, 0C03A8, , `lzm4x30x20|graphics.townmap.border.tileset`
+graphics.townmap.namesoverlay.xy,              ,       ,       ,       , 0C3D3C, 0C3D10, 0C3D50, 0C3D24, , [x: y:]data.maps.names
+graphics.townmap.namesoverlay.widthheight,     ,       ,       ,       , 0C3D38, 0C3D0C, 0C3D4C, 0C3D20, , [width: height:]data.maps.names
+
 graphics.credits.trainer.male.palette,                ,,,,               0F4A1C, 0F49F4, 0F4A94, 0F4A6C, , `ucp4`
 graphics.credits.trainer.female.palette,              ,,,,               0F4A48, 0F4A20, 0F4AC0, 0F4A98, , `ucp4`
 graphics.credits.trainer.rival.palette,               ,,,,               0F4ADC, 0F4AB4, 0F4B54, 0F4B2C, , `ucp4`
