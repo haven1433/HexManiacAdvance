@@ -550,7 +550,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          public void ToolDrag(Point point) {
             Debug.WriteLine($"Pan: {parent.interactionStart} to {point}");
             var xRange = (int)(parent.PixelWidth * parent.SpriteScale / 2);
-            var yRange = (int)(parent.PixelWidth * parent.SpriteScale / 2);
+            var yRange = (int)(parent.PixelHeight * parent.SpriteScale / 2);
             var (originalX, originalY) = (parent.xOffset, parent.yOffset);
             parent.XOffset = (parent.XOffset + point.X - parent.interactionStart.X).LimitToRange(-xRange, xRange);
             parent.YOffset = (parent.YOffset + point.Y - parent.interactionStart.Y).LimitToRange(-yRange, yRange);
