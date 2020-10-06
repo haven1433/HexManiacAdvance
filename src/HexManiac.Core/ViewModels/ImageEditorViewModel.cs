@@ -593,7 +593,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             int originalColorIndex = parent.pixels[a.X, a.Y];
             var direction = Math.Sign(parent.Palette.SelectionEnd - parent.Palette.SelectionStart);
             var targetColors = new List<int> { parent.Palette.SelectionStart };
-            for (int i = parent.Palette.SelectionStart + direction; i != parent.Palette.SelectionEnd; i++) {
+            for (int i = parent.Palette.SelectionStart + direction; i != parent.Palette.SelectionEnd; i += direction) {
                targetColors.Add(i);
             }
             if (parent.Palette.SelectionEnd != parent.Palette.SelectionStart) targetColors.Add(parent.Palette.SelectionEnd);
