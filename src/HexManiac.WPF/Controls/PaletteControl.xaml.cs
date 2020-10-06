@@ -47,7 +47,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       protected override void OnLostFocus(RoutedEventArgs e) {
          ClosePopup();
-         if (ViewModel != null) ViewModel.SelectionStart = -1;
          base.OnLostFocus(e);
       }
 
