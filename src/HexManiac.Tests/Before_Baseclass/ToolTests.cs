@@ -8,7 +8,6 @@ using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using Xunit;
 
@@ -399,7 +398,8 @@ namespace HavenSoft.HexManiac.Tests {
       [InlineData("bx lr", 0b010001110_1_110_000)]
       [InlineData("ldr   r1, [r2]", 0b01101_00000_010_001)]
       [InlineData("lsl   r1, r2, #0x4", 0b00000_00100_010_001)]
-      // [InlineData("sub   sp, #4", 0b101100001_0000001)]
+      [InlineData("sub   sp, #4", 0b101100001_0000001)]
+      [InlineData("mov   r3, sp", 0x46_6B)]
       public void ThumbCompilerTests(string input, uint output) {
          var bytes = new List<byte> { (byte)output, (byte)(output >> 8) };
          var model = new PokemonModel(new byte[0x200]);

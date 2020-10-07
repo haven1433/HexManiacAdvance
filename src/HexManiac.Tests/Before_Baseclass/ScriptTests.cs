@@ -86,7 +86,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(5, parts.Length);
       }
 
-      // [Theory]
+      [Theory]
       [InlineData("Expand01_-_Move_Stats")]
       [InlineData("Expand02_-_Pokemon_Move_Learn_Table")]
       [InlineData("Expand03_-_Relearner_move_tutor")]

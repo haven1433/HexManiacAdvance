@@ -420,6 +420,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             } else if (part.Type == InstructionArgType.Numeric) {
                if (part.Code != 0) {
                   instruction = CalculatePcRelativeAddress(instruction, pcAddress, part, bits);
+               } else if (instruction.Contains("#=#*")) {
+                  var multiplierIndex = instruction.IndexOf("#=#*") + 4;
+                  var multiplier = instruction[multiplierIndex] - '0';
+                  instruction = instruction.Replace("#=#*" + instruction[multiplierIndex], $"#{bits * multiplier}");
                } else {
                   instruction = instruction.Replace("#", $"#{bits}");
                }
@@ -584,6 +588,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
             // read a register
             if (template[0] == 'r') {
+               if (line.StartsWith("sp")) line = "r13" + line.Substring(2);
                if (line.StartsWith("lr")) line = "r14" + line.Substring(2);
                if (line.StartsWith("pc")) line = "r15" + line.Substring(2);
                if (line[0] != 'r') return false;
@@ -627,6 +632,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                }
                template = template.Substring(1);
                line = line.Substring(numberAsText.Length + 1);
+               if (template.StartsWith("=#*")) {
+                  var multiplier = template[3] - '0';
+                  template = template.Substring(4);
+                  numeric /= multiplier;
+               }
                continue;
             }
 
