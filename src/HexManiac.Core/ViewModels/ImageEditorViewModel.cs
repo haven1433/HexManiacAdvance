@@ -23,6 +23,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    // cursor sprite position is in terms of the sprite (ranging from 0,0 to width,height)
 
    public class ImageEditorViewModel : ViewModelCore, ITabContent, IPixelViewModel, IRaiseMessageTab {
+      public const int MaxZoom = 24;
+
       private readonly ChangeHistory<ModelDelta> history;
       private readonly IDataModel model;
       private int[,] pixels;
@@ -200,7 +202,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public bool ShowSelectionRect(int x, int y) => ShowSelectionRect(new Point(x, y));
 
       public void ZoomIn(Point point) {
-         if (SpriteScale > 15) return;
+         if (SpriteScale > MaxZoom - 1) return;
          Debug.WriteLine($"Zoom In: {point}");
          var (x, y) = (point.X, point.Y);
          xOffset -= x;

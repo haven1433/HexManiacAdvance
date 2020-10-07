@@ -146,9 +146,9 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
-      public void Zoom_Zoom16_NoZoom() {
-         for (int i = 0; i < 17; i++) editor.ZoomIn(new Point(0, 0));
-         Assert.Equal(16, editor.SpriteScale);
+      public void Zoom_Zoom24_NoZoom() {
+         for (int i = 0; i < 25; i++) editor.ZoomIn(new Point(0, 0));
+         Assert.Equal(24, editor.SpriteScale);
       }
 
       [Fact]
