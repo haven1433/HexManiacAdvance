@@ -335,7 +335,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          PixelWidth = spriteRun.SpriteFormat.TileWidth * 8;
          PixelHeight = spriteRun.SpriteFormat.TileHeight * 8;
-         PixelData = SpriteTool.Render(pixels, palRun.AllColors(model), palRun.PaletteFormat.InitialBlankPages, palettePage);
+         var renderPage = palettePage;
+         if (spriteRun.SpriteFormat.BitsPerPixel == 8) renderPage = 0;
+         PixelData = SpriteTool.Render(pixels, palRun.AllColors(model), palRun.PaletteFormat.InitialBlankPages, renderPage);
          NotifyPropertyChanged(nameof(PixelData));
       }
 
@@ -343,6 +345,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var spriteAddress = model.ReadPointer(SpritePointer);
          var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
          spriteRun.SetPixels(model, history.CurrentChange, SpritePage, pixels);
+      }
+
+      private int ColorIndex(int paletteIndex) {
+         var spriteAddress = model.ReadPointer(SpritePointer);
+         var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
+         if (spriteRun.SpriteFormat.BitsPerPixel == 8) {
+            var paletteAddress = model.ReadPointer(PalettePointer);
+            var palRun = (IPaletteRun)model.GetNextRun(paletteAddress);
+            var pageOffset = (palRun.PaletteFormat.InitialBlankPages + PalettePage) << 4;
+            return paletteIndex + pageOffset;
+         }
+
+         return paletteIndex;
+      }
+
+      private int PaletteIndex(int colorIndex) {
+         var spriteAddress = model.ReadPointer(SpritePointer);
+         var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
+         if (spriteRun.SpriteFormat.BitsPerPixel == 8) {
+            var paletteAddress = model.ReadPointer(PalettePointer);
+            var palRun = (IPaletteRun)model.GetNextRun(paletteAddress);
+            var pageOffset = (palRun.PaletteFormat.InitialBlankPages + PalettePage) << 4;
+            return colorIndex - pageOffset;
+         }
+         return colorIndex;
       }
 
       private void UpdateSelectionFromPaletteHover(PaletteCollection sender, PropertyChangedEventArgs e) {
@@ -386,7 +413,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (tile == null || !parent.BlockPreview.Enabled) {
                   drawSize = parent.CursorSize;
                   tile = new int[drawSize, drawSize];
-                  for (int x = 0; x < drawSize; x++) for (int y = 0; y < drawSize; y++) tile[x, y] = element.Index;
+                  var colorIndex = parent.ColorIndex(element.Index);
+                  for (int x = 0; x < drawSize; x++) for (int y = 0; y < drawSize; y++) tile[x, y] = colorIndex;
                } else {
                   drawSize = tile.GetLength(0);
                }
@@ -395,7 +423,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                for (int x = 0; x < drawSize; x++) {
                   for (int y = 0; y < drawSize; y++) {
                      var (xx, yy) = (drawPoint.X + x, drawPoint.Y + y);
-                     parent.PixelData[parent.PixelIndex(xx, yy)] = parent.Palette.Elements[tile[x, y]].Color;
+                     var paletteIndex = parent.PaletteIndex(tile[x, y]);
+                     parent.PixelData[parent.PixelIndex(xx, yy)] = parent.Palette.Elements[paletteIndex].Color;
                      parent.pixels[xx, yy] = tile[x, y];
                   }
                }
@@ -603,6 +632,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                targetColors.Add(i);
             }
             if (parent.Palette.SelectionEnd != parent.Palette.SelectionStart) targetColors.Add(parent.Palette.SelectionEnd);
+            targetColors = targetColors.Select(parent.ColorIndex).ToList();
 
             var toProcess = new Queue<Point>(new[] { a });
             var processed = new HashSet<Point>();
