@@ -19,6 +19,8 @@ namespace HavenSoft.HexManiac.Tests {
          return Revert?.Invoke(change) ?? change.Revert(model);
       }
 
+      #region Test Helper Methods
+
       private void DrawBox(int colorIndex, Point start, int width, int height) {
          editor.Palette.SelectionStart = colorIndex;
 
@@ -30,6 +32,12 @@ namespace HavenSoft.HexManiac.Tests {
          editor.ToolUp(start);
       }
 
+      private void DrawPixel(int index, short color, params Point[] points) {
+         editor.Palette.Elements[index].Color = color;
+         editor.Palette.SelectionStart = index;
+         ToolMove(points);
+      }
+
       private void ToolMove(params Point[] motion) {
          editor.ToolDown(motion[0]);
          for (int i = 1; i < motion.Length; i++) editor.Hover(motion[i]);
@@ -39,6 +47,8 @@ namespace HavenSoft.HexManiac.Tests {
       private static short Rgb(int r, int g, int b) => (short)((r << 10) | (g << 5) | b);
       private short GetPixel(int x, int y) => editor.PixelData[editor.PixelIndex(new Point(x, y))];
       private static (int r, int g, int b) Rgb(short color) => (color >> 10, (color >> 5) & 31, color & 31);
+
+      #endregion
 
       private static readonly short Black = Rgb(0, 0, 0);
       private static readonly short White = Rgb(31, 31, 31);
@@ -737,6 +747,46 @@ namespace HavenSoft.HexManiac.Tests {
 
          var data = LZRun.Decompress(model, 0);
          Assert.Equal(0x31, data[0]);
+      }
+
+      [Fact]
+      public void Empty_PasteExistingColors_PixelsPaste() {
+         var fileSystem = new StubFileSystem();
+         fileSystem.CopyImage = (new short[] { Black, Red, Blue, White }, 2);
+         editor.Palette.Elements[1].Color = Red;
+         editor.Palette.Elements[2].Color = Blue;
+         editor.Palette.Elements[3].Color = White;
+
+         editor.Paste.Execute(fileSystem);
+
+         // pasted content should be centered
+         Assert.Equal(Black, GetPixel(3, 3));
+         Assert.Equal(Red, GetPixel(4, 3));
+         Assert.Equal(Blue, GetPixel(3, 4));
+         Assert.Equal(White, GetPixel(4, 4));
+
+         // selection tool is active
+         Assert.Equal(ImageEditorTools.Select, editor.SelectedTool);
+         Assert.True(editor.ShowSelectionRect(3, 3));
+         Assert.True(editor.ShowSelectionRect(4, 3));
+         Assert.True(editor.ShowSelectionRect(3, 4));
+         Assert.True(editor.ShowSelectionRect(4, 4));
+      }
+
+      [Fact]
+      public void Data_Copy_FileSystemImageContainsCopy() {
+         var fileSystem = new StubFileSystem();
+         DrawPixel(1, Red, new Point(0, -1));
+         DrawPixel(2, Blue, new Point(-1, 0));
+         DrawPixel(3, White, new Point(0, 0));
+
+         editor.SelectedTool = ImageEditorTools.Select;
+         ToolMove(new Point(-1, -1), new Point(0, 0));
+         editor.Copy.Execute(fileSystem);
+
+         var (image, width) = fileSystem.CopyImage.value;
+         Assert.Equal(2, width);
+         Assert.Equal(new[] { Black, Red, Blue, White }, image);
       }
    }
 }

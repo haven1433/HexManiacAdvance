@@ -14,6 +14,9 @@
       <KeyBinding Key="D" CommandParameter="{x:Static hshmcvm:ImageEditorTools.Draw}" Command="{Binding SelectTool}"/>
       <KeyBinding Key="F" CommandParameter="{x:Static hshmcvm:ImageEditorTools.Fill}" Command="{Binding SelectTool}"/>
       <KeyBinding Key="G" CommandParameter="{x:Static hshmcvm:ImageEditorTools.EyeDropper}" Command="{Binding SelectTool}"/>
+      <KeyBinding Key="C" Modifiers="Ctrl" CommandParameter="{DynamicResource FileSystem}" Command="{Binding Copy}"/>
+      <KeyBinding Key="V" Modifiers="Ctrl" CommandParameter="{DynamicResource FileSystem}" Command="{Binding Paste}"/>
+      <KeyBinding Key="A" Modifiers="Ctrl" Command="{Binding SelectAll}"/>
       <KeyBinding Key="Space" CommandParameter="0" Command="{Binding SelectColor}"/>
       <KeyBinding Key="D0" CommandParameter="0" Command="{Binding SelectColor}"/>
       <KeyBinding Key="D1" CommandParameter="1" Command="{Binding SelectColor}"/>

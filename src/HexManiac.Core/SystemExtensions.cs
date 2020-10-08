@@ -24,6 +24,10 @@ namespace HavenSoft.HexManiac.Core {
       // allows writing 5.Range() instead of Enumerable.Range(0, 5)
       public static IEnumerable<int> Range(this int count) => Enumerable.Range(0, count);
 
+      /// <summary>
+      /// Returns all the elements in a collection until one meets a condition.
+      /// Does not include the element that meets the condition.
+      /// </summary>
       public static IEnumerable<T> Until<T>(this IEnumerable<T> list, Func<T, bool> func) {
          foreach (var element in list) {
             if (func(element)) break;

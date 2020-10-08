@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Input;
+using System.Windows.Markup;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
    // TODO add ability to swap to another palette used by this sprite
@@ -36,17 +37,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #region ITabContent Properties
 
-      private StubCommand close, undoWrapper, redoWrapper;
+      private StubCommand close, undoWrapper, redoWrapper, pasteCommand, copyCommand, selectAllCommand;
 
       public string Name => "Image Editor";
       public ICommand Save => null;
       public ICommand SaveAs => null;
       public ICommand Undo => StubCommand(ref undoWrapper, ExecuteUndo, () => history.Undo.CanExecute(default));
       public ICommand Redo => StubCommand(ref redoWrapper, ExecuteRedo, () => history.Redo.CanExecute(default));
-      public ICommand Copy => null;
+      public ICommand Copy => StubCommand<IFileSystem>(ref copyCommand, ExecuteCopy, fs => toolStrategy is SelectionTool selectTool && selectTool.HasSelection);
+      public ICommand Paste => StubCommand<IFileSystem>(ref pasteCommand, ExecutePaste, fs => fs.CopyImage.width != 0);
+      public ICommand SelectAll => StubCommand(ref selectAllCommand, ExecuteSelectAll, () => true);
       public ICommand DeepCopy => null;
       public ICommand Clear => null;
-      public ICommand SelectAll => null;
       public ICommand Goto => null;
       public ICommand ResetAlignment => null;
       public ICommand Back => null;
@@ -76,6 +78,51 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void ExecuteRedo() {
          history.Redo.Execute();
          Refresh();
+      }
+
+      private void ExecuteCopy(IFileSystem fs) {
+         if (!(toolStrategy is SelectionTool tool)) return;
+         tool.Paste(fs);
+      }
+
+      private void ExecutePaste(IFileSystem fs) {
+         var sprite = fs.CopyImage;
+         if (sprite.width == 0) return;
+         var height = sprite.image.Length / sprite.width;
+         if (height > PixelHeight || sprite.width > PixelWidth) {
+            RaiseMessage("Image is too large to paste!");
+            return;
+         }
+
+         SelectedTool = ImageEditorTools.Select;
+         var tool = (SelectionTool)toolStrategy;
+         tool.ClearSelection();
+         var (x, y) = (PixelWidth / 2 - sprite.width / 2, PixelHeight / 2 - height / 2);
+         ToolDown(FromSpriteSpace(new Point(x, y)));
+         Hover(FromSpriteSpace(new Point(x + sprite.width - 1, y + height - 1)));
+         ToolUp(FromSpriteSpace(new Point(x + sprite.width - 1, y + height - 1)));
+         tool.SwapUnderPixelsWithCurrentPixels();
+
+         // make insertion more robust
+         for (int xx = 0; xx < sprite.width; xx++) {
+            for (int yy = 0; yy < height; yy++) {
+               var i = PixelIndex(x + xx, y + yy);
+               var targetColor = sprite.image[yy * sprite.width + xx];
+               var paletteIndex = Palette.Elements.Until(el => el.Color == targetColor).Count() % Palette.Elements.Count;
+               pixels[x + xx, y + yy] = ColorIndex(paletteIndex);
+               PixelData[i] = Palette.Elements[paletteIndex].Color;
+            }
+         }
+
+         UpdateSpriteModel();
+         NotifyPropertyChanged(nameof(PixelData));
+      }
+
+      private void ExecuteSelectAll() {
+         SelectedTool = ImageEditorTools.Select;
+         ToolDown(FromSpriteSpace(default));
+         Hover(FromSpriteSpace(new Point(PixelWidth - 1, PixelHeight - 1)));
+         ToolUp(FromSpriteSpace(new Point(PixelWidth - 1, PixelHeight - 1)));
       }
 
       #endregion
@@ -277,9 +324,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          withinInteraction = withinPanInteraction = false;
       }
 
-      public bool ShowSelectionRect(Point point) {
-         if (point.X < 0 || point.X >= PixelWidth || point.Y < 0 || point.Y >= PixelHeight) return false;
-         return selectedPixels[point.X, point.Y];
+      public bool ShowSelectionRect(Point spriteSpace) {
+         if (spriteSpace.X < 0 || spriteSpace.X >= PixelWidth || spriteSpace.Y < 0 || spriteSpace.Y >= PixelHeight) return false;
+         return selectedPixels[spriteSpace.X, spriteSpace.Y];
       }
 
       public void Refresh() {
@@ -299,6 +346,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var y = point.Y;
          x = (int)Math.Floor((x - xOffset) / SpriteScale) + PixelWidth / 2;
          y = (int)Math.Floor((y - yOffset) / SpriteScale) + PixelHeight / 2;
+         return new Point(x, y);
+      }
+
+      private Point FromSpriteSpace(Point spriteSpace) {
+         var x = spriteSpace.X;
+         var y = spriteSpace.Y;
+         x = (x - PixelWidth / 2) * (int)SpriteScale + xOffset;
+         y = (y - PixelHeight / 2) * (int)SpriteScale + yOffset;
          return new Point(x, y);
       }
 
@@ -473,6 +528,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          private int selectionWidth, selectionHeight;
          private int[,] underPixels; // the pixels that are 'under' the current selection. As the selection moves, this changes.
 
+         public bool HasSelection => underPixels != null;
+
          public SelectionTool(ImageEditorViewModel parent) => this.parent = parent;
 
          public void ToolDown(Point point) {
@@ -522,12 +579,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                parent.UpdateSpriteModel();
             } else {
                (selectionStart, selectionWidth, selectionHeight) = BuildRect(selectionStart, selectionWidth, selectionHeight);
-
-               underPixels = new int[selectionWidth, selectionHeight];
-               for (int x = 0; x < selectionWidth; x++) for (int y = 0; y < selectionHeight; y++) {
-                  underPixels[x, y] = 0;
+               if (selectionWidth > 1 || selectionHeight > 1) {
+                  underPixels = new int[selectionWidth, selectionHeight];
+                  for (int x = 0; x < selectionWidth; x++) for (int y = 0; y < selectionHeight; y++) {
+                     underPixels[x, y] = 0;
+                  }
+               } else {
+                  selectionWidth = selectionHeight = 0;
                }
             }
+
+            RaiseRefreshSelection(parent, selectionStart, selectionWidth, selectionHeight);
          }
 
          public static (Point point, int width, int height) BuildRect(Point start, int dragX, int dragY) {
@@ -549,6 +611,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             parent.RaiseRefreshSelection(selectionPoints);
          }
 
+         public void ClearSelection() {
+            underPixels = null;
+            selectionWidth = selectionHeight = 0;
+         }
+
+         public void Paste(IFileSystem fs) {
+            if (underPixels == null) return;
+            var result = new short[selectionWidth * selectionHeight];
+            for (int x = 0; x < selectionWidth; x++) {
+               for (int y = 0; y < selectionHeight; y++) {
+                  var index = parent.PixelIndex(selectionStart + new Point(x, y));
+                  result[y * selectionWidth + x] = parent.PixelData[index];
+               }
+            }
+            fs.CopyImage = (result, selectionWidth);
+         }
+
          private void RaiseRefreshSelection() {
             var (start, width, height) = (selectionStart, selectionWidth, selectionHeight);
 
@@ -559,7 +638,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             RaiseRefreshSelection(parent, start, width, height);
          }
 
-         private void SwapUnderPixelsWithCurrentPixels() {
+         public void SwapUnderPixelsWithCurrentPixels() {
             for (int x = 0; x < selectionWidth; x++) {
                for (int y = 0; y < selectionHeight; y++) {
                   var (xx, yy) = (selectionStart.X + x, selectionStart.Y + y);
