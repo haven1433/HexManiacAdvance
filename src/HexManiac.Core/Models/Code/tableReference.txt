@@ -190,6 +190,8 @@ graphics.titlescreen.introscene.nidorino.tileset,  ,,,, 0ED314, 0ED2EC, 0ED32C, 
 graphics.titlescreen.introscene.nidorino.tilemap,  ,,,, 0ED318, 0ED2F0, 0ED330, 0ED308, , `lzm4x32x32|graphics.titlescreen.introscene.nidorino.tileset`
 graphics.titlescreen.introscene.gengar.tileset,    ,,,, 0ED31C, 0ED2F4, 0ED334, 0ED30C, , `lzt4|graphics.titlescreen.introscene.gengar.palette`
 graphics.titlescreen.introscene.gengar.tilemap,    ,,,, 0ED320, 0ED2F8, 0ED338, 0ED310, , `lzm4x32x32|graphics.titlescreen.introscene.gengar.tileset`
+graphics.titlescreen.introscene.gengar.tileset2,   ,,,, 0ED5EC, 0ED5C4, 0ED604, 0ED5DC, , `lzt4|graphics.titlescreen.introscene.gengar.palette`
+graphics.titlescreen.introscene.gengar.tilemap2,   ,,,, 0ED5F0, 0ED5C8, 0ED608, 0ED5E0, , `lzm4x32x64|graphics.titlescreen.introscene.gengar.tileset2`
 graphics.titlescreen.introscene.nidorino.sprite2,  ,,,, 40BEEC, 40BD28, 40BF5C, 40BD98, , `lzs4x8x8|graphics.titlescreen.introscene.nidorino.palette`
 graphics.titlescreen.introscene.grass.sprite,      ,,,, 40BEF4, 40BD30, 40BF64, 40BDA0, , `lzs4x8x4|graphics.titlescreen.introscene.grass.palette`
 graphics.titlescreen.introscene.gengar.sprite2,    ,,,, 40BEFC, 40BD38, 40BF6C, 40BDA8, , `lzs4x8x8|graphics.titlescreen.introscene.gengar.palette`
