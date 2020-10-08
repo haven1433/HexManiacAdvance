@@ -788,5 +788,37 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(2, width);
          Assert.Equal(new[] { Black, Red, Blue, White }, image);
       }
+
+      [Fact]
+      public void Selection_FlipVertical_DataFlips() {
+         DrawPixel(1, Red, new Point(0, -1));
+         DrawPixel(2, Blue, new Point(-1, 0));
+         DrawPixel(3, White, new Point(0, 0));
+
+         editor.SelectedTool = ImageEditorTools.Select;
+         ToolMove(new Point(-1, -1), new Point(0, 0));
+         editor.FlipVertical.Execute();
+
+         Assert.Equal(Blue, GetPixel(3, 3));
+         Assert.Equal(White, GetPixel(4, 3));
+         Assert.Equal(Black, GetPixel(3, 4));
+         Assert.Equal(Red, GetPixel(4, 4));
+      }
+
+      [Fact]
+      public void Selection_FlipHorizontal_DataFlips() {
+         DrawPixel(1, Red, new Point(0, -1));
+         DrawPixel(2, Blue, new Point(-1, 0));
+         DrawPixel(3, White, new Point(0, 0));
+
+         editor.SelectedTool = ImageEditorTools.Select;
+         ToolMove(new Point(-1, -1), new Point(0, 0));
+         editor.FlipHorizontal.Execute();
+
+         Assert.Equal(Red, GetPixel(3, 3));
+         Assert.Equal(Black, GetPixel(4, 3));
+         Assert.Equal(White, GetPixel(3, 4));
+         Assert.Equal(Blue, GetPixel(4, 4));
+      }
    }
 }

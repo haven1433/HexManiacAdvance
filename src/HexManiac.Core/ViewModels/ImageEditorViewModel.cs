@@ -82,7 +82,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void ExecuteCopy(IFileSystem fs) {
          if (!(toolStrategy is SelectionTool tool)) return;
-         tool.Paste(fs);
+         tool.Copy(fs);
       }
 
       private void ExecutePaste(IFileSystem fs) {
@@ -158,6 +158,34 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          NotifyPropertyChanged(nameof(PalettePages));
          NotifyPropertyChanged(nameof(HasMultiplePalettePages));
       }
+      #endregion
+
+      #region Orient Selected Data Commands
+
+      private StubCommand flipVerticalCommand, flipHorizontalCommand, rotateClockwiseCommand;
+
+      public ICommand FlipVertical => StubCommand(ref flipVerticalCommand, ExecuteFlipVertical, CanExecuteOrientSelectedPixels);
+      public ICommand FlipHorizontal => StubCommand(ref flipHorizontalCommand, ExecuteFlipHorizontal, CanExecuteOrientSelectedPixels);
+
+      private bool CanExecuteOrientSelectedPixels() {
+         if (!(toolStrategy is SelectionTool tool)) return false;
+         return tool.HasSelection;
+      }
+
+      private void ExecuteFlipVertical() {
+         if (!(toolStrategy is SelectionTool tool)) return;
+         tool.FlipVertical();
+         UpdateSpriteModel();
+         Render();
+      }
+
+      private void ExecuteFlipHorizontal() {
+         if (!(toolStrategy is SelectionTool tool)) return;
+         tool.FlipHorizontal();
+         UpdateSpriteModel();
+         Render();
+      }
+
       #endregion
 
       private IImageToolStrategy toolStrategy;
@@ -616,7 +644,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             selectionWidth = selectionHeight = 0;
          }
 
-         public void Paste(IFileSystem fs) {
+         public void Copy(IFileSystem fs) {
             if (underPixels == null) return;
             var result = new short[selectionWidth * selectionHeight];
             for (int x = 0; x < selectionWidth; x++) {
@@ -648,6 +676,36 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   parent.PixelData[parent.PixelIndex(new Point(xx, yy))] = color;
                }
             }
+         }
+
+         public void FlipVertical() {
+            var cache = CachePixels();
+
+            for (int x = 0; x < selectionWidth; x++) {
+               for (int y = 0; y < selectionHeight; y++) {
+                  parent.pixels[selectionStart.X + x, selectionStart.Y + y] = cache[x, selectionHeight - y - 1];
+               }
+            }
+         }
+
+         public void FlipHorizontal() {
+            var cache = CachePixels();
+
+            for (int x = 0; x < selectionWidth; x++) {
+               for (int y = 0; y < selectionHeight; y++) {
+                  parent.pixels[selectionStart.X + x, selectionStart.Y + y] = cache[selectionWidth - x - 1, y];
+               }
+            }
+         }
+
+         private int[,] CachePixels() {
+            var cache = new int[selectionWidth, selectionHeight];
+            for (int x = 0; x < selectionWidth; x++) {
+               for (int y = 0; y < selectionHeight; y++) {
+                  cache[x, y] = parent.pixels[selectionStart.X + x, selectionStart.Y + y];
+               }
+            }
+            return cache;
          }
       }
 
