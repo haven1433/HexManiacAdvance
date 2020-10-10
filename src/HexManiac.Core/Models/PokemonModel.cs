@@ -730,12 +730,12 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public override int ReadPointer(int index) {
          var destination = base.ReadPointer(index);
-         if (pointerOffsets.TryGetValue(index, out int offset)) destination += offset;
+         if (pointerOffsets.TryGetValue(index, out int offset)) destination -= offset;
          return destination;
       }
 
       public override void WritePointer(ModelDelta changeToken, int address, int pointerDestination) {
-         if (pointerOffsets.TryGetValue(address, out int offset)) pointerDestination -= offset;
+         if (pointerOffsets.TryGetValue(address, out int offset)) pointerDestination += offset;
          base.WritePointer(changeToken, address, pointerDestination);
       }
 
@@ -1426,7 +1426,12 @@ namespace HavenSoft.HexManiac.Core.Models {
                   var destination = ReadPointer(pointerRun.Start);
                   var anchorName = GetAnchorFromAddress(run.Start, destination);
                   if (string.IsNullOrEmpty(anchorName)) anchorName = destination.ToString("X6");
-                  text.Append($"<{anchorName}> ");
+                  var offset = string.Empty;
+                  if (pointerRun is OffsetPointerRun offsetPointerRun) {
+                     if (offsetPointerRun.Offset > 0) offset = "+" + offsetPointerRun.Offset.ToString("X6");
+                     if (offsetPointerRun.Offset < 0) offset = "-" + (-offsetPointerRun.Offset).ToString("X6");
+                  }
+                  text.Append($"<{anchorName}{offset}> ");
                   start += 4;
                   length -= 4;
                } else if (run is NoInfoRun || run is IScriptStartRun) {

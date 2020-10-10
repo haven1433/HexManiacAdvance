@@ -145,7 +145,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       private void AddTable(int source, int offset, string name, string format) {
          if (source < 0 || source > RawData.Length) return;
-         var destination = ReadPointer(source) + offset;
+         var destination = ReadPointer(source) - offset;
          if (destination < 0 || destination > RawData.Length) return;
 
          var interruptingRun = GetNextRun(destination);

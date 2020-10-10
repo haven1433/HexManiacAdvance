@@ -118,7 +118,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          get {
             var destination = DestinationName;
             if (string.IsNullOrEmpty(destination)) destination = Destination.ToString("X6");
-            return $"<{destination}>";
+            var offset = string.Empty;
+            if (OffsetValue > 0) offset = "+" + OffsetValue.ToString("X6");
+            if (OffsetValue < 0) offset = "-" + (-OffsetValue).ToString("X6");
+            return $"<{destination}{offset}>";
          }
       }
 

@@ -445,35 +445,38 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             }
          }
 
-         int fullValue;
+         int destinationValue;
          int offset = 0;
          if (destination == string.Empty) {
-            fullValue = Model.ReadPointer(memoryLocation);
+            destinationValue = Model.ReadPointer(memoryLocation);
          } else if (destination.All(ViewPort.AllHexCharacters.Contains) && destination.Length <= 7) {
             while (destination.Length < 6) destination = "0" + destination;
-            fullValue = int.Parse(destination, NumberStyles.HexNumber);
+            destinationValue = int.Parse(destination, NumberStyles.HexNumber);
          } else if (destination.Contains("+") && !destination.Contains("-")) {
             var destinationParts = destination.Split("+");
-            destination = destinationParts[0];
-            while (destination.Length < 6) destination = "0" + destination;
-            bool parsePass = int.TryParse(destinationParts[0], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out fullValue);
-            parsePass &= int.TryParse(destinationParts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
-            if (!parsePass) ErrorText = $"Could not parse {destinationParts[0]}+{destinationParts[1]} into an address.";
+            if (!int.TryParse(destinationParts[0], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out destinationValue)) {
+               destinationValue = Model.GetAddressFromAnchor(CurrentChange, memoryLocation, destinationParts[0]);
+            }
+            if (!int.TryParse(destinationParts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset)) {
+               ErrorText = $"Could not parse {destinationParts[0]}+{destinationParts[1]} into an address.";
+            }
          } else if (destination.Contains("-") && !destination.Contains("+")) {
             var destinationParts = destination.Split("-");
-            destination = destinationParts[0];
-            while (destination.Length < 6) destination = "0" + destination;
-            bool parsePass = int.TryParse(destinationParts[0], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out fullValue);
-            parsePass &= int.TryParse(destinationParts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
+            if (!int.TryParse(destinationParts[0], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out destinationValue)) {
+               destinationValue = Model.GetAddressFromAnchor(CurrentChange, memoryLocation, destinationParts[0]);
+            }
+            if (!int.TryParse(destinationParts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset)) {
+               ErrorText = $"Could not parse {destinationParts[0]}-{destinationParts[1]} into an adress.";
+            }
             offset = -offset;
-            if (!parsePass) ErrorText = $"Could not parse {destinationParts[0]}-{destinationParts[1]} into an adress.";
          } else {
-            fullValue = Model.GetAddressFromAnchor(CurrentChange, memoryLocation, destination);
+            destinationValue = Model.GetAddressFromAnchor(CurrentChange, memoryLocation, destination);
          }
 
-         if (fullValue == Pointer.NULL || (0 <= fullValue && fullValue < Model.Count)) {
+         var fullValue = destinationValue + offset;
+         if (destinationValue == Pointer.NULL || (0 <= destinationValue && destinationValue < Model.Count)) {
             if (inArray) {
-               UpdateArrayPointer((ITableRun)currentRun, fullValue);
+               UpdateArrayPointer((ITableRun)currentRun, destinationValue);
             } else {
                if (Model.ReadPointer(memoryLocation) != fullValue) {
                   Model.WritePointer(CurrentChange, memoryLocation, fullValue);
@@ -485,7 +488,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
             NewDataIndex = memoryLocation + 4;
          } else {
-            ErrorText = $"Address {fullValue:X2} is not within the data.";
+            ErrorText = $"Address {destinationValue:X2} is not within the data.";
          }
       }
 

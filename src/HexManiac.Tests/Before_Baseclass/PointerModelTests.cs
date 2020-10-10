@@ -786,10 +786,11 @@ namespace HavenSoft.HexManiac.Tests {
       public void OffsetPointersWork() {
          StandardSetup(out var data, out var model, out var _);
 
+         data[0] = 0x60;
          data[3] = 8;
          model.ObserveRunWritten(new ModelDelta(), new OffsetPointerRun(0, 0x30));
 
-         Assert.Equal(0x08000000, model.ReadMultiByteValue(0, 4));
+         Assert.Equal(0x08000060, model.ReadMultiByteValue(0, 4));
          Assert.Equal(0x30, model.ReadPointer(0));
          Assert.IsType<NoInfoRun>(model.GetNextRun(0x30));
          Assert.Equal(0x30, model.GetNextRun(0x30).Start);
@@ -800,6 +801,7 @@ namespace HavenSoft.HexManiac.Tests {
          StandardSetup(out var data, out var model, out var viewPort);
          var metaInfo = new StubMetadataInfo { VersionNumber = string.Empty };
 
+         data[0] = 0x60;
          data[3] = 8;
          model.ObserveRunWritten(viewPort.CurrentChange, new OffsetPointerRun(0, 0x30));
 
@@ -815,8 +817,8 @@ namespace HavenSoft.HexManiac.Tests {
       public void CanCreateOffsetPointerFromViewModel() {
          StandardSetup(out var _, out var model, out var viewPort);
          viewPort.Edit("<000100+20>");
-         Assert.Equal(0x08000100, model.ReadMultiByteValue(0, 4));
-         Assert.Equal(0x120, model.ReadPointer(0));
+         Assert.Equal(0x08000120, model.ReadMultiByteValue(0, 4));
+         Assert.Equal(0x100, model.ReadPointer(0));
       }
 
       [Fact]
@@ -825,7 +827,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          model.WritePointer(viewPort.CurrentChange, 0, 0x10);
          model.ObserveAnchorWritten(viewPort.CurrentChange, "bob", new NoInfoRun(0x20));
-         model.ObserveRunWritten(viewPort.CurrentChange, new OffsetPointerRun(0, 0x10)); // with a value of 0x10 and an offset of 0x10, this should now point to bob
+         model.ObserveRunWritten(viewPort.CurrentChange, new OffsetPointerRun(0, -0x10)); // with a value of 0x10 and an offset of 0x10, this should now point to bob
 
          // move the anchor
          model.ClearFormat(viewPort.CurrentChange, 0x20, 1); // clear the anchor
@@ -833,6 +835,17 @@ namespace HavenSoft.HexManiac.Tests {
 
          // pointer should point to the new location (with offset)
          Assert.Equal(0x08000030, model.ReadValue(0));
+         Assert.Equal(0x40, model.ReadPointer(0));
+      }
+
+
+      [Fact]
+      public void Anchor_CreateOffsetPointer_NoError() {
+         StandardSetup(out var _, out var model, out var viewPort);
+
+         viewPort.Edit("@40 ^anchor @0 <anchor+2>");
+
+         Assert.Equal(0x08000042, model.ReadValue(0));
          Assert.Equal(0x40, model.ReadPointer(0));
       }
 
