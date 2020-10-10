@@ -148,11 +148,14 @@ graphics.bag.palette,                  3C1CD8, 3C1D30, 3C1CF4, 3C1D60, 3D41F4, 3
 graphics.bag.berry.sprites,            0A7D7C, 0A7D7C, 0A7D9C, 0A7D9C,       ,       ,       ,       , 0D50C0, [sprite<`lzs4x6x6`> pal<`lzp4`>]
 graphics.firstpersonview.sprites,            ,       ,       ,       , 0F80FC, 0F80D4, 0F8174, 0F814C,       , [a b c d tileset<`lzt4|graphics.firstpersonview.sprites`> tilemap<`lzm4x32x20|graphics.firstpersonview.sprites`> pal<`ucp4:DE`>]28
 graphics.battle.background.sprites,    00D954, 00D954, 00D954, 00D954, 00F2A0, 00F2A0, 00F2B4, 00F2B4, 035940, [battletiles<`lzt4|graphics.battle.background.sprites`> battlemap<`lzm4x32x64|graphics.battle.background.sprites|battletiles`> introtiles<`lzt4`> intromap<`lzm4x32x14|graphics.battle.background.sprites|introtiles`> pal<`lzp4:234`>]
-graphics.battle.hud.opponent.sprite,   ,,,, 260210, 2601F0, 260280, 260260, , `lzs4x8x8|graphics.battle.hud.palette`
-graphics.battle.hud.player.sprite,     ,,,, 260208, 2601E8, 260278, 260258, , `lzs4x8x16|graphics.battle.hud.palette`
-graphics.battle.hud.palette,           ,,,, 260260, 260240, 2602D0, 2602B0, , `ucp4`
-graphics.battle.hud.hpbar.sprite,      ,,,, 0480B4, 0480B4, 0480C8, 0480C8, , `ucs4x11x6|graphics.battle.hud.hpbar.palette`
-graphics.battle.hud.hpbar.palette,     ,,,, 260268, 260248, 2602D8, 2602B8, , `ucp4`
+graphics.battle.hud.opponent.sprite,             20A484, 20A414, 20A49C, 20A42C, 260210, 2601F0, 260280, 260260, , `lzs4x8x8|graphics.battle.hud.palette`
+graphics.battle.hud.player.sprite,               20A47C, 20A40C, 20A494, 20A424, 260208, 2601E8, 260278, 260258, , `lzs4x8x16|graphics.battle.hud.palette`
+graphics.battle.hud.palette,                     20A4D4, 20A464, 20A4EC, 20A47C, 260260, 260240, 2602D0, 2602B0, , `ucp4`
+graphics.battle.hud.hpbar.sprite,                043CE8, 043CE8, 043D08, 043D08, 0480B4, 0480B4, 0480C8, 0480C8, , `ucs4x11x6|graphics.battle.hud.hpbar.palette`
+graphics.battle.hud.hpbar.palette,               20A4DC, 20A46C, 20A4F4, 20A484, 260268, 260248, 2602D8, 2602B8, , `ucp4`
+graphics.battle.hud.hpbox.doublebattle.player,   20A494, 20A424, 20A4AC, 20A43C, 260220, 260200, 260290, 260270, , `lzs4x8x8|graphics.battle.hud.palette`
+graphics.battle.hud.hpbox.doublebattle.opponent, 20A4A4, 20A434, 20A4BC, 20A44C, 260230, 260210, 2602A0, 260280, , `lzs4x8x8|graphics.battle.hud.palette`
+graphics.battle.hud.hpbox.safarizone.sprite,     20A4AC, 20A43C, 20A4C4, 20A454, 260238, 260218, 2602A8, 260288, , `lzs4x8x16|graphics.battle.hud.palette`
 
 graphics.titlescreen.pokemon.palette,              07C298, 07C29C, 07C2B8, 07C2BC, ,,,, , `ucp4:01`
 graphics.titlescreen.pokemon.tileset,              07C280, 07C284, 07C2A0, 07C2A4, ,,,, , `lzt4|graphics.titlescreen.pokemon.palette`
@@ -206,6 +209,8 @@ graphics.titlescreen.introscene.forest.tilemap2,   ,,,, 0ED210, 0ED1E8, 0ED228, 
 graphics.titlescreen.introscene.grass.palette1,    ,,,, 0ECF48, 0ECF20, 0ECF60, 0ECF38, , `ucp4`
 graphics.titlescreen.introscene.grass.tileset,     ,,,, 0ECF9C, 0ECF74, 0ECFB4, 0ECF8C, , `lzt4|graphics.titlescreen.introscene.grass.palette1`
 graphics.titlescreen.introscene.grass.tilemap,     ,,,, 0ECFA0, 0ECF78, 0ECFB8, 0ECF90, , `lzm4x32x64|graphics.titlescreen.introscene.grass.tileset`
+graphics.titlescreen.introscene.grass.tileset2,    ,,,, 0ED30C, 0ED2E4, 0ED324, 0ED2FC, , `lzt4|graphics.titlescreen.introscene.forest.palette2`
+graphics.titlescreen.introscene.grass.tilemap2,    ,,,, 0ED310, 0ED2E8, 0ED328, 0ED300, , `lzm4x32x20|graphics.titlescreen.introscene.grass.tileset2`
 graphics.titlescreen.gamefreak.logo.palette,       ,,,, 0EC984, 0EC95C, 0EC998, 0EC970, , `ucp4`
 graphics.titlescreen.gamefreak.logo.sprite,        ,,,, 0ECB74, 0ECB4C, 0ECB88, 0ECB60, , `lzs4x4x8|graphics.titlescreen.gamefreak.logo.palette`
 graphics.titlescreen.gamefreak.logo.text.sprite,   ,,,, 0ECB6C, 0ECB44, 0ECB80, 0ECB58, , `lzs4x18x2|graphics.titlescreen.gamefreak.logo.palette`
@@ -213,6 +218,12 @@ graphics.titlescreen.copyright.tileset,            ,,,, 0EC610, 0EC5E8, 0EC624, 
 graphics.titlescreen.copyright.tilemap,            ,,,, 0EC614, 0EC5EC, 0EC628, 0EC600, , `lzm4x32x32|graphics.titlescreen.copyright.tileset`
 graphics.titlescreen.copyright.palette,            ,,,, 0EC618, 0EC5F0, 0EC62C, 0EC604, , `ucp4`
 
+graphics.newgame.platform.palette,                 ,,,, 462F24, 462944, 462F84, 4629B4, , `ucp4`
+graphics.newgame.platform.sprite,                  ,,,, 462F14, 462934, 462F74, 4629A4, , `lzs4x4x12|graphics.newgame.platform.palette`
+graphics.newgame.pikachu.palette,                  ,,,, 462F1C, 46293C, 462F7C, 4629AC, , `ucp4`
+graphics.newgame.pikachu.body,                     ,,,, 462EFC, 46291C, 462F5C, 46298C, , `lzs4x4x8|graphics.newgame.pikachu.palette`
+graphics.newgame.pikachu.ears,                     ,,,, 462F04, 462924, 462F64, 462994, , `lzs4x4x4|graphics.newgame.pikachu.palette`
+graphics.newgame.pikachu.eyes,                     ,,,, 462F0C, 46292C, 462F6C, 46299C, , `lzs4x2x2|graphics.newgame.pikachu.palette`
 graphics.newgame.player.male.palette,          ,       ,       ,       , 131228, 131200, 1312A0, 131278,       , `ucp4:45`
 graphics.newgame.player.male.sprite,           ,       ,       ,       , 13122C, 131204, 1312A4, 13127C,       , `lzs8x8x12|graphics.newgame.player.male.sprite`
 graphics.newgame.player.female.palette,        ,       ,       ,       , 131240, 131218, 1312B8, 131290,       , `ucp4:45`
