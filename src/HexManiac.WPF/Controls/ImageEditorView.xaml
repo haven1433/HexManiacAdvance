@@ -184,29 +184,63 @@
             </RadioButton>
          </StackPanel>
 
-         <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" HorizontalAlignment="Center"
-               Visibility="{Binding Tag, RelativeSource={RelativeSource Self}, Converter={StaticResource BoolToVisibility}, ConverterParameter={x:Static Visibility.Hidden}}"
-               Tag="{Binding SelectedTool, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter={x:Static hshmcvm:ImageEditorTools.Draw}}">
-            <StackPanel.Resources>
-               <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
-                  <Setter Property="Command" Value="{Binding SetCursorSize}"/>
-                  <Setter Property="Width" Value="30"/>
-                  <Setter Property="Height" Value="30"/>
-                  <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                  <Setter Property="VerticalContentAlignment" Value="Center"/>
-               </Style>
-            </StackPanel.Resources>
-            <RadioButton CommandParameter="1" Content="1"
-               IsChecked="{Binding CursorSize, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter=1}"/>
-            <RadioButton CommandParameter="2" Content="2"
-               IsChecked="{Binding CursorSize, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter=2}"/>
-            <RadioButton CommandParameter="4" Content="4"
-               IsChecked="{Binding CursorSize, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter=4}"/>
-            <RadioButton CommandParameter="8" Content="8" Margin="0,0,30,0"
-               IsChecked="{Binding CursorSize, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter=8}"/>
+         <StackPanel Height="30" HorizontalAlignment="Center" DockPanel.Dock="Top">
+            <StackPanel Orientation="Horizontal"
+                  Visibility="{Binding Tag, RelativeSource={RelativeSource Self}, Converter={StaticResource BoolToVisibility}}"
+                  Tag="{Binding SelectedTool, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter={x:Static hshmcvm:ImageEditorTools.Draw}}">
+               <StackPanel.Resources>
+                  <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
+                     <Setter Property="Command" Value="{Binding SetCursorSize}"/>
+                     <Setter Property="Width" Value="30"/>
+                     <Setter Property="Height" Value="30"/>
+                     <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                     <Setter Property="VerticalContentAlignment" Value="Center"/>
+                  </Style>
+               </StackPanel.Resources>
+               <RadioButton CommandParameter="1" Content="1"
+                  IsChecked="{Binding CursorSize, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter=1}"/>
+               <RadioButton CommandParameter="2" Content="2"
+                  IsChecked="{Binding CursorSize, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter=2}"/>
+               <RadioButton CommandParameter="4" Content="4"
+                  IsChecked="{Binding CursorSize, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter=4}"/>
+               <RadioButton CommandParameter="8" Content="8" Margin="0,0,30,0"
+                  IsChecked="{Binding CursorSize, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter=8}"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal"
+                  Visibility="{Binding Tag, RelativeSource={RelativeSource Self}, Converter={StaticResource BoolToVisibility}}"
+                  Tag="{Binding SelectedTool, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter={x:Static hshmcvm:ImageEditorTools.Select}}">
+               <StackPanel.Resources>
+                  <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                     <Setter Property="Width" Value="30"/>
+                     <Setter Property="Height" Value="30"/>
+                     <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                     <Setter Property="VerticalContentAlignment" Value="Center"/>
+                     <Setter Property="Padding" Value="0"/>
+                  </Style>
+               </StackPanel.Resources>
+               <Decorator>
+                  <Button Command="{Binding FlipVertical}">
+                     <Path Data="{hshmwpfr:Icon ArrowsUpDown}"/>
+                  </Button>
+                  <Decorator.ToolTip>
+                     <ToolTip Content="Flip the currently selected pixels top-to-bottom."/>
+                  </Decorator.ToolTip>
+               </Decorator>
+               <Decorator>
+                  <Button Command="{Binding FlipHorizontal}">
+                     <Path Data="{hshmwpfr:Icon ArrowsLeftRight}"/>
+                  </Button>
+                  <Decorator.ToolTip>
+                     <ToolTip Content="Flip the currently selected pixels left-to-right."/>
+                  </Decorator.ToolTip>
+               </Decorator>
+            </StackPanel>
          </StackPanel>
 
-         <local:PixelImage DataContext="{Binding BlockPreview}" Visibility="{Binding Enabled, Converter={StaticResource BoolToVisibility}, ConverterParameter={x:Static Visibility.Hidden}}" DockPanel.Dock="Top"/>
+         <local:PixelImage DataContext="{Binding BlockPreview}"
+            Visibility="{Binding Enabled, Converter={StaticResource BoolToVisibility}, ConverterParameter={x:Static Visibility.Hidden}}"
+            DockPanel.Dock="Top"/>
 
          <ItemsControl ItemsSource="{Binding SpritePageOptions}"
                        Visibility="{Binding HasMultipleSpritePages, Converter={StaticResource BoolToVisibility}}"

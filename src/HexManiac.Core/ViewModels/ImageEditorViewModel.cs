@@ -615,6 +615,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                } else {
                   selectionWidth = selectionHeight = 0;
                }
+               parent.flipHorizontalCommand.RaiseCanExecuteChanged();
+               parent.flipVerticalCommand.RaiseCanExecuteChanged();
             }
 
             RaiseRefreshSelection(parent, selectionStart, selectionWidth, selectionHeight);

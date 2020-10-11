@@ -89,7 +89,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private readonly System.Windows.Controls.BooleanToVisibilityConverter core = new System.Windows.Controls.BooleanToVisibilityConverter();
       public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
          if (value is bool b) {
-            if (parameter == null) return b ? Visibility.Visible : Visibility.Hidden;
+            if (parameter == null) return b ? Visibility.Visible : Visibility.Collapsed;
             if (parameter is Visibility v && v == Visibility.Hidden) return b ? Visibility.Visible : Visibility.Hidden;
          }
          return core.Convert(value, targetType, parameter, culture);
