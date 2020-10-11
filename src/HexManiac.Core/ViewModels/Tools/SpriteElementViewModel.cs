@@ -28,6 +28,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }); }
       public int MaxPalette { get; private set; }
 
+      #region OpenEditor Command
+
       private StubCommand openEditor;
       public ICommand OpenEditor => StubCommand(ref openEditor, ExecuteOpenEditor, CanExecuteImageEditor);
 
@@ -41,6 +43,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var destination = ViewPort.Model.ReadPointer(Start);
          ViewPort.OpenImageEditorTab(destination, CurrentPage, CurrentPalette);
       }
+
+      #endregion
+
+      public override bool ShowPageControls => base.ShowPageControls || CanExecuteImageEditor();
 
       public SpriteElementViewModel(ViewPort viewPort, SpriteFormat format, int itemAddress) : base(viewPort, itemAddress) {
          this.format = format;

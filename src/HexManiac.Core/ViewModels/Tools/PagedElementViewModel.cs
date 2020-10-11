@@ -5,7 +5,7 @@ using System.Windows.Input;
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public abstract class PagedElementViewModel : StreamElementViewModel, IPagedViewModel {
 
-      public bool ShowPageControls => Pages > 1 || CanExecuteAddPage();
+      public virtual bool ShowPageControls => Pages > 1 || CanExecuteAddPage();
 
       private int currentPage;
       public int CurrentPage {
