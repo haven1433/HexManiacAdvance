@@ -815,9 +815,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public int WordToLoad { get; }
 
       public DeferredLoadRegisterToken(int address, int register, string word) {
-         if (word.StartsWith("=")) word = word.Substring(1);
-         if (word.StartsWith("(")) word = word.Substring(1);
-         if (word.EndsWith(")")) word = word.Substring(0, word.Length - 1);
+         if (word.StartsWith("=")) word = word.Substring(1).Trim();
+         if (word.StartsWith("(")) word = word.Substring(1).Trim();
+         if (word.StartsWith("#")) word = word.Substring(1).Trim();
+         if (word.EndsWith(")")) word = word.Substring(0, word.Length - 1).Trim();
 
          var more = 0;
          if (word.Contains("+")) {
@@ -843,7 +844,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public void Write(IList<byte> data, int wordAddress) {
          //build instruction
-         var offset = (wordAddress - InstructionAddress - 4) / 4;
+         var instructionWord = InstructionAddress;
+         if (instructionWord % 4 != 0) instructionWord -= 2;
+         var offset = (wordAddress - instructionWord - 4) / 4;
          var instruction = 0b01001;
          instruction <<= 3;
          instruction |= Register;

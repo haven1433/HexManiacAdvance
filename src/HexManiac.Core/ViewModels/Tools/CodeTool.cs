@@ -208,6 +208,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var end = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd));
          if (start > end) (start, end) = (end, start);
          int length = end - start + 1;
+         int originalLength = length;
          var code = thumb.Compile(model, start, Content.Split(Environment.NewLine));
 
          // if more length is needed and the next available bytes are free, allow it.
@@ -223,6 +224,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          ModelDataChanged?.Invoke(this, ErrorInfo.NoError);
+
+         if (length > originalLength) {
+            ignoreContentUpdates = true;
+            selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(start);
+            selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(start + length - 1);
+            ignoreContentUpdates = false;
+         }
       }
 
       private void CompileScriptChanges<TSERun>(int start, IFormattedRun run, int length, ref string codeContent, ScriptParser parser, bool updateSelection) where TSERun : IScriptStartRun {
