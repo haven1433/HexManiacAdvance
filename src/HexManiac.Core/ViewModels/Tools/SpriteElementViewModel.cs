@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class SpriteElementViewModel : PagedElementViewModel, IPixelViewModel {
@@ -26,6 +27,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          UpdatePaletteSelection();
       }); }
       public int MaxPalette { get; private set; }
+
+      private StubCommand openEditor;
+      public ICommand OpenEditor => StubCommand(ref openEditor, ExecuteOpenEditor, CanExecuteImageEditor);
+
+      private bool CanExecuteImageEditor() {
+         var destination = ViewPort.Model.ReadPointer(Start);
+         var run = ViewPort.Model.GetNextRun(destination) as ISpriteRun;
+         return run?.SupportsEdit ?? false;
+      }
+
+      private void ExecuteOpenEditor() {
+         var destination = ViewPort.Model.ReadPointer(Start);
+         ViewPort.OpenImageEditorTab(destination, CurrentPage, CurrentPalette);
+      }
 
       public SpriteElementViewModel(ViewPort viewPort, SpriteFormat format, int itemAddress) : base(viewPort, itemAddress) {
          this.format = format;

@@ -337,7 +337,12 @@
                               <Button Content="Previous" Command="{Binding PreviousPage}" DockPanel.Dock="Left"/>
                               <Button Content="+" Command="{Binding AddPage}" DockPanel.Dock="Right" ToolTip="Add a new page to this sprite and palette"/>
                               <Button Content="Next" Command="{Binding NextPage}" DockPanel.Dock="Right"/>
-                              <Button Content="-" Command="{Binding DeletePage}" HorizontalAlignment="Center" ToolTip="Delete the current page of this sprite and palette"/>
+                              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                 <Button Content="-" Command="{Binding DeletePage}" ToolTip="Delete the current page of this sprite and palette"/>
+                                 <Button Command="{Binding OpenEditor}" ToolTip="Open image in editor" Padding="0">
+                                    <Path Data="{hsv:Icon Pencil}" Fill="{DynamicResource Primary}" Stretch="Uniform"/>
+                                 </Button>
+                              </StackPanel>
                            </DockPanel>
                         </StackPanel>
                      </DataTemplate>
