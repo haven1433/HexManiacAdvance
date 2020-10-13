@@ -81,6 +81,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                }
                break;
             case ElementContentType.Pointer:
+               data = data.Trim();
                if (data.StartsWith("<")) data = data.Substring(1);
                if (data.EndsWith(">")) data = data.Substring(0, data.Length - 1);
                if (!int.TryParse(data, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var address)) {
