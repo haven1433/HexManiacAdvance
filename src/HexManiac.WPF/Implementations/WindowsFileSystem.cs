@@ -64,6 +64,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          return LoadFile(dialog.FileName);
       }
 
+      public bool Exists(string fileName) => File.Exists(fileName);
+
       public LoadedFile LoadFile(string fileName) {
          if (!File.Exists(fileName)) return null;
          var output = new List<byte>();

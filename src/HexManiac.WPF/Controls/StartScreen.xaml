@@ -3,53 +3,108 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:hsg3hwr="clr-namespace:HavenSoft.HexManiac.WPF.Resources"
-             mc:Ignorable="d" Background="{DynamicResource Background}"
-             d:DesignHeight="450" d:DesignWidth="800"
-             HorizontalAlignment="Stretch">
-   <Grid.ColumnDefinitions>
-      <ColumnDefinition/>
-      <ColumnDefinition Width="2*" MinWidth="100"/>
-      <ColumnDefinition Width="20"/>
-      <ColumnDefinition Width="400"/>
-      <ColumnDefinition/>
-   </Grid.ColumnDefinitions>
-   <Border Grid.ColumnSpan="5" Background="{StaticResource HexBrush}"/>
-   <TextBlock Grid.Column="1" Foreground="{DynamicResource Primary}" HorizontalAlignment="Right" TextWrapping="Wrap" VerticalAlignment="Center">
-      Drag-n-Drop to open a file.
-   </TextBlock>
-   <StackPanel Grid.Column="3" VerticalAlignment="Center" TextBlock.Foreground="{DynamicResource Primary}" >
-      <Border Margin="5" Padding="5" Background="{DynamicResource Background}" BorderBrush="{DynamicResource Secondary}" CornerRadius="5,5,5,5" BorderThickness="1" Cursor="Hand" MouseLeftButtonDown="PointerHelp">
-         <Grid>
-            <Grid.RowDefinitions>
-               <RowDefinition Height="30"/>
-               <RowDefinition Height="30"/>
-               <RowDefinition Height="30"/>
-            </Grid.RowDefinitions>
-            <TextBlock Grid.Row="1" FontFamily="Consolas" Foreground="{DynamicResource Accent}" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="35,0">&lt;pointer&gt;</TextBlock>
-            <TextBlock Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="35,0"><Run FontFamily="Consolas" Foreground="{DynamicResource Accent}">^</Run>Anchor</TextBlock>
-            <Path Data="M0,0 A230,150 0 0 1 230,0 L228,-10 M230,0 L224,7.5" HorizontalAlignment="Center" VerticalAlignment="Bottom" StrokeThickness="1" Stroke="{DynamicResource Accent}">
-               <Path.RenderTransform>
-                  <TranslateTransform X="0" Y="10"/>
-               </Path.RenderTransform>
-            </Path>
-            <Border HorizontalAlignment="Center" Background="{DynamicResource Background}" Padding="5,0">
-               <StackPanel Orientation="Horizontal">
-                  <Path Data="{hsg3hwr:Icon CtrlKey}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                  <Path Data="{hsg3hwr:Icon ThinPlus}" Fill="{DynamicResource Secondary}" Stretch="Uniform" Margin="2" Width="10"/>
-                  <Path Height="30" Data="{hsg3hwr:Icon LeftMouseButton}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+             xmlns:hmv="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
+             mc:Ignorable="d" Background="{StaticResource HexBrush}"
+             d:DesignHeight="450" d:DesignWidth="800">
+
+   <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+      <TextBlock FontStyle="Italic" TextWrapping="Wrap" DockPanel.Dock="Bottom" Margin="40,30,40,0">
+         Hex Maniac Advance is a non-profit open-source fan-made tool.
+         Only use it with legally purchased software.
+         Pokemon is the property of Nintendo and GameFreak.
+         Please support the official release.
+      </TextBlock>
+
+      <Grid>
+         <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="10"/>
+            <ColumnDefinition/>
+         </Grid.ColumnDefinitions>
+
+         <StackPanel Margin="40,0,0,0">
+            <TextBlock Foreground="{DynamicResource Primary}" HorizontalAlignment="Center">
+               Open Recent
+            </TextBlock>
+            <ItemsControl ItemsSource="{Binding RecentFileViewModels}">
+               <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                     <TextBlock Margin="0,2" ToolTip="{Binding LongName}" FontSize="16">
+                        <Hyperlink Command="{Binding Open}" Foreground="{DynamicResource Accent}">
+                           <Run Text="{Binding ShortName, Mode=OneWay}"/>
+                        </Hyperlink>
+                     </TextBlock>
+                  </DataTemplate>
+               </ItemsControl.ItemTemplate>
+            </ItemsControl>
+         </StackPanel>
+
+         <Border Grid.Column="2" BorderThickness="1" CornerRadius="4" BorderBrush="{DynamicResource Secondary}" Padding="5" Margin="0,0,40,0">
+            <Grid>
+               <Rectangle Fill="{DynamicResource Background}" Opacity=".6"/>
+               <StackPanel>
+                  <TextBlock Visibility="{Binding IsNewVersionAvailable, Converter={StaticResource BoolToVisibility}}">
+                     <Hyperlink
+                           Foreground="{DynamicResource Accent}"
+                           NavigateUri="https://github.com/haven1433/HexManiacAdvance/releases"
+                           RequestNavigate="Navigate">
+                        Update Available!
+                     </Hyperlink>
+                     <LineBreak/>
+                  </TextBlock>
+                  <TextBlock TextWrapping="Wrap">
+                     <TextBlock Text="Help" FontSize="20"/>
+                     <LineBreak/>
+                     <LineBreak/>
+
+                     <Hyperlink
+                           Foreground="{DynamicResource Accent}"
+                           NavigateUri="https://github.com/haven1433/HexManiacAdvance/wiki/Tutorials"
+                           RequestNavigate="Navigate">
+                        Tutorials
+                     </Hyperlink>
+                     <LineBreak/>
+
+                     <Hyperlink
+                           Foreground="{DynamicResource Accent}"
+                           NavigateUri="https://github.com/haven1433/HexManiacAdvance/wiki"
+                           RequestNavigate="Navigate">
+                        Wiki
+                     </Hyperlink>
+                     <LineBreak/>
+
+                     <Hyperlink
+                           Foreground="{DynamicResource Accent}"
+                           NavigateUri="https://discord.gg/x9eQuBg"
+                           RequestNavigate="Navigate">
+                        Discord
+                     </Hyperlink>
+                     <LineBreak/>
+
+                     <LineBreak/>
+                     <LineBreak/>
+
+                     <TextBlock Text="About" FontSize="20"/>
+                     <LineBreak/>
+                     <LineBreak/>
+
+                     Version
+                     <Run Text="{Binding Singletons.MetadataInfo.VersionNumber, Mode=OneWay}"/>
+                     <LineBreak/>
+
+                     <Run Name="Usage">This is an unstable version: use at your own risk!</Run>
+                     <LineBreak/>
+
+                     <Hyperlink
+                           Foreground="{DynamicResource Accent}"
+                           NavigateUri="https://github.com/haven1433/HexManiacAdvance/blob/master/LICENSE"
+                           RequestNavigate="Navigate">
+                        MIT License
+                     </Hyperlink>
+                  </TextBlock>
                </StackPanel>
-            </Border>
-            <Path Grid.Row="2" Data="M230,0 A230,150 0 0 1 0,0 L2,10 M0,0 L7.5,-6" HorizontalAlignment="Center" VerticalAlignment="Top" StrokeThickness="1" Stroke="{DynamicResource Accent}">
-               <Path.RenderTransform>
-                  <TranslateTransform X="0" Y="-1"/>
-               </Path.RenderTransform>
-            </Path>
-            <Border Grid.Row="2" HorizontalAlignment="Center" Background="{DynamicResource Background}" Padding="5,0">
-               <Path Height="30" Data="{hsg3hwr:Icon RightMouseButton}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-            </Border>
-            <TextBlock Foreground="{DynamicResource Secondary}" FontStyle="Italic" TextDecorations="Underline" Grid.Row="2" HorizontalAlignment="Right" VerticalAlignment="Bottom" Text="click for more info" Margin="5"/>
-         </Grid>
-      </Border>
-   </StackPanel>
+            </Grid>
+         </Border>
+      </Grid>
+   </DockPanel>
 </Grid>

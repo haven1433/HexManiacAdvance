@@ -5,6 +5,7 @@ using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Globalization;
@@ -307,6 +308,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private ITabContent SelectedTab => SelectedIndex < 0 ? null : tabs[SelectedIndex];
 
+      public ObservableCollection<string> RecentFiles { get; }
+      public ObservableCollection<RecentFileViewModel> RecentFileViewModels { get; } = new ObservableCollection<RecentFileViewModel>();
+
       #endregion
 
       public EditorViewModel(IFileSystem fileSystem, IWorkDispatcher workDispatcher = null, bool allowLoadingMetadata = true, IReadOnlyList<IQuickEditItem> utilities = null) {
@@ -371,6 +375,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (lastUpdateCheckLine != null && DateTime.TryParse(lastUpdateCheckLine.Split('=').Last().Trim(), out var lastUpdateCheck)) LastUpdateCheck = lastUpdateCheck;
          var zoomLine = metadata.FirstOrDefault(line => line.StartsWith("ZoomLevel ="));
          if (zoomLine != null && int.TryParse(zoomLine.Split('=').Last().Trim(), out var zoomLevel)) ZoomLevel = zoomLevel;
+
+         var recentFilesLine = metadata.FirstOrDefault(line => line.StartsWith("RecentFiles = ["));
+         if (recentFilesLine != null) {
+            RecentFiles = ParseRecentFiles(recentFilesLine);
+         } else {
+            RecentFiles = new ObservableCollection<string>();
+         }
+         PopulateRecentFilesViewModel();
       }
 
       public static ICommand Wrap(IQuickEditItem quickEdit) => new StubCommand {
@@ -389,6 +401,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             $"AllowMultipleElementsPerLine = {AllowMultipleElementsPerLine}",
             $"IsNewVersionAvailable = {IsNewVersionAvailable}",
             $"LastUpdateCheck = {LastUpdateCheck}",
+            SerializeRecentFiles(),
             string.Empty
          };
          metadata.AddRange(Theme.Serialize());
@@ -404,6 +417,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             try {
                var file = arg as LoadedFile ?? fileSystem.OpenFile("GameBoy Advanced", "gba");
                if (file == null) return;
+               UpdateRecentFiles(file.Name);
                string[] metadataText = new string[0];
                if (allowLoadingMetadata) {
                   metadataText = fileSystem.MetadataFor(file.Name) ?? new string[0];
@@ -769,6 +783,53 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void AcceptMessageClear(object sender, EventArgs e) => HideSearchControls.Execute();
 
+      private ObservableCollection<string> ParseRecentFiles(string recentFilesLine) {
+         var list = new ObservableCollection<string>();
+         var content = recentFilesLine.Split('[')[1];
+         content = content.Split(']')[0];
+
+         foreach (var segment in content.Split(',')) {
+            var element = segment.Trim(' ', '"', '\'');
+            if (!fileSystem.Exists(element)) continue;
+            list.Add(element);
+         }
+
+         return list;
+      }
+
+      private string SerializeRecentFiles() {
+         var content = string.Join(", ", RecentFiles.Select(file => $"\"{file}\""));
+         return $"RecentFiles = [{content}]";
+      }
+
+      private void UpdateRecentFiles(string filename) {
+         var index = RecentFiles.IndexOf(filename);
+         if (index == 0) return;
+         if (index != -1) RecentFiles.RemoveAt(index);
+         RecentFiles.Insert(0, filename);
+         while (RecentFiles.Count > 5) RecentFiles.RemoveAt(RecentFiles.Count - 1);
+
+         PopulateRecentFilesViewModel();
+      }
+
+      private void PopulateRecentFilesViewModel() {
+         RecentFileViewModels.Clear();
+         foreach (var file in RecentFiles) {
+            var closureFile = file;
+            RecentFileViewModels.Add(new RecentFileViewModel(file, new StubCommand {
+               CanExecute = arg => true, Execute = arg => {
+                  var loadedFile = fileSystem.LoadFile(closureFile);
+                  Open.Execute(loadedFile);
+               }
+            }));
+         }
+
+         RecentFileViewModels.Add(new RecentFileViewModel(new StubCommand {
+            CanExecute = arg => true,
+            Execute = arg => Open.Execute()
+         }));
+      }
+
       private void TabChangeRequested(object sender, ITabContent newTab) {
          if (sender != SelectedTab) return;
          var index = tabs.IndexOf(newTab);
@@ -818,6 +879,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var result = base.Run(viewPort);
          (viewPort.Model as PokemonModel)?.ResolveConflicts();
          return result;
+      }
+   }
+
+   public class RecentFileViewModel : ViewModelCore {
+      public string ShortName { get; }
+      public string LongName { get; }
+      public ICommand Open { get; }
+
+      public RecentFileViewModel(ICommand open) {
+         LongName = null;
+         ShortName = "Open file...";
+         Open = open;
+      }
+
+      public RecentFileViewModel(string filename, ICommand open) {
+         LongName = filename;
+         ShortName = Path.GetFileNameWithoutExtension(filename);
+         Open = open;
       }
    }
 }

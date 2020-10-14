@@ -38,6 +38,9 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </returns>
       LoadedFile OpenFile(string extensionDescription = null, params string[] extensionOptions);
 
+      /// <returns>true if the file can be loaded</returns>
+      bool Exists(string file);
+
       /// <summary>
       /// Have the filesystem open a specific file.
       /// </summary>

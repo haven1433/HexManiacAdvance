@@ -183,7 +183,7 @@
                   <MenuItem Header="_Tutorials" Click="TutorialsClick"/>
                   <MenuItem Header="_Report an Issue" Click="ReportIssueClick"/>
                   <MenuItem Header="_Discord" Click="DiscordClick"/>
-                  <MenuItem Header="_About" Click="AboutClick"/>
+                  <!--<MenuItem Header="_About" Click="AboutClick"/>-->
                </MenuItem>
             </Menu>
             <!-- Find -->
