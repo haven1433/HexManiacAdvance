@@ -184,7 +184,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public static IReadOnlyList<string> GetExtendedAutocompleteOptions(this IDataModel model, string text) {
          var options = new List<string>(model?.GetAutoCompleteAnchorNameOptions(text, int.MaxValue) ?? new string[0]);
          options.AddRange(model?.GetAutoCompleteByteNameOptions(text) ?? new string[0]);
-         if (!text.Contains("/") && options.Count < 30) {
+         if (!text.Contains("/")) {
             options.AddRange(model?.GetAutoCompleteAnchorNameOptions("/" + text) ?? new string[0]);
          }
          text = text.ToLower();

@@ -44,7 +44,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
       }
 
-      public void Visit(Anchor anchor, byte data) { }
+      public void Visit(Anchor anchor, byte data) => anchor.OriginalFormat.Visit(this, data);
 
       public void Visit(PCS pcs, byte data) { }
 
@@ -97,7 +97,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(EndStream stream, byte data) { }
 
-      public void Visit(LzMagicIdentifier lz, byte data) { }
+      public void Visit(LzMagicIdentifier lz, byte data) {
+         Content.Add("This byte marks the start of an LZ compressed data section.");
+         Content.Add("After the identifier byte and the length, compressed data consists of 3 types of tokens:");
+         Content.Add("(1) a 1 byte section header, telling you which of the next 8 tokens are compressed.");
+         Content.Add("(2) A raw uncompressed byte.");
+         Content.Add("(3) A 2-byte token representing anywhere from 3 to 18 compressed bytes.");
+      }
 
       public void Visit(LzGroupHeader lz, byte data) { }
 

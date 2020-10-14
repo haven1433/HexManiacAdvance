@@ -330,13 +330,20 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (!newMouseOverPoint.Equals(mouseOverPoint)) {
             mouseOverPoint = newMouseOverPoint;
             var format = ViewPort[newMouseOverPoint.X, newMouseOverPoint.Y].Format;
-            if (format is IDataFormatInstance dfi && ViewPort is ViewPort) {
-               if (dfi.Source == previousToolTipFormat?.Source && ToolTipService.GetIsEnabled(this)) {
+
+            bool needClearToolTip = true;
+            if (ViewPort is ViewPort viewPort1) {
+               var source = viewPort1.ConvertViewPointToAddress(newMouseOverPoint);
+               if (format is IDataFormatInstance dfi) source = dfi.Source;
+               if (source == previousSource && ToolTipService.GetIsEnabled(this)) {
                   // already set
-               } else {
-                  MakeNewToolTip(dfi);
+                  needClearToolTip = false;
+               } else if (MakeNewToolTip(format)) {
+                  previousSource = source;
+                  needClearToolTip = false;
                }
-            } else {
+            }
+            if (needClearToolTip) {
                ToolTipService.SetIsEnabled(this, false);
                ToolTip.IsOpen = false;
                InvalidateVisual();
@@ -382,22 +389,22 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          ReleaseMouseCapture();
       }
 
-      private IDataFormatInstance previousToolTipFormat;
+      private int previousSource;
       private new ToolTip ToolTip => (ToolTip)base.ToolTip;
       private void ShowToolTip() => ToolTip.IsOpen = true;
       protected override void OnMouseLeave(MouseEventArgs e) {
          ToolTip.IsOpen = false;
       }
-      private void MakeNewToolTip(IDataFormatInstance instance) {
+      private bool MakeNewToolTip(IDataFormat instance) {
          var visitor = new ToolTipContentVisitor(ViewPort.Model);
          instance.Visit(visitor, default);
          ToolTip.IsOpen = false;
-         if (visitor.Content.Count == 0) return;
-         previousToolTipFormat = instance;
+         if (visitor.Content.Count == 0) return false;
          base.ToolTip = new HexContentToolTip(visitor.Content); // have to make a new one to prevent a glitch of text changing as the old one fades to closed.
          ToolTipService.SetIsEnabled(this, true);
          ShowToolTip();
          InvalidateVisual();
+         return true;
       }
 
       private IEnumerable<MenuItem> BuildContextMenuUI(IReadOnlyList<IContextItem> items) {

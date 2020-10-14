@@ -120,7 +120,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          foreach (var fileName in Directory.GetFiles("resources", "default.*.toml")) {
             foreach (var code in codes) {
-               if (!fileName.ToLower().Contains($".{code}.")) continue;
+               if (!fileName.ToLower().Contains($".{code.ToLower()}.")) continue;
                var lines = File.ReadAllLines(fileName);
                var metadata = new StoredMetadata(lines);
                yield return metadata;

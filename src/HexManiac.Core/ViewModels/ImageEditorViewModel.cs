@@ -40,7 +40,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private StubCommand close, undoWrapper, redoWrapper, pasteCommand, copyCommand, selectAllCommand;
 
       public string Name => "Image Editor";
-      public ICommand Save => null;
+      public ICommand Save { get; }
       public ICommand SaveAs => null;
       public ICommand Undo => StubCommand(ref undoWrapper, ExecuteUndo, () => history.Undo.CanExecute(default));
       public ICommand Redo => StubCommand(ref redoWrapper, ExecuteRedo, () => history.Redo.CanExecute(default));
@@ -244,9 +244,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private int cursorSize = 1;
       public int CursorSize { get => cursorSize; set => Set(ref cursorSize, value, arg => BlockPreview.Clear()); }
 
-      public ImageEditorViewModel(ChangeHistory<ModelDelta> history, IDataModel model, int address) {
+      public ImageEditorViewModel(ChangeHistory<ModelDelta> history, IDataModel model, int address, ICommand save = null) {
          this.history = history;
          this.model = model;
+         Save = save;
          this.toolStrategy = this.panStrategy = new PanTool(this);
          this.eyeDropperStrategy = new EyeDropperTool(this);
          var inputRun = model.GetNextRun(address);
@@ -285,8 +286,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var xPartial  = xOffset / SpriteScale;
          var yPartial = yOffset / SpriteScale;
          SpriteScale += 1;
+         var xRange = (int)(PixelWidth * SpriteScale / 2);
+         var yRange = (int)(PixelHeight * SpriteScale / 2);
          xOffset = (int)(xPartial * SpriteScale) + x;
          yOffset = (int)(yPartial * SpriteScale) + y;
+         xOffset = xOffset.LimitToRange(-xRange, xRange);
+         yOffset = yOffset.LimitToRange(-yRange, yRange);
          NotifyPropertyChanged(nameof(XOffset));
          NotifyPropertyChanged(nameof(YOffset));
       }
@@ -524,7 +529,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (parent.WithinImage(point)) {
                var tile = parent.eyeDropperStrategy.Tile;
                if (tile == null || !parent.BlockPreview.Enabled) {
-                  drawSize = parent.CursorSize;
+                  drawSize = Math.Max(parent.CursorSize, 1);
                } else {
                   drawSize = tile.GetLength(0);
                }
@@ -578,10 +583,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var previousPoint = parent.ToSpriteSpace(parent.interactionStart);
                var currentPoint = parent.ToSpriteSpace(point);
                if (previousPoint == currentPoint) return;
-               if (!parent.WithinImage(currentPoint)) return;
                var delta = currentPoint - previousPoint;
-               if (!parent.WithinImage(selectionStart + delta)) return;
-               if (!parent.WithinImage(selectionStart + delta + new Point(selectionWidth, selectionHeight))) return;
+               delta = new Point(
+                  delta.X.LimitToRange(-selectionStart.X, parent.PixelWidth - selectionWidth - selectionStart.X),
+                  delta.Y.LimitToRange(-selectionStart.Y, parent.PixelHeight - selectionHeight - selectionStart.Y));
 
                SwapUnderPixelsWithCurrentPixels();
                selectionStart += delta;

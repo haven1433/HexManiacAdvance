@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -81,6 +82,25 @@ namespace HavenSoft.HexManiac.Tests {
          var run = (WordRun)newModel.GetNextRun(0);
          Assert.Equal(1, run.Length);
          Assert.Equal(-2, run.ValueOffset);
+      }
+
+      [Fact]
+      public void OldMetadata_UpgradeVersion_LoadConstants() {
+         var anchors = new[] { new StoredAnchor(0, "bob", string.Empty) };
+         var info = new StubMetadataInfo { VersionNumber = "0.3.0.0" };
+         var metadata = new StoredMetadata(anchors, default, default, default, default, info, default);
+         var gameReferenceTables = new GameReferenceTables(new ReferenceTable[0]);
+         var singletons = new Singletons(
+            new StubMetadataInfo { VersionNumber = "0.4.0.0" },
+            new Dictionary<string, GameReferenceTables> { { "BPRE0", gameReferenceTables }
+         });
+
+         var data = new byte[0x1000000];
+         for (int i = 0; i < 4; i++) data[0xAC + i] = (byte)"BPRE"[i];
+         var model = new PokemonModel(data, metadata, singletons);
+
+         var matches = model.GetMatchedWords("scripts.shiny.odds");
+         Assert.Equal(6, matches.Count);
       }
    }
 }

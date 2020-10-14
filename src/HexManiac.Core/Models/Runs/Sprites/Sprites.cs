@@ -154,6 +154,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          } else if (spriteTable != null) {
             // option 5: this sprite is in an array, so get all palettes in all related arrays
             foreach (var relatedTable in model.GetRelatedArrays(spriteTable)) {
+               if (relatedTable == spriteTable) continue; // skip self, I'll handle my own relation later
                results.AddRange(model.GetPointedChildren<IPaletteRun>(relatedTable, offset.ElementIndex));
             }
             results.AddRange(model.GetPointedChildren<IPaletteRun>(spriteTable, offset.ElementIndex));
