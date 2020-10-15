@@ -1010,7 +1010,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var sources = GetSourcesPointingToNewAnchor(changeToken, anchorName, seekPointers);
             // remove any sources that were added _within_ the existing run
             for (int i = 0; i < sources.Count; i++) {
-               if (sources[i] < run.Start || sources[i] >= run.Start + run.Length) continue;
+               if (sources[i] <= run.Start || sources[i] >= run.Start + run.Length) continue;
                ClearFormat(changeToken, sources[i], 4);
                sources = sources.Remove1(sources[i]);
                i -= 1;
