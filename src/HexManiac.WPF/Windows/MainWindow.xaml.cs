@@ -342,5 +342,15 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          FocusAnimationElement.BeginAnimation(WidthProperty, widthAnimation);
          FocusAnimationElement.BeginAnimation(HeightProperty, heightAnimation);
       }
+
+      private void ShowElementPopup(object sender, MouseEventArgs e) {
+         var element = (FrameworkElement)sender;
+         ((ToolTip)element.ToolTip).IsOpen = true;
+      }
+
+      private void HideElementPopup(object sender, MouseEventArgs e) {
+         var element = (FrameworkElement)sender;
+         ((ToolTip)element.ToolTip).IsOpen = false;
+      }
    }
 }

@@ -340,7 +340,10 @@
                            </Button.CommandParameter>
                            <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
                         </Button>
-                        <TextBlock Text="Goto:" FontSize="20"/>
+                        <TextBlock FontSize="20">
+                           <Run Text="Goto: "/>
+                           <Run FontStyle="Italic" Foreground="{DynamicResource Secondary}" Text="What would you like to view or edit?"/>
+                        </TextBlock>
                      </DockPanel>
                      <StackPanel Orientation="Horizontal">
                         <Grid>
@@ -370,6 +373,38 @@
                         </Grid>
                         <Button Content="Go" VerticalAlignment="Stretch" Padding="12,0" Command="{Binding GotoViewModel.Goto}" Background="{DynamicResource Accent}"/>
                      </StackPanel>
+                     <Canvas Width="0" Height="0" HorizontalAlignment="Left" DockPanel.Dock="Bottom">
+                        <Border Width="20" Height="20" Background="Transparent" Canvas.Top="5" Canvas.Left="5" ToolTipService.ShowDuration="10000" MouseLeftButtonDown="ShowElementPopup" MouseLeave="HideElementPopup">
+                           <Path Fill="{DynamicResource Secondary}" Data="{hsv:Icon Help}" Stretch="Uniform" Opacity=".5"/>
+                           <Border.ToolTip>
+                              <ToolTip>
+                                 <Grid>
+                                    <Grid.RowDefinitions>
+                                       <RowDefinition Height="*"/>
+                                       <RowDefinition Height="*"/>
+                                       <RowDefinition Height="*"/>
+                                       <RowDefinition Height="*"/>
+                                       <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                       <ColumnDefinition Width="Auto"/>
+                                       <ColumnDefinition Width="10"/>
+                                       <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Row="0" Text="Examples:" Margin="0,0,0,6"/>
+                                    <TextBlock FontWeight="Bold" Grid.Row="1" Text="256AC8" Margin="0,0,0,6"/>
+                                    <TextBlock FontStyle="Italic" Grid.Row="1" Grid.Column="2" Text="Go to an address in the file"/>
+                                    <TextBlock FontWeight="Bold" Grid.Row="2" Text="scripts.shiny.odds" Margin="0,0,0,6"/>
+                                    <TextBlock FontStyle="Italic" Grid.Row="2" Grid.Column="2" Text="List uses of a named value"/>
+                                    <TextBlock FontWeight="Bold" Grid.Row="3" Text="graphics.bag.male.sprite" Margin="0,0,0,6"/>
+                                    <TextBlock FontStyle="Italic" Grid.Row="3" Grid.Column="2" Text="Jump to named data (anchor)"/>
+                                    <TextBlock FontWeight="Bold" Grid.Row="4" Text="data.pokemon.names/CHARIZARD"/>
+                                    <TextBlock FontStyle="Italic" Grid.Row="4" Grid.Column="2" Text="Go to a specific row in a table"/>
+                                 </Grid>
+                              </ToolTip>
+                           </Border.ToolTip>
+                        </Border>
+                     </Canvas>
                   </StackPanel>
                   <ItemsControl MinHeight="100" ItemsSource="{Binding GotoViewModel.PrefixSelections}" Grid.Row="3">
                      <ItemsControl.ItemTemplate>

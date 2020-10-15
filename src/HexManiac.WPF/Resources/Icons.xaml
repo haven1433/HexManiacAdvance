@@ -42,21 +42,7 @@
             <EllipseGeometry Center="50,50" RadiusX="10" RadiusY="10"/>
          </CombinedGeometry.Geometry2>
       </CombinedGeometry>
-      <CombinedGeometry x:Name="Help" GeometryCombineMode="Exclude">
-         <CombinedGeometry.Geometry1>
-            <GeometryGroup FillRule="Nonzero">
-               <EllipseGeometry Center="10,10" RadiusX="10" RadiusY="10"/>
-               <EllipseGeometry Center="10,30" RadiusX="3" RadiusY="3"/>
-               <RectangleGeometry Rect="7.5,16,5,10"/>
-            </GeometryGroup>
-         </CombinedGeometry.Geometry1>
-         <CombinedGeometry.Geometry2>
-            <GeometryGroup FillRule="Nonzero">
-               <PathGeometry Figures="m7.5,10 L7.5,20 0,20 0,0 Z"/>
-               <EllipseGeometry Center="10,10" RadiusX="5" RadiusY="5"/>
-            </GeometryGroup>
-         </CombinedGeometry.Geometry2>
-      </CombinedGeometry>
+      <PathGeometry x:Name="Help" Figures="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm0 22c-5.514 0-10-4.486-10-10s4.486-10 10-10 10 4.486 10 10-4.486 10-10 10zm0-18.8c-4.853 0-8.8 3.947-8.8 8.8s3.947 8.8 8.8 8.8 8.8-3.947 8.8-8.8-3.947-8.8-8.8-8.8zm0 15.05c-.689 0-1.25-.56-1.25-1.25s.561-1.25 1.25-1.25c.691 0 1.25.56 1.25 1.25s-.559 1.25-1.25 1.25zm1.961-5.928c-.904.975-.947 1.514-.935 2.178h-2.005c-.007-1.475.02-2.125 1.432-3.468.572-.544 1.024-.975.962-1.821-.058-.805-.73-1.226-1.364-1.226-.709 0-1.538.527-1.538 2.013h-2.011c0-2.4 1.41-3.95 3.59-3.95 1.036 0 1.942.339 2.551.955.57.578.865 1.372.854 2.298-.018 1.383-.859 2.291-1.536 3.021z"/>
       <GeometryGroup x:Name="Save">
          <CombinedGeometry GeometryCombineMode="Exclude">
             <CombinedGeometry.Geometry1>
