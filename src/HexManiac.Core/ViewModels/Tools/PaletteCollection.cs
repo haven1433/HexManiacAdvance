@@ -163,12 +163,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          var palettesToUpdate = new List<IPaletteRun> { source };
          var sprites = source.FindDependentSprites(model).Distinct().ToList();
+         bool alreadyDidGoto = false;
+
          foreach (var sprite in sprites) {
             var newSprite = sprite;
 
             if (sprite is LzTilesetRun tileset) {
                // find all tilemaps that use this tileset and update them
-               foreach (var tilemap in tileset.FindDependentTilemaps(model)) {
+               var tilemaps = tileset.FindDependentTilemaps(model); // TODO working here
+               foreach (var tilemap in tilemaps) {
                   var pixels = tilemap.GetPixels(model, 0);
                   for (int y = 0; y < pixels.GetLength(1); y++) {
                      for (int x = 0; x < pixels.GetLength(0); x++) {
@@ -178,12 +181,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                         // in the game, this only happens for tiles filled with the fully transparent color, so leaving them alone is actually the right thing to do.
                         if (tilesetPalettePage - source.PaletteFormat.InitialBlankPages != this.page) continue;
                         var oldPaletteColorIndex = pixels[x, y] - (tilesetPalettePage << 4);
-                        if (oldPaletteColorIndex.IsAny(6, 7)) ;
+                        int tilesetPageOffset = 0;
+                        while (oldPaletteColorIndex < 0) { oldPaletteColorIndex += 16; tilesetPageOffset += 16; }
+                        while (oldPaletteColorIndex >= oldToNew.Length) { oldPaletteColorIndex -= 16; tilesetPageOffset -= 16; }
                         var newPaletteColorIndex = oldToNew[oldPaletteColorIndex];
-                        pixels[x, y] = newPaletteColorIndex + (tilesetPalettePage << 4);
+                        pixels[x, y] = newPaletteColorIndex + (tilesetPalettePage << 4) - tilesetPageOffset;
                      }
                   }
-                  tilemap.SetPixels(model, history.CurrentChange, 0, pixels);
+                  var newTileMap = tilemap.SetPixels(model, history.CurrentChange, 0, pixels);
+                  if (newTileMap.Start != tilemap.Start) {
+                     tab.RaiseMessage($"Tilemap was moved to {newTileMap.Start:X6}. Pointers were updated.");
+                     if (!alreadyDidGoto) tab.Goto?.Execute(newTileMap.Start);
+                     alreadyDidGoto = true;
+                  }
                }
                // find the new tileset sprite, since it could've moved
                newSprite = model.GetNextRun(model.ReadPointer(sprite.PointerSources[0])) as ISpriteRun ?? sprite;
@@ -200,9 +210,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   newSprite = newSprite.SetPixels(model, history.CurrentChange, page % newSprite.Pages, pixels);
                   if (hasMultiplePages) break;
                }
+
+               if (newSprite.Start != sprite.Start) {
+                  tab.RaiseMessage($"Sprite was moved to {newSprite.Start:X6}. Pointers were updated.");
+                  if (!alreadyDidGoto) tab.Goto?.Execute(newSprite.Start);
+                  alreadyDidGoto = true;
+               }
             }
 
-            if (newSprite.Start != sprite.Start) tab.RaiseMessage($"Sprite was moved to {newSprite.Start:X6}. Pointers were updated.");
             palettesToUpdate.AddRange(newSprite.FindRelatedPalettes(model));
          }
 

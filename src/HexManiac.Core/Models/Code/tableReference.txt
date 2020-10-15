@@ -160,7 +160,7 @@ graphics.battle.hud.hpbox.safarizone.sprite,     20A4AC, 20A43C, 20A4C4, 20A454,
 graphics.titlescreen.pokemon.palette,              07C298, 07C29C, 07C2B8, 07C2BC, ,,,, , `ucp4:01`
 graphics.titlescreen.pokemon.tileset,              07C280, 07C284, 07C2A0, 07C2A4, ,,,, , `lzt4|graphics.titlescreen.pokemon.palette`
 graphics.titlescreen.pokemon.tilemap,              07C288, 07C28C, 07C2A8, 07C2AC, ,,,, , `lzm4x32x20|graphics.titlescreen.pokemon.tileset`
-graphics.titlescreen.background.animation.sprite,  ,,,, 3BFB9C, 3BF9D8, 3BFC0C, 3BFA48, , `lzs4x2x20|graphics.titlescreen.animation.palette`
+graphics.titlescreen.background.animation.sprite,  ,,,, 3BFB9C, 3BF9D8, 3BFC0C, 3BFA48, , `lzs4x2x20|graphics.titlescreen.background.animation.palette`
 graphics.titlescreen.background.animation.palette, ,,,, 3BFBBC, 3BF9F8, 3BFC2C, 3BFA68, , `ucp4`
 graphics.titlescreen.logo.sprite,                  07C270, 07C274, 07C290, 07C294, ,,,, , `lzs8x32x8|graphics.titlescreen.logo.palette`
 graphics.titlescreen.logo.palette,                 07C27C, 07C280, 07C29C, 07C2A0, ,,,, , `ucp4:0123456789ABCD`
