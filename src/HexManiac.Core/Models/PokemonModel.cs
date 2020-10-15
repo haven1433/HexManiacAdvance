@@ -1008,6 +1008,13 @@ namespace HavenSoft.HexManiac.Core.Models {
             var noKnownPointers = run.PointerSources == null || run.PointerSources.Count == 0;
             seekPointers = seekPointers && noKnownPointers;
             var sources = GetSourcesPointingToNewAnchor(changeToken, anchorName, seekPointers);
+            // remove any sources that were added _within_ the existing run
+            for (int i = 0; i < sources.Count; i++) {
+               if (sources[i] < run.Start || sources[i] >= run.Start + run.Length) continue;
+               ClearFormat(changeToken, sources[i], 4);
+               sources = sources.Remove1(sources[i]);
+               i -= 1;
+            }
 
             // if we're adding an array, a few extra updates
             if (run is ArrayRun array) {
@@ -1767,13 +1774,13 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// <returns>
       /// The list of sources that point at the new anchor
       /// </returns>
-      private SortedSpan<int> GetSourcesPointingToNewAnchor(ModelDelta changeToken, string anchorName, bool seakPointers) {
+      private SortedSpan<int> GetSourcesPointingToNewAnchor(ModelDelta changeToken, string anchorName, bool seekPointers) {
          if (!addressForAnchor.TryGetValue(anchorName, out int location)) return SortedSpan<int>.None;     // new anchor is unnamed, so nothing points to it yet
 
          if (!unmappedNameToSources.TryGetValue(anchorName, out var sources)) {
             // no pointer was waiting for this anchor to be created
             // but the user thinks there's something pointing here
-            if (seakPointers) return SearchForPointersToAnchor(changeToken, location);
+            if (seekPointers) return SearchForPointersToAnchor(changeToken, location);
             return SortedSpan<int>.None;
          }
 
