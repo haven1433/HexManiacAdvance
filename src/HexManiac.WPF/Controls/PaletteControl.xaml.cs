@@ -66,6 +66,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          Focus();
 
          interactionPoint = e.GetPosition(this);
+         if (interactionPoint.X > ExpectedElementWidth * ViewModel.ColorWidth) return;
          var tileIndex = InteractionTileIndex;
 
          if (Keyboard.Modifiers == ModifierKeys.Shift) {
@@ -168,6 +169,17 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private static readonly ColorConverter colorConverter = new ColorConverter();
+
+      private void ShowElementPopup(object sender, MouseEventArgs e) {
+         var element = (FrameworkElement)sender;
+         ((ToolTip)element.ToolTip).IsOpen = true;
+      }
+
+      private void HideElementPopup(object sender, MouseEventArgs e) {
+         var element = (FrameworkElement)sender;
+         ((ToolTip)element.ToolTip).IsOpen = false;
+      }
+
       private string ColorFor(int tileIndex) {
          var color = TileImage.Convert16BitColor(ViewModel.Elements[tileIndex].Color);
          var colorString = colorConverter.ConvertToString(color);
