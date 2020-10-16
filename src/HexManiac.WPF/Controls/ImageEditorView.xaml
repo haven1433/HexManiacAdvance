@@ -26,6 +26,10 @@
       <KeyBinding Key="D5" CommandParameter="5" Command="{Binding SelectColor}"/>
       <KeyBinding Key="D6" CommandParameter="6" Command="{Binding SelectColor}"/>
       <KeyBinding Key="D7" CommandParameter="7" Command="{Binding SelectColor}"/>
+      <KeyBinding Key="D1" Modifiers="Shift" Command="{Binding SetCursorSize}" CommandParameter="1" />
+      <KeyBinding Key="D2" Modifiers="Shift" Command="{Binding SetCursorSize}" CommandParameter="2" />
+      <KeyBinding Key="D3" Modifiers="Shift" Command="{Binding SetCursorSize}" CommandParameter="4" />
+      <KeyBinding Key="D4" Modifiers="Shift" Command="{Binding SetCursorSize}" CommandParameter="8" />
    </UserControl.InputBindings>
    <DockPanel>
       <DockPanel DockPanel.Dock="Left">
@@ -198,13 +202,57 @@
                   </Style>
                </StackPanel.Resources>
                <RadioButton CommandParameter="1" Content="1"
-                  IsChecked="{Binding CursorSize, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter=1}"/>
+                  IsChecked="{Binding CursorSize, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter=1}">
+                  <RadioButton.ToolTip>
+                     <ToolTip>
+                        <TextBlock>
+                           1 pixel cursor
+                           <Italic Foreground="{DynamicResource Secondary}">
+                              (Shift+1)
+                           </Italic>
+                        </TextBlock>
+                     </ToolTip>
+                  </RadioButton.ToolTip>
+               </RadioButton>
                <RadioButton CommandParameter="2" Content="2"
-                  IsChecked="{Binding CursorSize, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter=2}"/>
+                  IsChecked="{Binding CursorSize, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter=2}">
+                  <RadioButton.ToolTip>
+                     <ToolTip>
+                        <TextBlock>
+                           2 pixel cursor
+                           <Italic Foreground="{DynamicResource Secondary}">
+                              (Shift+2)
+                           </Italic>
+                        </TextBlock>
+                     </ToolTip>
+                  </RadioButton.ToolTip>
+               </RadioButton>
                <RadioButton CommandParameter="4" Content="4"
-                  IsChecked="{Binding CursorSize, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter=4}"/>
+                  IsChecked="{Binding CursorSize, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter=4}">
+                  <RadioButton.ToolTip>
+                     <ToolTip>
+                        <TextBlock>
+                           4 pixel cursor
+                           <Italic Foreground="{DynamicResource Secondary}">
+                              (Shift+3)
+                           </Italic>
+                        </TextBlock>
+                     </ToolTip>
+                  </RadioButton.ToolTip>
+               </RadioButton>
                <RadioButton CommandParameter="8" Content="8" Margin="0,0,30,0"
-                  IsChecked="{Binding CursorSize, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter=8}"/>
+                  IsChecked="{Binding CursorSize, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter=8}">
+                  <RadioButton.ToolTip>
+                     <ToolTip>
+                        <TextBlock>
+                           8 pixel cursor
+                           <Italic Foreground="{DynamicResource Secondary}">
+                              (Shift+4)
+                           </Italic>
+                        </TextBlock>
+                     </ToolTip>
+                  </RadioButton.ToolTip>
+               </RadioButton>
             </StackPanel>
 
             <StackPanel Orientation="Horizontal"
