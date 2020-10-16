@@ -4,7 +4,7 @@
              xmlns:hshmwpfc="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
              xmlns:hshmcvmt="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Tools;assembly=HexManiac.Core"
              Background="{DynamicResource Background}">
-   <ItemsControl Name="ToolTipContent">
+   <ItemsControl Name="ToolTipContent" ItemsSource="{Binding}">
       <ItemsControl.Resources>
          <DataTemplate DataType="{x:Type hshmcvmt:ReadonlyPixelViewModel}">
             <hshmwpfc:PixelImage SnapsToDevicePixels="True" />

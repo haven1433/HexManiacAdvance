@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -126,6 +127,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (matchingToken == null) break;
             matchingToken.IsSelected = true;
          }
+         UpdateTooltips();
       }
 
       private void UpdatePrefixSelectionsAfterSelectionMade() {
@@ -156,6 +158,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else {
             var newSection = GotoLabelSection.Build(viewPort.Model, Text, PrefixSelections);
             PrefixSelections.Add(AddListeners(newSection));
+         }
+         UpdateTooltips();
+      }
+
+      private void UpdateTooltips() {
+         foreach (var prefix in PrefixSelections) {
+            var currentSelection = string.Join(".", GotoLabelSection.GetSectionSelections(PrefixSelections.Until(section => section == prefix)));
+            foreach (var token in prefix.Tokens) {
+               var fullName = token.Content;
+               if (!string.IsNullOrEmpty(currentSelection)) fullName = currentSelection + "." + token.Content;
+               token.UpdateHoverTip(viewPort.Model, fullName);
+            }
          }
       }
 
@@ -282,10 +296,32 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private string content;
       public string Content { get => content; set => Set(ref content, value); }
 
+      private ObservableCollection<object> hoverTip;
+      public ObservableCollection<object> HoverTip {
+         get => hoverTip;
+         set { hoverTip = value; NotifyPropertyChanged(); }
+      }
+
       public static ObservableCollection<GotoToken> Generate(IEnumerable<string> content) {
          var collection = new ObservableCollection<GotoToken>();
          foreach (var c in content) collection.Add(new GotoToken { Content = c });
          return collection;
+      }
+
+      public void UpdateHoverTip(IDataModel model, string fullName) {
+         var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, fullName);
+         if (address != Pointer.NULL) {
+            var run = model.GetNextRun(address);
+            if (address == run.Start) {
+               var hoverContent = ToolTipContentVisitor.BuildContentForRun(model, run);
+               if (hoverContent != null) {
+                  HoverTip = new ObservableCollection<object> { hoverContent };
+                  return;
+               }
+            }
+         }
+
+         HoverTip = null;
       }
    }
 }

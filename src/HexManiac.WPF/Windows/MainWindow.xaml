@@ -451,7 +451,28 @@
                                                    </Style.Triggers>
                                                 </Style>
                                              </Border.Style>
-                                             <ToggleButton BorderThickness="0" Content="{Binding Content}" IsChecked="{Binding IsSelected}" Padding="6" FontSize="15" IsEnabled="{Binding IsSelectable}"/>
+                                             <ToggleButton
+                                                BorderThickness="0"
+                                                Content="{Binding Content}"
+                                                IsChecked="{Binding IsSelected}"
+                                                Padding="6"
+                                                FontSize="15"
+                                                IsEnabled="{Binding IsSelectable}">
+                                                <ToggleButton.Style>
+                                                   <Style TargetType="ToggleButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
+                                                      <Setter Property="ToolTip">
+                                                         <Setter.Value>
+                                                            <hsg3hv:HexContentToolTip DataContext="{Binding PlacementTarget.DataContext.HoverTip, RelativeSource={RelativeSource Self}}"/>
+                                                         </Setter.Value>
+                                                      </Setter>
+                                                      <Style.Triggers>
+                                                         <DataTrigger Binding="{Binding HoverTip}" Value="{x:Null}">
+                                                            <Setter Property="ToolTip" Value="{x:Null}"/>
+                                                         </DataTrigger>
+                                                      </Style.Triggers>
+                                                   </Style>
+                                                </ToggleButton.Style>
+                                             </ToggleButton>
                                           </Border>
                                        </Border>
                                     </DataTemplate>

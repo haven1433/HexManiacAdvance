@@ -400,7 +400,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          instance.Visit(visitor, default);
          ToolTip.IsOpen = false;
          if (visitor.Content.Count == 0) return false;
-         base.ToolTip = new HexContentToolTip(visitor.Content); // have to make a new one to prevent a glitch of text changing as the old one fades to closed.
+         base.ToolTip = new HexContentToolTip { DataContext = visitor.Content }; // have to make a new one to prevent a glitch of text changing as the old one fades to closed.
          ToolTipService.SetIsEnabled(this, true);
          ShowToolTip();
          InvalidateVisual();

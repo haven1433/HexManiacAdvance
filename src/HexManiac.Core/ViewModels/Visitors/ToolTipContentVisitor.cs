@@ -26,21 +26,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(Pointer pointer, byte data) {
          Content.Add(pointer.DestinationAsText);
          var destinationRun = model.GetNextRun(pointer.Destination);
+         var runSpecificContent = BuildContentForRun(model, destinationRun);
+         if (runSpecificContent != null) Content.Add(runSpecificContent);
+      }
+
+      public static object BuildContentForRun(IDataModel model, IFormattedRun destinationRun) {
          if (destinationRun is PCSRun pcs) {
-            Content.Add(PCSString.Convert(model, pcs.Start, pcs.Length));
+            return PCSString.Convert(model, pcs.Start, pcs.Length);
          } else if (destinationRun is ISpriteRun sprite) {
             var paletteRun = sprite.FindRelatedPalettes(model).FirstOrDefault();
             var pixels = sprite.GetPixels(model, 0);
             var colors = paletteRun?.AllColors(model) ?? TileViewModel.CreateDefaultPalette(0x10);
             var imageData = SpriteTool.Render(pixels, colors, paletteRun?.PaletteFormat.InitialBlankPages ?? 0, 0);
-            Content.Add(new ReadonlyPixelViewModel(sprite.SpriteFormat, imageData));
+            return new ReadonlyPixelViewModel(sprite.SpriteFormat, imageData);
          } else if (destinationRun is IPaletteRun paletteRun) {
             var colors = paletteRun.GetPalette(model, 0);
-            Content.Add(new ReadonlyPaletteCollection(colors));
+            return new ReadonlyPaletteCollection(colors);
          } else if (destinationRun is IStreamRun streamRun) {
             using (ModelCacheScope.CreateScope(model)) {
-               Content.Add(streamRun.SerializeRun());
+               return streamRun.SerializeRun();
             }
+         } else {
+            return null;
          }
       }
 
