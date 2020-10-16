@@ -55,7 +55,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private void UpdateColors(int start, int page) {
          var destination = Model.ReadPointer(start);
          var run = ViewPort.Model.GetNextRun(destination) as IPaletteRun;
-         Colors.SourcePalette = run.Start;
+         Colors.SourcePalettePointer = start;
          Colors.SetContents(run.GetPalette(Model, page));
          Colors.Page = page;
          Colors.HasMultiplePages = Pages > 1;

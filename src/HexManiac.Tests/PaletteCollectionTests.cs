@@ -8,7 +8,7 @@ namespace HavenSoft.HexManiac.Tests {
       private readonly StubFileSystem fileSystem = new StubFileSystem();
 
       public PaletteCollectionTests() {
-         ViewPort.Edit("^pal`ucp4`");
+         ViewPort.Edit("@80 <pal> @00 ^pal`ucp4`");
       }
 
       [Fact]

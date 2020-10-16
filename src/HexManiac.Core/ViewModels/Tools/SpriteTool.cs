@@ -405,6 +405,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          this.history = history;
          Colors = new PaletteCollection(viewPort, viewPort.Model, history);
          Colors.ColorsChanged += (sender, e) => { LoadPalette(); LoadSprite(); };
+         Colors.PaletteRepointed += (sender, newPaletteAddress) => PaletteAddress = newPaletteAddress;
          model = viewPort?.Model;
          spriteAddress = Pointer.NULL;
          paletteAddress = Pointer.NULL;
@@ -504,7 +505,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void LoadPalette() {
          var run = model?.GetNextRun(paletteAddress) as IPaletteRun;
-         if (run == null) {
+         if (run == null || run.PointerSources.Count == 0) {
             palette = TileViewModel.CreateDefaultPalette(0x10);
          } else {
             palPages = run.Pages;
@@ -520,7 +521,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          prevPalPage.CanExecuteChanged.Invoke(prevPalPage, EventArgs.Empty);
          nextPalPage.CanExecuteChanged.Invoke(nextPalPage, EventArgs.Empty);
 
-         Colors.SourcePalette = paletteAddress;
+         Colors.SourcePalettePointer = run?.PointerSources.FirstOrDefault() ?? Pointer.NULL;
          Colors.SetContents(palette);
          Colors.Page = palPage;
          Colors.HasMultiplePages = palPages > 1;

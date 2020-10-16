@@ -44,8 +44,8 @@
          </ItemsControl.ItemTemplate>
       </ItemsControl>
       <Canvas HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="0" Height="0">
-         <Border Width="20" Height="20" Background="Transparent" Canvas.Bottom="5" Canvas.Left="5" ToolTipService.ShowDuration="10000" MouseLeftButtonDown="ShowElementPopup" MouseLeave="HideElementPopup">
-            <Path Fill="{DynamicResource Secondary}" Data="{hsv:Icon Help}" Stretch="Uniform" Opacity=".5"/>
+         <Border Background="Transparent" Canvas.Bottom="5" Canvas.Left="5" ToolTipService.ShowDuration="10000" MouseLeftButtonDown="ShowElementPopup" MouseLeave="HideElementPopup">
+            <Path Fill="{DynamicResource Secondary}" Width="20" Height="20" Data="{hsv:Icon Help}" Stretch="Uniform" Opacity=".5"/>
             <Border.ToolTip>
                <ToolTip>
                   <TextBlock>

@@ -257,7 +257,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (palRun == null) palRun = spriteRun.FindRelatedPalettes(model).First();
          SpritePointer = spriteRun.PointerSources[0];
          PalettePointer = palRun.PointerSources[0];
-         Palette = new PaletteCollection(this, model, history) { SourcePalette = palRun.Start };
+         Palette = new PaletteCollection(this, model, history) { SourcePalettePointer = PalettePointer };
          Palette.Bind(nameof(Palette.HoverIndex), UpdateSelectionFromPaletteHover);
          Refresh();
          selectedPixels = new bool[PixelWidth, PixelHeight];
@@ -771,6 +771,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          private void FillSpace(Point a, Point b) {
             a = parent.ToSpriteSpace(a);
             b = parent.ToSpriteSpace(b);
+            if (!parent.WithinImage(a) || !parent.WithinImage(b)) return;
             int originalColorIndex = parent.pixels[a.X, a.Y];
             var direction = Math.Sign(parent.Palette.SelectionEnd - parent.Palette.SelectionStart);
             var targetColors = new List<int> { parent.Palette.SelectionStart };

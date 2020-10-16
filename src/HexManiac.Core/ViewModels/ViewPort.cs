@@ -842,6 +842,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          RefreshBackingData();
          using (ModelCacheScope.CreateScope(Model)) {
             Tools.TableTool.DataForCurrentRunChanged();
+            Tools.SpriteTool.DataForCurrentRunChanged();
          }
       }
 

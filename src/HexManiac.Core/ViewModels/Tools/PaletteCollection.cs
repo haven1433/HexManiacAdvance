@@ -24,8 +24,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly IDataModel model;
       private readonly ChangeHistory<ModelDelta> history;
 
-      private int sourcePalette;
-      public int SourcePalette { get => sourcePalette; set => Set(ref sourcePalette, value); }
+      private int sourcePalettePointer;
+      public int SourcePalettePointer { get => sourcePalettePointer; set => Set(ref sourcePalettePointer, value); }
       public ObservableCollection<SelectableColor> Elements { get; } = new ObservableCollection<SelectableColor>();
 
       public int ColorWidth => (int)Math.Ceiling(Math.Sqrt(Elements.Count));
@@ -82,6 +82,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ICommand SingleReduce => StubCommand(ref singleReduce, ExecuteSingleReduce, CanExecuteSingleReduce);
 
       public event EventHandler<int> RequestPageSet;
+      public event EventHandler<int> PaletteRepointed;
       public event EventHandler ColorsChanged;
 
       public PaletteCollection(IRaiseMessageTab tab, IDataModel model, ChangeHistory<ModelDelta> history) {
@@ -135,12 +136,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public void PushColorsToModel() {
+         int sourcePalette = model.ReadPointer(sourcePalettePointer);
          if (!(model.GetNextRun(sourcePalette) is IPaletteRun source)) return;
 
          // update model
          var newPalette = source;
          newPalette = newPalette.SetPalette(model, history.CurrentChange, page, Elements.Select(e => e.Color).ToList());
-         if (source.Start != newPalette.Start) tab.RaiseMessage($"Palette was moved to {newPalette.Start:X6}. Pointers were updated.");
+         if (source.Start != newPalette.Start) {
+            tab.RaiseMessage($"Palette was moved to {newPalette.Start:X6}. Pointers were updated.");
+            PaletteRepointed?.Invoke(this, newPalette.Start);
+         }
 
          // update UI
          var selectionRange = (selectionStart, selectionEnd);
@@ -149,6 +154,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void ReorderPalette() {
+         int sourcePalette = model.ReadPointer(sourcePalettePointer);
          if (!(model.GetNextRun(sourcePalette) is IPaletteRun source)) return;
 
          var oldToNew = Elements.Count.Range().Select(i => Elements.IndexOf(Elements.Single(element => element.Index == i))).ToArray();
@@ -283,6 +289,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void ExecutePaste(IFileSystem fileSystem) {
+         int sourcePalette = model.ReadPointer(sourcePalettePointer);
          if (!(model.GetNextRun(sourcePalette) is IPaletteRun)) return;
 
          // paste data into elements
@@ -329,6 +336,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private bool CanExecuteCreateGradient() => Elements.Count(element => element.Selected) > 2;
 
       private void ExecuteSingleReduce() {
+         int sourcePalette = model.ReadPointer(sourcePalettePointer);
          if (!(model.GetNextRun(sourcePalette) is IPaletteRun paletteRun)) return;
          int pageOffset = (paletteRun.PaletteFormat.InitialBlankPages + Page) << 4;
 

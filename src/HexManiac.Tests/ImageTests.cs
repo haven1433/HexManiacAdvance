@@ -456,7 +456,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void EditPaletteUpdatesMatchingSprites() {
          ViewPort.Edit("01 @00 ^sprite`ucs4x1x1|pal`");
-         ViewPort.Edit("@20 ^pal`ucp4`");
+         ViewPort.Edit("@80 <pal> @20 ^pal`ucp4`");
          ViewPort.Refresh();
 
          ViewPort.Tools.SpriteTool.Colors.HandleMove(0, 1);
@@ -468,7 +468,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CanCreateGradientForSelectedColors() {
-         ViewPort.Edit("^palette`ucp4` 0:0:0 0:0:0 30:30:30 ");
+         ViewPort.Edit("@80 <palette> @00 ^palette`ucp4` 0:0:0 0:0:0 30:30:30 ");
 
          ViewPort.Tools.SpriteTool.Colors.SelectionStart = 0;
          ViewPort.Tools.SpriteTool.Colors.SelectionEnd = 2;

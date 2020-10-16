@@ -163,12 +163,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void UpdateTooltips() {
-         foreach (var prefix in PrefixSelections) {
-            var currentSelection = string.Join(".", GotoLabelSection.GetSectionSelections(PrefixSelections.Until(section => section == prefix)));
-            foreach (var token in prefix.Tokens) {
-               var fullName = token.Content;
-               if (!string.IsNullOrEmpty(currentSelection)) fullName = currentSelection + "." + token.Content;
-               token.UpdateHoverTip(viewPort.Model, fullName);
+         using (ModelCacheScope.CreateScope(viewPort.Model)) {
+            foreach (var prefix in PrefixSelections) {
+               var currentSelection = string.Join(".", GotoLabelSection.GetSectionSelections(PrefixSelections.Until(section => section == prefix)));
+               foreach (var token in prefix.Tokens) {
+                  var fullName = token.Content;
+                  if (!string.IsNullOrEmpty(currentSelection)) fullName = currentSelection + "." + token.Content;
+                  token.UpdateHoverTip(viewPort.Model, fullName);
+               }
             }
          }
       }
@@ -312,7 +314,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, fullName);
          if (address != Pointer.NULL) {
             var run = model.GetNextRun(address);
-            if (address == run.Start) {
+            if (run != null && address == run.Start) {
                var hoverContent = ToolTipContentVisitor.BuildContentForRun(model, run);
                if (hoverContent != null) {
                   HoverTip = new ObservableCollection<object> { hoverContent };
