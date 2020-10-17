@@ -616,11 +616,19 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
-      public void EyeDropper_SelectRect_SelectionIsSquare() {
+      public void EyeDropper_SelectSquare_SelectionIsSquare() {
+         editor.EyeDropperDown(0, 0);
+         editor.Hover(2, 2);
+
+         Assert.True(editor.ShowSelectionRect(6, 4));
+      }
+
+      [Fact]
+      public void EyeDropper_SelectRect_SelectionIsRect() {
          editor.EyeDropperDown(0, 0);
          editor.Hover(3, 2);
 
-         Assert.False(editor.ShowSelectionRect(6, 4));
+         Assert.True(editor.ShowSelectionRect(7, 4));
       }
 
       [Fact]
@@ -628,7 +636,7 @@ namespace HavenSoft.HexManiac.Tests {
          editor.EyeDropperDown(0, 0);
          editor.Hover(1, -2);
 
-         Assert.False(editor.ShowSelectionRect(4, 2));
+         Assert.True(editor.ShowSelectionRect(4, 2));
       }
 
       [Fact]

@@ -53,7 +53,7 @@ namespace HavenSoft.HexManiac.Tests {
          CreateTextTable("names", 0x100, "adam", "bob", "carl", "dave");
          CreateEnumTable("enums", 0x180, "names", 0, 1, 2, 3);
          CreateBitArrayTable("bits", 0, "enums", 0xF);
-         var format = new BitArray(default, default, 1);
+         var format = new BitArray(default, default, 1, default);
 
          format.Visit(visitor, Model[0]);
 
@@ -65,7 +65,7 @@ namespace HavenSoft.HexManiac.Tests {
          CreateTextTable("names", 0x100, "adam", "bob", "carl", "dave");
          CreateEnumTable("enums", 0x180, "names", 0, 1, 2, 3);
          CreateBitArrayTable("bits", 0, "enums", 0);
-         var format = new BitArray(default, default, 1);
+         var format = new BitArray(default, default, 1, default);
 
          format.Visit(visitor, Model[0]);
 
