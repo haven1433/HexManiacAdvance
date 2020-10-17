@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.WPF.Windows;
 using System;
@@ -17,6 +18,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private readonly Popup swatchPopup = new Popup { Placement = PlacementMode.Bottom, PopupAnimation = PopupAnimation.Fade, AllowsTransparency = true };
       private readonly Swatch swatch = new Swatch { Width = 230, Height = 200 };
+      private readonly TextBox[] swatchTextBoxes = new[] {
+         new TextBox { ToolTip = "Red (0 to 31)" },
+         new TextBox { ToolTip = "Green (0 to 31)" },
+         new TextBox { ToolTip = "Blue (0 to 31)" },
+      };
 
       private Point interactionPoint;
       private short[] initialColors;
@@ -37,7 +43,19 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       public PaletteControl() {
          InitializeComponent();
          swatchPopup.PlacementTarget = this;
-         swatchPopup.Child = swatch;
+         swatchPopup.Child = new StackPanel {
+            Children = {
+               swatch,
+               new UniformGrid {
+                  Columns = 3,
+                  Children = {
+                     swatchTextBoxes[0],
+                     swatchTextBoxes[1],
+                     swatchTextBoxes[2],
+                  },
+               },
+            },
+         };
       }
 
       public void ClosePopup() {
@@ -46,13 +64,14 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       protected override void OnLostFocus(RoutedEventArgs e) {
+         if (swatchPopup.IsKeyboardFocusWithin) return;
          ClosePopup();
          base.OnLostFocus(e);
       }
 
       protected override void OnLostKeyboardFocus(KeyboardFocusChangedEventArgs e) {
-         swatchPopup.IsOpen = false;
-         swatch.ResultChanged -= SwatchResultChanged;
+         if (swatchPopup.IsKeyboardFocusWithin) return;
+         ClosePopup();
          base.OnLostKeyboardFocus(e);
       }
 
@@ -66,7 +85,10 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          Focus();
 
          interactionPoint = e.GetPosition(this);
-         if (interactionPoint.X > ExpectedElementWidth * ViewModel.ColorWidth) return;
+         if (interactionPoint.X > ExpectedElementWidth * ViewModel.ColorWidth || interactionPoint.X < 0) {
+            ClosePopup();
+            return;
+         }
          var tileIndex = InteractionTileIndex;
 
          if (Keyboard.Modifiers == ModifierKeys.Shift) {
@@ -83,7 +105,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          e.Handled = true;
 
          if (Keyboard.Modifiers != ModifierKeys.Shift) {
-            swatch.Result = ColorFor(tileIndex);
+            swatch.Result = Color32For(tileIndex);
+            UpdateSwatchTextBoxContentFromSwatch();
             initialColors = CollectColorList();
             activeSelection = tileIndex;
             if (e.LeftButton == MouseButtonState.Pressed) {
@@ -93,6 +116,27 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          } else {
             swatchPopup.IsOpen = false;
          }
+      }
+
+      private void UpdateSwatchTextBoxContentFromSwatch() {
+         var color32 = (Color)ColorConverter.ConvertFromString(swatch.Result);
+         var color16 = TileImage.Convert16BitColor(color32);
+         var channels = Color16ToChannelStrings(color16);
+         for (int i = 0; i < channels.Length; i++) {
+            swatchTextBoxes[i].TextChanged -= UpdateSwatchColorFromTextBoxes;
+            swatchTextBoxes[i].Text = channels[i];
+            swatchTextBoxes[i].TextChanged += UpdateSwatchColorFromTextBoxes;
+         }
+      }
+
+      private void UpdateSwatchColorFromTextBoxes(object sender, TextChangedEventArgs e) {
+         for (int i = 0; i < swatchTextBoxes.Length; i++) swatchTextBoxes[i].TextChanged -= UpdateSwatchColorFromTextBoxes;
+
+         var color16 = ChannelStringsToColor16(swatchTextBoxes.Select(box => box.Text).ToArray());
+         var color32 = TileImage.Convert16BitColor(color16);
+         swatch.Result = color32.ToString();
+
+         for (int i = 0; i < swatchTextBoxes.Length; i++) swatchTextBoxes[i].TextChanged += UpdateSwatchColorFromTextBoxes;
       }
 
       private void PaletteColorMove(object sender, MouseEventArgs e) {
@@ -165,6 +209,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             ViewModel.Elements[i].Color = ApplyDif(i, dif);
          }
 
+         UpdateSwatchTextBoxContentFromSwatch();
+
          ViewModel.PushColorsToModel();
       }
 
@@ -180,10 +226,28 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          ((ToolTip)element.ToolTip).IsOpen = false;
       }
 
-      private string ColorFor(int tileIndex) {
+      private string Color32For(int tileIndex) {
          var color = TileImage.Convert16BitColor(ViewModel.Elements[tileIndex].Color);
          var colorString = colorConverter.ConvertToString(color);
          return colorString;
+      }
+
+      private string[] Color16ToChannelStrings(short color16) {
+         var r = color16 >> 10;
+         var g = (color16 >> 5) & 0x1F;
+         var b = color16 & 0x1F;
+         return new[] { r.ToString(), g.ToString(), b.ToString() };
+      }
+
+      private short ChannelStringsToColor16(string[] channels) {
+         int.TryParse(channels[0], out int r);
+         int.TryParse(channels[1], out int g);
+         int.TryParse(channels[2], out int b);
+         r = r.LimitToRange(0, 0x1F);
+         g = g.LimitToRange(0, 0x1F);
+         b = b.LimitToRange(0, 0x1F);
+         var color = (r << 10) + (g << 5) + b;
+         return (short)color;
       }
    }
 }
