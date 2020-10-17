@@ -66,7 +66,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
 
          if (currentSegment.Type == ElementContentType.BitArray) {
-            return new BitArray(offsets.SegmentStart, position, currentSegment.Length);
+            var displayValue = string.Join(" ", currentSegment.Length.Range()
+                 .Select(i => data[offsets.SegmentStart + i].ToHexString()));
+            return new BitArray(offsets.SegmentStart, position, currentSegment.Length, displayValue);
          }
 
          if (currentSegment.Type == ElementContentType.PCS) {
