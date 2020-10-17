@@ -134,6 +134,16 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          // make sure the required directory exists
          var path = Path.GetDirectoryName(file.Name);
          Directory.CreateDirectory(path);
+
+         // disable watchers for this file since we're about to save it ourselves
+         if (watchers.TryGetValue(file.Name, out var watcherList) && listeners.TryGetValue(file.Name, out var listenerList)) {
+            foreach (var watcher in watcherList) watcher.EnableRaisingEvents = false;
+         } else {
+            watcherList = null;
+            listenerList = null;
+         }
+
+         bool result = true;
          try {
             // use FileShare ReadWrite so we can write the file while another program is holding it.
             using (var stream = new FileStream(file.Name, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite)) {
@@ -141,9 +151,15 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             }
          } catch (IOException) {
             ShowCustomMessageBox("Could not save. The file might be ReadOnly or in use by another application.", showYesNoCancel: false);
-            return false;
+            result = false;
          }
-         return true;
+
+         // re-enable watchers for this file
+         if (watcherList != null && listenerList != null) {
+            foreach (var watcher in watcherList) watcher.EnableRaisingEvents = true;
+         }
+
+         return result;
       }
 
       public bool SaveMetadata(string originalFileName, string[] metadata) {

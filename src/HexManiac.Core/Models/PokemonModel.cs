@@ -111,7 +111,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var offsetPointer in metadata.OffsetPointers) {
             var newRun = new OffsetPointerRun(offsetPointer.Address, offsetPointer.Offset);
             ClearFormat(noChange, newRun.Start, newRun.Length);
-            pointerOffsets.Add(offsetPointer.Address, offsetPointer.Offset);
+            pointerOffsets[offsetPointer.Address] = offsetPointer.Offset;
             ObserveRunWritten(noChange, newRun);
          }
 
