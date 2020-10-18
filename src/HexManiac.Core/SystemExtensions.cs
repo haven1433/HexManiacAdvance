@@ -59,6 +59,8 @@ namespace HavenSoft.HexManiac.Core {
          return -1;
       }
 
+      public static string Join(this string separator, IEnumerable<string> elements) => string.Join(separator, elements);
+
       public static string[] Split(this string self, string token) => self.Split(new[] { token }, StringSplitOptions.None);
 
       public static string[] SplitLines(this string self) => Split(self, Environment.NewLine);

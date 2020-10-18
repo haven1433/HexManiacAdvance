@@ -116,8 +116,9 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
-      public void Palette_Default_NoColorsSelected() {
-         Assert.Empty(editor.Palette.Elements.Where(sc => sc.Selected));
+      public void Palette_Default_Color0Selected() {
+         Assert.Single(editor.Palette.Elements.Where(sc => sc.Selected));
+         Assert.True(editor.Palette.Elements[0].Selected);
       }
 
       [Fact]
@@ -574,7 +575,6 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(2, editor.BlockPreview.PixelHeight);
          Assert.Equal(4, editor.BlockPreview.PixelData.Length);
          Assert.All(4.Range(), i => Assert.Equal(Rgb(31, 31, 31), editor.BlockPreview.PixelData[i]));
-         Assert.Equal(0, editor.CursorSize);
       }
 
       [Fact]
@@ -838,6 +838,30 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(ImageEditorTools.EyeDropper, editor.SelectedTool);
          Assert.True(editor.ShowSelectionRect(7, 7));
+      }
+
+      [Fact]
+      public void ColorSelection_SelectNew_DisjointSelection() {
+         editor.Palette.SelectionStart = 0;
+         editor.Palette.SelectionEnd = 2;
+
+         editor.Palette.ToggleSelection(5);
+
+         Assert.True(editor.Palette.Elements[2].Selected);
+         Assert.False(editor.Palette.Elements[3].Selected);
+         Assert.True(editor.Palette.Elements[5].Selected);
+      }
+
+      [Fact]
+      public void ColorSelection_DeselectColor_DisjointSelection() {
+         editor.Palette.SelectionStart = 0;
+         editor.Palette.SelectionEnd = 2;
+
+         editor.Palette.ToggleSelection(1);
+
+         Assert.True(editor.Palette.Elements[0].Selected);
+         Assert.False(editor.Palette.Elements[1].Selected);
+         Assert.True(editor.Palette.Elements[2].Selected);
       }
    }
 }

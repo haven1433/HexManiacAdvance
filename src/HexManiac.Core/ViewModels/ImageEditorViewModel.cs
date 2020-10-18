@@ -264,6 +264,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          selectedPixels = new bool[PixelWidth, PixelHeight];
          BlockPreview = new BlockPreview();
          SetupPageOptions();
+         Palette.SelectionSet += (sender, e) => BlockPreview.Clear();
       }
 
       // convenience methods

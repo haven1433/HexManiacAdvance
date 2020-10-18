@@ -93,7 +93,9 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
          if (Keyboard.Modifiers == ModifierKeys.Shift) {
             ViewModel.SelectionEnd = tileIndex;
-         } else if (ViewModel.SelectionStart == tileIndex && e.LeftButton == MouseButtonState.Pressed && ViewModel.SelectionEnd == tileIndex && swatchPopup.IsOpen) {
+         } else if (Keyboard.Modifiers == ModifierKeys.Control)  {
+            ViewModel.ToggleSelection(tileIndex);
+         } else if (ViewModel.Elements[tileIndex].Selected && e.LeftButton == MouseButtonState.Pressed && swatchPopup.IsOpen) {
             e.Handled = true;
             swatchPopup.IsOpen = false;
             return;
@@ -104,7 +106,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          CaptureMouse();
          e.Handled = true;
 
-         if (Keyboard.Modifiers != ModifierKeys.Shift) {
+         if (Keyboard.Modifiers != ModifierKeys.Shift && Keyboard.Modifiers != ModifierKeys.Control) {
             swatch.Result = Color32For(tileIndex);
             UpdateSwatchTextBoxContentFromSwatch();
             initialColors = CollectColorList();
@@ -198,9 +200,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var dif = GetColorDif(newColor);
 
          // concern: this might not work well, since it's a diff of a diff of a diff.
-         var left = Math.Min(ViewModel.SelectionStart, ViewModel.SelectionEnd);
-         var right = Math.Max(ViewModel.SelectionStart, ViewModel.SelectionEnd);
-         for (int i = left; i <= right; i++) {
+         for (int i = 0; i < ViewModel.Elements.Count; i++) {
+            if (!ViewModel.Elements[i].Selected) continue;
             if (i == activeSelection) {
                ViewModel.Elements[i].Color = TileImage.Convert16BitColor(newColor);
                continue;

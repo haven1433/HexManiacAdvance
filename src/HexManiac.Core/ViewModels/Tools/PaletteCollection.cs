@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
@@ -31,19 +32,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public int ColorWidth => (int)Math.Ceiling(Math.Sqrt(Elements.Count));
       public int ColorHeight => (int)Math.Sqrt(Elements.Count);
 
+      public event EventHandler SelectionSet;
+
       private int selectionStart;
       public int SelectionStart {
          get => selectionStart;
          set {
-            var first = Math.Min(selectionStart, selectionEnd);
-            var last = Math.Max(selectionStart, selectionEnd);
-            if (first <= value && value <= last) {
-               for (int i = 0; i < Elements.Count; i++) Elements[i].Selected = first <= i && i <= last;
+            if (Elements[value].Selected || !TryUpdate(ref selectionStart, value)) {
+               SelectionSet?.Invoke(this, EventArgs.Empty);
                return;
-            }
-            if (!TryUpdate(ref selectionStart, value)) return;
+            } 
+
             SelectionEnd = selectionStart;
-            if (selectionStart == -1) history.ChangeCompleted();
+            history.ChangeCompleted();
          }
       }
 
@@ -57,6 +58,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             for (int i = 0; i < Elements.Count; i++) Elements[i].Selected = first <= i && i <= last;
             createGradient.RaiseCanExecuteChanged();
             singleReduce.RaiseCanExecuteChanged();
+            SelectionSet?.Invoke(this, EventArgs.Empty);
          }
       }
 
@@ -120,6 +122,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          return otherMovedElements;
       }
 
+      public void ToggleSelection(int index) {
+         Elements[index].Selected = !Elements[index].Selected;
+         SelectionSet?.Invoke(this, EventArgs.Empty);
+      }
+
       public void CompleteCurrentInteraction() {
          ReorderPalette();
          history.ChangeCompleted();
@@ -127,8 +134,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public void SetContents(IReadOnlyList<short> colors) {
          Elements.Clear();
+         var (left, right) = (Math.Min(SelectionStart, SelectionEnd), Math.Max(SelectionStart, SelectionEnd));
          foreach (var element in colors.Count.Range()
-            .Select(i => new SelectableColor { Color = colors[i], Index = i })) {
+            .Select(i => new SelectableColor { Color = colors[i], Index = i, Selected = left <= i && i <= right })) {
             Elements.Add(element);
          }
          NotifyPropertyChanged(nameof(ColorWidth));
@@ -149,8 +157,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          // update UI
          var selectionRange = (selectionStart, selectionEnd);
+         var selections = Elements.Select(e => e.Selected).ToArray();
          Refresh();
          (SelectionStart, SelectionEnd) = selectionRange;
+         for (int i = 0; i < Elements.Count; i++) Elements[i].Selected = selections[i];
       }
 
       private void ReorderPalette() {
@@ -253,13 +263,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       #region Commands
 
       private void ExecuteCopy(IFileSystem fileSystem) {
-         var start = Math.Min(selectionStart, selectionEnd) + 1;
-         var end = Math.Max(selectionStart, selectionEnd) + 1;
-         var result = UncompressedPaletteColor.Convert(Elements[start - 1].Color);
-         for (int i = start; i < end; i++) {
-            result += " " + UncompressedPaletteColor.Convert(Elements[i].Color);
+         var copied = new List<string>();
+         foreach (var element in Elements) {
+            if (element.Selected) copied.Add(UncompressedPaletteColor.Convert(element.Color));
          }
-         fileSystem.CopyText = result;
+         fileSystem.CopyText = " ".Join(copied);
       }
 
       private bool CanExecuteCopy(IFileSystem fileSystem) => 0 <= selectionStart && selectionStart < Elements.Count;
@@ -308,11 +316,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private bool CanExecutePaste(IFileSystem fileSystem) => CanExecuteCopy(fileSystem) && ParseColor(fileSystem.CopyText) != null;
 
       private void ExecuteCreateGradient() {
-         var left = Math.Min(SelectionStart, SelectionEnd);
+         var left = Elements.Count.Range().First(i => Elements[i].Selected);
+         var right = Elements.Count.Range().Last(i => Elements[i].Selected);
+
          var (r, g, b) = UncompressedPaletteColor.ToRGB(Elements[left].Color);
          var leftHSB = Theme.ToHSB((byte)(r << 3), (byte)(g << 3), (byte)(b << 3));
 
-         var right = Math.Max(SelectionStart, SelectionEnd);
          var rightRGB = UncompressedPaletteColor.ToRGB(Elements[right].Color);
          var rightHSB = Theme.ToHSB((byte)(rightRGB.r << 3), (byte)(rightRGB.g << 3), (byte)(rightRGB.b << 3));
 
@@ -322,6 +331,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          var distance = right - left;
          for (int i = 1; i < distance; i++) {
+            if (!Elements[left + i].Selected) continue;
             var part = (double)i / distance;
             var hue = leftHSB.hue + deltaHue * part;
             var sat = leftHSB.sat + deltaSat * part;
