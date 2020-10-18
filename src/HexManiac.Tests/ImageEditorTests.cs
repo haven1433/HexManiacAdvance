@@ -828,5 +828,16 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(White, GetPixel(3, 4));
          Assert.Equal(Blue, GetPixel(4, 4));
       }
+
+      [Fact]
+      public void EyeDropper_4PixelCursorHover_4PixelSelection() {
+         editor.SelectedTool = ImageEditorTools.EyeDropper;
+
+         editor.CursorSize = 4;
+         editor.Hover(0, 0);
+
+         Assert.Equal(ImageEditorTools.EyeDropper, editor.SelectedTool);
+         Assert.True(editor.ShowSelectionRect(7, 7));
+      }
    }
 }

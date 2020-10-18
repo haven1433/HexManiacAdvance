@@ -11,6 +11,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Input;
 using System.Windows.Markup;
+using System.Xaml;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
    // TODO add ability to swap to another palette used by this sprite
@@ -862,17 +863,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          public void ToolHover(Point point) {
-            parent.RaiseRefreshSelection(parent.ToSpriteSpace(point));
+            selectionStart = parent.ToSpriteSpace(point);
+            RaiseRefreshSelection();
          }
 
          public void ToolUp(Point point) {
             var (start, width, height) = SelectionTool.BuildRect(selectionStart, selectionWidth, selectionHeight);
 
-            // make sure the selection is a power-of-2 box
-            // MakeSquare(ref width, ref height);
             if (selectionHeight < 0) start -= new Point(0, selectionHeight + height - 1);
             if (selectionWidth < 0) start -= new Point(selectionWidth + width - 1, 0);
             (selectionStart, selectionWidth, selectionHeight) = (start, width, height);
+
+            if (selectionWidth == 1 && selectionHeight == 1) {
+               var (xx, yy) = selectionStart;
+               xx -= xx % parent.cursorSize;
+               yy -= yy % parent.cursorSize;
+               selectionStart = new Point(xx, yy);
+               selectionWidth = selectionHeight = parent.cursorSize;
+            }
 
             if (selectionWidth == 1 && selectionHeight == 1) {
                point = parent.ToSpriteSpace(point);
@@ -884,7 +892,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                for (int x = 0; x < selectionWidth; x++) for (int y = 0; y < selectionHeight; y++) {
                   underPixels[x, y] = parent.pixels[selectionStart.X + x, selectionStart.Y + y];
                }
-               parent.CursorSize = 0;
+
                parent.BlockPreview.Set(parent.PixelData, parent.PixelWidth, selectionStart, selectionWidth, selectionHeight);
             }
          }
@@ -894,6 +902,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var log = (int)Math.Log(width, 2);
             width = (int)Math.Pow(2, log);
             height = width;
+         }
+
+         private void RaiseRefreshSelection() {
+            var size = parent.cursorSize;
+            var (xx, yy) = selectionStart;
+            var drawPoint = new Point(xx - xx % size, yy - yy % size);
+            var selectionPoints = new Point[size * size];
+            for (int x = 0; x < size; x++) for (int y = 0; y < size; y++) selectionPoints[y * size + x] = drawPoint + new Point(x, y);
+            parent.RaiseRefreshSelection(selectionPoints);
          }
       }
 

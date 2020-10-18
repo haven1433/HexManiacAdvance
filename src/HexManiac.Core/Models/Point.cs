@@ -5,6 +5,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public int X { get; }
       public int Y { get; }
       public Point(int x, int y) => (X, Y) = (x, y);
+      public void Deconstruct(out int x, out int y) => (x, y) = (X, Y);
       public bool Equals(Point that) => this.X == that.X && this.Y == that.Y;
       public override bool Equals(object obj) => obj is Point that && Equals(that);
       public override int GetHashCode() => X * 101 + Y * 37;
