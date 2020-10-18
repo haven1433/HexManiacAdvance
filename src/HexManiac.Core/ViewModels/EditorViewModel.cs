@@ -11,6 +11,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Windows.Input;
 using static HavenSoft.HexManiac.Core.ICommandExtensions;
 
@@ -64,6 +65,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private (IViewPort tab, int start, int end)[] recentFindResults = new (IViewPort, int start, int end)[0];
       private int currentFindResultIndex;
 
+      private bool showDevMenu;
+      public bool ShowDeveloperMenu { get => showDevMenu; set => Set(ref showDevMenu, value); }
+
       public ICommand New => newCommand;
       public ICommand Open => open;                // parameter: file to open (or null)
       public ICommand Save => save;
@@ -95,6 +99,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand ToggleMatrix => toggleMatrix;
       public ICommand ToggleScrollAnimation => toggleScrollAnimation;
       public ICommand ToggleTableHeaders => toggleTableHeaders;
+
+      private StubCommand copyAlignedAddress, copyAnchorReference;
+      public ICommand CopyAlignedAddress => StubCommand<IFileSystem>(ref copyAlignedAddress, ExecuteCopyAlignedAddress);
+      public ICommand CopyAnchorReference => StubCommand<IFileSystem>(ref copyAnchorReference, ExecuteCopyAnchorReference);
 
       private GotoControlViewModel gotoViewModel = new GotoControlViewModel(null);
       public GotoControlViewModel GotoViewModel {
@@ -868,6 +876,45 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void RaiseSaveAllCanExecuteChanged(object sender, EventArgs e) => saveAll.CanExecuteChanged.Invoke(this, e);
+
+      private void ExecuteCopyAlignedAddress(IFileSystem fileSystem) {
+         if (!(SelectedTab is ViewPort currentTab)) {
+            ErrorMessage = "Selected tab must be a ViewPort.";
+            return;
+         }
+
+         var addresses = new List<string>();
+
+         foreach (var tab in tabs) {
+            if (!(tab is ViewPort viewPort)) continue;
+            addresses.Add(viewPort.ConvertViewPointToAddress(currentTab.SelectionStart).ToString("X6"));
+         }
+
+         fileSystem.CopyText = string.Join(", ", addresses);
+         InformationMessage = $"Copied {addresses.Count} addresses.";
+      }
+
+      private void ExecuteCopyAnchorReference(IFileSystem fileSystem) {
+         if (!(SelectedTab is ViewPort viewport)) {
+            ErrorMessage = "Selected tab must be a ViewPort.";
+            return;
+         }
+
+         var address = viewport.ConvertViewPointToAddress(viewport.SelectionStart);
+         var run = viewport.Model.GetNextRun(address);
+         var anchor = viewport.Model.GetAnchorFromAddress(-1, address);
+         if (string.IsNullOrEmpty(anchor) || (run.PointerSources?.Count ?? 0) == 0) {
+            ErrorMessage = "Must select a named anchor with at least one pointer.";
+            return;
+         }
+
+         var content = new StringBuilder();
+         content.AppendLine("```");
+         content.AppendLine($"{anchor}, ({viewport.Model.GetGameCode()}){run.PointerSources[0]:X6}, {run.FormatString}");
+         content.AppendLine("```");
+         fileSystem.CopyText = content.ToString();
+         InformationMessage = $"Copied {anchor} reference.";
+      }
    }
 
    /// <summary>

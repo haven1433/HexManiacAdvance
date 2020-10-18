@@ -156,6 +156,9 @@
                   <MenuItem Header="Reset _Theme" Command="{Binding ResetTheme}"/>
                   <MenuItem Header="_Clear Error" Command="{Binding ClearError}" InputGestureText="Esc"/>
                </MenuItem>
+               <MenuItem Header="Developer" Visibility="{Binding ShowDeveloperMenu, Converter={StaticResource BoolToVisibility}}">
+                  <MenuItem Header="Copy Aligned Address" Command="{Binding CopyAlignedAddress}" CommandParameter="{DynamicResource FileSystem}"/>
+               </MenuItem>
                <MenuItem Header="_Tools">
                   <MenuItem Header="_Hide All Tools" Command="{Binding Tools.HideCommand}"/>
                   <Separator/>
@@ -183,6 +186,9 @@
                   <MenuItem Header="_Tutorials" Click="TutorialsClick"/>
                   <MenuItem Header="_Report an Issue" Click="ReportIssueClick"/>
                   <MenuItem Header="_Discord" Click="DiscordClick"/>
+                  <MenuItem Header="Assist Development">
+                     <MenuItem Header="Copy Anchor Reference" Command="{Binding CopyAnchorReference}" CommandParameter="{DynamicResource FileSystem}"/>
+                  </MenuItem>
                   <!--<MenuItem Header="_About" Click="AboutClick"/>-->
                </MenuItem>
             </Menu>

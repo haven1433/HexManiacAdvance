@@ -17,14 +17,17 @@ using System.Windows.Media;
 namespace HavenSoft.HexManiac.WPF.Windows {
    partial class App {
       public const string ReleaseUrl = "https://github.com/haven1433/HexManiacAdvance/releases";
+      public const string
+         Arg_No_Metadata = "--no-metadata",
+         Arg_Developer_Menu = "--dev-menu";
 
       protected override void OnStartup(StartupEventArgs e) {
          base.OnStartup(e);
 
-         var (path, address, useMetadata) = ParseArgs(e.Args);
+         var (path, address, options) = ParseArgs(e.Args);
 
          var fileSystem = new WindowsFileSystem(Dispatcher);
-         var viewModel = GetViewModel(path, address, fileSystem, useMetadata);
+         var viewModel = GetViewModel(path, address, fileSystem, options);
          UpdateThemeDictionary(viewModel);
          viewModel.Theme.PropertyChanged += (sender, _) => UpdateThemeDictionary(viewModel);
          MainWindow = new MainWindow(viewModel);
@@ -32,11 +35,16 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          MainWindow.Show();
       }
 
-      private static (string path, int address, bool useMetadata) ParseArgs(string[] args) {
+      private static (string path, int address, bool[] options) ParseArgs(string[] args) {
          var useMetadata = true;
-         if (args.Any(arg => arg == "--no-metadata")) {
+         var showDevMenu = false;
+         if (args.Any(arg => arg == Arg_No_Metadata)) {
             useMetadata = false;
-            args = args.Where(arg => arg != "--no-metadata").ToArray();
+            args = args.Where(arg => arg != Arg_No_Metadata).ToArray();
+         }
+         if (args.Any(arg => arg == Arg_Developer_Menu)) {
+            showDevMenu = true;
+            args = args.Where(arg => arg != Arg_Developer_Menu).ToArray();
          }
 
          var allArgs = args.Aggregate(string.Empty, (a, b) => a + ' ' + b).Trim();
@@ -51,7 +59,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             allArgs = parts.Take(parts.Length - 1).Aggregate(string.Empty, (a, b) => a + " " + b).Trim();
          }
 
-         return (allArgs, loadAddress, useMetadata);
+         return (allArgs, loadAddress, new[] { useMetadata, showDevMenu });
       }
 
       /// <summary>
@@ -107,10 +115,12 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          }
       }
 
-      private static EditorViewModel GetViewModel(string fileName, int address, WindowsFileSystem fileSystem, bool useMetadata) {
+      private static EditorViewModel GetViewModel(string fileName, int address, WindowsFileSystem fileSystem, bool[] options) {
+         bool useMetadata = options[0];
+         bool showDevMenu = options[1];
          if (fileName != string.Empty) fileName = Path.GetFullPath(fileName);
          SetInitialWorkingDirectory();
-         var editor = new EditorViewModel(fileSystem, fileSystem, allowLoadingMetadata: useMetadata);
+         var editor = new EditorViewModel(fileSystem, fileSystem, allowLoadingMetadata: useMetadata) { ShowDeveloperMenu = showDevMenu };
          CheckIsNewerVersionAvailable(editor);
          if (!File.Exists(fileName)) return editor;
          var loadedFile = fileSystem.LoadFile(fileName);
