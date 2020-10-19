@@ -195,7 +195,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   if (sprite is LzTilemapRun) continue;
                   var format = sprite.SpriteFormat;
                   if (format.PaletteHint != anchor) continue;
-                  sprite = sprite.Duplicate(new SpriteFormat(format.BitsPerPixel, format.TileWidth, format.TileHeight, reference.Name));
+                  sprite = sprite.Duplicate(new SpriteFormat(format.BitsPerPixel, format.TileWidth, format.TileHeight, reference.Name, format.AllowLengthErrors));
                   runs[i] = sprite;
                }
             }

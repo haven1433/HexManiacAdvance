@@ -36,6 +36,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          } else if (destinationRun is ISpriteRun sprite) {
             var paletteRun = sprite.FindRelatedPalettes(model).FirstOrDefault();
             var pixels = sprite.GetPixels(model, 0);
+            if (pixels == null) return null;
             var colors = paletteRun?.AllColors(model) ?? TileViewModel.CreateDefaultPalette(0x10);
             var imageData = SpriteTool.Render(pixels, colors, paletteRun?.PaletteFormat.InitialBlankPages ?? 0, 0);
             return new ReadonlyPixelViewModel(sprite.SpriteFormat, imageData);

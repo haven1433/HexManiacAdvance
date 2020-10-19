@@ -87,18 +87,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (PointerSources == null) return Clone(sources);
 
          return Clone(PointerSources.Add(sources));
-
-         //var set = new SortedSet<int>(PointerSources);
-         //if (sources != null) foreach (var source in sources) set.Add(source);
-         //return Clone(set.ToList());
-         // return Clone(sources.Concat(PointerSources).Distinct().OrderBy(i => i).ToList());
       }
 
       public virtual IFormattedRun RemoveSource(int source) {
-         //var sources = new List<int>(PointerSources);
-         //sources.Remove(source);
-         //return Clone(sources);
-         // return Clone(PointerSources.Except(new[] { source }).ToList());
          return Clone(PointerSources.Remove1(source));
       }
 

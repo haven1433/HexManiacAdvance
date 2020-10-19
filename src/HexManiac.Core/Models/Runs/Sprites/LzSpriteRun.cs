@@ -51,6 +51,7 @@
 
       public int[,] GetPixels(IDataModel model, int page) {
          var data = Decompress(model, Start, AllowLengthErrors);
+         if (data == null) return null;
          return SpriteRun.GetPixels(data, SpriteFormat.ExpectedByteLength * page, SpriteFormat.TileWidth, SpriteFormat.TileHeight, SpriteFormat.BitsPerPixel);
       }
 
