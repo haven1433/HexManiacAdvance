@@ -147,7 +147,7 @@ graphics.bag.male.sprite,              3C1CC8, 3C1D20, 3C1CE4, 3C1D40, 3D41E4, 3
 graphics.bag.female.sprite,            3C1CD0, 3C1D28, 3C1CEC, 3C1D50, 3D41EC, 3D4028, 3D425C, 3D4098, 57FB3C, `lzs4x8x8|graphics.bag.palette`
 graphics.bag.palette,                  3C1CD8, 3C1D30, 3C1CF4, 3C1D60, 3D41F4, 3D4030, 3D4264, 3D40A0, 57FB44, `lzp4`
 graphics.bag.berry.sprites,            0A7D7C, 0A7D7C, 0A7D9C, 0A7D9C,       ,       ,       ,       , 0D50C0, [sprite<`lzs4x6x6`> pal<`lzp4`>]
-graphics.firstpersonview.sprites,            ,       ,       ,       , 0F80FC, 0F80D4, 0F8174, 0F814C,       , [a b c d tileset<`lzt4|graphics.firstpersonview.sprites`> tilemap<`lzm4x32x20|graphics.firstpersonview.sprites`> pal<`ucp4:DE`>]28
+graphics.firstpersonview.sprites,            ,       ,       ,       , 0F80FC, 0F80D4, 0F8174, 0F814C,       , [id. transition. c. d. tileset<`lzt4|graphics.firstpersonview.sprites`> tilemap<`lzm4x32x20|graphics.firstpersonview.sprites`> pal<`ucp4:DE`>]28
 graphics.battle.background.sprites,    00D954, 00D954, 00D954, 00D954, 00F2A0, 00F2A0, 00F2B4, 00F2B4, 035940, [battletiles<`lzt4|graphics.battle.background.sprites`> battlemap<`lzm4x32x64|graphics.battle.background.sprites|battletiles`> introtiles<`lzt4`> intromap<`lzm4x32x14|graphics.battle.background.sprites|introtiles`> pal<`lzp4:234`>]
 graphics.battle.hud.opponent.sprite,             20A484, 20A414, 20A49C, 20A42C, 260210, 2601F0, 260280, 260260, , `lzs4x8x8|graphics.battle.hud.palette`
 graphics.battle.hud.player.sprite,               20A47C, 20A40C, 20A494, 20A424, 260208, 2601E8, 260278, 260258, , `lzs4x8x16|graphics.battle.hud.palette`
@@ -251,9 +251,13 @@ graphics.townmap.border.tileset,               ,       ,       ,       , 0C033C,
 graphics.townmap.border.tilemap,               ,       ,       ,       , 0C03C0, 0C0394, 0C03D4, 0C03A8, , `lzm4x30x20|graphics.townmap.border.tileset`
 graphics.townmap.namesoverlay.xy,              ,       ,       ,       , 0C3D3C, 0C3D10, 0C3D50, 0C3D24, , [x: y:]data.maps.names
 graphics.townmap.namesoverlay.widthheight,     ,       ,       ,       , 0C3D38, 0C3D0C, 0C3D4C, 0C3D20, , [width: height:]data.maps.names
-graphics.townmap.areaicon.palette,             ,       ,       ,       , 0C45F8, 0C45CC, 0C460C, 0C45E0 , `ucp4`
-graphics.townmap.areaicon.sprite,              ,       ,       ,       , 0C43FC, 0C43D0, 0C4410, 0C43E4 , `lzs4x1x2|graphics.townmap.areaicon.palette`
-graphics.townmap.flylocation.sprite,           ,       ,       ,       , 0C4400, 0C43D4, 0C4414, 0C43E8 , `lzs4x2x2|graphics.townmap.areaicon.palette`
+graphics.townmap.icon.palette,                 ,       ,       ,       , 0C45F8, 0C45CC, 0C460C, 0C45E0, , `ucp4`
+graphics.townmap.icon.area,                    ,       ,       ,       , 0C43FC, 0C43D0, 0C4410, 0C43E4, , `lzs4x1x2|graphics.townmap.icon.palette`
+graphics.townmap.icon.fly,                     ,       ,       ,       , 0C4400, 0C43D4, 0C4414, 0C43E8, , `lzs4x2x2|graphics.townmap.icon.palette`
+graphics.townmap.icon.indicator,               ,       ,       ,       , 0C3094, 0C3068, 0C30A8, 0C307C, , `lzs4x2x4|graphics.townmap.icon.palette`
+graphics.townmap.icon.head.palette,            ,       ,       ,       , 0C4300, 0C42D4, 0C4314, 0C42E8, , `ucp4`
+graphics.townmap.icon.head.male,               ,       ,       ,       , 0C423C, 0C4210, 0C4250, 0C4224, , `lzs4x2x2|graphics.townmap.icon.head.palette`
+graphics.townmap.icon.head.female,             ,       ,       ,       , 0C420C, 0C41E0, 0C4220, 0C41F4, , `lzs4x2x2|graphics.townmap.icon.head.palette`
 
 graphics.credits.trainer.male.palette,                ,,,,               0F4A1C, 0F49F4, 0F4A94, 0F4A6C, , `ucp4`
 graphics.credits.trainer.female.palette,              ,,,,               0F4A48, 0F4A20, 0F4AC0, 0F4A98, , `ucp4`
