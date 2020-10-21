@@ -34,11 +34,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          get {
             if (selectedTableSection == -1 || selectedTableSection >= TableSections.Count) return new string[0];
             var selectedSection = TableSections[selectedTableSection];
-            return UnmatchedArrays
+            var tableList = UnmatchedArrays
                .Select(array => model.GetAnchorFromAddress(-1, array.Start))
-               .Where(name => name.StartsWith(selectedSection) && name.Contains("."))
+               .Where(name => name.StartsWith(selectedSection + "."))
                .Select(name => name.Substring(selectedSection.Length + 1))
                .ToList();
+            return tableList;
          }
       }
 
@@ -226,18 +227,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             return;
          }
 
-         NotifyPropertyChanged(nameof(TableSections));
-         NotifyPropertyChanged(nameof(TableList));
          var basename = model.GetAnchorFromAddress(-1, array.Start);
          var anchorParts = basename.Split('.');
          if (anchorParts.Length == 1) {
+            NotifyPropertyChanged(nameof(TableSections));
             TryUpdate(ref selectedTableSection, TableSections.IndexOf(anchorParts[0]));
+            NotifyPropertyChanged(nameof(TableList));
          } else if (anchorParts.Length == 2) {
+            NotifyPropertyChanged(nameof(TableSections));
             TryUpdate(ref selectedTableSection, TableSections.IndexOf(anchorParts[0]));
+            NotifyPropertyChanged(nameof(TableList));
             TryUpdate(ref selectedTableIndex, TableList.IndexOf(anchorParts[1]));
          } else {
-            TryUpdate(ref selectedTableSection, TableSections.IndexOf(anchorParts[0] + "." + anchorParts[1]));
-            TryUpdate(ref selectedTableIndex, TableList.IndexOf(string.Join(".", anchorParts.Skip(2))));
+            NotifyPropertyChanged(nameof(TableSections));
+            TryUpdate(ref selectedTableSection, TableSections.IndexOf(anchorParts[0] + "." + anchorParts[1]), nameof(SelectedTableSection));
+            NotifyPropertyChanged(nameof(TableList));
+            TryUpdate(ref selectedTableIndex, TableList.IndexOf(string.Join(".", anchorParts.Skip(2))), nameof(SelectedTableIndex));
          }
 
          if (string.IsNullOrEmpty(basename)) basename = array.Start.ToString("X6");

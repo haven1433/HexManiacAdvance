@@ -53,11 +53,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var destination = ViewPort.Model.ReadPointer(Start);
          var run = ViewPort.Model.GetNextRun(destination) as ISpriteRun;
          Pages = run.Pages;
-         UpdateAvailablePalettes();
+         UpdateAvailablePalettes(Start);
       }
 
-      private void UpdateAvailablePalettes() {
-         var destination = ViewPort.Model.ReadPointer(Start);
+      private void UpdateAvailablePalettes(int start) {
+         var destination = ViewPort.Model.ReadPointer(start);
          var run = ViewPort.Model.GetNextRun(destination) as ISpriteRun;
          PaletteSelection.Clear();
          var index = 0;
@@ -84,8 +84,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       protected override bool TryCopy(PagedElementViewModel other) {
          if (!(other is SpriteElementViewModel that)) return false;
          format = that.format;
-         MaxPalette = that.MaxPalette;
-         NotifyPropertyChanged(nameof(MaxPalette));
+         UpdateAvailablePalettes(that.Start);
          return true;
       }
 

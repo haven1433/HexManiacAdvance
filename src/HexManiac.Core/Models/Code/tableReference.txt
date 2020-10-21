@@ -252,9 +252,9 @@ graphics.townmap.border.tilemap,               ,       ,       ,       , 0C03C0,
 graphics.townmap.namesoverlay.xy,              ,       ,       ,       , 0C3D3C, 0C3D10, 0C3D50, 0C3D24, , [x: y:]data.maps.names
 graphics.townmap.namesoverlay.widthheight,     ,       ,       ,       , 0C3D38, 0C3D0C, 0C3D4C, 0C3D20, , [width: height:]data.maps.names
 graphics.townmap.icon.palette,                 ,       ,       ,       , 0C45F8, 0C45CC, 0C460C, 0C45E0, , `ucp4`
-graphics.townmap.icon.area,                    ,       ,       ,       , 0C43FC, 0C43D0, 0C4410, 0C43E4, , `lzs4x1x2|graphics.townmap.icon.palette`
+graphics.townmap.icon.area,                    ,       ,       ,       , 0C43FC, 0C43D0, 0C4410, 0C43E4, , `lzs4x1x1|graphics.townmap.icon.palette`
 graphics.townmap.icon.fly,                     ,       ,       ,       , 0C4400, 0C43D4, 0C4414, 0C43E8, , `lzs4x2x2|graphics.townmap.icon.palette`
-graphics.townmap.icon.indicator,               ,       ,       ,       , 0C3094, 0C3068, 0C30A8, 0C307C, , `lzs4x2x4|graphics.townmap.icon.palette`
+graphics.townmap.icon.indicator,               ,       ,       ,       , 0C3094, 0C3068, 0C30A8, 0C307C, , `lzs4x2x2|graphics.townmap.icon.palette`
 graphics.townmap.icon.head.palette,            ,       ,       ,       , 0C4300, 0C42D4, 0C4314, 0C42E8, , `ucp4`
 graphics.townmap.icon.head.male,               ,       ,       ,       , 0C423C, 0C4210, 0C4250, 0C4224, , `lzs4x2x2|graphics.townmap.icon.head.palette`
 graphics.townmap.icon.head.female,             ,       ,       ,       , 0C420C, 0C41E0, 0C4220, 0C41F4, , `lzs4x2x2|graphics.townmap.icon.head.palette`

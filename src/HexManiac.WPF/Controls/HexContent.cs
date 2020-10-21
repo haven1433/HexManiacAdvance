@@ -282,6 +282,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          AddConsoleKeyCommand(Key.Escape, ConsoleKey.Escape);
          AddConsoleKeyCommand(Key.Enter, ConsoleKey.Enter);
          AddConsoleKeyCommand(Key.Tab, ConsoleKey.Tab);
+
+         DataContextChanged += (sender, e) => ClearTooltip();
       }
 
       protected override void OnMouseDown(MouseButtonEventArgs e) {
@@ -344,9 +346,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                }
             }
             if (needClearToolTip) {
-               ToolTipService.SetIsEnabled(this, false);
-               ToolTip.IsOpen = false;
-               InvalidateVisual();
+               ClearTooltip();
             }
          }
          if (!IsMouseCaptured) return;
@@ -367,6 +367,12 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          } else {
             viewPort.SelectionEnd = modelPoint;
          }
+      }
+
+      private void ClearTooltip() {
+         ToolTipService.SetIsEnabled(this, false);
+         ToolTip.IsOpen = false;
+         InvalidateVisual();
       }
 
       protected override void OnMouseUp(MouseButtonEventArgs e) {
@@ -573,6 +579,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             editableViewPort.Edit(e.Text);
             e.Handled = true;
          }
+      }
+
+      protected override void OnPreviewKeyDown(KeyEventArgs e) {
+         ClearTooltip();
+         base.OnPreviewKeyDown(e);
       }
 
       private void ShowMenu(IList<FrameworkElement> children) {

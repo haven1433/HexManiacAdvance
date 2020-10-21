@@ -24,7 +24,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
       public string Name => "Make Moves Expandable";
 
-      public string Description => "Running this utility will remove the move limiters" +
+      public string Description => "Running this utility will remove the move limiters " +
                                    "and allow the PP pointers to auto-repoint.";
 
       public string WikiLink => "https://github.com/haven1433/HexManiacAdvance/wiki/Move-Expansion-Explained";

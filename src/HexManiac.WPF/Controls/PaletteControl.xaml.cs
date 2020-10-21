@@ -148,6 +148,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
          if (!IsMouseCaptured) {
             ViewModel.HoverIndex = newTileIndex;
+            if (interactionPoint.X < 0 || interactionPoint.X > ExpectedElementWidth * ViewModel.ColorWidth) ViewModel.HoverIndex = -1;
             return;
          }
 
