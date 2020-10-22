@@ -362,7 +362,8 @@ namespace HavenSoft.HexManiac.Tests {
       public void DoNotRenameAnchorWhenCreatingAPaletteAutomatically() {
          ViewPort.Edit("^bob @20 ^tom @bob ");
          var items = ViewPort.GetContextMenuItems(new Point(0, 0));
-         var item = items.Single(element => element.Text == "View as 16-color palette");
+         var item = items.Single(element => element.Text == "Display As...");
+         item = ((ContextItemGroup)item).Single(element => element.Text == "Palette");
          item.Command.Execute();
 
          var anchor = Model.GetAnchorFromAddress(-1, 0);
@@ -482,7 +483,10 @@ namespace HavenSoft.HexManiac.Tests {
       public void AutoPaletteFailsIfHighBitsSet() {
          ViewPort.Edit("FF FF @20 ^somedata @00 ^pal ");
 
-         var makePalette = ViewPort.GetContextMenuItems(new Point(0, 0)).Single(item => item.Text == "View as 16-color palette").Command;
+         var items = ViewPort.GetContextMenuItems(new Point(0, 0));
+         var item = items.Single(element => element.Text == "Display As...");
+         item = ((ContextItemGroup)item).Single(element => element.Text == "Palette");
+         var makePalette = item.Command;
          makePalette.Execute();
 
          Assert.NotEmpty(Errors);
@@ -492,7 +496,10 @@ namespace HavenSoft.HexManiac.Tests {
       public void AutoPaletteNameHasNamespace() {
          ViewPort.Edit("@20 ^somedata @30 <000> @00 ");
 
-         var makePalette = ViewPort.GetContextMenuItems(new Point(0, 0)).Single(item => item.Text == "View as 16-color palette").Command;
+         var items = ViewPort.GetContextMenuItems(new Point(0, 0));
+         var item = items.Single(element => element.Text == "Display As...");
+         item = ((ContextItemGroup)item).Single(element => element.Text == "Palette");
+         var makePalette = item.Command;
          makePalette.Execute();
 
          var anchor = Model.GetAnchorFromAddress(-1, 0);

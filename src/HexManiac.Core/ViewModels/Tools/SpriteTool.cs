@@ -278,6 +278,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                return;
             }
             var pages = Math.Min(length / 32, 16);
+
+            for (int i = 0; i < pages * 16; i++) {
+               if (model.ReadMultiByteValue(run.Start + i * 2, 2) >= 0x8000) {
+                  viewPort.RaiseError($"Palette colors only use 15 bits, but the high bit it set at {run.Start + i * 2 + 1:X6}.");
+                  return;
+               }
+            }
+
             model.ObserveAnchorWritten(history.CurrentChange, newName, new PaletteRun(paletteAddress, new PaletteFormat(4, pages)));
          } else {
             var byteCount = decompressed.Length;
