@@ -18,7 +18,9 @@ data.menus.text.pokemon,                     ,       ,       ,       , 121DF4, 1
 data.maps.names,                             ,       ,       ,       , 0C0C94, 0C0C68, 0C0CA8, 0C0C7C,       , [name<"">]
 data.maps.names,                       0FB550, 0FB550, 0FB570, 0FB570,       ,       ,       ,       , 123B44, [a b c d name<"">]
 data.maps.dungeons.stats,                    ,       ,       ,       , 0C1904, 0C18D8, 0C18EC, 0C18EC,       , [id:: name<""> description<"">]19
-
+data.maps.heal,                              ,       ,       ,       , 0BFD80, 0BFD54, 0BFD94, 0BFD68,       , [bank: map: x: y:]10
+data.maps.fly.spawn,                         ,       ,       ,       , 0BFC74, 0BFC48, 0BFC88, 0BFC5C,       , [bank. map. x: y: unused:]20
+data.maps.fly.connections,                   ,       ,       ,       , 0C52A8, 0C527C, 0C52BC, 0C5290,       , [bank. map. flight.]108
 
 //                                          +28 pokemon are for egg and unown sprites (B-Z, !, ?), 
 graphics.pokemon.sprites.front,             00D324, 00D324, 00D324, 00D324, 000128, 000128, 000128, 000128, 000128, [sprite<`lzs4x8x8`> uncompressedLength: index:]data.pokemon.names+28

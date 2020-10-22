@@ -1519,7 +1519,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (GetNextRun(address) is ArrayRun run) {
                var nameParts = partial.Split(ArrayAnchorSeparator);
 
-               if (!name.MatchesPartialWithReordering(nameParts[0])) continue;
+               var sanitizedName = name.Replace("é", "e");
+               if (!sanitizedName.MatchesPartialWithReordering(nameParts[0])) continue;
                results.AddRange(GetAutoCompleteOptions(name + ArrayAnchorSeparator, run, nameParts.Skip(1).ToArray()));
             }
          }

@@ -312,7 +312,7 @@ Name = '''decorcategory'''
 Name = '''decorshape'''
 0 = [
    '''1x1''',
-   '''unused''',
+   '''2x1''',
    '''unused''',
    '''1x1t''',
    '''2x2p''',
@@ -320,7 +320,7 @@ Name = '''decorshape'''
    '''unused''',
    '''3x1''',
    '''2x2''',
-   '''2x1''',
+   '''3x2''',
 ]
 
 [[List]]

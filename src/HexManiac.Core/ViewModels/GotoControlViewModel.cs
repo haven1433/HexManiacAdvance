@@ -198,10 +198,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// This allows the user to get results when searching for "charizard" or "brock"
       /// </summary>
       public static IReadOnlyList<string> GetExtendedAutocompleteOptions(this IDataModel model, string text) {
-         var options = new List<string>(model?.GetAutoCompleteAnchorNameOptions(text, int.MaxValue) ?? new string[0]);
-         options.AddRange(model?.GetAutoCompleteByteNameOptions(text) ?? new string[0]);
-         if (!text.Contains("/")) {
-            options.AddRange(model?.GetAutoCompleteAnchorNameOptions("/" + text) ?? new string[0]);
+         text = text.Replace("é", "e");
+         var sanitizedText = text.Replace(" ", string.Empty);
+         var options = new List<string>(model?.GetAutoCompleteAnchorNameOptions(sanitizedText, int.MaxValue) ?? new string[0]);
+         options.AddRange(model?.GetAutoCompleteByteNameOptions(sanitizedText) ?? new string[0]);
+         if (!text.Contains("/") && text.Length >= 3) {
+            options.AddRange((model?.GetAutoCompleteAnchorNameOptions("/" + text) ?? new string[0]).Where(option => option.ToLower().Replace(" ", string.Empty).Contains(sanitizedText.ToLower())));
          }
          text = text.ToLower();
          var bestMatches = options.Where(option => option.ToLower().Contains(text));

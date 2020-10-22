@@ -457,7 +457,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          };
 
          clearError.CanExecute = arg => showError;
-         clearError.Execute = arg => ErrorMessage = string.Empty;
+         clearError.Execute = arg => {
+            ErrorMessage = string.Empty;
+         };
 
          clearMessage.CanExecute = arg => showMessage;
          clearMessage.Execute = arg => InformationMessage = string.Empty;

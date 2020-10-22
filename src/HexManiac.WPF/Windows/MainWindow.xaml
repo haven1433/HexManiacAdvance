@@ -325,6 +325,14 @@
             </TabControl>
             <Rectangle Fill="{DynamicResource Background}" Opacity="0" Name="GotoBackground" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}"/>
             <ScrollViewer Name="GotoPanel" VerticalScrollBarVisibility="Auto" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}">
+               <ScrollViewer.InputBindings>
+                  <KeyBinding Key="Esc" Command="{Binding GotoViewModel.ShowGoto}">
+                     <KeyBinding.CommandParameter>
+                        <sys:Boolean>false</sys:Boolean>
+                     </KeyBinding.CommandParameter>
+                  </KeyBinding>
+                  <KeyBinding Key="Return" Command="{Binding GotoViewModel.Goto}"/>
+               </ScrollViewer.InputBindings>
                <Grid>
                   <Grid.RowDefinitions>
                      <RowDefinition Height="*"/>
