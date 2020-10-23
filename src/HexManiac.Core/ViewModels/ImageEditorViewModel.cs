@@ -2,16 +2,12 @@
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Windows.Input;
-using System.Windows.Markup;
-using System.Xaml;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
    // TODO add ability to swap to another palette used by this sprite
@@ -875,7 +871,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (selectionWidth < 0) start -= new Point(selectionWidth + width - 1, 0);
             (selectionStart, selectionWidth, selectionHeight) = (start, width, height);
 
-            if (selectionWidth == 1 && selectionHeight == 1) {
+            if (selectionWidth == 1 && selectionHeight == 1 && parent.SelectedTool != ImageEditorTools.Fill) {
                var (xx, yy) = selectionStart;
                xx -= xx % parent.cursorSize;
                yy -= yy % parent.cursorSize;

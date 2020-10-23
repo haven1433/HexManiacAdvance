@@ -863,5 +863,19 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.False(editor.Palette.Elements[1].Selected);
          Assert.True(editor.Palette.Elements[2].Selected);
       }
+
+      [Fact]
+      public void FillToolSelected_GrabColor_ColorGrabbed() {
+         editor.SetCursorSize.Execute("2");
+         editor.Palette.SelectionStart = 3;
+         editor.SelectedTool = ImageEditorTools.Fill;
+
+         editor.EyeDropperDown(0, 0);
+         editor.EyeDropperUp(0, 0);
+
+         Assert.True(editor.Palette.Elements[0].Selected);
+         Assert.All(Enumerable.Range(1, 15), i => Assert.False(editor.Palette.Elements[i].Selected));
+         Assert.False(editor.BlockPreview.Enabled);
+      }
    }
 }
