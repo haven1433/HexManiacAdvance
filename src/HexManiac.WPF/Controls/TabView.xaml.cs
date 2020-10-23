@@ -446,5 +446,9 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             control.Content = new TextBoxLookAlike();
          }
       }
+
+      private void ResetLeftToolsPane(object sender, MouseButtonEventArgs e) {
+         LeftToolsPane.Width = new GridLength(275);
+      }
    }
 }
