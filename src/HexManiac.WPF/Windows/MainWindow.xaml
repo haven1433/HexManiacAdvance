@@ -189,7 +189,7 @@
                   <MenuItem Header="Assist Development">
                      <MenuItem Header="Copy Anchor Reference" Command="{Binding CopyAnchorReference}" CommandParameter="{DynamicResource FileSystem}"/>
                   </MenuItem>
-                  <!--<MenuItem Header="_About" Click="AboutClick"/>-->
+                  <MenuItem Header="_About" Click="AboutClick"/>
                </MenuItem>
             </Menu>
             <!-- Find -->
