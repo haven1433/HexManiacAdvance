@@ -74,7 +74,7 @@ namespace HavenSoft.HexManiac.Tests {
          model[0x20] = 0x23; // random data after the sprite, so expanding it causes a repoint
          model[0x60] = 0x23; // random data after the palette, so expanding it causes a repoint
 
-         editor = new ImageEditorViewModel(history, model, 0);
+         editor = new ImageEditorViewModel(history, model, SpriteStart);
       }
 
       private void Insert64CompressedBytes(int start) {
@@ -86,6 +86,11 @@ namespace HavenSoft.HexManiac.Tests {
          model.WriteMultiByteValue(start + 7, 2, history.CurrentChange, 0x1F0);
          model.WriteMultiByteValue(start + 9, 2, history.CurrentChange, 0x1F0);
          model.WriteMultiByteValue(start + 11, 2, history.CurrentChange, 0x1F0);
+      }
+
+      private void InsertCompressedData(int start, int length) {
+         var compressedData = LZRun.Compress(new byte[length], 0, length);
+         for (int i = 0; i < compressedData.Count; i++) model[start + i] = compressedData[i];
       }
 
       private void Create2PageCompressedSprite() {
@@ -113,6 +118,11 @@ namespace HavenSoft.HexManiac.Tests {
          model.ObserveAnchorWritten(history.CurrentChange, "sprite", sprite);
 
          editor.Refresh();
+      }
+
+      private void WriteArray(int address, string name, string format) {
+         ArrayRun.TryParse(model, format, address, SortedSpan<int>.None, out var table);
+         model.ObserveAnchorWritten(history.CurrentChange, name, table);
       }
 
       [Fact]
@@ -876,6 +886,27 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.True(editor.Palette.Elements[0].Selected);
          Assert.All(Enumerable.Range(1, 15), i => Assert.False(editor.Palette.Elements[i].Selected));
          Assert.False(editor.BlockPreview.Enabled);
+      }
+
+      [Fact]
+      public void MultiplePalettesAvailable_SelectSecondOption_SwitchPalettes() {
+         const int PalettePointer2Start = 0x90, Palette2Start = 0x100;
+         model.ClearFormat(new NoDataChangeDeltaModel(), 0, model.Count);
+         model.WritePointer(history.CurrentChange, PalettePointer2Start, Palette2Start);
+
+         InsertCompressedData(SpriteStart, 0x20);
+         InsertCompressedData(PaletteStart, 0x20);
+         InsertCompressedData(Palette2Start, 0x20);
+         WriteArray(SpritePointerStart, "sprites", "[sprite<`lzs4x1x1`>]1");
+         WriteArray(PalettePointerStart, "palettes1", "[pal<`lzp4`>]sprites");
+         WriteArray(PalettePointer2Start, "palettes2", "[pal<`lzp4`>]sprites");
+         var editor = new ImageEditorViewModel(history, model, SpriteStart);
+
+         editor.SelectedEditOption = 1;
+
+         Assert.True(editor.HasMultipleEditOptions);
+         Assert.Equal(PalettePointer2Start, editor.PalettePointer);
+         Assert.Equal(2, editor.EditOptions.Count);
       }
    }
 }

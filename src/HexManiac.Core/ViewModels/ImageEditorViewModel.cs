@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
@@ -6,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO.Packaging;
 using System.Linq;
 using System.Windows.Input;
 
@@ -157,6 +159,60 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
       #endregion
 
+      #region EditOptions
+      // while the pages section handles a single sprite/palette with multiple available pages,
+      // the EditOptions section handles how a single sprite can be rendered with multiple palettes (like pokemon)
+      //     or how multiple sprites can be considered 'connected' (like pokemon front/back sprites)
+
+      public bool HasMultipleEditOptions => EditOptions.Count > 1;
+
+      public ObservableCollection<EditOption> EditOptions { get; } = new ObservableCollection<EditOption>();
+
+      private int selectedEditOption;
+      public int SelectedEditOption { get => selectedEditOption; set => Set(ref selectedEditOption, value, SelectedEditOptionChanged); }
+
+      private void SelectedEditOptionChanged(int oldValue) {
+         var option = EditOptions[SelectedEditOption];
+         SpritePointer = option.SpritePointer;
+         PalettePointer = option.PalettePointer;
+         PixelWidth = option.PixelWidth;
+         PixelHeight = option.PixelHeight;
+         NotifyPropertyChanged(nameof(SpritePointer));
+         NotifyPropertyChanged(nameof(PalettePointer));
+         NotifyPropertyChanged(nameof(PixelWidth));
+         NotifyPropertyChanged(nameof(PixelHeight));
+         Refresh();
+         SetupPageOptions();
+      }
+
+      private void InitializeEditOptions() {
+         EditOptions.Clear();
+         var currentTable = model.GetNextRun(SpritePointer) as ArrayRun;
+         if (currentTable == null) {
+            EditOptions.Add(new EditOption(model, SpritePointer, PalettePointer));
+            NotifyPropertyChanged(nameof(HasMultipleEditOptions));
+            SelectedEditOption = 0;
+            return;
+         }
+
+         var offset = currentTable.ConvertByteOffsetToArrayOffset(SpritePointer);
+         foreach (var table in model.GetRelatedArrays(currentTable)) {
+            if (!(table.ElementContent[0] is ArrayRunPointerSegment pSegment)) continue;
+            var spritePointer = table.Start + table.ElementLength * offset.ElementIndex;
+            var spriteAddress = model.ReadPointer(spritePointer);
+            var spriteRun = model.GetNextRun(spriteAddress) as ISpriteRun;
+            if (spriteRun == null || spriteRun.Start != spriteAddress || spriteRun.FormatString != pSegment.InnerFormat) continue;
+            foreach (var palette in spriteRun.FindRelatedPalettes(model, spritePointer)) {
+               EditOptions.Add(new EditOption(model, spritePointer, palette.PointerSources[0]));
+            }
+         }
+
+         NotifyPropertyChanged(nameof(HasMultipleEditOptions));
+         SelectedEditOption = 0;
+      }
+
+      #endregion
+
       #region Orient Selected Data Commands
 
       private StubCommand flipVerticalCommand, flipHorizontalCommand, rotateClockwiseCommand;
@@ -233,8 +289,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public PaletteCollection Palette { get; }
 
-      public int SpritePointer { get; }
-      public int PalettePointer { get; }
+      public int SpritePointer { get; private set; }
+      public int PalettePointer { get; private set; }
 
       private StubCommand setCursorSize;
       public ICommand SetCursorSize => StubCommand<string>(ref setCursorSize, arg => CursorSize = int.Parse(arg));
@@ -256,6 +312,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          PalettePointer = palRun.PointerSources[0];
          Palette = new PaletteCollection(this, model, history) { SourcePalettePointer = PalettePointer };
          Palette.Bind(nameof(Palette.HoverIndex), UpdateSelectionFromPaletteHover);
+         InitializeEditOptions();
          Refresh();
          selectedPixels = new bool[PixelWidth, PixelHeight];
          BlockPreview = new BlockPreview();
@@ -331,6 +388,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          toolStrategy.ToolUp(point);
          withinInteraction = false;
          history.ChangeCompleted();
+         if (HasMultipleEditOptions) EditOptions[SelectedEditOption].Refresh();
       }
 
       public void EyeDropperDown(Point point) {
@@ -954,6 +1012,45 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void Clear() {
          Enabled = false;
+      }
+   }
+
+   public class EditOption : ViewModelCore, IPixelViewModel {
+      private readonly IDataModel model;
+
+      public int PixelWidth { get; }
+      public int PixelHeight { get; }
+      public int SpritePointer { get; }
+      public int PalettePointer { get; }
+      public short[] PixelData { get; private set; }
+
+      public double SpriteScale => 1;
+
+      public EditOption(IDataModel model, int spritePointer, int palettePointer) {
+         (this.model, SpritePointer, PalettePointer) = (model, spritePointer, palettePointer);
+         var spriteAddress = model.ReadPointer(spritePointer);
+         var sprite = model.GetNextRun(spriteAddress) as ISpriteRun;
+
+         if (sprite != null) {
+            PixelWidth = sprite.SpriteFormat.TileWidth * 8;
+            PixelHeight = sprite.SpriteFormat.TileHeight * 8;
+         } else {
+            PixelData = new short[0];
+         }
+
+         Refresh();
+      }
+
+      public void Refresh() {
+         var spriteAddress = model.ReadPointer(SpritePointer);
+         var paletteAddress = model.ReadPointer(PalettePointer);
+         var sprite = model.GetNextRun(spriteAddress) as ISpriteRun;
+         var palette = model.GetNextRun(paletteAddress) as IPaletteRun;
+         if (sprite == null || palette == null) return;
+
+         var pixels = sprite.GetPixels(model, 0);
+         PixelData = SpriteTool.Render(pixels, palette.AllColors(model), palette.PaletteFormat.InitialBlankPages, 0);
+         NotifyPropertyChanged(nameof(PixelData));
       }
    }
 }

@@ -47,6 +47,16 @@
             </Style>
          </DockPanel.Resources>
          <Rectangle Width="1" DockPanel.Dock="Right" Fill="{DynamicResource Backlight}"/>
+         <ComboBox DockPanel.Dock="Top" HorizontalAlignment="Center"
+            SelectedIndex="{Binding SelectedEditOption}"
+            Visibility="{Binding HasMultipleEditOptions, Converter={StaticResource BoolToVisibility}}"
+            ItemsSource="{Binding EditOptions}">
+            <ComboBox.ItemTemplate>
+               <DataTemplate>
+                  <local:PixelImage/>
+               </DataTemplate>
+            </ComboBox.ItemTemplate>
+         </ComboBox>
          <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" HorizontalAlignment="Center">
             <StackPanel.Resources>
                <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
