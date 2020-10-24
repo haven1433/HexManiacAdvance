@@ -214,6 +214,9 @@ graphics.titlescreen.introscene.grass.tileset,     ,,,, 0ECF9C, 0ECF74, 0ECFB4, 
 graphics.titlescreen.introscene.grass.tilemap,     ,,,, 0ECFA0, 0ECF78, 0ECFB8, 0ECF90, , `lzm4x32x64|graphics.titlescreen.introscene.grass.tileset`
 graphics.titlescreen.introscene.grass.tileset2,    ,,,, 0ED30C, 0ED2E4, 0ED324, 0ED2FC, , `lzt4|graphics.titlescreen.introscene.forest.palette2`
 graphics.titlescreen.introscene.grass.tilemap2,    ,,,, 0ED310, 0ED2E8, 0ED328, 0ED300, , `lzm4x32x20|graphics.titlescreen.introscene.grass.tileset2`
+graphics.titlescreen.introscene.grass.background.palette,  ,,,, 0ECF4C, 0ECF24, 0ECF64, 0ECF3C, , `ucp4`
+graphics.titlescreen.introscene.grass.background.tileset,  ,,,, 0ECF58, 0ECF30, 0ECF70, 0ECF48, , `lzt4|graphics.titlescreen.introscene.grass.background.palette`
+graphics.titlescreen.introscene.grass.background.tilemap,  ,,,, 0ECF5C, 0ECF34, 0ECF74, 0ECF4C, , `lzm4x32x64|graphics.titlescreen.introscene.grass.background.tileset`
 graphics.titlescreen.gamefreak.logo.palette,       ,,,, 0EC984, 0EC95C, 0EC998, 0EC970, , `ucp4`
 graphics.titlescreen.gamefreak.logo.sprite,        ,,,, 0ECB74, 0ECB4C, 0ECB88, 0ECB60, , `lzs4x4x8|graphics.titlescreen.gamefreak.logo.palette`
 graphics.titlescreen.gamefreak.logo.text.sprite,   ,,,, 0ECB6C, 0ECB44, 0ECB80, 0ECB58, , `lzs4x18x2|graphics.titlescreen.gamefreak.logo.palette`
