@@ -217,12 +217,18 @@ graphics.titlescreen.introscene.grass.tilemap2,    ,,,, 0ED310, 0ED2E8, 0ED328, 
 graphics.titlescreen.introscene.grass.background.palette,  ,,,, 0ECF4C, 0ECF24, 0ECF64, 0ECF3C, , `ucp4`
 graphics.titlescreen.introscene.grass.background.tileset,  ,,,, 0ECF58, 0ECF30, 0ECF70, 0ECF48, , `lzt4|graphics.titlescreen.introscene.grass.background.palette`
 graphics.titlescreen.introscene.grass.background.tilemap,  ,,,, 0ECF5C, 0ECF34, 0ECF74, 0ECF4C, , `lzm4x32x64|graphics.titlescreen.introscene.grass.background.tileset`
-graphics.titlescreen.gamefreak.logo.palette,       ,,,, 0EC984, 0EC95C, 0EC998, 0EC970, , `ucp4`
-graphics.titlescreen.gamefreak.logo.sprite,        ,,,, 0ECB74, 0ECB4C, 0ECB88, 0ECB60, , `lzs4x4x8|graphics.titlescreen.gamefreak.logo.palette`
-graphics.titlescreen.gamefreak.logo.text.sprite,   ,,,, 0ECB6C, 0ECB44, 0ECB80, 0ECB58, , `lzs4x18x2|graphics.titlescreen.gamefreak.logo.palette`
-graphics.titlescreen.copyright.tileset,            ,,,, 0EC610, 0EC5E8, 0EC624, 0EC5FC, , `lzt4|graphics.titlescreen.copyright.palette`
-graphics.titlescreen.copyright.tilemap,            ,,,, 0EC614, 0EC5EC, 0EC628, 0EC600, , `lzm4x32x32|graphics.titlescreen.copyright.tileset`
-graphics.titlescreen.copyright.palette,            ,,,, 0EC618, 0EC5F0, 0EC62C, 0EC604, , `ucp4`
+graphics.titlescreen.developer.palette1,                   ,,,, 40BBE8, 40BA24, 40BC58, 40BA94, , `ucp4`
+graphics.titlescreen.developer.palette2,                   ,,,, 40BBF0, 40BA2C, 40BC60, 40BA9C, , `ucp4`
+graphics.titlescreen.developer.palette3,                   ,,,, 40BBF8, 40BA34, 40BC68, 40BAA4, , `ucp4`
+graphics.titlescreen.developer.bigstar,                    ,,,, 40BBC0, 40B9FC, 40BC30, 40BA6C, , `lzs4x2x2|graphics.titlescreen.developer.palette1`
+graphics.titlescreen.developer.littlestar,                 ,,,, 40BBC8, 40BA04, 40BC38, 40BA74, , `lzs4x1x1|graphics.titlescreen.developer.palette2`
+graphics.titlescreen.developer.mediumstar,                 ,,,, 40BBD0, 40BA0C, 40BC40, 40BA7C, , `lzs4x4x4|graphics.titlescreen.developer.palette2`
+graphics.titlescreen.developer.logo,                       ,,,, 40BBD8, 40BA14, 40BC48, 40BA84, , `lzs4x4x8|graphics.titlescreen.developer.palette3`
+graphics.titlescreen.developer.presents,                   ,,,, 40BBE0, 40BA1C, 40BC50, 40BA8C, , `lzs4x8x1|graphics.titlescreen.developer.palette3`
+graphics.titlescreen.developer.text,                       ,,,, 0ECB6C, 0ECB44, 0ECB80, 0ECB58, , `lzs4x18x2|graphics.titlescreen.developer.palette3`
+graphics.titlescreen.copyright.tileset,                    ,,,, 0EC610, 0EC5E8, 0EC624, 0EC5FC, , `lzt4|graphics.titlescreen.copyright.palette`
+graphics.titlescreen.copyright.tilemap,                    ,,,, 0EC614, 0EC5EC, 0EC628, 0EC600, , `lzm4x32x32|graphics.titlescreen.copyright.tileset`
+graphics.titlescreen.copyright.palette,                    ,,,, 0EC618, 0EC5F0, 0EC62C, 0EC604, , `ucp4`
 
 graphics.newgame.platform.palette,                 ,,,, 462F24, 462944, 462F84, 4629B4, , `ucp4`
 graphics.newgame.platform.sprite,                  ,,,, 462F14, 462934, 462F74, 4629A4, , `lzs4x4x12|graphics.newgame.platform.palette`
