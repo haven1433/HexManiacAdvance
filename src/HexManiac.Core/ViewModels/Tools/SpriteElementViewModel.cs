@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
@@ -10,6 +11,7 @@ using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class SpriteElementViewModel : PagedElementViewModel, IPixelViewModel {
+      private string runFormat;
       private SpriteFormat format;
 
       public short[] PixelData { get; private set; }
@@ -28,14 +30,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }); }
       public int MaxPalette { get; private set; }
 
+      public ISpriteRun GetRun(int start = int.MinValue) {
+         if (start == int.MinValue) start = Start;
+         var destination = ViewPort.Model.ReadPointer(start);
+         var run = ViewPort.Model.GetNextRun(destination) as ISpriteRun;
+         if (run == null) {
+            IFormattedRun tempRun = new NoInfoRun(destination, new SortedSpan<int>(Start));
+            var errorCode = FormatRunFactory.GetStrategy(runFormat).TryParseData(Model, string.Empty, destination, ref tempRun);
+            run = tempRun as ISpriteRun;
+         }
+         return run;
+      }
+
       #region OpenEditor Command
 
       private StubCommand openEditor;
       public ICommand OpenEditor => StubCommand(ref openEditor, ExecuteOpenEditor, CanExecuteImageEditor);
 
       private bool CanExecuteImageEditor() {
-         var destination = ViewPort.Model.ReadPointer(Start);
-         var run = ViewPort.Model.GetNextRun(destination) as ISpriteRun;
+         var run = GetRun();
          return run?.SupportsEdit ?? false;
       }
 
@@ -48,17 +61,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public override bool ShowPageControls => base.ShowPageControls || CanExecuteImageEditor();
 
-      public SpriteElementViewModel(ViewPort viewPort, SpriteFormat format, int itemAddress) : base(viewPort, itemAddress) {
+      public SpriteElementViewModel(ViewPort viewPort, string runFormat, SpriteFormat format, int itemAddress) : base(viewPort, itemAddress) {
          this.format = format;
+         this.runFormat = runFormat;
          var destination = ViewPort.Model.ReadPointer(Start);
-         var run = ViewPort.Model.GetNextRun(destination) as ISpriteRun;
+         var run = GetRun();
          Pages = run.Pages;
          UpdateAvailablePalettes(Start);
       }
 
       private void UpdateAvailablePalettes(int start) {
-         var destination = ViewPort.Model.ReadPointer(start);
-         var run = ViewPort.Model.GetNextRun(destination) as ISpriteRun;
+         var run = GetRun(start);
          PaletteSelection.Clear();
          var index = 0;
          foreach (var palette in run.FindRelatedPalettes(ViewPort.Model)) {
@@ -84,6 +97,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       protected override bool TryCopy(PagedElementViewModel other) {
          if (!(other is SpriteElementViewModel that)) return false;
          format = that.format;
+         runFormat = that.runFormat;
          UpdateAvailablePalettes(that.Start);
          return true;
       }
@@ -94,30 +108,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          // TODO support multiple layers
          int page = pageOption ?? CurrentPage;
 
-         var destination = ViewPort.Model.ReadPointer(Start);
-         if (Model.GetNextRun(destination) is LzTilemapRun mapRun) mapRun.FindMatchingTileset(Model);
+         if (GetRun() is LzTilemapRun mapRun) mapRun.FindMatchingTileset(Model);
 
          UpdateTiles(Start, page, false);
       }
 
       protected override bool CanExecuteAddPage() {
          var destination = ViewPort.Model.ReadPointer(Start);
-         var run = ViewPort.Model.GetNextRun(destination) as ISpriteRun;
+         var run = GetRun();
          var canExecute = run is LzSpriteRun && CurrentPage == run.Pages - 1 && run.FindRelatedPalettes(Model).All(pal => pal.Pages == run.Pages && pal is LzPaletteRun);
          return canExecute;
       }
 
       protected override bool CanExecuteDeletePage() {
          var destination = ViewPort.Model.ReadPointer(Start);
-         var run = ViewPort.Model.GetNextRun(destination) as ISpriteRun;
+         var run = GetRun();
          return run is LzSpriteRun && Pages > 1 && run.FindRelatedPalettes(Model).All(pal => pal.Pages == run.Pages && pal is LzPaletteRun);
       }
 
       private int[,] lastPixels;
       private IReadOnlyList<short> lastColors;
       private void UpdateTiles(int start, int page, bool exitPaletteSearchEarly) {
-         var destination = ViewPort.Model.ReadPointer(start);
-         var run = ViewPort.Model.GetNextRun(destination) as ISpriteRun;
+         var run = GetRun();
          var pixels = run.GetPixels(ViewPort.Model, page);
          var palette = GetDesiredPalette(start, page, exitPaletteSearchEarly, out var paletteFormat);
          if (pixels == lastPixels && palette == lastColors) return;
@@ -145,9 +157,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       /// </summary>
       private IReadOnlyList<short> GetDesiredPalette(int start, int page, bool exitEarly, out PaletteFormat paletteFormat) {
          paletteFormat = default;
-         var destination = Model.ReadPointer(Start);
 
-         if (Model.GetNextRun(destination) is ISpriteRun sRun) {
+         if (GetRun() is ISpriteRun sRun) {
             var palettes = sRun.FindRelatedPalettes(Model, Start, format.PaletteHint).ToList();
             var palette = palettes.FirstOrDefault();
             if (palettes.Count > 1 && palettes.Count > CurrentPalette) palette = palettes[CurrentPalette];

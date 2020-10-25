@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows.Input;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 
@@ -376,11 +377,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (destination != Pointer.NULL) {
             streamRun = model.GetNextRun(destination);
             if (!pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), itemAddress, destination, null, parentIndex)) return;
+            if (streamRun.Start != destination) {
+               // For some reason (possibly because of a run length conflict),
+               //    the destination data appears to match the expected type,
+               //    but there is no run for it.
+               // Go ahead and generate a new temporary run for the data.
+               var strategy = FormatRunFactory.GetStrategy(pointerSegment.InnerFormat);
+               strategy.TryParseData(model, string.Empty, destination, ref streamRun);
+            }
          }
 
          IStreamArrayElementViewModel streamElement = null;
          if (streamRun == null || streamRun is IStreamRun) streamElement = new TextStreamElementViewModel(viewPort, model, itemAddress);
-         if (streamRun is ISpriteRun spriteRun) streamElement = new SpriteElementViewModel(viewPort, spriteRun.SpriteFormat, itemAddress);
+         if (streamRun is ISpriteRun spriteRun) streamElement = new SpriteElementViewModel(viewPort, spriteRun.FormatString, spriteRun.SpriteFormat, itemAddress);
          if (streamRun is IPaletteRun paletteRun) streamElement = new PaletteElementViewModel(viewPort, history, paletteRun.PaletteFormat, itemAddress);
          if (streamElement == null) return;
 
@@ -392,7 +401,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             IStreamArrayElementViewModel newStream = null;
 
             if (run == null || run is IStreamRun) newStream = new TextStreamElementViewModel(viewPort, model, streamAddress);
-            if (run is ISpriteRun spriteRun1) newStream = new SpriteElementViewModel(viewPort, spriteRun1.SpriteFormat, streamAddress);
+            if (run is ISpriteRun spriteRun1) newStream = new SpriteElementViewModel(viewPort, spriteRun1.FormatString, spriteRun1.SpriteFormat, streamAddress);
             if (run is IPaletteRun paletteRun1) newStream = new PaletteElementViewModel(viewPort, history, paletteRun1.PaletteFormat, streamAddress);
 
             newStream.DataChanged += ForwardModelChanged;

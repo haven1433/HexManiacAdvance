@@ -317,7 +317,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (address != Pointer.NULL) {
             var run = model.GetNextRun(address);
             if (run != null && address == run.Start) {
-               var hoverContent = ToolTipContentVisitor.BuildContentForRun(model, run);
+               var hoverContent = ToolTipContentVisitor.BuildContentForRun(model, address, run);
                if (hoverContent != null) {
                   HoverTip = new ObservableCollection<object> { hoverContent };
                   return;

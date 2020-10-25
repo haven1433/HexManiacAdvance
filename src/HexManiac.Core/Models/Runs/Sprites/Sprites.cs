@@ -109,8 +109,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          if (primarySource < 0) offset = new ArrayOffset(-1, -1, -1, -1);
 
          if (!string.IsNullOrEmpty(hint)) {
-            var run = model.GetNextRun(model.GetAddressFromAnchor(noChange, -1, hint));
-            if (run is IPaletteRun palRun) {
+            var address = model.GetAddressFromAnchor(noChange, -1, hint);
+            var run = model.GetNextRun(address);
+            if (run is IPaletteRun palRun && palRun.Start == address) {
                // option 1: hint is to a palette
                results.Add(palRun);
                return results;
@@ -119,7 +120,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                var paletteTable = model.GetNextRun(model.GetAddressFromAnchor(noChange, -1, enumSegment.EnumName)) as ArrayRun;
                if (offset.ElementIndex != -1) {
                   var paletteIndex = model.ReadMultiByteValue(enumArray.Start + enumArray.ElementLength * offset.ElementIndex, enumArray.ElementLength);
-                  if (model.GetNextRun(model.ReadPointer(paletteTable.Start + paletteTable.ElementLength * paletteIndex)) is IPaletteRun pRun) {
+                  var destination = model.ReadPointer(paletteTable.Start + paletteTable.ElementLength * paletteIndex);
+                  var tempRun = model.GetNextRun(destination);
+                  if (tempRun is IPaletteRun pRun && pRun.Start == destination) {
                      results.Add(pRun);
                   }
                }
@@ -142,7 +145,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                      var pSegmentOffset = paletteTable.ElementContent.Until(seg => seg == pSegment).Sum(seg => seg.Length);
                      var tableIndex = paletteTable.ElementCount.Range().FirstOrDefault(i => model.ReadMultiByteValue(paletteTable.Start + i * paletteTable.ElementLength + segmentOffset, segment.Length) == keyValue);
                      var paletteStart = model.ReadPointer(paletteTable.Start + tableIndex * paletteTable.ElementLength + pSegmentOffset);
-                     if (model.GetNextRun(paletteStart) is IPaletteRun pRun) results.Add(pRun);
+                     if (model.GetNextRun(paletteStart) is IPaletteRun pRun && pRun.Start == paletteStart) results.Add(pRun);
                   }
                }
             }

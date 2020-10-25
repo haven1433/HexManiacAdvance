@@ -512,7 +512,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var segment in table.ElementContent) {
             if (segment is ArrayRunPointerSegment pSegment) {
                var destination = model.ReadPointer(table.Start + elementOffset + segmentOffset);
-               if (model.GetNextRun(destination) is T result) yield return result;
+               if (model.GetNextRun(destination) is T result && result.Start == destination) yield return result;
             }
             segmentOffset += segment.Length;
          }

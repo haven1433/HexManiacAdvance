@@ -26,11 +26,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(Pointer pointer, byte data) {
          Content.Add(pointer.DestinationAsText);
          var destinationRun = model.GetNextRun(pointer.Destination);
-         var runSpecificContent = BuildContentForRun(model, destinationRun);
+         var runSpecificContent = BuildContentForRun(model, pointer.Destination, destinationRun);
          if (runSpecificContent != null) Content.Add(runSpecificContent);
       }
 
-      public static object BuildContentForRun(IDataModel model, IFormattedRun destinationRun) {
+      public static object BuildContentForRun(IDataModel model, int destination, IFormattedRun destinationRun) {
+         if (destination != destinationRun.Start) return null;
          if (destinationRun is PCSRun pcs) {
             return PCSString.Convert(model, pcs.Start, pcs.Length);
          } else if (destinationRun is ISpriteRun sprite) {
