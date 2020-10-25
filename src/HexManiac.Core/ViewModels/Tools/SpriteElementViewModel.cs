@@ -11,7 +11,6 @@ using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class SpriteElementViewModel : PagedElementViewModel, IPixelViewModel {
-      private string runFormat;
       private SpriteFormat format;
 
       public short[] PixelData { get; private set; }
@@ -36,7 +35,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var run = ViewPort.Model.GetNextRun(destination) as ISpriteRun;
          if (run == null) {
             IFormattedRun tempRun = new NoInfoRun(destination, new SortedSpan<int>(Start));
-            var errorCode = FormatRunFactory.GetStrategy(runFormat).TryParseData(Model, string.Empty, destination, ref tempRun);
+            var errorCode = FormatRunFactory.GetStrategy(RunFormat).TryParseData(Model, string.Empty, destination, ref tempRun);
             run = tempRun as ISpriteRun;
          }
          return run;
@@ -61,10 +60,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public override bool ShowPageControls => base.ShowPageControls || CanExecuteImageEditor();
 
-      public SpriteElementViewModel(ViewPort viewPort, string runFormat, SpriteFormat format, int itemAddress) : base(viewPort, itemAddress) {
+      public SpriteElementViewModel(ViewPort viewPort, string runFormat, SpriteFormat format, int itemAddress) : base(viewPort, runFormat, itemAddress) {
          this.format = format;
-         this.runFormat = runFormat;
-         var destination = ViewPort.Model.ReadPointer(Start);
+         RunFormat = runFormat;
          var run = GetRun();
          Pages = run.Pages;
          UpdateAvailablePalettes(Start);
@@ -97,7 +95,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       protected override bool TryCopy(PagedElementViewModel other) {
          if (!(other is SpriteElementViewModel that)) return false;
          format = that.format;
-         runFormat = that.runFormat;
+         RunFormat = that.RunFormat;
          UpdateAvailablePalettes(that.Start);
          return true;
       }

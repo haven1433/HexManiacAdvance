@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Windows.Input;
@@ -10,6 +11,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ViewPort ViewPort { get; }
       public IDataModel Model { get; }
       public int Start { get; protected set; }
+      public string RunFormat { get; protected set; }
 
       private bool visible = true;
       public bool Visible { get => visible; set => Set(ref visible, value); }
@@ -34,7 +36,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
-      public bool CanRepoint => UsageCount > 1;
+      public bool CanRepoint => UsageCount > 1 || DataIsValidButNoRun;
+
+      public bool DataIsValidButNoRun {
+         get {
+            var destination = Model.ReadPointer(Start);
+            var run = Model.GetNextRun(destination);
+            if (run.Start == destination) return false;
+            run = new NoInfoRun(destination, new SortedSpan<int>(Start));
+            var error = FormatRunFactory.GetStrategy(RunFormat).TryParseData(Model, string.Empty, destination, ref run);
+            return !error.HasError;
+         }
+      }
 
       private readonly StubCommand repoint = new StubCommand();
       public ICommand Repoint => repoint;
@@ -62,10 +75,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       #endregion
 
-      public StreamElementViewModel(ViewPort viewPort, int start) {
+      public StreamElementViewModel(ViewPort viewPort, string runFormat, int start) {
          ViewPort = viewPort;
          Model = viewPort.Model;
          Start = start;
+         RunFormat = runFormat;
          Undo = ViewPort.Undo;
          Redo = ViewPort.Redo;
 
@@ -102,7 +116,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          dataMoved = that.dataMoved;
          dataChanged = that.dataChanged;
          Start = that.Start;
+         RunFormat = that.RunFormat;
          Visible = other.Visible;
+         NotifyPropertyChanged(nameof(CanRepoint));
+         repoint.RaiseCanExecuteChanged();
+         NotifyPropertyChanged(nameof(DataIsValidButNoRun));
 
          return true;
       }

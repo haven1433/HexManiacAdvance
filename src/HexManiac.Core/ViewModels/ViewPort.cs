@@ -974,6 +974,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          var destination = Model.GetNextRun(destinationAddress);
+         if (destination.Start != destinationAddress) {
+            RepointWithoutRun(pointer, destinationAddress);
+            return;
+         }
+
          if (destination.PointerSources.Count < 2) {
             OnError?.Invoke(this, "This is the only pointer, no need to make a new copy.");
             return;
@@ -1032,6 +1037,51 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          RaiseMessage($"New data added at {insert:X6}");
          RefreshBackingData();
          return true;
+      }
+
+      /// <summary>
+      /// Sometimes, valid data exists in the game but no run could be added.
+      /// In such cases, it could be because a conflict was detected between 2 runs in the data.
+      /// Make a new copy of data, only if we can prove that the data is valid and only if no run is found.
+      /// Leave the original data (and other pointers to it) untouched.
+      /// </summary>
+      private void RepointWithoutRun(int source, int destination) {
+         if (!(Model.GetNextRun(source) is ITableRun table)) {
+            RaiseError("Could not parse a data format for that pointer.");
+            return;
+         }
+         var offset = table.ConvertByteOffsetToArrayOffset(source);
+         var segment = table.ElementContent[offset.SegmentIndex] as ArrayRunPointerSegment;
+         if (segment == null) {
+            RaiseError("Could not parse a data format for that pointer.");
+            return;
+         }
+         var strategy = FormatRunFactory.GetStrategy(segment.InnerFormat);
+         if (strategy == null) {
+            RaiseError("Could not parse a data format for that pointer.");
+            return;
+         }
+         IFormattedRun run = new NoInfoRun(destination, new SortedSpan<int>(source));
+         if (strategy.TryParseData(Model, string.Empty, destination, ref run).HasError) {
+            RaiseError("Could not parse a data format for that pointer.");
+            return;
+         }
+
+         var newDestination = Model.FindFreeSpace(destination, run.Length);
+         if (newDestination == -1) {
+            newDestination = Model.Count;
+            Model.ExpandData(history.CurrentChange, Model.Count + run.Length);
+         }
+
+         for (int i = 0; i < run.Length; i++) {
+            history.CurrentChange.ChangeData(Model, newDestination + i, Model[destination + i]);
+         }
+
+         Model.WritePointer(CurrentChange, source, newDestination); // point to the new destination
+         var newRun = run.Duplicate(newDestination, new SortedSpan<int>(source));
+         Model.ObserveRunWritten(CurrentChange, newRun); // create a new run at the new destination
+         OnMessage?.Invoke(this, $"Run moved to {newDestination:X6}. This pointer was updated, original data was not modified.");
+         Refresh();
       }
 
       private void AcceptBackspace(UnderEdit underEdit, byte cellValue, Point point) {

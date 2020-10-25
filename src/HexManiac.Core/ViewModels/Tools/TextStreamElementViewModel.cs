@@ -24,7 +24,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
-      public TextStreamElementViewModel(ViewPort viewPort, IDataModel model, int start) : base(viewPort, start) {
+      public TextStreamElementViewModel(ViewPort viewPort, IDataModel model, int start) : base(viewPort, PCSRun.SharedFormatString, start) {
          var destination = model.ReadPointer(Start);
          var run = model.GetNextRun(destination) as IStreamRun;
 

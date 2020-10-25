@@ -73,7 +73,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       #endregion
 
-      public PagedElementViewModel(ViewPort viewPort, int start) : base(viewPort, start) {
+      public PagedElementViewModel(ViewPort viewPort, string runFormat, int start) : base(viewPort, runFormat, start) {
          Pages = 1;
 
          // update usage count, assuming that our run is paged.
