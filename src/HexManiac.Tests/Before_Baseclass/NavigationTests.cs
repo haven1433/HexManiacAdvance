@@ -431,7 +431,7 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
-      public void NoNamespaceHasMoreThanSevenElements() {
+      public void NoNamespaceHasMoreThanNineElements() {
          var singletons = BaseViewModelTestClass.Singletons;
          foreach (var game in singletons.GameReferenceTables.Keys) {
             var gameTables = singletons.GameReferenceTables[game];
@@ -445,7 +445,7 @@ namespace HavenSoft.HexManiac.Tests {
             }
             foreach (var currentNamespace in namespaces.Keys) {
                var elements = namespaces[currentNamespace];
-               Assert.InRange(elements, 0, 7); // we shouldn't have found more than 7
+               Assert.InRange(elements, 0, 9); // we shouldn't have found more than 7
             }
          }
       }
