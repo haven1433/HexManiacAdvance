@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Globalization;
+using System.Runtime.Serialization.Formatters;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
@@ -11,6 +12,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       NumericField,
       Address,
       HexField,
+      ColorField,
       ComboBox,
    }
 
@@ -77,6 +79,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public bool TryCopy(IArrayElementViewModel other) {
          if (!(other is FieldArrayElementViewModel field)) return false;
+         if (!TryCopy(field)) return false;
          if (strategy.Type != field.strategy.Type) return false;
 
          Name = field.Name;
@@ -89,6 +92,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          return true;
       }
 
+      protected virtual bool TryCopy(FieldArrayElementViewModel other) => true;
+
       private void ExecuteAccept() {
          // If we add more accept commands, move this logic into the strategy classes.
          // right now, don't bother, since there's just one.
@@ -96,6 +101,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             ViewPort.Goto.Execute(Content);
          }
       }
+   }
+
+   public class ColorFieldArrayElementViewModel : FieldArrayElementViewModel {
+      private short color;
+      public short Color { get => color; set => Set(ref color, value, HandleColorChange); }
+
+      public ColorFieldArrayElementViewModel(ViewPort viewPort, string name, int start) : base(viewPort, name, start, 2, ColorFieldStrategy.Instance) {
+         Color = (short)viewPort.Model.ReadMultiByteValue(start, 2);
+      }
+
+      protected override bool TryCopy(FieldArrayElementViewModel other) {
+         if (!(other is ColorFieldArrayElementViewModel field)) return false;
+         Set(ref color, field.color, nameof(Color));
+         return true;
+      }
+
+      private void HandleColorChange(short oldValue) => Content = UncompressedPaletteColor.Convert(Color);
    }
 
    public class TextFieldStrategy : IFieldArrayElementViewModelStrategy {
@@ -187,6 +209,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public string UpdateViewModelFromModel(FieldArrayElementViewModel viewModel) {
          int number = viewModel.Model.ReadMultiByteValue(viewModel.Start, viewModel.Length);
          var text = number.ToString("X2");
+         return text;
+      }
+   }
+
+   public class ColorFieldStrategy : IFieldArrayElementViewModelStrategy {
+      public static ColorFieldStrategy Instance { get; } = new ColorFieldStrategy();
+      public ElementContentViewModelType Type => ElementContentViewModelType.ColorField;
+
+      public void UpdateModelFromViewModel(FieldArrayElementViewModel viewModel) {
+         var colors = PaletteCollection.ParseColor(viewModel.Content);
+         if (colors.Count == 0) return;
+         viewModel.Model.WriteMultiByteValue(viewModel.Start, viewModel.Length, viewModel.ViewPort.CurrentChange, colors[0]);
+      }
+
+      public string UpdateViewModelFromModel(FieldArrayElementViewModel viewModel) {
+         var color = (short)viewModel.Model.ReadMultiByteValue(viewModel.Start, viewModel.Length);
+         var text = UncompressedPaletteColor.Convert(color);
          return text;
       }
    }

@@ -272,7 +272,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private bool CanExecuteCopy(IFileSystem fileSystem) => 0 <= selectionStart && selectionStart < Elements.Count;
 
-      private static IReadOnlyList<short> ParseColor(string stream) {
+      public static IReadOnlyList<short> ParseColor(string stream) {
          var results = new List<short>();
          var parts = stream.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
          for (int i = 0; i < parts.Length; i++) {

@@ -40,6 +40,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             } else if (currentSegment is ArrayRunHexSegment) {
                var value = data.ReadMultiByteValue(offsets.SegmentStart, currentSegment.Length);
                return new IntegerHex(offsets.SegmentStart, position, value, currentSegment.Length);
+            } else if (currentSegment is ArrayRunColorSegment) {
+               var color = (short)data.ReadMultiByteValue(offsets.SegmentStart, currentSegment.Length);
+               return new UncompressedPaletteColor(offsets.SegmentStart, position, color);
             } else {
                var value = ArrayRunElementSegment.ToInteger(data, offsets.SegmentStart, currentSegment.Length);
                return new Integer(offsets.SegmentStart, position, value, currentSegment.Length);
@@ -178,6 +181,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public const char DoubleByteIntegerFormat = ':';
       public const char ArrayAnchorSeparator = '/';
       public const string HexFormatString = "|h";
+      public const string ColorFormatString = "|c";
 
       private const int JunkLimit = 80;
 
@@ -737,6 +741,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   if (endOfToken == -1) endOfToken = segments.Length;
                   segments = segments.Substring(endOfToken).Trim();
                   list.Add(new ArrayRunHexSegment(name, segmentLength));
+               } else if (segments.StartsWith(ColorFormatString)) {
+                  var endOfToken = segments.IndexOf(' ');
+                  if (endOfToken == -1) endOfToken = segments.Length;
+                  segments = segments.Substring(endOfToken).Trim();
+                  list.Add(new ArrayRunColorSegment(name));
                } else if (int.TryParse(segments, out var elementCount)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;

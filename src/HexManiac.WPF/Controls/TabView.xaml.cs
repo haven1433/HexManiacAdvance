@@ -280,6 +280,27 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       #endregion
 
+      #region ColorSquareInteraction
+
+      private static readonly ColorConverter colorConverter = new ColorConverter();
+
+      private void ShowColorFieldSwatch(object sender, MouseButtonEventArgs e) {
+         var element = (FrameworkElement)sender;
+         var field = (ColorFieldArrayElementViewModel)element.DataContext;
+         var color = TileImage.Convert16BitColor(field.Color);
+         var colorString = colorConverter.ConvertToString(color);
+         var swatch = new Swatch { Width = 230, Height = 200, Result = colorString };
+         swatch.ResultChanged += (s, e1) => {
+            var newColor = (Color)ColorConverter.ConvertFromString(swatch.Result);
+            field.Color = TileImage.Convert16BitColor(newColor);
+         };
+         var swatchPopup = new Popup { Placement = PlacementMode.Bottom, PopupAnimation = PopupAnimation.Fade, AllowsTransparency = true, StaysOpen = false, Child = swatch };
+         swatchPopup.PlacementTarget = element;
+         swatchPopup.IsOpen = true;
+      }
+
+      #endregion
+
       private void StringToolContentSelectionChanged(object sender, RoutedEventArgs e) {
          var textbox = (TextBox)sender;
          var tools = textbox.DataContext as ToolTray;

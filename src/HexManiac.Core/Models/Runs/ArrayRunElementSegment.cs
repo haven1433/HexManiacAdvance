@@ -245,6 +245,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
    }
 
+   public class ArrayRunColorSegment : ArrayRunElementSegment {
+      public override string SerializeFormat => base.SerializeFormat + ArrayRun.ColorFormatString;
+
+      public ArrayRunColorSegment(string name) : base(name, ElementContentType.Integer, 2) { }
+
+      public override string ToText(IDataModel rawData, int offset, bool deep = false) {
+         var color = (short)rawData.ReadMultiByteValue(offset, Length);
+         var colorText = UncompressedPaletteColor.Convert(color);
+         return colorText;
+      }
+   }
+
    public class ArrayRunBitArraySegment : ArrayRunElementSegment, IHasOptions {
       public string SourceArrayName { get; }
 

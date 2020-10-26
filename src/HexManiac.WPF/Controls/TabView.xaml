@@ -242,6 +242,26 @@
                               </UserControl>
                            </Grid>
                         </DataTemplate>
+                        <DataTemplate DataType="{x:Type hsg3hvmtr:ColorFieldArrayElementViewModel}">
+                           <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                              <Grid.ColumnDefinitions>
+                                 <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
+                                 <ColumnDefinition Width="Auto"/>
+                                 <ColumnDefinition Width="*"/>
+                              </Grid.ColumnDefinitions>
+                              <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
+                              <Rectangle Width="14" Height="14" Grid.Column="1"
+                                 Stroke="{DynamicResource Primary}" StrokeThickness="1"
+                                 Fill="{Binding Color, Converter={StaticResource PaletteColorConverter}}"
+                                 MouseLeftButtonUp="ShowColorFieldSwatch"/>
+                              <UserControl Margin="5,0" Grid.Column="2"
+                                 GotKeyboardFocus="UpdateFieldTextBox" LostKeyboardFocus="UpdateFieldTextBox"
+                                 MouseEnter="UpdateFieldTextBox" MouseLeave="UpdateFieldTextBox"
+                                 GotFocus="UpdateFieldTextBox" LostFocus="UpdateFieldTextBox">
+                                 <hsg3hv:TextBoxLookAlike />
+                              </UserControl>
+                           </Grid>
+                        </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:ComboBoxArrayElementViewModel}">
                            <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}" PreviewKeyDown="ComboBoxArrayElementViewKeyDown">
                               <Grid.ColumnDefinitions>

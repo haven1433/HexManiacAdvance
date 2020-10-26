@@ -54,6 +54,7 @@ graphics.moves.animations,                  075734, 075738, 075754, 075758, 0725
 graphics.moves.particles.sprites-13880,     075A60, 075A64, 075A80, 075A84, 0728B8, 0728B8, 0728CC, 0728CC, 0A3D74, [ptr<`lzt4`> size: index:]289
 graphics.moves.particles.palettes-13880,    075A64, 075A68, 075A84, 075A88, 0728BC, 0728BC, 0728D0, 0728D0, 0A3D78, [ptr<`lzp4`> index: unused:]graphics.moves.particles.sprites
 graphics.items.sprites,                           ,       ,       ,       , 09899C, 098970, 0989B0, 098984, 1B0034, [sprite<`lzs4x3x3`> palette<`lzp4`>]data.items.stats+1
+graphics.items.mail,                              ,       ,       ,       , 0BEEB0, 0BEE84, 0BEEC4, 0BEE98,       , [pal<`ucp4`> tileset<`lzt4`> tilemap<`lzm4x32x20|graphics.items.mail`> size:: textcolor:|c shadow:|c]12
 
 
 data.pokemon.stats,                    010B64, 010B64, 010B64, 010B64, 0001BC, 0001BC, 0001BC, 0001BC, 0001BC, [hp. attack. def. speed. spatk. spdef. type1.data.pokemon.type.names type2.data.pokemon.type.names catchRate. baseExp. evs|b[]evbits item1:data.items.stats item2:data.items.stats genderratio. steps2hatch. basehappiness. growthrate. egg1. egg2. ability1.data.abilities.names ability2.data.abilities.names runrate. unknown. padding:]data.pokemon.names

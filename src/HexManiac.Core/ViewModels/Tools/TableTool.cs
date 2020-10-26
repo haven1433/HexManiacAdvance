@@ -357,6 +357,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   }
                } else if (item is ArrayRunHexSegment) {
                   viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, HexFieldStratgy.Instance);
+               } else if (item is ArrayRunColorSegment) {
+                  viewModel = new ColorFieldArrayElementViewModel(viewPort, item.Name, itemAddress);
                } else {
                   viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, new NumericFieldStrategy());
                }
