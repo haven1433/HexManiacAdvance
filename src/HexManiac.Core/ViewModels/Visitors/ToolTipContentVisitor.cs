@@ -35,6 +35,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (destinationRun is PCSRun pcs) {
             return PCSString.Convert(model, pcs.Start, pcs.Length);
          } else if (destinationRun is ISpriteRun sprite) {
+            if (sprite is LzTilemapRun tilemap) tilemap.FindMatchingTileset(model);
             var paletteRun = sprite.FindRelatedPalettes(model).FirstOrDefault();
             var pixels = sprite.GetPixels(model, 0);
             if (pixels == null) return null;
