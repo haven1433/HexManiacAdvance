@@ -175,15 +175,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (content.StartsWith(PointerRun.PointerStart.ToString())) content = content.Substring(1);
          if (content.EndsWith(PointerRun.PointerEnd.ToString())) content = content.Substring(0, content.Length - 1);
 
+         var start = viewModel.Start;
+         var change = viewModel.ViewPort.CurrentChange;
+         var model = viewModel.Model;
+
          if (!int.TryParse(content, NumberStyles.HexNumber, CultureInfo.CurrentCulture.NumberFormat, out var address)) {
-            address = viewModel.Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, content);
+            address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, content);
             if (address == Pointer.NULL && content != "null") {
                viewModel.ErrorText = "Address should be hexidecimal or an anchor.";
                return;
             }
          }
 
-         viewModel.Model.WritePointer(viewModel.ViewPort.CurrentChange, viewModel.Start, address);
+         var run = model.GetNextRun(start) as ITableRun;
+         var offsets = run.ConvertByteOffsetToArrayOffset(start);
+         var segment = run.ElementContent[offsets.SegmentIndex];
+         if (segment is ArrayRunPointerSegment pointerSegment) {
+            if (!pointerSegment.DestinationDataMatchesPointerFormat(model, change, offsets.SegmentStart, address, run.ElementContent, -1)) {
+               viewModel.ErrorText = $"This pointer must point to {pointerSegment.InnerFormat} data.";
+               return;
+            }
+         }
+
+         model.UpdateArrayPointer(change, segment, run.ElementContent, offsets.ElementIndex, start, address);
       }
 
       public string UpdateViewModelFromModel(FieldArrayElementViewModel viewModel) {
