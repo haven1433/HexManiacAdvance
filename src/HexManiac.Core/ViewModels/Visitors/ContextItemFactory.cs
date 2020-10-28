@@ -74,7 +74,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             var newScriptStart = ViewPort.ConvertViewPointToAddress(ViewPort.SelectionStart);
             // write the 'end' command
             ViewPort.CurrentChange.ChangeData(ViewPort.Model, newScriptStart, 2);
-            ViewPort.Model.ObserveAnchorWritten(ViewPort.CurrentChange, $"xse_{newScriptStart:X6}", new XSERun(newScriptStart));
+            ViewPort.Model.ObserveAnchorWritten(ViewPort.CurrentChange, $"scripts.new.xse_{newScriptStart:X6}", new XSERun(newScriptStart));
             var name = ViewPort.Model.GetAnchorFromAddress(-1, newScriptStart);
             ViewPort.Refresh();
             ViewPort.UpdateToolsFromSelection(newScriptStart);
