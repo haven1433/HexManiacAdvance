@@ -185,6 +185,9 @@ graphics.menu.summaryscreen.tilemap.egg,         ,,,, 135D50, 135D28, 135DC8, 13
 graphics.menu.summaryscreen.unknown.palette,     ,,,, 0E4780, 0E4758, 0E4794, 0E476C, , `ucp4`
 graphics.menu.summaryscreen.unknown.tileset,     ,,,, 0E4784, 0E475C, 0E4798, 0E4770, , `lzt4|graphics.menu.summaryscreen.unknown.palette`
 graphics.menu.summaryscreen.unknown.tilemap,     ,,,, 0E4788, 0E4760, 0E479C, 0E4774, , `lzm4x32x32|graphics.menu.summaryscreen.unknown.tileset`
+graphics.menu.pokemon.background.palette,        ,,,, 11EFF4, 11EFCC, 11F06C, 11F044, , `lzp4`
+graphics.menu.pokemon.background.tileset,        ,,,, 11EFB0, 11EF88, 11F028, 11F000, , `lzt4|graphics.menu.pokemon.background.palette`
+graphics.menu.pokemon.background.tilemap,        ,,,, 11EFCC, 11EFA4, 11F044, 11F01C, , `lzm4x32x32|graphics.menu.pokemon.background.tileset`
 
 graphics.questionnaire.palette,        ,,,, 100D10, 100CE8, 100D88, 100D60, , `ucp4`
 graphics.questionnaire.tileset,        ,,,, 100064, 10003C, 1000DC, 1000B4, , `lzt4|graphics.questionnaire.palette`
