@@ -32,7 +32,7 @@
       <KeyBinding Key="D4" Modifiers="Shift" Command="{Binding SetCursorSize}" CommandParameter="8" />
    </UserControl.InputBindings>
    <DockPanel>
-      <DockPanel DockPanel.Dock="Left">
+      <DockPanel DockPanel.Dock="Left" MouseLeftButtonDown="ClearPopups" Background="Transparent">
          <DockPanel.Resources>
             <Style TargetType="Path">
                <Setter Property="Fill" Value="{DynamicResource Secondary}"/>
@@ -367,7 +367,7 @@
             </ItemsControl.ItemTemplate>
          </ItemsControl>
 
-         <hshmwpfc:PaletteControl x:Name="PaletteControl" DataContext="{Binding Palette}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+         <hshmwpfc:PaletteControl x:Name="PaletteControl" LoseKeyboardFocusCausesLoseMultiSelect="False" DataContext="{Binding Palette}" HorizontalAlignment="Center" VerticalAlignment="Center" />
       </DockPanel>
 
       <Grid Name="ImageContainer" Background="Transparent" ClipToBounds="True"

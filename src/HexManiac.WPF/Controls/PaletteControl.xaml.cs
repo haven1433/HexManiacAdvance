@@ -40,6 +40,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          }
       }
 
+      public bool LoseKeyboardFocusCausesLoseMultiSelect { get; set; }
+
       public PaletteControl() {
          InitializeComponent();
          swatchPopup.PlacementTarget = this;
@@ -56,22 +58,26 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                },
             },
          };
+         LoseKeyboardFocusCausesLoseMultiSelect = true;
       }
 
       public void ClosePopup() {
          swatchPopup.IsOpen = false;
          swatch.ResultChanged -= SwatchResultChanged;
       }
+      public void SingleSelect() => ViewModel.SingleSelect();
 
       protected override void OnLostFocus(RoutedEventArgs e) {
          if (swatchPopup.IsKeyboardFocusWithin) return;
          ClosePopup();
+         if (LoseKeyboardFocusCausesLoseMultiSelect) SingleSelect();
          base.OnLostFocus(e);
       }
 
       protected override void OnLostKeyboardFocus(KeyboardFocusChangedEventArgs e) {
          if (swatchPopup.IsKeyboardFocusWithin) return;
          ClosePopup();
+
          base.OnLostKeyboardFocus(e);
       }
 
@@ -97,7 +103,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             ViewModel.ToggleSelection(tileIndex);
          } else if (ViewModel.Elements[tileIndex].Selected && e.LeftButton == MouseButtonState.Pressed && swatchPopup.IsOpen) {
             e.Handled = true;
-            swatchPopup.IsOpen = false;
+            ClosePopup();
             return;
          } else {
             ViewModel.SelectionStart = tileIndex;
@@ -116,7 +122,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                swatch.ResultChanged += SwatchResultChanged;
             }
          } else {
-            swatchPopup.IsOpen = false;
+            ClosePopup();
          }
       }
 

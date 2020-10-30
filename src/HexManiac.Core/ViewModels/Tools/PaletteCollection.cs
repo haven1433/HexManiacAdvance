@@ -124,6 +124,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public void ToggleSelection(int index) {
          Elements[index].Selected = !Elements[index].Selected;
+         createGradient.RaiseCanExecuteChanged();
+         singleReduce.RaiseCanExecuteChanged();
          SelectionSet?.Invoke(this, EventArgs.Empty);
       }
 
@@ -161,6 +163,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Refresh();
          (SelectionStart, SelectionEnd) = selectionRange;
          for (int i = 0; i < Elements.Count; i++) Elements[i].Selected = selections[i];
+      }
+
+      /// <summary>
+      /// If multiple colors are selected, reduce to just a single color selected.
+      /// </summary>
+      public void SingleSelect() {
+         if (SelectionEnd != SelectionStart) {
+            SelectionEnd = SelectionStart;
+            return;
+         }
+
+         for (int i = 0; i < Elements.Count; i++) Elements[i].Selected = SelectionStart == i;
+         createGradient.RaiseCanExecuteChanged();
+         singleReduce.RaiseCanExecuteChanged();
+         SelectionSet?.Invoke(this, EventArgs.Empty);
       }
 
       private void ReorderPalette() {

@@ -58,5 +58,10 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             if (e.Delta < 0) ViewModel.ZoomOut(Point(e));
          }
       }
+
+      private void ClearPopups(object sender, MouseButtonEventArgs e) {
+         PaletteControl.ClosePopup();
+         PaletteControl.SingleSelect();
+      }
    }
 }
