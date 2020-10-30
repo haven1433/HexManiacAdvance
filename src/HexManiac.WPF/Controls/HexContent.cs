@@ -288,6 +288,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       protected override void OnMouseDown(MouseButtonEventArgs e) {
          base.OnMouseDown(e);
+         if (ViewPort == null) return;
          if (e.ChangedButton == MouseButton.XButton1 && ViewPort.Back.CanExecute(null)) {
             ViewPort.Back.Execute();
             return;
