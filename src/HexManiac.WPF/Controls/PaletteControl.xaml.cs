@@ -90,7 +90,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          swatch.ResultChanged -= SwatchResultChanged;
          Focus();
 
-         interactionPoint = e.GetPosition(this);
+         interactionPoint = e.GetPosition(ItemsControl);
          if (interactionPoint.X > ExpectedElementWidth * ViewModel.ColorWidth || interactionPoint.X < 0) {
             ClosePopup();
             return;
@@ -149,7 +149,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private void PaletteColorMove(object sender, MouseEventArgs e) {
          var oldTileIndex = InteractionTileIndex;
-         interactionPoint = e.GetPosition(this);
+         interactionPoint = e.GetPosition(ItemsControl);
          var newTileIndex = InteractionTileIndex;
 
          if (!IsMouseCaptured) {

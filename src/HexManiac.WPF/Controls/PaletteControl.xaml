@@ -2,7 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:hsv="clr-namespace:HavenSoft.HexManiac.WPF.Resources"
-             HorizontalAlignment="Center" VerticalAlignment="Center" Focusable="True"
+             HorizontalAlignment="Stretch" VerticalAlignment="Center" Focusable="True"
              Background="Transparent"
              MouseDown="StartPaletteColorMove" MouseMove="PaletteColorMove" MouseUp="EndPaletteColorMove">
    <UserControl.ContextMenu>
@@ -19,63 +19,103 @@
       <KeyBinding Modifiers="Ctrl" Key="G" Command="{Binding CreateGradient}"/>
       <KeyBinding Modifiers="Ctrl" Key="M" Command="{Binding SingleReduce}"/>
    </UserControl.InputBindings>
-   <Grid>
-      <ItemsControl Name="ItemsControl" HorizontalAlignment="Center" SnapsToDevicePixels="True" ItemsSource="{Binding Elements}">
-         <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-               <UniformGrid Columns="{Binding ColorWidth}" Rows="{Binding ColorHeight}"/>
-            </ItemsPanelTemplate>
-         </ItemsControl.ItemsPanel>
-         <ItemsControl.ItemTemplate>
-            <DataTemplate>
-               <Border BorderThickness="2" Margin="-1" Name="PaletteColor">
-                  <Border.Style>
-                     <Style TargetType="Border">
-                        <Style.Triggers>
-                           <DataTrigger Binding="{Binding Selected}" Value="True">
-                              <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
-                           </DataTrigger>
-                        </Style.Triggers>
-                     </Style>
-                  </Border.Style>
-                  <Rectangle Fill="{Binding Color, Converter={StaticResource PaletteColorConverter}}" Width="14" Height="14"/>
-               </Border>
-            </DataTemplate>
-         </ItemsControl.ItemTemplate>
-      </ItemsControl>
-      <Canvas HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="0" Height="0">
-         <Border Background="Transparent" Canvas.Bottom="5" Canvas.Left="5" ToolTipService.ShowDuration="10000" MouseLeftButtonDown="ShowElementPopup" MouseLeave="HideElementPopup">
-            <Path Fill="{DynamicResource Secondary}" Width="20" Height="20" Data="{hsv:Icon Help}" Stretch="Uniform" Opacity=".5"/>
-            <Border.ToolTip>
+   <DockPanel>
+      <StackPanel Margin="10,0,0,0" DockPanel.Dock="Left" VerticalAlignment="Center">
+         <Decorator>
+            <Button Command="{Binding CreateGradient}">
+               <Path Data="{hsv:Icon Gradient}" Fill="{DynamicResource Primary}" Stretch="Uniform" Width="20" Height="20"/>
+            </Button>
+            <Decorator.ToolTip>
                <ToolTip>
                   <TextBlock>
-                     <Bold FontSize="18">Reorder Colors</Bold> <LineBreak/>
-                     Click and drag to change the order of the colors in the palette.
-                     <LineBreak/>
-                     <LineBreak/>
-
-                     <Bold FontSize="18">Merge Colors</Bold> <LineBreak/>
-                     Select multiple colors, then right-click and select 'Merge Colors'. <LineBreak/>
-                     The selected colors will merge to one less, giving <LineBreak/>
-                     you a new palette space to add a new color.
-                     <LineBreak/>
-                     <LineBreak/>
-
-                     <Bold FontSize="18">Multi-Color Shift</Bold> <LineBreak/>
-                     Select multiple colors, then edit one of them. <LineBreak/>
-                     The other selected colors will automatically update to <LineBreak/>
-                     maintain the same relationship with the edited color.
-                     <LineBreak/>
-                     <LineBreak/>
-
-                     <Bold FontSize="18">Create Gradient</Bold> <LineBreak/>
-                     Select multiple colors, then right-click and select 'Create Gradient'. <LineBreak/>
-                     The two colors on the ends of the selection will stay the <LineBreak/>
-                     same, and the colors between will blend between them.
+                     The two colors on the ends of the selection will stay the same, <LineBreak/>
+                     and the colors between will blend change to a blend between them. <LineBreak/>
+                     <Italic>(Requires multiple colors selected.)</Italic>
                   </TextBlock>
                </ToolTip>
-            </Border.ToolTip>
-         </Border>
-      </Canvas>
-   </Grid>
+            </Decorator.ToolTip>
+         </Decorator>
+         <Decorator>
+            <Button Command="{Binding SingleReduce}">
+               <Path Data="{hsv:Icon VenDiagram}" Fill="{DynamicResource Primary}" Stretch="Uniform" Width="20" Height="20"/>
+            </Button>
+            <Decorator.ToolTip>
+               <ToolTip>
+                  <TextBlock>
+                     The selected colors will merge to one less, giving <LineBreak/>
+                     you a new palette space to add a new color. <LineBreak/>
+                     <Italic>(Requires multiple colors selected.)</Italic>
+                  </TextBlock>
+               </ToolTip>
+            </Decorator.ToolTip>
+         </Decorator>
+      </StackPanel>
+      <Grid HorizontalAlignment="Center">
+         <ItemsControl Name="ItemsControl" HorizontalAlignment="Center" SnapsToDevicePixels="True" ItemsSource="{Binding Elements}">
+            <ItemsControl.ToolTip>
+               <TextBlock>
+                  Drag to Sort <LineBreak/>
+                  Click to edit selected color(s).
+               </TextBlock>
+            </ItemsControl.ToolTip>
+            <ItemsControl.ItemsPanel>
+               <ItemsPanelTemplate>
+                  <UniformGrid Columns="{Binding ColorWidth}" Rows="{Binding ColorHeight}"/>
+               </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+               <DataTemplate>
+                  <Border BorderThickness="2" Margin="-1" Name="PaletteColor">
+                     <Border.Style>
+                        <Style TargetType="Border">
+                           <Style.Triggers>
+                              <DataTrigger Binding="{Binding Selected}" Value="True">
+                                 <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                              </DataTrigger>
+                           </Style.Triggers>
+                        </Style>
+                     </Border.Style>
+                     <Rectangle Fill="{Binding Color, Converter={StaticResource PaletteColorConverter}}" Width="14" Height="14"/>
+                  </Border>
+               </DataTemplate>
+            </ItemsControl.ItemTemplate>
+         </ItemsControl>
+         <Canvas HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="0" Height="0">
+            <Border Background="Transparent" Canvas.Bottom="5" Canvas.Left="5" ToolTipService.ShowDuration="10000" MouseLeftButtonDown="ShowElementPopup" MouseLeave="HideElementPopup">
+               <Path Fill="{DynamicResource Secondary}" Width="20" Height="20" Data="{hsv:Icon Help}" Stretch="Uniform" Opacity=".5"/>
+               <Border.ToolTip>
+                  <ToolTip>
+                     <TextBlock>
+                        <Bold FontSize="18">Sort Palette</Bold> <LineBreak/>
+                        Click and drag to change the order of the colors in the palette.
+                        <LineBreak/>
+                        <LineBreak/>
+
+                        <Bold FontSize="18">Merge Colors</Bold> <LineBreak/>
+                        Select multiple colors, then right-click and select 'Merge Colors'. <LineBreak/>
+                        The selected colors will merge to one less, giving <LineBreak/>
+                        you a new palette space to add a new color.
+                        <LineBreak/>
+                        <LineBreak/>
+
+                        <Bold FontSize="18">Multi-Color Shift</Bold> <LineBreak/>
+                        Select multiple colors, then edit one of them. <LineBreak/>
+                        The other selected colors will automatically update to <LineBreak/>
+                        maintain the same relationship with the edited color.
+                        <LineBreak/>
+                        <LineBreak/>
+
+                        <Bold FontSize="18">Create Gradient</Bold> <LineBreak/>
+                        Select multiple colors, then right-click and select 'Create Gradient'. <LineBreak/>
+                        The two colors on the ends of the selection will stay the <LineBreak/>
+                        same, and the colors between will blend between them.
+                        <LineBreak/>
+                        <LineBreak/>
+                     </TextBlock>
+                  </ToolTip>
+               </Border.ToolTip>
+            </Border>
+         </Canvas>
+      </Grid>
+   </DockPanel>
 </UserControl>
