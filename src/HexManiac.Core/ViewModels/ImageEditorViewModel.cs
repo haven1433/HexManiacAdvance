@@ -39,6 +39,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private StubCommand close, undoWrapper, redoWrapper, pasteCommand, copyCommand, selectAllCommand;
 
       public string Name => "Image Editor";
+      public string FullFileName { get; }
       public ICommand Save { get; }
       public ICommand SaveAs => null;
       public ICommand Undo => StubCommand(ref undoWrapper, ExecuteUndo, () => history.Undo.CanExecute(default));
@@ -172,7 +173,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public int SelectedEditOption { get => selectedEditOption; set => Set(ref selectedEditOption, value, SelectedEditOptionChanged); }
 
       private void SelectedEditOptionChanged(int oldValue) {
-         var option = EditOptions[SelectedEditOption];
+         var option = EditOptions[SelectedEditOption.LimitToRange(0, EditOptions.Count - 1)];
          SpritePointer = option.SpritePointer;
          PalettePointer = option.PalettePointer;
          PixelWidth = option.PixelWidth;
@@ -300,6 +301,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ImageEditorViewModel(ChangeHistory<ModelDelta> history, IDataModel model, int address, ICommand save = null) {
          this.history = history;
          this.model = model;
+         using (ModelCacheScope.CreateScope(model)) FullFileName = ViewPort.BuildElementName(model, address);
          Save = save;
          this.toolStrategy = this.panStrategy = new PanTool(this);
          this.eyeDropperStrategy = new EyeDropperTool(this);

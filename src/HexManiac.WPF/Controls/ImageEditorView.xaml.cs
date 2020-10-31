@@ -62,6 +62,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void ClearPopups(object sender, MouseButtonEventArgs e) {
          PaletteControl.ClosePopup();
          PaletteControl.SingleSelect();
+         PaletteMixer.ClosePopup();
+         PaletteMixer.SingleSelect();
       }
    }
 }

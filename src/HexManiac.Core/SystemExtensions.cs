@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HavenSoft.HexManiac.Core.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -155,6 +156,17 @@ namespace HavenSoft.HexManiac.Core {
             }
          }
          return result;
+      }
+   }
+
+   /// <summary>
+   /// Represents a simple editable value with change notification.
+   /// </summary>
+   public class EditableValue<T> : ViewModelCore where T : IEquatable<T> {
+      private T field;
+      public T Value {
+         get => field;
+         set => Set(ref field, value);
       }
    }
 }

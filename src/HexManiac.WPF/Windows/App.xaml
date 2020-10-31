@@ -151,6 +151,9 @@
                      <Trigger Property="Header" Value="{x:Null}">
                         <Setter TargetName="HeaderContent" Property="Margin" Value="0"/>
                      </Trigger>
+                     <Trigger Property="ExpandDirection" Value="Down">
+                        <Setter TargetName="HeaderSite" Property="DockPanel.Dock" Value="Top"/>
+                     </Trigger>
                   </ControlTemplate.Triggers>
                </ControlTemplate>
             </Setter.Value>

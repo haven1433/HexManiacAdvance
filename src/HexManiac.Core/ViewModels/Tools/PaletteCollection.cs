@@ -29,8 +29,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public int SourcePalettePointer { get => sourcePalettePointer; set => Set(ref sourcePalettePointer, value); }
       public ObservableCollection<SelectableColor> Elements { get; } = new ObservableCollection<SelectableColor>();
 
-      public int ColorWidth => (int)Math.Ceiling(Math.Sqrt(Elements.Count));
-      public int ColorHeight => (int)Math.Sqrt(Elements.Count);
+      public int ColorWidth => Elements.Count / ColorHeight;
+      public int ColorHeight => (int)Math.Ceiling(Math.Sqrt(Elements.Count));
 
       public event EventHandler SelectionSet;
 
@@ -44,7 +44,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             } 
 
             SelectionEnd = selectionStart;
-            history.ChangeCompleted();
+            history?.ChangeCompleted();
          }
       }
 
@@ -83,15 +83,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private StubCommand singleReduce;
       public ICommand SingleReduce => StubCommand(ref singleReduce, ExecuteSingleReduce, CanExecuteSingleReduce);
 
+      private StubCommand deleteColor;
+      public ICommand DeleteColor => StubCommand(ref deleteColor, ExecuteDelete);
+
       public event EventHandler<int> RequestPageSet;
       public event EventHandler<int> PaletteRepointed;
       public event EventHandler ColorsChanged;
 
+      /// <summary>
+      /// Create a palette collection that's tied to data in a model.
+      /// This collection can pull/push data from the model, raise notifications, and supports undo/redo.
+      /// </summary>
+      /// <param name="tab"></param>
+      /// <param name="model"></param>
+      /// <param name="history"></param>
       public PaletteCollection(IRaiseMessageTab tab, IDataModel model, ChangeHistory<ModelDelta> history) {
          this.tab = tab;
          this.model = model;
          this.history = history;
       }
+
+      /// <summary>
+      /// Create a palette collection that holds spare colors.
+      /// This collection is not tied to the model.
+      /// </summary>
+      public PaletteCollection() { }
 
       public IList<(int index, int direction)> HandleMove(int originalIndex, int newIndex) {
          var otherMovedElements = new List<(int, int)>();
@@ -131,7 +147,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public void CompleteCurrentInteraction() {
          ReorderPalette();
-         history.ChangeCompleted();
+         history?.ChangeCompleted();
       }
 
       public void SetContents(IReadOnlyList<short> colors) {
@@ -146,6 +162,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public void PushColorsToModel() {
+         if (model == null) return;
          int sourcePalette = model.ReadPointer(sourcePalettePointer);
          if (!(model.GetNextRun(sourcePalette) is IPaletteRun source)) return;
 
@@ -181,6 +198,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void ReorderPalette() {
+         if (model == null) return;
          int sourcePalette = model.ReadPointer(sourcePalettePointer);
          if (!(model.GetNextRun(sourcePalette) is IPaletteRun source)) return;
 
@@ -271,6 +289,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void Refresh() {
+         if (tab == null) return;
          var currentPage = page;
          tab.Refresh();
          if (hasMultiplePages) RequestPageSet?.Invoke(this, currentPage);
@@ -314,8 +333,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void ExecutePaste(IFileSystem fileSystem) {
-         int sourcePalette = model.ReadPointer(sourcePalettePointer);
-         if (!(model.GetNextRun(sourcePalette) is IPaletteRun)) return;
+         if (model != null) {
+            int sourcePalette = model.ReadPointer(sourcePalettePointer);
+            if (!(model.GetNextRun(sourcePalette) is IPaletteRun)) return;
+         }
 
          // paste data into elements
          var colors = ParseColor(fileSystem.CopyText);
@@ -363,6 +384,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private bool CanExecuteCreateGradient() => Elements.Count(element => element.Selected) > 2;
 
       private void ExecuteSingleReduce() {
+         if (model == null) return;
          int sourcePalette = model.ReadPointer(sourcePalettePointer);
          if (!(model.GetNextRun(sourcePalette) is IPaletteRun paletteRun)) return;
          int pageOffset = (paletteRun.PaletteFormat.InitialBlankPages + Page) << 4;
@@ -423,7 +445,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          PushColorsToModel();
       }
 
-      private bool CanExecuteSingleReduce() => Elements.Count(element => element.Selected) > 1;
+      private bool CanExecuteSingleReduce() => model != null && Elements.Count(element => element.Selected) > 1;
+
+      private void ExecuteDelete() {
+         for (int i = 0; i < Elements.Count; i++) {
+            if (Elements[i].Selected) Elements[i].Color = 0;
+         }
+         PushColorsToModel();
+      }
 
       #endregion
    }

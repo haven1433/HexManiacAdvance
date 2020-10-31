@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.WPF.Implementations;
 using System;
 using System.Collections.Generic;
@@ -32,6 +33,8 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          viewModel.Theme.PropertyChanged += (sender, _) => UpdateThemeDictionary(viewModel);
          MainWindow = new MainWindow(viewModel);
          MainWindow.Resources.Add("FileSystem", fileSystem);
+         MainWindow.Resources.Add("PaletteMixer", new PaletteCollection().Fluent(mixer => mixer.SetContents(new short[16])));
+         MainWindow.Resources.Add("IsPaletteMixerExpanded", new EditableValue<bool>());
          MainWindow.Show();
       }
 

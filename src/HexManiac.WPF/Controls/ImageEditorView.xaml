@@ -367,6 +367,18 @@
             </ItemsControl.ItemTemplate>
          </ItemsControl>
 
+         <Expander DockPanel.Dock="Bottom" Header="Color Mixer" ExpandDirection="Down" DataContext="{DynamicResource IsPaletteMixerExpanded}" IsExpanded="{Binding Value}">
+            <Expander.ToolTip>
+               <ToolTip>
+                  <TextBlock>
+                     An extra palette separate from the file. <LineBreak/>
+                     Copy colors to save colors between images.
+                  </TextBlock>
+               </ToolTip>
+            </Expander.ToolTip>
+            <hshmwpfc:PaletteControl x:Name="PaletteMixer" LoseKeyboardFocusCausesLoseMultiSelect="False" DataContext="{DynamicResource PaletteMixer}" DockPanel.Dock="Bottom"/>
+         </Expander>
+
          <hshmwpfc:PaletteControl x:Name="PaletteControl" LoseKeyboardFocusCausesLoseMultiSelect="False" DataContext="{Binding Palette}" VerticalAlignment="Center" />
       </DockPanel>
 

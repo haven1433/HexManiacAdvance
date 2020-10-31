@@ -65,7 +65,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          swatchPopup.IsOpen = false;
          swatch.ResultChanged -= SwatchResultChanged;
       }
-      public void SingleSelect() => ViewModel.SingleSelect();
+      public void SingleSelect() => ViewModel?.SingleSelect();
 
       protected override void OnLostFocus(RoutedEventArgs e) {
          if (swatchPopup.IsKeyboardFocusWithin) return;
@@ -83,6 +83,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       protected override void OnMouseLeave(MouseEventArgs e) {
          base.OnMouseLeave(e);
+         if (ViewModel == null) return;
          ViewModel.HoverIndex = -1;
       }
 
