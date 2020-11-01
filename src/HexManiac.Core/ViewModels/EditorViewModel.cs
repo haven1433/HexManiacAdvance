@@ -431,7 +431,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   metadataText = fileSystem.MetadataFor(file.Name) ?? new string[0];
                }
                var metadata = new StoredMetadata(metadataText);
-               var viewPort = new ViewPort(file.Name, new HardcodeTablesModel(Singletons, file.Contents, metadata), Singletons);
+               var model = new HardcodeTablesModel(Singletons, file.Contents, metadata);
+               var viewPort = new ViewPort(file.Name, model, Singletons);
                if (metadata.IsEmpty) {
                   var createdMetadata = viewPort.Model.ExportMetadata(Singletons.MetadataInfo).Serialize();
                   fileSystem.SaveMetadata(file.Name, createdMetadata);

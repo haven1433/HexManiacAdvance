@@ -40,6 +40,36 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private readonly Singletons singletons;
 
+      #region Pointer destination-to-source caching, for faster pointer search during initial load
+
+      private IDictionary<int, int> sourcesForDestinations;
+
+      /// <summary>
+      /// setup a cache to make loading faster
+      /// </summary>
+      private void BuildDestinationToSourceCache(byte[] data) {
+         sourcesForDestinations = new Dictionary<int, int>();
+         for (int i = 3; i < data.Length; i++) {
+            if (data[i] != 0x08 && data[i] != 0x09) continue;
+            var source = i - 3;
+            var destination = ReadPointer(source);
+            if (destination < 0 || destination >= data.Length) continue;
+            sourcesForDestinations[destination] = source;
+         }
+      }
+
+      public override byte this[int index] {
+         get => base[index];
+         set {
+            base[index] = value;
+            ClearCache();
+         }
+      }
+
+      private void ClearCache() => sourcesForDestinations = null;
+
+      #endregion
+
       public virtual int EarliestAllowedAnchor => 0;
 
       public override IReadOnlyList<string> ListNames => lists.Keys.ToList();
@@ -66,6 +96,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public PokemonModel(byte[] data, StoredMetadata metadata = null, Singletons singletons = null) : base(data) {
          this.singletons = singletons;
+         BuildDestinationToSourceCache(data);
          Initialize(metadata);
       }
 
@@ -1036,8 +1067,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          IReadOnlyDictionary<int, string> unmappedPointersToAdd,
          IReadOnlyDictionary<int, string> matchedWordsToRemove,
          IReadOnlyDictionary<int, string> matchedWordsToAdd,
-         IReadOnlyDictionary<int,int> offsetPointersToRemove,
-         IReadOnlyDictionary<int,int> offsetPointersToAdd
+         IReadOnlyDictionary<int, int> offsetPointersToRemove,
+         IReadOnlyDictionary<int, int> offsetPointersToAdd
       ) {
          foreach (var kvp in namesToRemove) {
             var (address, name) = (kvp.Key, kvp.Value);
@@ -1633,6 +1664,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// This method might be called in parallel with the same changeToken
       /// </summary>
       public override SortedSpan<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses) {
+         if (sourcesForDestinations != null) return SpanFromCache(addresses);
+
          var lockObj = new object();
          var results = SortedSpan<int>.None;
 
@@ -1652,6 +1685,14 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
          });
 
+         return results;
+      }
+
+      private SortedSpan<int> SpanFromCache(int[] destinations) {
+         var results = SortedSpan<int>.None;
+         foreach (var destination in destinations) {
+            if (sourcesForDestinations.TryGetValue(destination, out var source)) results = results.Add1(source);
+         }
          return results;
       }
 

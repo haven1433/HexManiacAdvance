@@ -96,7 +96,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public virtual IReadOnlyList<IStreamRun> Streams { get; } = new List<IStreamRun>();
       public virtual IReadOnlyList<string> Anchors { get; } = new List<string>();
 
-      public byte this[int index] {
+      public virtual byte this[int index] {
          get => RawData[index];
          set {
             RawData[index] = value;
