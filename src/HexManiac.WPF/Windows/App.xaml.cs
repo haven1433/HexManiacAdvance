@@ -136,14 +136,19 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       private static void CheckIsNewerVersionAvailable(EditorViewModel viewModel) {
          if (DateTime.Now < viewModel.LastUpdateCheck + TimeSpan.FromDays(1)) return;
          viewModel.LastUpdateCheck = DateTime.Now;
-         using (var client = new WebClient()) {
-            string content = client.DownloadString(ReleaseUrl);
-            var mostRecentVersion = content
-               .Split('\n')
-               .Where(line => line.Contains("/haven1433/HexManiacAdvance/tree/"))
-               .Select(line => line.Split("title=").Last().Split('"')[1])
-               .First();
-            viewModel.IsNewVersionAvailable = StoredMetadata.NeedVersionUpdate(viewModel.Singletons.MetadataInfo.VersionNumber, mostRecentVersion);
+         try {
+            using (var client = new WebClient()) {
+               string content = client.DownloadString(ReleaseUrl);
+               var mostRecentVersion = content
+                  .Split('\n')
+                  .Where(line => line.Contains("/haven1433/HexManiacAdvance/tree/"))
+                  .Select(line => line.Split("title=").Last().Split('"')[1])
+                  .First();
+               viewModel.IsNewVersionAvailable = StoredMetadata.NeedVersionUpdate(viewModel.Singletons.MetadataInfo.VersionNumber, mostRecentVersion);
+            }
+         } catch {
+            // Exceptions are expected on Windows 7.
+            // If anything goes wrong, we probably don't care. It just means that the IsNewVersionAvailable will be false.
          }
       }
    }
