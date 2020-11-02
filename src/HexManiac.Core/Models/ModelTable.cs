@@ -78,7 +78,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
          if (seg is ArrayRunPointerSegment pointerSeg) {
             valueAddress = model.ReadPointer(valueAddress);
-            var palRun = (IPaletteRun)model.GetNextRun(valueAddress);
+            var palRun = model.GetNextRun(valueAddress) as IPaletteRun;
+            if (palRun == null) return null;
             return palRun.GetPalette(model, 0);
          } else {
             throw new NotImplementedException();
