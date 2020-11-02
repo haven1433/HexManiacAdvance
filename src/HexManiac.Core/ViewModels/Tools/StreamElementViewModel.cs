@@ -41,6 +41,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public bool DataIsValidButNoRun {
          get {
             var destination = Model.ReadPointer(Start);
+            if (destination < 0 || destination >= Model.Count) return false;
             var run = Model.GetNextRun(destination);
             if (run.Start == destination) return false;
             run = new NoInfoRun(destination, new SortedSpan<int>(Start));
