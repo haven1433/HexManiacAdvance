@@ -2050,7 +2050,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var index = scroll.ViewPointToDataIndex(SelectionStart);
          var paramsStart = command.IndexOf("(");
          var paramsEnd = command.IndexOf(")");
-         if (command.StartsWith("lz(") && paramsEnd > 3 && int.TryParse(command.Substring(3, paramsEnd - 3), out var length)) {
+         int length = 0;
+         if (command.StartsWith("lz(") && paramsEnd > 3 && int.TryParse(command.Substring(3, paramsEnd - 3), out length)) {
             // only do the write if the current data isn't compressed data of the right length
             var existingCompressedData = LZRun.Decompress(Model, index);
             var newCompressed = LZRun.Compress(new byte[length], 0, length);
@@ -2063,6 +2064,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             } else {
                // data is not freespace and is not the correct data: error
                RaiseError($"Writing {length} compressed bytes would overwrite existing data.");
+            }
+         } else if (command.StartsWith("00(") && paramsEnd > 3 && int.TryParse(command.Substring(3, paramsEnd - 3), out length)) {
+            if (length.Range().All(i => Model[index + i] == 0xFF)) {
+               for (int i = 0; i < length; i++) CurrentChange.ChangeData(Model, index + i, 0);
+            } else {
+               RaiseError($"Writing {length} 00 bytes would overwrite existing data.");
             }
          } else {
             RaiseError($"Could not parse metacommand {command}.");

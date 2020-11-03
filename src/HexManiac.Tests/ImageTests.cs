@@ -282,7 +282,7 @@ namespace HavenSoft.HexManiac.Tests {
          var fileSystem = new StubFileSystem();
          ViewPort.ExpandSelection(0, 0);
          ViewPort.Copy.Execute(fileSystem);
-         Assert.StartsWith("^run`lzs4x1x1` lz 32 00 ", fileSystem.CopyText);
+         Assert.Contains("^run`lzs4x1x1` lz 32 00 ", fileSystem.CopyText);
       }
 
       [Fact]
@@ -291,7 +291,7 @@ namespace HavenSoft.HexManiac.Tests {
          var fileSystem = new StubFileSystem();
          ViewPort.ExpandSelection(0, 0);
          ViewPort.Copy.Execute(fileSystem);
-         Assert.StartsWith("^run`lzp4` lz 32 00 ", fileSystem.CopyText);
+         Assert.Contains("^run`lzp4` lz 32 00 ", fileSystem.CopyText);
       }
 
       [Fact]

@@ -464,5 +464,21 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal("0000", filesystem.CopyText.value.Trim());
       }
+
+      [Fact]
+      public void Freespace_WriteBlankViaMetacommand_DataIsWritten() {
+         SetFullModel(0xFF);
+
+         ViewPort.Edit("@!00(32) ");
+
+         Assert.All(32.Range(), i => Assert.Equal(0x00, Model[i]));
+      }
+
+      [Fact]
+      public void NonEmptyModel_WriteBlankViaMetacommand_Fail() {
+         ViewPort.Edit("@!00(32) ");
+
+         Assert.Single(Errors);
+      }
    }
 }

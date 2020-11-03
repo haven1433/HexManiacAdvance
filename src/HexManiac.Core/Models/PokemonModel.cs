@@ -1453,6 +1453,10 @@ namespace HavenSoft.HexManiac.Core.Models {
                   if (run is LZRun lzRun) {
                      // the user is copying an lzrun. Make sure to include a metacommand to insert a new lzrun during the paste.
                      text.Append($"@!lz({lzRun.DecompressedLength}) ");
+                  } else if (run is ITableRun tableRun) {
+                     // the user is copying a table run. Make sure to include a metacommand to insert 00 of the appropriate length during the paste.
+                     // this makes sure that we have enough freespace and makes deep copy for pointers work correctly.
+                     text.Append($"@!00({tableRun.Length}) ");
                   }
                   if (!anchorForAddress.TryGetValue(start, out string anchor)) {
                      if ((run.PointerSources?.Count ?? 0) > 0) {

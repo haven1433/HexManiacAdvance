@@ -460,6 +460,20 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(new[] { "beforeTEXT", "TEXTafter", "TEmiddleXT" }, options);
       }
 
+      [Fact]
+      public void Table_DeepCopy_IncludesMetacommandToBlankTheData() {
+         SetFullModel(0xFF);
+         var fs = new StubFileSystem();
+         CreateTextTable("names", 0, "adam", "bob", "carl", "dave"); // 5*4 bytes long
+         ViewPort.Refresh();
+
+         ViewPort.Edit("@00 ");
+         ViewPort.SelectionEnd = ViewPort.ConvertAddressToViewPoint(Model.GetNextRun(0).Length - 1);
+         ViewPort.DeepCopy.Execute(fs);
+
+         Assert.StartsWith("@!00(20) ^names", fs.CopyText);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

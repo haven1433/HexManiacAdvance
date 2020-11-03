@@ -147,7 +147,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          var text = model.Copy(() => delta, 0, 0x20);
 
-         Assert.StartsWith("^words[word\"\"5]", text);
+         Assert.Contains("^words[word\"\"5]", text);
       }
 
       [Fact]
