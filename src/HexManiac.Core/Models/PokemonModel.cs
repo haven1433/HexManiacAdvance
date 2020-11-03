@@ -1450,6 +1450,10 @@ namespace HavenSoft.HexManiac.Core.Models {
                   continue;
                }
                if (run.Start == start) {
+                  if (run is LZRun lzRun) {
+                     // the user is copying an lzrun. Make sure to include a metacommand to insert a new lzrun during the paste.
+                     text.Append($"@!lz({lzRun.DecompressedLength}) ");
+                  }
                   if (!anchorForAddress.TryGetValue(start, out string anchor)) {
                      if ((run.PointerSources?.Count ?? 0) > 0) {
                         anchor = GenerateDefaultAnchorName(run);

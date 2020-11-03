@@ -710,6 +710,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(32, decompressed.Length);
       }
 
+      [Fact]
+      public void CompressedPalette_Copy_CopyMetacommandToCreateCompressedRun() {
+         SetFullModel(0xFF);
+         var fs = new StubFileSystem();
+         ViewPort.Edit("@!lz(32) ^pal`lzp4`");
+
+         ViewPort.SelectionEnd = ViewPort.ConvertAddressToViewPoint(ViewPort.Model.GetNextRun(0).Length - 1);
+         ViewPort.Copy.Execute(fs);
+
+         Assert.StartsWith("@!lz(32) ^pal`lzp4` lz ", fs.CopyText);
+      }
+
       private void CreateLzRun(int start, params byte[] data) {
          for (int i = 0; i < data.Length; i++) Model[start + i] = data[i];
          var run = new LZRun(Model, start);
