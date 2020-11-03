@@ -29,6 +29,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    public class ViewPort : ViewModelCore, IViewPort, IRaiseMessageTab {
       public const string AllHexCharacters = "0123456789ABCDEFabcdef";
       public const char GotoMarker = '@';
+      public const char CommandMarker = '!'; // commands are meta, so they also start with the goto marker.
       public const char CommentStart = '#';
       public const int CopyLimit = 20000;
 
@@ -1937,12 +1938,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                result = true;
             }
             if (char.IsWhiteSpace(currentText[currentText.Length - 1])) {
-               var destination = currentText.Substring(1);
+               var destination = currentText.Substring(1).Trim();
                ClearEdits(point);
                if (currentText.Contains("=")) {
                   UpdateConstant(destination);
                } else {
-                  Goto.Execute(destination);
+                  var parts = destination.Split(CommandMarker);
+                  if (!string.IsNullOrWhiteSpace(parts[0])) Goto.Execute(parts[0]);
+                  for (int i = 1; i < parts.Length; i++) ExecuteMetacommand(parts[i]);
                }
                RequestMenuClose?.Invoke(this, EventArgs.Empty);
                result = true;
@@ -2039,6 +2042,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                RaiseError($"{currentRun.Start:X6}: value out of range!");
             }
             Model.WriteMultiByteValue(address, currentRun.Length, CurrentChange, writeValue);
+         }
+      }
+
+      private void ExecuteMetacommand(string command) {
+         command = command.ToLower();
+         var index = scroll.ViewPointToDataIndex(SelectionStart);
+         var paramsStart = command.IndexOf("(");
+         var paramsEnd = command.IndexOf(")");
+         if (command.StartsWith("lz(") && paramsEnd > 3 && int.TryParse(command.Substring(3, paramsEnd - 3), out var length)) {
+            // only do the write if the current data isn't compressed data of the right length
+            var existingCompressedData = LZRun.Decompress(Model, index);
+            var newCompressed = LZRun.Compress(new byte[length], 0, length);
+
+            if (existingCompressedData != null && existingCompressedData.Length == length) {
+               // do nothing, it's already the right data type
+            } else if (newCompressed.Count.Range().All(i => Model[index + i] == 0xFF)) {
+               // data is all FF, go ahead and write
+               for (int i = 0; i < newCompressed.Count; i++) CurrentChange.ChangeData(Model, index + i, newCompressed[i]);
+            } else {
+               // data is not freespace and is not the correct data: error
+               RaiseError($"Writing {length} compressed bytes would overwrite existing data.");
+            }
+         } else {
+            RaiseError($"Could not parse metacommand {command}.");
          }
       }
 

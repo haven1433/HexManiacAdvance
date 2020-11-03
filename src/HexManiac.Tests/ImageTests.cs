@@ -661,6 +661,55 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.IsType<LzPaletteRun>(Model.GetNextRun(0));
       }
 
+      // TODO expand ! commands with more. Example: !00(32) writes 32 bytes of 00.
+      // TODO add autocomplete options for ! commands
+      [Fact]
+      public void Freespace_InsertNewEmptyCompressedData_DataChanges() {
+         SetFullModel(0xFF);
+         ViewPort.Refresh();
+
+         ViewPort.Edit("@!lz(32) "); // make sure that the next bytes represent 32 lz compressed bytes.
+
+         var decompressed = LZRun.Decompress(Data, 0);
+         Assert.Equal(32, decompressed.Length);
+      }
+
+      [Fact]
+      public void CompressedData_InsertNewEmptyCompressedData_DataDoesNotChange() {
+         var rnd = new Random(1234);
+         SetFullModel(0xFF);
+         var decompressed = new byte[32];
+         rnd.NextBytes(decompressed);
+         var compressed = LZRun.Compress(decompressed, 0, decompressed.Length);
+         for (int i = 0; i < compressed.Count; i++) Data[i] = compressed[i];
+         Model.ResetChanges();
+         ViewPort.Refresh();
+
+         ViewPort.Edit("@!lz(32) ");
+
+         Assert.Equal(new Point(0, 0), ViewPort.SelectionStart);
+         Assert.All(compressed.Count.Range(), i => Assert.False(Model.HasChanged(i)));
+         Assert.Empty(Errors);
+      }
+
+      [Fact]
+      public void NonCompressedData_InsertNewEmptyCompressedData_Error() {
+         ViewPort.Edit("@!lz(32) ");
+
+         Assert.Single(Errors);
+      }
+
+      [Fact]
+      public void Freespace_GotoCommandFollowedByExecuteCommand_BothCommandsPerformed() {
+         SetFullModel(0xFF);
+         ViewPort.Refresh();
+
+         ViewPort.Edit("@100!lz(32) ");
+
+         var decompressed = LZRun.Decompress(Data, 0x100);
+         Assert.Equal(32, decompressed.Length);
+      }
+
       private void CreateLzRun(int start, params byte[] data) {
          for (int i = 0; i < data.Length; i++) Model[start + i] = data[i];
          var run = new LZRun(Model, start);
