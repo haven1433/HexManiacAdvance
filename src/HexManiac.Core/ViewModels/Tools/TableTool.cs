@@ -56,7 +56,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          get => selectedTableIndex;
          set {
             TryUpdate(ref selectedTableIndex, value);
-            if (selectedTableIndex == -1) return;
+            if (selectedTableIndex == -1 || dataForCurrentRunChangeUpdate) return;
             UpdateAddressFromSectionAndSelection();
          }
       }
@@ -224,6 +224,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          childInsertionIndex++;
       }
 
+      private bool dataForCurrentRunChangeUpdate;
       public void DataForCurrentRunChanged() {
          foreach (var child in Children) child.DataChanged -= ForwardModelChanged;
          childInsertionIndex = 0;
@@ -235,6 +236,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             return;
          }
 
+         dataForCurrentRunChangeUpdate = true;
          var basename = model.GetAnchorFromAddress(-1, array.Start);
          var anchorParts = basename.Split('.');
          if (anchorParts.Length == 1) {
@@ -253,6 +255,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             TryUpdate(ref selectedTableIndex, TableList.IndexOf(string.Join(".", anchorParts.Skip(2))), nameof(SelectedTableIndex));
          }
 
+         dataForCurrentRunChangeUpdate = false;
          if (string.IsNullOrEmpty(basename)) basename = array.Start.ToString("X6");
          var index = (Address - array.Start) / array.ElementLength;
 
