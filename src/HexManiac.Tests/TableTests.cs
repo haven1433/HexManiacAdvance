@@ -474,6 +474,33 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.StartsWith("@!00(20) ^names", fs.CopyText);
       }
 
+      [Fact]
+      public void MultipleTables_CheckTableSelector_TablesSortedAlphabetically() {
+         CreateTextTable("xxx.yyy.zzz", 0x40, "adam", "bob", "carl", "steve");
+         CreateTextTable("iii.jjj.kkk", 0x80, "adam", "bob", "carl", "steve");
+         CreateTextTable("aaa.bbb.ccc", 0xC0, "adam", "bob", "carl", "steve");
+
+         var tableSections = ViewPort.Tools.TableTool.TableSections;
+         var sortedSection = tableSections.ToList();
+         sortedSection.Sort();
+
+         Assert.All(tableSections.Count.Range(), i => Assert.Equal(sortedSection[i], tableSections[i]));
+      }
+
+      [Fact]
+      public void MultipleTableList_CheckTableList_TablesSortedAlphabetically() {
+         CreateTextTable("aaa.bbb.zzz", 0x40, "adam", "bob", "carl", "steve");
+         CreateTextTable("aaa.bbb.kkk", 0x80, "adam", "bob", "carl", "steve");
+         CreateTextTable("aaa.bbb.ccc", 0xC0, "adam", "bob", "carl", "steve");
+         ViewPort.Tools.TableTool.SelectedTableSection = 0;
+
+         var tableList = ViewPort.Tools.TableTool.TableList;
+         var sortedTables = tableList.ToList();
+         sortedTables.Sort();
+
+         Assert.All(tableList.Count.Range(), i => Assert.Equal(sortedTables[i], tableList[i]));
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

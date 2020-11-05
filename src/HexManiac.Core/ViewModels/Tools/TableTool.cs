@@ -19,11 +19,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public string Name => "Table";
 
-      public IReadOnlyList<string> TableSections => UnmatchedArrays.Select(array => {
-         var parts = model.GetAnchorFromAddress(-1, array.Start).Split('.');
-         if (parts.Length > 2) return string.Join(".", parts.Take(2));
-         return parts[0];
-      }).Distinct().ToList();
+      public IReadOnlyList<string> TableSections {
+         get {
+            var sections = UnmatchedArrays.Select(array => {
+               var parts = model.GetAnchorFromAddress(-1, array.Start).Split('.');
+               if (parts.Length > 2) return string.Join(".", parts.Take(2));
+               return parts[0];
+            }).Distinct().ToList();
+            sections.Sort();
+            return sections;
+         }
+      }
 
       private int selectedTableSection;
       public int SelectedTableSection {
@@ -40,6 +46,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                .Where(name => name.StartsWith(selectedSection + "."))
                .Select(name => name.Substring(selectedSection.Length + 1))
                .ToList();
+            tableList.Sort();
             return tableList;
          }
       }
