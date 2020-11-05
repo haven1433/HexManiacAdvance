@@ -492,6 +492,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (spriteRun.SpriteFormat.BitsPerPixel == 8) renderPage = 0;
          PixelData = SpriteTool.Render(pixels, palRun.AllColors(model), palRun.PaletteFormat.InitialBlankPages, renderPage);
          NotifyPropertyChanged(nameof(PixelData));
+
+         if (HasMultipleEditOptions) EditOptions[SelectedEditOption].Refresh();
       }
 
       private void UpdateSpriteModel() {

@@ -29,9 +29,12 @@
             <Decorator.ToolTip>
                <ToolTip>
                   <TextBlock>
+                     <Bold FontSize="18">Create Gradient</Bold> <LineBreak/>
+                     Select multiple colors (Shift+Click or Ctrl+Click), then <LineBreak/>
+                     Click this button. <LineBreak/>
+                     <LineBreak/>
                      The two colors on the ends of the selection will stay the same, <LineBreak/>
-                     and the colors between will blend change to a blend between them. <LineBreak/>
-                     <Italic>(Requires multiple colors selected.)</Italic>
+                     and the colors between will change to a blend between them. <LineBreak/>
                   </TextBlock>
                </ToolTip>
             </Decorator.ToolTip>
@@ -43,9 +46,12 @@
             <Decorator.ToolTip>
                <ToolTip>
                   <TextBlock>
+                     <Bold FontSize="18">Merge Colors</Bold> <LineBreak/>
+                     Select multiple colors (Shift+Click or Ctrl+Click), then <LineBreak/>
+                     Click this button. <LineBreak/>
+                     <LineBreak/>
                      The selected colors will merge to one less, giving <LineBreak/>
                      you a new palette space to add a new color. <LineBreak/>
-                     <Italic>(Requires multiple colors selected.)</Italic>
                   </TextBlock>
                </ToolTip>
             </Decorator.ToolTip>
@@ -93,23 +99,26 @@
                         <LineBreak/>
 
                         <Bold FontSize="18">Merge Colors</Bold> <LineBreak/>
-                        Select multiple colors, then right-click and select 'Merge Colors'. <LineBreak/>
+                        Select multiple colors (Shift+Click or Ctrl+Click), then <LineBreak/>
+                        Right-click and select "Merge Colors". <LineBreak/>
                         The selected colors will merge to one less, giving <LineBreak/>
                         you a new palette space to add a new color.
                         <LineBreak/>
                         <LineBreak/>
 
                         <Bold FontSize="18">Multi-Color Shift</Bold> <LineBreak/>
-                        Select multiple colors, then edit one of them. <LineBreak/>
+                        Select multiple colors (Shift+Click or Ctrl+Click), then <LineBreak/>
+                        Edit one of them. <LineBreak/>
                         The other selected colors will automatically update to <LineBreak/>
                         maintain the same relationship with the edited color.
                         <LineBreak/>
                         <LineBreak/>
 
                         <Bold FontSize="18">Create Gradient</Bold> <LineBreak/>
-                        Select multiple colors, then right-click and select 'Create Gradient'. <LineBreak/>
+                        Select multiple colors (Shift+Click or Ctrl+Click), then <LineBreak/>
+                        Right-click and select "Create Gradient". <LineBreak/>
                         The two colors on the ends of the selection will stay the <LineBreak/>
-                        same, and the colors between will blend between them.
+                        same, and the other selected colors between will blend between them.
                         <LineBreak/>
                         <LineBreak/>
                      </TextBlock>
