@@ -289,7 +289,7 @@ graphics.newgame.pikachu.body,                     ,,,, 462EFC, 46291C, 462F5C, 
 graphics.newgame.pikachu.ears,                     ,,,, 462F04, 462924, 462F64, 462994, , `lzs4x4x4|graphics.newgame.pikachu.palette`
 graphics.newgame.pikachu.eyes,                     ,,,, 462F0C, 46292C, 462F6C, 46299C, , `lzs4x2x2|graphics.newgame.pikachu.palette`
 graphics.newgame.player.male.palette,          ,       ,       ,       , 131228, 131200, 1312A0, 131278,       , `ucp4:45`
-graphics.newgame.player.male.sprite,           ,       ,       ,       , 13122C, 131204, 1312A4, 13127C,       , `lzs8x8x12|graphics.newgame.player.male.sprite`
+graphics.newgame.player.male.sprite,           ,       ,       ,       , 13122C, 131204, 1312A4, 13127C,       , `lzs8x8x12|graphics.newgame.player.male.palette`
 graphics.newgame.player.female.palette,        ,       ,       ,       , 131240, 131218, 1312B8, 131290,       , `ucp4:45`
 graphics.newgame.player.female.sprite,         ,       ,       ,       , 131244, 13121C, 1312BC, 131294,       , `lzs8x8x12|graphics.newgame.player.female.palette`
 graphics.newgame.rival.palette,                ,       ,       ,       , 131260, 131238, 1312D8, 1312B0,       , `ucp4:67`
