@@ -48,9 +48,9 @@
          </DockPanel.Resources>
          <Rectangle Width="1" DockPanel.Dock="Right" Fill="{DynamicResource Backlight}"/>
          <ComboBox DockPanel.Dock="Top" HorizontalAlignment="Center"
+            ItemsSource="{Binding EditOptions}"
             SelectedIndex="{Binding SelectedEditOption}"
-            Visibility="{Binding HasMultipleEditOptions, Converter={StaticResource BoolToVisibility}}"
-            ItemsSource="{Binding EditOptions}">
+            Visibility="{Binding HasMultipleEditOptions, Converter={StaticResource BoolToVisibility}}">
             <ComboBox.ItemTemplate>
                <DataTemplate>
                   <local:PixelImage/>

@@ -908,5 +908,36 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(PalettePointer2Start, editor.PalettePointer);
          Assert.Equal(2, editor.EditOptions.Count);
       }
+
+      [Fact]
+      public void TwoPageSpriteAndOnePageSprite_SelectSecondPageThenSwitchSprites_SelectPageZero() {
+         const int SpritePointer2Start = 0x90, Sprite2Start = 0x100;
+         model.ClearFormat(new NoDataChangeDeltaModel(), 0, model.Count);
+         model.WritePointer(history.CurrentChange, SpritePointer2Start, Sprite2Start);
+
+         InsertCompressedData(SpriteStart, 0x40); // 2 pages
+         InsertCompressedData(Sprite2Start, 0x20); // 1 page
+         WriteArray(SpritePointerStart, "sprites", "[sprite<`lzs4x1x1`>]1");
+         WriteArray(PalettePointerStart, "palettes", "[pal<`ucp4`>]sprites");
+         WriteArray(SpritePointer2Start, "sprites2", "[sprite<`lzs4x1x1`>]sprites");
+         var editor = new ImageEditorViewModel(history, model, SpriteStart);
+
+         editor.SpritePage = 1;
+         editor.SelectedEditOption = 1;
+
+         Assert.Equal(0, editor.SpritePage);
+      }
+
+      [Fact]
+      public void LargeSelection_DrawOutOfBounds_LimitDrawPixels() {
+         editor.EyeDropperDown(0, 0);
+         editor.Hover(2, 2);
+         editor.EyeDropperUp(2, 2);
+         editor.SelectedTool = ImageEditorTools.Draw;
+
+         ToolMove(new Point(3, 3));
+
+         // nothing to assert: if it didn't crash, we're good.
+      }
    }
 }

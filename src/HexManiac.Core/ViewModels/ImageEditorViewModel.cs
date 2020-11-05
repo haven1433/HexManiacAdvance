@@ -70,6 +70,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          history.Undo.Execute();
          Refresh();
+         if (HasMultipleEditOptions) EditOptions[SelectedEditOption].Refresh();
 
          Palette.SelectionStart = selectionStart;
          Palette.SelectionEnd = selectionEnd;
@@ -78,6 +79,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void ExecuteRedo() {
          history.Redo.Execute();
          Refresh();
+         if (HasMultipleEditOptions) EditOptions[SelectedEditOption].Refresh();
       }
 
       private void ExecuteCopy(IFileSystem fs) {
@@ -173,6 +175,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public int SelectedEditOption { get => selectedEditOption; set => Set(ref selectedEditOption, value, SelectedEditOptionChanged); }
 
       private void SelectedEditOptionChanged(int oldValue) {
+         if (SelectedEditOption == -1) Set(ref selectedEditOption, oldValue, nameof(SelectedEditOption));
          var option = EditOptions[SelectedEditOption.LimitToRange(0, EditOptions.Count - 1)];
          SpritePointer = option.SpritePointer;
          PalettePointer = option.PalettePointer;
@@ -423,6 +426,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void Refresh() {
          var spriteAddress = model.ReadPointer(SpritePointer);
          var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
+         if (SpritePage >= spriteRun.Pages) SpritePage = spriteRun.Pages - 1;
          pixels = spriteRun.GetPixels(model, SpritePage);
          Render();
          RefreshPaletteColors();
@@ -483,6 +487,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          PixelWidth = spriteRun.SpriteFormat.TileWidth * 8;
          PixelHeight = spriteRun.SpriteFormat.TileHeight * 8;
+         if (palettePage >= palRun.Pages) PalettePage = palRun.Pages - 1;
          var renderPage = palettePage;
          if (spriteRun.SpriteFormat.BitsPerPixel == 8) renderPage = 0;
          PixelData = SpriteTool.Render(pixels, palRun.AllColors(model), palRun.PaletteFormat.InitialBlankPages, renderPage);
@@ -573,6 +578,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   for (int y = 0; y < drawHeight; y++) {
                      var (xx, yy) = (drawPoint.X + x, drawPoint.Y + y);
                      var paletteIndex = parent.PaletteIndex(tile[x, y]);
+                     if (xx >= parent.PixelWidth || yy >= parent.PixelHeight) continue;
                      parent.PixelData[parent.PixelIndex(xx, yy)] = parent.Palette.Elements[paletteIndex].Color;
                      parent.pixels[xx, yy] = tile[x, y];
                   }

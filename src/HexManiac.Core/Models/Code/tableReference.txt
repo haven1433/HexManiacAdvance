@@ -99,6 +99,7 @@ scripts.moves.effects,                 0146E4, 0146E4, 0146E4, 0146E4, 016364, 0
 scripts.specials.thumb,                0658B4, 0658B8, 0658D4, 0658D8, 069F18, 069F18, 069F2C, 069F2C, 099314, [code<>]
 scripts.battle.thumb,                  012F34, 012F34, 012F34, 012F34, 014C1C, 014C1C, 014C30, 014C30,       , [code<>]248
 scripts.battle.thumb,                        ,       ,       ,       ,       ,       ,       ,       , 03CD94, [code<>]249
+scripts.newgame.setflags,              052F58, 052F58, 052F78, 052F78, 054B6C, 054B6C, 054B80, 054B80, 0845C8, `xse`
 graphics.pokemon.castform.sprite.coordinates.front, 077DAC, 077DB0, 077DCC, 077DD0, 074720, 074720, 074734, 074734, 0A5F74, [size. yOffset. unused:]4
 graphics.pokemon.castform.sprite.elevations,        077E18, 077E1C, 077E38, 077E3C, 074780, 074780, 074794, 074794, 0A5FE0, [elevation.]graphics.pokemon.castform.sprite.coordinates.front
 graphics.pokemon.castform.sprite.coordinates.back,  077CE4, 077CE8, 077D04, 077D08, 074650, 074650, 074664, 074664, 0A5EA8, [yOffset.]graphics.pokemon.castform.sprite.coordinates.front
@@ -151,7 +152,8 @@ graphics.pokemon.type.tilepositions          ,       ,       ,       ,       ,  
 graphics.pokemon.bag.type.icon,              ,       ,       ,       ,       ,       ,       ,       , 19A340, `ucs4x16x16|graphics.pokemon.bag.type.palette`
 graphics.pokemon.bag.type.palette,           ,       ,       ,       ,       ,       ,       ,       , 19A2E0, `ucp4`
 graphics.pokemon.bag.type.map,               ,       ,       ,       ,       ,       ,       ,       , 19A33C, [width. height. xy:]24
-graphics.textboxes.sprites,                  ,       ,       ,       , 06979C, 06979C, 0697B0, 0697B0,       , [sprite<`ucs4x3x3`> pal<`ucp4`>]10
+graphics.text.importer,                      ,       ,       ,       , 1456EC, 1456C8, 145764, 145740,       , [a:: tileset<`lzt4`> tilemap<`lzm4x30x20|graphics.something`> pal<`ucp4`>]8
+graphics.text.boxes,                         ,       ,       ,       , 06979C, 06979C, 0697B0, 0697B0,       , [sprite<`ucs4x3x3`> pal<`ucp4`>]10
 
 graphics.bag.male.sprite,              3C1CC8, 3C1D20, 3C1CE4, 3C1D40, 3D41E4, 3D4020, 3D4254, 3D4090, 57FB34, `lzs4x8x8|graphics.bag.palette`
 graphics.bag.female.sprite,            3C1CD0, 3C1D28, 3C1CEC, 3C1D50, 3D41EC, 3D4028, 3D425C, 3D4098, 57FB3C, `lzs4x8x8|graphics.bag.palette`

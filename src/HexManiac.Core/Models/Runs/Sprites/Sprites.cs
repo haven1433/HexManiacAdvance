@@ -117,8 +117,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                return results;
             } else if (run is ArrayRun enumArray && enumArray.ElementContent.Count == 1 && enumArray.ElementContent[0] is ArrayRunEnumSegment enumSegment) {
                // option 2: hint is to index into paletteTable, and I'm in a table
-               var paletteTable = model.GetNextRun(model.GetAddressFromAnchor(noChange, -1, enumSegment.EnumName)) as ArrayRun;
-               if (offset.ElementIndex != -1) {
+               var paletteTable = model.GetNextRun(model.GetAddressFromAnchor(noChange, -1, enumSegment.EnumName)) as ITableRun;
+               if (offset.ElementIndex != -1 && paletteTable != null) {
                   var paletteIndex = model.ReadMultiByteValue(enumArray.Start + enumArray.ElementLength * offset.ElementIndex, enumArray.ElementLength);
                   var destination = model.ReadPointer(paletteTable.Start + paletteTable.ElementLength * paletteIndex);
                   var tempRun = model.GetNextRun(destination);
