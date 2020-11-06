@@ -293,9 +293,6 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                   .ToArray();
             }
 
-            if (frame.PixelWidth % 8 != 0) return (default, frame.PixelWidth);
-            if (frame.PixelHeight % 8 != 0) return (default, frame.PixelHeight);
-
             var (data, width) = DecodeImage(frame);
 
             return (data, frame.PixelWidth);
