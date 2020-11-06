@@ -10,13 +10,14 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Shapes;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
    public partial class PaletteControl : UserControl {
       private const int ExpectedElementWidth = 16, ExpectedElementHeight = 16;
       private static readonly Duration span = new Duration(TimeSpan.FromMilliseconds(100));
 
-      private readonly Popup swatchPopup = new Popup { Placement = PlacementMode.Right, PopupAnimation = PopupAnimation.Fade, AllowsTransparency = true };
+      private readonly Popup swatchPopup = new Popup { Placement = PlacementMode.Right, VerticalOffset = -15, PopupAnimation = PopupAnimation.Fade, AllowsTransparency = true };
       private readonly Swatch swatch = new Swatch { Width = 230, Height = 200 };
       private readonly TextBox[] swatchTextBoxes = new[] {
          new TextBox { ToolTip = "Red (0 to 31)" },
@@ -47,6 +48,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          swatchPopup.PlacementTarget = ItemsControl;
          swatchPopup.Child = new StackPanel {
             Children = {
+               new Grid {
+                  HorizontalAlignment = HorizontalAlignment.Center,
+                  Children = {
+                     new Rectangle { Fill = (Brush)FindResource("Background"), Opacity = .5 },
+                     new TextBlock { Text = "Shift/Ctrl+Click to edit multiple colors.", FontStyle = FontStyles.Italic, Foreground = (Brush)FindResource("Secondary") },
+                  },
+               },
                swatch,
                new UniformGrid {
                   Columns = 3,
