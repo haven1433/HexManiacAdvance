@@ -451,7 +451,35 @@
                   <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                      <Button Content="Import" Command="{Binding SpriteTool.ImportPair}" CommandParameter="{DynamicResource FileSystem}" Margin="5"/>
                      <Button Content="Edit" Command="{Binding SpriteTool.OpenInImageTab}" CommandParameter="{DynamicResource FileSystem}" Margin="5"/>
-                     <Button Content="Export" Command="{Binding SpriteTool.ExportPair}" CommandParameter="{DynamicResource FileSystem}" Margin="5"/>
+                     <Grid Margin="5">
+                        <Button Content="Export" Command="{Binding SpriteTool.ExportPair}" CommandParameter="{DynamicResource FileSystem}">
+                           <Button.Style>
+                              <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                 <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SpriteTool.CanExportMany}" Value="True">
+                                       <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                 </Style.Triggers>
+                              </Style>
+                           </Button.Style>
+                        </Button>
+                        <Menu Visibility="{Binding SpriteTool.CanExportMany, Converter={StaticResource BoolToVisibility}}" Background="{DynamicResource Backlight}">
+                           <Menu.Style>
+                              <Style TargetType="Menu" BasedOn="{StaticResource {x:Type Menu}}">
+                                 <Setter Property="BorderThickness" Value="1"/>
+                                 <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                       <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                    </Trigger>
+                                 </Style.Triggers>
+                              </Style>
+                           </Menu.Style>
+                           <MenuItem Header="Export" Margin="0,1,0,0">
+                              <MenuItem Header="Single Page" Command="{Binding SpriteTool.ExportPair}" CommandParameter="{DynamicResource FileSystem}"/>
+                              <MenuItem Header="All Pages" Command="{Binding SpriteTool.ExportMany}" CommandParameter="{DynamicResource FileSystem}"/>
+                           </MenuItem>
+                        </Menu>
+                     </Grid>
                   </StackPanel>
                   <!-- Sprite Address -->
                   <UniformGrid Columns="2" Margin="5,15,5,1">

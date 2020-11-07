@@ -324,6 +324,45 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       #endregion
 
+      #region Export Many
+
+      public bool CanExportMany => HasMultipleSpritePages && ExportPair.CanExecute(default);
+
+      private StubCommand exportMany;
+      public ICommand ExportMany => StubCommand<IFileSystem>(ref exportMany, ExecuteExportMany, fs => CanExportMany);
+
+      private void ExecuteExportMany(IFileSystem fs) {
+         var choice = fs.ShowOptions("Export Multi-page image", "How would you like to arrange the pages?",
+            new VisualOption { Index = 0, Option = "Horizontal", ShortDescription = "Left-Right", Description = "Stack the pages from left to right." },
+            new VisualOption { Index = 1, Option = "Vertical", ShortDescription = "Up-Down", Description = "Stack the pages from top to bottom." });
+
+         int[,] manyPixels;
+         if (choice == 0) {
+            manyPixels = new int[PixelWidth * spritePages, PixelHeight];
+         } else if (choice == 1) {
+            manyPixels = new int[PixelWidth, PixelHeight * spritePages];
+         } else {
+            return;
+         }
+
+         var run = model.GetNextRun(spriteAddress) as ISpriteRun;
+         var renderPalette = GetRenderPalette(run);
+         for (int i = 0; i < spritePages; i++) {
+            var (xPageOffset, yPageOffset) = choice == 0 ? (i * PixelWidth, 0) : (0, i * PixelHeight);
+            var pagePixels = run.GetPixels(model, i);
+            for (int x = 0; x < PixelWidth; x++) {
+               for (int y = 0; y < PixelHeight; y++) {
+                  manyPixels[xPageOffset + x, yPageOffset + y] = pagePixels[x, y];
+               }
+            }
+         }
+
+         var rendered = Render(manyPixels, renderPalette, paletteFormat.InitialBlankPages, spritePage);
+         fs.SaveImage(rendered, manyPixels.GetLength(0));
+      }
+
+      #endregion
+
       private readonly StubCommand
          importPair = new StubCommand(),
          exportPair = new StubCommand(),
@@ -483,9 +522,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          PixelData = Render(pixels, renderPalette, paletteFormat.InitialBlankPages, spritePage);
          NotifyPropertyChanged(nameof(PixelWidth));
          NotifyPropertyChanged(nameof(PixelHeight));
-         prevSpritePage.CanExecuteChanged.Invoke(prevSpritePage, EventArgs.Empty);
-         nextSpritePage.CanExecuteChanged.Invoke(nextSpritePage, EventArgs.Empty);
+         prevSpritePage.RaiseCanExecuteChanged();
+         nextSpritePage.RaiseCanExecuteChanged();
          NotifyPropertyChanged(nameof(PixelData));
+         NotifyPropertyChanged(nameof(CanExportMany));
+         exportMany.RaiseCanExecuteChanged();
 
          // update scale
          if (PixelWidth > MaxSpriteWidth) {

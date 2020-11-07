@@ -722,6 +722,62 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.StartsWith("@!lz(32) ^pal`lzp4` lz ", fs.CopyText);
       }
 
+      [Fact]
+      public void MultiPageSprite_InImageTool_CanExportMany() {
+         WriteCompressedData(0, 0x20);      // palette
+         WriteCompressedData(0x40, 0x40);   // sprite
+
+         ViewPort.Edit("@00 ^pal`lzp4` @40 ^sprite`lzs4x1x1|pal`");
+         ViewPort.Tools.SelectedIndex = ViewPort.Tools.IndexOf(ViewPort.Tools.SpriteTool);
+
+         Assert.True(ViewPort.Tools.SpriteTool.CanExportMany);
+      }
+
+      [Fact]
+      public void MultiPageSprite_ExportHorizontal_ReturnsHorizontal() {
+         WriteCompressedData(0, 0x20);      // palette
+         WriteCompressedData(0x40, 0x40);   // sprite
+         ViewPort.Edit("@00 ^pal`lzp4` @40 ^sprite`lzs4x1x1|pal`");
+         ViewPort.Tools.SelectedIndex = ViewPort.Tools.IndexOf(ViewPort.Tools.SpriteTool);
+
+         short[] imageData = null;
+         int width = 0;
+         var fs = new StubFileSystem {
+            ShowOptions = (title, text, options) => 0,
+            SaveImage = (img, wdth) => (imageData, width) = (img, wdth),
+         };
+
+         ViewPort.Tools.SpriteTool.ExportMany.Execute(fs);
+
+         Assert.Equal(8 * 2, width);
+         Assert.Equal(8 * 8 * 2, imageData.Length);
+      }
+
+      [Fact]
+      public void MultiPageSprite_ExportVertical_ReturnsVertical() {
+         WriteCompressedData(0, 0x20);      // palette
+         WriteCompressedData(0x40, 0x40);   // sprite
+         ViewPort.Edit("@00 ^pal`lzp4` @40 ^sprite`lzs4x1x1|pal`");
+         ViewPort.Tools.SelectedIndex = ViewPort.Tools.IndexOf(ViewPort.Tools.SpriteTool);
+
+         short[] imageData = null;
+         int width = 0;
+         var fs = new StubFileSystem {
+            ShowOptions = (title, text, options) => 1,
+            SaveImage = (img, wdth) => (imageData, width) = (img, wdth),
+         };
+
+         ViewPort.Tools.SpriteTool.ExportMany.Execute(fs);
+
+         Assert.Equal(8, width);
+         Assert.Equal(8 * 8 * 2, imageData.Length);
+      }
+
+      private void WriteCompressedData(int start, int length) {
+         var compressedData = LZRun.Compress(new byte[length], 0, length);
+         for (int i = 0; i < compressedData.Count; i++) Model[start + i] = compressedData[i];
+      }
+
       private void CreateLzRun(int start, params byte[] data) {
          for (int i = 0; i < data.Length; i++) Model[start + i] = data[i];
          var run = new LZRun(Model, start);
