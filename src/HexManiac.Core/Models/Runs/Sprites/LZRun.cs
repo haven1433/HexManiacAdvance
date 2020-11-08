@@ -340,6 +340,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) {
          while (length > 0) {
+            if (start >= Start + Length) break;
             var format = CreateDataFormat(model, start);
             if (format is LzMagicIdentifier) {
                builder.Append("lz ");
