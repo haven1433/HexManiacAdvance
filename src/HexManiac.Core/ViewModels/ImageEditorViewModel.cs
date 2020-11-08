@@ -219,7 +219,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #region Orient Selected Data Commands
 
-      private StubCommand flipVerticalCommand, flipHorizontalCommand, rotateClockwiseCommand;
+      private StubCommand flipVerticalCommand, flipHorizontalCommand;
 
       public ICommand FlipVertical => StubCommand(ref flipVerticalCommand, ExecuteFlipVertical, CanExecuteOrientSelectedPixels);
       public ICommand FlipHorizontal => StubCommand(ref flipHorizontalCommand, ExecuteFlipHorizontal, CanExecuteOrientSelectedPixels);
@@ -247,7 +247,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private IImageToolStrategy toolStrategy;
       private EyeDropperTool eyeDropperStrategy; // stored separately because of right-click
-      private PanTool panStrategy; // stored separately because of center-click
+      private readonly PanTool panStrategy; // stored separately because of center-click
       private ImageEditorTools selectedTool;
       public ImageEditorTools SelectedTool {
          get => selectedTool;

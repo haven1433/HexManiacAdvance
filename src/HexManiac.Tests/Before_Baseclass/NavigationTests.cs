@@ -246,7 +246,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CanGotoUsingAtSymbol() {
-         StandardSetup(out var data, out var model, out var viewPort);
+         StandardSetup(out _, out _, out var viewPort);
 
          viewPort.Edit("@100 ");
 

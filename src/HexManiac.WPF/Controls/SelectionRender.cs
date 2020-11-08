@@ -71,7 +71,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private const byte BLACK = 1;
       private const byte WHITE = 2;
       private void FillSelection(byte[] pixels, int stride) {
-         var currentEdgeColor = WHITE;
+         byte currentEdgeColor;
          var zoom = (int)ViewModel.SpriteScale;
          void Line(int start, int next) {
             for (int i = 0; i < zoom; i++) {

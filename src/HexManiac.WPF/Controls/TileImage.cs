@@ -125,10 +125,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          LayoutTransform = transform;
       }
       private void UpdateDataContext(DependencyPropertyChangedEventArgs e) {
-         var oldValue = e.OldValue as INotifyPropertyChanged;
-         if (oldValue != null) oldValue.PropertyChanged -= HandleDataContextPropertyChanged;
-         var newValue = e.NewValue as INotifyPropertyChanged;
-         if (newValue != null) newValue.PropertyChanged += HandleDataContextPropertyChanged;
+         if (e.OldValue is INotifyPropertyChanged oldValue) oldValue.PropertyChanged -= HandleDataContextPropertyChanged;
+         if (e.NewValue is INotifyPropertyChanged newValue) newValue.PropertyChanged += HandleDataContextPropertyChanged;
          UpdateSource();
       }
       private void HandleDataContextPropertyChanged(object sender, PropertyChangedEventArgs e) {

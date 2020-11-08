@@ -26,9 +26,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public TextStreamElementViewModel(ViewPort viewPort, IDataModel model, int start) : base(viewPort, PCSRun.SharedFormatString, start) {
          var destination = model.ReadPointer(Start);
-         var run = model.GetNextRun(destination) as IStreamRun;
-
-         if (run != null) {
+         if (model.GetNextRun(destination) is IStreamRun run) {
             content = run.SerializeRun() ?? string.Empty;
          } else {
             content = string.Empty;

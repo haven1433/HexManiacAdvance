@@ -469,7 +469,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public bool UpdateInProgress { get => updateInProgress; set => Set(ref updateInProgress, value); }
 
       private int initialWorkLoad;
-      private List<IDisposable> CurrentProgressScopes = new List<IDisposable>();
+      private readonly List<IDisposable> CurrentProgressScopes = new List<IDisposable>();
 
       #endregion
 
@@ -2050,7 +2050,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var index = scroll.ViewPointToDataIndex(SelectionStart);
          var paramsStart = command.IndexOf("(");
          var paramsEnd = command.IndexOf(")");
-         int length = 0;
+         var length = 0;
          if (command.StartsWith("lz(") && paramsEnd > 3 && int.TryParse(command.Substring(3, paramsEnd - 3), out length)) {
             // only do the write if the current data isn't compressed data of the right length
             var existingCompressedData = LZRun.Decompress(Model, index);

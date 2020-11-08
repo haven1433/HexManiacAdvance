@@ -14,13 +14,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
    /// </summary>
    public class ContinueCellEdit : IDataFormatVisitor {
       private IDataModel Model { get; }
-      private int MemoryLocation { get; }
+
       private char Input { get; }
       private UnderEdit UnderEdit { get; }
 
       public bool Result { get; private set; }
 
-      public ContinueCellEdit(IDataModel model, int memoryLocation, char input, UnderEdit underEdit) => (Model, MemoryLocation, Input, UnderEdit) = (model, memoryLocation, input, underEdit);
+      public ContinueCellEdit(IDataModel model, char input, UnderEdit underEdit) => (Model, Input, UnderEdit) = (model, input, underEdit);
 
       public void Visit(Undefined dataFormat, byte data) => Visit((None)null, data);
 
