@@ -332,7 +332,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ICommand ExportMany => StubCommand<IFileSystem>(ref exportMany, ExecuteExportMany, fs => CanExportMany);
 
       private void ExecuteExportMany(IFileSystem fs) {
-         var choice = fs.ShowOptions("Export Multi-page image", "How would you like to arrange the pages?",
+         var choice = fs.ShowOptions("Export Multi-Page Image", "How would you like to arrange the pages?",
             new VisualOption { Index = 0, Option = "Horizontal", ShortDescription = "Left-Right", Description = "Stack the pages from left to right." },
             new VisualOption { Index = 1, Option = "Vertical", ShortDescription = "Up-Down", Description = "Stack the pages from top to bottom." });
 
