@@ -37,8 +37,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public int RunIndex { get; }
 
-      public bool SupportsImport => false;
-      public bool SupportsEdit => false;
+      public bool SupportsImport => true;
+      public bool SupportsEdit => true;
 
       public bool CanAppend => false;
 
@@ -113,7 +113,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (ElementCount == MaxOverworldSprites) break; // overworld sprite lists can only have so many elements
          }
 
-         SpriteFormat = new SpriteFormat(4, tileWidth * ElementCount, tileHeight, hint);
+         SpriteFormat = new SpriteFormat(4, tileWidth, tileHeight, hint);
          ElementNames = ElementCount.Range().Select(i => string.Empty).ToList();
       }
 
@@ -149,7 +149,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                var spriteStart = model.ReadPointer(Start + ElementLength * i);
                var sprite = model.GetNextRun(spriteStart) as ISpriteRun;
                if (!movedRuns.Contains(sprite) && sprite != null) {
-                  sprite = Resize(token, sprite, newTileWidth, newTileHeight);
+                  sprite = Resize(model, token, sprite, newTileWidth, newTileHeight);
                   movedRuns.Add(sprite);
                }
                var spriteLengthStart = Start + ElementLength * i + 4;
@@ -169,9 +169,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          => segments.Until(segmentIdentifier).Sum(seg => seg.Length);
 
       const int TileSize = 32;
-      private ISpriteRun Resize(ModelDelta token, ISpriteRun spriteRun, int tileWidth, int tileHeight) {
+      private static ISpriteRun Resize(IDataModel model, ModelDelta token, ISpriteRun spriteRun, int tileWidth, int tileHeight) {
          if (spriteRun == null) return spriteRun;
-         spriteRun = (ISpriteRun)model.RelocateForExpansion(token, spriteRun, tileWidth * tileHeight * TileSize);
+         spriteRun = model.RelocateForExpansion(token, spriteRun, tileWidth * tileHeight * TileSize);
          var format = spriteRun.SpriteFormat;
 
          // extract existing tile data
@@ -204,7 +204,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       // this implementation puts all the child sprites into separate pages
       public int[,] GetPixels(IDataModel model, int page) {
-         var width = SpriteFormat.TileWidth * 8 / ElementCount;
+         var width = SpriteFormat.TileWidth * 8;
          var height = SpriteFormat.TileHeight * 8;
          var spriteStart = model.ReadPointer(Start + ElementLength * page);
          if (!(model.GetNextRun(spriteStart) is ISpriteRun spriteRun)) return new int[width, height];
@@ -237,7 +237,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels) {
-         throw new NotImplementedException();
+         var spriteStart = model.ReadPointer(Start + ElementLength * page);
+         if (!(model.GetNextRun(spriteStart) is ISpriteRun spriteRun)) return this;
+
+         spriteRun.SetPixels(model, token, 0, pixels);
+         return this; // moving a page will never move the list
       }
 
       public ISpriteRun Duplicate(SpriteFormat newFormat) => new OverworldSpriteListRun(model, parent, PaletteHint, RunIndex, Start, PointerSources);

@@ -776,7 +776,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void WriteSpritesAndPalette(ISpriteRun spriteRun, IPaletteRun paletteRun, short[][] images) {
-         var tiles = images.Select(image => Tilize(image, spriteRun.SpriteFormat.TileWidth * 8)).ToArray();
+         var tiles = images.Select(image => Tilize(image, PixelWidth)).ToArray();
          var allTiles = tiles.SelectMany(tilesForImage => tilesForImage).ToArray();
          var expectedPalettePages = paletteRun?.Pages ?? 1;
          if (spriteRun.Pages == expectedPalettePages) expectedPalettePages = 1; // handle the Castform case
@@ -806,7 +806,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void WriteSpritesAndBalancePalette(ISpriteRun spriteRun, IPaletteRun paletteRun, List<ISpriteRun> otherSprites, short[][] images) {
-         var tiles = images.Select(image => Tilize(image, spriteRun.SpriteFormat.TileWidth * 8)).ToArray();
+         var tiles = images.Select(image => Tilize(image, PixelWidth)).ToArray();
          var allTiles = tiles.SelectMany(tilesForImage => tilesForImage).ToArray();
 
          var palettes = paletteRun.Pages.Range().Select(i => paletteRun.GetPalette(model, i)).ToArray();
@@ -896,7 +896,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void WriteSpritesWithoutPalette(ISpriteRun spriteRun, IPaletteRun paletteRun, short[][] images) {
-         var tiles = images.Select(image => Tilize(image, spriteRun.SpriteFormat.TileWidth * 8)).ToArray();
+         var tiles = images.Select(image => Tilize(image, PixelWidth)).ToArray();
 
          IReadOnlyList<short>[] palettes;
          if (spriteRun.Pages == paletteRun.Pages) {
@@ -920,7 +920,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void WriteSpriteAndPalette(ISpriteRun spriteRun, IPaletteRun paletteRun, short[] image) {
-         var tiles = Tilize(image, spriteRun.SpriteFormat.TileWidth * 8);
+         var tiles = Tilize(image, PixelWidth);
          var expectedPalettePages = paletteRun?.Pages ?? 1;
          if (spriteRun.Pages == expectedPalettePages) expectedPalettePages = 1; // handle the Castform case
          var palettes = paletteRun?.Pages.Range().Select(i => paletteRun.GetPalette(model, i)).ToArray();
@@ -947,7 +947,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void WriteSpriteWithoutPalette(ISpriteRun spriteRun, IPaletteRun paletteRun, short[] image) {
-         var tiles = Tilize(image, spriteRun.SpriteFormat.TileWidth * 8);
+         var tiles = Tilize(image, PixelWidth);
          IReadOnlyList<short>[] palettes;
          if (spriteRun.Pages == paletteRun.Pages) {
             palettes = new IReadOnlyList<short>[1];
@@ -966,7 +966,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void WriteSpriteAndBalancePalette(ISpriteRun spriteRun, IPaletteRun paletteRun, IList<ISpriteRun> otherSprites, short[] image) {
-         var tiles = Tilize(image, spriteRun.SpriteFormat.TileWidth * 8);
+         var tiles = Tilize(image, PixelWidth);
          var palettes = paletteRun.Pages.Range().Select(i => paletteRun.GetPalette(model, i)).ToArray();
          if (spriteRun.Pages == paletteRun.Pages) palettes = new[] { palettes[palPage] };
          var initialBlankPages = paletteRun.PaletteFormat.InitialBlankPages;
