@@ -193,16 +193,33 @@ graphics.menu.summaryscreen.tilemap.knownmoves,  ,,,, 135B20, 135AF8, 135B98, 13
 graphics.menu.summaryscreen.tilemap.egg,         ,,,, 135D50, 135D28, 135DC8, 135DA0, , `lzm4x32x20|graphics.menu.summaryscreen.tileset`
 graphics.menu.summaryscreen.unknown.palette,     ,,,, 0E4780, 0E4758, 0E4794, 0E476C, , `ucp4`
 graphics.menu.summaryscreen.unknown.tileset,     ,,,, 0E4784, 0E475C, 0E4798, 0E4770, , `lzt4|graphics.menu.summaryscreen.unknown.palette`
-graphics.menu.summaryscreen.unknown.tilemap,     ,,,, 0E4788, 0E4760, 0E479C, 0E4774, , `lzm4x32x32|graphics.menu.summaryscreen.unknown.tileset`
+graphics.menu.summaryscreen.unknown.tilemap1,    ,,,, 0E4788, 0E4760, 0E479C, 0E4774, , `lzm4x32x32|graphics.menu.summaryscreen.unknown.tileset`
+graphics.menu.summaryscreen.unknown.tilemap2,    ,,,, 135C08, 135BE0, 135C80, 135C58, , `lzm4x32x32|graphics.menu.summaryscreen.tileset`
+graphics.menu.summaryscreen.unknown.tilemap3,    ,,,, 135C1C, 135BF4, 135C94, 135C6C, , `lzm4x32x20|graphics.menu.summaryscreen.tileset`
+graphics.menu.partyscreen.selection.palette,     ,,,, 13A0C8, 13A0A0, 13A140, 13A118, , `ucp4`
+graphics.menu.partyscreen.selection.sprite1,     ,,,, 13A0C0, 13A098, 13A138, 13A110, , `lzs4x8x8|graphics.menu.partyscreen.selection.palette`
+graphics.menu.partyscreen.selection.sprite2,     ,,,, 13A0C4, 13A09C, 13A13C, 13A114, , `lzs4x8x8|graphics.menu.partyscreen.selection.palette`
 graphics.menu.pokemon.background.palette,        ,,,, 11EFF4, 11EFCC, 11F06C, 11F044, , `lzp4`
 graphics.menu.pokemon.background.tileset,        ,,,, 11EFB0, 11EF88, 11F028, 11F000, , `lzt4|graphics.menu.pokemon.background.palette`
 graphics.menu.pokemon.background.tilemap,        ,,,, 11EFCC, 11EFA4, 11F044, 11F01C, , `lzm4x32x32|graphics.menu.pokemon.background.tileset`
+graphics.menu.boxes,                             ,,,, 09191C, 0918F0, 091930, 091904, , [tileset<`lzt4`> tilemap<`lzm4x20x18|graphics.menu.boxes`> palette<`ucp4`>]16
+
+graphics.gamecorner.game.palette,  ,,,, 1413C0, 141398, 141438, 141410, , `ucp4`
+graphics.gamecorner.game.tileset,  ,,,, 1413AC, 141384, 141424, 1413FC, , `lzt4|graphics.gamecorner.game.palette`
+graphics.gamecorner.game.tilemap,  ,,,, 1413B8, 141390, 141430, 141408, , `lzm4x32x20|graphics.gamecorner.game.tileset`
+graphics.gamecorner.score.palette, ,,,, 1413C4, 14139C, 14143C, 141414, , `ucp4:012`
+graphics.gamecorner.score.tileset, ,,,, 1413D0, 1413A8, 141448, 141420, , `lzt4|graphics.gamecorner.score.palette`
+graphics.gamecorner.score.tilemap, ,,,, 1413D4, 1413AC, 14144C, 141424, , `lzm4x32x20|graphics.gamecorner.score.tileset`
+graphics.gamecorner.sprites,       ,,,, 140C3C, 140C14, 140CB4, 140C8C, , [rolls<`lzs4x4x4`> a:: cheer<`lzs4x4x4`> b:: digits<`lzs4x5x4`> c::]1
+graphics.gamecorner.palettes,      ,,,, 140C40, 140C18, 140CB8, 140C90, , [pal<`ucp4`> id::]7
 
 graphics.questionnaire.palette,        ,,,, 100D10, 100CE8, 100D88, 100D60, , `ucp4`
 graphics.questionnaire.tileset,        ,,,, 100064, 10003C, 1000DC, 1000B4, , `lzt4|graphics.questionnaire.palette`
 graphics.questionnaire.tilemap,        ,,,, 100068, 100040, 1000E0, 1000B8, , `lzm4x32x20|graphics.questionnaire.tileset`
 graphics.questionnaire.button.palette, ,,,, 43F920, 43F75C, 43F990, 43F7CC, , `ucp4`
 graphics.questionnaire.button.sprite,  ,,,, 43F948, 43F784, 43F9B8, 43F7F4, , `lzs4x8x8|graphics.questionnaire.button.palette`
+
+graphics.unknown.stationary,           ,,,, 1462E4,,,, , [id:: tileset<`lzt4`> tilemap<`lzm4x30x24|table`> palette<`ucp4`>]8
 
 graphics.firstpersonview.sprites,            ,       ,       ,       , 0F80FC, 0F80D4, 0F8174, 0F814C,       , [id. transition. c. d. tileset<`lzt4|graphics.firstpersonview.sprites`> tilemap<`lzm4x32x20|graphics.firstpersonview.sprites`> pal<`ucp4:DE`>]28
 graphics.battle.background.sprites,    00D954, 00D954, 00D954, 00D954, 00F2A0, 00F2A0, 00F2B4, 00F2B4, 035940, [battletiles<`lzt4|graphics.battle.background.sprites`> battlemap<`lzm4x32x64|graphics.battle.background.sprites|battletiles`> introtiles<`lzt4`> intromap<`lzm4x32x14|graphics.battle.background.sprites|introtiles`> pal<`lzp4:234`>]
@@ -324,6 +341,9 @@ graphics.townmap.icon.indicator,               ,       ,       ,       , 0C3094,
 graphics.townmap.icon.head.palette,            ,       ,       ,       , 0C4300, 0C42D4, 0C4314, 0C42E8, , `ucp4`
 graphics.townmap.icon.head.male,               ,       ,       ,       , 0C423C, 0C4210, 0C4250, 0C4224, , `lzs4x2x2|graphics.townmap.icon.head.palette`
 graphics.townmap.icon.head.female,             ,       ,       ,       , 0C420C, 0C41E0, 0C4220, 0C41F4, , `lzs4x2x2|graphics.townmap.icon.head.palette`
+graphics.townmap.catchmap.palette,                                  ,,,, 1026C0, 102698, 102738, 102710, , `ucp4:0123456789ABCDEF`
+graphics.townmap.catchmap.kanto,                                    ,,,, 106454, 10642C, 1064CC, 1064A4, , `lzs4x12x9|graphics.townmap.catchmap.palette`
+graphics.townmap.catchmap.sevii,                                    ,,,, 106458, 106430, 1064D0, 1064A8, , [data<[a b c width height d e f]1> map<`lzt4|graphics.townmap.catchmap.palette`>]7
 
 graphics.credits.trainer.male.palette,                ,,,,               0F4A1C, 0F49F4, 0F4A94, 0F4A6C, , `ucp4`
 graphics.credits.trainer.female.palette,              ,,,,               0F4A48, 0F4A20, 0F4AC0, 0F4A98, , `ucp4`
