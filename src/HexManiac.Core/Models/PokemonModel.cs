@@ -731,8 +731,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
             run = run.MergeAnchor(existingRun.PointerSources);
             if (run is NoInfoRun) run = existingRun.MergeAnchor(run.PointerSources); // when writing an anchor with no format, keep the existing format.
-            if (existingRun is ITableRun arrayRun1) {
-               ModifyAnchorsFromPointerArray(changeToken, run as ITableRun, arrayRun1, arrayRun1.ElementCount, ClearPointerFormat);
+            if (existingRun is ITableRun arrayRun1 && run is ITableRun tableRun1) {
+               ModifyAnchorsFromPointerArray(changeToken, tableRun1, arrayRun1, arrayRun1.ElementCount, ClearPointerFormat);
                index = BinarySearch(run.Start); // have to recalculate index, because ClearPointerFormat can removed runs.
             }
             runs[index] = run;
