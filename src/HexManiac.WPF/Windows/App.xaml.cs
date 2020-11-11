@@ -25,10 +25,13 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       protected override void OnStartup(StartupEventArgs e) {
          base.OnStartup(e);
 
+         DebugLog("------");
          var (path, address, options) = ParseArgs(e.Args);
+         DebugLog(e.Args);
 
          var fileSystem = new WindowsFileSystem(Dispatcher);
          var viewModel = GetViewModel(path, address, fileSystem, options);
+         DebugLog("Have Editor");
          UpdateThemeDictionary(viewModel);
          viewModel.Theme.PropertyChanged += (sender, _) => UpdateThemeDictionary(viewModel);
          MainWindow = new MainWindow(viewModel);
@@ -36,6 +39,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          MainWindow.Resources.Add("PaletteMixer", new PaletteCollection().Fluent(mixer => mixer.SetContents(new short[16])));
          MainWindow.Resources.Add("IsPaletteMixerExpanded", new EditableValue<bool>());
          MainWindow.Show();
+         DebugLog("All Started!");
       }
 
       private static (string path, int address, bool[] options) ParseArgs(string[] args) {
@@ -123,14 +127,24 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          bool showDevMenu = options[1];
          if (fileName != string.Empty) fileName = Path.GetFullPath(fileName);
          SetInitialWorkingDirectory();
+         DebugLog(fileName);
          var editor = new EditorViewModel(fileSystem, fileSystem, allowLoadingMetadata: useMetadata) { ShowDeveloperMenu = showDevMenu };
          CheckIsNewerVersionAvailable(editor);
          if (!File.Exists(fileName)) return editor;
+         DebugLog("File Exists");
          var loadedFile = fileSystem.LoadFile(fileName);
          editor.Open.Execute(loadedFile);
+         DebugLog("Tab Added");
          var tab = editor[editor.SelectedIndex] as ViewPort;
-         if (tab != null && address >= 0) tab.CascadeScript(address);
+         if (tab != null && address >= 0) {
+            tab.CascadeScript(address);
+            editor.GotoViewModel.ControlVisible = false;
+         }
          return editor;
+      }
+
+      private static void DebugLog(params string[] text) {
+         // File.AppendAllLines("debug.txt", text);
       }
 
       private static void CheckIsNewerVersionAvailable(EditorViewModel viewModel) {
