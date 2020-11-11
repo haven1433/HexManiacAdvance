@@ -68,6 +68,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 #else
             text.AppendLine("Release Version");
 #endif
+         text.AppendLine(e.Exception.GetType().ToString());
          text.AppendLine(e.Exception.Message);
          text.AppendLine(e.Exception.StackTrace);
          text.AppendLine("-------------------------------------------");
@@ -352,5 +353,18 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          var element = (FrameworkElement)sender;
          ((ToolTip)element.ToolTip).IsOpen = false;
       }
+
+      #region Developer Utilities
+
+      private void DeveloperRaiseAssert(object sender, RoutedEventArgs e) {
+         Debug.Assert(false, "Intentional Assert");
+      }
+
+      private void DeveloperThrowArgumentOutOfRangeException(object sender, RoutedEventArgs e) {
+         var list = new List<int>();
+         var number = list[13];
+      }
+
+      #endregion
    }
 }
