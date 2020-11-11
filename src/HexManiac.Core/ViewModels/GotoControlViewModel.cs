@@ -101,7 +101,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   var index = completionIndex.LimitToRange(-1, AutoCompleteOptions.Count - 1);
                   if (index != -1) text = AutoCompleteOptions[index].CompletionText;
                   if (arg is string) text = (string)arg;
-                  viewPort?.Goto?.Execute(text);
+                  if (viewPort is ViewPort editableViewport && text.StartsWith("@") && text.Contains(" ") && (text.Contains("^") || text.Contains("!"))) {
+                     // user just put a paste-script into the goto field.
+                     // this starts with a meta-input and then contains an anchor definition or another meta command.
+                     // Since this is clearly not meant to be a goto, just do it as an Edit instead.
+                     editableViewport.Edit(text + " ");
+                  } else {
+                     viewPort?.Goto?.Execute(text);
+                  }
                   ControlVisible = false;
                   ShowAutoCompleteOptions = false;
                }
