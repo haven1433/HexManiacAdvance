@@ -847,7 +847,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                targetColors.Add(i);
             }
             if (parent.Palette.SelectionEnd != parent.Palette.SelectionStart) targetColors.Add(parent.Palette.SelectionEnd);
-            targetColors = targetColors.Select(parent.ColorIndex).ToList();
+            var targetColorsWithinPalettePage = targetColors.Select(parent.ColorIndex).ToList();
 
             var toProcess = new Queue<Point>(new[] { a });
             var processed = new HashSet<Point>();
@@ -858,8 +858,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (parent.pixels[current.X, current.Y] != originalColorIndex) continue;
 
                var targetColorIndex = PickColorIndex(a, b, current, targetColors);
+               var targetColorWithinPalettePageIndex = PickColorIndex(a, b, current, targetColorsWithinPalettePage);
 
-               parent.pixels[current.X, current.Y] = targetColorIndex;
+               parent.pixels[current.X, current.Y] = targetColorWithinPalettePageIndex;
                parent.PixelData[parent.PixelIndex(current)] = parent.Palette.Elements[targetColorIndex].Color;
                foreach (var next in new[]{
                   new Point(current.X - 1, current.Y),
