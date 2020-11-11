@@ -377,12 +377,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set {
             var run = model.GetNextRun(value) as ISpriteRun;
             if (!TryUpdate(ref spriteAddress, value)) {
-               if (!RunPropertiesChanged(run)) return;
+               if (!RunPropertiesChanged(run)) {
+                  openInImageTab.RaiseCanExecuteChanged();
+                  return;
+               }
             }
 
-            importPair.CanExecuteChanged.Invoke(importPair, EventArgs.Empty);
-            exportPair.CanExecuteChanged.Invoke(exportPair, EventArgs.Empty);
-            openInImageTab?.CanExecuteChanged.Invoke(openInImageTab, EventArgs.Empty);
+            importPair.RaiseCanExecuteChanged();
+            exportPair.RaiseCanExecuteChanged();
+            openInImageTab.RaiseCanExecuteChanged();
 
             if (run == null || run.Start != spriteAddress) {
                spritePages = 1;
@@ -432,8 +435,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private StubCommand openInImageTab;
       public ICommand OpenInImageTab => StubCommand(ref openInImageTab, () => viewPort.OpenImageEditorTab(spriteAddress, spritePage, palPage), () => {
-         if (model.GetNextRun(spriteAddress) is ISpriteRun spriteRun && !spriteRun.SupportsEdit) return false;
-         return exportPair.CanExecute(null);
+         if (!(model.GetNextRun(spriteAddress) is ISpriteRun spriteRun)) return false;
+         if (!spriteRun.SupportsEdit) return false;
+         if (!(model.GetNextRun(paletteAddress) is IPaletteRun palRun)) return false;
+         if (spriteRun.Start != spriteAddress || palRun.Start != paletteAddress) return false;
+         return spriteRun.PointerSources.Count > 0 && palRun.PointerSources.Count > 0 && exportPair.CanExecute(null);
       });
 
       public int PixelWidth { get; private set; }
