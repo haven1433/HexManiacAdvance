@@ -233,7 +233,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var prefix = string.Join(".", previousSectionSelections);
          if (prefix.Length > 0) prefix += ".";
          var thisLevel = new HashSet<string>();
-         foreach (var option in allOptions) {
+         foreach (var option in allOptions.OrderBy(text => text)) {
             if (option.StartsWith(prefix)) {
                thisLevel.Add(option.Substring(prefix.Length).Split(".")[0]);
             }
@@ -248,6 +248,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public GotoLabelSection(string prefix, IList<GotoToken> tokens) {
+         tokens = tokens.OrderBy(t => t.Content).ToList();
          Tokens = new ObservableCollection<GotoToken>();
          foreach (var token in tokens) Tokens.Add(new GotoToken { Content = prefix + "." + token.Content, IsSelected = token.IsSelected, IsSelectable = token.IsSelectable });
          if (tokens.Count == 0) {
