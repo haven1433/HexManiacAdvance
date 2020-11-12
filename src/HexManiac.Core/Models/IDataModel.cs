@@ -140,6 +140,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public void ExpandData(ModelDelta changeToken, int minimumIndex) {
          if (Count > minimumIndex) return;
+         if (minimumIndex > 0x2000000) throw new NotSupportedException($"Unable to expand to 0x{minimumIndex:X6} bytes.");
 
          var newData = new byte[minimumIndex + 1];
          Array.Copy(RawData, newData, RawData.Length);
