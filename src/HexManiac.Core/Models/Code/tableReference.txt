@@ -206,6 +206,11 @@ graphics.menu.pokemon.background.palette,        ,,,, 11EFF4, 11EFCC, 11F06C, 11
 graphics.menu.pokemon.background.tileset,        ,,,, 11EFB0, 11EF88, 11F028, 11F000, , `lzt4|graphics.menu.pokemon.background.palette`
 graphics.menu.pokemon.background.tilemap,        ,,,, 11EFCC, 11EFA4, 11F044, 11F01C, , `lzm4x32x32|graphics.menu.pokemon.background.tileset`
 graphics.menu.boxes,                             ,,,, 09191C, 0918F0, 091930, 091904, , [tileset<`lzt4`> tilemap<`lzm4x20x18|graphics.menu.boxes`> palette<`ucp4`>]16
+graphics.menu.tms.tileset,                       ,,,, 131B70, 131B48, 131BE8, 131BC0, , `lzt4|graphics.menu.tms.palette`
+graphics.menu.tms.background,                    ,,,, 131B8C, 131B64, 131C04, 131BDC, , `lzm4x32x32|graphics.menu.tms.tileset`
+graphics.menu.tms.case,                          ,,,, 131BA8, 131B80, 131C20, 131BF8, , `lzm4x32x32|graphics.menu.tms.tileset`
+graphics.menu.tms.palette,                       ,,,, 131BC8, 131BA0, 131C40, 131C18, , `lzp4`
+graphics.menu.tms.palette2,                      ,,,, 131BD8, 131BB0, 131C50, 131C28, , `lzp4`
 
 graphics.gamecorner.game.palette,  ,,,, 1413C0, 141398, 141438, 141410, , `ucp4`
 graphics.gamecorner.game.tileset,  ,,,, 1413AC, 141384, 141424, 1413FC, , `lzt4|graphics.gamecorner.game.palette`
@@ -351,6 +356,10 @@ graphics.townmap.icon.head.female,             ,       ,       ,       , 0C420C,
 graphics.townmap.catchmap.palette,                                  ,,,, 1026C0, 102698, 102738, 102710, , `ucp4:0123456789ABCDEF`
 graphics.townmap.catchmap.kanto,                                    ,,,, 106454, 10642C, 1064CC, 1064A4, , `lzs4x12x9|graphics.townmap.catchmap.palette`
 graphics.townmap.catchmap.sevii,                                    ,,,, 106458, 106430, 1064D0, 1064A8, , [data<[a b c width height d e f]1> map<`lzt4|graphics.townmap.catchmap.palette`>]7
+graphics.townmap.selector.tilemap,                                  ,,,, 0C0F24, 0C0EF8, 0C0F38, 0C0F0C, , `lzm4x30x20|graphics.townmap.selector.tileset`
+graphics.townmap.selector.tilemap2,                                 ,,,, 0C0F44, 0C0F18, 0C0F58, 0C0F2C, , `lzm4x30x20|graphics.townmap.selector.tileset`
+graphics.townmap.selector.tilemap3,                                 ,,,, 0C0FBC, 0C0F90, 0C0FD0, 0C0FA4, , `lzm4x30x20|graphics.townmap.selector.tileset`
+graphics.townmap.selector.tileset,                                  ,,,, 0C0FC0, 0C0F94, 0C0FD4, 0C0FA8, , `lzt4`
 
 graphics.credits.trainer.male.palette,         ,       ,       ,       , 0F4A1C, 0F49F4, 0F4A94, 0F4A6C, , `ucp4`
 graphics.credits.trainer.female.palette,       ,       ,       ,       , 0F4A48, 0F4A20, 0F4AC0, 0F4A98, , `ucp4`
