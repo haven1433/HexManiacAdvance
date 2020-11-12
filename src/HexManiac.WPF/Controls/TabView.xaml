@@ -368,7 +368,41 @@
                                     </DataTemplate>
                                  </ItemsControl.ItemTemplate>
                               </ItemsControl>
-                              <hsg3hv:PixelImage SnapsToDevicePixels="True" />
+                              <DockPanel>
+                                 <StackPanel VerticalAlignment="Center">
+                                    <Button Content="Import" Command="{Binding ImportPair}" CommandParameter="{DynamicResource FileSystem}" Margin="5"/>
+                                    <Grid Margin="5">
+                                       <Button Content="Export" Command="{Binding ExportPair}" CommandParameter="{DynamicResource FileSystem}">
+                                          <Button.Style>
+                                             <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                                <Style.Triggers>
+                                                   <DataTrigger Binding="{Binding CanExportMany}" Value="True">
+                                                      <Setter Property="Visibility" Value="Collapsed"/>
+                                                   </DataTrigger>
+                                                </Style.Triggers>
+                                             </Style>
+                                          </Button.Style>
+                                       </Button>
+                                       <Menu Visibility="{Binding CanExportMany, Converter={StaticResource BoolToVisibility}}" Background="{DynamicResource Backlight}">
+                                          <Menu.Style>
+                                             <Style TargetType="Menu" BasedOn="{StaticResource {x:Type Menu}}">
+                                                <Setter Property="BorderThickness" Value="1"/>
+                                                <Style.Triggers>
+                                                   <Trigger Property="IsMouseOver" Value="True">
+                                                      <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                                   </Trigger>
+                                                </Style.Triggers>
+                                             </Style>
+                                          </Menu.Style>
+                                          <MenuItem Header="Export" Margin="0,1,0,0">
+                                             <MenuItem Header="Single Page" Command="{Binding ExportPair}" CommandParameter="{DynamicResource FileSystem}"/>
+                                             <MenuItem Header="All Pages" Command="{Binding ExportMany}" CommandParameter="{DynamicResource FileSystem}"/>
+                                          </MenuItem>
+                                       </Menu>
+                                    </Grid>
+                                 </StackPanel>
+                                 <hsg3hv:PixelImage SnapsToDevicePixels="True" />
+                              </DockPanel>
                               <DockPanel Visibility="{Binding ShowPageControls, Converter={StaticResource BoolToVisibility}}">
                                  <Button Content="Previous" Command="{Binding PreviousPage}" DockPanel.Dock="Left"/>
                                  <Button Content="+" Command="{Binding AddPage}" DockPanel.Dock="Right" ToolTip="Add a new page to this sprite and palette"/>

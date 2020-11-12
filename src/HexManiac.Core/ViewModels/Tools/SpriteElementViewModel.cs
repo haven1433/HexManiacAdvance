@@ -58,6 +58,49 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       #endregion
 
+      #region Import / Export Commands
+
+      private StubCommand importImage, exportImage, exportImages;
+
+      public bool CanExportMany => Pages > 1 && ExportPair.CanExecute(default);
+      public ICommand ImportPair => StubCommand<IFileSystem>(ref importImage, ExecuteImportImage, CanExecuteImportImage);
+      public ICommand ExportPair => StubCommand<IFileSystem>(ref exportImage, ExecuteExportImage, CanExecuteExportImage);
+      public ICommand ExportMany => StubCommand<IFileSystem>(ref exportImages, ExecuteExportImages, CanExecuteExportImages);
+
+      private bool CanExecuteImportImage(object arg) {
+         var destination = ViewPort.Model.ReadPointer(Start);
+         if (!(ViewPort.Model.GetNextRun(destination) is ISpriteRun spriteRun) || spriteRun.Start != destination) return false;
+         if (spriteRun.SpriteFormat.BitsPerPixel == 1) return spriteRun.SupportsImport;
+         if (MaxPalette < 0) return false;
+         return spriteRun.SupportsImport;
+      }
+      private bool CanExecuteExportImage(object arg) {
+         var destination = ViewPort.Model.ReadPointer(Start);
+         if (!(ViewPort.Model.GetNextRun(destination) is ISpriteRun spriteRun) || spriteRun.Start != destination) return false;
+         if (spriteRun.SpriteFormat.BitsPerPixel == 1) return true;
+         if (MaxPalette < 0) return false;
+         return true;
+      }
+      private bool CanExecuteExportImages(object arg) => CanExportMany;
+
+      private void ExecuteImportImage(IFileSystem fs) => ExecuteSpriteToolCommand(fs, ViewPort.Tools.SpriteTool.ImportPair);
+      private void ExecuteExportImage(IFileSystem fs) => ExecuteSpriteToolCommand(fs, ViewPort.Tools.SpriteTool.ExportPair);
+      private void ExecuteExportImages(IFileSystem fs) => ExecuteSpriteToolCommand(fs, ViewPort.Tools.SpriteTool.ExportMany);
+
+      private void ExecuteSpriteToolCommand(IFileSystem fs, ICommand command) {
+         var spriteTool = ViewPort.Tools.SpriteTool;
+         if (GetRun() is ISpriteRun sRun) {
+            var palettes = sRun.FindRelatedPalettes(Model, Start, format.PaletteHint).ToList();
+            var palette = palettes.FirstOrDefault();
+            if (palettes.Count > 1 && palettes.Count > CurrentPalette) palette = palettes[CurrentPalette];
+            spriteTool.SpriteAddress = sRun.Start;
+            if (palette != null) spriteTool.PaletteAddress = palette.Start;
+            command.Execute(fs);
+         }
+      }
+
+      #endregion
+
       public override bool ShowPageControls => base.ShowPageControls || CanExecuteImageEditor();
 
       public SpriteElementViewModel(ViewPort viewPort, string runFormat, SpriteFormat format, int itemAddress) : base(viewPort, runFormat, itemAddress) {
@@ -97,6 +140,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          format = that.format;
          RunFormat = that.RunFormat;
          UpdateAvailablePalettes(that.Start);
+         Start = other.Start;
+         NotifyPropertyChanged(nameof(CanExportMany));
+         importImage.RaiseCanExecuteChanged();
+         exportImage.RaiseCanExecuteChanged();
+         exportImages.RaiseCanExecuteChanged();
          return true;
       }
 
