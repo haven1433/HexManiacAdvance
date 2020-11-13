@@ -237,7 +237,7 @@ Address = 0x0C3478
 Length = 1
 [[MatchedWords]]
 Name = '''graphics.townmap.position.switch.y'''
-Address = 0x0C47C
+Address = 0x0C347C
 Length = 1
 
 # place #5: the drawing part in BufferRegionMapBg
