@@ -122,7 +122,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             tileset = model.GetNextRun(arrayTilesetAddress) as LzTilesetRun;
          }
 
-         var tilesToKeep = new HashSet<int>();
+         var tilesToKeep = new HashSet<int>((tileset.DecompressedLength / tileset.Format.BitsPerPixel / 8).Range());
+         foreach (var tile in GetUsedTiles()) tilesToKeep.Remove(tile);
          foreach (var tilemap in tileset.FindDependentTilemaps(model).Except(this)) {
             tilesToKeep.AddRange(tilemap.GetUsedTiles());
          }
