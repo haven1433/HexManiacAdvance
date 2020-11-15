@@ -245,6 +245,46 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #endregion
 
+      #region Tilemap Editing
+
+      public bool CanEditTilePalettes {
+         get {
+            var spriteAddress = model.ReadPointer(SpritePointer);
+            return HasMultiplePalettePages && model.GetNextRun(spriteAddress) is LzTilemapRun tilemap && tilemap.Start == spriteAddress;
+         }
+      }
+
+      public int TileWidth => PixelWidth / 8;
+      public int TileHeight => PixelHeight / 8;
+      public double FontSize => SpriteScale * 8;
+
+      public ObservableCollection<int> TilePalettes { get; } = new ObservableCollection<int>();
+
+      private void RefreshTilePalettes() {
+         var spriteAddress = model.ReadPointer(SpritePointer);
+         if (!(model.GetNextRun(spriteAddress) is LzTilemapRun)) return;
+         TilePalettes.Clear();
+         var lzRunData = LZRun.Decompress(model, spriteAddress);
+         for (int i = 0; i < lzRunData.Length / 2; i++) {
+            var (paletteIndex, _, _, _) = LzTilemapRun.ReadTileData(lzRunData, i);
+            TilePalettes.Add(paletteIndex);
+         }
+      }
+
+      private void PushTilePalettesToModel() {
+         var spriteAddress = model.ReadPointer(SpritePointer);
+         if (!(model.GetNextRun(spriteAddress) is LzTilemapRun tilemapRun)) return;
+         var lzRunData = LZRun.Decompress(model, spriteAddress);
+         for (int i = 0; i < lzRunData.Length / 2; i++) {
+            var (paletteIndex, hFlip, vFlip, tileIndex) = LzTilemapRun.ReadTileData(lzRunData, i);
+            paletteIndex = TilePalettes[i];
+            LzTilemapRun.WriteTileData(lzRunData, i, paletteIndex, hFlip, vFlip, tileIndex);
+         }
+         tilemapRun.ReplaceData(lzRunData, history.CurrentChange);
+      }
+
+      #endregion
+
       private IImageToolStrategy toolStrategy;
       private EyeDropperTool eyeDropperStrategy; // stored separately because of right-click
       private readonly PanTool panStrategy; // stored separately because of center-click
@@ -258,13 +298,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                             : selectedTool == ImageEditorTools.Pan ? panStrategy
                             : selectedTool == ImageEditorTools.Fill ? new FillTool(this)
                             : selectedTool == ImageEditorTools.EyeDropper ? eyeDropperStrategy
+                            : SelectedTool == ImageEditorTools.TilePalette ? new TilePaletteTool(this)
                             : (IImageToolStrategy)default;
                RaiseRefreshSelection();
             }
          }
       }
       private StubCommand selectTool, selectColor, zoomInCommand, zoomOutCommand;
-      public ICommand SelectTool => StubCommand<ImageEditorTools>(ref selectTool, arg => SelectedTool = arg);
+      public ICommand SelectTool => StubCommand<ImageEditorTools>(ref selectTool, arg => {
+         if (arg == ImageEditorTools.TilePalette) {
+            var spriteAddress = model.ReadPointer(SpritePointer);
+            if (!(model.GetNextRun(spriteAddress) is LzTilemapRun)) return;
+         }
+         SelectedTool = arg;
+      });
       public ICommand SelectColor => StubCommand<string>(ref selectColor, arg => Palette.SelectionStart = int.Parse(arg));
       public ICommand ZoomInCommand => StubCommand(ref zoomInCommand, () => ZoomIn(0, 0));
       public ICommand ZoomOutCommand => StubCommand(ref zoomOutCommand, () => ZoomOut(0, 0));
@@ -272,6 +319,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public BlockPreview BlockPreview { get; }
 
       public event EventHandler RefreshSelection;
+
+      /// <param name="toSelect">Points range from (0,0) to (PixelWidth, PixelHeight) </param>
       private void RaiseRefreshSelection(params Point[] toSelect) {
          selectedPixels = new bool[PixelWidth, PixelHeight];
          foreach (var s in toSelect) {
@@ -289,7 +338,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public short[] PixelData { get; private set; }
 
       private double spriteScale = 1;
-      public double SpriteScale { get => spriteScale; set => Set(ref spriteScale, value); }
+      public double SpriteScale { get => spriteScale; set => Set(ref spriteScale, value, arg => NotifyPropertyChanged(nameof(FontSize))); }
 
       public PaletteCollection Palette { get; }
 
@@ -323,6 +372,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          BlockPreview = new BlockPreview();
          SetupPageOptions();
          Palette.SelectionSet += (sender, e) => BlockPreview.Clear();
+         RefreshTilePalettes();
+         TilePalettes.CollectionChanged += (sender, e) => PushTilePalettesToModel();
       }
 
       // convenience methods
@@ -489,7 +540,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          PixelHeight = spriteRun.SpriteFormat.TileHeight * 8;
          if (palettePage >= palRun.Pages) PalettePage = palRun.Pages - 1;
          var renderPage = palettePage;
-         if (spriteRun.SpriteFormat.BitsPerPixel == 8) renderPage = 0;
+         if (spriteRun.SpriteFormat.BitsPerPixel == 8 || spriteRun is LzTilemapRun) renderPage = 0;
          PixelData = SpriteTool.Render(pixels, palRun.AllColors(model), palRun.PaletteFormat.InitialBlankPages, renderPage);
          NotifyPropertyChanged(nameof(PixelData));
 
@@ -936,6 +987,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          public void ToolUp(Point point) {
             var (start, width, height) = SelectionTool.BuildRect(selectionStart, selectionWidth, selectionHeight);
 
+            if (parent.selectedTool == ImageEditorTools.TilePalette) {
+               point = parent.ToSpriteSpace(point);
+               var lineNumber = point.Y / 8;
+               var lineTileWidth = parent.PixelWidth / 8;
+               var rowNumber = point.X / 8;
+               var tileIndex = lineNumber * lineTileWidth + rowNumber;
+               var desiredPalettePage = parent.TilePalettes[tileIndex];
+               var paletteAddress = parent.model.ReadPointer(parent.PalettePointer);
+               if (parent.model.GetNextRun(paletteAddress) is IPaletteRun palRun) desiredPalettePage -= palRun.PaletteFormat.InitialBlankPages;
+               parent.PalettePage = desiredPalettePage;
+               return;
+            }
+
             if (selectionHeight < 0) start -= new Point(0, selectionHeight + height - 1);
             if (selectionWidth < 0) start -= new Point(selectionWidth + width - 1, 0);
             (selectionStart, selectionWidth, selectionHeight) = (start, width, height);
@@ -980,15 +1044,62 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      private class TilePaletteTool : IImageToolStrategy {
+         private readonly ImageEditorViewModel parent;
+
+         public TilePaletteTool(ImageEditorViewModel parent) => this.parent = parent;
+
+         public void ToolDown(Point screenPosition) => ToolDrag(screenPosition);
+
+         public void ToolDrag(Point screenPosition) {
+            var point = parent.ToSpriteSpace(screenPosition);
+            var rowNumber = point.Y / 8;
+            var colNumber = point.X / 8;
+
+            if (parent.WithinImage(point)) {
+               var lineTileWidth = parent.PixelWidth / 8;
+               var tileIndex = rowNumber * lineTileWidth + colNumber;
+               var paletteAddress = parent.model.ReadPointer(parent.PalettePointer);
+               var currentSelectedPage = parent.PalettePage;
+               if (parent.model.GetNextRun(paletteAddress) is IPaletteRun paletteRun) currentSelectedPage += paletteRun.PaletteFormat.InitialBlankPages;
+               var spriteAddress = parent.model.ReadPointer(parent.SpritePointer);
+               if (parent.TilePalettes[tileIndex] != currentSelectedPage && parent.model.GetNextRun(spriteAddress) is LzTilemapRun tilemapRun) {
+                  parent.TilePalettes[tileIndex] = currentSelectedPage;
+                  parent.pixels = tilemapRun.GetPixels(parent.model, parent.SpritePage);
+                  parent.Render();
+               }
+            }
+
+            RaiseRefreshSelection(rowNumber, colNumber);
+         }
+
+         public void ToolHover(Point screenPosition) {
+            var point = parent.ToSpriteSpace(screenPosition);
+            var rowNumber = point.Y / 8;
+            var colNumber = point.X / 8;
+            RaiseRefreshSelection(rowNumber, colNumber);
+         }
+
+         public void ToolUp(Point screenPosition) { }
+
+         private void RaiseRefreshSelection(int rowNumber, int colNumber) {
+            var drawPoint = new Point(colNumber * 8, rowNumber * 8);
+            var selectionPoints = new Point[8 * 8];
+            for (int x = 0; x < 8; x++) for (int y = 0; y < 8; y++) selectionPoints[y * 8 + x] = drawPoint + new Point(x, y);
+            parent.RaiseRefreshSelection(selectionPoints);
+         }
+      }
+
       #endregion
    }
 
    public enum ImageEditorTools {
-      Pan,        // arrange position
-      Select,     // select section
-      Draw,       // draw pixel
-      Fill,       // fill area
-      EyeDropper, // grab color
+      Pan,         // arrange position
+      Select,      // select section
+      Draw,        // draw pixel
+      Fill,        // fill area
+      EyeDropper,  // grab color
+      TilePalette, // draw/eye dropper palettes on tiles
    }
 
    public class BlockPreview : ViewModelCore, IPixelViewModel {

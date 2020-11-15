@@ -31,7 +31,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             return tileset != null;
          }
       }
-      public bool SupportsEdit => false;
+      public bool SupportsEdit => SupportsImport;
 
       public override string FormatString =>
          $"`lzm{Format.BitsPerPixel}x{Format.TileWidth}x{Format.TileHeight}|{Format.MatchingTileset}" +
@@ -83,26 +83,43 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return GetPixels(mapData, tiles, Format);
       }
 
+      /// <param name="mapData">The decompressed tilemap data</param>
+      /// <param name="tile">The index of the tile, from 0 to tileWidth*tileHeight</param>
+      public static (int paletteIndex, bool hFlip, bool vFlip, int tileIndex) ReadTileData(byte[] mapData, int tile) {
+         var map = mapData.ReadMultiByteValue(tile * 2, 2);
+         var tileIndex = map & 0x3FF;
+         var hFlip = ((map >> 10) & 0x1) == 1;
+         var vFlip = ((map >> 11) & 0x1) == 1;
+         var paletteIndex = (map >> 12) & 0xF;
+         return (paletteIndex, hFlip, vFlip, tileIndex);
+      }
+
+      public static void WriteTileData(byte[] lzRunData, int index, int paletteIndex, bool hFlip, bool vFlip, int tileIndex) {
+         int packedData = 0;
+         packedData |= tileIndex;
+         if (hFlip) packedData |= 1 << 10;
+         if (vFlip) packedData |= 1 << 11;
+         packedData |= paletteIndex << 12;
+         lzRunData[index * 2 + 0] = (byte)packedData;
+         lzRunData[index * 2 + 1] = (byte)(packedData >> 8);
+      }
+
       public static int[,] GetPixels(byte[] mapData, byte[] tiles, TilemapFormat format) {
          var tileSize = format.BitsPerPixel * 8;
          var result = new int[format.TileWidth * 8, format.TileHeight * 8];
          for (int y = 0; y < format.TileHeight; y++) {
             var yStart = y * 8;
             for (int x = 0; x < format.TileWidth; x++) {
-               var map = mapData.ReadMultiByteValue((format.TileWidth * y + x) * 2, 2);
-               var tile = map & 0x3FF;
+               var (pal, hFlip, vFlip, tile) = ReadTileData(mapData, format.TileWidth * y + x);
 
+               pal <<= 4;
                var tileStart = tile * tileSize;
                var pixels = SpriteRun.GetPixels(tiles, tileStart, 1, 1, format.BitsPerPixel); // TODO cache this during this method so we don't load the same tile more than once
-               var hFlip = (map >> 10) & 0x1;
-               var vFlip = (map >> 11) & 0x1;
-               var pal = (map >> 12) & 0xF;
-               pal <<= 4;
                var xStart = x * 8;
                for (int yy = 0; yy < 8; yy++) {
                   for (int xx = 0; xx < 8; xx++) {
-                     var inX = hFlip == 1 ? 7 - xx : xx;
-                     var inY = vFlip == 1 ? 7 - yy : yy;
+                     var inX = hFlip ? 7 - xx : xx;
+                     var inY = vFlip ? 7 - yy : yy;
                      result[xStart + xx, yStart + yy] = pixels[inX, inY] + pal;
                   }
                }
@@ -148,12 +165,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             }
          }
 
-         var newModelData = Compress(mapData, 0, mapData.Length);
-         var newRun = (ISpriteRun)model.RelocateForExpansion(token, this, newModelData.Count);
-         for (int i = 0; i < newModelData.Count; i++) token.ChangeData(model, newRun.Start + i, newModelData[i]);
-         for (int i = newModelData.Count; i < Length; i++) token.ChangeData(model, newRun.Start + i, 0xFF);
-         newRun = new LzTilemapRun(Format, model, newRun.Start, newRun.PointerSources);
-         model.ObserveRunWritten(token, newRun);
+         return ReplaceData(mapData, token);
+      }
+
+      /// <param name="newRawData">Uncompressed data that we want to compress and insert.</param>
+      public LzTilemapRun ReplaceData(byte[] newRawData, ModelDelta token) {
+         var newModelData = Compress(newRawData, 0, newRawData.Length);
+         var newRun = Model.RelocateForExpansion(token, this, newModelData.Count);
+         for (int i = 0; i < newModelData.Count; i++) token.ChangeData(Model, newRun.Start + i, newModelData[i]);
+         for (int i = newModelData.Count; i < Length; i++) token.ChangeData(Model, newRun.Start + i, 0xFF);
+         newRun = new LzTilemapRun(Format, Model, newRun.Start, newRun.PointerSources);
+         Model.ObserveRunWritten(token, newRun);
          return newRun;
       }
 

@@ -315,7 +315,7 @@ namespace HavenSoft.HexManiac.Tests {
          var destination = model.ReadPointer(editor.SpritePointer);
          var spriteRun = (ISpriteRun)model.GetNextRun(destination);
 
-        spriteRun = model.RelocateForExpansion(history.CurrentChange, spriteRun, spriteRun.Length + 1);
+         spriteRun = model.RelocateForExpansion(history.CurrentChange, spriteRun, spriteRun.Length + 1);
 
          // if this doesn't throw, we're happy
          editor.SelectedTool = ImageEditorTools.Draw;
@@ -656,7 +656,7 @@ namespace HavenSoft.HexManiac.Tests {
          editor.SetCursorSize.Execute("2");
          editor.Hover(default);
 
-         Assert.All( new[] {
+         Assert.All(new[] {
             new Point(4, 4),
             new Point(4, 5),
             new Point(5, 4),
@@ -938,6 +938,117 @@ namespace HavenSoft.HexManiac.Tests {
          ToolMove(new Point(3, 3));
 
          // nothing to assert: if it didn't crash, we're good.
+      }
+
+      [Fact]
+      public void Sprite_CanEditTilePalettes_False() {
+         Assert.False(editor.CanEditTilePalettes);
+      }
+   }
+
+   public class ImageEditorTilemapTests {
+      private readonly IDataModel model = new PokemonModel(new byte[0x200], singletons: BaseViewModelTestClass.Singletons);
+      private readonly ChangeHistory<ModelDelta> history;
+      private readonly ImageEditorViewModel editor;
+      private ModelDelta RevertHistoryChange(ModelDelta change) => change.Revert(model);
+
+      public const int TilemapStart = 0x00, TilesetStart = 0x40, PaletteStart = 0x80;
+
+      private static short Rgb(int r, int g, int b) => (short)((r << 10) | (g << 5) | b);
+      private short GetPixel(int x, int y) => editor.PixelData[editor.PixelIndex(new Point(x, y))];
+      private void InsertCompressedData(int start, params byte[] data) {
+         var compressedData = LZRun.Compress(data, 0, data.Length);
+         for (int i = 0; i < compressedData.Count; i++) model[start + i] = compressedData[i];
+      }
+
+      public ImageEditorTilemapTests() {
+         history = new ChangeHistory<ModelDelta>(RevertHistoryChange);
+
+         model.WritePointer(history.CurrentChange, 0x160, TilemapStart);
+         model.WritePointer(history.CurrentChange, 0x164, TilesetStart);
+         model.WritePointer(history.CurrentChange, 0x168, PaletteStart);
+
+         InsertCompressedData(TilemapStart, new byte[] {
+            0x00, 0x20, // use 2 tiles with the 1st palette
+            0x01, 0x20,
+            0x02, 0x30, // use 2 tiles with the 2nd palette
+            0x03, 0x30
+         }); // 2000 is page 2, tile 0
+         InsertCompressedData(TilesetStart, new byte[0x20 * 4]);      // 4 tile
+         InsertCompressedData(PaletteStart, new byte[0x20 * 2]);      // 2 pages
+
+         model.ObserveAnchorWritten(history.CurrentChange, "tilemap", new LzTilemapRun(new TilemapFormat(4, 2, 2, "tileset"), model, TilemapStart));
+         model.ObserveAnchorWritten(history.CurrentChange, "tileset", new LzTilesetRun(new TilesetFormat(4, "palette"), model, TilesetStart));
+         model.ObserveAnchorWritten(history.CurrentChange, "palette", new LzPaletteRun(new PaletteFormat(4, 2, 2), model, PaletteStart)); // pages are 2 and 3
+
+         editor = new ImageEditorViewModel(history, model, TilemapStart);
+      }
+
+      [Fact]
+      public void Tilemap_Edit_SeePalettePagePerTile() {
+         Assert.True(editor.CanEditTilePalettes);
+         Assert.Equal(2, editor.TilePalettes[0]);
+         Assert.Equal(2, editor.TilePalettes[1]);
+         Assert.Equal(3, editor.TilePalettes[2]);
+         Assert.Equal(3, editor.TilePalettes[3]);
+
+         Assert.Equal(0, editor.PalettePage);
+         Assert.Equal(new[] { 0, 1 }, editor.PalettePageOptions.Select(option => option.Index).ToArray());
+      }
+
+      [Fact]
+      public void Tilemap_EditTilePalettes_SeeTilePalettesChange() {
+         editor.TilePalettes[0] = 3;
+
+         var mapData = LZRun.Decompress(model, TilemapStart);
+         var (pal, _, _, _) = LzTilemapRun.ReadTileData(mapData, 0);
+         Assert.Equal(3, pal);
+      }
+
+      [Fact]
+      public void Tilemap_UseTilePaletteTool_TilePaletteChanged() {
+         editor.SelectedTool = ImageEditorTools.TilePalette;
+         editor.PalettePage = 1;
+
+         editor.ToolDown(-4, -4);
+         editor.ToolUp(-4, -4);
+
+         var mapData = LZRun.Decompress(model, TilemapStart);
+         var (pal, _, _, _) = LzTilemapRun.ReadTileData(mapData, 0);
+         Assert.Equal(3, pal);
+      }
+
+      [Fact]
+      public void Tilemap_RightClickFromTilePaletteTool_SelectedTilePaletteIndexUpdates() {
+         editor.SelectedTool = ImageEditorTools.TilePalette;
+
+         editor.EyeDropperDown(4, 4);
+         editor.EyeDropperUp(4, 4);
+
+         Assert.Equal(1, editor.PalettePage);
+      }
+
+      [Fact]
+      public void TilePaletteTool_Hover_ShowEntireTileAsSelected() {
+         editor.SelectedTool = ImageEditorTools.TilePalette;
+
+         editor.Hover(4, 4);
+
+         Assert.True(editor.ShowSelectionRect(8, 8));
+         Assert.True(editor.ShowSelectionRect(15, 15));
+      }
+
+      [Fact]
+      public void WhitePalette_ChangePalette_PixelsChange() {
+         editor.PalettePageOptions.Last().Selected = true;
+         editor.Palette.Elements[0].Color = Rgb(31, 31, 31);
+         editor.SelectedTool = ImageEditorTools.TilePalette;
+
+         editor.ToolDown(4, -4);
+         editor.ToolUp(4, -4);
+
+         Assert.Equal(Rgb(0, 0, 0), GetPixel(2, 2));
+         Assert.Equal(Rgb(31, 31, 31), GetPixel(12, 3));
       }
    }
 }
