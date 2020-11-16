@@ -201,21 +201,18 @@
                Visibility="{Binding CanEditTilePalettes, Converter={StaticResource BoolToVisibility}}"
                IsChecked="{Binding SelectedTool, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter={x:Static hshmcvm:ImageEditorTools.TilePalette}}">
                <RadioButton.Content>
-                  <Path Data="{hshmwpfr:Icon Help}"/>
+                  <Path Data="{hshmwpfr:Icon Tiles}"/>
                </RadioButton.Content>
                <RadioButton.ToolTip>
                   <ToolTip>
-                     <DockPanel>
-                        <Path Data="{hshmwpfr:Icon RightMouseButton}" Fill="{DynamicResource Secondary}" DockPanel.Dock="Right" VerticalAlignment="Top"/>
-                        <TextBlock>
-                           C(h)ange Tile Palette<LineBreak/>
-                           <Italic Foreground="{DynamicResource Secondary}">
-                              Change which palette applies to each tile. <LineBreak/>
-                              Right-click to select a specific palette. <LineBreak/>
-                              Left-click to apply that palette to a tile.
-                           </Italic>
-                        </TextBlock>
-                     </DockPanel>
+                     <TextBlock>
+                        C(h)ange Tile Palette<LineBreak/>
+                        <Italic Foreground="{DynamicResource Secondary}">
+                           Change which palette applies to each tile. <LineBreak/>
+                           Right-click to select a specific palette. <LineBreak/>
+                           Left-click to apply that palette to a tile.
+                        </Italic>
+                     </TextBlock>
                   </ToolTip>
                </RadioButton.ToolTip>
             </RadioButton>
