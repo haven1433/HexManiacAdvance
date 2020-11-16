@@ -336,7 +336,7 @@ graphics.newgame.background.tilemap1,          ,       ,       ,       , 12F488,
 graphics.newgame.background.tileset2,          ,       ,       ,       , 130DE4, 130DBC, 130E5C, 130E34,       , `lzt4|graphics.newgame.background.palette`
 graphics.newgame.background.tilemap2,          ,       ,       ,       , 130E34, 130E0C, 130EAC, 130E84,       , `lzm4x32x20|graphics.newgame.background.tileset2`
 
-graphics.townmap.palette,                      ,       ,       ,       , 0C02EC, 0C02C0, 0C0300, 0C02D4, , `ucp4:01`
+graphics.townmap.palette,                      ,       ,       ,       , 0C02EC, 0C02C0, 0C0300, 0C02D4, , `ucp4:0123`
 graphics.townmap.tileset,                      ,       ,       ,       , 0C0330, 0C0304, 0C0344, 0C0318, , `lzt4|graphics.townmap.palette`
 graphics.townmap.tilemap,                      ,       ,       ,       , 0C035C, 0C0330, 0C0370, 0C0344, , `lzm4x30x20|graphics.townmap.tileset`
 graphics.townmap.islands.tilemap1,             ,       ,       ,       , 0C0370, 0C0344, 0C0384, 0C0358, , `lzm4x30x20|graphics.townmap.tileset`
