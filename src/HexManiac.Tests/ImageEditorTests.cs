@@ -1050,5 +1050,114 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(Rgb(0, 0, 0), GetPixel(2, 2));
          Assert.Equal(Rgb(31, 31, 31), GetPixel(12, 3));
       }
+
+      [Fact]
+      public void ChangePalette_RequiresRepoint_NoThrow() {
+         // make a 4x2 image, since compression won't happen with a 2x2 image
+         InsertCompressedData(TilemapStart, new byte[] {
+            0x00, 0x20,
+            0x00, 0x20,
+            0x00, 0x20,
+            0x00, 0x20,
+            0x00, 0x20,
+            0x00, 0x20,
+            0x00, 0x20,
+            0x00, 0x20,
+         }); // 2000 is page 2, tile 0. Repeate for 8 tiles, 4x2
+         model.ObserveAnchorWritten(history.CurrentChange, "tilemap", new LzTilemapRun(new TilemapFormat(4, 4, 2, "tileset"), model, TilemapStart));
+         var editor = new ImageEditorViewModel(history, model, TilemapStart);
+         var tilemap = (LzTilemapRun)model.GetNextRun(TilemapStart);
+         model[tilemap.Start + tilemap.Length] = 32; // there's data after the run, so if it grows it needs to repoint
+
+         // change a tile in a way that causes a repoint
+         editor.SelectedTool = ImageEditorTools.TilePalette;
+         editor.PalettePage = 1;
+         editor.ToolDown(0, 0);
+         editor.ToolUp(0, 0);
+      }
+
+      [Fact]
+      public void DrawTool_DrawOnTileWithDifferentPalette_NoEffect() {
+         editor.PalettePage = 1;
+         editor.Palette.Elements[1].Color = Rgb(31, 0, 0);
+         editor.Palette.SelectionStart = 1;
+         editor.SelectedTool = ImageEditorTools.Draw;
+
+         editor.ToolDown(-8, -8);
+         editor.ToolUp(-8, -8);
+
+         Assert.Equal(Rgb(0, 0, 0), editor.PixelData[editor.PixelIndex(0, 0)]);
+      }
+
+      [Fact]
+      public void DrawTool_DrawOnTileWithSamePalette_Effect() {
+         editor.PalettePage = 0;
+         editor.Palette.Elements[1].Color = Rgb(31, 0, 0);
+         editor.Palette.SelectionStart = 1;
+         editor.SelectedTool = ImageEditorTools.Draw;
+
+         editor.ToolDown(-8, -8);
+         editor.ToolUp(-8, -8);
+
+         Assert.Equal(Rgb(31, 0, 0), editor.PixelData[editor.PixelIndex(0, 0)]);
+      }
+
+      [Fact]
+      public void DrawTool_HoverOnTileWithDifferentPalette_NoHoverSelection() {
+         editor.PalettePage = 1;
+         editor.SelectedTool = ImageEditorTools.Draw;
+
+         editor.Hover(-8, -8);
+
+         Assert.False(editor.ShowSelectionRect(0, 0));
+      }
+
+      [Fact]
+      public void EyeDropperTool_PickPalette1Tile_SelectPalette1() {
+         editor.EyeDropperDown(4, 4);
+         editor.EyeDropperUp(4, 4);
+
+         Assert.Equal(1, editor.PalettePage);
+      }
+
+      [Fact]
+      public void EyeDropperPalette1Tile_DrawPalette0Tile_NoDraw() {
+         editor.PalettePage = 1;
+         editor.Palette.Elements[0].Color = Rgb(31, 0, 0); // set the bottom two tiles to red
+         editor.EyeDropperDown(4, 4);
+         editor.EyeDropperUp(5, 5);
+
+         editor.ToolDown(-8, -8);
+         editor.ToolUp(-8, -8);
+
+         Assert.Equal(Rgb(0, 0, 0), editor.PixelData[editor.PixelIndex(0, 0)]);
+      }
+
+      [Fact]
+      public void FillTool_FillPalette1_TilesUsingPalette0Unaffected() {
+         editor.PalettePage = 1;
+         editor.Palette.Elements[1].Color = Rgb(31, 0, 0); // set the bottom two tiles to red
+         editor.Palette.SelectionStart = 1;
+         editor.SelectedTool = ImageEditorTools.Fill;
+
+         editor.ToolDown(4, 4);
+         editor.ToolUp(4, 4);
+
+         Assert.All(128.Range(), i => Assert.Equal(Rgb(0, 0, 0), editor.PixelData[i]));
+         Assert.All(128.Range(), i => Assert.Equal(Rgb(31, 0, 0), editor.PixelData[i + 128]));
+      }
+
+      [Fact]
+      public void PaletteHover_HoverOnPage1_OnlyPage1PixelsHighlight() {
+         editor.PalettePage = 1;
+
+         editor.Palette.HoverIndex = -1;
+         editor.Palette.HoverIndex = 0;
+
+         Assert.False(editor.ShowSelectionRect(0, 0));
+         Assert.True(editor.ShowSelectionRect(12, 12));
+      }
+
+      // TODO test drawing a 7x7 tile to another spot when the new spot is cross-tile
    }
 }

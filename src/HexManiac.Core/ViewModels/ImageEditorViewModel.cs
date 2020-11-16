@@ -579,11 +579,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void UpdateSelectionFromPaletteHover(PaletteCollection sender, PropertyChangedEventArgs e) {
+         var paletteAddress = model.ReadPointer(PalettePointer);
+         int paletteStart = model.GetNextRun(paletteAddress) is IPaletteRun palRun ? palRun.PaletteFormat.InitialBlankPages * 16 : 0;
+         paletteStart += PalettePage * 16;
          var matches = new List<Point>();
-         for(int x = 0; x < PixelWidth; x++) {
-            for(int y = 0; y < PixelHeight; y++) {
-               if (pixels[x, y] != Palette.HoverIndex) continue;
-               matches.Add(new Point(x, y));
+         if (Palette.HoverIndex >= 0) {
+            for (int x = 0; x < PixelWidth; x++) {
+               for (int y = 0; y < PixelHeight; y++) {
+                  if (pixels[x, y] != Palette.HoverIndex + paletteStart) continue;
+                  matches.Add(new Point(x, y));
+               }
             }
          }
          RaiseRefreshSelection(matches.ToArray());
@@ -614,7 +619,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             Debug.WriteLine($"Draw: {point}");
             var element = (parent.Palette.Elements.FirstOrDefault(sc => sc.Selected) ?? parent.Palette.Elements[0]);
             point = parent.ToSpriteSpace(point);
-            if (parent.WithinImage(point)) {
+
+            bool validHoverLocation = parent.WithinImage(point);
+            if (validHoverLocation) {
+               var paletteAddress = parent.model.ReadPointer(parent.PalettePointer);
+               if (parent.CanEditTilePalettes && parent.model.GetNextRun(paletteAddress) is IPaletteRun palRun) {
+                  var hoverTilesPalette = parent.TilePalettes[point.Y / 8 * parent.TileWidth + point.X / 8];
+                  validHoverLocation = palRun.PaletteFormat.InitialBlankPages + parent.PalettePage == hoverTilesPalette;
+               }
+            }
+
+            if (validHoverLocation) {
                var tile = parent.eyeDropperStrategy.Tile;
                if (tile == null || !parent.BlockPreview.Enabled) {
                   drawWidth = drawHeight = parent.CursorSize;
@@ -644,7 +659,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          public void ToolHover(Point point) {
             point = parent.ToSpriteSpace(point);
-            if (parent.WithinImage(point)) {
+            var paletteAddress = parent.model.ReadPointer(parent.PalettePointer);
+            bool validHoverLocation = parent.WithinImage(point);
+            if (validHoverLocation) {
+               if (parent.CanEditTilePalettes && parent.model.GetNextRun(paletteAddress) is IPaletteRun palRun) {
+                  var hoverTilesPalette = parent.TilePalettes[point.Y / 8 * parent.TileWidth + point.X / 8];
+                  validHoverLocation = palRun.PaletteFormat.InitialBlankPages + parent.PalettePage == hoverTilesPalette;
+               }
+            }
+
+            if (validHoverLocation) {
                var tile = parent.eyeDropperStrategy.Tile;
                if (tile == null || !parent.BlockPreview.Enabled) {
                   drawWidth = drawHeight = Math.Max(parent.CursorSize, 1);
@@ -891,6 +915,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             a = parent.ToSpriteSpace(a);
             b = parent.ToSpriteSpace(b);
             if (!parent.WithinImage(a) || !parent.WithinImage(b)) return;
+            var paletteAddress = parent.model.ReadPointer(parent.PalettePointer);
+            int pageStart = parent.model.GetNextRun(paletteAddress) is IPaletteRun palRun ? palRun.PaletteFormat.InitialBlankPages * 16 : 0;
+            pageStart += parent.PalettePage * 16;
             int originalColorIndex = parent.pixels[a.X, a.Y];
             var direction = Math.Sign(parent.Palette.SelectionEnd - parent.Palette.SelectionStart);
             var targetColors = new List<int> { parent.Palette.SelectionStart };
@@ -911,7 +938,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var targetColorIndex = PickColorIndex(a, b, current, targetColors);
                var targetColorWithinPalettePageIndex = PickColorIndex(a, b, current, targetColorsWithinPalettePage);
 
-               parent.pixels[current.X, current.Y] = targetColorWithinPalettePageIndex;
+               parent.pixels[current.X, current.Y] = targetColorWithinPalettePageIndex + pageStart;
                parent.PixelData[parent.PixelIndex(current)] = parent.Palette.Elements[targetColorIndex].Color;
                foreach (var next in new[]{
                   new Point(current.X - 1, current.Y),
@@ -1016,6 +1043,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                point = parent.ToSpriteSpace(point);
                if (!parent.WithinImage(point)) return;
                var index = parent.pixels[point.X, point.Y];
+               var paletteAddress = parent.model.ReadPointer(parent.PalettePointer);
+               if (parent.model.GetNextRun(paletteAddress) is IPaletteRun palRun && palRun.Start == paletteAddress && palRun.PaletteFormat.Bits == 4) {
+                  index -= palRun.PaletteFormat.InitialBlankPages << 4;
+                  parent.PalettePage = index / 16;
+                  index %= 16;
+               }
+
                parent.Palette.SelectionStart = index;
             } else {
                underPixels = new int[selectionWidth, selectionHeight];
@@ -1065,6 +1099,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var spriteAddress = parent.model.ReadPointer(parent.SpritePointer);
                if (parent.TilePalettes[tileIndex] != currentSelectedPage && parent.model.GetNextRun(spriteAddress) is LzTilemapRun tilemapRun) {
                   parent.TilePalettes[tileIndex] = currentSelectedPage;
+
+                  // tilemap may have been repointed: recalculate
+                  spriteAddress = parent.model.ReadPointer(parent.SpritePointer);
+                  tilemapRun = (LzTilemapRun)parent.model.GetNextRun(spriteAddress);
+
                   parent.pixels = tilemapRun.GetPixels(parent.model, parent.SpritePage);
                   parent.Render();
                }
