@@ -56,6 +56,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Controls\ColumnStackPanel.cs" />
     <Compile Include="Controls\CommonTableStreamControl.xaml.cs">
       <DependentUpon>CommonTableStreamControl.xaml</DependentUpon>
     </Compile>
