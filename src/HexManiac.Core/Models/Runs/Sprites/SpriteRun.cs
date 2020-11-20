@@ -16,7 +16,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public override string FormatString { get; }
 
       public bool SupportsImport => true;
-      public bool SupportsEdit => bitsPerPixel > 1;
+      public bool SupportsEdit => bitsPerPixel > 2;
 
       public SpriteRun(int start, SpriteFormat format, SortedSpan<int> sources = null) : base(start, sources) {
          SpriteFormat = format;
@@ -52,7 +52,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       /// </summary>
       public static int[,] GetPixels(IReadOnlyList<byte> data, int start, int tileWidth, int tileHeight, int bitsPerPixel) {
          var result = new int[8 * tileWidth, 8 * tileHeight];
-         Debug.Assert(bitsPerPixel.IsAny(1, 4, 8));
+         Debug.Assert(bitsPerPixel.IsAny(1, 2, 4, 8));
          for (int y = 0; y < tileHeight; y++) {
             int yOffset = y * 8;
             for (int x = 0; x < tileWidth; x++) {
@@ -72,6 +72,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                      int yy = i / 8;
                      var raw = tileStart + i < data.Count ? data[tileStart + i] : 0;
                      result[xOffset + xx, yOffset + yy] = raw;
+                  }
+               } else if (bitsPerPixel == 2) {
+                  for (int i = 0; i < 16; i++) {
+                     int xx = i % 2; // ranges from 0 to 1
+                     int yy = i / 2; // ranges from 0 to 7
+                     xx = 1 - xx; // swap the left half with the right half
+                     var raw = tileStart + i < data.Count ? data[tileStart + i] : 0;
+                     result[xOffset + xx * 4 + 0, yOffset + yy] = ((raw >> 6) & 3);
+                     result[xOffset + xx * 4 + 1, yOffset + yy] = ((raw >> 4) & 3);
+                     result[xOffset + xx * 4 + 2, yOffset + yy] = ((raw >> 2) & 3);
+                     result[xOffset + xx * 4 + 3, yOffset + yy] = ((raw >> 0) & 3);
                   }
                } else if (bitsPerPixel == 1) {
                   for (int i = 0; i < 8; i++) {
@@ -120,6 +131,24 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                      if (start >= data.Length) break; // don't write the blank 'bonus' tiles for tilesets
                      int xx = i % 8, yy = i / 8;
                      data[start] = (byte)pixels[xOffset + xx, yOffset + yy];
+                     start += 1;
+                  }
+               }
+            }
+         } else if (bitsPerPixel == 2) {
+            for (int y = 0; y < tileHeight; y++) {
+               int yOffset = y * 8;
+               for (int x = 0; x < tileWidth; x++) {
+                  int xOffset = x * 8;
+                  for (int i = 0; i < 16; i++) {
+                     if (start >= data.Length) break; // don't write the blank 'bonus' tiles for tilesets
+                     int xx = i % 2, yy = i / 2;
+                     xx = 1 - xx;
+                     var a = pixels[xOffset + xx * 4 + 0, yOffset + yy];
+                     var b = pixels[xOffset + xx * 4 + 1, yOffset + yy];
+                     var c = pixels[xOffset + xx * 4 + 2, yOffset + yy];
+                     var d = pixels[xOffset + xx * 4 + 3, yOffset + yy];
+                     data[start] = (byte)((a << 6) | (b << 4) | (c << 2) | d);
                      start += 1;
                   }
                }

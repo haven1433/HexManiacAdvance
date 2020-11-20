@@ -70,14 +70,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private bool CanExecuteImportImage(object arg) {
          var destination = ViewPort.Model.ReadPointer(Start);
          if (!(ViewPort.Model.GetNextRun(destination) is ISpriteRun spriteRun) || spriteRun.Start != destination) return false;
-         if (spriteRun.SpriteFormat.BitsPerPixel == 1) return spriteRun.SupportsImport;
+         if (spriteRun.SpriteFormat.BitsPerPixel < 4) return spriteRun.SupportsImport;
          if (MaxPalette < 0) return false;
          return spriteRun.SupportsImport;
       }
       private bool CanExecuteExportImage(object arg) {
          var destination = ViewPort.Model.ReadPointer(Start);
          if (!(ViewPort.Model.GetNextRun(destination) is ISpriteRun spriteRun) || spriteRun.Start != destination) return false;
-         if (spriteRun.SpriteFormat.BitsPerPixel == 1) return true;
+         if (spriteRun.SpriteFormat.BitsPerPixel < 4) return true;
          if (MaxPalette < 0) return false;
          return true;
       }
@@ -212,6 +212,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                paletteFormat = palette.PaletteFormat;
                return palette.AllColors(Model);
             }
+            if (sRun.SpriteFormat.BitsPerPixel == 2) return TileViewModel.CreateDefaultPalette(4);
             if (sRun.SpriteFormat.BitsPerPixel == 1) return TileViewModel.CreateDefaultPalette(2);
          }
          return TileViewModel.CreateDefaultPalette(0x10);

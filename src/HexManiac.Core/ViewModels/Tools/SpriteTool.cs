@@ -466,14 +466,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          importPair.CanExecute = arg => {
             if (spriteAddress < 0) return false;
             if (!(model.GetNextRun(spriteAddress) is ISpriteRun spriteRun)) return false;
-            if (spriteRun.SpriteFormat.BitsPerPixel == 1) return spriteRun.SupportsImport;
+            if (spriteRun.SpriteFormat.BitsPerPixel < 4) return spriteRun.SupportsImport;
             if (paletteAddress < 0) return false;
             return spriteRun.SupportsImport;
          };
          exportPair.CanExecute = arg => {
             if (spriteAddress < 0) return false;
             if (!(model.GetNextRun(spriteAddress) is ISpriteRun spriteRun)) return false;
-            if (spriteRun.SpriteFormat.BitsPerPixel == 1) return true;
+            if (spriteRun.SpriteFormat.BitsPerPixel < 4) return true;
             if (paletteAddress < 0) return false;
             return true;
          };
@@ -548,6 +548,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (sprite == null) return palette;
          if (sprite.SpriteFormat.BitsPerPixel == 1) {
             return new short[] { 0, 0b0_11111_11111_11111 };
+         }
+         if (sprite.SpriteFormat.BitsPerPixel == 2) {
+            return TileViewModel.CreateDefaultPalette(4);
          }
          if (sprite.SpriteFormat.BitsPerPixel == 8) {
             if (model.GetNextRun(paletteAddress) is IPaletteRun paletteRun) return paletteRun.AllColors(model);
@@ -756,7 +759,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private bool TryValidate(short[] image, out ISpriteRun spriteRun, out IPaletteRun paletteRun) {
          spriteRun = model.GetNextRun(spriteAddress) as ISpriteRun;
          paletteRun = model.GetNextRun(paletteAddress) as IPaletteRun;
-         if (spriteRun.SpriteFormat.BitsPerPixel == 1) paletteRun = null;
+         if (spriteRun.SpriteFormat.BitsPerPixel < 4) paletteRun = null;
 
          // check 0: we actually have a sprite/palette to import on top of
          if (spriteRun == null) {
@@ -764,7 +767,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             return false;
          }
 
-         if (spriteRun.SpriteFormat.BitsPerPixel != 1 && paletteRun == null) {
+         if (!spriteRun.SpriteFormat.BitsPerPixel.IsAny(1, 2) && paletteRun == null) {
             viewPort.RaiseError("The palette address is not valid!");
             return false;
          }
@@ -930,7 +933,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var expectedPalettePages = paletteRun?.Pages ?? 1;
          if (spriteRun.Pages == expectedPalettePages) expectedPalettePages = 1; // handle the Castform case
          var palettes = paletteRun?.Pages.Range().Select(i => paletteRun.GetPalette(model, i)).ToArray();
-         palettes = DiscoverPalettes(tiles, paletteRun?.PaletteFormat.Bits ?? 1, expectedPalettePages, palettes);
+         palettes = DiscoverPalettes(tiles, paletteRun?.PaletteFormat.Bits ?? spriteRun.SpriteFormat.BitsPerPixel, expectedPalettePages, palettes);
          var indexedTiles = new int[tiles.Length][,];
          for (int i = 0; i < indexedTiles.Length; i++) indexedTiles[i] = Index(tiles[i], palettes, spriteRun.SpriteFormat.BitsPerPixel, paletteRun?.PaletteFormat.InitialBlankPages ?? 0);
          var sprite = Detilize(indexedTiles, spriteRun.SpriteFormat.TileWidth);
@@ -1057,7 +1060,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private static IReadOnlyList<short>[] DiscoverPalettes(short[][] tiles, int bitness, int paletteCount, IReadOnlyList<short>[] existingPalettes) {
-         if (bitness == 1) return new[] { new short[] { 0, 0b11111_11111_11111 } };
+         if (bitness == 1) return new[] { TileViewModel.CreateDefaultPalette(2) };
+         if (bitness == 2) return new[] { TileViewModel.CreateDefaultPalette(4) };
          var targetColors = (int)Math.Pow(2, bitness);
 
          // special case: we don't need to run palette discovery if the existing palette works

@@ -94,7 +94,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          // find all palettes that could be applied to this sprite run
          var noChange = new NoDataChangeDeltaModel();
          var results = new List<IPaletteRun>();
-         if (spriteRun?.SpriteFormat.BitsPerPixel == 1) return results; // 1-bit sprites don't have palettes
+         if (spriteRun?.SpriteFormat.BitsPerPixel < 4) return results; // 1- and 2-bit sprites don't have palettes
          hint = hint ?? spriteRun?.SpriteFormat.PaletteHint;
          if (primarySource == -1) {
             var pointerCount = spriteRun?.PointerSources?.Count ?? 0;

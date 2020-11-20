@@ -390,6 +390,15 @@ graphics.overworld.sprites,                  ,       ,       ,       , 05F2F4, 0
 graphics.overworld.sprites,                  ,       ,       ,       ,       ,       ,       ,       , 08E6D8, [data<[starterbytes:|h paletteid:|h secondid:|h length: width: height: slot.|h footprint.owfootprints unused: distribution<> sizedraw<> animation<> sprites<`osl`> ramstore<>]1>]246
 graphics.overworld.sprites2,                 ,       ,       ,       , 05DF28, 05DF28, 05DF3C, 05DF3C,       , [data<[starterbytes:|h unknown:|h a<> b<> sprites<`osl`> d<> e<>]1>]36
 
+graphics.text.font.other.characters, ,,,, 00658C, 00658C, 0065A0, 0065A0, 0068BC, `ucs2x2x1024`
+graphics.text.font.other.width,      ,,,, 006594, 006594, 0065A8, 0065A8, 0068C4, [width.]512
+graphics.text.font.black.characters, ,,,, 0066EC, 0066EC, 006700, 006700, 0067D0, `ucs2x2x1024`
+graphics.text.font.black.width,      ,,,, 0066F4, 0066F4, 006708, 006708, 0067D8, [width.]512
+graphics.text.font.blue.characters,  ,,,, 006920, 006920, 006934, 006934, , `ucs2x2x1024`
+graphics.text.font.blue.width,       ,,,, 006928, 006928, 00693C, 00693C, , [width.]512
+graphics.text.font.red.characters,   ,,,, 006A8C, 006A8C, 006AA0, 006AA0, , `ucs2x2x1024`
+graphics.text.font.red.width,        ,,,, 006A94, 006A94, 006AA8, 006AA8, , [width.]512
+
 data.text.menu.pause,                  071160, 071164, 071180, 071184, 06EF9C, 06EF9C, 06EFB0, 06EFB0, 09F818, [text<""> code<>]
 data.text.menu.pokemon.options,        089CCC, 089CCC, 089CEC, 089CEC, 120F74, 120F4C, 120FEC, 120FC4, 1B32F8, [text<""> code<>]
 

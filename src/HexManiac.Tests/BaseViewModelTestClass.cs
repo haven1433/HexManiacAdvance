@@ -38,6 +38,9 @@ namespace HavenSoft.HexManiac.Tests {
          foreach (var entry in entries) ViewPort.Edit(entry + "\"");
       }
 
+      public void CreateTextTableWithInnerPointers(string tablename, int address, params string[] entries)
+         => CreateTextTable(tablename + "^", address, entries);
+
       /// <summary>
       /// Enum tables are a bit more complex.
       /// Each entry is 2 bytes long, but the text that you see is an entry from another table.
