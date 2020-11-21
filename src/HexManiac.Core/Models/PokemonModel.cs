@@ -42,19 +42,20 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       #region Pointer destination-to-source caching, for faster pointer search during initial load
 
-      private IDictionary<int, int> sourcesForDestinations;
+      private IDictionary<int, SortedSpan<int>> sourcesForDestinations;
 
       /// <summary>
       /// setup a cache to make loading faster
       /// </summary>
       private void BuildDestinationToSourceCache(byte[] data) {
-         sourcesForDestinations = new Dictionary<int, int>();
+         sourcesForDestinations = new Dictionary<int, SortedSpan<int>>();
          for (int i = 3; i < data.Length; i++) {
             if (data[i] != 0x08 && data[i] != 0x09) continue;
             var source = i - 3;
             var destination = ReadPointer(source);
             if (destination < 0 || destination >= data.Length) continue;
-            sourcesForDestinations[destination] = source;
+            if (!sourcesForDestinations.ContainsKey(destination)) sourcesForDestinations.Add(destination, SortedSpan<int>.None);
+            sourcesForDestinations[destination] = sourcesForDestinations[destination].Add1(source);
          }
       }
 
@@ -338,7 +339,6 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       [Conditional("DEBUG")]
       public void ResolveConflicts() {
-         return;
          for (int i = 0; i < runs.Count; i++) {
             // for every pointer run, make sure that the thing it points to knows about it
             if (runs[i] is PointerRun pointerRun) {
@@ -1672,7 +1672,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// This method might be called in parallel with the same changeToken
       /// </summary>
       public override SortedSpan<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses) {
-         if (sourcesForDestinations != null) return SpanFromCache(addresses);
+         if (sourcesForDestinations != null) return SpanFromCache(changeToken, addresses);
 
          var lockObj = new object();
          var results = SortedSpan<int>.None;
@@ -1687,7 +1687,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                if (data[i] != 0x08 && data[i] != 0x09) continue;
                var destination = ReadPointer(i - 3);
                if (!addresses.Contains(destination)) continue;
-               if (IsValidResult(changeToken, i)) {
+               if (TryMakePointerAtAddress(changeToken, i - 3)) {
                   lock (lockObj) results = results.Add1(i - 3);
                }
             }
@@ -1696,23 +1696,32 @@ namespace HavenSoft.HexManiac.Core.Models {
          return results;
       }
 
-      private SortedSpan<int> SpanFromCache(int[] destinations) {
+      private SortedSpan<int> SpanFromCache(ModelDelta token, int[] destinations) {
          var results = SortedSpan<int>.None;
          foreach (var destination in destinations) {
-            if (sourcesForDestinations.TryGetValue(destination, out var source)) results = results.Add1(source);
+            if (sourcesForDestinations.TryGetValue(destination, out var sources)) results = results.Add(sources);
          }
+
+         // remove sources that are already in use in other ways
+         for (int i = 0; i < results.Count; i++) {
+            if (!TryMakePointerAtAddress(token, results[i])) {
+               results = results.Remove1(results[i]);
+               i -= 1;
+            }
+         }
+
          return results;
       }
 
-      private bool IsValidResult(ModelDelta changeToken, int i) {
+      private bool TryMakePointerAtAddress(ModelDelta changeToken, int address) {
          // I have to lock this whole block, because I need to know that 'index' remains consistent until I can call runs.Insert
          lock (runs) {
-            var index = BinarySearch(i - 3);
+            var index = BinarySearch(address);
             if (index >= 0) {
                if (runs[index] is PointerRun) return true;
                if (runs[index] is ArrayRun arrayRun && arrayRun.ElementContent[0].Type == ElementContentType.Pointer) return true;
                if (runs[index] is NoInfoRun) {
-                  var pointerRun = new PointerRun(i - 3, runs[index].PointerSources);
+                  var pointerRun = new PointerRun(address, runs[index].PointerSources);
                   changeToken.RemoveRun(runs[index]);
                   changeToken.AddRun(pointerRun);
                   runs[index] = pointerRun;
@@ -1721,20 +1730,21 @@ namespace HavenSoft.HexManiac.Core.Models {
                return false;
             }
             index = ~index;
-            if (index < runs.Count && runs[index].Start <= i) return false; // can't add a pointer run if an existing run starts during the new one
+            if (index < runs.Count && runs[index].Start <= address + 3) return false; // can't add a pointer run if an existing run starts during the new one
 
             // can't add a pointer run if the new one starts during an existing one
-            if (index > 0 && runs[index - 1].Start + runs[index - 1].Length > i - 3) {
+            if (index > 0 && runs[index - 1].Start + runs[index - 1].Length > address) {
                // ah, but if that run is an array and there's already a pointer here...
                if (runs[index - 1] is ArrayRun array) {
-                  var offsets = array.ConvertByteOffsetToArrayOffset(i);
+                  var offsets = array.ConvertByteOffsetToArrayOffset(address + 3);
+                  // should this check that offsets.SegmentOffset == 0?
                   if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Pointer) {
                      return true;
                   }
                }
                return false;
             }
-            var newRun = new PointerRun(i - 3);
+            var newRun = new PointerRun(address);
             runs.Insert(index, newRun);
             changeToken.AddRun(newRun);
          }
