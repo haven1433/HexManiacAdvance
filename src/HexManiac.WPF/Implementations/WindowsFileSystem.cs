@@ -275,27 +275,36 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          if (result != true) return default;
          var fileName = dialog.FileName;
 
-         using (var fileStream = File.Open(fileName, FileMode.Open)) {
-            BitmapFrame frame;
-            try {
-               var decoder = new PngBitmapDecoder(fileStream, BitmapCreateOptions.None, BitmapCacheOption.None);
-               frame = decoder.Frames[0];
-            } catch (FileFormatException) {
-               MessageBox.Show("Could not decode bitmap. The file may not be a valid PNG.");
-               return default;
-            }
-            var metadata = (BitmapMetadata)frame.Metadata;
-            short[] comparePalette = null;
-            var comparePaletteMetadata = metadata.GetQuery(QueryPalette) as string;
-            if (comparePaletteMetadata != null) {
-               comparePalette = comparePaletteMetadata.Split(",")
-                  .Select(hex => short.TryParse(hex, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var color) ? color : default)
-                  .ToArray();
-            }
+         try {
+            using (var fileStream = File.Open(fileName, FileMode.Open)) {
+               BitmapFrame frame;
+               try {
+                  var decoder = new PngBitmapDecoder(fileStream, BitmapCreateOptions.None, BitmapCacheOption.None);
+                  frame = decoder.Frames[0];
+               } catch (FileFormatException) {
+                  MessageBox.Show("Could not decode bitmap. The file may not be a valid PNG.");
+                  return default;
+               }
+               var metadata = (BitmapMetadata)frame.Metadata;
+               short[] comparePalette = null;
+               var comparePaletteMetadata = metadata.GetQuery(QueryPalette) as string;
+               if (comparePaletteMetadata != null) {
+                  comparePalette = comparePaletteMetadata.Split(",")
+                     .Select(hex => short.TryParse(hex, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var color) ? color : default)
+                     .ToArray();
+               }
 
-            var (data, width) = DecodeImage(frame);
+               var (data, width) = DecodeImage(frame);
 
-            return (data, frame.PixelWidth);
+               return (data, frame.PixelWidth);
+            }
+         } catch(UnauthorizedAccessException) {
+            var nl = Environment.NewLine;
+            MessageBox.Show($"Access Denied.{nl}Do you have read access to the file?{nl}Your anti-virus may be blocking {EditorViewModel.ApplicationName}.");
+            return default;
+         } catch (IOException io) {
+            MessageBox.Show($"Error: {io.Message}.");
+            return default;
          }
       }
 

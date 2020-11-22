@@ -17,7 +17,7 @@ using static HavenSoft.HexManiac.Core.ICommandExtensions;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
    public class EditorViewModel : ViewModelCore, IEnumerable<ITabContent>, INotifyCollectionChanged {
-      public const string ApplicationName = "HexManiac";
+      public const string ApplicationName = "HexManiacAdvance";
       private const int MaxReasonableResults = 400; // limit for performance reasons
 
       private readonly IFileSystem fileSystem;
@@ -699,8 +699,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          // if the removed tab was left of the selected tab, we need to adjust the selected index based on the removal
          if (index < SelectedIndex) selectedIndex--;
 
-         tabs.Remove(tab);
          RemoveContentListeners(tab);
+         tabs.Remove(tab);
          CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, tab, index));
       }
 
