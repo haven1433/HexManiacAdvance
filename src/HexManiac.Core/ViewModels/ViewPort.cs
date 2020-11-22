@@ -238,8 +238,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                using (ModelCacheScope.CreateScope(Model)) {
                   // update the tool from pointers too
                   if (run is PointerRun) {
-                     run = Model.GetNextRun(Model.ReadPointer(run.Start));
-                     dataIndex = run.Start;
+                     var destination = Model.ReadPointer(run.Start);
+                     run = Model.GetNextRun(destination);
+                     dataIndex = destination;
                   }
                   if (run is ISpriteRun) {
                      tools.SpriteTool.SpriteAddress = run.Start;
