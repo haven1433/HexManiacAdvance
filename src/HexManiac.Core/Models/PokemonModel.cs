@@ -1285,6 +1285,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             // run carries no pointer info: remove the anchor
             runs[index] = new PointerRun(newRun.Start);
             if (newRun is OffsetPointerRun opr) runs[index] = new OffsetPointerRun(newRun.Start, opr.Offset);
+            currentChange.AddRun(runs[index]);
          } else {
             runs[index] = newRun;
             currentChange.AddRun(newRun);
