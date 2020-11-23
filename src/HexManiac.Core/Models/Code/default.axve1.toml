@@ -154,3 +154,11 @@ Address = 0x0421F8
 Length = 1
 Offset = 0
 Note = '''Picking an even number will prevent new eggs from being created.'''
+
+
+###################################################### intro editing
+[[MatchedWords]]
+Name = '''scripts.newgame.money'''
+Address = 0x052F6C
+Length = 2
+
