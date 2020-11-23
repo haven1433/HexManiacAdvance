@@ -175,7 +175,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private StubCommand gotoCommand;
       private void ExecuteGoto(object arg) {
          if (arg is string str) {
-            var words = Model.GetMatchedWords(str).Where(word => Model.GetNextRun(word).Length == 1).ToList();
+            var words = Model.GetMatchedWords(str).Where(word => Model.GetNextRun(word).Length < 3).ToList();
             if (words.Count == 1) {
                selection.Goto.Execute(words[0]);
                return;

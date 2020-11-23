@@ -33,7 +33,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
             if (UnderEdit.CurrentText[0] == ':') {
                if (UnderEdit.CurrentText.Length == 1) {
-                  Result = Input == ':';
+                  Result = char.IsLetterOrDigit(Input) || Input.IsAny(' ', '.', ':');
                } else {
                   Result = char.IsLetterOrDigit(Input) || Input.IsAny(' ', '.');
                }
