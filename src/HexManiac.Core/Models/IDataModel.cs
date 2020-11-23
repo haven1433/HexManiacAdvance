@@ -295,7 +295,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var index = model.ReadMultiByteValue(array.Start + array.ElementLength * i, array.ElementLength);
             if (index < offset) return false;
             if (index - offset >= result.Length) return false;
-            if (i + offset >= rawOptions.Count) return false;
+            if (i + offset >= rawOptions.Count || index >= result.Length) return false;
             result[index] = rawOptions[i + offset];
             if (result[i] == null) result[i] = "?unused?";
          }

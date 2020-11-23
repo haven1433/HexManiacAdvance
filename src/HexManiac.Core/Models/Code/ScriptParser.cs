@@ -149,7 +149,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       private void WriteSpriteTemplateStream(IDataModel model, ModelDelta token, int start, int source) {
          var format = "[tileTag: paletteTag: oam<> anims<> images<> affineAnims<> callback<>]1";
          TableStreamRun.TryParseTableStream(model, start, new SortedSpan<int>(source), string.Empty, format, null, out var tsRun);
-         if (tsRun != null) model.ObserveRunWritten(token, tsRun);
+         if (tsRun != null) {
+            model.ClearFormat(token, tsRun.Start, tsRun.Length);
+            model.ObserveRunWritten(token, tsRun);
+         }
       }
 
       public byte[] Compile(ModelDelta token, IDataModel model, int start, ref string script, out IReadOnlyList<(int originalLocation, int newLocation)> movedData) {

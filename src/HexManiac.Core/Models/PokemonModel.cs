@@ -399,8 +399,12 @@ namespace HavenSoft.HexManiac.Core.Models {
                         // pointer points outside scope. Such a pointer is an error, but is not a metadata inconsistency.
                      } else if (run is ArrayRun arrayRun1 && arrayRun1.SupportsPointersToElements) {
                         var offsets = arrayRun1.ConvertByteOffsetToArrayOffset(destination);
-                        Debug.Assert(arrayRun1.PointerSourcesForInnerElements[offsets.ElementIndex].Contains(start));
-                        if (offsets.ElementIndex == 0) Debug.Assert(run.PointerSources.Contains(start));
+                        if (offsets.SegmentOffset == 0) {
+                           Debug.Assert(arrayRun1.PointerSourcesForInnerElements[offsets.ElementIndex].Contains(start));
+                           if (offsets.ElementIndex == 0) Debug.Assert(run.PointerSources.Contains(start));
+                        } else {
+                           // pointer points into an element (not the beginning). This is an error, but is not a metadata inconsistency.
+                        }
                      } else if (run is ITableRun && run.Start < destination) {
                         // exception: tables are allowed to have pointers that point randomly into other runs.
                         // such a thing is a data error in the ROM, but is not a metadata inconsistency.
@@ -691,6 +695,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override void ObserveRunWritten(ModelDelta changeToken, IFormattedRun run) {
+         if(run.Start== 0x59371C) {; }
          Debug.Assert(run.Length > 0); // writing a run of length zero is stupid.
          if (run is ArrayRun array) {
             // update any words who's length matches this array's name
@@ -1014,7 +1019,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                // a format starts exactly at this anchor.
                // but the new format may extend further. If so, clear the excess space.
                if (existingRun.Length < run.Length) {
-                  ClearFormat(changeToken, existingRun.Start + existingRun.Length, run.Length - existingRun.Length);
+                  ClearFormatAndAnchors(changeToken, existingRun.Start + existingRun.Length, run.Length - existingRun.Length);
                }
             }
 
@@ -1200,6 +1205,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          ClearFormat(changeToken, originalStart, length, keepInitialAnchorPointers: run.Start == originalStart, alsoClearData: false);
       }
 
+      private void ClearFormatAndAnchors(ModelDelta changeToken, int originalStart, int length) {
+         ClearFormat(changeToken, originalStart, length, keepInitialAnchorPointers: false, alsoClearData: false);
+      }
+
       public override void ClearFormatAndData(ModelDelta changeToken, int originalStart, int length) {
          using (ModelCacheScope.CreateScope(this)) {
             ClearFormat(changeToken, originalStart, length, keepInitialAnchorPointers: false, alsoClearData: true);
@@ -1268,8 +1277,14 @@ namespace HavenSoft.HexManiac.Core.Models {
          currentChange.RemoveRun(runs[index]);
 
          var newRun = runs[index].RemoveSource(source);
-         if (newRun is NoInfoRun nir && nir.PointerSources.Count == 0) {
+         var hasName = anchorForAddress.TryGetValue(newRun.Start, out var _);
+         if (newRun is NoInfoRun && newRun.PointerSources.Count == 0) {
+            // run carries no info, just remove it
             runs.RemoveAt(index);
+         } else if (newRun is PointerRun && newRun.PointerSources.Count == 0) {
+            // run carries no pointer info: remove the anchor
+            runs[index] = new PointerRun(newRun.Start);
+            if (newRun is OffsetPointerRun opr) runs[index] = new OffsetPointerRun(newRun.Start, opr.Offset);
          } else {
             runs[index] = newRun;
             currentChange.AddRun(newRun);

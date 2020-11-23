@@ -145,6 +145,8 @@ namespace HavenSoft.HexManiac.Core {
          return false;
       }
 
+      public static string ToAddress(this int address) => address.ToString("X6"); // for debugging
+
       public static IList<int> FindMatches(string input, IList<string> options) {
          var result = new List<int>();
          for (int i = 0; i < options.Count; i++) {
