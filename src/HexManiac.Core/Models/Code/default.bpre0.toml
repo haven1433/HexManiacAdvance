@@ -282,3 +282,9 @@ Length = 1
 Offset = 5
 
 
+###################################################### intro editing
+[[MatchedWords]]
+Name = '''scripts.newgame.money'''
+Address = 0x054B60
+Length = 2
+

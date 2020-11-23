@@ -45,9 +45,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             if (CurrentText.Last() != ' ') return;
             CompleteWordEdit();
             Result = true;
+         } else if (CurrentText.StartsWith(":")) {
+            if (CurrentText.Last() != ' ') return;
+            CompleteNamedConstantEdit(2);
+            Result = true;
          } else if (CurrentText.StartsWith(".")) {
             if (CurrentText.Last() != ' ') return;
-            CompleteNamedByteEdit();
+            CompleteNamedConstantEdit(1);
             Result = true;
          } else {
             if (CurrentText.Length < 2) return;
@@ -501,29 +505,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          NewDataIndex = memoryLocation + 4;
       }
 
-      private void CompleteNamedByteEdit() {
-         var byteName = CurrentText.Substring(1).Trim();
+      private void CompleteNamedConstantEdit(int byteCount) {
+         var constantName = CurrentText.Substring(1).Trim();
          var offset = 0;
-         if (byteName.Contains("+")) {
-            var split = byteName.Split('+');
+         if (constantName.Contains("+")) {
+            var split = constantName.Split('+');
             int.TryParse(split[1], out offset);
-            byteName = split[0];
+            constantName = split[0];
          }
-         if (byteName.Contains("-")) {
-            var split = byteName.Split('-');
+         if (constantName.Contains("-")) {
+            var split = constantName.Split('-');
             int.TryParse(split[1], out offset);
-            byteName = split[0];
+            constantName = split[0];
             offset = -offset;
          }
 
          var coreValue = Model[memoryLocation] - offset;
+         var maxValue = Math.Pow(2, byteCount * 8) - 1;
          if (coreValue < 0) {
-            ErrorText = $"Could not create {byteName} with offset {offset} because then the virtual value would be below 0.";
-         } else if (coreValue > 255) {
-            ErrorText = $"Could not create {byteName} with offset {offset} because then the virtual value would be above 255.";
+            ErrorText = $"Could not create {constantName} with offset {offset} because then the virtual value would be below 0.";
+         } else if (coreValue > maxValue) {
+            ErrorText = $"Could not create {constantName} with offset {offset} because then the virtual value would be above {maxValue}.";
          } else {
-            CurrentChange.AddMatchedWord(Model, memoryLocation, byteName);
-            Model.ObserveRunWritten(CurrentChange, new WordRun(memoryLocation, byteName, 1, offset));
+            CurrentChange.AddMatchedWord(Model, memoryLocation, constantName);
+            Model.ObserveRunWritten(CurrentChange, new WordRun(memoryLocation, constantName, byteCount, offset));
             NewDataIndex = memoryLocation;
          }
       }

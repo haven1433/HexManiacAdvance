@@ -280,3 +280,11 @@ Name = '''graphics.townmap.position.switch.y'''
 Address = 0x0C0D94
 Length = 1
 Offset = 5
+
+
+###################################################### intro editing
+[[MatchedWords]]
+Name = '''scripts.newgame.money'''
+Address = 0x054B74
+Length = 2
+

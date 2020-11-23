@@ -17,6 +17,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) {
          if (Length == 4) return new MatchedWord(Start, index - Start, "::" + SourceArrayName);
+         if (Length == 2) return new Integer(Start, index - Start, data.ReadMultiByteValue(Start, 2), 2);
          return new Integer(Start, 0, data[index], 1);
       }
 
