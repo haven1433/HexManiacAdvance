@@ -501,6 +501,22 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.All(tableList.Count.Range(), i => Assert.Equal(sortedTables[i], tableList[i]));
       }
 
+      [Fact]
+      public void PointersToTextInTable_RepointTable_PointersUpdate() {
+         CreateTextTableWithInnerPointers("table", 0x20, "adam", "bob", "carl", "1234567");
+         ViewPort.Edit("@00!00(16) ^pointers[ptr<>]4 <000048> <000028> <000030> <000010> @40 10");
+         var table = (ArrayRun)Model.GetTable("table");
+         Assert.Equal(new[] { 0, 1, 1, 0 }, table.PointerSourcesForInnerElements.Select(sources => sources.Count).ToArray());
+
+         ViewPort.Goto.Execute("table");
+         ViewPort.Edit(ConsoleKey.End);
+         ViewPort.Tools.TableTool.Append.Execute();
+
+         table = (ArrayRun)Model.GetTable("table");
+         Assert.Equal(table.Start + table.ElementLength, Model.ReadPointer(4));
+         Assert.Equal(table.Start + table.ElementLength * 2, Model.ReadPointer(8));
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

@@ -1883,6 +1883,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var source in run.PointerSources) {
             WritePointer(changeToken, source, newStart);
          }
+         if (run is ArrayRun tableRun && tableRun.SupportsPointersToElements) {
+            for (int i = 1; i < tableRun.ElementCount; i++) {
+               foreach (var source in tableRun.PointerSourcesForInnerElements[i]) {
+                  WritePointer(changeToken, source, newStart + i * tableRun.ElementLength);
+               }
+            }
+         }
 
          // move data
          for (int i = 0; i < length; i++) {
