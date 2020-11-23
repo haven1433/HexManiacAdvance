@@ -695,7 +695,6 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override void ObserveRunWritten(ModelDelta changeToken, IFormattedRun run) {
-         if(run.Start== 0x59371C) {; }
          Debug.Assert(run.Length > 0); // writing a run of length zero is stupid.
          if (run is ArrayRun array) {
             // update any words who's length matches this array's name
