@@ -16,8 +16,7 @@
          </Button>
          <Grid>
             <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource Secondary}" FontStyle="Italic" TextWrapping="Wrap"
-               Visibility="{Binding Tag, RelativeSource={RelativeSource Self}, Converter={StaticResource BoolToVisibility}}"
-               Tag="{Binding DataIsValidButNoRun, Converter={StaticResource EqualityCheck}, ConverterParameter=false}">
+               Visibility="{Binding HasMultipleUses, Converter={StaticResource BoolToVisibility}}">
                <Run Text="This is used by"/>
                <Run Foreground="{DynamicResource Accent}" Text="{Binding UsageCount, Mode=OneWay}"/>
                <Run Text="pointers."/>

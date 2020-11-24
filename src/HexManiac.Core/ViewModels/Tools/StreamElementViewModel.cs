@@ -30,11 +30,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (!TryUpdate(ref usageCount, value)) return;
             NotifyPropertyChanged(nameof(ShowContent));
             NotifyPropertyChanged(nameof(CanRepoint));
+            NotifyPropertyChanged(nameof(HasMultipleUses));
             NotifyPropertyChanged(nameof(CanCreateNew));
             repoint.CanExecuteChanged.Invoke(repoint, EventArgs.Empty);
             createNew.CanExecuteChanged.Invoke(createNew, EventArgs.Empty);
          }
       }
+
+      public bool HasMultipleUses => UsageCount > 1;
 
       public bool CanRepoint => UsageCount > 1 || DataIsValidButNoRun;
 
