@@ -554,28 +554,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private int ColorIndex(int paletteIndex) {
-         var spriteAddress = model.ReadPointer(SpritePointer);
-         var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
-         if (spriteRun.SpriteFormat.BitsPerPixel == 8) {
-            var paletteAddress = model.ReadPointer(PalettePointer);
-            var palRun = (IPaletteRun)model.GetNextRun(paletteAddress);
-            var pageOffset = (palRun.PaletteFormat.InitialBlankPages + PalettePage) << 4;
-            return paletteIndex + pageOffset;
-         }
-
-         return paletteIndex;
+         var paletteAddress = model.ReadPointer(PalettePointer);
+         var palRun = model.GetNextRun(paletteAddress) as IPaletteRun;
+         var pageOffset = ((palRun?.PaletteFormat.InitialBlankPages ?? 0) + PalettePage) << 4;
+         return paletteIndex + pageOffset;
       }
 
       private int PaletteIndex(int colorIndex) {
-         var spriteAddress = model.ReadPointer(SpritePointer);
-         var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
-         if (spriteRun.SpriteFormat.BitsPerPixel == 8) {
-            var paletteAddress = model.ReadPointer(PalettePointer);
-            var palRun = (IPaletteRun)model.GetNextRun(paletteAddress);
-            var pageOffset = (palRun.PaletteFormat.InitialBlankPages + PalettePage) << 4;
-            return colorIndex - pageOffset;
-         }
-         return colorIndex;
+         var paletteAddress = model.ReadPointer(PalettePointer);
+         var palRun = model.GetNextRun(paletteAddress) as IPaletteRun;
+         var pageOffset = ((palRun?.PaletteFormat.InitialBlankPages ?? 0) + PalettePage) << 4;
+         return colorIndex - pageOffset;
       }
 
       private void UpdateSelectionFromPaletteHover(PaletteCollection sender, PropertyChangedEventArgs e) {
@@ -642,16 +631,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                }
 
                drawPoint = new Point(point.X - point.X % drawWidth, point.Y - point.Y % drawHeight);
-               for (int x = 0; x < drawWidth; x++) {
-                  for (int y = 0; y < drawHeight; y++) {
-                     var (xx, yy) = (drawPoint.X + x, drawPoint.Y + y);
-                     var paletteIndex = parent.PaletteIndex(tile[x, y]);
-                     if (xx >= parent.PixelWidth || yy >= parent.PixelHeight) continue;
-                     parent.PixelData[parent.PixelIndex(xx, yy)] = parent.Palette.Elements[paletteIndex].Color;
-                     parent.pixels[xx, yy] = tile[x, y];
-                  }
+
+               // allow editing the selected palette to match the tile if a tile is selected
+               var pageChange = (int)Math.Floor((float) parent.PaletteIndex(tile[0, 0]) / parent.Palette.Elements.Count);
+               if (drawWidth == 8 && drawHeight == 8 && pageChange != 0) {
+                  parent.PalettePage += pageChange;
+                  pageChange = 0;
                }
-               parent.NotifyPropertyChanged(nameof(PixelData));
+
+               // only draw if the paletteIndex is reasonable
+               if (pageChange == 0) {
+                  for (int x = 0; x < drawWidth; x++) {
+                     for (int y = 0; y < drawHeight; y++) {
+                        var (xx, yy) = (drawPoint.X + x, drawPoint.Y + y);
+                        var paletteIndex = parent.PaletteIndex(tile[x, y]);
+                        if (xx >= parent.PixelWidth || yy >= parent.PixelHeight) continue;
+                        parent.PixelData[parent.PixelIndex(xx, yy)] = parent.Palette.Elements[paletteIndex].Color;
+                        parent.pixels[xx, yy] = tile[x, y];
+                     }
+                  }
+                  parent.NotifyPropertyChanged(nameof(PixelData));
+               }
             }
 
             RaiseRefreshSelection();
@@ -664,7 +664,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (validHoverLocation) {
                if (parent.CanEditTilePalettes && parent.model.GetNextRun(paletteAddress) is IPaletteRun palRun) {
                   var hoverTilesPalette = parent.TilePalettes[point.Y / 8 * parent.TileWidth + point.X / 8];
-                  validHoverLocation = palRun.PaletteFormat.InitialBlankPages + parent.PalettePage == hoverTilesPalette;
+                  validHoverLocation = parent.CursorSize == 8 || palRun.PaletteFormat.InitialBlankPages + parent.PalettePage == hoverTilesPalette;
                }
             }
 
@@ -992,7 +992,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          public void ToolDrag(Point point) {
             point = parent.ToSpriteSpace(point);
-            if (parent.WithinImage(point)) {
+            if (parent.WithinImage(point) && !parent.CanEditTilePalettes) {
                selectionWidth = point.X - selectionStart.X;
                selectionHeight = point.Y - selectionStart.Y;
 

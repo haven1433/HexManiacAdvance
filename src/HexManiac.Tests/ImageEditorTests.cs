@@ -1125,7 +1125,7 @@ namespace HavenSoft.HexManiac.Tests {
          editor.PalettePage = 1;
          editor.Palette.Elements[0].Color = Rgb(31, 0, 0); // set the bottom two tiles to red
          editor.EyeDropperDown(4, 4);
-         editor.EyeDropperUp(5, 5);
+         editor.EyeDropperUp(4, 4);
 
          editor.ToolDown(-8, -8);
          editor.ToolUp(-8, -8);
@@ -1158,6 +1158,45 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.True(editor.ShowSelectionRect(12, 12));
       }
 
-      // TODO test drawing a 7x7 tile to another spot when the new spot is cross-tile
+      [Fact]
+      public void EyeDropperTool_ClickAndDrag_OnlyInitialPixelMattersForSelection() {
+         editor.SelectedTool = ImageEditorTools.EyeDropper;
+         editor.CursorSize = 2;
+
+         editor.ToolDown(4, 4);
+         editor.ToolUp(6, 6);
+
+         Assert.Equal(2, editor.BlockPreview.PixelWidth);
+         Assert.Equal(2, editor.BlockPreview.PixelHeight);
+      }
+
+      [Fact]
+      public void EyeDropperTool_SelectEntireTile_CanDrawOverAnotherPalette() {
+         editor.SelectedTool = ImageEditorTools.Draw;
+         editor.CursorSize = 8;
+
+         editor.EyeDropperDown(4, 4);
+         editor.EyeDropperUp(4, 4);
+
+         editor.ToolDown(-8, -8);
+         editor.ToolUp(-8, -8);
+
+         var mapData = LZRun.Decompress(model, TilemapStart);
+         var (pal, _, _, _) = LzTilemapRun.ReadTileData(mapData, 0);
+         Assert.Equal(3, pal);
+      }
+
+      [Fact]
+      public void EyeDropperTool_SelectEntireTile_HoverDifferentPaletteShowsSelection() {
+         editor.SelectedTool = ImageEditorTools.Draw;
+         editor.CursorSize = 8;
+
+         editor.EyeDropperDown(4, 4);
+         editor.EyeDropperUp(4, 4);
+
+         editor.Hover(-6, -6);
+
+         Assert.True(editor.ShowSelectionRect(3, 3));
+      }
    }
 }
