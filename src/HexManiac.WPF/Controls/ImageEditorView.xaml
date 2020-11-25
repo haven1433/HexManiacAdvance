@@ -9,6 +9,7 @@
    <UserControl.InputBindings>
       <KeyBinding Key="Add" Command="{Binding ZoomInCommand}"/>
       <KeyBinding Key="Subtract" Command="{Binding ZoomOutCommand}"/>
+      <KeyBinding Key="Delete" Command="{Binding DeleteCommand}"/>
       <KeyBinding Key="A" CommandParameter="{x:Static hshmcvm:ImageEditorTools.Pan}" Command="{Binding SelectTool}"/>
       <KeyBinding Key="S" CommandParameter="{x:Static hshmcvm:ImageEditorTools.Select}" Command="{Binding SelectTool}"/>
       <KeyBinding Key="D" CommandParameter="{x:Static hshmcvm:ImageEditorTools.Draw}" Command="{Binding SelectTool}"/>

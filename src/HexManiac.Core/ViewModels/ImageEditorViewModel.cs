@@ -311,7 +311,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          }
       }
-      private StubCommand selectTool, selectColor, zoomInCommand, zoomOutCommand;
+      private StubCommand selectTool, selectColor, zoomInCommand, zoomOutCommand, deleteCommand;
       public ICommand SelectTool => StubCommand<ImageEditorTools>(ref selectTool, arg => {
          if (arg == ImageEditorTools.TilePalette) {
             var spriteAddress = model.ReadPointer(SpritePointer);
@@ -322,6 +322,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand SelectColor => StubCommand<string>(ref selectColor, arg => Palette.SelectionStart = int.Parse(arg));
       public ICommand ZoomInCommand => StubCommand(ref zoomInCommand, () => ZoomIn(0, 0));
       public ICommand ZoomOutCommand => StubCommand(ref zoomOutCommand, () => ZoomOut(0, 0));
+      public ICommand DeleteCommand => StubCommand(ref deleteCommand, () => DeleteSelection(), () => toolStrategy is SelectionTool selector && selector.HasSelection);
 
       public BlockPreview BlockPreview { get; }
 
@@ -426,6 +427,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var yRange = (int)(PixelWidth * SpriteScale / 2);
          XOffset = ((int)(xPartial * SpriteScale) + x).LimitToRange(-xRange, xRange);
          YOffset = ((int)(yPartial * SpriteScale) + y).LimitToRange(-yRange, yRange);
+      }
+
+      public void DeleteSelection() {
+         if (!(toolStrategy is SelectionTool selector)) return;
+         if (!selector.HasSelection) return;
+         selector.SwapUnderPixelsWithCurrentPixels();
+         selector.ClearSelection();
+         SelectionTool.RaiseRefreshSelection(this, default, 0, 0);
+         UpdateSpriteModel();
+         NotifyPropertyChanged(nameof(PixelData));
       }
 
       public void ToolDown(Point point) {
