@@ -934,6 +934,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (spriteRun.Pages == expectedPalettePages) expectedPalettePages = 1; // handle the Castform case
          var palettes = paletteRun?.Pages.Range().Select(i => paletteRun.GetPalette(model, i)).ToArray();
          palettes = DiscoverPalettes(tiles, paletteRun?.PaletteFormat.Bits ?? spriteRun.SpriteFormat.BitsPerPixel, expectedPalettePages, palettes);
+         TryReorderPalettesFromMatchingSprite(palettes, image, spriteRun.GetPixels(model, spritePage));
          var indexedTiles = new int[tiles.Length][,];
          for (int i = 0; i < indexedTiles.Length; i++) indexedTiles[i] = Index(tiles[i], palettes, spriteRun.SpriteFormat.BitsPerPixel, paletteRun?.PaletteFormat.InitialBlankPages ?? 0);
          var sprite = Detilize(indexedTiles, spriteRun.SpriteFormat.TileWidth);
@@ -1013,6 +1014,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var expectedPalettePages = paletteRun.Pages;
          if (spriteRun.Pages == paletteRun.Pages) expectedPalettePages = 1; // handle the Castfrom case
          var newPalettes = DiscoverPalettes(tiles, bits, palettes.Length, palettes);
+         TryReorderPalettesFromMatchingSprite(newPalettes, image, spriteRun.GetPixels(model, spritePage));
          var indexedTiles = new int[tiles.Length][,];
          for (int i = 0; i < indexedTiles.Length; i++) indexedTiles[i] = Index(tiles[i], newPalettes, spriteRun.SpriteFormat.BitsPerPixel, initialBlankPages);
          var spriteData = Detilize(indexedTiles, spriteRun.SpriteFormat.TileWidth);
@@ -1167,6 +1169,38 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          return result;
+      }
+
+      /// <summary>
+      /// Given a set of indexed pixels and a new image,
+      /// Edit a palette to be equal to the colors needed to map
+      /// the indexed pixels into the new image.
+      /// Note that if the image doesn't fit the indexed pixels, this method will return false.
+      /// </summary>
+      public static bool TryReorderPalettesFromMatchingSprite(IReadOnlyList<short>[] palettes, short[] image, int[,] pixels) {
+         if (palettes.Length != 1) return false;
+         if (palettes[0].Count > 16) return false;
+         var newPalette = new short[16];
+         for (int i = 0; i < newPalette.Length; i++) newPalette[i] = -1;
+
+         var width = pixels.GetLength(0);
+         var height = pixels.GetLength(1);
+         for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+               var currentColor = image[y * width + x];
+               var currentIndex = pixels[x, y] % newPalette.Length;
+               if (newPalette[currentIndex] == -1) newPalette[currentIndex] = currentColor;
+               if (newPalette[currentIndex] != currentColor) return false;
+            }
+         }
+
+         // if there were any unused indexes, set thier color to black
+         for (int i = 0; i < newPalette.Length; i++) {
+            if (newPalette[i] == -1) newPalette[i] = 0;
+         }
+
+         palettes[0] = newPalette;
+         return true;
       }
 
       private void ExportSpriteAndPalette(IFileSystem fileSystem) {
