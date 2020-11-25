@@ -1129,6 +1129,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                runs[index] = kvp.Value;
             } else {
                index = ~index;
+               Debug.Assert(kvp.Value != null);
                if (index < runs.Count) {
                   runs.Insert(index, kvp.Value);
                } else {
@@ -1228,16 +1229,13 @@ namespace HavenSoft.HexManiac.Core.Models {
       // for each of the results, we recognized it as text: see if we need to add a matching string run / pointers
       public override int ConsiderResultsAsTextRuns(ModelDelta currentChange, IReadOnlyList<int> searchResults) {
          int resultsRecognizedAsTextRuns = 0;
-         var parallelLock = new object();
-         Parallel.ForEach(searchResults, result => {
+         foreach (var result in searchResults) {
             var run = ConsiderAsTextStream(this, result, currentChange);
             if (run != null) {
-               lock (parallelLock) {
-                  ObserveAnchorWritten(currentChange, string.Empty, run);
-                  resultsRecognizedAsTextRuns++;
-               }
+               ObserveAnchorWritten(currentChange, string.Empty, run);
+               resultsRecognizedAsTextRuns++;
             }
-         });
+         }
 
          return resultsRecognizedAsTextRuns;
       }
