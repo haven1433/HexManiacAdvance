@@ -295,7 +295,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          while (Children.Count > childInsertionIndex) Children.RemoveAt(Children.Count - 1);
          foreach (var child in Children) child.DataChanged += ForwardModelChanged;
 
-         var paletteIndex = Children.Where(child => child is SpriteElementViewModel).Select(c => ((SpriteElementViewModel)c).CurrentPalette).Concat(1.Range()).Max();
+         var paletteIndex = Children.Where(child => child is SpriteElementViewModel).Select(c => {
+            var spriteElement = (SpriteElementViewModel)c;
+            if (spriteElement.CurrentPalette > spriteElement.MaxPalette) return 0;
+            return spriteElement.CurrentPalette;
+         }).Concat(1.Range()).Max();
          foreach (var child in Children) {
             // update sprites now that all the associated palettes have been loaded.
             if (child is SpriteElementViewModel sevm) {
