@@ -198,6 +198,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var options = list;
          for (int i = 0; i < options.Count; i++) {
             var option = (options[i] ?? i.ToString()).ToLower();
+            if (option.StartsWith("\"") && option.EndsWith("\"")) option = option.Substring(1, option.Length - 2);
             if (option == text) matches.Add(option);
             if (matches.Count == desiredMatch) { value = i; return true; }
             if (option.MatchesPartial(text)) {

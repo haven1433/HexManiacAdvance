@@ -89,6 +89,7 @@ namespace HavenSoft.HexManiac.Core {
       ////// these are some specific string extensions to deal with smart auto-complete //////
 
       public static bool MatchesPartial(this string full, string partial, bool onlyCheckLettersAndDigits = false) {
+         full = full.Replace("é", "e");
          foreach (var character in partial) {
             if (onlyCheckLettersAndDigits && !char.IsLetterOrDigit(character)) continue;
             var index = full.IndexOf(character.ToString(), StringComparison.CurrentCultureIgnoreCase);
