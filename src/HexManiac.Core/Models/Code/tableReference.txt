@@ -19,7 +19,7 @@ data.maps.names,                             ,       ,       ,       , 0C0C94, 0
 data.maps.names,                       0FB550, 0FB550, 0FB570, 0FB570,       ,       ,       ,       , 123B44, [a b c d name<"">]
 scripts.newgame.names.male,                                       ,,,, 1316F0, 1316C8, 131768, 131740, , [name<"">]19
 scripts.newgame.names.female,                                     ,,,, 1316EC, 1316C4, 131764, 13173C, , [name<"">]19
-scripts.newgame.names.opponent,                                   ,,,, 131750, 131728, 1317C8, 1317A0, , [name<"">]4
+scripts.newgame.names.rival,                                      ,,,, 131750, 131728, 1317C8, 1317A0, , [name<"">]4
 
 data.maps.dungeons.stats,                    ,       ,       ,       , 0C1904, 0C18D8, 0C18EC, 0C18EC,       , [id:: name<""> description<"">]19
 data.maps.heal,                              ,       ,       ,       , 0BFD80, 0BFD54, 0BFD94, 0BFD68,       , [bank: map: x: y:]10
