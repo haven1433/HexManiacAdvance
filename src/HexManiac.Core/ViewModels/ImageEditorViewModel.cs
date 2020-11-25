@@ -553,17 +553,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          spriteRun.SetPixels(model, history.CurrentChange, SpritePage, pixels);
       }
 
-      private int ColorIndex(int paletteIndex) {
+      /// <summary>
+      /// Given an index of a color within a palette page, get the pixel value that contains both the page and index information.
+      /// If no page is given, the current selected page is used
+      /// </summary>
+      private int ColorIndex(int paletteIndex, int page = int.MinValue) {
+         if (page == int.MinValue) page = PalettePage;
          var paletteAddress = model.ReadPointer(PalettePointer);
          var palRun = model.GetNextRun(paletteAddress) as IPaletteRun;
-         var pageOffset = ((palRun?.PaletteFormat.InitialBlankPages ?? 0) + PalettePage) << 4;
+         var pageOffset = ((palRun?.PaletteFormat.InitialBlankPages ?? 0) + page) << 4;
          return paletteIndex + pageOffset;
       }
 
-      private int PaletteIndex(int colorIndex) {
+      /// <summary>
+      /// Given a pixel including a palette page and color index, return just the index within that palette page (assuming the selected page).
+      /// </summary>
+      private int PaletteIndex(int colorIndex, int page = int.MinValue) {
+         if (page == int.MinValue) page = PalettePage;
          var paletteAddress = model.ReadPointer(PalettePointer);
          var palRun = model.GetNextRun(paletteAddress) as IPaletteRun;
-         var pageOffset = ((palRun?.PaletteFormat.InitialBlankPages ?? 0) + PalettePage) << 4;
+         var pageOffset = ((palRun?.PaletteFormat.InitialBlankPages ?? 0) + page) << 4;
          return colorIndex - pageOffset;
       }
 
@@ -817,13 +826,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          public void SwapUnderPixelsWithCurrentPixels() {
+            var paletteRun = parent.model.GetNextRun(parent.model.ReadPointer(parent.PalettePointer)) as IPaletteRun;
+            var pageOffset = (paletteRun?.PaletteFormat.InitialBlankPages) ?? 0;
+            var fullPalette = paletteRun.AllColors(parent.model);
+
             for (int x = 0; x < selectionWidth; x++) {
                for (int y = 0; y < selectionHeight; y++) {
                   var (xx, yy) = (selectionStart.X + x, selectionStart.Y + y);
-                  (underPixels[x, y], parent.pixels[xx, yy]) = (parent.pixels[xx, yy], underPixels[x, y]);
 
-                  var color = parent.Palette.Elements[parent.pixels[xx, yy]].Color;
-                  parent.PixelData[parent.PixelIndex(new Point(xx, yy))] = color;
+                  var page = 0;
+                  if (parent.CanEditTilePalettes) {
+                     var (pX, pY) = (xx / 8, yy / 8);
+                     page = parent.TilePalettes[pY * parent.TileWidth + pX] - pageOffset;
+                  }
+
+                  var color = fullPalette[underPixels[x, y]];
+                  parent.PixelData[parent.PixelIndex(xx, yy)] = color;
+
+                  var newUnder = parent.PaletteIndex(parent.pixels[xx, yy], page);
+                  var newOver = parent.ColorIndex(underPixels[x, y], page);
+
+                  underPixels[x, y] = newUnder;
+                  parent.pixels[xx, yy] = newOver;
                }
             }
          }
