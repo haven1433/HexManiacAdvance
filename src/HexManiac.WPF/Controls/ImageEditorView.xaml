@@ -222,7 +222,7 @@
             <StackPanel Orientation="Horizontal">
                <StackPanel.Style>
                   <Style TargetType="StackPanel">
-                     <Setter Property="Visibility" Value="Hidden"/>
+                     <Setter Property="Visibility" Value="Collapsed"/>
                      <Style.Triggers>
                         <DataTrigger Binding="{Binding SelectedTool}" Value="Draw">
                            <Setter Property="Visibility" Value="Visible"/>

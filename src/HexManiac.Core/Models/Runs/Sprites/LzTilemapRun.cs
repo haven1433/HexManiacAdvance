@@ -226,21 +226,22 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return results;
       }
 
-      public static (int[,] pixels,int palette)[,] Tilize(int[,] pixels, int bitsPerPixel) {
+      public static (int[,] pixels, int palette)[,] Tilize(int[,] pixels, int bitsPerPixel) {
          var width = pixels.GetLength(0);
          var tileWidth = width / 8;
          var height = pixels.GetLength(1);
          var tileHeight = height / 8;
          var mod = bitsPerPixel == 4 ? 16 : 256;
          var result = new (int[,], int)[tileWidth, tileHeight];
-         for(int y = 0; y < tileHeight; y++) {
+         for (int y = 0; y < tileHeight; y++) {
             var yStart = y * 8;
-            for(int x = 0; x < tileWidth; x++) {
+            for (int x = 0; x < tileWidth; x++) {
                var xStart = x * 8;
                var palette = pixels[xStart, yStart] / mod;
                var tile = new int[8, 8];
-               for(int yy = 0; yy < 8; yy++) {
-                  for(int xx = 0; xx < 8; xx++) {
+               for (int yy = 0; yy < 8; yy++) {
+                  for (int xx = 0; xx < 8; xx++) {
+                     Debug.Assert(pixels[xStart + xx, yStart + yy] / mod == palette, "Every pixel in a block should have the same palette");
                      tile[xx, yy] = pixels[xStart + xx, yStart + yy] % mod;
                   }
                }

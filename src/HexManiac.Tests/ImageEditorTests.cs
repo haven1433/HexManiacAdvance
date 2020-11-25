@@ -1211,7 +1211,7 @@ namespace HavenSoft.HexManiac.Tests {
          editor.ToolUp(-3, -3);
 
          // set color 1 of palette page 1 to green
-         editor.Palette.Page = 1;
+         editor.PalettePage = 1;
          editor.Palette.Elements[1].Color = Rgb(0, 31, 0);
 
          // select the 2x2 square from (-4,-4) to (-3,-3)
@@ -1232,6 +1232,34 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(Rgb(0, 0, 0), editor.PixelData[editor.PixelIndex(5, 12)]);
       }
 
-      // TODO flip vertical/horizontal
+      [Fact]
+      public void Selection_FlipBetweenTilesWithDifferentPalettes_ColorsFromNewPaletteAreUsed() {
+         // draw red dots at (-4,-4) and (-3,-3)
+         editor.SelectedTool = ImageEditorTools.Draw;
+         editor.Palette.Elements[1].Color = Rgb(31, 0, 0);
+         editor.Palette.SelectionStart = 1;
+         editor.ToolDown(-4, -4);
+         editor.ToolUp(-4, -4);
+         editor.ToolDown(-3, -3);
+         editor.ToolUp(-3, -3);
+
+         // set color 1 of palette page 1 to green
+         editor.PalettePage = 1;
+         editor.Palette.Elements[1].Color = Rgb(0, 31, 0);
+
+         // select a tall rectangle that spans two tiles
+         editor.SelectedTool = ImageEditorTools.Select;
+         editor.ToolDown(-4, -4);
+         editor.Hover(-3, 4);
+         editor.ToolUp(-3, 4);
+
+         editor.FlipVertical.Execute();
+
+         // check that the pixels are green after being flipped
+         Assert.Equal(Rgb(0, 31, 0), editor.PixelData[editor.PixelIndex(4, 12)]);
+         Assert.Equal(Rgb(0, 31, 0), editor.PixelData[editor.PixelIndex(5, 11)]);
+         Assert.Equal(Rgb(0, 0, 0), editor.PixelData[editor.PixelIndex(4, 11)]);
+         Assert.Equal(Rgb(0, 0, 0), editor.PixelData[editor.PixelIndex(5, 12)]);
+      }
    }
 }

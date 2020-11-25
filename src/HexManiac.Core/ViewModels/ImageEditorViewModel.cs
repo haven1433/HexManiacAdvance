@@ -103,18 +103,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          ToolDown(FromSpriteSpace(new Point(x, y)));
          Hover(FromSpriteSpace(new Point(x + sprite.width - 1, y + height - 1)));
          ToolUp(FromSpriteSpace(new Point(x + sprite.width - 1, y + height - 1)));
-         tool.SwapUnderPixelsWithCurrentPixels();
+
+         var paletteRun = model.GetNextRun(model.ReadPointer(PalettePointer)) as IPaletteRun;
+         var fullPalette = paletteRun.AllColors(model);
 
          // make insertion more robust
+         var newUnderPixels = new int[sprite.width, height];
          for (int xx = 0; xx < sprite.width; xx++) {
             for (int yy = 0; yy < height; yy++) {
                var i = PixelIndex(x + xx, y + yy);
                var targetColor = sprite.image[yy * sprite.width + xx];
-               var paletteIndex = Palette.Elements.Until(el => el.Color == targetColor).Count() % Palette.Elements.Count;
-               pixels[x + xx, y + yy] = ColorIndex(paletteIndex);
-               PixelData[i] = Palette.Elements[paletteIndex].Color;
+               var paletteIndex = fullPalette.IndexOf(targetColor);
+               if (paletteIndex < 0) paletteIndex = 0;
+               paletteIndex %= Palette.Elements.Count;
+               newUnderPixels[xx, yy] = paletteIndex;
             }
          }
+
+         tool.SetUnderPixels(newUnderPixels);
+         tool.SwapUnderPixelsWithCurrentPixels();
 
          UpdateSpriteModel();
          NotifyPropertyChanged(nameof(PixelData));
@@ -841,36 +848,65 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      page = parent.TilePalettes[pY * parent.TileWidth + pX] - pageOffset;
                   }
 
-                  var color = fullPalette[underPixels[x, y]];
-                  parent.PixelData[parent.PixelIndex(xx, yy)] = color;
-
                   var newUnder = parent.PaletteIndex(parent.pixels[xx, yy], page);
                   var newOver = parent.ColorIndex(underPixels[x, y], page);
 
                   underPixels[x, y] = newUnder;
                   parent.pixels[xx, yy] = newOver;
+
+                  var index = Math.Max(0, newOver - pageOffset * 16);
+                  var color = fullPalette[index];
+                  parent.PixelData[parent.PixelIndex(xx, yy)] = color;
                }
             }
          }
 
          public void FlipVertical() {
             var cache = CachePixels();
+            var paletteRun = parent.model.GetNextRun(parent.model.ReadPointer(parent.PalettePointer)) as IPaletteRun;
+            var pageOffset = (paletteRun?.PaletteFormat.InitialBlankPages) ?? 0;
+            int inputPage = 0, outputPage = 0;
 
             for (int x = 0; x < selectionWidth; x++) {
                for (int y = 0; y < selectionHeight; y++) {
-                  parent.pixels[selectionStart.X + x, selectionStart.Y + y] = cache[x, selectionHeight - y - 1];
+                  if (parent.CanEditTilePalettes) {
+                     var (pX, pY) = ((selectionStart.X + x) / 8, (selectionStart.Y + selectionHeight - y - 1) / 8);
+                     inputPage = parent.TilePalettes[pY * parent.TileWidth + pX] - pageOffset;
+                     (pX, pY) = ((selectionStart.X + x) / 8, (selectionStart.Y + y) / 8);
+                     outputPage = parent.TilePalettes[pY * parent.TileWidth + pX] - pageOffset;
+                  }
+
+                  var index = parent.PaletteIndex(cache[x, selectionHeight - y - 1], inputPage);
+                  parent.pixels[selectionStart.X + x, selectionStart.Y + y] = parent.ColorIndex(index, outputPage);
                }
             }
          }
 
          public void FlipHorizontal() {
             var cache = CachePixels();
+            var paletteRun = parent.model.GetNextRun(parent.model.ReadPointer(parent.PalettePointer)) as IPaletteRun;
+            var pageOffset = (paletteRun?.PaletteFormat.InitialBlankPages) ?? 0;
+            int inputPage = 0, outputPage = 0;
 
             for (int x = 0; x < selectionWidth; x++) {
                for (int y = 0; y < selectionHeight; y++) {
-                  parent.pixels[selectionStart.X + x, selectionStart.Y + y] = cache[selectionWidth - x - 1, y];
+                  if (parent.CanEditTilePalettes) {
+                     var (pX, pY) = ((selectionStart.X + selectionWidth - x - 1) / 8, (selectionStart.Y + y) / 8);
+                     inputPage = parent.TilePalettes[pY * parent.TileWidth + pX] - pageOffset;
+                     (pX, pY) = ((selectionStart.X + x) / 8, (selectionStart.Y + y) / 8);
+                     outputPage = parent.TilePalettes[pY * parent.TileWidth + pX] - pageOffset;
+                  }
+
+                  var index = parent.PaletteIndex(cache[selectionWidth - x - 1, y], inputPage);
+                  parent.pixels[selectionStart.X + x, selectionStart.Y + y] = parent.ColorIndex(index, outputPage);
                }
             }
+         }
+
+         public void SetUnderPixels(int[,] values) {
+            Debug.Assert(underPixels.GetLength(0) == values.GetLength(0));
+            Debug.Assert(underPixels.GetLength(1) == values.GetLength(1));
+            underPixels = values;
          }
 
          private int[,] CachePixels() {
