@@ -506,6 +506,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void RefreshPaletteColors() {
          var paletteAddress = model.ReadPointer(PalettePointer);
          var palRun = (IPaletteRun)model.GetNextRun(paletteAddress);
+         Palette.SourcePalettePointer = PalettePointer;
          Palette.SetContents(palRun.GetPalette(model, palettePage));
          foreach (var e in Palette.Elements) {
             e.PropertyChanged += (sender, args) => {
