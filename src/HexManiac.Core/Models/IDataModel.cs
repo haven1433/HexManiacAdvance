@@ -477,8 +477,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
          }
 
-         Debug.Fail("Could not find parent of nameless table. A table may have been moved, but we don't know which one.");
-         return string.Empty;
+         return table.Start.ToAddress();
       }
 
       private static ITableRun ExtendTableAndChildren(IDataModel model, ModelDelta changeToken, ITableRun array, int count) {
