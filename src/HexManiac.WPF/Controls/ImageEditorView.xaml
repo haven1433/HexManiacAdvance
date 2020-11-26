@@ -59,6 +59,25 @@
                </DataTemplate>
             </ComboBox.ItemTemplate>
          </ComboBox>
+         <Slider DockPanel.Dock="Top" Margin="5"
+            Visibility="{Binding CanEditTilesetWidth, Converter={StaticResource BoolToVisibility}}"
+            Minimum="{Binding MinimumTilesetWidth}"
+            Maximum="{Binding MaximumTilesetWidth}"
+            Value="{Binding CurrentTilesetWidth}">
+            <Slider.ToolTip>
+               <ToolTip>
+                  <TextBlock>
+                     <Bold>Adjust Tileset Width</Bold><LineBreak/>
+                     <LineBreak/>
+                     Tilesets aren't images, so they don't have a<LineBreak/>
+                     natural width and height. <LineBreak/>
+                     Use this slider to adjust the displayed width/height of<LineBreak/>
+                     the tileset. This can line tiles up in a way that makes<LineBreak/>
+                     them easier to edit.
+                  </TextBlock>
+               </ToolTip>
+            </Slider.ToolTip>
+         </Slider>
          <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" HorizontalAlignment="Center">
             <StackPanel.Resources>
                <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type ToggleButton}}">

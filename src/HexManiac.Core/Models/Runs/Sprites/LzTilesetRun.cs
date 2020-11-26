@@ -9,7 +9,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public int Width { get; }
       public int Height { get; }
       public bool SupportsImport => false;
-      public bool SupportsEdit => false;
+      public bool SupportsEdit => true;
 
       public override string FormatString => $"`lzt{Format.BitsPerPixel}" + (!string.IsNullOrEmpty(Format.PaletteHint) ? "|" + Format.PaletteHint : string.Empty) + "`";
 
@@ -47,9 +47,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return SpriteRun.GetPixels(data, 0, Width, Height, Format.BitsPerPixel);
       }
 
+      public int[,] GetPixels(IDataModel model, int page, int preferredTileWidth) {
+         var data = Decompress(model, Start);
+         var tileSize = Format.BitsPerPixel * 8;
+         var tileCount = data.Length / tileSize;
+         var preferredTileHeight = (int)Math.Ceiling((double)tileCount / preferredTileWidth);
+         return SpriteRun.GetPixels(data, 0, preferredTileWidth, preferredTileHeight, Format.BitsPerPixel);
+      }
+
       public ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels) {
          // TODO handle the fact that pixels[,] may contain a different number of tiles compared to the existing tileset
          var data = Decompress(model, Start);
+         for (int x = 0; x < pixels.GetLength(0); x++) for (int y = 0; y < pixels.GetLength(1); y++) {
+            pixels[x, y] %= (int)Math.Pow(2, Format.BitsPerPixel);
+         }
          SpriteRun.SetPixels(data, 0, pixels, Format.BitsPerPixel);
          var newModelData = Compress(data, 0, data.Length);
          var newRun = model.RelocateForExpansion(token, this, newModelData.Count);

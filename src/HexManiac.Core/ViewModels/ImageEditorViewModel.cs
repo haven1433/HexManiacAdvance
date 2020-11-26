@@ -340,8 +340,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private int xOffset, yOffset, width, height;
       public int XOffset { get => xOffset; private set => Set(ref xOffset, value); }
       public int YOffset { get => yOffset; private set => Set(ref yOffset, value); }
-      public int PixelWidth { get => width; private set => Set(ref width, value); }
-      public int PixelHeight { get => height; private set => Set(ref height, value); }
+      public int PixelWidth { get => width; private set => Set(ref width, value, old => RaiseRefreshSelection()); }
+      public int PixelHeight { get => height; private set => Set(ref height, value, old => RaiseRefreshSelection()); }
 
       public short[] PixelData { get; private set; }
 
@@ -357,6 +357,36 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand SetCursorSize => StubCommand<string>(ref setCursorSize, arg => CursorSize = int.Parse(arg));
       private int cursorSize = 1;
       public int CursorSize { get => cursorSize; set => Set(ref cursorSize, value, arg => BlockPreview.Clear()); }
+
+      #region Tileset Editing
+
+      public bool CanEditTilesetWidth { get; private set; }
+      public int MinimumTilesetWidth { get; private set; }
+      public int MaximumTilesetWidth { get; private set; }
+
+      private int currentTilesetWidth;
+      public int CurrentTilesetWidth {
+         get => currentTilesetWidth;
+         set => Set(ref currentTilesetWidth, value, old => Refresh());
+      }
+
+      private void SetupTilesetWidthControl() {
+         var tileset = model.GetNextRun(model.ReadPointer(SpritePointer)) as LzTilesetRun;
+         if (tileset == null) {
+            CanEditTilesetWidth = false;
+            return;
+         }
+
+         CanEditTilesetWidth = true;
+         var defaultTileWidth = tileset.Width;
+         if (defaultTileWidth > 1) {
+            MinimumTilesetWidth = 2;
+            MaximumTilesetWidth = defaultTileWidth * tileset.Height / 2;
+            if (CurrentTilesetWidth == 0) Set(ref currentTilesetWidth, defaultTileWidth, nameof(CurrentTilesetWidth));
+         }
+      }
+
+      #endregion
 
       public ImageEditorViewModel(ChangeHistory<ModelDelta> history, IDataModel model, int address, ICommand save = null) {
          this.history = history;
@@ -496,7 +526,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var spriteAddress = model.ReadPointer(SpritePointer);
          var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
          if (SpritePage >= spriteRun.Pages) SpritePage = spriteRun.Pages - 1;
-         pixels = spriteRun.GetPixels(model, SpritePage);
+         SetupTilesetWidthControl();
+         pixels = (spriteRun is LzTilesetRun tsRun) ? tsRun.GetPixels(model, SpritePage, CurrentTilesetWidth) : spriteRun.GetPixels(model, SpritePage);
          Render();
          RefreshPaletteColors();
          SetupPageOptions();
@@ -554,9 +585,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
          var palRun = (IPaletteRun)model.GetNextRun(paletteAddress);
+         var readPixels = (spriteRun is LzTilesetRun tsRun) ? tsRun.GetPixels(model, SpritePage, CurrentTilesetWidth) : spriteRun.GetPixels(model, SpritePage);
 
-         PixelWidth = spriteRun.SpriteFormat.TileWidth * 8;
-         PixelHeight = spriteRun.SpriteFormat.TileHeight * 8;
+         PixelWidth = readPixels.GetLength(0);
+         PixelHeight = readPixels.GetLength(1);
          if (palettePage >= palRun.Pages) PalettePage = palRun.Pages - 1;
          var renderPage = palettePage;
          if (spriteRun.SpriteFormat.BitsPerPixel == 8 || spriteRun is LzTilemapRun) renderPage = 0;
@@ -785,9 +817,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                (selectionStart, selectionWidth, selectionHeight) = BuildRect(selectionStart, selectionWidth, selectionHeight);
                if (selectionWidth > 1 || selectionHeight > 1) {
                   underPixels = new int[selectionWidth, selectionHeight];
-                  for (int x = 0; x < selectionWidth; x++) for (int y = 0; y < selectionHeight; y++) {
-                     underPixels[x, y] = 0;
-                  }
                } else {
                   selectionWidth = selectionHeight = 0;
                }
@@ -861,11 +890,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
                   var newUnder = parent.PaletteIndex(parent.pixels[xx, yy], page);
                   var newOver = parent.ColorIndex(underPixels[x, y], page);
+                  var index = Math.Max(0, newOver - pageOffset * 16);
+                  if (parent.CanEditTilesetWidth) {
+                     // tilesets don't have palette information
+                     newUnder = parent.pixels[xx, yy];
+                     newOver = underPixels[x, y];
+                     index = newOver;
+                  }
 
                   underPixels[x, y] = newUnder;
                   parent.pixels[xx, yy] = newOver;
 
-                  var index = Math.Max(0, newOver - pageOffset * 16);
                   var color = fullPalette[index];
                   parent.PixelData[parent.PixelIndex(xx, yy)] = color;
                }
