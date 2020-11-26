@@ -347,7 +347,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void TrainerSpritesAreFound(string game) {
          var model = fixture.LoadModel(game);
          var sprites = model.GetTable("graphics.trainers.sprites.front");
-         var palettes = model.GetTable("graphics.trainers.palettes");
+         var palettes = model.GetTable("graphics.trainers.palettes.front");
          Assert.NotNull(sprites);
          Assert.NotNull(palettes);
 
