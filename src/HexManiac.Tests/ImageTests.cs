@@ -743,7 +743,7 @@ namespace HavenSoft.HexManiac.Tests {
          short[] imageData = null;
          int width = 0;
          var fs = new StubFileSystem {
-            ShowOptions = (title, text, options) => 0,
+            ShowOptions = (title, text, details, options) => 0,
             SaveImage = (img, wdth) => (imageData, width) = (img, wdth),
          };
 
@@ -763,7 +763,7 @@ namespace HavenSoft.HexManiac.Tests {
          short[] imageData = null;
          int width = 0;
          var fs = new StubFileSystem {
-            ShowOptions = (title, text, options) => 1,
+            ShowOptions = (title, text, details, options) => 1,
             SaveImage = (img, wdth) => (imageData, width) = (img, wdth),
          };
 

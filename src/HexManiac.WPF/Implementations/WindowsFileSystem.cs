@@ -412,11 +412,11 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          return BitmapFrame.Create(bitmap, null, metadata, null);
       }
 
-      public int ShowOptions(string title, string prompt, VisualOption[] options) {
+      public int ShowOptions(string title, string prompt, object[] additionalDetails, VisualOption[] options) {
          var collection = new ObservableCollection<VisualOption>();
          foreach (var option in options) collection.Add(option);
 
-         var optionDialog = new OptionDialog { Title = title, Prompt = { Text = prompt }, Options = { ItemsSource = collection } };
+         var optionDialog = new OptionDialog { Title = title, Prompt = { Text = prompt }, AdditionalDetails = { ItemsSource = additionalDetails }, Options = { ItemsSource = collection } };
          optionDialog.ShowDialog();
          return optionDialog.Result;
       }

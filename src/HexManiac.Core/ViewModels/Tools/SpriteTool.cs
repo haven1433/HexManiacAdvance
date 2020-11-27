@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -333,6 +334,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void ExecuteExportMany(IFileSystem fs) {
          var choice = fs.ShowOptions("Export Multi-Page Image", "How would you like to arrange the pages?",
+            null,
             new VisualOption { Index = 0, Option = "Horizontal", ShortDescription = "Left-Right", Description = "Stack the pages from left to right." },
             new VisualOption { Index = 1, Option = "Vertical", ShortDescription = "Up-Down", Description = "Stack the pages from top to bottom." });
 
@@ -623,9 +625,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
-      private static int GetImportType(IFileSystem fileSystem, int dependentPageCount, string imageType) {
+      private int GetImportType(IFileSystem fileSystem, int dependentPageCount, IReadOnlyList<ISpriteRun> dependentSprites, string imageType) {
+         var details = new object[Math.Min(3, dependentSprites.Count)];
+         for (int i = 0; i < details.Length; i++) {
+            details[i] = ToolTipContentVisitor.BuildContentForRun(model, dependentSprites[i].Start, dependentSprites[i]);
+         }
          return fileSystem.ShowOptions("Import Sprite",
             $"This palette is used by {dependentPageCount} {imageType}. How do you want to handle the import?",
+            details,
             new VisualOption {
                Option = "Smart", Index = 0,
                ShortDescription = "Fix Incompatibilites Automatically",
@@ -662,7 +669,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (paletteRun.Pages > 1) dependentPageCount = dependentSprites.Count; // for multi-page palettes, only count each sprite once.
          string imageType = "images";
          if (dependentSprites.Any(ds => ds is LzTilesetRun)) imageType = "tilesets";
-         var choice = GetImportType(fileSystem, dependentPageCount, imageType);
+         var choice = GetImportType(fileSystem, dependentPageCount, dependentSprites, imageType);
 
          if (choice == 0) { // Smart
             var otherSprites = dependentSprites.Except(new[] { spriteRun }).ToList();
@@ -705,7 +712,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (paletteRun.Pages > 1) dependentPageCount = dependentSprites.Count; // for multi-page palettes, only count each sprite once.
          string imageType = "images";
          if (dependentSprites.Any(ds => ds is LzTilesetRun)) imageType = "tilesets";
-         var choice = GetImportType(fileSystem, dependentPageCount, imageType);
+         var choice = GetImportType(fileSystem, dependentPageCount, dependentSprites, imageType);
 
          if (choice == 0) { // Smart
             var otherSprites = dependentSprites.Except(new[] { spriteRun }).ToList();
@@ -745,7 +752,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (paletteRun.Pages > 1) dependentPageCount = dependentSprites.Count; // for multi-page palettes, only count each sprite once.
          string imageType = "images";
          if (dependentSprites.Any(ds => ds is LzTilesetRun)) imageType = "tilesets";
-         var choice = GetImportType(fileSystem, dependentPageCount, imageType);
+         var choice = GetImportType(fileSystem, dependentPageCount, dependentSprites, imageType);
 
          if (choice == 0) { // Smart
             var otherSprites = dependentSprites.Except(new[] { spriteRun }).ToList();

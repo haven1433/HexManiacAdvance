@@ -99,7 +99,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       void SaveImage(short[] image, int width);
 
-      int ShowOptions(string title, string prompt, params VisualOption[] options);
+      int ShowOptions(string title, string prompt, object[] additionalDetails, params VisualOption[] options);
    }
 
    public interface IWorkDispatcher {

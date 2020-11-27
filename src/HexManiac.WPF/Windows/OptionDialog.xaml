@@ -1,8 +1,8 @@
 ﻿<Window x:Class="HavenSoft.HexManiac.WPF.Windows.OptionDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:HavenSoft.HexManiac.WPF.Windows"
+        xmlns:hshmwpfc="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
+        xmlns:hshmcvmt="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Tools;assembly=HexManiac.Core"
         Title="" Width="450" SizeToContent="Height">
    <DockPanel Background="{DynamicResource Background}">
       <Button Content="Cancel" IsCancel="True" Margin="5" DockPanel.Dock="Bottom" HorizontalAlignment="Right"/>
@@ -28,6 +28,18 @@
                </Grid>
             </DataTemplate>
          </ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <ItemsControl Name="AdditionalDetails" HorizontalAlignment="Center" DockPanel.Dock="Bottom">
+         <ItemsControl.Resources>
+            <DataTemplate DataType="{x:Type hshmcvmt:ReadonlyPixelViewModel}">
+               <hshmwpfc:PixelImage SnapsToDevicePixels="True" Margin="5"/>
+            </DataTemplate>
+         </ItemsControl.Resources>
+         <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+               <StackPanel Orientation="Horizontal"/>
+            </ItemsPanelTemplate>
+         </ItemsControl.ItemsPanel>
       </ItemsControl>
       <TextBlock Name="Prompt" HorizontalAlignment="Center" Margin="5"/>
    </DockPanel>

@@ -155,7 +155,7 @@ namespace HavenSoft.HexManiac.Tests {
          var fs = new StubFileSystem {
             SaveImage = (p, w) => (pixelData, width) = (p, w),
             LoadImage = () => (pixelData, width),
-            ShowOptions = (_0, _1, _2) => 2, // use Cautious
+            ShowOptions = (_0, _1, _d, _2) => 2, // use Cautious
          };
 
          ViewPort.Edit("@table1/1/pal <A000>"); // alter tilemap2 to use the same palette as tilemap1
