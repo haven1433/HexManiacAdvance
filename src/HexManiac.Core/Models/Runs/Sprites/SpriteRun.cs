@@ -16,7 +16,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public override string FormatString { get; }
 
       public bool SupportsImport => true;
-      public bool SupportsEdit => bitsPerPixel > 2;
+      public bool SupportsEdit => true;
 
       public SpriteRun(int start, SpriteFormat format, SortedSpan<int> sources = null) : base(start, sources) {
          SpriteFormat = format;

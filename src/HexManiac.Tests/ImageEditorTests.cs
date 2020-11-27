@@ -1262,4 +1262,30 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(Rgb(0, 0, 0), editor.PixelData[editor.PixelIndex(5, 12)]);
       }
    }
+
+   public class ImageEditorOneBitImageTests : BaseViewModelTestClass {
+      private readonly IDataModel model = new PokemonModel(new byte[0x200], singletons: BaseViewModelTestClass.Singletons);
+      private readonly ChangeHistory<ModelDelta> history;
+      private readonly ImageEditorViewModel editor;
+      private ModelDelta RevertHistoryChange(ModelDelta change) => change.Revert(model);
+
+      private const int ImageStart = 0;
+
+      public ImageEditorOneBitImageTests() {
+         history = new ChangeHistory<ModelDelta>(RevertHistoryChange);
+
+         model.WritePointer(history.CurrentChange, 0x160, ImageStart);
+
+         model.ObserveAnchorWritten(history.CurrentChange, "image", new SpriteRun(0, new SpriteFormat(1, 1, 1, string.Empty)));
+
+         editor = new ImageEditorViewModel(history, model, ImageStart);
+      }
+
+
+      [Fact]
+      public void InitialState_PaletteHas2Colors() {
+         Assert.Equal(2, editor.Palette.Elements.Count);
+         Assert.False(editor.Palette.CanEditColors);
+      }
+   }
 }

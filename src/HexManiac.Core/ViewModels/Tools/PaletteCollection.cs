@@ -30,6 +30,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public int ColorWidth => Elements.Count / ColorHeight;
       public int ColorHeight => (int)Math.Ceiling(Math.Sqrt(Elements.Count));
+      public bool CanEditColors => SourcePalettePointer >= 0 && (model == null || SourcePalettePointer <= model.Count - 4);
+
+      public int SpriteBitsPerPixel { get; set; }
 
       public event EventHandler SelectionSet;
 
@@ -161,7 +164,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public void PushColorsToModel() {
-         if (model == null) return;
+         if (model == null || !CanEditColors) return;
          int sourcePalette = model.ReadPointer(sourcePalettePointer);
          if (!(model.GetNextRun(sourcePalette) is IPaletteRun source)) return;
 
@@ -197,7 +200,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void ReorderPalette() {
-         if (model == null) return;
+         if (model == null || !CanEditColors) return;
          int sourcePalette = model.ReadPointer(sourcePalettePointer);
          if (!(model.GetNextRun(sourcePalette) is IPaletteRun source)) return;
 

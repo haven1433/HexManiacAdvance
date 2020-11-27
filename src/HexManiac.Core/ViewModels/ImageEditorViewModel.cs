@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
@@ -157,7 +158,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          NotifyPropertyChanged(nameof(SpritePages));
          NotifyPropertyChanged(nameof(HasMultipleSpritePages));
 
-         int palPages = ((IPaletteRun)model.GetNextRun(model.ReadPointer(PalettePointer))).Pages;
+         int palPages = ReadPalette().pages;
          PalettePageOptions.Clear();
          for (int i = 0; i < palPages; i++) {
             var option = new SelectionViewModel { Selected = i == palettePage, Name = i.ToString(), Index = i };
@@ -399,10 +400,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var spriteRun = inputRun as ISpriteRun;
          var palRun = inputRun as IPaletteRun;
          if (spriteRun == null) spriteRun = palRun.FindDependentSprites(model).First();
-         if (palRun == null) palRun = spriteRun.FindRelatedPalettes(model).First();
+         if (palRun == null) palRun = spriteRun.FindRelatedPalettes(model).FirstOrDefault();
          SpritePointer = spriteRun.PointerSources[0];
-         PalettePointer = palRun.PointerSources[0];
-         Palette = new PaletteCollection(this, model, history) { SourcePalettePointer = PalettePointer };
+         PalettePointer = palRun?.PointerSources[0] ?? Pointer.NULL;
+         Palette = new PaletteCollection(this, model, history) {
+            SpriteBitsPerPixel = spriteRun.SpriteFormat.BitsPerPixel,
+            SourcePalettePointer = PalettePointer,
+         };
          Palette.Bind(nameof(Palette.HoverIndex), UpdateSelectionFromPaletteHover);
          InitializeEditOptions();
          Refresh();
@@ -412,6 +416,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Palette.SelectionSet += (sender, e) => BlockPreview.Clear();
          RefreshTilePalettes();
          TilePalettes.CollectionChanged += (sender, e) => PushTilePalettesToModel();
+      }
+
+      public static (IReadOnlyList<short> colors, int pages, int initialBlankPages) ReadPalette(IDataModel model, int palettePointer, int spriteBits) {
+         if (palettePointer == Pointer.NULL) {
+            return (TileViewModel.CreateDefaultPalette((int)Math.Pow(2, spriteBits)), 1, 0);
+         }
+
+         var paletteAddress = model.ReadPointer(palettePointer);
+         var palette = model.GetNextRun(paletteAddress) as IPaletteRun;
+         return (palette.AllColors(model), palette.Pages, palette.PaletteFormat.InitialBlankPages);
+      }
+
+      public (IReadOnlyList<short> colors, int pages, int initialBlankPages) ReadPalette() {
+         var sprite = (ISpriteRun)model.GetNextRun(model.ReadPointer(SpritePointer));
+         return ReadPalette(model, PalettePointer, sprite.SpriteFormat.BitsPerPixel);
       }
 
       // convenience methods
@@ -553,10 +572,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void RefreshPaletteColors() {
-         var paletteAddress = model.ReadPointer(PalettePointer);
-         var palRun = (IPaletteRun)model.GetNextRun(paletteAddress);
+         var palRun = ReadPalette();
          Palette.SourcePalettePointer = PalettePointer;
-         Palette.SetContents(palRun.GetPalette(model, palettePage));
+         var desiredCount = (int)Math.Pow(2, Palette.SpriteBitsPerPixel);
+         IReadOnlyList<short> palette = TileViewModel.CreateDefaultPalette(desiredCount);
+         if (palRun.colors.Count > 16 && palRun.colors.Count < 256) palRun.colors = palRun.colors.Skip(palettePage * 16).Take(16).ToArray();
+         Palette.SetContents(palRun.colors);
          foreach (var e in Palette.Elements) {
             e.PropertyChanged += (sender, args) => {
                var sc = (SelectableColor)sender;
@@ -581,18 +602,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void Render() {
          var spriteAddress = model.ReadPointer(SpritePointer);
-         var paletteAddress = model.ReadPointer(PalettePointer);
-
          var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
-         var palRun = (IPaletteRun)model.GetNextRun(paletteAddress);
          var readPixels = (spriteRun is LzTilesetRun tsRun) ? tsRun.GetPixels(model, SpritePage, CurrentTilesetWidth) : spriteRun.GetPixels(model, SpritePage);
+
+         var palRun = ReadPalette();
 
          PixelWidth = readPixels.GetLength(0);
          PixelHeight = readPixels.GetLength(1);
-         if (palettePage >= palRun.Pages) PalettePage = palRun.Pages - 1;
+         if (palettePage >= palRun.pages) PalettePage = palRun.pages - 1;
          var renderPage = palettePage;
          if (spriteRun.SpriteFormat.BitsPerPixel == 8 || spriteRun is LzTilemapRun) renderPage = 0;
-         PixelData = SpriteTool.Render(pixels, palRun.AllColors(model), palRun.PaletteFormat.InitialBlankPages, renderPage);
+         PixelData = SpriteTool.Render(pixels, palRun.colors, palRun.initialBlankPages, renderPage);
          NotifyPropertyChanged(nameof(PixelData));
 
          if (HasMultipleEditOptions) EditOptions[SelectedEditOption].Refresh();
@@ -610,9 +630,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// </summary>
       private int ColorIndex(int paletteIndex, int page = int.MinValue) {
          if (page == int.MinValue) page = PalettePage;
-         var paletteAddress = model.ReadPointer(PalettePointer);
-         var palRun = model.GetNextRun(paletteAddress) as IPaletteRun;
-         var pageOffset = ((palRun?.PaletteFormat.InitialBlankPages ?? 0) + page) << 4;
+         var blankPages = ReadPalette().initialBlankPages;
+         var pageOffset = (blankPages + page) << 4;
          return paletteIndex + pageOffset;
       }
 
@@ -621,15 +640,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// </summary>
       private int PaletteIndex(int colorIndex, int page = int.MinValue) {
          if (page == int.MinValue) page = PalettePage;
-         var paletteAddress = model.ReadPointer(PalettePointer);
-         var palRun = model.GetNextRun(paletteAddress) as IPaletteRun;
-         var pageOffset = ((palRun?.PaletteFormat.InitialBlankPages ?? 0) + page) << 4;
+         var blankPages = ReadPalette().initialBlankPages;
+         var pageOffset = (blankPages + page) << 4;
          return colorIndex - pageOffset;
       }
 
       private void UpdateSelectionFromPaletteHover(PaletteCollection sender, PropertyChangedEventArgs e) {
-         var paletteAddress = model.ReadPointer(PalettePointer);
-         int paletteStart = model.GetNextRun(paletteAddress) is IPaletteRun palRun ? palRun.PaletteFormat.InitialBlankPages * 16 : 0;
+         int paletteStart = ReadPalette().initialBlankPages * 16;
          paletteStart += PalettePage * 16;
          var matches = new List<Point>();
          if (Palette.HoverIndex >= 0) {
@@ -671,10 +688,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
             bool validHoverLocation = parent.WithinImage(point);
             if (validHoverLocation) {
-               var paletteAddress = parent.model.ReadPointer(parent.PalettePointer);
-               if (parent.CanEditTilePalettes && parent.model.GetNextRun(paletteAddress) is IPaletteRun palRun) {
+               var initialBlankPages = parent.ReadPalette().initialBlankPages;
+               if (parent.CanEditTilePalettes) {
                   var hoverTilesPalette = parent.TilePalettes[point.Y / 8 * parent.TileWidth + point.X / 8];
-                  validHoverLocation = palRun.PaletteFormat.InitialBlankPages + parent.PalettePage == hoverTilesPalette;
+                  validHoverLocation = initialBlankPages + parent.PalettePage == hoverTilesPalette;
                }
             }
 
@@ -719,10 +736,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          public void ToolHover(Point point) {
             point = parent.ToSpriteSpace(point);
-            var paletteAddress = parent.model.ReadPointer(parent.PalettePointer);
             bool validHoverLocation = parent.WithinImage(point);
             if (validHoverLocation) {
-               if (parent.CanEditTilePalettes && parent.model.GetNextRun(paletteAddress) is IPaletteRun palRun) {
+               if (parent.CanEditTilePalettes && parent.model.GetNextRun(parent.model.ReadPointer(parent.PalettePointer)) is IPaletteRun palRun) {
                   var hoverTilesPalette = parent.TilePalettes[point.Y / 8 * parent.TileWidth + point.X / 8];
                   validHoverLocation = parent.CursorSize == 8 || palRun.PaletteFormat.InitialBlankPages + parent.PalettePage == hoverTilesPalette;
                }
@@ -874,9 +890,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          public void SwapUnderPixelsWithCurrentPixels() {
-            var paletteRun = parent.model.GetNextRun(parent.model.ReadPointer(parent.PalettePointer)) as IPaletteRun;
-            var pageOffset = (paletteRun?.PaletteFormat.InitialBlankPages) ?? 0;
-            var fullPalette = paletteRun.AllColors(parent.model);
+            var (fullPalette, _, pageOffset) = parent.ReadPalette();
 
             for (int x = 0; x < selectionWidth; x++) {
                for (int y = 0; y < selectionHeight; y++) {
@@ -1311,13 +1325,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void Refresh() {
          var spriteAddress = model.ReadPointer(SpritePointer);
-         var paletteAddress = model.ReadPointer(PalettePointer);
          var sprite = model.GetNextRun(spriteAddress) as ISpriteRun;
-         var palette = model.GetNextRun(paletteAddress) as IPaletteRun;
-         if (sprite == null || palette == null) return;
+         if (sprite == null) return;
+
+         var (colors, _, initialBlankPages) = ImageEditorViewModel.ReadPalette(model, PalettePointer, sprite.SpriteFormat.BitsPerPixel);
 
          var pixels = sprite.GetPixels(model, 0);
-         PixelData = SpriteTool.Render(pixels, palette.AllColors(model), palette.PaletteFormat.InitialBlankPages, 0);
+         PixelData = SpriteTool.Render(pixels, colors, initialBlankPages, 0);
          NotifyPropertyChanged(nameof(PixelData));
       }
    }

@@ -127,7 +127,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             initialColors = CollectColorList();
             activeSelection = tileIndex;
             if (e.LeftButton == MouseButtonState.Pressed) {
-               swatchPopup.IsOpen = true;
+               swatchPopup.IsOpen = ViewModel.CanEditColors;
                swatch.ResultChanged += SwatchResultChanged;
             }
          } else {
