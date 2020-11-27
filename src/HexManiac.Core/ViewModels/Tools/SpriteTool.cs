@@ -437,9 +437,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ICommand OpenInImageTab => StubCommand(ref openInImageTab, () => viewPort.OpenImageEditorTab(spriteAddress, spritePage, palPage), () => {
          if (!(model.GetNextRun(spriteAddress) is ISpriteRun spriteRun)) return false;
          if (!spriteRun.SupportsEdit) return false;
+         if (spriteRun.Start != spriteAddress) return false;
+         if (spriteRun.PointerSources == null || spriteRun.PointerSources.Count == 0) return false;
+         if (!exportPair.CanExecute(null)) return false;
+         if (spriteRun.SpriteFormat.BitsPerPixel < 4) return true;
          if (!(model.GetNextRun(paletteAddress) is IPaletteRun palRun)) return false;
-         if (spriteRun.Start != spriteAddress || palRun.Start != paletteAddress) return false;
-         return spriteRun.PointerSources.Count > 0 && palRun.PointerSources.Count > 0 && exportPair.CanExecute(null);
+         if (palRun.Start != paletteAddress) return false;
+         return palRun.PointerSources != null && palRun.PointerSources.Count > 0;
       });
 
       public int PixelWidth { get; private set; }
