@@ -157,6 +157,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void PaletteColorMove(object sender, MouseEventArgs e) {
+         if (!ViewModel.CanEditColors) return;
          var oldTileIndex = InteractionTileIndex;
          interactionPoint = e.GetPosition(ItemsControl);
          var newTileIndex = InteractionTileIndex;
