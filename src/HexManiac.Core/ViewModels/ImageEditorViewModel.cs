@@ -217,6 +217,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             foreach (var palette in spriteRun.FindRelatedPalettes(model, spritePointer)) {
                EditOptions.Add(new EditOption(model, spritePointer, palette.PointerSources[0]));
             }
+            if (spriteRun.SpriteFormat.BitsPerPixel < 4) {
+               EditOptions.Add(new EditOption(model, spritePointer, Pointer.NULL));
+            }
          }
 
          NotifyPropertyChanged(nameof(HasMultipleEditOptions));
