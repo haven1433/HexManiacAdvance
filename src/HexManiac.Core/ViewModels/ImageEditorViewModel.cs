@@ -476,7 +476,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var yPartial = yOffset / SpriteScale;
          SpriteScale -= 1;
          var xRange = (int)(PixelWidth * SpriteScale / 2);
-         var yRange = (int)(PixelWidth * SpriteScale / 2);
+         var yRange = (int)(PixelHeight * SpriteScale / 2);
          XOffset = ((int)(xPartial * SpriteScale) + x).LimitToRange(-xRange, xRange);
          YOffset = ((int)(yPartial * SpriteScale) + y).LimitToRange(-yRange, yRange);
       }
@@ -1167,11 +1167,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                point = parent.ToSpriteSpace(point);
                if (!parent.WithinImage(point)) return;
                var index = parent.pixels[point.X, point.Y];
-               var paletteAddress = parent.model.ReadPointer(parent.PalettePointer);
-               if (parent.model.GetNextRun(paletteAddress) is IPaletteRun palRun && palRun.Start == paletteAddress && palRun.PaletteFormat.Bits == 4) {
-                  index -= palRun.PaletteFormat.InitialBlankPages << 4;
-                  parent.PalettePage = index / 16;
-                  index %= 16;
+               if (parent.Palette.CanEditColors) {
+                  var paletteAddress = parent.model.ReadPointer(parent.PalettePointer);
+                  if (parent.model.GetNextRun(paletteAddress) is IPaletteRun palRun && palRun.Start == paletteAddress && palRun.PaletteFormat.Bits == 4) {
+                     index -= palRun.PaletteFormat.InitialBlankPages << 4;
+                     parent.PalettePage = index / 16;
+                     index %= 16;
+                  }
                }
 
                parent.Palette.SelectionStart = index;

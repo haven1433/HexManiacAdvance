@@ -431,14 +431,21 @@
          MouseRightButtonUp="MouseSecondaryUp"
          MouseMove="MoveMouse"
          MouseWheel="WheelMouse">
-         <local:PixelImage LayoutTransform="{x:Null}" RenderTransformOrigin=".5,.5" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <local:PixelImage.RenderTransform>
-               <TransformGroup>
-                  <ScaleTransform ScaleX="{Binding SpriteScale}" ScaleY="{Binding SpriteScale}"/>
-                  <TranslateTransform X="{Binding XOffset}" Y="{Binding YOffset}"/>
-               </TransformGroup>
-            </local:PixelImage.RenderTransform>
-         </local:PixelImage>
+         <!-- Wrapping the PixelImage in a canvas to prevent clipping -->
+         <Canvas
+            VerticalAlignment="Center"
+            HorizontalAlignment="Center"
+            Width="{Binding ActualWidth, ElementName=EditImage}"
+            Height="{Binding ActualHeight, ElementName=EditImage}">
+            <local:PixelImage x:Name="EditImage" LayoutTransform="{x:Null}" RenderTransformOrigin=".5,.5">
+               <local:PixelImage.RenderTransform>
+                  <TransformGroup>
+                     <ScaleTransform ScaleX="{Binding SpriteScale}" ScaleY="{Binding SpriteScale}"/>
+                     <TranslateTransform X="{Binding XOffset}" Y="{Binding YOffset}"/>
+                  </TransformGroup>
+               </local:PixelImage.RenderTransform>
+            </local:PixelImage>
+         </Canvas>
          <!-- Wrapping the selection render in a canvas to prevent clipping -->
          <Canvas
             IsHitTestVisible="False"
