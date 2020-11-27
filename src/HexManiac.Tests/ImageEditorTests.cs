@@ -75,6 +75,7 @@ namespace HavenSoft.HexManiac.Tests {
          model[0x60] = 0x23; // random data after the palette, so expanding it causes a repoint
 
          editor = new ImageEditorViewModel(history, model, SpriteStart);
+         editor.SpriteScale = 1;
       }
 
       private void Insert64CompressedBytes(int start) {
@@ -982,6 +983,7 @@ namespace HavenSoft.HexManiac.Tests {
          model.ObserveAnchorWritten(history.CurrentChange, "palette", new LzPaletteRun(new PaletteFormat(4, 2, 2), model, PaletteStart)); // pages are 2 and 3
 
          editor = new ImageEditorViewModel(history, model, TilemapStart);
+         editor.SpriteScale = 1;
       }
 
       [Fact]

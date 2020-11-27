@@ -349,7 +349,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public short[] PixelData { get; private set; }
 
-      private double spriteScale = 1;
+      private double spriteScale = 4;
       public double SpriteScale { get => spriteScale; set => Set(ref spriteScale, value, arg => NotifyPropertyChanged(nameof(FontSize))); }
 
       public PaletteCollection Palette { get; }
