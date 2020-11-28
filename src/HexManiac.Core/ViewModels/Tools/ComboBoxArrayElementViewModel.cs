@@ -124,7 +124,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          using (ModelCacheScope.CreateScope(ViewPort.Model)) {
             var run = (ITableRun)ViewPort.Model.GetNextRun(Start);
             var offsets = run.ConvertByteOffsetToArrayOffset(Start);
-            var segment = (ArrayRunEnumSegment)run.ElementContent[offsets.SegmentIndex];
+            var rawSegment = run.ElementContent[offsets.SegmentIndex];
+            if (rawSegment is ArrayRunRecordSegment recordSegment) rawSegment = recordSegment.CreateConcrete(ViewPort.Model, Start);
+            var segment = (ArrayRunEnumSegment)rawSegment;
 
             // special case: the last option might be a weird value that came in, not normally available in the enum
             if (containsUniqueOption && selectedIndex == fullOptions.Count - 1 && int.TryParse(fullOptions[selectedIndex].Text, out var parsedValue)) {
@@ -148,7 +150,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var run = (ITableRun)ViewPort.Model.GetNextRun(Start);
          TableName = viewPort.Model.GetAnchorFromAddress(-1, run.Start);
          var offsets = run.ConvertByteOffsetToArrayOffset(start);
-         var segment = run.ElementContent[offsets.SegmentIndex] as ArrayRunEnumSegment;
+         var rawSegment = run.ElementContent[offsets.SegmentIndex];
+         if (rawSegment is ArrayRunRecordSegment recordSegment) rawSegment = recordSegment.CreateConcrete(viewPort.Model, start);
+         var segment = rawSegment as ArrayRunEnumSegment;
          int optionSource = Pointer.NULL;
          Debug.Assert(segment != null);
          if (segment != null) {

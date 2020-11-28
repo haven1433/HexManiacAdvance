@@ -33,6 +33,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var offsets = self.ConvertByteOffsetToArrayOffset(index);
          var currentSegment = self.ElementContent[offsets.SegmentIndex];
          var position = index - offsets.SegmentStart;
+         if (currentSegment is ArrayRunRecordSegment recordSegment) currentSegment = recordSegment.CreateConcrete(data, index);
          if (currentSegment.Type == ElementContentType.Integer) {
             if (currentSegment is ArrayRunEnumSegment enumSegment) {
                var value = enumSegment.ToText(data, offsets.SegmentStart, false);
@@ -181,6 +182,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public const char DoubleByteIntegerFormat = ':';
       public const char ArrayAnchorSeparator = '/';
       public const string HexFormatString = "|h";
+      public const string RecordFormatString = "|s=";
       public const string ColorFormatString = "|c";
 
       private const int JunkLimit = 80;
@@ -746,6 +748,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   if (endOfToken == -1) endOfToken = segments.Length;
                   segments = segments.Substring(endOfToken).Trim();
                   list.Add(new ArrayRunColorSegment(name));
+               } else if (segments.StartsWith(RecordFormatString)) {
+                  var endOfToken = segments.IndexOf(' ');
+                  if (endOfToken == -1) endOfToken = segments.Length;
+                  var recordContract = segments.Substring(0, endOfToken);
+                  segments = segments.Substring(endOfToken).Trim();
+                  if (recordContract.Count('(') != 1 || recordContract.Count(')') != 1) {
+                     throw new ArrayRunParseException("Record format is s={name}({number}={enum}|...).");
+                  }
+                  list.Add(new ArrayRunRecordSegment(name, segmentLength, recordContract));
                } else if (int.TryParse(segments, out var elementCount)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;

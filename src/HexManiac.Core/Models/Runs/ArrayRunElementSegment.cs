@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Diagnostics;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public enum ElementContentType {
@@ -225,6 +226,53 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
 
          return options;
+      }
+   }
+
+   public class ArrayRunRecordSegment : ArrayRunElementSegment {
+      public string MatchField { get; }
+      public IReadOnlyDictionary<int,string> EnumForValue { get; }
+
+      public override string SerializeFormat {
+         get {
+            var records = "|".Join(EnumForValue.OrderBy(pair => pair.Key).Select(pair => $"{pair.Key}={pair.Value}"));
+            return $"{base.SerializeFormat}|s={MatchField}({records})";
+         }
+      }
+
+      public ArrayRunRecordSegment(string name, int length, string recordSwitch) : base(name, ElementContentType.Integer, length) {
+         Debug.Assert(recordSwitch.StartsWith("|s="));
+         Debug.Assert(recordSwitch.Contains("(") && recordSwitch.Contains(")"));
+         recordSwitch = recordSwitch.Substring(3);
+         MatchField = recordSwitch.Split("(")[0];
+         if (string.IsNullOrEmpty(MatchField)) throw new ArrayRunParseException("Record format is s={name}({number}={enum}|...).");
+         recordSwitch = recordSwitch.Substring(MatchField.Length + 1).Replace(")", string.Empty);
+
+         var enumForValue = new Dictionary<int, string>();
+         foreach (var pair in recordSwitch.Split("|")) {
+            var keyAndValue = pair.Split("=");
+            if (keyAndValue.Length != 2) continue;
+            if (!int.TryParse(keyAndValue[0], out int key)) continue;
+            enumForValue[key] = keyAndValue[1];
+         }
+         EnumForValue = enumForValue;
+      }
+
+      public ArrayRunElementSegment CreateConcrete(IDataModel model, int offset) {
+         var defaultConcrete = new ArrayRunElementSegment(Name, ElementContentType.Integer, Length);
+         var table = (ITableRun)model.GetNextRun(offset);
+         int matchFieldOffset = 0;
+         int matchFieldIndex = 0;
+         for (int i = 0; i < table.ElementContent.Count; i++) {
+            if (table.ElementContent[i].Name == MatchField) break;
+            matchFieldOffset += table.ElementContent[i].Length;
+            matchFieldIndex += 1;
+         }
+         if (matchFieldOffset == table.ElementLength) return defaultConcrete;
+         var offsets = table.ConvertByteOffsetToArrayOffset(offset);
+         var matchFieldValue = model.ReadMultiByteValue(table.Start + offsets.ElementIndex * table.ElementLength + matchFieldOffset, table.ElementContent[matchFieldIndex].Length);
+         if (!EnumForValue.TryGetValue(matchFieldValue, out var enumName)) return defaultConcrete;
+         return new ArrayRunEnumSegment(Name, Length, enumName);
       }
    }
 

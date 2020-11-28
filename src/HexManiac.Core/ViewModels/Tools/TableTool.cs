@@ -356,7 +356,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void AddChildrenFromTable(ITableRun table, int index) {
          var itemAddress = table.Start + table.ElementLength * index;
-         foreach (var item in table.ElementContent) {
+         foreach (var itemSegment in table.ElementContent) {
+            var item = itemSegment;
+            if (item is ArrayRunRecordSegment recordItem) item = recordItem.CreateConcrete(model, itemAddress);
             IArrayElementViewModel viewModel = null;
             if (item.Type == ElementContentType.Unknown) viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, HexFieldStratgy.Instance);
             else if (item.Type == ElementContentType.PCS) viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, new TextFieldStrategy());
