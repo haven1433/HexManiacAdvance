@@ -88,6 +88,16 @@
                   <Setter Property="VerticalContentAlignment" Value="Center"/>
                </Style>
             </StackPanel.Resources>
+            <Decorator ToolTip="Undo (Ctrl+Z)">
+               <Button Command="{Binding Undo}">
+                  <Path Data="{hshmwpfr:Icon UndoArrow}"/>
+               </Button>
+            </Decorator>
+            <Decorator ToolTip="Redo (Ctrl+Y)">
+               <Button Command="{Binding Redo}">
+                  <Path Data="{hshmwpfr:Icon RedoArrow}"/>
+               </Button>
+            </Decorator>
             <StackPanel>
                <Button Command="{Binding ZoomInCommand}" Width="30" Height="15">
                   <Button.Content>

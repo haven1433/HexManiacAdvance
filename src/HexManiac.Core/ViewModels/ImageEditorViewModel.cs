@@ -70,6 +70,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var selectionEnd = Palette.SelectionEnd;
 
          history.Undo.Execute();
+         undoWrapper.RaiseCanExecuteChanged();
+         redoWrapper.RaiseCanExecuteChanged();
          Refresh();
          if (HasMultipleEditOptions) EditOptions[SelectedEditOption].Refresh();
 
@@ -79,6 +81,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void ExecuteRedo() {
          history.Redo.Execute();
+         undoWrapper.RaiseCanExecuteChanged();
+         redoWrapper.RaiseCanExecuteChanged();
          Refresh();
          if (HasMultipleEditOptions) EditOptions[SelectedEditOption].Refresh();
       }
@@ -514,6 +518,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          toolStrategy.ToolUp(point);
          withinInteraction = false;
          history.ChangeCompleted();
+         undoWrapper.RaiseCanExecuteChanged();
          if (HasMultipleEditOptions) EditOptions[SelectedEditOption].Refresh();
       }
 
