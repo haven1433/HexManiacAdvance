@@ -1678,7 +1678,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             lists.Add(new StoredList(name, members.ToList()));
          }
 
-         return new StoredMetadata(anchors, unmappedPointers, matchedWords, offsetPointers, lists, metadataInfo, FreeSpaceStart);
+         return new StoredMetadata(anchors, unmappedPointers, matchedWords, offsetPointers, lists, metadataInfo, FreeSpaceStart, NextExportID);
       }
 
       /// <summary>

@@ -34,6 +34,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ICommand Save { get; } = new StubCommand();
       public ICommand SaveAs { get; } = new StubCommand();
+      public ICommand ExportBackup { get; } = new StubCommand();
       public ICommand Undo => undo;
       public ICommand Redo => redo;
       public ICommand Copy { get; } = new StubCommand();

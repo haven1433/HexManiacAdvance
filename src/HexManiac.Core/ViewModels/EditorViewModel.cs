@@ -31,6 +31,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          open = new StubCommand(),
          save = new StubCommand(),
          saveAs = new StubCommand(),
+         exportBackup = new StubCommand(),
          saveAll = new StubCommand(),
          close = new StubCommand(),
          closeAll = new StubCommand(),
@@ -73,6 +74,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand Save => save;
       public ICommand SaveAs => saveAs;
       public ICommand SaveAll => saveAll;
+      public ICommand ExportBackup => exportBackup;
       public ICommand Close => close;
       public ICommand CloseAll => closeAll;
       public ICommand Undo => undo;
@@ -346,6 +348,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          selectAll = CreateWrapperForSelected(tab => tab.SelectAll);
          save = CreateWrapperForSelected(tab => tab.Save);
          saveAs = CreateWrapperForSelected(tab => tab.SaveAs);
+         exportBackup = CreateWrapperForSelected(tab => tab.ExportBackup);
          close = CreateWrapperForSelected(tab => tab.Close);
          undo = CreateWrapperForSelected(tab => tab.Undo);
          redo = CreateWrapperForSelected(tab => tab.Redo);
@@ -363,6 +366,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             { tab => tab.SelectAll, (sender, e) => selectAll.CanExecuteChanged.Invoke(this,e) },
             { tab => tab.Save, (sender, e) => save.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.SaveAs, (sender, e) => saveAs.CanExecuteChanged.Invoke(this, e) },
+            { tab => tab.ExportBackup, (sender, e) => exportBackup.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.Close, (sender, e) => close.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.Undo, (sender, e) => undo.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.Redo, (sender, e) => redo.CanExecuteChanged.Invoke(this, e) },

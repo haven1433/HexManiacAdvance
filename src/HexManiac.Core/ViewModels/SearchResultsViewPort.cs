@@ -71,6 +71,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public string FileName => string.Empty;
       public ICommand Save { get; } = new StubCommand();
       public ICommand SaveAs { get; } = new StubCommand();
+      public ICommand ExportBackup => null;
       public ICommand Undo { get; } = new StubCommand();
       public ICommand Redo { get; } = new StubCommand();
       public ICommand Copy { get; } = new StubCommand();

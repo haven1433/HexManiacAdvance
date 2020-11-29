@@ -421,6 +421,12 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          return optionDialog.Result;
       }
 
+      public string RequestText(string title, string prompt) {
+         var dialog = new RequestTextDialog { Title = title, Prompt = { Text = prompt } };
+         dialog.ShowDialog();
+         return dialog.Result;
+      }
+
       private static SolidColorBrush Brush(string name) {
          return (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][name];
       }

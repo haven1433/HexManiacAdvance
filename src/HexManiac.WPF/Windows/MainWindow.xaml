@@ -17,6 +17,7 @@
       <KeyBinding Key="S" Modifiers="Ctrl" Command="{Binding Save}" />
       <KeyBinding Key="S" Modifiers="Ctrl+Shift" Command="{Binding SaveAs}" />
       <KeyBinding Key="A" Modifiers="Ctrl+Shift" Command="{Binding SaveAll}" />
+      <KeyBinding Key="E" Modifiers="Ctrl" Command="{Binding ExportBackup}" />
       <KeyBinding Key="A" Modifiers="Ctrl" Command="{Binding SelectAll}" />
       <KeyBinding Key="W" Modifiers="Ctrl" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}" />
 
@@ -86,6 +87,7 @@
                   </MenuItem>
                   <MenuItem Header="Save _As" Command="{Binding SaveAs}" InputGestureText="Ctrl+Shift+S" />
                   <MenuItem Header="Save A_ll" Command="{Binding SaveAll}" InputGestureText="Ctrl+Shift+A" />
+                  <MenuItem Header="_Export Backup" Command="{Binding ExportBackup}" InputGestureText="Ctrl+E" />
                   <Separator />
                   <MenuItem Header="_Close Current Tab" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}" InputGestureText="Ctrl+W" />
                   <MenuItem Header="E_xit" Click="ExitClicked" InputGestureText="Alt+F4">

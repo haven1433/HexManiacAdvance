@@ -1,0 +1,20 @@
+﻿<Window x:Class="HavenSoft.HexManiac.WPF.Windows.RequestTextDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="" Width="450" SizeToContent="Height">
+   <Window.CommandBindings>
+      <CommandBinding Command="NextPage" Executed="AcceptText"/>
+   </Window.CommandBindings>
+   <DockPanel Background="{DynamicResource Background}">
+      <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Right" Orientation="Horizontal">
+         <Button Content="OK" Command="NextPage" Margin="5"/>
+         <Button Content="Cancel" IsCancel="True" Margin="5"/>
+      </StackPanel>
+      <TextBlock Name="Prompt" HorizontalAlignment="Center" Margin="5" DockPanel.Dock="Top"/>
+      <TextBox Name="TextBox" Margin="5">
+         <TextBox.InputBindings>
+            <KeyBinding Key="Enter" Command="NextPage"/>
+         </TextBox.InputBindings>
+      </TextBox>
+   </DockPanel>
+</Window>

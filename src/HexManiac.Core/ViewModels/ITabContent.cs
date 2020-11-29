@@ -10,6 +10,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       string Name { get; }
       ICommand Save { get; }   // parameter: IFileSystem
       ICommand SaveAs { get; } // parameter: IFileSystem
+      ICommand ExportBackup { get; } // parameter: IFileSystem
       ICommand Undo { get; }
       ICommand Redo { get; }
       ICommand Copy { get; }   // parameter: IFileSystem

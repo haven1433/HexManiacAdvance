@@ -20,6 +20,11 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       int FreeSpaceStart { get; set; }
 
+      /// <summary>
+      /// Used when exporting to the backup folder
+      /// </summary>
+      int NextExportID { get; set; }
+
       new byte this[int index] { get; set; }
       IReadOnlyList<string> ListNames { get; }
       IReadOnlyList<ArrayRun> Arrays { get; }
@@ -89,6 +94,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public BaseModel(byte[] data) => RawData = data;
 
       public int FreeSpaceStart { get; set; }
+
+      public int NextExportID { get; set; }
 
       public virtual IReadOnlyList<string> ListNames { get; } = new List<string>();
       public virtual IReadOnlyList<ArrayRun> Arrays { get; } = new List<ArrayRun>();

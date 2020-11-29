@@ -394,7 +394,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void HistoryPropertyChanged(object sender, PropertyChangedEventArgs e) {
          if (e.PropertyName == nameof(history.IsSaved)) {
-            save.CanExecuteChanged.Invoke(save, EventArgs.Empty);
+            save.RaiseCanExecuteChanged();
+            exportBackup.RaiseCanExecuteChanged();
             if (history.IsSaved) { Model.ResetChanges(); RefreshBackingData(); }
          }
 
@@ -408,11 +409,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private readonly StubCommand
          save = new StubCommand(),
          saveAs = new StubCommand(),
+         exportBackup = new StubCommand(),
          close = new StubCommand();
 
       public ICommand Save => save;
 
       public ICommand SaveAs => saveAs;
+
+      public ICommand ExportBackup => exportBackup;
 
       public ICommand Close => close;
 
@@ -444,6 +448,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             fileSystem.SaveMetadata(FileName, metadata?.Serialize());
             history.TagAsSaved();
             Model.ResetChanges();
+         }
+      }
+
+      private void ExportBackupExecuted(IFileSystem fileSystem) {
+         var changeDescription = fileSystem.RequestText("Export Summary", "What was your most recent change?");
+         if (changeDescription == null) return;
+         changeDescription = new string(changeDescription.Where(char.IsLetterOrDigit).ToArray());
+
+         var exportID = Model.NextExportID;
+         Model.NextExportID += 1;
+         var metadata = Model.ExportMetadata(Singletons.MetadataInfo);
+         var fileName = Path.GetFileNameWithoutExtension(FullFileName);
+         fileName = fileName.Split("_backup")[0];
+         var extension = Path.GetExtension(FullFileName);
+         var directory = Path.GetDirectoryName(FullFileName);
+         if (!string.IsNullOrEmpty(directory)) directory = directory + Path.DirectorySeparatorChar;
+
+         var exportName = $"{directory}backups{Path.DirectorySeparatorChar}{fileName}_backup{exportID}__{changeDescription}{extension}";
+         if (fileSystem.Save(new LoadedFile(exportName, Model.RawData))) {
+            fileSystem.SaveMetadata(exportName, metadata?.Serialize());
          }
       }
 
@@ -722,6 +746,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          saveAs.CanExecute = CanAlwaysExecute;
          saveAs.Execute = arg => SaveAsExecuted((IFileSystem)arg);
+
+         exportBackup.CanExecute = arg => !history.HasDataChange;
+         exportBackup.Execute = arg => ExportBackupExecuted((IFileSystem)arg);
 
          close.CanExecute = CanAlwaysExecute;
          close.Execute = arg => CloseExecuted((IFileSystem)arg);

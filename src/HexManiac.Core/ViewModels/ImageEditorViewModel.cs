@@ -43,6 +43,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public string FullFileName { get; }
       public ICommand Save { get; }
       public ICommand SaveAs => null;
+      public ICommand ExportBackup => null;
       public ICommand Undo => StubCommand(ref undoWrapper, ExecuteUndo, () => history.Undo.CanExecute(default));
       public ICommand Redo => StubCommand(ref redoWrapper, ExecuteRedo, () => history.Redo.CanExecute(default));
       public ICommand Copy => StubCommand<IFileSystem>(ref copyCommand, ExecuteCopy, fs => toolStrategy is SelectionTool selectTool && selectTool.HasSelection);
