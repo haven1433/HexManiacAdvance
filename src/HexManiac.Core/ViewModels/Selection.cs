@@ -151,7 +151,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      if (result >= BaseModel.PointerOffset) result -= BaseModel.PointerOffset;
                      GotoAddress(result);
                   } else {
-                     address = address.Trim();
+                     address = address.ToLower().Trim();
                      var options = model.GetAutoCompleteAnchorNameOptions(address);
                      if (!address.Contains("/") && options.All(option => !option.ToLower().Contains(address))) {
                         options = options.Concat(model.GetAutoCompleteAnchorNameOptions("/" + address)).ToList();
