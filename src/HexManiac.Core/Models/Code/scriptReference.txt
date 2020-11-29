@@ -26,8 +26,8 @@
 03 return                                    # pops back to the last calling command used.
 04 call pointer<>                            # Continues script execution from another point. Can be returned to.
 05 goto pointer<>                            # Continues script execution from another point. Cannot return.
-06 if1 condition.script_compare pointer<>    # if the last comparison returned a certian value, "goto" to another script
-07 if2 condition.script_compare pointer<>    # if the last comparison returned a certian value, "call" to another script
+06 if1 condition.script_compare pointer<>    # if the last comparison returned a certain value, "goto" to another script
+07 if2 condition.script_compare pointer<>    # if the last comparison returned a certain value, "call" to another script
 08 gotostd function.                         # goto a built-in function
 09 callstd function.                         # call a built-in function
 0A gotostdif condition. function.            # goto a built in function if the condition is met
