@@ -306,6 +306,12 @@ graphics.titlescreen.introscene.grass.tilemap2,    ,,,, 0ED310, 0ED2E8, 0ED328, 
 graphics.titlescreen.introscene.grass.background.palette,  ,,,, 0ECF4C, 0ECF24, 0ECF64, 0ECF3C, , `ucp4`
 graphics.titlescreen.introscene.grass.background.tileset,  ,,,, 0ECF58, 0ECF30, 0ECF70, 0ECF48, , `lzt4|graphics.titlescreen.introscene.grass.background.palette`
 graphics.titlescreen.introscene.grass.background.tilemap,  ,,,, 0ECF5C, 0ECF34, 0ECF74, 0ECF4C, , `lzm4x32x64|graphics.titlescreen.introscene.grass.background.tileset`
+graphics.titlescreen.introscene.palette,                   ,,,, ,,,, 16D0FC, `ucp4:0123456789ABCDEF`
+graphics.titlescreen.introscene.tileset,                   ,,,, ,,,, 16D0C0, `lzt4|graphics.titlescreen.introscene.palette`
+graphics.titlescreen.introscene.tilemap1,                  ,,,, ,,,, 16D0C4, `lzm4x32x32|graphics.titlescreen.introscene.tileset`
+graphics.titlescreen.introscene.tilemap2,                  ,,,, ,,,, 16D0D8, `lzm4x32x32|graphics.titlescreen.introscene.tileset`
+graphics.titlescreen.introscene.tilemap3,                  ,,,, ,,,, 16D0E4, `lzm4x32x32|graphics.titlescreen.introscene.tileset`
+graphics.titlescreen.introscene.tilemap4,                  ,,,, ,,,, 16D0F0, `lzm4x32x32|graphics.titlescreen.introscene.tileset`
 graphics.titlescreen.developer.palette1,                   ,,,, 40BBE8, 40BA24, 40BC58, 40BA94, , `ucp4`
 graphics.titlescreen.developer.palette2,                   ,,,, 40BBF0, 40BA2C, 40BC60, 40BA9C, , `ucp4`
 graphics.titlescreen.developer.palette3,                   ,,,, 40BBF8, 40BA34, 40BC68, 40BAA4, , `ucp4`
