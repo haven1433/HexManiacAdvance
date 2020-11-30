@@ -291,12 +291,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var palettes = new ModelTable(model, model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, HardcodeTablesModel.PokePalettesTable));
          var sprite = sprites[index].GetSprite(sprites[index].GetFieldName(0));
          var palette = palettes[index].GetPalette(palettes[index].GetFieldName(0));
+         if (palette == null) palette = TileViewModel.CreateDefaultPalette(16);
          extraIndices = new List<int>();
 
          CanonicalIndex = index;
          PixelWidth = sprite?.GetLength(0) ?? 64;
          PixelHeight = sprite?.GetLength(1) ?? 64;
-         PixelData = sprite != null && palette != null ? SpriteTool.Render(sprite, palette, 0, 0) : new short[64 * 64];
+         PixelData = sprite != null ? SpriteTool.Render(sprite, palette, 0, 0) : new short[64 * 64];
          SpriteScale = 1;
 
          filterTerms = GenerateFilterTerms(model, index);
