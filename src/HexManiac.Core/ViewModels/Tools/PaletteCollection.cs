@@ -201,6 +201,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void ReorderPalette() {
          if (model == null || !CanEditColors) return;
+         if (sourcePalettePointer < 0 || sourcePalettePointer > model.Count - 4) return;
          int sourcePalette = model.ReadPointer(sourcePalettePointer);
          if (!(model.GetNextRun(sourcePalette) is IPaletteRun source)) return;
 
