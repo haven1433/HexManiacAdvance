@@ -117,6 +117,25 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
    }
 
+   public static class GameReferenceTableDictionaryExtensions {
+      public static string[] GuessSources(this IReadOnlyDictionary<string, GameReferenceTables> self, string code, int address) {
+         var result = self.Count.Range().Select(i => string.Empty).ToArray();
+         if (!self.TryGetValue(code, out var tables)) return result;
+         var index = tables.GetIndexOfNearestAddress(address);
+         var name = tables[index].Name;
+         var diff = address - tables[index].Address;
+
+         var keys = self.Keys.ToArray();
+         for (int i = 0; i < self.Count; i++) {
+            var currentTable = self[keys[i]].FirstOrDefault(table => table.Name == name);
+            if (currentTable == null) continue;
+            result[i] = (currentTable.Address + diff).ToAddress();
+         }
+
+         return result;
+      }
+   }
+
    public class GameReferenceTables : IReadOnlyList<ReferenceTable> {
       private readonly IReadOnlyList<ReferenceTable> core;
       public ReferenceTable this[string name] => core.FirstOrDefault(table => table.Name == name);
@@ -127,6 +146,22 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public IEnumerator<ReferenceTable> GetEnumerator() => core.GetEnumerator();
       IEnumerator IEnumerable.GetEnumerator() => core.GetEnumerator();
+
+      /// <summary>
+      /// Given an address, finds the reference table nearest to that address
+      /// and returns its index.
+      /// </summary>
+      public int GetIndexOfNearestAddress(int address) {
+         var distance = int.MaxValue;
+         var index = -1;
+         for (int i = 0; i < Count; i++) {
+            var currentDistance = Math.Abs(this[i].Address - address);
+            if (currentDistance > distance) continue;
+            distance = currentDistance;
+            index = i;
+         }
+         return index;
+      }
    }
 
    public class ReferenceTable {

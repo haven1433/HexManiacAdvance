@@ -917,9 +917,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return;
          }
 
+         var gameCode = viewport.Model.GetGameCode();
+         var addresses = ",".Join(Singletons.GameReferenceTables.GuessSources(gameCode, run.PointerSources[0]));
+
          var content = new StringBuilder();
          content.AppendLine("```");
-         content.AppendLine($"{anchor}, ({viewport.Model.GetGameCode()}){run.PointerSources[0]:X6}, {run.FormatString}");
+         content.AppendLine($"{anchor}, {addresses}, {run.FormatString} // {gameCode}");
          content.AppendLine("```");
          fileSystem.CopyText = content.ToString();
          InformationMessage = $"Copied {anchor} reference.";
