@@ -547,6 +547,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public bool ShowSelectionRect(Point spriteSpace) {
          if (spriteSpace.X < 0 || spriteSpace.X >= PixelWidth || spriteSpace.Y < 0 || spriteSpace.Y >= PixelHeight) return false;
+         if (spriteSpace.X >= selectedPixels.GetLength(0) || spriteSpace.Y >= selectedPixels.GetLength(1)) return false;
          return selectedPixels[spriteSpace.X, spriteSpace.Y];
       }
 
