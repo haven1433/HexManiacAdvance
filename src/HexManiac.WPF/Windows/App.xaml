@@ -6,6 +6,7 @@
    <Application.Resources>
       <hsc:BooleanToVisibilityConverter x:Key="BoolToVisibility" />
       <hsc:PaletteColorConverter x:Key="PaletteColorConverter"/>
+      <hsc:TilePaletteHueConverter x:Key="TilePaletteHueConverter"/>
       <hsc:EqualityToBooleanConverter x:Key="EqualityCheck"/>
 
       <DrawingBrush x:Key="HexBrush" TileMode="FlipX" ViewportUnits="Absolute" Viewport="0,0,33,38">

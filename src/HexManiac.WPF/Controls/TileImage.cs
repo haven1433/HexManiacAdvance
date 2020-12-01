@@ -75,6 +75,41 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
    }
 
+   public class TilePaletteHueConverter : IValueConverter {
+      private static readonly Color[] colors = new[] {
+         Color.FromArgb(64,   0,   0,   0),
+         Color.FromArgb(64, 255,   0,   0),
+         Color.FromArgb(64, 255, 128,   0),
+         Color.FromArgb(64, 255, 255,   0),
+
+         Color.FromArgb(64, 128, 255,   0),
+         Color.FromArgb(64,   0, 255,   0),
+         Color.FromArgb(64,   0, 255, 128),
+         Color.FromArgb(64,   0, 255, 255),
+
+         Color.FromArgb(64,   0, 128, 255),
+         Color.FromArgb(64,   0,   0, 255),
+         Color.FromArgb(64, 128,   0, 255),
+         Color.FromArgb(64, 255,   0, 255),
+
+         Color.FromArgb(64, 255,   0, 128),
+         Color.FromArgb(64,  85,  85,  85),
+         Color.FromArgb(64, 170, 170, 170),
+         Color.FromArgb(64, 255, 255, 255),
+      };
+
+      private static readonly SolidColorBrush[] brushes = colors.Select(c => new SolidColorBrush(c)).ToArray();
+
+      public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
+         var source = (int)value;
+         return brushes[source];
+      }
+
+      public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {
+         throw new NotImplementedException();
+      }
+   }
+
    public class EqualityToBooleanConverter : IValueConverter {
       public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
          return Equals(value.ToString(), parameter.ToString());

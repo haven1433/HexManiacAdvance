@@ -483,7 +483,9 @@
                   </ItemsControl.ItemsPanel>
                   <ItemsControl.ItemTemplate>
                      <DataTemplate>
-                        <TextBlock Text="{Binding}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Border Background="{Binding Converter={StaticResource TilePaletteHueConverter}}">
+                           <TextBlock Text="{Binding}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
                      </DataTemplate>
                   </ItemsControl.ItemTemplate>
                </ItemsControl>
