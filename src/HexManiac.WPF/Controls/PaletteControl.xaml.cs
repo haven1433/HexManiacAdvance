@@ -67,6 +67,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             },
          };
          LoseKeyboardFocusCausesLoseMultiSelect = true;
+         Unloaded += (sender, e) => ClosePopup();
       }
 
       public void ClosePopup() {
