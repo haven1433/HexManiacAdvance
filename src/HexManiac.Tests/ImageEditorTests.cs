@@ -1263,6 +1263,19 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(Rgb(0, 0, 0), editor.PixelData[editor.PixelIndex(4, 11)]);
          Assert.Equal(Rgb(0, 0, 0), editor.PixelData[editor.PixelIndex(5, 12)]);
       }
+
+      [Fact]
+      public void FillTool_FillTileWithDifferentPalette_NothingHappens() {
+         editor.PalettePage = 1;
+         editor.Palette.Elements[0].Color = Rgb(31, 31, 31);
+         editor.PalettePage = 0;
+         editor.SelectedTool = ImageEditorTools.Fill;
+
+         editor.ToolDown(5, 5);
+         editor.ToolUp(5, 5);
+
+         Assert.Equal(Rgb(31, 31, 31), editor.PixelData[editor.PixelIndex(13, 13)]);
+      }
    }
 
    public class ImageEditorOneBitImageTests : BaseViewModelTestClass {

@@ -1050,6 +1050,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             int pageStart = parent.model.GetNextRun(paletteAddress) is IPaletteRun palRun ? palRun.PaletteFormat.InitialBlankPages * 16 : 0;
             pageStart += parent.PalettePage * 16;
             int originalColorIndex = parent.pixels[a.X, a.Y];
+            var originalPaletteIndex = parent.PaletteIndex(originalColorIndex);
+            if (originalPaletteIndex < 0 || originalPaletteIndex >= parent.Palette.Elements.Count) return;
             var direction = Math.Sign(parent.Palette.SelectionEnd - parent.Palette.SelectionStart);
             var targetColors = new List<int> { parent.Palette.SelectionStart };
             for (int i = parent.Palette.SelectionStart + direction; i != parent.Palette.SelectionEnd; i += direction) {
