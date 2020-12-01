@@ -1238,6 +1238,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   // tilemap may have been repointed: recalculate
                   spriteAddress = parent.model.ReadPointer(parent.SpritePointer);
                   tilemapRun = (LzTilemapRun)parent.model.GetNextRun(spriteAddress);
+                  tilemapRun.FindMatchingTileset(parent.model);
 
                   parent.pixels = tilemapRun.GetPixels(parent.model, parent.SpritePage);
                   parent.Render();
