@@ -9,6 +9,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       public ImageEditorView() {
          InitializeComponent();
          Loaded += (sender, e) => Focus();
+         Unloaded += (sender, e) => ClearPopups(default, default);
       }
 
       private Core.Models.Point Point(MouseEventArgs e) {
