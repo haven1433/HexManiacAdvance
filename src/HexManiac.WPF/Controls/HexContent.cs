@@ -563,7 +563,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          recentMenu.Placement = PlacementMode.Relative;
          recentMenu.PlacementTarget = this;
          recentMenu.VerticalOffset = (y + 1) * CellHeight;
-         recentMenu.HorizontalOffset = x * CellWidth;
+         recentMenu.HorizontalOffset = x * CellWidth - HorizontalScrollValue;
          recentMenu.IsOpen = true;
       }
 
