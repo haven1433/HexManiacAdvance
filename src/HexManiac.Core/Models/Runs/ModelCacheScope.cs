@@ -106,6 +106,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (textIndex == enumArray.ElementContent.Count) return new string[0];
          var segment = enumArray.ElementContent[textIndex];
          var isPointer = segment.Type == ElementContentType.Pointer;
+
+         var resultCache = new Dictionary<string, int>();
+
          for (int i = 0; i < optionCount; i++) {
             var elementStart = enumArray.Start + enumArray.ElementLength * i + segmentOffset;
             var elementLength = segment.Length;
@@ -119,17 +122,31 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var valueWithQuotes = PCSString.Convert(model, elementStart, elementLength)?.Trim() ?? string.Empty;
 
             if (valueWithQuotes.Contains(' ')) {
-               results.Add(valueWithQuotes);
+               AddResult(resultCache, results, valueWithQuotes);
                continue;
             }
 
             var value = valueWithQuotes;
             if (value.StartsWith("\"")) value = value.Substring(1);
             if (value.EndsWith("\"")) value = value.Substring(0, value.Length - 1);
-            results.Add(value);
+            AddResult(resultCache, results, value);
          }
 
          return results;
+      }
+
+      /// <summary>
+      /// Adds a ~n suffix onto results that have already been added to this result list before.
+      /// This lets us easily distinguish multiple elements with the same name.
+      /// </summary>
+      private static void AddResult(IDictionary<string, int> currentResultsCache, IList<string> results, string newResult) {
+         if (!currentResultsCache.TryGetValue(newResult, out int count)) count = 1;
+         currentResultsCache[newResult] = count + 1;
+         var hasQuotes = newResult.StartsWith("\"") && newResult.EndsWith("\"");
+         if (hasQuotes) newResult = newResult.Substring(1, newResult.Length - 2);
+         if (count > 1) newResult += "~" + count;
+         if (hasQuotes) newResult = $"\"{newResult}\"";
+         results.Add(newResult);
       }
    }
 }
