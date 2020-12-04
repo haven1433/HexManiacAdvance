@@ -216,6 +216,8 @@ graphics.menu.tms.background,                    ,,,, 131B8C, 131B64, 131C04, 13
 graphics.menu.tms.case,                          ,,,, 131BA8, 131B80, 131C20, 131BF8, , `lzm4x32x32|graphics.menu.tms.tileset`
 graphics.menu.tms.palette,                       ,,,, 131BC8, 131BA0, 131C40, 131C18, , `lzp4`
 graphics.menu.tms.palette2,                      ,,,, 131BD8, 131BB0, 131C50, 131C28, , `lzp4`
+graphics.menu.help.palette,                      ,,,, 13B98C, 13B964, 13BA04, 13B9DC, , `ucp4`
+
 
 graphics.gamecorner.game.palette,  ,,,, 1413C0, 141398, 141438, 141410, , `ucp4`
 graphics.gamecorner.game.tileset,  ,,,, 1413AC, 141384, 141424, 1413FC, , `lzt4|graphics.gamecorner.game.palette`
@@ -236,7 +238,7 @@ graphics.unknown.stationary,           ,,,, 1462E4,,,, , [id:: tileset<`lzt4`> t
 
 graphics.firstpersonview.sprites,            ,       ,       ,       , 0F80FC, 0F80D4, 0F8174, 0F814C,       , [id. transition. c. d. tileset<`lzt4|graphics.firstpersonview.sprites`> tilemap<`lzm4x32x20|graphics.firstpersonview.sprites`> pal<`ucp4:DE`>]28
 graphics.battle.background.sprites,    00D954, 00D954, 00D954, 00D954, 00F2A0, 00F2A0, 00F2B4, 00F2B4, 035940, [battletiles<`lzt4|graphics.battle.background.sprites`> battlemap<`lzm4x32x64|graphics.battle.background.sprites|battletiles`> introtiles<`lzt4`> intromap<`lzm4x32x14|graphics.battle.background.sprites|introtiles`> pal<`lzp4:234`>]
-graphics.battle.backgrounds.fighttype,                            ,,,, 00F24C, 00F24C, 00F260, 00F260, , [id. entry.graphics.battle.background.sprites unused:]8
+graphics.battle.background.fighttype,                             ,,,, 00F24C, 00F24C, 00F260, 00F260, , [id. entry.graphics.battle.background.sprites unused:]8
 graphics.battle.hud.palette,                     20A4D4, 20A464, 20A4EC, 20A47C, 260260, 260240, 2602D0, 2602B0, , `ucp4`
 graphics.battle.hud.hpbar.sprite,                043CE8, 043CE8, 043D08, 043D08, 0480B4, 0480B4, 0480C8, 0480C8, , `ucs4x11x6|graphics.battle.hud.hpbar.palette`
 graphics.battle.hud.hpbar.palette,               20A4DC, 20A46C, 20A4F4, 20A484, 260268, 260248, 2602D8, 2602B8, , `ucp4`
@@ -342,6 +344,8 @@ graphics.newgame.professor.palette,            ,       ,       ,       , 131300,
 graphics.newgame.professor.sprite,             ,       ,       ,       , 131304, 1312DC, 13137C, 131354,       , `lzs8x8x12|graphics.newgame.professor.palette`
 graphics.newgame.professor.palette,      39F114, 39EF5C, 39F12C, 39EF74,       ,       ,       ,       , 55C230, `ucp4`
 graphics.newgame.professor.sprite,       39F10C, 39EF54, 39F124, 39EF6C,       ,       ,       ,       , 55C228, `ucs4x8x8|graphics.newgame.professor.palette`
+
+graphics.newgame.controls.background.palette,  ,       ,       ,       , 150450, 15042C, 1504C8, 1504A4,       , `ucp4:01234`
 graphics.newgame.background.palette,           ,       ,       ,       , 130DCC, 130DA4, 130E44, 130E1C,       , `ucp4:0123`
 graphics.newgame.background.tileset1,          ,       ,       ,       , 12ED68, 12ED40, 12EDE0, 12EDB8,       , `lzt4|graphics.newgame.background.palette`
 graphics.newgame.background.tilemap1,          ,       ,       ,       , 12F488, 12F460, 12F500, 12F4D8,       , `lzm4x30x18|graphics.newgame.background.tileset1`
