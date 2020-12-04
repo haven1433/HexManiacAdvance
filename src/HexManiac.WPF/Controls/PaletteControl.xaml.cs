@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.WPF.Windows;
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -23,6 +24,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          new TextBox { ToolTip = "Red (0 to 31)" },
          new TextBox { ToolTip = "Green (0 to 31)" },
          new TextBox { ToolTip = "Blue (0 to 31)" },
+         new TextBox { ToolTip = "Color Code (0000 to 7FFF)" },
       };
 
       private Point interactionPoint;
@@ -57,8 +59,9 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                },
                swatch,
                new UniformGrid {
-                  Columns = 3,
+                  Columns = 4,
                   Children = {
+                     swatchTextBoxes[3],
                      swatchTextBoxes[0],
                      swatchTextBoxes[1],
                      swatchTextBoxes[2],
@@ -129,14 +132,20 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             activeSelection = tileIndex;
             if (e.LeftButton == MouseButtonState.Pressed) {
                swatchPopup.IsOpen = ViewModel.CanEditColors;
-               swatch.ResultChanged += SwatchResultChanged;
+               if (swatchPopup.IsOpen) {
+                  swatch.ResultChanged += SwatchResultChanged;
+                  commitTextboxChanges = true;
+               }
             }
          } else {
             ClosePopup();
          }
       }
 
+      private bool commitTextboxChanges = true;
+
       private void UpdateSwatchTextBoxContentFromSwatch() {
+         if (!commitTextboxChanges) return;
          var color32 = (Color)ColorConverter.ConvertFromString(swatch.Result);
          var color16 = TileImage.Convert16BitColor(color32);
          var channels = Color16ToChannelStrings(color16);
@@ -145,16 +154,44 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             swatchTextBoxes[i].Text = channels[i];
             swatchTextBoxes[i].TextChanged += UpdateSwatchColorFromTextBoxes;
          }
+         swatchTextBoxes[3].TextChanged -= UpdateSwatchColorFromBytesBox;
+         swatchTextBoxes[3].Text = color16.ToString("X4");
+         swatchTextBoxes[3].TextChanged += UpdateSwatchColorFromBytesBox;
       }
 
       private void UpdateSwatchColorFromTextBoxes(object sender, TextChangedEventArgs e) {
-         for (int i = 0; i < swatchTextBoxes.Length; i++) swatchTextBoxes[i].TextChanged -= UpdateSwatchColorFromTextBoxes;
+         if (!commitTextboxChanges) return;
+         commitTextboxChanges = false;
+         for (int i = 0; i < 3; i++) swatchTextBoxes[i].TextChanged -= UpdateSwatchColorFromTextBoxes;
 
          var color16 = ChannelStringsToColor16(swatchTextBoxes.Select(box => box.Text).ToArray());
          var color32 = TileImage.Convert16BitColor(color16);
          swatch.Result = color32.ToString();
+         swatchTextBoxes[3].Text = color16.ToString("X4");
 
-         for (int i = 0; i < swatchTextBoxes.Length; i++) swatchTextBoxes[i].TextChanged += UpdateSwatchColorFromTextBoxes;
+         for (int i = 0; i < 3; i++) swatchTextBoxes[i].TextChanged += UpdateSwatchColorFromTextBoxes;
+         commitTextboxChanges = true;
+      }
+
+      private void UpdateSwatchColorFromBytesBox(object sender, TextChangedEventArgs e) {
+         if (!commitTextboxChanges) return;
+         commitTextboxChanges = false;
+         swatchTextBoxes[3].TextChanged -= UpdateSwatchColorFromBytesBox;
+
+         if (short.TryParse(swatchTextBoxes[3].Text, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var color16)) {
+            var color32 = TileImage.Convert16BitColor(color16);
+            swatch.Result = color32.ToString();
+
+            var channels = Color16ToChannelStrings(color16);
+            for (int i = 0; i < channels.Length; i++) {
+               swatchTextBoxes[i].TextChanged -= UpdateSwatchColorFromTextBoxes;
+               swatchTextBoxes[i].Text = channels[i];
+               swatchTextBoxes[i].TextChanged += UpdateSwatchColorFromTextBoxes;
+            }
+         }
+
+         swatchTextBoxes[3].TextChanged += UpdateSwatchColorFromBytesBox;
+         commitTextboxChanges = true;
       }
 
       private void PaletteColorMove(object sender, MouseEventArgs e) {
