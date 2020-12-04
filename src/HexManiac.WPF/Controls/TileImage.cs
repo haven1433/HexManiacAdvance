@@ -98,7 +98,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          Color.FromArgb(64, 255, 255, 255),
       };
 
-      private static readonly SolidColorBrush[] brushes = colors.Select(c => new SolidColorBrush(c)).ToArray();
+      private static readonly SolidColorBrush[] brushes = colors.Select(c => new SolidColorBrush(c).Fluent(brush => brush.Freeze())).ToArray();
 
       public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
          var source = (int)value;
