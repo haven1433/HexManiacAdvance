@@ -163,12 +163,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          NotifyPropertyChanged(nameof(SpritePages));
          NotifyPropertyChanged(nameof(HasMultipleSpritePages));
 
-         int palPages = ReadPalette().pages;
+         var (_, palPages, initialBlankPalettePages) = ReadPalette();
          PalettePageOptions.Clear();
          for (int i = 0; i < palPages; i++) {
             var option = new SelectionViewModel { Selected = i == palettePage, Name = i.ToString(), Index = i };
             option.Bind(nameof(option.Selected), (sender, e) => { if (sender.Selected) PalettePage = sender.Index; });
             PalettePageOptions.Add(option);
+         }
+         if (CanEditTilePalettes && initialBlankPalettePages != 0) {
+            var option = new SelectionViewModel { Selected = -initialBlankPalettePages == palettePage, Name = "default", Index = -initialBlankPalettePages };
+            option.Bind(nameof(option.Selected), (sender, e) => { if (sender.Selected) PalettePage = sender.Index; });
+            PalettePageOptions.Insert(0, option);
          }
          NotifyPropertyChanged(nameof(PalettePages));
          NotifyPropertyChanged(nameof(HasMultiplePalettePages));
@@ -556,6 +561,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
          if (SpritePage >= spriteRun.Pages) SpritePage = spriteRun.Pages - 1;
          SetupTilesetWidthControl();
+
+         // tilemap may have been repointed: recalculate
+         if (spriteRun is LzTilemapRun tilemapRun) tilemapRun.FindMatchingTileset(model);
+
          pixels = (spriteRun is LzTilesetRun tsRun) ? tsRun.GetPixels(model, SpritePage, CurrentTilesetWidth) : spriteRun.GetPixels(model, SpritePage);
          Render();
          RefreshPaletteColors();
@@ -586,7 +595,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Palette.SourcePalettePointer = PalettePointer;
          var desiredCount = (int)Math.Pow(2, Palette.SpriteBitsPerPixel);
          IReadOnlyList<short> palette = TileViewModel.CreateDefaultPalette(desiredCount);
-         if (palRun.colors.Count > 16 && palRun.colors.Count < 256) palRun.colors = palRun.colors.Skip(palettePage * 16).Take(16).ToArray();
+         if (palRun.colors.Count > 16 && palRun.colors.Count < 256) palRun.colors = palRun.colors.Skip(Math.Max(0, palettePage) * 16).Take(16).ToArray();
          Palette.SetContents(palRun.colors);
          foreach (var e in Palette.Elements) {
             e.PropertyChanged += (sender, args) => {
@@ -631,6 +640,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void UpdateSpriteModel() {
          var spriteAddress = model.ReadPointer(SpritePointer);
          var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
+
+         // tilemap may have been repointed: recalculate
+         if (spriteRun is LzTilemapRun tilemapRun) tilemapRun.FindMatchingTileset(model);
+
          spriteRun.SetPixels(model, history.CurrentChange, SpritePage, pixels);
       }
 
@@ -702,6 +715,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (parent.CanEditTilePalettes) {
                   var hoverTilesPalette = parent.TilePalettes[point.Y / 8 * parent.TileWidth + point.X / 8];
                   validHoverLocation = initialBlankPages + parent.PalettePage == hoverTilesPalette;
+                  validHoverLocation &= parent.palettePage >= 0;
                }
             }
 
@@ -1052,6 +1066,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             int originalColorIndex = parent.pixels[a.X, a.Y];
             var originalPaletteIndex = parent.PaletteIndex(originalColorIndex);
             if (originalPaletteIndex < 0 || originalPaletteIndex >= parent.Palette.Elements.Count) return;
+            if (parent.PalettePage < 0) return;
             var direction = Math.Sign(parent.Palette.SelectionEnd - parent.Palette.SelectionStart);
             var targetColors = new List<int> { parent.Palette.SelectionStart };
             for (int i = parent.Palette.SelectionStart + direction; i != parent.Palette.SelectionEnd; i += direction) {
