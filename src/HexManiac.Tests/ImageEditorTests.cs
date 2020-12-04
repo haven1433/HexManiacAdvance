@@ -995,7 +995,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(3, editor.TilePalettes[3]);
 
          Assert.Equal(0, editor.PalettePage);
-         Assert.Equal(new[] { 0, 1 }, editor.PalettePageOptions.Select(option => option.Index).ToArray());
+         Assert.Equal(new[] { -2, 0, 1 }, editor.PalettePageOptions.Select(option => option.Index).ToArray());
       }
 
       [Fact]
