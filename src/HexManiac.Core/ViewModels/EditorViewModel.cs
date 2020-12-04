@@ -551,8 +551,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void Add(ITabContent content) {
          tabs.Add(content);
          SelectedIndex = tabs.Count - 1;
-         CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, content));
          AddContentListeners(content);
+         CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, content));
          if (content is IViewPort viewModel) {
             viewModel.UseCustomHeaders = useTableEntryHeaders;
             viewModel.AutoAdjustDataWidth = AutoAdjustDataWidth;
