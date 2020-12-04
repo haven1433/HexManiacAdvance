@@ -918,7 +918,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          var gameCode = viewport.Model.GetGameCode();
-         var addresses = ",".Join(Singletons.GameReferenceTables.GuessSources(gameCode, run.PointerSources[0]));
+         var addresses = ", ".Join(Singletons.GameReferenceTables.GuessSources(gameCode, run.PointerSources[0]));
 
          var content = new StringBuilder();
          content.AppendLine("```");
