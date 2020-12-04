@@ -27,7 +27,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          get {
             var tilesetAddress = Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, Format.MatchingTileset);
             var tileset = Model.GetNextRun(tilesetAddress) as LzTilesetRun;
-            if (tileset == null) tileset = Model.GetNextRun(arrayTilesetAddress) as LzTilesetRun;
+            if (tileset == null) {
+               if (arrayTilesetAddress == 0) FindMatchingTileset(Model);
+               tileset = Model.GetNextRun(arrayTilesetAddress) as LzTilesetRun;
+            }
             return tileset != null;
          }
       }
