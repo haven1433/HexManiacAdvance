@@ -366,9 +366,10 @@ graphics.townmap.icon.palette,                 ,       ,       ,       , 0C45F8,
 graphics.townmap.icon.area,                    ,       ,       ,       , 0C43FC, 0C43D0, 0C4410, 0C43E4, , `lzs4x1x1|graphics.townmap.icon.palette`
 graphics.townmap.icon.fly,                     ,       ,       ,       , 0C4400, 0C43D4, 0C4414, 0C43E8, , `lzs4x2x2|graphics.townmap.icon.palette`
 graphics.townmap.icon.indicator,               ,       ,       ,       , 0C3094, 0C3068, 0C30A8, 0C307C, , `lzs4x2x2|graphics.townmap.icon.palette`
-graphics.townmap.icon.head.palette,            ,       ,       ,       , 0C4300, 0C42D4, 0C4314, 0C42E8, , `ucp4`
-graphics.townmap.icon.head.male,               ,       ,       ,       , 0C423C, 0C4210, 0C4250, 0C4224, , `lzs4x2x2|graphics.townmap.icon.head.palette`
-graphics.townmap.icon.head.female,             ,       ,       ,       , 0C420C, 0C41E0, 0C4220, 0C41F4, , `lzs4x2x2|graphics.townmap.icon.head.palette`
+graphics.townmap.icon.head.male.palette,       ,       ,       ,       , 0C4300, 0C42D4, 0C4314, 0C42E8, , `ucp4`
+graphics.townmap.icon.head.female.palette,     ,       ,       ,       , 0C431C, 0C42F0, 0C4330, 0C4304, , `ucp4`
+graphics.townmap.icon.head.male.sprite,        ,       ,       ,       , 0C423C, 0C4210, 0C4250, 0C4224, , `lzs4x2x2|graphics.townmap.icon.head.male.palette`
+graphics.townmap.icon.head.female.sprite,      ,       ,       ,       , 0C420C, 0C41E0, 0C4220, 0C41F4, , `lzs4x2x2|graphics.townmap.icon.head.female.palette`
 graphics.townmap.catchmap.palette,                                  ,,,, 1026C0, 102698, 102738, 102710, , `ucp4:0123456789ABCDEF`
 graphics.townmap.catchmap.kanto,                                    ,,,, 106454, 10642C, 1064CC, 1064A4, , `lzs4x12x9|graphics.townmap.catchmap.palette`
 graphics.townmap.catchmap.sevii,                                    ,,,, 106458, 106430, 1064D0, 1064A8, , [data<[a b c width height d e f]1> map<`lzt4|graphics.townmap.catchmap.palette`>]7
