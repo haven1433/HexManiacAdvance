@@ -251,6 +251,10 @@ graphics.battle.hud.status,                            ,       ,       ,       ,
 graphics.battle.hud.pokeballbar,                       ,       ,       ,       , 26046C, 26044C, 2604DC, 2604BC, , `lzs4x16x1|graphics.battle.hud.palette`
 graphics.battle.hud.idlelevel.palette,                 ,       ,       ,       , 0264C8, 0264C8, 0264DC, 0264DC, , `ucp4`
 graphics.battle.hud.idlelevel.sprite,                  ,       ,       ,       , 0264CC, 0264CC, 0264E0, 0264E0, , `lzs4x12x3|graphics.battle.hud.idlelevel.palette`
+graphics.battle.textbox.palette,                 00DAF4, 00DAF4, 00DAF4, 00DAF4, 00F45C, 00F45C, 00F470, 00F470, 035AE0, `lzp4`
+graphics.battle.textbox.tileset,                 00DAE8, 00DAE8, 00DAE8, 00DAE8, 00F454, 00F454, 00F468, 00F468, 035AD8, `lzt4|graphics.battle.textbox.palette`
+graphics.battle.textbox.tilemap,                       ,       ,       ,       , 00F458, 00F458, 00F46C, 00F46C, 035ADC, `lzm4x32x64|graphics.battle.textbox.tileset`
+// ruby pointer to tilemap is 00DAEC, but tilemap is uncompressed?
 
 graphics.titlescreen.pokemon.palette,              07C298, 07C29C, 07C2B8, 07C2BC, ,,,, , `ucp4:01`
 graphics.titlescreen.pokemon.tileset,              07C280, 07C284, 07C2A0, 07C2A4, ,,,, , `lzt4|graphics.titlescreen.pokemon.palette`
