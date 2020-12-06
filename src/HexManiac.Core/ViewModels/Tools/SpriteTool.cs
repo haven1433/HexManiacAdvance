@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Windows.Input;
 
@@ -385,6 +386,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                }
             }
 
+            SpriteAddressText = spriteAddress.ToAddress();
             importPair.RaiseCanExecuteChanged();
             exportPair.RaiseCanExecuteChanged();
             openInImageTab.RaiseCanExecuteChanged();
@@ -408,6 +410,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          get => paletteAddress;
          set {
             if (!TryUpdate(ref paletteAddress, value)) return;
+            PaletteAddressText = paletteAddress.ToAddress();
             importPair.CanExecuteChanged.Invoke(importPair, EventArgs.Empty);
             exportPair.CanExecuteChanged.Invoke(exportPair, EventArgs.Empty);
             openInImageTab?.CanExecuteChanged.Invoke(openInImageTab, EventArgs.Empty);
@@ -422,6 +425,34 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
             UpdatePaletteProperties();
             LoadPalette();
+         }
+      }
+
+      private string spriteAddressText, paletteAddressText;
+      public string SpriteAddressText {
+         get => spriteAddressText;
+         set {
+            if (spriteAddressText == value) return;
+            value = value.ToUpper();
+            var newSpriteAddressText = new string(value.Where(c => c.IsAny("0123456789ABCDEF<>".ToCharArray())).ToArray());
+            value = new string(newSpriteAddressText.Where(c => !c.IsAny("<>".ToCharArray())).ToArray());
+            if (!int.TryParse(value, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int address)) address = Pointer.NULL;
+            if (SpriteAddress != address) SpriteAddress = address;
+            spriteAddressText = newSpriteAddressText;
+            NotifyPropertyChanged();
+         }
+      }
+      public string PaletteAddressText {
+         get => paletteAddressText;
+         set {
+            if (paletteAddressText == value) return;
+            value = value.ToUpper();
+            var newPaletteAddressText = new string(value.Where(c => c.IsAny("0123456789ABCDEF<>".ToCharArray())).ToArray());
+            value = new string(newPaletteAddressText.Where(c => !c.IsAny("<>".ToCharArray())).ToArray());
+            if (!int.TryParse(value, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int address)) address = Pointer.NULL;
+            if (PaletteAddress != address) PaletteAddress = address;
+            paletteAddressText = newPaletteAddressText;
+            NotifyPropertyChanged();
          }
       }
 

@@ -523,7 +523,7 @@
                   <!-- Sprite Address -->
                   <UniformGrid Columns="2" Margin="5,15,5,1">
                      <TextBlock VerticalAlignment="Center" Text="Image Address:" />
-                     <TextBox Text="{Binding SpriteTool.SpriteAddress, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5">
+                     <TextBox Text="{Binding SpriteTool.SpriteAddressText, UpdateSourceTrigger=PropertyChanged}" Margin="5">
                         <TextBox.InputBindings>
                            <KeyBinding Key="Return" Command="{Binding SpriteTool.GotoSpriteAddress}" />
                         </TextBox.InputBindings>
@@ -568,7 +568,7 @@
                   <!-- Palette Address -->
                   <UniformGrid Columns="2" Margin="5,15,5,1">
                      <TextBlock VerticalAlignment="Center" Text="Palette Address:" />
-                     <TextBox Text="{Binding SpriteTool.PaletteAddress, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5">
+                     <TextBox Text="{Binding SpriteTool.PaletteAddressText, UpdateSourceTrigger=PropertyChanged}" Margin="5">
                         <TextBox.InputBindings>
                            <KeyBinding Key="Return" Command="{Binding SpriteTool.GotoPaletteAddress}" />
                         </TextBox.InputBindings>
