@@ -874,6 +874,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public static bool DataMatchesSegmentFormat(IDataModel owner, int start, ArrayRunElementSegment segment, FormatMatchFlags flags, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
+         if (start < 0 || start >= owner.Count - segment.Length) return false;
          Debug.Assert(sourceSegments.Contains(segment), "Expected segment to be one among sourceSegments.");
          switch (segment.Type) {
             case ElementContentType.PCS:
