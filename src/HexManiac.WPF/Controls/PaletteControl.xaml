@@ -5,12 +5,20 @@
              HorizontalAlignment="Stretch" VerticalAlignment="Center" Focusable="True"
              Background="Transparent"
              MouseDown="StartPaletteColorMove" MouseMove="PaletteColorMove" MouseUp="EndPaletteColorMove">
+   <UserControl.CommandBindings>
+      <CommandBinding Command="Select" Executed="GrabScreenColor"/>
+   </UserControl.CommandBindings>
    <UserControl.ContextMenu>
       <ContextMenu>
          <MenuItem Header="Copy" InputGestureText="Ctrl+C" Command="{Binding Copy}" CommandParameter="{DynamicResource FileSystem}"/>
          <MenuItem Header="Paste" InputGestureText="Ctrl+V" Command="{Binding Paste}" CommandParameter="{DynamicResource FileSystem}"/>
          <MenuItem Header="Create Gradient" InputGestureText="Ctrl+G" Command="{Binding CreateGradient}" />
          <MenuItem Header="Merge Colors" InputGestureText="Ctrl+M" Command="{Binding SingleReduce}" />
+         <MenuItem Header="Choose Color from Screen" Command="Select">
+            <MenuItem.ToolTip>
+               <ToolTip Content="Click this, then click any color on your screen to pull that color into the palette."/>
+            </MenuItem.ToolTip>
+         </MenuItem>
       </ContextMenu>
    </UserControl.ContextMenu>
    <UserControl.InputBindings>

@@ -195,7 +195,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void PaletteColorMove(object sender, MouseEventArgs e) {
-         if (!ViewModel.CanEditColors) return;
+         if (!ViewModel.CanEditColors || isInScreenGrabMode) return;
          var oldTileIndex = InteractionTileIndex;
          interactionPoint = e.GetPosition(ItemsControl);
          var newTileIndex = InteractionTileIndex;
@@ -293,6 +293,27 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var g = (color16 >> 5) & 0x1F;
          var b = color16 & 0x1F;
          return new[] { r.ToString(), g.ToString(), b.ToString() };
+      }
+
+      private bool isInScreenGrabMode = false;
+      private int colorIndexForScreenGrab;
+      private void GrabScreenColor(object sender, ExecutedRoutedEventArgs e) {
+         ViewModel.SingleSelect();
+         colorIndexForScreenGrab = ViewModel.SelectionStart;
+         isInScreenGrabMode = true;
+         CaptureMouse();
+         PreviewMouseDown += GrabColorFromScreen;
+      }
+
+      private void GrabColorFromScreen(object sender, MouseButtonEventArgs e) {
+         var color = DesktopColorPicker.GrabMousePixelColorFromScreen();
+         var color16 = TileImage.Convert16BitColor(color);
+
+         ViewModel.Elements[colorIndexForScreenGrab].Color = color16;
+
+         ReleaseMouseCapture();
+         PreviewMouseDown -= GrabColorFromScreen;
+         e.Handled = true;
       }
 
       private short ChannelStringsToColor16(string[] channels) {
