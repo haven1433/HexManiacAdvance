@@ -7,11 +7,13 @@ using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -176,7 +178,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          return Save(file);
       }
 
-      public MessageBoxResult ShowCustomMessageBox(string message, bool showYesNoCancel = true) {
+      public MessageBoxResult ShowCustomMessageBox(string message, bool showYesNoCancel = true, string processButtonText = null, string processContent = null) {
          var choices = showYesNoCancel ? new StackPanel {
             HorizontalAlignment = HorizontalAlignment.Right,
             Orientation = Orientation.Horizontal,
@@ -225,7 +227,25 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                   new TextBlock { Text = message, Margin = new Thickness(5, 10, 5, 10) },
                   choices,
                }
-            },
+            }.Fluent(sp => {
+               if (!string.IsNullOrEmpty(processButtonText)) {
+                  sp.Children.Insert(1, new TextBlock {
+                     Margin = new Thickness(5),
+                     Inlines = {
+                        new Hyperlink {
+                           Foreground = Brush(nameof(Theme.Accent)),
+                           Inlines = { new Run(processButtonText) },
+                        }.Fluent(hyperlink => hyperlink.Click += (sender, e) => {
+                           try {
+                              Process.Start(processContent);
+                           } catch {
+                              ShowCustomMessageBox($"Could not start '{processContent}'.", showYesNoCancel: false);
+                           }
+                        }),
+                     }
+                  });
+               }
+            }),
             Owner = Application.Current.MainWindow,
             Left = Application.Current.MainWindow.Left + Application.Current.MainWindow.Width / 2,
             Top = Application.Current.MainWindow.Top + Application.Current.MainWindow.Height / 2,
