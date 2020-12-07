@@ -826,10 +826,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var previousPoint = parent.ToSpriteSpace(parent.interactionStart);
                var currentPoint = parent.ToSpriteSpace(point);
                if (previousPoint == currentPoint) return;
+               var palRun = parent.ReadPalette();
+               var maxReasonablePage = palRun.pages + palRun.initialBlankPages;
                var delta = currentPoint - previousPoint;
                delta = new Point(
                   delta.X.LimitToRange(-selectionStart.X, parent.PixelWidth - selectionWidth - selectionStart.X),
                   delta.Y.LimitToRange(-selectionStart.Y, parent.PixelHeight - selectionHeight - selectionStart.Y));
+
+               if (parent.CanEditTilePalettes) {
+                  for (int x = 0; x < selectionWidth; x += 8) {
+                     var tileX = (selectionStart.X + delta.X + x) / 8;
+                     for (int y = 0; y < selectionHeight; y += 8) {
+                        var tileY = (selectionStart.Y + delta.Y + y) / 8;
+                        var currentPalette = parent.TilePalettes[tileY * parent.TileWidth + tileX];
+                        if (currentPalette >= maxReasonablePage) return;
+                     }
+                  }
+               }
 
                SwapUnderPixelsWithCurrentPixels();
                selectionStart += delta;
@@ -939,8 +952,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   underPixels[x, y] = newUnder;
                   parent.pixels[xx, yy] = newOver;
 
-                  var color = fullPalette[index];
-                  parent.PixelData[parent.PixelIndex(xx, yy)] = color;
+                  if (index < fullPalette.Count) {
+                     var color = fullPalette[index];
+                     parent.PixelData[parent.PixelIndex(xx, yy)] = color;
+                  }
                }
             }
          }
