@@ -20,7 +20,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          TableName = viewPort.Model.GetAnchorFromAddress(-1, table.Start);
          var destination = Model.ReadPointer(Start);
          var run = viewPort.Model.GetNextRun(destination) as IPaletteRun;
-         Pages = run.Pages;
+         Pages = run?.Pages ?? 0;
          UpdateColors(Start, 0);
       }
 

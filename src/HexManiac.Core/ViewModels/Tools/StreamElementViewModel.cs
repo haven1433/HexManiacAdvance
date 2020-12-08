@@ -39,7 +39,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public bool HasMultipleUses => UsageCount > 1;
 
-      public bool CanRepoint => UsageCount > 1 || DataIsValidButNoRun;
+      public bool CanRepoint => !CanCreateNew && (UsageCount > 1 || DataIsValidButNoRun || DataIsNotValid);
 
       public bool DataIsValidButNoRun {
          get {
@@ -50,6 +50,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             run = new NoInfoRun(destination, new SortedSpan<int>(Start));
             var error = FormatRunFactory.GetStrategy(RunFormat).TryParseData(Model, string.Empty, destination, ref run);
             return !error.HasError;
+         }
+      }
+
+      public bool DataIsNotValid {
+         get {
+            var destination = Model.ReadPointer(Start);
+            if (destination < 0 || destination >= Model.Count) return true;
+            var run = Model.GetNextRun(destination);
+            if (run.Start != destination) return true;
+            var error = FormatRunFactory.GetStrategy(RunFormat).TryParseData(Model, string.Empty, destination, ref run);
+            return error.HasError;
          }
       }
 
@@ -140,7 +151,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void ExecuteRepoint(object arg) {
          using (ModelCacheScope.CreateScope(Model)) {
-            var originalDestination = Model.ReadPointer(Start);
             ViewPort.RepointToNewCopy(Start);
             UsageCount = 1;
             dataChanged?.Invoke(this, EventArgs.Empty);

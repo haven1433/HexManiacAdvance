@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels;
+﻿using HavenSoft.HexManiac.Core.Models.Runs.Factory;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
@@ -55,12 +56,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var destinationName = data.GetAnchorFromAddress(offsets.SegmentStart, destination);
             var destinationRun = data.GetNextRun(destination);
             var hasError = false;
-            if (destination >= 0) {
+            if (destination >= 0 && destination < data.Count) {
                if (destinationRun is ArrayRun arrayRun && arrayRun.SupportsPointersToElements) {
                   // it's an error unless the arrayRun starts before the destination and the destination is the start of one of the elements
                   hasError = !(arrayRun.Start <= destination && (destination - arrayRun.Start) % arrayRun.ElementLength == 0);
                } else {
-                  hasError = destinationRun.Start != destination; // table pointer might not point to anchor
+                  IFormattedRun run = destinationRun;
+                  hasError = destinationRun.Start != destination;
+                  if (currentSegment is ArrayRunPointerSegment pointerSegment) {
+                     hasError |= FormatRunFactory.GetStrategy(pointerSegment.InnerFormat).TryParseData(data, string.Empty, destination, ref run).HasError;
+                  }
                }
             } else {
                hasError = true;

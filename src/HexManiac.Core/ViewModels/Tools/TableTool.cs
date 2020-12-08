@@ -395,8 +395,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          IFormattedRun streamRun = null;
          if (destination != Pointer.NULL) {
             streamRun = model.GetNextRun(destination);
-            if (!pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), itemAddress, destination, null, parentIndex)) return;
-            if (streamRun.Start != destination) {
+            if (!pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), itemAddress, destination, null, parentIndex)) streamRun = null;
+            if (streamRun != null && streamRun.Start != destination) {
                // For some reason (possibly because of a run length conflict),
                //    the destination data appears to match the expected type,
                //    but there is no run for it.

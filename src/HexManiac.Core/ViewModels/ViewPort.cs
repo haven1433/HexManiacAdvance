@@ -996,13 +996,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void RepointToNewCopy(int pointer) {
+         // if the pointer points to nothing
          var destinationAddress = Model.ReadPointer(pointer);
          if (destinationAddress == Pointer.NULL) {
             CreateNewData(pointer);
             return;
          }
 
+         // if the pointer is expected to point to a type of data, but doesn't
          var destination = Model.GetNextRun(destinationAddress);
+         var parentRun = Model.GetNextRun(pointer);
+         if (parentRun is ITableRun tableRun) {
+            var offset = tableRun.ConvertByteOffsetToArrayOffset(pointer);
+            if (tableRun.ElementContent[offset.SegmentIndex] is ArrayRunPointerSegment pSegment) {
+               var run = destination;
+               var error = FormatRunFactory.GetStrategy(pSegment.InnerFormat).TryParseData(Model, string.Empty, destinationAddress, ref run);
+               if (error.HasError) {
+                  CreateNewData(pointer);
+                  return;
+               }
+            }
+         }
+
+         // if the pointer points to the right type of data, but with no run
          if (destination.Start != destinationAddress) {
             RepointWithoutRun(pointer, destinationAddress);
             return;
