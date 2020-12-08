@@ -258,7 +258,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   var pixels = newSprite.GetPixels(model, page % newSprite.Pages);
                   for (int y = 0; y < pixels.GetLength(1); y++) {
                      for (int x = 0; x < pixels.GetLength(0); x++) {
-                        pixels[x, y] = oldToNew[pixels[x, y]];
+                        var pixelPage = pixels[x, y] / oldToNew.Length;
+                        pixels[x, y] -= pixelPage * oldToNew.Length;
+                        pixels[x, y] = oldToNew[pixels[x, y]] + pixelPage * oldToNew.Length;
                      }
                   }
                   newSprite = newSprite.SetPixels(model, history.CurrentChange, page % newSprite.Pages, pixels);

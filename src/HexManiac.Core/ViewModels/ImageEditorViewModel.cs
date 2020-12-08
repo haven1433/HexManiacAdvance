@@ -170,8 +170,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             option.Bind(nameof(option.Selected), (sender, e) => { if (sender.Selected) PalettePage = sender.Index; });
             PalettePageOptions.Add(option);
          }
-         if (CanEditTilePalettes && initialBlankPalettePages != 0) {
-            var option = new SelectionViewModel { Selected = -initialBlankPalettePages == palettePage, Name = "default", Index = -initialBlankPalettePages };
+         if (initialBlankPalettePages != 0) {
+            var option = new SelectionViewModel { Selected = -initialBlankPalettePages == palettePage, Name = "default" + Environment.NewLine + "Colors from this page are not recommended, but may be needed for transparency.", Index = -initialBlankPalettePages };
             option.Bind(nameof(option.Selected), (sender, e) => { if (sender.Selected) PalettePage = sender.Index; });
             PalettePageOptions.Insert(0, option);
          }
