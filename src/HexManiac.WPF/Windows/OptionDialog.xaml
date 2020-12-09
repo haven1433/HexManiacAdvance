@@ -30,16 +30,25 @@
          </ItemsControl.ItemTemplate>
       </ItemsControl>
       <ItemsControl Name="AdditionalDetails" HorizontalAlignment="Center" DockPanel.Dock="Bottom">
-         <ItemsControl.Resources>
-            <DataTemplate DataType="{x:Type hshmcvmt:ReadonlyPixelViewModel}">
-               <hshmwpfc:PixelImage SnapsToDevicePixels="True" Margin="5"/>
+         <ItemsControl.ItemTemplate>
+            <DataTemplate>
+               <ItemsControl ItemsSource="{Binding}" HorizontalAlignment="Center">
+                  <ItemsControl.Resources>
+                     <DataTemplate DataType="{x:Type hshmcvmt:ReadonlyPixelViewModel}">
+                        <hshmwpfc:PixelImage SnapsToDevicePixels="True" Margin="5"/>
+                     </DataTemplate>
+                     <DataTemplate DataType="{x:Type hshmcvmt:FlagViewModel}">
+                        <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSet}" Margin="10,5"/>
+                     </DataTemplate>
+                  </ItemsControl.Resources>
+                  <ItemsControl.ItemsPanel>
+                     <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                     </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+               </ItemsControl>
             </DataTemplate>
-         </ItemsControl.Resources>
-         <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-               <StackPanel Orientation="Horizontal"/>
-            </ItemsPanelTemplate>
-         </ItemsControl.ItemsPanel>
+         </ItemsControl.ItemTemplate>
       </ItemsControl>
       <TextBlock Name="Prompt" HorizontalAlignment="Center" Margin="5"/>
    </DockPanel>

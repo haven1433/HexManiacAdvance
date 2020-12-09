@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels;
 using System;
+using System.Collections.Generic;
 
 namespace HavenSoft.HexManiac.Core.Models {
    public interface IFileSystem {
@@ -99,7 +100,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       void SaveImage(short[] image, int width);
 
-      int ShowOptions(string title, string prompt, object[] additionalDetails, params VisualOption[] options);
+      int ShowOptions(string title, string prompt, IReadOnlyList<IReadOnlyList<object>> additionalDetails, params VisualOption[] options);
 
       string RequestText(string title, string prompt);
    }
