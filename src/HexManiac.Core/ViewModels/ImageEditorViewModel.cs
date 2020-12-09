@@ -593,10 +593,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void RefreshPaletteColors() {
          var palRun = ReadPalette();
          Palette.SourcePalettePointer = PalettePointer;
+         Palette.Page = PalettePage;
          var desiredCount = (int)Math.Pow(2, Palette.SpriteBitsPerPixel);
          IReadOnlyList<short> palette = TileViewModel.CreateDefaultPalette(desiredCount);
          if (palRun.colors.Count > 16 && palRun.colors.Count < 256) palRun.colors = palRun.colors.Skip(Math.Max(0, palettePage) * 16).Take(16).ToArray();
          Palette.SetContents(palRun.colors);
+         Palette.HasMultiplePages = palRun.pages > 1;
          foreach (var e in Palette.Elements) {
             e.PropertyChanged += (sender, args) => {
                var sc = (SelectableColor)sender;
@@ -644,7 +646,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          // tilemap may have been repointed: recalculate
          if (spriteRun is LzTilemapRun tilemapRun) tilemapRun.FindMatchingTileset(model);
 
-         spriteRun.SetPixels(model, history.CurrentChange, SpritePage, pixels);
+         var newRun = spriteRun.SetPixels(model, history.CurrentChange, SpritePage, pixels);
+         if (newRun.Start != spriteRun.Start) RaiseMessage("Sprite was move to " + newRun.Start.ToAddress());
       }
 
       /// <summary>
@@ -1088,7 +1091,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                targetColors.Add(i);
             }
             if (parent.Palette.SelectionEnd != parent.Palette.SelectionStart) targetColors.Add(parent.Palette.SelectionEnd);
-            var targetColorsWithinPalettePage = targetColors.Select(parent.ColorIndex).ToList();
+            var targetColorsWithinPalettePage = targetColors.Select(tc => parent.ColorIndex(tc)).ToList();
 
             var toProcess = new Queue<Point>(new[] { a });
             var processed = new HashSet<Point>();
@@ -1101,7 +1104,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var targetColorIndex = PickColorIndex(a, b, current, targetColors);
                var targetColorWithinPalettePageIndex = PickColorIndex(a, b, current, targetColorsWithinPalettePage);
 
-               parent.pixels[current.X, current.Y] = targetColorWithinPalettePageIndex + pageStart;
+               parent.pixels[current.X, current.Y] = targetColorWithinPalettePageIndex;
                parent.PixelData[parent.PixelIndex(current)] = parent.Palette.Elements[targetColorIndex].Color;
                foreach (var next in new[]{
                   new Point(current.X - 1, current.Y),

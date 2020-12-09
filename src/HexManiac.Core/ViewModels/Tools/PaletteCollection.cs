@@ -30,7 +30,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public int ColorWidth => Elements.Count / ColorHeight;
       public int ColorHeight => (int)Math.Ceiling(Math.Sqrt(Elements.Count));
-      public bool CanEditColors => SourcePalettePointer >= 0 && (model == null || SourcePalettePointer <= model.Count - 4);
+      public bool CanEditColors => SourcePalettePointer >= 0 && page >= 0 && (model == null || SourcePalettePointer <= model.Count - 4);
 
       public int SpriteBitsPerPixel { get; set; }
 
@@ -167,6 +167,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (model == null || !CanEditColors) return;
          int sourcePalette = model.ReadPointer(sourcePalettePointer);
          if (!(model.GetNextRun(sourcePalette) is IPaletteRun source)) return;
+         if (page < 0) {
+            tab.RaiseMessage("Cannot edit colors for a default palette page!");
+            return;
+         }
 
          // update model
          var newPalette = source;
