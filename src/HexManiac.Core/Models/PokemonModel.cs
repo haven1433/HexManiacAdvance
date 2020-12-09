@@ -152,7 +152,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (!metadata.IsEmpty && StoredMetadata.NeedVersionUpdate(metadata.Version, singletons?.MetadataInfo.VersionNumber ?? "0")) {
             var gameCode = this.GetGameCode();
             if (singletons.GameReferenceTables.TryGetValue(gameCode, out var tables)) {
-               var metadatas = GetDefaultMetadatas(gameCode);
+               var metadatas = GetDefaultMetadatas(gameCode.Substring(0, 4), gameCode);
                UpdateRuns(tables, metadatas);
             }
          }

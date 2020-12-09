@@ -125,7 +125,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             yield return metadata;
          }
 
-         foreach (var fileName in Directory.GetFiles("resources", "default.*.toml")) {
+         var files = Directory.GetFiles("resources", "default.*.toml");
+         foreach (var fileName in files) {
             foreach (var code in codes) {
                if (!fileName.ToLower().Contains($".{code.ToLower()}.")) continue;
                var lines = File.ReadAllLines(fileName);
@@ -420,6 +421,15 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var list in metadata.Lists) model.SetList(list.Name, list.Contents);
          foreach (var anchor in metadata.NamedAnchors) PokemonModel.ApplyAnchor(model, noChange, anchor.Address, BaseRun.AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
          foreach (var match in metadata.MatchedWords) model.ObserveRunWritten(noChange, new WordRun(match.Address, match.Name, match.Length, match.Offset, match.Note));
+         foreach (var anchor in model.Anchors) {
+            if (!(model.GetNextRun(model.GetAddressFromAnchor(noChange, -1, anchor)) is ArrayRun table)) continue;
+            // the length may have changed: rewrite the run
+            if (metadata.Lists.Select(list => list.Name).Contains(table.LengthFromAnchor)) {
+               if (!ArrayRun.TryParse(model, table.FormatString, table.Start, table.PointerSources, out var newTable).HasError) {
+                  model.ObserveAnchorWritten(noChange, anchor, newTable);
+               }
+            }
+         }
       }
 
       public static ErrorInfo CompleteArrayExtension(this IDataModel model, ModelDelta changeToken, int count, ref ITableRun table) {
