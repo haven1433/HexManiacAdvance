@@ -83,10 +83,25 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var width = widthOffset >= 0 ? Math.Max(1, model.ReadMultiByteValue(elementStart + widthOffset, 2)) : 0;
          var height = heightOffset >= 0 ? Math.Max(1, model.ReadMultiByteValue(elementStart + heightOffset, 2)) : 0;
          // if there was no height/width found, assume that it's square and based on the first element length
-         if (width == 0) width = (int)Math.Sqrt(model.ReadMultiByteValue(start + 4, 4) * 2); // number of pixels is twice the number of bytes for all OW sprites
-         if (height == 0) height = width;
+         var pixelCount = model.ReadMultiByteValue(start + 4, 4) * 2; // number of pixels is twice the number of bytes for all OW sprites
+         bool adjustDimensions = true;
+         if (width == 0) { width = (int)Math.Sqrt(pixelCount); adjustDimensions = true; }
+         if (height == 0) { height = width; adjustDimensions = true; }
          var tileWidth = (int)Math.Max(1, Math.Ceiling(width / 8.0));
          var tileHeight = (int)Math.Max(1, Math.Ceiling(height / 8.0));
+         while (adjustDimensions) {
+            adjustDimensions = false;
+            while (tileWidth * tileHeight * 64 > pixelCount) {
+               adjustDimensions = true;
+               tileHeight -= 1;
+            }
+            if (tileHeight == 0) break;
+            while (tileWidth * tileHeight * 64 < pixelCount) {
+               adjustDimensions = true;
+               tileWidth += 1;
+            }
+         }
+
          var key = model.ReadMultiByteValue(elementStart + keyOffset, 2);
          var hint = $"{HardcodeTablesModel.OverworldPalettes}:id={key:X4}";
          if (!string.IsNullOrEmpty(paletteHint)) hint = PaletteHint + $"={runIndex}";

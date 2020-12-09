@@ -18,6 +18,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          new ArrayRunElementSegment(string.Empty, ElementContentType.Pointer, 4),
       };
 
+      private readonly IReadOnlyList<ArrayRunElementSegment> parentTemplate2 = new List<ArrayRunElementSegment> {
+         new ArrayRunElementSegment(string.Empty, ElementContentType.Integer, 2),
+         new ArrayRunElementSegment(string.Empty, ElementContentType.Integer, 2),
+         new ArrayRunElementSegment(string.Empty, ElementContentType.Pointer, 4),
+         new ArrayRunElementSegment(string.Empty, ElementContentType.Pointer, 4),
+         new ArrayRunPointerSegment("sprites", OverworldSpriteListRun.SharedFormatString),
+         new ArrayRunElementSegment(string.Empty, ElementContentType.Pointer, 4),
+         new ArrayRunElementSegment(string.Empty, ElementContentType.Pointer, 4),
+      };
+
       public string Hint { get; }
 
       public OverworldSpriteListContentStrategy(string format) {
@@ -42,6 +52,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
 
       public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
          var newRun = new OverworldSpriteListRun(model, parentTemplate, Hint, 0, dataIndex, run.PointerSources);
+         if (newRun.Length > 0) {
+            run = newRun;
+            return ErrorInfo.NoError;
+         }
+         newRun = new OverworldSpriteListRun(model, parentTemplate2, Hint, 0, dataIndex, run.PointerSources);
          if (newRun.Length > 0) {
             run = newRun;
             return ErrorInfo.NoError;
