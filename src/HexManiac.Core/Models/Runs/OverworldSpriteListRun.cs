@@ -97,6 +97,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
             if (tileHeight == 0) break;
             while (tileWidth * tileHeight * 64 < pixelCount) {
+               if (tileWidth > 500) break;
                adjustDimensions = true;
                tileWidth += 1;
             }
