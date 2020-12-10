@@ -339,7 +339,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             // option 1: the length looks like a standard table length (or is empty, and thus dynamic). Parse as a table.
             try {
                using (ModelCacheScope.CreateScope(data)) {
-                  self = new ArrayRun(data, format, start, pointerSources);
+                  var array = new ArrayRun(data, format, start, pointerSources);
+                  self = array;
+                  if (array.ElementContent.Count == 1) {
+                     for (int i = 0; i < array.ElementCount; i++) {
+                        if (!DataMatchesElementFormat(data, array.Start + array.ElementLength * i, array.ElementContent, i, FormatMatchFlags.AllowJunkAfterText | FormatMatchFlags.IsSingleSegment, null)) {
+                           return new ErrorInfo($"{name}[{i}] doesn't match the expected format.");
+                        }
+                     }
+                  }
                }
             } catch (ArrayRunParseException e) {
                return new ErrorInfo(e.Message);
@@ -871,7 +879,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private static bool DataMatchesElementFormat(IDataModel owner, int start, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, FormatMatchFlags flags, IFormattedRun nextAnchor) {
          foreach (var segment in segments) {
             if (start + segment.Length > owner.Count) return false;
-            if (start + segment.Length > nextAnchor.Start && nextAnchor is ArrayRun) return false; // don't blap over existing arrays
+            if (nextAnchor != null && start + segment.Length > nextAnchor.Start && nextAnchor is ArrayRun) return false; // don't blap over existing arrays
             if (!DataMatchesSegmentFormat(owner, start, segment, flags, segments, parentIndex)) return false;
             start += segment.Length;
          }
@@ -927,7 +935,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                return true;
             case ElementContentType.BitArray:
                var bitArraySegment = (ArrayRunBitArraySegment)segment;
-               var bits = bitArraySegment.GetOptions(owner).Count();
+               var bits = bitArraySegment.GetOptions(owner)?.Count() ?? 0;
                bits %= 8;
                if (bits == 0) return true;
                var finalByte = owner[start + bitArraySegment.Length - 1];
