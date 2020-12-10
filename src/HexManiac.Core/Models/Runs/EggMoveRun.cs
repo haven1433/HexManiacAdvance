@@ -136,9 +136,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var value = model.ReadMultiByteValue(address, 2);
             if (value >= MagicNumber) {
                value -= MagicNumber;
-               builder.Append($"{GroupStart}{cachedPokenames[value].Trim('"')}{GroupEnd}");
+               var pokemonName = value < cachedPokenames.Count ? cachedPokenames[value] : value.ToString();
+               builder.Append($"{GroupStart}{pokemonName.Trim('"')}{GroupEnd}");
             } else {
-               builder.Append(cachedMovenames[value].Trim('"'));
+               var moveName = value < cachedMovenames.Count ? cachedMovenames[value] : value.ToString();
+               builder.Append(moveName.Trim('"'));
             }
             if (i < Length - 4) builder.AppendLine();
          }

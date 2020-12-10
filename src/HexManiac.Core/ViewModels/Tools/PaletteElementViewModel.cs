@@ -56,7 +56,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var destination = Model.ReadPointer(start);
          var run = ViewPort.Model.GetNextRun(destination) as IPaletteRun;
          Colors.SourcePalettePointer = start;
-         Colors.SetContents(run.GetPalette(Model, page));
+         var palette = run?.GetPalette(Model, page) ?? TileViewModel.CreateDefaultPalette(16);
+         Colors.SetContents(palette);
          Colors.Page = page;
          Colors.HasMultiplePages = Pages > 1;
       }
