@@ -43,7 +43,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return DataMatches(model, tableStream, mostElementsCount);
       }
 
-      public static bool DataMatches(IDataModel model, TableStreamRun tableStream, int elementsCount) {
+      public static bool DataMatches(IDataModel model, ITableRun tableStream, int elementsCount) {
          for (int i = 0; i < elementsCount; i++) {
             int subStart = tableStream.Start + tableStream.ElementLength * i;
             for (int j = 0; j < tableStream.ElementContent.Count; j++) {
