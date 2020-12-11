@@ -1078,8 +1078,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             a = parent.ToSpriteSpace(a);
             b = parent.ToSpriteSpace(b);
             if (!parent.WithinImage(a) || !parent.WithinImage(b)) return;
-            var paletteAddress = parent.model.ReadPointer(parent.PalettePointer);
-            int pageStart = parent.model.GetNextRun(paletteAddress) is IPaletteRun palRun ? palRun.PaletteFormat.InitialBlankPages * 16 : 0;
+            var paletteInfo = parent.ReadPalette();
+            int pageStart = paletteInfo.initialBlankPages * 16;
             pageStart += parent.PalettePage * 16;
             int originalColorIndex = parent.pixels[a.X, a.Y];
             var originalPaletteIndex = parent.PaletteIndex(originalColorIndex);
