@@ -88,7 +88,9 @@ namespace HavenSoft.HexManiac.Tests {
          var moveNamesRun = model.GetTable(MoveNamesTable);
          var moveDescriptionsRun = model.GetTable(MoveDescriptionsName);
 
-         Assert.Equal(moveNamesRun.ElementCount - 1, moveDescriptionsRun.ElementCount);
+         if (!game.Contains("Vega")) {
+            Assert.Equal(moveNamesRun.ElementCount - 1, moveDescriptionsRun.ElementCount);
+         }
       }
 
       [SkippableTheory]
@@ -277,8 +279,10 @@ namespace HavenSoft.HexManiac.Tests {
          var compareSet = new[] { 0, 40, 0, 100, 35, 0, 0, 0 };
          for (int i = 0; i < compareSet.Length; i++) Assert.Equal(compareSet[i], poundStats[i]);
 
-         run = model.GetTable("graphics.pokemon.moves.animations");
-         Assert.Equal(ElementContentType.Pointer, run.ElementContent[0].Type);
+         if (!game.Contains("Gaia")) {
+            run = model.GetTable("graphics.pokemon.moves.animations");
+            Assert.Equal(ElementContentType.Pointer, run.ElementContent[0].Type);
+         }
 
          run = model.GetTable("scripts.moves.effects");
          Assert.Equal(ElementContentType.Pointer, run.ElementContent[0].Type);

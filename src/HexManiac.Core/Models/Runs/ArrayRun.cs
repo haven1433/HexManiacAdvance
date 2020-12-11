@@ -341,9 +341,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                using (ModelCacheScope.CreateScope(data)) {
                   var array = new ArrayRun(data, format, start, pointerSources);
                   self = array;
-                  if (array.ElementContent.Count == 1) {
+                  if (array.ElementContent.Count == 1 && array.ElementContent[0].Type == ElementContentType.Pointer) {
                      for (int i = 0; i < array.ElementCount; i++) {
-                        if (!DataMatchesElementFormat(data, array.Start + array.ElementLength * i, array.ElementContent, i, FormatMatchFlags.AllowJunkAfterText | FormatMatchFlags.IsSingleSegment, null)) {
+                        if (!CheckPointerFormat(data, array.Start + array.ElementLength * i)) {
                            return new ErrorInfo($"{name}[{i}] doesn't match the expected format.");
                         }
                      }
@@ -874,6 +874,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
 
          return (lengthFromAnchor, parentOffset, run.ElementCount + parentOffset);
+      }
+
+      // similar to DataMatchesElementFormat, but it only checks to make sure that things are pointers
+      private static bool CheckPointerFormat(IDataModel owner, int start) {
+         var destination = owner.ReadPointer(start);
+         if (destination == Pointer.NULL) return true;
+         if (destination < 0 || destination >= owner.Count) return false;
+         return true;
       }
 
       private static bool DataMatchesElementFormat(IDataModel owner, int start, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, FormatMatchFlags flags, IFormattedRun nextAnchor) {
