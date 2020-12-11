@@ -59,8 +59,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (destination < 0 || destination >= Model.Count) return true;
             var run = Model.GetNextRun(destination);
             if (run.Start != destination) return true;
-            var error = FormatRunFactory.GetStrategy(RunFormat).TryParseData(Model, string.Empty, destination, ref run);
-            return error.HasError;
+            using (ModelCacheScope.CreateScope(Model)) {
+               var error = FormatRunFactory.GetStrategy(RunFormat).TryParseData(Model, string.Empty, destination, ref run);
+               return error.HasError;
+            }
          }
       }
 
