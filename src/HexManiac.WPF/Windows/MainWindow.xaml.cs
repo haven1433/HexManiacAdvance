@@ -74,8 +74,15 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          text.AppendLine("-------------------------------------------");
          text.AppendLine(Environment.NewLine);
          File.AppendAllText("crash.log", text.ToString());
-         FileSystem.ShowCustomMessageBox("An unhandled error occured. Please report it on Discord or open an issue on GitHub." + Environment.NewLine +
-            "HexManiac might be in a bad state. You should close as soon as possible." + Environment.NewLine +
+         var exceptionTypeShortName = e.Exception.GetType().ToString().Split('.').Last().Split("Exception").First();
+         FileSystem.ShowCustomMessageBox(
+            "An unhandled error occured. Please report it on Discord or open an issue on GitHub." + Environment.NewLine +
+            Title + " might be in a bad state. You should close as soon as possible." + Environment.NewLine +
+            "Here's a summary of the issue:" + Environment.NewLine +
+            Environment.NewLine +
+            exceptionTypeShortName + ":" + Environment.NewLine +
+            $"{e.Exception.Message}" + Environment.NewLine +
+            Environment.NewLine +
             "The error has been logged to crash.log", showYesNoCancel: false, processButtonText: "Show crash.log in Explorer", processContent: ".");
          e.Handled = true;
       }
