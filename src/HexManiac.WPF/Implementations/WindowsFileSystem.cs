@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -151,7 +152,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             using (var stream = new FileStream(file.Name, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite)) {
                stream.Write(file.Contents, 0, file.Contents.Length);
             }
-         } catch (IOException) {
+         } catch (Exception) {
             ShowCustomMessageBox("Could not save. The file might be ReadOnly or in use by another application.", showYesNoCancel: false);
             result = false;
          }
@@ -167,7 +168,21 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       public bool SaveMetadata(string originalFileName, string[] metadata) {
          if (metadata == null) return true; // nothing to save
          var metadataName = Path.ChangeExtension(originalFileName, ".toml");
-         File.WriteAllLines(metadataName, metadata);
+         int tryCount = 0;
+         while (tryCount < 5) {
+            try {
+               File.WriteAllLines(metadataName, metadata);
+               break;
+            } catch (Exception ex) {
+               tryCount += 1;
+               if (tryCount < 5) {
+                  Thread.Sleep(100);
+               } else {
+                  ShowCustomMessageBox($"Failed to write {metadataName}:{Environment.NewLine}{ex.Message}.", showYesNoCancel: false);
+                  return false;
+               }
+            }
+         }
          return true;
       }
 
