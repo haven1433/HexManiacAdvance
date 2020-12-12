@@ -162,6 +162,8 @@
                   <MenuItem Header="Copy Aligned Address" Command="{Binding CopyAlignedAddress}" CommandParameter="{DynamicResource FileSystem}"/>
                   <MenuItem Header="Assert" Click="DeveloperRaiseAssert"/>
                   <MenuItem Header="Throw ArgumentOutOfRangeException" Click="DeveloperThrowArgumentOutOfRangeException"/>
+                  <MenuItem Header="Write Debug" Click="DeveloperWriteDebug"/>
+                  <MenuItem Header="Write Trace" Click="DeveloperWriteTrace"/>
                </MenuItem>
                <MenuItem Header="_Tools">
                   <MenuItem Header="_Hide All Tools" Command="{Binding Tools.HideCommand}"/>

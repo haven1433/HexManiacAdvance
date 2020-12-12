@@ -56,8 +56,15 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          };
 
          Application.Current.DispatcherUnhandledException += HandleException;
+         Loaded += SetupDebugListener;
 
          FillQuickEditMenu();
+      }
+
+      private void SetupDebugListener(object sender, RoutedEventArgs e) {
+         Debug.Listeners.Clear();
+         Debug.Listeners.Add(new CustomTraceListener(FileSystem));
+         Loaded -= SetupDebugListener;
       }
 
       private void HandleException(object sender, DispatcherUnhandledExceptionEventArgs e) {
@@ -372,6 +379,59 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          var number = list[13];
       }
 
+      private void DeveloperWriteDebug(object sender, RoutedEventArgs e) => Debug.WriteLine("Debug");
+
+      private void DeveloperWriteTrace(object sender, RoutedEventArgs e) => Trace.WriteLine("Trace");
+
       #endregion
+   }
+
+   public class CustomTraceListener : TraceListener {
+      private readonly WindowsFileSystem fileSystem;
+      private readonly TraceListener core = new DefaultTraceListener();
+
+      private bool ignoreAssertions;
+
+      public CustomTraceListener(WindowsFileSystem fs) => fileSystem = fs;
+
+      public override void Fail(string message, string detailMessage) {
+         if (ignoreAssertions) return;
+         int result = 0;
+
+         Application.Current.Dispatcher.Invoke(() => {
+            result = fileSystem.ShowOptions(
+               "Debug Assert!",
+               message + Environment.NewLine + Environment.NewLine + detailMessage,
+               null,
+               new[] {
+                  new VisualOption {
+                     Index = 0,
+                     Option = "Ignore",
+                     ShortDescription = "Don't Show Assertions",
+                     Description = "Ignore assertions until the next time the application is opened."
+                  },
+                  new VisualOption {
+                     Index = 1,
+                     Option = "Debug",
+                     ShortDescription = "Show Full Message",
+                     Description = "Bring up the full dialog with debugging options."
+                  },
+                  new VisualOption {
+                     Index = 2,
+                     Option = "Continue",
+                     ShortDescription = "Ignore This One",
+                     Description = "Ignore this assertion, but show this dialog again if there's another."
+                  },
+               });
+         });
+
+         // user hit "Ignore Additional Assertions"
+         ignoreAssertions = result == 0;
+         if (result == 1) core.Fail(message, detailMessage);
+      }
+
+      public override void Write(string message) => core.Write(message);
+
+      public override void WriteLine(string message) => core.WriteLine(message);
    }
 }
