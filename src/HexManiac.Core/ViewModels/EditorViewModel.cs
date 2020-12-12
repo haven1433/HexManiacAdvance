@@ -409,7 +409,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             $"ZoomLevel = {ZoomLevel}",
             $"AnimateScroll = {AnimateScroll}",
             $"AutoAdjustDataWidth = {AutoAdjustDataWidth}",
-            $"StretchData= {StretchData}",
+            $"StretchData = {StretchData}",
             $"AllowMultipleElementsPerLine = {AllowMultipleElementsPerLine}",
             $"IsNewVersionAvailable = {IsNewVersionAvailable}",
             $"LastUpdateCheck = {LastUpdateCheck}",
