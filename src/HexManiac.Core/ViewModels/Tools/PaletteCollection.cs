@@ -144,6 +144,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Elements[index].Selected = !Elements[index].Selected;
          createGradient.RaiseCanExecuteChanged();
          singleReduce.RaiseCanExecuteChanged();
+
+         // if all the selected elements are contiguous, clean up the selection start/end
+         var first = Elements.Where(e => e.Selected).FirstOrDefault();
+         var last = Elements.Where(e => e.Selected).LastOrDefault();
+         if (first != null && last != null && last != first) {
+            bool allSelected = true;
+            for (int i = first.Index + 1; i < last.Index && allSelected; i++) allSelected = Elements[i].Selected;
+            if (allSelected) {
+               selectionStart = first.Index;
+               selectionEnd = last.Index;
+               NotifyPropertyChanged(nameof(SelectionStart));
+               NotifyPropertyChanged(nameof(SelectionEnd));
+            }
+         }
+
          SelectionSet?.Invoke(this, EventArgs.Empty);
       }
 
