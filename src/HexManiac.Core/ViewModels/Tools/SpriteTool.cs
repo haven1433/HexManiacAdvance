@@ -660,7 +660,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var imageDetails = new List<object>();
          var detailsLength = Math.Min(3, dependentSprites.Count);
          for (int i = 0; i < detailsLength; i++) {
-            imageDetails.Add(ToolTipContentVisitor.BuildContentForRun(model, dependentSprites[i].Start, dependentSprites[i]));
+            imageDetails.Add(ToolTipContentVisitor.BuildContentForRun(model, -1, dependentSprites[i].Start, dependentSprites[i]));
          }
 
          var palDetails = new List<FlagViewModel>();
