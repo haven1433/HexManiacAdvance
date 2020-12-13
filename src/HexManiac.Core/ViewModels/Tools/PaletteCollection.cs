@@ -236,7 +236,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          var palettesToUpdate = new List<IPaletteRun> { source };
          var sprites = source.FindDependentSprites(model).Distinct().ToList();
-         bool alreadyDidGoto = false;
 
          foreach (var sprite in sprites) {
             var newSprite = sprite;
@@ -264,8 +263,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   var newTileMap = tilemap.SetPixels(model, history.CurrentChange, 0, pixels);
                   if (newTileMap.Start != tilemap.Start) {
                      tab.RaiseMessage($"Tilemap was moved to {newTileMap.Start:X6}. Pointers were updated.");
-                     if (!alreadyDidGoto) tab.Goto?.Execute(newTileMap.Start);
-                     alreadyDidGoto = true;
+                     if (DataIsSelected(tilemap.Start)) tab.Goto?.Execute(newTileMap.Start);
                   }
                }
                // find the new tileset sprite, since it could've moved
@@ -288,8 +286,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
                if (newSprite.Start != sprite.Start) {
                   tab.RaiseMessage($"Sprite was moved to {newSprite.Start:X6}. Pointers were updated.");
-                  if (!alreadyDidGoto) tab.Goto?.Execute(newSprite.Start);
-                  alreadyDidGoto = true;
+                  if (DataIsSelected(sprite.Start)) tab.Goto?.Execute(newSprite.Start);
                }
             }
 
@@ -310,6 +307,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             // the elements order changed, so the element should already have the right color.
          }
          Refresh();
+      }
+
+      private bool DataIsSelected(int runStart) {
+         if (!(tab is ViewPort viewPort)) return false;
+         var selectedAddress = viewPort.ConvertViewPointToAddress(viewPort.SelectionStart);
+         return model.GetNextRun(selectedAddress).Start == runStart;
       }
 
       private void Refresh() {
