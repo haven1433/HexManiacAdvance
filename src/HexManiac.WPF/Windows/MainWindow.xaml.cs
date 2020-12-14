@@ -396,6 +396,11 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
       public override void Fail(string message, string detailMessage) {
          if (ignoreAssertions) return;
+         if (Debugger.IsAttached) {
+            core.Fail(message, detailMessage);
+            return;
+         }
+
          int result = 0;
 
          Application.Current.Dispatcher.Invoke(() => {
