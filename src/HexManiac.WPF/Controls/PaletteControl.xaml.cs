@@ -254,7 +254,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var newColor = (Color)ColorConverter.ConvertFromString(swatch.Result);
          var dif = GetColorDif(newColor);
 
-         // concern: this might not work well, since it's a diff of a diff of a diff.
          for (int i = 0; i < ViewModel.Elements.Count; i++) {
             if (!ViewModel.Elements[i].Selected) continue;
             if (i == activeSelection) {

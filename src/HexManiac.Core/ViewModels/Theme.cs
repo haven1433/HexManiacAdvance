@@ -150,6 +150,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public static (byte red, byte green, byte blue) FromHSB(double hue, double sat, double bright) {
+         sat = sat.LimitToRange(0, 1);
+         bright = bright.LimitToRange(0, 1);
          while (hue < 0) hue += 1;
          while (hue >= 1) hue -= 1;
          var c = bright * sat;
