@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using HavenSoft.HexManiac.Core.ViewModels;
+using HavenSoft.HexManiac.WPF.Windows;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
@@ -7,10 +9,9 @@ namespace HavenSoft.HexManiac.WPF.Controls {
    public partial class StartScreen {
       public StartScreen() {
          InitializeComponent();
-
-#if STABLE
-         Usage.Text = "This is a preview release. Please report any bugs via GitHub or Discord.";
-# endif
+         Loaded += (sender, e) => {
+            Usage.Text = AboutWindow.GetUsageText(((EditorViewModel)DataContext).Singletons.MetadataInfo.VersionNumber);
+         };
       }
 
       private void Navigate(object sender, RequestNavigateEventArgs e) {
