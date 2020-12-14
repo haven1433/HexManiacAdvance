@@ -90,7 +90,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       /// (4) if the sprite's hint is a table name, return all palettes within the matching index of that table. Example: trainer sprites/palettes.
       /// (5) if the sprite has no hint, return all palettes in arrays with matching length from the same index. Example: pokemon sprites. Leaving it empty allows both normal and shiny palettes to match.
       /// </summary>
-      public static IReadOnlyList<IPaletteRun> FindRelatedPalettes(this ISpriteRun spriteRun, IDataModel model, int primarySource = -1, string hint = null) {
+      public static IReadOnlyList<IPaletteRun> FindRelatedPalettes(this ISpriteRun spriteRun, IDataModel model, int primarySource = -1, string hint = null, bool includeAllTableIndex = false) {
          // find all palettes that could be applied to this sprite run
          var noChange = new NoDataChangeDeltaModel();
          var results = new List<IPaletteRun>();
@@ -160,7 +160,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                if (relatedTable == spriteTable) continue; // skip self, I'll handle my own relation later
                results.AddRange(model.GetPointedChildren<IPaletteRun>(relatedTable, offset.ElementIndex));
             }
-            results.AddRange(model.GetPointedChildren<IPaletteRun>(spriteTable, offset.ElementIndex));
+            // this sprite may appear in the table multiple times, with different palettes. Example: potions
+            if (includeAllTableIndex) {
+               var segStart = offset.SegmentStart - offset.ElementIndex * spriteTable.ElementLength - spriteTable.Start;
+               for (int i = 0; i < spriteTable.ElementCount; i++) {
+                  if (model.ReadPointer(spriteTable.Start + spriteTable.ElementLength * i + segStart) != spriteRun.Start) continue;
+                  results.AddRange(model.GetPointedChildren<IPaletteRun>(spriteTable, i));
+               }
+            } else {
+               results.AddRange(model.GetPointedChildren<IPaletteRun>(spriteTable, offset.ElementIndex));
+            }
          }
          return results;
       }

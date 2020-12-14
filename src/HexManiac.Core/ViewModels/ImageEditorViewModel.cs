@@ -8,17 +8,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO.Packaging;
 using System.Linq;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
-   // TODO add ability to swap to another palette used by this sprite
-   // TODO add the ability to swap to another sprite used by this palette
-   // TODO add the ability to swap to another page of this sprite/palette
-   // TODO add the ability to show all sprites condensed to one sprite, horizontal or vertical
-   // TODO add the ability to show all pages condensed to one sprite, horizontal or vertical
-
    // all x/y terms are in 'pixels' from the center of the image viewing area.
    // cursor size is in terms of destination pixels (1x1, 2x2, 4x4, 8x8)
    // cursor sprite position is in terms of the sprite (ranging from 0,0 to width,height)
@@ -224,7 +217,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var spriteAddress = model.ReadPointer(spritePointer);
             var spriteRun = model.GetNextRun(spriteAddress) as ISpriteRun;
             if (spriteRun == null || spriteRun.Start != spriteAddress || spriteRun.FormatString != pSegment.InnerFormat) continue;
-            foreach (var palette in spriteRun.FindRelatedPalettes(model, spritePointer)) {
+            foreach (var palette in spriteRun.FindRelatedPalettes(model, spritePointer, includeAllTableIndex: true)) {
                EditOptions.Add(new EditOption(model, spritePointer, palette.PointerSources[0]));
             }
             if (spriteRun.SpriteFormat.BitsPerPixel < 4) {

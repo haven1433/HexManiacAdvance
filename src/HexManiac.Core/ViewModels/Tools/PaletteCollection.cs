@@ -290,7 +290,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                }
             }
 
-            palettesToUpdate.AddRange(newSprite.FindRelatedPalettes(model));
+            palettesToUpdate.AddRange(newSprite.FindRelatedPalettes(model, includeAllTableIndex: true));
          }
 
          foreach (var palette in palettesToUpdate.Distinct()) {
