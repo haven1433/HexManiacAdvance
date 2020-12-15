@@ -329,6 +329,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          if (!(hintRun is ITableRun hintTable)) return hintRun.Start;
          var tilemapPointer = PointerSources[0];
          var tilemapTable = model.GetNextRun(tilemapPointer) as ITableRun;
+         for (int i = 1; i < PointerSources.Count && tilemapTable == null; i++) {
+            tilemapPointer = PointerSources[i];
+            tilemapTable = model.GetNextRun(tilemapPointer) as ITableRun;
+         }
          if (tilemapTable == null) return hintRun.Start;
          int tilemapIndex = (tilemapPointer - tilemapTable.Start) / tilemapTable.ElementLength;
 
