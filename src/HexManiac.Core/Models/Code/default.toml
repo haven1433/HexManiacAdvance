@@ -268,7 +268,7 @@ Name = '''owfootprints'''
 Name = '''movetarget'''
 0 = [
    '''RecentAttacker''',
-   '''Unused''',
+   '''UserOrSelected''',
    '''Random''',
    '''Both''',
    '''Self''',
