@@ -100,6 +100,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (metadata != null && !metadata.IsEmpty) return;
 
          gameCode = this.GetGameCode();
+         isCFRU = GetIsCFRU();
 
          // in vanilla emerald, this pointer isn't four-byte aligned
          // it's at the very front of the ROM, so if there's no metadata we can be pretty sure that the pointer is still there
@@ -133,6 +134,8 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private void DecodeTablesFromReference(GameReferenceTables tables) {
          foreach (var table in tables) {
+            if (isCFRU && table.Name == "graphics.pokemon.sprites.coordinates.front") continue;
+            if (isCFRU && table.Name == "data.pokemon.moves.egg") continue;
             using (ModelCacheScope.CreateScope(this)) {
                AddTable(table.Address, table.Offset, table.Name, table.Format);
             }
@@ -144,6 +147,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// The pointer at the source may not point directly to the table: it make point to an offset from the start of the table.
       /// </summary>
       private void AddTable(int source, int offset, string name, string format) {
+         format = AdjustFormatForCFRU(format);
          if (source < 0 || source > RawData.Length) return;
          var destination = ReadPointer(source) - offset;
          if (destination < 0 || destination > RawData.Length) return;
@@ -183,6 +187,18 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (validatePointerFound) {
             CheckForEmptyAnchors(destination, name);
          }
+      }
+
+      private bool isCFRU;
+      private const int CFRU_Check_Address = 0x03436C, CFRU_Check_Value = 0x47004800;
+      private bool GetIsCFRU() {
+         if (gameCode != FireRed) return false;
+         if (RawData.Length < CFRU_Check_Address + 3) return false;
+         return ReadValue(CFRU_Check_Address) == CFRU_Check_Value;
+      }
+      private string AdjustFormatForCFRU(string format) {
+         if (!isCFRU || !format.EndsWith("+28")) return format;
+         return format.Substring(0, format.Length - 3);
       }
    }
 }
