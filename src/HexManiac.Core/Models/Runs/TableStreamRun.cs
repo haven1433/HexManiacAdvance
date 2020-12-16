@@ -13,6 +13,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public bool CanAppend => !(endStream is FixedLengthStreamStrategy);
 
+      public bool AllowsZeroElements => endStream is EndCodeStreamStrategy;
+
       #region Constructors
 
       public static bool TryParseTableStream(IDataModel model, int start, SortedSpan<int> sources, string fieldName, string content, IReadOnlyList<ArrayRunElementSegment> sourceSegments, out TableStreamRun tableStream) {
@@ -43,7 +45,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return DataMatches(model, tableStream, mostElementsCount);
       }
 
-      public static bool DataMatches(IDataModel model, ITableRun tableStream, int elementsCount) {
+      public static bool DataMatches(IDataModel model, TableStreamRun tableStream, int elementsCount) {
          for (int i = 0; i < elementsCount; i++) {
             int subStart = tableStream.Start + tableStream.ElementLength * i;
             for (int j = 0; j < tableStream.ElementContent.Count; j++) {
@@ -51,7 +53,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                subStart += tableStream.ElementContent[j].Length;
             }
          }
-         return tableStream.ElementCount > 0;
+         return tableStream.ElementCount > 0 || tableStream.AllowsZeroElements;
       }
 
       public static bool TryWriteNewEndToken(ModelDelta token, ref TableStreamRun tableStream) {
