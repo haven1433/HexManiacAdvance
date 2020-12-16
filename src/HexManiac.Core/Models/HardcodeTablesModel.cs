@@ -135,9 +135,11 @@ namespace HavenSoft.HexManiac.Core.Models {
       private void DecodeTablesFromReference(GameReferenceTables tables) {
          foreach (var table in tables) {
             if (isCFRU && table.Name == "graphics.pokemon.sprites.coordinates.front") continue;
-            if (isCFRU && table.Name == "data.pokemon.moves.egg") continue;
+            if (isCFRU && table.Name == EggMovesTableName) continue;
             using (ModelCacheScope.CreateScope(this)) {
-               AddTable(table.Address, table.Offset, table.Name, table.Format);
+               var format = table.Format;
+               if (isCFRU && table.Name == LevelMovesTableName) format = $"[movesFromLevel<[move:{MoveNamesTable} level.]!0000FF>]{PokemonNameTable}";
+               AddTable(table.Address, table.Offset, table.Name, format);
             }
          }
       }
