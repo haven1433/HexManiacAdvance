@@ -20,7 +20,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
 
       private readonly IReadOnlyList<ArrayRunElementSegment> parentTemplate2 = new List<ArrayRunElementSegment> {
          new ArrayRunElementSegment(string.Empty, ElementContentType.Integer, 2),
-         new ArrayRunElementSegment(string.Empty, ElementContentType.Integer, 2),
+         new ArrayRunElementSegment("paletteid", ElementContentType.Integer, 2),
          new ArrayRunElementSegment(string.Empty, ElementContentType.Pointer, 4),
          new ArrayRunElementSegment(string.Empty, ElementContentType.Pointer, 4),
          new ArrayRunPointerSegment("sprites", OverworldSpriteListRun.SharedFormatString),

@@ -408,10 +408,11 @@ graphics.trainercard.background.tilemap,             ,,,,               089488, 
 graphics.trainercard.background.tilemap2,            ,,,,               089478, 08944C, 08948C, 089460, , `lzm4x30x20|graphics.trainercard.tileset2`
 
 graphics.overworld.palettes,           05BE20, 05BE24, 05BE40, 05BE44, 05F4D8, 05F4D8, 05F4EC, 05F4EC, 08E8BC, [pal<`ucp4`> id:|h unused:]!0000000000000000
+graphics.overworld.palettes2,                ,       ,       ,       , 1D982C, 1D9808, 1D989C, 1D9878,       , [pal<`ucp4`> id:|h unused:]2
 graphics.overworld.sprites,            05BC3C, 05BC40, 05BC5C, 05BC60,       ,       ,       ,       ,       , [data<[starterbytes:|h paletteid:|h secondid:|h length: width: height: slot.|h footprint.owfootprints unused: distribution<> sizedraw<> animation<> sprites<`osl`> ramstore<>]1>]218
 graphics.overworld.sprites,                  ,       ,       ,       , 05F2F4, 05F2F4, 05F308, 05F308,       , [data<[starterbytes:|h paletteid:|h secondid:|h length: width: height: slot.|h footprint.owfootprints unused: distribution<> sizedraw<> animation<> sprites<`osl`> ramstore<>]1>]152
 graphics.overworld.sprites,                  ,       ,       ,       ,       ,       ,       ,       , 08E6D8, [data<[starterbytes:|h paletteid:|h secondid:|h length: width: height: slot.|h footprint.owfootprints unused: distribution<> sizedraw<> animation<> sprites<`osl`> ramstore<>]1>]246
-graphics.overworld.sprites2,                 ,       ,       ,       , 05DF28, 05DF28, 05DF3C, 05DF3C,       , [data<[starterbytes:|h unknown:|h a<> b<> sprites<`osl`> d<> e<>]1>]36
+graphics.overworld.sprites2,                 ,       ,       ,       , 05DF28, 05DF28, 05DF3C, 05DF3C,       , [data<[starterbytes:|h paletteid:|h a<> b<> sprites<`osl|graphics.overworld.palettes2:id=`> d<> e<>]1>]36
 
 graphics.text.font.other.characters, ,,,, 00658C, 00658C, 0065A0, 0065A0, 0068BC, `ucs2x2x1024`
 graphics.text.font.other.width,      ,,,, 006594, 006594, 0065A8, 0065A8, 0068C4, [width.]512

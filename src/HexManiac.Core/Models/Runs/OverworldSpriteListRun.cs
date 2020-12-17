@@ -71,7 +71,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (sources == null || sources.Count == 0) return;
 
          // initialize format from parent info
-         var listOffset = GetOffset<ArrayRunPointerSegment>(parent, pSeg => pSeg.InnerFormat == SharedFormatString);
+         var listOffset = GetOffset<ArrayRunPointerSegment>(parent, pSeg => pSeg.InnerFormat.StartsWith("`osl"));
          var widthOffset = GetOffset(parent, seg => seg.Name == "width");
          var heightOffset = GetOffset(parent, seg => seg.Name == "height");
          var keyOffset = GetOffset(parent, seg => seg.Name == "paletteid");
@@ -105,7 +105,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          var key = model.ReadMultiByteValue(elementStart + keyOffset, 2);
          var hint = $"{HardcodeTablesModel.OverworldPalettes}:id={key:X4}";
-         if (!string.IsNullOrEmpty(paletteHint)) hint = PaletteHint + $"={runIndex}";
+         if (!string.IsNullOrEmpty(paletteHint)) hint = PaletteHint + $"={runIndex:X4}";
+         if (paletteHint != null && paletteHint.Contains("=")) hint = PaletteHint + $"{key:X4}";
 
          var format = $"`ucs4x{tileWidth}x{tileHeight}|{hint}`";
          if (keyOffset == -1 && string.IsNullOrEmpty(paletteHint)) {
