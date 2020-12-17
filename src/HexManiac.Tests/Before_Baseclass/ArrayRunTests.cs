@@ -1154,6 +1154,17 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal($"pokemoves/3{Environment.NewLine}pokemoves/\"Psycho Boost\"", test.ViewPort.Tools.TableTool.CurrentElementName);
       }
 
+      [Fact]
+      public void NullPointer_MakeSmallTable_TableAdded() {
+         var test = new BaseViewModelTestClass();
+         test.ViewPort.Edit("<null> @00 ^table[pointer<>]1 ");
+         var table = test.Model.GetTable("table");
+
+         Assert.Equal(0, table.Start);
+         Assert.Equal(4, table.Length);
+         Assert.Single(table.ElementContent);
+      }
+
       private static void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);

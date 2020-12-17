@@ -1271,10 +1271,10 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       public override void ClearPointer(ModelDelta currentChange, int source, int destination) {
          var index = BinarySearch(destination);
+         if (index < 0) return; // nothing to remove at the destination
          currentChange.RemoveRun(runs[index]);
 
          var newRun = runs[index].RemoveSource(source);
-         var hasName = anchorForAddress.TryGetValue(newRun.Start, out var _);
          if (newRun is NoInfoRun && newRun.PointerSources.Count == 0) {
             // run carries no info, just remove it
             runs.RemoveAt(index);
