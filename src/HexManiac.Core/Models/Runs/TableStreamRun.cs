@@ -199,17 +199,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          // split at each space
          var tokens = new List<string>(line.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries));
 
-         // recombine tokens so that each token that starts with " ends with "
-         for (int i = 0; i < tokens.Count - 1; i++) {
-            if (tokens[i].StartsWith("\"") == tokens[i].EndsWith("\"")) continue;
-            tokens[i] += " " + tokens[i + 1];
-            i--;
-         }
-
          // remove trailing ',' from tokens
          for (int i = 0; i < tokens.Count; i++) {
             if (!tokens[i].EndsWith(",")) continue;
             tokens[i] = tokens[i].Substring(0, tokens[i].Length - 1);
+         }
+
+         // recombine tokens so that each token that starts with " ends with "
+         for (int i = 0; i < tokens.Count - 1; i++) {
+            if (tokens[i].StartsWith("\"") == tokens[i].EndsWith("\"")) continue;
+            tokens[i] += " " + tokens[i + 1];
+            tokens.RemoveAt(i + 1);
+            i--;
          }
 
          // remove comments
