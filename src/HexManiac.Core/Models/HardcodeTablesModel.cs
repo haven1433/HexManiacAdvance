@@ -183,7 +183,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       private void AddTableDirect(int destination, string name, string format, bool validatePointerFound = false) {
          using (ModelCacheScope.CreateScope(this)) {
-            ApplyAnchor(this, noChangeDelta, destination, "^" + name + format, allowAnchorOverwrite: true);
+            var errorInfo = ApplyAnchor(this, noChangeDelta, destination, "^" + name + format, allowAnchorOverwrite: true);
+            validatePointerFound &= !errorInfo.HasError;
          }
 
          if (validatePointerFound) {
