@@ -359,8 +359,11 @@ graphics.newgame.background.tileset2,          ,       ,       ,       , 130DE4,
 graphics.newgame.background.tilemap2,          ,       ,       ,       , 130E34, 130E0C, 130EAC, 130E84,       , `lzm4x32x20|graphics.newgame.background.tileset2`
 
 graphics.townmap.palette,                      ,       ,       ,       , 0C02EC, 0C02C0, 0C0300, 0C02D4, , `ucp4:0123`
+graphics.townmap.palette,                      ,       ,       ,       ,       ,       ,       , , 122E90, `ucp4:78`
 graphics.townmap.tileset,                      ,       ,       ,       , 0C0330, 0C0304, 0C0344, 0C0318, , `lzt4|graphics.townmap.palette`
+graphics.townmap.tileset,                      ,       ,       ,       ,       ,       ,       , , 122E14, `lzt8|graphics.townmap.palette`
 graphics.townmap.tilemap,                      ,       ,       ,       , 0C035C, 0C0330, 0C0370, 0C0344, , `lzm4x30x20|graphics.townmap.tileset`
+graphics.townmap.tilemap,                      ,       ,       ,       ,       ,       ,       , , 122E60, `lzm8x64x64|graphics.townmap.tileset`
 graphics.townmap.islands.tilemap1,             ,       ,       ,       , 0C0370, 0C0344, 0C0384, 0C0358, , `lzm4x30x20|graphics.townmap.tileset`
 graphics.townmap.islands.tilemap2,             ,       ,       ,       , 0C0388, 0C035C, 0C039C, 0C0370, , `lzm4x30x20|graphics.townmap.tileset`
 graphics.townmap.islands.tilemap3,             ,       ,       ,       , 0C03A4, 0C0378, 0C03B8, 0C038C, , `lzm4x30x20|graphics.townmap.tileset`

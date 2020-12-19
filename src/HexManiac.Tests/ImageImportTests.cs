@@ -213,7 +213,7 @@ namespace HavenSoft.HexManiac.Tests {
          var mapData = LZRun.Decompress(Parse(compressedBattleBackgroundTilemap), 0);
 
          var originalTiles = SplitTiles(tileData);
-         var pixels = LzTilemapRun.GetPixels(mapData, tileData, new TilemapFormat(4, 32, 64, default));
+         var pixels = LzTilemapRun.GetPixels(mapData, tileData, new TilemapFormat(4, 32, 64, default), 2);
          var tileInfo = LzTilemapRun.Tilize(pixels, 4);
          var newTiles = LzTilemapRun.GetUniqueTiles(tileInfo);
 

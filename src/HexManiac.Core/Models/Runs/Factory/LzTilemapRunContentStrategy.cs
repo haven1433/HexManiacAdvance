@@ -23,7 +23,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
 
       public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
          var lzRun = new LZRun(model, dataIndex);
-         if (lzRun.DecompressedLength != TilemapFormat.ExpectedUncompressedLength) {
+         if (lzRun.DecompressedLength != TilemapFormat.ExpectedUncompressedLength && lzRun.DecompressedLength * 2!= TilemapFormat.ExpectedUncompressedLength) {
             return new ErrorInfo($"Expected an uncompressed length of {TilemapFormat.ExpectedUncompressedLength}, but it was {lzRun.DecompressedLength}");
          }
          if (lzRun.Length < 6) {

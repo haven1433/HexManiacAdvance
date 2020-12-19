@@ -276,11 +276,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void RefreshTilePalettes() {
          var spriteAddress = model.ReadPointer(SpritePointer);
-         if (!(model.GetNextRun(spriteAddress) is LzTilemapRun)) return;
+         if (!(model.GetNextRun(spriteAddress) is LzTilemapRun lzTilemapRun)) return;
          TilePalettes.Clear();
          var lzRunData = LZRun.Decompress(model, spriteAddress);
          for (int i = 0; i < lzRunData.Length / 2; i++) {
-            var (paletteIndex, _, _, _) = LzTilemapRun.ReadTileData(lzRunData, i);
+            var (paletteIndex, _, _, _) = LzTilemapRun.ReadTileData(lzRunData, i, lzTilemapRun.BytesPerTile);
             TilePalettes.Add(paletteIndex);
          }
       }
@@ -290,7 +290,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (!(model.GetNextRun(spriteAddress) is LzTilemapRun tilemapRun)) return;
          var lzRunData = LZRun.Decompress(model, spriteAddress);
          for (int i = 0; i < lzRunData.Length / 2; i++) {
-            var (paletteIndex, hFlip, vFlip, tileIndex) = LzTilemapRun.ReadTileData(lzRunData, i);
+            var (paletteIndex, hFlip, vFlip, tileIndex) = LzTilemapRun.ReadTileData(lzRunData, i, tilemapRun.BytesPerTile);
             paletteIndex = TilePalettes[i];
             LzTilemapRun.WriteTileData(lzRunData, i, paletteIndex, hFlip, vFlip, tileIndex);
          }

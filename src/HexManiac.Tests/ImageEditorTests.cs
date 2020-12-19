@@ -1003,7 +1003,7 @@ namespace HavenSoft.HexManiac.Tests {
          editor.TilePalettes[0] = 3;
 
          var mapData = LZRun.Decompress(model, TilemapStart);
-         var (pal, _, _, _) = LzTilemapRun.ReadTileData(mapData, 0);
+         var (pal, _, _, _) = LzTilemapRun.ReadTileData(mapData, 0, 2);
          Assert.Equal(3, pal);
       }
 
@@ -1016,7 +1016,7 @@ namespace HavenSoft.HexManiac.Tests {
          editor.ToolUp(-4, -4);
 
          var mapData = LZRun.Decompress(model, TilemapStart);
-         var (pal, _, _, _) = LzTilemapRun.ReadTileData(mapData, 0);
+         var (pal, _, _, _) = LzTilemapRun.ReadTileData(mapData, 0, 2);
          Assert.Equal(3, pal);
       }
 
@@ -1184,7 +1184,7 @@ namespace HavenSoft.HexManiac.Tests {
          editor.ToolUp(-8, -8);
 
          var mapData = LZRun.Decompress(model, TilemapStart);
-         var (pal, _, _, _) = LzTilemapRun.ReadTileData(mapData, 0);
+         var (pal, _, _, _) = LzTilemapRun.ReadTileData(mapData, 0, 2);
          Assert.Equal(3, pal);
       }
 

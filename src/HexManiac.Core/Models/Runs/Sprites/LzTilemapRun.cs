@@ -3,7 +3,11 @@ using System.Diagnostics;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
-   public class LzTilemapRun : LZRun, ISpriteRun {
+   public interface ITilemapRun : ISpriteRun {
+
+   }
+
+   public class LzTilemapRun : LZRun, ITilemapRun {
       SpriteFormat ISpriteRun.SpriteFormat {
          get {
             string hint = null;
@@ -35,6 +39,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          }
       }
       public bool SupportsEdit => SupportsImport;
+      public int BytesPerTile { get; private set; }
 
       public override string FormatString =>
          $"`lzm{Format.BitsPerPixel}x{Format.TileWidth}x{Format.TileHeight}|{Format.MatchingTileset}" +
@@ -43,6 +48,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public LzTilemapRun(TilemapFormat format, IDataModel data, int start, SortedSpan<int> sources = null) : base(data, start, allowLengthErrors: false, sources) {
          Format = format;
+         BytesPerTile = 2;
+         if (format.TileWidth * format.TileHeight * BytesPerTile > DecompressedLength) BytesPerTile = 1;
       }
 
       public static bool TryParseTilemapFormat(string format, out TilemapFormat tilemapFormat) {
@@ -83,12 +90,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
          var tiles = Decompress(model, tileset.Start);
 
-         return GetPixels(mapData, tiles, Format);
+         return GetPixels(mapData, tiles, Format, BytesPerTile);
       }
 
       /// <param name="mapData">The decompressed tilemap data</param>
       /// <param name="tile">The index of the tile, from 0 to tileWidth*tileHeight</param>
-      public static (int paletteIndex, bool hFlip, bool vFlip, int tileIndex) ReadTileData(byte[] mapData, int tile) {
+      public static (int paletteIndex, bool hFlip, bool vFlip, int tileIndex) ReadTileData(byte[] mapData, int tile, int bytesPerTile) {
+         if (bytesPerTile == 1) return (0, false, false, mapData[tile]);
          var map = mapData.ReadMultiByteValue(tile * 2, 2);
          var tileIndex = map & 0x3FF;
          var hFlip = ((map >> 10) & 0x1) == 1;
@@ -107,13 +115,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          lzRunData[index * 2 + 1] = (byte)(packedData >> 8);
       }
 
-      public static int[,] GetPixels(byte[] mapData, byte[] tiles, TilemapFormat format) {
+      public static int[,] GetPixels(byte[] mapData, byte[] tiles, TilemapFormat format, int bytesPerTile) {
          var tileSize = format.BitsPerPixel * 8;
          var result = new int[format.TileWidth * 8, format.TileHeight * 8];
          for (int y = 0; y < format.TileHeight; y++) {
             var yStart = y * 8;
             for (int x = 0; x < format.TileWidth; x++) {
-               var (pal, hFlip, vFlip, tile) = ReadTileData(mapData, format.TileWidth * y + x);
+               var (pal, hFlip, vFlip, tile) = ReadTileData(mapData, format.TileWidth * y + x, bytesPerTile);
 
                pal <<= 4;
                var tileStart = tile * tileSize;
