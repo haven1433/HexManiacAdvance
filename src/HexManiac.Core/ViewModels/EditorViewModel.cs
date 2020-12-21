@@ -559,7 +559,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             viewModel.AutoAdjustDataWidth = AutoAdjustDataWidth;
             viewModel.AllowMultipleElementsPerLine = AllowMultipleElementsPerLine;
             viewModel.StretchData = StretchData;
-            viewModel.ValidateMatchedWords();
+            if (Singletons.WorkDispatcher is InstantDispatch) {
+               viewModel.ValidateMatchedWords();
+            } else {
+               viewModel.Model.InitializeComplete += (sender, e) => Singletons.WorkDispatcher.DispatchWork(viewModel.ValidateMatchedWords);
+            }
             if (content is ViewPort viewPort) {
                bool anyTabsHaveMatchingViewModel = false;
                foreach (var tab in tabs) {

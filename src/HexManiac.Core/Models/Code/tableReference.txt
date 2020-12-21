@@ -54,6 +54,8 @@ graphics.trainers.sprites.back,                   ,       ,       ,       , 10BC
 graphics.trainers.sprites.back.throw,             ,       ,       ,       , 03F8A0, 03F8A0, 03F8B4, 03F8B4,       , [starterbytes:|h unknown:|h a<> b<> sprites<`osl|graphics.trainers.palettes.back:sprite`> d<> e<>]6
 graphics.trainers.sprites.back,                   ,       ,       ,       ,       ,       ,       ,       , 05DFD4, [sprite<`ucs4x8x8|graphics.trainers.palettes.back`> a. b. c:]8
 graphics.trainers.palettes.back,                  ,       ,       ,       , 0335D4, 0335D4, 0335E8, 0335E8, 05DFDC, [pal<`lzp4`> sprite::]graphics.trainers.sprites.back
+graphics.trainers.emotes.sprites,                 ,       ,       ,       , 3C7394, 3C71D0, 3C7404, 3C7240,       , [pointer<`ucs4x2x2|graphics.overworld.palettes:id=1100`> lengeth::]15
+
 graphics.pokemon.animations.options,              ,       ,       ,       ,       ,       ,       ,       , 17F53C, [thumb<>]
 graphics.pokemon.animations.front,                ,       ,       ,       ,       ,       ,       ,       , 06EDE8, [index.graphics.pokemon.animations.options]data.pokemon.names-1
 graphics.pokemon.animations.back,                 ,       ,       ,       ,       ,       ,       ,       , 17F488, [index.]data.pokemon.names

@@ -638,18 +638,21 @@ namespace HavenSoft.HexManiac.Core.Models {
          return string.Empty;
       }
 
+      private readonly object threadlock = new object();
       public override IFormattedRun GetNextRun(int dataIndex) {
          if (dataIndex == Pointer.NULL) return NoInfoRun.NullRun;
-         var index = BinarySearch(dataIndex);
-         if (index < 0) {
-            index = ~index;
-            if (index > 0) {
-               var previous = runs[index - 1];
-               if (previous.Start + previous.Length > dataIndex) index -= 1;
+         lock (threadlock) {
+            var index = BinarySearch(dataIndex);
+            if (index < 0) {
+               index = ~index;
+               if (index > 0) {
+                  var previous = runs[index - 1];
+                  if (previous.Start + previous.Length > dataIndex) index -= 1;
+               }
             }
+            if (index >= runs.Count) return NoInfoRun.NullRun;
+            return runs[index];
          }
-         if (index >= runs.Count) return NoInfoRun.NullRun;
-         return runs[index];
       }
 
       public override IFormattedRun GetNextAnchor(int dataIndex) {
@@ -701,70 +704,72 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public override void ObserveRunWritten(ModelDelta changeToken, IFormattedRun run) {
          Debug.Assert(run.Length > 0); // writing a run of length zero is stupid.
-         if (run is ArrayRun array) {
-            // update any words who's length matches this array's name
-            if (anchorForAddress.TryGetValue(run.Start, out var anchorName)) {
-               if (matchedWords.TryGetValue(anchorName, out var words)) {
-                  foreach (var address in words) WriteValue(changeToken, address, array.ElementCount);
+         lock (threadlock) {
+            if (run is ArrayRun array) {
+               // update any words who's length matches this array's name
+               if (anchorForAddress.TryGetValue(run.Start, out var anchorName)) {
+                  if (matchedWords.TryGetValue(anchorName, out var words)) {
+                     foreach (var address in words) WriteValue(changeToken, address, array.ElementCount);
+                  }
                }
             }
-         }
 
-         var index = BinarySearch(run.Start);
-         IFormattedRun existingRun = null;
-         if (index < 0) {
-            index = ~index;
-            if (runs.Count == index || (runs[index].Start >= run.Start + run.Length && (index == 0 || runs[index - 1].Start + runs[index - 1].Length <= run.Start))) {
-               runs.Insert(index, run);
-               changeToken.AddRun(run);
+            var index = BinarySearch(run.Start);
+            IFormattedRun existingRun = null;
+            if (index < 0) {
+               index = ~index;
+               if (runs.Count == index || (runs[index].Start >= run.Start + run.Length && (index == 0 || runs[index - 1].Start + runs[index - 1].Length <= run.Start))) {
+                  runs.Insert(index, run);
+                  changeToken.AddRun(run);
+               } else {
+                  // there's a conflict: the new run was written in a space already being used, but not where another run starts
+                  // I'll need to do something here eventually... but for now, just error
+                  // the right thing to do is probably to erase the existing format in favor of the new thing the user just tried to add.
+                  // if the existing format was an anchor, clear all the pointers that pointed to it, since the writer is declaring that that address is not a valid anchor.
+                  Debug.Fail($"Trying to add a run at {run.Start:X6} which overlaps a run at {runs[index].Start:X6}");
+               }
             } else {
-               // there's a conflict: the new run was written in a space already being used, but not where another run starts
-               // I'll need to do something here eventually... but for now, just error
-               // the right thing to do is probably to erase the existing format in favor of the new thing the user just tried to add.
-               // if the existing format was an anchor, clear all the pointers that pointed to it, since the writer is declaring that that address is not a valid anchor.
-               Debug.Fail($"Trying to add a run at {run.Start:X6} which overlaps a run at {runs[index].Start:X6}");
-            }
-         } else {
-            // replace / merge with existing
-            // if the only thing changed was the anchor, then don't change the format, just merge the anchor
-            existingRun = runs[index];
-            changeToken.RemoveRun(existingRun);
-            if (existingRun is PointerRun) {
-               bool needClearPointerRun = !(run is NoInfoRun) && !(run is PointerRun);
-               if (((run as OffsetPointerRun)?.Offset ?? 0) != ((existingRun as OffsetPointerRun)?.Offset ?? 0)) needClearPointerRun = true;
-               if (needClearPointerRun) {
-                  var destination = ReadPointer(existingRun.Start);
-                  ClearPointer(changeToken, existingRun.Start, destination);
-                  index = BinarySearch(run.Start); // have to recalculate index, because ClearPointer can removed runs.
+               // replace / merge with existing
+               // if the only thing changed was the anchor, then don't change the format, just merge the anchor
+               existingRun = runs[index];
+               changeToken.RemoveRun(existingRun);
+               if (existingRun is PointerRun) {
+                  bool needClearPointerRun = !(run is NoInfoRun) && !(run is PointerRun);
+                  if (((run as OffsetPointerRun)?.Offset ?? 0) != ((existingRun as OffsetPointerRun)?.Offset ?? 0)) needClearPointerRun = true;
+                  if (needClearPointerRun) {
+                     var destination = ReadPointer(existingRun.Start);
+                     ClearPointer(changeToken, existingRun.Start, destination);
+                     index = BinarySearch(run.Start); // have to recalculate index, because ClearPointer can removed runs.
+                  }
                }
+               run = run.MergeAnchor(existingRun.PointerSources);
+               if (run is NoInfoRun) run = existingRun.MergeAnchor(run.PointerSources); // when writing an anchor with no format, keep the existing format.
+               if (existingRun is ITableRun arrayRun1 && run is ITableRun tableRun1) {
+                  ModifyAnchorsFromPointerArray(changeToken, tableRun1, arrayRun1, arrayRun1.ElementCount, ClearPointerFormat);
+                  index = BinarySearch(run.Start); // have to recalculate index, because ClearPointerFormat can removed runs.
+               }
+               runs[index] = run;
+               changeToken.AddRun(run);
             }
-            run = run.MergeAnchor(existingRun.PointerSources);
-            if (run is NoInfoRun) run = existingRun.MergeAnchor(run.PointerSources); // when writing an anchor with no format, keep the existing format.
-            if (existingRun is ITableRun arrayRun1 && run is ITableRun tableRun1) {
-               ModifyAnchorsFromPointerArray(changeToken, tableRun1, arrayRun1, arrayRun1.ElementCount, ClearPointerFormat);
-               index = BinarySearch(run.Start); // have to recalculate index, because ClearPointerFormat can removed runs.
+
+            if (run is WordRun word) {
+               if (!matchedWords.ContainsKey(word.SourceArrayName)) matchedWords[word.SourceArrayName] = new List<int>();
+               matchedWords[word.SourceArrayName].Add(word.Start);
+               changeToken.AddMatchedWord(this, word.Start, word.SourceArrayName);
+            } else if (run is OffsetPointerRun offsetPointer) {
+               pointerOffsets[offsetPointer.Start] = offsetPointer.Offset;
+               changeToken.AddOffsetPointer(offsetPointer.Start, offsetPointer.Offset);
             }
-            runs[index] = run;
-            changeToken.AddRun(run);
-         }
 
-         if (run is WordRun word) {
-            if (!matchedWords.ContainsKey(word.SourceArrayName)) matchedWords[word.SourceArrayName] = new List<int>();
-            matchedWords[word.SourceArrayName].Add(word.Start);
-            changeToken.AddMatchedWord(this, word.Start, word.SourceArrayName);
-         } else if (run is OffsetPointerRun offsetPointer) {
-            pointerOffsets[offsetPointer.Start] = offsetPointer.Offset;
-            changeToken.AddOffsetPointer(offsetPointer.Start, offsetPointer.Offset);
-         }
+            if (run is PointerRun) AddPointerToAnchor(null, null, 0, changeToken, run.Start);
+            if (run is ITableRun tableRun) ModifyAnchorsFromPointerArray(changeToken, tableRun, existingRun as ITableRun, tableRun.ElementCount, AddPointerToAnchor);
+            if (run is ArrayRun arrayRun) UpdateDependantArrayLengths(changeToken, arrayRun);
 
-         if (run is PointerRun) AddPointerToAnchor(null, null, 0, changeToken, run.Start);
-         if (run is ITableRun tableRun) ModifyAnchorsFromPointerArray(changeToken, tableRun, existingRun as ITableRun, tableRun.ElementCount, AddPointerToAnchor);
-         if (run is ArrayRun arrayRun) UpdateDependantArrayLengths(changeToken, arrayRun);
-
-         if (run is NoInfoRun && run.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(run.Start)) {
-            // this run has no useful information. Remove it.
-            changeToken.RemoveRun(runs[index]);
-            runs.RemoveAt(index);
+            if (run is NoInfoRun && run.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(run.Start)) {
+               // this run has no useful information. Remove it.
+               changeToken.RemoveRun(runs[index]);
+               runs.RemoveAt(index);
+            }
          }
       }
 
@@ -1956,7 +1961,8 @@ namespace HavenSoft.HexManiac.Core.Models {
 
    public static class StringDictionaryExtensions {
       public static bool TryGetValueCaseInsensitive<T>(this IDictionary<string, T> self, string key, out T value) {
-         foreach (var option in self.Keys) {
+         var keys = self.Keys.ToList();
+         foreach (var option in keys) {
             if (key.Equals(option, StringComparison.CurrentCultureIgnoreCase)) {
                value = self[option];
                return true;
