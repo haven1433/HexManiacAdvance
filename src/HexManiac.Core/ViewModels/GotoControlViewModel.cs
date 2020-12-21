@@ -33,15 +33,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (TryUpdate(ref text, value)) {
                withinTextChange = true;
                using (new StubDisposable { Dispose = () => withinTextChange = false }) {
-                  using (ModelCacheScope.CreateScope(viewPort.Model)) {
-                     var options = viewPort.Model.GetExtendedAutocompleteOptions(text);
-                     AutoCompleteOptions = AutoCompleteSelectionItem.Generate(options, completionIndex);
-                     ShowAutoCompleteOptions = AutoCompleteOptions.Count > 0;
-                     UpdatePrefixSelectionsAfterTextChange();
-                  }
+                  RefreshOptions();
                }
             }
          }
+      }
+      public void RefreshOptions() {
+         var options = viewPort.Model.GetExtendedAutocompleteOptions(text);
+         AutoCompleteOptions = AutoCompleteSelectionItem.Generate(options, completionIndex);
+         ShowAutoCompleteOptions = AutoCompleteOptions.Count > 0;
+         UpdatePrefixSelectionsAfterTextChange();
       }
 
       private int completionIndex = -1;
@@ -85,6 +86,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public GotoControlViewModel(ITabContent tabContent) {
          viewPort = (tabContent as IViewPort);
+         viewPort?.Bind(nameof(ViewPort.FreeSpaceStart), (vp, args) => RefreshOptions());
          MoveAutoCompleteSelectionUp = new StubCommand {
             CanExecute = CanAlwaysExecute,
             Execute = arg => CompletionIndex--,

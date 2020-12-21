@@ -98,7 +98,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public PokemonModel(byte[] data, StoredMetadata metadata = null, Singletons singletons = null) : base(data) {
          this.singletons = singletons;
          BuildDestinationToSourceCache(data);
-         Initialize(metadata);
+         (singletons?.WorkDispatcher ?? InstantDispatch.Instance).RunBackgroundWork(() => Initialize(metadata));
       }
 
       private void Initialize(StoredMetadata metadata) {
@@ -158,6 +158,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          ResolveConflicts();
+         RaiseInitializeComplete();
       }
 
       private void UpdateRuns(GameReferenceTables referenceTables, IEnumerable<StoredMetadata> metadatas) {
@@ -1551,7 +1552,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          addressForAnchor.Clear();
          anchorForAddress.Clear();
          runs.Clear();
-         Initialize(metadata);
+         (singletons?.WorkDispatcher ?? InstantDispatch.Instance).RunBackgroundWork(() => Initialize(metadata));
       }
 
       public override IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial, int maxResults = 30) {

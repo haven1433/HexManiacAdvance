@@ -284,7 +284,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public IReadOnlyList<IQuickEditItem> QuickEdits { get; }
 
-      public Singletons Singletons { get; } = new Singletons();
+      public Singletons Singletons { get; }
 
       public event EventHandler<Action> RequestDelayedWork;
 
@@ -325,6 +325,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public EditorViewModel(IFileSystem fileSystem, IWorkDispatcher workDispatcher = null, bool allowLoadingMetadata = true, IReadOnlyList<IQuickEditItem> utilities = null) {
          this.fileSystem = fileSystem;
+         Singletons = new Singletons(workDispatcher);
          this.workDispatcher = workDispatcher ?? InstantDispatch.Instance;
          this.allowLoadingMetadata = allowLoadingMetadata;
          QuickEdits = utilities ?? new List<IQuickEditItem> {

@@ -234,23 +234,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (array == null || array.Start > Address) {
             CurrentElementName = "The Table tool only works if your cursor is on table data.";
             Children.Clear();
+            NotifyPropertyChanged(nameof(TableSections));
             return;
          }
 
          dataForCurrentRunChangeUpdate = true;
          var basename = model.GetAnchorFromAddress(-1, array.Start);
          var anchorParts = basename.Split('.');
+         NotifyPropertyChanged(nameof(TableSections));
          if (anchorParts.Length == 1) {
-            NotifyPropertyChanged(nameof(TableSections));
             TryUpdate(ref selectedTableSection, TableSections.IndexOf(anchorParts[0]));
             NotifyPropertyChanged(nameof(TableList));
          } else if (anchorParts.Length == 2) {
-            NotifyPropertyChanged(nameof(TableSections));
             TryUpdate(ref selectedTableSection, TableSections.IndexOf(anchorParts[0]));
             NotifyPropertyChanged(nameof(TableList));
             TryUpdate(ref selectedTableIndex, TableList.IndexOf(anchorParts[1]));
          } else {
-            NotifyPropertyChanged(nameof(TableSections));
             TryUpdate(ref selectedTableSection, TableSections.IndexOf(anchorParts[0] + "." + anchorParts[1]), nameof(SelectedTableSection));
             NotifyPropertyChanged(nameof(TableList));
             TryUpdate(ref selectedTableIndex, TableList.IndexOf(string.Join(".", anchorParts.Skip(2))), nameof(SelectedTableIndex));

@@ -9,6 +9,8 @@ using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models {
    public interface IDataModel : IReadOnlyList<byte>, IEquatable<IDataModel> {
+      event EventHandler InitializeComplete;
+
       byte[] RawData { get; }
       ModelCacheScope CurrentCacheScope { get; }
       bool HasChanged(int index);
@@ -87,6 +89,9 @@ namespace HavenSoft.HexManiac.Core.Models {
       public const int PointerOffset = 0x08000000;
 
       private readonly ISet<int> changes = new HashSet<int>();
+
+      public event EventHandler InitializeComplete;
+      protected void RaiseInitializeComplete() => InitializeComplete?.Invoke(this, EventArgs.Empty);
 
       public byte[] RawData { get; private set; }
 

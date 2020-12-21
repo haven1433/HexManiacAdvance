@@ -590,7 +590,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      public IDataModel Model { get; private set; }
+      public IDataModel Model { get; }
 
       public bool FormattedDataIsSelected {
          get {
@@ -621,6 +621,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          history.PropertyChanged += HistoryPropertyChanged;
 
          Model = model;
+         Model.InitializeComplete += (sender, e) => singletons.WorkDispatcher.DispatchWork(Refresh);
          FileName = fileName;
          ColumnHeaders = new ObservableCollection<HeaderRow>();
 
