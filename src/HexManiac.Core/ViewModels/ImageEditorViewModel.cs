@@ -264,7 +264,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public bool CanEditTilePalettes {
          get {
             var spriteAddress = model.ReadPointer(SpritePointer);
-            return HasMultiplePalettePages && model.GetNextRun(spriteAddress) is LzTilemapRun tilemap && tilemap.Start == spriteAddress;
+            return
+               HasMultiplePalettePages &&
+               model.GetNextRun(spriteAddress) is LzTilemapRun tilemap &&
+               tilemap.Start == spriteAddress &&
+               tilemap.BytesPerTile == 2;
          }
       }
 
@@ -276,11 +280,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void RefreshTilePalettes() {
          var spriteAddress = model.ReadPointer(SpritePointer);
-         if (!(model.GetNextRun(spriteAddress) is LzTilemapRun lzTilemapRun)) return;
+         if (!(model.GetNextRun(spriteAddress) is ITilemapRun tilemapRun)) return;
          TilePalettes.Clear();
-         var lzRunData = LZRun.Decompress(model, spriteAddress);
-         for (int i = 0; i < lzRunData.Length / 2; i++) {
-            var (paletteIndex, _, _, _) = LzTilemapRun.ReadTileData(lzRunData, i, lzTilemapRun.BytesPerTile);
+         var runData = tilemapRun.GetData();
+         var pal = ReadPalette();
+         for (int i = 0; i < runData.Length / tilemapRun.BytesPerTile; i++) {
+            var (paletteIndex, _, _, _) = LzTilemapRun.ReadTileData(runData, i, tilemapRun.BytesPerTile);
+            if (tilemapRun.BytesPerTile == 1) paletteIndex = pal.initialBlankPages;
             TilePalettes.Add(paletteIndex);
          }
       }

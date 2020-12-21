@@ -215,11 +215,11 @@ namespace HavenSoft.HexManiac.Tests {
          var originalTiles = SplitTiles(tileData);
          var pixels = LzTilemapRun.GetPixels(mapData, tileData, new TilemapFormat(4, 32, 64, default), 2);
          var tileInfo = LzTilemapRun.Tilize(pixels, 4);
-         var newTiles = LzTilemapRun.GetUniqueTiles(tileInfo);
+         var newTiles = LzTilemapRun.GetUniqueTiles(tileInfo, true);
 
          foreach (var tile in newTiles) {
             foreach (var pixel in tile) Assert.InRange(pixel, 0, 15);
-            var (index, matchType) = LzTilemapRun.FindMatch(tile, originalTiles);
+            var (index, matchType) = LzTilemapRun.FindMatch(tile, originalTiles, true);
             Assert.NotEqual(TileMatchType.None, matchType);
          }
 

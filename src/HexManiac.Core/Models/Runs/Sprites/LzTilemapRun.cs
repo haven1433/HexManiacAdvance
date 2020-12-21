@@ -4,7 +4,8 @@ using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
    public interface ITilemapRun : ISpriteRun {
-
+      int BytesPerTile { get; }
+      byte[] GetData();
    }
 
    public class LzTilemapRun : LZRun, ITilemapRun {
@@ -80,6 +81,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return true;
       }
 
+      public byte[] GetData() => Decompress(Model, Start);
+
       public int[,] GetPixels(IDataModel model, int page) {
          var mapData = Decompress(model, Start);
          var tilesetAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, Format.MatchingTileset);
@@ -142,7 +145,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels) {
          var tileData = Tilize(pixels, Format.BitsPerPixel);
-         var tiles = GetUniqueTiles(tileData);
+         var tiles = GetUniqueTiles(tileData, BytesPerTile == 2);
          var tilesetAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, Format.MatchingTileset);
          var tileset = model.GetNextRun(tilesetAddress) as LzTilesetRun;
          if (tileset == null) {
@@ -157,7 +160,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          }
          var oldTileDataRaw = Decompress(model, tileset.Start);
          var previousTiles = Tilize(oldTileDataRaw, Format.BitsPerPixel);
-         tiles = MergeTilesets(previousTiles, tilesToKeep, tiles);
+         tiles = MergeTilesets(previousTiles, tilesToKeep, tiles, BytesPerTile == 2);
          tileset.SetPixels(model, token, tiles);
          var mapData = Decompress(model, Start);
 
@@ -168,11 +171,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             for (int x = 0; x < tileWidth; x++) {
                var i = y * tileWidth + x;
                var (tile, paletteIndex) = tileData[x, y];
-               var (tileIndex, matchType) = FindMatch(tile, tiles);
+               var (tileIndex, matchType) = FindMatch(tile, tiles, BytesPerTile == 2);
                if (tileIndex == -1) tileIndex = 0;
-               var mapping = PackMapping(paletteIndex, matchType, tileIndex);
-               mapData[i * 2 + 0] = (byte)mapping;
-               mapData[i * 2 + 1] = (byte)(mapping >> 8);
+               if (BytesPerTile == 2) {
+                  var mapping = PackMapping(paletteIndex, matchType, tileIndex);
+                  mapData[i * 2 + 0] = (byte)mapping;
+                  mapData[i * 2 + 1] = (byte)(mapping >> 8);
+               } else {
+                  mapData[i] = (byte)tileIndex;
+               }
             }
          }
 
@@ -194,7 +201,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          var mapData = Decompress(Model, Start);
          for (int y = 0; y < Format.TileHeight; y++) {
             for (int x = 0; x < Format.TileWidth; x++) {
-               var map = mapData.ReadMultiByteValue((Format.TileWidth * y + x) * 2, 2);
+               var map = mapData.ReadMultiByteValue((Format.TileWidth * y + x) * BytesPerTile, BytesPerTile);
                var tile = map & 0x3FF;
                yield return tile;
             }
@@ -207,14 +214,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return (paletteIndex << 12) | (vFlip << 11) | (hFlip << 10) | tileIndex;
       }
 
-      public static IReadOnlyList<int[,]> MergeTilesets(IReadOnlyList<int[,]> previous, ISet<int> tilesToKeep, IReadOnlyList<int[,]> newTiles) {
+      public static IReadOnlyList<int[,]> MergeTilesets(IReadOnlyList<int[,]> previous, ISet<int> tilesToKeep, IReadOnlyList<int[,]> newTiles, bool allowFlips) {
          var newListIndex = 0;
          var mergedList = new List<int[,]>();
          for (int i = 0; i < previous.Count; i++) {
             if (tilesToKeep.Contains(i)) {
                mergedList.Add(previous[i]);
             } else {
-               while (newListIndex < newTiles.Count && FindMatch(newTiles[newListIndex], mergedList).index != -1) newListIndex += 1;
+               while (newListIndex < newTiles.Count && FindMatch(newTiles[newListIndex], mergedList, allowFlips).index != -1) newListIndex += 1;
                if (newListIndex == newTiles.Count) break;
                mergedList.Add(newTiles[newListIndex]);
                newListIndex += 1;
@@ -222,7 +229,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          }
          for (int i = mergedList.Count; i < previous.Count; i++) mergedList.Add(previous[i]);
          for (; newListIndex < newTiles.Count; newListIndex++) {
-            if (FindMatch(newTiles[newListIndex], mergedList).index != -1) continue;
+            if (FindMatch(newTiles[newListIndex], mergedList, allowFlips).index != -1) continue;
             mergedList.Add(newTiles[newListIndex]);
          }
          return mergedList;
@@ -262,7 +269,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return result;
       }
 
-      public static IReadOnlyList<int[,]> GetUniqueTiles((int[,] pixels, int palette)[,] tiles) {
+      public static IReadOnlyList<int[,]> GetUniqueTiles((int[,] pixels, int palette)[,] tiles, bool allowFlips) {
+         var tileLimit = allowFlips ? 0x400 : 0x100; // only so many unique tiles are allowed
          var tileWidth = tiles.GetLength(0);
          var tileHeight = tiles.GetLength(1);
          var result = new List<int[,]> {
@@ -270,9 +278,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          };
          for (int y = 0; y < tileHeight; y++) {
             for (int x = 0; x < tileWidth; x++) {
-               if (result.Count == 0x400) break; // limite to 0x400 tiles
+               if (result.Count == tileLimit) break;
                var pixels = tiles[x, y].pixels;
-               if (result.Any(tile => TilesMatch(tile, pixels) != TileMatchType.None)) continue;
+               if (result.Any(tile => TilesMatch(tile, pixels, allowFlips) != TileMatchType.None)) continue;
                result.Add(pixels);
             }
          }
@@ -280,16 +288,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return result;
       }
 
-      public static TileMatchType TilesMatch(int[,] a, int[,] b) {
+      public static TileMatchType TilesMatch(int[,] a, int[,] b, bool flipPossible) {
          Debug.Assert(a.GetLength(0) == 8);
          Debug.Assert(a.GetLength(1) == 8);
          Debug.Assert(b.GetLength(0) == 8);
          Debug.Assert(b.GetLength(1) == 8);
 
          bool normal_possible = true;
-         bool hFlip_possible = true;
-         bool vFlip_possible = true;
-         bool bFlip_possible = true;
+         bool hFlip_possible = flipPossible;
+         bool vFlip_possible = flipPossible;
+         bool bFlip_possible = flipPossible;
 
          for (int y = 0; y < 8; y++) {
             for (int x = 0; x < 8; x++) {
@@ -308,9 +316,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return TileMatchType.None;
       }
 
-      public static (int index, TileMatchType matchType) FindMatch(int[,] tile, IReadOnlyList<int[,]> collection) {
+      public static (int index, TileMatchType matchType) FindMatch(int[,] tile, IReadOnlyList<int[,]> collection, bool allowFlips) {
          for (int i = 0; i < collection.Count; i++) {
-            var match = TilesMatch(tile, collection[i]);
+            var match = TilesMatch(tile, collection[i], allowFlips);
             if (match == TileMatchType.None) continue;
             return (i, match);
          }

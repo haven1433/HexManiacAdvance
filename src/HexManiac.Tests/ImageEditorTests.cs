@@ -1303,4 +1303,60 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.False(editor.Palette.CanEditColors);
       }
    }
+
+   public class ImageEditorOneByteTilemapTests {
+      private const int PaletteStart = 0x00, TilesetStart = 0x20, TilemapStart = 0x100;
+
+      private readonly IDataModel model = new PokemonModel(new byte[0x200], singletons: BaseViewModelTestClass.Singletons);
+      private readonly ChangeHistory<ModelDelta> history;
+      private readonly ImageEditorViewModel editor;
+
+      private void InsertCompressedData(int start, int length) {
+         var compressedData = LZRun.Compress(new byte[length], 0, length);
+         for (int i = 0; i < compressedData.Count; i++) model[start + i] = compressedData[i];
+      }
+
+      public ImageEditorOneByteTilemapTests() {
+         history = new ChangeHistory<ModelDelta>(change => change.Revert(model));
+         model.WritePointer(history.CurrentChange, 0x160, PaletteStart);
+         model.WritePointer(history.CurrentChange, 0x164, TilesetStart);
+         model.WritePointer(history.CurrentChange, 0x168, TilemapStart);
+         InsertCompressedData(PaletteStart, 32);
+         InsertCompressedData(TilesetStart, 64);
+         InsertCompressedData(TilemapStart, 2);
+
+         PokemonModel.ApplyAnchor(model, history.CurrentChange, PaletteStart, "^pal`lzp4:1`");
+         PokemonModel.ApplyAnchor(model, history.CurrentChange, TilesetStart, "^tiles`lzt8|pal`");
+         PokemonModel.ApplyAnchor(model, history.CurrentChange, TilemapStart, "^map`lzm8x2x1|tiles`");
+         editor = new ImageEditorViewModel(history, model, TilemapStart) { SpriteScale = 1 };
+      }
+
+      [Fact]
+      public void InitialState_Valid() {
+         Assert.Equal(2, editor.TileWidth);
+         Assert.Equal(1, editor.TileHeight);
+         Assert.Equal(2, editor.TilePalettes.Count);
+      }
+
+      [Fact]
+      public void SelectColor1_Hover_CanDraw() {
+         editor.Palette.SelectionStart = 1;
+         editor.Hover(-4, 0);
+         Assert.True(editor.ShowSelectionRect(4, 4));
+      }
+
+      [Fact]
+      public void SelectColor1_Draw_PixelChanges() {
+         editor.Palette.SelectionStart = 1;
+
+         editor.ToolDown(-4, 0);
+         editor.ToolUp(-4, 0);
+
+         var tilemap = (ITilemapRun)model.GetNextRun(TilemapStart);
+         var data = tilemap.GetData();
+         Assert.Equal(2, data.Length);
+         Assert.NotEqual(data[0], data[1]);
+      }
+   }
+
 }

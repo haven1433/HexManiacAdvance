@@ -773,6 +773,24 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(8 * 8 * 2, imageData.Length);
       }
 
+      [Fact]
+      public void OneByteTilemap_Write_Works() {
+         WriteCompressedData(0, 32);
+         WriteCompressedData(0x20, 32);
+         WriteCompressedData(0x40, 1);
+         ViewPort.Edit("@00 ^pal`lzp4` @20 ^tileset`lzt4|pal` @40 ^tilemap`lzm4x1x1|tileset`");
+
+         var tilemap = (ITilemapRun)Model.GetNextRun(Model.GetAddressFromAnchor(ViewPort.CurrentChange, -1, "tilemap"));
+         var pixels = tilemap.GetPixels(Model, 0);
+         pixels[2, 2] = 1;
+         tilemap.SetPixels(Model, ViewPort.CurrentChange, 0, pixels);
+
+         var tileset = (LzTilesetRun)Model.GetNextRun(Model.GetAddressFromAnchor(ViewPort.CurrentChange, -1, "tileset"));
+         pixels = tileset.GetPixels(Model, 0);
+         pixels = LzTilemapRun.Tilize(pixels, 4)[1, 0].pixels; // extract only tile 1, because tile 0 is the 'always blank' tile
+         Assert.Equal(1, pixels[2, 2]);
+      }
+
       private void WriteCompressedData(int start, int length) {
          var compressedData = LZRun.Compress(new byte[length], 0, length);
          for (int i = 0; i < compressedData.Count; i++) Model[start + i] = compressedData[i];
