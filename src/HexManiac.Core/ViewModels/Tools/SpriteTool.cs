@@ -428,13 +428,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
+      private static readonly char[] allowableCharacters = "0123456789ABCDEF<>NUL".ToCharArray();
+      private static readonly char[] toLower = "NUL".ToCharArray();
+      private static string SanitizeAddressText(string address) {
+         var characters = address.ToUpper().Where(c => c.IsAny(allowableCharacters)).ToArray();
+         for (int i = 0; i < characters.Length; i++) {
+            foreach (char c in toLower) {
+               if (characters[i] == c) characters[i] += (char)('a' - 'A');
+            }
+         }
+         return new string(characters);
+      }
       private string spriteAddressText, paletteAddressText;
       public string SpriteAddressText {
          get => spriteAddressText;
          set {
             if (spriteAddressText == value) return;
-            value = value.ToUpper();
-            var newSpriteAddressText = new string(value.Where(c => c.IsAny("0123456789ABCDEF<>".ToCharArray())).ToArray());
+            var newSpriteAddressText = SanitizeAddressText(value);
             value = new string(newSpriteAddressText.Where(c => !c.IsAny("<>".ToCharArray())).ToArray());
             if (!int.TryParse(value, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int address)) address = Pointer.NULL;
             if (SpriteAddress != address) SpriteAddress = address;
@@ -446,8 +456,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          get => paletteAddressText;
          set {
             if (paletteAddressText == value) return;
-            value = value.ToUpper();
-            var newPaletteAddressText = new string(value.Where(c => c.IsAny("0123456789ABCDEF<>".ToCharArray())).ToArray());
+            var newPaletteAddressText = SanitizeAddressText(value);
             value = new string(newPaletteAddressText.Where(c => !c.IsAny("<>".ToCharArray())).ToArray());
             if (!int.TryParse(value, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int address)) address = Pointer.NULL;
             if (PaletteAddress != address) PaletteAddress = address;
