@@ -651,9 +651,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       /// <summary>
       /// Given an index of a color within a palette page, get the pixel value that contains both the page and index information.
-      /// If no page is given, the current selected page is used
+      /// If no page is given, the current selected page is used.
+      /// Tilesets don't tie pixels to specific palettes, so just nop.
       /// </summary>
       private int ColorIndex(int paletteIndex, int page = int.MinValue) {
+         var spriteAddress = model.ReadPointer(SpritePointer);
+         var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
+         if (spriteRun is ITilesetRun) return paletteIndex;
          if (page == int.MinValue) page = PalettePage;
          var blankPages = ReadPalette().initialBlankPages;
          var pageOffset = (blankPages + page) << 4;
@@ -662,8 +666,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       /// <summary>
       /// Given a pixel including a palette page and color index, return just the index within that palette page (assuming the selected page).
+      /// Tilesets don't tie pixels to specific palettes, so just nop.
       /// </summary>
       private int PaletteIndex(int colorIndex, int page = int.MinValue) {
+         var spriteAddress = model.ReadPointer(SpritePointer);
+         var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
+         if (spriteRun is ITilesetRun) return colorIndex;
          if (page == int.MinValue) page = PalettePage;
          var blankPages = ReadPalette().initialBlankPages;
          var pageOffset = (blankPages + page) << 4;

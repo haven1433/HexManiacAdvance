@@ -20,7 +20,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public int Pages => 1;
 
       public bool SupportsImport => false;
-      public bool SupportsEdit => false;
+      public bool SupportsEdit => true;
 
       public override int Length => TilesetFormat.Tiles * TilesetFormat.BitsPerPixel * 8;
 
