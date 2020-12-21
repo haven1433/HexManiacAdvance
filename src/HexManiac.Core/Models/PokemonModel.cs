@@ -98,10 +98,14 @@ namespace HavenSoft.HexManiac.Core.Models {
       public PokemonModel(byte[] data, StoredMetadata metadata = null, Singletons singletons = null) : base(data) {
          this.singletons = singletons;
          BuildDestinationToSourceCache(data);
-         (singletons?.WorkDispatcher ?? InstantDispatch.Instance).RunBackgroundWork(() => Initialize(metadata));
+
+         // if we have a subclass, expect the subclass to do this when it's ready.
+         if (GetType() == typeof(PokemonModel)) {
+            (singletons?.WorkDispatcher ?? InstantDispatch.Instance).RunBackgroundWork(() => Initialize(metadata));
+         }
       }
 
-      private void Initialize(StoredMetadata metadata) {
+      protected void Initialize(StoredMetadata metadata) {
          var pointersForDestination = new Dictionary<int, SortedSpan<int>>();
          var destinationForSource = new SortedList<int, int>();
          SearchForPointers(pointersForDestination, destinationForSource);

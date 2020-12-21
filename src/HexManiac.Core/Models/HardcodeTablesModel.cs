@@ -97,27 +97,34 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override int EarliestAllowedAnchor => 0x200;
 
       public HardcodeTablesModel(Singletons singletons, byte[] data, StoredMetadata metadata = null) : base(data, metadata, singletons) {
-         if (metadata != null && !metadata.IsEmpty) return;
-
          gameCode = this.GetGameCode();
-         isCFRU = GetIsCFRU();
-
-         // in vanilla emerald, this pointer isn't four-byte aligned
-         // it's at the very front of the ROM, so if there's no metadata we can be pretty sure that the pointer is still there
-         if (gameCode == Emerald && data.Length > EarliestAllowedAnchor && data[0x1C3] == 0x08) ObserveRunWritten(noChangeDelta, new PointerRun(0x1C0));
-
-         var gamesToDecode = new[] { Ruby, Sapphire, Emerald, FireRed, LeafGreen, Ruby1_1, Sapphire1_1, FireRed1_1, LeafGreen1_1 };
-         if (gamesToDecode.Contains(gameCode)) {
-            foreach (var defaultMetadata in GetDefaultMetadatas(gameCode.Substring(0, 4).ToLower(), gameCode.ToLower())) {
-               this.LoadMetadata(defaultMetadata);
-            }
-            DecodeHeader();
-            if (singletons.GameReferenceTables.TryGetValue(gameCode, out var referenceTables)) {
-               DecodeTablesFromReference(referenceTables);
-            }
+         if (metadata != null && !metadata.IsEmpty) {
+            (singletons?.WorkDispatcher ?? InstantDispatch.Instance).RunBackgroundWork(() => Initialize(metadata));
+            return;
          }
 
-         ResolveConflicts();
+         (singletons?.WorkDispatcher ?? InstantDispatch.Instance).RunBackgroundWork(() => {
+            Initialize(metadata);
+            isCFRU = GetIsCFRU();
+
+            // in vanilla emerald, this pointer isn't four-byte aligned
+            // it's at the very front of the ROM, so if there's no metadata we can be pretty sure that the pointer is still there
+            if (gameCode == Emerald && data.Length > EarliestAllowedAnchor && data[0x1C3] == 0x08) ObserveRunWritten(noChangeDelta, new PointerRun(0x1C0));
+
+            var gamesToDecode = new[] { Ruby, Sapphire, Emerald, FireRed, LeafGreen, Ruby1_1, Sapphire1_1, FireRed1_1, LeafGreen1_1 };
+            if (gamesToDecode.Contains(gameCode)) {
+               foreach (var defaultMetadata in GetDefaultMetadatas(gameCode.Substring(0, 4).ToLower(), gameCode.ToLower())) {
+                  this.LoadMetadata(defaultMetadata);
+               }
+               DecodeHeader();
+               if (singletons.GameReferenceTables.TryGetValue(gameCode, out var referenceTables)) {
+                  DecodeTablesFromReference(referenceTables);
+               }
+            }
+
+            ResolveConflicts();
+            RaiseInitializeComplete();
+         });
       }
 
       [Conditional("DEBUG")]
