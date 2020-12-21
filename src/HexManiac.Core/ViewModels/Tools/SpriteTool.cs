@@ -85,22 +85,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                model.ObserveRunWritten(history.CurrentChange, new LzTilesetRun(new TilesetFormat(bits, spritePaletteHint), model, spriteAddress));
                viewPort.Refresh();
                LoadSprite();
+            } else {
+               int tileSize = bits * 8;
+               var tileCount = Math.Max(1, spriteRun.Length / tileSize);
+               model.ObserveRunWritten(history.CurrentChange, new TilesetRun(new TilesetFormat(bits, tileCount, spritePaletteHint), model, spriteAddress));
+               viewPort.Refresh();
+               LoadSprite();
             }
          }
 
          var split = spriteWidthHeight.ToUpper().Trim().Split("X");
          var availableLength = model.GetNextAnchor(spriteRun.Start + spriteRun.Length).Start - spriteRun.Start;
-         if (split.Length == 1 && !(spriteRun is LZRun) && int.TryParse(split[0], out int tiles)) {
-            //var desiredLength = tiles * 8 * bits;
-            //if (availableLength < desiredLength) {
-            //   viewPort.RaiseError($"Need {desiredLength} bytes, but only {availableLength} bytes available.");
-            //} else {
-            //   model.ObserveRunWritten(history.CurrentChange, new TilesetRun(new TilesetFormat(bits, tiles, spritePaletteHint), model, spriteAddress));
-            //   viewPort.Refresh();
-            //   LoadSprite();
-            //}
-            return;
-         }
+         if (split.Length == 1 && !(spriteRun is LZRun) && int.TryParse(split[0], out int tiles)) return;
          if (split.Length != 2) return;
          if (!int.TryParse(split[0], out int width) || !int.TryParse(split[1], out int height)) return;
 
@@ -212,7 +208,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var format = run.SpriteFormat;
             ShowNoSpriteAnchorMessage = false;
             spriteWidthHeight = format.TileWidth + "x" + format.TileHeight;
-            if (run is LzTilesetRun) spriteWidthHeight = "tiles";
+            if (run is ITilesetRun) spriteWidthHeight = "tiles";
             if (run is LzTilemapRun mapRun) {
                spriteIsTilemap = true;
                spritePaletteHint = mapRun.Format.MatchingTileset + (string.IsNullOrEmpty(mapRun.Format.TilesetTableMember) ? string.Empty : "|" + mapRun.Format.TilesetTableMember);
@@ -709,7 +705,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var dependentSprites = paletteRun?.FindDependentSprites(model) ?? new List<ISpriteRun>();
          if (dependentSprites.Count == 0 || // no sprites are associated with this palette. So just use the currently loaded sprite.
             (dependentSprites.Count == 1 && dependentSprites[0].Start == spriteRun.Start && (spriteRun.Pages == 1 || spriteRun.Pages == paletteRun.Pages)) || // 'I am the only sprite' case
-            (dependentSprites.Count == 1 && dependentSprites[0] is LzTilesetRun && spriteRun is LzTilemapRun) // 'My tileset is the only sprite' case
+            (dependentSprites.Count == 1 && dependentSprites[0] is ITilesetRun && spriteRun is ITilemapRun) // 'My tileset is the only sprite' case
             ) {
             // easy case: a single sprite. Sprite uses the palette.
             // there may be other palettes, but we can leave them be.
@@ -723,7 +719,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var dependentPageCount = dependentSprites.Sum(s => s.Pages);
          if (paletteRun.Pages > 1) dependentPageCount = dependentSprites.Count; // for multi-page palettes, only count each sprite once.
          string imageType = "images";
-         if (dependentSprites.Any(ds => ds is LzTilesetRun)) imageType = "tilesets";
+         if (dependentSprites.Any(ds => ds is ITilesetRun)) imageType = "tilesets";
          var choice = GetImportType(fileSystem, dependentPageCount, dependentSprites, imageType, paletteRun.PaletteFormat, out var usablePalPages);
 
          if (choice == 0) { // Smart
@@ -752,7 +748,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var dependentSprites = paletteRun?.FindDependentSprites(model) ?? new List<ISpriteRun>();
          if (dependentSprites.Count == 0 || // no sprites are associated with this palette. So just use the currently loaded sprite.
             (dependentSprites.Count == 1 && dependentSprites[0].Start == spriteRun.Start) || // 'I am the only sprite' case
-            (dependentSprites.Count == 1 && dependentSprites[0] is LzTilesetRun && spriteRun is LzTilemapRun) // 'My tileset is the only sprite' case
+            (dependentSprites.Count == 1 && dependentSprites[0] is ITilesetRun && spriteRun is ITilemapRun) // 'My tileset is the only sprite' case
             ) {
             // easy case: a single sprite. Sprite uses the palette.
             // there may be other palettes, but we can leave them be.
@@ -766,7 +762,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var dependentPageCount = dependentSprites.Sum(s => s.Pages);
          if (paletteRun.Pages > 1) dependentPageCount = dependentSprites.Count; // for multi-page palettes, only count each sprite once.
          string imageType = "images";
-         if (dependentSprites.Any(ds => ds is LzTilesetRun)) imageType = "tilesets";
+         if (dependentSprites.Any(ds => ds is ITilesetRun)) imageType = "tilesets";
          var choice = GetImportType(fileSystem, dependentPageCount, dependentSprites, imageType, paletteRun.PaletteFormat, out var usablePalPages);
 
          if (choice == 0) { // Smart
@@ -792,7 +788,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var dependentSprites = paletteRun?.FindDependentSprites(model) ?? new List<ISpriteRun>();
          if (dependentSprites.Count == 0 || // no sprites are associated with this palette. So just use the currently loaded sprite.
             (dependentSprites.Count == 1 && dependentSprites[0].Start == spriteRun.Start) || // 'I am the only sprite' case
-            (dependentSprites.Count == 1 && dependentSprites[0] is LzTilesetRun && spriteRun is LzTilemapRun) // 'My tileset is the only sprite' case
+            (dependentSprites.Count == 1 && dependentSprites[0] is ITilesetRun && spriteRun is ITilemapRun) // 'My tileset is the only sprite' case
             ) {
             // easy case: a single sprite. Sprite uses the palette.
             // there may be other palettes, but we can leave them be.
@@ -806,7 +802,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var dependentPageCount = dependentSprites.Sum(s => s.Pages);
          if (paletteRun.Pages > 1) dependentPageCount = dependentSprites.Count; // for multi-page palettes, only count each sprite once.
          string imageType = "images";
-         if (dependentSprites.Any(ds => ds is LzTilesetRun)) imageType = "tilesets";
+         if (dependentSprites.Any(ds => ds is ITilesetRun)) imageType = "tilesets";
          var choice = GetImportType(fileSystem, dependentPageCount, dependentSprites, imageType, paletteRun.PaletteFormat, out var usablePalPages);
 
          if (choice == 0) { // Smart
@@ -874,7 +870,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             for (int i = 0; i < indexedTiles.Length; i++) indexedTiles[i] = Index(tiles[page][i], palettes, usablePalPages, spriteRun.SpriteFormat.BitsPerPixel, paletteRun?.PaletteFormat.InitialBlankPages ?? 0);
             var sprite = Detilize(indexedTiles, spriteRun.SpriteFormat.TileWidth);
             newSprite = newSprite.SetPixels(model, viewPort.CurrentChange, page, sprite);
-            if (newSprite is LzTilemapRun tilemap && model.GetNextRun(tilemap.FindMatchingTileset(model)) is LzTilesetRun tileset && model.ReadMultiByteValue(tileset.Start + 1, 3) / (tileset.Format.BitsPerPixel * 8) == 1024) {
+            if (newSprite is ITilemapRun tilemap && model.GetNextRun(tilemap.FindMatchingTileset(model)) is ITilesetRun tileset && model.ReadMultiByteValue(tileset.Start + 1, 3) / (tileset.SpriteFormat.BitsPerPixel * 8) == 1024) {
                viewPort.RaiseError("Maxed out number of available tiles. Simplify your image.");
             }
          }
@@ -910,7 +906,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var weightedPalettes = palettes.Select(p => new WeightedPalette(p, p.Count)).ToList();
          foreach (var spriteSet in otherSprites) {
             IReadOnlyList<ISpriteRun> spritesToWeigh = new List<ISpriteRun> { spriteSet };
-            if (spriteSet is LzTilesetRun tileset) spritesToWeigh = tileset.FindDependentTilemaps(model);
+            if (spriteSet is ITilesetRun tileset) spritesToWeigh = tileset.FindDependentTilemaps(model);
             foreach (var sprite in spritesToWeigh) {
                if (sprite.Pages == paletteRun.Pages) {
                   // weigh only the current page
@@ -959,7 +955,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          bool otherSpritesMoved = false;
          foreach (var spriteSet in otherSprites) {
             IReadOnlyList<ISpriteRun> spritesToWeigh = new List<ISpriteRun> { spriteSet };
-            if (spriteSet is LzTilesetRun tileset) spritesToWeigh = tileset.FindDependentTilemaps(model);
+            if (spriteSet is ITilesetRun tileset) spritesToWeigh = tileset.FindDependentTilemaps(model);
             foreach (var sprite in spritesToWeigh) {
                if (sprite == spriteRun) continue; // don't update the current sprite, we're going to do that later
                if (WeightedPalette.Update(model, viewPort.CurrentChange, sprite, palettes, newPalettes, initialBlankPages).Start != sprite.Start) otherSpritesMoved = true;
@@ -1048,7 +1044,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var sprite = Detilize(indexedTiles, spriteRun.SpriteFormat.TileWidth);
 
          var newSprite = spriteRun.SetPixels(model, viewPort.CurrentChange, spritePage, sprite);
-         if (newSprite is LzTilemapRun tilemap && model.GetNextRun(tilemap.FindMatchingTileset(model)) is LzTilesetRun tileset && model.ReadMultiByteValue(tileset.Start + 1, 3) / (tileset.Format.BitsPerPixel * 8) == 1024) {
+         if (newSprite is ITilemapRun tilemap && model.GetNextRun(tilemap.FindMatchingTileset(model)) is ITilesetRun tileset && model.ReadMultiByteValue(tileset.Start + 1, 3) / (tileset.SpriteFormat.BitsPerPixel * 8) == 1024) {
             viewPort.RaiseError("Maxed out number of available tiles. Simplify your image.");
          }
 
@@ -1104,7 +1100,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var weightedPalettes = palettes.Select(p => new WeightedPalette(p, p.Count)).ToList();
          foreach (var spriteSet in otherSprites) {
             IReadOnlyList<ISpriteRun> spritesToWeigh = new List<ISpriteRun> { spriteSet };
-            if (spriteSet is LzTilesetRun tileset) spritesToWeigh = tileset.FindDependentTilemaps(model);
+            if (spriteSet is ITilesetRun tileset) spritesToWeigh = tileset.FindDependentTilemaps(model);
             foreach (var sprite in spritesToWeigh) {
                if (sprite.Pages == paletteRun.Pages) {
                   // weigh only the current page
@@ -1154,7 +1150,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          bool otherSpritesMoved = false;
          foreach (var spriteSet in otherSprites) {
             IReadOnlyList<ISpriteRun> spritesToWeigh = new List<ISpriteRun> { spriteSet };
-            if (spriteSet is LzTilesetRun tileset) spritesToWeigh = tileset.FindDependentTilemaps(model);
+            if (spriteSet is ITilesetRun tileset) spritesToWeigh = tileset.FindDependentTilemaps(model);
             foreach (var sprite in spritesToWeigh) {
                if (sprite == spriteRun) continue; // don't update the current sprite, we're going to do that later
                if (WeightedPalette.Update(model, viewPort.CurrentChange, sprite, palettes, newPalettes, initialBlankPages).Start != sprite.Start) otherSpritesMoved = true;

@@ -3,7 +3,7 @@ using System;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
-   public class TilesetRun : BaseRun, ISpriteRun {
+   public class TilesetRun : BaseRun, ITilesetRun {
       private readonly IDataModel model;
 
       public TilesetFormat TilesetFormat { get; }

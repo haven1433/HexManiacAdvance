@@ -2,7 +2,11 @@
 using System.Collections.Generic;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
-   public class LzTilesetRun : LZRun, ISpriteRun {
+   public interface ITilesetRun : ISpriteRun {
+
+   }
+
+   public class LzTilesetRun : LZRun, ITilesetRun {
       SpriteFormat ISpriteRun.SpriteFormat => new SpriteFormat(Format.BitsPerPixel, Width, Height, Format.PaletteHint);
       public TilesetFormat Format { get; }
       public int Pages => 1;

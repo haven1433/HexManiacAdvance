@@ -275,8 +275,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return results;
       }
 
-      public static IReadOnlyList<LzTilemapRun> FindDependentTilemaps(this LzTilesetRun tileset, IDataModel model) {
-         var results = new List<LzTilemapRun>();
+      public static IReadOnlyList<ITilemapRun> FindDependentTilemaps(this ITilesetRun tileset, IDataModel model) {
+         var results = new List<ITilemapRun>();
 
          // if the tileset is part of a table, find other tilemaps at the same index in the table
          if (tileset.PointerSources.Count > 0 && model.GetNextRun(tileset.PointerSources[0]) is ArrayRun table) {
@@ -286,7 +286,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                   var tableName = model.GetAnchorFromAddress(-1, table.Start);
 
                   // we only care about tilemaps that specifically want _this_ tileset
-                  if (!(spriteRun is LzTilemapRun tilemap)) continue;
+                  if (!(spriteRun is ITilemapRun tilemap)) continue;
                   if (tilemap.Format.MatchingTileset != tableName) continue;
                   if (!string.IsNullOrEmpty(tilemap.Format.TilesetTableMember) && tilemap.Format.TilesetTableMember != table.ElementContent[offset.SegmentIndex].Name) continue;
 

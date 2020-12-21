@@ -4,8 +4,10 @@ using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
    public interface ITilemapRun : ISpriteRun {
+      TilemapFormat Format { get; }
       int BytesPerTile { get; }
       byte[] GetData();
+      int FindMatchingTileset(IDataModel model);
    }
 
    public class LzTilemapRun : LZRun, ITilemapRun {
@@ -154,9 +156,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          }
 
          var tilesToKeep = new HashSet<int>((tileset.DecompressedLength / tileset.Format.BitsPerPixel / 8).Range());
-         foreach (var tile in GetUsedTiles()) tilesToKeep.Remove(tile);
+         foreach (var tile in GetUsedTiles(this)) tilesToKeep.Remove(tile);
          foreach (var tilemap in tileset.FindDependentTilemaps(model).Except(this)) {
-            tilesToKeep.AddRange(tilemap.GetUsedTiles());
+            tilesToKeep.AddRange(GetUsedTiles(tilemap));
          }
          var oldTileDataRaw = Decompress(model, tileset.Start);
          var previousTiles = Tilize(oldTileDataRaw, Format.BitsPerPixel);
@@ -197,11 +199,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return newRun;
       }
 
-      public IEnumerable<int> GetUsedTiles() {
-         var mapData = Decompress(Model, Start);
-         for (int y = 0; y < Format.TileHeight; y++) {
-            for (int x = 0; x < Format.TileWidth; x++) {
-               var map = mapData.ReadMultiByteValue((Format.TileWidth * y + x) * BytesPerTile, BytesPerTile);
+      public static IEnumerable<int> GetUsedTiles(ITilemapRun tilemap) {
+         var mapData = tilemap.GetData();
+         for (int y = 0; y < tilemap.Format.TileHeight; y++) {
+            for (int x = 0; x < tilemap.Format.TileWidth; x++) {
+               var map = mapData.ReadMultiByteValue((tilemap.Format.TileWidth * y + x) * tilemap.BytesPerTile, tilemap.BytesPerTile);
                var tile = map & 0x3FF;
                yield return tile;
             }
