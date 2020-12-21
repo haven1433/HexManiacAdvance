@@ -4,14 +4,13 @@ using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.Remoting.Messaging;
 
 namespace HavenSoft.HexManiac.Core.Models {
    public interface IDataModel : IReadOnlyList<byte>, IEquatable<IDataModel> {
       byte[] RawData { get; }
+      ModelCacheScope CurrentCacheScope { get; }
       bool HasChanged(int index);
       void ResetChanges();
 
@@ -91,6 +90,15 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public byte[] RawData { get; private set; }
 
+      private ModelCacheScope currentCacheScope;
+      protected void ClearCacheScope() => currentCacheScope = null;
+      public ModelCacheScope CurrentCacheScope {
+         get {
+            if (currentCacheScope == null) currentCacheScope = new ModelCacheScope(this);
+            return currentCacheScope;
+         }
+      }
+
       public BaseModel(byte[] data) => RawData = data;
 
       public int FreeSpaceStart { get; set; }
@@ -107,6 +115,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          get => RawData[index];
          set {
             RawData[index] = value;
+            ClearCacheScope();
             changes.Add(index);
          }
       }

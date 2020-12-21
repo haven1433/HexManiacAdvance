@@ -63,11 +63,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          get => base[index];
          set {
             base[index] = value;
-            ClearCache();
+            ClearPointerCache();
          }
       }
 
-      private void ClearCache() => sourcesForDestinations = null;
+      private void ClearPointerCache() => sourcesForDestinations = null;
 
       #endregion
 
@@ -1060,6 +1060,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             var newRun = run.MergeAnchor(sources);
             ObserveRunWritten(changeToken, newRun);
          }
+
+         ClearCacheScope();
       }
 
       public override void MassUpdateFromDelta(

@@ -1,44 +1,19 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class ModelCacheScope : IDisposable {
-      private static readonly Dictionary<IDataModel, ModelCacheScope> activeScopes = new Dictionary<IDataModel, ModelCacheScope>();
-
-
-
       private readonly IDataModel model;
-      private int references;
-      private ModelCacheScope(IDataModel model) => this.model = model;
+      public ModelCacheScope(IDataModel model) => this.model = model;
       public static IDisposable CreateScope(IDataModel model) {
-         lock (activeScopes) {
-            if (activeScopes.TryGetValue(model, out var scope)) {
-               scope.references += 1;
-            } else {
-               scope = new ModelCacheScope(model);
-               scope.references += 1;
-               activeScopes[model] = scope;
-            }
-            return scope;
-         }
+         return model.CurrentCacheScope;
       }
-      public void Dispose() {
-         lock (activeScopes) {
-            activeScopes[model].references--;
-            if (activeScopes[model].references == 0) activeScopes.Remove(model);
-         }
-      }
+      public void Dispose() { }
 
       public static ModelCacheScope GetCache(IDataModel model) {
-         if (activeScopes.TryGetValue(model, out var scope)) {
-            return scope;
-         } else {
-            Debug.Fail("Requested a scoped cache, we're not currently in a scope!");
-            return new ModelCacheScope(model);
-         }
+         return model.CurrentCacheScope;
       }
 
       private readonly Dictionary<string, IReadOnlyList<string>> cachedOptions = new Dictionary<string, IReadOnlyList<string>>();
