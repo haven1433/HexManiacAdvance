@@ -104,7 +104,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                break;
             }
          }
-         var spriteTable = model.GetNextRun(primarySource) as ArrayRun;
+         var spriteTable = model.GetNextRun(primarySource) as ITableRun;
          var offset = spriteTable?.ConvertByteOffsetToArrayOffset(primarySource) ?? new ArrayOffset(-1, -1, -1, -1);
          if (primarySource < 0) offset = new ArrayOffset(-1, -1, -1, -1);
 
@@ -156,9 +156,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             results.AddRange(model.GetPointedChildren<IPaletteRun>(array, offset.ElementIndex));
          } else if (spriteTable != null) {
             // option 5: this sprite is in an array, so get all palettes in all related arrays
-            foreach (var relatedTable in model.GetRelatedArrays(spriteTable)) {
-               if (relatedTable == spriteTable) continue; // skip self, I'll handle my own relation later
-               results.AddRange(model.GetPointedChildren<IPaletteRun>(relatedTable, offset.ElementIndex));
+            if (spriteTable is ArrayRun arrayRun) {
+               foreach (var relatedTable in model.GetRelatedArrays(arrayRun)) {
+                  if (relatedTable == spriteTable) continue; // skip self, I'll handle my own relation later
+                  results.AddRange(model.GetPointedChildren<IPaletteRun>(relatedTable, offset.ElementIndex));
+               }
             }
             // this sprite may appear in the table multiple times, with different palettes. Example: potions
             if (includeAllTableIndex) {

@@ -115,7 +115,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var run = GetRun(start);
          PaletteSelection.Clear();
          var index = 0;
-         foreach (var palette in run.FindRelatedPalettes(ViewPort.Model)) {
+         foreach (var palette in run.FindRelatedPalettes(ViewPort.Model, Start)) {
             var name = ViewPort.BuildElementName(ViewPort.Model, palette.Start);
             var ps = new SelectionViewModel { Name = name, Selected = PaletteSelection.Count == currentPalette, Index = index };
             ps.Bind(nameof(ps.Selected), (o, e) => { if (o.Selected) CurrentPalette = o.Index; });
