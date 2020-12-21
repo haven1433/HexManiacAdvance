@@ -30,13 +30,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (runSpecificContent != null) Content.Add(runSpecificContent);
       }
 
-      public static object BuildContentForRun(IDataModel model, int source, int destination, IFormattedRun destinationRun) {
+      public static object BuildContentForRun(IDataModel model, int source, int destination, IFormattedRun destinationRun, int preferredPaletteStart = -1) {
          if (destination != destinationRun.Start) return null;
          if (destinationRun is PCSRun pcs) {
             return PCSString.Convert(model, pcs.Start, pcs.Length);
          } else if (destinationRun is ISpriteRun sprite) {
             if (sprite is LzTilemapRun tilemap) tilemap.FindMatchingTileset(model);
-            var paletteRun = sprite.FindRelatedPalettes(model, source).FirstOrDefault();
+            var paletteRuns = sprite.FindRelatedPalettes(model, source);
+            var paletteRun = paletteRuns.FirstOrDefault();
+            if (preferredPaletteStart >= 0) paletteRun = paletteRuns.FirstOrDefault(pRun => pRun.Start == preferredPaletteStart);
             var pixels = sprite.GetPixels(model, 0);
             if (pixels == null) return null;
             var colors = paletteRun?.AllColors(model) ?? TileViewModel.CreateDefaultPalette((int)Math.Pow(2, sprite.SpriteFormat.BitsPerPixel));
