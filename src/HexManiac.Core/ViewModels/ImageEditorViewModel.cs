@@ -1216,10 +1216,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                point = parent.ToSpriteSpace(point);
                if (!parent.WithinImage(point)) return;
                var index = parent.pixels[point.X, point.Y];
-               if (parent.Palette.CanEditColors) {
-                  var paletteAddress = parent.model.ReadPointer(parent.PalettePointer);
-                  if (parent.model.GetNextRun(paletteAddress) is IPaletteRun palRun && palRun.Start == paletteAddress && palRun.PaletteFormat.Bits == 4) {
-                     index -= palRun.PaletteFormat.InitialBlankPages << 4;
+               var palette = parent.ReadPalette();
+               if (parent.Palette.CanEditColors || palette.pages > 1) {
+                  if (palette.colors.Count < 256) {
+                     index -= palette.initialBlankPages << 4;
                      parent.PalettePage = index / 16;
                      index %= 16;
                   }
