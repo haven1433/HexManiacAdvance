@@ -50,10 +50,11 @@ graphics.trainers.sprites.front,                  ,       ,       ,       ,     
 graphics.trainers.animations.frames,        1436B8, 1436B8, 1436D8, 1436D8, 10BDA8, 10BD80, 10BE20, 10BDF8, 18D1E8, [animationPointer<[animation<>]1>]graphics.trainers.sprites.front
 graphics.trainers.animations.details,       143858, 143858, 143878, 143878, 158514, 1584F0, 15858C, 158568, 061AD0, [value::]graphics.trainers.sprites.front
 graphics.trainers.palettes.front,           031B98, 031B98, 031B98, 031B98, 03474C, 03474C, 034760, 034760, 05B784, [palette<`lzp4`> index: unused:]graphics.trainers.sprites.front
-graphics.trainers.sprites.back,                   ,       ,       ,       , 10BC58, 10BC30, 10BCD0, 10BCA8,       , [sprite<`ucs4x8x8|graphics.trainers.palettes.back`> a b c:]6
+graphics.trainers.sprites.back.enter,             ,       ,       ,       , 10BC58, 10BC30, 10BCD0, 10BCA8,       , [sprite<`ucs4x8x8|graphics.trainers.palettes.back`> a b c:]6
 graphics.trainers.sprites.back.throw,             ,       ,       ,       , 03F8A0, 03F8A0, 03F8B4, 03F8B4,       , [starterbytes:|h unknown:|h a<> b<> sprites<`osl|graphics.trainers.palettes.back:sprite`> d<> e<>]6
-graphics.trainers.sprites.back,                   ,       ,       ,       ,       ,       ,       ,       , 05DFD4, [sprite<`ucs4x8x8|graphics.trainers.palettes.back`> a. b. c:]8
-graphics.trainers.palettes.back,                  ,       ,       ,       , 0335D4, 0335D4, 0335E8, 0335E8, 05DFDC, [pal<`lzp4`> sprite::]graphics.trainers.sprites.back
+graphics.trainers.sprites.back.enter,             ,       ,       ,       ,       ,       ,       ,       , 05DFD4, [sprite<`ucs4x8x8|graphics.trainers.palettes.back`> a. b. c:]8
+graphics.trainers.sprites.back.throw,             ,       ,       ,       ,       ,       ,       ,       , 06A168, [starterbytes:|h unknown:|h a<> b<> sprites<`osl|graphics.trainers.palettes.back:sprite`> d<> e<>]8
+graphics.trainers.palettes.back,                  ,       ,       ,       , 0335D4, 0335D4, 0335E8, 0335E8, 05DFDC, [pal<`lzp4`> sprite::]graphics.trainers.sprites.back.enter
 graphics.trainers.emotes.sprites,                 ,       ,       ,       , 3C7394, 3C71D0, 3C7404, 3C7240,       , [pointer<`ucs4x2x2|graphics.overworld.palettes:id=1100`> lengeth::]15
 
 graphics.pokemon.animations.options,              ,       ,       ,       ,       ,       ,       ,       , 17F53C, [thumb<>]

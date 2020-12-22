@@ -504,6 +504,20 @@ ApplicationVersion = '''0.1.0'''
          Assert.Equal(1, tabChangedCalls);
       }
 
+      /// <summary>
+      /// This test warns me when an anchor name starts with another anchor name
+      /// </summary>
+      [Fact]
+      public void TableReference_Load_NoNamesPrefixOtherNames() {
+         var tableNames = BaseViewModelTestClass.Singletons.GameReferenceTables.Values.SelectMany(tables => tables).Select(table => table.Name.ToLower()).Distinct().ToArray();
+         for (int i = 0; i < tableNames.Length; i++) {
+            Assert.All(tableNames.Length.Range(), j => {
+               if (i == j) return;
+               Assert.False(tableNames[i].StartsWith(tableNames[j] + "."), $"{tableNames[i]} contains anchor {tableNames[j]}!");
+            });
+         }
+      }
+
       private StubTabContent CreateClosableTab() {
          var tab = new StubTabContent();
          var close = new StubCommand { CanExecute = arg => true };

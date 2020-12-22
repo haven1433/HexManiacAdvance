@@ -356,7 +356,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.NotNull(palettes);
 
          if (!game.Contains("Ruby") && !game.Contains("Sapphire")) {
-            sprites = model.GetTable("graphics.trainers.sprites.back");
+            sprites = model.GetTable("graphics.trainers.sprites.back.enter");
             palettes = model.GetTable("graphics.trainers.palettes.back");
             Assert.NotNull(sprites);
             Assert.NotNull(palettes);
