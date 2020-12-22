@@ -76,13 +76,15 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override IReadOnlyList<string> ListNames => lists.Keys.ToList();
       public override IReadOnlyList<ArrayRun> Arrays {
          get {
-            var results = new List<ArrayRun>();
-            foreach (var address in anchorForAddress.Keys) {
-               var index = BinarySearch(address);
-               if (index < 0) continue;
-               if (runs[index] is ArrayRun arrayRun) results.Add(arrayRun);
+            lock (threadlock) {
+               var results = new List<ArrayRun>();
+               foreach (var address in anchorForAddress.Keys) {
+                  var index = BinarySearch(address);
+                  if (index < 0) continue;
+                  if (runs[index] is ArrayRun arrayRun) results.Add(arrayRun);
+               }
+               return results;
             }
-            return results;
          }
       }
       public override IEnumerable<T> All<T>() {
