@@ -1567,33 +1567,35 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial, int maxResults = 30) {
-         partial = partial.ToLower();
-         var mappedNames = addressForAnchor.Keys.ToList();
+         lock (threadlock) {
+            partial = partial.ToLower();
+            var mappedNames = addressForAnchor.Keys.ToList();
 
-         var results = new List<string>();
+            var results = new List<string>();
 
-         if (!partial.Contains(ArrayAnchorSeparator)) {
-            foreach (var index in SystemExtensions.FindMatches(partial, mappedNames)) {
-               results.Add(mappedNames[index]);
-               if (results.Count == maxResults) break;
+            if (!partial.Contains(ArrayAnchorSeparator)) {
+               foreach (var index in SystemExtensions.FindMatches(partial, mappedNames)) {
+                  results.Add(mappedNames[index]);
+                  if (results.Count == maxResults) break;
+               }
+               return results;
             }
+
+            foreach (var name in mappedNames) {
+               var address = addressForAnchor[name];
+               if (GetNextRun(address) is ArrayRun run) {
+                  var nameParts = partial.Split(ArrayAnchorSeparator);
+
+                  var sanitizedName = name.Replace("é", "e");
+                  if (!sanitizedName.MatchesPartialWithReordering(nameParts[0])) continue;
+                  results.AddRange(GetAutoCompleteOptions(name + ArrayAnchorSeparator, run, nameParts.Skip(1).ToArray()));
+               }
+            }
+
+            // limit it to the first MaxResults options for performance
+            if (results.Count > maxResults) results.RemoveRange(maxResults, results.Count - maxResults);
             return results;
          }
-
-         foreach (var name in mappedNames) {
-            var address = addressForAnchor[name];
-            if (GetNextRun(address) is ArrayRun run) {
-               var nameParts = partial.Split(ArrayAnchorSeparator);
-
-               var sanitizedName = name.Replace("é", "e");
-               if (!sanitizedName.MatchesPartialWithReordering(nameParts[0])) continue;
-               results.AddRange(GetAutoCompleteOptions(name + ArrayAnchorSeparator, run, nameParts.Skip(1).ToArray()));
-            }
-         }
-
-         // limit it to the first MaxResults options for performance
-         if (results.Count > maxResults) results.RemoveRange(maxResults, results.Count - maxResults);
-         return results;
       }
 
       public override IReadOnlyList<string> GetAutoCompleteByteNameOptions(string text) {
