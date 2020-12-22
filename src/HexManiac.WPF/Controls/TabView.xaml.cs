@@ -187,10 +187,12 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private RenderTargetBitmap headerBitmap = new RenderTargetBitmap(10, 10, 96, 96, PixelFormats.Pbgra32);
 
       private bool preppedForScrolling;
+      private readonly Key[] arrowKeys = new[] { Key.Down, Key.Up, Key.Left, Key.Right, Key.PageDown, Key.PageUp };
 
       private void PreviewViewPortScrollChanged(object sender, EventArgs e) {
          if (!AnimateScroll) return;
          if (preppedForScrolling) return; // only prepare for a scroll change if we've handled a scroll since the last time we prepared.
+         if (arrowKeys.Any(Keyboard.IsKeyDown)) return;
 
          var translate = (TranslateTransform)ScrollingHexContent.RenderTransform;
          translate.BeginAnimation(TranslateTransform.YProperty, null); // kill any existing animation
@@ -217,6 +219,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (!AnimateScroll) return;
          if (e.PropertyName != nameof(IViewPort.ScrollValue)) return;
          if (!(e is ExtendedPropertyChangedEventArgs<int>)) return;
+         if (!preppedForScrolling) return;
          var viewPort = (IViewPort)sender;
          var oldValue = ((ExtendedPropertyChangedEventArgs<int>)e).OldValue;
          var newValue = viewPort.ScrollValue;
