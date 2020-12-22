@@ -55,7 +55,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public int SelectedTableIndex {
          get => selectedTableIndex;
          set {
-            TryUpdate(ref selectedTableIndex, value);
+            if (!TryUpdate(ref selectedTableIndex, value)) return;
             if (selectedTableIndex == -1 || dataForCurrentRunChangeUpdate) return;
             UpdateAddressFromSectionAndSelection();
          }
