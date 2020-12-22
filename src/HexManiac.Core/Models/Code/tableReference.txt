@@ -42,8 +42,6 @@ graphics.pokemon.icons.sprites,             099AA0, 099AA0, 099AC0, 099AC0, 0001
 graphics.pokemon.icons.index,               099BB0, 099BB0, 099BD0, 099BD0, 00013C, 00013C, 00013C, 00013C, 00013C, [index.graphics.pokemon.icons.palettes]data.pokemon.names+28
 graphics.pokemon.icons.palettes,            09D53C, 09D53C, 09D55C, 09D55C, 000140, 000140, 000140, 000140, 000140, [palette<`ucp4`> id::]3
 graphics.pokemon.icons.deoxys,                    ,       ,       ,       , 3D3E08, 3D3C44, 3D3E78, 3D3CB4, 57C310, `ucs4x4x16|graphics.pokemon.icons.index`
-graphics.items.ball.sprites,                0473BC, 0473BC, 0473DC, 0473DC, 0001D0, 0001D0, 0001D0, 0001D0, 0001D0, [sprite<`lzs4x2x6|graphics.items.ball.palettes`> uncompressedLength: a b]12
-graphics.items.ball.palettes,               0473C0, 0473C0, 0473E0, 0473E0, 0001D4, 0001D4, 0001D4, 0001D4, 0001D4, [palette<`lzp4`> a b unused:]graphics.items.ball.sprites
 graphics.trainers.sprites.front,            031B9C, 031B9C, 031B9C, 031B9C,       ,       ,       ,       ,       , [sprite<`lzs4x8x8|graphics.trainers.palettes.front`> uncompressedLength: index:]83
 graphics.trainers.sprites.front,                  ,       ,       ,       , 03473C, 03473C, 034750, 034750,       , [sprite<`lzs4x8x8|graphics.trainers.palettes.front`> uncompressedLength: index:]148
 graphics.trainers.sprites.front,                  ,       ,       ,       ,       ,       ,       ,       , 05DF78, [sprite<`lzs4x8x8|graphics.trainers.palettes.front`> uncompressedLength: index:]93
@@ -73,8 +71,14 @@ graphics.moves.surf.opponent,                     ,       ,       ,       , 0AB4
 graphics.moves.surf.player,                       ,       ,       ,       , 0AB414, 0AB3E8, 0AB428, 0AB3FC,       , `lzm4x32x64|graphics.moves.surf.tileset`
 graphics.moves.surf.contest,                      ,       ,       ,       , 0AB458, 0AB42C, 0AB46C, 0AB440,       , `lzm4x32x64|graphics.moves.surf.tileset`
 
+graphics.items.ball.sprites,                0473BC, 0473BC, 0473DC, 0473DC, 0001D0, 0001D0, 0001D0, 0001D0, 0001D0, [sprite<`lzs4x2x6|graphics.items.ball.palettes`> uncompressedLength: a b]12
+graphics.items.ball.palettes,               0473C0, 0473C0, 0473E0, 0473E0, 0001D4, 0001D4, 0001D4, 0001D4, 0001D4, [palette<`lzp4`> a b unused:]graphics.items.ball.sprites
 graphics.items.sprites,                           ,       ,       ,       , 09899C, 098970, 0989B0, 098984, 1B0034, [sprite<`lzs4x3x3`> palette<`lzp4`>]data.items.stats+1
 graphics.items.mail,                              ,       ,       ,       , 0BEEB0, 0BEE84, 0BEEC4, 0BEE98,       , [pal<`ucp4`> tileset<`lzt4`> tilemap<`lzm4x32x20|graphics.items.mail`> size:: textcolor:|c shadow:|c]12
+graphics.items.fossils.palette1,          ,       ,       ,       , 09D604, 09D5D8, 09D618, 09D5EC,       , `ucp4`
+graphics.items.fossils.palette2,          ,       ,       ,       , 09D554, 09D528, 09D568, 09D53C,       , `ucp4`
+graphics.items.fossils.sprite1,           ,       ,       ,       , 3E17D0, 3E160C, 3E1840, 3E167C,       , `ucs4x8x8|graphics.items.fossils.palette1`
+graphics.items.fossils.sprite2,           ,       ,       ,       , 3E17C0, 3E15FC, 3E1830, 3E166C,       , `ucs4x8x8|graphics.items.fossils.palette2`
 
 
 data.pokemon.stats,                    010B64, 010B64, 010B64, 010B64, 0001BC, 0001BC, 0001BC, 0001BC, 0001BC, [hp. attack. def. speed. spatk. spdef. type1.data.pokemon.type.names type2.data.pokemon.type.names catchRate. baseExp. evs|b[]evbits item1:data.items.stats item2:data.items.stats genderratio. steps2hatch. basehappiness. growthrate. egg1. egg2. ability1.data.abilities.names ability2.data.abilities.names runrate. unknown. padding:]data.pokemon.names

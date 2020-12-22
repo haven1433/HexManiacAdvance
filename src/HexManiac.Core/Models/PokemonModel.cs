@@ -1017,12 +1017,12 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public override void ObserveAnchorWritten(ModelDelta changeToken, string anchorName, IFormattedRun run) {
          Debug.Assert(run.Length > 0); // writing an anchor of length zero is stupid.
-         int location = run.Start;
-         int index = BinarySearch(location);
+         lock (threadlock) {
+            int location = run.Start;
+            int index = BinarySearch(location);
 
-         var existingRun = (index >= 0 && index < runs.Count) ? runs[index] : null;
+            var existingRun = (index >= 0 && index < runs.Count) ? runs[index] : null;
 
-         using (ModelCacheScope.CreateScope(this)) {
             if (existingRun == null || existingRun.Start != run.Start) {
                // no format starts exactly at this anchor, so clear any format that goes over this anchor.
                ClearFormat(changeToken, location, run.Length);
@@ -1071,9 +1071,9 @@ namespace HavenSoft.HexManiac.Core.Models {
 
             var newRun = run.MergeAnchor(sources);
             ObserveRunWritten(changeToken, newRun);
-         }
 
-         ClearCacheScope();
+            ClearCacheScope();
+         }
       }
 
       public override void MassUpdateFromDelta(
