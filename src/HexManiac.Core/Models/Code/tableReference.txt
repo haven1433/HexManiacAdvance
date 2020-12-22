@@ -390,6 +390,10 @@ graphics.townmap.icon.head.male.palette,       ,       ,       ,       , 0C4300,
 graphics.townmap.icon.head.female.palette,     ,       ,       ,       , 0C431C, 0C42F0, 0C4330, 0C4304, , `ucp4`
 graphics.townmap.icon.head.male.sprite,        ,       ,       ,       , 0C423C, 0C4210, 0C4250, 0C4224, , `lzs4x2x2|graphics.townmap.icon.head.male.palette`
 graphics.townmap.icon.head.female.sprite,      ,       ,       ,       , 0C420C, 0C41E0, 0C4220, 0C41F4, , `lzs4x2x2|graphics.townmap.icon.head.female.palette`
+graphics.townmap.icon.head.male.palette,       ,       ,       ,       ,       ,       ,       , , 1242E4, `ucp4`
+graphics.townmap.icon.head.male.sprite,        ,       ,       ,       ,       ,       ,       , , 1242E0, `ucs4x2x2|graphics.townmap.icon.head.male.palette`
+graphics.townmap.icon.head.female.palette,     ,       ,       ,       ,       ,       ,       , , 124374, `ucp4`
+graphics.townmap.icon.head.female.sprite,      ,       ,       ,       ,       ,       ,       , , 124370, `ucs4x2x2|graphics.townmap.icon.head.female.palette`
 graphics.townmap.catchmap.palette,                                  ,,,, 1026C0, 102698, 102738, 102710, , `ucp4:0123456789ABCDEF`
 graphics.townmap.catchmap.kanto,                                    ,,,, 106454, 10642C, 1064CC, 1064A4, , `lzs4x12x9|graphics.townmap.catchmap.palette`
 graphics.townmap.catchmap.sevii,                                    ,,,, 106458, 106430, 1064D0, 1064A8, , [data<[a b c width height d e f]1> map<`lzt4|graphics.townmap.catchmap.palette`>]7
