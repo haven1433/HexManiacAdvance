@@ -190,7 +190,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
          if (CurrentText.EndsWith(" ") && !CurrentText.StartsWith("\"")) {
             currentText = CurrentText.Replace(" ", "");
-            if (!currentText.All(ViewPort.AllHexCharacters.Contains)) {
+            if (!(currentText.All(ViewPort.AllHexCharacters.Contains) && (CurrentText.Count(c => c == ' ') > 1 || currentText.Length == 2))) {
                HandleBitArrayEntry(CurrentText);
                return;
             }

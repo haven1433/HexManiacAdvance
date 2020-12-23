@@ -517,6 +517,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(table.Start + table.ElementLength * 2, Model.ReadPointer(8));
       }
 
+      [Fact]
+      public void BitArray_SetValueIn5thByte_ByteChanges() {
+         CreateTextTable("text", 0x40, 38.Range().Select(i => "entry" + i).ToArray());
+         CreateEnumTable("enums", 0x180, "text", 38.Range().ToArray());
+         CreateBitArrayTable("bits", 0, "enums", 0, 0, 0, 0);
+         ViewPort.Refresh();
+
+         ViewPort.Edit("entry34 ");
+
+         Assert.Equal(0b100, Model[4]);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
