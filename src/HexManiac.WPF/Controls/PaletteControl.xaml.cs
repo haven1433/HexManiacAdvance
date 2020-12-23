@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.WPF.Windows;
@@ -149,6 +150,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var color32 = (Color)ColorConverter.ConvertFromString(swatch.Result);
          var color16 = TileImage.Convert16BitColor(color32);
          var channels = Color16ToChannelStrings(color16);
+         color16 = PaletteRun.FlipColorChannels(color16);
          for (int i = 0; i < channels.Length; i++) {
             swatchTextBoxes[i].TextChanged -= UpdateSwatchColorFromTextBoxes;
             swatchTextBoxes[i].Text = channels[i];
@@ -166,6 +168,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
          var color16 = ChannelStringsToColor16(swatchTextBoxes.Select(box => box.Text).ToArray());
          var color32 = TileImage.Convert16BitColor(color16);
+         color16 = PaletteRun.FlipColorChannels(color16);
          swatch.Result = color32.ToString();
          swatchTextBoxes[3].Text = color16.ToString("X4");
 
@@ -179,6 +182,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          swatchTextBoxes[3].TextChanged -= UpdateSwatchColorFromBytesBox;
 
          if (short.TryParse(swatchTextBoxes[3].Text, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var color16)) {
+            color16 = PaletteRun.FlipColorChannels(color16);
             var color32 = TileImage.Convert16BitColor(color16);
             swatch.Result = color32.ToString();
 
