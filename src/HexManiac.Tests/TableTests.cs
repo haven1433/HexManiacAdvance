@@ -529,6 +529,35 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0b100, Model[4]);
       }
 
+      [Fact]
+      public void TextTable_MakeEnumTableWithOffset_ValuesAppearCorrectly() {
+         CreateTextTable("text", 0x80, 10.Range().Select(i => "entry" + i).ToArray());
+         ViewPort.Refresh();
+
+         ViewPort.Edit("@00 0A 0B 0C");
+         ViewPort.Edit("@00 ^enums[entry.text+10]3 ");
+
+         var segment = (ArrayRunEnumSegment)Model.GetTable("enums").ElementContent[0];
+         Assert.Equal("text", segment.EnumName);
+         Assert.Equal(10, segment.ValueOffset);
+         var cell = (IntegerEnum)ViewPort[1, 0].Format;
+         Assert.Equal("entry1", cell.DisplayValue);
+      }
+
+      [Fact]
+      public void EnumTableWithOffset_Edit_ValueAppearsCorrectly() {
+         CreateTextTable("text", 0x80, 10.Range().Select(i => "entry" + i).ToArray());
+         ViewPort.Refresh();
+         ViewPort.Edit("@00 0A 0B 0C");
+         ViewPort.Edit("@00 ^enums[entry.text+10]3 ");
+
+         ViewPort.SelectionStart = new Point(1, 0);
+         ViewPort.Edit("entry7 ");
+
+         var cell = (IntegerEnum)ViewPort[1, 0].Format;
+         Assert.Equal("entry7", cell.DisplayValue);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

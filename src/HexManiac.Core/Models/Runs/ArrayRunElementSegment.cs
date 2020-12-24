@@ -111,17 +111,26 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class ArrayRunEnumSegment : ArrayRunElementSegment, IHasOptions {
       public string EnumName { get; }
 
+      public int ValueOffset { get; }
+
       public override string SerializeFormat => base.SerializeFormat + EnumName;
 
-      public ArrayRunEnumSegment(string name, int length, string enumName) : base(name, ElementContentType.Integer, length) => EnumName = enumName;
+      public ArrayRunEnumSegment(string name, int length, string enumName) : base(name, ElementContentType.Integer, length) {
+         EnumName = enumName;
+         var parts = EnumName.Split("+");
+         if (parts.Length == 2 && int.TryParse(parts[1], out int valueOffset)) {
+            EnumName = parts[0];
+            ValueOffset = valueOffset;
+         }
+      }
 
-      public override string ToText(IDataModel model, int offset, bool deep) {
+      public override string ToText(IDataModel model, int address, bool deep) {
          using (ModelCacheScope.CreateScope(model)) {
             var options = GetOptions(model).ToList();
-            if (options == null) return base.ToText(model, offset, deep);
+            if (options == null) return base.ToText(model, address, deep);
 
-            var resultAsInteger = ToInteger(model, offset, Length);
-            if (resultAsInteger >= options.Count || resultAsInteger < 0) return base.ToText(model, offset, deep);
+            var resultAsInteger = ToInteger(model, address, Length) - ValueOffset;
+            if (resultAsInteger >= options.Count || resultAsInteger < 0) return base.ToText(model, address, deep);
             var value = options[resultAsInteger];
 
             // use ~2 postfix for a value if an earlier entry in the array has the same string
@@ -174,7 +183,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      public bool TryParse(IDataModel model, string text, out int value) => TryParse(EnumName, model, text, out value);
+      public bool TryParse(IDataModel model, string text, out int value) {
+         var result = TryParse(EnumName, model, text, out value);
+         value += ValueOffset;
+         return result;
+      }
 
       public static bool TryParse(string enumName, IDataModel model, string text, out int value) {
          var options = model.GetOptions(enumName);

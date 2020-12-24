@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
@@ -49,17 +50,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public SpriteTool SpriteTool => (SpriteTool)tools[2];
 
+      private bool runningDeferredWork;
       private StubDisposable currentDeferralToken;
       public IDisposable DeferUpdates {
          get {
             Debug.Assert(currentDeferralToken == null);
             currentDeferralToken = new StubDisposable {
                Dispose = () => {
-                  using (ModelCacheScope.CreateScope(model)) {
-                     foreach (var action in deferredWork) action();
-                     deferredWork.Clear();
-                     currentDeferralToken = null;
+                  var workingCopy = deferredWork.ToList();
+                  runningDeferredWork = true;
+                  using (new StubDisposable { Dispose = () => runningDeferredWork = false }) {
+                     foreach (var action in workingCopy) {
+                        action();
+                        deferredWork.Remove(action);
+                     }
                   }
+                  currentDeferralToken = null;
                }
             };
             return currentDeferralToken;
@@ -108,6 +114,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public void Schedule(Action action) {
+         Debug.Assert(!runningDeferredWork, "Scheduling deferred work while deferred work is running is not safe!");
          if (currentDeferralToken != null) {
             deferredWork.Add(action);
          } else {
