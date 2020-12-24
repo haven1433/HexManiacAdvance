@@ -122,6 +122,17 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
+      public void TableWithNamedConstantLength_DecreaseConstant_TableLengthChanges() {
+         ViewPort.Edit(".length 12 @04 ^table[a:]length ");
+
+         ViewPort.Edit("@00 11 ");
+
+         var table = Model.GetTable("table");
+         Assert.Equal(11, Model[0]);
+         Assert.Equal(11, table.ElementCount);
+      }
+
+      [Fact]
       public void TableWithNamedConstantLength_IncreaseConstant_TableLengthChanges() {
          ViewPort.Edit(".length 12 @04 ^table[a:]length ");
 
