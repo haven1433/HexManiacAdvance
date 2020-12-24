@@ -288,3 +288,10 @@ Name = '''scripts.newgame.money'''
 Address = 0x054B60
 Length = 2
 
+
+###################################################### catchmap editing. See http://sfc.pokefans.net/lesson.php?id=20
+[[MatchedWords]]
+Name = '''data.maps.catchmap.conversion.kanto.length'''
+Address = 0x13CA74
+Length = 1
+

@@ -397,6 +397,9 @@ graphics.townmap.icon.head.female.sprite,      ,       ,       ,       ,       ,
 graphics.townmap.catchmap.palette,                                  ,,,, 1026C0, 102698, 102738, 102710, , `ucp4:0123456789ABCDEF`
 graphics.townmap.catchmap.kanto,                                    ,,,, 106454, 10642C, 1064CC, 1064A4, , `lzs4x12x9|graphics.townmap.catchmap.palette`
 graphics.townmap.catchmap.sevii,                                    ,,,, 106458, 106430, 1064D0, 1064A8, , [data<[a b c width height d e f]1> map<`lzt4|graphics.townmap.catchmap.palette`>]7
+graphics.townmap.catchmap.shape,                                    ,,,, 1344DC, 1344B4, 134554, 13452C, , [shape.catchmap_shape x. y. unused.]80
+graphics.townmap.catchmap.conversion.sevii,                         ,,,, 13CACC, 13CAA4, 13CB44, 13CB1C, , [data<[worldmap:data.maps.names+88 catchmap:]/length> length::]7
+graphics.townmap.catchmap.conversion.kanto,                         ,,,, 13CAC8, 13CAA0, 13CB40, 13CB18, , [worldmap:data.maps.names+88 catchmap:]data.maps.catchmap.conversion.kanto.length
 graphics.townmap.selector.tilemap,                                  ,,,, 0C0F24, 0C0EF8, 0C0F38, 0C0F0C, , `lzm4x30x20|graphics.townmap.selector.tileset`
 graphics.townmap.selector.tilemap2,                                 ,,,, 0C0F44, 0C0F18, 0C0F58, 0C0F2C, , `lzm4x30x20|graphics.townmap.selector.tileset`
 graphics.townmap.selector.tilemap3,                                 ,,,, 0C0FBC, 0C0F90, 0C0FD0, 0C0FA4, , `lzm4x30x20|graphics.townmap.selector.tileset`
