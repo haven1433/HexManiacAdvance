@@ -708,7 +708,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          Debug.Assert(run.Length > 0); // writing a run of length zero is stupid.
          lock (threadlock) {
             if (run is ArrayRun array) {
-               // update any words who's length matches this array's name
+               // update any words who's name matches this array's name
                if (anchorForAddress.TryGetValue(run.Start, out var anchorName)) {
                   if (matchedWords.TryGetValue(anchorName, out var words)) {
                      foreach (var address in words) WriteValue(changeToken, address, array.ElementCount);

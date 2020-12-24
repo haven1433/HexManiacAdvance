@@ -387,18 +387,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             TryFixupLzRun(ref lzRun, runIndex + integer.Length); // this is before the first header: it cannot fail.
             run = lzRun;
          }
-         var (newDataIndex, errorText) = UpdateAllWords(Model, run, CurrentChange, result);
+         var (newDataIndex, errorText) = UpdateAllWords(Model, run, CurrentChange, result, alsoUpdateArrays: true);
          NewDataIndex = run.Start + runIndex + integer.Length;
          if (newDataIndex >= 0) (NewDataIndex, ErrorText) = (newDataIndex, errorText);
       }
 
-      public static (int, string) UpdateAllWords(IDataModel model, IFormattedRun run, ModelDelta token, int value) {
+      public static (int, string) UpdateAllWords(IDataModel model, IFormattedRun run, ModelDelta token, int value, bool alsoUpdateArrays) {
          int newDataIndex = -1;
          string errorText = null;
 
          if (run is WordRun wordRun) {
             // update the other word runs with the same token name
             var desiredValue = value - wordRun.ValueOffset;
+
+            if (alsoUpdateArrays) {
+               foreach (var array in model.Arrays.Where(a => a.LengthFromAnchor == wordRun.SourceArrayName).ToList()) {
+                  var delta = value - array.ElementCount;
+                  var movedArray = model.RelocateForExpansion(token, array, (array.ElementCount + delta) * array.ElementLength);
+                  var newArray = movedArray.Append(token, delta);
+                  if (newArray != array) model.ObserveRunWritten(token, newArray);
+               }
+            }
+
             foreach (var address in model.GetMatchedWords(wordRun.SourceArrayName)) {
                if (address == run.Start) continue; // don't write the current run
                if (!(model.GetNextRun(address) is WordRun currentRun)) continue;

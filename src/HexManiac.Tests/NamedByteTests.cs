@@ -120,5 +120,16 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(13, table.ElementCount);
          Assert.Equal(13, Model[0]);
       }
+
+      [Fact]
+      public void TableWithNamedConstantLength_IncreaseConstant_TableLengthChanges() {
+         ViewPort.Edit(".length 12 @04 ^table[a:]length ");
+
+         ViewPort.Edit("@00 13 ");
+
+         var table = Model.GetTable("table");
+         Assert.Equal(13, Model[0]);
+         Assert.Equal(13, table.ElementCount);
+      }
    }
 }

@@ -533,6 +533,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       ITableRun ITableRun.Append(ModelDelta token, int elementCount) => Append(token, elementCount);
       public ArrayRun Append(ModelDelta token, int elementCount) {
+         if (elementCount == 0) return this;
          var lastArrayCharacterIndex = FormatString.LastIndexOf(ArrayEnd);
          var newFormat = FormatString.Substring(0, lastArrayCharacterIndex + 1);
          int endElementCount = Math.Max(ParentOffset, 0);
@@ -600,27 +601,26 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
          }
 
-         UpdateNamedConstant(token, ref elementCount);
+         elementCount += ElementCount; // elementCount is now the full count, not the delta
+         UpdateNamedConstant(token, ref elementCount, alsoUpdateArrays: false);
 
-         return new ArrayRun(owner, newFormat, LengthFromAnchor, ParentOffset, Start, ElementCount + elementCount, ElementContent, PointerSources, newInnerElementsSources);
+         return new ArrayRun(owner, newFormat, LengthFromAnchor, ParentOffset, Start, elementCount, ElementContent, PointerSources, newInnerElementsSources);
       }
 
-      private void UpdateNamedConstant(ModelDelta token, ref int delta) {
+      private void UpdateNamedConstant(ModelDelta token, ref int desiredValue, bool alsoUpdateArrays) {
          var addresses = owner.GetMatchedWords(LengthFromAnchor);
          if (addresses.Count == 0) return;
          var lengthSource = (WordRun)owner.GetNextRun(addresses[0]);
-         var length = owner.ReadMultiByteValue(lengthSource.Start, lengthSource.Length) - lengthSource.ValueOffset;
-         length += delta;
+         var length = desiredValue;
          if (lengthSource.Length == 1 && length > 255) {
-            delta -= length - 255;
             length = 255;
-         } else if (lengthSource.Length == 1 && length < 1) {
-            delta += 1 - length;
+         } else if (length < 1) {
             length = 1;
          }
+         desiredValue = length;
          length += lengthSource.ValueOffset;
          owner.WriteMultiByteValue(lengthSource.Start, lengthSource.Length, token, length);
-         CompleteCellEdit.UpdateAllWords(owner, lengthSource, token, length);
+         CompleteCellEdit.UpdateAllWords(owner, lengthSource, token, length, alsoUpdateArrays);
       }
 
       private void WriteSegment(ModelDelta token, ArrayRunElementSegment segment, IReadOnlyList<byte> readData, int readPosition, int writePosition) {
