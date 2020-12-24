@@ -420,3 +420,14 @@ Name = '''script_compare'''
     '''!=''',
 ]
 
+[[List]]
+Name = '''catchmap_shape'''
+0 = [
+    '''small''',
+    '''wide''',
+    '''tall''',
+    '''wider''',
+    '''taller''',
+    '''widest''',
+    '''tallest''',
+]
