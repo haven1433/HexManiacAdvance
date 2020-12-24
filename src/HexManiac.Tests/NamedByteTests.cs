@@ -102,5 +102,23 @@ namespace HavenSoft.HexManiac.Tests {
          var matches = model.GetMatchedWords("scripts.shiny.odds");
          Assert.Equal(6, matches.Count);
       }
+
+      [Fact]
+      public void NamedConstant_CreateTableWithMatchingLength_TableHasExpectedLength() {
+         ViewPort.Edit(".length 12 @04 ^table[a:]length ");
+
+         Assert.Equal(12, Model.GetTable("table").ElementCount);
+      }
+
+      [Fact]
+      public void TableWithNamedConstantLength_ExpandTable_ConstantUpdates() {
+         ViewPort.Edit(".length 12 @04 ^table[a:]length ");
+
+         ViewPort.Edit("@1C +");
+
+         var table = Model.GetTable("table");
+         Assert.Equal(13, table.ElementCount);
+         Assert.Equal(13, Model[0]);
+      }
    }
 }

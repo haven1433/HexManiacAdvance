@@ -387,21 +387,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             TryFixupLzRun(ref lzRun, runIndex + integer.Length); // this is before the first header: it cannot fail.
             run = lzRun;
          }
+         var (newDataIndex, errorText) = UpdateAllWords(Model, run, CurrentChange, result);
+         NewDataIndex = run.Start + runIndex + integer.Length;
+         if (newDataIndex >= 0) (NewDataIndex, ErrorText) = (newDataIndex, errorText);
+      }
+
+      public static (int, string) UpdateAllWords(IDataModel model, IFormattedRun run, ModelDelta token, int value) {
+         int newDataIndex = -1;
+         string errorText = null;
+
          if (run is WordRun wordRun) {
             // update the other word runs with the same token name
-            var desiredValue = result - wordRun.ValueOffset;
-            foreach (var address in Model.GetMatchedWords(wordRun.SourceArrayName)) {
+            var desiredValue = value - wordRun.ValueOffset;
+            foreach (var address in model.GetMatchedWords(wordRun.SourceArrayName)) {
                if (address == run.Start) continue; // don't write the current run
-               if (!(Model.GetNextRun(address) is WordRun currentRun)) continue;
+               if (!(model.GetNextRun(address) is WordRun currentRun)) continue;
                var writeValue = desiredValue + currentRun.ValueOffset;
                if (writeValue < 0 || writeValue > 255) {
-                  NewDataIndex = currentRun.Start;
-                  ErrorText = $"{currentRun.Start:X6}: value out of range!";
+                  newDataIndex = currentRun.Start;
+                  errorText = $"{currentRun.Start:X6}: value out of range!";
                }
-               Model.WriteMultiByteValue(address, currentRun.Length, CurrentChange, writeValue);
+               model.WriteMultiByteValue(address, currentRun.Length, token, writeValue);
             }
          }
-         NewDataIndex = run.Start + runIndex + integer.Length;
+
+         return (newDataIndex, errorText);
       }
 
       private void CompleteIntegerEnumEdit() {

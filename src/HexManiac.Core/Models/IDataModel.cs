@@ -464,10 +464,15 @@ namespace HavenSoft.HexManiac.Core.Models {
                   return new ErrorInfo($"Could not extend table safely. Table length has a circular dependency involving {arrayRun.LengthFromAnchor}.");
                }
 
+               // jump up to the parent table. If the LengthFromAnchor indicates a non-table (such as a named constant), bail
                var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, arrayRun.LengthFromAnchor);
-               visitedNames.Add(arrayRun.LengthFromAnchor);
-               visitedAddress.Add(address);
-               arrayRun = (ArrayRun)model.GetNextRun(address);
+               if (address != Pointer.NULL) {
+                  visitedNames.Add(arrayRun.LengthFromAnchor);
+                  visitedAddress.Add(address);
+                  arrayRun = (ArrayRun)model.GetNextRun(address);
+               } else {
+                  break; // this is a top-level table, with length depending on a named constant
+               }
             }
             table = arrayRun;
          }

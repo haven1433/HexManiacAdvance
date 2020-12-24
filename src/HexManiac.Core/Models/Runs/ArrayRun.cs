@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -599,7 +600,27 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
          }
 
+         UpdateNamedConstant(token, ref elementCount);
+
          return new ArrayRun(owner, newFormat, LengthFromAnchor, ParentOffset, Start, ElementCount + elementCount, ElementContent, PointerSources, newInnerElementsSources);
+      }
+
+      private void UpdateNamedConstant(ModelDelta token, ref int delta) {
+         var addresses = owner.GetMatchedWords(LengthFromAnchor);
+         if (addresses.Count == 0) return;
+         var lengthSource = (WordRun)owner.GetNextRun(addresses[0]);
+         var length = owner.ReadMultiByteValue(lengthSource.Start, lengthSource.Length) - lengthSource.ValueOffset;
+         length += delta;
+         if (lengthSource.Length == 1 && length > 255) {
+            delta -= length - 255;
+            length = 255;
+         } else if (lengthSource.Length == 1 && length < 1) {
+            delta += 1 - length;
+            length = 1;
+         }
+         length += lengthSource.ValueOffset;
+         owner.WriteMultiByteValue(lengthSource.Start, lengthSource.Length, token, length);
+         CompleteCellEdit.UpdateAllWords(owner, lengthSource, token, length);
       }
 
       private void WriteSegment(ModelDelta token, ArrayRunElementSegment segment, IReadOnlyList<byte> readData, int readPosition, int writePosition) {
@@ -862,8 +883,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (owner.TryGetList(lengthFromAnchor, out var nameArray)) {
                return (lengthFromAnchor, parentOffset, nameArray.Count);
             } else {
-               // length is zero for now
-               return (lengthFromAnchor, parentOffset, 1);
+               //  How about a constant name?
+               var constantLocations = owner.GetMatchedWords(lengthFromAnchor);
+               if (constantLocations.Count > 0) {
+                  var constantRun = (WordRun)owner.GetNextRun(constantLocations[0]);
+                  var elementCount = owner.ReadMultiByteValue(constantRun.Start, constantRun.Length) + constantRun.ValueOffset;
+                  return (lengthFromAnchor, parentOffset, elementCount);
+               } else {
+                  // length is zero for now
+                  return (lengthFromAnchor, parentOffset, 1);
+               }
             }
          }
 
