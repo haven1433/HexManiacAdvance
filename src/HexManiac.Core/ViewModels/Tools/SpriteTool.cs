@@ -1160,7 +1160,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
          var currentSpriteRun = spriteRun;
          if (spriteRun.Pages != paletteRun.Pages) {
-            for (int page = 0; page < spriteRun.Pages; page++) {
+            for (int page = 0; page < currentSpriteRun.Pages; page++) {
                if (page == spritePage) continue;
                currentSpriteRun = WeightedPalette.Update(model, viewPort.CurrentChange, currentSpriteRun, palettes, newPalettes, initialBlankPages, page);
             }
