@@ -86,7 +86,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public GotoControlViewModel(ITabContent tabContent) {
          viewPort = (tabContent as IViewPort);
-         viewPort?.Bind(nameof(ViewPort.FreeSpaceStart), (vp, args) => RefreshOptions());
          MoveAutoCompleteSelectionUp = new StubCommand {
             CanExecute = CanAlwaysExecute,
             Execute = arg => CompletionIndex--,
