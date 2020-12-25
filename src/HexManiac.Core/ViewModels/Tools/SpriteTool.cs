@@ -661,13 +661,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
+      public static (int index, int page) GetTarget(IReadOnlyList<ISpriteRun> sprites, int target) {
+         var (totalCount, initialTarget) = (0, target);
+         for (int i = 0; i < sprites.Count; i++) {
+            if (sprites[i].Pages > target) return (i, target);
+            var pages = sprites[i].Pages;
+            target -= pages;
+            totalCount += pages;
+         }
+         throw new IndexOutOfRangeException($"Looking for page {initialTarget}, but there were only {totalCount} available pages among {sprites.Count} sprites!");
+      }
+
       private int GetImportType(IFileSystem fileSystem, int dependentPageCount, IReadOnlyList<ISpriteRun> dependentSprites, string imageType, IPaletteRun palette, out IReadOnlyList<int> usablePalettePages) {
          var palFormat = palette.PaletteFormat;
          var imageDetails = new List<object>();
-         var detailsLength = Math.Min(3, dependentSprites.Count);
+         var detailsLength = Math.Min(3, dependentPageCount);
          for (int i = 0; i < detailsLength; i++) {
-            var targetIndex = i * dependentSprites.Count / detailsLength;
-            imageDetails.Add(ToolTipContentVisitor.BuildContentForRun(model, -1, dependentSprites[targetIndex].Start, dependentSprites[targetIndex], palette.Start));
+            var targetIndex = i * dependentPageCount / detailsLength;
+            var (dependentIndex, dependentPage) = GetTarget(dependentSprites, targetIndex);
+            imageDetails.Add(ToolTipContentVisitor.BuildContentForRun(model, -1, dependentSprites[dependentIndex].Start, dependentSprites[dependentIndex], palette.Start, dependentPage));
          }
 
          var palDetails = new List<FlagViewModel>();

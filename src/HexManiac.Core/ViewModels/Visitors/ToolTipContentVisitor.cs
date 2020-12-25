@@ -30,7 +30,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (runSpecificContent != null) Content.Add(runSpecificContent);
       }
 
-      public static object BuildContentForRun(IDataModel model, int source, int destination, IFormattedRun destinationRun, int preferredPaletteStart = -1) {
+      public static object BuildContentForRun(IDataModel model, int source, int destination, IFormattedRun destinationRun, int preferredPaletteStart = -1, int preferredSpritePage = 0) {
          if (destination != destinationRun.Start) return null;
          if (destinationRun is PCSRun pcs) {
             return PCSString.Convert(model, pcs.Start, pcs.Length);
@@ -39,7 +39,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             var paletteRuns = sprite.FindRelatedPalettes(model, source);
             var paletteRun = paletteRuns.FirstOrDefault();
             if (preferredPaletteStart >= 0) paletteRun = paletteRuns.FirstOrDefault(pRun => pRun.Start == preferredPaletteStart);
-            var pixels = sprite.GetPixels(model, 0);
+            var pixels = sprite.GetPixels(model, preferredSpritePage);
             if (pixels == null) return null;
             var colors = paletteRun?.AllColors(model) ?? TileViewModel.CreateDefaultPalette((int)Math.Pow(2, sprite.SpriteFormat.BitsPerPixel));
             var imageData = SpriteTool.Render(pixels, colors, paletteRun?.PaletteFormat.InitialBlankPages ?? 0, 0);
