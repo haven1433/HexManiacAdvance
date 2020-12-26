@@ -710,7 +710,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (run is ArrayRun array) {
                // update any words who's name matches this array's name
                if (anchorForAddress.TryGetValue(run.Start, out var anchorName)) {
-                  if (matchedWords.TryGetValue(anchorName, out var words)) {
+                  if (matchedWords.TryGetValue(anchorName, out var words) && !(changeToken is NoDataChangeDeltaModel)) {
                      foreach (var address in words) WriteValue(changeToken, address, array.ElementCount);
                   }
                }
