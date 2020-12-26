@@ -1048,8 +1048,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var palettes = paletteRun?.Pages.Range().Select(i => paletteRun.GetPalette(model, i)).ToArray();
          if (palettes != null) {
             var newPalettes = usablePalPages.Select(i => palettes[i]).ToArray();
-            newPalettes = DiscoverPalettes(tiles, paletteRun?.PaletteFormat.Bits ?? spriteRun.SpriteFormat.BitsPerPixel, expectedPalettePages, newPalettes);
-            for (int i = 0; i < usablePalPages.Count; i++) palettes[usablePalPages[i]] = newPalettes[usablePalPages[i]];
+            newPalettes = DiscoverPalettes(tiles, paletteRun?.PaletteFormat.Bits ?? spriteRun.SpriteFormat.BitsPerPixel, usablePalPages.Count, newPalettes);
+            for (int i = 0; i < usablePalPages.Count; i++) palettes[usablePalPages[i]] = newPalettes[i];
          }
 
          TryReorderPalettesFromMatchingSprite(palettes, image, spriteRun.GetPixels(model, spritePage));
