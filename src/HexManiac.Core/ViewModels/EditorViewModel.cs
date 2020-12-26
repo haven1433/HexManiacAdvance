@@ -557,6 +557,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (content is IViewPort viewModel) {
             viewModel.Model.InitializeComplete += (sender, e) => Singletons.WorkDispatcher.DispatchWork(()=> {
                viewModel.Refresh();
+               foreach (var edit in QuickEdits) edit.TabChanged();
                gotoViewModel.RefreshOptions();
             });
             viewModel.UseCustomHeaders = useTableEntryHeaders;
