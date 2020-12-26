@@ -1965,6 +1965,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
    public static class StringDictionaryExtensions {
       public static bool TryGetValueCaseInsensitive<T>(this IDictionary<string, T> self, string key, out T value) {
+         if (self.TryGetValue(key, out value)) return true;
          var keys = self.Keys.ToList();
          foreach (var option in keys) {
             if (key.Equals(option, StringComparison.CurrentCultureIgnoreCase)) {

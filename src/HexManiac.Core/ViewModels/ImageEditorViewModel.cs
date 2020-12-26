@@ -654,12 +654,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// If no page is given, the current selected page is used.
       /// Tilesets don't tie pixels to specific palettes, so just nop.
       /// </summary>
-      private int ColorIndex(int paletteIndex, int page = int.MinValue) {
+      private int ColorIndex(int paletteIndex, int page = int.MinValue, PaletteCache palette = null) {
+         if (palette == null) palette = new PaletteCache(this);
          var spriteAddress = model.ReadPointer(SpritePointer);
          var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
          if (spriteRun is ITilesetRun) return paletteIndex;
          if (page == int.MinValue) page = PalettePage;
-         var blankPages = ReadPalette().initialBlankPages;
+         var blankPages = palette.InitialBlankPages;
          var pageOffset = (blankPages + page) << 4;
          return paletteIndex + pageOffset;
       }
@@ -668,12 +669,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// Given a pixel including a palette page and color index, return just the index within that palette page (assuming the selected page).
       /// Tilesets don't tie pixels to specific palettes, so just nop.
       /// </summary>
-      private int PaletteIndex(int colorIndex, int page = int.MinValue) {
+      private int PaletteIndex(int colorIndex, int page = int.MinValue, PaletteCache palette = null) {
+         if (palette == null) palette = new PaletteCache(this);
          var spriteAddress = model.ReadPointer(SpritePointer);
          var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
          if (spriteRun is ITilesetRun) return colorIndex;
          if (page == int.MinValue) page = PalettePage;
-         var blankPages = ReadPalette().initialBlankPages;
+         var blankPages = palette.InitialBlankPages;
          var pageOffset = (blankPages + page) << 4;
          return colorIndex - pageOffset;
       }
@@ -937,7 +939,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          public void SwapUnderPixelsWithCurrentPixels() {
-            var (fullPalette, _, pageOffset) = parent.ReadPalette();
+            var cache = new PaletteCache(parent);
+            var (fullPalette, pageOffset) = (cache.Colors, cache.InitialBlankPages);
 
             for (int x = 0; x < selectionWidth; x++) {
                for (int y = 0; y < selectionHeight; y++) {
@@ -949,8 +952,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      page = parent.TilePalettes[pY * parent.TileWidth + pX] - pageOffset;
                   }
 
-                  var newUnder = parent.PaletteIndex(parent.pixels[xx, yy], page);
-                  var newOver = parent.ColorIndex(underPixels[x, y], page);
+                  var newUnder = parent.PaletteIndex(parent.pixels[xx, yy], page, cache);
+                  var newOver = parent.ColorIndex(underPixels[x, y], page, cache);
                   var index = Math.Max(0, newOver - pageOffset * 16);
                   if (parent.CanEditTilesetWidth) {
                      // tilesets don't have palette information
@@ -1303,6 +1306,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             for (int x = 0; x < 8; x++) for (int y = 0; y < 8; y++) selectionPoints[y * 8 + x] = drawPoint + new Point(x, y);
             parent.RaiseRefreshSelection(selectionPoints);
          }
+      }
+
+      public class PaletteCache {
+         public IReadOnlyList<short> Colors { get; }
+         public int Pages { get; }
+         public int InitialBlankPages { get; }
+         public PaletteCache(ImageEditorViewModel parent) => (Colors, Pages, InitialBlankPages) = parent.ReadPalette();
       }
 
       #endregion
