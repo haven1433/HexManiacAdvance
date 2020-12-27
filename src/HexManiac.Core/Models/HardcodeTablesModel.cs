@@ -176,8 +176,9 @@ namespace HavenSoft.HexManiac.Core.Models {
                // erase the entire run
                ClearFormat(noChangeDelta, array.Start, array.Length);
             } else {
-               array = array.Append(noChangeDelta, desiredChange);
-               ObserveAnchorWritten(noChangeDelta, GetAnchorFromAddress(-1, array.Start), array);
+               var arrayName = GetAnchorFromAddress(-1, array.Start);
+               array = array.Append(noChangeDelta, desiredChange); // if append is negative, the name might get erased. Store it.
+               ObserveAnchorWritten(noChangeDelta, arrayName, array);
             }
          }
 

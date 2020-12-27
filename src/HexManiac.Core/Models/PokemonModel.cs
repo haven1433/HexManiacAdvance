@@ -358,7 +358,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   Debug.Assert(arrayRun1.PointerSourcesForInnerElements[offsets.ElementIndex].Contains(pointerRun.Start));
                   if (offsets.ElementIndex == 0) Debug.Assert(run.PointerSources.Contains(pointerRun.Start));
                } else if (run != NoInfoRun.NullRun) {
-                  Debug.Assert(run.PointerSources != null && run.PointerSources.Contains(pointerRun.Start));
+                  Debug.Assert(run.PointerSources != null && run.PointerSources.Contains(pointerRun.Start), $"Expected run at {run.Start:X6} to know about pointer at {pointerRun.Start:X6}, but it did not.");
                }
             }
 
@@ -375,7 +375,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                foreach (var source in runs[i].PointerSources) {
                   var run = GetNextRun(source);
                   if (run is PointerRun) {
-                     Debug.Assert(run.Start == source);
+                     Debug.Assert(run.Start == source, $"{runs[i].Start:X6} expects a pointer at {source:X6}, but the next pointer was found at {run.Start:X6}.");
                      Debug.Assert(ReadPointer(source) == runs[i].Start, $"Expected {source:X6} to point to {runs[i].Start:X6}");
                   } else if (run is ITableRun) {
                      Debug.Assert(run.Start <= source);

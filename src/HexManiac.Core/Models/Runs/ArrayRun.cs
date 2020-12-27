@@ -596,6 +596,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
                if (sources.Any()) {
                   var start = Start + Length - ElementLength * (i + 1);
+                  owner.ClearFormat(token, start, 1); // Since we're trying to add a run over space that we currently occupy, clear the existing run before adding this new one
                   owner.ObserveRunWritten(token, new NoInfoRun(start, sources));
                }
             }
