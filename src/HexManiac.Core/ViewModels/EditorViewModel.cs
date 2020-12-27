@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -33,6 +34,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          saveAs = new StubCommand(),
          exportBackup = new StubCommand(),
          saveAll = new StubCommand(),
+         runFile = new StubCommand(),
          close = new StubCommand(),
          closeAll = new StubCommand(),
 
@@ -75,6 +77,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand SaveAs => saveAs;
       public ICommand SaveAll => saveAll;
       public ICommand ExportBackup => exportBackup;
+      public ICommand RunFile => runFile;
       public ICommand Close => close;
       public ICommand CloseAll => closeAll;
       public ICommand Undo => undo;
@@ -306,8 +309,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          set {
             using (WorkWithoutListeningToCommandsFromCurrentTab()) {
                if (TryUpdate(ref selectedIndex, value)) {
-                  findPrevious.CanExecuteChanged.Invoke(findPrevious, EventArgs.Empty);
-                  findNext.CanExecuteChanged.Invoke(findNext, EventArgs.Empty);
+                  findPrevious.RaiseCanExecuteChanged();
+                  findNext.RaiseCanExecuteChanged();
+                  runFile.RaiseCanExecuteChanged();
                   if (selectedIndex >= 0 && selectedIndex < tabs.Count) tabs[selectedIndex].Refresh();
                   UpdateGotoViewModel();
                   foreach (var edit in QuickEdits) edit.TabChanged();
@@ -446,6 +450,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             } catch (IOException ex) {
                ErrorMessage = ex.Message;
             }
+         };
+
+         runFile.CanExecute = arg => SelectedTab is ViewPort viewPort && !viewPort.ChangeHistory.HasDataChange;
+         runFile.Execute = arg => {
+            ((IFileSystem)arg).LaunchProcess(((ViewPort)SelectedTab).FullFileName);
          };
 
          ImplementFindCommands();

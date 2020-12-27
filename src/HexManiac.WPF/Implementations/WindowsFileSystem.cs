@@ -70,6 +70,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
       public bool Exists(string fileName) => File.Exists(fileName);
 
+      public void LaunchProcess(string file) => Process.Start(file);
+
       public LoadedFile LoadFile(string fileName) {
          if (!File.Exists(fileName)) return null;
          var output = new List<byte>();

@@ -19,6 +19,7 @@
       <KeyBinding Key="A" Modifiers="Ctrl+Shift" Command="{Binding SaveAll}" />
       <KeyBinding Key="E" Modifiers="Ctrl" Command="{Binding ExportBackup}" />
       <KeyBinding Key="A" Modifiers="Ctrl" Command="{Binding SelectAll}" />
+      <KeyBinding Key="F5" Command="{Binding RunFile}" CommandParameter="{DynamicResource FileSystem}"/>
       <KeyBinding Key="W" Modifiers="Ctrl" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}" />
 
       <KeyBinding Key="Z" Modifiers="Ctrl" Command="{Binding Undo}" />
@@ -88,6 +89,8 @@
                   <MenuItem Header="Save _As" Command="{Binding SaveAs}" InputGestureText="Ctrl+Shift+S" />
                   <MenuItem Header="Save A_ll" Command="{Binding SaveAll}" InputGestureText="Ctrl+Shift+A" />
                   <MenuItem Header="_Export Backup" Command="{Binding ExportBackup}" InputGestureText="Ctrl+E" />
+                  <Separator />
+                  <MenuItem Header="_Run" Command="{Binding RunFile}" InputGestureText="F5" CommandParameter="{DynamicResource FileSystem}"/>
                   <Separator />
                   <MenuItem Header="_Close Current Tab" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}" InputGestureText="Ctrl+W" />
                   <MenuItem Header="E_xit" Click="ExitClicked" InputGestureText="Alt+F4">
