@@ -130,7 +130,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       [Conditional("DEBUG")]
       private void CheckForEmptyAnchors(int destination, string anchor) {
          var run = GetNextRun(destination);
-         Debug.Assert(run.PointerSources.Count > 0, $"{anchor} refers to {destination:X6}, but has no pointers. So how did we find it?");
+         Debug.Assert(run.PointerSources == null || run.PointerSources.Count > 0, $"{anchor} refers to {destination:X6}, but has no pointers. So how did we find it?");
       }
 
       private void DecodeHeader() {
