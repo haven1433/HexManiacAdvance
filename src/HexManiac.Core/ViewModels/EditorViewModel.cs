@@ -555,11 +555,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          AddContentListeners(content);
          CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, content));
          if (content is IViewPort viewModel) {
-            viewModel.Model.InitializeComplete += (sender, e) => Singletons.WorkDispatcher.DispatchWork(()=> {
-               viewModel.Refresh();
-               foreach (var edit in QuickEdits) edit.TabChanged();
-               gotoViewModel.RefreshOptions();
-            });
+            if (viewModel.Model != null) {
+               viewModel.Model.InitializeComplete += (sender, e) => Singletons.WorkDispatcher.DispatchWork(() => {
+                  viewModel.Refresh();
+                  foreach (var edit in QuickEdits) edit.TabChanged();
+                  gotoViewModel.RefreshOptions();
+               });
+            }
             viewModel.UseCustomHeaders = useTableEntryHeaders;
             viewModel.AutoAdjustDataWidth = AutoAdjustDataWidth;
             viewModel.AllowMultipleElementsPerLine = AllowMultipleElementsPerLine;
