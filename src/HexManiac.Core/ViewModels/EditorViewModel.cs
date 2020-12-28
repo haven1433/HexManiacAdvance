@@ -577,7 +577,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             viewModel.StretchData = StretchData;
             if (Singletons.WorkDispatcher is InstantDispatch) {
                viewModel.ValidateMatchedWords();
-            } else {
+            } else if (viewModel.Model != null) {
                viewModel.Model.InitializeComplete += (sender, e) => Singletons.WorkDispatcher.DispatchWork(viewModel.ValidateMatchedWords);
             }
             if (content is ViewPort viewPort) {

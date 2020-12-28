@@ -322,17 +322,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (child is TrainerPokemonTeamRun trainerRun) trainerResults.AddRange(trainerRun.Search(basename, index));
             if (child is TableStreamRun streamRun) streamResults.AddRange(streamRun.Search(basename, index));
          }
+         var elementName = array.ElementNames.Count > index ? array.ElementNames[index] : "Element " + index;
          if (eggResults.Count > 0) {
             AddChild(new ButtonArrayElementViewModel("Show uses in egg moves.", () => {
                using (ModelCacheScope.CreateScope(model)) {
-                  viewPort.OpenSearchResultsTab($"{array.ElementNames[index]} within {HardcodeTablesModel.EggMovesTableName}", eggResults);
+                  viewPort.OpenSearchResultsTab($"{elementName} within {HardcodeTablesModel.EggMovesTableName}", eggResults);
                }
             }));
          }
          if (plmResults.Count > 0) {
             AddChild(new ButtonArrayElementViewModel("Show uses in level-up moves.", () => {
                using (ModelCacheScope.CreateScope(model)) {
-                  viewPort.OpenSearchResultsTab($"{array.ElementNames[index]} within {HardcodeTablesModel.LevelMovesTableName}", plmResults);
+                  viewPort.OpenSearchResultsTab($"{elementName} within {HardcodeTablesModel.LevelMovesTableName}", plmResults);
                }
             }));
          }
@@ -340,14 +341,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var selections = trainerResults.Select(result => (result, result + 1)).ToList();
             AddChild(new ButtonArrayElementViewModel("Show uses in trainer teams.", () => {
                using (ModelCacheScope.CreateScope(model)) {
-                  viewPort.OpenSearchResultsTab($"{array.ElementNames[index]} within {HardcodeTablesModel.TrainerTableName}", selections);
+                  viewPort.OpenSearchResultsTab($"{elementName} within {HardcodeTablesModel.TrainerTableName}", selections);
                }
             }));
          }
          if (streamResults.Count > 0) {
             AddChild(new ButtonArrayElementViewModel("Show uses in other streams.", () => {
                using (ModelCacheScope.CreateScope(model)) {
-                  viewPort.OpenSearchResultsTab($"{array.ElementNames[index]} within streams", streamResults);
+                  viewPort.OpenSearchResultsTab($"{elementName} within streams", streamResults);
                }
             }));
          }
