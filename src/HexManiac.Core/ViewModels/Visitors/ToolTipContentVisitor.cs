@@ -38,7 +38,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             if (sprite is LzTilemapRun tilemap) tilemap.FindMatchingTileset(model);
             var paletteRuns = sprite.FindRelatedPalettes(model, source);
             var paletteRun = paletteRuns.FirstOrDefault();
-            if (preferredPaletteStart >= 0) paletteRun = paletteRuns.FirstOrDefault(pRun => pRun.Start == preferredPaletteStart);
+            if (preferredPaletteStart >= 0) paletteRun = paletteRuns.FirstOrDefault(pRun => pRun.Start == preferredPaletteStart) ?? model.GetNextRun(preferredPaletteStart) as IPaletteRun;
             var pixels = sprite.GetPixels(model, preferredSpritePage);
             if (pixels == null) return null;
             var colors = paletteRun?.AllColors(model) ?? TileViewModel.CreateDefaultPalette((int)Math.Pow(2, sprite.SpriteFormat.BitsPerPixel));
