@@ -137,3 +137,5 @@ BPRE0.data.maps.catchmap.conversion.kanto.length 13CA9C
 BPRE1.data.maps.catchmap.conversion.kanto.length 13CB14
 BPGE0.data.maps.catchmap.conversion.kanto.length 13CA74
 BPGE1.data.maps.catchmap.conversion.kanto.length 13CAEC
+
+BPEE0.scripts.battle.badge.boost 03D064,03D150,0696B6,0696D2,0696F4,069716
