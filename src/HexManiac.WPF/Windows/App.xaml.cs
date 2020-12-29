@@ -138,7 +138,10 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          DebugLog(editor, "Tab Added");
          var tab = editor[editor.SelectedIndex] as ViewPort;
          if (tab != null && address >= 0) {
-            tab.CascadeScript(address);
+            DebugLog(editor, $"Loading at Script {address:X6}.");
+            tab.Model.InitializeComplete += (sender, e) => {
+               fileSystem.DispatchWork(() => tab.CascadeScript(address));
+            };
             editor.GotoViewModel.ControlVisible = false;
          }
          return editor;
