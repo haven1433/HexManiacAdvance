@@ -16,6 +16,7 @@ namespace HavenSoft.HexManiac.Core.Models {
    /// </summary>
    public class Singletons {
       private const string TableReferenceFileName = "resources/tableReference.txt";
+      private const string ConstantReferenceFileName = "resources/constantReference.txt";
       private const string ThumbReferenceFileName = "resources/armReference.txt";
       private const string ScriptReferenceFileName = "resources/scriptReference.txt";
       private const string BattleScriptReferenceFileName = "resources/battleScriptReference.txt";
@@ -23,6 +24,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public IMetadataInfo MetadataInfo { get; }
       public IReadOnlyDictionary<string, GameReferenceTables> GameReferenceTables { get; }
+      public IReadOnlyDictionary<string, GameReferenceConstants> GameReferenceConstants { get; }
       public IReadOnlyList<ConditionCode> ThumbConditionalCodes { get; }
       public IReadOnlyList<IInstruction> ThumbInstructionTemplates { get; }
       public IReadOnlyList<ScriptLine> ScriptLines { get; }
@@ -33,6 +35,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public Singletons(IWorkDispatcher dispatcher = null) {
          MetadataInfo = new MetadataInfo();
          GameReferenceTables = CreateGameReferenceTables();
+         GameReferenceConstants = CreateGameReferenceConstants();
          (ThumbConditionalCodes, ThumbInstructionTemplates) = LoadThumbReference();
          ScriptLines = LoadScriptReference<XSEScriptLine>(ScriptReferenceFileName);
          BattleScriptLines = LoadScriptReference<BSEScriptLine>(BattleScriptReferenceFileName);
@@ -107,6 +110,26 @@ namespace HavenSoft.HexManiac.Core.Models {
          return readonlyTables;
       }
 
+      private IReadOnlyDictionary<string,GameReferenceConstants> CreateGameReferenceConstants() {
+         if (!File.Exists(ConstantReferenceFileName)) return new Dictionary<string, GameReferenceConstants>();
+         var lines = File.ReadAllLines(ConstantReferenceFileName);
+         var constants = new Dictionary<string, List<ReferenceConstant>>();
+         for (int i = 0; i < referenceOrder.Length - 2; i++) constants[referenceOrder[i + 1]] = new List<ReferenceConstant>();
+         foreach (var line in lines) {
+            if (string.IsNullOrWhiteSpace(line)) continue;
+            var cleanLine = line.Trim();
+            if (cleanLine.Length < 6) continue;
+            if (!char.IsLetter(cleanLine[0])) continue;
+            var gameCode = cleanLine.Substring(0, 5).ToUpper();
+            if (!constants.TryGetValue(gameCode, out var collection)) continue;
+            collection.Add(new ReferenceConstant(cleanLine.Substring(5)));
+         }
+
+         var readonlyConstants = new Dictionary<string, GameReferenceConstants>();
+         foreach (var pair in constants) readonlyConstants.Add(pair.Key, new GameReferenceConstants(pair.Value));
+         return readonlyConstants;
+      }
+
       private (IReadOnlyList<ConditionCode>, IReadOnlyList<IInstruction>) LoadThumbReference() {
          var conditionalCodes = new List<ConditionCode>();
          var instructionTemplates = new List<IInstruction>();
@@ -174,6 +197,62 @@ namespace HavenSoft.HexManiac.Core.Models {
       public string Format { get; }
       public ReferenceTable(string name, int offset, int address, string format) => (Name, Offset, Address, Format) = (name, offset, address, format);
       public override string ToString() => $"{Address:X6} -> {Name}, {Offset}, {Format}";
+   }
+
+   public class GameReferenceConstants : IReadOnlyList<ReferenceConstant> {
+      private readonly IReadOnlyList<ReferenceConstant> core;
+      public ReferenceConstant this[string name] => core.FirstOrDefault(table => table.Name == name);
+      public ReferenceConstant this[int index] => core[index];
+      public int Count => core.Count;
+
+      public GameReferenceConstants(IReadOnlyList<ReferenceConstant> list) => core = list;
+
+      public IEnumerator<ReferenceConstant> GetEnumerator() => core.GetEnumerator();
+      IEnumerator IEnumerable.GetEnumerator() => core.GetEnumerator();
+   }
+
+   public class ReferenceConstant {
+      public IReadOnlyList<int> Addresses { get; }
+      public string Name { get; }
+      public int Length { get; }
+      public int Offset { get; }
+      public string Note { get; }
+
+      // BRPE0:constant.name+1 123456,123456,123456 # note
+      public ReferenceConstant(string line) {
+         var parts = line.Substring(1).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+         // Length
+         if (line[0] == '.') Length = 1;
+         else if (line[0] == ':') Length = 2;
+         else throw new NotImplementedException();
+
+         // Name/Offset
+         if (parts[0].Contains("-")) {
+            var offsetSplit = parts[0].Split('-');
+            Name = offsetSplit[0];
+            Offset = -int.Parse(offsetSplit[1]);
+         } else if (parts[0].Contains("+")) {
+            var offsetSplit = parts[0].Split('+');
+            Name = offsetSplit[0];
+            Offset = int.Parse(offsetSplit[1]);
+         } else {
+            Name = parts[0];
+         }
+
+         // Addresses
+         Addresses = parts[1].Split(',').Select(adr => int.Parse(adr, NumberStyles.HexNumber)).ToList();
+
+         // Note
+         var commentParts = line.Split(new[] { '#' }, 2);
+         if (commentParts.Length > 1) Note = commentParts[1].Trim();
+      }
+
+      public IEnumerable<StoredMatchedWord> ToStoredMatchedWords() {
+         foreach (var address in Addresses) {
+            yield return new StoredMatchedWord(address, Name, Length, Offset, Note);
+         }
+      }
    }
 
    public interface IMetadataInfo {

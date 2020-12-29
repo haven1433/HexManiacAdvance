@@ -104,6 +104,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          (singletons?.WorkDispatcher ?? InstantDispatch.Instance).RunBackgroundWork(() => {
+            if (singletons.GameReferenceConstants.TryGetValue(gameCode, out var referenceConstants)) {
+               metadata = DecodeConstantsFromReference(singletons.MetadataInfo, metadata, referenceConstants);
+            }
             Initialize(metadata);
             isCFRU = GetIsCFRU();
 
@@ -149,6 +152,15 @@ namespace HavenSoft.HexManiac.Core.Models {
                AddTable(table.Address, table.Offset, table.Name, format);
             }
          }
+      }
+
+      public static StoredMetadata DecodeConstantsFromReference(IMetadataInfo info, StoredMetadata metadata, GameReferenceConstants constants) {
+         if (metadata == null) return metadata;
+         var words = metadata.MatchedWords.ToList();
+         foreach (var constant in constants) {
+            words.AddRange(constant.ToStoredMatchedWords());
+         }
+         return new StoredMetadata(metadata.NamedAnchors, metadata.UnmappedPointers, words, metadata.OffsetPointers, metadata.Lists, info, metadata.FreeSpaceSearch, metadata.NextExportID);
       }
 
       /// <summary>

@@ -199,18 +199,21 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Models\Code\animationScriptReference.txt">
+    <None Include="Models\Code\animationScriptReference.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Models\Code\battleScriptReference.txt">
+    </None>
+    <None Include="Models\Code\battleScriptReference.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Models\Code\scriptReference.txt">
+    </None>
+    <None Include="Models\Code\constantReference.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Models\Code\tableReference.txt">
+    </None>
+    <None Include="Models\Code\scriptReference.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    </None>
+    <None Include="Models\Code\tableReference.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
