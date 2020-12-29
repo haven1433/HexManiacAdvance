@@ -1,1 +1,137 @@
-﻿
+﻿- Shiny -------------------------------------------------------------------------------------------------------------------------
+# -1: CreateBoxMon,GetMonSpritePalFromSpeciesAndPersonality,GetMonSpritePalStructFromOtIdPersonality,IsShinyOtIdPersonality,sub_8172EF0
+#  0: apparently used for pokedex pokemon palette choosing, although I can't find the function in pokefirered
+AXPE0.scripts.shiny.odds-1 03A8A2,040968,0409DE,040CF4,14187A
+AXPE1.scripts.shiny.odds-1 03A8A2,040988,0409FE,040D14,14189A
+AXVE0.scripts.shiny.odds-1 03A8A2,040968,0409DE,040CF4,14187A
+AXVE1.scripts.shiny.odds-1 03A8A2,040988,0409FE,040D14,14189A
+BPRE0.scripts.shiny.odds   104A24
+BPRE0.scripts.shiny.odds-1 03DB5E,044120,044196,0444B0,0F1776
+BPRE1.scripts.shiny.odds   104A9C
+BPRE1.scripts.shiny.odds-1 03DB72,044134,0441AA,0444C4,0F17EE
+BPGE0.scripts.shiny.odds   1049FC
+BPGE0.scripts.shiny.odds-1 03DB5E,044120,044196,0444B0,0F174E
+BPGE1.scripts.shiny.odds   104A74
+BPGE1.scripts.shiny.odds-1 03DB72,044134,0441AA,0444C4,0F17C6
+
+#  0: NewGameBirchSpeech_CreateLotadSprite,CreateMonSpriteFromNationalDexNumber,CreatePokemonFrontSprite
+BPEE0.scripts.shiny.odds   031910,0C0EE0,1346AC
+BPEE0.scripts.shiny.odds-1 067C56,06E76C,06E7E2,06EBE4,172F46
+
+
+
+- Regional Pokedex Length -------------------------------------------------------------------------------------------------------
+#  0: SpeciesToPokedexNum,CreatePokedexList,CreatePokedexList,GetPokedexRatingText
+# -1: GetHoennPokedexCount,GetPokedexRatingText
+# -2: GetPokedexRatingText
+# -3: HasAllHoennMons,GetPokedexRatingText
+AXPE0.scripts.pokedex.regional.length   0406FA,08D6BA,08D6E2,10D5E8
+AXPE0.scripts.pokedex.regional.length-1 090FB4,10D5A8
+AXPE0.scripts.pokedex.regional.length-2 10D570
+AXPE0.scripts.pokedex.regional.length-3 090FE6,10D56C
+AXPE1.scripts.pokedex.regional.length   04071A,08D6DA,08D702,10D608
+AXPE1.scripts.pokedex.regional.length-1 090FD4,10D5C8
+AXPE1.scripts.pokedex.regional.length-2 10D590
+AXPE1.scripts.pokedex.regional.length-3 091006,10D58C
+AXPV0.scripts.pokedex.regional.length   0406FA,08D6BA,08D6E2,10D5E8
+AXPV0.scripts.pokedex.regional.length-1 090FB4,10D5A8
+AXPV0.scripts.pokedex.regional.length-2 10D570
+AXPV0.scripts.pokedex.regional.length-3 090FE6,10D56C
+AXPV1.scripts.pokedex.regional.length   04071A,08D6DA,08D702,10D608
+AXPV1.scripts.pokedex.regional.length-1 090FD4,10D5C8
+AXPV1.scripts.pokedex.regional.length-2 10D590
+AXPV1.scripts.pokedex.regional.length-3 091006,10D58C
+BPEE0.scripts.pokedex.regional.length   06E3E2,06E406,0BC8FE,0BC926,137BF8
+BPEE0.scripts.pokedex.regional.length-1 0C0890,137BB8
+BPEE0.scripts.pokedex.regional.length-2 137B80
+BPEE0.scripts.pokedex.regional.length-3 0C090A,137B7C
+
+#  0: sub_8103518,MonCanEvolve
+# -1: GetKantoPokedexCount,sub_8103518,sub_8104BBC
+# -2: HasAllKantoMons
+BPRE0.scripts.pokedex.regional.length   10352C,126C4A
+BPRE0.scripts.pokedex.regional.length-1 088F18,1035F6,104BF2
+BPRE0.scripts.pokedex.regional.length-2 088F76
+BPRE1.scripts.pokedex.regional.length   1035A4,126CC2
+BPRE1.scripts.pokedex.regional.length-1 088F2C,10366E,104C6A
+BPRE1.scripts.pokedex.regional.length-2 088F8A
+BPGE0.scripts.pokedex.regional.length   103504,126C22
+BPGE0.scripts.pokedex.regional.length-1 088EEC,1035CE,104BCA
+BPGE0.scripts.pokedex.regional.length-2 088F4A
+BPGE1.scripts.pokedex.regional.length   10357C,126C9A
+BPGE1.scripts.pokedex.regional.length-1 088F00,103646,104C42
+BPGE1.scripts.pokedex.regional.length-2 088F5E
+
+
+
+- Townmap Button Positions ------------------------------------------------------------------------------------------------------
+# PlaySEForSelectedMapsec,Task_RegionMap,HandleRegionMapInput,SnapToIconOrButton,Task_FlyMap
+BPRE0.graphics.townmap.position.cancel.x 0C04CA,0C06E4,0C3284,0C34BC,0C50A2
+BPRE0.graphics.townmap.position.cancel.y 0C04D6,0C06F0,0C3286,0C34B8,0C50AE
+BPRE1.graphics.townmap.position.cancel.x 0C04DE,0C06F8,0C3298,0C34D0,0C50B6
+BPRE1.graphics.townmap.position.cancel.y 0C04EA,0C0704,0C329A,0C34CC,0C50C2
+BPGE0.graphics.townmap.position.cancel.x 0C049E,0C06B8,0C3258,0C3490,0C5076
+BPGE0.graphics.townmap.position.cancel.y 0C04AA,0C06C4,0C325A,0C348C,0C5082
+BPGE1.graphics.townmap.position.cancel.x 0C04B2,0C06CC,0C326C,0C34A4,0C508A
+BPGE1.graphics.townmap.position.cancel.y 0C04BE,0C06D8,0C326E,0C34A0,0C5096
+
+# PlaySEForSelectedMapsec,Task_RegionMap,HandleRegionMapInput,SnapToIconOrButton
+BPRE0.graphics.townmap.position.switch.x 0C049C,0C06B0,0C3288,0C3478
+BPRE0.graphics.townmap.position.switch.y 0C04A8,0C06BC,0C328A,0C347C
+BPRE1.graphics.townmap.position.switch.x 0C04B0,0C06C4,0C329C,0C348C
+BPRE1.graphics.townmap.position.switch.y 0C04BC,0C06D0,0C329E,0C3490
+BPRG0.graphics.townmap.position.switch.x 0C0470,0C0684,0C325C,0C344C
+BPRG0.graphics.townmap.position.switch.y 0C047C,0C0690,0C325E,0C3450
+BPRG1.graphics.townmap.position.switch.x 0C0484,0C0698,0C3270,0C3460
+BPRG1.graphics.townmap.position.switch.y 0C0490,0C06A4,0C3272,0C3464
+
+# BufferRegionMapBg
+BPRE0.graphics.townmap.position.switch.x+3 0C0D52,0C0D68,0C0D7E
+BPRE0.graphics.townmap.position.switch.y+3 0C0D54
+BPRE0.graphics.townmap.position.switch.y+4 0C0D6A
+BPRE0.graphics.townmap.position.switch.y+5 0C0D80
+BPRE1.graphics.townmap.position.switch.x+3 0C0D66,0C0D68,0C0D7C
+BPRE1.graphics.townmap.position.switch.y+3 0C0D7E
+BPRE1.graphics.townmap.position.switch.y+4 0C0D92
+BPRE1.graphics.townmap.position.switch.y+5 0C0D94
+BPGE0.graphics.townmap.position.switch.x+3 0C0D26,0C0D3C,0C0D52
+BPGE0.graphics.townmap.position.switch.y+3 0C0D28 
+BPGE0.graphics.townmap.position.switch.y+4 0C0D3E
+BPGE0.graphics.townmap.position.switch.y+5 0C0D54
+BPGE1.graphics.townmap.position.switch.x+3 0C0D3A,0C0D50,0C0D66
+BPGE1.graphics.townmap.position.switch.y+3 0C0D3C
+BPGE1.graphics.townmap.position.switch.y+4 0C0D52
+BPGE1.graphics.townmap.position.switch.y+5 0C0D68
+
+
+
+- Other -------------------------------------------------------------------------------------------------------------------------
+# TryProduceOrHatchEgg
+AXPE0.scripts.daycare.exp.multiplier 0421D8 # Picking an even number will prevent new eggs from being created.
+AXPE1.scripts.daycare.exp.multiplier 0421F8 # Picking an even number will prevent new eggs from being created.
+AXVE0.scripts.daycare.exp.multiplier 0421D8 # Picking an even number will prevent new eggs from being created.
+AXVE1.scripts.daycare.exp.multiplier 0421F8 # Picking an even number will prevent new eggs from being created.
+BPEE0.scripts.daycare.exp.multiplier 070AE8 # Picking an even number will prevent new eggs from being created.
+
+# TryProduceOrHatchEgg,ShouldEggHatch
+BPRE0.scripts.daycare.exp.multiplier 0462E8,0463D4 # Picking an even number will prevent new eggs from being created.
+BPRE1.scripts.daycare.exp.multiplier 0462FC,0463E8 # Picking an even number will prevent new eggs from being created.
+BPGE0.scripts.daycare.exp.multiplier 0462E8,0463D4 # Picking an even number will prevent new eggs from being created.
+BPGE1.scripts.daycare.exp.multiplier 0462FC,0463E8 # Picking an even number will prevent new eggs from being created.
+
+# Intro
+AXPE0:scripts.newgame.money 052F4C
+AXPE1:scripts.newgame.money 052F6C
+AXVE0:scripts.newgame.money 052F4C
+AXVE1:scripts.newgame.money 052F6C
+BPRE0:scripts.newgame.money 054B60
+BPRE1:scripts.newgame.money 054B74
+BPGE0:scripts.newgame.money 054B60
+BPGE1:scripts.newgame.money 054B74
+BPEE0:scripts.newgame.money 0845BC
+
+# Catchmap. See http://sfc.pokefans.net/lesson.php?id=20
+BPRE0.data.maps.catchmap.conversion.kanto.length 13CA9C
+BPRE1.data.maps.catchmap.conversion.kanto.length 13CB14
+BPGE0.data.maps.catchmap.conversion.kanto.length 13CA74
+BPGE1.data.maps.catchmap.conversion.kanto.length 13CAEC
