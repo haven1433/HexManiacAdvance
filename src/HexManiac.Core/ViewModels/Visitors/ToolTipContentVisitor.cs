@@ -6,6 +6,7 @@ using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
    public class ToolTipContentVisitor : IDataFormatVisitor {
@@ -49,8 +50,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             return new ReadonlyPaletteCollection(colors);
          } else if (destinationRun is IStreamRun streamRun) {
             using (ModelCacheScope.CreateScope(model)) {
-               return streamRun.SerializeRun();
+               var lines = streamRun.SerializeRun().Split(Environment.NewLine);
+               if (lines.Length > 20) lines = lines.Take(20).ToArray();
+               return Environment.NewLine.Join(lines);
             }
+         } else if (destinationRun is ArrayRun arrayRun) {
+            var stream = new StringBuilder();
+            arrayRun.AppendTo(model, stream, arrayRun.Start, arrayRun.ElementLength * Math.Min(20, arrayRun.ElementCount), false);
+            return stream.ToString();
          } else {
             return null;
          }
