@@ -130,6 +130,8 @@ BPGE0:scripts.newgame.money 054B60
 BPGE1:scripts.newgame.money 054B74
 BPEE0:scripts.newgame.money 0845BC
 
+BPEE0:scripts.newgame.professor.pokemon 031924,030B0C   # ID of the pokemon shown during the pofessor's introduction
+
 # Catchmap. See http://sfc.pokefans.net/lesson.php?id=20
 BPRE0.data.maps.catchmap.conversion.kanto.length 13CA9C
 BPRE1.data.maps.catchmap.conversion.kanto.length 13CB14

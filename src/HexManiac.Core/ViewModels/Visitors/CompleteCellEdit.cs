@@ -375,7 +375,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          var run = Model.GetNextRun(memoryLocation);
          if (run is WordRun wordRun1) {
             var desiredValue = result - wordRun1.ValueOffset;
-            if (desiredValue < 0 || desiredValue > 255) {
+            var maxValue = (int)Math.Pow(2, wordRun1.Length * 8) - 1;
+            if (desiredValue < 0 || desiredValue > maxValue) {
                ErrorText = "Virtual value out of range!";
                return;
             }
@@ -413,7 +414,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                if (address == run.Start) continue; // don't write the current run
                if (!(model.GetNextRun(address) is WordRun currentRun)) continue;
                var writeValue = desiredValue + currentRun.ValueOffset;
-               if (writeValue < 0 || writeValue > 255) {
+               var maxValue = (int)Math.Pow(2, currentRun.Length * 8) - 1;
+               if (writeValue < 0 || writeValue > maxValue) {
                   newDataIndex = currentRun.Start;
                   errorText = $"{currentRun.Start:X6}: value out of range!";
                }

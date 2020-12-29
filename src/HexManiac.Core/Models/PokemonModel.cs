@@ -143,7 +143,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (index > 0) {
                runs[index] = new WordRun(word.Address, word.Name, word.Length, word.Offset, word.Note, runs[index].PointerSources);
             } else {
-               runs.Insert(~index, new WordRun(word.Address, word.Name, word.Length, word.Offset));
+               runs.Insert(~index, new WordRun(word.Address, word.Name, word.Length, word.Offset, word.Note));
             }
          }
          foreach (var offsetPointer in metadata.OffsetPointers) {
