@@ -199,6 +199,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      private bool logAppStartupProgress;
+      public bool LogAppStartupProgress {
+         get => logAppStartupProgress;
+         set => Set(ref logAppStartupProgress, value);
+      }
+
       private int zoomLevel = 16;
       public int ZoomLevel {
          get => zoomLevel;
@@ -382,6 +388,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var metadata = fileSystem.MetadataFor(ApplicationName) ?? new string[0];
          Theme = new Theme(metadata);
+         LogAppStartupProgress = metadata.Contains("LogAppStartupProgress = True");
          ShowMatrix = !metadata.Contains("ShowMatrixGrid = False");
          AnimateScroll = !metadata.Contains("AnimateScroll = False");
          AutoAdjustDataWidth = !metadata.Contains("AutoAdjustDataWidth = False");
@@ -410,6 +417,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void WriteAppLevelMetadata() {
          var metadata = new List<string> {
             "[GeneralSettings]",
+            $"LogAppStartupProgress = {LogAppStartupProgress}",
             $"ShowMatrixGrid = {ShowMatrix}",
             $"ZoomLevel = {ZoomLevel}",
             $"AnimateScroll = {AnimateScroll}",
