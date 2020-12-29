@@ -381,6 +381,8 @@ graphics.townmap.islands.tilemap2,             ,       ,       ,       , 0C0388,
 graphics.townmap.islands.tilemap3,             ,       ,       ,       , 0C03A4, 0C0378, 0C03B8, 0C038C, , `lzm4x30x20|graphics.townmap.tileset`
 graphics.townmap.border.tileset,               ,       ,       ,       , 0C033C, 0C0310, 0C0350, 0C0324, , `lzt4|graphics.townmap.palette`
 graphics.townmap.border.tilemap,               ,       ,       ,       , 0C03C0, 0C0394, 0C03D4, 0C03A8, , `lzm4x30x20|graphics.townmap.border.tileset`
+graphics.townmap.border.tileset2,              ,       ,       ,       , 0C2460, 0C2434, 0C2474, 0C2448, , `lzt4|graphics.townmap.palette`
+graphics.townmap.border.tilemap2,              ,       ,       ,       , 0C2478, 0C244C, 0C248C, 0C2460, , `lzm4x30x20|graphics.townmap.border.tileset2`
 graphics.townmap.namesoverlay.xy,              ,       ,       ,       , 0C3D3C, 0C3D10, 0C3D50, 0C3D24, , [x: y:]data.maps.names
 graphics.townmap.namesoverlay.widthheight,     ,       ,       ,       , 0C3D38, 0C3D0C, 0C3D4C, 0C3D20, , [width: height:]data.maps.names
 graphics.townmap.icon.palette,                 ,       ,       ,       , 0C45F8, 0C45CC, 0C460C, 0C45E0, , `ucp4`
