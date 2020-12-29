@@ -213,10 +213,10 @@ graphics.menu.summaryscreen.tilemap.skills,      ,,,, 135B6C, 135B44, 135BE4, 13
 graphics.menu.summaryscreen.tilemap.knownmoves,  ,,,, 135B20, 135AF8, 135B98, 135B70, , `lzm4x32x32|graphics.menu.summaryscreen.tileset`
 graphics.menu.summaryscreen.tilemap.egg,         ,,,, 135D50, 135D28, 135DC8, 135DA0, , `lzm4x32x20|graphics.menu.summaryscreen.tileset`
 graphics.menu.summaryscreen.tilemap.changemoves, ,,,, 135B54, 135B2C, 135BCC, 135BA4, , `lzm4x32x20|graphics.menu.summaryscreen.tileset`
-graphics.menu.relearner.palette,     ,,,, 0E4780, 0E4758, 0E4794, 0E476C, , `ucp4`
-graphics.menu.relearner.tileset,     ,,,, 0E4784, 0E475C, 0E4798, 0E4770, , `lzt4|graphics.menu.relearner.palette`
-graphics.menu.relearner.tilemap1,    ,,,, 0E4788, 0E4760, 0E479C, 0E4774, , `lzm4x32x32|graphics.menu.relearner.tileset`
-graphics.menu.relearner.tilemap2,    ,,,, 135C08, 135BE0, 135C80, 135C58, , `lzm4x32x32|graphics.menu.summaryscreen.tileset`
+graphics.menu.relearner.palette,                 ,,,, 0E4780, 0E4758, 0E4794, 0E476C, , `ucp4`
+graphics.menu.relearner.tileset,                 ,,,, 0E4784, 0E475C, 0E4798, 0E4770, , `lzt4|graphics.menu.relearner.palette`
+graphics.menu.relearner.tilemap1,                ,,,, 0E4788, 0E4760, 0E479C, 0E4774, , `lzm4x32x32|graphics.menu.relearner.tileset`
+graphics.menu.relearner.tilemap2,                ,,,, 135C08, 135BE0, 135C80, 135C58, , `lzm4x32x32|graphics.menu.summaryscreen.tileset`
 graphics.menu.summaryscreen.unknown.tilemap3,    ,,,, 135C1C, 135BF4, 135C94, 135C6C, , `lzm4x32x20|graphics.menu.summaryscreen.tileset`
 graphics.menu.partyscreen.selection.palette,     ,,,, 13A0C8, 13A0A0, 13A140, 13A118, , `ucp4`
 graphics.menu.partyscreen.selection.sprite1,     ,,,, 13A0C0, 13A098, 13A138, 13A110, , `lzs4x8x8|graphics.menu.partyscreen.selection.palette`
@@ -224,7 +224,9 @@ graphics.menu.partyscreen.selection.sprite2,     ,,,, 13A0C4, 13A09C, 13A13C, 13
 graphics.menu.pokemon.background.palette,        ,,,, 11EFF4, 11EFCC, 11F06C, 11F044, , `lzp4`
 graphics.menu.pokemon.background.tileset,        ,,,, 11EFB0, 11EF88, 11F028, 11F000, , `lzt4|graphics.menu.pokemon.background.palette`
 graphics.menu.pokemon.background.tilemap,        ,,,, 11EFCC, 11EFA4, 11F044, 11F01C, , `lzm4x32x32|graphics.menu.pokemon.background.tileset`
-graphics.menu.boxes,                             ,,,, 09191C, 0918F0, 091930, 091904, , [tileset<`lzt4`> tilemap<`lzm4x20x18|graphics.menu.boxes`> palette<`ucp4`>]16
+graphics.menu.boxes.background,                  ,,,, 09191C, 0918F0, 091930, 091904, , [tileset<`lzt4`> tilemap<`lzm4x20x18|graphics.menu.boxes`> palette<`ucp4`>]16
+graphics.menu.boxes.picker.palette,              ,,,, 08F0B4, 08F088, 08F0C8, 08F09C, , `ucp4`
+graphics.menu.boxes.picker.tileset,              ,,,, 08F034, 08F008, 08F048, 08F01C, , `lzt4|graphics.menu.box.picker.palette`
 graphics.menu.tms.tileset,                       ,,,, 131B70, 131B48, 131BE8, 131BC0, , `lzt4|graphics.menu.tms.palette`
 graphics.menu.tms.background,                    ,,,, 131B8C, 131B64, 131C04, 131BDC, , `lzm4x32x32|graphics.menu.tms.tileset`
 graphics.menu.tms.case,                          ,,,, 131BA8, 131B80, 131C20, 131BF8, , `lzm4x32x32|graphics.menu.tms.tileset`
