@@ -148,3 +148,14 @@ BPRE1.scripts.battle.badge.boost 014E40,014F28,03EE4A,03EE7C,03EEB2,03EEEA
 BPGE0.scripts.battle.badge.boost 014E2C,014F14,03EE36,03EE68,03EE9E,03EED6
 BPGE1.scripts.battle.badge.boost 014E40,014F28,03EE4A,03EE7C,03EEB2,03EEEA
 BPEE0.scripts.battle.badge.boost 03D064,03D150,0696B6,0696D2,0696F4,069716
+
+# Exp Boost %, normally 150%
+AXPE0.scripts.battle.trade.exp.boost 0203D6
+AXPE1.scripts.battle.trade.exp.boost 0203D6
+AXVE0.scripts.battle.trade.exp.boost 0203D6
+AXVE1.scripts.battle.trade.exp.boost 0203D6
+BPRE0.scripts.battle.trade.exp.boost 021E12
+BPGE0.scripts.battle.trade.exp.boost 021E12
+BPRE1.scripts.battle.trade.exp.boost 021E26
+BPGE1.scripts.battle.trade.exp.boost 021E26
+BPEE0.scripts.battle.trade.exp.boost 04A6FC
