@@ -841,9 +841,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var palRun = parent.ReadPalette();
                var maxReasonablePage = palRun.pages + palRun.initialBlankPages;
                var delta = currentPoint - previousPoint;
-               delta = new Point(
-                  delta.X.LimitToRange(-selectionStart.X, parent.PixelWidth - selectionWidth - selectionStart.X),
-                  delta.Y.LimitToRange(-selectionStart.Y, parent.PixelHeight - selectionHeight - selectionStart.Y));
+               var (minX, minY) = (-selectionStart.X, -selectionStart.Y);
+               var (maxX, maxY) = (parent.PixelWidth - selectionWidth - selectionStart.X, parent.PixelHeight - selectionHeight - selectionStart.Y);
+               if (minX > maxX) (minX, maxX) = (maxX, minX);
+               if (minY > maxY) (minY, maxY) = (maxY, minY);
+               delta = new Point(delta.X.LimitToRange(minX, maxX), delta.Y.LimitToRange(minY, maxY));
 
                if (parent.CanEditTilePalettes) {
                   for (int x = 0; x < selectionWidth; x += 8) {
