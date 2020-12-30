@@ -138,6 +138,11 @@ BPRE1.data.maps.catchmap.conversion.kanto.length 13CB14
 BPGE0.data.maps.catchmap.conversion.kanto.length 13CA74
 BPGE1.data.maps.catchmap.conversion.kanto.length 13CAEC
 
+# 2 entries for speed (because double battles), 1 entry each for atk, def, spatk, spdef
+AXPE0.scripts.battle.badge.boost 013144,01322C,03BB8A,03BBD0,03BC1A,03BC66
+AXPE1.scripts.battle.badge.boost 013144,01322C,03BB8A,03BBD0,03BC1A,03BC66
+AXVE0.scripts.battle.badge.boost 013144,01322C,03BB8A,03BBD0,03BC1A,03BC66
+AXVE1.scripts.battle.badge.boost 013144,01322C,03BB8A,03BBD0,03BC1A,03BC66
 BPRE0.scripts.battle.badge.boost 014E2C,014F14,03EE36,03EE68,03EE9E,03EED6
 BPRE1.scripts.battle.badge.boost 014E40,014F28,03EE4A,03EE7C,03EEB2,03EEEA
 BPGE0.scripts.battle.badge.boost 014E2C,014F14,03EE36,03EE68,03EE9E,03EED6
