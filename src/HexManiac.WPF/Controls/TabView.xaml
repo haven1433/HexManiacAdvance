@@ -210,7 +210,7 @@
                                     <MenuItem Header="Collapse All" Command="{Binding CollapseAll}"/>
                                  </ContextMenu>
                               </DockPanel.ContextMenu>
-                              <Button DockPanel.Dock="Right" Command="{Binding FollowLink}" Width="20" Height="20">
+                              <Button DockPanel.Dock="Right" Command="{Binding FollowLink}" Width="20" Height="20" IsTabStop="False">
                                  <Button.ToolTip>
                                     <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
                                        <TextBlock TextAlignment="Left">
@@ -296,7 +296,7 @@
                                     </DataTemplate>
                                  </ComboBox.ItemTemplate>
                               </ComboBox>
-                              <Button Grid.Column="2" Command="{Binding GotoSource}" Width="20" Height="20">
+                              <Button Grid.Column="2" Command="{Binding GotoSource}" Width="20" Height="20" IsTabStop="False">
                                  <Button.ToolTip>
                                     <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
                                        <TextBlock TextAlignment="Left">
@@ -361,7 +361,7 @@
                         <DataTemplate DataType="{x:Type hsg3hvmtr:SpriteElementViewModel}">
                            <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                               <hsg3hv:CommonTableStreamControl />
-                              <ItemsControl ItemsSource="{Binding PaletteSelection}" Visibility="{Binding HasMultiplePalettes, Converter={StaticResource BoolToVisibility}}" HorizontalAlignment="Center">
+                              <ItemsControl ItemsSource="{Binding PaletteSelection}" Visibility="{Binding HasMultiplePalettes, Converter={StaticResource BoolToVisibility}}" HorizontalAlignment="Center" IsTabStop="False">
                                  <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
                                        <StackPanel Orientation="Horizontal" />

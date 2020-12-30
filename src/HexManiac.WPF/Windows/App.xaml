@@ -123,7 +123,7 @@
             <Setter.Value>
                <ControlTemplate TargetType="Expander">
                   <DockPanel Background="Transparent">
-                     <ToggleButton Name="HeaderSite" DockPanel.Dock="Left" BorderThickness="0" Background="Transparent" Width="NaN"
+                     <ToggleButton Name="HeaderSite" DockPanel.Dock="Left" BorderThickness="0" Background="Transparent" Width="NaN" IsTabStop="False"
                         IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
                         <StackPanel Orientation="Horizontal">
                            <Grid Width="16" Height="16">

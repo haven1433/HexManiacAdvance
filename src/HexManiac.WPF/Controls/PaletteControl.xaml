@@ -66,7 +66,7 @@
          </Decorator>
       </StackPanel>
       <Grid HorizontalAlignment="Center">
-         <ItemsControl Name="ItemsControl" HorizontalAlignment="Center" Cursor="Cross" SnapsToDevicePixels="True" ItemsSource="{Binding Elements}">
+         <ItemsControl Name="ItemsControl" HorizontalAlignment="Center" Cursor="Cross" SnapsToDevicePixels="True" IsTabStop="False" ItemsSource="{Binding Elements}">
             <ItemsControl.ToolTip>
                <TextBlock>
                   Drag to Sort <LineBreak/>

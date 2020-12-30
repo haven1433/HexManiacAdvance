@@ -466,8 +466,17 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             var textBox = new TextBox { UndoLimit = 0, InputBindings = { keyBinding } };
             textBox.SetBinding(TextBox.TextProperty, new Binding(nameof(FieldArrayElementViewModel.Content)) { UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
             control.Content = textBox;
+            if (control.IsKeyboardFocused) {
+               textBox.Loaded += (sender1, e1) => {
+                  Keyboard.Focus(textBox);
+                  control.Focusable = false;
+               };
+            } else {
+               control.Focusable = false;
+            }
          } else if (!isAcitve && !(control.Content is TextBoxLookAlike)) {
             control.Content = new TextBoxLookAlike();
+            control.Focusable = true;
          }
       }
 
