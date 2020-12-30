@@ -483,5 +483,12 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void ResetLeftToolsPane(object sender, MouseButtonEventArgs e) {
          LeftToolsPane.Width = new GridLength(275);
       }
+
+      private void CheckboxKeyUp(object sender, KeyEventArgs e) {
+         if (e.Key != Key.Enter) return;
+         var box = (CheckBox)sender;
+         box.IsChecked = !box.IsChecked;
+         e.Handled = true;
+      }
    }
 }

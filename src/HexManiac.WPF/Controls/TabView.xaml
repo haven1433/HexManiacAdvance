@@ -239,7 +239,7 @@
                                  <ColumnDefinition Width="*"/>
                               </Grid.ColumnDefinitions>
                               <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
-                              <UserControl Margin="5,0" Grid.Column="1"
+                              <UserControl Margin="5,0" Grid.Column="1" IsTabStop="True" Focusable="True"
                                  GotKeyboardFocus="UpdateFieldTextBox" LostKeyboardFocus="UpdateFieldTextBox"
                                  MouseEnter="UpdateFieldTextBox" MouseLeave="UpdateFieldTextBox"
                                  GotFocus="UpdateFieldTextBox" LostFocus="UpdateFieldTextBox">
@@ -337,7 +337,7 @@
                                  </ItemsControl.ItemsPanel>
                                  <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                       <CheckBox Margin="5,1,0,1" Width="115" IsChecked="{Binding IsChecked}" Content="{Binding BitLabel}"/>
+                                       <CheckBox Margin="5,1,0,1" Width="115" IsChecked="{Binding IsChecked}" Content="{Binding BitLabel}" KeyUp="CheckboxKeyUp"/>
                                     </DataTemplate>
                                  </ItemsControl.ItemTemplate>
                               </ItemsControl>
