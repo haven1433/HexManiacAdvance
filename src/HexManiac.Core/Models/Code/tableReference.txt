@@ -64,6 +64,8 @@ graphics.pokemon.animations.back,                 ,       ,       ,       ,     
 graphics.pokemon.animations.frames,               ,       ,       ,       ,       ,       ,       ,       , 05E7BC, [data<[frames<[frame: time:]!FFFF0000>]1>]data.pokemon.names  // every pokemon has at least 2 (expcept Spinda), and some have 3.
 graphics.pokedex.habitats,                        ,       ,       ,       , 102F44, 102F1C, 102FBC, 102F94,       , [sprite<`lzs4x8x6`> pal<`ucp4`>]data.pokedex.habitat.names+6
 graphics.pokedex.minibox,                         ,       ,       ,       , 104E6C, 104E44, 104EE4, 104EBC,       , `lzs4x8x4|graphics.townmap.catchmap.palette`
+graphics.pokedex.regionaldex.tileset,             ,       ,       ,       , 1026A4, 10267C, 10271C, 1026F4,       , `lzt4|graphics.townmap.catchmap.palette`
+graphics.pokedex.nationaldex.tileset,             ,       ,       ,       , 10259C, 102574, 102614, 1025EC,       , `lzt4|graphics.townmap.catchmap.palette`
 
 graphics.pokemon.moves.animations,          075734, 075738, 075754, 075758, 0725D0, 0725D0, 0725E4, 0725E4, 0A3A44, [animation<`ase`>]data.pokemon.moves.names
 graphics.moves.particles.sprites-13880,     075A60, 075A64, 075A80, 075A84, 0728B8, 0728B8, 0728CC, 0728CC, 0A3D74, [ptr<`lzt4`> size: index:]289
