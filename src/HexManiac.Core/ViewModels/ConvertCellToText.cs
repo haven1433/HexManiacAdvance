@@ -31,6 +31,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void Visit(Anchor anchor, byte data) => anchor.OriginalFormat.Visit(this, data);
 
+      public void Visit(SpriteDecorator sprite, byte data) => sprite.OriginalFormat.Visit(this, data);
+
       public void Visit(PCS pcs, byte data) {
          Result = pcs.ThisCharacter;
       }

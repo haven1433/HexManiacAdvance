@@ -1,4 +1,6 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+﻿using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +20,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       private readonly Dictionary<string, IReadOnlyList<string>> cachedOptions = new Dictionary<string, IReadOnlyList<string>>();
       private readonly Dictionary<string, IReadOnlyList<string>> cachedBitOptions = new Dictionary<string, IReadOnlyList<string>>();
+      private readonly Dictionary<int, IPixelViewModel> cachedImages = new Dictionary<int, IPixelViewModel>();
 
       public IReadOnlyList<string> GetOptions(string table) {
          if (!cachedOptions.ContainsKey(table)) cachedOptions[table] = GetOptions(model, table) ?? new List<string>();
@@ -53,6 +56,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          cachedBitOptions[enumName] = results;
          return results;
+      }
+
+      public IPixelViewModel GetImage(ISpriteRun run) {
+         if (cachedImages.TryGetValue(run.Start, out var pixels)) return pixels;
+         pixels = SpriteDecorator.BuildSprite(model, run);
+         cachedImages[run.Start] = pixels;
+         return pixels;
       }
 
       private static IReadOnlyList<string> GetOptions(IDataModel model, string enumName) {

@@ -457,6 +457,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
          {
             if (ShowHorizontalScroll) drawingContext.PushTransform(new TranslateTransform(-HorizontalScrollValue, 0));
+            RenderBackground(drawingContext);
             RenderGrid(drawingContext);
             RenderSelection(drawingContext);
             {
@@ -470,6 +471,22 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private static SolidColorBrush Brush(string name) {
          return (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][name];
+      }
+
+      private void RenderBackground(DrawingContext context) {
+         for (int x = 0; x < ViewPort.Width; x++) {
+            for (int y = 0; y < ViewPort.Height; y++) {
+               var element = ViewPort[x, y];
+               if (!(element.Format is SpriteDecorator sprite)) continue;
+               if (sprite.CellWidth != ViewPort.Width) continue;
+               var source = new PixelImage { DataContext = sprite.Pixels }.Source;
+               var (w, h) = (CellWidth, CellHeight);
+               var rect = new Rect(x * w, y * h, w * sprite.CellWidth, h * sprite.CellHeight);
+               context.PushOpacity(.3);
+               context.DrawImage(source, rect);
+               context.Pop();
+            }
+         }
       }
 
       private void RenderGrid(DrawingContext drawingContext) {

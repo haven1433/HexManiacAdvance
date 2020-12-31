@@ -204,6 +204,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      if (underEdit.CurrentText.Count(c => c == StringDelimeter) % 2 == 1) endEdit = StringDelimeter.ToString();
                      var originalFormat = underEdit.OriginalFormat;
                      if (originalFormat is Anchor anchor) originalFormat = anchor.OriginalFormat;
+                     if (originalFormat is SpriteDecorator sprite) originalFormat = sprite.OriginalFormat;
                      if (underEdit.CurrentText.StartsWith(EggMoveRun.GroupStart) && (originalFormat is EggSection || originalFormat is EggItem)) endEdit = EggMoveRun.GroupEnd;
                      currentView[location.X, location.Y] = new HexElement(element.Value, element.Edited, underEdit.Edit(endEdit));
                      if (!TryCompleteEdit(location)) ClearEdits(location);
@@ -1523,6 +1524,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void FollowLink(int x, int y) {
          var format = this[x, y].Format;
          if (format is Anchor anchor) format = anchor.OriginalFormat;
+         if (format is SpriteDecorator sprite) format = sprite.OriginalFormat;
 
          using (ModelCacheScope.CreateScope(Model)) {
             // follow pointer

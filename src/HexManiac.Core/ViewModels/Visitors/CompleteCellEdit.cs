@@ -77,6 +77,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (NewCell != null) NewCell = new HexElement(NewCell, new Anchor(NewCell.Format, anchor.Name, anchor.Format, anchor.Sources));
       }
 
+      public void Visit(SpriteDecorator sprite, byte data) => sprite.OriginalFormat.Visit(this, data);
+
       public void Visit(PCS pcs, byte data) => VisitPCS(pcs);
 
       private void VisitPCS(IDataFormatStreamInstance pcs) {

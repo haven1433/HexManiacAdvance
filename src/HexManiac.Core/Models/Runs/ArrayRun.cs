@@ -21,6 +21,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    }
 
    public static class ITableRunExtensions {
+      /// <param name="byteOffset">Ranges from 0 to Model.Count</param>
       public static ArrayOffset ConvertByteOffsetToArrayOffset(this ITableRun self, int byteOffset) {
          var offset = byteOffset - self.Start;
          int elementIndex = offset / self.ElementLength;

@@ -113,6 +113,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (NewFormat != null && NewFormat.OriginalFormat == innerFormat) NewFormat = new UnderEdit(anchor, NewFormat.CurrentText, NewFormat.EditWidth, NewFormat.AutocompleteOptions);
       }
 
+      public void Visit(SpriteDecorator sprite, byte data) => sprite.OriginalFormat.Visit(this, data);
+
       public void Visit(PCS pcs, byte data) {
          // don't let it start with a space unless it's in quotes (for copy/paste)
          var run = Model.GetNextRun(MemoryLocation);

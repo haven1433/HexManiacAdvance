@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -55,7 +56,26 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) {
-         return ITableRunExtensions.CreateSegmentDataFormat(this, data, index);
+         var inner = ITableRunExtensions.CreateSegmentDataFormat(this, data, index);
+         if (index != Start) return inner;
+         var address = data.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, TilemapAnchor);
+         var run = data.GetNextRun(address) as ITilemapRun;
+         var pixels = data.CurrentCacheScope.GetImage(run);
+
+         if (pixels != null) {
+            var (width, height) = (ElementContent.Count * 8, ElementCount * 8);
+            var pixelData = new short[width * height];
+            for (int y = 0; y < height; y++) {
+               var originalDataStart = pixels.PixelWidth * (y - Margins.Top * 8) - Margins.Left * 8;
+               if (originalDataStart < 0) continue;
+               var croppedDataStart = width * y;
+               Array.Copy(pixels.PixelData, originalDataStart, pixelData, croppedDataStart, width);
+            }
+            pixels = new ReadonlyPixelViewModel(new SpriteFormat(4, width / 8, height / 8, string.Empty), pixelData);
+            return new SpriteDecorator(inner, pixels, width / 8, height / 8);
+         }
+
+         return new SpriteDecorator(inner, pixels);
       }
 
       public ITableRun Duplicate(int start, SortedSpan<int> pointerSources, IReadOnlyList<ArrayRunElementSegment> segments) {

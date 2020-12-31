@@ -1,7 +1,10 @@
 ﻿// Data Formats are simple types that provide limited meta-data that can vary based on the format.
 // Data Formats use the Visitor design pattern to allow things like rendering of the data
 
+using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,6 +31,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       void Visit(UnderEdit dataFormat, byte data);
       void Visit(Pointer pointer, byte data);
       void Visit(Anchor anchor, byte data);
+      void Visit(SpriteDecorator decorator, byte data);
       void Visit(PCS pcs, byte data);
       void Visit(EscapedPCS pcs, byte data);
       void Visit(ErrorPCS pcs, byte data);
@@ -153,6 +157,38 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public bool Equals(IDataFormat other) {
          if (!(other is Anchor anchor)) return false;
          return anchor.Name == Name && anchor.Format == Format && anchor.Sources.SequenceEqual(Sources) && anchor.OriginalFormat.Equals(OriginalFormat);
+      }
+
+      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
+   }
+
+   public class SpriteDecorator : IDataFormat {
+      public IDataFormat OriginalFormat { get; }
+      public IPixelViewModel Pixels { get; }
+      public int CellWidth { get; }
+      public int CellHeight { get; }
+
+      public SpriteDecorator(IDataFormat inner, IPixelViewModel pixels, int cellWidth = 1, int cellHeight = 1) {
+         OriginalFormat = inner;
+         Pixels = pixels ?? new ReadonlyPixelViewModel(new SpriteFormat(4, cellWidth, cellHeight, string.Empty), new short[0]);
+         (CellWidth, CellHeight) = (cellWidth, cellHeight);
+      }
+
+      public static IPixelViewModel BuildSprite(IDataModel model, ISpriteRun sprite) {
+         if (sprite == null) return null;
+         if (sprite is ITilemapRun tilemap) tilemap.FindMatchingTileset(model);
+         var paletteRuns = sprite.FindRelatedPalettes(model);
+         var paletteRun = paletteRuns.FirstOrDefault();
+         var pixels = sprite.GetPixels(model, 0);
+         if (pixels == null) return null;
+         var colors = paletteRun?.AllColors(model) ?? TileViewModel.CreateDefaultPalette((int)Math.Pow(2, sprite.SpriteFormat.BitsPerPixel));
+         var imageData = SpriteTool.Render(pixels, colors, paletteRun?.PaletteFormat.InitialBlankPages ?? 0, 0);
+         return new ReadonlyPixelViewModel(sprite.SpriteFormat, imageData);
+      }
+
+      public bool Equals(IDataFormat other) {
+         if (!(other is SpriteDecorator sprite)) return false;
+         return sprite.OriginalFormat.Equals(OriginalFormat) && sprite.CellWidth == CellWidth && sprite.CellHeight == CellHeight;
       }
 
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);

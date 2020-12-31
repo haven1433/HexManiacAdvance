@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
@@ -45,6 +46,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(2, table.ElementCount);
          Assert.Equal(4, table.ElementContent.Count);
          Assert.Equal("[value.]tilemap+0-1+0-1", table.FormatString);
+      }
+
+      [Fact]
+      public void TilemapTable_CheckDataFormat_IsSpriteDecorator() {
+         ViewPort.Edit("^table[value.]tilemap ");
+
+         var anchor = (Anchor)ViewPort[0, 0].Format;
+         var format = (SpriteDecorator)anchor.OriginalFormat;
+         Assert.Equal(4, format.CellWidth);
+         Assert.Equal(4, format.CellHeight);
+         Assert.Equal(4 * 8, format.Pixels.PixelWidth);
+         Assert.Equal(4 * 8, format.Pixels.PixelHeight);
       }
    }
 }
