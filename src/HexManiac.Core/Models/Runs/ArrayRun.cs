@@ -337,9 +337,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             .Select(tRun => tRun.ElementContent)
             .FirstOrDefault();
 
-         if (ParseTilemapTable(data, format, length) is ArrayRunElementSegment singleSegment) {
+         var (singleSegment, margins, tilemapLength) = ParseTilemapTable(data, format, length);
+         if (singleSegment is ArrayRunElementSegment) {
             // option 0: the length looks like a tilemap, and there's a single segment. Parse as a tilemap table.
-            self = new TilemapTableRun(data, length, singleSegment, start, pointerSources);
+            self = new TilemapTableRun(data, tilemapLength, singleSegment, margins, start, pointerSources);
          } else if (length.All(c => IsValidTableNameCharacter(c) || c.IsAny('-', '+'))) {
             // option 1: the length looks like a standard table length (or is empty, and thus dynamic). Parse as a table.
             try {
@@ -398,17 +399,19 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return true;
       }
 
-      public static ArrayRunElementSegment ParseTilemapTable(IDataModel model, string format, string length) {
+      public static (ArrayRunElementSegment, TilemapMargins, string) ParseTilemapTable(IDataModel model, string format, string length) {
+         var margins = TilemapMargins.ExtractMargins(ref length);
+
          var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, length);
          var tilemap = model.GetNextRun(address) as ITilemapRun;
-         if (tilemap == null || tilemap.Start != address) return null;
+         if (tilemap == null || tilemap.Start != address) return default;
 
          var closeArray = format.LastIndexOf(ArrayEnd.ToString());
-         if (!format.StartsWith(ArrayStart.ToString()) || closeArray == -1) return null;
+         if (!format.StartsWith(ArrayStart.ToString()) || closeArray == -1) return default;
          var segments = format.Substring(1, closeArray - 1);
          var content = ParseSegments(segments, model);
-         if (content.Count != 1) return null;
-         return content[0];
+         if (content.Count != 1) return default;
+         return (content[0], margins, length);
       }
 
       public ITableRun Duplicate(int start, SortedSpan<int> pointerSources, IReadOnlyList<ArrayRunElementSegment> segments) {

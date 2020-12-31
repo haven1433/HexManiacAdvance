@@ -22,6 +22,29 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(4, table.ElementLength);
          Assert.Equal(4, table.ElementCount);
          Assert.Equal(4, table.ElementContent.Count);
+         Assert.Equal("[value.]tilemap", table.FormatString);
+      }
+
+      [Fact]
+      public void TilemapTable_NegativeWidthMargins_WidthReduced() {
+         ViewPort.Edit("^table[value.]tilemap-1-0-1-0 ");
+
+         var table = Model.GetTable("table");
+         Assert.Equal(2, table.ElementLength);
+         Assert.Equal(4, table.ElementCount);
+         Assert.Equal(2, table.ElementContent.Count);
+         Assert.Equal("[value.]tilemap-1+0-1+0", table.FormatString);
+      }
+
+      [Fact]
+      public void TilemapTable_NegativeHeightMargins_HeightReduced() {
+         ViewPort.Edit("^table[value.]tilemap-0-1-0-1 ");
+
+         var table = Model.GetTable("table");
+         Assert.Equal(4, table.ElementLength);
+         Assert.Equal(2, table.ElementCount);
+         Assert.Equal(4, table.ElementContent.Count);
+         Assert.Equal("[value.]tilemap+0-1+0-1", table.FormatString);
       }
    }
 }
