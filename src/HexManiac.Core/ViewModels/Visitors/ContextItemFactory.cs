@@ -118,6 +118,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
          var group = new ContextItemGroup(name);
 
+         if (ViewPort.Model.GetNextRun(ViewPort.ConvertViewPointToAddress(ViewPort.SelectionStart)) is ITableRun tableRun && tableRun.Start != ViewPort.DataOffset) {
+            group.Add(new ContextItem("Align Here", ViewPort.Goto.Execute, tableRun.Start));
+         }
+
          if (anchor.Sources.Count == 0) {
             group.Add(new ContextItem("(Nothing points to this.)", null));
          }
