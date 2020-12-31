@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs.Factory;
+using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
@@ -336,7 +337,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             .Select(tRun => tRun.ElementContent)
             .FirstOrDefault();
 
-         if (length.All(c => IsValidTableNameCharacter(c) || c.IsAny('-', '+'))) {
+         if (ParseTilemapTable(data, format, length) is ArrayRunElementSegment singleSegment) {
+            // option 0: the length looks like a tilemap, and there's a single segment. Parse as a tilemap table.
+            self = new TilemapTableRun(data, length, singleSegment, start, pointerSources);
+         } else if (length.All(c => IsValidTableNameCharacter(c) || c.IsAny('-', '+'))) {
             // option 1: the length looks like a standard table length (or is empty, and thus dynamic). Parse as a table.
             try {
                using (ModelCacheScope.CreateScope(data)) {
@@ -392,6 +396,19 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          if (allowPointersToEntries) self = self.AddSourcesPointingWithinArray(changeToken);
          return true;
+      }
+
+      public static ArrayRunElementSegment ParseTilemapTable(IDataModel model, string format, string length) {
+         var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, length);
+         var tilemap = model.GetNextRun(address) as ITilemapRun;
+         if (tilemap == null || tilemap.Start != address) return null;
+
+         var closeArray = format.LastIndexOf(ArrayEnd.ToString());
+         if (!format.StartsWith(ArrayStart.ToString()) || closeArray == -1) return null;
+         var segments = format.Substring(1, closeArray - 1);
+         var content = ParseSegments(segments, model);
+         if (content.Count != 1) return null;
+         return content[0];
       }
 
       public ITableRun Duplicate(int start, SortedSpan<int> pointerSources, IReadOnlyList<ArrayRunElementSegment> segments) {

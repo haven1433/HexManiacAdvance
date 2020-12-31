@@ -74,6 +74,7 @@
     <Compile Include="Models\Runs\Sprites\Sprites.cs" />
     <Compile Include="Models\Runs\Sprites\TilesetRun.cs" />
     <Compile Include="Models\Runs\TableStreamRun.cs" />
+    <Compile Include="Models\Runs\TilemapTableRun.cs" />
     <Compile Include="Models\Runs\TrainerPokemonTeamRun.cs" />
     <Compile Include="Models\Runs\WordRun.cs" />
     <Compile Include="Models\Runs\XSERun.cs" />
