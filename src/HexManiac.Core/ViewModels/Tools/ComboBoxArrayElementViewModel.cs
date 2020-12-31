@@ -130,10 +130,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
             // special case: the last option might be a weird value that came in, not normally available in the enum
             if (containsUniqueOption && selectedIndex == fullOptions.Count - 1 && int.TryParse(fullOptions[selectedIndex].Text, out var parsedValue)) {
-               selectedIndex = parsedValue;
+               selectedIndex = parsedValue - segment.ValueOffset;
             }
 
-            ViewPort.Model.WriteMultiByteValue(Start, Length, ViewPort.ChangeHistory.CurrentChange, selectedIndex);
+            ViewPort.Model.WriteMultiByteValue(Start, Length, ViewPort.ChangeHistory.CurrentChange, selectedIndex + segment.ValueOffset);
             var info = run.NotifyChildren(ViewPort.Model, ViewPort.ChangeHistory.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
             if (info.HasError && info.IsWarning) ViewPort.RaiseMessage(info.ErrorMessage);
             else if (info.HasError) ViewPort.RaiseError(info.ErrorMessage);
@@ -167,7 +167,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             selectedIndex = fullOptions.Count - 1;
             containsUniqueOption = true;
          } else {
-            selectedIndex = ViewPort.Model.ReadMultiByteValue(start, length);
+            selectedIndex = ViewPort.Model.ReadMultiByteValue(start, length) - segment.ValueOffset;
          }
          filterText = fullOptions[selectedIndex].Text;
          Options = fullOptions.ToList();
