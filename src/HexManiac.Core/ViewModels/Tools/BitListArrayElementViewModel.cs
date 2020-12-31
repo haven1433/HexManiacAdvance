@@ -48,6 +48,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private EventHandler dataChanged;
       public event EventHandler DataChanged { add => dataChanged += value; remove => dataChanged -= value; }
 
+      private StubCommand selectAll, unselectAll;
+      public ICommand SelectAll => StubCommand(ref selectAll, () => SetAll(true));
+      public ICommand UnselectAll => StubCommand(ref unselectAll, () => SetAll(false));
+      private void SetAll(bool value) {
+         deferChanges = true;
+         foreach (var element in this) element.IsChecked = value;
+         deferChanges = false;
+         UpdateModelFromView();
+      }
+
       public BitListArrayElementViewModel(Selection selection, ChangeHistory<ModelDelta> history, IDataModel model, string name, int start) {
          this.history = history;
          this.model = model;
@@ -198,10 +208,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          return true;
       }
 
+      private bool deferChanges;
       private void ChildChanged(object sender, PropertyChangedEventArgs e) {
-         using (ModelCacheScope.CreateScope(model)) {
-            UpdateModelFromView();
-         }
+         if (deferChanges) return;
+         UpdateModelFromView();
       }
    }
 }

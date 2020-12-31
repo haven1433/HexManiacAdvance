@@ -330,6 +330,12 @@
                                  </Button>
                               </Grid>
                               <ItemsControl ItemsSource="{Binding}">
+                                 <ItemsControl.ContextMenu>
+                                    <ContextMenu>
+                                       <MenuItem Header="Check All" Command="{Binding SelectAll}"/>
+                                       <MenuItem Header="Uncheck All" Command="{Binding UnselectAll}"/>
+                                    </ContextMenu>
+                                 </ItemsControl.ContextMenu>
                                  <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
                                        <WrapPanel/>
