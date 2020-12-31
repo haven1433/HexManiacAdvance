@@ -79,6 +79,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          PointerSources = sources;
       }
 
+      protected bool CreateForLeftEdge { get; private set; }
+      protected int ExpectedDisplayWidth { get; private set; }
+      public IDataFormat CreateDataFormat(IDataModel data, int index, bool leftEdgeHint, int displayWidth) {
+         CreateForLeftEdge = leftEdgeHint;
+         ExpectedDisplayWidth = displayWidth;
+         return CreateDataFormat(data, index);
+      }
       public abstract IDataFormat CreateDataFormat(IDataModel data, int index);
 
       public IFormattedRun MergeAnchor(SortedSpan<int> sources) {

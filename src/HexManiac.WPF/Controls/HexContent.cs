@@ -482,6 +482,18 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             var source = new PixelImage { DataContext = sprite.Pixels }.Source;
             var (w, h) = (CellWidth, CellHeight);
             var rect = new Rect(0, y * h, w * sprite.CellWidth, h * sprite.CellHeight);
+            if (sprite.CellWidth != sprite.Pixels.PixelWidth / 8 || sprite.CellHeight != sprite.Pixels.PixelHeight / 8) {
+               // the sprite is to be displayed within the cell area, but need not be displayed with exactly one tile per cell.
+               var availableRows = Math.Min(ViewPort.Height - y, sprite.CellHeight);
+               var scale = Math.Max(sprite.Pixels.PixelWidth / (sprite.CellWidth * CellWidth), sprite.Pixels.PixelHeight / (availableRows * CellHeight));
+               scale = 1 / scale;
+               rect.Width = sprite.Pixels.PixelWidth * scale;
+               rect.Height = sprite.Pixels.PixelHeight * scale;
+               var availableWidth = ViewPort.Width * CellWidth;
+               var availableHeight = availableRows * CellHeight;
+               rect.X += (availableWidth - rect.Width) / 2;
+               rect.Y += (availableHeight - rect.Height) / 2;
+            }
             context.PushOpacity(.4);
             context.DrawImage(source, rect);
             context.Pop();

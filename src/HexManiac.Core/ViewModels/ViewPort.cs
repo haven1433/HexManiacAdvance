@@ -2269,7 +2269,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   if (index < 0 || index >= Model.Count) {
                      currentView[x, y] = HexElement.Undefined;
                   } else if (index >= run.Start) {
-                     var format = run.CreateDataFormat(Model, index);
+                     var format = run is BaseRun baseRun ? baseRun.CreateDataFormat(Model, index, x == 0, Width) : run.CreateDataFormat(Model, index);
                      format = Model.WrapFormat(run, format, index);
                      currentView[x, y] = new HexElement(Model[index], edited, format);
                   } else {

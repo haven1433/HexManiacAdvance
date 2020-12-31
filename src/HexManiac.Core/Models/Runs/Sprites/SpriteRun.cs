@@ -36,7 +36,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       // not actually LZ, but it is uncompressed and acts much the same way.
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) => LzUncompressed.Instance;
+      int lastFormatRequested = int.MaxValue;
+      public override IDataFormat CreateDataFormat(IDataModel data, int index) {
+         var basicFormat = LzUncompressed.Instance;
+         if (!CreateForLeftEdge) return basicFormat;
+         if (lastFormatRequested < index) {
+            lastFormatRequested = index;
+            return basicFormat;
+         }
+
+         var sprite = data.CurrentCacheScope.GetImage(this);
+         var availableRows = (Length - (index - Start)) / ExpectedDisplayWidth;
+         lastFormatRequested = index;
+         return new SpriteDecorator(basicFormat, sprite, ExpectedDisplayWidth, availableRows);
+      }
 
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new SpriteRun(Start, SpriteFormat, newPointerSources);
 

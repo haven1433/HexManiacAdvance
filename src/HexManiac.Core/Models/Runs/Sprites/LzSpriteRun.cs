@@ -1,4 +1,7 @@
-﻿namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
+﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
+
+namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
    public class LzSpriteRun : PagedLZRun, ISpriteRun {
       public SpriteFormat SpriteFormat { get; }
 
@@ -43,6 +46,21 @@
          var hint = hintSplit.Length == 2 ? hintSplit[1] : null;
          spriteFormat = new SpriteFormat(bitsPerPixel, width, height, hint);
          return true;
+      }
+
+      int lastFormatRequested = int.MaxValue;
+      public override IDataFormat CreateDataFormat(IDataModel data, int index) {
+         var basicFormat = base.CreateDataFormat(data, index);
+         if (!CreateForLeftEdge) return basicFormat;
+         if (lastFormatRequested < index) {
+            lastFormatRequested = index;
+            return basicFormat;
+         }
+
+         var sprite = data.CurrentCacheScope.GetImage(this);
+         var availableRows = (Length - (index - Start)) / ExpectedDisplayWidth;
+         lastFormatRequested = index;
+         return new SpriteDecorator(basicFormat, sprite, ExpectedDisplayWidth, availableRows);
       }
 
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new LzSpriteRun(SpriteFormat, Model, Start, newPointerSources);
