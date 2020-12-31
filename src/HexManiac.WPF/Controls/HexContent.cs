@@ -474,18 +474,17 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void RenderBackground(DrawingContext context) {
-         for (int x = 0; x < ViewPort.Width; x++) {
-            for (int y = 0; y < ViewPort.Height; y++) {
-               var element = ViewPort[x, y];
-               if (!(element.Format is SpriteDecorator sprite)) continue;
-               if (sprite.CellWidth != ViewPort.Width) continue;
-               var source = new PixelImage { DataContext = sprite.Pixels }.Source;
-               var (w, h) = (CellWidth, CellHeight);
-               var rect = new Rect(x * w, y * h, w * sprite.CellWidth, h * sprite.CellHeight);
-               context.PushOpacity(.3);
-               context.DrawImage(source, rect);
-               context.Pop();
-            }
+         for (int y = 0; y < ViewPort.Height; y++) {
+            var format = ViewPort[0, y].Format;
+            if (format is Anchor anchor) format = anchor.OriginalFormat;
+            if (!(format is SpriteDecorator sprite)) continue;
+            if (sprite.CellWidth != ViewPort.Width) continue;
+            var source = new PixelImage { DataContext = sprite.Pixels }.Source;
+            var (w, h) = (CellWidth, CellHeight);
+            var rect = new Rect(0, y * h, w * sprite.CellWidth, h * sprite.CellHeight);
+            context.PushOpacity(.4);
+            context.DrawImage(source, rect);
+            context.Pop();
          }
       }
 

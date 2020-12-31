@@ -55,27 +55,33 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          ITableRunExtensions.AppendTo(this, model, builder, start, length, deep);
       }
 
+      int lastFormatCreated = int.MaxValue;
       public override IDataFormat CreateDataFormat(IDataModel data, int index) {
          var inner = ITableRunExtensions.CreateSegmentDataFormat(this, data, index);
-         if (index != Start) return inner;
+         if (index > lastFormatCreated) {
+            lastFormatCreated = index;
+            return inner;
+         }
+
+         if ((index - Start) % ElementLength != 0) return inner;
          var address = data.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, TilemapAnchor);
          var run = data.GetNextRun(address) as ITilemapRun;
          var pixels = data.CurrentCacheScope.GetImage(run);
+         if (pixels == null) return inner;
 
-         if (pixels != null) {
-            var (width, height) = (ElementContent.Count * 8, ElementCount * 8);
-            var pixelData = new short[width * height];
-            for (int y = 0; y < height; y++) {
-               var originalDataStart = pixels.PixelWidth * (y - Margins.Top * 8) - Margins.Left * 8;
-               if (originalDataStart < 0) continue;
-               var croppedDataStart = width * y;
-               Array.Copy(pixels.PixelData, originalDataStart, pixelData, croppedDataStart, width);
-            }
-            pixels = new ReadonlyPixelViewModel(new SpriteFormat(4, width / 8, height / 8, string.Empty), pixelData);
-            return new SpriteDecorator(inner, pixels, width / 8, height / 8);
+         var missingTopRows = (index - Start) / ElementLength;
+         var currentTopMargin = Margins.Top - missingTopRows;
+         var (width, height) = (ElementContent.Count * 8, (ElementCount - missingTopRows) * 8);
+         var pixelData = new short[width * height];
+         for (int y = 0; y < height; y++) {
+            var originalDataStart = pixels.PixelWidth * (y - currentTopMargin * 8) - Margins.Left * 8;
+            if (originalDataStart < 0) continue;
+            var croppedDataStart = width * y;
+            Array.Copy(pixels.PixelData, originalDataStart, pixelData, croppedDataStart, width);
          }
-
-         return new SpriteDecorator(inner, pixels);
+         pixels = new ReadonlyPixelViewModel(new SpriteFormat(4, width / 8, height / 8, string.Empty), pixelData);
+         lastFormatCreated = index;
+         return new SpriteDecorator(inner, pixels, width / 8, height / 8);
       }
 
       public ITableRun Duplicate(int start, SortedSpan<int> pointerSources, IReadOnlyList<ArrayRunElementSegment> segments) {
