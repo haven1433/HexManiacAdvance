@@ -153,7 +153,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             ObserveRunWritten(noChange, newRun);
          }
 
-         if (metadata.FreeSpaceSearch >= 0) FreeSpaceStart = metadata.FreeSpaceSearch;
+         if (metadata.FreeSpaceSearch >= 0) FreeSpaceStart = Math.Min(RawData.Length - 1, metadata.FreeSpaceSearch);
 
          if (!metadata.IsEmpty && StoredMetadata.NeedVersionUpdate(metadata.Version, singletons?.MetadataInfo.VersionNumber ?? "0")) {
             var gameCode = this.GetGameCode();

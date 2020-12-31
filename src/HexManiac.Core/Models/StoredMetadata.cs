@@ -94,7 +94,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
 
             if (cleanLine.StartsWith("FreeSpaceSearch = '''")) {
-               if (int.TryParse(cleanLine.Split("'''")[1], out var fss)) FreeSpaceSearch = fss;
+               if (int.TryParse(cleanLine.Split("'''")[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var fss)) FreeSpaceSearch = fss;
             }
 
             if (cleanLine.Contains('=') && int.TryParse(cleanLine.Split('=')[0].Trim(), out int currentItemIndex)) {
@@ -157,7 +157,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             "[General]"
          };
          if (Version != null) lines.Add($"ApplicationVersion = '''{Version}'''");
-         lines.Add($"FreeSpaceSearch = '''{FreeSpaceSearch}'''");
+         lines.Add($"FreeSpaceSearch = '''{FreeSpaceSearch:X6}'''");
          lines.Add($"NextExportID = '''{NextExportID}'''");
          lines.Add(string.Empty);
          lines.Add("#################################");
