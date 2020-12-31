@@ -94,6 +94,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          foreach (UIElement child in InternalChildren) { if (GetContentIsHeader(child)) expectedHeaderCount += 1; }
 
          var (widthPerColumn, desiredColumnCount) = CalculateColumnWidth(availableSize, expectedHeaderCount);
+         widthPerColumn = Math.Max(widthPerColumn, MinimumColumnWidth);
+         desiredColumnCount = Math.Max(desiredColumnCount, 1);
          var offerSize = new Size(widthPerColumn, availableSize.Height);
 
          // calculate the desired height of each column
