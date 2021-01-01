@@ -59,5 +59,16 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(4 * 8, format.Pixels.PixelWidth);
          Assert.Equal(4 * 8, format.Pixels.PixelHeight);
       }
+
+      [Fact]
+      public void FormatWithLengthMultiplier_Parse_LargerTable() {
+         ViewPort.Edit("^table[value.]tilemap*2-0-1-0-1 ");
+         ViewPort.Width = 4;
+
+         var table = Model.GetTable("table");
+         Assert.Equal(4, table.ElementContent.Count);
+         Assert.Equal(4, table.ElementCount);
+         Assert.Equal("[value.]tilemap*2+0-1+0-1", table.FormatString);
+      }
    }
 }

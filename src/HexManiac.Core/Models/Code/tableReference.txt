@@ -417,7 +417,7 @@ graphics.townmap.opening.left.down,                                 ,,,, 0C23E8,
 graphics.townmap.opening.right.top,                                 ,,,, 0C2408, 0C23DC, 0C241C, 0C23F0, , `lzs4x4x8|graphics.townmap.palette`
 graphics.townmap.opening.right.center,                              ,,,, 0C2428, 0C23FC, 0C243C, 0C2410, , `lzs4x4x8|graphics.townmap.palette`
 graphics.townmap.opening.right.down,                                ,,,, 0C2448, 0C241C, 0C245C, 0C2430, , `lzs4x4x8|graphics.townmap.palette`
-graphics.townmap.annotations,                                       ,,,, 0C4194, 0C4168, 0C41A8, 0C417C, , [worldmap.data.maps.names+88]graphics.townmap.tilemap-4-4-4-1
+graphics.townmap.annotations,                                       ,,,, 0C4194, 0C4168, 0C41A8, 0C417C, , [worldmap.data.maps.names+88]graphics.townmap.tilemap*2-4-4-4-1
 
 graphics.credits.trainer.male.palette,         ,       ,       ,       , 0F4A1C, 0F49F4, 0F4A94, 0F4A6C, , `ucp4`
 graphics.credits.trainer.female.palette,       ,       ,       ,       , 0F4A48, 0F4A20, 0F4AC0, 0F4A98, , `ucp4`
