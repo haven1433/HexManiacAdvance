@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using System;
 using System.Collections.Generic;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
@@ -73,6 +74,21 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          newRun = new LzTilesetRun(Format, model, newRun.Start, newRun.PointerSources);
          model.ObserveRunWritten(token, newRun);
          return newRun;
+      }
+
+      int lastFormatRequested = int.MaxValue;
+      public override IDataFormat CreateDataFormat(IDataModel data, int index) {
+         var basicFormat = base.CreateDataFormat(data, index);
+         if (!CreateForLeftEdge) return basicFormat;
+         if (lastFormatRequested < index) {
+            lastFormatRequested = index;
+            return basicFormat;
+         }
+
+         var sprite = data.CurrentCacheScope.GetImage(this);
+         var availableRows = (Length - (index - Start)) / ExpectedDisplayWidth;
+         lastFormatRequested = index;
+         return new SpriteDecorator(basicFormat, sprite, ExpectedDisplayWidth, availableRows);
       }
 
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new LzTilesetRun(Format, Model, Start, newPointerSources);
