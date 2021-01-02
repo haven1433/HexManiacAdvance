@@ -558,6 +558,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("entry7", cell.DisplayValue);
       }
 
+      [Fact]
+      public void MatchedTable_MinusFrontAndBack_ElementsCorrect() {
+         CreateTextTable("names", 0x100, "adam", "bob", "carl", "dave");
+
+         ViewPort.Edit("@00 ^table[field.]names-1-1 ");
+
+         var table = (ArrayRun)Model.GetTable("table");
+         Assert.Equal(2, table.ElementCount);
+         Assert.Equal("bob", table.ElementNames[0]);
+         Assert.Equal("carl", table.ElementNames[1]);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

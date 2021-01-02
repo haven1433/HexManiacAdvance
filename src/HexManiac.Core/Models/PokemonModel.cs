@@ -442,7 +442,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var parentName = array.LengthFromAnchor;
             var childName = GetAnchorFromAddress(-1, array.Start);
             if (!(GetNextRun(GetAddressFromAnchor(token, -1, array.LengthFromAnchor)) is ITableRun parent)) continue;
-            Debug.Assert(parent.ElementCount + array.ParentOffset == array.ElementCount);
+            Debug.Assert(parent.ElementCount + array.ParentOffset.BeginningMargin + array.ParentOffset.EndMargin == array.ElementCount);
          }
       }
 
@@ -795,7 +795,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          int segmentOffset = arrayRun.Start;
          var formatMatches = previousTable != null && arrayRun.DataFormatMatches(previousTable);
          var parentOffset = 0;
-         if (arrayRun is ArrayRun arrayRun1) parentOffset = Math.Max(arrayRun1.ParentOffset, 0);
+         if (arrayRun is ArrayRun arrayRun1) parentOffset = Math.Max(arrayRun1.ParentOffset.EndMargin, 0);
          var shorterTable = Math.Min(arrayRun.ElementCount, previousTable?.ElementCount ?? arrayRun.ElementCount);
          // i loops over the different segments in the array
          for (int i = 0; i < arrayRun.ElementContent.Count; i++) {
@@ -857,7 +857,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var newTable = table;
             // option 1: this table's length is based on the given table
             if (anchor.Equals(table.LengthFromAnchor)) {
-               int targetCount = arrayRun.ElementCount + table.ParentOffset;
+               int targetCount = arrayRun.ElementCount + table.ParentOffset.BeginningMargin + table.ParentOffset.EndMargin;
                if (table.ElementCount == targetCount) continue;
                // only relocate if we're not in a loading situation
                if (!(changeToken is NoDataChangeDeltaModel)) {

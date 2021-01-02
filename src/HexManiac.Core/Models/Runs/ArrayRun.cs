@@ -182,6 +182,43 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
    }
 
+   public class ParentOffset {
+      public static readonly ParentOffset Default = new ParentOffset();
+      public int BeginningMargin { get; }
+      public int EndMargin { get; }
+      public ParentOffset(int start = 0, int end = 0) => (BeginningMargin, EndMargin) = (start, end);
+      public static ParentOffset Parse(ref string nameToken) {
+         var name = nameToken;
+         var result = new ParentOffset();
+         var separators = name.Length.Range().Where(i => name[i].IsAny("+-".ToCharArray())).Concat(new[] { name.Length }).ToArray();
+         if (separators.Length == 1) return Default;
+         var textMargins = (separators.Length - 1).Range().Select(i => name.Substring(separators[i], separators[i + 1] - separators[i]));
+         var margins = textMargins.Select(str => int.TryParse(str, out var value) ? value : default).ToArray();
+         if (margins.Length > 2 || margins.Length < 1) return Default;
+         nameToken = name.Substring(0, separators[0]);
+         if (margins.Length == 1 && margins[0] > 0) return new ParentOffset(end: margins[0]);
+         if (margins.Length == 1 && margins[0] < 0) return new ParentOffset(start: margins[0]);
+         if (margins.Length == 1) return Default;
+         return new ParentOffset(margins[0], margins[1]);
+      }
+      public override string ToString() {
+         if (BeginningMargin == 0) {
+            if (EndMargin == 0) return string.Empty;
+            if (EndMargin > 0) return "+" + EndMargin;
+            if (EndMargin < 0) return "+0" + EndMargin;
+         }
+         if (EndMargin == 0) {
+            if (BeginningMargin > 0) throw new NotImplementedException();
+            return BeginningMargin.ToString();
+         }
+         var text = string.Empty;
+         if (BeginningMargin >= 0) text += "+";
+         text += BeginningMargin;
+         if (EndMargin >= 0) text += "+";
+         return text + EndMargin;
+      }
+   }
+
    public class ArrayRun : BaseRun, ITableRun {
       public const char ExtendArray = '+';
       public const char ArrayStart = '[';
@@ -218,7 +255,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       /// For some dependendent arrays, the length doesn't exactly match.
       /// For example, move 0 doesn't have a description.
       /// </summary>
-      public int ParentOffset { get; }
+      public ParentOffset ParentOffset { get; }
 
       public bool SupportsPointersToElements { get; }
 
@@ -241,11 +278,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                options = cache.GetOptions(name);
             }
 
-            if (options.Count == ElementCount - ParentOffset && ParentOffset != 0) {
-               // if negative: pull values off the front
-               if (ParentOffset < 0) options = options.Skip(-ParentOffset).ToList();
-               // if positive: add values onto the back
-               else options = options.Concat(Enumerable.Range(ElementCount - ParentOffset, ParentOffset).Select(i => i.ToString())).ToList();
+            if (ParentOffset.BeginningMargin < 0) {
+               options = options.Skip(-ParentOffset.BeginningMargin).ToList();
+            } else if (ParentOffset.BeginningMargin > 0) {
+               throw new NotImplementedException();
+            }
+            if (ParentOffset.EndMargin > 0) {
+               options = options.Concat(Enumerable.Range(ElementCount - ParentOffset.EndMargin, ParentOffset.EndMargin).Select(i => i.ToString())).ToList();
+            } else if (ParentOffset.EndMargin < 0) {
+               options = options.Take(options.Count + ParentOffset.EndMargin).ToList();
             }
 
             return options;
@@ -295,11 +336,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (elementCount == JunkLimit) flags |= FormatMatchFlags.AllowJunkAfterText;
             }
             LengthFromAnchor = string.Empty;
+            ParentOffset = ParentOffset.Default;
             ElementCount = Math.Max(1, elementCount); // if the user said there's a format here, then there is, even if the format it wrong.
             FormatString += ElementCount;
          } else if (int.TryParse(length, out int result)) {
             // fixed length is easy
             LengthFromAnchor = string.Empty;
+            ParentOffset = ParentOffset.Default;
             ElementCount = Math.Max(1, result);
          } else {
             (LengthFromAnchor, ParentOffset, ElementCount) = ParseLengthFromAnchor(length);
@@ -309,7 +352,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          Length = ElementLength * ElementCount;
       }
 
-      private ArrayRun(IDataModel data, string format, string lengthFromAnchor, int parentOffset, int start, int elementCount, IReadOnlyList<ArrayRunElementSegment> segments, SortedSpan<int> pointerSources, IReadOnlyList<SortedSpan<int>> pointerSourcesForInnerElements) : base(start, pointerSources) {
+      private ArrayRun(IDataModel data, string format, string lengthFromAnchor, ParentOffset parentOffset, int start, int elementCount, IReadOnlyList<ArrayRunElementSegment> segments, SortedSpan<int> pointerSources, IReadOnlyList<SortedSpan<int>> pointerSourcesForInnerElements) : base(start, pointerSources) {
          owner = data;
          FormatString = format;
          ElementContent = segments;
@@ -387,12 +430,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (string.IsNullOrEmpty(length)) {
                var bestAddress = StandardSearch(data, elementContent, elementLength, out int bestLength, runFilter);
                if (bestAddress == Pointer.NULL) return false;
-               self = new ArrayRun(data, originalFormat + bestLength, string.Empty, 0, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources, null);
+               self = new ArrayRun(data, originalFormat + bestLength, string.Empty, ParentOffset.Default, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources, null);
             } else {
                var bestAddress = KnownLengthSearch(data, elementContent, elementLength, length, out int bestLength, runFilter);
                if (bestAddress == Pointer.NULL) return false;
                var lengthFromAnchor = int.TryParse(length, out var _) ? string.Empty : length;
-               self = new ArrayRun(data, originalFormat, lengthFromAnchor, 0, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources, null);
+               self = new ArrayRun(data, originalFormat, lengthFromAnchor, ParentOffset.Default, bestAddress, bestLength, elementContent, data.GetNextRun(bestAddress).PointerSources, null);
             }
          }
 
@@ -557,15 +600,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (elementCount == 0) return this;
          var lastArrayCharacterIndex = FormatString.LastIndexOf(ArrayEnd);
          var newFormat = FormatString.Substring(0, lastArrayCharacterIndex + 1);
-         int endElementCount = Math.Max(ParentOffset, 0);
+         int endElementCount = Math.Max(ParentOffset.EndMargin, 0);
          if (newFormat != FormatString) {
             if (!string.IsNullOrEmpty(LengthFromAnchor)) {
                newFormat += LengthFromAnchor;
-               if (ParentOffset != 0) {
-                  var parentOffset = ParentOffset.ToString();
-                  if (!parentOffset.StartsWith("-")) parentOffset = '+' + parentOffset;
-                  newFormat += parentOffset;
-               }
+               newFormat += ParentOffset;
             } else {
                newFormat += ElementCount + elementCount;
             }
@@ -887,16 +926,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return (ElementContentType.Unknown, 0, 0);
       }
 
-      private (string lengthFromAnchor, int parentOffset, int elementCount) ParseLengthFromAnchor(string length) {
-         var parts = length.Split("-");
-         if (parts.Length == 1) parts = length.Split("+");
-         if (parts.Length == 2 && int.TryParse(parts[1], out int parentOffset)) {
-            if (length.Contains("-")) parentOffset = -parentOffset;
-         } else {
-            parentOffset = 0;
-         }
-         var lengthFromAnchor = parts[0];
-
+      private (string lengthFromAnchor, ParentOffset parentOffset, int elementCount) ParseLengthFromAnchor(string length) {
+         var parentOffset = ParentOffset.Parse(ref length);
+         var lengthFromAnchor = length;
 
          // length is based on another array
          int address = owner.GetAddressFromAnchor(new ModelDelta(), -1, lengthFromAnchor);
@@ -924,7 +956,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             return (lengthFromAnchor, parentOffset, 1);
          }
 
-         return (lengthFromAnchor, parentOffset, run.ElementCount + parentOffset);
+         return (lengthFromAnchor, parentOffset, run.ElementCount + parentOffset.BeginningMargin + parentOffset.EndMargin);
       }
 
       // similar to DataMatchesElementFormat, but it only checks to make sure that things are pointers

@@ -271,15 +271,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             AddChildrenFromTable(array, index);
 
             if (array is ArrayRun arrayRun) {
-               int negParentOffset = Math.Min(arrayRun.ParentOffset, 0);
-               index -= negParentOffset;
+               index -= arrayRun.ParentOffset.BeginningMargin;
                if (!string.IsNullOrEmpty(arrayRun.LengthFromAnchor)) basename = arrayRun.LengthFromAnchor; // basename is now a 'parent table' name, if there is one
 
                foreach (var currentArray in model.GetRelatedArrays(arrayRun)) {
                   if (currentArray == arrayRun) continue;
                   var currentArrayName = model.GetAnchorFromAddress(-1, currentArray.Start);
-                  var negChildOffset = Math.Min(currentArray.ParentOffset, 0);
-                  var currentIndex = index + negChildOffset;
+                  var currentIndex = index + currentArray.ParentOffset.BeginningMargin;
                   if (currentIndex >= 0 && currentIndex < currentArray.ElementCount) {
                      elementOffset = currentArray.Start + currentArray.ElementLength * currentIndex;
                      AddChild(new SplitterArrayElementViewModel(viewPort, currentArrayName, elementOffset));
