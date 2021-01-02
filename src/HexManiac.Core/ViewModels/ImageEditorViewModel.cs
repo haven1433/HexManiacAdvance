@@ -404,7 +404,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ImageEditorViewModel(ChangeHistory<ModelDelta> history, IDataModel model, int address, ICommand save = null) {
          this.history = history;
          this.model = model;
-         using (ModelCacheScope.CreateScope(model)) FullFileName = ViewPort.BuildElementName(model, address);
+         FullFileName = ViewPort.BuildElementName(model, address);
+         if (string.IsNullOrWhiteSpace(FullFileName)) {
+            FullFileName = model.GetAnchorFromAddress(-1, address);
+         }
+         if (string.IsNullOrWhiteSpace(FullFileName)) {
+            FullFileName = "Image " + address.ToAddress();
+         }
          Save = save;
          this.toolStrategy = this.panStrategy = new PanTool(this);
          this.eyeDropperStrategy = new EyeDropperTool(this);
