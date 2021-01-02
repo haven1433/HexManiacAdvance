@@ -130,7 +130,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (options == null) return base.ToText(model, address, deep);
 
             var resultAsInteger = ToInteger(model, address, Length) - ValueOffset;
-            if (resultAsInteger >= options.Count || resultAsInteger < 0) return base.ToText(model, address, deep);
+            if (resultAsInteger >= options.Count || resultAsInteger < 0) return resultAsInteger.ToString();
             var value = options[resultAsInteger];
 
             // use ~2 postfix for a value if an earlier entry in the array has the same string

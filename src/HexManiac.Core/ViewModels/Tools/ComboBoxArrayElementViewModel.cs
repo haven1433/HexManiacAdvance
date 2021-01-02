@@ -161,15 +161,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          } else {
             fullOptions = new List<ComboOption>();
          }
-         var modelValue = ViewPort.Model.ReadMultiByteValue(start, length);
+         var modelValue = ViewPort.Model.ReadMultiByteValue(start, length) - segment.ValueOffset;
          if (modelValue >= fullOptions.Count) {
             fullOptions.Add(new ComboOption(modelValue.ToString(), fullOptions.Count));
             selectedIndex = fullOptions.Count - 1;
             containsUniqueOption = true;
          } else {
-            selectedIndex = ViewPort.Model.ReadMultiByteValue(start, length) - segment.ValueOffset;
+            selectedIndex = modelValue;
          }
-         filterText = fullOptions[selectedIndex].Text;
+         filterText = selectedIndex >= 0 && selectedIndex < fullOptions.Count ? fullOptions[selectedIndex].Text : string.Empty;
          Options = fullOptions.ToList();
          GotoSource = new StubCommand {
             CanExecute = arg => optionSource != Pointer.NULL,
