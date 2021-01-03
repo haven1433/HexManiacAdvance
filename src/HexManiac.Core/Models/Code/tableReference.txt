@@ -229,6 +229,9 @@ graphics.menu.pokemon.background.tilemap,        ,,,, 11EFCC, 11EFA4, 11F044, 11
 graphics.menu.boxes.background,                  ,,,, 09191C, 0918F0, 091930, 091904, , [tileset<`lzt4`> tilemap<`lzm4x20x18|graphics.menu.boxes`> palette<`ucp4`>]16
 graphics.menu.boxes.picker.palette,              ,,,, 08F0B4, 08F088, 08F0C8, 08F09C, , `ucp4`
 graphics.menu.boxes.picker.tileset,              ,,,, 08F034, 08F008, 08F048, 08F01C, , `lzt4|graphics.menu.box.picker.palette`
+graphics.menu.boxes.hand.palette.normal,         ,,,, 3CEA60, 3CE89C, 3CEAD0, 3CE90C, , `ucp4`
+graphics.menu.boxes.hand.palette.catch,          ,,,, 3D34B8, 3D32F4, 3D3528, 3D3364, , `ucp4`
+graphics.menu.boxes.hand.sprite,                 ,,,, 3D34A0, 3D32DC, 3D3510, 3D334C, , `ucs4x4x16|graphics.menu.boxes.hand.palette.normal`
 graphics.menu.tms.tileset,                       ,,,, 131B70, 131B48, 131BE8, 131BC0, , `lzt4|graphics.menu.tms.palette`
 graphics.menu.tms.background,                    ,,,, 131B8C, 131B64, 131C04, 131BDC, , `lzm4x32x32|graphics.menu.tms.tileset`
 graphics.menu.tms.case,                          ,,,, 131BA8, 131B80, 131C20, 131BF8, , `lzm4x32x32|graphics.menu.tms.tileset`
