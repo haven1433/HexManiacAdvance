@@ -31,7 +31,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       // for a name of a table (which may not actually be in the file),
       // get the list of addresses in the file that want to store a number that matches the length of the table.
-      private readonly Dictionary<string, List<int>> matchedWords = new Dictionary<string, List<int>>();
+      private readonly Dictionary<string, ISet<int>> matchedWords = new Dictionary<string, ISet<int>>();
 
       // a list of all the offsets for all known offset pointers. This information is duplicated in the OffsetPointerRun.
       private readonly Dictionary<int, int> pointerOffsets = new Dictionary<int, int>();
@@ -137,7 +137,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             unmappedNameToSources[unmappedPointer.Name] = unmappedNameToSources[unmappedPointer.Name].Add1(unmappedPointer.Address);
          }
          foreach (var word in metadata.MatchedWords) {
-            if (!matchedWords.ContainsKey(word.Name)) matchedWords.Add(word.Name, new List<int>());
+            if (!matchedWords.ContainsKey(word.Name)) matchedWords.Add(word.Name, new HashSet<int>());
             matchedWords[word.Name].Add(word.Address);
             var index = BinarySearch(word.Address);
             if (index > 0) {
@@ -564,7 +564,8 @@ namespace HavenSoft.HexManiac.Core.Models {
                constantAddresses.Count >= constantIndex &&
                constantIndex > 0
             ) {
-               return constantAddresses[constantIndex - 1];
+               var sortedConstantAddresses = constantAddresses.OrderBy(i => i).ToList();
+               return sortedConstantAddresses[constantIndex - 1];
             }
          }
 
@@ -755,7 +756,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
 
             if (run is WordRun word) {
-               if (!matchedWords.ContainsKey(word.SourceArrayName)) matchedWords[word.SourceArrayName] = new List<int>();
+               if (!matchedWords.ContainsKey(word.SourceArrayName)) matchedWords[word.SourceArrayName] = new HashSet<int>();
                matchedWords[word.SourceArrayName].Add(word.Start);
                changeToken.AddMatchedWord(this, word.Start, word.SourceArrayName);
             } else if (run is OffsetPointerRun offsetPointer) {
@@ -1122,7 +1123,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          foreach (var kvp in matchedWordsToAdd) {
             var (address, name) = (kvp.Key, kvp.Value);
-            if (!matchedWords.ContainsKey(name)) matchedWords[name] = new List<int>();
+            if (!matchedWords.ContainsKey(name)) matchedWords[name] = new HashSet<int>();
             matchedWords[name].Add(address);
          }
 
