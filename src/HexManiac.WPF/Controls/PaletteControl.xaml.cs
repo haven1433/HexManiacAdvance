@@ -36,8 +36,10 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private int InteractionTileIndex {
          get {
-            var x = (int)(interactionPoint.X / ExpectedElementWidth);
-            var y = (int)(interactionPoint.Y / ExpectedElementHeight);
+            var elementWidth = Math.Max(1, ItemsControl.ActualWidth / ViewModel.ColorWidth);
+            var elementHeight = Math.Max(1, ItemsControl.ActualHeight / ViewModel.ColorHeight);
+            var x = (int)(interactionPoint.X / elementWidth);
+            var y = (int)(interactionPoint.Y / elementHeight);
             var index = y * ViewModel.ColorWidth + x;
             index = Math.Min(Math.Max(0, index), ViewModel.Elements.Count - 1);
             return index;
@@ -105,7 +107,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          Focus();
 
          interactionPoint = e.GetPosition(ItemsControl);
-         if (interactionPoint.X > ExpectedElementWidth * ViewModel.ColorWidth || interactionPoint.X < 0) {
+         var elementWidth = Math.Max(1, ItemsControl.ActualWidth / ViewModel.ColorWidth);
+         if (interactionPoint.X > elementWidth * ViewModel.ColorWidth || interactionPoint.X < 0) {
             ClosePopup();
             return;
          }
@@ -203,10 +206,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var oldTileIndex = InteractionTileIndex;
          interactionPoint = e.GetPosition(ItemsControl);
          var newTileIndex = InteractionTileIndex;
+         var elementWidth = Math.Max(1, ItemsControl.ActualWidth / ViewModel.ColorWidth);
 
          if (!IsMouseCaptured) {
             ViewModel.HoverIndex = newTileIndex;
-            if (interactionPoint.X < 0 || interactionPoint.X > ExpectedElementWidth * ViewModel.ColorWidth) ViewModel.HoverIndex = -1;
+            if (interactionPoint.X < 0 || interactionPoint.X > elementWidth * ViewModel.ColorWidth) ViewModel.HoverIndex = -1;
             return;
          }
 
@@ -220,7 +224,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             var tile = MainWindow.GetChild(ItemsControl, "PaletteColor", ViewModel.Elements[index]);
             if (!(tile.RenderTransform is TranslateTransform)) tile.RenderTransform = new TranslateTransform();
             var transform = (TranslateTransform)tile.RenderTransform;
-            transform.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(ExpectedElementWidth * direction, 0, span));
+            transform.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(elementWidth * direction, 0, span));
          }
       }
 
