@@ -323,6 +323,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          e.Handled = true;
       }
 
+      private void ControlRequestBringIntoView(object sender, RequestBringIntoViewEventArgs e) => e.Handled = true;
+
       private short ChannelStringsToColor16(string[] channels) {
          int.TryParse(channels[0], out int r);
          int.TryParse(channels[1], out int g);

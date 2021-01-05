@@ -4,6 +4,7 @@
              xmlns:hsv="clr-namespace:HavenSoft.HexManiac.WPF.Resources"
              HorizontalAlignment="Stretch" VerticalAlignment="Center" Focusable="True"
              Background="Transparent"
+             RequestBringIntoView="ControlRequestBringIntoView"
              MouseDown="StartPaletteColorMove" MouseMove="PaletteColorMove" MouseUp="EndPaletteColorMove">
    <UserControl.CommandBindings>
       <CommandBinding Command="Select" Executed="GrabScreenColor"/>
@@ -66,7 +67,7 @@
          </Decorator>
       </StackPanel>
       <Grid HorizontalAlignment="Center">
-         <ItemsControl Name="ItemsControl" HorizontalAlignment="Center" Cursor="Cross" SnapsToDevicePixels="True" IsTabStop="False" ItemsSource="{Binding Elements}">
+         <ItemsControl Name="ItemsControl" RequestBringIntoView="ControlRequestBringIntoView"  HorizontalAlignment="Center" Cursor="Cross" SnapsToDevicePixels="True" IsTabStop="False" ItemsSource="{Binding Elements}">
             <ItemsControl.ToolTip>
                <TextBlock>
                   Drag to Sort <LineBreak/>
