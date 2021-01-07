@@ -189,7 +189,7 @@
                   <ItemsControl ItemsSource="{Binding TableTool.Children}" Grid.IsSharedSizeScope="True">
                      <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                           <hsg3hv:ColumnStackPanel VerticalAlignment="Top" MinimumColumnWidth="275" ColumnMargin="10" HeaderMargin="10"/>
+                           <hsg3hv:ColumnStackPanel VerticalAlignment="Top" MinimumColumnWidth="245" ColumnMargin="10" HeaderMargin="10"/>
                         </ItemsPanelTemplate>
                      </ItemsControl.ItemsPanel>
                      <ItemsControl.Resources>
