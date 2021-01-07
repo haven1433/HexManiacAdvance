@@ -193,7 +193,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (segment is ArrayRunPointerSegment pointerSegment) {
             if (!pointerSegment.DestinationDataMatchesPointerFormat(model, change, offsets.SegmentStart, address, run.ElementContent, -1)) {
                viewModel.ErrorText = $"This pointer must point to {pointerSegment.InnerFormat} data.";
-               return;
             }
          }
 

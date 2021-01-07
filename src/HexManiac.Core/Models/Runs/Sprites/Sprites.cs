@@ -23,9 +23,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public int Bits { get; }
       public int InitialBlankPages { get; }
       public int Pages { get; }
+      public bool AllowLengthErrors { get; }
       public int ExpectedByteLengthPerPage => (int)Math.Pow(2, Bits + 1);
 
-      public PaletteFormat(int bits, int pages, int initialBlankPages = 0) => (Bits, Pages, InitialBlankPages) = (bits, pages, initialBlankPages);
+      public PaletteFormat(int bits, int pages, int initialBlankPages = 0, bool allowLengthErrors = false) => (Bits, Pages, InitialBlankPages, AllowLengthErrors) = (bits, pages, initialBlankPages, allowLengthErrors);
    }
 
    public struct TilesetFormat {

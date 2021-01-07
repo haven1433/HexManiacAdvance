@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -19,7 +20,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       protected override int UncompressedPageLength => PaletteFormat.ExpectedByteLengthPerPage;
 
       public LzPaletteRun(PaletteFormat paletteFormat, IDataModel data, int start, SortedSpan<int> sources = null)
-         : base(data, start, allowLengthErrors: false, sources) {
+         : base(data, start, allowLengthErrors: paletteFormat.AllowLengthErrors, sources) {
          PaletteFormat = paletteFormat;
          if ((int)Math.Pow(2, paletteFormat.Bits) * 2 > DecompressedLength) InvalidateLength();
          FormatString = $"`lzp{paletteFormat.Bits}`";
@@ -61,10 +62,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public IPaletteRun Duplicate(PaletteFormat newFormat) => new LzPaletteRun(newFormat, Model, Start, PointerSources);
 
       public IReadOnlyList<short> GetPalette(IDataModel model, int page) {
-         var data = Decompress(model, Start);
+         var data = Decompress(model, Start, AllowLengthErrors);
          var colorCount = (int)Math.Pow(2, PaletteFormat.Bits);
          var pageLength = colorCount * 2;
          page %= Pages;
+         if (data == null) return TileViewModel.CreateDefaultPalette(pageLength);
          return PaletteRun.GetPalette(data, page * pageLength, colorCount);
       }
 

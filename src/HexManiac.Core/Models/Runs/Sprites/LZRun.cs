@@ -164,7 +164,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public string SerializeRun() {
          var uncompressed = Decompress(Model, Start, AllowLengthErrors);
          var builder = new StringBuilder();
-         for (int i = 0; i < uncompressed.Length; i++) {
+         for (int i = 0; i < (uncompressed?.Length ?? 0); i++) {
             if (i % 16 != 0) {
                builder.Append(" ");
             } else if (i != 0) {
