@@ -1671,7 +1671,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          // TODO if this is too slow, add a method to the model to get the set of only MatchedWordRuns.
          for (var run = Model.GetNextRun(0); run != NoInfoRun.NullRun; run = Model.GetNextRun(run.Start + Math.Max(1, run.Length))) {
             if (!(run is WordRun wordRun)) continue;
-            var address = Model.GetAddressFromAnchor(history.CurrentChange, -1, wordRun.SourceArrayName);
+            var address = Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, wordRun.SourceArrayName);
             if (address == Pointer.NULL) continue;
             var array = Model.GetNextRun(address) as ArrayRun;
             if (array == null) continue;

@@ -451,8 +451,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var model = new HardcodeTablesModel(Singletons, file.Contents, metadata);
                var viewPort = new ViewPort(file.Name, model, Singletons);
                if (metadata.IsEmpty) {
-                  var createdMetadata = viewPort.Model.ExportMetadata(Singletons.MetadataInfo).Serialize();
-                  fileSystem.SaveMetadata(file.Name, createdMetadata);
+                  Action saveMetadata = () => {
+                     fileSystem.SaveMetadata(file.Name, viewPort.Model.ExportMetadata(Singletons.MetadataInfo).Serialize());
+                     Debug.Assert(viewPort.ChangeHistory.IsSaved, "Put a breakpoint in ChangeHistory.CurrentChange, because a changable token is being created too soon!");
+                  };
+                  if (Singletons.WorkDispatcher is InstantDispatch) saveMetadata();
+                  else viewPort.Model.InitializeComplete += (sender, e) => saveMetadata();
                }
                Add(viewPort);
             } catch (IOException ex) {

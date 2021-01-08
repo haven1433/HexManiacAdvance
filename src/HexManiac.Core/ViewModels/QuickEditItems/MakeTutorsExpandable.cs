@@ -21,7 +21,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          if (!(viewPortInterface is ViewPort viewPort)) return false;
 
          // require that we fan find the specials table and that it's long enough
-         var specialsAddress = viewPort.Model.GetAddressFromAnchor(viewPort.CurrentChange, -1, HardcodeTablesModel.SpecialsTable);
+         var token = new NoDataChangeDeltaModel();
+         var specialsAddress = viewPort.Model.GetAddressFromAnchor(token, -1, HardcodeTablesModel.SpecialsTable);
          if (specialsAddress < 0 || specialsAddress > viewPort.Model.Count) return false;
          var specials = viewPort.Model.GetNextRun(specialsAddress) as ITableRun;
          if (specials == null) return false;
@@ -34,8 +35,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          if (getTutorMove < 0 || canPokemonLearnTutorMove < 0) return false;
 
          // require that this data has a tutormoves and tutorcompatibility table, since we're messing with those
-         var tutormoves = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, MoveTutors);
-         var tutorcompatibility = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, TutorCompatibility);
+         var tutormoves = model.GetAddressFromAnchor(token, -1, MoveTutors);
+         var tutorcompatibility = model.GetAddressFromAnchor(token, -1, TutorCompatibility);
          if (tutormoves == Pointer.NULL || tutorcompatibility == Pointer.NULL) {
             return false;
          }
@@ -48,7 +49,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       public ErrorInfo Run(IViewPort viewPortInterface) {
          var viewPort = (ViewPort)viewPortInterface;
          var model = viewPort.Model;
-         var token = viewPort.CurrentChange;
+         var token = new NoDataChangeDeltaModel();
          var gameCode = model.GetGameCode();
 
          var (getTutorMove, canPokemonLearnTutorMove, getTutorMove_Length, canPokemonLearnTutorMove_Length) = GetOffsets(gameCode);
@@ -56,8 +57,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var tutorSpecial = model.ReadPointer(specialsAddress + 397 * 4); // Emerald tutors is actually special 477, but we don't need to edit it so it doesn't matter.
          tutorSpecial -= 1; // the pointer is to thumb code, so it's off by one.
 
-         var tutormoves = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, MoveTutors);
-         var tutorcompatibility = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, TutorCompatibility);
+         var tutormoves = model.GetAddressFromAnchor(token, -1, MoveTutors);
+         var tutorcompatibility = model.GetAddressFromAnchor(token, -1, TutorCompatibility);
 
          InsertRoutine_GetTutorMove(viewPort, getTutorMove, getTutorMove_Length);
          InsertRoutine_CanPokemonLearnTutorMove(viewPort, canPokemonLearnTutorMove, canPokemonLearnTutorMove_Length);
