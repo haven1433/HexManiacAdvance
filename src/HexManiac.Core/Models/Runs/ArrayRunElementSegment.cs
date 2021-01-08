@@ -76,7 +76,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                for (int i = 0; i < Length; i++) token.ChangeData(model, start + i, bytes[i]);
                break;
             case ElementContentType.Integer:
-               if (!int.TryParse(data, out var intValue)) intValue = 0;
+               int intValue;
+               if (data.StartsWith("0x")) {
+                  if (!int.TryParse(data.Substring(2), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out intValue)) intValue = 0;
+               } else {
+                  if (!int.TryParse(data, out intValue)) intValue = 0;
+               }
                if (model.ReadMultiByteValue(start, Length) != intValue) {
                   model.WriteMultiByteValue(start, Length, token, intValue);
                }

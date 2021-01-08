@@ -168,6 +168,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (segment is ArrayRunEnumSegment enumSeg) {
                var options = enumSeg.GetOptions(model).ToList();
                if (options.Count > rawValue) value = options[rawValue];
+            } else if (segment is ArrayRunHexSegment hexSeg) {
+               value = "0x" + rawValue.ToString("X" + segment.Length * 2);
             } else if (segment.Type == ElementContentType.Pointer) {
                var pointerValue = rawValue - BaseModel.PointerOffset;
                value = $"<{pointerValue:X6}>";
