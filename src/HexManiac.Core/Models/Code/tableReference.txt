@@ -466,6 +466,8 @@ graphics.text.font.blue.characters,  ,,,, 006920, 006920, 006934, 006934, , `ucs
 graphics.text.font.blue.width,       ,,,, 006928, 006928, 00693C, 00693C, , [width.]512
 graphics.text.font.red.characters,   ,,,, 006A8C, 006A8C, 006AA0, 006AA0, , `ucs2x2x1024`
 graphics.text.font.red.width,        ,,,, 006A94, 006A94, 006AA8, 006AA8, , [width.]512
+graphics.text.font.characters,       095984, 095984, 0959A4, 0959A4, ,,,,, `ucs4x1x1236`
+graphics.text.font.width,            004930, 004930, 004930, 004930, ,,,,, [width.]256
 
 data.text.menu.pause,                  071160, 071164, 071180, 071184, 06EF9C, 06EF9C, 06EFB0, 06EFB0, 09F818, [text<""> code<>]
 data.text.menu.pokemon.options,        089CCC, 089CCC, 089CEC, 089CEC, 120F74, 120F4C, 120FEC, 120FC4, 1B32F8, [text<""> code<>]
