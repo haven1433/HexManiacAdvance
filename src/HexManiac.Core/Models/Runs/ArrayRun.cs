@@ -182,7 +182,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
    }
 
-   public class ParentOffset {
+   public class ParentOffset : IEquatable<ParentOffset> {
       public static readonly ParentOffset Default = new ParentOffset();
       public int BeginningMargin { get; }
       public int EndMargin { get; }
@@ -216,6 +216,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          text += BeginningMargin;
          if (EndMargin >= 0) text += "+";
          return text + EndMargin;
+      }
+
+      public override bool Equals(object obj) => obj is ParentOffset other && Equals(other);
+      public bool Equals(ParentOffset other) {
+         return other != null && other.BeginningMargin == BeginningMargin && other.EndMargin == EndMargin;
       }
    }
 
@@ -601,14 +606,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var lastArrayCharacterIndex = FormatString.LastIndexOf(ArrayEnd);
          var newFormat = FormatString.Substring(0, lastArrayCharacterIndex + 1);
          int endElementCount = Math.Max(ParentOffset.EndMargin, 0);
+         var newParentOffset = ParentOffset.EndMargin < 0 ? new ParentOffset(ParentOffset.BeginningMargin, 0) : ParentOffset;
          if (newFormat != FormatString) {
             if (!string.IsNullOrEmpty(LengthFromAnchor)) {
                newFormat += LengthFromAnchor;
-               newFormat += ParentOffset;
+               newFormat += newParentOffset;
             } else {
                newFormat += ElementCount + elementCount;
             }
          }
+         elementCount -= Math.Min(ParentOffset.EndMargin, 0); // if EndMargin is negative, we need to add extra elements to make it 0
 
          // set default values based on the bytes from the previous element
          if (!(token is NoDataChangeDeltaModel)) {
@@ -665,7 +672,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          elementCount += ElementCount; // elementCount is now the full count, not the delta
          UpdateNamedConstant(token, ref elementCount, alsoUpdateArrays: false);
 
-         return new ArrayRun(owner, newFormat, LengthFromAnchor, ParentOffset, Start, elementCount, ElementContent, PointerSources, newInnerElementsSources);
+         return new ArrayRun(owner, newFormat, LengthFromAnchor, newParentOffset, Start, elementCount, ElementContent, PointerSources, newInnerElementsSources);
       }
 
       private void UpdateNamedConstant(ModelDelta token, ref int desiredValue, bool alsoUpdateArrays) {

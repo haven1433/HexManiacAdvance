@@ -5,6 +5,7 @@ using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -568,6 +569,21 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(2, table.ElementCount);
          Assert.Equal("bob", table.ElementNames[0]);
          Assert.Equal("carl", table.ElementNames[1]);
+      }
+
+      [Fact]
+      public void MatchedTableWithMinusEnd_AppendTwo_NoMinus() {
+         CreateTextTable("names", 0x100, "adam", "bob", "carl", "dave");
+         ViewPort.Edit("@00 ^table[field.]names-0-2 ");
+
+         ViewPort.Goto.Execute("names");
+         Array.ForEach(new object[] { Direction.End, Direction.Right }, ViewPort.MoveSelectionStart.Execute);
+         ViewPort.Edit("+");
+
+         var table = (ArrayRun)Model.GetTable("table");
+         Assert.Equal(ParentOffset.Default, table.ParentOffset);
+         Assert.EndsWith("names", table.FormatString);
+         Assert.Equal(5, table.ElementCount);
       }
 
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
