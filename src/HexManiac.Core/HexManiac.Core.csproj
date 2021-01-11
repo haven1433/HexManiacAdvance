@@ -63,6 +63,7 @@
     <Compile Include="Models\Runs\HeaderRow.cs" />
     <Compile Include="Models\Runs\ModelCacheScope.cs" />
     <Compile Include="Models\Runs\OverworldSpriteListRun.cs" />
+    <Compile Include="Models\Runs\PIERun.cs" />
     <Compile Include="Models\Runs\PLMRun.cs" />
     <Compile Include="Models\Runs\Sprites\LZRun.cs" />
     <Compile Include="Models\Runs\Sprites\LzPaletteRun.cs" />

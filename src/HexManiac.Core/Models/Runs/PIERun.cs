@@ -1,0 +1,489 @@
+﻿using HavenSoft.HexManiac.Core.Models.Runs.Factory;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
+
+namespace HavenSoft.HexManiac.Core.Models.Runs {
+   /// <summary>
+   /// Represents a pokemon item effect.
+   /// See https://www.pokecommunity.com/showthread.php?p=6745155#post6745155
+   /// </summary>
+   public class PIERun : BaseRun, IStreamRun {
+      public const string SharedFormatString = "`pie`";
+      private readonly IDataModel model;
+
+      private bool hasArgByte;
+      private bool hasHappinessBytes;
+
+      #region Properties
+
+      // --- byte 0 ---
+      public bool HealInfatuation {
+         get => GetBit(Start, 7);
+         set => SetBit(Start, 7, value);
+      }
+
+      public bool ApplyToFirstPokemonOnly {
+         get => GetBit(Start, 6);
+         set => SetBit(Start, 6, value);
+      }
+
+      public sbyte DireHit {
+         get {
+            var high = GetBit(Start, 5);
+            var low = GetBit(Start, 4);
+            return (sbyte)((high ? 2 : 0) + (low ? 1 : 0));
+         }
+         set {
+            var high = value > 1;
+            var low = value % 2 == 1;
+            SetBit(Start, 5, high);
+            SetBit(Start, 4, low);
+         }
+      }
+
+      public int AttackStatIncrease {
+         get => GetLow(Start);
+         set => SetLow(Start, value);
+      }
+
+      // --- byte 1 ---
+      public int SpeedStatIncrease {
+         get => GetLow(Start + 1);
+         set => SetLow(Start + 1, value);
+      }
+
+      public int DefenseStatIncrease {
+         get => GetHigh(Start + 1);
+         set => SetHigh(Start + 1, value);
+      }
+
+      // --- byte 2 ---
+      public int SpecialAttackStatIncrease {
+         get => GetLow(Start + 2);
+         set => SetLow(Start + 2, value);
+      }
+
+      public int AccuracyStatIncrease {
+         get => GetHigh(Start + 2);
+         set => SetHigh(Start + 2, value);
+      }
+
+      // --- byte 3 ---
+      public bool GuardSpec {
+         get => GetBit(Start + 3, 7);
+         set => SetBit(Start + 3, 7, value);
+      }
+      public bool LevelUp {
+         get => GetBit(Start + 3, 6);
+         set => SetBit(Start + 3, 6, value);
+      }
+      public bool ClearSleep {
+         get => GetBit(Start + 3, 5);
+         set => SetBit(Start + 3, 5, value);
+      }
+      public bool ClearPoison {
+         get => GetBit(Start + 3, 4);
+         set => SetBit(Start + 3, 4, value);
+      }
+      public bool ClearBurn {
+         get => GetBit(Start + 3, 3);
+         set => SetBit(Start + 3, 3, value);
+      }
+      public bool ClearIce {
+         get => GetBit(Start + 3, 2);
+         set => SetBit(Start + 3, 2, value);
+      }
+      public bool ClearParalyze {
+         get => GetBit(Start + 3, 1);
+         set => SetBit(Start + 3, 1, value);
+      }
+      public bool ClearConfusion {
+         get => GetBit(Start + 3, 0);
+         set => SetBit(Start + 3, 0, value);
+      }
+
+      // --- byte 4 ---
+      public bool IncreaseHpEv {
+         get => GetBit(Start + 4, 0);
+         set => SetBit(Start + 4, 0, value);
+      }
+      public bool IncreaseAttackEv {
+         get => GetBit(Start + 4, 1);
+         set => SetBit(Start + 4, 1, value);
+      }
+      public bool HealHealth {
+         get => GetBit(Start + 4, 2);
+         set => SetBit(Start + 4, 2, value);
+      }
+      public bool HealPowerPoints {
+         get => GetBit(Start + 4, 3);
+         set => SetBit(Start + 4, 3, value);
+      }
+      public bool RequireAttackSelection {
+         get => GetBit(Start + 4, 4);
+         set => SetBit(Start + 4, 4, value);
+      }
+      public bool IncreaseMaxPowerPoints { // does this use Arg?
+         get => GetBit(Start + 4, 5);
+         set => SetBit(Start + 4, 5, value);
+      }
+      public bool ReviveAndHeal {
+         get => GetBit(Start + 4, 6);
+         set => SetBit(Start + 4, 6, value);
+      }
+      public bool EvolutionStone {
+         get => GetBit(Start + 4, 7);
+         set => SetBit(Start + 4, 7, value);
+      }
+
+      // --- byte 5 ---
+      public bool ChangeHappinessWhenGreaterThan200 {
+         get => GetBit(Start + 5, 7);
+         set => SetBit(Start + 5, 7, value);
+      }
+      public bool ChangeHappinessWhenBetween100And199{
+         get => GetBit(Start + 5, 6);
+         set => SetBit(Start + 5, 6, value);
+      }
+      public bool ChangeHappinessWhenLessThan100 {
+         get => GetBit(Start + 5, 5);
+         set => SetBit(Start + 5, 5, value);
+      }
+      public bool IncreasePowerPointsToMax {
+         get => GetBit(Start + 5, 4);
+         set => SetBit(Start + 5, 4, value);
+      }
+      public bool IncreaseSpecialDefenseEv {
+         get => GetBit(Start + 5, 3);
+         set => SetBit(Start + 5, 3, value);
+      }
+      public bool IncreaseSpecialAttackEv {
+         get => GetBit(Start + 5, 2);
+         set => SetBit(Start + 5, 2, value);
+      }
+      public bool IncreaseSpeedEv {
+         get => GetBit(Start + 5, 1);
+         set => SetBit(Start + 5, 1, value);
+      }
+      public bool IncreaseDefenseEv {
+         get => GetBit(Start + 5, 0);
+         set => SetBit(Start + 5, 0, value);
+      }
+
+      // --- byte 6 ---
+      public bool HasArg => hasArgByte;
+      public const sbyte
+         HealthRestore_Max = -1,
+         HealthRestore_Half = -2,
+         HealthRestore_FromLevelUp = -3;
+      public short Arg {
+         get {
+            short value = (sbyte)model[Start + 6];
+            if (value < -3) value += 0x100;
+            return value;
+         }
+         set => editScope.ChangeToken.ChangeData(model, Start + 6, (byte)value);
+      }
+
+      // --- byte 6/7 ---
+      public bool HasHappinessBytes => hasHappinessBytes;
+      public sbyte LowHappinessChange {
+         get => (sbyte)model[Start + 6 + (HasArg ? 1 : 0)];
+         set => editScope.ChangeToken.ChangeData(model, Start + 6 + (HasArg ? 1 : 0), (byte)value);
+      }
+      // --- byte 7/8 ---
+      public sbyte MidHappinessChange {
+         get => (sbyte)model[Start + 7];
+         set => editScope.ChangeToken.ChangeData(model, Start + 7 + (HasArg ? 1 : 0), (byte)value);
+      }
+      // --- byte 8/9 ---
+      public sbyte HighHappinessChange {
+         get => (sbyte)model[Start + 8 + (HasArg ? 1 : 0)];
+         set => editScope.ChangeToken.ChangeData(model, Start + 8 + (HasArg ? 1 : 0), (byte)value);
+      }
+
+      #endregion
+
+      #region Baseclass Stuff
+
+      public override int Length => 6 + (hasArgByte ? 1 : 0) + (hasHappinessBytes ? 3 : 0);
+
+      public override string FormatString => SharedFormatString;
+
+      public PIERun(IDataModel model, int start, SortedSpan<int> sources = null) : base(start, sources) {
+         this.model = model;
+         RefreshFlags();
+      }
+
+      public override IDataFormat CreateDataFormat(IDataModel data, int index) {
+         return None.Instance;
+      }
+
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new PIERun(model, Start, newPointerSources);
+
+      private void RefreshFlags() {
+         hasHappinessBytes = ChangeHappinessWhenLessThan100 || ChangeHappinessWhenBetween100And199 || ChangeHappinessWhenGreaterThan200;
+         hasArgByte =
+            IncreaseSpecialDefenseEv ||
+            IncreaseDefenseEv ||
+            IncreaseAttackEv ||
+            IncreaseSpecialAttackEv ||
+            IncreaseSpeedEv ||
+            IncreaseHpEv ||
+            HealHealth ||
+            HealPowerPoints;
+      }
+
+      #endregion
+
+      #region IStreamRun Stuff
+
+      public string SerializeRun() {
+         var result = new StringBuilder();
+         result.AppendLine($"ApplyToFirstPokemonOnly = {ApplyToFirstPokemonOnly}");
+         result.AppendLine($"RequireAttackSelection = {RequireAttackSelection}");
+         result.AppendLine($"DireHit = {DireHit}");
+         RenderFlagList(result, "General", new Dictionary<string, bool> {
+            ["GuardSpec"] = GuardSpec,
+            ["LevelUp"] = LevelUp,
+            ["HealHealth"] = HealHealth,
+            ["HealPowerPoints"] = HealPowerPoints,
+            ["ReviveAndHeal"] = ReviveAndHeal,
+            ["EvolutionStone"] = EvolutionStone,
+         });
+         RenderFlagList(result, "ClearStat", new Dictionary<string, bool> {
+            ["Infatuation"] = HealInfatuation,
+            ["Sleep"] = ClearSleep,
+            ["Poison"] = ClearPoison,
+            ["Burn"] = ClearBurn,
+            ["Ice"] = ClearIce,
+            ["Paralyze"] = ClearParalyze,
+            ["Confusion"] = ClearConfusion,
+         });
+         RenderFlagList(result, "IncreaseStat", new Dictionary<string, bool> {
+            ["HpEv"] = IncreaseHpEv,
+            ["AttackEv"] = IncreaseAttackEv,
+            ["DefenseEv"] = IncreaseDefenseEv,
+            ["SpecialAttackEv"] = IncreaseSpecialAttackEv,
+            ["SpecialDefenseEv"] = IncreaseSpecialDefenseEv,
+            ["SpeedEv"] = IncreaseSpeedEv,
+            ["MaxPowerPoints"] = IncreaseMaxPowerPoints,
+            ["PowerPointsToMax"] = IncreasePowerPointsToMax,
+         });
+         RenderFlagList(result, "ChangeHappiness", new Dictionary<string, bool> {
+            ["Low"] = ChangeHappinessWhenLessThan100,
+            ["Mid"] = ChangeHappinessWhenBetween100And199,
+            ["High"] = ChangeHappinessWhenGreaterThan200,
+         });
+         result.AppendLine();
+         result.AppendLine($"AttackStatIncrease = {AttackStatIncrease}");
+         result.AppendLine($"SpecialAttackStatIncrease = {SpecialAttackStatIncrease}");
+         result.AppendLine($"DefenseStatIncrease = {DefenseStatIncrease}");
+         result.AppendLine($"SpeedStatIncrease = {SpeedStatIncrease}");
+         result.AppendLine($"AccuracyStatIncrease = {AccuracyStatIncrease}");
+
+         if (HasArg) {
+            result.AppendLine();
+            var arg = Arg;
+            var argText = arg.ToString();
+            if (arg == HealthRestore_FromLevelUp) argText = "LevelUpHealth";
+            if (arg == HealthRestore_Half) argText = "Half";
+            if (arg == HealthRestore_Max) argText = "Max";
+            result.AppendLine($"Arg = {argText}");
+         }
+         if (HasHappinessBytes) {
+            result.AppendLine();
+            result.AppendLine($"LowHappinessChange = {LowHappinessChange}");
+            result.AppendLine($"MidHappinessChange = {MidHappinessChange}");
+            result.AppendLine($"HighHappinessChange = {HighHappinessChange}");
+         }
+
+         return result.ToString();
+      }
+
+      private void RenderFlagList(StringBuilder builder, string setName, IDictionary<string, bool> flags) {
+         builder.Append(setName + " = { ");
+         var content = ", ".Join(flags.Keys.Where(key => flags[key]));
+         if (!string.IsNullOrWhiteSpace(content)) content += " ";
+         builder.Append(content);
+         builder.AppendLine("}");
+      }
+
+      private void ReadFlagList(string list, IDictionary<string, Action<bool>> options) {
+         var tokens = list.Split(new[] { '{', '}', ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
+         foreach (var key in options.Keys) {
+            if (tokens.Contains(key.ToLower())) {
+               options[key](true);
+            } else {
+               options[key](false);
+            }
+         }
+      }
+
+      public IStreamRun DeserializeRun(string content, ModelDelta token) {
+         var pairs = content.Split(Environment.NewLine).Where(line => line.Count('=') == 1).Select(line => line.Split('=')).Select(pair => new KeyValuePair<string, string>(pair[0].Trim().ToLower(), pair[1].Trim().ToLower()));
+         bool parseBool; sbyte parseInt;
+         using (var scope = new EditScope(token, this)) {
+            // check the bytes that everyone has
+            foreach (var pair in pairs) {
+               if (pair.Key == "applytofirstpokemononly" && bool.TryParse(pair.Value, out parseBool)) ApplyToFirstPokemonOnly = parseBool;
+               if (pair.Key == "requireattackselection" && bool.TryParse(pair.Value, out parseBool)) RequireAttackSelection = parseBool;
+               if (pair.Key == "direhit" && sbyte.TryParse(pair.Value, out parseInt)) DireHit = parseInt;
+               if (pair.Key == "attackstatincrease" && sbyte.TryParse(pair.Value, out parseInt)) AttackStatIncrease = parseInt;
+               if (pair.Key == "specialattackstatincrease" && sbyte.TryParse(pair.Value, out parseInt)) SpecialAttackStatIncrease = parseInt;
+               if (pair.Key == "defensestatincrease" && sbyte.TryParse(pair.Value, out parseInt)) DefenseStatIncrease = parseInt;
+               if (pair.Key == "speedstatincrease" && sbyte.TryParse(pair.Value, out parseInt)) SpeedStatIncrease = parseInt;
+               if (pair.Key == "accuracystatincrease" && sbyte.TryParse(pair.Value, out parseInt)) AccuracyStatIncrease = parseInt;
+
+               if (pair.Key == "general") ReadFlagList(pair.Value, new Dictionary<string, Action<bool>> {
+                  ["GuardSpec"] = v => GuardSpec = v,
+                  ["LevelUp"] = v => LevelUp = v,
+                  ["HealHealth"] = v => HealHealth = v,
+                  ["HealPowerPoints"] = v => HealPowerPoints = v,
+                  ["ReviveAndHeal"] = v => ReviveAndHeal = v,
+                  ["EvolutionStone"] = v => EvolutionStone = v,
+               });
+
+               if (pair.Key == "clearstat") ReadFlagList(pair.Value, new Dictionary<string, Action<bool>> {
+                  ["Infatuation"] = v => HealInfatuation = v,
+                  ["Sleep"] = v => ClearSleep = v,
+                  ["Poison"] = v => ClearPoison = v,
+                  ["Burn"] = v => ClearBurn = v,
+                  ["Ice"] = v => ClearIce = v,
+                  ["Paralyze"] = v => ClearParalyze = v,
+                  ["Confusion"] = v => ClearConfusion = v,
+               });
+
+               if (pair.Key == "increasestat") ReadFlagList(pair.Value, new Dictionary<string, Action<bool>> {
+                  ["HpEv"] = v => IncreaseHpEv = v,
+                  ["AttackEv"] = v => IncreaseAttackEv = v,
+                  ["DefenseEv"] = v => IncreaseDefenseEv = v,
+                  ["SpecialAttackEv"] = v => IncreaseSpecialAttackEv = v,
+                  ["SpecialDefenseEv"] = v => IncreaseSpecialDefenseEv = v,
+                  ["SpeedEv"] = v => IncreaseSpeedEv = v,
+                  ["MaxPowerPoints"] = v => IncreaseMaxPowerPoints = v,
+                  ["PowerPointsToMax"] = v => IncreasePowerPointsToMax = v,
+               });
+
+               if (pair.Key == "changehappiness") ReadFlagList(pair.Value, new Dictionary<string, Action<bool>> {
+                  ["Low"] = v => ChangeHappinessWhenLessThan100 = v,
+                  ["Mid"] = v => ChangeHappinessWhenBetween100And199 = v,
+                  ["High"] = v => ChangeHappinessWhenGreaterThan200 = v,
+               });
+            }
+
+            Repoint(this);
+
+            // check the bytes that we may have, now that we've possibly been repointed.
+            foreach (var pair in pairs) {
+               if (pair.Key == "arg" && editScope.Result.HasArg) {
+                  var toParse = pair.Value;
+                  if (toParse == "leveluphealth") editScope.Result.Arg = HealthRestore_FromLevelUp;
+                  else if (toParse == "half") editScope.Result.Arg = HealthRestore_Half;
+                  else if (toParse == "max") editScope.Result.Arg = HealthRestore_Max;
+                  else if (sbyte.TryParse(pair.Value, out parseInt)) editScope.Result.Arg = parseInt;
+               }
+
+               if (pair.Key == "lowhappinesschange" && editScope.Result.HasHappinessBytes && sbyte.TryParse(pair.Value, out parseInt)) editScope.Result.LowHappinessChange = parseInt;
+               if (pair.Key == "midhappinesschange" && editScope.Result.HasHappinessBytes && sbyte.TryParse(pair.Value, out parseInt)) editScope.Result.MidHappinessChange = parseInt;
+               if (pair.Key == "highhappinesschange" && editScope.Result.HasHappinessBytes && sbyte.TryParse(pair.Value, out parseInt)) editScope.Result.HighHappinessChange = parseInt;
+            }
+
+            return scope.Result;
+         }
+      }
+
+      public bool DependsOn(string anchorName) => false;
+
+      #endregion
+
+      #region Edit Stuff
+
+      private class EditScope : IDisposable {
+         public ModelDelta ChangeToken { get; private set; }
+         public PIERun Result { get; set; }
+         public EditScope(ModelDelta token, PIERun initialResult) => (ChangeToken, Result) = (token, initialResult);
+         public void Dispose() => ChangeToken = null;
+      }
+      private EditScope editScope;
+
+      public IDisposable CreateEditScope(ModelDelta token) {
+         Debug.Assert(editScope?.ChangeToken == null, "No nesting edit scopes for item effect runs!");
+         return editScope = new EditScope(token, this);
+      }
+
+      public PIERun Edit(ModelDelta token, Action editAction) {
+         using (var scope = new EditScope(token, this)) {
+            editAction();
+            return scope.Result;
+         }
+      }
+
+      private bool GetBit(int address, int bit) => (model[address] & (1 << bit)) != 0;
+      private void SetBit(int address, int bit, bool value) {
+         var otherBits = model[address] & ~(1 << bit);
+         var thisBit = value ? (1 << bit) : 0;
+         editScope.ChangeToken.ChangeData(model, address, (byte)(otherBits | thisBit));
+         var newRun = new PIERun(model, Start, PointerSources);
+         if (newRun.hasHappinessBytes != hasHappinessBytes || newRun.hasArgByte != hasArgByte) {
+            Repoint(newRun);
+         }
+      }
+
+      private int GetHigh(int address) => (model[address] & 0xF0) >> 4;
+      private void SetHigh(int address, int value) {
+         var low = model[address] & 0xF;
+         var high = value.LimitToRange(0, 15) << 4;
+         editScope.ChangeToken.ChangeData(model, address, (byte)(high | low));
+      }
+
+      private int GetLow(int address) => model[address] & 0xF;
+      private void SetLow(int address, int value) {
+         var high = model[address] & 0xF0;
+         var low = value.LimitToRange(0, 15);
+         editScope.ChangeToken.ChangeData(model, address, (byte)(high | low));
+      }
+
+      private void Repoint(PIERun newFlags) {
+         for (int i = 0; i < Length - newFlags.Length; i++) {
+            editScope.ChangeToken.ChangeData(model, Start + newFlags.Length + i, 0xFF);
+         }
+         var newRun = model.RelocateForExpansion(editScope.ChangeToken, this, newFlags.Length);
+         for (int i = 0; i < newFlags.Length - Length; i++) {
+            editScope.ChangeToken.ChangeData(model, newRun.Start + Length + i, 0x00);
+         }
+         editScope.Result = newRun;
+      }
+
+      #endregion
+   }
+
+   public class PIERunContentStrategy : RunStrategy {
+      public override int LengthForNewRun(IDataModel model, int pointerAddress) => 6;
+
+      public override bool Matches(IFormattedRun run) => run is PIERun;
+
+      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
+         owner.ObserveRunWritten(token, new PIERun(owner, destination, new SortedSpan<int>(source)));
+         return true;
+      }
+
+      public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+         run = new PIERun(model, dataIndex);
+         return ErrorInfo.NoError;
+      }
+
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
+         run = new PIERun(model, run.Start, run.PointerSources);
+      }
+
+      public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
+         for (int i = 0; i < 6; i++) token.ChangeData(owner, destination + i, 0);
+         return new PIERun(owner, destination, new SortedSpan<int>(source));
+      }
+   }
+}
