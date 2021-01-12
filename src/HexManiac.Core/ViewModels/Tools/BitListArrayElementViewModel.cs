@@ -123,7 +123,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
             if (rotatedBitArray != null) break;
          }
-         if (rotatedBitArray == null) throw new NotImplementedException();
+         if (rotatedBitArray == null) throw new NotImplementedException($"Trying to Rotate {anchor}:{Name} at {start:X6}, but couldn't find a matching array.");
 
          return rotatedBitArray;
       }
