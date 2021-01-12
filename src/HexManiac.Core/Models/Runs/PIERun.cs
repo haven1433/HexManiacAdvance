@@ -16,7 +16,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private readonly IDataModel model;
 
       private bool hasArgByte;
-      private bool hasHappinessBytes;
+      private bool hasLowHappinessByte, hasMidHappinessByte, hasHighHappinessByte;
 
       #region Properties
 
@@ -190,27 +190,29 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       // --- byte 6/7 ---
-      public bool HasHappinessBytes => hasHappinessBytes;
+      public bool HasLowHappinessByte => hasLowHappinessByte;
       public sbyte LowHappinessChange {
          get => (sbyte)model[Start + 6 + (HasArg ? 1 : 0)];
          set => editScope.ChangeToken.ChangeData(model, Start + 6 + (HasArg ? 1 : 0), (byte)value);
       }
-      // --- byte 7/8 ---
+      // --- byte 6/7/8 ---
+      public bool HasMidHappinessByte => hasMidHappinessByte;
       public sbyte MidHappinessChange {
-         get => (sbyte)model[Start + 7];
-         set => editScope.ChangeToken.ChangeData(model, Start + 7 + (HasArg ? 1 : 0), (byte)value);
+         get => (sbyte)model[Start + 6 + (HasArg ? 1 : 0) + (HasLowHappinessByte ? 1 : 0)];
+         set => editScope.ChangeToken.ChangeData(model, Start + 6 + (HasArg ? 1 : 0) + (HasLowHappinessByte ? 1 : 0), (byte)value);
       }
       // --- byte 8/9 ---
+      public bool HasHighHappinessByte => hasHighHappinessByte;
       public sbyte HighHappinessChange {
-         get => (sbyte)model[Start + 8 + (HasArg ? 1 : 0)];
-         set => editScope.ChangeToken.ChangeData(model, Start + 8 + (HasArg ? 1 : 0), (byte)value);
+         get => (sbyte)model[Start + 6 + (HasArg ? 1 : 0) + (HasLowHappinessByte ? 1 : 0) + (HasMidHappinessByte ? 1 : 0)];
+         set => editScope.ChangeToken.ChangeData(model, Start + 6 + (HasArg ? 1 : 0) + (HasLowHappinessByte ? 1 : 0) + (HasMidHappinessByte ? 1 : 0), (byte)value);
       }
 
       #endregion
 
       #region Baseclass Stuff
 
-      public override int Length => 6 + (hasArgByte ? 1 : 0) + (hasHappinessBytes ? 3 : 0);
+      public override int Length => 6 + (hasArgByte ? 1 : 0) + (hasLowHappinessByte ? 1 : 0) + (hasMidHappinessByte ? 1 : 0) + (hasHighHappinessByte ? 1 : 0);
 
       public override string FormatString => SharedFormatString;
 
@@ -226,7 +228,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new PIERun(model, Start, newPointerSources);
 
       private void RefreshFlags() {
-         hasHappinessBytes = ChangeHappinessWhenLessThan100 || ChangeHappinessWhenBetween100And199 || ChangeHappinessWhenGreaterThan200;
+         hasLowHappinessByte = ChangeHappinessWhenLessThan100;
+         hasMidHappinessByte = ChangeHappinessWhenBetween100And199;
+         hasHighHappinessByte = ChangeHappinessWhenGreaterThan200;
          hasArgByte =
             IncreaseSpecialDefenseEv ||
             IncreaseDefenseEv ||
@@ -295,12 +299,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (arg == HealthRestore_Max) argText = "Max";
             result.AppendLine($"Arg = {argText}");
          }
-         if (HasHappinessBytes) {
-            result.AppendLine();
-            result.AppendLine($"LowHappinessChange = {LowHappinessChange}");
-            result.AppendLine($"MidHappinessChange = {MidHappinessChange}");
-            result.AppendLine($"HighHappinessChange = {HighHappinessChange}");
-         }
+         if (HasLowHappinessByte || HasMidHappinessByte || HasHighHappinessByte) result.AppendLine();
+         if (HasLowHappinessByte) result.AppendLine($"LowHappinessChange = {LowHappinessChange}");
+         if (HasMidHappinessByte) result.AppendLine($"MidHappinessChange = {MidHappinessChange}");
+         if (HasHighHappinessByte) result.AppendLine($"HighHappinessChange = {HighHappinessChange}");
 
          return result.ToString();
       }
@@ -388,9 +390,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   else if (sbyte.TryParse(pair.Value, out parseInt)) editScope.Result.Arg = parseInt;
                }
 
-               if (pair.Key == "lowhappinesschange" && editScope.Result.HasHappinessBytes && sbyte.TryParse(pair.Value, out parseInt)) editScope.Result.LowHappinessChange = parseInt;
-               if (pair.Key == "midhappinesschange" && editScope.Result.HasHappinessBytes && sbyte.TryParse(pair.Value, out parseInt)) editScope.Result.MidHappinessChange = parseInt;
-               if (pair.Key == "highhappinesschange" && editScope.Result.HasHappinessBytes && sbyte.TryParse(pair.Value, out parseInt)) editScope.Result.HighHappinessChange = parseInt;
+               if (pair.Key == "lowhappinesschange" && editScope.Result.HasLowHappinessByte && sbyte.TryParse(pair.Value, out parseInt)) editScope.Result.LowHappinessChange = parseInt;
+               if (pair.Key == "midhappinesschange" && editScope.Result.HasMidHappinessByte && sbyte.TryParse(pair.Value, out parseInt)) editScope.Result.MidHappinessChange = parseInt;
+               if (pair.Key == "highhappinesschange" && editScope.Result.HasHighHappinessByte && sbyte.TryParse(pair.Value, out parseInt)) editScope.Result.HighHappinessChange = parseInt;
             }
 
             return scope.Result;
@@ -429,7 +431,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var thisBit = value ? (1 << bit) : 0;
          editScope.ChangeToken.ChangeData(model, address, (byte)(otherBits | thisBit));
          var newRun = new PIERun(model, Start, PointerSources);
-         if (newRun.hasHappinessBytes != hasHappinessBytes || newRun.hasArgByte != hasArgByte) {
+         if (
+            newRun.hasLowHappinessByte != hasLowHappinessByte ||
+            newRun.hasMidHappinessByte != hasMidHappinessByte ||
+            newRun.hasHighHappinessByte != hasHighHappinessByte ||
+            newRun.hasArgByte != hasArgByte
+         ) {
             Repoint(newRun);
          }
       }
