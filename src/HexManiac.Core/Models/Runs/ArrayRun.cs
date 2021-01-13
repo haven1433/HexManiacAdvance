@@ -1016,6 +1016,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             case ElementContentType.Integer:
                if (segment is ArrayRunEnumSegment enumSegment) {
                   var options = enumSegment.GetOptions(owner).ToList();
+                  // don't verify enums that are based on lists.
+                  // There could be more elements in use than elements in the list, especially for edited ROMs with default lists.
+                  if (owner.TryGetList(enumSegment.EnumName, out var _)) return true;
                   var modelValue = owner.ReadMultiByteValue(start, segment.Length);
                   if (segment.Length == 2 && (short)modelValue == -2) return true; // allow FFFE short tokens: they often have special meaning
                   return modelValue < options.Count;

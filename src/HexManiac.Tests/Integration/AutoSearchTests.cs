@@ -563,7 +563,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.True(model.TryGetNameArray(TrainerTableName, out var trainers));
          if (game.Contains("Emerald")) Assert.Equal(855, trainers.ElementCount);
-         else if (game.Contains("Altair")) Assert.Equal(1, trainers.ElementCount); // actually has 855, but the first element is glitched in a way that I shouldn't auto-recover.
+         else if (game.Contains("Altair")) Assert.Equal(855, trainers.ElementCount);
          else if (game.Contains("FireRed")) Assert.Equal(743, trainers.ElementCount);
          else if (game.Contains("LeafGreen")) Assert.Equal(743, trainers.ElementCount);
          else if (game.Contains("Clover")) Assert.Equal(743, trainers.ElementCount);
