@@ -123,8 +123,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
             var destination = DestinationName;
             if (string.IsNullOrEmpty(destination)) destination = Destination.ToString("X6");
             var offset = string.Empty;
-            if (OffsetValue > 0) offset = "+" + OffsetValue.ToString("X6");
-            if (OffsetValue < 0) offset = "-" + (-OffsetValue).ToString("X6");
+            if (OffsetValue > 0) offset = "+" + OffsetValue.ToString("X1");
+            if (OffsetValue < 0) offset = "-" + (-OffsetValue).ToString("X1");
             return $"<{destination}{offset}>";
          }
       }
