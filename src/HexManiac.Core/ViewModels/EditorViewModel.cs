@@ -450,7 +450,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var metadata = new StoredMetadata(metadataText);
                var model = new HardcodeTablesModel(Singletons, file.Contents, metadata);
                var viewPort = new ViewPort(file.Name, model, Singletons);
-               if (metadata.IsEmpty) {
+               if (metadata.IsEmpty || StoredMetadata.NeedVersionUpdate(metadata.Version, Singletons.MetadataInfo.VersionNumber)) {
                   Action saveMetadata = () => {
                      fileSystem.SaveMetadata(file.Name, viewPort.Model.ExportMetadata(Singletons.MetadataInfo).Serialize());
                      Debug.Assert(viewPort.ChangeHistory.IsSaved, "Put a breakpoint in ChangeHistory.CurrentChange, because a changable token is being created too soon!");

@@ -340,15 +340,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          for (int i = 0; i < Length; i++) {
             var bits = rawData[offset + i];
-            var optionOffset = i << 3;
-            for (int j = 0; j < 8; j++) {
-               if ((bits & (1 << j)) == 0) continue;
-               result.Append(" ");
-               result.Append(options[optionOffset + j]);
+            if (options == null) {
+               result.Append(bits.ToString("X2"));
+            } else {
+               var optionOffset = i << 3;
+               for (int j = 0; j < 8; j++) {
+                  if ((bits & (1 << j)) == 0) continue;
+                  result.Append(" ");
+                  result.Append(options[optionOffset + j]);
+               }
             }
          }
 
-         result.Append(" /");
+         result.Append(" ");
+         if (options != null) result.Append("/");
          return result.ToString();
       }
 

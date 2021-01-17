@@ -1213,7 +1213,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
             if (selectionHeight < 0) start -= new Point(0, selectionHeight + height - 1);
             if (selectionWidth < 0) start -= new Point(selectionWidth + width - 1, 0);
+
             (selectionStart, selectionWidth, selectionHeight) = (start, width, height);
+            if (selectionStart.X < 0 || selectionStart.Y < 0) return;
+            if (selectionStart.X + selectionWidth > parent.PixelWidth || selectionStart.Y + selectionHeight > parent.PixelHeight) return;
 
             if (selectionWidth == 1 && selectionHeight == 1 && parent.SelectedTool != ImageEditorTools.Fill) {
                var (xx, yy) = selectionStart;

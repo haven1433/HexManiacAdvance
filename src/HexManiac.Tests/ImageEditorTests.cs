@@ -945,6 +945,28 @@ namespace HavenSoft.HexManiac.Tests {
       public void Sprite_CanEditTilePalettes_False() {
          Assert.False(editor.CanEditTilePalettes);
       }
+
+      [Fact]
+      public void EyeDropper_SelectFromLeftOfImage_DoNothing() {
+         editor.SelectedTool = ImageEditorTools.EyeDropper;
+
+         editor.ToolDown(-6, 0);
+         editor.Hover(-1, 3);
+         editor.ToolUp(-1, 3);
+
+         Assert.False(editor.BlockPreview.Enabled);
+      }
+
+      [Fact]
+      public void EyeDropper_SelectFromBelowImage_DoNothing() {
+         editor.SelectedTool = ImageEditorTools.EyeDropper;
+
+         editor.ToolDown(0, 6);
+         editor.Hover(2, 3);
+         editor.ToolUp(2, 3);
+
+         Assert.False(editor.BlockPreview.Enabled);
+      }
    }
 
    public class ImageEditorTilemapTests {
@@ -1295,7 +1317,6 @@ namespace HavenSoft.HexManiac.Tests {
 
          editor = new ImageEditorViewModel(history, model, ImageStart);
       }
-
 
       [Fact]
       public void InitialState_PaletteHas2Colors() {
