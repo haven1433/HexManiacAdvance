@@ -233,6 +233,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public const char ArrayAnchorSeparator = '/';
       public const string HexFormatString = "|h";
       public const string RecordFormatString = "|s=";
+      public const string TupleFormatString = "|t";
       public const string ColorFormatString = "|c";
 
       private const int JunkLimit = 80;
@@ -845,6 +846,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   if (endOfToken == -1) endOfToken = segments.Length;
                   segments = segments.Substring(endOfToken).Trim();
                   list.Add(new ArrayRunHexSegment(name, segmentLength));
+               } else if (segments.StartsWith(TupleFormatString)) {
+                  var endOfToken = segments.IndexOf(' ');
+                  if (endOfToken == -1) endOfToken = segments.Length;
+                  var tupleContract = segments.Substring(TupleFormatString.Length, endOfToken - TupleFormatString.Length);
+                  segments = segments.Substring(endOfToken).Trim();
+                  list.Add(new ArrayRunTupleSegment(name, tupleContract, segmentLength));
                } else if (segments.StartsWith(ColorFormatString)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;

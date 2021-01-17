@@ -104,6 +104,7 @@
     <Compile Include="Before_Baseclass\ViewPortCursorTests.cs" />
     <Compile Include="TilemapTableTests.cs" />
     <Compile Include="ToolTipTests.cs" />
+    <Compile Include="TupleTests.cs" />
     <Compile Include="ViewPortEditTests.cs" />
     <Compile Include="Before_Baseclass\ViewPortSaveTests.cs" />
     <Compile Include="Before_Baseclass\ViewPortScrollTests.cs" />

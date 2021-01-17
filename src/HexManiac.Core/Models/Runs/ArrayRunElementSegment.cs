@@ -313,6 +313,25 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
    }
 
+   public class ArrayRunTupleSegment : ArrayRunElementSegment {
+      public IReadOnlyList<TupleSegment> Elements { get; }
+      public ArrayRunTupleSegment(string name, string contract, int length) : base(name, ElementContentType.Integer, length) {
+         var content = new List<TupleSegment>();
+         foreach (var part in contract.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries)) {
+            var elementName = part.Split('.', ':')[0];
+            var elementSize = part.Substring(elementName.Length).Sum(c => c == '.' ? 1 : c == ':' ? 2 : 0);
+            content.Add(new TupleSegment(elementName, elementSize));
+         }
+         Elements = content;
+         if (content.Sum(seg => seg.BitWidth) > length * 8) throw new ArrayRunParseException($"{name}: tuple too long to fit in field!");
+      }
+   }
+   public class TupleSegment {
+      public string Name { get; }
+      public int BitWidth { get; }
+      public TupleSegment(string name, int width) => (Name, BitWidth) = (name, width);
+   }
+
    public class ArrayRunColorSegment : ArrayRunElementSegment {
       public override string SerializeFormat => base.SerializeFormat + ArrayRun.ColorFormatString;
 

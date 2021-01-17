@@ -370,6 +370,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                      AddChild(viewModel);
                      viewModel = new BitListArrayElementViewModel(selection, history, model, item.Name, itemAddress);
                   }
+               } else if (item is ArrayRunTupleSegment tupleItem) {
+                  viewModel = new TupleArrayElementViewModel(viewPort, tupleItem, itemAddress);
                } else if (item is ArrayRunHexSegment) {
                   viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, HexFieldStratgy.Instance);
                } else if (item is ArrayRunColorSegment) {
