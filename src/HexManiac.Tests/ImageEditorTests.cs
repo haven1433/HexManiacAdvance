@@ -985,6 +985,23 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(White, editor.PixelData[editor.PixelIndex(2, 4)]);
          Assert.Equal(White, editor.PixelData[editor.PixelIndex(2, 5)]);
       }
+
+      [Fact]
+      public void Selection_ControlPlusDrag_OriginalPixelsRemainTheSame() {
+         editor.Palette.Elements[1].Color = White;
+         editor.Palette.SelectionStart = 1;
+         editor.CursorSize = 2;
+         ToolMove(new Point(0, 0));
+         editor.SelectedTool = ImageEditorTools.Select;
+         ToolMove(new Point(0, 0), new Point(1, 1));
+
+         editor.ToolDown(new Point(0, 0), altBehavior: true);
+         editor.Hover(new Point(-4, -4));
+         editor.ToolUp(-4, -4);
+
+         Assert.Equal(White, editor.PixelData[editor.PixelIndex(0, 0)]);
+         Assert.Equal(White, editor.PixelData[editor.PixelIndex(4, 4)]);
+      }
    }
 
    public class ImageEditorTilemapTests {

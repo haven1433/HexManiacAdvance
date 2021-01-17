@@ -506,11 +506,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          NotifyPropertyChanged(nameof(PixelData));
       }
 
-      public void ToolDown(Point point) {
+      public void ToolDown(Point point, bool altBehavior = false) {
          history.ChangeCompleted();
          withinInteraction = true;
          interactionStart = point;
-         toolStrategy.ToolDown(point);
+         toolStrategy.ToolDown(point, altBehavior);
       }
 
       public void Hover(Point point) {
@@ -536,7 +536,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void EyeDropperDown(Point point) {
          withinInteraction = withinDropperInteraction = true;
          interactionStart = point;
-         eyeDropperStrategy.ToolDown(point);
+         eyeDropperStrategy.ToolDown(point, altBehavior: false);
       }
 
       public void EyeDropperUp(Point point) {
@@ -547,7 +547,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void PanDown(Point point) {
          withinInteraction = withinPanInteraction = true;
          interactionStart = point;
-         panStrategy.ToolDown(point);
+         panStrategy.ToolDown(point, altBehavior: false);
       }
 
       public void PanUp(Point point) {
@@ -704,7 +704,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       #region Nested Types
 
       private interface IImageToolStrategy {
-         void ToolDown(Point screenPosition);
+         void ToolDown(Point screenPosition, bool altBehavior);
          void ToolHover(Point screenPosition);
          void ToolDrag(Point screenPosition);
          void ToolUp(Point screenPosition);
@@ -718,7 +718,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          public DrawTool(ImageEditorViewModel parent) => this.parent = parent;
 
-         public void ToolDown(Point point) {
+         public void ToolDown(Point point, bool altBehavior) {
             ToolDrag(point);
          }
 
@@ -826,7 +826,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          public SelectionTool(ImageEditorViewModel parent) => this.parent = parent;
 
-         public void ToolDown(Point point) {
+         public void ToolDown(Point point, bool altBehavior) {
             var hoverPoint = parent.ToSpriteSpace(point);
             if (selectionStart.X > hoverPoint.X ||
                selectionStart.Y > hoverPoint.Y ||
@@ -836,6 +836,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                underPixels = null; // old selection lost
                selectionStart = hoverPoint;
                selectionWidth = selectionHeight = 0;
+            } else if (altBehavior) {
+               // copy the parent pixels to the under-pixels
+               for (int x = 0; x < selectionWidth; x++) {
+                  for (int y = 0; y < selectionHeight; y++) {
+                     var (xx, yy) = (selectionStart.X + x, selectionStart.Y + y);
+                     underPixels[x, y] = parent.pixels[xx, yy];
+                  }
+               }
             }
          }
 
@@ -1044,7 +1052,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          private readonly ImageEditorViewModel parent;
          public PanTool(ImageEditorViewModel parent) => this.parent = parent;
 
-         public void ToolDown(Point screenPosition) { }
+         public void ToolDown(Point screenPosition, bool altBehavior) { }
 
          public void ToolDrag(Point point) {
             Debug.WriteLine($"Pan: {parent.interactionStart} to {point}");
@@ -1068,7 +1076,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          public FillTool(ImageEditorViewModel parent) => this.parent = parent;
 
-         public void ToolDown(Point screenPosition) { }
+         public void ToolDown(Point screenPosition, bool altBehavior) { }
 
          public void ToolDrag(Point point) {
             point = parent.ToSpriteSpace(point);
@@ -1163,7 +1171,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          public EyeDropperTool(ImageEditorViewModel parent) => this.parent = parent;
 
-         public void ToolDown(Point point) {
+         public void ToolDown(Point point, bool altBehavior) {
             underPixels = null; // old selection lost
             selectionStart = parent.ToSpriteSpace(point);
             selectionWidth = selectionHeight = 0;
@@ -1268,7 +1276,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          public TilePaletteTool(ImageEditorViewModel parent) => this.parent = parent;
 
-         public void ToolDown(Point screenPosition) => ToolDrag(screenPosition);
+         public void ToolDown(Point screenPosition, bool altBehavior) => ToolDrag(screenPosition);
 
          public void ToolDrag(Point screenPosition) {
             var point = parent.ToSpriteSpace(screenPosition);

@@ -22,7 +22,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void MousePrimaryDown(object sender, MouseButtonEventArgs e) {
          PaletteControl.ClosePopup();
          ImageContainer.CaptureMouse();
-         ViewModel.ToolDown(Point(e));
+         ViewModel.ToolDown(Point(e), Keyboard.Modifiers == ModifierKeys.Control);
       }
       private void MouseMiddleDown(object sender, MouseButtonEventArgs e) {
          if (e.ChangedButton != MouseButton.Middle) return;
