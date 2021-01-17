@@ -967,6 +967,24 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.False(editor.BlockPreview.Enabled);
       }
+
+      [Fact]
+      public void TallEyeDropper_Draw_DrawTallRect() {
+         // draw a vertical line
+         editor.Palette.Elements[1].Color = White;
+         editor.Palette.SelectionStart = 1;
+         ToolMove(new Point(0, -1), new Point(0, 0), new Point(0, 1));
+
+         // grab the vertical line and click to draw it somewhere else
+         editor.SelectedTool = ImageEditorTools.EyeDropper;
+         ToolMove(new Point(0, -1), new Point(0, 0), new Point(0, 1));
+         editor.SelectedTool = ImageEditorTools.Draw;
+         ToolMove(new Point(-2, -1));
+
+         Assert.Equal(White, editor.PixelData[editor.PixelIndex(2, 3)]);
+         Assert.Equal(White, editor.PixelData[editor.PixelIndex(2, 4)]);
+         Assert.Equal(White, editor.PixelData[editor.PixelIndex(2, 5)]);
+      }
    }
 
    public class ImageEditorTilemapTests {

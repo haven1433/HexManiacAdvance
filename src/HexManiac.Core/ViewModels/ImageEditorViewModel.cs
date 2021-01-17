@@ -1159,12 +1159,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          private int selectionWidth, selectionHeight;
          private int[,] underPixels; // the pixels that are 'under' the current selection. As the selection moves, this changes.
 
-         public int[,] Tile {
-            get {
-               if (selectionWidth < 2) return null;
-               return underPixels;
-            }
-         }
+         public int[,] Tile => underPixels;
 
          public EyeDropperTool(ImageEditorViewModel parent) => this.parent = parent;
 
@@ -1240,6 +1235,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                }
 
                parent.Palette.SelectionStart = index;
+               underPixels = null;
             } else {
                underPixels = new int[selectionWidth, selectionHeight];
                for (int x = 0; x < selectionWidth; x++) for (int y = 0; y < selectionHeight; y++) {
