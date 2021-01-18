@@ -1052,12 +1052,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             for (int i = 0; i < usablePalPages.Count; i++) palettes[usablePalPages[i]] = newPalettes[i];
          }
 
-         TryReorderPalettesFromMatchingSprite(palettes, image, spriteRun.GetPixels(model, spritePage));
+         var needWriteSpriteData = true;
+         if (TryReorderPalettesFromMatchingSprite(palettes, image, spriteRun.GetPixels(model, spritePage))) {
+            // palette is reordered, everything matches up with the original data. No need to write sprite data.
+            needWriteSpriteData = false;
+         }
          var indexedTiles = new int[tiles.Length][,];
          for (int i = 0; i < indexedTiles.Length; i++) indexedTiles[i] = Index(tiles[i], palettes, usablePalPages, spriteRun.SpriteFormat.BitsPerPixel, paletteRun?.PaletteFormat.InitialBlankPages ?? 0);
          var sprite = Detilize(indexedTiles, spriteRun.SpriteFormat.TileWidth);
 
-         var newSprite = spriteRun.SetPixels(model, viewPort.CurrentChange, spritePage, sprite);
+         var newSprite = needWriteSpriteData ? spriteRun.SetPixels(model, viewPort.CurrentChange, spritePage, sprite) : spriteRun;
          if (newSprite is ITilemapRun tilemap && model.GetNextRun(tilemap.FindMatchingTileset(model)) is ITilesetRun tileset && model.ReadMultiByteValue(tileset.Start + 1, 3) / (tileset.SpriteFormat.BitsPerPixel * 8) == 1024) {
             viewPort.RaiseError("Maxed out number of available tiles. Simplify your image.");
          }
