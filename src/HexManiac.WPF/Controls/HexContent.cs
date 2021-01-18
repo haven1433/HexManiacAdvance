@@ -74,6 +74,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             nameof(Core.ViewModels.ViewPort.SelectionStart),
             nameof(Core.ViewModels.ViewPort.SelectionEnd),
             nameof(Core.ViewModels.ViewPort.ScrollValue),
+            nameof(Core.ViewModels.ViewPort.UpdateInProgress),
          };
 
          if (propertyChangesThatRequireRedraw.Contains(e.PropertyName)) {
