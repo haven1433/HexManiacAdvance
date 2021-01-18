@@ -22,7 +22,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var list = new List<AutoCompleteSelectionItem>();
 
          int i = 0;
-         foreach (var option in options) {
+         foreach (var option in options ?? new string[0]) {
             list.Add(new AutoCompleteSelectionItem(option, i == selectionIndex));
             i++;
          }

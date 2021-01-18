@@ -100,7 +100,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             var table = (ITableRun)model.GetNextRun(array.Source);
             var offset = table.ConvertByteOffsetToArrayOffset(array.Source);
             var segment = (ArrayRunBitArraySegment)table.ElementContent[offset.SegmentIndex];
-            var options = segment.GetOptions(model).ToList();
+            var options = segment.GetOptions(model)?.ToList();
+            if (options == null) return;
 
             for (int i = 0; i < array.Length; i++) {
                var group = i * 8;

@@ -39,7 +39,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
       public void RefreshOptions() {
-         var options = viewPort.Model.GetExtendedAutocompleteOptions(text);
+         var options = viewPort?.Model.GetExtendedAutocompleteOptions(text);
          AutoCompleteOptions = AutoCompleteSelectionItem.Generate(options, completionIndex);
          ShowAutoCompleteOptions = AutoCompleteOptions.Count > 0;
          UpdatePrefixSelectionsAfterTextChange();

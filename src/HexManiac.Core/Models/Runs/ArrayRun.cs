@@ -467,6 +467,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public ITableRun Duplicate(int start, SortedSpan<int> pointerSources, IReadOnlyList<ArrayRunElementSegment> segments) {
          var format = segments.Select(segment => segment.SerializeFormat).Aggregate((a, b) => a + " " + b);
          format = $"[{format}]{LengthFromAnchor}";
+         if (string.IsNullOrEmpty(LengthFromAnchor)) format += ElementCount;
          return new ArrayRun(owner, format, LengthFromAnchor, ParentOffset, start, ElementCount, segments, pointerSources, PointerSourcesForInnerElements);
       }
 

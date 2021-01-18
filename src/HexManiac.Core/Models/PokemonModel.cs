@@ -172,24 +172,20 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var reference in referenceTables) {
             var destination = ReadPointer(reference.Address);
             if (!anchorForAddress.ContainsKey(destination) && !addressForAnchor.ContainsKey(reference.Name)) {
-               using (ModelCacheScope.CreateScope(this)) {
-                  ApplyAnchor(this, noChange, destination, "^" + reference.Name + reference.Format, allowAnchorOverwrite: true);
-               }
+               ApplyAnchor(this, noChange, destination, "^" + reference.Name + reference.Format, allowAnchorOverwrite: true);
                continue;
             }
 
             if (!anchorForAddress.TryGetValue(destination, out var anchor)) continue;
             if (anchor == reference.Name) continue;
-            using (ModelCacheScope.CreateScope(this)) {
-               if (TryParseFormat(this, reference.Name, reference.Format, destination, out var run).HasError) continue;
-            }
+            if (TryParseFormat(this, reference.Name, reference.Format, destination, out var replacementRun).HasError) continue;
 
             // update this anchor
             anchorForAddress[destination] = reference.Name;
             addressForAnchor.Remove(anchor);
             addressForAnchor[reference.Name] = destination;
 
-            // update runs
+            // update runs that care about this name
             for (int i = 0; i < runs.Count; i++) {
                // update matched-length lengths
                if (runs[i] is ArrayRun array) {
@@ -236,6 +232,14 @@ namespace HavenSoft.HexManiac.Core.Models {
                   if (format.PaletteHint != anchor) continue;
                   sprite = sprite.Duplicate(new SpriteFormat(format.BitsPerPixel, format.TileWidth, format.TileHeight, reference.Name, format.AllowLengthErrors));
                   runs[i] = sprite;
+               }
+
+               // update dependent streams
+               if (runs[i] is IStreamRun streamRun && streamRun.DependsOn(reference.Name)) {
+                  // clear/observe is heavy-handed, but it clears any stray pointers
+                  var newRun = streamRun.Duplicate(streamRun.Start, streamRun.PointerSources);
+                  ClearFormat(noChange, newRun.Start, newRun.Length);
+                  ObserveRunWritten(noChange, newRun);
                }
             }
          }
