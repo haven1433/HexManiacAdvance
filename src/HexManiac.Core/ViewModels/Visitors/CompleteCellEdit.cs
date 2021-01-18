@@ -87,6 +87,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (pcs.Position != 0 && CurrentText == StringDelimeter.ToString()) {
             CompleteStringEdit();
             Result = true;
+         } else if (pcs.Position == 0 && CurrentText == StringDelimeter.ToString() + StringDelimeter) {
+            CompleteStringEdit();
+            Result = true;
          } else if (PCSString.PCS.Any(str => str == currentText)) {
             CompleteCharacterEdit(pcs);
             Result = true;
