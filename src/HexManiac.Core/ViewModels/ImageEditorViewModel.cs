@@ -1235,7 +1235,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var index = parent.pixels[point.X, point.Y];
                var palette = parent.ReadPalette();
                if (parent.Palette.CanEditColors || palette.pages > 1) {
-                  if (palette.colors.Count < 256) {
+                  var spriteAddress = parent.model.ReadPointer(parent.SpritePointer);
+                  var spriteRun = (ISpriteRun)parent.model.GetNextRun(spriteAddress);
+                  if (palette.colors.Count < 256 && !(spriteRun is ITilesetRun)) {
                      index -= palette.initialBlankPages << 4;
                      parent.PalettePage = index / 16;
                      index %= 16;

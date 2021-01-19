@@ -1180,12 +1180,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var cellToText = new ConvertCellToText(Model, run.Start);
          var cell = this[point];
+         var format = cell.Format;
+         if (format is Anchor anchor) format = anchor.OriginalFormat;
 
          void TableBackspace(int length) {
             PrepareForMultiSpaceEdit(point, length);
             cell.Format.Visit(cellToText, cell.Value);
             var text = cellToText.Result;
-            if (cell.Format is BitArray) {
+            if (format is BitArray) {
                for (int i = 1; i < length; i++) {
                   var extraData = Model[scroll.ViewPointToDataIndex(point) + i];
                   cell.Format.Visit(cellToText, extraData);
@@ -1206,9 +1208,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             } else if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Pointer) {
                TableBackspace(4);
             } else if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Integer) {
-               TableBackspace(((Integer)cell.Format).Length);
+               TableBackspace(((Integer)format).Length);
             } else if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.BitArray) {
-               TableBackspace(((BitArray)cell.Format).Length);
+               TableBackspace(((BitArray)format).Length);
             } else {
                throw new NotImplementedException();
             }
@@ -1240,8 +1242,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var p = scroll.DataIndexToViewPoint(run.Start + i);
                string editString = i == 0 ? text.Substring(0, text.Length - 1) : string.Empty;
                if (i > 0) editLength = 1;
-               var format = new UnderEdit(this[p.X, p.Y].Format, editString, editLength);
-               currentView[p.X, p.Y] = new HexElement(this[p.X, p.Y], format);
+               var newFormat = new UnderEdit(this[p.X, p.Y].Format, editString, editLength);
+               currentView[p.X, p.Y] = new HexElement(this[p.X, p.Y], newFormat);
             }
          }
 
