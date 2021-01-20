@@ -19,7 +19,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       }
       public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
          var lzRun = new LzPaletteRun(paletteFormat, owner, destination, new SortedSpan<int>(source));
-         if (lzRun.Length <= 5 || owner.ReadMultiByteValue(destination + 1, 3) != Math.Pow(2, paletteFormat.Bits + 1)) return false;
+         var numColors = (int)Math.Pow(2, paletteFormat.Bits);
+         if (lzRun.Length <= 5 || lzRun.DecompressedLength % (numColors * 2) != 0) return false;
 
          if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, lzRun);
 
