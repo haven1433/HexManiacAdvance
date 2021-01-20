@@ -518,6 +518,17 @@ ApplicationVersion = '''0.1.0'''
          }
       }
 
+      [Fact]
+      public void NewTab_Backspace_DoNothing() {
+         editor.New.Execute();
+
+         var viewPort = (ViewPort)editor[0];
+         for (int i = 0; i < 5; i++)
+            viewPort.Edit(ConsoleKey.Backspace);
+
+         // no asserts: if it doesn't crash, we pass
+      }
+
       private StubTabContent CreateClosableTab() {
          var tab = new StubTabContent();
          var close = new StubCommand { CanExecute = arg => true };

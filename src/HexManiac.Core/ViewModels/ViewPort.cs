@@ -1148,7 +1148,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          // backspace on an empty element: clear the data from those cells
          if (underEdit != null) {
             var operation = new DataClear(Model, history.CurrentChange, index);
-            underEdit.OriginalFormat.Visit(operation, Model[index]);
+            var currentValue = index < Model.Count ? Model[index] : (byte)0;
+            underEdit.OriginalFormat.Visit(operation, currentValue);
             RefreshBackingData();
             SelectionStart = scroll.DataIndexToViewPoint(index - 1);
             point = GetEditPoint();
