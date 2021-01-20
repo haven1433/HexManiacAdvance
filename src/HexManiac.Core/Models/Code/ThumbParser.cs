@@ -625,15 +625,15 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
             // read a number
             if (template[0] == '#') {
-               if (line[0] != '#') return false;
-               var numberAsText = line.Split(',', ']')[0].Substring(1);
+               if (line[0] == '#') line = line.Substring(1);
+               var numberAsText = line.Split(',', ']')[0];
                if (numberAsText.StartsWith("0x")) {
                   if (!int.TryParse(numberAsText.Substring(2), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out numeric)) return false;
                } else {
                   if (!int.TryParse(numberAsText, out numeric)) return false;
                }
                template = template.Substring(1);
-               line = line.Substring(numberAsText.Length + 1);
+               line = line.Substring(numberAsText.Length);
                if (template.StartsWith("=#*")) {
                   var multiplier = template[3] - '0';
                   template = template.Substring(4);

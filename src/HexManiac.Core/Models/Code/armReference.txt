@@ -68,14 +68,21 @@ nv=1111  @    never
 0101110 rm rn rd    |     ldrb  rd, [rn, rm]
 0101111 rm rn rd    |     ldrsh rd, [rn, rm]
 01100 # rn rd       |     str   rd, [rn, #=#*4]
+0110000000 rn rd    |     str   rd, [rn]
 01101 # rn rd       |     ldr   rd, [rn, #=#*4]
 0110100000 rn rd    |     ldr   rd, [rn]
 01110 # rn rd       |     strb  rd, [rn, #]
+0111000000 rn rd    |     strb  rd, [rn]
 01111 # rn rd       |     ldrb  rd, [rn, #]
+0111100000 rn rd    |     ldrb  rd, [rn]
 10000 # rn rd       |     strh  rd, [rn, #=#*2]
+1000000000 rn rd    |     strh  rd, [rn]
 10001 # rn rd       |     ldrh  rd, [rn, #=#*2]
+1000100000 rn rd    |     ldrh  rd, [rn]
 10010 rd #          |     str   rd, [sp, #=#*4]
+10010 rd 00000000   |     str   rd, [sp]
 10011 rd #          |     ldr   rd, [sp, #=#*4]
+10011 rd 00000000   |     ldr   rd, [sp]
 10100 rd #          |     add   rd, pc, #=#*4      @ rd = pc + #*4
 10101 rd #          |     add   rd, sp, #=#*4      @ rd = sp + #*4
 101100000 #         |     add   sp, #=#*4          @ sp += #*4

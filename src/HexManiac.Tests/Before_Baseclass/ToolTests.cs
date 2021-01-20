@@ -401,6 +401,15 @@ namespace HavenSoft.HexManiac.Tests {
       [InlineData("sub   sp, #4", 0b101100001_0000001)]
       [InlineData("mov   r3, sp", 0x46_6B)]
       [InlineData("push {r0-r2, lr}", 0b10110101_00000111)]
+      [InlineData("ldrb r1, [r1, 0]", 0b01111_00000_001_001)]
+      [InlineData("ldrb r1, [r1]", 0b01111_00000_001_001)]
+      [InlineData("strb r3, [r4]", 0b01110_00000_100_011)]
+      [InlineData("str  r2, [r0]", 0b01100_00000_000_010)]
+      [InlineData("ldr  r1, [r2]", 0b01101_00000_010_001)]
+      [InlineData("strh r1, [r2]", 0b10000_00000_010_001)]
+      [InlineData("ldrh r1, [r2]", 0b10001_00000_010_001)]
+      [InlineData("str  r1, [sp]", 0b10010_001_00000000)]
+      [InlineData("ldr  r1, [sp]", 0b10011_001_00000000)]
       public void ThumbCompilerTests(string input, uint output) {
          var bytes = new List<byte> { (byte)output, (byte)(output >> 8) };
          var model = new PokemonModel(new byte[0x200]);
