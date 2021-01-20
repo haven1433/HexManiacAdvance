@@ -84,7 +84,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                char.IsWhiteSpace(Input) ||
                SpecialAnchorAllowedCharacters.Contains(Input);
             return;
-         } else if (underEdit.CurrentText.StartsWith(ViewPort.CommentStart.ToString())){
+         } else if (underEdit.CurrentText.StartsWith(ViewPort.DirectiveMarker.ToString())
+         && underEdit.CurrentText.Count(c => c == ViewPort.DirectiveMarker) == 1) {
+            Result = true;
+            return;
+         } else if (underEdit.CurrentText.StartsWith(ViewPort.CommentStart.ToString())) {
             Result = true;
             return;
          }

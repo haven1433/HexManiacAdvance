@@ -29,6 +29,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    public class ViewPort : ViewModelCore, IViewPort, IRaiseMessageTab {
       public const string AllHexCharacters = "0123456789ABCDEFabcdef";
       public const char GotoMarker = '@';
+      public const char DirectiveMarker = '.'; // for things like .thumb, .align, etc. Directives always start with a single dot and contain no further dots until they contain a space.
       public const char CommandMarker = '!'; // commands are meta, so they also start with the goto marker.
       public const char CommentStart = '#';
       public const int CopyLimit = 20000;
@@ -913,26 +914,43 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          exitEditEarly = false;
+         int i = 0;
          try {
-            for (int i = 0; i < input.Length && i < maxSize && !exitEditEarly; i++) Edit(input[i]);
+            for (i = 0; i < input.Length && i < maxSize && !exitEditEarly; i++) {
+               if (input[i] == '.' && input.Length > i + 6 && input.Substring(i + 1, 5).ToLower() == "thumb") {
+                  var lines = input.Substring(i).Split('\n', '\r');
+                  var endLine = lines.Length.Range().FirstOrDefault(j => (lines[j] + " ").ToLower().StartsWith(".end "));
+                  if (endLine == 0) endLine = lines.Length - 1;
+                  lines = lines.Take(endLine + 1).ToArray();
+                  var thumbLength = (lines.Length - 1) + lines.Sum(line => line.Length);
+                  i += thumbLength - 1;
+                  InsertThumbCode(lines);
+               } else {
+                  Edit(input[i]);
+               }
+            }
          } catch {
             ClearEditWork();
             throw;
          }
 
-         if (input.Length > maxSize) {
+         if (exitEditEarly) {
+            ClearEditWork();
+            Refresh();
+         } else if (input.Length > i) {
             Progress = (double)(initialWorkLoad - input.Length) / initialWorkLoad;
-            continuation.DispatchWork(() => {
-               if (!exitEditEarly) {
-                  Edit(input.Substring(maxSize), continuation);
-               } else {
-                  ClearEditWork();
-                  Refresh();
-               }
-            });
+            continuation.DispatchWork(() => Edit(input.Substring(i), continuation));
          } else {
             ClearEditWork();
          }
+      }
+
+      public void InsertThumbCode(string[] lines) {
+         var start = ConvertViewPointToAddress(SelectionStart);
+         var result = tools.CodeTool.Parser.Compile(Model, start, lines);
+         for (int i = 0; i < result.Count; i++) CurrentChange.ChangeData(Model, start + i, result[i]);
+         SelectionStart = ConvertAddressToViewPoint(start + result.Count);
+         RefreshBackingData();
       }
 
       private void ClearEditWork() {
@@ -2045,6 +2063,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return true;
          }
 
+         // directive marker
+         if (currentText.StartsWith(DirectiveMarker.ToString()) && currentText.Count(c => c == DirectiveMarker) == 1) {
+            result = CompleteDirectiveEdit(point, currentText);
+            return true;
+         }
+
          // table extension
          var dataIndex = scroll.ViewPointToDataIndex(point);
          if (currentText == ExtendArray.ToString() && Model.IsAtEndOfArray(dataIndex, out var arrayRun)) {
@@ -2166,6 +2190,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          HandleErrorInfo(errorInfo);
 
          return errorInfo.IsWarning;
+      }
+
+      private bool CompleteDirectiveEdit(Point point, string currentText) {
+         currentText = currentText.ToLower();
+
+         if (!currentText.EndsWith(" ")) return false;
+
+         if (currentText.StartsWith(".align ") && currentText.Length > 8) {
+            if (!int.TryParse(currentText.Substring(7), out int value)) value = 4;
+            ClearEdits(point);
+            var index = scroll.ViewPointToDataIndex(point);
+            if (value == 2) SelectionStart = scroll.DataIndexToViewPoint(index + point.X % 2);
+            if (value == 4 && point.X % 4 != 0) SelectionStart = scroll.DataIndexToViewPoint(index + 4 - (point.X % 4));
+         }
+
+         if (currentText.StartsWith(".text")) ClearEdits(point);
+         if (currentText.StartsWith(".thumb")) ClearEdits(point);
+
+         return false;
       }
 
       private void ScrollFromTableMove(int initialSelection, ITableRun oldRun, ITableRun newRun) {

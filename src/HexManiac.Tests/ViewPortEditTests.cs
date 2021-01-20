@@ -480,5 +480,32 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Single(Errors);
       }
+
+      [Fact]
+      public void ViewPort_Align_MoveSelection() {
+         ViewPort.MoveSelectionStart.Execute(Direction.Right);
+         ViewPort.Edit(".align 2 ");
+         Assert.Equal(new Point(2, 0), ViewPort.SelectionStart);
+      }
+
+      [Fact]
+      public void ViewPort_TextDirective_DoesNothing() {
+         ViewPort.Edit(".text ");
+
+         Assert.Empty(Errors);
+         Assert.Empty(Messages);
+         Assert.Equal(new Point(), ViewPort.SelectionStart);
+         Assert.IsType<None>(ViewPort[0, 0].Format);
+      }
+
+      [Fact]
+      public void ViewPort_ThumbDirective_DoesNothing() {
+         ViewPort.Edit(".thumb ");
+
+         Assert.Empty(Errors);
+         Assert.Empty(Messages);
+         Assert.Equal(new Point(), ViewPort.SelectionStart);
+         Assert.IsType<None>(ViewPort[0, 0].Format);
+      }
    }
 }

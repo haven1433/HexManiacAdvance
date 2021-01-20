@@ -453,9 +453,9 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void NamedConstant_PasteScriptAtEquals_ValueChange() {
          StandardSetup(out var data, out var model, out var viewPort);
-         viewPort.Edit("@00 .number @10 .number @20 ");
+         viewPort.Edit("@00 .some.number @10 .some.number @20 ");
 
-         viewPort.Edit("@number=7 ");
+         viewPort.Edit("@some.number=7 ");
 
          Assert.Equal(7, model[0x00]);
          Assert.Equal(7, model[0x10]);
@@ -464,9 +464,9 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void NamedConstant_PasteScriptGotoSpecifyIndex2_GotoSecondInstance() {
          StandardSetup(out var data, out var model, out var viewPort);
-         viewPort.Edit("@00 .number @10 .number @20 ");
+         viewPort.Edit("@00 .some.number @10 .some.number @20 ");
 
-         viewPort.Edit("@number~2 ");
+         viewPort.Edit("@some.number~2 ");
 
          Assert.Equal(0x10, viewPort.ConvertViewPointToAddress(viewPort.SelectionStart));
       }

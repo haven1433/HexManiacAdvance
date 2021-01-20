@@ -10,7 +10,7 @@ namespace HavenSoft.HexManiac.Tests {
    public class NamedByteTests : BaseViewModelTestClass {
       [Fact]
       public void TwoByteRuns_ChangeOne_ChangesTheOther() {
-         ViewPort.Edit(".counter @02 .counter ");
+         ViewPort.Edit(".some.counter @02 .some.counter ");
          var run1 = (WordRun)Model.GetNextRun(0);
          var run2 = (WordRun)Model.GetNextRun(2);
 
@@ -23,9 +23,9 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void SearchForByteRunName_ReturnsByteRuns() {
-         ViewPort.Edit(".counter @02 .counter @00 ");
+         ViewPort.Edit(".some.counter @02 .some.counter @00 ");
 
-         var results = ViewPort.Find("counter");
+         var results = ViewPort.Find("some.counter");
 
          Assert.Equal((0, 0), results[0]);
          Assert.Equal((2, 2), results[1]);
@@ -35,27 +35,27 @@ namespace HavenSoft.HexManiac.Tests {
       public void Goto_ByteNamePartialText_ReturnsByteRunName() {
          var editor = new EditorViewModel(new StubFileSystem());
          editor.Add(ViewPort);
-         ViewPort.Edit(".counter ");
+         ViewPort.Edit(".some.counter ");
 
-         editor.GotoViewModel.Text = "count";
+         editor.GotoViewModel.Text = "some.count";
 
-         Assert.Contains("counter", editor.GotoViewModel.AutoCompleteOptions.Select(option => option.CompletionText));
+         Assert.Contains("some.counter", editor.GotoViewModel.AutoCompleteOptions.Select(option => option.CompletionText));
       }
 
       [Fact]
       public void ByteName_Goto_CreatesNewTab() {
          var editor = new EditorViewModel(new StubFileSystem());
          editor.Add(ViewPort);
-         ViewPort.Edit(".counter @02 .counter ");
+         ViewPort.Edit(".some.counter @02 .some.counter ");
 
-         ViewPort.Goto.Execute("counter");
+         ViewPort.Goto.Execute("some.counter");
 
          Assert.Equal(2, editor.Count);
       }
 
       [Fact]
       public void ByteRuns_SupportOffset() {
-         ViewPort.Edit(".counter-2 ");
+         ViewPort.Edit(".some.counter-2 ");
 
          var format = (Integer)ViewPort[0, 0].Format;
          Assert.Equal(0, format.Value); // the display value matches the readback value, which includes the offset
@@ -63,19 +63,19 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void ByteRunOffsetCannotCauseNegativeValue() {
-         ViewPort.Edit(".counter+2 ");
+         ViewPort.Edit(".some.counter+2 ");
          Assert.Single(Errors);
       }
 
       [Fact]
       public void ByteRunOffsetCannotCauseOverflowValue() {
-         ViewPort.Edit(".counter-70 200 ");
+         ViewPort.Edit(".some.counter-70 200 ");
          Assert.Single(Errors);
       }
 
       [Fact]
       public void ByteRun_CanSerialize() {
-         ViewPort.Edit(".counter-2 ");
+         ViewPort.Edit(".some.counter-2 ");
 
          var newModel = new PokemonModel(Model.RawData, Model.ExportMetadata(Singletons.MetadataInfo), Singletons);
 
@@ -105,14 +105,14 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void NamedConstant_CreateTableWithMatchingLength_TableHasExpectedLength() {
-         ViewPort.Edit(".length 12 @04 ^table[a:]length ");
+         ViewPort.Edit(".some.length 12 @04 ^table[a:]some.length ");
 
          Assert.Equal(12, Model.GetTable("table").ElementCount);
       }
 
       [Fact]
       public void TableWithNamedConstantLength_ExpandTable_ConstantUpdates() {
-         ViewPort.Edit(".length 12 @04 ^table[a:]length ");
+         ViewPort.Edit(".some.length 12 @04 ^table[a:]some.length ");
 
          ViewPort.Edit("@1C +");
 
@@ -123,7 +123,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void TableWithNamedConstantLength_DecreaseConstant_TableLengthChanges() {
-         ViewPort.Edit(".length 12 @04 ^table[a:]length ");
+         ViewPort.Edit(".some.length 12 @04 ^table[a:]some.length ");
 
          ViewPort.Edit("@00 11 ");
 
@@ -134,7 +134,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void TableWithNamedConstantLength_IncreaseConstant_TableLengthChanges() {
-         ViewPort.Edit(".length 12 @04 ^table[a:]length ");
+         ViewPort.Edit(".some.length 12 @04 ^table[a:]some.length ");
 
          ViewPort.Edit("@00 13 ");
 

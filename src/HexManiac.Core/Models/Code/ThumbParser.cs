@@ -810,7 +810,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public bool TryAssemble(string line, IReadOnlyList<ConditionCode> conditionCodes, int address, LabelLibrary labels, out byte[] results) {
          results = new byte[0];
-         foreach (var start in ".text .thumb .thumb_func .global .align".Split(' ')) {
+         foreach (var start in ".text .thumb .end .thumb_func .global .align".Split(' ')) {
             if (line.StartsWith(start)) return true;
          }
          return false;
