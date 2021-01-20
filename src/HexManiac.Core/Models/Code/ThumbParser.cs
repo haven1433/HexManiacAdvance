@@ -58,10 +58,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (tokens.Length > 0 && (tokens[0] == "b" || tokens[0] == "bx")) {
                   sectionEndLocations.Add(start);
                }
-               if (tokens.Length > 1 && tokens[0] == "pop" && tokens[1] == "pc,") {
+               if (tokens.Length > 1 && tokens[0] == "pop" && tokens.Last().EndsWith("pc}")) {
                   sectionEndLocations.Add(start);
                }
-               if (tokens.Length > 1 && tokens[0] == "push" && tokens[1] == "lr,") {
+               if (tokens.Length > 1 && tokens[0] == "push" && tokens.Last().EndsWith("lr}")) {
                   interestingAddresses.Add(start); // push lr always signifies the start of a function. That makes it worth noting.
                }
                if (line.Contains("<") && line.Contains(">")) {
@@ -411,9 +411,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             if (part.Type == InstructionArgType.HighRegister) {
                highStack.Add(bits != 0);
             } else if (part.Type == InstructionArgType.List) {
-               instruction = instruction.Replace("list", ParseRegisterList(bits));
+               var listStart = instruction.IndexOf("list");
+               instruction = instruction.Replace("list", SerializeRegisterList(bits));
+               if (instruction.Length > listStart && instruction[listStart] == ',') instruction = instruction.Substring(0, listStart) + instruction.Substring(listStart + 1).Trim();
             } else if (part.Type == InstructionArgType.ReverseList) {
-               instruction = instruction.Replace("tsil", ParseRegisterReverseList(bits));
+               instruction = instruction.Replace("tsil", SerializeRegisterReverseList(bits));
             } else if (part.Type == InstructionArgType.Condition) {
                var suffix = conditionCodes.First(code => code.Code == bits).Mnemonic;
                instruction = instruction.Replace("{cond}", suffix);
@@ -642,12 +644,23 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
             // read list
             if (template[0] == '{') {
+               var templateListLength = template.IndexOf("}") + 1;
+               if (templateListLength == 0) return false;
                if (line[0] != '{') return false;
                var listEnd = line.IndexOf('}');
                if (listEnd == -1) return false;
-               list = ParseList(line.Substring(1, listEnd - 1));
+               var serializedList = line.Substring(1, listEnd - 1);
                line = line.Substring(listEnd + 1);
-               template = template.Substring(6);
+               if (template.Contains("lr}") || template.Contains("{lr")) {
+                  if (!serializedList.Contains("lr")) return false;
+                  serializedList = serializedList.Replace("lr", string.Empty);
+               } else if (template.Contains("pc}") || template.Contains("{pc")) {
+                  if (!serializedList.Contains("pc")) return false;
+                  serializedList = serializedList.Replace("pc", string.Empty);
+               }
+               if (serializedList.Contains("lr") || serializedList.Contains("pc")) return false;
+               list = ParseList(serializedList);
+               template = template.Substring(templateListLength);
                continue;
             }
 
@@ -692,7 +705,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return result;
       }
 
-      public static string ParseRegisterList(ushort registerList) {
+      public static string SerializeRegisterList(ushort registerList) {
          var result = string.Empty;
          for (int bit = 0; bit < 8; bit++) {
             // only write if the current bit is on
@@ -713,7 +726,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return result;
       }
 
-      public static string ParseRegisterReverseList(ushort registerList) {
+      public static string SerializeRegisterReverseList(ushort registerList) {
          var result = string.Empty;
          for (int bit = 7; bit >= 0; bit--) {
             // only write if the current bit is on

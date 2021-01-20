@@ -292,12 +292,12 @@ namespace HavenSoft.HexManiac.Tests {
          var lines = parser.Parse(model, 0, bytes.Length).Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
          Assert.Equal(7, lines.Length);
          Assert.Equal("000000:", lines[0]);
-         Assert.Equal("    push  lr, {r4-r5}", lines[1]);
+         Assert.Equal("    push  {r4-r5, lr}", lines[1]);
          Assert.Equal("    cmp   r0, #1", lines[2]);
          Assert.Equal("    bne   <000008>", lines[3]);
          Assert.Equal("    add   r0, r1, r1", lines[4]);
          Assert.Equal("000008:", lines[5]);
-         Assert.Equal("    pop   pc, {r4-r5}", lines[6]);
+         Assert.Equal("    pop   {r4-r5, pc}", lines[6]);
       }
 
       [Fact]
@@ -348,7 +348,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("000000:", lines[0]);
          Assert.Equal("    nop", lines[1]);
          Assert.Equal("    ldr   r0, [pc, <000008>]", lines[2]);
-         Assert.Equal("    pop   pc, {}", lines[3]);
+         Assert.Equal("    pop   {pc}", lines[3]);
          Assert.Equal("000008:", lines[4]);
          Assert.Equal("    .word 0xDEADBEEF", lines[5]);
       }
@@ -400,6 +400,7 @@ namespace HavenSoft.HexManiac.Tests {
       [InlineData("lsl   r1, r2, #0x4", 0b00000_00100_010_001)]
       [InlineData("sub   sp, #4", 0b101100001_0000001)]
       [InlineData("mov   r3, sp", 0x46_6B)]
+      [InlineData("push {r0-r2, lr}", 0b10110101_00000111)]
       public void ThumbCompilerTests(string input, uint output) {
          var bytes = new List<byte> { (byte)output, (byte)(output >> 8) };
          var model = new PokemonModel(new byte[0x200]);
