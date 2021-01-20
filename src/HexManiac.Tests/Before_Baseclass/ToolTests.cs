@@ -615,5 +615,19 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.EndsWith("/2", tableTool.CurrentElementName);
       }
+
+      [Fact]
+      public void ClearTable_CheckTableTool_NoTable() {
+         CreateTextTable("names", 0, "adam", "bob", "carl", "dave");
+
+         ViewPort.Goto.Execute(0);
+         ViewPort.GetContextMenuItems(new Point(0, 0))
+            .Single(item => item.Text == "Clear Format")
+            .Command.Execute();
+
+         var tableTool = ViewPort.Tools.TableTool;
+         Assert.Equal(0, tableTool.Address);
+         Assert.Empty(tableTool.Children);
+      }
    }
 }

@@ -870,10 +870,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void Refresh() {
          scroll.DataLength = Model.Count;
          RefreshBackingData();
-         using (ModelCacheScope.CreateScope(Model)) {
-            Tools.TableTool.DataForCurrentRunChanged();
-            Tools.SpriteTool.DataForCurrentRunChanged();
-         }
+         Tools.TableTool.DataForCurrentRunChanged();
+         Tools.SpriteTool.DataForCurrentRunChanged();
       }
 
       public void RaiseError(string text) => OnError?.Invoke(this, text);
@@ -894,7 +892,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          // do the clear with a custom token that can't change data.
          // This anchor-clear is a formatting-only change.
          Model.ClearAnchor(history.InsertCustomChange(new NoDataChangeDeltaModel()), startDataIndex, endDataIndex - startDataIndex + 1);
-         RefreshBackingData();
+         Refresh();
       }
 
       public void Edit(string input, IWorkDispatcher continuation = null) {
