@@ -499,5 +499,41 @@ namespace HavenSoft.HexManiac.Tests {
       public void PCSStringControlCodeForFuncionEscapesIsEscaped() {
          Assert.True(PCSString.IsEscaped(new byte[] { PCSString.FunctionEscape, 0x0A }, 1));
       }
+
+      [Fact]
+      public void ControlCode_Pause_OneByteIsEscaped() {
+         var test = new BaseViewModelTestClass();
+         int i = 0;
+         Write(test.Model, ref i, "ABC");
+         test.Model[i++] = PCSString.FunctionEscape;
+         test.Model[i++] = 0x09; //pause: no variables
+         Write(test.Model, ref i, "XYZ\"");
+
+         test.ViewPort.Edit("^text\"\"");
+
+         Assert.IsType<EscapedPCS>(test.ViewPort[4, 0].Format);
+         Assert.IsNotType<EscapedPCS>(test.ViewPort[5, 0].Format);
+         Assert.Equal("ABC\\CC09XYZ", ((PCSRun)test.Model.GetNextRun(0)).SerializeRun());
+      }
+
+      [Fact]
+      public void StringWithControlCode_Parsed_CorrectBytes() {
+         var model = new PokemonModel(new byte[0x100]);
+         int i = 0;
+         Write(model, ref i, "ABC");
+         model[i++] = PCSString.FunctionEscape;
+         model[i++] = 0x09; //pause: no variables
+         Write(model, ref i, "XYZ\"");
+         var target = model.Take(i).ToArray();
+
+         var result = PCSString.Convert("ABC\\CC09XYZ").ToArray();
+
+         Assert.Equal(target, result);
+      }
+
+      private void Write(IDataModel model, ref int i, string characters) {
+         foreach (var c in characters.ToCharArray())
+            model[i++] = (byte)PCSString.PCS.IndexOf(c.ToString());
+      }
    }
 }

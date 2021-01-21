@@ -2035,7 +2035,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             // -> types a whitespace character,
             // -> types a closing quote for the text format ""
             // -> types a closing ` for a `` format
-            if (!char.IsWhiteSpace(endingCharacter) && !currentText.EndsWith(AsciiRun.StreamDelimeter.ToString())) {
+            if (!char.IsWhiteSpace(endingCharacter) && !currentText.EndsWith(AsciiRun.StreamDelimeter.ToString()) && !currentText.EndsWith(PCSRun.StringDelimeter.ToString())) {
                AnchorTextVisible = true;
                return true;
             }

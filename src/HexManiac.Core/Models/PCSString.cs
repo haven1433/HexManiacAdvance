@@ -76,6 +76,11 @@ namespace HavenSoft.HexManiac.Core.Models {
                result.Append(data[startIndex + i + 1].ToString("X2"));
                i++;
             }
+            if (currentByte == FunctionEscape) {
+               var escapeLength = GetLengthForControlCode(data[startIndex + i + 1]);
+               for (int j = 0; j < escapeLength; j++) result.Append(data[startIndex + i + 1 + j].ToString("X2"));
+               i += escapeLength;
+            }
 
             if (currentByte == 0xFF) break;
          }
@@ -94,7 +99,22 @@ namespace HavenSoft.HexManiac.Core.Models {
                result.Add((byte)i);
                index += PCS[i].Length - 1;
                if (i == Escape && input.Length > index + 2) {
-                  result.Add(byte.Parse(input.Substring(index + 1, 2), NumberStyles.HexNumber));
+                  if (byte.TryParse(input.Substring(index + 1, 2), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out byte parsed)) {
+                     result.Add(parsed);
+                  }
+                  index += 2;
+               }
+               if (i == FunctionEscape && input.Length > index + 2) {
+                  if (byte.TryParse(input.Substring(index + 1, 2), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out byte parsed)) {
+                     var extraEscapedBytesCount = GetLengthForControlCode(parsed);
+                     result.Add(parsed);
+                     for (int j = 1; j < extraEscapedBytesCount; j++) {
+                        if (input.Length > index + 4 && byte.TryParse(input.Substring(index + 3, 2), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out parsed)) {
+                           result.Add(parsed);
+                        }
+                        index += 2;
+                     }
+                  }
                   index += 2;
                }
                break;
@@ -133,14 +153,18 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
             if (data[start + length] == Escape) length++;               // escape character, skip the next byte
             else if (data[start + length] == FunctionEscape) {
-               if (data[start + length + 1] == 0x09) length += 1;      // 09 is just a pause, no variables
-               else if (data[start + length + 1] == 0x10) length += 3; // 10 is a music switch, with a 2-byte variable
-               else if (data[start + length + 1] > 0x14) length += 1;  // 15-18 are all single-byte functions with no variables
-               else length += 2;                                       // most functions have a 1 byte code and a 1 byte variable
+               length += GetLengthForControlCode(data[start + length + 1]);
             }
             length++;
          }
          return -1;
+      }
+
+      private static int GetLengthForControlCode(byte code) {
+         if (code == 0x09) return 1; // pause : no variables
+         if (code == 0x10) return 3; // music switch : 2 variables
+         if (code > 0x14) return 1;  // single-byte functions : no variables
+         return 2;                   // most functions have a 1 byte code and a 1 byte variable
       }
 
       public static bool IsEscaped(IReadOnlyList<byte> data, int index) {
