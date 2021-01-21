@@ -428,6 +428,19 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
+      public void ThumbLabelWithLeadingDot_Compile_CreatesCorrectCode() {
+         var expected = new byte[] {
+            0, 0b01001_000,
+            unchecked((byte)-3), 0b11100_111,
+            0x78, 0x56, 0x34, 0x08,
+         };
+
+         var result = ViewPort.Tools.CodeTool.Parser.Compile(Model, 0, "top:", "ldr r0, .Name", "b top", ".Name:", ".word 0x08345678");
+
+         Assert.Equal(expected, result.ToArray());
+      }
+
+      [Fact]
       public void ThumbCompilerLabelTest() {
          var model = new PokemonModel(new byte[0x200]);
          model.ObserveAnchorWritten(new ModelDelta(), "DoStuff", new NoInfoRun(0x40));
