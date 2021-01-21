@@ -177,7 +177,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             bool foundMatch = false;
             foreach (var instruction in instructionTemplates) {
                if (!instruction.TryAssemble(line, conditionalCodes, start + result.Count, labelLibrary, out byte[] code)) continue;
-               if (instruction.RequiresAlignment && result.Count % 4 != 0) result.AddRange(nop);
+               if (instruction.RequiresAlignment && (result.Count + start) % 4 != 0) result.AddRange(nop);
                result.AddRange(code);
                foundMatch = true;
                break;
