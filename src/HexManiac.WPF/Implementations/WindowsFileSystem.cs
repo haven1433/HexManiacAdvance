@@ -41,7 +41,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                return string.Empty;
             }
          }
-         set => Clipboard.SetText(value);
+         set => Clipboard.SetDataObject(value, true);
       }
 
       public (short[] image, int width) CopyImage {
