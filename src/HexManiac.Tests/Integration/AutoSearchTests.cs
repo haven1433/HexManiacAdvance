@@ -93,6 +93,15 @@ namespace HavenSoft.HexManiac.Tests {
          }
       }
 
+      [SkippableFact]
+      public void FireRed_MapAnnotations_AreDecoded() {
+         var fireRed = (string)PokemonGames.Skip(2).First()[0];
+         var model = fixture.LoadModel(fireRed);
+         var paletteTownAnnotation = 0x3F2586;
+         var format = (IntegerEnum)model.GetNextRun(paletteTownAnnotation).CreateDataFormat(model, paletteTownAnnotation);
+         Assert.Equal("\"PALLET TOWN\"", format.DisplayValue);
+      }
+
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
       public void AbilitiyNamesAreFound(string game) {
