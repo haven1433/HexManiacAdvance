@@ -94,7 +94,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var palette = palettes.FirstOrDefault();
             if (palettes.Count > 1 && palettes.Count > CurrentPalette) palette = palettes[CurrentPalette];
             spriteTool.SpriteAddress = sRun.Start;
+            spriteTool.SpritePage = CurrentPage;
             if (palette != null) spriteTool.PaletteAddress = palette.Start;
+            spriteTool.PalettePage = CurrentPalette;
             command.Execute(fs);
          }
       }

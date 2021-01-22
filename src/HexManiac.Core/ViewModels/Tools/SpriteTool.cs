@@ -41,6 +41,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public string Name => "Image";
 
+      public int SpritePage {
+         get => spritePage;
+         set => Set(ref spritePage, value, arg => LoadSprite());
+      }
+
+      public int PalettePage {
+         get => palPage;
+         set => Set(ref palPage, value, arg => LoadPalette());
+      }
+
       public double SpriteScale { get => spriteScale; set => TryUpdate(ref spriteScale, value); }
 
       #region Sprite Properties
