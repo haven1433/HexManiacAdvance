@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models.Runs;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System.Linq;
 using Xunit;
@@ -46,26 +47,83 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void TupleTable_TableTool_TupleSegment() {
          ViewPort.Edit("^table[value:|t|a:|b:]1 ");
-         var tool = (TupleArrayElementViewModel)ViewPort.Tools.TableTool.Children.Where(child => child is TupleArrayElementViewModel).Single();
-         Assert.Equal(2, tool.Children.Count);
-         Assert.Equal("a", tool.Children[0].Name);
-         Assert.Equal(0, tool.Children[0].BitOffset);
-         Assert.Equal(2, tool.Children[1].BitOffset);
+         Assert.Equal(2, TupleTable.Children.Count);
+         Assert.Equal("a", TupleTable.Children[0].Name);
+         Assert.Equal(0, TupleTable.Children[0].BitOffset);
+         Assert.Equal(2, TupleTable.Children[1].BitOffset);
       }
 
       [Fact]
       public void TupleTable_ReadFromTableTool_CorrectResult() {
-         Model[0] = 8 + 2 + 1;
+         Model[0] = 0b1011;
+
          ViewPort.Edit("^table[value:|t|a:|b:]1 ");
-         var tool = (TupleArrayElementViewModel)ViewPort.Tools.TableTool.Children.Where(child => child is TupleArrayElementViewModel).Single();
-         var a = (NumericTupleElementViewModel)tool.Children[0];
-         var b = (NumericTupleElementViewModel)tool.Children[1];
-         Assert.Equal(3, a.Value);
-         Assert.Equal(2, b.Value);
+         var a = (NumericTupleElementViewModel)TupleTable.Children[0];
+         var b = (NumericTupleElementViewModel)TupleTable.Children[1];
+
+         Assert.Equal(3, a.Content);
+         Assert.Equal(2, b.Content);
       }
 
-      // TODO write to the table (numeric)
-      // TODO read from the table (checkbox)
-      // TODO write to the table (checkbox)
+      [Fact]
+      public void TupleTable_WriteToTableTool_CorrectResult() {
+         ViewPort.Edit("^table[value:|t|a:|b:]1 ");
+         var a = (NumericTupleElementViewModel)TupleTable.Children[0];
+         var b = (NumericTupleElementViewModel)TupleTable.Children[1];
+
+         a.Content = 3;
+         b.Content = 2;
+
+         Assert.Equal(0b1011, Model[0]);
+      }
+
+      [Fact]
+      public void TupleTable_ReadFromCheckBox_CorrectResult() {
+         Model[0] = 0b10;
+
+         ViewPort.Edit("^table[value:|t|a.|b.]1 ");
+         var a = (CheckBoxTupleElementViewModel)TupleTable.Children[0];
+         var b = (CheckBoxTupleElementViewModel)TupleTable.Children[1];
+
+         Assert.False(a.IsChecked);
+         Assert.True(b.IsChecked);
+      }
+
+      [Fact]
+      public void TupleTable_WriteToCheckBox_CorrectResult() {
+         ViewPort.Edit("^table[value:|t|a.|b.]1 ");
+         var a = (CheckBoxTupleElementViewModel)TupleTable.Children[0];
+         var b = (CheckBoxTupleElementViewModel)TupleTable.Children[1];
+
+         a.IsChecked = true;
+         b.IsChecked = true;
+
+         Assert.Equal(0b11, Model[0]);
+      }
+
+      [Fact]
+      public void TupleTable_SelectNextElement_SameElement() {
+         ViewPort.Edit("^table[value:|t|a:|b:]2 ");
+         var tool = ViewPort.Tools.TableTool;
+         var tupleChild1 = TupleTable.Children[0];
+
+         tool.Next.Execute();
+
+         var tupleChild2 = TupleTable.Children[0];
+         Assert.True(ReferenceEquals(tupleChild1, tupleChild2));
+      }
+
+      [Fact]
+      public void TupleTable_LengthEnumFormat_EnumTupleCreated() {
+         ViewPort.Edit("^table[value:|t|a:|b:2|c:]1 ");
+         var child = (EnumTupleElementViewModel)TupleTable.Children[1];
+
+         child.SelectedIndex = 2;
+
+         Assert.Equal(new[] { "0", "1" }, child.Options);
+         Assert.Equal(0b1000, Model[0]);
+      }
+
+      private TupleArrayElementViewModel TupleTable => (TupleArrayElementViewModel)ViewPort.Tools.TableTool.Children.Where(child => child is TupleArrayElementViewModel).Single();
    }
 }

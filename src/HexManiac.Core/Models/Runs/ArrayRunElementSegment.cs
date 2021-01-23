@@ -231,14 +231,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return false;
       }
 
-      public IEnumerable<string> GetOptions(IDataModel model) {
-         if (int.TryParse(EnumName, out var result)) return result.Range().Select(i => i.ToString());
-         IEnumerable<string> options = model.GetOptions(EnumName);
+      public IEnumerable<string> GetOptions(IDataModel model) => GetOptions(model, EnumName);
+
+      public static IEnumerable<string> GetOptions(IDataModel model, string enumName) {
+         if (int.TryParse(enumName, out var result)) return result.Range().Select(i => i.ToString());
+         IEnumerable<string> options = model.GetOptions(enumName);
 
          // we _need_ options for the table tool
          // if we have none, just create "0", "1", ..., "n-1" based on the length of the EnumName table.
          if (!options.Any()) {
-            if (model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, EnumName)) is ITableRun tableRun) {
+            if (model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, enumName)) is ITableRun tableRun) {
                options = tableRun.ElementCount.Range().Select(i => i.ToString());
             }
          }
@@ -313,14 +315,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
    }
 
-   public class ArrayRunTupleSegment : ArrayRunElementSegment {
+   public class ArrayRunTupleSegment : ArrayRunHexSegment {
       public IReadOnlyList<TupleSegment> Elements { get; }
-      public ArrayRunTupleSegment(string name, string contract, int length) : base(name, ElementContentType.Integer, length) {
+      public ArrayRunTupleSegment(string name, string contract, int length) : base(name, length) {
          var content = new List<TupleSegment>();
          foreach (var part in contract.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries)) {
             var elementName = part.Split('.', ':')[0];
             var elementSize = part.Substring(elementName.Length).Sum(c => c == '.' ? 1 : c == ':' ? 2 : 0);
-            content.Add(new TupleSegment(elementName, elementSize));
+            var elementEnumName = part.Split('.', ':').Last();
+            content.Add(new TupleSegment(elementName, elementSize, elementEnumName));
          }
          Elements = content;
          if (content.Sum(seg => seg.BitWidth) > length * 8) throw new ArrayRunParseException($"{name}: tuple too long to fit in field!");
@@ -328,8 +331,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    }
    public class TupleSegment {
       public string Name { get; }
+      public string SourceName { get; }
       public int BitWidth { get; }
-      public TupleSegment(string name, int width) => (Name, BitWidth) = (name, width);
+      public TupleSegment(string name, int width, string sourceName = null) => (Name, BitWidth, SourceName) = (name, width, sourceName);
    }
 
    public class ArrayRunColorSegment : ArrayRunElementSegment {

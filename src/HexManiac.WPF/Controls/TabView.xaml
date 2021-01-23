@@ -439,6 +439,36 @@
                               </DockPanel>
                            </StackPanel>
                         </DataTemplate>
+                        <DataTemplate DataType="{x:Type hsg3hvmtr:TupleArrayElementViewModel}">
+                           <StackPanel>
+                              <TextBlock Text="{Binding Name}" Margin="5,0"/>
+                              <ItemsControl ItemsSource="{Binding Children}">
+                                 <ItemsControl.Resources>
+                                    <DataTemplate DataType="{x:Type hsg3hvmtr:EnumTupleElementViewModel}">
+                                       <Rectangle Width="10" Height="10" Fill="Green"/>
+                                    </DataTemplate>
+                                    <DataTemplate DataType="{x:Type hsg3hvmtr:NumericTupleElementViewModel}">
+                                       <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                          <Grid.ColumnDefinitions>
+                                             <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
+                                             <ColumnDefinition Width="*"/>
+                                          </Grid.ColumnDefinitions>
+                                          <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
+                                          <UserControl Margin="5,0" Grid.Column="1" IsTabStop="True" Focusable="True"
+                                             GotKeyboardFocus="UpdateFieldTextBox" LostKeyboardFocus="UpdateFieldTextBox"
+                                             MouseEnter="UpdateFieldTextBox" MouseLeave="UpdateFieldTextBox"
+                                             GotFocus="UpdateFieldTextBox" LostFocus="UpdateFieldTextBox">
+                                             <hsg3hv:TextBoxLookAlike />
+                                          </UserControl>
+                                       </Grid>
+                                    </DataTemplate>
+                                    <DataTemplate DataType="{x:Type hsg3hvmtr:CheckBoxTupleElementViewModel}">
+                                       <Rectangle Width="10" Height="10" Fill="Red"/>
+                                    </DataTemplate>
+                                 </ItemsControl.Resources>
+                              </ItemsControl>
+                           </StackPanel>
+                        </DataTemplate>
                      </ItemsControl.Resources>
                   </ItemsControl>
                </ScrollViewer>
