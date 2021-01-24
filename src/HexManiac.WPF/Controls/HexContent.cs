@@ -96,6 +96,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
          if (e.PropertyName == nameof(ViewPort.UpdateInProgress) && !ViewPort.UpdateInProgress) {
             CursorNeedsUpdate?.Invoke(this, EventArgs.Empty);
+         } else if (e.PropertyName == nameof(IEditableViewPort.SelectionEnd)) {
+            MakeSelectionEndOnScreen();
          }
       }
 
@@ -190,6 +192,18 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       public static readonly DependencyProperty HorizontalScrollValueProperty = DependencyProperty.Register("HorizontalScrollValue", typeof(double), typeof(HexContent), new FrameworkPropertyMetadata(0.0, RequestInvalidateVisual));
 
+      private void MakeSelectionEndOnScreen() {
+         if (!(ViewPort is IEditableViewPort viewPort)) return;
+         var x = viewPort.SelectionEnd.X;
+         if (HorizontalScrollValue > x * CellWidth) {
+            // can't see left edge of cell
+            HorizontalScrollValue = x * CellWidth;
+         } else if (HorizontalScrollValue + ActualWidth < (x + 1) * CellWidth) {
+            // can't see right edge of cell
+            HorizontalScrollValue = (x + 1) * CellWidth - ActualWidth;
+         }
+      }
+
       #endregion
 
       #region HorizontalScrollMaximum
@@ -274,7 +288,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                Key = key,
                Command = new StubCommand {
                   CanExecute = ICommandExtensions.CanAlwaysExecute,
-                  Execute = arg => (ViewPort as ViewPort)?.Edit(consoleKey)
+                  Execute = arg => (ViewPort as IEditableViewPort)?.Edit(consoleKey)
                }
             });
          }

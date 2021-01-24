@@ -59,4 +59,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       IReadOnlyList<IContextItem> GetContextMenuItems(Point point);
    }
+
+   public interface IEditableViewPort : IViewPort {
+      Point SelectionStart { get; }
+      Point SelectionEnd { get; }
+      void Edit(string input, IWorkDispatcher continuation = null);
+      void Edit(ConsoleKey key);
+   }
 }

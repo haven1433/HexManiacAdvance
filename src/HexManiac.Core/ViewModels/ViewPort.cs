@@ -26,7 +26,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    /// <summary>
    /// A range of visible data that should be displayed.
    /// </summary>
-   public class ViewPort : ViewModelCore, IViewPort, IRaiseMessageTab {
+   public class ViewPort : ViewModelCore, IEditableViewPort, IRaiseMessageTab {
       public const string AllHexCharacters = "0123456789ABCDEFabcdef";
       public const char GotoMarker = '@';
       public const char DirectiveMarker = '.'; // for things like .thumb, .align, etc. Directives always start with a single dot and contain no further dots until they contain a space.
