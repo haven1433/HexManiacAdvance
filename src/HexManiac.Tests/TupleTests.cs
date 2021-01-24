@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using System;
 using System.Linq;
 using Xunit;
 
@@ -123,6 +124,25 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(new[] { "0", "1" }, child.Options);
          Assert.Equal(0b1000, Model[0]);
       }
+
+      [Fact]
+      public void TupleStream_Serialize_ElementsAreWrappedInParenthesis() {
+         Model[10] = 0xFF;
+         Model[11] = 0xFF;
+         ViewPort.Edit("^table[value.|t|a:|b. next.|h]!FFFF ");
+
+         var text = ((IStreamRun)Model.GetNextRun(0)).SerializeRun();
+
+         var lines = text.Split(Environment.NewLine);
+         Assert.Equal("(0 false), 00", lines[0]);
+         Assert.Equal(5, lines.Length);
+      }
+
+      // TODO test that we can serialize tuple enum segments
+      // TODO test that we can read from streams to tuples
+      // TODO check that tablestream dependencies works right for tuple enums
+      // TODO tuple segments with empty names do not appear in the table tool
+      // TODO tuple segments with empty names do not appear in the stream
 
       private TupleArrayElementViewModel TupleTable => (TupleArrayElementViewModel)ViewPort.Tools.TableTool.Children.Where(child => child is TupleArrayElementViewModel).Single();
    }

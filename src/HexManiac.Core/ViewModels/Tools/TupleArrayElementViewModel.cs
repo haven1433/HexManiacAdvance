@@ -1,10 +1,10 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
-using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
@@ -24,7 +24,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var bitOffset = 0;
          for (int i = 0; i < tupleItem.Elements.Count; i++) {
             if (tupleItem.Elements[i].BitWidth == 1) {
-               Children.Add(new CheckBoxTupleElementViewModel(viewPort, start, bitOffset, tupleItem.Elements[i].Name));
+               Children.Add(new CheckBoxTupleElementViewModel(viewPort, start, bitOffset, tupleItem.Elements[i]));
             } else if (!string.IsNullOrEmpty(tupleItem.Elements[i].SourceName)) {
                Children.Add(new EnumTupleElementViewModel(viewPort, start, bitOffset, tupleItem.Elements[i]));
             } else {
@@ -56,37 +56,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    }
 
    public class NumericTupleElementViewModel : ViewModelCore, ITupleElementViewModel {
-      protected ViewPort ViewPort { get; }
-      public string Name { get; }
+      private readonly TupleSegment seg;
+      private readonly ViewPort viewPort;
+      public string Name => seg.Name;
       public int BitOffset { get; }
-      public int BitLength { get; }
+      public int BitLength => seg.BitWidth;
       public int Start { get; private set; }
 
       public int Content {
-         get {
-            var requiredByteLength = (BitOffset + BitLength + 7) / 8;
-            if (requiredByteLength > 4) return 0;
-            var bitArray = ViewPort.Model.ReadMultiByteValue(Start, requiredByteLength);
-            bitArray >>= BitOffset;
-            bitArray &= (1 << BitLength) - 1;
-            return bitArray;
-         }
+         get => seg.Read(viewPort.Model, Start, BitOffset);
          set {
-            var requiredByteLength = (BitOffset + BitLength + 7) / 8;
-            if (requiredByteLength > 4) return;
-            var bitArray = ViewPort.Model.ReadMultiByteValue(Start, requiredByteLength);
-            var mask = (1 << BitLength) - 1;
-            value &= mask;
-            bitArray &= ~(mask << BitOffset);
-            bitArray |= value << BitOffset;
-            ViewPort.Model.WriteMultiByteValue(Start, requiredByteLength, ViewPort.CurrentChange, bitArray);
+            seg.Write(viewPort.Model, viewPort.CurrentChange, Start, BitOffset, value);
             NotifyPropertyChanged();
          }
       }
 
       public NumericTupleElementViewModel(ViewPort viewPort, int start, int bitOffset, TupleSegment segment) {
-         ViewPort = viewPort;
-         (Name, Start, BitOffset, BitLength) = (segment.Name, start, bitOffset, segment.BitWidth);
+         (this.viewPort, seg, Start, BitOffset) = (viewPort, segment, start, bitOffset);
       }
 
       public virtual bool TryCopy(ITupleElementViewModel other) {
@@ -103,37 +89,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    }
 
    public class CheckBoxTupleElementViewModel : ViewModelCore, ITupleElementViewModel {
+      private readonly TupleSegment seg;
       private readonly ViewPort viewPort;
-      public string Name { get; }
+      public string Name => seg.Name;
       public int BitOffset { get; }
       public int BitLength => 1;
       public int Start { get; private set; }
 
       public bool IsChecked {
-         get {
-            var requiredByteLength = (BitOffset + BitLength + 7) / 8;
-            if (requiredByteLength > 4) return false;
-            var bitArray = viewPort.Model.ReadMultiByteValue(Start, requiredByteLength);
-            bitArray >>= BitOffset;
-            return (bitArray & 1) == 1;
-         }
+         get => seg.Read(viewPort.Model, Start, BitOffset) == 1;
          set {
-            var requiredByteLength = (BitOffset + BitLength + 7) / 8;
-            if (requiredByteLength > 4) return;
-            var bitArray = viewPort.Model.ReadMultiByteValue(Start, requiredByteLength);
-            if (value) {
-               bitArray |= 1 << BitOffset;
-            } else {
-               bitArray &= ~(1 << BitOffset);
-            }
-            viewPort.Model.WriteMultiByteValue(Start, requiredByteLength, viewPort.CurrentChange, bitArray);
+            var bit = value ? 1 : 0;
+            seg.Write(viewPort.Model, viewPort.CurrentChange, Start, BitOffset, bit);
             NotifyPropertyChanged();
          }
       }
 
-      public CheckBoxTupleElementViewModel(ViewPort viewPort, int start, int bitOffset, string name) {
+      public CheckBoxTupleElementViewModel(ViewPort viewPort, int start, int bitOffset, TupleSegment segment) {
+         Debug.Assert(segment.BitWidth == 1, "Checkboxes should not be constructed from segments with BitWidth other than 1!");
          this.viewPort = viewPort;
-         (Name, Start, BitOffset) = (name, start, bitOffset);
+         (seg, Start, BitOffset) = (segment, start, bitOffset);
       }
 
       public bool TryCopy(ITupleElementViewModel other) {
@@ -148,29 +123,38 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
    }
 
-   public class EnumTupleElementViewModel : NumericTupleElementViewModel {
-      public string EnumName { get; }
+   public class EnumTupleElementViewModel : ViewModelCore, ITupleElementViewModel {
+      private readonly TupleSegment seg;
+      private readonly ViewPort viewPort;
+      public string Name => seg.Name;
+      public int BitOffset { get; }
+      public int BitLength => seg.BitWidth;
+      public int Start { get; private set; }
+      public string EnumName => seg.SourceName;
 
-      public IReadOnlyList<string> Options => ArrayRunEnumSegment.GetOptions(ViewPort.Model, EnumName).ToList();
+      public IReadOnlyList<string> Options => ArrayRunEnumSegment.GetOptions(viewPort.Model, EnumName).ToList();
 
       public int SelectedIndex {
-         get => Content;
+         get => seg.Read(viewPort.Model, Start, BitOffset);
          set {
-            Content = value;
+            seg.Write(viewPort.Model, viewPort.CurrentChange, Start, BitOffset, value);
             NotifyPropertyChanged();
          }
       }
 
-      public EnumTupleElementViewModel(ViewPort viewPort, int start, int bitOffset, TupleSegment segment) : base(viewPort, start, bitOffset, segment) {
-         EnumName = segment.SourceName;
+      public EnumTupleElementViewModel(ViewPort viewPort, int start, int bitOffset, TupleSegment segment) {
+         (this.viewPort, Start, BitOffset, seg) = (viewPort, start, BitOffset, segment);
       }
 
-      public override bool TryCopy(ITupleElementViewModel other) {
+      public bool TryCopy(ITupleElementViewModel other) {
          if (!(other is EnumTupleElementViewModel that)) return false;
          if (EnumName != that.EnumName) return false;
+         if (Name != that.Name) return false;
+         if (BitOffset != that.BitOffset) return false;
+         if (BitLength != that.BitLength) return false;
 
-         if (!base.TryCopy(other)) return false;
-
+         Start = that.Start;
+         NotifyPropertyChanged(nameof(Start));
          NotifyPropertyChanged(nameof(SelectedIndex));
          return true;
       }

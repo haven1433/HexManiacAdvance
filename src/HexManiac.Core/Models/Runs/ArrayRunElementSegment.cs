@@ -329,12 +329,47 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          Elements = content;
          if (content.Sum(seg => seg.BitWidth) > length * 8) throw new ArrayRunParseException($"{name}: tuple too long to fit in field!");
       }
+
+      public override string ToText(IDataModel rawData, int offset, bool deep = false) {
+         var result = "(";
+         var bitOffset = 0;
+         foreach (var segment in Elements) {
+            if (!string.IsNullOrEmpty(segment.SourceName)) {
+               // TODO
+            } else if (segment.BitWidth == 1) {
+               result += segment.Read(rawData, offset, bitOffset) == 1 ? "true" : "false";
+            } else {
+               result += segment.Read(rawData, offset, bitOffset);
+            }
+            result += " ";
+            bitOffset += segment.BitWidth;
+         }
+         return result.Trim() + ")";
+      }
    }
    public class TupleSegment {
       public string Name { get; }
       public string SourceName { get; }
       public int BitWidth { get; }
       public TupleSegment(string name, int width, string sourceName = null) => (Name, BitWidth, SourceName) = (name, width, sourceName);
+      public int Read(IDataModel model, int start, int bitOffset) {
+         var requiredByteLength = (bitOffset + BitWidth + 7) / 8;
+         if (requiredByteLength > 4) return 0;
+         var bitArray = model.ReadMultiByteValue(start, requiredByteLength);
+         bitArray >>= bitOffset;
+         bitArray &= (1 << BitWidth) - 1;
+         return bitArray;
+      }
+      public void Write(IDataModel model, ModelDelta token, int start, int bitOffset, int value) {
+         var requiredByteLength = (bitOffset + BitWidth+ 7) / 8;
+         if (requiredByteLength > 4) return;
+         var bitArray = model.ReadMultiByteValue(start, requiredByteLength);
+         var mask = (1 << BitWidth) - 1;
+         value &= mask;
+         bitArray &= ~(mask << bitOffset);
+         bitArray |= value << bitOffset;
+         model.WriteMultiByteValue(start, requiredByteLength, token, bitArray);
+      }
    }
 
    public class ArrayRunColorSegment : ArrayRunElementSegment {
