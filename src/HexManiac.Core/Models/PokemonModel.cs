@@ -1408,6 +1408,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private void ClearPointerFormat(ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, ModelDelta changeToken, int start) {
+         if (start < 0 || start > Count - 3) return; // no need to clear the format, this location isn't valid
          // remove the reference from the anchor we're pointing to as well
          var destination = ReadPointer(start);
          if (destination >= 0 && destination < Count) {
