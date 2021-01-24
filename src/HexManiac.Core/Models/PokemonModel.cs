@@ -1522,6 +1522,14 @@ namespace HavenSoft.HexManiac.Core.Models {
                   text.Append(" ");
                   length -= run.Start + run.Length - start;
                   start = run.Start + run.Length;
+               } else if (run is AsciiRun ascii) {
+                  var textLength = Math.Min(ascii.Length, length);
+                  for (int i = 0; i < textLength; i++) {
+                     text.Append((char)RawData[start + i]);
+                  }
+                  start += textLength;
+                  length -= textLength;
+                  text.Append(" ");
                } else {
                   throw new NotImplementedException();
                }
