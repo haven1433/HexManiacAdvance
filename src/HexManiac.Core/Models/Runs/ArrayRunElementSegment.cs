@@ -321,8 +321,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var content = new List<TupleSegment>();
          foreach (var part in contract.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries)) {
             var elementName = part.Split('.', ':')[0];
-            var elementSize = part.Substring(elementName.Length).Sum(c => c == '.' ? 1 : c == ':' ? 2 : 0);
-            var elementEnumName = part.Split('.', ':').Last();
+            var elementEnumName = ".".Join(part.Split(new[] { '.', ':' }, StringSplitOptions.RemoveEmptyEntries).Skip(1));
+            var elementFormat = part.Substring(elementName.Length, part.Length - elementName.Length - elementEnumName.Length);
+            var elementSize = elementFormat.Sum(c => c == '.' ? 1 : c == ':' ? 2 : 0);
             content.Add(new TupleSegment(elementName, elementSize, elementEnumName));
          }
          Elements = content;

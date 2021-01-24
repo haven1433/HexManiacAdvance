@@ -223,8 +223,15 @@ namespace HavenSoft.HexManiac.Tests {
       public void LvlUpMovesAreFound(string game) {
          var model = fixture.LoadModel(game);
 
-         var run = model.GetTable(LevelMovesTableName);
-         Assert.Equal(PLMRun.SharedFormatString, ((ArrayRunPointerSegment)run.ElementContent[0]).InnerFormat);
+         var movesTable = model.GetTable(LevelMovesTableName);
+         Assert.Equal($"[pair:|t|move:::.{MoveNamesTable}|level::::.]!FFFF", ((ArrayRunPointerSegment)movesTable.ElementContent[0]).InnerFormat);
+
+         var bulbasaurMovesAddress = model.ReadPointer(movesTable.Start + movesTable.ElementLength * 1);
+         var bulbasaurMovesRun = model.GetNextRun(bulbasaurMovesAddress);
+         var bulbasaurMoves = (TableStreamRun)bulbasaurMovesRun;
+         var segment = (ArrayRunTupleSegment)bulbasaurMoves.ElementContent[0];
+         Assert.Equal(7, segment.Elements[0].BitWidth);
+         Assert.Equal(9, segment.Elements[1].BitWidth);
       }
 
       [SkippableTheory]
