@@ -143,7 +143,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public EnumTupleElementViewModel(ViewPort viewPort, int start, int bitOffset, TupleSegment segment) {
-         (this.viewPort, Start, BitOffset, seg) = (viewPort, start, BitOffset, segment);
+         (this.viewPort, Start, BitOffset, seg) = (viewPort, start, bitOffset, segment);
       }
 
       public bool TryCopy(ITupleElementViewModel other) {
