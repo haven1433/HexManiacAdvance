@@ -630,7 +630,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void NextElementInTableToolWorksEvenIfOtherDataIsCurrentlySelected() {
          ViewPort.Edit("^table[data<>]3 <020> <030> <040> @04 ");
-         ViewPort.ExpandSelection(4, 0); // follows the pointer to 030
+         ViewPort.ExpandSelection(0, 0); // follows the pointer to 030
          var tableTool = ViewPort.Tools.TableTool;
 
          ViewPort.Tools.SelectedIndex = ViewPort.Tools.IndexOf(tableTool);

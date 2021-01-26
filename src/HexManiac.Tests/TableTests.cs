@@ -504,6 +504,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void PointersToTextInTable_RepointTable_PointersUpdate() {
+         SetFullModel(0xFF);
          CreateTextTableWithInnerPointers("table", 0x20, "adam", "bob", "carl", "1234567");
          ViewPort.Edit("@00!00(16) ^pointers[ptr<>]4 <000048> <000028> <000030> <000010> @40 10");
          var table = (ArrayRun)Model.GetTable("table");
@@ -599,6 +600,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void TextTableWithInnerPointers_CutPaste_InnerPointersMove() {
+         SetFullModel(0xFF);
          var fileSystem = new StubFileSystem();
          ViewPort.Edit("^table^[name\"\"16]2 \"Alpha\" \"Beta\"");
          ViewPort.Edit("@40 <0000> <0010>");

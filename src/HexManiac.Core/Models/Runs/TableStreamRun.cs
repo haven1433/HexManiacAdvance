@@ -156,6 +156,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return newRun;
       }
 
+      public IReadOnlyList<byte> CreateDefault() {
+         if (endStream is EndCodeStreamStrategy endcode) return endcode.EndCode;
+         return new byte[0];
+      }
+
       private string SerializeSingleElementStream() {
          Debug.Assert(endStream is FixedLengthStreamStrategy flss && flss.Count == 1);
          var result = new StringBuilder();

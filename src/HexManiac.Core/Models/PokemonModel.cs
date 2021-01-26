@@ -1500,6 +1500,13 @@ namespace HavenSoft.HexManiac.Core.Models {
                      // the user is copying a table run. Make sure to include a metacommand to insert 00 of the appropriate length during the paste.
                      // this makes sure that we have enough freespace and makes deep copy for pointers work correctly.
                      text.Append($"@!00({tableRun.Length}) ");
+                     if (tableRun is TableStreamRun tableStream) {
+                        var defaultStream = tableStream.CreateDefault().Select(b => b.ToString("X2")).Aggregate(string.Concat);
+                        if (defaultStream.Length > 0) {
+                           defaultStream = new string('0', 2 * tableStream.ElementLength) + defaultStream;
+                           text.Append($"@!put({defaultStream}) ");
+                        }
+                     }
                   }
                   if (!anchorForAddress.TryGetValue(start, out string anchor)) {
                      if ((run.PointerSources?.Count ?? 0) > 0) {

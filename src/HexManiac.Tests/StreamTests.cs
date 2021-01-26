@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using System;
 using System.Linq;
 using Xunit;
 
@@ -115,6 +116,47 @@ namespace HavenSoft.HexManiac.Tests {
 
          var result = new byte[] { 0, 0, 1, 1, 2, 2, 3, 3, 255, 255 };
          Assert.All(result.Length.Range(), i => Assert.Equal(Model[i], result[i]));
+      }
+
+      [Fact]
+      public void ViewPort_PutMetacommand_DataChangesButSelectionDoesNot() {
+         ViewPort.Edit("@!put(1234) ");
+
+         Assert.Equal(new Point(0, 0), ViewPort.SelectionStart);
+         Assert.Equal(0x12, Model[0]);
+         Assert.Equal(0x34, Model[1]);
+      }
+
+      [Fact]
+      public void StreamWithCustomEnd_CutPaste_DataUpdates() {
+         SetFullModel(0xFF);
+         var fileSystem = new StubFileSystem();
+         Array.Copy(new byte[] { 2, 2, 2, 3, 3, 3, 0xFF, 0xFF, 0x00 }, Model.RawData, 9);
+         ViewPort.Edit("^table[a. b. c.]!FFFF00 ");
+
+         // cut
+         ViewPort.SelectionStart = ViewPort.ConvertAddressToViewPoint(0);
+         ViewPort.ExpandSelection(0, 0);
+         ViewPort.Copy.Execute(fileSystem);
+         ViewPort.Clear.Execute();
+
+         // paste
+         ViewPort.Goto.Execute(0x10);
+         ViewPort.Edit(fileSystem.CopyText);
+
+         var table = Model.GetTable("table");
+         Assert.Equal(0x10, table.Start);
+         Assert.Equal(2, table.ElementCount);
+         Assert.Equal(3, table.ElementLength);
+         Assert.Equal(9, table.Length);
+      }
+
+      [Fact]
+      public void NonEmptyData_MetaCommandFillZeros_RaiseErrorAndStopWriting() {
+         ViewPort.Edit("@!00(10) 22 ");
+
+         Assert.Single(Errors);
+         Assert.Equal(0x00, Model[0]);
       }
    }
 }

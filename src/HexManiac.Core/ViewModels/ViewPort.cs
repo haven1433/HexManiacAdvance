@@ -1622,6 +1622,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             SelectionStart = scroll.DataIndexToViewPoint(run.Start);
             SelectionEnd = scroll.DataIndexToViewPoint(run.Start + run.Length - 1);
          }
+         if (SelectionStart == SelectionEnd && scroll.ViewPointToDataIndex(SelectionStart) >= run.Start && scroll.ViewPointToDataIndex(SelectionEnd) < run.Start + run.Length) {
+            SelectionStart = scroll.DataIndexToViewPoint(run.Start);
+            SelectionEnd = scroll.DataIndexToViewPoint(run.Start + run.Length - 1);
+         }
       }
 
       public void ConsiderReload(IFileSystem fileSystem) {
@@ -2116,6 +2120,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      /// <summary>
+      /// Current Available metacommands:
+      /// lz(1024) -> write 1024 compressed bytes. Error if we're not in freespace, do nothing if we're at lz data of the expected length already.
+      /// 00(32)   -> write 32 bytes of zero. Error if we're not in freespace.
+      /// put(1234)-> put the bytes 12, then 34, at the current location, but don't change the current selection.
+      ///             works no matter what the current data is.
+      /// </summary>
       private void ExecuteMetacommand(string command) {
          command = command.ToLower();
          var index = scroll.ViewPointToDataIndex(SelectionStart);
@@ -2135,15 +2146,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             } else {
                // data is not freespace and is not the correct data: error
                RaiseError($"Writing {length} compressed bytes would overwrite existing data.");
+               exitEditEarly = true;
             }
          } else if (command.StartsWith("00(") && paramsEnd > 3 && int.TryParse(command.Substring(3, paramsEnd - 3), out length)) {
             if (length.Range().All(i => Model[index + i] == 0xFF)) {
                for (int i = 0; i < length; i++) CurrentChange.ChangeData(Model, index + i, 0);
             } else {
                RaiseError($"Writing {length} 00 bytes would overwrite existing data.");
+               exitEditEarly = true;
+            }
+         } else if (command.StartsWith("put(") && paramsEnd > 4) {
+            var content = command.Substring(4, paramsEnd - 4);
+            if (content.Length %2 != 0 || !content.All(AllHexCharacters.Contains)) {
+               RaiseError("'put' expects hex bytes as an argument. ");
+               exitEditEarly = true;
+               return;
+            }
+            for (int i = 0; i < content.Length / 2; i++) {
+               var data = byte.Parse(content.Substring(i * 2, 2), NumberStyles.HexNumber);
+               CurrentChange.ChangeData(Model, index + i, data);
             }
          } else {
             RaiseError($"Could not parse metacommand {command}.");
+            exitEditEarly = true;
          }
       }
 
