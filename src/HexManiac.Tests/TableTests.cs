@@ -597,6 +597,26 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(5, selectedAddress);
       }
 
+      [Fact]
+      public void TextTableWithInnerPointers_CutPaste_InnerPointersMove() {
+         var fileSystem = new StubFileSystem();
+         ViewPort.Edit("^table^[name\"\"16]2 \"Alpha\" \"Beta\"");
+         ViewPort.Edit("@40 <0000> <0010>");
+
+         // cut
+         ViewPort.Goto.Execute(0);
+         ViewPort.SelectionEnd = ViewPort.ConvertAddressToViewPoint(0x20 - 1);
+         ViewPort.Copy.Execute(fileSystem);
+         ViewPort.Clear.Execute();
+
+         // paste
+         ViewPort.Goto.Execute(0x60);
+         ViewPort.Edit(fileSystem.CopyText);
+
+         Assert.Equal(0x60, Model.ReadPointer(0x40));
+         Assert.Equal(0x70, Model.ReadPointer(0x44));
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

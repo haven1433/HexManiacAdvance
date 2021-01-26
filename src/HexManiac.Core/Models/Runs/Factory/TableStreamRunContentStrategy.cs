@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
    /// <summary>
@@ -35,6 +36,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       }
       public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
          var pointerSources = model.GetUnmappedSourcesToAnchor(name);
+         pointerSources = new SortedSpan<int>(pointerSources.Where(source => model.ReadValue(source) == 0).ToList());
          var errorInfo = ArrayRun.TryParse(model, name, Format, dataIndex, pointerSources, out var arrayRun);
          if (errorInfo == ErrorInfo.NoError) {
             run = arrayRun;
