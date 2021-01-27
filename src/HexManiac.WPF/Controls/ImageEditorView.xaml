@@ -166,7 +166,9 @@
                      (S)elect Section<LineBreak/>
                      <Italic Foreground="{DynamicResource Secondary}">
                         Drag to select a rectangle of pixels. <LineBreak/>
-                        Then drag again to move them around.
+                        Then drag again to move them around. <LineBreak/>
+                        You can also use Copy/Paste with the selection, or <LineBreak/>
+                        Ctrl+Drag to make a copy of the selection.
                      </Italic>
                      </TextBlock>
                   </ToolTip>
