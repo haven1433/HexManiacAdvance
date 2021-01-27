@@ -68,19 +68,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             new ContextItem("Text", ViewPort.IsText.Execute),
             new ContextItem("Sprite", ViewPort.Tools.SpriteTool.IsSprite.Execute),
             new ContextItem("Palette", ViewPort.Tools.SpriteTool.IsPalette.Execute),
+            new ContextItem("Event Script", arg => {
+               ViewPort.Tools.CodeTool.IsEventScript.Execute();
+               ViewPort.Refresh();
+               ViewPort.UpdateToolsFromSelection(ViewPort.ConvertViewPointToAddress(ViewPort.SelectionStart));
+            }),
          });
 
-         if (data == 0xFF && ViewPort.SelectionEnd == ViewPort.SelectionStart && ViewPort[ ViewPort.SelectionStart].Format is None) Results.Add(new ContextItem("Create New XSE Script", arg => {
-            var newScriptStart = ViewPort.ConvertViewPointToAddress(ViewPort.SelectionStart);
-            // write the 'end' command
-            ViewPort.CurrentChange.ChangeData(ViewPort.Model, newScriptStart, 2);
-            ViewPort.Model.ObserveAnchorWritten(ViewPort.CurrentChange, $"scripts.new.xse_{newScriptStart:X6}", new XSERun(newScriptStart));
-            var name = ViewPort.Model.GetAnchorFromAddress(-1, newScriptStart);
-            ViewPort.Refresh();
-            ViewPort.UpdateToolsFromSelection(newScriptStart);
-            ViewPort.AnchorTextSelectionStart = 1;
-            ViewPort.AnchorTextSelectionLength = name.Length;
-         }));
+         if (data == 0xFF && ViewPort.SelectionEnd == ViewPort.SelectionStart && ViewPort[ViewPort.SelectionStart].Format is None) Results.Add(new ContextItemGroup("Create New...") {
+            new ContextItem("Event Script", arg => {
+               var newScriptStart = ViewPort.ConvertViewPointToAddress(ViewPort.SelectionStart);
+               // write the 'end' command
+               ViewPort.CurrentChange.ChangeData(ViewPort.Model, newScriptStart, 2);
+               ViewPort.Model.ObserveAnchorWritten(ViewPort.CurrentChange, $"scripts.new.xse_{newScriptStart:X6}", new XSERun(newScriptStart));
+               var name = ViewPort.Model.GetAnchorFromAddress(-1, newScriptStart);
+               ViewPort.Refresh();
+               ViewPort.UpdateToolsFromSelection(newScriptStart);
+               ViewPort.AnchorTextSelectionStart = 1;
+               ViewPort.AnchorTextSelectionLength = name.Length;
+            }),
+         });
       }
 
       public void Visit(UnderEdit dataFormat, byte data) { }

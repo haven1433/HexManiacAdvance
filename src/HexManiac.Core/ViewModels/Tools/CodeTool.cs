@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public enum CodeMode { Thumb, Script, BattleScript, AnimationScript, Raw }
@@ -67,6 +68,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ScriptParser AnimationScriptParser => animationScript;
 
       public event EventHandler<(int originalLocation, int newLocation)> ModelDataMoved;
+
+      private StubCommand isEventScript;
+      public ICommand IsEventScript => StubCommand(ref isEventScript, ExecuteIsEventScript);
+      private void ExecuteIsEventScript() {
+         var searchPoint = selection.Scroll.ViewPointToDataIndex(selection.SelectionStart);
+         ScriptParser.FormatScript<XSERun>(history.CurrentChange, model, searchPoint);
+      }
 
       public CodeTool(Singletons singletons, IDataModel model, Selection selection, ChangeHistory<ModelDelta> history) {
          thumb = new ThumbParser(singletons);
