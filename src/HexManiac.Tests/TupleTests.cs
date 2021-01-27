@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Linq;
@@ -220,6 +221,26 @@ namespace HavenSoft.HexManiac.Tests {
          run.DeserializeRun("(1, 1)", ViewPort.CurrentChange);
 
          Assert.Equal(0b_01_0_01_0, Model[0]);
+      }
+
+      [Fact]
+      public void Tuple_GetDataFormat_ReadsTuple() {
+         ViewPort.Edit("^table[a.|t|.|x:|.|y:]1 ");
+
+         var anchor = (Anchor)ViewPort[0, 0].Format;
+         var tuple = (Core.ViewModels.DataFormats.Tuple)anchor.OriginalFormat;
+
+         Assert.Equal("(0 0)", tuple.ToString());
+      }
+
+      [Fact]
+      public void Tuple_EditText_WritesTuple() {
+         ViewPort.Edit("^table[a.|t|.|x:|.|y:]1 ");
+
+         ViewPort.Edit("1 1 ");
+
+         Assert.Equal(0b_01_0_01_0, Model[0]);
+         Assert.Equal(1, ViewPort.ConvertViewPointToAddress(ViewPort.SelectionStart));
       }
 
       private TupleArrayElementViewModel TupleTable => (TupleArrayElementViewModel)ViewPort.Tools.TableTool.Children.Where(child => child is TupleArrayElementViewModel).Single();

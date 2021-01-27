@@ -42,6 +42,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (currentSegment is ArrayRunEnumSegment enumSegment) {
                var value = enumSegment.ToText(data, offsets.SegmentStart, false);
                return new IntegerEnum(offsets.SegmentStart, position, value, currentSegment.Length);
+            } else if (currentSegment is ArrayRunTupleSegment tupleSegment) {
+               return new ViewModels.DataFormats.Tuple(data, tupleSegment, offsets.SegmentStart, position);
             } else if (currentSegment is ArrayRunHexSegment) {
                var value = data.ReadMultiByteValue(offsets.SegmentStart, currentSegment.Length);
                return new IntegerHex(offsets.SegmentStart, position, value, currentSegment.Length);

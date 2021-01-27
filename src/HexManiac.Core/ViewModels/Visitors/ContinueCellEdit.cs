@@ -144,5 +144,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(UncompressedPaletteColor color, byte data) {
          Result = ViewPort.AllHexCharacters.Contains(Input) || Input.IsAny(':', ' ');
       }
+
+      public void Visit(DataFormats.Tuple tuple, byte data) => Result = true;
    }
 }

@@ -94,6 +94,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(UncompressedPaletteColor color, byte data) { }
 
+      public void Visit(DataFormats.Tuple tuple, byte data) { }
+
       private void GenerateOptions(IDataFormatInstance format) {
          var arrayRun = (ITableRun)Model.GetNextRun(format.Source);
          var offsets = arrayRun.ConvertByteOffsetToArrayOffset(format.Source);

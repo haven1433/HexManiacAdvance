@@ -332,6 +332,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
       }
 
+      public void Visit(DataFormats.Tuple tuple, byte data) {
+         Result = CurrentText.EndsWith(")");
+         if (CurrentText.EndsWith(" ")) {
+            var tokens = CurrentText.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            TableStreamRun.Recombine(tokens, "\"", "\"");
+            if (tokens.Count == tuple.Model.VisibleElementCount) Result = true;
+         }
+
+         if (Result) {
+            tuple.Model.Write(Model, CurrentChange, memoryLocation, CurrentText);
+            NewDataIndex = memoryLocation + tuple.Length;
+         }
+      }
+
       /// <summary>
       /// Parses text in a PLM run to get the level and move.
       /// returns an error string if the parse fails.

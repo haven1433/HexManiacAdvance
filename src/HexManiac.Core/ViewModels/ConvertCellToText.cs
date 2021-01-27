@@ -74,5 +74,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void Visit(LzUncompressed lz, byte data) => Visit((None)null, data);
 
       public void Visit(UncompressedPaletteColor color, byte data) => Result = color.ToString();
+
+      public void Visit(DataFormats.Tuple tuple, byte data) => Result = tuple.ToString();
    }
 }

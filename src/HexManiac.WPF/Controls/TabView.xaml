@@ -445,7 +445,14 @@
                               <ItemsControl ItemsSource="{Binding Children}">
                                  <ItemsControl.Resources>
                                     <DataTemplate DataType="{x:Type hsg3hvmtr:EnumTupleElementViewModel}">
-                                       <Rectangle Width="10" Height="10" Fill="Green"/>
+                                       <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                          <Grid.ColumnDefinitions>
+                                             <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
+                                             <ColumnDefinition Width="*"/>
+                                          </Grid.ColumnDefinitions>
+                                          <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
+                                          <ComboBox ItemsSource="{Binding Options}" SelectedIndex="{Binding SelectedIndex}" Grid.Column="1"/>
+                                       </Grid>
                                     </DataTemplate>
                                     <DataTemplate DataType="{x:Type hsg3hvmtr:NumericTupleElementViewModel}">
                                        <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
@@ -463,7 +470,7 @@
                                        </Grid>
                                     </DataTemplate>
                                     <DataTemplate DataType="{x:Type hsg3hvmtr:CheckBoxTupleElementViewModel}">
-                                       <Rectangle Width="10" Height="10" Fill="Red"/>
+                                       <CheckBox Content="{Binding Name}" IsChecked="{Binding IsChecked}"/>
                                     </DataTemplate>
                                  </ItemsControl.Resources>
                               </ItemsControl>

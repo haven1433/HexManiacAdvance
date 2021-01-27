@@ -75,5 +75,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(LzUncompressed lz, byte data) => Visit((None)null, data);
 
       public void Visit(UncompressedPaletteColor color, byte data) => buffer.WriteMultiByteValue(index, 2, currentChange, 0xFFFF);
+
+      public void Visit(DataFormats.Tuple tuple, byte data) => buffer.WriteMultiByteValue(index, tuple.Length, currentChange, -1);
    }
 }

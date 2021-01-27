@@ -82,6 +82,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          collector.Initialize<LzUncompressed>(typeface, fontSize);
          collector.Initialize<LzCompressed>(typeface, fontSize);
          collector.Initialize<UncompressedPaletteColor>(typeface, fontSize * .75);
+         collector.Initialize<Core.ViewModels.DataFormats.Tuple>(typeface, fontSize * .75);
 
          for (int x = 0; x < modelWidth; x++) {
             var cell = viewPort[x, position.Y];
@@ -135,6 +136,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                collector.Collect<LzGroupHeader>(format, x, 2, $"{lzCompressed.RunLength}:{lzCompressed.RunOffset}");
             } else if (format is UncompressedPaletteColor color) {
                collector.Collect<UncompressedPaletteColor>(format, x, 2, color.ToString());
+            } else if (format is Core.ViewModels.DataFormats.Tuple tuple) {
+               collector.Collect<Core.ViewModels.DataFormats.Tuple>(format, x, tuple.Length, tuple.ToString());
             }
          }
 
@@ -163,6 +166,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          collector.Render<LzUncompressed>(context, Brush(nameof(Theme.Data2)));
          collector.Render<LzCompressed>(context, Brush(nameof(Theme.Stream2)));
          collector.Render<UncompressedPaletteColor>(context, Brush(nameof(Theme.Data2)));
+         collector.Render<Core.ViewModels.DataFormats.Tuple>(context, Brush(nameof(Theme.Data2)));
 
          context.Pop();
       }
@@ -274,6 +278,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          var brush = (Brush)new PaletteColorConverter().Convert(color.Color, null, null, null);
          Underline(brush, color.Position == 0, color.Position == 1);
       }
+
+      public void Visit(Core.ViewModels.DataFormats.Tuple tuple, byte data) { }
 
       /// <summary>
       /// This function is full of dragons. You probably don't want to touch it.

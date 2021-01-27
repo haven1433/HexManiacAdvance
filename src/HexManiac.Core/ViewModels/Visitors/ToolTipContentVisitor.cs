@@ -134,5 +134,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(LzUncompressed lz, byte data) { }
 
       public void Visit(UncompressedPaletteColor color, byte data) { }
+
+      public void Visit(DataFormats.Tuple tuple, byte data) => Content.Add(tuple.ToString());
    }
 }

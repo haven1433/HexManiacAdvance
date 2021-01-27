@@ -317,6 +317,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
    public class ArrayRunTupleSegment : ArrayRunHexSegment {
       public IReadOnlyList<TupleSegment> Elements { get; }
+      public int VisibleElementCount => Elements.Count - Elements.Count(e => string.IsNullOrEmpty(e.Name));
       public ArrayRunTupleSegment(string name, string contract, int length) : base(name, length) {
          var content = new List<TupleSegment>();
          foreach (var part in contract.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries)) {
@@ -340,7 +341,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                var options = rawData.GetOptions(segment.SourceName);
                var value = segment.Read(rawData, offset, bitOffset);
                var text = options.Count > value ? options[value] : value.ToString();
-               result += text.Contains(" ") ? '"' + text + '"' : text;
+               result += text.Contains(" ") && !text.Contains("\"") ? '"' + text + '"' : text;
                result += " ";
             } else if (segment.BitWidth == 1) {
                result += segment.Read(rawData, offset, bitOffset) == 1 ? "true " : "false ";
@@ -355,7 +356,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public override void Write(IDataModel model, ModelDelta token, int start, string data) {
          var parts = data.Split(new[] { "(", ")", " " }, StringSplitOptions.RemoveEmptyEntries).ToList();
          TableStreamRun.Recombine(parts, "\"", "\"");
-         if (parts.Count != Elements.Count - Elements.Count(element => string.IsNullOrEmpty(element.Name))) return;
+         if (parts.Count != VisibleElementCount) return;
          int bitOffset = 0;
          int partIndex = 0;
          for (int i = 0; i < Elements.Count; i++) {

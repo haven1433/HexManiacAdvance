@@ -200,6 +200,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(UncompressedPaletteColor color, byte data) => Results.AddRange(GetFormattedChildren());
 
+      public void Visit(DataFormats.Tuple tuple, byte data) => Results.AddRange(GetFormattedChildren());
+
       private IEnumerable<IContextItem> GetTableChildren() {
          if (ViewPort.Tools.TableTool.Append.CanExecute(null)) {
             yield return new ContextItem("Extend Table", ViewPort.Tools.TableTool.Append.Execute);

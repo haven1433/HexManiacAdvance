@@ -214,6 +214,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Result = ViewPort.AllHexCharacters.Contains(Input);
          if (Result) NewFormat = new UnderEdit(color, Input.ToString(), 2);
       }
+
+      public void Visit(DataFormats.Tuple tuple, byte data) => Result = true;
    }
 }
 

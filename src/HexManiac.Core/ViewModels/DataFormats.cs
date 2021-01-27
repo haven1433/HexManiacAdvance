@@ -50,6 +50,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       void Visit(LzCompressed lz, byte data);
       void Visit(LzUncompressed lz, byte data);
       void Visit(UncompressedPaletteColor color, byte data);
+      void Visit(Tuple tuple, byte data);
    }
 
    /// <summary>
@@ -103,6 +104,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public static UnderEdit Edit(this IDataFormat format, string text) {
          if (format is UnderEdit underEdit) {
             return new UnderEdit(underEdit.OriginalFormat, underEdit.CurrentText + text, underEdit.EditWidth);
+         } else if (format is IDataFormatInstance instance) {
+            return new UnderEdit(format, text, instance.Length);
          }
 
          return new UnderEdit(format, text);
@@ -324,6 +327,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          var format = "X" + (Length * 2);
          return Value.ToString(format);
       }
+   }
+
+   public class Tuple : IDataFormatInstance {
+      private readonly IDataModel dataModel;
+
+      public ArrayRunTupleSegment Model { get; }
+
+      public int Source { get; }
+
+      public int Position { get; }
+
+      public int Length { get; }
+
+      public Tuple(IDataModel dataModel, ArrayRunTupleSegment model, int source, int position) {
+         (this.dataModel, Model, Source, Position) = (dataModel, model, source, position);
+         Length = model.Length;
+      }
+
+      public override string ToString() => Model.ToText(dataModel, Source);
+
+      public bool Equals(IDataFormat other) => ToString() == other.ToString();
+
+      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
    public class EggSection : IDataFormatInstance {
