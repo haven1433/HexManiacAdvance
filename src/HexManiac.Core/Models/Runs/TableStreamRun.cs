@@ -134,7 +134,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }).ToArray());
       }
 
-      public IStreamRun DeserializeRun(string content, ModelDelta token) {
+      IStreamRun IStreamRun.DeserializeRun(string content, ModelDelta token) => DeserializeRun(content, token);
+
+      public TableStreamRun DeserializeRun(string content, ModelDelta token) {
          if (endStream is FixedLengthStreamStrategy flss && flss.Count == 1) return DeserializeSingleElementStream(content, token);
          var lines = content.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
          if (lines.Length == 0) lines = content.Split(Environment.NewLine);
@@ -190,7 +192,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return result.ToString();
       }
 
-      private IStreamRun DeserializeSingleElementStream(string content, ModelDelta token) {
+      private TableStreamRun DeserializeSingleElementStream(string content, ModelDelta token) {
          Debug.Assert(endStream is FixedLengthStreamStrategy flss && flss.Count == 1);
          var fields = content.SplitLines();
          int segmentOffset = 0;
@@ -212,19 +214,23 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             tokens[i] = tokens[i].Substring(0, tokens[i].Length - 1);
          }
 
-         // recombine tokens so that each token that starts with " ends with "
-         for (int i = 0; i < tokens.Count - 1; i++) {
-            if (tokens[i].StartsWith("\"") == tokens[i].EndsWith("\"")) continue;
-            tokens[i] += " " + tokens[i + 1];
-            tokens.RemoveAt(i + 1);
-            i--;
-         }
+         Recombine(tokens, "\"", "\"");
+         Recombine(tokens, "(", ")");
 
          // remove comments
          var comment = ViewPort.CommentStart.ToString();
          tokens = tokens.Where(token => !token.StartsWith(comment)).ToList();
 
          return tokens;
+      }
+
+      public static void Recombine(List<string> tokens, string startToken, string endToken) {
+         for (int i = 0; i < tokens.Count - 1; i++) {
+            if (tokens[i].StartsWith(startToken) == tokens[i].EndsWith(endToken)) continue;
+            tokens[i] += " " + tokens[i + 1];
+            tokens.RemoveAt(i + 1);
+            i--;
+         }
       }
 
       public bool DependsOn(string anchorName) {

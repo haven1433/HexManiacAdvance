@@ -138,8 +138,47 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(5, lines.Length);
       }
 
-      // TODO test that we can serialize tuple enum segments
-      // TODO test that we can read from streams to tuples
+      [Fact]
+      public void TupleStream_Deserialize_ValuesAreUpdated() {
+         Model[4] = 0xFF;
+         Model[5] = 0xFF;
+         ViewPort.Edit("^table[value.|t|a:|b. next.|h]!FFFF ");
+
+         var run = (TableStreamRun)Model.GetNextRun(0);
+         run = run.DeserializeRun(@"
+(2 true), 04
+", ViewPort.CurrentChange);
+
+         Assert.Equal(1, run.ElementCount);
+         Assert.Equal(0b110, Model[0]);
+         Assert.Equal(0x04, Model[1]);
+      }
+
+      [Fact]
+      public void TupleStream_SerializeEnum_ProducesText() {
+         Model.SetList("options", new[] { "None", "Something Else" });
+         Array.Copy(new byte[] { 0, 0b_10_10_01, 0xFF }, Model.RawData, 3);
+         ViewPort.Edit("^table[value.|t|a:options|b:options|c:4]!FF ");
+
+         var result = ((TableStreamRun)Model.GetNextRun(0)).SerializeRun();
+
+         var lines = result.SplitLines();
+         Assert.Equal("(None None 0)", lines[0]);
+         Assert.Equal("(\"Something Else\" 2 2)", lines[1]);
+      }
+
+      [Fact]
+      public void TupleStream_DeserializeEnum_ProducesEnum() {
+         Model.SetList("options", new[] { "None", "Something Else" });
+         Model[2] = 0xFF;
+         ViewPort.Edit("^table[value.|t|a:options|b:options|c:options|d:4]!FF ");
+
+         var run = (TableStreamRun)Model.GetNextRun(0);
+         run.DeserializeRun("(\"Some Else\", somethels 0, 3)", ViewPort.CurrentChange);
+
+         Assert.Equal(0b11_00_01_01, Model[0]);
+      }
+
       // TODO check that tablestream dependencies works right for tuple enums
       // TODO tuple segments with empty names do not appear in the table tool
       // TODO tuple segments with empty names do not appear in the stream

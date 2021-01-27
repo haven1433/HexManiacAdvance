@@ -335,7 +335,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var bitOffset = 0;
          foreach (var segment in Elements) {
             if (!string.IsNullOrEmpty(segment.SourceName)) {
-               // TODO
+               var options = rawData.GetOptions(segment.SourceName);
+               var value = segment.Read(rawData, offset, bitOffset);
+               var text = options.Count > value ? options[value] : value.ToString();
+               result += text.Contains(" ") ? '"' + text + '"' : text;
             } else if (segment.BitWidth == 1) {
                result += segment.Read(rawData, offset, bitOffset) == 1 ? "true" : "false";
             } else {
@@ -345,6 +348,27 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             bitOffset += segment.BitWidth;
          }
          return result.Trim() + ")";
+      }
+
+      public override void Write(IDataModel model, ModelDelta token, int start, string data) {
+         var parts = data.Split(new[] { "(", ")", " " }, StringSplitOptions.RemoveEmptyEntries).ToList();
+         TableStreamRun.Recombine(parts, "\"", "\"");
+         if (parts.Count != Elements.Count) return;
+         int bitOffset = 0;
+         for (int i = 0; i < Elements.Count; i++) {
+            if (!string.IsNullOrEmpty(Elements[i].SourceName)) {
+               if (ArrayRunEnumSegment.TryParse(Elements[i].SourceName, model, parts[i], out int value))
+                  Elements[i].Write(model, token, start, bitOffset, value);
+            } else if (Elements[i].BitWidth == 1) {
+               if (bool.TryParse(parts[i], out bool value))
+                  Elements[i].Write(model, token, start, bitOffset, value ? 1 : 0);
+            } else {
+               if (int.TryParse(parts[i], out int value))
+                  Elements[i].Write(model, token, start, bitOffset, value);
+            }
+
+            bitOffset += Elements[i].BitWidth;
+         }
       }
    }
    public class TupleSegment {
