@@ -289,7 +289,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (ParentOffset.BeginningMargin < 0) {
                options = options.Skip(-ParentOffset.BeginningMargin).ToList();
             } else if (ParentOffset.BeginningMargin > 0) {
-               throw new NotImplementedException();
+               options = ParentOffset.BeginningMargin.Range().Select(i => (i - ParentOffset.BeginningMargin).ToString()).Concat(options).ToList();
             }
             if (ParentOffset.EndMargin > 0) {
                options = options.Concat(Enumerable.Range(ElementCount - ParentOffset.EndMargin, ParentOffset.EndMargin).Select(i => i.ToString())).ToList();

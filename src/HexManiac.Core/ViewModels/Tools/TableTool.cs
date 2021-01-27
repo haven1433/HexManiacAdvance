@@ -320,7 +320,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (child is TrainerPokemonTeamRun trainerRun) trainerResults.AddRange(trainerRun.Search(basename, index));
             if (child is TableStreamRun streamRun) streamResults.AddRange(streamRun.Search(basename, index));
          }
-         var elementName = array.ElementNames.Count > index ? array.ElementNames[index] : "Element " + index;
+         var elementName = array.ElementNames.Count > index && index >= 0 ? array.ElementNames[index] : "Element " + index;
          if (eggResults.Count > 0) {
             AddChild(new ButtonArrayElementViewModel("Show uses in egg moves.", () => {
                using (ModelCacheScope.CreateScope(model)) {

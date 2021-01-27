@@ -164,7 +164,7 @@ graphics.trainercard.frontier.palette,     ,,,, ,,,, 0C567C, `ucp4:01234567`
 
 graphics.pokemon.type.icons,                 ,       ,       ,       , 107DB0, 107D88, 107E28, 107E00,       , `ucs4x16x16|graphics.pokemon.type.palettes`
 graphics.pokemon.type.palettes,              ,       ,       ,       , 107D64, 107D3C, 107DDC, 107DB4,       , `ucp4`
-graphics.pokemon.type.map,                   ,       ,       ,       , 107DAC, 107D84, 107E24, 107DFC,       , [width. height. xy:]24
+graphics.pokemon.type.map,                   ,       ,       ,       , 107DAC, 107D84, 107E24, 107DFC,       , [width. height. xy:|t|:|x:|.|y::]data.pokemon.type.names+1+5
 graphics.pokemon.type.icons,                 ,       ,       ,       ,       ,       ,       ,       , 61CFBC, `lzs4x4x46|graphics.pokemon.type.palettes`
 graphics.pokemon.type.index,                 ,       ,       ,       ,       ,       ,       ,       , 1C439C, [index.]23
 // 0D, 0E, 0F are the 3 palettes (0, 1, 2)
