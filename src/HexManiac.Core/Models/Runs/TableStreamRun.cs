@@ -234,7 +234,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public bool DependsOn(string anchorName) {
-         return ElementContent.OfType<ArrayRunEnumSegment>().Any(segment => segment.EnumName == anchorName);
+         foreach (var segment in ElementContent) {
+            if (segment is ArrayRunEnumSegment enumSegment && enumSegment.EnumName == anchorName) return true;
+            if (segment is ArrayRunTupleSegment tupleSegment && tupleSegment.DependsOn(anchorName)) return true;
+         }
+         return false;
       }
 
       #endregion

@@ -179,7 +179,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0b11_00_01_01, Model[0]);
       }
 
-      // TODO check that tablestream dependencies works right for tuple enums
+      [Fact]
+      public void TupleStream_EnumDependency_DependencyRecognized() {
+         CreateTextTable("names", 0x100, "adam", "bob", "carl", "dave");
+         CreateEnumTable("enums", 0x80, "names", 0, 1, 2, 3);
+         Model[1] = 0xFF;
+
+         ViewPort.Edit("@00 ^table[value.|t|a:|b:enums]!FF ");
+
+         var run = (IStreamRun)Model.GetNextRun(0);
+         Assert.True(run.DependsOn("enums"));
+      }
+
       // TODO tuple segments with empty names do not appear in the table tool
       // TODO tuple segments with empty names do not appear in the stream
 
