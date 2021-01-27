@@ -191,7 +191,15 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.True(run.DependsOn("enums"));
       }
 
-      // TODO tuple segments with empty names do not appear in the table tool
+      [Fact]
+      public void EmptyTupleSegmentName_CheckTableTool_DoesNotContainEmptyNameElements() {
+         ViewPort.Edit("^table[a.|t|.|x:|.|y:]1 ");
+
+         Assert.Equal(2, TupleTable.Children.Count);
+         Assert.Equal("x", TupleTable.Children[0].Name);
+         Assert.Equal("y", TupleTable.Children[1].Name);
+      }
+
       // TODO tuple segments with empty names do not appear in the stream
 
       private TupleArrayElementViewModel TupleTable => (TupleArrayElementViewModel)ViewPort.Tools.TableTool.Children.Where(child => child is TupleArrayElementViewModel).Single();

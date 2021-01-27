@@ -373,6 +373,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public bool DependsOn(string anchorName) => Elements.Any(element => element.SourceName == anchorName);
    }
+
    public class TupleSegment {
       public string Name { get; }
       public string SourceName { get; }

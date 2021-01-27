@@ -23,7 +23,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Name = tupleItem.Name;
          var bitOffset = 0;
          for (int i = 0; i < tupleItem.Elements.Count; i++) {
-            if (tupleItem.Elements[i].BitWidth == 1) {
+            if (string.IsNullOrEmpty(tupleItem.Elements[i].Name)) {
+               // don't make a viewmodel for unnamed tuple item elements
+            } else if (tupleItem.Elements[i].BitWidth == 1) {
                Children.Add(new CheckBoxTupleElementViewModel(viewPort, start, bitOffset, tupleItem.Elements[i]));
             } else if (!string.IsNullOrEmpty(tupleItem.Elements[i].SourceName)) {
                Children.Add(new EnumTupleElementViewModel(viewPort, start, bitOffset, tupleItem.Elements[i]));
