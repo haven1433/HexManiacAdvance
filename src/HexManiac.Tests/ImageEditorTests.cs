@@ -1002,6 +1002,25 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(White, editor.PixelData[editor.PixelIndex(0, 0)]);
          Assert.Equal(White, editor.PixelData[editor.PixelIndex(4, 4)]);
       }
+
+      [Theory]
+      [InlineData(-4, -4, 0, 0)]
+      [InlineData(3, -4, 6, 0)]
+      [InlineData(-4, 3, 0, 6)]
+      [InlineData(3, 3, 6, 6)]
+      public void Copy_PasteInCorner_NewPixelsInCorner(int hoverX, int hoverY, int pixelX, int pixelY) {
+         var fileSystem = new StubFileSystem();
+         editor.Palette.Elements[1].Color = White;
+         fileSystem.CopyImage = (new short[] { White, White, White, White }, 2);
+
+         editor.Hover(hoverX, hoverY);
+         editor.Paste.Execute(fileSystem);
+
+         Assert.Equal(White, editor.PixelData[editor.PixelIndex(pixelX + 0, pixelY + 0)]);
+         Assert.Equal(White, editor.PixelData[editor.PixelIndex(pixelX + 1, pixelY + 0)]);
+         Assert.Equal(White, editor.PixelData[editor.PixelIndex(pixelX + 0, pixelY + 1)]);
+         Assert.Equal(White, editor.PixelData[editor.PixelIndex(pixelX + 1, pixelY + 1)]);
+      }
    }
 
    public class ImageEditorTilemapTests {

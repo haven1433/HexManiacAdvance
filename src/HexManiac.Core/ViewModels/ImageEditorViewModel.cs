@@ -98,7 +98,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          SelectedTool = ImageEditorTools.Select;
          var tool = (SelectionTool)toolStrategy;
          tool.ClearSelection();
-         var (x, y) = (PixelWidth / 2 - sprite.width / 2, PixelHeight / 2 - height / 2);
+         var hoverPoint = ToSpriteSpace(interactionStart);
+         var (x, y) = (hoverPoint.X - sprite.width / 2, hoverPoint.Y - height / 2);
+         x = x.LimitToRange(0, PixelWidth - sprite.width);
+         y = y.LimitToRange(0, PixelHeight - height);
          ToolDown(FromSpriteSpace(new Point(x, y)));
          Hover(FromSpriteSpace(new Point(x + sprite.width - 1, y + height - 1)));
          ToolUp(FromSpriteSpace(new Point(x + sprite.width - 1, y + height - 1)));
@@ -110,7 +113,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var newUnderPixels = new int[sprite.width, height];
          for (int xx = 0; xx < sprite.width; xx++) {
             for (int yy = 0; yy < height; yy++) {
-               var i = PixelIndex(x + xx, y + yy);
                var targetColor = sprite.image[yy * sprite.width + xx];
                var paletteIndex = fullPalette.IndexOf(targetColor);
                if (paletteIndex < 0) paletteIndex = 0;
@@ -515,6 +517,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void Hover(Point point) {
          if (!withinInteraction) {
+            interactionStart = point;
             toolStrategy.ToolHover(point);
          } else if (withinDropperInteraction) {
             eyeDropperStrategy.ToolDrag(point);
