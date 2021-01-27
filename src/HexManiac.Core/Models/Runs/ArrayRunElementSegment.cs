@@ -334,17 +334,19 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var result = "(";
          var bitOffset = 0;
          foreach (var segment in Elements) {
-            if (!string.IsNullOrEmpty(segment.SourceName)) {
+            if (string.IsNullOrEmpty(segment.Name)) {
+               // don't append unnamed segments
+            } else if (!string.IsNullOrEmpty(segment.SourceName)) {
                var options = rawData.GetOptions(segment.SourceName);
                var value = segment.Read(rawData, offset, bitOffset);
                var text = options.Count > value ? options[value] : value.ToString();
                result += text.Contains(" ") ? '"' + text + '"' : text;
+               result += " ";
             } else if (segment.BitWidth == 1) {
-               result += segment.Read(rawData, offset, bitOffset) == 1 ? "true" : "false";
+               result += segment.Read(rawData, offset, bitOffset) == 1 ? "true " : "false ";
             } else {
-               result += segment.Read(rawData, offset, bitOffset);
+               result += segment.Read(rawData, offset, bitOffset) + " ";
             }
-            result += " ";
             bitOffset += segment.BitWidth;
          }
          return result.Trim() + ")";
@@ -353,20 +355,25 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public override void Write(IDataModel model, ModelDelta token, int start, string data) {
          var parts = data.Split(new[] { "(", ")", " " }, StringSplitOptions.RemoveEmptyEntries).ToList();
          TableStreamRun.Recombine(parts, "\"", "\"");
-         if (parts.Count != Elements.Count) return;
+         if (parts.Count != Elements.Count - Elements.Count(element => string.IsNullOrEmpty(element.Name))) return;
          int bitOffset = 0;
+         int partIndex = 0;
          for (int i = 0; i < Elements.Count; i++) {
-            if (!string.IsNullOrEmpty(Elements[i].SourceName)) {
-               if (ArrayRunEnumSegment.TryParse(Elements[i].SourceName, model, parts[i], out int value))
+            if (string.IsNullOrEmpty(Elements[i].Name)) {
+               // skip unnamed segments. i should increment and bitOffset should increase, but which part we're looking at should remain the same.
+               partIndex -= 1;
+            } else if (!string.IsNullOrEmpty(Elements[i].SourceName)) {
+               if (ArrayRunEnumSegment.TryParse(Elements[i].SourceName, model, parts[partIndex], out int value))
                   Elements[i].Write(model, token, start, bitOffset, value);
             } else if (Elements[i].BitWidth == 1) {
-               if (bool.TryParse(parts[i], out bool value))
+               if (bool.TryParse(parts[partIndex], out bool value))
                   Elements[i].Write(model, token, start, bitOffset, value ? 1 : 0);
             } else {
-               if (int.TryParse(parts[i], out int value))
+               if (int.TryParse(parts[partIndex], out int value))
                   Elements[i].Write(model, token, start, bitOffset, value);
             }
 
+            partIndex += 1;
             bitOffset += Elements[i].BitWidth;
          }
       }

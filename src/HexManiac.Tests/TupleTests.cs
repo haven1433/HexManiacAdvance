@@ -200,7 +200,27 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("y", TupleTable.Children[1].Name);
       }
 
-      // TODO tuple segments with empty names do not appear in the stream
+      [Fact]
+      public void EmptyTupleSegmentName_Serialize_DoesNotContainEmptyNameElements() {
+         Model[1] = 0xFF;
+         ViewPort.Edit("^table[a.|t|.|x:|.|y:]!FF ");
+
+         var run = (TableStreamRun)Model.GetNextRun(0);
+         var text = run.SerializeRun();
+
+         Assert.Equal("(0 0)", text);
+      }
+
+      [Fact]
+      public void EmptyTupleSegmentName_Deserialize_DoesNotExpectEmptyNameElements() {
+         Model[1] = 0xFF;
+         ViewPort.Edit("^table[a.|t|.|x:|.|y:]!FF ");
+
+         var run = (TableStreamRun)Model.GetNextRun(0);
+         run.DeserializeRun("(1, 1)", ViewPort.CurrentChange);
+
+         Assert.Equal(0b_01_0_01_0, Model[0]);
+      }
 
       private TupleArrayElementViewModel TupleTable => (TupleArrayElementViewModel)ViewPort.Tools.TableTool.Children.Where(child => child is TupleArrayElementViewModel).Single();
    }
