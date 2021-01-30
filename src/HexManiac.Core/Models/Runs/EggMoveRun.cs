@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -183,6 +184,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (model.ReadMultiByteValue(end, 2) != EndStream) model.WriteMultiByteValue(end, 2, token, EndStream); // write the new end token
          for (int i = data.Count + 2; i < Length / 2; i++) model.WriteMultiByteValue(run.Start + i * 2, 2, token, EndStream); // fill any remaining old space with FF
          return new EggMoveRun(model, run.Start);
+      }
+
+      public IReadOnlyList<IContextItem> GetAutoCompleteOptions(string line, int caretLineIndex, int caretCharacterIndex) {
+         var result = new List<IContextItem>();
+         return result;
       }
 
       public bool DependsOn(string anchorName) {

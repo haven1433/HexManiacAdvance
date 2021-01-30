@@ -158,5 +158,64 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Single(Errors);
          Assert.Equal(0x00, Model[0]);
       }
+
+      [Fact]
+      public void StreamWithEnum_RequestAutocompleteAtEnum_GetOptions() {
+         Model.SetList("options", new[] { "Xmatch", "matchX", "matXch", "other" });
+         var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[a:options b:]", null, new FixedLengthStreamStrategy(2));
+
+         var options = stream.GetAutoCompleteOptions("match, 3", caretLineIndex: 0, caretCharacterIndex: 5).Select(option => option.Text).ToArray();
+
+         Assert.Equal(new[] { "Xmatch", "matchX", "matXch" }, options);
+      }
+
+      [Fact]
+      public void TableStreamRunAutoCompleteOption_Execute_TextChanges() {
+         Model.SetList("options", new[] { "Xmatch", "matchX", "matXch", "other" });
+         var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[a:options b:]", null, new FixedLengthStreamStrategy(2));
+         var options = stream.GetAutoCompleteOptions("match, 3", caretLineIndex: 0, caretCharacterIndex: 5).ToArray();
+
+         var result = string.Empty;
+         Action<string> action = str => result = str;
+         options[1].Command.Execute(action);
+
+         Assert.Equal("matchX, 3", result);
+      }
+
+      [Fact]
+      public void TableStreamRunAutoCompleteOption_MoreElementsNeededOnLine_MovesToNextElement() {
+         Model.SetList("options", new[] { "Xmatch", "matchX", "matXch", "other" });
+         var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[a:options b:]", null, new FixedLengthStreamStrategy(2));
+         var options = stream.GetAutoCompleteOptions("match", caretLineIndex: 0, caretCharacterIndex: 5).ToArray();
+
+         var result = string.Empty;
+         Action<string> action = str => result = str;
+         options[2].Command.Execute(action);
+
+         Assert.Equal("matXch, ", result);
+      }
+
+      [Fact]
+      public void SingleElementTableStreamRun_AutoCompleteField_OptionsMakeSense() {
+         Model.SetList("options", new[] { "Xmatch", "matchX", "matXch", "other" });
+         var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[abc: xyz:options]", null, new FixedLengthStreamStrategy(1));
+         var options = stream.GetAutoCompleteOptions("xyz: match", caretLineIndex: 0, caretCharacterIndex: 10).ToArray();
+
+         var result = string.Empty;
+         Action<string> action = str => result = str;
+         options[1].Command.Execute(action);
+
+         Assert.Equal("xyz: matchX", result);
+      }
+
+      // TODO test how it works with single-element streams, where each line contains only a single named element
+      // TODO test how it works with tuples
+      // TODO test how it works for egg moves (pokemon)
+      // TODO test how it works for egg moves (moves)
+      // TODO test how it works for trainer teams (pokemon)
+      // TODO test how it works for trainer teams (moves)
+      // TODO test how it works for trainer teams (items)
+      // TODO test how it works for item effects (elements)
+      // TODO test how it works for item effects (enums)
    }
 }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class TableStreamRun : BaseRun, IStreamRun, ITableRun {
@@ -77,11 +78,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return null;
       }
 
-      public TableStreamRun(IDataModel model, int start, SortedSpan<int> sources, string formatString, IReadOnlyList<ArrayRunElementSegment> segments, IStreamEndStrategy endStream) : base(start, sources) {
+      public TableStreamRun(IDataModel model, int start, SortedSpan<int> sources, string formatString, IReadOnlyList<ArrayRunElementSegment> parsedSegments, IStreamEndStrategy endStream) : base(start, sources) {
+         if (parsedSegments == null) parsedSegments = ArrayRun.ParseSegments(formatString.Substring(1, formatString.Length - 2), model);
          this.model = model;
-         ElementContent = segments;
+         ElementContent = parsedSegments;
          this.endStream = endStream;
-         ElementLength = segments.Sum(segment => segment.Length);
+         ElementLength = parsedSegments.Sum(segment => segment.Length);
          ElementCount = endStream.GetCount(start, ElementLength, sources);
          Length = ElementLength * ElementCount + endStream.ExtraLength;
          FormatString = formatString;
@@ -239,6 +241,30 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (segment is ArrayRunTupleSegment tupleSegment && tupleSegment.DependsOn(anchorName)) return true;
          }
          return false;
+      }
+
+      public IReadOnlyList<IContextItem> GetAutoCompleteOptions(string line, int caretLineIndex, int caretCharacterIndex) {
+         var results = new List<IContextItem>();
+         var lineStart = line.Substring(0, caretCharacterIndex);
+         var lineEnd = line.Substring(caretCharacterIndex);
+         var tokens = Tokenize(lineStart);
+         if (ElementContent.Count < tokens.Count) return results;
+         var filter = tokens[tokens.Count - 1];
+         var targetSegment = ElementContent[tokens.Count - 1];
+         if (targetSegment is ArrayRunEnumSegment enumSegment) {
+            var optionText = enumSegment.GetOptions(model).Where(option => option.MatchesPartial(tokens[tokens.Count - 1]));
+            results.AddRange(optionText.Select(option => {
+               string newLine = ", ".Join(tokens.Take(tokens.Count - 1));
+               newLine += option;
+               newLine += lineEnd;
+               if (Tokenize(newLine).Count < ElementContent.Count) newLine += (", ");
+               var item = new ContextItem(option, action => ((Action<string>)action)(newLine));
+               return item;
+            }));
+         } else if (targetSegment is ArrayRunTupleSegment tupleGroup) {
+            // TODO
+         }
+         return results;
       }
 
       #endregion

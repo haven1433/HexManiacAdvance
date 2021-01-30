@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -261,6 +262,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (i + 1 < ElementCount) buffer.AppendLine();
          }
          return buffer.ToString();
+      }
+
+      public IReadOnlyList<IContextItem> GetAutoCompleteOptions(string line, int caretLineIndex, int caretCharacterIndex) {
+         var result = new List<IContextItem>();
+         return result;
       }
 
       public bool DependsOn(string anchorName) => anchorName == HardcodeTablesModel.ItemsTableName || anchorName == HardcodeTablesModel.MoveNamesTable || anchorName == HardcodeTablesModel.PokemonNameTable;

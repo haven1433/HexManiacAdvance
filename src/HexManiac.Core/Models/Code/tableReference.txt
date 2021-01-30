@@ -44,6 +44,8 @@ graphics.pokemon.icons.sprites,             099AA0, 099AA0, 099AC0, 099AC0, 0001
 graphics.pokemon.icons.index,               099BB0, 099BB0, 099BD0, 099BD0, 00013C, 00013C, 00013C, 00013C, 00013C, [index.graphics.pokemon.icons.palettes]data.pokemon.names+28
 graphics.pokemon.icons.palettes,            09D53C, 09D53C, 09D55C, 09D55C, 000140, 000140, 000140, 000140, 000140, [palette<`ucp4`> id::]3
 graphics.pokemon.icons.deoxys,                    ,       ,       ,       , 3D3E08, 3D3C44, 3D3E78, 3D3CB4, 57C310, `ucs4x4x16|graphics.pokemon.icons.index`
+graphics.pokemon.shiny.star.sprite,               ,       ,       ,       , 13AE68, 13AE40, 13AEE0, 13AEB8,       , `lzs4x1x2|graphics.pokemon.shiny.star.palette`
+graphics.pokemon.shiny.star.palette,              ,       ,       ,       , 13AE6C, 13AE44, 13AEE4, 13AEBC,       , `ucp4`
 graphics.trainers.sprites.front,            031B9C, 031B9C, 031B9C, 031B9C,       ,       ,       ,       ,       , [sprite<`lzs4x8x8|graphics.trainers.palettes.front`> uncompressedLength: index:]83
 graphics.trainers.sprites.front,                  ,       ,       ,       , 03473C, 03473C, 034750, 034750,       , [sprite<`lzs4x8x8|graphics.trainers.palettes.front`> uncompressedLength: index:]148
 graphics.trainers.sprites.front,                  ,       ,       ,       ,       ,       ,       ,       , 05DF78, [sprite<`lzs4x8x8|graphics.trainers.palettes.front`> uncompressedLength: index:]93

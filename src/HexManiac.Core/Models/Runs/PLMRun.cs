@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -116,6 +117,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          for (int i = data.Count * 2 + 2; i < Length; i++) token.ChangeData(model, run.Start + i, 0xFF); // fill any remaining old space with FF
 
          return new PLMRun(model, run.Start);
+      }
+
+      public IReadOnlyList<IContextItem> GetAutoCompleteOptions(string line, int caretLineIndex, int caretCharacterIndex) {
+         var result = new List<IContextItem>();
+         return result;
       }
 
       public bool DependsOn(string anchorName) => anchorName == HardcodeTablesModel.MoveNamesTable;

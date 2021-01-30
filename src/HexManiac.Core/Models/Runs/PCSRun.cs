@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -67,6 +68,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          for (int i = 0; i < bytes.Count; i++) token.ChangeData(model, newRun.Start + i, bytes[i]);
          return new PCSRun(model, newRun.Start, bytes.Count, newRun.PointerSources);
+      }
+
+      public IReadOnlyList<IContextItem> GetAutoCompleteOptions(string line, int caretLineIndex, int caretCharacterIndex) {
+         var result = new List<IContextItem>();
+         return result;
       }
 
       public bool DependsOn(string anchorName) => false;

@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -41,6 +42,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       IStreamRun DeserializeRun(string content, ModelDelta token);
 
       bool DependsOn(string anchorName);
+
+      /// <param name="line">The current line being edited</param>
+      /// <param name="caretLineIndex">The index of the current line (useful for streams with element-per-line syntax)</param>
+      /// <param name="caretCharacterIndex">The index of the caret within the line</param>
+      /// <returns>A list of named commands. Executing a command will complete the option.</returns>
+      IReadOnlyList<IContextItem> GetAutoCompleteOptions(string line, int caretLineIndex, int caretCharacterIndex);
    }
 
    public class FormattedRunComparer : IComparer<IFormattedRun> {
