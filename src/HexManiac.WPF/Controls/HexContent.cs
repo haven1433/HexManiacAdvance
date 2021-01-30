@@ -494,7 +494,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             if (format is Anchor anchor) format = anchor.OriginalFormat;
             if (!(format is SpriteDecorator sprite)) continue;
             if (sprite.CellWidth != ViewPort.Width) continue;
-            var source = new PixelImage { DataContext = sprite.Pixels }.Source;
+            var source = PixelImage.WriteOnce(sprite.Pixels);
             var (w, h) = (CellWidth, CellHeight);
             var rect = new Rect(0, y * h, w * sprite.CellWidth, h * sprite.CellHeight);
             if (sprite.CellWidth != sprite.Pixels.PixelWidth / 8 || sprite.CellHeight != sprite.Pixels.PixelHeight / 8) {

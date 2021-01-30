@@ -194,6 +194,20 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          source.WritePixels(rect, pixels, stride, 0);
       }
 
+      public static WriteableBitmap WriteOnce(IPixelViewModel viewModel) {
+         var pixels = viewModel.PixelData;
+         if (pixels == null) return null;
+         var expectedLength = viewModel.PixelWidth * viewModel.PixelHeight;
+         if (pixels.Length < expectedLength || pixels.Length == 0) return null;
+         int stride = viewModel.PixelWidth * 2;
+         var format = PixelFormats.Bgr555;
+
+         var source = new WriteableBitmap(viewModel.PixelWidth, viewModel.PixelHeight, 96, 96, format, null);
+         var rect = new Int32Rect(0, 0, viewModel.PixelWidth, viewModel.PixelHeight);
+         source.WritePixels(rect, pixels, stride, 0);
+         return source;
+      }
+
       private void DrawDebugGrid(short[] pixels, int width) {
          for (int y = 0; y < pixels.Length; y += width * 8) {
             for (int x = 0; x < width; x += 2) pixels[y + x] = 0b_10000_10000_10000;
