@@ -244,6 +244,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public IReadOnlyList<IContextItem> GetAutoCompleteOptions(string line, int caretLineIndex, int caretCharacterIndex) {
+         if (endStream is FixedLengthStreamStrategy flss && flss.Count == 1) {
+            return GetAutoCompleteOptionsForSingleElementStream(line, caretCharacterIndex);
+         }
+
          var results = new List<IContextItem>();
          var lineStart = line.Substring(0, caretCharacterIndex);
          var lineEnd = line.Substring(caretCharacterIndex);
@@ -264,6 +268,30 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          } else if (targetSegment is ArrayRunTupleSegment tupleGroup) {
             // TODO
          }
+         return results;
+      }
+
+      private IReadOnlyList<IContextItem> GetAutoCompleteOptionsForSingleElementStream(string line, int caretIndex) {
+         var results = new List<IContextItem>();
+
+         var lineStart = line.Substring(0, caretIndex);
+         var lineEnd = line.Substring(caretIndex);
+         if (lineStart.Count(':') != 1) return results;
+         var fieldName = lineStart.Split(':')[0];
+         var currentContent = lineStart.Split(':')[1].Trim();
+         var field = ElementContent.Where(segment => segment.Name == fieldName).FirstOrDefault();
+         if (field == null) return null;
+         if (field is ArrayRunEnumSegment enumSegment) {
+            var optionText = enumSegment.GetOptions(model).Where(option => option.MatchesPartial(currentContent));
+            results.AddRange(optionText.Select(option => {
+               string newLine = $"{fieldName}: {option}{lineEnd}";
+               var item = new ContextItem(option, action => ((Action<string>)action)(newLine));
+               return item;
+            }));
+         } else if (field is ArrayRunTupleSegment tupleGroup) {
+            // TODO
+         }
+
          return results;
       }
 

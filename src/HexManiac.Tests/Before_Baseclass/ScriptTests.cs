@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.IO;
 using System.Linq;
@@ -52,7 +53,8 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Refresh();
 
          ViewPort.SelectionStart = new Point(2, 2);
-         var item = ViewPort.GetContextMenuItems(new Point(2, 2)).Single(cmi => cmi.Text == "Create New XSE Script");
+         var group = (ContextItemGroup)ViewPort.GetContextMenuItems(new Point(2, 2)).Single(cmi => cmi.Text == "Create New...");
+         var item = group.Single(cmi => cmi.Text == "Event Script");
          item.Command.Execute();
 
          Assert.Equal(ViewPort.Tools.CodeTool, ViewPort.Tools.SelectedTool);
