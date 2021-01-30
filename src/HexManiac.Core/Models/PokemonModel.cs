@@ -1501,7 +1501,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                      // this makes sure that we have enough freespace and makes deep copy for pointers work correctly.
                      text.Append($"@!00({tableRun.Length}) ");
                      if (tableRun is TableStreamRun tableStream) {
-                        var defaultStream = tableStream.CreateDefault().Select(b => b.ToString("X2")).Aggregate(string.Concat);
+                        var defaultStream = tableStream.CreateDefault().Select(b => b.ToString("X2")).Aggregate(string.Empty, string.Concat);
                         if (defaultStream.Length > 0) {
                            defaultStream = new string('0', 2 * tableStream.ElementLength) + defaultStream;
                            text.Append($"@!put({defaultStream}) ");
