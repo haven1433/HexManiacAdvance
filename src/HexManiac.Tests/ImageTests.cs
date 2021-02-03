@@ -791,6 +791,20 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(1, pixels[2, 2]);
       }
 
+
+      [Fact]
+      public void TwoUncompressedPalettes_Copy_32ColorsCopied() {
+         var fs = new StubFileSystem();
+         ViewPort.Edit("@00 ^a`ucp4` @20 ^b`ucp4` @00 ");
+         ViewPort.SelectionStart = ViewPort.ConvertAddressToViewPoint(0);
+         ViewPort.SelectionEnd = ViewPort.ConvertAddressToViewPoint(0x40 - 1);
+
+         ViewPort.Copy.Execute(fs);
+
+         var colorCount = fs.CopyText.value.Split("0:0:0").Length - 1;
+         Assert.Equal(32, colorCount);
+      }
+
       private void WriteCompressedData(int start, int length) {
          var compressedData = LZRun.Compress(new byte[length], 0, length);
          for (int i = 0; i < compressedData.Count; i++) Model[start + i] = compressedData[i];

@@ -105,6 +105,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) {
+         if (start < Start) {
+            length -= Start - start;
+            start = Start;
+         }
+         if (length > Length) length = Length;
+
          while (length > 0) {
             var format = (UncompressedPaletteColor)CreateDataFormat(model, start);
             builder.Append(format.ToString() + " ");
