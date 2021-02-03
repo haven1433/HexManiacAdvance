@@ -75,6 +75,7 @@
     <Compile Include="Before_Baseclass\ArrayColumnHeaderTests.cs" />
     <Compile Include="Before_Baseclass\ArrayRunTests.cs" />
     <Compile Include="Before_Baseclass\ScriptTests.cs" />
+    <Compile Include="TestUtilities\StubView.cs" />
     <Compile Include="ImageEditorTests.cs" />
     <Compile Include="ImageImportTests.cs" />
     <Compile Include="Integration\AutoSearchTests.cs" />

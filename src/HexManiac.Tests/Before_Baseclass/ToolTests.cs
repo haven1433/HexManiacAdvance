@@ -23,18 +23,16 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
-      public void StringToolCanOpenOnChosenData() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
-         viewPort.Edit("^bob\"\" \"Some Text\" 00 <000100>");
-         viewPort.Tools.SelectedIndex = -1;
-         var toolProperties = new List<string>();
-         viewPort.Tools.PropertyChanged += (sender, e) => toolProperties.Add(e.PropertyName);
-         viewPort.FollowLink(0, 0);
+      public void TextData_DoubleClick_OpenTextTool() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("^bob\"\" \"Some Text\"");
+         ViewPort.Tools.SelectedIndex = -1;
+         var view = new StubView(ViewPort.Tools);
 
-         Assert.Contains("SelectedIndex", toolProperties);
-         Assert.IsType<PCSTool>(viewPort.Tools[viewPort.Tools.SelectedIndex]);
+         ViewPort.FollowLink(0, 0);
+
+         Assert.Contains(nameof(ViewPort.Tools.SelectedIndex), view.Notifications);
+         Assert.IsType<PCSTool>(ViewPort.Tools[ViewPort.Tools.SelectedIndex]);
       }
 
       [Fact]
