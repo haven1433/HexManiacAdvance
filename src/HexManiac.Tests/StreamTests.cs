@@ -224,6 +224,8 @@ namespace HavenSoft.HexManiac.Tests {
       // TODO test what happens when you try to run autocomplete for a tuple segment with more elements than expected
       // TODO autocomplete for true/false tuple elements
       // TODO test how it works with tuples (single element format)
+      // TODO test how it works with true/false tuples (single element format)
+
       // TODO test how it works for egg moves (pokemon)
       // TODO test how it works for egg moves (moves)
       // TODO test how it works for trainer teams (pokemon)

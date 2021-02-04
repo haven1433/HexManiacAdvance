@@ -258,14 +258,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var currentToken = tokens[tokens.Count - 1];
          if (targetSegment is ArrayRunEnumSegment enumSegment) {
             var optionText = enumSegment.GetOptions(model).Where(option => option.MatchesPartial(currentToken));
-            results.AddRange(optionText.Select(option => {
-               string newLine = ", ".Join(tokens.Take(tokens.Count - 1));
-               newLine += option;
-               newLine += lineEnd;
-               if (Tokenize(newLine).Count < ElementContent.Count) newLine += ", ";
-               var item = new AutocompleteItem(option, newLine);
-               return item;
-            }));
+            results.AddRange(CreateEnumAutocompleteOptions(tokens, optionText, lineEnd));
          } else if (targetSegment is ArrayRunTupleSegment tupleGroup) {
             var tupleTokens = currentToken.Split(" ").ToList();
             Recombine(tupleTokens, "\"", "\"");
@@ -274,21 +267,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var tupleToken = visibleTupleElements[tupleTokens.Count - 1];
             if (!string.IsNullOrEmpty(tupleToken.SourceName)) {
                var optionText = ArrayRunEnumSegment.GetOptions(model, tupleToken.SourceName).Where(option => option.MatchesPartial(tupleTokens.Last()));
-               results.AddRange(optionText.Select(option => {
-                  string newLine = ", ".Join(tokens.Take(tokens.Count - 1));
-                  newLine += "(";
-                  newLine += " ".Join(tupleTokens.Take(tupleTokens.Count - 1));
-                  if (tupleTokens.Count > 0) newLine += " ";
-                  newLine += option;
-                  if (tupleTokens.Count < tupleGroup.VisibleElementCount) newLine += " ";
-                  if (tupleTokens.Count == tupleGroup.VisibleElementCount) newLine += ")";
-                  var thisLineEnd = lineEnd.Trim();
-                  if (thisLineEnd.StartsWith(")")) thisLineEnd = thisLineEnd.Substring(1);
-                  newLine += lineEnd;
-                  if (Tokenize(newLine).Count < ElementContent.Count) newLine += ", ";
-                  var item = new AutocompleteItem(option, newLine);
-                  return item;
-               }));
+               results.AddRange(CreateTupleEnumAutocompleteOptions(tokens, tupleGroup, tupleTokens, optionText, lineEnd));
             } else if (tupleToken.BitWidth == 1) {
                // TODO true/false
             }
@@ -308,16 +287,49 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (field == null) return null;
          if (field is ArrayRunEnumSegment enumSegment) {
             var optionText = enumSegment.GetOptions(model).Where(option => option.MatchesPartial(currentContent));
-            results.AddRange(optionText.Select(option => {
-               string newLine = $"{fieldName}: {option}{lineEnd}";
-               var item = new AutocompleteItem(option, newLine);
-               return item;
-            }));
+            results.AddRange(CreateSingleElementEnumAutocompleteOptions(lineEnd, fieldName, optionText));
          } else if (field is ArrayRunTupleSegment tupleGroup) {
             // TODO
          }
 
          return results;
+      }
+
+      private IEnumerable<AutocompleteItem> CreateEnumAutocompleteOptions(IReadOnlyList<string> tokens, IEnumerable<string> optionText, string lineEnd) {
+         return optionText.Select(option => {
+            string newLine = ", ".Join(tokens.Take(tokens.Count - 1));
+            newLine += option;
+            newLine += lineEnd;
+            if (Tokenize(newLine).Count < ElementContent.Count) newLine += ", ";
+            var item = new AutocompleteItem(option, newLine);
+            return item;
+         });
+      }
+
+      private IEnumerable<AutocompleteItem> CreateTupleEnumAutocompleteOptions(IReadOnlyList<string> tokens, ArrayRunTupleSegment tupleGroup, List<string> tupleTokens, IEnumerable<string> optionText, string lineEnd) {
+         return optionText.Select(option => {
+            string newLine = ", ".Join(tokens.Take(tokens.Count - 1));
+            newLine += "(";
+            newLine += " ".Join(tupleTokens.Take(tupleTokens.Count - 1));
+            if (tupleTokens.Count > 0) newLine += " ";
+            newLine += option;
+            if (tupleTokens.Count < tupleGroup.VisibleElementCount) newLine += " ";
+            if (tupleTokens.Count == tupleGroup.VisibleElementCount) newLine += ")";
+            var thisLineEnd = lineEnd.Trim();
+            if (thisLineEnd.StartsWith(")")) thisLineEnd = thisLineEnd.Substring(1);
+            newLine += lineEnd;
+            if (Tokenize(newLine).Count < ElementContent.Count) newLine += ", ";
+            var item = new AutocompleteItem(option, newLine);
+            return item;
+         });
+      }
+
+      private static IEnumerable<AutocompleteItem> CreateSingleElementEnumAutocompleteOptions(string lineEnd, string fieldName, IEnumerable<string> optionText) {
+         return optionText.Select(option => {
+            string newLine = $"{fieldName}: {option}{lineEnd}";
+            var item = new AutocompleteItem(option, newLine);
+            return item;
+         });
       }
 
       #endregion
