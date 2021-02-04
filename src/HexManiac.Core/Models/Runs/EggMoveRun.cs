@@ -186,8 +186,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new EggMoveRun(model, run.Start);
       }
 
-      public IReadOnlyList<IContextItem> GetAutoCompleteOptions(string line, int caretLineIndex, int caretCharacterIndex) {
-         var result = new List<IContextItem>();
+      public IReadOnlyList<AutocompleteItem> GetAutoCompleteOptions(string line, int caretLineIndex, int caretCharacterIndex) {
+         var result = new List<AutocompleteItem>();
          return result;
       }
 

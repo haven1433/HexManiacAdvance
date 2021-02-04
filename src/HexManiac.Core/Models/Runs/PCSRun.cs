@@ -70,8 +70,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new PCSRun(model, newRun.Start, bytes.Count, newRun.PointerSources);
       }
 
-      public IReadOnlyList<IContextItem> GetAutoCompleteOptions(string line, int caretLineIndex, int caretCharacterIndex) {
-         var result = new List<IContextItem>();
+      public IReadOnlyList<AutocompleteItem> GetAutoCompleteOptions(string line, int caretLineIndex, int caretCharacterIndex) {
+         var result = new List<AutocompleteItem>();
          return result;
       }
 

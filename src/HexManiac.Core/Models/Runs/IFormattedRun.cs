@@ -23,6 +23,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep);
    }
 
+   public class AutocompleteItem {
+      public string Text { get; }
+      public string LineText { get; }
+      public AutocompleteItem(string text, string lineText) => (Text, LineText) = (text, lineText);
+   }
+
    /// <summary>
    /// A run representing a stream.
    /// Streams usually are variable length, and end with some sort of 'end' token.
@@ -47,7 +53,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       /// <param name="caretLineIndex">The index of the current line (useful for streams with element-per-line syntax)</param>
       /// <param name="caretCharacterIndex">The index of the caret within the line</param>
       /// <returns>A list of named commands. Executing a command will complete the option.</returns>
-      IReadOnlyList<IContextItem> GetAutoCompleteOptions(string line, int caretLineIndex, int caretCharacterIndex);
+      IReadOnlyList<AutocompleteItem> GetAutoCompleteOptions(string line, int caretLineIndex, int caretCharacterIndex);
    }
 
    public class FormattedRunComparer : IComparer<IFormattedRun> {

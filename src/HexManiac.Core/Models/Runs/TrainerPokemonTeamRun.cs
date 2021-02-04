@@ -264,8 +264,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return buffer.ToString();
       }
 
-      public IReadOnlyList<IContextItem> GetAutoCompleteOptions(string line, int caretLineIndex, int caretCharacterIndex) {
-         var result = new List<IContextItem>();
+      public IReadOnlyList<AutocompleteItem> GetAutoCompleteOptions(string line, int caretLineIndex, int caretCharacterIndex) {
+         var result = new List<AutocompleteItem>();
          return result;
       }
 

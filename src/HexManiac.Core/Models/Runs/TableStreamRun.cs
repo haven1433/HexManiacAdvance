@@ -243,12 +243,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return false;
       }
 
-      public IReadOnlyList<IContextItem> GetAutoCompleteOptions(string line, int caretLineIndex, int caretCharacterIndex) {
+      public IReadOnlyList<AutocompleteItem> GetAutoCompleteOptions(string line, int caretLineIndex, int caretCharacterIndex) {
          if (endStream is FixedLengthStreamStrategy flss && flss.Count == 1) {
             return GetAutoCompleteOptionsForSingleElementStream(line, caretCharacterIndex);
          }
 
-         var results = new List<IContextItem>();
+         var results = new List<AutocompleteItem>();
          var lineStart = line.Substring(0, caretCharacterIndex);
          var lineEnd = line.Substring(caretCharacterIndex);
          var tokens = Tokenize(lineStart);
@@ -263,7 +263,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                newLine += option;
                newLine += lineEnd;
                if (Tokenize(newLine).Count < ElementContent.Count) newLine += ", ";
-               var item = new ContextItem(option, action => ((Action<string>)action)(newLine));
+               var item = new AutocompleteItem(option, newLine);
                return item;
             }));
          } else if (targetSegment is ArrayRunTupleSegment tupleGroup) {
@@ -286,7 +286,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   if (thisLineEnd.StartsWith(")")) thisLineEnd = thisLineEnd.Substring(1);
                   newLine += lineEnd;
                   if (Tokenize(newLine).Count < ElementContent.Count) newLine += ", ";
-                  var item = new ContextItem(option, action => ((Action<string>)action)(newLine));
+                  var item = new AutocompleteItem(option, newLine);
                   return item;
                }));
             } else if (tupleToken.BitWidth == 1) {
@@ -296,8 +296,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return results;
       }
 
-      private IReadOnlyList<IContextItem> GetAutoCompleteOptionsForSingleElementStream(string line, int caretIndex) {
-         var results = new List<IContextItem>();
+      private IReadOnlyList<AutocompleteItem> GetAutoCompleteOptionsForSingleElementStream(string line, int caretIndex) {
+         var results = new List<AutocompleteItem>();
 
          var lineStart = line.Substring(0, caretIndex);
          var lineEnd = line.Substring(caretIndex);
@@ -310,7 +310,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var optionText = enumSegment.GetOptions(model).Where(option => option.MatchesPartial(currentContent));
             results.AddRange(optionText.Select(option => {
                string newLine = $"{fieldName}: {option}{lineEnd}";
-               var item = new ContextItem(option, action => ((Action<string>)action)(newLine));
+               var item = new AutocompleteItem(option, newLine);
                return item;
             }));
          } else if (field is ArrayRunTupleSegment tupleGroup) {

@@ -173,39 +173,30 @@ namespace HavenSoft.HexManiac.Tests {
       public void TableStreamRunAutoCompleteOption_Execute_TextChanges() {
          Model.SetList("options", new[] { "Xmatch", "matchX", "matXch", "other" });
          var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[a:options b:]", null, new FixedLengthStreamStrategy(2));
+
          var options = stream.GetAutoCompleteOptions("match, 3", caretLineIndex: 0, caretCharacterIndex: 5).ToArray();
 
-         var result = string.Empty;
-         Action<string> action = str => result = str;
-         options[1].Command.Execute(action);
-
-         Assert.Equal("matchX, 3", result);
+         Assert.Equal("matchX, 3", options[1].LineText);
       }
 
       [Fact]
       public void TableStreamRunAutoCompleteOption_MoreElementsNeededOnLine_MovesToNextElement() {
          Model.SetList("options", new[] { "Xmatch", "matchX", "matXch", "other" });
          var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[a:options b:]", null, new FixedLengthStreamStrategy(2));
+
          var options = stream.GetAutoCompleteOptions("match", caretLineIndex: 0, caretCharacterIndex: 5).ToArray();
 
-         var result = string.Empty;
-         Action<string> action = str => result = str;
-         options[2].Command.Execute(action);
-
-         Assert.Equal("matXch, ", result);
+         Assert.Equal("matXch, ", options[2].LineText);
       }
 
       [Fact]
       public void SingleElementTableStreamRun_AutoCompleteField_OptionsMakeSense() {
          Model.SetList("options", new[] { "Xmatch", "matchX", "matXch", "other" });
          var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[abc: xyz:options]", null, new FixedLengthStreamStrategy(1));
+
          var options = stream.GetAutoCompleteOptions("xyz: match", caretLineIndex: 0, caretCharacterIndex: 10).ToArray();
 
-         var result = string.Empty;
-         Action<string> action = str => result = str;
-         options[1].Command.Execute(action);
-
-         Assert.Equal("xyz: matchX", result);
+         Assert.Equal("xyz: matchX", options[1].LineText);
       }
 
       [Fact]
@@ -214,12 +205,9 @@ namespace HavenSoft.HexManiac.Tests {
          var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[abc:|t|i:options|j:options]", null, new FixedLengthStreamStrategy(2));
 
          var options = stream.GetAutoCompleteOptions("match", 0, 5).ToArray();
-         var result = string.Empty;
-         Action<string> action = str => result = str;
-         options[0].Command.Execute(action);
 
          Assert.Equal("Xmatch", options[0].Text);
-         Assert.Equal("(Xmatch ", result);
+         Assert.Equal("(Xmatch ", options[0].LineText);
       }
 
       [Fact]
@@ -228,12 +216,9 @@ namespace HavenSoft.HexManiac.Tests {
          var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[abc:|t|i:options|j:options]", null, new FixedLengthStreamStrategy(2));
 
          var options = stream.GetAutoCompleteOptions("(Xmatch match", 0, 13).ToArray();
-         var result = string.Empty;
-         Action<string> action = str => result = str;
-         options[0].Command.Execute(action);
 
          Assert.Equal("Xmatch", options[0].Text);
-         Assert.Equal("(Xmatch Xmatch)", result);
+         Assert.Equal("(Xmatch Xmatch)", options[0].LineText);
       }
 
       // TODO test what happens when you try to run autocomplete for a tuple segment with more elements than expected

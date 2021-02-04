@@ -191,8 +191,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return (LZRun)Duplicate(run.Start, PointerSources);
       }
 
-      public IReadOnlyList<IContextItem> GetAutoCompleteOptions(string line, int caretLineIndex, int caretCharacterIndex) {
-         var result = new List<IContextItem>();
+      public IReadOnlyList<AutocompleteItem> GetAutoCompleteOptions(string line, int caretLineIndex, int caretCharacterIndex) {
+         var result = new List<AutocompleteItem>();
          return result;
       }
 
