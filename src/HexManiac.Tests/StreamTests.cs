@@ -208,8 +208,37 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("xyz: matchX", result);
       }
 
-      // TODO test how it works with single-element streams, where each line contains only a single named element
-      // TODO test how it works with tuples
+      [Fact]
+      public void TupleInTableStream_AutoCompleteField_OptionCompletesSubContent() {
+         Model.SetList("options", new[] { "Xmatch", "matchX", "matXch", "other" });
+         var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[abc:|t|i:options|j:options]", null, new FixedLengthStreamStrategy(2));
+
+         var options = stream.GetAutoCompleteOptions("match", 0, 5).ToArray();
+         var result = string.Empty;
+         Action<string> action = str => result = str;
+         options[0].Command.Execute(action);
+
+         Assert.Equal("Xmatch", options[0].Text);
+         Assert.Equal("(Xmatch ", result);
+      }
+
+      [Fact]
+      public void TupleInTableStream_AutoCompleteSecondField_OptionCompletesSubContent() {
+         Model.SetList("options", new[] { "Xmatch", "matchX", "matXch", "other" });
+         var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[abc:|t|i:options|j:options]", null, new FixedLengthStreamStrategy(2));
+
+         var options = stream.GetAutoCompleteOptions("(Xmatch match", 0, 13).ToArray();
+         var result = string.Empty;
+         Action<string> action = str => result = str;
+         options[0].Command.Execute(action);
+
+         Assert.Equal("Xmatch", options[0].Text);
+         Assert.Equal("(Xmatch Xmatch)", result);
+      }
+
+      // TODO test what happens when you try to run autocomplete for a tuple segment with more elements than expected
+      // TODO autocomplete for true/false tuple elements
+      // TODO test how it works with tuples (single element format)
       // TODO test how it works for egg moves (pokemon)
       // TODO test how it works for egg moves (moves)
       // TODO test how it works for trainer teams (pokemon)

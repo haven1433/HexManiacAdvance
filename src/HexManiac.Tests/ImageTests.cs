@@ -791,7 +791,6 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(1, pixels[2, 2]);
       }
 
-
       [Fact]
       public void TwoUncompressedPalettes_Copy_32ColorsCopied() {
          var fs = new StubFileSystem();
