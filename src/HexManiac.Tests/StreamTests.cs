@@ -256,6 +256,30 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(outputLine, options[0].LineText);
       }
 
+      [Fact]
+      public void OptionsWithNoQuote_StartTupleWithLeadingQuote_StillFindAutocompleteOption() {
+         Model.SetList("options", new[] { "PoisonPowder", "\"Poison Gas\"", "other" });
+         var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[abc.|t|i::options|j::]", null, new FixedLengthStreamStrategy(2));
+
+         var options = stream.GetAutoCompleteOptions("(\"Poison", 0, 8).ToArray();
+
+         Assert.Equal(2, options.Length);
+         Assert.Equal("PoisonPowder", options[0].Text);
+         Assert.Equal("\"Poison Gas\"", options[1].Text);
+      }
+
+      [Fact]
+      public void OptionsWithNoQuote_StartEnumWithLeadingQuote_StillFindAutocompleteOption() {
+         Model.SetList("options", new[] { "PoisonPowder", "\"Poison Gas\"", "other" });
+         var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[abc.options]", null, new FixedLengthStreamStrategy(2));
+
+         var options = stream.GetAutoCompleteOptions("\"Poison", 0, 7).ToArray();
+
+         Assert.Equal(2, options.Length);
+         Assert.Equal("PoisonPowder", options[0].Text);
+         Assert.Equal("\"Poison Gas\"", options[1].Text);
+      }
+
       // TODO test how it works for trainer teams (pokemon)
       // TODO test how it works for trainer teams (moves)
       // TODO test how it works for trainer teams (items)

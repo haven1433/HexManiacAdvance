@@ -1165,6 +1165,20 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Single(table.ElementContent);
       }
 
+      [Fact]
+      public void SingleQuote_TryMatch_NoMatch() {
+         var options = new[] { "abc", "xyz" };
+         var match = ArrayRunEnumSegment.TryMatch("\"", options, out int _);
+         Assert.False(match);
+      }
+
+      [Fact]
+      public void TextWithStartingQuote_TryMatchTextWithNoQuote_Matches() {
+         var options = new[] { "abc", "xyz" };
+         var match = ArrayRunEnumSegment.TryMatch("\"ab", options, out int _);
+         Assert.True(match);
+      }
+
       private static void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);

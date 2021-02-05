@@ -202,7 +202,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public static bool TryMatch(string text, IReadOnlyList<string> list, out int value) {
          text = text.Trim();
          if (int.TryParse(text, out value)) return true;
-         if (text.StartsWith("\"") && text.EndsWith("\"")) text = text.Substring(1, text.Length - 2);
+         if (text.StartsWith("\"")) text = text.Substring(1);
+         if (text.EndsWith("\"")) text = text.Substring(0, text.Length - 1);
+         if (text.Length == 0) return false;
          var partialMatches = new List<string>();
          var matches = new List<string>();
 
