@@ -264,12 +264,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             Recombine(tupleTokens, "\"", "\"");
             if (tupleTokens[0].StartsWith("(")) tupleTokens[0] = tupleTokens[0].Substring(1);
             var visibleTupleElements = tupleGroup.Elements.Where(element => !string.IsNullOrEmpty(element.Name)).ToList();
-            var tupleToken = visibleTupleElements[tupleTokens.Count - 1];
-            if (!string.IsNullOrEmpty(tupleToken.SourceName)) {
-               var optionText = ArrayRunEnumSegment.GetOptions(model, tupleToken.SourceName).Where(option => option.MatchesPartial(tupleTokens.Last()));
-               results.AddRange(CreateTupleEnumAutocompleteOptions(tokens, tupleGroup, tupleTokens, optionText, lineEnd));
-            } else if (tupleToken.BitWidth == 1) {
-               // TODO true/false
+            if (visibleTupleElements.Count >= tupleTokens.Count) {
+               var tupleToken = visibleTupleElements[tupleTokens.Count - 1];
+               if (!string.IsNullOrEmpty(tupleToken.SourceName)) {
+                  var optionText = ArrayRunEnumSegment.GetOptions(model, tupleToken.SourceName).Where(option => option.MatchesPartial(tupleTokens.Last()));
+                  results.AddRange(CreateTupleEnumAutocompleteOptions(tokens, tupleGroup, tupleTokens, optionText, lineEnd));
+               } else if (tupleToken.BitWidth == 1) {
+                  var options = new[] { "false", "true" }.Where(option => option.MatchesPartial(tupleTokens.Last()));
+                  results.AddRange(CreateTupleEnumAutocompleteOptions(tokens, tupleGroup, tupleTokens, options, lineEnd));
+               }
             }
          }
          return results;
@@ -289,29 +292,43 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var optionText = enumSegment.GetOptions(model).Where(option => option.MatchesPartial(currentContent));
             results.AddRange(CreateSingleElementEnumAutocompleteOptions(lineEnd, fieldName, optionText));
          } else if (field is ArrayRunTupleSegment tupleGroup) {
-            // TODO
+            var tupleTokens = currentContent.Split(" ").ToList();
+            Recombine(tupleTokens, "\"", "\"");
+            if (tupleTokens[0].StartsWith("(")) tupleTokens[0] = tupleTokens[0].Substring(1);
+            var visibleTupleElements = tupleGroup.Elements.Where(element => !string.IsNullOrEmpty(element.Name)).ToList();
+            if (visibleTupleElements.Count >= tupleTokens.Count) {
+               var tupleToken = visibleTupleElements[tupleTokens.Count - 1];
+               var optionToken = tupleTokens.Last();
+               tupleTokens = tupleTokens.Take(tupleTokens.Count - 1).ToList();
+               if (!string.IsNullOrEmpty(tupleToken.SourceName)) {
+                  var optionText = ArrayRunEnumSegment.GetOptions(model, tupleToken.SourceName).Where(option => option.MatchesPartial(optionToken));
+                  results.AddRange(CreateTupleEnumSingleElementAutocompleteOptions(fieldName, tupleGroup, tupleTokens, optionText, lineEnd));
+               } else if (tupleToken.BitWidth == 1) {
+                  var options = new[] { "false", "true" }.Where(option => option.MatchesPartial(optionToken));
+                  results.AddRange(CreateTupleEnumSingleElementAutocompleteOptions(fieldName, tupleGroup, tupleTokens, options, lineEnd));
+               }
+            }
          }
 
          return results;
       }
 
       private IEnumerable<AutocompleteItem> CreateEnumAutocompleteOptions(IReadOnlyList<string> tokens, IEnumerable<string> optionText, string lineEnd) {
-         return optionText.Select(option => {
+         foreach (var option in optionText) {
             string newLine = ", ".Join(tokens.Take(tokens.Count - 1));
             newLine += option;
             newLine += lineEnd;
             if (Tokenize(newLine).Count < ElementContent.Count) newLine += ", ";
-            var item = new AutocompleteItem(option, newLine);
-            return item;
-         });
+            yield return new AutocompleteItem(option, newLine);
+         }
       }
 
       private IEnumerable<AutocompleteItem> CreateTupleEnumAutocompleteOptions(IReadOnlyList<string> tokens, ArrayRunTupleSegment tupleGroup, List<string> tupleTokens, IEnumerable<string> optionText, string lineEnd) {
-         return optionText.Select(option => {
+         foreach (var option in optionText) {
             string newLine = ", ".Join(tokens.Take(tokens.Count - 1));
             newLine += "(";
             newLine += " ".Join(tupleTokens.Take(tupleTokens.Count - 1));
-            if (tupleTokens.Count > 0) newLine += " ";
+            if (tupleTokens.Count > 1) newLine += " ";
             newLine += option;
             if (tupleTokens.Count < tupleGroup.VisibleElementCount) newLine += " ";
             if (tupleTokens.Count == tupleGroup.VisibleElementCount) newLine += ")";
@@ -319,17 +336,30 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (thisLineEnd.StartsWith(")")) thisLineEnd = thisLineEnd.Substring(1);
             newLine += lineEnd;
             if (Tokenize(newLine).Count < ElementContent.Count) newLine += ", ";
-            var item = new AutocompleteItem(option, newLine);
-            return item;
-         });
+            yield return new AutocompleteItem(option, newLine);
+         }
       }
 
       private static IEnumerable<AutocompleteItem> CreateSingleElementEnumAutocompleteOptions(string lineEnd, string fieldName, IEnumerable<string> optionText) {
-         return optionText.Select(option => {
+         foreach (var option in optionText) {
             string newLine = $"{fieldName}: {option}{lineEnd}";
-            var item = new AutocompleteItem(option, newLine);
-            return item;
-         });
+            yield return new AutocompleteItem(option, newLine);
+         }
+      }
+
+      private static IEnumerable<AutocompleteItem> CreateTupleEnumSingleElementAutocompleteOptions(string fieldName, ArrayRunTupleSegment tupleSegment, List<string> previousTupleElements, IEnumerable<string> optionText, string lineEnd) {
+         foreach (var option in optionText) {
+            var newLine = $"{fieldName}: (";
+            newLine += " ".Join(previousTupleElements);
+            if (previousTupleElements.Count > 0) newLine += " ";
+            newLine += option;
+            if (previousTupleElements.Count + 1 == tupleSegment.VisibleElementCount) {
+               newLine += ")";
+            } else {
+               newLine += " ";
+            }
+            yield return new AutocompleteItem(option, newLine);
+         }
       }
 
       #endregion

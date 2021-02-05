@@ -221,13 +221,41 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("(Xmatch Xmatch)", options[0].LineText);
       }
 
-      // TODO test what happens when you try to run autocomplete for a tuple segment with more elements than expected
-      // TODO autocomplete for true/false tuple elements
-      // TODO test how it works with tuples (single element format)
-      // TODO test how it works with true/false tuples (single element format)
+      [Fact]
+      public void TupleInTableStream_AutoCompleteExtraField_NoOptions() {
+         Model.SetList("options", new[] { "Xmatch", "matchX", "matXch", "other" });
+         var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[abc:|t|i:options|j:options]", null, new FixedLengthStreamStrategy(2));
 
-      // TODO test how it works for egg moves (pokemon)
-      // TODO test how it works for egg moves (moves)
+         var options = stream.GetAutoCompleteOptions("(Xmatch match ma", 0, 16).ToArray();
+
+         Assert.Empty(options);
+      }
+
+      [Fact]
+      public void TupleInTableStream_AutoCompleteBoolean_BooleanOptions() {
+         var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[abc.|t|i:|j.]", null, new FixedLengthStreamStrategy(2));
+
+         var options = stream.GetAutoCompleteOptions("(2 e", 0, 4).ToArray();
+
+         Assert.Equal(2, options.Length);
+         Assert.Equal("false", options[0].Text);
+         Assert.Equal("(2 true)", options[1].LineText);
+      }
+
+      [Theory]
+      [InlineData("abc: match", "Xmatch", "abc: (Xmatch ")]
+      [InlineData("abc: (Xmatch match", "Xmatch", "abc: (Xmatch Xmatch ")]
+      [InlineData("abc: (Xmatch Xmatch tr", "true", "abc: (Xmatch Xmatch true)")]
+      public void TupleInSingleElementTableStream_AutoCompleteInitialField_OptionsMatch(string inputLine, string outputText, string outputLine) {
+         Model.SetList("options", new[] { "Xmatch", "matchX", "matXch", "other" });
+         var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[abc.|t|i:options|j:options|k.]", null, new FixedLengthStreamStrategy(1));
+
+         var options = stream.GetAutoCompleteOptions(inputLine, 0, inputLine.Length).ToArray();
+
+         Assert.Equal(outputText, options[0].Text);
+         Assert.Equal(outputLine, options[0].LineText);
+      }
+
       // TODO test how it works for trainer teams (pokemon)
       // TODO test how it works for trainer teams (moves)
       // TODO test how it works for trainer teams (items)
