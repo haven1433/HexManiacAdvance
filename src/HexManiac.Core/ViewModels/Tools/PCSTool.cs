@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Windows.Input;
 
@@ -153,6 +154,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             ContentIndex = index;
             ContentSelectionLength = target.Length;
          };
+      }
+
+      public IReadOnlyList<AutoCompleteSelectionItem> GetAutocomplete(string line, int lineIndex, int characterIndex) {
+         var run = model.GetNextRun(address);
+         if (!(run is IStreamRun streamRun)) return new AutoCompleteSelectionItem[0];
+         var options = streamRun.GetAutoCompleteOptions(line, lineIndex, characterIndex);
+         return AutoCompleteSelectionItem.Generate(options, -1);
       }
 
       public void RefreshContentAtAddress() {

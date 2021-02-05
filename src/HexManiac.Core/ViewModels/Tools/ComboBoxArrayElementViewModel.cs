@@ -156,7 +156,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          int optionSource = Pointer.NULL;
          Debug.Assert(segment != null);
          if (segment != null) {
-            optionSource = ViewPort.Model.GetAddressFromAnchor(ViewPort.ChangeHistory.CurrentChange, -1, segment.EnumName);
+            optionSource = ViewPort.Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, segment.EnumName);
             fullOptions = new List<ComboOption>(segment.GetComboOptions(ViewPort.Model));
          } else {
             fullOptions = new List<ComboOption>();

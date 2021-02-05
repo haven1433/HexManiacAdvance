@@ -519,8 +519,31 @@
                      GotFocus="HideManualSelection"
                      ScrollViewer.ScrollChanged="UpdateManualSelectionFromScroll"
                      IsEnabled="{Binding StringTool.Enabled}"
+                     TextChanged="TextToolTextChanged"
                      Text="{Binding StringTool.Content, UpdateSourceTrigger=PropertyChanged}" />
                   <Rectangle Name="ManualHighlight" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="14" Fill="{DynamicResource Accent}" Opacity=".4"/>
+                  <Border Name="StringToolAutocompleteBorder" Margin="5,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Background}" Padding="1" Visibility="Collapsed">
+                     <Border.RenderTransform>
+                        <TranslateTransform x:Name="StringToolAutocompleteTransform"/>
+                     </Border.RenderTransform>
+                     <ItemsControl Name="StringToolAutocompleteItems">
+                        <ItemsControl.ItemTemplate>
+                           <DataTemplate>
+                              <Button Content="{Binding DisplayText}" Background="{DynamicResource Background}" Click="StringToolAutocompleteOptionChosen">
+                                 <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                       <Style.Triggers>
+                                          <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                             <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                          </DataTrigger>
+                                       </Style.Triggers>
+                                    </Style>
+                                 </Button.Style>
+                              </Button>
+                           </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                     </ItemsControl>
+                  </Border>
                </Grid>
             </DockPanel>
             <ScrollViewer Name="ImageToolPanel" VerticalScrollBarVisibility="Visible">

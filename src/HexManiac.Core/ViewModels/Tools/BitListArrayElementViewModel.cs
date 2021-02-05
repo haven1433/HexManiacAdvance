@@ -90,7 +90,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private int FillBodyFromBitArraySegment(ArrayRunBitArraySegment bitSegment) {
          // get all the bits of this segment and turn them into BitElements
-         var optionSource = model.GetAddressFromAnchor(history.CurrentChange, -1, bitSegment.SourceArrayName);
+         var optionSource = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, bitSegment.SourceArrayName);
          var bits = model.ReadMultiByteValue(start, bitSegment.Length);
          var names = bitSegment.GetOptions(model)?.ToArray() ?? new string[0];
          Debug.Assert(names.Length > 0, "The user is using a source for a bit array that either doesn't exist or has no length. This is probably not what the user wanted.");

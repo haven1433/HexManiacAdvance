@@ -58,6 +58,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void ShowManualSelection(object sender, EventArgs e) {
          ManualHighlight.Visibility = Visibility.Visible;
          UpdateManualSelectionFromScroll(StringToolTextBox, EventArgs.Empty);
+         ClearAutocompleteOptions();
       }
 
       private void HandleDataContextChanged(object sender, DependencyPropertyChangedEventArgs e) {
@@ -300,6 +301,48 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var swatchPopup = new Popup { Placement = PlacementMode.Bottom, PopupAnimation = PopupAnimation.Fade, AllowsTransparency = true, StaysOpen = false, Child = swatch };
          swatchPopup.PlacementTarget = element;
          swatchPopup.IsOpen = true;
+      }
+
+      #endregion
+
+      #region Text Tool Autocomplete
+
+      private void TextToolTextChanged(object sender, TextChangedEventArgs e) {
+         if (e.Source != StringToolTextBox) return;
+         if (StringToolTextBox.CaretIndex == 0) return;
+         if (!(DataContext is IEditableViewPort viewPort)) return;
+
+         var index = StringToolTextBox.CaretIndex;
+         var lines = StringToolTextBox.Text.Split(Environment.NewLine);
+         var lineIndex = 0;
+         while (index > lines[lineIndex].Length) {
+            index -= lines[lineIndex].Length + 2;
+            lineIndex += 1;
+         }
+
+         var editLineIndex = StringToolTextBox.Text.Substring(0, StringToolTextBox.SelectionStart).Split(Environment.NewLine).Length;
+         var totalLines = StringToolTextBox.Text.Split(Environment.NewLine).Length;
+         var verticalOffset = StringToolTextBox.VerticalOffset;
+         var lineHeight = StringToolTextBox.ExtentHeight / totalLines;
+         var verticalStart = lineHeight * editLineIndex - verticalOffset + 2;
+
+         StringToolAutocompleteTransform.Y = verticalStart;
+         StringToolAutocompleteItems.ItemsSource = viewPort.Tools.StringTool.GetAutocomplete(lines[lineIndex], lineIndex, index);
+         StringToolAutocompleteBorder.Visibility = Visibility.Visible;
+      }
+
+      private void StringToolLostFocus(object sender, EventArgs e) {
+         ClearAutocompleteOptions();
+      }
+
+      private void StringToolAutocompleteOptionChosen(object sender, RoutedEventArgs e) {
+         // TODO
+         ClearAutocompleteOptions();
+      }
+
+      private void ClearAutocompleteOptions() {
+         StringToolAutocompleteItems.ItemsSource = null;
+         StringToolAutocompleteBorder.Visibility = Visibility.Collapsed;
       }
 
       #endregion
