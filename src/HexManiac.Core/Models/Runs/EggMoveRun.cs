@@ -188,6 +188,23 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public IReadOnlyList<AutocompleteItem> GetAutoCompleteOptions(string line, int caretLineIndex, int caretCharacterIndex) {
          var result = new List<AutocompleteItem>();
+         line = line.Trim();
+         var nameTable = MoveNamesTable;
+         Func<string, string> wrap = option => option;
+
+         if (line.StartsWith("[")) {
+            line = line.Substring(1);
+            if (line.EndsWith("]")) line = line.Substring(0, line.Length - 1);
+            nameTable = PokemonNameTable;
+            wrap = option => $"[{option}]";
+         }
+
+         result.AddRange(
+            model.GetOptions(nameTable).
+            Where(option => option.MatchesPartial(line)).
+            Select(wrap).
+            Select(option => new AutocompleteItem(option, option)));
+
          return result;
       }
 

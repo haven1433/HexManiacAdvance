@@ -239,5 +239,32 @@ Water";
          var items = viewPort.GetContextMenuItems(viewPort.SelectionStart);
          items.Single(item => item.Text == "Clear Format");
       }
+
+      [Fact]
+      public void EggMoves_AutocompletePokemon_GetPokemonOptions() {
+         CreateSimpleRun();
+         var run = (EggMoveRun)model.GetNextRun(0);
+
+         var options = run.GetAutoCompleteOptions("[an", 3, 3);
+
+         Assert.Equal(3, options.Count);
+         Assert.Equal("[Bryan]", options[0].Text);
+         Assert.Equal("[Ryan]", options[1].Text);
+         Assert.Equal("[Ian]", options[2].Text);
+         Assert.All(options, option => Assert.Equal(option.Text, option.LineText));
+      }
+
+      [Fact]
+      public void EggMoves_AutocompleteMove_GetMoveOptions() {
+         CreateSimpleRun();
+         var run = (EggMoveRun)model.GetNextRun(0);
+
+         var options = run.GetAutoCompleteOptions("er", 2, 2);
+
+         Assert.Equal(2, options.Count);
+         Assert.Equal("Water", options[0].Text);
+         Assert.Equal("Earth", options[1].Text);
+         Assert.All(options, option => Assert.Equal(option.Text, option.LineText));
+      }
    }
 }
