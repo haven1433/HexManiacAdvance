@@ -12,7 +12,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged { add { } remove { } }
 
       public AutoCompleteSelectionItem(string text, bool selection) => (CompletionText, DisplayText, IsSelected) = (text, text, selection);
-      public AutoCompleteSelectionItem(string display, string completion, bool selection) => (CompletionText, DisplayText, IsSelected) = (display, completion, selection);
+      public AutoCompleteSelectionItem(string display, string completion, bool selection) => (DisplayText, CompletionText, IsSelected) = (display, completion, selection);
 
       public static int SelectedIndex(IReadOnlyList<AutoCompleteSelectionItem> options) {
          for (int i = 0; i < options.Count; i++) {

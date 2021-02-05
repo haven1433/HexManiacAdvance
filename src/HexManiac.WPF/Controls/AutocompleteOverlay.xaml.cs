@@ -1,0 +1,128 @@
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+
+namespace HavenSoft.HexManiac.WPF.Controls {
+   public partial class AutocompleteOverlay {
+      #region Target
+
+      public static readonly DependencyProperty TargetProperty = DependencyProperty.Register(nameof(Target), typeof(TextBox), typeof(AutocompleteOverlay), new FrameworkPropertyMetadata(null, TargetChanged));
+
+      public TextBox Target {
+         get => (TextBox)GetValue(TargetProperty);
+         set => SetValue(TargetProperty, value);
+      }
+
+      private static void TargetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+         var self = (AutocompleteOverlay)d;
+         self.OnTargetChanged(e);
+      }
+
+      protected virtual void OnTargetChanged(DependencyPropertyChangedEventArgs e) {
+         if (e.OldValue is TextBox oldTarget) {
+            oldTarget.TextChanged -= TargetTextChanged;
+            oldTarget.PreviewKeyDown -= TargetKeyDown;
+         }
+
+         if (e.NewValue is TextBox newTarget) {
+            newTarget.TextChanged += TargetTextChanged;
+            newTarget.PreviewKeyDown += TargetKeyDown;
+         }
+      }
+
+      #endregion
+
+      public AutocompleteOverlay() {
+         InitializeComponent();
+      }
+
+      public void ClearAutocompleteOptions() {
+         AutocompleteItems.ItemsSource = null;
+         Visibility = Visibility.Collapsed;
+      }
+
+      private void TargetTextChanged(object sender, TextChangedEventArgs e) {
+         if (e.Source != Target) return;
+         if (Target.CaretIndex == 0) return;
+         if (!(DataContext is ToolTray tools)) return;
+
+         var index = Target.CaretIndex;
+         var lines = Target.Text.Split(Environment.NewLine);
+         var lineIndex = 0;
+         while (index > lines[lineIndex].Length) {
+            index -= lines[lineIndex].Length + 2;
+            lineIndex += 1;
+         }
+
+         var editLineIndex = Target.Text.Substring(0, Target.SelectionStart).Split(Environment.NewLine).Length;
+         var totalLines = Target.Text.Split(Environment.NewLine).Length;
+         var verticalOffset = Target.VerticalOffset;
+         var lineHeight = Target.ExtentHeight / totalLines;
+         var verticalStart = lineHeight * editLineIndex - verticalOffset + 2;
+
+         AutocompleteTransform.Y = verticalStart;
+         var options = tools.StringTool.GetAutocomplete(lines[lineIndex], lineIndex, index);
+         if (options.Count > 0) {
+            AutocompleteItems.ItemsSource = options;
+            Visibility = Visibility.Visible;
+         }
+      }
+
+      private void TargetKeyDown(object sender, KeyEventArgs e) {
+         if (!(AutocompleteItems.ItemsSource is IReadOnlyList<AutoCompleteSelectionItem> items)) return;
+         if (items.Count == 0) return;
+         var index = items.IndexOf(items.Single(item => item.IsSelected));
+         if (e.Key == Key.Enter || e.Key == Key.Space) {
+            AutocompleteOptionChosen(items[index]);
+            e.Handled = true;
+         }
+
+         if (e.Key == Key.Up) {
+            index -= 1;
+            if (index == -1) index = items.Count - 1;
+         } else if (e.Key == Key.Down) {
+            index += 1;
+            if (index == items.Count) index = 0;
+         } else {
+            return;
+         }
+
+         var models = items.Select(item => new AutocompleteItem(item.DisplayText, item.CompletionText));
+         AutocompleteItems.ItemsSource = AutoCompleteSelectionItem.Generate(models, index);
+         e.Handled = true;
+      }
+
+      private void AutocompleteOptionChosen(object sender, RoutedEventArgs e) {
+         if (!(sender is FrameworkElement element)) return;
+         if (!(element.DataContext is AutoCompleteSelectionItem item)) return;
+         AutocompleteOptionChosen(item);
+      }
+
+      private void AutocompleteOptionChosen(AutoCompleteSelectionItem item) {
+         var oldCaretIndex = Target.CaretIndex;
+
+         var index = Target.CaretIndex;
+         var lines = Target.Text.Split(Environment.NewLine);
+         var lineIndex = 0;
+         while (index > lines[lineIndex].Length) {
+            index -= lines[lineIndex].Length + 2;
+            lineIndex += 1;
+         }
+
+         var oldLineLength = lines[lineIndex].Length;
+         lines[lineIndex] = item.CompletionText;
+         var newLineLength = lines[lineIndex].Length;
+
+         Target.Text = Environment.NewLine.Join(lines);
+         Target.CaretIndex = oldCaretIndex + newLineLength - oldLineLength;
+         ClearAutocompleteOptions();
+      }
+   }
+}

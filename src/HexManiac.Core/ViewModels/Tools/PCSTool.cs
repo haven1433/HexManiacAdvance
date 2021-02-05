@@ -160,7 +160,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var run = model.GetNextRun(address);
          if (!(run is IStreamRun streamRun)) return new AutoCompleteSelectionItem[0];
          var options = streamRun.GetAutoCompleteOptions(line, lineIndex, characterIndex);
-         return AutoCompleteSelectionItem.Generate(options, -1);
+         return AutoCompleteSelectionItem.Generate(options, 0);
       }
 
       public void RefreshContentAtAddress() {

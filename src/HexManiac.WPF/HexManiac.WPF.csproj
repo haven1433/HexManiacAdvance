@@ -58,6 +58,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Controls\AutocompleteOverlay.xaml.cs">
+      <DependentUpon>AutocompleteOverlay.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\ColumnStackPanel.cs" />
     <Compile Include="Controls\CommonTableStreamControl.xaml.cs">
       <DependentUpon>CommonTableStreamControl.xaml</DependentUpon>
@@ -94,6 +97,10 @@
     <Compile Include="Windows\ThemeSelector.xaml.cs">
       <DependentUpon>ThemeSelector.xaml</DependentUpon>
     </Compile>
+    <Page Include="Controls\AutocompleteOverlay.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Controls\CommonTableStreamControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
