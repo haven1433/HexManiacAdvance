@@ -75,6 +75,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 #else
          text.AppendLine("Release Version");
 #endif
+         text.AppendLine(DateTime.Now.ToString());
          text.AppendLine(e.Exception.GetType().ToString());
          text.AppendLine(e.Exception.Message);
          text.AppendLine(e.Exception.StackTrace);
