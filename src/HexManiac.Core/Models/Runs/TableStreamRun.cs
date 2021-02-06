@@ -263,8 +263,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             results.AddRange(CreateEnumAutocompleteOptions(tokens, optionText, lineEnd));
          } else if (targetSegment is ArrayRunTupleSegment tupleGroup) {
             var tupleTokens = currentToken.Split(" ").ToList();
-            Recombine(tupleTokens, "\"", "\"");
             if (tupleTokens[0].StartsWith("(")) tupleTokens[0] = tupleTokens[0].Substring(1);
+            Recombine(tupleTokens, "\"", "\"");
             var visibleTupleElements = tupleGroup.Elements.Where(element => !string.IsNullOrEmpty(element.Name)).ToList();
             var optionToken = tupleTokens.Last();
             if (visibleTupleElements.Count >= tupleTokens.Count) {
