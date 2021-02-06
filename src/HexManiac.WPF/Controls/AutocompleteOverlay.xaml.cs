@@ -79,9 +79,28 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (!(AutocompleteItems.ItemsSource is IReadOnlyList<AutoCompleteSelectionItem> items)) return;
          if (items.Count == 0) return;
          var index = items.IndexOf(items.Single(item => item.IsSelected));
-         if (e.Key == Key.Enter || e.Key == Key.Space) {
+         if (e.Key == Key.Enter) {
             AutocompleteOptionChosen(items[index]);
             e.Handled = true;
+         }
+
+         if (e.Key == Key.Space || e.Key == Key.OemQuotes) {
+            var caretIndex = Target.CaretIndex;
+            var lines = Target.Text.Split(Environment.NewLine);
+            var lineIndex = 0;
+            while (caretIndex > lines[lineIndex].Length) {
+               caretIndex -= lines[lineIndex].Length + 2;
+               lineIndex += 1;
+            }
+            var quoteCount = lines[lineIndex].Substring(0, caretIndex).Count(c => c == '"');
+
+            if (e.Key == Key.Space && quoteCount % 2 == 0) {
+               AutocompleteOptionChosen(items[index]);
+               e.Handled = true;
+            } else if (e.Key == Key.OemQuotes && quoteCount % 2 == 1) {
+               AutocompleteOptionChosen(items[index]);
+               e.Handled = true;
+            }
          }
 
          if (e.Key == Key.Up) {
