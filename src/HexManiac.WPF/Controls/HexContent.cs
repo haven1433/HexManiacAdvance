@@ -594,6 +594,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                ((ViewPort)ViewPort).Autocomplete(text);
                recentMenu.IsOpen = false;
                if (ContextMenu != null) ContextMenu.IsOpen = false;
+               Focus();
             };
             if (option.IsSelected) button.BorderBrush = Brush(nameof(Theme.Accent));
             children.Add(button);

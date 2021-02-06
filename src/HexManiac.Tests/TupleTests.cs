@@ -243,6 +243,52 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(1, ViewPort.ConvertViewPointToAddress(ViewPort.SelectionStart));
       }
 
+      [Fact]
+      public void Tuple_EditInline_AutocompleteForFirstElement() {
+         Model.SetList("options", new[] { "matchX", "Xmatch", "matXch", "other" });
+         ViewPort.Edit("^table[a:|t|x::options|y::]2 ");
+
+         ViewPort.Edit("match");
+
+         var cell = (UnderEdit)ViewPort[0, 0].Format;
+         var options = cell.AutocompleteOptions.Select(item => item.DisplayText).ToArray();
+         Assert.Equal(new[] { "matchX", "Xmatch", "matXch" }, options);
+      }
+
+      [Fact]
+      public void Tuple_ChooseInlineAutocompleteOption_StillEditing() {
+         Model.SetList("options", new[] { "matchX", "Xmatch", "matXch", "other" });
+         ViewPort.Edit("^table[a:|t|x::options|y::]2 ");
+
+         ViewPort.Edit("match");
+         var cell = (UnderEdit)ViewPort[0, 0].Format;
+         ViewPort.Autocomplete(cell.AutocompleteOptions[1].CompletionText);
+
+         Assert.IsType<UnderEdit>(ViewPort[0, 0].Format);
+      }
+
+      [Fact]
+      public void Tuple_ChooseFinalInlineAutocompleteOption_DoneEditing() {
+         Model.SetList("options", new[] { "matchX", "Xmatch", "matXch", "other" });
+         ViewPort.Edit("^table[a:|t|x::|y::options]2 ");
+
+         ViewPort.Edit("(3 match");
+         var cell = (UnderEdit)ViewPort[0, 0].Format;
+         ViewPort.Autocomplete(cell.AutocompleteOptions[1].CompletionText);
+
+         Assert.IsNotType<UnderEdit>(ViewPort[0, 0].Format);
+      }
+
+      [Fact]
+      public void Tuple_WriteWithNoParen_Commit() {
+         Model.SetList("options", new[] { "matchX", "Xmatch", "matXch", "other" });
+         ViewPort.Edit("^table[a:|t|x::|y::options]2 ");
+
+         ViewPort.Edit("3 Xmatch ");
+
+         Assert.Equal(0b0001_0011, Model[0]);
+      }
+
       private TupleArrayElementViewModel TupleTable => (TupleArrayElementViewModel)ViewPort.Tools.TableTool.Children.Where(child => child is TupleArrayElementViewModel).Single();
    }
 }

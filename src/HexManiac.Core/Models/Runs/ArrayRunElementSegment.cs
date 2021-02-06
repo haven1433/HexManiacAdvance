@@ -381,7 +381,51 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
+      public IReadOnlyList<AutocompleteItem> GetAutocomplete(IDataModel model, string text) {
+         var tupleTokens = text.Split(" ").ToList();
+         TableStreamRun.Recombine(tupleTokens, "\"", "\"");
+         if (tupleTokens[0].StartsWith("(")) tupleTokens[0] = tupleTokens[0].Substring(1);
+         var visibleTupleElements = Elements.Where(element => !string.IsNullOrEmpty(element.Name)).ToList();
+         var optionToken = tupleTokens.Last();
+         tupleTokens = tupleTokens.Take(tupleTokens.Count - 1).ToList();
+         if (visibleTupleElements.Count > tupleTokens.Count) {
+            var tupleToken = visibleTupleElements[tupleTokens.Count];
+            if (optionToken.StartsWith("\"")) optionToken = optionToken.Substring(1);
+            if (optionToken.EndsWith("\"")) optionToken = optionToken.Substring(0, optionToken.Length - 1);
+            if (!string.IsNullOrEmpty(tupleToken.SourceName)) {
+               var optionText = ArrayRunEnumSegment.GetOptions(model, tupleToken.SourceName).Where(option => option.MatchesPartial(optionToken));
+               return CreateTupleEnumAutocompleteOptions(tupleTokens, optionText);
+            } else if (tupleToken.BitWidth == 1) {
+               var optionText = new[] { "false", "true" }.Where(option => option.MatchesPartial(optionToken));
+               return CreateTupleEnumAutocompleteOptions(tupleTokens, optionText);
+            }
+         }
+
+         return null;
+      }
+
       public bool DependsOn(string anchorName) => Elements.Any(element => element.SourceName == anchorName);
+
+      public string ConstructAutocompleteLine(IReadOnlyList<string> previousTokens, string option) {
+         var newLine = "(";
+         newLine += " ".Join(previousTokens);
+         if (previousTokens.Count > 0) newLine += " ";
+         newLine += option;
+         if (previousTokens.Count + 1 < VisibleElementCount) newLine += " ";
+         if (previousTokens.Count + 1 == VisibleElementCount) newLine += ")";
+         return newLine;
+      }
+
+      private IReadOnlyList<AutocompleteItem> CreateTupleEnumAutocompleteOptions(IReadOnlyList<string> previousTokens, IEnumerable<string> newToken) {
+         var results = new List<AutocompleteItem>();
+
+         foreach (var option in newToken) {
+            var newLine = ConstructAutocompleteLine(previousTokens, option);
+            results.Add(new AutocompleteItem(option, newLine));
+         }
+
+         return results;
+      }
    }
 
    public class TupleSegment {

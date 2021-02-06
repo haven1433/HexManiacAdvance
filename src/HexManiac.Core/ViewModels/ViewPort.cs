@@ -1002,14 +1002,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var element = this[point.X, point.Y];
          var underEdit = element.Format as UnderEdit;
          if (underEdit == null) return;
+         bool tryComplete = true;
          if (underEdit.AutocompleteOptions != null) {
-            var index = underEdit.AutocompleteOptions.Select(option => option.CompletionText).ToList().IndexOf(input);
-            underEdit = new UnderEdit(underEdit.OriginalFormat, underEdit.AutocompleteOptions[index].CompletionText, underEdit.EditWidth);
+            var options = underEdit.AutocompleteOptions;
+            var index = options.Select(option => option.CompletionText).ToList().IndexOf(input);
+            underEdit = new UnderEdit(underEdit.OriginalFormat, options[index].CompletionText, underEdit.EditWidth);
+            tryComplete = options[index].IsFormatComplete;
          } else {
             underEdit = new UnderEdit(underEdit.OriginalFormat, input, underEdit.EditWidth);
          }
          currentView[point.X, point.Y] = new HexElement(element.Value, element.Edited, underEdit);
-         TryCompleteEdit(point);
+         if (tryComplete) {
+            TryCompleteEdit(point);
+         } else {
+            NotifyCollectionChanged(ResetArgs); // refresh the view
+         }
       }
 
       public void RepointToNewCopy(int pointer) {

@@ -94,7 +94,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(UncompressedPaletteColor color, byte data) { }
 
-      public void Visit(DataFormats.Tuple tuple, byte data) { }
+      public void Visit(DataFormats.Tuple tuple, byte data) {
+         var options = tuple.Model.GetAutocomplete(Model, InputText);
+
+         if (options == null || options.Count == 0) {
+            Result = new AutoCompleteSelectionItem[0];
+         } else {
+            Result = AutoCompleteSelectionItem.Generate(options, SelectionIndex);
+         }
+
+         foreach (var vm in Result) vm.IsFormatComplete = vm.CompletionText.EndsWith(")");
+      }
 
       private void GenerateOptions(IDataFormatInstance format) {
          var arrayRun = (ITableRun)Model.GetNextRun(format.Source);

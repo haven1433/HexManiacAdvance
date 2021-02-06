@@ -311,8 +311,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   var optionText = ArrayRunEnumSegment.GetOptions(model, tupleToken.SourceName).Where(option => option.MatchesPartial(optionToken));
                   results.AddRange(CreateTupleEnumSingleElementAutocompleteOptions(fieldName, tupleGroup, tupleTokens, optionText, lineEnd));
                } else if (tupleToken.BitWidth == 1) {
-                  var options = new[] { "false", "true" }.Where(option => option.MatchesPartial(optionToken));
-                  results.AddRange(CreateTupleEnumSingleElementAutocompleteOptions(fieldName, tupleGroup, tupleTokens, options, lineEnd));
+                  var optionText = new[] { "false", "true" }.Where(option => option.MatchesPartial(optionToken));
+                  results.AddRange(CreateTupleEnumSingleElementAutocompleteOptions(fieldName, tupleGroup, tupleTokens, optionText, lineEnd));
                }
             }
          }
@@ -333,15 +333,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private IEnumerable<AutocompleteItem> CreateTupleEnumAutocompleteOptions(IReadOnlyList<string> tokens, ArrayRunTupleSegment tupleGroup, List<string> tupleTokens, IEnumerable<string> optionText, string lineEnd) {
          foreach (var option in optionText) {
             string newLine = ", ".Join(tokens.Take(tokens.Count - 1));
-            newLine += "(";
-            newLine += " ".Join(tupleTokens.Take(tupleTokens.Count - 1));
-            if (tupleTokens.Count > 1) newLine += " ";
-            newLine += option;
-            if (tupleTokens.Count < tupleGroup.VisibleElementCount) newLine += " ";
-            if (tupleTokens.Count == tupleGroup.VisibleElementCount) newLine += ")";
+            var previousTokens = tupleTokens.Take(tupleTokens.Count - 1).ToList();
+            newLine += tupleGroup.ConstructAutocompleteLine(previousTokens, option);
             var thisLineEnd = lineEnd.Trim();
             if (thisLineEnd.StartsWith(")")) thisLineEnd = thisLineEnd.Substring(1);
-            newLine += lineEnd;
+            newLine += thisLineEnd;
             if (Tokenize(newLine).Count < ElementContent.Count) newLine += ", ";
             yield return new AutocompleteItem(option, newLine);
          }
@@ -356,15 +352,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       private static IEnumerable<AutocompleteItem> CreateTupleEnumSingleElementAutocompleteOptions(string fieldName, ArrayRunTupleSegment tupleSegment, List<string> previousTupleElements, IEnumerable<string> optionText, string lineEnd) {
          foreach (var option in optionText) {
-            var newLine = $"{fieldName}: (";
-            newLine += " ".Join(previousTupleElements);
-            if (previousTupleElements.Count > 0) newLine += " ";
-            newLine += option;
-            if (previousTupleElements.Count + 1 == tupleSegment.VisibleElementCount) {
-               newLine += ")";
-            } else {
-               newLine += " ";
-            }
+            var newLine = $"{fieldName}: ";
+            newLine += tupleSegment.ConstructAutocompleteLine(previousTupleElements, option);
+            newLine += lineEnd;
             yield return new AutocompleteItem(option, newLine);
          }
       }

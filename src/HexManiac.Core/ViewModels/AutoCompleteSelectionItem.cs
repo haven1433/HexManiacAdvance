@@ -8,6 +8,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public string DisplayText { get; }
       public string CompletionText { get; }
       public bool IsSelected { get; }
+      public bool IsFormatComplete { get; set; } = true;
 
       event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged { add { } remove { } }
 

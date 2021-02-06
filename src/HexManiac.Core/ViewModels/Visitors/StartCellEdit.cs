@@ -215,7 +215,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (Result) NewFormat = new UnderEdit(color, Input.ToString(), 2);
       }
 
-      public void Visit(DataFormats.Tuple tuple, byte data) => Result = true;
+      public void Visit(Tuple tuple, byte data) {
+         Result = true;
+         var autocompleteVisitor = new AutocompleteCell(Model, Input.ToString(), MemoryLocation);
+         tuple.Visit(autocompleteVisitor, data);
+         var autocomplete = autocompleteVisitor.Result;
+         NewFormat = new UnderEdit(tuple, Input.ToString(), tuple.Length, autocomplete);
+      }
    }
 }
 

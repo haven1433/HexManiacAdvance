@@ -185,11 +185,12 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
          var actualText = CreateText(text, fontSize, null);
          var widthOverflow = actualText.Width - cellWidth * (edit?.EditWidth ?? 1);
+         var spaceWidth = (text.Length - text.Trim().Length) * defaultText.Width / 2;
 
          if (widthOverflow > 0) {
-            return -widthOverflow + actualText.Width;
+            return -widthOverflow + actualText.Width + spaceWidth;
          } else {
-            return baseTextOffset + actualText.Width;
+            return baseTextOffset + actualText.Width + spaceWidth;
          }
       }
 
