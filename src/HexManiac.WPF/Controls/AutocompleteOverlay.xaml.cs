@@ -29,11 +29,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (e.OldValue is TextBox oldTarget) {
             oldTarget.TextChanged -= TargetTextChanged;
             oldTarget.PreviewKeyDown -= TargetKeyDown;
+            oldTarget.SelectionChanged -= TargetSelectionChanged;
          }
 
          if (e.NewValue is TextBox newTarget) {
             newTarget.TextChanged += TargetTextChanged;
             newTarget.PreviewKeyDown += TargetKeyDown;
+            newTarget.SelectionChanged += TargetSelectionChanged;
          }
       }
 
@@ -73,6 +75,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             AutocompleteItems.ItemsSource = options;
             Visibility = Visibility.Visible;
          }
+
+         ignoreNextSelectionChange = true;
       }
 
       private void TargetKeyDown(object sender, KeyEventArgs e) {
@@ -82,6 +86,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (e.Key == Key.Enter) {
             AutocompleteOptionChosen(items[index]);
             e.Handled = true;
+         } else if (e.Key == Key.Escape) {
+            ClearAutocompleteOptions();
          }
 
          if (e.Key == Key.Space || e.Key == Key.OemQuotes) {
@@ -116,6 +122,14 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var models = items.Select(item => new AutocompleteItem(item.DisplayText, item.CompletionText));
          AutocompleteItems.ItemsSource = AutoCompleteSelectionItem.Generate(models, index);
          e.Handled = true;
+      }
+
+      private bool ignoreNextSelectionChange = false;
+      private void TargetSelectionChanged(object sender, RoutedEventArgs e) {
+         if (!ignoreNextSelectionChange) {
+            ClearAutocompleteOptions();
+         }
+         ignoreNextSelectionChange = false;
       }
 
       private void AutocompleteOptionChosen(object sender, RoutedEventArgs e) {
