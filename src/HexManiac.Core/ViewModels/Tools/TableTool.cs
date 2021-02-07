@@ -366,7 +366,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                if (item is ArrayRunEnumSegment enumSegment) {
                   viewModel = new ComboBoxArrayElementViewModel(viewPort, selection, item.Name, itemAddress, item.Length);
                   var anchor = model.GetAnchorFromAddress(-1, table.Start);
-                  if (!string.IsNullOrEmpty(anchor) && model.GetDependantArrays(anchor).Count() == 1) {
+                  var enumSourceTableStart = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, enumSegment.EnumName);
+                  if (!string.IsNullOrEmpty(anchor) && model.GetDependantArrays(anchor).Count() == 1 && enumSourceTableStart >= 0) {
                      AddChild(viewModel);
                      viewModel = new BitListArrayElementViewModel(selection, history, model, item.Name, itemAddress);
                   }
