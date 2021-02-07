@@ -358,7 +358,8 @@
                            <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                               <hsg3hv:CommonTableStreamControl />
                               <Grid Margin="20,2,2,2">
-                                 <TextBox Name="StreamTextBox" UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True"
+                                 <TextBox Name="StreamTextBox" UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
+                                    AcceptsReturn="True" FontFamily="Consolas"
                                     Visibility="{Binding ShowContent, Converter={StaticResource BoolToVisibility}}">
                                     <TextBox.InputBindings>
                                        <KeyBinding Modifiers="Ctrl" Key="Z" Command="{Binding Undo}"/>

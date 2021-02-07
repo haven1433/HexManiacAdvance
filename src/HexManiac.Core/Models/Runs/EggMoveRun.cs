@@ -202,6 +202,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          result.AddRange(
             model.GetOptions(nameTable).
             Where(option => option.MatchesPartial(line)).
+            Select(option => option.Trim('"')).
             Select(wrap).
             Select(option => new AutocompleteItem(option, option)));
 

@@ -187,7 +187,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                value = PCSString.Convert(model, offset, segment.Length);
             }
             var extraWhitespace = new string(' ', longestLabel - segment.Name.Length);
-            result.Append($"  {segment.Name}:{extraWhitespace} {value}");
+            result.Append($"{segment.Name}:{extraWhitespace} {value}");
             if (i < ElementContent.Count - 1) result.AppendLine();
             offset += segment.Length;
          }
@@ -289,7 +289,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var lineStart = line.Substring(0, caretIndex);
          var lineEnd = line.Substring(caretIndex);
          if (lineStart.Count(':') != 1) return results;
-         var fieldName = lineStart.Split(':')[0];
+         var fieldName = lineStart.Split(':')[0].Trim();
          var currentContent = lineStart.Split(':')[1].Trim();
          var field = ElementContent.Where(segment => segment.Name == fieldName).FirstOrDefault();
          if (field == null) return null;

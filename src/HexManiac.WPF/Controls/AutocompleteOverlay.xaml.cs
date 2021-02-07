@@ -85,7 +85,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
          AutocompleteTransform.Y = verticalStart;
          var options = getAutocomplete(lines[lineIndex], lineIndex, index);
-         if (options.Count > 0) {
+         if (options != null && options.Count > 0) {
             AutocompleteItems.ItemsSource = AutoCompleteSelectionItem.Generate(options, 0);
             Visibility = Visibility.Visible;
          }

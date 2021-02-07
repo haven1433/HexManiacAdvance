@@ -26,7 +26,7 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Edit($"^{HardcodeTablesModel.PokemonNameTable}[name\"\"8]8 \"Bob\" \"Steve\" \"Carl\" \"Sam\" \"Bryan\" \"Ryan\" \"Ian\" \"Matt\"");
 
          viewPort.Goto.Execute("000100");
-         viewPort.Edit($"^{HardcodeTablesModel.MoveNamesTable}[name\"\"8]8 \"Fire\" \"Water\" \"Earth\" \"Wind\" \"Light\" \"Dark\" \"Normal\" \"Magic\"");
+         viewPort.Edit($"^{HardcodeTablesModel.MoveNamesTable}[name\"\"8]9 \"Fire\" \"Water\" \"Earth\" \"Wind\" \"Light\" \"Dark\" \"Normal\" \"Magic\" \"Th is\"");
 
          viewPort.Goto.Execute("000180");
          viewPort.Edit("<000000> Dead Beef 01 00 00 00 <000000>"); // limiter is at 188 for an eggrun at 000
@@ -265,6 +265,16 @@ Water";
          Assert.Equal("Water", options[0].Text);
          Assert.Equal("Earth", options[1].Text);
          Assert.All(options, option => Assert.Equal(option.Text, option.LineText));
+      }
+
+      [Fact]
+      public void EggMovesWithQuotes_Autocomplete_NoQuotes() {
+         CreateSimpleRun();
+         var run = (EggMoveRun)model.GetNextRun(0);
+
+         var options = run.GetAutoCompleteOptions("this", 2, 4);
+
+         Assert.Equal("Th is", options[0].LineText);
       }
    }
 }

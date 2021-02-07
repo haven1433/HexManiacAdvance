@@ -292,6 +292,28 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("(\"Poison Sting\" 4)", options[0].LineText);
       }
 
+      [Fact]
+      public void SingleElementStream_AutocompleteWithExtraWhitespaceBetweenElements_Works() {
+         Model.SetList("options", new[] { "\"Poison Gas\"", "\"Poison Sting\"", "other" });
+         var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[abc:options xyz:]", null, new FixedLengthStreamStrategy(1));
+
+         var options = stream.GetAutoCompleteOptions("abc:     Poison", 0, 15).ToArray();
+
+         Assert.Equal("\"Poison Gas\"", options[0].Text);
+         Assert.Equal("\"Poison Sting\"", options[1].Text);
+      }
+
+      [Fact]
+      public void SingleElementStream_AutocompleteWithLeadingWhitespace_Works() {
+         Model.SetList("options", new[] { "\"Poison Gas\"", "\"Poison Sting\"", "other" });
+         var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[abc:options xyz:]", null, new FixedLengthStreamStrategy(1));
+
+         var options = stream.GetAutoCompleteOptions("  abc: Poison", 0, 13).ToArray();
+
+         Assert.Equal("\"Poison Gas\"", options[0].Text);
+         Assert.Equal("\"Poison Sting\"", options[1].Text);
+      }
+
       // TODO test how it works for trainer teams (pokemon)
       // TODO test how it works for trainer teams (moves)
       // TODO test how it works for trainer teams (items)
