@@ -58,7 +58,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void ShowManualSelection(object sender, EventArgs e) {
          ManualHighlight.Visibility = Visibility.Visible;
          UpdateManualSelectionFromScroll(StringToolTextBox, EventArgs.Empty);
-         StringToolAutocompleteOverlay.ClearAutocompleteOptions();
       }
 
       private void HandleDataContextChanged(object sender, DependencyPropertyChangedEventArgs e) {
@@ -301,14 +300,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var swatchPopup = new Popup { Placement = PlacementMode.Bottom, PopupAnimation = PopupAnimation.Fade, AllowsTransparency = true, StaysOpen = false, Child = swatch };
          swatchPopup.PlacementTarget = element;
          swatchPopup.IsOpen = true;
-      }
-
-      #endregion
-
-      #region Text Tool Autocomplete
-
-      private void StringToolLostFocus(object sender, EventArgs e) {
-         StringToolAutocompleteOverlay.ClearAutocompleteOptions();
       }
 
       #endregion

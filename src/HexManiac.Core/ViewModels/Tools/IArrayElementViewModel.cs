@@ -52,6 +52,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
+      public int ZIndex => 0;
+
       string content;
       public string Content {
          get => content;

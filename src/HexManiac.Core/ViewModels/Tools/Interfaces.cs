@@ -49,6 +49,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       bool Visible { get; set; }
       bool IsInError { get; }
       string ErrorText { get; }
+      int ZIndex { get; }
       bool TryCopy(IArrayElementViewModel other);
    }
 
@@ -62,6 +63,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public bool IsInError => false;
       public string ErrorText => string.Empty;
+      public int ZIndex => 0;
       public string SectionName { get => sectionName; set => Set(ref sectionName, value); }
       public int SectionLink { get => sectionLink; set => Set(ref sectionLink, value); }
       public ICommand FollowLink => StubCommand(ref followLink, () => viewPort.Goto.Execute(SectionLink));

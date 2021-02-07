@@ -4,8 +4,8 @@ using System.Windows.Input;
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class ButtonArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
       public bool IsInError => false;
-
       public string ErrorText => string.Empty;
+      public int ZIndex => 0;
 
       event EventHandler IArrayElementViewModel.DataChanged { add { } remove { } }
 

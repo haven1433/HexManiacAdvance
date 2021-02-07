@@ -1,33 +1,36 @@
-﻿<Border x:Class="HavenSoft.HexManiac.WPF.Controls.AutocompleteOverlay"
+﻿<UserControl x:Class="HavenSoft.HexManiac.WPF.Controls.AutocompleteOverlay"
    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
    xmlns:local="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
    Margin="5,0,0,0"
    HorizontalAlignment="Left"
    VerticalAlignment="Top"
-   BorderThickness="1"
-   BorderBrush="{DynamicResource Secondary}"
-   Background="{DynamicResource Background}"
-   Padding="1"
+   IsTabStop="False"
    Visibility="Collapsed">
-   <Border.RenderTransform>
+   <UserControl.RenderTransform>
       <TranslateTransform x:Name="AutocompleteTransform"/>
-   </Border.RenderTransform>
-   <ItemsControl Name="AutocompleteItems">
-      <ItemsControl.ItemTemplate>
-         <DataTemplate>
-            <Button Content="{Binding DisplayText}" Background="{DynamicResource Background}" Click="AutocompleteOptionChosen">
-               <Button.Style>
-                  <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                           <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
-                        </DataTrigger>
-                     </Style.Triggers>
-                  </Style>
-               </Button.Style>
-            </Button>
-         </DataTemplate>
-      </ItemsControl.ItemTemplate>
-   </ItemsControl>
-</Border>
+   </UserControl.RenderTransform>
+   <Canvas Width="0" Height="0" ClipToBounds="False">
+      <Border Padding="1" BorderThickness="1" BorderBrush="{DynamicResource Accent}" Background="{DynamicResource Background}">
+         <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="{Binding Path=Target.ActualHeight, RelativeSource={RelativeSource AncestorType=local:AutocompleteOverlay}}">
+            <ItemsControl Name="AutocompleteItems" IsTabStop="False">
+               <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                     <Button Content="{Binding DisplayText}" Background="{DynamicResource Background}" PreviewMouseDown="AutocompleteOptionChosen">
+                        <Button.Style>
+                           <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                              <Style.Triggers>
+                                 <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                    <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                 </DataTrigger>
+                              </Style.Triggers>
+                           </Style>
+                        </Button.Style>
+                     </Button>
+                  </DataTemplate>
+               </ItemsControl.ItemTemplate>
+            </ItemsControl>
+         </ScrollViewer>
+      </Border>
+   </Canvas>
+</UserControl>

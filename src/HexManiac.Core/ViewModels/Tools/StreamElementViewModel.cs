@@ -82,6 +82,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set => TryUpdate(ref errorText, value);
       }
 
+      public int ZIndex => 1;
+
       private EventHandler<(int originalStart, int newStart)> dataMoved;
       public event EventHandler<(int originalStart, int newStart)> DataMoved { add => dataMoved += value; remove => dataMoved -= value; }
       protected void RaiseDataMoved(int originalStart, int newStart) => dataMoved?.Invoke(this, (originalStart, newStart));

@@ -99,6 +99,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
+      public int ZIndex => 0;
+
       private bool containsUniqueOption;
       private List<ComboOption> fullOptions;
       public List<ComboOption> Options { get; private set; }

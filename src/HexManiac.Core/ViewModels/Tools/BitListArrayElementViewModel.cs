@@ -39,6 +39,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public bool IsInError => !string.IsNullOrEmpty(ErrorText);
       public string ErrorText { get; private set; }
+      public int ZIndex => 0;
 
       public ICommand LinkCommand { get; }
 

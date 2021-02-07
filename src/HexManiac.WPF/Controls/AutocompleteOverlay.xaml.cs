@@ -30,12 +30,14 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             oldTarget.TextChanged -= TargetTextChanged;
             oldTarget.PreviewKeyDown -= TargetKeyDown;
             oldTarget.SelectionChanged -= TargetSelectionChanged;
+            oldTarget.LostFocus -= TargetLostFocus;
          }
 
          if (e.NewValue is TextBox newTarget) {
             newTarget.TextChanged += TargetTextChanged;
             newTarget.PreviewKeyDown += TargetKeyDown;
             newTarget.SelectionChanged += TargetSelectionChanged;
+            newTarget.LostFocus += TargetLostFocus;
          }
       }
 
@@ -53,7 +55,19 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void TargetTextChanged(object sender, TextChangedEventArgs e) {
          if (e.Source != Target) return;
          if (Target.CaretIndex == 0) return;
-         if (!(DataContext is ToolTray tools)) return;
+         Func<string, int, int, IReadOnlyList<AutocompleteItem>> getAutocomplete;
+         if (DataContext is ToolTray tools) {
+            getAutocomplete = tools.StringTool.GetAutocomplete;
+         } else if (DataContext is StreamElementViewModel streamViewModel) {
+            var destination = streamViewModel.Model.ReadPointer(streamViewModel.Start);
+            if (streamViewModel.Model.GetNextRun(destination) is IStreamRun streamRun) {
+               getAutocomplete = streamRun.GetAutoCompleteOptions;
+            } else {
+               return;
+            }
+         } else {
+            return;
+         }
 
          var index = Target.CaretIndex;
          var lines = Target.Text.Split(Environment.NewLine);
@@ -70,9 +84,9 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var verticalStart = lineHeight * editLineIndex - verticalOffset + 2;
 
          AutocompleteTransform.Y = verticalStart;
-         var options = tools.StringTool.GetAutocomplete(lines[lineIndex], lineIndex, index);
+         var options = getAutocomplete(lines[lineIndex], lineIndex, index);
          if (options.Count > 0) {
-            AutocompleteItems.ItemsSource = options;
+            AutocompleteItems.ItemsSource = AutoCompleteSelectionItem.Generate(options, 0);
             Visibility = Visibility.Visible;
          }
 
@@ -131,6 +145,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          }
          ignoreNextSelectionChange = false;
       }
+
+      private void TargetLostFocus(object sender, EventArgs e) => ClearAutocompleteOptions();
 
       private void AutocompleteOptionChosen(object sender, RoutedEventArgs e) {
          if (!(sender is FrameworkElement element)) return;

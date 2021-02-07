@@ -13,6 +13,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public bool Visible { get => visible; set => Set(ref visible, value); }
       public bool IsInError => false;
       public string ErrorText => string.Empty;
+      public int ZIndex => 0;
       public event EventHandler DataChanged;
 
       public string Name { get; }

@@ -192,6 +192,11 @@
                            <hsg3hv:ColumnStackPanel VerticalAlignment="Top" MinimumColumnWidth="245" ColumnMargin="10" HeaderMargin="10"/>
                         </ItemsPanelTemplate>
                      </ItemsControl.ItemsPanel>
+                     <ItemsControl.ItemContainerStyle>
+                        <Style>
+                           <Setter Property="Panel.ZIndex" Value="{Binding Path=Content.ZIndex, RelativeSource={RelativeSource Self}}"/>
+                        </Style>
+                     </ItemsControl.ItemContainerStyle>
                      <ItemsControl.Resources>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:SplitterArrayElementViewModel}">
                            <DockPanel Name="ContainerPanel" Background="Transparent" hsg3hv:ColumnStackPanel.IsHeader="True">
@@ -352,13 +357,16 @@
                         <DataTemplate DataType="{x:Type hsg3hvmtr:StreamElementViewModel}">
                            <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                               <hsg3hv:CommonTableStreamControl />
-                              <TextBox UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" Margin="20,2,2,2" AcceptsReturn="True"
-                                 Visibility="{Binding ShowContent, Converter={StaticResource BoolToVisibility}}">
-                                 <TextBox.InputBindings>
-                                    <KeyBinding Modifiers="Ctrl" Key="Z" Command="{Binding Undo}"/>
-                                    <KeyBinding Modifiers="Ctrl" Key="Y" Command="{Binding Redo}"/>
-                                 </TextBox.InputBindings>
-                              </TextBox>
+                              <Grid Margin="20,2,2,2">
+                                 <TextBox Name="StreamTextBox" UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True"
+                                    Visibility="{Binding ShowContent, Converter={StaticResource BoolToVisibility}}">
+                                    <TextBox.InputBindings>
+                                       <KeyBinding Modifiers="Ctrl" Key="Z" Command="{Binding Undo}"/>
+                                       <KeyBinding Modifiers="Ctrl" Key="Y" Command="{Binding Redo}"/>
+                                    </TextBox.InputBindings>
+                                 </TextBox>
+                                 <hsg3hv:AutocompleteOverlay Target="{Binding ElementName=StreamTextBox}"/>
+                              </Grid>
                            </StackPanel>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:ButtonArrayElementViewModel}">
@@ -521,7 +529,7 @@
                      IsEnabled="{Binding StringTool.Enabled}"
                      Text="{Binding StringTool.Content, UpdateSourceTrigger=PropertyChanged}" />
                   <Rectangle Name="ManualHighlight" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="14" Fill="{DynamicResource Accent}" Opacity=".4"/>
-                  <hsg3hv:AutocompleteOverlay x:Name="StringToolAutocompleteOverlay" Target="{Binding ElementName=StringToolTextBox}"/>
+                  <hsg3hv:AutocompleteOverlay Target="{Binding ElementName=StringToolTextBox}"/>
                </Grid>
             </DockPanel>
             <ScrollViewer Name="ImageToolPanel" VerticalScrollBarVisibility="Visible">

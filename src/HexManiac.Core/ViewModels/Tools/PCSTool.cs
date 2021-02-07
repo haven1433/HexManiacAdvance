@@ -156,11 +156,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          };
       }
 
-      public IReadOnlyList<AutoCompleteSelectionItem> GetAutocomplete(string line, int lineIndex, int characterIndex) {
+      public IReadOnlyList<AutocompleteItem> GetAutocomplete(string line, int lineIndex, int characterIndex) {
          var run = model.GetNextRun(address);
-         if (!(run is IStreamRun streamRun)) return new AutoCompleteSelectionItem[0];
-         var options = streamRun.GetAutoCompleteOptions(line, lineIndex, characterIndex);
-         return AutoCompleteSelectionItem.Generate(options, 0);
+         if (!(run is IStreamRun streamRun)) return new AutocompleteItem[0];
+         return streamRun.GetAutoCompleteOptions(line, lineIndex, characterIndex);
       }
 
       public void RefreshContentAtAddress() {
