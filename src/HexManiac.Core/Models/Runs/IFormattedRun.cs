@@ -21,6 +21,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
    public interface IAppendToBuilderRun : IFormattedRun {
       void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep);
+      void Clear(IDataModel model, ModelDelta changeToken, int start, int length);
    }
 
    public class AutocompleteItem {

@@ -145,5 +145,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             text.Append($"{level} {moveName},");
          }
       }
+
+      public void Clear(IDataModel model, ModelDelta changeToken, int start, int length) {
+         for (int i = 0; i < length; i++) {
+            changeToken.ChangeData(model, start + i, 0x00);
+         }
+      }
    }
 }

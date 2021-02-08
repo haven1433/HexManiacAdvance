@@ -159,6 +159,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) => ITableRunExtensions.AppendTo(this, model, builder, start, length, deep);
 
+      public void Clear(IDataModel model, ModelDelta changeToken, int start, int length) {
+         ITableRunExtensions.Clear(this, model, changeToken, start, length);
+      }
+
       #endregion
 
       #region IStreamRun

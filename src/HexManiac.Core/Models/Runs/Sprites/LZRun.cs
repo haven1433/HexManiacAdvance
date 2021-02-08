@@ -378,6 +378,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          }
       }
 
+      public void Clear(IDataModel model, ModelDelta changeToken, int start, int length) {
+         for (int i = 0; i < length; i++) changeToken.ChangeData(model, start + i, 0);
+         FixupEnd(model, changeToken, start + length);
+      }
+
       private interface ILzDataToken {
          byte CompressionBit(int offset);
          IEnumerable<byte> Render();

@@ -144,6 +144,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) => ITableRunExtensions.AppendTo(this, model, builder, start, length, deep);
 
+      public void Clear(IDataModel model, ModelDelta changeToken, int start, int length) {
+         for (int i = 0; i < length; i++) changeToken.ChangeData(model, start + i, 0);
+      }
+
       public OverworldSpriteListRun UpdateFromParent(ModelDelta token, int segmentIndex, int pointerSource, out bool spritesMoved) {
          spritesMoved = false;
          if (!(model.GetNextRun(pointerSource) is ITableRun tableSource)) return this;

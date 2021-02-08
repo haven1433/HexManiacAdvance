@@ -615,7 +615,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void LoadPalette() {
          var run = model?.GetNextRun(paletteAddress) as IPaletteRun;
-         if (run == null || run.PointerSources.Count == 0) {
+         if (run == null) {
             palette = TileViewModel.CreateDefaultPalette(0x10);
          } else {
             palPages = run.Pages;
@@ -631,7 +631,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          prevPalPage.CanExecuteChanged.Invoke(prevPalPage, EventArgs.Empty);
          nextPalPage.CanExecuteChanged.Invoke(nextPalPage, EventArgs.Empty);
 
-         Colors.SourcePalettePointer = run?.PointerSources.FirstOrDefault() ?? Pointer.NULL;
+         Colors.SourcePalettePointer = run?.PointerSources?.FirstOrDefault() ?? Pointer.NULL;
          Colors.SetContents(palette);
          Colors.Page = palPage;
          Colors.HasMultiplePages = palPages > 1;

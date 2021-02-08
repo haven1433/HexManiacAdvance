@@ -115,6 +115,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
+      public static void Clear(ITableRun self, IDataModel data, ModelDelta token, int start, int length) {
+         for (int i = 0; i < length; i++) {
+            var offset = self.ConvertByteOffsetToArrayOffset(start + i);
+            if (self.ElementContent[offset.SegmentIndex].Type == ElementContentType.PCS) {
+               token.ChangeData(data, start + i, 0xFF);
+            } else {
+               token.ChangeData(data, start + i, 0x00);
+            }
+         }
+      }
+
       public static ErrorInfo NotifyChildren(this ITableRun self, IDataModel model, ModelDelta token, int elementIndex, int segmentIndex) {
          int offset = 0;
          var info = ErrorInfo.NoError;
@@ -611,6 +622,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var newFormat = FormatString.Substring(0, lastArrayCharacterIndex + 1);
          int endElementCount = Math.Max(ParentOffset.EndMargin, 0);
          var newParentOffset = ParentOffset.EndMargin < 0 ? new ParentOffset(ParentOffset.BeginningMargin, 0) : ParentOffset;
+         if (token is NoDataChangeDeltaModel) newParentOffset = ParentOffset;
          if (newFormat != FormatString) {
             if (!string.IsNullOrEmpty(LengthFromAnchor)) {
                newFormat += LengthFromAnchor;
@@ -619,7 +631,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                newFormat += ElementCount + elementCount;
             }
          }
-         elementCount -= Math.Min(ParentOffset.EndMargin, 0); // if EndMargin is negative, we need to add extra elements to make it 0
+         if (!(token is NoDataChangeDeltaModel)) elementCount -= Math.Min(ParentOffset.EndMargin, 0); // if EndMargin is negative, we need to add extra elements to make it 0
+         if (ElementCount + elementCount < 1) elementCount = 1 - ElementCount;
 
          // set default values based on the bytes from the previous element
          if (!(token is NoDataChangeDeltaModel)) {
@@ -709,6 +722,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) => ITableRunExtensions.AppendTo(this, model, builder, start, length, deep);
+
+      public void Clear(IDataModel model, ModelDelta changeToken, int start, int length) {
+         ITableRunExtensions.Clear(this, model, changeToken, start, length);
+      }
 
       public ArrayRun GrowBitArraySegment(int bitSegmentIndex, int additionalBytes) {
          // all the data has been moved already

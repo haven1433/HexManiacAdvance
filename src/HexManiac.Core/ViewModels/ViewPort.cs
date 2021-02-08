@@ -677,6 +677,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   if (start > right) break;
                   for (int j = 0; j < arrayRun.ElementLength; j++) history.CurrentChange.ChangeData(Model, start + j, 0xFF);
                }
+            } else if (startRun == endRun && (startRun.Start<left || startRun.Start + startRun.Length > right + 1)) {
+               // clearing _within_ a single run
+               Model.ClearData(history.CurrentChange, left, right - left + 1);
             } else {
                Model.ClearFormatAndData(history.CurrentChange, left, right - left + 1);
             }

@@ -1,5 +1,4 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
-using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -256,6 +255,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             length -= 2;
             if (length > 0 && start < Start + Length) text.Append(" ");
          }
+      }
+
+      public void Clear(IDataModel model, ModelDelta changeToken, int start, int length) {
+         for (int i = 0; i < length; i++) changeToken.ChangeData(model, start + i, 0);
       }
 
       public bool UpdateLimiter(ModelDelta token) {

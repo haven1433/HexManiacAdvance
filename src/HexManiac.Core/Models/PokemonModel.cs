@@ -439,14 +439,19 @@ namespace HavenSoft.HexManiac.Core.Models {
             Debug.Fail($"Conflict: there's a run that ends after the next run starts! {debugRunStart1} and {debugRunStart2}");
          }
 
-         // for every table with a matched-length, verify that the length is as expected.
+         // For every table with a matched-length, verify that the length is as expected.
+         // (The child array length must still be at least 1.)
          var token = new NoDataChangeDeltaModel();
          foreach (var array in Arrays) {
             if (string.IsNullOrEmpty(array.LengthFromAnchor)) continue;
             var parentName = array.LengthFromAnchor;
             var childName = GetAnchorFromAddress(-1, array.Start);
             if (!(GetNextRun(GetAddressFromAnchor(token, -1, array.LengthFromAnchor)) is ITableRun parent)) continue;
-            Debug.Assert(parent.ElementCount + array.ParentOffset.BeginningMargin + array.ParentOffset.EndMargin == array.ElementCount);
+            if (array.ParentOffset.BeginningMargin + array.ParentOffset.EndMargin + parent.ElementCount > 0) {
+               Debug.Assert(parent.ElementCount + array.ParentOffset.BeginningMargin + array.ParentOffset.EndMargin == array.ElementCount);
+            } else {
+               Debug.Assert(array.ElementCount == 1);
+            }
          }
       }
 
@@ -1226,6 +1231,16 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private void ClearFormatAndAnchors(ModelDelta changeToken, int originalStart, int length) {
          ClearFormat(changeToken, originalStart, length, keepInitialAnchorPointers: false, alsoClearData: false);
+      }
+
+      public override void ClearData(ModelDelta changeToken, int start, int length) {
+         var run = GetNextRun(start);
+         if (run.Start <= start && run is IAppendToBuilderRun builder) {
+            Debug.Assert(run.Start + run.Length >= start + length, "Cannot clear data (without format) across runs.");
+            builder.Clear(this, changeToken, start, length);
+         } else {
+            base.ClearData(changeToken, start, length);
+         }
       }
 
       public override void ClearFormatAndData(ModelDelta changeToken, int originalStart, int length) {

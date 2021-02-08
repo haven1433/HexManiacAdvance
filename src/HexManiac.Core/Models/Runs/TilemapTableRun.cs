@@ -56,6 +56,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          ITableRunExtensions.AppendTo(this, model, builder, start, length, deep);
       }
 
+      public void Clear(IDataModel model, ModelDelta changeToken, int start, int length) {
+         ITableRunExtensions.Clear(this, model, changeToken, start, length);
+      }
+
       int lastFormatCreated = int.MaxValue;
       public override IDataFormat CreateDataFormat(IDataModel data, int index) {
          var inner = ITableRunExtensions.CreateSegmentDataFormat(this, data, index);

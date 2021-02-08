@@ -126,7 +126,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          insertText.CanExecute = arg => ShowMessage;
          insertText.Execute = arg => {
             if (address < 0 || model.Count <= address || model[address] != 0xFF || model.GetNextRun(address).Start <= address) {
-               OnError?.Invoke(this, $"Could not insert text at {address:X6}.{Environment.NewLine}The bytes must be usused (FF).");
+               OnError?.Invoke(this, $"Could not insert text at {address:X6}.{Environment.NewLine}The bytes must be unused (FF).");
                return;
             }
             var gameCode = PokemonModel.ReadGameCode(model);

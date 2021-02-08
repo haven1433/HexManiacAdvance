@@ -804,6 +804,20 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(32, colorCount);
       }
 
+      [Fact]
+      public void UncompressedPalette_DeleteColor_BecomesBlack() {
+         SetFullModel(0b01010101);
+         Model.ObserveRunWritten(new NoDataChangeDeltaModel(), new PaletteRun(0, new PaletteFormat(4, 1)));
+         ViewPort.Refresh();
+
+         ViewPort.SelectionStart = ViewPort.ConvertAddressToViewPoint(2);
+         ViewPort.SelectionEnd = ViewPort.ConvertAddressToViewPoint(3);
+         ViewPort.Clear.Execute();
+
+         Assert.Equal(0, Model.ReadMultiByteValue(2, 2));
+         Assert.IsType<PaletteRun>(Model.GetNextRun(0));
+      }
+
       private void WriteCompressedData(int start, int length) {
          var compressedData = LZRun.Compress(new byte[length], 0, length);
          for (int i = 0; i < compressedData.Count; i++) Model[start + i] = compressedData[i];

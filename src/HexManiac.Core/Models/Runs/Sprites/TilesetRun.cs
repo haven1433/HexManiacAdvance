@@ -61,6 +61,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          }
       }
 
+      public void Clear(IDataModel model, ModelDelta changeToken, int start, int length) {
+         for (int i = 0; i < length; i++) {
+            changeToken.ChangeData(model, start + i, 0x00);
+         }
+      }
+
       public override IDataFormat CreateDataFormat(IDataModel data, int index) => LzUncompressed.Instance;
 
       public ISpriteRun Duplicate(SpriteFormat newFormat) => new SpriteRun(Start, newFormat, PointerSources);

@@ -619,6 +619,35 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x70, Model.ReadPointer(0x44));
       }
 
+      [Fact]
+      public void TableWithNegativeOffset_ShrinkParentTableSuchThatChildTableHasNegativeLength_ChildTableHasLengthOne() {
+         CreateTextTable("names", 0, "adam", "bob", "carl", "dave");
+         ViewPort.Edit("@100 ^child[a.]names-1-1 ");
+
+         ViewPort.Goto.Execute(0);
+         var text = ViewPort.AnchorText;
+         ViewPort.AnchorText = text.Substring(0, text.Length - 1) + "1";
+
+         var table = Model.GetTable("child");
+         Assert.Equal(1, table.ElementCount);
+      }
+
+
+      [Fact]
+      public void TableWithNegativeOffset_ShrinkAndGrowParent_ChildLengthRestored() {
+         CreateTextTable("names", 0, "adam", "bob", "carl", "dave");
+         ViewPort.Edit("@100 ^child[a.]names-1-1 ");
+
+         ViewPort.Goto.Execute(0);
+         var text = ViewPort.AnchorText;
+         text = text.Substring(0, text.Length - 1);
+         ViewPort.AnchorText = text + "1";
+         ViewPort.AnchorText = text + "4";
+
+         var table = Model.GetTable("child");
+         Assert.Equal(2, table.ElementCount);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

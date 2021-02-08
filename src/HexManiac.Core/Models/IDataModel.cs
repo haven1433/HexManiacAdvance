@@ -60,6 +60,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       int FindFreeSpace(int start, int length);
       void ClearAnchor(ModelDelta changeToken, int start, int length);
       void ClearFormat(ModelDelta changeToken, int start, int length);
+      void ClearData(ModelDelta changeToken, int start, int length);
       void ClearFormatAndData(ModelDelta changeToken, int start, int length);
       void SetList(string name, IReadOnlyList<string> list);
       void ClearPointer(ModelDelta currentChange, int source, int destination);
@@ -153,6 +154,10 @@ namespace HavenSoft.HexManiac.Core.Models {
       public abstract void ClearAnchor(ModelDelta changeToken, int start, int length);
 
       public abstract void ClearFormat(ModelDelta changeToken, int start, int length);
+
+      public virtual void ClearData(ModelDelta changeToken, int start, int length) {
+         for (int i = 0; i < length; i++) changeToken.ChangeData(this, start + i, 0xFF);
+      }
 
       public abstract void ClearFormatAndData(ModelDelta changeToken, int originalStart, int length);
 
