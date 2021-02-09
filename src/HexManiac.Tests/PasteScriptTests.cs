@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,6 +40,17 @@ content:
          var actualBranchCommand = Model.ReadMultiByteValue(0x12, 2);
          Assert.Equal(expectedBranchCommand, actualBranchCommand);
          Assert.Equal(0x08123456, Model.ReadMultiByteValue(0x14, 4));
+      }
+
+      [Fact]
+      public void Run_Paste00DirectiveWithSameFormat_NoError() {
+         Array.Copy(PCSString.Convert("Hello World").ToArray(), Model.RawData, 12);
+         Model.ObserveRunWritten(new ModelDelta(), new PCSRun(Model, 0, 12));
+         ViewPort.Refresh();
+
+         ViewPort.Edit("@!00(12) ^anchor\"\" ");
+
+         Assert.Empty(Errors);
       }
    }
 }

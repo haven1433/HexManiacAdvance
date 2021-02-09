@@ -2133,7 +2133,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// <summary>
       /// Current Available metacommands:
       /// lz(1024) -> write 1024 compressed bytes. Error if we're not in freespace, do nothing if we're at lz data of the expected length already.
-      /// 00(32)   -> write 32 bytes of zero. Error if we're not in freespace.
+      /// 00(32)   -> Write 32 bytes of zero. Error if we're not in freespace (FF).
+      ///             * Does not error if clearing a subset (or entire) table, so long as the clear matches a multiple of a row length. Still clears that data though.
+      ///             * Does not error if clearing exactly the length of a non-table run. Don't clear the data either: all 0's may not be valid (such as with strings)
       /// put(1234)-> put the bytes 12, then 34, at the current location, but don't change the current selection.
       ///             works no matter what the current data is.
       /// </summary>
@@ -2159,7 +2161,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                exitEditEarly = true;
             }
          } else if (command.StartsWith("00(") && paramsEnd > 3 && int.TryParse(command.Substring(3, paramsEnd - 3), out length)) {
-            if (length.Range().All(i => Model[index + i] == 0xFF)) {
+            var currentRun = Model.GetNextRun(index);
+            var tableRun = currentRun as ITableRun;
+            if (tableRun != null && currentRun.Start == index && length % tableRun.ElementLength == 0 && length <= tableRun.Length) {
+               // we're trying to clear out table data.
+               // assume that the user wanted us to clear it.
+               // do NOT do the clear if the current clear is bigger than the current table: that could wipe existing data.
+               for (int i = 0; i < length; i++) CurrentChange.ChangeData(Model, index + i, 0);
+            } else if (tableRun == null && currentRun.Start == index && currentRun.Length == length) {
+               // we're trying to clear out a non-table
+               // the length matches exactly, so we shouldn't error. But also, don't actually clear.
+            } else if (length.Range().All(i => Model[index + i] == 0xFF)) {
                for (int i = 0; i < length; i++) CurrentChange.ChangeData(Model, index + i, 0);
             } else {
                RaiseError($"Writing {length} 00 bytes would overwrite existing data.");
