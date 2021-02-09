@@ -222,7 +222,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (option.StartsWith("\"") && option.EndsWith("\"")) option = option.Substring(1, option.Length - 2);
             if (option == text) matches.Add(option);
             if (matches.Count == desiredMatch) { value = i; return true; }
-            if (option.MatchesPartial(text)) {
+            if (option.MatchesPartial(text, onlyCheckLettersAndDigits: true)) {
                partialMatches.Add(option);
                if (partialMatches.Count == desiredMatch && matches.Count == 0) value = i;
             }

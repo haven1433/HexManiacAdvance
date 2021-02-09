@@ -82,7 +82,26 @@ Name = '''Input'''
          Assert.Single(Errors);
       }
 
-      // TODO add tests to verify that the model loads and saves stored lists correctly.
+      [Fact]
+      public void ListWithPipe_WritePipeInEnum_EditWorks() {
+         Model.SetList("list", new List<string> { "some|text", "other|text", "content" });
+         ViewPort.Edit("^table[a:list]2 ");
+
+         ViewPort.Edit("other|text ");
+
+         Assert.Equal(1, Model.ReadMultiByteValue(0, 2));
+      }
+
+      [Fact]
+      public void ListWithSpaceAndComma_WriteInEnum_EditWorks() {
+         Model.SetList("list", new List<string> { "some|text", "other, text", "content" });
+         ViewPort.Edit("^table[a:list]2 ");
+
+         ViewPort.Edit("\"other, text\" ");
+
+         Assert.Equal(1, Model.ReadMultiByteValue(0, 2));
+         Assert.Equal(2, ViewPort.ConvertViewPointToAddress(ViewPort.SelectionStart));
+      }
    }
 }
 

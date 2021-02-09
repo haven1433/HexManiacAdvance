@@ -87,6 +87,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                ViewPort.AnchorTextSelectionStart = 1;
                ViewPort.AnchorTextSelectionLength = name.Length;
             }),
+            // new ContextItem("Compressed Sprite", arg => { /* TODO what dimensions? */ }),
+            // new ContextItem("Compressed Palette", arg => { /* TODO how many pages? */ }),
          });
       }
 

@@ -111,7 +111,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          var offsets = arrayRun.ConvertByteOffsetToArrayOffset(format.Source);
          var segment = (IHasOptions)arrayRun.ElementContent[offsets.SegmentIndex];
          var allOptions = segment.GetOptions(Model).Select(option => option + " ");
-         Result = AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(InputText)), -1);
+         Result = AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(InputText, onlyCheckLettersAndDigits: true)), -1);
       }
    }
 }
