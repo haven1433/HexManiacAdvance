@@ -2078,9 +2078,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          // directive marker
+         var element = this[point.X, point.Y];
+         var underEdit = element.Format as UnderEdit;
          if (currentText.StartsWith(DirectiveMarker.ToString()) && currentText.Count(c => c == DirectiveMarker) == 1) {
-            result = CompleteDirectiveEdit(point, currentText);
-            return true;
+            if (underEdit.OriginalFormat is PCS || underEdit.OriginalFormat is Ascii) {
+               // if we're in a text cell, don't allow directives.
+            } else {
+               result = CompleteDirectiveEdit(point, currentText);
+               return true;
+            }
          }
 
          // table extension
@@ -2167,6 +2173,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                // we're trying to clear out table data.
                // assume that the user wanted us to clear it.
                // do NOT do the clear if the current clear is bigger than the current table: that could wipe existing data.
+               ClearPointersFromTable(tableRun, index, length);
                for (int i = 0; i < length; i++) CurrentChange.ChangeData(Model, index + i, 0);
             } else if (tableRun == null && currentRun.Start == index && currentRun.Length == length) {
                // we're trying to clear out a non-table
@@ -2191,6 +2198,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else {
             RaiseError($"Could not parse metacommand {command}.");
             exitEditEarly = true;
+         }
+      }
+
+      private void ClearPointersFromTable(ITableRun tableRun, int index, int length) {
+         foreach (var segment in tableRun.ElementContent) {
+            if (segment.Type != ElementContentType.Pointer) continue;
+            var offset = tableRun.ElementContent.Until(seg => seg == segment).Sum(seg => seg.Length);
+            for (int i = offset; i < length; i += tableRun.ElementLength) {
+               var destination = Model.ReadPointer(tableRun.Start + i);
+               Model.ClearPointer(CurrentChange, tableRun.Start + i, destination);
+            }
          }
       }
 

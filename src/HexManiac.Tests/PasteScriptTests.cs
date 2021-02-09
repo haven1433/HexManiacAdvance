@@ -52,5 +52,15 @@ content:
 
          Assert.Empty(Errors);
       }
+
+      [Fact]
+      public void TableWithPointer_ClearPointer_ClearAnchor() {
+         ViewPort.Edit("^table[pointer<>]1 <010> ");
+
+         ViewPort.Edit("@000 @!00(4) ");
+
+         var run = Model.GetNextRun(0x10);
+         Assert.NotEqual(0x10, run.Start);
+      }
    }
 }

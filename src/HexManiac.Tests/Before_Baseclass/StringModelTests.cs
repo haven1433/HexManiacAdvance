@@ -531,6 +531,19 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(target, result);
       }
 
+      [Fact]
+      public void Text_TypeDot_DotAdded() {
+         var test = new BaseViewModelTestClass();
+         Array.Copy(PCSString.Convert("Hello World").ToArray(), test.Model.RawData, 12);
+         test.Model.ObserveRunWritten(test.ViewPort.CurrentChange, new PCSRun(test.Model, 0, 12));
+         test.ViewPort.Refresh();
+
+         test.ViewPort.Edit("@01 .");
+
+         Assert.Equal(2, test.ViewPort.ConvertViewPointToAddress(test.ViewPort.SelectionStart));
+         Assert.Equal("\"H.llo World\"", PCSString.Convert(test.Model, 0, 12));
+      }
+
       private void Write(IDataModel model, ref int i, string characters) {
          foreach (var c in characters.ToCharArray())
             model[i++] = (byte)PCSString.PCS.IndexOf(c.ToString());
