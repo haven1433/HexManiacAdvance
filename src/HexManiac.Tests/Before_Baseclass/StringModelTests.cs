@@ -10,7 +10,7 @@ using System.Linq;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
-   public class StringModelTests {
+   public class StringModelTests : BaseViewModelTestClass {
       [Fact]
       public void CanRecognizeString() {
          var buffer = new byte[0x100];
@@ -27,9 +27,8 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CanWriteString() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x100).ToArray();
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("test.txt", model);
+         SetFullModel(0xFF);
+         var (model, viewPort) = (Model, ViewPort);
 
          viewPort.Edit("^bob\"\" \"Hello World!\"");
 
@@ -53,21 +52,15 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void TryingToWriteStringFormatToNonStringFormatDataFails() {
-         var buffer = new byte[0x100];
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("test.txt", model);
-         var editor = new EditorViewModel(new StubFileSystem());
-         editor.Add(viewPort);
+         ViewPort.Edit("^\"\" ");
 
-         viewPort.Edit("^\"\" ");
-         Assert.False(string.IsNullOrEmpty(editor.ErrorMessage)); // should get an error, because the data located at the cursor could not convert to a string.
+         Assert.NotEmpty(Errors); // should get an error, because the data located at the cursor could not convert to a string.
       }
 
       [Fact]
       public void CanTruncateString() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x100).ToArray();
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("test.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var (model, viewPort) = (Model, ViewPort);
 
          viewPort.Edit("^bob\"\" \"Hello World!\"");
 
@@ -77,20 +70,13 @@ namespace HavenSoft.HexManiac.Tests {
 
          var run = (PCSRun)model.GetNextRun(0);
          Assert.Equal(6, run.Length);
-         Assert.Equal(0xFF, buffer[7]);
-         Assert.Equal(0xFF, buffer[8]);
-         Assert.Equal(0xFF, buffer[9]);
-         Assert.Equal(0xFF, buffer[10]);
-         Assert.Equal(0xFF, buffer[11]);
-         Assert.Equal(0xFF, buffer[12]);
-         Assert.Equal(0xFF, buffer[13]);
+         Assert.All(new[] { 7, 8, 9, 10, 11, 12, 13 }, i => Assert.Equal(0xFF, model[i]));
       }
 
       [Fact]
       public void CanAutoMoveWhenHittingAnchor() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x300).ToArray();
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("test.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var (model, viewPort) = (Model, ViewPort);
 
          viewPort.SelectionStart = new Point(8, 0);
          viewPort.Edit("^bob FF FF FF FF <tom>");
@@ -102,10 +88,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.IsType<PCSRun>(run);
 
          // the original data is now cleared
-         Assert.Equal(0xFF, buffer[0]);
-         Assert.Equal(0xFF, buffer[1]);
-         Assert.Equal(0xFF, buffer[2]);
-         Assert.Equal(0xFF, buffer[3]);
+         Assert.All(new[] { 0, 1, 2, 3 }, i => Assert.Equal(0xFF, model[i]));
 
          // pointer should be updated
          Assert.Equal(run.Start, model.ReadPointer(0xC));
@@ -113,9 +96,8 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CanAutoMoveWhenHittingData() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("test.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var (model, viewPort) = (Model, ViewPort);
 
          viewPort.SelectionStart = new Point(8, 0);
          viewPort.Edit("A1 B3 64 18 <tom>");
@@ -139,29 +121,25 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void AnchorWithNoNameIsNotValidIfNothingPointsToIt() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("test.txt", model) { Width = 0x10, Height = 0x10 };
-         var errors = new List<string>();
-         viewPort.OnError += (sender, e) => errors.Add(e);
+         SetFullModel(0xFF);
+         var (model, viewPort) = (Model, ViewPort);
 
          viewPort.Edit("^ ");
          Assert.Equal(NoInfoRun.NullRun, model.GetNextRun(0));
-         Assert.Single(errors);
+         Assert.Single(Errors);
          Assert.IsType<None>(viewPort[0, 0].Format);
 
-         errors.Clear();
+         Errors.Clear();
 
          viewPort.Edit("^\"\" ");
          Assert.Equal(NoInfoRun.NullRun, model.GetNextRun(0));
-         Assert.Single(errors);
+         Assert.Single(Errors);
       }
 
       [Fact]
       public void OpeningStringFormatIncludesOpeningQuote() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("test.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var (model, viewPort) = (Model, ViewPort);
 
          viewPort.Edit("^bob\"\" \"Hello World!\"");
          var anchor = (Anchor)viewPort[0, 0].Format;
@@ -171,12 +149,9 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CannotAddNewStringAnchorUnlessItEndsBeforeNextKnownAnchor() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         for (int i = 0; i < 0x10; i++) buffer[i] = 0x00;
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("test.txt", model) { Width = 0x10, Height = 0x10 };
-         var errors = new List<string>();
-         viewPort.OnError += (sender, e) => errors.Add(e);
+         SetFullModel(0xFF);
+         var (model, viewPort) = (Model, ViewPort);
+         for (int i = 0; i < 0x10; i++) model[i] = 0x00;
 
          // add an anchor with some data on the 2nd line
          viewPort.SelectionStart = new Point(0, 1);
@@ -187,17 +162,16 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Edit("^tom\"\" ");
 
          // trying to add a string anchor should've failed
-         Assert.Single(errors);
+         Assert.Single(Errors);
          Assert.Equal(0x10, model.GetNextRun(1).Start);
          Assert.IsType<None>(viewPort[0, 0].Format);
       }
 
       [Fact]
       public void UsingBackspaceMidStringMakesTheStringEndThere() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         for (int i = 0; i < 0x10; i++) buffer[i] = 0x00;
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("test.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var (model, viewPort) = (Model, ViewPort);
+         for (int i = 0; i < 0x10; i++) model[i] = 0x00;
 
          // add an anchor with some data on the 2nd line
          viewPort.SelectionStart = new Point(0, 1);
@@ -210,10 +184,9 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void UsingEscapeSequencesWorks() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         for (int i = 0; i < 0x10; i++) buffer[i] = 0x00;
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("test.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var (model, viewPort) = (Model, ViewPort);
+         for (int i = 0; i < 0x10; i++) model[i] = 0x00;
 
          viewPort.Edit("^bob\"\" \"Some Content \\\\03More Content\"");
 
@@ -223,10 +196,9 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CanCopyStrings() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         for (int i = 0; i < 0x10; i++) buffer[i] = 0x00;
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("test.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var (model, viewPort) = (Model, ViewPort);
+         for (int i = 0; i < 0x10; i++) model[i] = 0x00;
          var fileSystem = new StubFileSystem();
 
          viewPort.Edit("^bob\"\" \"Hello World!\"");
@@ -239,10 +211,9 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void FindForStringsIsNotCaseSensitive() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         for (int i = 0; i < 0x10; i++) buffer[i] = 0x00;
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("test.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var (model, viewPort) = (Model, ViewPort);
+         for (int i = 0; i < 0x10; i++) model[i] = 0x00;
          viewPort.Edit("^bob\"\" \"Text and BULBASAUR!\"");
 
          var results = viewPort.Find("\"bulbasaur\"").Select(result => result.start).ToList(); ;
@@ -252,10 +223,9 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void FindForStringsWorksWithoutQuotes() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         for (int i = 0; i < 0x10; i++) buffer[i] = 0x00;
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("test.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var (model, viewPort) = (Model, ViewPort);
+         for (int i = 0; i < 0x10; i++) model[i] = 0x00;
          viewPort.Edit("^bob\"\" \"Text and BULBASAUR!\"");
 
          var results = viewPort.Find("bulbasaur").Select(result => result.start).ToList();
@@ -265,15 +235,14 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CanNameExistingStringAnchor() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         SetFullModel(0xFF);
+         var (model, viewPort) = (Model, ViewPort);
          var bytes = PCSString.Convert("Hello World!").ToArray();
-         buffer[0] = 0x08;
-         buffer[1] = 0x00;
-         buffer[2] = 0x00;
-         buffer[3] = 0x08;
-         Array.Copy(bytes, 0, buffer, 0x08, bytes.Length);
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("test.txt", model) { Width = 0x10, Height = 0x10 };
+         model[0] = 0x08;
+         model[1] = 0x00;
+         model[2] = 0x00;
+         model[3] = 0x08;
+         Array.Copy(bytes, 0, model.RawData, 0x08, bytes.Length);
 
          viewPort.SelectionStart = new Point(0x08, 0);
          viewPort.Edit("^");
@@ -284,15 +253,14 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void FormatIsRemovedWhenEditingAnAnchor() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         SetFullModel(0xFF);
+         var (model, viewPort) = (Model, ViewPort);
          var bytes = PCSString.Convert("Hello World!").ToArray();
-         buffer[0] = 0x08;
-         buffer[1] = 0x00;
-         buffer[2] = 0x00;
-         buffer[3] = 0x08;
-         Array.Copy(bytes, 0, buffer, 0x08, bytes.Length);
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("test.txt", model) { Width = 0x10, Height = 0x10 };
+         model[0] = 0x08;
+         model[1] = 0x00;
+         model[2] = 0x00;
+         model[3] = 0x08;
+         Array.Copy(bytes, 0, model.RawData, 0x08, bytes.Length);
 
          viewPort.SelectionStart = new Point(0x08, 0);
          viewPort.Edit("^");
@@ -303,11 +271,10 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void UsingTheAnchorEditorToSetStringFormatChangesVisibleData() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
+         SetFullModel(0xFF);
+         var (model, viewPort) = (Model, ViewPort);
          var bytes = PCSString.Convert("Hello World!").ToArray();
-         Array.Copy(bytes, 0, buffer, 0x08, bytes.Length);
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("test.txt", model) { Width = 0x10, Height = 0x10 };
+         Array.Copy(bytes, 0, model.RawData, 0x08, bytes.Length);
          viewPort.SelectionStart = new Point(0x08, 0);
          viewPort.Edit("^bob ");
 
@@ -319,22 +286,15 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CanUndoStringTruncate() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var bytes = PCSString.Convert("Hello World!").ToArray();
-         Array.Copy(bytes, 0, buffer, 0x08, bytes.Length);
-         buffer[0] = 0x08;
-         buffer[1] = 0x00;
-         buffer[2] = 0x00;
-         buffer[3] = 0x08;
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("test.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         ViewPort.Edit("<008> @08 ^text\"\" \"Hello World!\" ");
 
-         viewPort.SelectionStart = new Point(0x0C, 0);
-         viewPort.Edit(ConsoleKey.Backspace);
-         viewPort.Undo.Execute();
+         ViewPort.SelectionStart = new Point(0x0C, 0);
+         ViewPort.Edit(ConsoleKey.Backspace);
+         ViewPort.Undo.Execute();
 
-         Assert.Equal(13, model.GetNextRun(0x08).Length);
-         Assert.Equal("\"Hello World!\"", ((PCS)viewPort[0x0C, 0].Format).FullString);
+         Assert.Equal(13, Model.GetNextRun(0x08).Length);
+         Assert.Equal("\"Hello World!\"", ((PCS)ViewPort[0x0C, 0].Format).FullString);
       }
 
       [Fact]
@@ -356,11 +316,10 @@ namespace HavenSoft.HexManiac.Tests {
       public void StringSearchAutomaticallySearchesForPointersToResults() {
          var text = "This is the song that never ends.";
          var bytes = PCSString.Convert(text).ToArray();
-         var buffer = new byte[0x200];
-         Array.Copy(bytes, 0, buffer, 0x32, bytes.Length);                // the data itself, positioned at x32 (won't be automatically found on load)
-         Array.Copy(new byte[] { 0x32, 0, 0, 0x08 }, 0, buffer, 0x10, 4); // the pointer to the data. Pointer is aligned, but data is not.
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("test.gba", model);
+         SetFullModel(0xFF);
+         var (model, viewPort) = (Model, ViewPort);
+         Array.Copy(bytes, 0, model.RawData, 0x32, bytes.Length);                // the data itself, positioned at x32 (won't be automatically found on load)
+         Array.Copy(new byte[] { 0x32, 0, 0, 0x08 }, 0, model.RawData, 0x10, 4); // the pointer to the data. Pointer is aligned, but data is not.
 
          // the act of searching should find the anchor
          var results = viewPort.Find("this is the song");
@@ -373,11 +332,10 @@ namespace HavenSoft.HexManiac.Tests {
       public void UnnamedStringAnchorAutomaticallySearchesForPointersToAnchor() {
          var text = "This is the song that never ends.";
          var bytes = PCSString.Convert(text).ToArray();
-         var buffer = new byte[0x200];
-         Array.Copy(bytes, 0, buffer, 0x32, bytes.Length);                // the data itself, positioned at x32 (won't be automatically found on load)
-         Array.Copy(new byte[] { 0x32, 0, 0, 0x08 }, 0, buffer, 0x10, 4); // the pointer to the data. Pointer is aligned, but data is not.
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("test.gba", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var (model, viewPort) = (Model, ViewPort);
+         Array.Copy(bytes, 0, model.RawData, 0x32, bytes.Length);                // the data itself, positioned at x32 (won't be automatically found on load)
+         Array.Copy(new byte[] { 0x32, 0, 0, 0x08 }, 0, model.RawData, 0x10, 4); // the pointer to the data. Pointer is aligned, but data is not.
 
          // the act of dropping an anchor should search for pointers
          viewPort.SelectionStart = new Point(2, 3);
@@ -391,12 +349,13 @@ namespace HavenSoft.HexManiac.Tests {
       public void CopyAnUnnamedStringInsertsAName() {
          var text = "This is the song that never ends.";
          var bytes = PCSString.Convert(text).ToArray();
-         var buffer = new byte[0x200];
-         Array.Copy(bytes, 0, buffer, 0x30, bytes.Length);
-         Array.Copy(new byte[] { 0x30, 0, 0, 0x08 }, 0, buffer, 0x10, 4); // the pointer to the data. Pointer is aligned, but data is not.
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("test.gba", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var (model, viewPort) = (Model, ViewPort);
+         Array.Copy(bytes, 0, model.RawData, 0x30, bytes.Length);
+         Array.Copy(new byte[] { 0x30, 0, 0, 0x08 }, 0, model.RawData, 0x10, 4); // the pointer to the data. Pointer is aligned, but data is not.
          var fileSystem = new StubFileSystem();
+         model.Load(model.RawData, null);
+         ViewPort.Refresh();
 
          viewPort.SelectionStart = new Point(0, 3);
          viewPort.ExpandSelection(0, 3);
@@ -408,31 +367,25 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void AddingNewAnchorWithSameNameRenamesNewAnchorWithMessage() {
-         var model = new PokemonModel(new byte[0x200]);
-         var viewPort = new ViewPort(string.Empty, model) { Width = 0x10, Height = 0x10 };
-         var messages = new List<string>();
-         viewPort.OnMessage += (sender, e) => messages.Add(e);
+         var (model, viewPort) = (Model, ViewPort);
 
          viewPort.Edit("^anchor ");
          viewPort.SelectionStart = new Point(0, 1);
          viewPort.Edit("^anchor ");
 
          Assert.NotEqual("anchor", ((Anchor)viewPort[0, 1].Format).Name);
-         Assert.Single(messages);
+         Assert.Single(Messages);
       }
 
       [Fact]
       public void CanUseViewPortToAutoFindTextWithoutKnowingAboutPointersToIt() {
          var text = PCSString.Convert("This is some text.");
-         var buffer = 0x200.Range().Select(i => (byte)0xFF).ToArray();
-         text.CopyTo(buffer, 0x10);
-         var model = new PokemonModel(buffer);
+         SetFullModel(0xFF);
+         var (model, viewPort) = (Model, ViewPort);
+         text.CopyTo(model.RawData, 0x10);
          model.WritePointer(new ModelDelta(), 0x00, 0x10);
 
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.SelectionStart = new Point(3, 1); // just a random byte in the middle of the text
-         var errors = new List<string>();
-         viewPort.OnError += (sender, e) => errors.Add(e);
 
          viewPort.IsText.Execute(); // this line should find the start of the text and add a run, even with no pointer to it
 
@@ -441,15 +394,14 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void ChangingTerminalByteInTableTextAddsNewTerminalByteAfter() {
-         var data = new byte[0x200];
-         data[3] = 0xFF;
-         var model = new PokemonModel(data);
-         var viewPort = new ViewPort("file.txt", model);
+         SetFullModel(0xFF);
+         var (model, viewPort) = (Model, ViewPort);
+         model[3] = 0xFF;
          viewPort.Edit("^table[text\"\"8]1 ");
 
          viewPort.Edit("abcd");
 
-         Assert.Equal(0xFF, data[4]);
+         Assert.Equal(0xFF, model[4]);
       }
 
       [Fact]

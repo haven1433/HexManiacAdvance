@@ -20,7 +20,7 @@ namespace HavenSoft.HexManiac.Tests {
       public EggMoveTests() {
          data = 0x200.Range().Select(i => (byte)0xFF).ToArray();
          model = new PokemonModel(data);
-         viewPort = new ViewPort("file.gba", model);
+         viewPort = new ViewPort("file.gba", model, InstantDispatch.Instance);
 
          viewPort.Goto.Execute("000080");
          viewPort.Edit($"^{HardcodeTablesModel.PokemonNameTable}[name\"\"8]8 \"Bob\" \"Steve\" \"Carl\" \"Sam\" \"Bryan\" \"Ryan\" \"Ian\" \"Matt\"");
