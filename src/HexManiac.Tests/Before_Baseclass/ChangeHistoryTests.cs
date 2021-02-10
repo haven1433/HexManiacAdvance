@@ -18,7 +18,7 @@ namespace HavenSoft.HexManiac.Tests {
       public FakeChangeToken(IEnumerable<int> data) : base(data) { }
    }
 
-   public class ChangeHistoryTests {
+   public class ChangeHistoryTests : BaseViewModelTestClass {
 
       private readonly ChangeHistory<FakeChangeToken> history;
       private int callCount = 0;
@@ -203,23 +203,21 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CanUndoFormatChange() {
-         var data = new byte[0x100];
-         var model = new PokemonModel(data);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var viewPort = ViewPort;
 
          viewPort.SelectionStart = new Point(4, 0);
          viewPort.Edit("<000030>");
-         Assert.Equal(0x04, model.GetNextRun(0).Start);
+         Assert.Equal(0x04, Model.GetNextRun(0).Start);
 
          viewPort.Undo.Execute();
-         Assert.Equal(int.MaxValue, model.GetNextRun(0).Start);
+         Assert.Equal(int.MaxValue, Model.GetNextRun(0).Start);
       }
 
       [Fact]
       public void CanUndoDataMove() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var viewPort = ViewPort;
 
          viewPort.SelectionStart = new Point(8, 0);
          viewPort.Edit("<000030>");
@@ -229,20 +227,19 @@ namespace HavenSoft.HexManiac.Tests {
 
          viewPort.Undo.Execute(); // should undo the entire last edit transaction
 
-         Assert.Equal(0xFF, model[0]);
-         Assert.Equal(8, model.GetNextRun(0).Start);
-         Assert.Equal(0x30, model.GetNextRun(0x10).Start);
-         Assert.Equal(int.MaxValue, model.GetNextRun(0x31).Start);
+         Assert.Equal(0xFF, Model[0]);
+         Assert.Equal(8, Model.GetNextRun(0).Start);
+         Assert.Equal(0x30, Model.GetNextRun(0x10).Start);
+         Assert.Equal(int.MaxValue, Model.GetNextRun(0x31).Start);
       }
 
       [Fact]
       public void CanUndoFromToolChange() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var viewPort = ViewPort;
 
          viewPort.Edit("^bob\"\" ");
-         var bobRun = model.GetNextRun(0);
+         var bobRun = Model.GetNextRun(0);
          Assert.Equal(1, bobRun.Length);
 
          // move the selection to force a break in the undo history
@@ -253,15 +250,14 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Tools.StringTool.Content = "Hello World!";
          viewPort.Undo.Execute(); // should undo only the tool change, not the name change
 
-         Assert.Equal(0xFF, model[0]);
+         Assert.Equal(0xFF, Model[0]);
          Assert.True(viewPort.Undo.CanExecute(null));
       }
 
       [Fact]
       public void UndoCanHandleNameMove() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var (model, viewPort) = (Model, ViewPort);
 
          // operation 1
          viewPort.Edit("<bob> 03 08 24 16 <bob>");
@@ -293,9 +289,8 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void UndoWorksAfterMidPointerEdit() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var (model, viewPort) = (Model, ViewPort);
 
          viewPort.Edit("<000100>");
          viewPort.SelectionStart = new Point(1, 0);
@@ -307,9 +302,8 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void UndoRedoRestoresUnmappedNames() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var viewPort = ViewPort;
 
          viewPort.Edit("<bob>");
          viewPort.SelectionStart = new Point(0, 0);

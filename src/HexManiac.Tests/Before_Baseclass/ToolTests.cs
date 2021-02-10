@@ -37,9 +37,8 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void StringToolEditsAreReflectedInViewPort() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var viewPort = ViewPort;
          viewPort.Edit("^bob\"\" \"Some Text\" 00 <000100>");
          viewPort.Tools.StringTool.Address = 0;
 
@@ -50,9 +49,8 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void StringToolCanMoveData() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var viewPort = ViewPort;
          viewPort.Edit("^bob\"\" \"Some Text\" 00 <000100>");
          var toolProperties = new List<string>();
          viewPort.Tools.StringTool.PropertyChanged += (sender, e) => toolProperties.Add(e.PropertyName);
@@ -65,9 +63,8 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void ViewPortMovesWhenStringToolMovesData() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var (model, viewPort) = (Model, ViewPort);
          viewPort.Edit("^bob\"\" \"Some Text\" 00 <000100>");
          viewPort.Tools.StringTool.Address = 0;
 
@@ -77,15 +74,14 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void StringToolMultiCharacterDeleteCleansUpUnusedBytes() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var viewPort = ViewPort;
          viewPort.Edit("^bob\"\" \"Some Text\" 00 <000100>");
          viewPort.Tools.StringTool.Address = 0;
 
          viewPort.Tools.StringTool.Content = "Some "; // removed 'Text' from the end
 
-         Assert.Equal(0xFF, model[7]);
+         Assert.Equal(0xFF, Model[7]);
       }
 
       [Fact]
@@ -99,9 +95,8 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void StringToolContentUpdatesWhenViewPortChange() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var viewPort = ViewPort;
          viewPort.Edit("^bob\"\" \"Some Text\"");
 
          viewPort.SelectionStart = new Point(3, 0);   // select the 'e' in 'Some'
@@ -113,9 +108,8 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void ToolSelectionChangeUpdatesViewPortSelection() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var viewPort = ViewPort;
          viewPort.Edit("^bob\"\" \"Some Text\"");
          viewPort.SelectionStart = new Point(3, 0);
          viewPort.FollowLink(3, 0);
@@ -146,9 +140,8 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void TableToolUpdatesWhenTextToolDataChanges() {
          // Arrange
-         var data = 0x200.Range().Select(i => (byte)0xFF).ToArray();
-         var model = new PokemonModel(data);
-         var viewPort = new ViewPort("name.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var viewPort = ViewPort;
          viewPort.Edit("^array[name\"\"16]3 ");
          viewPort.SelectionStart = new Point(8, 1);
 
@@ -165,9 +158,8 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void TextToolToolUpdatesWhenTableToolDataChanges() {
          // Arrange
-         var data = 0x200.Range().Select(i => (byte)0xFF).ToArray();
-         var model = new PokemonModel(data);
-         var viewPort = new ViewPort("name.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var viewPort = ViewPort;
          viewPort.Edit("^array[name\"\"16]3 ");
          viewPort.SelectionStart = new Point(8, 1);
 
@@ -185,9 +177,8 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void TableToolUpdatesIndexOnCursorMove() {
          // Arrange
-         var data = 0x200.Range().Select(i => (byte)0xFF).ToArray();
-         var model = new PokemonModel(data);
-         var viewPort = new ViewPort("name.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var viewPort = ViewPort;
          viewPort.Edit("^array[name\"\"16]3 ");
 
          // Act: move the cursor to change the selected table item
@@ -200,9 +191,8 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void ContentUpdateFromAnotherToolDoesNotResetCaretInStringTool() {
          // Arrange
-         var data = 0x200.Range().Select(i => (byte)0xFF).ToArray();
-         var model = new PokemonModel(data);
-         var viewPort = new ViewPort("name.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var viewPort = ViewPort;
          viewPort.Edit("^array[name\"\"16]3 ");
 
          // mock the view: whenever the stringtool content changes,
@@ -224,9 +214,8 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void TableToolCanExtendTable() {
          // Arrange
-         var data = 0x200.Range().Select(i => (byte)0xFF).ToArray();
-         var model = new PokemonModel(data);
-         var viewPort = new ViewPort("name.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var viewPort = ViewPort;
          viewPort.Edit("^array[name\"\"16]3 ");
          viewPort.Tools.SelectedIndex = viewPort.Tools.Count.Range().Single(i => viewPort.Tools[i] == viewPort.Tools.TableTool);
          Assert.True(viewPort.Tools.TableTool.Next.CanExecute(null)); // table has 3 entries
@@ -237,15 +226,14 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.True(viewPort.Tools.TableTool.Append.CanExecute(null));
          viewPort.Tools.TableTool.Append.Execute();
          Assert.Contains("3", viewPort.Tools.TableTool.CurrentElementName);
-         Assert.Equal(16 * 4, model.GetNextRun(0).Length);
+         Assert.Equal(16 * 4, Model.GetNextRun(0).Length);
       }
 
       [Fact]
       public void TableToolNotOfferedOnNormalText() {
          // Arrange
-         var data = 0x200.Range().Select(i => (byte)0xFF).ToArray();
-         var model = new PokemonModel(data);
-         var viewPort = new ViewPort("name.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var viewPort = ViewPort;
          viewPort.Edit("^array[name\"\"16]3 ");
          viewPort.SelectionStart = new Point(0, 4);
          viewPort.Edit("^text\"\" Some Text\"");
