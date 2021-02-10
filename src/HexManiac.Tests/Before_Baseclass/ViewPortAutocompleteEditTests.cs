@@ -13,7 +13,9 @@ namespace HavenSoft.HexManiac.Tests {
 
       public ViewPortAutocompleteEditTests() {
          var model = new PokemonModel(new byte[0x200]);
-         viewPort = new ViewPort("name.txt", model) { Height = 0x10, Width = 0x10 };
+         viewPort = AutoSearchTests.NewViewPort("name.txt", model);
+         viewPort.Height = 0x10;
+         viewPort.Width = 0x10;
          viewPort.OnError += (sender, e) => errors.Add(e);
 
          viewPort.SelectionStart = new Point(0, 8);

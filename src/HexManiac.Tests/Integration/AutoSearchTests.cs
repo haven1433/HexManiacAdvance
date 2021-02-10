@@ -48,6 +48,8 @@ namespace HavenSoft.HexManiac.Tests {
       private readonly AutoSearchFixture fixture;
       private readonly NoDataChangeDeltaModel noChange = new NoDataChangeDeltaModel();
 
+      public static ViewPort NewViewPort(string game, IDataModel model) => new ViewPort(game, model, InstantDispatch.Instance, BaseViewModelTestClass.Singletons);
+
       public AutoSearchTests(AutoSearchFixture fixture) => this.fixture = fixture;
 
       [SkippableTheory]
@@ -520,7 +522,7 @@ namespace HavenSoft.HexManiac.Tests {
          var fileSystem = new StubFileSystem();
          var model = fixture.LoadModelNoCache(game);
          var editor = new EditorViewModel(fileSystem, allowLoadingMetadata: false);
-         var viewPort = new ViewPort(game, model);
+         var viewPort = NewViewPort(game, model);
          editor.Add(viewPort);
          var expandTutors = editor.QuickEdits.Single(edit => edit.Name == new MakeTutorsExpandable().Name);
 
@@ -649,7 +651,7 @@ namespace HavenSoft.HexManiac.Tests {
          var fileSystem = new StubFileSystem();
          var model = fixture.LoadModelNoCache(game);
          var editor = new EditorViewModel(fileSystem, allowLoadingMetadata: false);
-         var viewPort = new ViewPort(game, model);
+         var viewPort = NewViewPort(game, model);
          editor.Add(viewPort);
          var expandTMs = editor.QuickEdits.Single(edit => edit.Name == "Make TMs Expandable");
 
@@ -684,7 +686,7 @@ namespace HavenSoft.HexManiac.Tests {
          var fileSystem = new StubFileSystem();
          var model = fixture.LoadModelNoCache(game);
          var editor = new EditorViewModel(fileSystem, allowLoadingMetadata: false);
-         var viewPort = new ViewPort(game, model);
+         var viewPort = NewViewPort(game, model);
          editor.Add(viewPort);
          var expandItems = editor.QuickEdits.Single(edit => edit.Name == "Make Items Expandable");
 

@@ -10,7 +10,7 @@ using System.Linq;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
-   public class ViewPortSaveTests {
+   public class ViewPortSaveTests : BaseViewModelTestClass {
 
       private readonly StubFileSystem fileSystem;
       private string name = string.Empty;
@@ -305,18 +305,16 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CanSaveAndLoadNamesAndFormats() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var viewPort = ViewPort;
          StoredMetadata metadata = null;
          var fileSystem = new StubFileSystem { Save = file => true, SaveMetadata = (file, md) => { metadata = new StoredMetadata(md); return true; } };
-
 
          viewPort.Edit("^bob\"\" \"Hello\"");
          viewPort.Save.Execute(fileSystem);
 
-         var model2 = new PokemonModel(buffer, metadata);
-         var viewPort2 = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var model2 = new PokemonModel(Model.RawData, metadata);
+         var viewPort2 = AutoSearchTests.NewViewPort("file.txt", model2);
 
          Assert.Equal("bob", ((Anchor)viewPort2[0, 0].Format).Name);
       }
@@ -325,7 +323,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void FormattingChangesDoNotMakeFileDirty() {
          var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var viewPort = AutoSearchTests.NewViewPort("file.txt", model);
          var fileSystem = new StubFileSystem();
 
          viewPort.Edit("^bob ");
@@ -336,9 +334,8 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void UndoRedoRestoresSaveStar() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var viewPort = ViewPort;
          int nameChangedCount = 0;
          viewPort.PropertyChanged += (sender, e) => { if (e.PropertyName == nameof(viewPort.Name)) nameChangedCount++; };
          var fileSystem = new StubFileSystem();

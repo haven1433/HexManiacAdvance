@@ -617,7 +617,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
 
-      public ViewPort(string fileName, IDataModel model, IWorkDispatcher dispatcher = null, Singletons singletons = null, ChangeHistory<ModelDelta> changeHistory = null) {
+      public ViewPort(string fileName, IDataModel model, IWorkDispatcher dispatcher, Singletons singletons = null, ChangeHistory<ModelDelta> changeHistory = null) {
          Singletons = singletons ?? new Singletons();
          history = changeHistory ?? new ChangeHistory<ModelDelta>(RevertChanges);
          history.PropertyChanged += HistoryPropertyChanged;

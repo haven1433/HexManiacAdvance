@@ -382,7 +382,9 @@ namespace HavenSoft.HexManiac.Tests {
       private static void CreateStandardTestSetup(out ViewPort viewPort, out PokemonModel model, out byte[] data) {
          data = new byte[0x200];
          model = new PokemonModel(data);
-         viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         viewPort = AutoSearchTests.NewViewPort("file.txt", model);
+         viewPort.Width = 0x10;
+         viewPort.Height = 0x10;
       }
    }
 }
