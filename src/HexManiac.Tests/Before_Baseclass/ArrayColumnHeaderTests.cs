@@ -6,46 +6,36 @@ using System.Collections.Generic;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
-   public class ArrayColumnHeaderTests {
-      readonly List<string> errors = new List<string>();
-      readonly List<string> messages = new List<string>();
-      readonly byte[] data = new byte[0x200];
-      readonly PokemonModel model;
-      readonly ViewPort viewPort;
-
+   public class ArrayColumnHeaderTests : BaseViewModelTestClass {
       public ArrayColumnHeaderTests() {
-         model = new PokemonModel(data);
-         viewPort = new ViewPort("test.gba", model) { Width = 0x10, Height = 0x10 };
-         viewPort.Edit("^array[data1. data2.]8 ");
-         viewPort.OnError += (sender, e) => { if (!string.IsNullOrEmpty(e)) errors.Add(e); };
-         viewPort.OnMessage += (sender, e) => messages.Add(e);
+         ViewPort.Edit("^array[data1. data2.]8 ");
       }
 
       [Fact]
       public void AnchorFormatAutoCompletesToSingleByte() {
-         viewPort.AnchorText = "^array[data1. b data2.]8";
-         var array = (ArrayRun)model.GetNextRun(0);
+         ViewPort.AnchorText = "^array[data1. b data2.]8";
+         var array = (ArrayRun)Model.GetNextRun(0);
          Assert.Equal(3, array.ElementLength);
-         Assert.Empty(errors);
+         Assert.Empty(Errors);
       }
 
       [Fact]
       public void HeadersChangeWhenAnchorChanges() {
-         viewPort.AnchorText = "^array[data1. b data2.]8";
-         Assert.Equal(0, viewPort.ColumnHeaders[0].ColumnHeaders.Count % 3);
+         ViewPort.AnchorText = "^array[data1. b data2.]8";
+         Assert.Equal(0, ViewPort.ColumnHeaders[0].ColumnHeaders.Count % 3);
 
-         viewPort.AnchorText = "^array[data1. bc data2.]8";
-         Assert.Equal("bc", viewPort.ColumnHeaders[0].ColumnHeaders[1].ColumnTitle);
-         Assert.Equal(1, viewPort.ColumnHeaders[0].ColumnHeaders[1].ByteWidth);
+         ViewPort.AnchorText = "^array[data1. bc data2.]8";
+         Assert.Equal("bc", ViewPort.ColumnHeaders[0].ColumnHeaders[1].ColumnTitle);
+         Assert.Equal(1, ViewPort.ColumnHeaders[0].ColumnHeaders[1].ByteWidth);
       }
 
       [Fact]
       public void TableToolUpdatesAfterAnchorChange() {
-         viewPort.AnchorText = "^array[data1. b data2.]8";
-         Assert.Equal(4, viewPort.Tools.TableTool.Children.Count); // header + 3 elements
+         ViewPort.AnchorText = "^array[data1. b data2.]8";
+         Assert.Equal(4, ViewPort.Tools.TableTool.Children.Count); // header + 3 elements
 
-         viewPort.AnchorText = "^array[data1. bc data2.]8";
-         Assert.Equal("bc", ((FieldArrayElementViewModel)viewPort.Tools.TableTool.Children[2]).Name);
+         ViewPort.AnchorText = "^array[data1. bc data2.]8";
+         Assert.Equal("bc", ((FieldArrayElementViewModel)ViewPort.Tools.TableTool.Children[2]).Name);
       }
    }
 }

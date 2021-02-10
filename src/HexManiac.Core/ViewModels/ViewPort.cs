@@ -617,10 +617,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
 
-      public ViewPort(string fileName, IDataModel model, Singletons singletons = null, ChangeHistory<ModelDelta> changeHistory = null) {
+      public ViewPort(string fileName, IDataModel model, IWorkDispatcher dispatcher = null, Singletons singletons = null, ChangeHistory<ModelDelta> changeHistory = null) {
          Singletons = singletons ?? new Singletons();
          history = changeHistory ?? new ChangeHistory<ModelDelta>(RevertChanges);
          history.PropertyChanged += HistoryPropertyChanged;
+         this.dispatcher = dispatcher ?? InstantDispatch.Instance;
 
          Model = model;
          FileName = fileName;
@@ -651,7 +652,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          RefreshBackingData();
       }
 
-      public ViewPort(LoadedFile file) : this(file.Name, new BasicModel(file.Contents)) { }
+      public ViewPort(LoadedFile file) : this(file.Name, new BasicModel(file.Contents), InstantDispatch.Instance) { }
 
       private void ImplementCommands() {
          undoWrapper.CanExecute = history.Undo.CanExecute;
@@ -899,7 +900,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Refresh();
       }
 
-      public void Edit(string input, IWorkDispatcher continuation = null) {
+      private readonly IWorkDispatcher dispatcher;
+      public void Edit(string input) {
          if (!UpdateInProgress) {
             UpdateInProgress = true;
             CurrentProgressScopes.Insert(0, tools.DeferUpdates);
@@ -911,7 +913,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          int chunkSize = Math.Max(200, initialWorkLoad / 100);
          var maxSize = input.Length;
 
-         if (continuation != null && input.Length > chunkSize) {
+         if (dispatcher != null && input.Length > chunkSize) {
             var nextNewline = input.Substring(chunkSize).IndexOf('\n');
             if (nextNewline != -1) maxSize = chunkSize + nextNewline + 1;
          }
@@ -942,7 +944,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             Refresh();
          } else if (input.Length > i) {
             Progress = (double)(initialWorkLoad - input.Length) / initialWorkLoad;
-            continuation.DispatchWork(() => Edit(input.Substring(i), continuation));
+            dispatcher.DispatchWork(() => Edit(input.Substring(i)));
          } else {
             ClearEditWork();
          }
@@ -1080,7 +1082,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void OpenInNewTab(int destination) {
-         var child = new ViewPort(FileName, Model, Singletons, history);
+         var child = new ViewPort(FileName, Model, dispatcher, Singletons, history);
          child.selection.GotoAddress(destination);
          RequestTabChange?.Invoke(this, child);
       }
@@ -1533,7 +1535,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       #endregion
 
       public IChildViewPort CreateChildView(int startAddress, int endAddress) {
-         var child = new ChildViewPort(this, Singletons);
+         var child = new ChildViewPort(this, dispatcher, Singletons);
 
          var run = Model.GetNextRun(startAddress);
          if (run is ArrayRun array) {

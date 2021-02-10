@@ -449,7 +449,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                }
                var metadata = new StoredMetadata(metadataText);
                var model = new HardcodeTablesModel(Singletons, file.Contents, metadata);
-               var viewPort = new ViewPort(file.Name, model, Singletons);
+               var viewPort = new ViewPort(file.Name, model, workDispatcher, Singletons);
                if (metadata.IsEmpty || StoredMetadata.NeedVersionUpdate(metadata.Version, Singletons.MetadataInfo.VersionNumber)) {
                   Action saveMetadata = () => {
                      fileSystem.SaveMetadata(file.Name, viewPort.Model.ExportMetadata(Singletons.MetadataInfo).Serialize());
@@ -523,7 +523,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                copyText = copyText.Replace(Environment.NewLine, "\n"); // normalize newline inputs
             }
 
-            (SelectedTab as ViewPort)?.Edit(copyText, workDispatcher);
+            (SelectedTab as ViewPort)?.Edit(copyText);
          };
       }
 

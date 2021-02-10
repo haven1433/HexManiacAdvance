@@ -9,7 +9,7 @@ using System.Linq;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
-   public class PointerModelTests {
+   public class PointerModelTests : BaseViewModelTestClass{
       [Fact]
       public void PointerModelFindsNoPointersInRandomData() {
          var rnd = new Random(0xCafe);
@@ -76,85 +76,61 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void ModelUpdatesWhenViewPortChanges() {
-         var buffer = new byte[0x100];
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model);
+         ViewPort.Edit("<000020>");
 
-         viewPort.Edit("<000020>");
-
-         Assert.Equal(0, model.GetNextRun(0).Start);
-         Assert.Equal(0x20, model.GetNextRun(10).Start);
+         Assert.Equal(0, Model.GetNextRun(0).Start);
+         Assert.Equal(0x20, Model.GetNextRun(10).Start);
       }
 
       [Fact]
       public void WritingNamedAnchorFollowedByPointerToNameWorks() {
-         var buffer = new byte[0x100];
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model);
+         ViewPort.SelectionStart = new Point(0, 1);
+         ViewPort.Edit("^bob ");
+         ViewPort.SelectionStart = new Point(0, 2);
+         ViewPort.Edit("<bob>");
 
-         viewPort.SelectionStart = new Point(0, 1);
-         viewPort.Edit("^bob ");
-         viewPort.SelectionStart = new Point(0, 2);
-         viewPort.Edit("<bob>");
-
-         Assert.Equal(4, viewPort[0, 2].Value);
+         Assert.Equal(ViewPort.Width, ViewPort[0, 2].Value);
       }
 
       [Fact]
       public void WritingPointerToNameFollowedByNamedAnchorWorks() {
-         var buffer = new byte[0x100];
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model);
+         ViewPort.SelectionStart = new Point(0, 2);
+         ViewPort.Edit("<bob>");
+         ViewPort.SelectionStart = new Point(0, 1);
+         ViewPort.Edit("^bob ");
 
-         viewPort.SelectionStart = new Point(0, 2);
-         viewPort.Edit("<bob>");
-         viewPort.SelectionStart = new Point(0, 1);
-         viewPort.Edit("^bob ");
-
-         Assert.Equal(4, viewPort[0, 2].Value);
+         Assert.Equal(ViewPort.Width, ViewPort[0, 2].Value);
       }
 
       [Fact]
       public void CanWriteAnchorToSameLocationAsPointerWithoutRemovingPointer() {
-         var buffer = new byte[0x100];
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model);
+         ViewPort.SelectionStart = new Point(0, 2);
+         ViewPort.Edit("<000040>");
+         ViewPort.SelectionStart = new Point(0, 2);
+         ViewPort.Edit("^bob ");
 
-         viewPort.SelectionStart = new Point(0, 2);
-         viewPort.Edit("<000040>");
-         viewPort.SelectionStart = new Point(0, 2);
-         viewPort.Edit("^bob ");
-
-         Assert.IsType<Anchor>(viewPort[0, 2].Format);
+         Assert.IsType<Anchor>(ViewPort[0, 2].Format);
       }
 
       [Fact]
       public void CanWriteAnchorToSameLocationAsPointerPointingToThatAnchor() {
-         var buffer = new byte[0x100];
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model);
+         ViewPort.SelectionStart = new Point(0, 2);
+         ViewPort.Edit("<bob>");
+         ViewPort.SelectionStart = new Point(0, 2);
+         ViewPort.Edit("^bob ");
 
-         viewPort.SelectionStart = new Point(0, 2);
-         viewPort.Edit("<bob>");
-         viewPort.SelectionStart = new Point(0, 2);
-         viewPort.Edit("^bob ");
-
-         Assert.IsType<Anchor>(viewPort[0, 2].Format);
-         Assert.Equal(0x8, viewPort[0, 2].Value);
+         Assert.IsType<Anchor>(ViewPort[0, 2].Format);
+         Assert.Equal(0x20, ViewPort[0, 2].Value);
       }
 
       [Fact]
       public void WritingAnAnchorUpdatesPointersToUseThatName() {
-         var buffer = new byte[0x100];
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model);
+         ViewPort.SelectionStart = new Point(0, 2);
+         ViewPort.Edit("<000010>");
+         ViewPort.SelectionStart = new Point(0, 1);
+         ViewPort.Edit("^bob ");
 
-         viewPort.SelectionStart = new Point(0, 2);
-         viewPort.Edit("<000004>");
-         viewPort.SelectionStart = new Point(0, 1);
-         viewPort.Edit("^bob ");
-
-         Assert.Equal("bob", ((Pointer)viewPort[0, 2].Format).DestinationName);
+         Assert.Equal("bob", ((Pointer)ViewPort[0, 2].Format).DestinationName);
       }
 
       [Fact]
@@ -213,9 +189,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void PointerCanPointToNameAfterThatNameGetsDeleted() {
-         var buffer = new byte[0x100];
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var viewPort = ViewPort;
          var token = new ModelDelta();
 
          viewPort.SelectionStart = new Point(0, 1);
@@ -226,7 +200,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          // as an alternative to being able to delete an anchor from the viewPort,
          // just edit the model directly and then scroll to force the viewPort to refresh
-         model.ClearFormat(token, 0x10, 1);
+         Model.ClearFormat(token, 0x10, 1);
          viewPort.ScrollValue = 1;
          viewPort.ScrollValue = 0;
 
@@ -235,9 +209,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void PointerGetsSetToZeroAfterAnchorGetsDeleted() {
-         var buffer = new byte[0x100];
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var viewPort = ViewPort;
          var token = new ModelDelta();
 
          viewPort.SelectionStart = new Point(0, 1);
@@ -248,7 +220,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          // as an alternative to being able to delete an anchor from the viewPort,
          // just edit the model directly and then scroll to force the viewPort to refresh
-         model.ClearFormatAndData(token, 0xF, 2);
+         Model.ClearFormatAndData(token, 0xF, 2);
          viewPort.ScrollValue = 1;
          viewPort.ScrollValue = 0;
 
@@ -257,9 +229,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void AnchorCarriesSourceInformation() {
-         var buffer = new byte[0x100];
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var viewPort = ViewPort;
 
          viewPort.SelectionStart = new Point(0, 1);
          viewPort.Edit("<000020>");
@@ -269,9 +239,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void StartingAnAnchorAndGivingItNoNameClearsAnyAnchorNameAtThatPosition() {
-         var buffer = new byte[0x100];
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var viewPort = ViewPort;
 
          viewPort.SelectionStart = new Point(0, 1);
          viewPort.Edit("<bob>");
@@ -282,27 +250,23 @@ namespace HavenSoft.HexManiac.Tests {
          var format = (Pointer)viewPort[0, 1].Format;
          Assert.Equal(0x20, format.Destination);
          Assert.Equal(string.Empty, format.DestinationName);
-         var address = model.GetAddressFromAnchor(new ModelDelta(), -1, string.Empty);
+         var address = Model.GetAddressFromAnchor(new ModelDelta(), -1, string.Empty);
          Assert.Equal(Pointer.NULL, address);
       }
 
       [Fact]
       public void CanRemoveAnchorWithNoReferences() {
-         var buffer = new byte[0x100];
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var viewPort = ViewPort;
 
          viewPort.SelectionStart = new Point(0, 2);
          viewPort.Edit("^bob ^ ");
 
-         Assert.Equal(NoInfoRun.NullRun, model.GetNextRun(0));
+         Assert.Equal(NoInfoRun.NullRun, Model.GetNextRun(0));
       }
 
       [Fact]
       public void BackspaceClearsDataButNotFormats() {
-         var buffer = new byte[0x100];
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var viewPort = ViewPort;
 
          viewPort.SelectionStart = new Point(0, 1);
          viewPort.Edit("01 02 03 04");                // 2x4 characters to clear
@@ -323,9 +287,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void WritingOverTwoPointersWorks() {
-         var buffer = new byte[0x100];
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var viewPort = ViewPort;
 
          viewPort.SelectionStart = new Point(0, 1);
          viewPort.Edit("<000020>");
@@ -352,9 +314,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void PointerToUnknownLocationShowsUpDifferent() {
-         var buffer = new byte[0x100];
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var viewPort = ViewPort;
 
          viewPort.SelectionStart = new Point(2, 1);
          viewPort.Edit("<bob>");
@@ -366,9 +326,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void AddingANewNamedPointerToNoLocationOverExistingNamedPointerToNoLocationWorks() {
-         var buffer = new byte[0x100];
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var viewPort = ViewPort;
 
          viewPort.SelectionStart = new Point(2, 1);
          viewPort.Edit("<bob>");
@@ -381,9 +339,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CanGotoAnchorName() {
-         var buffer = new byte[0x100];
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var viewPort = ViewPort;
 
          int errorCalls = 0;
          viewPort.OnError += (sender, e) => errorCalls++;
@@ -397,9 +353,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CanFindPointer() {
-         var buffer = new byte[0x100];
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var viewPort = ViewPort;
 
          viewPort.SelectionStart = new Point(4, 1);
          viewPort.Edit("<000058> 23 19");
@@ -410,9 +364,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CanUsePointerAsLink() {
-         var buffer = new byte[0x200];
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var viewPort = ViewPort;
 
          viewPort.SelectionStart = new Point(4, 1);
          viewPort.Edit("<000120>");
@@ -423,9 +375,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void FindAllSourcesWorks() {
-         var buffer = new byte[0x200];
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var viewPort = ViewPort;
          var editor = new EditorViewModel(new StubFileSystem());
          editor.Add(viewPort);
 
@@ -440,9 +390,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void NewAnchorWithSameNameDoesNotMovePointersToNewAnchor() {
-         var buffer = new byte[0x200];
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var viewPort = ViewPort;
 
          // put some pointers in the file
          viewPort.SelectionStart = new Point(4, 1);
@@ -464,9 +412,8 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CanCopyAndPastePointers() {
-         var buffer = new byte[0x200];
          var fileSystem = new StubFileSystem();
-         var viewPort = new ViewPort("file.txt", new PokemonModel(buffer)) { Width = 0x10, Height = 0x10 };
+         var viewPort = ViewPort;
 
          viewPort.SelectionStart = new Point(0, 2);
 
@@ -493,16 +440,13 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CanWriteNameOverNullPointer() {
-         var buffer = new byte[0x200];
-         var model = new PokemonModel(buffer);
-         var fileSystem = new StubFileSystem();
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var viewPort = ViewPort;
 
          viewPort.Edit("<null>");
          viewPort.SelectionStart = new Point(0, 0);
          viewPort.Edit("<bob>");
 
-         var format = (Pointer)model.GetNextRun(0x0).CreateDataFormat(model, 0x00);
+         var format = (Pointer)Model.GetNextRun(0x0).CreateDataFormat(Model, 0x00);
          Assert.Equal("bob", format.DestinationName);
       }
 
@@ -521,9 +465,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void ArrowMovementWhileTypingAnchorCommitsChange() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var viewPort = ViewPort;
 
          viewPort.Edit("^bob"); // no trailing space: still under edit
 
@@ -534,22 +476,18 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void EscapeWhileTypingAnchorCancelsChange() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var viewPort = ViewPort;
 
          viewPort.Edit("^bob"); // no trailing space: still under edit
          viewPort.Edit(ConsoleKey.Escape);
 
          Assert.IsType<None>(viewPort[0, 0].Format);
-         Assert.Equal(NoInfoRun.NullRun, model.GetNextRun(0));
+         Assert.Equal(NoInfoRun.NullRun, Model.GetNextRun(0));
       }
 
       [Fact]
       public void StartingAnAnchorOverAnAnchorClearsTheExistingAnchorInfo() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var viewPort = ViewPort;
 
          viewPort.Edit("^bob ");
          Assert.Equal("^bob", viewPort.AnchorText);
@@ -563,10 +501,8 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void AnchorEditTextUpdatesWithSelectionChange() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PokemonModel(buffer);
-         model.ObserveAnchorWritten(new ModelDelta(), "bob", new NoInfoRun(0x08));
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var viewPort = ViewPort;
+         Model.ObserveAnchorWritten(new ModelDelta(), "bob", new NoInfoRun(0x08));
 
          viewPort.SelectionStart = new Point(0x08, 0);
 
@@ -576,9 +512,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void AnchorEditTextUpdatesWhenTypingAnAnchor() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var viewPort = ViewPort;
 
          viewPort.Edit("^partialTe"); // in the middle of typing 'partialText'
 
@@ -588,23 +522,20 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void ModifyingAnchorTextUpdatesTheAnchor() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PokemonModel(buffer);
-         model.ObserveAnchorWritten(new ModelDelta(), "bob", new NoInfoRun(0x08));
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         SetFullModel(0xFF);
+         var viewPort = ViewPort;
+         Model.ObserveAnchorWritten(new ModelDelta(), "bob", new NoInfoRun(0x08));
 
          viewPort.SelectionStart = new Point(0x08, 0);
          viewPort.AnchorText = "^bob\"\"";
 
-         Assert.IsType<PCSRun>(model.GetNextRun(0x08));
+         Assert.IsType<PCSRun>(Model.GetNextRun(0x08));
       }
 
       [Fact]
       public void AnchorTextAlwaysCoercesToStartWithAnchorCharacter() {
-         var buffer = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
-         var model = new PokemonModel(buffer);
-         model.ObserveAnchorWritten(new ModelDelta(), "bob", new NoInfoRun(0x08));
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var viewPort = ViewPort;
+         Model.ObserveAnchorWritten(new ModelDelta(), "bob", new NoInfoRun(0x08));
 
          viewPort.SelectionStart = new Point(0x08, 0);
          viewPort.AnchorText = "tom\"\"";
@@ -614,13 +545,11 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void GivenTwoPointersCanRemoveAndUndoTheFirstWithoutEffectingTheSecond() {
-         var data = new byte[0x200];
-         var model = new PokemonModel(data);
+         var (model, viewPort) = (Model, ViewPort);
          model.WritePointer(new ModelDelta(), 0x010, 0x100);
          model.ObserveRunWritten(new ModelDelta(), new PointerRun(0x010));
          model.WritePointer(new ModelDelta(), 0x014, 0x120);
          model.ObserveRunWritten(new ModelDelta(), new PointerRun(0x014));
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x8, Height = 0x8 };
 
          viewPort.SelectionStart = new Point(0, 2); // 0x010
          viewPort.Edit("00"); // this should remove the first pointer
@@ -631,9 +560,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CreatingAnOffsetPointerShouldCoerceToTheStartOfExistingPointer() {
-         var data = new byte[0x200];
-         var model = new PokemonModel(data);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var (model, viewPort) = (Model, ViewPort);
 
          viewPort.Edit("<000100>");
          viewPort.SelectionStart = new Point(2, 0);
@@ -641,39 +568,31 @@ namespace HavenSoft.HexManiac.Tests {
 
          // note that the second pointer should be right where the first one was
          // because trying to start a pointer edit mid-pointer should move you to the start of the pointer.
-         Assert.Equal(0x50, data[0]);
+         Assert.Equal(0x50, Model[0]);
       }
 
       [Fact]
       public void CreatingAPointerOutsideTheDataRangeErrors() {
-         var errors = new List<string>();
-         var data = new byte[0x200];
-         var model = new PokemonModel(data);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var (model, viewPort) = (Model, ViewPort);
 
-         viewPort.OnError += (sender, message) => errors.Add(message);
          viewPort.Edit("<000400>");
 
-         Assert.Single(errors);
+         Assert.Single(Errors);
       }
 
       [Fact]
       public void ClearingAPointerAlsoRemovesItsAnchor() {
-         var data = new byte[0x200];
-         var model = new PokemonModel(data);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var (model, viewPort) = (Model, ViewPort);
 
          viewPort.Edit("<000100>");
          model.ClearFormat(new ModelDelta(), 0x00, 4);
 
-         Assert.NotInRange(model.GetNextRun(0x00).Start, 0, data.Length);
+         Assert.NotInRange(model.GetNextRun(0x00).Start, 0, Model.Count);
       }
 
       [Fact]
       public void TypingBracesOnDataTriesToInterpretThatDataAsPointer() {
-         var data = new byte[0x200];
-         var model = new PokemonModel(data);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var (model, viewPort) = (Model, ViewPort);
 
          viewPort.Edit("00 01 00 08");
          viewPort.SelectionStart = new Point(0, 0);
@@ -684,9 +603,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void StartingPointerEditAndThenMovingClearsAllEditedCells() {
-         var data = new byte[0x200];
-         var model = new PokemonModel(data);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var (model, viewPort) = (Model, ViewPort);
 
          viewPort.Edit("<");
          viewPort.SelectionStart = new Point(2, 2);
@@ -700,13 +617,11 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void AddingAnchorShouldSearchForPointersToThatLocation() {
-         var data = new byte[0x200];
-         var model = new PokemonModel(data);
+         var (model, viewPort) = (Model, ViewPort);
          var change = new ModelDelta();
          model.WritePointer(change, 0x23, 0x050); // a pointer that isn't 4-byte aligned, pointing to data that is
          model.WritePointer(change, 0x10, 0x087); // a pointer that is 4-byte aligned, but pointing to something that isn't
          model.WritePointer(change, 2, 0xA2);    // a pointer that isn't 4-byte aligned, pointing to something not 4-byte aligned
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
 
          // got to 50 and write an anchor
          viewPort.SelectionStart = new Point(0x0, 0x5);
@@ -852,7 +767,7 @@ namespace HavenSoft.HexManiac.Tests {
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);
-         viewPort = new ViewPort("file.txt", model, BaseViewModelTestClass.Singletons) { Width = 0x10, Height = 0x10 };
+         viewPort = new ViewPort("file.txt", model, InstantDispatch.Instance, BaseViewModelTestClass.Singletons) { Width = 0x10, Height = 0x10 };
       }
    }
 }

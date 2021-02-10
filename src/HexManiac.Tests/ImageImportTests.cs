@@ -57,7 +57,7 @@ namespace HavenSoft.HexManiac.Tests {
             PokemonModel.ApplyAnchor(model, new ModelDelta(), 0, "^table1[tileset<`lzt4|table1`> tilemap<`lzm4x32x20|table1`> pal<`ucp4:DE`> unused::]2");
          }
 
-         ViewPort = new ViewPort(string.Empty, model, BaseViewModelTestClass.Singletons) { Width = 16, Height = 16 };
+         ViewPort = new ViewPort(string.Empty, model, InstantDispatch.Instance, BaseViewModelTestClass.Singletons) { Width = 16, Height = 16 };
       }
 
       private void SetupSprites() {
@@ -78,7 +78,7 @@ namespace HavenSoft.HexManiac.Tests {
             PokemonModel.ApplyAnchor(model, new ModelDelta(), 0, "^table1[sprite<`lzs4x8x8|table1`> pal<`ucp4`>]2");
          }
 
-         ViewPort = new ViewPort(string.Empty, model, BaseViewModelTestClass.Singletons) { Width = 16, Height = 16 };
+         ViewPort = new ViewPort(string.Empty, model, InstantDispatch.Instance, BaseViewModelTestClass.Singletons) { Width = 16, Height = 16 };
       }
 
       [Fact]

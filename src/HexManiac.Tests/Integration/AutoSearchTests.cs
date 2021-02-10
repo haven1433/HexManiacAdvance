@@ -554,7 +554,7 @@ namespace HavenSoft.HexManiac.Tests {
          var fileSystem = new StubFileSystem();
          var model = fixture.LoadModelNoCache(game);
          var editor = new EditorViewModel(fileSystem, allowLoadingMetadata: false);
-         var viewPort = new ViewPort(game, model, fixture.Singletons);
+         var viewPort = new ViewPort(game, model, InstantDispatch.Instance, fixture.Singletons);
          editor.Add(viewPort);
          var expandMoves = editor.QuickEdits.Single(edit => edit.Name == new MakeMovesExpandable().Name);
          var originalPointerCount = model.GetTable(MoveDataTable).PointerSources.Count;
@@ -624,7 +624,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void CanSearchForListContent() {
          var game = PokemonGames.Skip(2).First()[0] as string; // fire red
          var model = fixture.LoadModel(game);
-         var viewPort = new ViewPort(string.Empty, model, fixture.Singletons);
+         var viewPort = new ViewPort(string.Empty, model, InstantDispatch.Instance, fixture.Singletons);
          var results = viewPort.Find("BurnDefrost");
          Assert.Equal(2, results.Count);
       }

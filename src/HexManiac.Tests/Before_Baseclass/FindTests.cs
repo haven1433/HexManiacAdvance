@@ -10,6 +10,9 @@ using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
    public class FindTests {
+      private static Func<int, int, ChildViewPort> CreateCreateChildView(Func<IViewPort> tab) => (start, end) => new ChildViewPort(tab(), InstantDispatch.Instance, BaseViewModelTestClass.Singletons);
+      private static ViewPort NewViewPort(IDataModel model) => new ViewPort("test.gba", model, InstantDispatch.Instance, BaseViewModelTestClass.Singletons);
+
       [Fact]
       public void FindCanFindSingle() {
          var array = new byte[0x1000];
@@ -72,7 +75,7 @@ namespace HavenSoft.HexManiac.Tests {
          tab.Find = str => new[] { (0x54, 0x54), (0x154, 0x154) };
          tab.Model = new BasicModel(new byte[0x200]);
          tab.CreateChildView = (int startAddress, int endAddress) => {
-            var child = new ChildViewPort(tab, BaseViewModelTestClass.Singletons);
+            var child = new ChildViewPort(tab, InstantDispatch.Instance, BaseViewModelTestClass.Singletons);
             count++;
             return child;
          };
@@ -92,7 +95,7 @@ namespace HavenSoft.HexManiac.Tests {
             Find = str => new[] { (0x54, 0x54), (0x154, 0x154) },
             Model = new BasicModel(new byte[0x200]),
             Goto = new StubCommand { CanExecute = arg => true, Execute = arg => gotoCount++ },
-            CreateChildView = (start, end) => new ChildViewPort(tab, BaseViewModelTestClass.Singletons),
+            CreateChildView = (start, end) => new ChildViewPort(tab, InstantDispatch.Instance, BaseViewModelTestClass.Singletons),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
@@ -114,7 +117,7 @@ namespace HavenSoft.HexManiac.Tests {
             Find = query => new[] { (0x60, 0x60) },
             Goto = new StubCommand(),
             Model = new BasicModel(new byte[0x200]),
-            CreateChildView = (start, end) => new ChildViewPort(tab1, BaseViewModelTestClass.Singletons),
+            CreateChildView = CreateCreateChildView(() => tab1),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
@@ -124,7 +127,7 @@ namespace HavenSoft.HexManiac.Tests {
             Find = query => new[] { (0x50, 0x50), (0x70, 0x70) },
             Goto = new StubCommand(),
             Model = new BasicModel(new byte[0x200]),
-            CreateChildView = (start, end) => new ChildViewPort(tab2, BaseViewModelTestClass.Singletons),
+            CreateChildView = CreateCreateChildView(() => tab2),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
@@ -152,7 +155,7 @@ namespace HavenSoft.HexManiac.Tests {
             Find = query => new[] { (0x50, 0x50), (0x70, 0x70) },
             Goto = new StubCommand(),
             Model = new BasicModel(new byte[0x200]),
-            CreateChildView = (start, end) => new ChildViewPort(tab, BaseViewModelTestClass.Singletons),
+            CreateChildView = CreateCreateChildView(() => tab),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
@@ -173,7 +176,7 @@ namespace HavenSoft.HexManiac.Tests {
             Find = query => new[] { (0x50, 0x50), (0x70, 0x70) },
             Goto = new StubCommand(),
             Model = new BasicModel(new byte[0x200]),
-            CreateChildView = (start, end) => new ChildViewPort(tab, BaseViewModelTestClass.Singletons),
+            CreateChildView = CreateCreateChildView(() => tab),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
@@ -191,8 +194,7 @@ namespace HavenSoft.HexManiac.Tests {
          var composite = new SearchResultsViewPort("search") { Height = 0x10 };
          var parentData = new byte[0x100];
          var parent = new StubViewPort { Width = 0x10, Height = 0x10, Model = new BasicModel(parentData) };
-         composite.Add(new ChildViewPort(parent, BaseViewModelTestClass.Singletons), 0, 0);
-         composite.Add(new ChildViewPort(parent, BaseViewModelTestClass.Singletons), 0, 0);
+         composite.Add(CreateCreateChildView(() => parent)(0, 0), 0, 0);
 
          var bodyChanged = false;
          var headerChanged = false;
@@ -253,7 +255,7 @@ namespace HavenSoft.HexManiac.Tests {
          tab = new StubViewPort {
             Find = query => new[] { (0x50, 0x50) },
             Goto = new StubCommand(),
-            CreateChildView = (start, end) => new ChildViewPort(tab, BaseViewModelTestClass.Singletons),
+            CreateChildView = CreateCreateChildView(() => tab),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
@@ -274,7 +276,7 @@ namespace HavenSoft.HexManiac.Tests {
             Find = query => new[] { (0x50, 0x50), (0x70, 0x70) },
             Goto = new StubCommand(),
             Model = new BasicModel(new byte[0x200]),
-            CreateChildView = (start, end) => new ChildViewPort(tab, BaseViewModelTestClass.Singletons),
+            CreateChildView = CreateCreateChildView(() => tab),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
@@ -311,7 +313,7 @@ namespace HavenSoft.HexManiac.Tests {
          Array.Copy(bytes, 0, buffer, 0x30, bytes.Length);                // two copies of the data
          Array.Copy(bytes, 0, buffer, 0x60, bytes.Length);                // at reasonable locations
          var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("test.gba", model) { Width = 0x10, Height = 0x10 };
+         var viewPort = new ViewPort("test.gba", model, InstantDispatch.Instance, BaseViewModelTestClass.Singletons) { Width = 0x10, Height = 0x10 };
          var editor = new EditorViewModel(new StubFileSystem());
          editor.Add(viewPort);
 
@@ -339,7 +341,7 @@ namespace HavenSoft.HexManiac.Tests {
          Array.Copy(bytes, 0, buffer, 0x30, bytes.Length);                // two copies of the data
          Array.Copy(bytes, 0, buffer, 0x60, bytes.Length);                // at reasonable locations
          var model = new PokemonModel(buffer);
-         var viewPort = new ViewPort("test.gba", model);
+         var viewPort = NewViewPort(model);
          var editor = new EditorViewModel(new StubFileSystem());
          editor.Add(viewPort);
 
@@ -355,7 +357,7 @@ namespace HavenSoft.HexManiac.Tests {
          // Arrange two tables, one that depends on the other
          var data = 0x200.Range().Select(i => (byte)0xFF).ToArray();
          var model = new PokemonModel(data);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var viewPort = NewViewPort(model);
          viewPort.Edit("^names[entry\"\"8] +\"bob\" +\"sam\" +\"carl\" +\"steve\" ");
          viewPort.Edit("@50 ^table[x: y:]names ");
 
@@ -373,7 +375,7 @@ namespace HavenSoft.HexManiac.Tests {
          // Arrange two tables, one that depends on the other
          var data = 0x200.Range().Select(i => (byte)0xFF).ToArray();
          var model = new PokemonModel(data);
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
+         var viewPort = NewViewPort(model);
          viewPort.Edit("^names[entry\"\"8] +\"bob\" +\"sam\" +\"carl\" +\"steve\" ");
          viewPort.Edit("@50 ^table[x: y:names]2 12 sam 100 steve ");
 
@@ -390,7 +392,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void FindingSingleResultHighlightsEntireResult() {
          var data = 0x100.Range().Select(i => (byte)i).ToArray();
          var model = new PokemonModel(data);
-         var viewPort = new ViewPort("name.txt", model) { Height = 0x10, Width = 0x10 };
+         var viewPort = NewViewPort(model);
          var editor = new EditorViewModel(new StubFileSystem());
          editor.Add(viewPort);
 

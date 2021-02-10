@@ -5,17 +5,15 @@ using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
-   public class AsciiRunTests {
+   public class AsciiRunTests : BaseViewModelTestClass {
       [Fact]
       public void CanCreateAsciiRun() {
-         var buffer = new byte[0x200];
-         var model = new PokemonModel(buffer);
+         var (model, viewPort) = (Model, ViewPort);
          model[0x10] = (byte)'a';
          model[0x11] = (byte)'b';
          model[0x12] = (byte)'c';
          model[0x13] = (byte)'d';
 
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.SelectionStart = new Point(0, 1);
          viewPort.Edit("^data`asc`4 ");
 
@@ -25,8 +23,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CanEditAsciiRun() {
-         var buffer = new byte[0x200];
-         var model = new PokemonModel(buffer);
+         var (model, viewPort) = (Model, ViewPort);
          model[0x10] = (byte)'a';
          model[0x11] = (byte)'b';
          model[0x12] = (byte)'c';
@@ -34,7 +31,6 @@ namespace HavenSoft.HexManiac.Tests {
 
          model.ObserveRunWritten(new ModelDelta(), new AsciiRun(0x10, 4));
 
-         var viewPort = new ViewPort("file.txt", model) { Width = 0x10, Height = 0x10 };
          viewPort.SelectionStart = new Point(1, 1);
          viewPort.Edit("3");
 

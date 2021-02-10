@@ -199,12 +199,10 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void SearchFor6BytesAlsoFindsPointers() {
-         var data = new byte[0x1200];
-         var model = new PokemonModel(data);
-         var viewPort = new ViewPort("file.txt", model);
+         var test = new BaseViewModelTestClass(0x1200);
 
-         viewPort.Edit("<001060>");
-         var results = viewPort.Find("001060");
+         test.ViewPort.Edit("<001060>");
+         var results = test.ViewPort.Find("001060");
 
          Assert.Single(results);
       }
@@ -484,7 +482,7 @@ namespace HavenSoft.HexManiac.Tests {
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          model = new PokemonModel(data);
-         viewPort = new ViewPort("file.txt", model, BaseViewModelTestClass.Singletons) { Width = 0x10, Height = 0x10 };
+         viewPort = new ViewPort("file.txt", model, InstantDispatch.Instance, BaseViewModelTestClass.Singletons) { Width = 0x10, Height = 0x10 };
       }
    }
 }

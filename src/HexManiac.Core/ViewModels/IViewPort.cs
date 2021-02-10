@@ -63,7 +63,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    public interface IEditableViewPort : IViewPort {
       Point SelectionStart { get; }
       Point SelectionEnd { get; }
-      void Edit(string input, IWorkDispatcher continuation = null);
+      void Edit(string input);
       void Edit(ConsoleKey key);
    }
 }
