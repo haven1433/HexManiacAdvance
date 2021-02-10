@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
@@ -328,6 +329,25 @@ namespace HavenSoft.HexManiac.Tests {
 
          // assert: that was the only thing in the undo stack
          Assert.False(history.Undo.CanExecute(null));
+      }
+
+      [Fact]
+      public void LargeViewPortEdit_Complete_CountsAsSingleChange() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("@!00(8) ^table[content<\"\">]2 @{ \"Something\" @} @{ \"Else\" @} ");
+
+         ViewPort.Undo.Execute();
+
+         Assert.False(ViewPort.Undo.CanExecute(null));
+      }
+
+      [Fact]
+      public void Transaction_InsertCustomChange_Throws() {
+         Assert.Throws<InvalidOperationException>(() => {
+            using (history.ContinueCurrentTransaction()) {
+               history.InsertCustomChange(new FakeChangeToken());
+            }
+         });
       }
    }
 }

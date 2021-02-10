@@ -106,6 +106,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public T InsertCustomChange(T change) {
+         if (continueCurrentTransaction) throw new InvalidOperationException("Inserting a change during a CurrentTransactionScope will cause changes to be lost.");
          ChangeCompleted();
          currentChange = change;
          customChangeInProgress = true;

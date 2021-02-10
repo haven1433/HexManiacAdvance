@@ -2005,8 +2005,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                }
                ClearEdits(point);
                if (destination >= 0 && destination < Model.Count) {
-                  Goto.Execute(destination);
-                  selection.SetJumpBackPoint(currentAddress + 4);
+                  using (ChangeHistory.ContinueCurrentTransaction()) {
+                     Goto.Execute(destination);
+                     selection.SetJumpBackPoint(currentAddress + 4);
+                  }
                } else if (destination != Pointer.NULL) {
                   OnError?.Invoke(this, $"Could not jump using pointer at {currentAddress:X6}");
                }
@@ -2014,7 +2016,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                result = true;
             } else if (currentText.Length == 2 && currentText[1] == '}') {
                ClearEdits(point);
-               selection.Back.Execute();
+               using (ChangeHistory.ContinueCurrentTransaction()) selection.Back.Execute();
                RequestMenuClose?.Invoke(this, EventArgs.Empty);
                result = true;
             }
