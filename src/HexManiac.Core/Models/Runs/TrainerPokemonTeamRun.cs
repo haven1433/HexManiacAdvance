@@ -270,7 +270,46 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public IReadOnlyList<AutocompleteItem> GetAutoCompleteOptions(string line, int caretLineIndex, int caretCharacterIndex) {
          var result = new List<AutocompleteItem>();
+         if (line.Trim().StartsWith("-")) result.AddRange(GetAutocompleteMoveOptions(line, caretCharacterIndex));
+         else result.AddRange(GetAutocompletePokemonOptions(line, caretCharacterIndex));
          return result;
+      }
+
+      private IEnumerable<AutocompleteItem> GetAutocompletePokemonOptions(string line, int caretIndex) {
+         var result = new List<AutocompleteItem>();
+         var end = line.Substring(caretIndex).Trim();
+         var start = line.Substring(0, caretIndex).Trim();
+         var spaceIndex = start.IndexOf(" ");
+         var parenIndex = start.IndexOf("(");
+         var endParenIndex = start.IndexOf(")");
+         var atIndex = start.IndexOf("@");
+
+         // level
+         if (spaceIndex == -1) return result;
+
+         // pokemon
+         if (parenIndex == -1 && atIndex == -1) {
+            var level = start.Substring(0, spaceIndex);
+            var pokemon = start.Substring(spaceIndex + 1);
+            return ArrayRunEnumSegment.GetOptions(model, HardcodeTablesModel.PokemonNameTable)
+               .Where(option => option.MatchesPartial(pokemon, onlyCheckLettersAndDigits: true))
+               .Select(option => new AutocompleteItem(option, $"{level} {option} {end}"));
+         }
+
+         // IVs
+         if (parenIndex >= 0 && endParenIndex == -1) return result;
+
+         // Item
+         if (atIndex == -1) return result;
+         var item = start.Substring(atIndex + 1);
+         start = start.Substring(0, atIndex);
+         return ArrayRunEnumSegment.GetOptions(model, HardcodeTablesModel.ItemsTableName)
+            .Where(option => option.MatchesPartial(item, onlyCheckLettersAndDigits: true))
+            .Select(option => new AutocompleteItem(option, $"{start.Trim()} @{option}"));
+      }
+
+      private IEnumerable<AutocompleteItem> GetAutocompleteMoveOptions(string line, int caretIndex) {
+         throw new NotImplementedException();
       }
 
       public bool DependsOn(string anchorName) => anchorName == HardcodeTablesModel.ItemsTableName || anchorName == HardcodeTablesModel.MoveNamesTable || anchorName == HardcodeTablesModel.PokemonNameTable;
