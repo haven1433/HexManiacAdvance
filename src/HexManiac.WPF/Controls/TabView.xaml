@@ -462,17 +462,18 @@
                                        <Grid HorizontalAlignment="Stretch" Margin="2" Width="120" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                                           <Grid.ColumnDefinitions>
                                              <ColumnDefinition/>
-                                             <ColumnDefinition/>
+                                             <ColumnDefinition Width="2*"/>
                                           </Grid.ColumnDefinitions>
                                           <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
-                                          <ComboBox ItemsSource="{Binding Options}" SelectedIndex="{Binding SelectedIndex}" Grid.Column="1"/>
+                                          <ComboBox ItemsSource="{Binding Options}" SelectedIndex="{Binding SelectedIndex}" Grid.Column="1"
+                                                    IsEditable="True" Text="{Binding FilterText}" IsTextSearchEnabled="False" PreviewTextInput="ComboBoxTupleElementTextInput"/>
                                        </Grid>
                                     </DataTemplate>
                                     <DataTemplate DataType="{x:Type hsg3hvmtr:NumericTupleElementViewModel}">
                                        <Grid HorizontalAlignment="Stretch" Margin="2" Width="120" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                                           <Grid.ColumnDefinitions>
                                              <ColumnDefinition/>
-                                             <ColumnDefinition/>
+                                             <ColumnDefinition Width="2*"/>
                                           </Grid.ColumnDefinitions>
                                           <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
                                           <UserControl Margin="5,0" Grid.Column="1" IsTabStop="True" Focusable="True"

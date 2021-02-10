@@ -135,7 +135,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public int Start { get; private set; }
       public string EnumName => seg.SourceName;
 
-      public IReadOnlyList<string> Options => ArrayRunEnumSegment.GetOptions(viewPort.Model, EnumName).ToList();
+      public IReadOnlyList<string> Options {
+         get {
+            var fullOptions = ArrayRunEnumSegment.GetOptions(viewPort.Model, EnumName).ToList();
+            if (!isFiltering) return fullOptions;
+            return fullOptions.Where(option => option.MatchesPartial(filterText, onlyCheckLettersAndDigits: true)).ToList();
+         }
+      }
 
       public int SelectedIndex {
          get => seg.Read(viewPort.Model, Start, BitOffset);
@@ -144,6 +150,36 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             NotifyPropertyChanged();
          }
       }
+
+      #region Filtering
+
+      private int recursionCheck;
+
+      private bool isFiltering;
+      public bool IsFiltering { get => isFiltering; set => Set(ref isFiltering, value); }
+
+      private string filterText;
+      public string FilterText {
+         get => filterText;
+         set => Set(ref filterText, value, FilterTextChanged);
+      }
+
+      private void FilterTextChanged(string oldValue) {
+         if (recursionCheck != 0 || !isFiltering) return;
+         recursionCheck++;
+         var fullOptions = ArrayRunEnumSegment.GetOptions(viewPort.Model, EnumName).ToList();
+         var options = fullOptions.Where(option => option.MatchesPartial(filterText, onlyCheckLettersAndDigits: true)).ToList();
+         if (SelectedIndex >= 0 && SelectedIndex < fullOptions.Count && Options.Contains(fullOptions[SelectedIndex])) {
+            // selected index is already fine
+         } else if (options.Count > 0) {
+            // based on typing filter text, we can change the selection
+            SelectedIndex = fullOptions.IndexOf(options[0]);
+         }
+         NotifyPropertyChanged(nameof(Options));
+         recursionCheck--;
+      }
+
+      #endregion
 
       public EnumTupleElementViewModel(ViewPort viewPort, int start, int bitOffset, TupleSegment segment) {
          (this.viewPort, Start, BitOffset, seg) = (viewPort, start, bitOffset, segment);
