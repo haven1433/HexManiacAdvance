@@ -309,7 +309,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       private IEnumerable<AutocompleteItem> GetAutocompleteMoveOptions(string line, int caretIndex) {
-         throw new NotImplementedException();
+         var namePart = line.Split("-")[1].Trim();
+         return ArrayRunEnumSegment.GetOptions(model, HardcodeTablesModel.MoveNamesTable)
+            .Where(option => option.MatchesPartial(namePart, onlyCheckLettersAndDigits: true))
+            .Select(option => new AutocompleteItem(option, $"- {option}"));
       }
 
       public bool DependsOn(string anchorName) => anchorName == HardcodeTablesModel.ItemsTableName || anchorName == HardcodeTablesModel.MoveNamesTable || anchorName == HardcodeTablesModel.PokemonNameTable;
