@@ -75,6 +75,7 @@
     <Compile Include="Before_Baseclass\ArrayColumnHeaderTests.cs" />
     <Compile Include="Before_Baseclass\ArrayRunTests.cs" />
     <Compile Include="Before_Baseclass\ScriptTests.cs" />
+    <Compile Include="ItemEffectTests.cs" />
     <Compile Include="TestUtilities\StubView.cs" />
     <Compile Include="ImageEditorTests.cs" />
     <Compile Include="ImageImportTests.cs" />
@@ -106,6 +107,7 @@
     <Compile Include="Before_Baseclass\ViewPortCursorTests.cs" />
     <Compile Include="TilemapTableTests.cs" />
     <Compile Include="ToolTipTests.cs" />
+    <Compile Include="TrainerTeamTests.cs" />
     <Compile Include="TupleTests.cs" />
     <Compile Include="ViewPortEditTests.cs" />
     <Compile Include="Before_Baseclass\ViewPortSaveTests.cs" />

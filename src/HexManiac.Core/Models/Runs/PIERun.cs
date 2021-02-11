@@ -400,7 +400,58 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public IReadOnlyList<AutocompleteItem> GetAutoCompleteOptions(string line, int caretLineIndex, int caretCharacterIndex) {
          var result = new List<AutocompleteItem>();
+         var parts = line.Split("=");
+         if (parts.Length != 2) return result;
+         var header = parts[0].Trim().ToLower();
+         var partial = parts[1].Replace('{', ' ').Replace('}', ' ').Trim();
+         caretCharacterIndex -= parts[0].Length + 1;
+         string beforeText = string.Empty, afterText = string.Empty;
+         if (caretCharacterIndex >= 0) {
+            beforeText = parts[1].Substring(0, caretCharacterIndex);
+            afterText = parts[1].Substring(caretCharacterIndex);
+         }
+
+         TryAdd(result, header, nameof(ApplyToFirstPokemonOnly), partial, "false", "true");
+         TryAdd(result, header, nameof(Arg), partial, "LevelUpHealth", "Half", "Max");
+         TryAddMulti(result, header, "General", beforeText, afterText,
+            "GuardSpec", "LevelUp", "HealHealth", "HealPowerPoints", "ReviveAndHeal", "EvolutionStone");
+         TryAddMulti(result, header, "ClearStat", beforeText, afterText,
+            "Infatuation", "Sleep", "Poison", "Burn", "Ice", "Paralyze", "Confusion");
+         TryAddMulti(result, header, "IncreaseStat", beforeText, afterText,
+            "HpEv", "AttackEv", "DefenseEv", "SpecialAttackEv", "SpecialDefenseEv", "SpeedEv", "MaxPowerPoints", "PowerPointsToMax");
+         TryAddMulti(result, header, "ChangeHappiness", beforeText, afterText,
+            "Low", "Mid", "High");
          return result;
+      }
+
+      private bool TryAdd(List<AutocompleteItem> result, string header, string propertyName, string partial, params string[] options) {
+         if (header != propertyName.ToLower()) return false;
+         result.AddRange(options
+            .Where(option => option.MatchesPartial(partial))
+            .Select(option => new AutocompleteItem(option, $"{propertyName} = {option}")));
+         return true;
+      }
+
+      private bool TryAddMulti(List<AutocompleteItem> result, string header, string propertyName, string beforeText, string afterText, params string[] options) {
+         if (beforeText.Length == 0 && afterText.Length == 0) return false;
+         if (header != propertyName.ToLower()) return false;
+         beforeText = beforeText.Replace('{', ' ').Replace('}', ' ').Replace(", ", " ");
+         afterText = afterText.Replace('{', ' ').Replace('}', ' ').Replace(",", " ");
+         var afterTokens = afterText.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+         afterText = ", ".Join(afterTokens);
+         if (afterText.Length > 0) afterText = ", " + afterText;
+         var editToken = beforeText.Split(' ').Last();
+         var beforeTokens = beforeText.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+         if (editToken.Length > 0) beforeTokens = beforeTokens.Take(beforeTokens.Length - 1).ToArray();
+         beforeText = ", ".Join(beforeTokens);
+         if (beforeText.Length > 0) beforeText = " " + beforeText + ",";
+
+         result.AddRange(options
+            .Where(option => option.MatchesPartial(editToken))
+            .Where(option => !beforeTokens.Contains(option))
+            .Where(option => !afterTokens.Contains(option))
+            .Select(option => new AutocompleteItem(option, $"{propertyName} = {{{beforeText} {option}{afterText} }}")));
+         return true;
       }
 
       public bool DependsOn(string anchorName) => false;
