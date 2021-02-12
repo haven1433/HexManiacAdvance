@@ -129,8 +129,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                gotoViewModel.ControlVisible = false;
                HexConverterVisible = false;
             }
+
             TryUpdate(ref findControlVisible, value);
             if (value) MoveFocusToFind?.Invoke(this, EventArgs.Empty);
+            FindTextChanged();
          }
       }
 
@@ -186,13 +188,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          set => Set(ref searchByte, value);
       }
 
-      private string findText;
+      private string findText = string.Empty;
       public string FindText {
          get => findText;
          set => Set(ref findText, value, FindTextChanged);
       }
-      private void FindTextChanged(string oldValue) {
-         if (findText.Length == 2 && int.TryParse(findText, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var result)) {
+      private void FindTextChanged(string oldValue = null) {
+         if (FindControlVisible && findText.Length == 2 && int.TryParse(findText, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var result)) {
             SearchByte = result;
          } else {
             SearchByte = -1;

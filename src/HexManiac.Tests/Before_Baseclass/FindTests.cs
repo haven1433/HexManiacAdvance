@@ -437,6 +437,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(2, findCalls);
       }
 
+      [Fact]
+      public void FindText_CloseFind_StopVisuallyFiltering() {
+         var editor = new EditorViewModel(new StubFileSystem());
+
+         editor.ShowFind.Execute(true);
+         editor.FindText = "40";
+         Assert.Equal(0x40, editor.SearchByte);
+
+         editor.ShowFind.Execute(false);
+         Assert.Equal(-1, editor.SearchByte);
+      }
+
       private static StubDataModel SelfEqualStub() {
          var model = new StubDataModel();
          model.Equals = input => input == model;
