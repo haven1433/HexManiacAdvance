@@ -253,9 +253,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var lineEnd = line.Substring(caretCharacterIndex);
          var tokens = Tokenize(lineStart);
          if (ElementContent.Count < tokens.Count) return results;
-         var filter = tokens[tokens.Count - 1];
-         var targetSegment = ElementContent[tokens.Count - 1];
-         var currentToken = tokens[tokens.Count - 1];
+         var targetSegment = ElementContent[Math.Max(0, tokens.Count - 1)];
+         var currentToken = tokens.Count == 0 ? string.Empty : tokens[tokens.Count - 1];
          if (targetSegment is ArrayRunEnumSegment enumSegment) {
             if (currentToken.StartsWith("\"")) currentToken = currentToken.Substring(1);
             if (currentToken.EndsWith("\"")) currentToken = currentToken.Substring(0, currentToken.Length - 1);

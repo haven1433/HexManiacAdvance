@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
+using System.Collections.Generic;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
@@ -66,6 +67,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
+      public IReadOnlyList<AutocompleteItem> GetAutoCompleteOptions(string line, int caretLineIndex, int caretCharacterIndex) {
+         var destination = Model.ReadPointer(Start);
+         if (Model.GetNextRun(destination) is IStreamRun streamRun) {
+            var options = streamRun.GetAutoCompleteOptions(line, caretLineIndex, caretCharacterIndex);
+            if (options != null && options.Count > 0) ZIndex = 1;
+            return options;
+         } else {
+            return new List<AutocompleteItem>();
+         }
+      }
+
+      public void ClearAutocomplete() => ZIndex = 0;
+
       private readonly StubCommand repoint = new StubCommand();
       public ICommand Repoint => repoint;
 
@@ -82,7 +96,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set => TryUpdate(ref errorText, value);
       }
 
-      public int ZIndex => 1;
+      private int zIndex;
+      public int ZIndex { get => zIndex; private set => Set(ref zIndex, value); }
 
       private EventHandler<(int originalStart, int newStart)> dataMoved;
       public event EventHandler<(int originalStart, int newStart)> DataMoved { add => dataMoved += value; remove => dataMoved -= value; }

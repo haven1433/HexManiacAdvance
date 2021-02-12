@@ -50,6 +50,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       public void ClearAutocompleteOptions() {
          AutocompleteItems.ItemsSource = null;
          Visibility = Visibility.Collapsed;
+         if (DataContext is StreamElementViewModel streamViewModel) streamViewModel.ClearAutocomplete();
       }
 
       private void TargetTextChanged(object sender, TextChangedEventArgs e) {
@@ -59,12 +60,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (DataContext is ToolTray tools) {
             getAutocomplete = tools.StringTool.GetAutocomplete;
          } else if (DataContext is StreamElementViewModel streamViewModel) {
-            var destination = streamViewModel.Model.ReadPointer(streamViewModel.Start);
-            if (streamViewModel.Model.GetNextRun(destination) is IStreamRun streamRun) {
-               getAutocomplete = streamRun.GetAutoCompleteOptions;
-            } else {
-               return;
-            }
+            getAutocomplete = streamViewModel.GetAutoCompleteOptions;
          } else {
             return;
          }

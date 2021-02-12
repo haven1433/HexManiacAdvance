@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Linq;
 using Xunit;
@@ -312,6 +313,37 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal("\"Poison Gas\"", options[0].Text);
          Assert.Equal("\"Poison Sting\"", options[1].Text);
+      }
+
+      [Fact]
+      public void StreamElementViewModel_CallAutocomplete_ZIndexChanges() {
+         Model.SetList("options", new[] { "PoisonPowder", "\"Poison Gas\"", "other" });
+         Model.WritePointer(ViewPort.CurrentChange, 0x100, 0);
+         var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[abc.options]", null, new FixedLengthStreamStrategy(2));
+         Model.ObserveRunWritten(new NoDataChangeDeltaModel(), stream);
+         var vm = new TextStreamElementViewModel(ViewPort, 0x100, stream.FormatString);
+         var view = new StubView(vm);
+         Assert.Equal(0, vm.ZIndex);
+
+         vm.GetAutoCompleteOptions(string.Empty, 0, 0);
+         Assert.Equal(1, vm.ZIndex);
+
+         vm.ClearAutocomplete();
+         Assert.Equal(0, vm.ZIndex);
+         Assert.Equal(2, view.Notifications.Count(pname => pname == nameof(vm.ZIndex)));
+      }
+
+      [Fact]
+      public void StreamElementViewModel_AutocompleteWithNoCompletion_ZIndexDoesNotChange() {
+         Model.SetList("options", new[] { "PoisonPowder", "\"Poison Gas\"", "other" });
+         Model.WritePointer(ViewPort.CurrentChange, 0x100, 0);
+         var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[abc.options]", null, new FixedLengthStreamStrategy(2));
+         Model.ObserveRunWritten(new NoDataChangeDeltaModel(), stream);
+         var vm = new TextStreamElementViewModel(ViewPort, 0x100, stream.FormatString);
+
+         vm.GetAutoCompleteOptions("xzy", 0, 3);
+
+         Assert.Equal(0, vm.ZIndex);
       }
    }
 }
