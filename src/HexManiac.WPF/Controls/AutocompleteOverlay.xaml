@@ -12,7 +12,7 @@
    </UserControl.RenderTransform>
    <Canvas Width="0" Height="0" ClipToBounds="False">
       <Border Padding="1" BorderThickness="1" BorderBrush="{DynamicResource Accent}" Background="{DynamicResource Background}">
-         <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="{Binding Path=Target.ActualHeight, RelativeSource={RelativeSource AncestorType=local:AutocompleteOverlay}}">
+         <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="200">
             <ItemsControl Name="AutocompleteItems" IsTabStop="False">
                <ItemsControl.ItemTemplate>
                   <DataTemplate>
