@@ -59,12 +59,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          get => content;
          set {
             if (TryUpdate(ref content, value)) {
-               using (ModelCacheScope.CreateScope(Model)) {
-                  ErrorText = string.Empty;
-                  strategy.UpdateModelFromViewModel(this);
-                  if (!IsInError) {
-                     dataChanged?.Invoke(this, EventArgs.Empty);
+               ErrorText = string.Empty;
+               strategy.UpdateModelFromViewModel(this);
+               if (!IsInError) {
+                  if (Model.GetNextRun(Start) is ITableRun table) {
+                     var offsets = table.ConvertByteOffsetToArrayOffset(Start);
+                     var info = table.NotifyChildren(Model, ViewPort.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
+                     ViewPort.HandleErrorInfo(info);
                   }
+                  dataChanged?.Invoke(this, EventArgs.Empty);
                }
             }
          }

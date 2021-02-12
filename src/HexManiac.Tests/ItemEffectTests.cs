@@ -76,6 +76,5 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.All(new[] { "Low", "Mid", "High" },
             option => Assert.Contains(option, options.Select(o => o.Text)));
       }
-
    }
 }

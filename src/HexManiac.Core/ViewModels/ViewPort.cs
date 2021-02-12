@@ -244,8 +244,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      run = Model.GetNextRun(destination);
                      dataIndex = destination;
                   }
-                  if (run is ISpriteRun) {
-                     tools.SpriteTool.SpriteAddress = run.Start;
+                  if (run is ISpriteRun spriteRun) {
+                     var tool = tools.SpriteTool;
+                     if (tool.SpriteAddress != run.Start) {
+                        tool.SpriteAddress = run.Start;
+                     } else {
+                        tool.UpdateSpriteProperties();
+                        tool.PaletteAddress = SpriteTool.FindMatchingPalette(Model, spriteRun, tool.PaletteAddress);
+                     }
                      tools.SelectedIndex = tools.IndexOf(tools.SpriteTool);
                   } else if (run is IPaletteRun) {
                      tools.SpriteTool.PaletteAddress = run.Start;
@@ -2303,7 +2309,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return didScroll;
       }
 
-      private void HandleErrorInfo(ErrorInfo info) {
+      public void HandleErrorInfo(ErrorInfo info) {
          if (!info.HasError) return;
          if (info.IsWarning) OnMessage?.Invoke(this, info.ErrorMessage);
          else OnError?.Invoke(this, info.ErrorMessage);

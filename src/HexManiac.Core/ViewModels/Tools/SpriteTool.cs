@@ -213,7 +213,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          viewPort.Tools.SelectedIndex = viewPort.Tools.IndexOf(this);
       }
 
-      private void UpdateSpriteProperties() {
+      public void UpdateSpriteProperties() {
          if (model.GetNextRun(spriteAddress) is ISpriteRun run && run.Start == spriteAddress) {
             var format = run.SpriteFormat;
             ShowNoSpriteAnchorMessage = false;
