@@ -28,6 +28,7 @@
          <Setter Property="BorderBrush" Value="{DynamicResource Backlight}"/>
          <Setter Property="Background" Value="{DynamicResource Backlight}"/>
          <Setter Property="BorderThickness" Value="1"/>
+         <Setter Property="Foreground" Value="{DynamicResource Primary}"/>
          <Setter Property="Template">
             <Setter.Value>
                <ControlTemplate TargetType="Button">
@@ -44,6 +45,7 @@
                      </Trigger>
                      <Trigger Property="IsEnabled" Value="False">
                         <Setter Property="Background" Value="{DynamicResource Background}"/>
+                        <Setter Property="Foreground" Value="{DynamicResource Secondary}"/>
                      </Trigger>
                   </ControlTemplate.Triggers>
                </ControlTemplate>

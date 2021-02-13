@@ -7,7 +7,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         Icon="..\Resources\AppIcon.ico"
         PreviewMouseDown="RunDeferredActions"
-        Title="Hex Maniac Advance" Height="470" MinHeight="300" Width="880" MinWidth="400" AllowDrop="True" Background="{DynamicResource Backlight}">
+        Title="Hex Maniac Advance" Height="480" MinHeight="300" Width="880" MinWidth="400" AllowDrop="True" Background="{DynamicResource Backlight}">
    <Window.Resources>
       <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
    </Window.Resources>
@@ -260,6 +260,96 @@
                </Button>
             </Grid>
          </DockPanel>
+         <StackPanel DockPanel.Dock="Top" Background="{DynamicResource Background}" HorizontalAlignment="Stretch" Orientation="Horizontal">
+            <StackPanel.Resources>
+               <Style TargetType="Path">
+                  <Setter Property="Fill" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type ButtonBase}}}"/>
+                  <Setter Property="Stretch" Value="Uniform"/>
+               </Style>
+               <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                  <Setter Property="Background" Value="{DynamicResource Background}"/>
+                  <Setter Property="Width" Value="28"/>
+                  <Setter Property="Height" Value="28"/>
+                  <Setter Property="Margin" Value="1"/>
+               </Style>
+               <Style TargetType="ToggleButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
+                  <Setter Property="Width" Value="30"/>
+               </Style>
+            </StackPanel.Resources>
+            <Button ToolTip="Navigate Back (Ctrl + (-))" Command="{Binding Back}">
+               <Path Data="{hsv:Icon LeftArrow}"/>
+            </Button>
+            <Button ToolTip="Navigate Forward (Ctrl+Shift + (-))" Command="{Binding Forward}">
+               <Path Data="{hsv:Icon RightArrow}"/>
+            </Button>
+            <Rectangle Width="5"/>
+            <Button ToolTip="Save (Ctrl+S)" Command="{Binding Save}">
+               <Button.Style>
+                  <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                     <Style.Triggers>
+                        <Trigger Property="IsEnabled" Value="True">
+                           <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                        </Trigger>
+                     </Style.Triggers>
+                  </Style>
+               </Button.Style>
+               <Path Data="{hsv:Icon Save}"/>
+            </Button>
+            <Rectangle Width="5"/>
+            <Button ToolTip="Undo (Ctrl+Z)" Command="{Binding Undo}">
+               <Path Data="{hsv:Icon UndoArrow}"/>
+            </Button>
+            <Button ToolTip="Redo (Ctrl+Y)" Command="{Binding Redo}">
+               <Path Data="{hsv:Icon RedoArrow}"/>
+            </Button>
+            <Rectangle Width="5"/>
+            <Button ToolTip="Show Goto Menu (Ctrl+G)" Command="{Binding GotoViewModel.ShowGoto}">
+               <Button.CommandParameter>
+                  <sys:Boolean>true</sys:Boolean>
+               </Button.CommandParameter>
+               <Path Data="{hsv:Icon Home}"/>
+            </Button>
+            <Button ToolTip="Find (Ctrl+F)" Command="{Binding ShowFind}">
+               <Button.CommandParameter>
+                  <sys:Boolean>true</sys:Boolean>
+               </Button.CommandParameter>
+               <Path Data="{hsv:Icon Search}"/>
+            </Button>
+            <Rectangle Width="5"/>
+            <Button ToolTip="Launch Saved File (F5)" Command="{Binding RunFile}" CommandParameter="{DynamicResource FileSystem}">
+               <Button.Style>
+                  <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                     <Style.Triggers>
+                        <Trigger Property="IsEnabled" Value="True">
+                           <Setter Property="Foreground" Value="{DynamicResource Stream2}"/>
+                        </Trigger>
+                     </Style.Triggers>
+                  </Style>
+               </Button.Style>
+               <Path Data="M0,0 L5,5 0,10 Z"/>
+            </Button>
+            <Rectangle Width="5"/>
+
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0,0,0" Height="18" Visibility="{Binding ShowWidthOptions, Converter={StaticResource BoolToVisibility}}">
+               <TextBlock Foreground="{DynamicResource Secondary}" Text="Row Width:"/>
+               <TextBox Text="{Binding SelectedTab.PreferredWidth, UpdateSourceTrigger=PropertyChanged}" Width="30" HorizontalContentAlignment="Right" Margin="5,0"/>
+               <ToggleButton IsChecked="{Binding SelectedTab.StretchData}" ToolTip="Stretch Cells to fill available space.">
+                  <ToggleButton.Content>
+                     <Path Data="{hsv:Icon ArrowsLeftRight}"/>
+                  </ToggleButton.Content>
+               </ToggleButton>
+               <ToggleButton IsChecked="{Binding SelectedTab.AutoAdjustDataWidth}" VerticalContentAlignment="Center" ToolTip="Adjust Width after Goto">
+                  <ToggleButton.Content>
+                     <TextBlock Text="Auto" VerticalAlignment="Bottom" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type ToggleButton}}}"/>
+                  </ToggleButton.Content>
+               </ToggleButton>
+               <ToggleButton IsChecked="{Binding SelectedTab.AllowMultipleElementsPerLine}" ToolTip="Allow Multiple Rows per Line.">
+                  <ToggleButton.Content>
+                     <Path Data="{hsv:Icon MultiList}"/>
+                  </ToggleButton.Content>
+               </ToggleButton>
+            </StackPanel>
+         </StackPanel>
          <Border DockPanel.Dock="Top" Height="1" Background="{DynamicResource Backlight}"/>
          <Grid Background="{DynamicResource Background}">
             <hsg3hv:StartScreen>

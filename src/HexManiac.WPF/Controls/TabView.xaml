@@ -728,38 +728,6 @@
                      </TextBlock>
                      <TextBox Name="AnchorTextBox" SelectionChanged="AnchorSelectionChanged" UndoLimit="0" Text="{Binding AnchorText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,25,0"/>
                   </DockPanel>
-                  <Expander VerticalAlignment="Center" HorizontalAlignment="Left" ExpandDirection="Right" Visibility="{Binding ShowWidthProperties, Converter={StaticResource BoolToVisibility}}">
-                     <Expander.Resources>
-                        <Style TargetType="Path">
-                           <Setter Property="Fill" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type ToggleButton}}}"/>
-                           <Setter Property="Stretch" Value="Uniform"/>
-                        </Style>
-                        <Style TargetType="ToggleButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
-                           <Setter Property="Width" Value="30"/>
-                        </Style>
-                     </Expander.Resources>
-                     <Expander.Header>
-                        <TextBlock Foreground="{DynamicResource Secondary}" Text="Row Width:"/>
-                     </Expander.Header>
-                     <StackPanel Orientation="Horizontal">
-                        <TextBox Text="{Binding PreferredWidth, UpdateSourceTrigger=PropertyChanged}" Width="30" HorizontalContentAlignment="Right" Margin="5,0"/>
-                        <ToggleButton IsChecked="{Binding StretchData}" ToolTip="Stretch Cells to fill available space.">
-                           <ToggleButton.Content>
-                              <Path Data="{hsv:Icon ArrowsLeftRight}"/>
-                           </ToggleButton.Content>
-                        </ToggleButton>
-                        <ToggleButton IsChecked="{Binding AutoAdjustDataWidth}" VerticalContentAlignment="Center" ToolTip="Adjust Width after Goto">
-                           <ToggleButton.Content>
-                              <TextBlock Text="Auto" VerticalAlignment="Bottom" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type ToggleButton}}}"/>
-                           </ToggleButton.Content>
-                        </ToggleButton>
-                        <ToggleButton IsChecked="{Binding AllowMultipleElementsPerLine}" ToolTip="Allow Multiple Rows per Line.">
-                           <ToggleButton.Content>
-                              <Path Data="{hsv:Icon MultiList}"/>
-                           </ToggleButton.Content>
-                        </ToggleButton>
-                     </StackPanel>
-                  </Expander>
                </Grid>
             </Border>
             <!-- Column Headers -->
