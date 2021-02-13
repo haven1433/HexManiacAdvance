@@ -330,7 +330,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          vm.ClearAutocomplete();
          Assert.Equal(0, vm.ZIndex);
-         Assert.Equal(2, view.Notifications.Count(pname => pname == nameof(vm.ZIndex)));
+         Assert.Equal(2, view.PropertyNotifications.Count(pname => pname == nameof(vm.ZIndex)));
       }
 
       [Fact]

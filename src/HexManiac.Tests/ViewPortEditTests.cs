@@ -507,5 +507,15 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(new Point(), ViewPort.SelectionStart);
          Assert.IsType<None>(ViewPort[0, 0].Format);
       }
+
+      [Fact]
+      public void ViewPort_Edit_RaiseUndoChanged() {
+         bool lastCanExecuteResult = ViewPort.Undo.CanExecute(default);
+         ViewPort.Undo.CanExecuteChanged += (sender, e) => lastCanExecuteResult = ViewPort.Undo.CanExecute(default);
+
+         ViewPort.Edit("11 ");
+
+         Assert.True(lastCanExecuteResult);
+      }
    }
 }

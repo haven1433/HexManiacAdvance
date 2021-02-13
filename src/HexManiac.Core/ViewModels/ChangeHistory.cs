@@ -45,7 +45,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (redoStack.Count > 0) {
                redoStack.Clear();
                if (undoStack.Count < undoStackSizeAtSaveTag) undoStackSizeAtSaveTag = -1;
-               redo.CanExecuteChanged.Invoke(redo, EventArgs.Empty);
+               redo.RaiseCanExecuteChanged();
             }
 
             if (customChangeInProgress) ChangeCompleted();
@@ -54,7 +54,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                bool notifyIsSavedChanged = IsSaved;
                currentChange = new T();
                currentChange.OnNewDataChange += OnCurrentTokenDataChanged;
-               if (undoStack.Count == 0) undo.CanExecuteChanged.Invoke(undo, EventArgs.Empty);
+               if (undoStack.Count == 0) undo.RaiseCanExecuteChanged();
                if (notifyIsSavedChanged) NotifyPropertyChanged(nameof(IsSaved));
             }
 
@@ -127,6 +127,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void OnCurrentTokenDataChanged(object sender, EventArgs e) {
+         if (undoStack.Count == 0) undo.RaiseCanExecuteChanged();
          NotifyPropertyChanged(nameof(HasDataChange));
       }
 
@@ -138,10 +139,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          using (CreateRevertScope()) {
             var originalChange = undoStack.Pop();
-            if (undoStack.Count == 0) undo.CanExecuteChanged.Invoke(undo, EventArgs.Empty);
+            if (undoStack.Count == 0) undo.RaiseCanExecuteChanged();
             var reverseChange = revert(originalChange);
             redoStack.Push(reverseChange);
-            if (redoStack.Count == 1) redo.CanExecuteChanged.Invoke(redo, EventArgs.Empty);
+            if (redoStack.Count == 1) redo.RaiseCanExecuteChanged();
          }
 
          if (previouslyWasSaved != IsSaved) NotifyPropertyChanged(nameof(IsSaved));
@@ -157,10 +158,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          using (CreateRevertScope()) {
             var reverseChange = redoStack.Pop();
-            if (redoStack.Count == 0) redo.CanExecuteChanged.Invoke(redoStack, EventArgs.Empty);
+            if (redoStack.Count == 0) redo.RaiseCanExecuteChanged();
             var originalChange = revert(reverseChange);
             undoStack.Push(originalChange);
-            if (undoStack.Count == 1) undo.CanExecuteChanged.Invoke(undo, EventArgs.Empty);
+            if (undoStack.Count == 1) undo.RaiseCanExecuteChanged();
          }
 
          if (previouslyWasSaved != IsSaved) NotifyPropertyChanged(nameof(IsSaved));

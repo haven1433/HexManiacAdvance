@@ -31,7 +31,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          ViewPort.FollowLink(0, 0);
 
-         Assert.Contains(nameof(ViewPort.Tools.SelectedIndex), view.Notifications);
+         Assert.Contains(nameof(ViewPort.Tools.SelectedIndex), view.PropertyNotifications);
          Assert.IsType<PCSTool>(ViewPort.Tools[ViewPort.Tools.SelectedIndex]);
       }
 
