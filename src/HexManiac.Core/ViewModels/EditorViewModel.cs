@@ -323,12 +323,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   if (selectedIndex >= 0 && selectedIndex < tabs.Count) tabs[selectedIndex].Refresh();
                   UpdateGotoViewModel();
                   foreach (var edit in QuickEdits) edit.TabChanged();
+                  NotifyPropertyChanged(nameof(SelectedTab));
+                  NotifyPropertyChanged(nameof(ShowWidthOptions));
                }
             }
          }
       }
 
-      private ITabContent SelectedTab => SelectedIndex < 0 ? null : tabs[SelectedIndex];
+      public bool ShowWidthOptions => SelectedTab is IEditableViewPort;
+      public ITabContent SelectedTab => SelectedIndex < 0 ? null : tabs[SelectedIndex];
 
       public ObservableCollection<string> RecentFiles { get; }
       public ObservableCollection<RecentFileViewModel> RecentFileViewModels { get; } = new ObservableCollection<RecentFileViewModel>();
@@ -466,7 +469,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          };
 
-         runFile.CanExecute = arg => SelectedTab is ViewPort viewPort && !viewPort.ChangeHistory.HasDataChange;
+         runFile.CanExecute = arg => SelectedTab is IEditableViewPort viewPort && !viewPort.ChangeHistory.HasDataChange;
          runFile.Execute = arg => {
             ((IFileSystem)arg).LaunchProcess(((ViewPort)SelectedTab).FullFileName);
          };
@@ -789,6 +792,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
             if (!string.IsNullOrEmpty(oldName)) fileSystem.RemoveListenerForFile(oldName, viewPort.ConsiderReload);
             if (!string.IsNullOrEmpty(viewPort.FileName)) fileSystem.AddListenerToFile(viewPort.FileName, viewPort.ConsiderReload);
+         }
+
+         if (e.PropertyName == nameof(IViewPort.Name)) {
+            // the file's display name changes whenever it's edited or saved (trailing *)
+            runFile.RaiseCanExecuteChanged();
          }
 
          // when one tab's height updates, update other tabs by the same amount.

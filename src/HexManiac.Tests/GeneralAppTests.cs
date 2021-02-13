@@ -529,6 +529,19 @@ ApplicationVersion = '''0.1.0'''
          // no asserts: if it doesn't crash, we pass
       }
 
+      [Fact]
+      public void Tab_Edit_CanRunChanged() {
+         var test = new BaseViewModelTestClass();
+         editor.Add(test.ViewPort);
+         Assert.True(editor.RunFile.CanExecute(default));
+
+         var view = new StubView(editor);
+         test.ViewPort.Edit("aa ");
+
+         Assert.Contains(nameof(editor.RunFile), view.CommandCanExecuteChangedNotifications);
+         Assert.False(editor.RunFile.CanExecute(default));
+      }
+
       private StubTabContent CreateClosableTab() {
          var tab = new StubTabContent();
          var close = new StubCommand { CanExecute = arg => true };
