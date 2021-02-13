@@ -898,7 +898,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (underPixels != null) {
                parent.UpdateSpriteModel();
             } else {
-               (selectionStart, selectionWidth, selectionHeight) = BuildRect(selectionStart, selectionWidth, selectionHeight);
+               (selectionStart, selectionWidth, selectionHeight) = BuildRect(selectionStart, selectionWidth, selectionHeight, 1);
                if (selectionWidth > 1 || selectionHeight > 1) {
                   underPixels = new int[selectionWidth, selectionHeight];
                } else {
@@ -911,7 +911,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             RaiseRefreshSelection(parent, selectionStart, selectionWidth, selectionHeight);
          }
 
-         public static (Point point, int width, int height) BuildRect(Point start, int dragX, int dragY) {
+         public static (Point point, int width, int height) BuildRect(Point start, int dragX, int dragY, int gridSize) {
+            Debug.Assert(gridSize > 0, "Not sure what to do with a non-positive grid size.");
             if (dragX < 0) {
                start += new Point(dragX, 0);
                dragX = -dragX;
@@ -920,8 +921,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                start += new Point(0, dragY);
                dragY = -dragY;
             }
+            dragX += 1; dragY += 1;
 
-            return (start, dragX + 1, dragY + 1);
+            dragX += start.X % gridSize;
+            dragY += start.Y % gridSize;
+            start -= new Point(start.X % gridSize, start.Y % gridSize);
+            if (dragX % gridSize != 0) dragX += gridSize - dragX % gridSize;
+            if (dragY % gridSize != 0) dragY += gridSize - dragY % gridSize;
+
+            return (start, dragX, dragY);
          }
 
          public static void RaiseRefreshSelection(ImageEditorViewModel parent, Point start, int width, int height) {
@@ -951,7 +959,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var (start, width, height) = (selectionStart, selectionWidth, selectionHeight);
 
             if (parent.withinInteraction && underPixels == null) {
-               (start, width, height) = BuildRect(selectionStart, selectionWidth, selectionHeight);
+               (start, width, height) = BuildRect(selectionStart, selectionWidth, selectionHeight, 1);
             }
 
             RaiseRefreshSelection(parent, start, width, height);
@@ -1186,11 +1194,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                selectionWidth = point.X - selectionStart.X;
                selectionHeight = point.Y - selectionStart.Y;
 
-               var (start, width, height) = SelectionTool.BuildRect(selectionStart, selectionWidth, selectionHeight);
-
-               // MakeSquare(ref width, ref height);
-               if (selectionHeight < 0) start -= new Point(0, selectionHeight + height - 1);
-               if (selectionWidth < 0) start -= new Point(selectionWidth + width - 1, 0);
+               var (start, width, height) = SelectionTool.BuildRect(selectionStart, selectionWidth, selectionHeight, parent.CursorSize);
 
                SelectionTool.RaiseRefreshSelection(parent, start, width, height);
             }
@@ -1202,7 +1206,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          public void ToolUp(Point point) {
-            var (start, width, height) = SelectionTool.BuildRect(selectionStart, selectionWidth, selectionHeight);
+            var (start, width, height) = SelectionTool.BuildRect(selectionStart, selectionWidth, selectionHeight, parent.CursorSize);
 
             if (parent.selectedTool == ImageEditorTools.TilePalette) {
                point = parent.ToSpriteSpace(point);
@@ -1217,22 +1221,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                return;
             }
 
-            if (selectionHeight < 0) start -= new Point(0, selectionHeight + height - 1);
-            if (selectionWidth < 0) start -= new Point(selectionWidth + width - 1, 0);
-
+            var (initWidth, initHeight) = (selectionWidth, selectionHeight);
             (selectionStart, selectionWidth, selectionHeight) = (start, width, height);
             if (selectionStart.X < 0 || selectionStart.Y < 0) return;
             if (selectionStart.X + selectionWidth > parent.PixelWidth || selectionStart.Y + selectionHeight > parent.PixelHeight) return;
 
-            if (selectionWidth == 1 && selectionHeight == 1 && parent.SelectedTool != ImageEditorTools.Fill) {
+            if (initWidth == 0 && initHeight == 0 && parent.SelectedTool != ImageEditorTools.Fill) {
                var (xx, yy) = selectionStart;
                xx -= xx % parent.cursorSize;
                yy -= yy % parent.cursorSize;
                selectionStart = new Point(xx, yy);
                selectionWidth = selectionHeight = parent.cursorSize;
+               initWidth = initHeight = parent.cursorSize - 1;
             }
 
-            if (selectionWidth == 1 && selectionHeight == 1) {
+            if (initWidth == 0 && initHeight == 0) {
                point = parent.ToSpriteSpace(point);
                if (!parent.WithinImage(point)) return;
                var index = parent.pixels[point.X, point.Y];

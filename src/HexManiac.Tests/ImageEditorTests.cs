@@ -1021,6 +1021,20 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(White, editor.PixelData[editor.PixelIndex(pixelX + 0, pixelY + 1)]);
          Assert.Equal(White, editor.PixelData[editor.PixelIndex(pixelX + 1, pixelY + 1)]);
       }
+
+      [Fact]
+      public void EyeDropperSize4_ClickDrag_Select4x4Tiles() {
+         editor.SelectedTool = ImageEditorTools.EyeDropper;
+         editor.CursorSize = 4;
+
+         editor.ToolDown(-2, -2);
+         editor.Hover(2, -2);
+         editor.ToolUp(2, -2);
+
+         Assert.Equal(8, editor.BlockPreview.PixelWidth);
+         Assert.Equal(4, editor.BlockPreview.PixelHeight);
+         Assert.Equal(editor.BlockPreview.PixelData, editor.PixelData.Take(editor.BlockPreview.PixelData.Length).ToArray());
+      }
    }
 
    public class ImageEditorTilemapTests {
@@ -1242,6 +1256,7 @@ namespace HavenSoft.HexManiac.Tests {
          editor.CursorSize = 2;
 
          editor.ToolDown(4, 4);
+         editor.Hover(6, 6);
          editor.ToolUp(6, 6);
 
          Assert.Equal(2, editor.BlockPreview.PixelWidth);
