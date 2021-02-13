@@ -1035,6 +1035,14 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(4, editor.BlockPreview.PixelHeight);
          Assert.Equal(editor.BlockPreview.PixelData, editor.PixelData.Take(editor.BlockPreview.PixelData.Length).ToArray());
       }
+
+      [Fact]
+      public void EyeDropper_TallSelection_BlockPreviewSpriteScaleIsReasonable() {
+         editor.EyeDropperDown(-4, -4);
+         editor.Hover(-4, 3);
+         editor.EyeDropperUp(-4, 3);
+         Assert.InRange(editor.BlockPreview.SpriteScale, 4, 8);
+      }
    }
 
    public class ImageEditorTilemapTests {

@@ -1377,7 +1377,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          PixelData = data;
          NotifyPropertyChanged(nameof(PixelData));
 
-         SpriteScale = 64 / width;
+         SpriteScale = Math.Max(1, Math.Min(64 / width, 64 / height));
       }
 
       public void Clear() {
