@@ -350,6 +350,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                }
             }));
          }
+
+         foreach (var table in model.Arrays) {
+            if (!table.DependsOn(basename)) continue;
+            var results = new List<(int, int)>(table.Search(model, basename, index));
+            if (results.Count == 0) continue;
+            var name = model.GetAnchorFromAddress(-1, table.Start);
+            AddChild(new ButtonArrayElementViewModel($"Show uses in {name}.", () => {
+               viewPort.OpenSearchResultsTab($"{elementName} within {name}", results);
+            }));
+         }
       }
 
       private void AddChildrenFromTable(ITableRun table, int index) {

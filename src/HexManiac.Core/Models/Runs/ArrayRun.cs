@@ -126,6 +126,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
+      public static bool DependsOn(this ITableRun self, string anchorName) {
+         foreach (var segment in self.ElementContent) {
+            if (segment is ArrayRunEnumSegment enumSegment && enumSegment.EnumName == anchorName) return true;
+            if (segment is ArrayRunTupleSegment tupleSegment && tupleSegment.DependsOn(anchorName)) return true;
+         }
+         return false;
+      }
+
       public static ErrorInfo NotifyChildren(this ITableRun self, IDataModel model, ModelDelta token, int elementIndex, int segmentIndex) {
          int offset = 0;
          var info = ErrorInfo.NoError;
@@ -167,6 +175,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (other.ElementContent[i] is ArrayRunPointerSegment && !(self.ElementContent[i] is ArrayRunPointerSegment)) return false;
          }
          return true;
+      }
+
+      public static IEnumerable<(int, int)> Search(this ITableRun self, IDataModel model, string baseName, int index) {
+         int segmentOffset = 0;
+         for (int i = 0; i < self.ElementContent.Count; i++) {
+            if (self.ElementContent[i] is ArrayRunEnumSegment segment && segment.EnumName == baseName) {
+               for (int j = 0; j < self.ElementCount; j++) {
+                  var segmentStart = self.Start + j * self.ElementLength + segmentOffset;
+                  if (model.ReadMultiByteValue(segmentStart, segment.Length) != index) continue;
+                  yield return (segmentStart, segmentStart + segment.Length - 1);
+               }
+            }
+            segmentOffset += self.ElementContent[i].Length;
+         }
       }
    }
 

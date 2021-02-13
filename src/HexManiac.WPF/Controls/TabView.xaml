@@ -371,7 +371,9 @@
                            </StackPanel>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:ButtonArrayElementViewModel}">
-                           <Button HorizontalAlignment="Center" Content="{Binding Text}" Margin="5" Command="{Binding Command}" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}"/>
+                           <Button HorizontalAlignment="Center" Margin="5"
+                              Content="{Binding Text}" ToolTip="{Binding Text}" Command="{Binding Command}"
+                              Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}"/>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:SpriteElementViewModel}">
                            <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">

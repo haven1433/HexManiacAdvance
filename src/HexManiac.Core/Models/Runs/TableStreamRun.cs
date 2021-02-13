@@ -236,11 +236,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public bool DependsOn(string anchorName) {
-         foreach (var segment in ElementContent) {
-            if (segment is ArrayRunEnumSegment enumSegment && enumSegment.EnumName == anchorName) return true;
-            if (segment is ArrayRunTupleSegment tupleSegment && tupleSegment.DependsOn(anchorName)) return true;
-         }
-         return false;
+         return ITableRunExtensions.DependsOn(this, anchorName);
       }
 
       public IReadOnlyList<AutocompleteItem> GetAutoCompleteOptions(string line, int caretLineIndex, int caretCharacterIndex) {
@@ -385,17 +381,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public IEnumerable<(int, int)> Search(string baseName, int index) {
-         int segmentOffset = 0;
-         for (int i = 0; i < ElementContent.Count; i++) {
-            if (ElementContent[i] is ArrayRunEnumSegment segment && segment.EnumName == baseName) {
-               for (int j = 0; j < ElementCount; j++) {
-                  var segmentStart = Start + j * ElementLength + segmentOffset;
-                  if (model.ReadMultiByteValue(segmentStart, segment.Length) != index) continue;
-                  yield return (segmentStart, segmentStart + segment.Length - 1);
-               }
-            }
-            segmentOffset += ElementContent[i].Length;
-         }
+         return ITableRunExtensions.Search(this, model, baseName, index);
       }
 
       public ITableRun Duplicate(int start, SortedSpan<int> pointerSources, IReadOnlyList<ArrayRunElementSegment> segments) {
