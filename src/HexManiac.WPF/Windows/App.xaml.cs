@@ -8,9 +8,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.IO.Pipes;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 
@@ -23,13 +26,29 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          Arg_No_Metadata = "--no-metadata",
          Arg_Developer_Menu = "--dev-menu";
 
+      private Mutex singleInstanceApplicationMutex;
+      private readonly string appInstanceIdentifier;
+
+      public App() {
+         // name mutex and pipes based on the file location.
+         // This allows us to have debug and release running at the same time,
+         // or 0.3 and 0.4 running at the same time, etc.
+         // Replace slashes in the path with _, since slash is a reserved character in mutex.
+         appInstanceIdentifier = "{HexManiacAdvance} : " + typeof(App).Assembly.Location.Replace("\\", "_");
+      }
+
       protected override void OnStartup(StartupEventArgs e) {
          base.OnStartup(e);
 
          var (path, address, options) = ParseArgs(e.Args);
 
+         singleInstanceApplicationMutex = new Mutex(true, appInstanceIdentifier, out var mutexIsNew);
+         if (!mutexIsNew) SendParams(path, address);
+
          var fileSystem = new WindowsFileSystem(Dispatcher);
          var viewModel = GetViewModel(path, address, fileSystem, options);
+         SetupServer(viewModel);
+
          DebugLog(viewModel, e.Args);
          DebugLog(viewModel, "Have Editor");
          UpdateThemeDictionary(viewModel);
@@ -40,6 +59,45 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          MainWindow.Resources.Add("IsPaletteMixerExpanded", new EditableValue<bool>());
          MainWindow.Show();
          DebugLog(viewModel, "All Started!");
+      }
+
+      private void SetupServer(EditorViewModel viewModel) {
+         Task.Factory.StartNew(() => {
+            while (true) {
+               using (var singleInstanceServer = new NamedPipeServerStream(appInstanceIdentifier)) {
+                  singleInstanceServer.WaitForConnection();
+                  using (var reader = new StreamReader(singleInstanceServer)) {
+                     var line = reader.ReadLine();
+                     Dispatcher.Invoke(() => {
+                        AcceptParams(viewModel, line);
+                        MainWindow.Activate();
+                        if (MainWindow.WindowState == WindowState.Minimized) {
+                           MainWindow.WindowState = WindowState.Normal;
+                        }
+                     });
+                  }
+               }
+            }
+         });
+      }
+
+      private void SendParams(string path, int address) {
+         if (path != string.Empty) path = Path.GetFullPath(path);
+         using (var client = new NamedPipeClientStream(appInstanceIdentifier)) {
+            client.Connect();
+            using (var writer = new StreamWriter(client)) {
+               writer.WriteLine($"{path}(){address}");
+               writer.Flush();
+            }
+         }
+         Shutdown();
+      }
+      private void AcceptParams(EditorViewModel editor, string line) {
+         var parts = line.Split("()");
+         if (!File.Exists(parts[0])) return;
+         var fileSystem = ((MainWindow)MainWindow).FileSystem;
+         int.TryParse(parts[1], out int address);
+         TryOpenFile(editor, fileSystem, parts[0], address);
       }
 
       private static (string path, int address, bool[] options) ParseArgs(string[] args) {
@@ -133,6 +191,11 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          CheckIsNewerVersionAvailable(editor);
          if (!File.Exists(fileName)) return editor;
          DebugLog(editor, "File Exists");
+         TryOpenFile(editor, fileSystem, fileName, address);
+         return editor;
+      }
+
+      private static void TryOpenFile(EditorViewModel editor, WindowsFileSystem fileSystem, string fileName, int address) {
          var loadedFile = fileSystem.LoadFile(fileName);
          editor.Open.Execute(loadedFile);
          DebugLog(editor, "Tab Added");
@@ -144,7 +207,6 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             };
             editor.GotoViewModel.ControlVisible = false;
          }
-         return editor;
       }
 
       [Conditional("DEBUG")]
