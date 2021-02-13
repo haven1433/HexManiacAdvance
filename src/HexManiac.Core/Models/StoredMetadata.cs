@@ -14,10 +14,21 @@ namespace HavenSoft.HexManiac.Core.Models {
       public string Version { get; }
       public int NextExportID { get; }
       public int FreeSpaceSearch { get; } = -1;
+      public int FreeSpaceBuffer { get; } = 0x100;
 
       public bool IsEmpty => NamedAnchors.Count == 0 && UnmappedPointers.Count == 0;
 
-      public StoredMetadata(IReadOnlyList<StoredAnchor> anchors, IReadOnlyList<StoredUnmappedPointer> unmappedPointers, IReadOnlyList<StoredMatchedWord> matchedWords, IReadOnlyList<StoredOffsetPointer> offsetPointers, IReadOnlyList<StoredList> lists, IMetadataInfo generalInfo, int freeSpaceSearch, int nextExportID) {
+      public StoredMetadata(
+         IReadOnlyList<StoredAnchor> anchors,
+         IReadOnlyList<StoredUnmappedPointer> unmappedPointers,
+         IReadOnlyList<StoredMatchedWord> matchedWords,
+         IReadOnlyList<StoredOffsetPointer> offsetPointers,
+         IReadOnlyList<StoredList> lists,
+         IMetadataInfo generalInfo,
+         int freeSpaceSearch,
+         int freeSpaceBuffer,
+         int nextExportID
+      ) {
          NamedAnchors = anchors ?? new List<StoredAnchor>();
          UnmappedPointers = unmappedPointers ?? new List<StoredUnmappedPointer>();
          MatchedWords = matchedWords ?? new List<StoredMatchedWord>();
@@ -25,6 +36,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          Lists = lists ?? new List<StoredList>();
          Version = generalInfo.VersionNumber;
          FreeSpaceSearch = freeSpaceSearch;
+         FreeSpaceBuffer = freeSpaceBuffer;
          NextExportID = nextExportID;
       }
 
@@ -97,6 +109,10 @@ namespace HavenSoft.HexManiac.Core.Models {
                if (int.TryParse(cleanLine.Split("'''")[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var fss)) FreeSpaceSearch = fss;
             }
 
+            if (cleanLine.StartsWith("FreeSpaceBuffer = '''")) {
+               if (int.TryParse(cleanLine.Split("'''")[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var fsb)) FreeSpaceBuffer = fsb;
+            }
+
             if (cleanLine.Contains('=') && int.TryParse(cleanLine.Split('=')[0].Trim(), out int currentItemIndex)) {
                if (currentItemChildren == null) currentItemChildren = new List<string>();
                while (currentItemChildren.Count < currentItemIndex) currentItemChildren.Add(null);
@@ -158,6 +174,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          };
          if (Version != null) lines.Add($"ApplicationVersion = '''{Version}'''");
          lines.Add($"FreeSpaceSearch = '''{FreeSpaceSearch:X6}'''");
+         lines.Add($"FreeSpaceBuffer = '''{FreeSpaceBuffer:X3}'''");
          lines.Add($"NextExportID = '''{NextExportID}'''");
          lines.Add(string.Empty);
          lines.Add("#################################");

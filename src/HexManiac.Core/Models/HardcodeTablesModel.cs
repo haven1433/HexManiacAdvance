@@ -160,7 +160,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var constant in constants) {
             words.AddRange(constant.ToStoredMatchedWords());
          }
-         return new StoredMetadata(metadata.NamedAnchors, metadata.UnmappedPointers, words, metadata.OffsetPointers, metadata.Lists, info, metadata.FreeSpaceSearch, metadata.NextExportID);
+         return new StoredMetadata(metadata.NamedAnchors, metadata.UnmappedPointers, words, metadata.OffsetPointers, metadata.Lists, info, metadata.FreeSpaceSearch, metadata.FreeSpaceBuffer, metadata.NextExportID);
       }
 
       /// <summary>

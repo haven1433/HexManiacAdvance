@@ -1187,7 +1187,6 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override int FindFreeSpace(int start, int minimumLength) {
          if (FreeSpaceStart != 0) start = FreeSpaceStart;
          if (start < EarliestAllowedAnchor) start = EarliestAllowedAnchor;
-         const int SpacerLength = 0x100;
          minimumLength += 0x140; // make sure there's plenty of room after, so that we're not in the middle of some other data set
          var runIndex = 0;
          while (start < RawData.Length - minimumLength) {
@@ -1197,7 +1196,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
             // if the space we want intersects the current run, then skip past the current run
             if (start + minimumLength > currentRun.Start) {
-               start = currentRun.Start + currentRun.Length + SpacerLength;
+               start = currentRun.Start + currentRun.Length + FreeSpaceBuffer;
                start -= start % 4;
                continue;
             }
@@ -1206,7 +1205,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var lastConflictingData = -1;
             for (int i = start; i < start + minimumLength; i++) if (RawData[i] != 0xFF) lastConflictingData = i;
             if (lastConflictingData != -1) {
-               start = lastConflictingData + SpacerLength;
+               start = lastConflictingData + FreeSpaceBuffer;
                start -= start % 4;
                continue;
             }
@@ -1740,7 +1739,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             lists.Add(new StoredList(name, members.ToList()));
          }
 
-         return new StoredMetadata(anchors, unmappedPointers, matchedWords, offsetPointers, lists, metadataInfo, FreeSpaceStart, NextExportID);
+         return new StoredMetadata(anchors, unmappedPointers, matchedWords, offsetPointers, lists, metadataInfo, FreeSpaceStart, FreeSpaceBuffer, NextExportID);
       }
 
       /// <summary>

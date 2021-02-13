@@ -20,6 +20,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// Used during repointing
       /// </summary>
       int FreeSpaceStart { get; set; }
+      int FreeSpaceBuffer { get; set; }
 
       /// <summary>
       /// Used when exporting to the backup folder
@@ -108,6 +109,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public BaseModel(byte[] data) => RawData = data;
 
       public int FreeSpaceStart { get; set; }
+
+      public int FreeSpaceBuffer { get; set; } = 0x100;
 
       public int NextExportID { get; set; }
 
@@ -449,6 +452,9 @@ namespace HavenSoft.HexManiac.Core.Models {
                }
             }
          }
+         model.NextExportID = metadata.NextExportID;
+         model.FreeSpaceStart = metadata.FreeSpaceSearch;
+         model.FreeSpaceBuffer = metadata.FreeSpaceBuffer;
       }
 
       public static ErrorInfo CompleteArrayExtension(this IDataModel model, ModelDelta changeToken, int count, ref ITableRun table) {
