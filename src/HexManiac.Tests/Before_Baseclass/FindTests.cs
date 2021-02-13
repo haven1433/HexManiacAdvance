@@ -449,6 +449,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(-1, editor.SearchByte);
       }
 
+      [Fact]
+      public void SearchText_ContainsWildcard_SearchForMatches() {
+         var test = new BaseViewModelTestClass();
+         Array.Copy(new byte[] { 0x20, 0x30, 0x40, 0x50 }, test.Model.RawData, 4);
+
+         var results = test.ViewPort.Find("20 30 XX 50");
+
+         Assert.Single(results);
+         Assert.Equal(0, results[0].start);
+         Assert.Equal(3, results[0].end);
+      }
+
       private static StubDataModel SelfEqualStub() {
          var model = new StubDataModel();
          model.Equals = input => input == model;

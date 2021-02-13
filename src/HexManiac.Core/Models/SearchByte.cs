@@ -8,9 +8,13 @@ namespace HavenSoft.HexManiac.Core.Models {
    }
    public class SearchByte : ISearchByte {
       private readonly byte value;
+      public static ISearchByte Wild { get; } = new WildSearchByte();
       public SearchByte(int value) => this.value = (byte)value;
       public static explicit operator SearchByte(byte value) => new SearchByte(value);
       public bool Match(byte value) => value == this.value;
+   }
+   public class WildSearchByte : ISearchByte {
+      public bool Match(byte value) => true;
    }
    public class PCSSearchByte : ISearchByte {
       private readonly byte match1, match2;

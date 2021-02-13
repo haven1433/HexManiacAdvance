@@ -1491,6 +1491,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (TryParseStringSearchSegment(searchBytes, cleanedSearchString, ref i)) continue;
             }
 
+            if (cleanedSearchString.Length >= i + 2 && cleanedSearchString.Substring(i, 2) == "XX") {
+               searchBytes.Add(SearchByte.Wild);
+               i += 2;
+               continue;
+            }
+
             if (cleanedSearchString.Length >= i + 2 && cleanedSearchString.Substring(i, 2).All(AllHexCharacters.Contains)) {
                searchBytes.AddRange(Parse(cleanedSearchString.Substring(i, 2)).Select(b => (SearchByte)b));
                i += 2;
