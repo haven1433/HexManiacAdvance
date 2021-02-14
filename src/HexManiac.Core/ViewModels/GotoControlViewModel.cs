@@ -116,8 +116,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             },
          };
          ShowGoto = new StubCommand {
-            CanExecute = arg => viewPort?.Goto != null && arg is bool,
-            Execute = arg => ControlVisible = (bool)arg,
+            CanExecute = arg => viewPort?.Goto != null && (arg is bool || arg is null),
+            Execute = arg => ControlVisible = (bool)(arg ?? !ControlVisible),
          };
          PrefixSelections = new ObservableCollection<GotoLabelSection>();
          UpdatePrefixSelectionsAfterTextChange();
