@@ -461,6 +461,22 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(3, results[0].end);
       }
 
+      [Fact]
+      public void MultipleResults_CloseTogether_CombineTogether() {
+         var test = new BaseViewModelTestClass();
+         test.CreateTextTable("options", 0x100, "abc", "def", "ijk", "lmn", "qrs", "tuv", "xyz");
+         test.ViewPort.Edit("^table[a::options b:: c:: d::]4 ");
+         var editor = new EditorViewModel(new StubFileSystem(), InstantDispatch.Instance);
+         editor.Add(test.ViewPort);
+
+         editor.Find.Execute("\"abc\"");
+
+         var results = (SearchResultsViewPort)editor[1];
+         Assert.Equal(5, results.ResultCount);
+         Assert.Equal(2, results.ChildViewCount);
+         Assert.InRange(results.MaximumScroll, 5, 12);
+      }
+
       private static StubDataModel SelfEqualStub() {
          var model = new StubDataModel();
          model.Equals = input => input == model;

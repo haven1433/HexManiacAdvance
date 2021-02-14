@@ -1320,7 +1320,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          // attempt to parse the search string fully
          if (TryParseSearchString(searchBytes, cleanedSearchString, errorOnParseError: results.Count == 0)) {
             // find matches
-            results.AddRange(Model.Search(searchBytes).Select(result => (result, result + searchBytes.Count - 1)));
+            var textResults = Model.Search(searchBytes).Select(result => (result, result + searchBytes.Count - 1)).ToList();
+            results.AddRange(textResults);
+            // find data matches for the results that are in tables
+            foreach (var result in textResults) {
+               if (Model.GetNextRun(result.result) is ArrayRun parentArray && parentArray.LengthFromAnchor == string.Empty) {
+                  results.AddRange(FindMatchingDataResultsFromArrayElement(parentArray, result.result));
+               }
+            }
          }
 
          // reorder the list to start at the current cursor position

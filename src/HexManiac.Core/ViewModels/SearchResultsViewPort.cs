@@ -20,6 +20,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private readonly List<(int start, int end)> childrenSelection = new List<(int, int)>();
       private int width, height, scrollValue, maxScrollValue;
 
+      public int ChildViewCount => children.Count;
+      public int ResultCount => children.Sum(child => (child is CompositeChildViewPort composite) ? composite.Count : 1);
+
       #region Implementing IViewPort
 
       public HexElement this[int x, int y] {
@@ -142,6 +145,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void Add(IChildViewPort child, int start, int end) {
+         if (children.Count > 0) {
+            var previousHeight = children.Last().Height;
+            if (CompositeChildViewPort.TryCombine(children.Last(), child, out var combo)) {
+               children[children.Count - 1] = combo;
+               maxScrollValue += combo.Height - previousHeight;
+               NotifyCollectionChanged();
+               return;
+            }
+         }
+
          children.Add(child);
          childrenSelection.Add((start, end));
          maxScrollValue += child.Height;
