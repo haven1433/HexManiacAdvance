@@ -194,7 +194,11 @@
                   <MenuItem Header="_Wiki" Click="WikiClick"/>
                   <MenuItem Header="_Tutorials" Click="TutorialsClick"/>
                   <MenuItem Header="_Report an Issue" Click="ReportIssueClick"/>
-                  <MenuItem Header="_Discord" Click="DiscordClick"/>
+                  <MenuItem Header="_Discord" Click="DiscordClick">
+                     <MenuItem.Icon>
+                        <Path Data="{hsv:Icon Discord}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                     </MenuItem.Icon>
+                  </MenuItem>
                   <MenuItem Header="Assist Development">
                      <MenuItem Header="Copy Anchor Reference" Command="{Binding CopyAnchorReference}" CommandParameter="{DynamicResource FileSystem}"/>
                   </MenuItem>
