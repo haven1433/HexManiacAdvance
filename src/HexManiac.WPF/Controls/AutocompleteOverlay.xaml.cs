@@ -79,12 +79,15 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var lineHeight = Target.ExtentHeight / totalLines;
          var verticalStart = lineHeight * editLineIndex - verticalOffset + 2;
 
-         AutocompleteTransform.Y = verticalStart;
          var options = getAutocomplete(lines[lineIndex], lineIndex, index);
          if (options != null && options.Count > 0) {
             AutocompleteItems.ItemsSource = AutoCompleteSelectionItem.Generate(options, 0);
             Visibility = Visibility.Visible;
          }
+         var screenVertical = Target.TranslatePoint(new Point(0, verticalStart), Application.Current.MainWindow).Y;
+         ScrollBorder.UpdateLayout();
+         if (Application.Current.MainWindow.ActualHeight - screenVertical < 200) verticalStart -= ScrollBorder.ActualHeight + 12;
+         AutocompleteTransform.Y = verticalStart;
 
          ignoreNextSelectionChange = true;
       }

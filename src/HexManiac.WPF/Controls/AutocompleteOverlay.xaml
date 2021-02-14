@@ -11,7 +11,7 @@
       <TranslateTransform x:Name="AutocompleteTransform"/>
    </UserControl.RenderTransform>
    <Canvas Width="0" Height="0" ClipToBounds="False">
-      <Border Padding="1" BorderThickness="1" BorderBrush="{DynamicResource Accent}" Background="{DynamicResource Background}">
+      <Border Name="ScrollBorder" Padding="1" BorderThickness="1" BorderBrush="{DynamicResource Accent}" Background="{DynamicResource Background}">
          <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="200">
             <ItemsControl Name="AutocompleteItems" IsTabStop="False">
                <ItemsControl.ItemTemplate>
