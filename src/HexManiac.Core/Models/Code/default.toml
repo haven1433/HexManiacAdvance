@@ -14,6 +14,27 @@ Address = 0x0000B0
 Format = '''`asc`2'''
 
 [[List]]
+Name = '''egggroups'''
+0 = [
+   '''None''',
+   '''Monster''',
+   '''Water1''',
+   '''Bug''',
+   '''Flying''',
+   '''Field''',
+   '''Fairy''',
+   '''Grass''',
+   '''Human-Like''',
+   '''Water3''',
+   '''Mineral''',
+   '''Amorphous''',
+   '''Water2''',
+   '''Ditton''',
+   '''Dragon''',
+   '''Undiscovered''',
+]
+
+[[List]]
 Name = '''moveeffects'''
 0 = [
    '''None''',
