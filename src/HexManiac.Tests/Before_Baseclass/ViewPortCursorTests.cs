@@ -379,6 +379,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(originalRun.SerializeRun(), newRun.SerializeRun());
       }
 
+      [Fact]
+      public void AnchorWithData_SelectMiddleOfAnchor_CanSeeAnchorContents() {
+         var test = new BaseViewModelTestClass();
+         test.SetFullModel(0xFF);
+
+         test.ViewPort.Edit("^text\"\" \"Hello, World\"");
+         test.ViewPort.Goto.Execute(5);
+
+         Assert.True(test.ViewPort.AnchorTextVisible);
+         Assert.Equal("^text\"\"", test.ViewPort.AnchorText);
+      }
+
       private static void CreateStandardTestSetup(out ViewPort viewPort, out PokemonModel model, out byte[] data) {
          data = new byte[0x200];
          model = new PokemonModel(data);

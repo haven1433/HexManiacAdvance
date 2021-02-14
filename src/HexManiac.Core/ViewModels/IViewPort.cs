@@ -18,7 +18,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       int Width { get; set; }
       int Height { get; set; }
 
-      bool ShowWidthProperties { get; }
       bool AutoAdjustDataWidth { get; set; }
       bool StretchData { get; set; }
       bool AllowMultipleElementsPerLine { get; set; }
