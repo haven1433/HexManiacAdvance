@@ -538,32 +538,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (value == null) value = string.Empty;
             if (!value.StartsWith(AnchorStart.ToString())) value = AnchorStart + value;
             if (TryUpdate(ref anchorText, value)) {
-               using (ModelCacheScope.CreateScope(Model)) {
-                  var index = scroll.ViewPointToDataIndex(SelectionStart);
-                  var run = Model.GetNextRun(index);
-                  if (run.Start == index) {
-                     var token = new NoDataChangeDeltaModel();
-                     var errorInfo = PokemonModel.ApplyAnchor(Model, token, index, AnchorText);
-                     if (errorInfo == ErrorInfo.NoError) {
-                        OnError?.Invoke(this, string.Empty);
-                        var newRun = Model.GetNextRun(index);
-                        if (AnchorText == AnchorStart.ToString()) Model.ClearFormat(token, run.Start, 1);
-                        if (newRun is ArrayRun array) {
-                           // if the format changed (ignoring length), run a goto to update the display width
-                           if (run is ArrayRun array2 && !array.HasSameSegments(array2)) {
-                              selection.PropertyChanged -= SelectionPropertyChanged; // to keep from double-updating the AnchorText
-                              Goto.Execute(index.ToString("X2"));
-                              selection.PropertyChanged += SelectionPropertyChanged;
-                           }
-                           UpdateColumnHeaders();
+               var index = scroll.ViewPointToDataIndex(SelectionStart);
+               var run = Model.GetNextRun(index);
+               if (run.Start <= index) {
+                  var token = new NoDataChangeDeltaModel();
+                  var errorInfo = PokemonModel.ApplyAnchor(Model, token, run.Start, AnchorText);
+                  if (errorInfo == ErrorInfo.NoError) {
+                     OnError?.Invoke(this, string.Empty);
+                     var newRun = Model.GetNextRun(index);
+                     if (AnchorText == AnchorStart.ToString()) Model.ClearFormat(token, run.Start, 1);
+                     if (newRun is ArrayRun array) {
+                        // if the format changed (ignoring length), run a goto to update the display width
+                        if (run is ArrayRun array2 && !array.HasSameSegments(array2)) {
+                           selection.PropertyChanged -= SelectionPropertyChanged; // to keep from double-updating the AnchorText
+                           Goto.Execute(index);
+                           selection.PropertyChanged += SelectionPropertyChanged;
                         }
-                        Tools.RefreshContent();
-                        RefreshBackingData();
-                     } else {
-                        OnError?.Invoke(this, errorInfo.ErrorMessage);
+                        UpdateColumnHeaders();
                      }
-                     if (token.HasAnyChange) history.InsertCustomChange(token);
+                     Tools.RefreshContent();
+                     RefreshBackingData();
+                  } else {
+                     OnError?.Invoke(this, errorInfo.ErrorMessage);
                   }
+                  if (token.HasAnyChange) history.InsertCustomChange(token);
                }
             }
          }

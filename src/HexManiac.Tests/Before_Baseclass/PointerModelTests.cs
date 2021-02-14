@@ -753,7 +753,6 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x40, model.ReadPointer(0));
       }
 
-
       [Fact]
       public void Anchor_CreateOffsetPointer_NoError() {
          StandardSetup(out var _, out var model, out var viewPort);
@@ -762,6 +761,17 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(0x08000042, model.ReadValue(0));
          Assert.Equal(0x40, model.ReadPointer(0));
+      }
+
+      [Fact]
+      public void RunSelected_EditAnchor_AnchorChanges() {
+         ViewPort.Edit("^text`asc`8 @04 ");
+
+         ViewPort.AnchorText = "^text`asc`12 ";
+
+         Assert.Empty(Errors);
+         Assert.Equal(0, Model.GetNextRun(0).Start);
+         Assert.Equal(12, Model.GetNextRun(0).Length);
       }
 
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
