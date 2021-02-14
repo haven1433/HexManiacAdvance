@@ -104,7 +104,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (elementLength < 1) return new string[0]; // contents must be a valid string to be used as options
             }
 
-            var valueWithQuotes = PCSString.Convert(model, elementStart, elementLength)?.Trim() ?? string.Empty;
+            var valueWithQuotes = PCSString.Convert(model, elementStart, elementLength)?.Replace(Environment.NewLine, string.Empty).Trim() ?? string.Empty;
 
             if (valueWithQuotes.Contains(' ')) {
                AddResult(resultCache, results, valueWithQuotes);
