@@ -20,6 +20,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using System.Runtime.InteropServices;
 
 namespace HavenSoft.HexManiac.WPF.Implementations {
    public class WindowsFileSystem : IFileSystem, IWorkDispatcher {
@@ -70,7 +71,17 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
       public bool Exists(string fileName) => File.Exists(fileName);
 
-      public void LaunchProcess(string file) => Process.Start(file);
+      public void LaunchProcess(string file) {
+         try {
+            Process.Start(file);
+         } catch (System.ComponentModel.Win32Exception) {
+            var nl = Environment.NewLine;
+            var path = Path.GetFileName(file);
+            ShowCustomMessageBox(
+               $"{EditorViewModel.ApplicationName} tried to run{nl}{path}{nl}but there is no application associated with its file type.",
+               showYesNoCancel: false, processButtonText: "Change 'Opens with:'", "!" + file);
+         }
+      }
 
       public LoadedFile LoadFile(string fileName) {
          if (!File.Exists(fileName)) return null;
@@ -257,7 +268,11 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                            Inlines = { new Run(processButtonText) },
                         }.Fluent(hyperlink => hyperlink.Click += (sender, e) => {
                            try {
-                              Process.Start(processContent);
+                              if (!processContent.StartsWith("!")) {
+                                 Process.Start(processContent);
+                              } else {
+                                 ShowFileProperties(processContent.Substring(1));
+                              }
                            } catch {
                               ShowCustomMessageBox($"Could not start '{processContent}'.", showYesNoCancel: false);
                            }
@@ -482,5 +497,47 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          var extensions = string.Join(",", extensionOptions.Select(option => $"*.{option}"));
          return $"{description}|{extensions}|All Files|*.*";
       }
+
+      #region StackOverflow: how to open a file's properties dialog (https://stackoverflow.com/questions/1936682/how-do-i-display-a-files-properties-dialog-from-c)
+
+      [DllImport("shell32.dll", CharSet = CharSet.Auto)]
+      static extern bool ShellExecuteEx(ref SHELLEXECUTEINFO lpExecInfo);
+
+      [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+      public struct SHELLEXECUTEINFO {
+         public int cbSize;
+         public uint fMask;
+         public IntPtr hwnd;
+         [MarshalAs(UnmanagedType.LPTStr)]
+         public string lpVerb;
+         [MarshalAs(UnmanagedType.LPTStr)]
+         public string lpFile;
+         [MarshalAs(UnmanagedType.LPTStr)]
+         public string lpParameters;
+         [MarshalAs(UnmanagedType.LPTStr)]
+         public string lpDirectory;
+         public int nShow;
+         public IntPtr hInstApp;
+         public IntPtr lpIDList;
+         [MarshalAs(UnmanagedType.LPTStr)]
+         public string lpClass;
+         public IntPtr hkeyClass;
+         public uint dwHotKey;
+         public IntPtr hIcon;
+         public IntPtr hProcess;
+      }
+
+      private const int SW_SHOW = 5;
+      private const uint SEE_MASK_INVOKEIDLIST = 12;
+      public static bool ShowFileProperties(string filename) {
+         SHELLEXECUTEINFO info = new SHELLEXECUTEINFO();
+         info.cbSize = Marshal.SizeOf(info);
+         info.lpVerb = "properties";
+         info.lpFile = filename;
+         info.nShow = SW_SHOW;
+         info.fMask = SEE_MASK_INVOKEIDLIST;
+         return ShellExecuteEx(ref info);
+      }
+      #endregion
    }
 }
