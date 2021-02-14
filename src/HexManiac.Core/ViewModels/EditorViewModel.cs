@@ -565,7 +565,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          };
 
          showFind.CanExecute = CanAlwaysExecute;
-         showFind.Execute = arg => FindControlVisible = (bool)arg;
+         showFind.Execute = arg => FindControlVisible = (bool)(arg ?? !FindControlVisible);
       }
 
       private static void JumpTo(IViewPort tab, int start, int end) {

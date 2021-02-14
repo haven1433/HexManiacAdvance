@@ -316,9 +316,15 @@
                <Path Data="{hsv:Icon Home}"/>
             </Button>
             <Button ToolTip="Find (Ctrl+F)" Command="{Binding ShowFind}">
-               <Button.CommandParameter>
-                  <sys:Boolean>true</sys:Boolean>
-               </Button.CommandParameter>
+               <Button.Style>
+                  <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                     <Style.Triggers>
+                        <DataTrigger Binding="{Binding FindControlVisible}" Value="True">
+                           <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                        </DataTrigger>
+                     </Style.Triggers>
+                  </Style>
+               </Button.Style>
                <Path Data="{hsv:Icon Search}"/>
             </Button>
             <Rectangle Width="5"/>
