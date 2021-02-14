@@ -49,7 +49,7 @@ graphics.pokemon.shiny.star.palette,              ,       ,       ,       , 13AE
 graphics.trainers.sprites.front,            031B9C, 031B9C, 031B9C, 031B9C,       ,       ,       ,       ,       , [sprite<`lzs4x8x8|graphics.trainers.palettes.front`> uncompressedLength: index:]83
 graphics.trainers.sprites.front,                  ,       ,       ,       , 03473C, 03473C, 034750, 034750,       , [sprite<`lzs4x8x8|graphics.trainers.palettes.front`> uncompressedLength: index:]148
 graphics.trainers.sprites.front,                  ,       ,       ,       ,       ,       ,       ,       , 05DF78, [sprite<`lzs4x8x8|graphics.trainers.palettes.front`> uncompressedLength: index:]93
-graphics.trainers.sprites.animation.back,         ,       ,       ,       , 03F8A4, 03F8A4, 03F8B8, 03F8B8, 06A16C, [animationPointer<[animation<[a: b: c: d:]1> framedata<[frame: time:]!FFFF0000>]1>]graphics.trainers.sprites.back.enter
+graphics.trainers.animation.back,                 ,       ,       ,       , 03F8A4, 03F8A4, 03F8B8, 03F8B8, 06A16C, [animationPointer<[animation<[a: b: c: d:]1> framedata<[frame: time:]!FFFF0000>]1>]graphics.trainers.sprites.back.enter
 graphics.trainers.animations.frames,        1436B8, 1436B8, 1436D8, 1436D8, 10BDA8, 10BD80, 10BE20, 10BDF8, 18D1E8, [animationPointer<[animation<>]1>]graphics.trainers.sprites.front
 graphics.trainers.coordinates.front,        0350F4, 0350F4, 0350F4, 0350F4, 037E78, 037E78, 037E8C, 037E8C, 0615C4, [x. y. unused:]graphics.trainers.sprites.front
 graphics.trainers.palettes.front,           031B98, 031B98, 031B98, 031B98, 03474C, 03474C, 034760, 034760, 05B784, [palette<`lzp4`> index: unused:]graphics.trainers.sprites.front
