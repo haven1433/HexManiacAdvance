@@ -452,9 +452,9 @@ namespace HavenSoft.HexManiac.Core.Models {
                }
             }
          }
-         model.NextExportID = metadata.NextExportID;
-         model.FreeSpaceStart = metadata.FreeSpaceSearch;
-         model.FreeSpaceBuffer = metadata.FreeSpaceBuffer;
+         if (metadata.NextExportID > 0) model.NextExportID = metadata.NextExportID;
+         if (metadata.FreeSpaceSearch > 0) model.FreeSpaceStart = metadata.FreeSpaceSearch;
+         if (metadata.FreeSpaceBuffer > 0) model.FreeSpaceBuffer = metadata.FreeSpaceBuffer;
       }
 
       public static ErrorInfo CompleteArrayExtension(this IDataModel model, ModelDelta changeToken, int count, ref ITableRun table) {

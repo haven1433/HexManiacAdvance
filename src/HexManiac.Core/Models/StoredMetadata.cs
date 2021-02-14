@@ -14,7 +14,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public string Version { get; }
       public int NextExportID { get; }
       public int FreeSpaceSearch { get; } = -1;
-      public int FreeSpaceBuffer { get; } = 0x100;
+      public int FreeSpaceBuffer { get; } = -1;
 
       public bool IsEmpty => NamedAnchors.Count == 0 && UnmappedPointers.Count == 0;
 
