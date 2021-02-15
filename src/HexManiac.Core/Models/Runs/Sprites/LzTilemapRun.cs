@@ -88,6 +88,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public int[,] GetPixels(IDataModel model, int page) {
          var mapData = Decompress(model, Start);
+         if (mapData == null) return null;
          var tilesetAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, Format.MatchingTileset);
          var tileset = model.GetNextRun(tilesetAddress) as ISpriteRun;
          if (tileset == null) tileset = model.GetNextRun(arrayTilesetAddress) as ISpriteRun;
