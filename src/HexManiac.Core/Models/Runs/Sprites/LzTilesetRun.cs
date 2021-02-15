@@ -4,22 +4,30 @@ using System.Collections.Generic;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
    public interface ITilesetRun : ISpriteRun {
-
+      TilesetFormat TilesetFormat { get; }
    }
 
    public class LzTilesetRun : LZRun, ITilesetRun {
-      SpriteFormat ISpriteRun.SpriteFormat => new SpriteFormat(Format.BitsPerPixel, Width, Height, Format.PaletteHint);
-      public TilesetFormat Format { get; }
+      SpriteFormat ISpriteRun.SpriteFormat => new SpriteFormat(TilesetFormat.BitsPerPixel, Width, Height, TilesetFormat.PaletteHint);
+      public TilesetFormat TilesetFormat { get; }
       public int Pages => 1;
       public int Width { get; }
       public int Height { get; }
       public bool SupportsImport => false;
       public bool SupportsEdit => true;
 
-      public override string FormatString => $"`lzt{Format.BitsPerPixel}" + (!string.IsNullOrEmpty(Format.PaletteHint) ? "|" + Format.PaletteHint : string.Empty) + "`";
+      public override string FormatString {
+         get {
+            var format = $"`lzt{TilesetFormat.BitsPerPixel}";
+            if (TilesetFormat.MaxTiles != -1) format += "x" + TilesetFormat.MaxTiles;
+            var hint = TilesetFormat.PaletteHint;
+            if (!string.IsNullOrEmpty(hint)) format += "|" + hint;
+            return format + "`";
+         }
+      }
 
       public LzTilesetRun(TilesetFormat format, IDataModel data, int start, SortedSpan<int> sources = null) : base(data, start, allowLengthErrors: false, sources) {
-         Format = format;
+         TilesetFormat = format;
          var tileSize = format.BitsPerPixel * 8;
          var uncompressedSize = data.ReadMultiByteValue(start + 1, 3);
          var tileCount = uncompressedSize / tileSize;
@@ -42,36 +50,44 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             format = format.Substring(0, pipeIndex);
          }
 
+         int maxTiles = -1;
+         if (format.Contains("x")) {
+            var parts = format.Split("x");
+            format = parts[0];
+            if (parts.Length > 2) return false;
+            if (!int.TryParse(parts[1], out maxTiles)) return false;
+         }
+
          if (!int.TryParse(format, out int bits)) return false;
-         tilesetFormat = new TilesetFormat(bits, hint);
+         tilesetFormat = new TilesetFormat(bits, -1, maxTiles, hint);
          return true;
       }
 
       public int[,] GetPixels(IDataModel model, int page) {
          var data = Decompress(model, Start);
-         return SpriteRun.GetPixels(data, 0, Width, Height, Format.BitsPerPixel);
+         return SpriteRun.GetPixels(data, 0, Width, Height, TilesetFormat.BitsPerPixel);
       }
 
       public int[,] GetPixels(IDataModel model, int page, int preferredTileWidth) {
          var data = Decompress(model, Start);
-         var tileSize = Format.BitsPerPixel * 8;
+         var tileSize = TilesetFormat.BitsPerPixel * 8;
          var tileCount = data.Length / tileSize;
          var preferredTileHeight = (int)Math.Ceiling((double)tileCount / preferredTileWidth);
-         return SpriteRun.GetPixels(data, 0, preferredTileWidth, preferredTileHeight, Format.BitsPerPixel);
+         return SpriteRun.GetPixels(data, 0, preferredTileWidth, preferredTileHeight, TilesetFormat.BitsPerPixel);
       }
 
       public ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels) {
          // TODO handle the fact that pixels[,] may contain a different number of tiles compared to the existing tileset
          var data = Decompress(model, Start);
          for (int x = 0; x < pixels.GetLength(0); x++) for (int y = 0; y < pixels.GetLength(1); y++) {
-            pixels[x, y] %= (int)Math.Pow(2, Format.BitsPerPixel);
+            pixels[x, y] %= (int)Math.Pow(2, TilesetFormat.BitsPerPixel);
          }
-         SpriteRun.SetPixels(data, 0, pixels, Format.BitsPerPixel);
+         SpriteRun.SetPixels(data, 0, pixels, TilesetFormat.BitsPerPixel);
          var newModelData = Compress(data, 0, data.Length);
          var newRun = model.RelocateForExpansion(token, this, newModelData.Count);
          for (int i = 0; i < newModelData.Count; i++) token.ChangeData(model, newRun.Start + i, newModelData[i]);
          for (int i = newModelData.Count; i < Length; i++) token.ChangeData(model, newRun.Start + i, 0xFF);
-         newRun = new LzTilesetRun(Format, model, newRun.Start, newRun.PointerSources);
+         newRun = new LzTilesetRun(TilesetFormat, model, newRun.Start, newRun.PointerSources);
          model.ObserveRunWritten(token, newRun);
          return newRun;
       }
@@ -91,23 +107,23 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return new SpriteDecorator(basicFormat, sprite, ExpectedDisplayWidth, availableRows);
       }
 
-      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new LzTilesetRun(Format, Model, Start, newPointerSources);
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new LzTilesetRun(TilesetFormat, Model, Start, newPointerSources);
 
       public ISpriteRun Duplicate(SpriteFormat format) => new LzSpriteRun(format, Model, Start, PointerSources);
 
       public ISpriteRun SetPixels(IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles) {
-         var tileSize = 8 * Format.BitsPerPixel;
+         var tileSize = 8 * TilesetFormat.BitsPerPixel;
          var data = new byte[tiles.Count * tileSize];
 
          for (int i = 0; i < tiles.Count; i++) {
-            SpriteRun.SetPixels(data, i * tileSize, tiles[i], Format.BitsPerPixel);
+            SpriteRun.SetPixels(data, i * tileSize, tiles[i], TilesetFormat.BitsPerPixel);
          }
 
          var newModelData = Compress(data, 0, data.Length);
          var newRun = (LzTilesetRun)model.RelocateForExpansion(token, this, newModelData.Count);
          for (int i = 0; i < newModelData.Count; i++) token.ChangeData(model, newRun.Start + i, newModelData[i]);
          for (int i = newModelData.Count; i < Length; i++) token.ChangeData(model, newRun.Start + i, 0xFF);
-         newRun = new LzTilesetRun(Format, model, newRun.Start, newRun.PointerSources);
+         newRun = new LzTilesetRun(TilesetFormat, model, newRun.Start, newRun.PointerSources);
          model.ObserveRunWritten(token, newRun);
          return newRun;
       }

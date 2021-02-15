@@ -98,7 +98,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             } else {
                int tileSize = bits * 8;
                var tileCount = Math.Max(1, spriteRun.Length / tileSize);
-               model.ObserveRunWritten(history.CurrentChange, new TilesetRun(new TilesetFormat(bits, tileCount, spritePaletteHint), model, spriteAddress));
+               model.ObserveRunWritten(history.CurrentChange, new TilesetRun(new TilesetFormat(bits, tileCount, -1, spritePaletteHint), model, spriteAddress));
                viewPort.Refresh();
                LoadSprite();
             }

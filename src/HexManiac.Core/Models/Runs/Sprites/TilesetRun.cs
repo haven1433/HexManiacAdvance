@@ -24,14 +24,22 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public override int Length => TilesetFormat.Tiles * TilesetFormat.BitsPerPixel * 8;
 
-      public override string FormatString => $"`uct4x{TilesetFormat.Tiles}" + (string.IsNullOrEmpty(TilesetFormat.PaletteHint) ? string.Empty : $"|{TilesetFormat.PaletteHint}") + "`";
+      public override string FormatString {
+         get {
+            var format = $"`uct4x{TilesetFormat.Tiles}";
+            if (TilesetFormat.MaxTiles != -1) format += $"x{TilesetFormat.MaxTiles}";
+            var hint = TilesetFormat.PaletteHint;
+            format += (string.IsNullOrEmpty(hint) ? string.Empty : $"|{hint}");
+            return format + "`";
+         }
+      }
 
       public TilesetRun(TilesetFormat tilesetFormat, IDataModel model, int start, SortedSpan<int> sources = null) : base(start, sources) {
          if (tilesetFormat.Tiles == -1) {
             var nextRun = model.GetNextAnchor(start + 1);
             if (nextRun.Start <= start) nextRun = model.GetNextAnchor(nextRun.Start + nextRun.Length);
             var tiles = (nextRun.Start - start) / (8 * tilesetFormat.BitsPerPixel);
-            tilesetFormat = new TilesetFormat(tilesetFormat.BitsPerPixel, tiles, tilesetFormat.PaletteHint);
+            tilesetFormat = new TilesetFormat(tilesetFormat.BitsPerPixel, tiles, -1, tilesetFormat.PaletteHint);
          }
          TilesetFormat = tilesetFormat;
          this.model = model;
@@ -47,9 +55,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          string hint = string.Empty;
          if (hintsplit.Length == 2) hint = hintsplit[1];
          var split = format.Split("x");
-         if (split.Length != 2) return false;
+         if (split.Length < 2 || split.Length > 3) return false;
          if (!int.TryParse(split[0], out int bits) || !int.TryParse(split[1], out int tiles)) return false;
-         tilesetFormat = new TilesetFormat(bits, tiles, hint);
+         var maxTiles = -1;
+         if (split.Length == 3 && !int.TryParse(split[0], out maxTiles)) return false;
+         tilesetFormat = new TilesetFormat(bits, tiles, maxTiles, hint);
          return true;
       }
 

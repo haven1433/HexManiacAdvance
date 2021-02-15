@@ -11,7 +11,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          return LZRun.Compress(defaultData, 0, defaultData.Length).Count;
       }
 
-      public override bool Matches(IFormattedRun run) => run is LzTilesetRun tsRun && tsRun.Format.BitsPerPixel == TilesetFormat.BitsPerPixel;
+      public override bool Matches(IFormattedRun run) => run is LzTilesetRun tsRun && tsRun.TilesetFormat.BitsPerPixel == TilesetFormat.BitsPerPixel;
 
       public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
          var lzRun = new LZRun(owner, destination);
