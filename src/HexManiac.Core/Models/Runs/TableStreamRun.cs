@@ -42,7 +42,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
 
          // if the first 90% matches, we don't need to check the last 10%
-         var mostElementsCount = (int)Math.Ceiling(tableStream.ElementCount * .9);
+         var mostElementsCount = (int)Math.Ceiling(tableStream.ElementCount * .85);
          return DataMatches(model, tableStream, mostElementsCount);
       }
 

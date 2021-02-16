@@ -1,10 +1,10 @@
 ﻿- Shiny -------------------------------------------------------------------------------------------------------------------------
 # -1: CreateBoxMon,GetMonSpritePalFromSpeciesAndPersonality,GetMonSpritePalStructFromOtIdPersonality,IsShinyOtIdPersonality,sub_8172EF0
 #  0: apparently used for pokedex pokemon palette choosing, although I can't find the function in pokefirered
-AXPE0.scripts.shiny.odds-1 03A8A2,040968,0409DE,040CF4,14187A
-AXPE1.scripts.shiny.odds-1 03A8A2,040988,0409FE,040D14,14189A
 AXVE0.scripts.shiny.odds-1 03A8A2,040968,0409DE,040CF4,14187A
 AXVE1.scripts.shiny.odds-1 03A8A2,040988,0409FE,040D14,14189A
+AXPE0.scripts.shiny.odds-1 03A8A2,040968,0409DE,040CF4,14187A
+AXPE1.scripts.shiny.odds-1 03A8A2,040988,0409FE,040D14,14189A
 BPRE0.scripts.shiny.odds   104A24
 BPRE0.scripts.shiny.odds-1 03DB5E,044120,044196,0444B0,0F1776
 BPRE1.scripts.shiny.odds   104A9C
@@ -25,14 +25,6 @@ BPEE0.scripts.shiny.odds-1 067C56,06E76C,06E7E2,06EBE4,172F46
 # -1: GetHoennPokedexCount,GetPokedexRatingText
 # -2: GetPokedexRatingText
 # -3: HasAllHoennMons,GetPokedexRatingText
-AXPE0.scripts.pokedex.regional.length   0406FA,08D6BA,08D6E2,10D5E8
-AXPE0.scripts.pokedex.regional.length-1 090FB4,10D5A8
-AXPE0.scripts.pokedex.regional.length-2 10D570
-AXPE0.scripts.pokedex.regional.length-3 090FE6,10D56C
-AXPE1.scripts.pokedex.regional.length   04071A,08D6DA,08D702,10D608
-AXPE1.scripts.pokedex.regional.length-1 090FD4,10D5C8
-AXPE1.scripts.pokedex.regional.length-2 10D590
-AXPE1.scripts.pokedex.regional.length-3 091006,10D58C
 AXPV0.scripts.pokedex.regional.length   0406FA,08D6BA,08D6E2,10D5E8
 AXPV0.scripts.pokedex.regional.length-1 090FB4,10D5A8
 AXPV0.scripts.pokedex.regional.length-2 10D570
@@ -41,6 +33,14 @@ AXPV1.scripts.pokedex.regional.length   04071A,08D6DA,08D702,10D608
 AXPV1.scripts.pokedex.regional.length-1 090FD4,10D5C8
 AXPV1.scripts.pokedex.regional.length-2 10D590
 AXPV1.scripts.pokedex.regional.length-3 091006,10D58C
+AXPE0.scripts.pokedex.regional.length   0406FA,08D6BA,08D6E2,10D5E8
+AXPE0.scripts.pokedex.regional.length-1 090FB4,10D5A8
+AXPE0.scripts.pokedex.regional.length-2 10D570
+AXPE0.scripts.pokedex.regional.length-3 090FE6,10D56C
+AXPE1.scripts.pokedex.regional.length   04071A,08D6DA,08D702,10D608
+AXPE1.scripts.pokedex.regional.length-1 090FD4,10D5C8
+AXPE1.scripts.pokedex.regional.length-2 10D590
+AXPE1.scripts.pokedex.regional.length-3 091006,10D58C
 BPEE0.scripts.pokedex.regional.length   06E3E2,06E406,0BC8FE,0BC926,137BF8
 BPEE0.scripts.pokedex.regional.length-1 0C0890,137BB8
 BPEE0.scripts.pokedex.regional.length-2 137B80
@@ -107,10 +107,10 @@ BPGE1.graphics.townmap.position.switch.y+5 0C0D68
 
 - Other -------------------------------------------------------------------------------------------------------------------------
 # TryProduceOrHatchEgg
-AXPE0.scripts.daycare.exp.multiplier 0421D8 # Picking an even number will prevent new eggs from being created.
-AXPE1.scripts.daycare.exp.multiplier 0421F8 # Picking an even number will prevent new eggs from being created.
 AXVE0.scripts.daycare.exp.multiplier 0421D8 # Picking an even number will prevent new eggs from being created.
 AXVE1.scripts.daycare.exp.multiplier 0421F8 # Picking an even number will prevent new eggs from being created.
+AXPE0.scripts.daycare.exp.multiplier 0421D8 # Picking an even number will prevent new eggs from being created.
+AXPE1.scripts.daycare.exp.multiplier 0421F8 # Picking an even number will prevent new eggs from being created.
 BPEE0.scripts.daycare.exp.multiplier 070AE8 # Picking an even number will prevent new eggs from being created.
 
 # TryProduceOrHatchEgg,ShouldEggHatch
@@ -120,10 +120,10 @@ BPGE0.scripts.daycare.exp.multiplier 0462E8,0463D4 # Picking an even number will
 BPGE1.scripts.daycare.exp.multiplier 0462FC,0463E8 # Picking an even number will prevent new eggs from being created.
 
 # Intro
-AXPE0:scripts.newgame.money 052F4C
-AXPE1:scripts.newgame.money 052F6C
 AXVE0:scripts.newgame.money 052F4C
 AXVE1:scripts.newgame.money 052F6C
+AXPE0:scripts.newgame.money 052F4C
+AXPE1:scripts.newgame.money 052F6C
 BPRE0:scripts.newgame.money 054B60
 BPRE1:scripts.newgame.money 054B74
 BPGE0:scripts.newgame.money 054B60
@@ -156,10 +156,10 @@ BPGE0.data.maps.catchmap.conversion.kanto.length 13CA74
 BPGE1.data.maps.catchmap.conversion.kanto.length 13CAEC
 
 # 2 entries for speed (because double battles), 1 entry each for atk, def, spatk, spdef
-AXPE0.scripts.battle.badge.boost 013144,01322C,03BB8A,03BBD0,03BC1A,03BC66
-AXPE1.scripts.battle.badge.boost 013144,01322C,03BB8A,03BBD0,03BC1A,03BC66
 AXVE0.scripts.battle.badge.boost 013144,01322C,03BB8A,03BBD0,03BC1A,03BC66
 AXVE1.scripts.battle.badge.boost 013144,01322C,03BB8A,03BBD0,03BC1A,03BC66
+AXPE0.scripts.battle.badge.boost 013144,01322C,03BB8A,03BBD0,03BC1A,03BC66
+AXPE1.scripts.battle.badge.boost 013144,01322C,03BB8A,03BBD0,03BC1A,03BC66
 BPRE0.scripts.battle.badge.boost 014E2C,014F14,03EE36,03EE68,03EE9E,03EED6
 BPRE1.scripts.battle.badge.boost 014E40,014F28,03EE4A,03EE7C,03EEB2,03EEEA
 BPGE0.scripts.battle.badge.boost 014E2C,014F14,03EE36,03EE68,03EE9E,03EED6
@@ -167,12 +167,49 @@ BPGE1.scripts.battle.badge.boost 014E40,014F28,03EE4A,03EE7C,03EEB2,03EEEA
 BPEE0.scripts.battle.badge.boost 03D064,03D150,0696B6,0696D2,0696F4,069716
 
 # Exp Boost %, normally 150%
-AXPE0.scripts.battle.trade.exp.boost 0203D6
-AXPE1.scripts.battle.trade.exp.boost 0203D6
 AXVE0.scripts.battle.trade.exp.boost 0203D6
 AXVE1.scripts.battle.trade.exp.boost 0203D6
+AXPE0.scripts.battle.trade.exp.boost 0203D6
+AXPE1.scripts.battle.trade.exp.boost 0203D6
 BPRE0.scripts.battle.trade.exp.boost 021E12
 BPGE0.scripts.battle.trade.exp.boost 021E12
 BPRE1.scripts.battle.trade.exp.boost 021E26
 BPGE1.scripts.battle.trade.exp.boost 021E26
 BPEE0.scripts.battle.trade.exp.boost 04A6FC
+
+# type limiter. See LoadMoveInfoUI and DrawMoveInfoUIMarkers
+BPRE0.data.pokemon.type.length+1 0E5448,133408
+BPRE0.data.pokemon.type.length+2 0E5454,133414
+BPRE0.data.pokemon.type.length+3 0E5460,133420
+BPRE0.data.pokemon.type.length+4 0E546C,13342C
+BPRE0.data.pokemon.type.length+5 0E5478
+BPGE0.data.pokemon.type.length+1 0E5420,1333E0
+BPGE0.data.pokemon.type.length+2 0E542C,1333EC
+BPGE0.data.pokemon.type.length+3 0E5438,1333F8
+BPGE0.data.pokemon.type.length+4 0E5444,133404
+BPGE0.data.pokemon.type.length+5 0E5450
+BPRE1.data.pokemon.type.length+1 0E545C,133480
+BPRE1.data.pokemon.type.length+2 0E5468,13348C
+BPRE1.data.pokemon.type.length+3 0E5474,133498
+BPRE1.data.pokemon.type.length+4 0E5480,1334A4
+BPRE1.data.pokemon.type.length+5 0E548C
+BPGE1.data.pokemon.type.length+1 0E5434,133458
+BPGE1.data.pokemon.type.length+2 0E5440,133464
+BPGE1.data.pokemon.type.length+3 0E544C,133470
+BPGE1.data.pokemon.type.length+4 0E5458,13347C
+BPGE1.data.pokemon.type.length+5 0E5464
+BPEE0.data.pokemon.type.length+1 1AE2C0
+BPEE0.data.pokemon.type.length+2 1AE2CC
+BPEE0.data.pokemon.type.length+3 1AE2D8
+BPEE0.data.pokemon.type.length+4 1AE2E4
+BPEE0.data.pokemon.type.length+5 61CFC1
+BPEE0.data.pokemon.type.length*8 1C44AA,1C454E
+AXVE0.data.pokemon.type.length+5 3C11BD
+AXVE0.data.pokemon.type.length*8 0A01F4,0A02F0
+AXPE0.data.pokemon.type.length+5 3C1215
+AXPE0.data.pokemon.type.length*8 0A01F4,0A02F0
+AXVE1.data.pokemon.type.length+5 3C11D9
+AXVE1.data.pokemon.type.length*8 0A0214,0A0310
+AXPE1.data.pokemon.type.length+5 3C1235
+AXPE1.data.pokemon.type.length*8 0A0214,0A0310
+

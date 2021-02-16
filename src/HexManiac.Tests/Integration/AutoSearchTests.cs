@@ -138,11 +138,8 @@ namespace HavenSoft.HexManiac.Tests {
       [MemberData(nameof(PokemonGames))]
       public void TypesAreFound(string game) {
          var model = fixture.LoadModel(game);
-
          var run = model.GetTable(TypesTableName);
-         if (game.Contains("Clover")) Assert.Equal(24, run.ElementCount);
-         else if (game.Contains("Gaia")) Assert.Equal(25, run.ElementCount);
-         else Assert.Equal(18, run.ElementCount);
+         Assert.Equal(18, run.ElementCount);
       }
 
       [SkippableTheory]

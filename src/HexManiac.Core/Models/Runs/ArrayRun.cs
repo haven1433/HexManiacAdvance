@@ -715,6 +715,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       private void UpdateNamedConstant(ModelDelta token, ref int desiredValue, bool alsoUpdateArrays) {
+         if (token is NoDataChangeDeltaModel) return; // nop during initial load
          var addresses = owner.GetMatchedWords(LengthFromAnchor);
          if (addresses.Count == 0) return;
          var lengthSource = (WordRun)owner.GetNextRun(addresses[0]);
@@ -995,9 +996,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             } else {
                //  How about a constant name?
                var constantLocations = owner.GetMatchedWords(lengthFromAnchor);
-               if (constantLocations.Count > 0) {
-                  var constantRun = (WordRun)owner.GetNextRun(constantLocations[0]);
-                  var elementCount = owner.ReadMultiByteValue(constantRun.Start, constantRun.Length) + constantRun.ValueOffset;
+               if (constantLocations.Count > 0 && owner.GetNextRun(constantLocations[0]) is WordRun constant) {
+                  var elementCount = owner.ReadMultiByteValue(constant.Start, constant.Length) / constant.MultOffset - constant.ValueOffset;
                   return (lengthFromAnchor, parentOffset, elementCount);
                } else {
                   // length is zero for now

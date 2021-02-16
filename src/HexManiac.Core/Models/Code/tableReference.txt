@@ -6,7 +6,7 @@ data.pokemon.names,                    00FA58, 00FA58, 00FA58, 00FA58, 000144, 0
 data.pokemon.moves.names,              02E18C, 02E18C, 02E18C, 02E18C, 000148, 000148, 000148, 000148, 000148, ^[name""13]
 data.abilities.names,                  09FE64, 09FE64, 09FE84, 09FE84, 0001C0, 0001C0, 0001C0, 0001C0, 0001C0, [name""13]
 data.trainers.classes.names,           1217BC, 1217BC, 0F70A8, 0F70A8, 0D80A0, 0D8074, 0D80B4, 0D8088, 0183B4, [name""13]
-data.pokemon.type.names,               02E3A8, 02E3A8, 02E3A8, 02E3A8, 0309C8, 0309C8, 0309DC, 0309DC, 0166F4, ^[name""7]
+data.pokemon.type.names,               02E3A8, 02E3A8, 02E3A8, 02E3A8, 0309C8, 0309C8, 0309DC, 0309DC, 0166F4, ^[name""7]data.pokemon.type.length
 data.pokemon.type.contest.names,       1338A0, 1338A0, 1338C0, 1338C0,       ,       ,       ,       , 09B210, [name<"">]5
 data.abilities.descriptions,           09FE68, 09FE68, 09FE88, 09FE88, 0001C4, 0001C4, 0001C4, 0001C4, 0001C4, [description<"">]data.abilities.names
 data.pokemon.moves.descriptions,       0A0494, 0A0494, 0A04B4, 0A04B4, 0E5440, 0E5418, 0E5454, 0E542C, 1C3EFC, [description<"">]data.pokemon.moves.names-1
@@ -170,16 +170,15 @@ graphics.trainercard.frontier.palette,     ,,,, ,,,, 0C567C, `ucp4:01234567`
 graphics.pokemon.type.icons,                 ,       ,       ,       , 107DB0, 107D88, 107E28, 107E00,       , `ucs4x16x16|graphics.pokemon.type.palettes`
 graphics.pokemon.type.palettes,              ,       ,       ,       , 107D64, 107D3C, 107DDC, 107DB4,       , `ucp4`
 graphics.pokemon.type.map,                   ,       ,       ,       , 107DAC, 107D84, 107E24, 107DFC,       , [width. height. xy:|t|:|x:|.|y::]data.pokemon.type.names+1+5
-graphics.pokemon.type.icons,                 ,       ,       ,       ,       ,       ,       ,       , 61CFBC, `lzs4x4x46|graphics.pokemon.type.palettes`
-graphics.pokemon.type.index,                 ,       ,       ,       ,       ,       ,       ,       , 1C439C, [index.]23
-// 0D, 0E, 0F are the 3 palettes (0, 1, 2)
-graphics.pokemon.type.palettes,              ,       ,       ,       ,       ,       ,       ,       , 1C0080, `lzp4`
-graphics.pokemon.type.tilepositions          ,       ,       ,       ,       ,       ,       ,       , 61CFCC, [pointer<[start:: unused::]1>]graphics.pokemon.type.index
+graphics.pokemon.type.icons,           3C11B8, 3C1210, 3C11D4, 3C1230,       ,       ,       ,       , 61CFBC, `lzs4x4x46|graphics.pokemon.type.palettes`
+graphics.pokemon.type.index,           0A1A2C, 0A1A2C, 0A1A4C, 0A1A4C,       ,       ,       ,       , 1C439C, [index.]data.pokemon.type.names+5
+graphics.pokemon.type.palettes,        09E028, 09E028, 09E048, 09E048,       ,       ,       ,       , 1C0080, `lzp4`
+graphics.pokemon.type.map,             3C11C8, 3C1220, 3C11E4, 3C1240,       ,       ,       ,       , 61CFCC, [pointer<[index::|t|:.|i::::::. unknown:|h unused:|h]1>]data.pokemon.type.names+5
 // the 'start' value is the index of the tile from typeicons where that type's icon starts. Since each icon is 4x2 tiles, each 'start' value is a multiple of 8.
 // @Emerald:61CFC0 :graphics.pokemon.type.index
 graphics.pokemon.bag.type.icon,              ,       ,       ,       ,       ,       ,       ,       , 19A340, `ucs4x16x16|graphics.pokemon.bag.type.palette`
 graphics.pokemon.bag.type.palette,           ,       ,       ,       ,       ,       ,       ,       , 19A2E0, `ucp4`
-graphics.pokemon.bag.type.map,               ,       ,       ,       ,       ,       ,       ,       , 19A33C, [width. height. xy:]24
+graphics.pokemon.bag.type.map,               ,       ,       ,       ,       ,       ,       ,       , 19A33C, [width. height. xy:|t|:|x:|.|y::]data.pokemon.type.names+1+5
 graphics.text.importer,                      ,       ,       ,       , 1456EC, 1456C8, 145764, 145740,       , [a:: tileset<`lzt4`> tilemap<`lzm4x30x20|graphics.text.importer`> pal<`ucp4`>]8
 graphics.text.box.palette,                   ,       ,       ,       , 150450, 15042C, 1504C8, 1504A4,       , `ucp4:01234`
 graphics.text.box.message,                   ,       ,       ,       , 14FD68, 14FD44, 14FDE0, 14FDBC,       , `uct4x18|graphics.text.box.palette`
