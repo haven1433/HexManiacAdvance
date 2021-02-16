@@ -138,7 +138,8 @@ namespace HavenSoft.HexManiac.Core {
       public static IEnumerable<T> Except<T>(this IEnumerable<T> collection, params T[] remove) => Enumerable.Except(collection, remove);
 
       public static bool MatchesPartialWithReordering(this string full, string partial) {
-         var parts = full.Split('.');
+         if (partial.Length == 0) return true;
+         var parts = full.Split('.').Where(part => part.Any(partial.Contains)).ToList(); // only bother checking the parts where at least some letter matches
          foreach (var possibleOrder in EnumerateOrders(parts)) {
             if (!MatchesPartial(possibleOrder, partial)) continue;
             return true;
@@ -146,12 +147,24 @@ namespace HavenSoft.HexManiac.Core {
          return false;
       }
 
+      // returns a bitfield of all the letters
+      public static uint BitLetters(this string token) {
+         var result = 0u;
+         foreach (var letter in token) {
+            if (letter >= 'a' && letter <= 'z') result |= 1u << (letter - 'a');
+            if (letter >= 'A' && letter <= 'Z') result |= 1u << (letter - 'A');
+         }
+         return result;
+      }
+
       public static string ToAddress(this int address) => address.ToString("X6"); // for debugging
 
       public static IList<int> FindMatches(string input, IList<string> options) {
          var result = new List<int>();
+         var seekBits = input.BitLetters();
          for (int i = 0; i < options.Count; i++) {
-            if (!input.All(options[i].Contains)) continue;
+            var includedBits = options[i].BitLetters();
+            if ((seekBits & ~includedBits) != 0) continue;
             if (!input.Contains(".")) {
                if (options[i].MatchesPartialWithReordering(input)) result.Add(i);
             } else {

@@ -1626,12 +1626,16 @@ namespace HavenSoft.HexManiac.Core.Models {
                return results;
             }
 
+            var nameParts = partial.Split(ArrayAnchorSeparator);
+            var seekBits = nameParts[0].BitLetters();
+
             foreach (var name in mappedNames) {
                var address = addressForAnchor[name];
                if (GetNextRun(address) is ArrayRun run) {
-                  var nameParts = partial.Split(ArrayAnchorSeparator);
 
                   var sanitizedName = name.Replace("é", "e");
+                  var includedBits = sanitizedName.BitLetters();
+                  if ((seekBits & ~includedBits) != 0) continue;
                   if (!sanitizedName.MatchesPartialWithReordering(nameParts[0])) continue;
                   results.AddRange(GetAutoCompleteOptions(name + ArrayAnchorSeparator, run, nameParts.Skip(1).ToArray()));
                }
@@ -1644,8 +1648,11 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override IReadOnlyList<string> GetAutoCompleteByteNameOptions(string text) {
+         var seekBits = text.BitLetters();
          var results = new List<string>(0);
          foreach (var key in matchedWords.Keys) {
+            var includedBits = key.BitLetters();
+            if ((seekBits & ~includedBits) != 0) continue;
             if (key.MatchesPartialWithReordering(text)) {
                results.Add(key);
             }
