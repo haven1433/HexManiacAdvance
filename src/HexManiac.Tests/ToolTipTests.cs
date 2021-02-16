@@ -41,7 +41,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void Integer_IsNamedConstant_HasTooltip() {
          var format = new Integer(default, default, 150, 0);
-         Model.ObserveRunWritten(ViewPort.CurrentChange, new WordRun(0, "value", 2, -2, "note"));
+         Model.ObserveRunWritten(ViewPort.CurrentChange, new WordRun(0, "value", 2, -2, 1, "note"));
 
          format.Visit(visitor, default);
 

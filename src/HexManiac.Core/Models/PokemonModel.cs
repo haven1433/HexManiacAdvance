@@ -141,9 +141,9 @@ namespace HavenSoft.HexManiac.Core.Models {
             matchedWords[word.Name].Add(word.Address);
             var index = BinarySearch(word.Address);
             if (index > 0) {
-               runs[index] = new WordRun(word.Address, word.Name, word.Length, word.Offset, word.Note, runs[index].PointerSources);
+               runs[index] = new WordRun(word.Address, word.Name, word.Length, word.AddOffset, word.MultOffset, word.Note, runs[index].PointerSources);
             } else {
-               runs.Insert(~index, new WordRun(word.Address, word.Name, word.Length, word.Offset, word.Note));
+               runs.Insert(~index, new WordRun(word.Address, word.Name, word.Length, word.AddOffset, word.MultOffset, word.Note));
             }
          }
          foreach (var offsetPointer in metadata.OffsetPointers) {
@@ -1726,7 +1726,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var name = kvp.Key;
             foreach (var address in kvp.Value) {
                var run = GetNextRun(address) as WordRun;
-               matchedWords.Add(new StoredMatchedWord(address, name, run?.Length ?? 4, run?.ValueOffset ?? 0, run?.Note));
+               matchedWords.Add(new StoredMatchedWord(address, name, run?.Length ?? 4, run?.ValueOffset ?? 0, run?.MultOffset ?? 1, run?.Note));
             }
          }
 

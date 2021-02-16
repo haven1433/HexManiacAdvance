@@ -78,6 +78,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(Integer integer, byte data) {
          if (model.GetNextRun(integer.Source) is WordRun wordRun) {
             var desiredToolTip = wordRun.SourceArrayName;
+            if (wordRun.MultOffset != 1) desiredToolTip += "*" + wordRun.MultOffset;
             if (wordRun.ValueOffset > 0) desiredToolTip += "+" + wordRun.ValueOffset;
             if (wordRun.ValueOffset < 0) desiredToolTip += wordRun.ValueOffset;
             if (!string.IsNullOrEmpty(wordRun.Note)) desiredToolTip += Environment.NewLine + wordRun.Note;

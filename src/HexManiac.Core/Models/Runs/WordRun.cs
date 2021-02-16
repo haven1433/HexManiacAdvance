@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using System.Diagnostics;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
@@ -9,11 +10,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public int ValueOffset { get; }
 
+      public int MultOffset { get; }
+
       public string Note { get; }
 
       public override string FormatString => Length == 4 ? "::" : ".";
 
-      public WordRun(int start, string name, int length, int valueOffset, string note = null, SortedSpan<int> sources = null) : base(start, sources) => (SourceArrayName, Length, ValueOffset, Note) = (name, length, valueOffset, note);
+      public WordRun(int start, string name, int length, int valueOffset, int multOffset, string note = null, SortedSpan<int> sources = null) : base(start, sources) {
+         SourceArrayName = name;
+         Length = length;
+         ValueOffset = valueOffset;
+         Debug.Assert(multOffset > 0, "MultOffset must be positive!");
+         MultOffset = multOffset;
+         Note = note;
+      }
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) {
          if (Length == 4) return new MatchedWord(Start, index - Start, "::" + SourceArrayName);
@@ -21,7 +31,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new Integer(Start, 0, data[index], 1);
       }
 
-      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new WordRun(Start, SourceArrayName, Length, ValueOffset, Note, newPointerSources);
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new WordRun(Start, SourceArrayName, Length, ValueOffset, MultOffset, Note, newPointerSources);
 
       public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) {
          if (Length == 4) {

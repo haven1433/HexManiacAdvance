@@ -418,7 +418,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
          if (run is WordRun wordRun) {
             // update the other word runs with the same token name
-            var desiredValue = value - wordRun.ValueOffset;
+            var desiredValue = (value - wordRun.ValueOffset) / wordRun.MultOffset;
 
             if (alsoUpdateArrays) {
                foreach (var array in model.Arrays.Where(a => a.LengthFromAnchor == wordRun.SourceArrayName).ToList()) {
@@ -432,7 +432,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             foreach (var address in model.GetMatchedWords(wordRun.SourceArrayName)) {
                if (address == run.Start) continue; // don't write the current run
                if (!(model.GetNextRun(address) is WordRun currentRun)) continue;
-               var writeValue = desiredValue + currentRun.ValueOffset;
+               var writeValue = desiredValue * currentRun.MultOffset + currentRun.ValueOffset;
                var maxValue = (int)Math.Pow(2, currentRun.Length * 8) - 1;
                if (writeValue < 0 || writeValue > maxValue) {
                   newDataIndex = currentRun.Start;
@@ -542,13 +542,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Model.ExpandData(CurrentChange, memoryLocation + 3);
          Model.ClearFormat(CurrentChange, memoryLocation, 4);
          CurrentChange.AddMatchedWord(Model, memoryLocation, parentName);
-         Model.ObserveRunWritten(CurrentChange, new WordRun(memoryLocation, parentName, 4, 0));
+         Model.ObserveRunWritten(CurrentChange, new WordRun(memoryLocation, parentName, 4, 0, 1));
          NewDataIndex = memoryLocation + 4;
       }
 
       private void CompleteNamedConstantEdit(int byteCount) {
          var constantName = CurrentText.Substring(1).Trim();
-         var offset = 0;
+         int offset = 0, multOffset = 1;
          if (constantName.Contains("+")) {
             var split = constantName.Split('+');
             int.TryParse(split[1], out offset);
@@ -560,16 +560,33 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             constantName = split[0];
             offset = -offset;
          }
+         if (constantName.Contains("*")) {
+            var split = constantName.Split('*');
+            int.TryParse(split[1], out multOffset);
+            constantName = split[0];
+            if (multOffset < 1) {
+               ErrorText = $"Could not create {constantName} with multiplier {multOffset}: the multiplier must be positive.";
+               return;
+            }
+         }
 
-         var coreValue = Model[memoryLocation] - offset;
+         var coreValue = (Model[memoryLocation] / multOffset) - offset;
          var maxValue = Math.Pow(2, byteCount * 8) - 1;
          if (coreValue < 0) {
-            ErrorText = $"Could not create {constantName} with offset {offset} because then the virtual value would be below 0.";
+            if (offset != 0) {
+               ErrorText = $"Could not create {constantName} with offset {offset} because then the virtual value would be below 0.";
+            } else if (multOffset != 1) {
+               ErrorText = $"Could not create {constantName} with multiplier {multOffset} because then the virtual value would be below 0.";
+            }
          } else if (coreValue > maxValue) {
-            ErrorText = $"Could not create {constantName} with offset {offset} because then the virtual value would be above {maxValue}.";
+            if (offset != 0) {
+               ErrorText = $"Could not create {constantName} with offset {offset} because then the virtual value would be above {maxValue}.";
+            } else if (multOffset != 1) {
+               ErrorText = $"Could not create {constantName} with multiplier {offset} because then the virtual value would be above {maxValue}.";
+            }
          } else {
             CurrentChange.AddMatchedWord(Model, memoryLocation, constantName);
-            Model.ObserveRunWritten(CurrentChange, new WordRun(memoryLocation, constantName, byteCount, offset));
+            Model.ObserveRunWritten(CurrentChange, new WordRun(memoryLocation, constantName, byteCount, offset, multOffset));
             NewDataIndex = memoryLocation;
          }
       }

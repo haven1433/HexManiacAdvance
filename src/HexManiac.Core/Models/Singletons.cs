@@ -110,7 +110,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          return readonlyTables;
       }
 
-      private IReadOnlyDictionary<string,GameReferenceConstants> CreateGameReferenceConstants() {
+      private IReadOnlyDictionary<string, GameReferenceConstants> CreateGameReferenceConstants() {
          if (!File.Exists(ConstantReferenceFileName)) return new Dictionary<string, GameReferenceConstants>();
          var lines = File.ReadAllLines(ConstantReferenceFileName);
          var constants = new Dictionary<string, List<ReferenceConstant>>();
@@ -215,7 +215,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public IReadOnlyList<int> Addresses { get; }
       public string Name { get; }
       public int Length { get; }
-      public int Offset { get; }
+      public int AddOffset { get; }
+      public int MultOffset { get; } = 1;
       public string Note { get; }
 
       // BRPE0:constant.name+1 123456,123456,123456 # note
@@ -231,11 +232,15 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (parts[0].Contains("-")) {
             var offsetSplit = parts[0].Split('-');
             Name = offsetSplit[0];
-            Offset = -int.Parse(offsetSplit[1]);
+            AddOffset = -int.Parse(offsetSplit[1]);
          } else if (parts[0].Contains("+")) {
             var offsetSplit = parts[0].Split('+');
             Name = offsetSplit[0];
-            Offset = int.Parse(offsetSplit[1]);
+            AddOffset = int.Parse(offsetSplit[1]);
+         } else if (parts[0].Contains("*")) {
+            var offsetSplit = parts[0].Split('*');
+            Name = offsetSplit[0];
+            MultOffset = int.Parse(offsetSplit[1]);
          } else {
             Name = parts[0];
          }
@@ -250,7 +255,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public IEnumerable<StoredMatchedWord> ToStoredMatchedWords() {
          foreach (var address in Addresses) {
-            yield return new StoredMatchedWord(address, Name, Length, Offset, Note);
+            yield return new StoredMatchedWord(address, Name, Length, AddOffset, MultOffset, Note);
          }
       }
    }

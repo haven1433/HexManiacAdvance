@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 
@@ -78,6 +79,9 @@ namespace HavenSoft.HexManiac.Core.Models {
             } else if (cleanLine.StartsWith("Offset = ")) {
                var start = cleanLine.IndexOf(" = ") + 3;
                currentItemOffset = int.Parse(cleanLine.Substring(start));
+            } else if (cleanLine.StartsWith("MultOffset = ")) {
+               var start = cleanLine.IndexOf(" = ") + 3;
+               currentItemMultOffset = int.Parse(cleanLine.Substring(start));
             }
 
             if (cleanLine.StartsWith("Length = ")) {
@@ -203,7 +207,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             lines.Add($"Name = '''{word.Name}'''");
             lines.Add($"Address = 0x{word.Address:X6}");
             lines.Add($"Length = {word.Length}");
-            lines.Add($"Offset = {word.Offset}");
+            if (word.AddOffset != 0) lines.Add($"Offset = {word.AddOffset}");
+            if (word.MultOffset != 1) lines.Add($"MultOffsetOffset = {word.MultOffset}");
             if (word.Note != null) lines.Add($"Note = '''{word.Note}'''");
             lines.Add(string.Empty);
          }
@@ -232,6 +237,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       int currentItemLength = -1;
       int currentItemAddress = -1;
       int currentItemOffset = int.MinValue;
+      int currentItemMultOffset = 1;
       string currentItemNote = null;
 
       private void CloseCurrentItem(IList<StoredAnchor> anchors, IList<StoredUnmappedPointer> pointers, IList<StoredMatchedWord> matchedWords, IList<StoredOffsetPointer> offsetPointers, IList<StoredList> lists) {
@@ -252,7 +258,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (currentItemAddress == -1) throw new ArgumentOutOfRangeException("The Metadata file has a MatchedWord that didn't specify an Address!");
             if (currentItemLength == -1) currentItemLength = 4;
             if (currentItemOffset == int.MinValue) currentItemOffset = 0;
-            matchedWords.Add(new StoredMatchedWord(currentItemAddress, currentItemName, currentItemLength, currentItemOffset, currentItemNote));
+            matchedWords.Add(new StoredMatchedWord(currentItemAddress, currentItemName, currentItemLength, currentItemOffset, currentItemMultOffset, currentItemNote));
          }
 
          if (currentItem == "[[OffsetPointer]]") {
@@ -272,6 +278,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          currentItemFormat = null;
          currentItemAddress = -1;
          currentItemOffset = int.MinValue;
+         currentItemMultOffset = 1;
          currentItemLength = -1;
          continueCurrentItemIndex = false;
          currentItemChildren = null;
@@ -305,9 +312,13 @@ namespace HavenSoft.HexManiac.Core.Models {
       public int Address { get; }
       public string Name { get; }
       public int Length { get; }
-      public int Offset { get; }
+      public int AddOffset { get; }
+      public int MultOffset { get; }
       public string Note { get; }
-      public StoredMatchedWord(int address, string name, int length, int offset, string note) => (Address, Name, Length, Offset, Note) = (address, name, length, offset, note);
+      public StoredMatchedWord(int address, string name, int length, int offset, int multOffset, string note) {
+         Debug.Assert(multOffset > 0, "MultOffset must be positive.");
+         (Address, Name, Length, AddOffset, MultOffset, Note) = (address, name, length, offset, multOffset, note);
+      }
    }
 
    public class StoredOffsetPointer {
