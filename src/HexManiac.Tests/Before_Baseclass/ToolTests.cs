@@ -396,6 +396,7 @@ namespace HavenSoft.HexManiac.Tests {
       [InlineData("ldrh r1, [r2]", 0b10001_00000_010_001)]
       [InlineData("str  r1, [sp]", 0b10010_001_00000000)]
       [InlineData("ldr  r1, [sp]", 0b10011_001_00000000)]
+      [InlineData(".word <bob+10>", 0b0000_1000_0000_0000_0000_0000_1001_0000)] // test that we can use anchors + offset to get pointer locations (in base 16)
       public void ThumbCompilerTests(string input, uint output) {
          var bytes = new List<byte> { (byte)output, (byte)(output >> 8) };
          var model = new PokemonModel(new byte[0x200]);

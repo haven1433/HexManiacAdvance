@@ -1,13 +1,10 @@
-﻿using HavenSoft.HexManiac.Core.Models.Runs;
-using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace HavenSoft.HexManiac.Core.Models.Code {
    public class LabelLibrary {
@@ -15,8 +12,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       private readonly IDictionary<string, int> labels;
       public LabelLibrary(IDataModel data, IDictionary<string, int> additionalLabels) => (model, labels) = (data, additionalLabels);
       public int ResolveLabel(string label) {
-         if (labels.TryGetValue(label, out int result)) return result;
-         return model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, label);
+         var offset = 0;
+         if (label.Split("+") is string[] parts && parts.Length == 2) {
+            label = parts[0];
+            int.TryParse(parts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
+         }
+         if (labels.TryGetValue(label, out int result)) return result + offset;
+         return model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, label) + offset;
       }
    }
 
