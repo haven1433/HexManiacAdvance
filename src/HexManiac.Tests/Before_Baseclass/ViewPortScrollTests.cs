@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System.Collections.Generic;
 using Xunit;
 
@@ -214,6 +215,21 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Scroll.Execute(Direction.Down);
 
          Assert.Equal(1, collectionNotifications);
+      }
+
+      [Fact]
+      public void ViewPort_GotoWithOffset_Goto() {
+         var test = new BaseViewModelTestClass();
+         test.ViewPort.Edit("@100+10 ");
+         Assert.Equal(0x110, test.ViewPort.ConvertViewPointToAddress(test.ViewPort.SelectionStart));
+      }
+
+      [Fact]
+      public void ViewPort_GotoNonExistingAnchorWithSizeSpecified_AnchorCreated() {
+         var test = new BaseViewModelTestClass();
+         test.ViewPort.Edit("@newAnchor(10) ");
+         var destination = test.Model.GetAddressFromAnchor(new ModelDelta(), -1, "newAnchor");
+         Assert.NotEqual(Pointer.NULL, destination);
       }
    }
 }

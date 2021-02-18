@@ -127,7 +127,7 @@ namespace HavenSoft.HexManiac.Tests {
          model.ObserveRunWritten(token, new PointerRun(16));
          var tool = new PCSTool(
             model,
-            new Selection(new ScrollRegion { Width = 0x10, Height = 0x10 }, model),
+            new Selection(new ScrollRegion { Width = 0x10, Height = 0x10 }, model, default),
             new ChangeHistory<ModelDelta>(dm => dm),
             null) {
             Address = 18
@@ -397,6 +397,7 @@ namespace HavenSoft.HexManiac.Tests {
       [InlineData("str  r1, [sp]", 0b10010_001_00000000)]
       [InlineData("ldr  r1, [sp]", 0b10011_001_00000000)]
       [InlineData(".word <bob+10>", 0b0000_1000_0000_0000_0000_0000_1001_0000)] // test that we can use anchors + offset to get pointer locations (in base 16)
+      [InlineData("b <bob+10>", 0b11100_111_1100_0110)] // 90 = pc+#*2+4 : pc=100, so #=-74/2 = -3A = 111_1100_0110
       public void ThumbCompilerTests(string input, uint output) {
          var bytes = new List<byte> { (byte)output, (byte)(output >> 8) };
          var model = new PokemonModel(new byte[0x200]);

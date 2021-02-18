@@ -639,7 +639,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          scroll = new ScrollRegion(model.TryGetUsefulHeader) { DataLength = Model.Count };
          scroll.PropertyChanged += ScrollPropertyChanged;
 
-         selection = new Selection(scroll, Model, GetSelectionSpan);
+         selection = new Selection(scroll, Model, history, GetSelectionSpan);
          selection.PropertyChanged += SelectionPropertyChanged;
          selection.PreviewSelectionStartChanged += ClearActiveEditBeforeSelectionChanges;
          selection.OnError += (sender, e) => OnError?.Invoke(this, e);

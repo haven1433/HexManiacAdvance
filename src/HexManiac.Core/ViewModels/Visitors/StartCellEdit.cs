@@ -75,7 +75,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          // handle special cases of "anywhere" formats first
          if (underEdit.CurrentText.StartsWith(ViewPort.GotoMarker.ToString())) {
             Result = char.IsLetterOrDigit(Input) || char.IsWhiteSpace(Input);
-            Result |= Input.IsAny($"{ArrayAnchorSeparator}{ViewPort.CommandMarker}()~=._".ToCharArray());
+            Result |= Input.IsAny($"{ArrayAnchorSeparator}{ViewPort.CommandMarker}()~=._+".ToCharArray());
             if (underEdit.CurrentText.Length == 1) Result |= Input.IsAny('{', '}');
             return;
          } else if (underEdit.CurrentText.StartsWith(AnchorStart.ToString())) {

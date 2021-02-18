@@ -15,6 +15,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private const int DefaultPreferredWidth = 0x10;
 
       private readonly IDataModel model;
+      private readonly ChangeHistory<ModelDelta> history;
       private readonly GetSelectionSpan getSpan;
       private readonly StubCommand
          moveSelectionStart = new StubCommand(),
@@ -122,8 +123,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// </summary>
       public event EventHandler<Point> PreviewSelectionStartChanged;
 
-      public Selection(ScrollRegion scrollRegion, IDataModel model, GetSelectionSpan getSpan = null) {
+      public Selection(ScrollRegion scrollRegion, IDataModel model, ChangeHistory<ModelDelta> history, GetSelectionSpan getSpan = null) {
          this.model = model;
+         this.history = history;
          this.getSpan = getSpan ?? GetDefaultSelectionSpan;
          Scroll = scrollRegion;
          Scroll.ScrollChanged += (sender, e) => ShiftSelectionFromScroll(e);
@@ -140,16 +142,32 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             Execute = args => {
                if (args is int intArgs) args = intArgs.ToString("X6");
                var address = args.ToString().Trim();
+               if (address.StartsWith(ViewPort.GotoMarker.ToString())) address = address.Substring(1);
                if (address.StartsWith(PointerRun.PointerStart.ToString())) address = address.Substring(1);
                if (address.EndsWith(PointerRun.PointerEnd.ToString())) address = address.Substring(0, address.Length - 1);
                if (address.StartsWith("0x")) address = address.Substring(2);
+               var offset = 0;
+               if (address.Split("+") is string[] parts && parts.Length == 2) {
+                  address = parts[0];
+                  int.TryParse(parts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
+               }
                using (ModelCacheScope.CreateScope(this.model)) {
+                  var minSize = -1;
+                  if (address.Contains("(") && address.Contains(")")) {
+                     var addressParts = address.Split(new[] { '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
+                     address = addressParts[0];
+                     if (addressParts.Length == 2) int.TryParse(addressParts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out minSize);
+                  }
                   var anchor = this.model.GetAddressFromAnchor(new ModelDelta(), -1, address);
-                  if (anchor != Pointer.NULL) {
-                     GotoAddress(anchor);
+                  if (anchor == Pointer.NULL && minSize > 0) {
+                     var newAnchorStart = model.FindFreeSpace(this.model.FreeSpaceStart, minSize);
+                     this.model.ObserveAnchorWritten(history.CurrentChange, address, new NoInfoRun(newAnchorStart));
+                     GotoAddress(newAnchorStart + offset);
+                  } else if (anchor != Pointer.NULL) {
+                     GotoAddress(anchor + offset);
                   } else if (int.TryParse(address, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int result)) {
                      if (result >= BaseModel.PointerOffset) result -= BaseModel.PointerOffset;
-                     GotoAddress(result);
+                     GotoAddress(result + offset);
                   } else {
                      address = address.ToLower().Trim();
                      var options = model.GetAutoCompleteAnchorNameOptions(address);
@@ -158,12 +176,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      }
                      if (options.Count == 1) {
                         anchor = this.model.GetAddressFromAnchor(new ModelDelta(), -1, options[0]);
-                        GotoAddress(anchor);
+                        GotoAddress(anchor + offset);
                      } else if (options.Count > 1) {
                         var bestMatches = options.Where(option => option.ToLower().Contains(address));
                         options = bestMatches.Concat(options.Take(1).Distinct()).ToList();
                         anchor = this.model.GetAddressFromAnchor(new ModelDelta(), -1, options[0]);
-                        GotoAddress(anchor);
+                        GotoAddress(anchor + offset);
                      } else {
                         OnError?.Invoke(this, $"Unable to goto address '{address}'");
                      }
