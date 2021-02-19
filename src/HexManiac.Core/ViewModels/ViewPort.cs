@@ -889,6 +889,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public bool TryImport(LoadedFile file, IFileSystem fileSystem) {
+         if (file.Name.EndsWith(".hma")) {
+            var edit = Encoding.Default.GetString(file.Contents);
+            Edit(edit);
+            return true;
+         }
+
          return false;
       }
 
