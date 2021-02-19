@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
    public class LzSpriteRun : PagedLZRun, ISpriteRun {
@@ -86,6 +87,21 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          for (int i = newModelData.Count; i < Length; i++) token.ChangeData(model, newRun.Start + i, 0xFF);
          newRun = new LzSpriteRun(SpriteFormat, model, newRun.Start, newRun.PointerSources);
          model.ObserveRunWritten(token, newRun);
+         return newRun;
+      }
+
+      public LzSpriteRun IncreaseHeight(int tiles, ModelDelta token) {
+         var data = Decompress(Model, Start);
+         var longerData = data.Concat(new byte[SpriteFormat.ExpectedByteLength / SpriteFormat.TileHeight * tiles]).ToArray();
+         var newModelData = Compress(longerData, 0, longerData.Length);
+
+         var newRun = Model.RelocateForExpansion(token, this, newModelData.Count);
+         for (int i = 0; i < newModelData.Count; i++) token.ChangeData(Model, newRun.Start + i, newModelData[i]);
+         for (int i = newModelData.Count; i < Length; i++) token.ChangeData(Model, newRun.Start + i, 0xFF);
+
+         var newFormat = new SpriteFormat(SpriteFormat.BitsPerPixel, SpriteFormat.TileWidth, SpriteFormat.TileHeight + tiles, SpriteFormat.PaletteHint, SpriteFormat.AllowLengthErrors);
+         newRun = new LzSpriteRun(newFormat, Model, newRun.Start, newRun.PointerSources);
+         Model.ObserveRunWritten(token, newRun);
          return newRun;
       }
    }

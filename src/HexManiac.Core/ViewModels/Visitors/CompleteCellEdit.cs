@@ -110,6 +110,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       }
 
       public void Visit(Integer integer, byte data) {
+         if (CurrentText == "+" && Model.GetNextRun(memoryLocation) is LzSpriteRun spriteRun) {
+            var newRun = spriteRun.IncreaseHeight(1, CurrentChange);
+            if (newRun.Start != spriteRun.Start) {
+               MessageText = $"Sprite was automatically moved to {newRun.Start:X6}. Pointers were updated.";
+               DataMoved = true;
+               NewDataIndex = newRun.Start + 1;
+            }
+            Result = true;
+         }
+
          if (char.IsWhiteSpace(CurrentText.Last())) {
             CompleteIntegerEdit(integer);
             Result = true;

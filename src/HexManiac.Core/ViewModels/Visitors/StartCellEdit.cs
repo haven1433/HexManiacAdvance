@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System.Linq;
 using static HavenSoft.HexManiac.Core.Models.Runs.ArrayRun;
@@ -140,6 +141,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(Ascii ascii, byte data) => Result = true;
 
       public void Visit(Integer intFormat, byte data) {
+         if (Input == '+' && Model.GetNextRun(MemoryLocation) is LzSpriteRun spriteRun && spriteRun.Start == MemoryLocation - 1 && spriteRun.Pages == 1) {
+            Result = true;
+            return;
+         }
+
          if (!intFormat.CanStartWithCharacter(Input)) return;
 
          NewFormat = new UnderEdit(intFormat, Input.ToString(), intFormat.Length, null);
