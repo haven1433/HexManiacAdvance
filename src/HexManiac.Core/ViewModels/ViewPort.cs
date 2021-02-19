@@ -49,7 +49,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public Singletons Singletons { get; }
 
       private HexElement[,] currentView;
-      private bool exitEditEarly, withinComment;
+      private bool exitEditEarly, withinComment, skipToNextGameCode;
 
       public string Name {
          get {
@@ -931,7 +931,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          int i = 0;
          try {
             for (i = 0; i < input.Length && i < maxSize && !exitEditEarly; i++) {
-               if (input[i] == '.' && input.Length > i + 6 && input.Substring(i + 1, 5).ToLower() == "thumb") {
+               if (input[i] == '@' && input.Substring(i).StartsWith("@!game")) skipToNextGameCode = false;
+               if (skipToNextGameCode) {
+                  // skip this input
+               } else if (input[i] == '.' && input.Length > i + 6 && input.Substring(i + 1, 5).ToLower() == "thumb") {
                   var lines = input.Substring(i).Split('\n', '\r');
                   var endLine = lines.Length.Range().FirstOrDefault(j => (lines[j] + " ").ToLower().StartsWith(".end "));
                   if (endLine == 0) endLine = lines.Length - 1;
@@ -971,6 +974,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          CurrentProgressScopes.ForEach(scope => scope.Dispose());
          CurrentProgressScopes.Clear();
          UpdateInProgress = false;
+         skipToNextGameCode = false;
       }
 
       public void Edit(ConsoleKey key) {
@@ -2210,9 +2214,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                RaiseError($"Writing {length} 00 bytes would overwrite existing data.");
                exitEditEarly = true;
             }
+         } else if (command.StartsWith("game(") && paramsEnd > 5) {
+            var content = command.Substring(5, paramsEnd - 5).ToLower();
+            var gameCode = Model.GetGameCode().ToLower();
+            if (content == "all") {
+               // all good
+            } else if (content != gameCode) {
+               skipToNextGameCode = true;
+            }
          } else if (command.StartsWith("put(") && paramsEnd > 4) {
             var content = command.Substring(4, paramsEnd - 4);
-            if (content.Length %2 != 0 || !content.All(AllHexCharacters.Contains)) {
+            if (content.Length % 2 != 0 || !content.All(AllHexCharacters.Contains)) {
                RaiseError("'put' expects hex bytes as an argument. ");
                exitEditEarly = true;
                return;
