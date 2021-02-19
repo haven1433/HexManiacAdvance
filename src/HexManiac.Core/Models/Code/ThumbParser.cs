@@ -67,7 +67,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   interestingAddresses.Add(start); // push lr always signifies the start of a function. That makes it worth noting.
                }
                if (line.Contains("<") && line.Contains(">")) {
-                  var address = int.Parse(line.Split('<')[1].Split('>')[0], NumberStyles.HexNumber);
+                  var content = line.Split('<')[1].Split('>')[0];
+                  var address = data.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, content);
+                  if (address == Pointer.NULL) address = int.Parse(content, NumberStyles.HexNumber);
                   interestingAddresses.Add(address);
                   if (tokens.Length > 1 && tokens[0] == "ldr" && tokens[1].StartsWith("r")) {
                      wordLocations.Add(address);
@@ -423,7 +425,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                instruction = instruction.Replace("{cond}", suffix);
             } else if (part.Type == InstructionArgType.Numeric) {
                if (part.Code != 0) {
-                  instruction = CalculatePcRelativeAddress(instruction, pcAddress, part, bits);
+                  instruction = CalculatePcRelativeAddress(data, instruction, pcAddress, part, bits);
                } else if (instruction.Contains("#=#*")) {
                   var multiplierIndex = instruction.IndexOf("#=#*") + 4;
                   var multiplier = instruction[multiplierIndex] - '0';
@@ -444,7 +446,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return "    " + instruction;
       }
 
-      private static string CalculatePcRelativeAddress(string instruction, int pcAddress, InstructionPart part, ushort bits) {
+      private static string CalculatePcRelativeAddress(IDataModel model, string instruction, int pcAddress, InstructionPart part, ushort bits) {
          var mult = GrabBits(part.Code, 8, 8);
          var add = GrabBits(part.Code, 0, 8);
          var numeric = (short)bits;
@@ -455,11 +457,15 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             var address = pcAddress - (pcAddress % mult) + numeric * mult + add;
             var end = instruction.EndsWith("]") ? "]" : string.Empty;
             instruction = instruction.Split("#=")[0] + "#" + end;
-            instruction = instruction.Replace("#", $"<{address:X6}>");
+            var addressText = model.GetAnchorFromAddress(-1, address);
+            if (string.IsNullOrEmpty(addressText)) addressText = address.ToString("X6");
+            instruction = instruction.Replace("#", $"<{addressText}>");
          } else {
             // this is an additional # in the same instruction.
             // decode back from the old one
-            var address = int.Parse(instruction.Split('<')[1].Split('>')[0], NumberStyles.HexNumber);
+            var content = instruction.Split('<')[1].Split('>')[0];
+            var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, content);
+            if (address == Pointer.NULL) address = int.Parse(content, NumberStyles.HexNumber);
             address -= pcAddress - (pcAddress % mult) + add;
             address /= mult;
             address = (address & ((1 << part.Length) - 1)); // drop the high bits, keep only the data bits. This makes it lose the sign.
@@ -471,7 +477,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             // encode again
             address *= mult;
             address += pcAddress - (pcAddress % mult) + add;
-            instruction = instruction.Split('<')[0] + $"<{address:X6}>" + (instruction + " ").Split('>')[1].Trim(); // extra space / trim let's us get everything after the '>', even if it's empty
+            var addressText = model.GetAnchorFromAddress(-1, address);
+            if (string.IsNullOrEmpty(addressText)) addressText = address.ToString("X6");
+            instruction = instruction.Split('<')[0] + $"<{addressText}>" + (instruction + " ").Split('>')[1].Trim(); // extra space / trim let's us get everything after the '>', even if it's empty
          }
 
          return instruction;

@@ -103,6 +103,17 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.All(expected.Length.Range(), i => Assert.Equal(expected[i], result[i]));
       }
 
+      [Fact]
+      public void BranchLinkToKnownName_Decompile_BranchLinkContainsKnownName() {
+         Model.ObserveAnchorWritten(ViewPort.CurrentChange, "bob", new NoInfoRun(0x100));
+         var thumb = ViewPort.Tools.CodeTool.Parser;
+         Array.Copy(thumb.Compile(Model, 0, "bl <bob>").ToArray(), Model.RawData, 4);
+
+         var decompile = thumb.Parse(Model, 0, 4).Split(Environment.NewLine);
+
+         Assert.Equal("<bob>", decompile[1].Trim().Substring(2).Trim());
+      }
+
       private string Script(params string[] lines) => lines.CombineLines();
    }
 }
