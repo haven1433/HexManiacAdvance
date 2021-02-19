@@ -579,6 +579,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          SetupPageOptions();
       }
 
+      public bool TryImport(LoadedFile file, IFileSystem fileSystem) {
+         // TODO if it's an image, try to pull it in and change to the selection tool
+         return false;
+      }
+
       public int PixelIndex(int x, int y) => PixelIndex(new Point(x, y));
       public int PixelIndex(Point spriteSpace) => spriteSpace.Y * PixelWidth + spriteSpace.X;
 

@@ -167,6 +167,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void Refresh() => ForEach(child => child.Refresh());
 
+      public bool TryImport(LoadedFile file, IFileSystem fileSystem) => false;
+
       public void ValidateMatchedWords() { }
    }
 }

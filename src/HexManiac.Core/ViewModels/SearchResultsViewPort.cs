@@ -244,6 +244,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void Refresh() => children.ForEach(child => child.Refresh());
 
+      public bool TryImport(LoadedFile file, IFileSystem fileSystem) => false;
+
       private void NotifyCollectionChanged() {
          if (children.Count == 0) return;
          UpdateHeaders();

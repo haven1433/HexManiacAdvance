@@ -155,6 +155,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      public bool TryImport(LoadedFile file, IFileSystem fileSystem) => false;
+
       private void UpdateSelection() {
          var first = Math.Min(selectionStart, selectionEnd);
          var last = Math.Max(selectionStart, selectionEnd);

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HavenSoft.HexManiac.Core.Models;
+using System;
 using System.ComponentModel;
 using System.Windows.Input;
 
@@ -32,6 +33,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       event EventHandler RequestMenuClose;
 
       void Refresh();
+      bool TryImport(LoadedFile file, IFileSystem fileSystem);
    }
 
    public interface IRaiseMessageTab : ITabContent {

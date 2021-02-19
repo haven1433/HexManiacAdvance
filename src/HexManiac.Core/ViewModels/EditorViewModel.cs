@@ -447,6 +447,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             try {
                var file = arg as LoadedFile ?? fileSystem.OpenFile("GameBoy Advanced", "gba");
                if (file == null) return;
+               if (SelectedTab != null && SelectedTab.TryImport(file, fileSystem)) return;
                UpdateRecentFiles(file.Name);
                string[] metadataText = new string[0];
                if (allowLoadingMetadata) {

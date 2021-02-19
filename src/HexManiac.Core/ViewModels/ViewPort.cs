@@ -888,6 +888,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Tools.SpriteTool.DataForCurrentRunChanged();
       }
 
+      public bool TryImport(LoadedFile file, IFileSystem fileSystem) {
+         return false;
+      }
+
       public void RaiseError(string text) => OnError?.Invoke(this, text);
 
       private string deferredMessage;
