@@ -2229,7 +2229,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var gameCode = Model.GetGameCode().ToLower();
             if (content == "all") {
                // all good
-            } else if (content != gameCode) {
+            } else if (!content.Contains(gameCode)) {
                skipToNextGameCode = true;
             }
          } else if (command.StartsWith("put(") && paramsEnd > 4) {

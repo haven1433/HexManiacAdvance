@@ -5,6 +5,7 @@ using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace HavenSoft.HexManiac.Tests {
    /// <summary>
@@ -82,6 +83,11 @@ namespace HavenSoft.HexManiac.Tests {
 
       public void SetFullModel(byte value) {
          for (int i = 0; i < Model.Count; i++) Model[i] = value;
+      }
+
+      public void SetGameCode(string code) {
+         Array.Copy(Encoding.Default.GetBytes(code.Substring(0, 4)), 0, Model.RawData, Core.Models.IDataModelExtensions.GameCodeStart, 4);
+         Model[Core.Models.IDataModelExtensions.GameVersionStart] = (byte)(code[4] - '0');
       }
    }
 }

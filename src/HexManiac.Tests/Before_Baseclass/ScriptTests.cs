@@ -114,6 +114,33 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("<bob>", decompile[1].Trim().Substring(2).Trim());
       }
 
+      [Fact]
+      public void GameCode_GameCommandWithThatCode_EditsAreMade() {
+         SetGameCode("XXXX0");
+
+         ViewPort.Edit("@!game(xxxx0) 11 ");
+
+         Assert.Equal(0x11, Model[0]);
+      }
+
+      [Fact]
+      public void GameCode_GameCommandWithDifferentCode_EditsAreNotMade() {
+         SetGameCode("XXXX0");
+
+         ViewPort.Edit("@!game(yyyy0) 11 ");
+
+         Assert.Equal(0x00, Model[0]);
+      }
+
+      [Fact]
+      public void GameCode_GameCommandWithThatCodeAndOthers_EditsAreMade() {
+         SetGameCode("XXXX0");
+
+         ViewPort.Edit("@!game(xxxx0_yyyy0) 11 ");
+
+         Assert.Equal(0x11, Model[0]);
+      }
+
       private string Script(params string[] lines) => lines.CombineLines();
    }
 }
