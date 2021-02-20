@@ -453,6 +453,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return ReadPalette(model, PalettePointer, sprite.SpriteFormat.BitsPerPixel);
       }
 
+      public int ReadRawPixel(int x, int y) => pixels[x, y];
+
       // convenience methods
       public void ZoomIn(int x, int y) => ZoomIn(new Point(x, y));
       public void ZoomOut(int x, int y) => ZoomOut(new Point(x, y));
@@ -709,6 +711,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          RaiseRefreshSelection(matches.ToArray());
       }
 
+      private bool SpriteOnlyExpects16Colors() {
+         var spriteAddress = model.ReadPointer(SpritePointer);
+         var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
+         if (spriteRun is ITilesetRun) return true;
+         if (spriteRun is ITilemapRun) return false;
+         if (spriteRun.SpriteFormat.BitsPerPixel < 8 && spriteRun.Pages == 1) return true;
+         return false;
+      }
+
       #region Nested Types
 
       private interface IImageToolStrategy {
@@ -736,6 +747,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             point = parent.ToSpriteSpace(point);
 
             bool validHoverLocation = parent.WithinImage(point);
+            bool spriteOnlyExpects16Colors = parent.SpriteOnlyExpects16Colors();
             if (validHoverLocation) {
                var initialBlankPages = parent.ReadPalette().initialBlankPages;
                if (parent.CanEditTilePalettes) {
@@ -751,6 +763,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   drawWidth = drawHeight = parent.CursorSize;
                   tile = new int[drawWidth, drawHeight];
                   var colorIndex = parent.ColorIndex(element.Index);
+                  if (spriteOnlyExpects16Colors) colorIndex = element.Index;
                   for (int x = 0; x < drawWidth; x++) for (int y = 0; y < drawHeight; y++) tile[x, y] = colorIndex;
                } else {
                   drawWidth = tile.GetLength(0);
@@ -767,11 +780,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                }
 
                // only draw if the paletteIndex is reasonable
-               if (pageChange == 0) {
+               if (pageChange == 0 || spriteOnlyExpects16Colors) {
                   for (int x = 0; x < drawWidth; x++) {
                      for (int y = 0; y < drawHeight; y++) {
                         var (xx, yy) = (drawPoint.X + x, drawPoint.Y + y);
                         var paletteIndex = parent.PaletteIndex(tile[x, y]);
+                        if (spriteOnlyExpects16Colors) paletteIndex = tile[x, y];
                         if (xx >= parent.PixelWidth || yy >= parent.PixelHeight) continue;
                         parent.PixelData[parent.PixelIndex(xx, yy)] = parent.Palette.Elements[paletteIndex].Color;
                         parent.pixels[xx, yy] = tile[x, y];
@@ -973,6 +987,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          public void SwapUnderPixelsWithCurrentPixels() {
             var cache = new PaletteCache(parent);
             var (fullPalette, pageOffset) = (cache.Colors, cache.InitialBlankPages);
+            bool spriteOnlyExpects16Colors = parent.SpriteOnlyExpects16Colors();
 
             for (int x = 0; x < selectionWidth; x++) {
                for (int y = 0; y < selectionHeight; y++) {
@@ -987,7 +1002,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   var newUnder = parent.PaletteIndex(parent.pixels[xx, yy], page, cache);
                   var newOver = parent.ColorIndex(underPixels[x, y], page, cache);
                   var index = Math.Max(0, newOver - pageOffset * 16);
-                  if (parent.CanEditTilesetWidth) {
+                  if (spriteOnlyExpects16Colors) {
                      // tilesets don't have palette information
                      newUnder = parent.pixels[xx, yy];
                      newOver = underPixels[x, y];
@@ -999,6 +1014,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
                   if (index < fullPalette.Count) {
                      var color = fullPalette[index];
+                     if (spriteOnlyExpects16Colors) color = fullPalette[index + parent.palettePage * 16];
                      parent.PixelData[parent.PixelIndex(xx, yy)] = color;
                   }
                }
@@ -1125,6 +1141,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             pageStart += parent.PalettePage * 16;
             int originalColorIndex = parent.pixels[a.X, a.Y];
             var originalPaletteIndex = parent.PaletteIndex(originalColorIndex);
+            if (parent.SpriteOnlyExpects16Colors() && parent.PalettePages > 1) originalPaletteIndex = originalColorIndex;
             if (originalPaletteIndex < 0 || originalPaletteIndex >= parent.Palette.Elements.Count) return;
             if (parent.PalettePage < 0) return;
             var direction = Math.Sign(parent.Palette.SelectionEnd - parent.Palette.SelectionStart);
@@ -1137,6 +1154,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
             var toProcess = new Queue<Point>(new[] { a });
             var processed = new HashSet<Point>();
+            var spriteOnly16Colors = parent.SpriteOnlyExpects16Colors();
             while (toProcess.Count > 0) {
                var current = toProcess.Dequeue();
                if (processed.Contains(current)) continue;
@@ -1145,6 +1163,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
                var targetColorIndex = PickColorIndex(a, b, current, targetColors);
                var targetColorWithinPalettePageIndex = PickColorIndex(a, b, current, targetColorsWithinPalettePage);
+               if (spriteOnly16Colors) targetColorWithinPalettePageIndex = targetColorIndex;
 
                parent.pixels[current.X, current.Y] = targetColorWithinPalettePageIndex;
                parent.PixelData[parent.PixelIndex(current)] = parent.Palette.Elements[targetColorIndex].Color;
@@ -1246,11 +1265,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var index = parent.pixels[point.X, point.Y];
                var palette = parent.ReadPalette();
                if (parent.Palette.CanEditColors || palette.pages > 1) {
-                  var spriteAddress = parent.model.ReadPointer(parent.SpritePointer);
-                  var spriteRun = (ISpriteRun)parent.model.GetNextRun(spriteAddress);
-                  if (palette.colors.Count < 256 && !(spriteRun is ITilesetRun)) {
+                  if (palette.colors.Count < 256 && !parent.SpriteOnlyExpects16Colors()) {
                      index -= palette.initialBlankPages << 4;
-                     parent.PalettePage = index / 16;
+                     if (parent.SpritePages == 1) parent.PalettePage = index / 16;
                      index %= 16;
                   }
                }

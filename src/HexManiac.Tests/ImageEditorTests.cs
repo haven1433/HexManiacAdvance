@@ -8,10 +8,10 @@ using System.Linq;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
-   public class ImageEditorTests {
-      private readonly IDataModel model;
-      private readonly ChangeHistory<ModelDelta> history;
-      private readonly ImageEditorViewModel editor;
+   public class BaseImageEditorTests {
+      protected readonly IDataModel model;
+      protected readonly ChangeHistory<ModelDelta> history;
+      protected readonly ImageEditorViewModel editor;
 
       private Func<ModelDelta, ModelDelta> Revert { get; set; }
 
@@ -21,7 +21,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       #region Test Helper Methods
 
-      private void DrawBox(int colorIndex, Point start, int width, int height) {
+      protected void DrawBox(int colorIndex, Point start, int width, int height) {
          editor.Palette.SelectionStart = colorIndex;
 
          editor.ToolDown(start);
@@ -32,33 +32,33 @@ namespace HavenSoft.HexManiac.Tests {
          editor.ToolUp(start);
       }
 
-      private void DrawPixel(int index, short color, params Point[] points) {
+      protected void DrawPixel(int index, short color, params Point[] points) {
          editor.Palette.Elements[index].Color = color;
          editor.Palette.SelectionStart = index;
          ToolMove(points);
       }
 
-      private void ToolMove(params Point[] motion) {
+      protected void ToolMove(params Point[] motion) {
          editor.ToolDown(motion[0]);
          for (int i = 1; i < motion.Length; i++) editor.Hover(motion[i]);
          editor.ToolUp(motion[motion.Length - 1]);
       }
 
-      private static short Rgb(int r, int g, int b) => (short)((r << 10) | (g << 5) | b);
-      private short GetPixel(int x, int y) => editor.PixelData[editor.PixelIndex(new Point(x, y))];
-      private static (int r, int g, int b) Rgb(short color) => (color >> 10, (color >> 5) & 31, color & 31);
+      protected static short Rgb(int r, int g, int b) => (short)((r << 10) | (g << 5) | b);
+      protected short GetPixel(int x, int y) => editor.PixelData[editor.PixelIndex(new Point(x, y))];
+      protected static(int r, int g, int b) Rgb(short color) => (color >> 10, (color >> 5) & 31, color & 31);
 
       #endregion
 
-      private static readonly short Black = Rgb(0, 0, 0);
-      private static readonly short White = Rgb(31, 31, 31);
-      private static readonly short Red = Rgb(31, 0, 0);
-      private static readonly short Blue = Rgb(0, 0, 31);
+      protected static readonly short Black = Rgb(0, 0, 0);
+      protected static readonly short White = Rgb(31, 31, 31);
+      protected static readonly short Red = Rgb(31, 0, 0);
+      protected static readonly short Blue = Rgb(0, 0, 31);
 
-      private static readonly int SpriteStart = 0x00, SpritePointerStart = 0x80;
-      private static readonly int PaletteStart = 0x40, PalettePointerStart = 0x88;
+      protected static readonly int SpriteStart = 0x00, SpritePointerStart = 0x80;
+      protected static readonly int PaletteStart = 0x40, PalettePointerStart = 0x88;
 
-      public ImageEditorTests() {
+      public BaseImageEditorTests() {
          model = new PokemonModel(new byte[0x200], singletons: BaseViewModelTestClass.Singletons);
          history = new ChangeHistory<ModelDelta>(RevertHistoryChange);
 
@@ -77,7 +77,9 @@ namespace HavenSoft.HexManiac.Tests {
          editor = new ImageEditorViewModel(history, model, SpriteStart);
          editor.SpriteScale = 1;
       }
+   }
 
+   public class ImageEditorTests : BaseImageEditorTests {
       private void Insert64CompressedBytes(int start) {
          // header: 10 40 00 00
          // body: 0b00111000 00 00 1F0 1F0 1F0 00 00 00
@@ -1042,6 +1044,82 @@ namespace HavenSoft.HexManiac.Tests {
          editor.Hover(-4, 3);
          editor.EyeDropperUp(-4, 3);
          Assert.InRange(editor.BlockPreview.SpriteScale, 4, 8);
+      }
+
+      [Fact]
+      public void Selection_Delete_FillWithBlack() {
+         editor.Palette.SelectionStart = 1;
+         editor.Palette.Elements[1].Color = White;
+         ToolMove(new Point(0, 0));
+
+         editor.SelectedTool = ImageEditorTools.Select;
+         ToolMove(new Point(0, 0), new Point(1, 1));
+
+         editor.DeleteSelection();
+
+         Assert.Equal(Black, editor.PixelData[editor.PixelIndex(4, 4)]);
+      }
+   }
+
+   public class ImageEditorSingleSpriteMultiplePalettesTests : BaseImageEditorTests {
+      public ImageEditorSingleSpriteMultiplePalettesTests() {
+         var newPaletteData = LZRun.Compress(new byte[0x40], 0, 0x40).ToArray();
+         Array.Copy(newPaletteData, 0, model.RawData, PaletteStart, newPaletteData.Length);
+         model.ObserveRunWritten(new ModelDelta(), new LzPaletteRun(new PaletteFormat(4, 2), model, PaletteStart));
+         editor.Refresh();
+      }
+
+      [Fact]
+      public void SingleSpriteMultiplePalette_BucketToolWithSecondPalette_FillWorks() {
+         editor.PalettePage = 1;
+         editor.Palette.SelectionStart = 1;
+         editor.Palette.Elements[1].Color = White;
+
+         editor.SelectedTool = ImageEditorTools.Fill;
+         ToolMove(new Point(0, 0));
+
+         Assert.Equal(White, editor.PixelData[editor.PixelIndex(0, 0)]);
+         Assert.Equal(White, editor.PixelData[editor.PixelIndex(0, 7)]);
+         Assert.Equal(White, editor.PixelData[editor.PixelIndex(7, 0)]);
+         Assert.Equal(White, editor.PixelData[editor.PixelIndex(7, 7)]);
+         Assert.Equal(1, editor.ReadRawPixel(4, 4));
+      }
+
+      [Fact]
+      public void SingleSpriteMutltiplePalettes_EyeDropToolOnSecondPalette_SecondPaletteStillSelected() {
+         editor.PalettePage = 1;
+         editor.Palette.SelectionStart = 1;
+
+         editor.EyeDropperDown(0, 0);
+         editor.EyeDropperUp(0, 0);
+
+         Assert.Equal(0, editor.Palette.SelectionStart);
+         Assert.Equal(1, editor.PalettePage);
+      }
+
+      [Fact]
+      public void SingleSpriteMultiplePalettes_DrawPalette2_ColorsAreInRangeForPalette1() {
+         editor.PalettePage = 1;
+
+         editor.Palette.SelectionStart = 1;
+         editor.Palette.Elements[1].Color = White;
+         ToolMove(new Point(0, 0));
+
+         Assert.Equal(1, editor.ReadRawPixel(4, 4));
+      }
+
+      [Fact]
+      public void SingleSpriteMultiplePalettes_SelectDragOnSecondPalette_SpriteStillShowsSecondPalette() {
+         editor.PalettePage = 1;
+         editor.Palette.SelectionStart = 1;
+         editor.Palette.Elements[1].Color = White;
+         ToolMove(new Point(0, 0));
+
+         editor.SelectedTool = ImageEditorTools.Select;
+         ToolMove(new Point(0, 0), new Point(1, 1));
+         ToolMove(new Point(0, 0), new Point(-1, 0));
+
+         Assert.Equal(White, editor.PixelData[editor.PixelIndex(3, 4)]);
       }
    }
 
