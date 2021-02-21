@@ -889,7 +889,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public bool TryImport(LoadedFile file, IFileSystem fileSystem) {
-         if (file.Name.EndsWith(".hma")) {
+         if (file.Name.ToLower().EndsWith(".hma")) {
             var edit = Encoding.Default.GetString(file.Contents);
             Edit(edit);
             return true;
@@ -1922,11 +1922,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          (Point, Point) pair(int start, int end) => (scroll.DataIndexToViewPoint(start), scroll.DataIndexToViewPoint(end));
 
-         using (ModelCacheScope.CreateScope(Model)) {
-            if (run.CreateDataFormat(Model, index) is IDataFormatInstance instance) {
-               return pair(instance.Source, instance.Source + instance.Length - 1);
-            }
+         var format = run.CreateDataFormat(Model, index);
+         while (format is IDataFormatDecorator decorator) format = decorator.OriginalFormat;
+         if (format is IDataFormatInstance instance) {
+            return pair(instance.Source, instance.Source + instance.Length - 1);
          }
+
          if (!(run is ITableRun array)) return (p, p);
 
          var naturalEnd = array.Start + array.ElementCount * array.ElementLength;

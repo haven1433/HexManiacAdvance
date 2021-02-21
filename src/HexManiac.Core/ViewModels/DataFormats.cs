@@ -149,7 +149,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
-   public class Anchor : IDataFormat {
+   public interface IDataFormatDecorator : IDataFormat {
+      IDataFormat OriginalFormat { get; }
+   }
+
+   public class Anchor : IDataFormatDecorator {
       public IDataFormat OriginalFormat { get; }
       public string Name { get; }
       public string Format { get; }
@@ -165,7 +169,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
-   public class SpriteDecorator : IDataFormat {
+   public class SpriteDecorator : IDataFormatDecorator {
       public IDataFormat OriginalFormat { get; }
       public IPixelViewModel Pixels { get; }
       public int CellWidth { get; }
