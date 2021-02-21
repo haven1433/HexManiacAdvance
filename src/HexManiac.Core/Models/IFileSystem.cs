@@ -94,7 +94,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// Show the user a dialog so they can select an image.
       /// Load the image into a 16bit (5r5g5b) array.
       /// </summary>
-      (short[] image, int width) LoadImage();
+      (short[] image, int width) LoadImage(string fileName = null);
 
       /// <summary>
       /// Show the user a dialog so they can create a file.

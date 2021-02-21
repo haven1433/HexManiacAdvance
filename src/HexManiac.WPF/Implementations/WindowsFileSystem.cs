@@ -324,11 +324,13 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          return lines;
       }
 
-      public (short[] image, int width) LoadImage() {
-         var dialog = new OpenFileDialog { Filter = CreateFilterFromOptions("Image Files", "png") };
-         var result = dialog.ShowDialog();
-         if (result != true) return default;
-         var fileName = dialog.FileName;
+      public (short[] image, int width) LoadImage(string fileName) {
+         if (fileName == null) {
+            var dialog = new OpenFileDialog { Filter = CreateFilterFromOptions("Image Files", "png") };
+            var result = dialog.ShowDialog();
+            if (result != true) return default;
+            fileName = dialog.FileName;
+         }
 
          try {
             using (var fileStream = File.Open(fileName, FileMode.Open)) {

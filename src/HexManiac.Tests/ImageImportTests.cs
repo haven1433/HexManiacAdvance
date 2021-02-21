@@ -97,7 +97,7 @@ namespace HavenSoft.HexManiac.Tests {
          int width = 0;
          var fs = new StubFileSystem {
             SaveImage = (p, w) => (pixelData, width) = (p, w),
-            LoadImage = () => (pixelData, width),
+            LoadImage = fileName => (pixelData, width),
          };
 
          ViewPort.SelectionStart = new Point(4, 0);
@@ -125,7 +125,7 @@ namespace HavenSoft.HexManiac.Tests {
          int width = 0;
          var fs = new StubFileSystem {
             SaveImage = (p, w) => (pixelData, width) = (p, w),
-            LoadImage = () => (pixelData, width),
+            LoadImage = fileName => (pixelData, width),
          };
 
          ViewPort.SelectionStart = new Point(2, 0);
@@ -154,7 +154,7 @@ namespace HavenSoft.HexManiac.Tests {
          int width = 0;
          var fs = new StubFileSystem {
             SaveImage = (p, w) => (pixelData, width) = (p, w),
-            LoadImage = () => (pixelData, width),
+            LoadImage = fileName => (pixelData, width),
             ShowOptions = (_0, _1, _d, _2) => 2, // use Cautious
          };
 
