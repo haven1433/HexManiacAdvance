@@ -358,5 +358,20 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("unknown: 0x0000", lines[1]);
          Assert.Equal("unused: 0x0000", lines[2]);
       }
+
+      [Fact]
+      public void TupleSkip3Bits_Write23_Write184() {
+         SetFullModel(0xFF);
+         var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[index::|t|:.|i::::::.]", null, new FixedLengthStreamStrategy(2));
+         Model.ObserveRunWritten(ViewPort.CurrentChange, stream);
+         ViewPort.Refresh();
+
+         ViewPort.Edit("23 ");
+
+         Assert.Equal(23 * 8, Model[0]);
+         Assert.Equal(0, Model[1]);
+         Assert.Equal(0, Model[2]);
+         Assert.Equal(0, Model[3]);
+      }
    }
 }

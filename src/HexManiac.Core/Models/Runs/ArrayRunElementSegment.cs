@@ -363,7 +363,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          int partIndex = 0;
          for (int i = 0; i < Elements.Count; i++) {
             if (string.IsNullOrEmpty(Elements[i].Name)) {
-               // skip unnamed segments. i should increment and bitOffset should increase, but which part we're looking at should remain the same.
+               // Unnamed segments. I should increment, and  bitOffset should increase, but the value should change to zero.
+               Elements[i].Write(model, token, start, bitOffset, 0);
                partIndex -= 1;
             } else if (!string.IsNullOrEmpty(Elements[i].SourceName)) {
                if (ArrayRunEnumSegment.TryParse(Elements[i].SourceName, model, parts[partIndex], out int value))
@@ -378,6 +379,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
             partIndex += 1;
             bitOffset += Elements[i].BitWidth;
+         }
+
+         var remainingBits = Length * 8 - bitOffset;
+         if (remainingBits > 0) {
+            new TupleSegment(string.Empty, remainingBits).Write(model, token, start, bitOffset, 0);
          }
       }
 
@@ -442,7 +448,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return bitArray;
       }
       public void Write(IDataModel model, ModelDelta token, int start, int bitOffset, int value) {
-         var requiredByteLength = (bitOffset + BitWidth+ 7) / 8;
+         var requiredByteLength = (bitOffset + BitWidth + 7) / 8;
          if (requiredByteLength > 4) return;
          var bitArray = model.ReadMultiByteValue(start, requiredByteLength);
          var mask = (1 << BitWidth) - 1;
