@@ -345,5 +345,18 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(0, vm.ZIndex);
       }
+
+      [Fact]
+      public void SingleElementStreamRunWithTuple_Serialize_TupleAppearsAsTuple() {
+         var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[index::|t|:.|i::::::. unknown:|h unused:|h]", null, new FixedLengthStreamStrategy(1));
+
+         var lines = stream.SerializeRun().SplitLines();
+
+         var tokenLines = lines.Select(line => line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+         lines = tokenLines.Select(tokens => " ".Join(tokens)).ToArray();
+         Assert.Equal("index: (0)", lines[0]);
+         Assert.Equal("unknown: 0x0000", lines[1]);
+         Assert.Equal("unused: 0x0000", lines[2]);
+      }
    }
 }

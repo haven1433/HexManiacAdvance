@@ -177,6 +177,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (segment is ArrayRunEnumSegment enumSeg) {
                var options = enumSeg.GetOptions(model).ToList();
                if (options.Count > rawValue) value = options[rawValue];
+            } else if (segment is ArrayRunTupleSegment tupSeg) {
+               value = tupSeg.ToText(model, offset);
             } else if (segment is ArrayRunHexSegment hexSeg) {
                value = "0x" + rawValue.ToString("X" + segment.Length * 2);
             } else if (segment.Type == ElementContentType.Pointer) {
