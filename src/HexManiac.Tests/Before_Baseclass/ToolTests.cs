@@ -640,5 +640,45 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0, tableTool.Address);
          Assert.Empty(tableTool.Children);
       }
+
+      [Fact]
+      public void PointerTable_ThreePointersToSameText_CanRepointAll() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("^text\"\" Test\" @010!00(12) ^table[name<\"\">]3 <text> <text> <text>");
+
+         ViewPort.Goto.Execute(0x10);
+
+         var element = ViewPort.Tools.TableTool.Children.FirstOfType<IStreamArrayElementViewModel>();
+         Assert.True(element.CanRepointAll);
+      }
+
+      [Fact]
+      public void PointerTable_TwoPointersToSameText_CannotRepointAll() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("^text\"\" Test\" @010!00(12) ^table[name<\"\">]2 <text> <text>");
+
+         ViewPort.Goto.Execute(0x10);
+
+         var element = ViewPort.Tools.TableTool.Children.FirstOfType<IStreamArrayElementViewModel>();
+         Assert.False(element.CanRepointAll);
+      }
+
+
+      [Fact]
+      public void PointerTable_RepointAll_NoPointersShareTheSameValue() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("^text\"\" Test\" @010!00(12) ^table[name<\"\">]3 <text> <text> <text>");
+
+         ViewPort.Goto.Execute(0x10);
+         var element = ViewPort.Tools.TableTool.Children.FirstOfType<IStreamArrayElementViewModel>();
+         element.RepointAll.Execute();
+
+         var set = new HashSet<int>();
+         set.Add(Model.ReadPointer(0x10));
+         set.Add(Model.ReadPointer(0x14));
+         set.Add(Model.ReadPointer(0x18));
+
+         Assert.Equal(3, set.Count);
+      }
    }
 }

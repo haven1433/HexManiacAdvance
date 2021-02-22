@@ -3,17 +3,66 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
    <StackPanel>
       <DockPanel Visibility="{Binding CanRepoint, Converter={StaticResource BoolToVisibility}}">
-         <Button Content="Repoint this one" Command="{Binding Repoint}" DockPanel.Dock="Right">
-            <Button.ToolTip>
-               <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
-                  <TextBlock TextAlignment="Left">
-                     Make a copy of the data and <LineBreak/>
-                     change this pointer to reference it. <LineBreak/>
-                     Other pointers will remain unchanged.
-                  </TextBlock>
-               </ToolTip>
-            </Button.ToolTip>
-         </Button>
+
+         <Grid DockPanel.Dock="Right">
+            <Button Content="Repoint this one" Command="{Binding Repoint}">
+               <Button.ToolTip>
+                  <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                     <TextBlock TextAlignment="Left">
+                        Make a copy of the data and <LineBreak/>
+                        change this pointer to reference it. <LineBreak/>
+                        Other pointers will remain unchanged.
+                     </TextBlock>
+                  </ToolTip>
+               </Button.ToolTip>
+               <Button.Style>
+                  <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                     <Style.Triggers>
+                        <DataTrigger Binding="{Binding CanRepointAll}" Value="True">
+                           <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                     </Style.Triggers>
+                  </Style>
+               </Button.Style>
+            </Button>
+            <Menu Visibility="{Binding CanRepointAll, Converter={StaticResource BoolToVisibility}}" Background="{DynamicResource Backlight}">
+               <Menu.Style>
+                  <Style TargetType="Menu" BasedOn="{StaticResource {x:Type Menu}}">
+                     <Setter Property="BorderThickness" Value="1"/>
+                     <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                           <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                        </Trigger>
+                     </Style.Triggers>
+                  </Style>
+               </Menu.Style>
+               <MenuItem Header="Repoint" Margin="0,1,0,0">
+                  <MenuItem Header="This One" Command="{Binding Repoint}">
+                     <MenuItem.ToolTip>
+                        <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                           <TextBlock TextAlignment="Left">
+                              Make a copy of the data and <LineBreak/>
+                              change this pointer to reference it. <LineBreak/>
+                              Other pointers will remain unchanged.
+                           </TextBlock>
+                        </ToolTip>
+                     </MenuItem.ToolTip>
+                  </MenuItem>
+                  <MenuItem Header="All" Command="{Binding RepointAll}">
+                     <MenuItem.ToolTip>
+                        <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                           <TextBlock TextAlignment="Left">
+                              Make several copies of the data and change <LineBreak/>
+                              each pointer to reference a different one. <LineBreak/>
+                              The earliest pointer will remain unchanged.
+                           </TextBlock>
+                        </ToolTip>
+                     </MenuItem.ToolTip>
+                  </MenuItem>
+               </MenuItem>
+            </Menu>
+         </Grid>
+         
          <Grid>
             <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource Secondary}" FontStyle="Italic" TextWrapping="Wrap"
                Visibility="{Binding HasMultipleUses, Converter={StaticResource BoolToVisibility}}">

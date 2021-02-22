@@ -108,6 +108,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       bool CanRepoint { get; }
       ICommand Repoint { get; }
 
+      bool CanRepointAll { get; }
+      ICommand RepointAll { get; }
+
       bool CanCreateNew { get; }
       ICommand CreateNew { get; }
    }

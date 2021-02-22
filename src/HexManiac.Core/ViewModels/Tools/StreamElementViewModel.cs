@@ -4,6 +4,7 @@ using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
@@ -31,6 +32,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (!TryUpdate(ref usageCount, value)) return;
             NotifyPropertyChanged(nameof(ShowContent));
             NotifyPropertyChanged(nameof(CanRepoint));
+            NotifyPropertyChanged(nameof(CanRepointAll));
             NotifyPropertyChanged(nameof(HasMultipleUses));
             NotifyPropertyChanged(nameof(CanCreateNew));
             repoint.CanExecuteChanged.Invoke(repoint, EventArgs.Empty);
@@ -41,6 +43,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public bool HasMultipleUses => UsageCount > 1;
 
       public bool CanRepoint => !CanCreateNew && (UsageCount > 1 || DataIsValidButNoRun || DataIsNotValid);
+
+      public bool CanRepointAll => UsageCount > 2;
 
       public bool DataIsValidButNoRun {
          get {
@@ -83,6 +87,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly StubCommand repoint = new StubCommand();
       public ICommand Repoint => repoint;
 
+      private readonly StubCommand repointAll = new StubCommand();
+      public ICommand RepointAll => repointAll;
+
       public bool CanCreateNew => UsageCount == 0;
 
       private readonly StubCommand createNew = new StubCommand();
@@ -119,6 +126,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          repoint.CanExecute = arg => CanRepoint;
          repoint.Execute = ExecuteRepoint;
+         repointAll.CanExecute = arg => CanRepointAll;
+         repointAll.Execute = ExecuteRepointAll;
 
          createNew.CanExecute = arg => CanCreateNew;
          createNew.Execute = ExecuteCreateNew;
@@ -153,6 +162,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          RunFormat = that.RunFormat;
          Visible = other.Visible;
          NotifyPropertyChanged(nameof(CanRepoint));
+         NotifyPropertyChanged(nameof(CanRepointAll));
          repoint.RaiseCanExecuteChanged();
          NotifyPropertyChanged(nameof(DataIsValidButNoRun));
 
@@ -169,11 +179,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       #endregion
 
       private void ExecuteRepoint(object arg) {
-         using (ModelCacheScope.CreateScope(Model)) {
-            ViewPort.RepointToNewCopy(Start);
-            UsageCount = 1;
-            dataChanged?.Invoke(this, EventArgs.Empty);
+         ViewPort.RepointToNewCopy(Start);
+         UsageCount = 1;
+         dataChanged?.Invoke(this, EventArgs.Empty);
+      }
+
+      private void ExecuteRepointAll(object arg) {
+         var destination = Model.ReadPointer(Start);
+         var sources = Model.GetNextRun(destination).PointerSources.Skip(1);
+         foreach (var source in sources) {
+            ViewPort.RepointToNewCopy(source);
          }
+         UsageCount = 1;
+         dataChanged?.Invoke(this, EventArgs.Empty);
       }
 
       private void ExecuteCreateNew(object arg) {

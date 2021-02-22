@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -34,6 +35,13 @@ namespace HavenSoft.HexManiac.Core {
             if (func(element)) break;
             yield return element;
          }
+      }
+
+      public static T FirstOfType<T>(this IEnumerable list) {
+         foreach(var item in list) {
+            if (item is T t) return t;
+         }
+         throw new InvalidOperationException("Enumerable did not contain any elements of type " + typeof(T));
       }
 
       public static void Sort<T>(this List<T> list, Func<T, T, int> compare) {
