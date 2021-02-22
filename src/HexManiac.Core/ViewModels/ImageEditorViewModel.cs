@@ -853,6 +853,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          public void ToolDown(Point point, bool altBehavior) {
             var hoverPoint = parent.ToSpriteSpace(point);
+            if (hoverPoint.X < 0) hoverPoint = new Point(0, hoverPoint.Y);
+            if (hoverPoint.Y < 0) hoverPoint = new Point(hoverPoint.X, 0);
+            if (hoverPoint.X >= parent.PixelWidth) hoverPoint = new Point(parent.PixelWidth - 1, hoverPoint.Y);
+            if (hoverPoint.Y >= parent.PixelHeight) hoverPoint = new Point(hoverPoint.X, parent.PixelHeight - 1);
             if (selectionStart.X > hoverPoint.X ||
                selectionStart.Y > hoverPoint.Y ||
                selectionStart.X + selectionWidth <= hoverPoint.X ||
