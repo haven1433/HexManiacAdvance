@@ -119,6 +119,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      #region Overlay Text
+
+      private string overlayText;
+      public string OverlayText {
+         get => overlayText;
+         set => Set(ref overlayText, value);
+      }
+
+      private bool showOverlayText;
+      public bool ShowOverlayText {
+         get => showOverlayText;
+         set => Set(ref showOverlayText, value);
+      }
+
+      #endregion
+
       private bool findControlVisible;
       public bool FindControlVisible {
          get => findControlVisible;

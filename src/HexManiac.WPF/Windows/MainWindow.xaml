@@ -615,6 +615,10 @@
             </ScrollViewer>
          </Grid>
       </DockPanel>
+      <Border IsHitTestVisible="False" HorizontalAlignment="Center" VerticalAlignment="Center" BorderThickness="10" BorderBrush="{DynamicResource Background}">
+         <TextBox IsReadOnly="True" FontSize="20" TextBlock.LineHeight="25" Background="{DynamicResource Background}" BorderBrush="{DynamicResource Accent}"
+            Visibility="{Binding ShowOverlayText, Converter={StaticResource BoolToVisibility}}" Text="{Binding OverlayText}" />
+      </Border>
       <Rectangle Name="FocusAnimationElement" StrokeThickness="2" Stroke="{DynamicResource Accent}" Visibility="Visible" HorizontalAlignment="Right" VerticalAlignment="Top"/>
    </Grid>
 </Window>

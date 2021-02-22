@@ -172,6 +172,23 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          e.Handled = true;
       }
 
+      protected override void OnDragEnter(DragEventArgs e) {
+         base.OnDragEnter(e);
+         if (e.Data.GetDataPresent(DataFormats.FileDrop)) {
+            var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            foreach (var fileName in files) {
+               if (!fileName.ToLower().EndsWith(".hma")) continue;
+               var lines = File.ReadLines(fileName)
+                  .Until(string.IsNullOrEmpty)
+                  .Select(line => line.Substring(1));
+               var data = Environment.NewLine.Join(lines);
+               ViewModel.OverlayText = data;
+               ViewModel.ShowOverlayText = true;
+               BlurTabs();
+            }
+         }
+      }
+
       protected override void OnDrop(DragEventArgs e) {
          base.OnDrop(e);
 
@@ -182,6 +199,15 @@ namespace HavenSoft.HexManiac.WPF.Windows {
                ViewModel.Open.Execute(new LoadedFile(fileName, data));
             }
          }
+
+         ViewModel.ShowOverlayText = false;
+         UnblurTabs();
+      }
+
+      protected override void OnDragLeave(DragEventArgs e) {
+         base.OnDragLeave(e);
+         ViewModel.ShowOverlayText = false;
+         UnblurTabs();
       }
 
       protected override void OnClosing(CancelEventArgs e) {
@@ -307,13 +333,10 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       private void AnimateFocusToCorner(object sender, DependencyPropertyChangedEventArgs e) {
          var element = (FrameworkElement)sender;
          if (element.Visibility != Visibility.Visible) {
-            if (element == GotoPanel) Tabs.Effect = null;
+            if (element == GotoPanel) UnblurTabs();
             return;
          } else if (element == GotoPanel) {
-            var effect = new BlurEffect { Radius = 0 };
-            Tabs.Effect = effect;
-            effect.BeginAnimation(BlurEffect.RadiusProperty, new DoubleAnimation(5, fastTime));
-            GotoBackground.BeginAnimation(FrameworkElement.OpacityProperty, new DoubleAnimation(0, .7, fastTime));
+            BlurTabs();
          }
          element.Arrange(new Rect());
 
@@ -322,6 +345,19 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          } else {
             NavigationCommands.NavigateJournal.Execute(element, this);
          }
+      }
+
+      private void BlurTabs() {
+         if (Tabs.Effect != null) return;
+         var effect = new BlurEffect { Radius = 0 };
+         Tabs.Effect = effect;
+         effect.BeginAnimation(BlurEffect.RadiusProperty, new DoubleAnimation(5, fastTime));
+         GotoBackground.BeginAnimation(OpacityProperty, new DoubleAnimation(0, .7, fastTime));
+      }
+
+      private void UnblurTabs() {
+         if (ViewModel.GotoViewModel.ControlVisible) return;
+         Tabs.Effect = null;
       }
 
       private void ShowThemeSelector(object sender, RoutedEventArgs e) {
