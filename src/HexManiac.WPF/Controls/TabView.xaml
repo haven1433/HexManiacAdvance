@@ -451,7 +451,7 @@
                            </StackPanel>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type hsg3hvmtr:TupleArrayElementViewModel}">
-                           <StackPanel>
+                           <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                               <TextBlock Text="{Binding Name}" Margin="5,0"/>
                               <ItemsControl ItemsSource="{Binding Children}">
                                  <ItemsControl.ItemsPanel>
