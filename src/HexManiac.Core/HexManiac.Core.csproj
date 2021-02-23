@@ -59,6 +59,7 @@
     <Compile Include="Models\Runs\Factory\LzTilemapRunContentStrategy.cs" />
     <Compile Include="Models\Runs\Factory\LzTilesetRunContentStrategy.cs" />
     <Compile Include="Models\Runs\Factory\OverworldSpriteListContentStrategy.cs" />
+    <Compile Include="Models\Runs\Factory\TilemapRunContentStrategy.cs" />
     <Compile Include="Models\Runs\Factory\TilesetRunContentStrategy.cs" />
     <Compile Include="Models\Runs\HeaderRow.cs" />
     <Compile Include="Models\Runs\ModelCacheScope.cs" />

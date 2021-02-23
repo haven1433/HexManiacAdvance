@@ -81,6 +81,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
             strategy = new LzTilesetRunContentStrategy(lzTilesetFormat);
          } else if (LzTilemapRun.TryParseTilemapFormat(format, out var tilemapFormat)) {
             strategy = new LzTilemapRunContentStrategy(tilemapFormat);
+         } else if (TilemapRun.TryParseTilemapFormat(format, out var tilemapFormat1)) {
+            strategy = new TilemapRunContentStrategy(tilemapFormat1);
          } else if (SpriteRun.TryParseSpriteFormat(format, out var spriteFormat1)) {
             strategy = new SpriteRunContentStrategy(spriteFormat1);
          } else if (PaletteRun.TryParsePaletteFormat(format, out var paletteFormat1)) {

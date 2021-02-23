@@ -62,6 +62,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          tilemapFormat = default;
          if (!(format.StartsWith("`lzm") && format.EndsWith("`"))) return false;
          format = format.Substring(4, format.Length - 5);
+         return TryParseGeneralTilemapFormat(format, out tilemapFormat);
+      }
+
+      public static bool TryParseGeneralTilemapFormat(string format, out TilemapFormat tilemapFormat) {
+         tilemapFormat = default;
 
          // parse the tilesetHint
          string hint = null, tableMember = null;

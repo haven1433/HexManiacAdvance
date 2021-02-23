@@ -43,6 +43,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          SpriteFormat = new SpriteFormat(format.BitsPerPixel, format.TileWidth, format.TileHeight, hint);
       }
 
+      public static bool TryParseTilemapFormat(string format, out TilemapFormat tilemapFormat) {
+         tilemapFormat = default;
+         if (!(format.StartsWith("`ucm") && format.EndsWith("`"))) return false;
+         format = format.Substring(4, format.Length - 5);
+         return LzTilemapRun.TryParseGeneralTilemapFormat(format, out tilemapFormat);
+      }
+
       public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) {
          throw new System.NotImplementedException();
       }
