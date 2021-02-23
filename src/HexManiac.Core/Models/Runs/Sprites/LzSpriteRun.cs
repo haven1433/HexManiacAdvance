@@ -68,6 +68,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public ISpriteRun Duplicate(SpriteFormat format) => new LzSpriteRun(format, Model, Start, PointerSources);
 
+      public byte[] GetData() => Decompress(Model, Start, SpriteFormat.AllowLengthErrors);
+
       public int[,] GetPixels(IDataModel model, int page) {
          var data = Decompress(model, Start, AllowLengthErrors);
          if (data == null) return null;

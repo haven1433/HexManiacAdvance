@@ -9,6 +9,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
    public class SpriteRun : BaseRun, ISpriteRun {
       private readonly int bitsPerPixel, tileWidth, tileHeight;
 
+      public IDataModel Model { get; }
       public SpriteFormat SpriteFormat { get; }
       public int Pages => 1;
       public override int Length { get; }
@@ -18,7 +19,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public bool SupportsImport => true;
       public bool SupportsEdit => true;
 
-      public SpriteRun(int start, SpriteFormat format, SortedSpan<int> sources = null) : base(start, sources) {
+      public SpriteRun(IDataModel model, int start, SpriteFormat format, SortedSpan<int> sources = null) : base(start, sources) {
+         Model = model;
          SpriteFormat = format;
          bitsPerPixel = format.BitsPerPixel;
          tileWidth = format.TileWidth;
@@ -51,9 +53,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return new SpriteDecorator(basicFormat, sprite, ExpectedDisplayWidth, availableRows);
       }
 
-      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new SpriteRun(Start, SpriteFormat, newPointerSources);
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new SpriteRun(Model, Start, SpriteFormat, newPointerSources);
 
-      public ISpriteRun Duplicate(SpriteFormat format) => new SpriteRun(Start, format, PointerSources);
+      public ISpriteRun Duplicate(SpriteFormat format) => new SpriteRun(Model, Start, format, PointerSources);
+
+      public byte[] GetData() {
+         var data = new byte[SpriteFormat.ExpectedByteLength];
+         Array.Copy(Model.RawData, Start, data, 0, data.Length);
+         return data;
+      }
 
       public int[,] GetPixels(IDataModel model, int page) {
          var pageSize = 8 * bitsPerPixel * tileWidth * tileHeight;

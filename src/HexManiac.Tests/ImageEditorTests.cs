@@ -65,7 +65,7 @@ namespace HavenSoft.HexManiac.Tests {
          model.WritePointer(history.CurrentChange, SpritePointerStart, SpriteStart);
          model.WritePointer(history.CurrentChange, PalettePointerStart, PaletteStart);
 
-         var sprite = new SpriteRun(SpriteStart, new SpriteFormat(4, 1, 1, "palette"), new SortedSpan<int>(SpritePointerStart));
+         var sprite = new SpriteRun(model, SpriteStart, new SpriteFormat(4, 1, 1, "palette"), new SortedSpan<int>(SpritePointerStart));
          model.ObserveAnchorWritten(history.CurrentChange, "sprite", sprite);
 
          var palette = new PaletteRun(PaletteStart, new PaletteFormat(4, 1), new SortedSpan<int>(PalettePointerStart));
@@ -1468,7 +1468,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          model.WritePointer(history.CurrentChange, 0x160, ImageStart);
 
-         model.ObserveAnchorWritten(history.CurrentChange, "image", new SpriteRun(0, new SpriteFormat(1, 1, 1, string.Empty)));
+         model.ObserveAnchorWritten(history.CurrentChange, "image", new SpriteRun(model, 0, new SpriteFormat(1, 1, 1, string.Empty)));
 
          editor = new ImageEditorViewModel(history, model, ImageStart);
       }
@@ -1529,7 +1529,7 @@ namespace HavenSoft.HexManiac.Tests {
          editor.ToolUp(-4, 0);
 
          var tilemap = (ITilemapRun)model.GetNextRun(TilemapStart);
-         var data = tilemap.GetData();
+         var data = tilemap.GetTilemapData();
          Assert.Equal(2, data.Length);
          Assert.NotEqual(data[0], data[1]);
       }

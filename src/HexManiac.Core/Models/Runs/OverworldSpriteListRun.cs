@@ -223,6 +223,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return spriteRun;
       }
 
+      public byte[] GetData() {
+         var pageSize = SpriteFormat.TileWidth * SpriteFormat.TileHeight * 32;
+         var result = new byte[pageSize * Pages];
+         for (int i = 0; i < Pages; i++) {
+            var start = model.ReadPointer(Start + ElementLength * i);
+            var page = model.GetNextRun(start) is ISpriteRun spriteRun ? spriteRun.GetData() : new byte[pageSize];
+            Array.Copy(page, 0, result, pageSize * i, pageSize);
+         }
+         return result;
+      }
+
       // this implementation puts all the child sprites into separate pages
       public int[,] GetPixels(IDataModel model, int page) {
          var width = SpriteFormat.TileWidth * 8;

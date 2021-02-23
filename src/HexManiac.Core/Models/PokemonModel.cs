@@ -218,7 +218,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                }
 
                // update tileset hints
-               if (runs[i] is LzTilemapRun tilemap) {
+               if (runs[i] is ITilemapRun tilemap) {
                   var format = tilemap.Format;
                   if (format.MatchingTileset != anchor) continue;
                   tilemap = tilemap.Duplicate(new TilemapFormat(format.BitsPerPixel, format.TileWidth, format.TileHeight, reference.Name, format.TilesetTableMember));

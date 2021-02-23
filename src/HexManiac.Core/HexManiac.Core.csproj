@@ -73,6 +73,7 @@
     <Compile Include="Models\Runs\Sprites\PaletteRun.cs" />
     <Compile Include="Models\Runs\Sprites\SpriteRun.cs" />
     <Compile Include="Models\Runs\Sprites\Sprites.cs" />
+    <Compile Include="Models\Runs\Sprites\TilemapRun.cs" />
     <Compile Include="Models\Runs\Sprites\TilesetRun.cs" />
     <Compile Include="Models\Runs\TableStreamRun.cs" />
     <Compile Include="Models\Runs\TilemapTableRun.cs" />

@@ -13,7 +13,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
 
       public override int LengthForNewRun(IDataModel model, int pointerAddress) => spriteFormat.ExpectedByteLength;
       public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
-         var spriteRun = new SpriteRun(destination, spriteFormat, new SortedSpan<int>(source));
+         var spriteRun = new SpriteRun(owner, destination, spriteFormat, new SortedSpan<int>(source));
          // TODO deal with the run being too long?
          if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, spriteRun);
          return true;
@@ -25,17 +25,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          spriteRun.SpriteFormat.TileHeight == spriteFormat.TileHeight;
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          for (int i = 0; i < spriteFormat.ExpectedByteLength; i++) token.ChangeData(owner, destination + i, 0);
-         return new SpriteRun(destination, spriteFormat);
+         return new SpriteRun(owner, destination, spriteFormat);
       }
       public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
-         var runAttempt = new SpriteRun(run.Start, spriteFormat, run.PointerSources);
+         var runAttempt = new SpriteRun(model, run.Start, spriteFormat, run.PointerSources);
          if (runAttempt.Length > 0) {
             run = runAttempt.MergeAnchor(run.PointerSources);
             model.ClearFormat(token, run.Start, run.Length);
          }
       }
       public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
-         run = new SpriteRun(dataIndex, spriteFormat, run.PointerSources);
+         run = new SpriteRun(model, dataIndex, spriteFormat, run.PointerSources);
          return ErrorInfo.NoError;
       }
    }

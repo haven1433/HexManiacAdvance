@@ -63,6 +63,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return true;
       }
 
+      public byte[] GetData() => Decompress(Model, Start);
+
       public int[,] GetPixels(IDataModel model, int page) {
          var data = Decompress(model, Start);
          return SpriteRun.GetPixels(data, 0, Width, Height, TilesetFormat.BitsPerPixel);

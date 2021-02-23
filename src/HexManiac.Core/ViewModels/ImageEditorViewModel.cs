@@ -284,7 +284,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var spriteAddress = model.ReadPointer(SpritePointer);
          if (!(model.GetNextRun(spriteAddress) is ITilemapRun tilemapRun)) return;
          TilePalettes.Clear();
-         var runData = tilemapRun.GetData();
+         var runData = tilemapRun.GetTilemapData();
          var pal = ReadPalette();
          for (int i = 0; i < runData.Length / tilemapRun.BytesPerTile; i++) {
             var (paletteIndex, _, _, _) = LzTilemapRun.ReadTileData(runData, i, tilemapRun.BytesPerTile);

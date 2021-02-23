@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -7,8 +8,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
    public interface ITilemapRun : ISpriteRun {
       TilemapFormat Format { get; }
       int BytesPerTile { get; }
-      byte[] GetData();
+      byte[] GetTilemapData();
       int FindMatchingTileset(IDataModel model);
+      ITilemapRun Duplicate(TilemapFormat format);
    }
 
    public class LzTilemapRun : LZRun, ITilemapRun {
@@ -84,7 +86,19 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return true;
       }
 
-      public byte[] GetData() => Decompress(Model, Start);
+      public byte[] GetTilemapData() => Decompress(Model, Start);
+
+      public byte[] GetData() {
+         var tilesetAddress = Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, Format.MatchingTileset);
+         var tileset = Model.GetNextRun(tilesetAddress) as ISpriteRun;
+         if (tileset == null) tileset = Model.GetNextRun(arrayTilesetAddress) as ISpriteRun;
+
+         if (tileset == null) return new byte[Format.TileWidth * 8 * Format.TileHeight * Format.BitsPerPixel];
+
+         var tiles = tileset.GetData();
+
+         return GetData(GetTilemapData(), tiles, Format, BytesPerTile);
+      }
 
       public int[,] GetPixels(IDataModel model, int page) {
          var mapData = Decompress(model, Start);
@@ -93,9 +107,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          var tileset = model.GetNextRun(tilesetAddress) as ISpriteRun;
          if (tileset == null) tileset = model.GetNextRun(arrayTilesetAddress) as ISpriteRun;
          
-         if (tileset == null || !(tileset is LZRun)) return new int[Format.TileWidth * 8, Format.TileHeight * 8]; // relax the conditions slightly: if the run we found is an LZSpriteRun, that's close enough, we can use it as a tileset.
+         if (tileset == null || tileset is ITilemapRun) return new int[Format.TileWidth * 8, Format.TileHeight * 8]; // relax the conditions slightly: if the run we found is an LZSpriteRun, that's close enough, we can use it as a tileset.
 
-         var tiles = Decompress(model, tileset.Start);
+         var tiles = tileset.GetData();
 
          return GetPixels(mapData, tiles, Format, BytesPerTile);
       }
@@ -145,6 +159,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          }
 
          return result;
+      }
+
+      public static byte[] GetData(byte[] mapData, byte[] tiles, TilemapFormat format, int bytesPerTile) {
+         throw new NotImplementedException();
       }
 
       public ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels) {
@@ -202,7 +220,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       public static IEnumerable<int> GetUsedTiles(ITilemapRun tilemap) {
-         var mapData = tilemap.GetData();
+         var mapData = tilemap.GetTilemapData();
          for (int y = 0; y < tilemap.Format.TileHeight; y++) {
             for (int x = 0; x < tilemap.Format.TileWidth; x++) {
                var map = mapData.ReadMultiByteValue((tilemap.Format.TileWidth * y + x) * tilemap.BytesPerTile, tilemap.BytesPerTile);
@@ -395,6 +413,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public ISpriteRun Duplicate(SpriteFormat format) => new LzSpriteRun(format, Model, Start, PointerSources);
 
+      ITilemapRun ITilemapRun.Duplicate(TilemapFormat format) => Duplicate(format);
       public LzTilemapRun Duplicate(TilemapFormat format) => new LzTilemapRun(format, Model, Start, PointerSources);
    }
 

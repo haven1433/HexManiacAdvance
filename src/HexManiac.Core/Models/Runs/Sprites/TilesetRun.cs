@@ -79,7 +79,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) => LzUncompressed.Instance;
 
-      public ISpriteRun Duplicate(SpriteFormat newFormat) => new SpriteRun(Start, newFormat, PointerSources);
+      public ISpriteRun Duplicate(SpriteFormat newFormat) => new SpriteRun(model, Start, newFormat, PointerSources);
+
+      public byte[] GetData() {
+         var (width, height) = (SpriteFormat.TileWidth, SpriteFormat.TileHeight);
+         var data = new byte[width * height * SpriteFormat.BitsPerPixel * 8];
+         Array.Copy(model.RawData, Start, data, 0, Length);
+         return data;
+      }
 
       public int[,] GetPixels(IDataModel model, int page) {
          var (width, height) = (SpriteFormat.TileWidth, SpriteFormat.TileHeight);

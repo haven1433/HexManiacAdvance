@@ -156,7 +156,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var tileCount = length / 32;
             var width = (int)Math.Sqrt(tileCount);
             var height = width;
-            var newRun = new SpriteRun(spriteAddress, new SpriteFormat(4, width, height, null));
+            var newRun = new SpriteRun(model, spriteAddress, new SpriteFormat(4, width, height, null));
             if (string.IsNullOrEmpty(model.GetAnchorFromAddress(-1, spriteAddress))) {
                model.ObserveAnchorWritten(history.CurrentChange, $"{HardcodeTablesModel.DefaultSpriteNamespace}.{spriteAddress:X6}", newRun);
             } else {
