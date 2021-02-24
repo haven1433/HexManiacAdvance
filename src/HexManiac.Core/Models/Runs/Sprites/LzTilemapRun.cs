@@ -171,25 +171,29 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       public ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels) {
-         var tileData = Tilize(pixels, Format.BitsPerPixel);
-         var tiles = GetUniqueTiles(tileData, BytesPerTile == 2);
-         var tilesetAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, Format.MatchingTileset);
-         var tileset = model.GetNextRun(tilesetAddress) as LzTilesetRun;
+         return SetPixels(this, model, token, page, pixels, ref arrayTilesetAddress, ReplaceData);
+      }
+
+      public static ITilemapRun SetPixels(ITilemapRun run, IDataModel model, ModelDelta token, int page, int[,] pixels, ref int arrayTilesetAddress, Func<byte[], ModelDelta, ITilemapRun> replaceData) {
+         var tileData = Tilize(pixels, run.Format.BitsPerPixel);
+         var tiles = GetUniqueTiles(tileData, run.BytesPerTile == 2);
+         var tilesetAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, run.Format.MatchingTileset);
+         var tileset = model.GetNextRun(tilesetAddress) as ITilesetRun;
          if (tileset == null) {
-            FindMatchingTileset(model);
-            tileset = model.GetNextRun(arrayTilesetAddress) as LzTilesetRun;
+            FindMatchingTileset(run, model, ref arrayTilesetAddress);
+            tileset = model.GetNextRun(arrayTilesetAddress) as ITilesetRun;
          }
 
          var tilesToKeep = new HashSet<int>((tileset.DecompressedLength / tileset.TilesetFormat.BitsPerPixel / 8).Range());
-         foreach (var tile in GetUsedTiles(this)) tilesToKeep.Remove(tile);
-         foreach (var tilemap in tileset.FindDependentTilemaps(model).Except(this)) {
+         foreach (var tile in GetUsedTiles(run)) tilesToKeep.Remove(tile);
+         foreach (var tilemap in tileset.FindDependentTilemaps(model).Except(run)) {
             tilesToKeep.AddRange(GetUsedTiles(tilemap));
          }
-         var oldTileDataRaw = Decompress(model, tileset.Start);
-         var previousTiles = Tilize(oldTileDataRaw, Format.BitsPerPixel);
-         tiles = MergeTilesets(previousTiles, tilesToKeep, tiles, BytesPerTile == 2);
+         var oldTileDataRaw = tileset.GetData();
+         var previousTiles = Tilize(oldTileDataRaw, run.Format.BitsPerPixel);
+         tiles = MergeTilesets(previousTiles, tilesToKeep, tiles, run.BytesPerTile == 2);
          tileset.SetPixels(model, token, tiles);
-         var mapData = Decompress(model, Start);
+         var mapData = run.GetTilemapData();
 
          var tileWidth = tileData.GetLength(0);
          var tileHeight = tileData.GetLength(1);
@@ -198,9 +202,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             for (int x = 0; x < tileWidth; x++) {
                var i = y * tileWidth + x;
                var (tile, paletteIndex) = tileData[x, y];
-               var (tileIndex, matchType) = FindMatch(tile, tiles, BytesPerTile == 2);
+               var (tileIndex, matchType) = FindMatch(tile, tiles, run.BytesPerTile == 2);
                if (tileIndex == -1) tileIndex = 0;
-               if (BytesPerTile == 2) {
+               if (run.BytesPerTile == 2) {
                   var mapping = PackMapping(paletteIndex, matchType, tileIndex);
                   mapData[i * 2 + 0] = (byte)mapping;
                   mapData[i * 2 + 1] = (byte)(mapping >> 8);
@@ -210,11 +214,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             }
          }
 
-         return ReplaceData(mapData, token);
+         return replaceData(mapData, token);
       }
 
       /// <param name="newRawData">Uncompressed data that we want to compress and insert.</param>
-      public LzTilemapRun ReplaceData(byte[] newRawData, ModelDelta token) {
+      public ITilemapRun ReplaceData(byte[] newRawData, ModelDelta token) {
          var newModelData = Compress(newRawData, 0, newRawData.Length);
          var newRun = Model.RelocateForExpansion(token, this, newModelData.Count);
          for (int i = 0; i < newModelData.Count; i++) token.ChangeData(Model, newRun.Start + i, newModelData[i]);
@@ -235,7 +239,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          }
       }
 
-      private int PackMapping(int paletteIndex, TileMatchType matchType, int tileIndex) {
+      public static int PackMapping(int paletteIndex, TileMatchType matchType, int tileIndex) {
          var hFlip = (matchType == TileMatchType.HFlip || matchType == TileMatchType.BFlip) ? 1 : 0;
          var vFlip = (matchType == TileMatchType.VFlip || matchType == TileMatchType.BFlip) ? 1 : 0;
          return (paletteIndex << 12) | (vFlip << 11) | (hFlip << 10) | tileIndex;
@@ -353,13 +357,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       private int arrayTilesetAddress;
-      public int FindMatchingTileset(IDataModel model) {
-         var hint = Format.MatchingTileset;
+      public int FindMatchingTileset(IDataModel model) => FindMatchingTileset(this, model, ref arrayTilesetAddress);
+      public static int FindMatchingTileset(ITilemapRun run, IDataModel model, ref int arrayTilesetAddress) {
+         var hint = run.Format.MatchingTileset;
          IFormattedRun hintRun;
          if (hint != null) {
             hintRun = model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, hint));
          } else {
-            hintRun = model.GetNextRun(PointerSources[0]);
+            hintRun = model.GetNextRun(run.PointerSources[0]);
          }
 
          // easy case: the hint is the address of a tileset
@@ -370,10 +375,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
          // harder case: the hint is a table
          if (!(hintRun is ITableRun hintTable)) return hintRun.Start;
-         var tilemapPointer = PointerSources[0];
+         var tilemapPointer = run.PointerSources[0];
          var tilemapTable = model.GetNextRun(tilemapPointer) as ITableRun;
-         for (int i = 1; i < PointerSources.Count && tilemapTable == null; i++) {
-            tilemapPointer = PointerSources[i];
+         for (int i = 1; i < run.PointerSources.Count && tilemapTable == null; i++) {
+            tilemapPointer = run.PointerSources[i];
             tilemapTable = model.GetNextRun(tilemapPointer) as ITableRun;
          }
          if (tilemapTable == null) return hintRun.Start;
@@ -383,7 +388,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          var segmentOffset = 0;
          for (int i = 0; i < hintTable.ElementContent.Count; i++) {
             if (hintTable.ElementContent[i] is ArrayRunPointerSegment segment) {
-               if (Format.TilesetTableMember == null || segment.Name == Format.TilesetTableMember) {
+               if (run.Format.TilesetTableMember == null || segment.Name == run.Format.TilesetTableMember) {
                   if (LzTilesetRun.TryParseTilesetFormat(segment.InnerFormat, out var _)) {
                      var source = hintTable.Start + hintTable.ElementLength * tilemapIndex + segmentOffset;
                      if (model.GetNextRun(model.ReadPointer(source)) is LzTilesetRun tilesetRun) {

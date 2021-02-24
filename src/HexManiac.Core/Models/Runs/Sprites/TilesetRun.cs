@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
@@ -23,6 +24,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public bool SupportsEdit => true;
 
       public override int Length => TilesetFormat.Tiles * TilesetFormat.BitsPerPixel * 8;
+      public int DecompressedLength => Length;
 
       public override string FormatString {
          get {
@@ -101,6 +103,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          SpriteRun.SetPixels(data, 0, pixels, TilesetFormat.BitsPerPixel);
          for (int i = 0; i < Length; i++) token.ChangeData(model, Start + i, data[i]);
          return this;
+      }
+
+      public ITilesetRun SetPixels(IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles) {
+         return LzTilesetRun.SetPixels(this, model, token, tiles, (start, sources) => new TilesetRun(TilesetFormat, model, start, sources));
       }
 
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new TilesetRun(TilesetFormat, model, Start, newPointerSources);

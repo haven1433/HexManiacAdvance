@@ -5,6 +5,8 @@ using System.Collections.Generic;
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
    public interface ITilesetRun : ISpriteRun {
       TilesetFormat TilesetFormat { get; }
+      ITilesetRun SetPixels(IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles);
+      int DecompressedLength { get; }
    }
 
    public class LzTilesetRun : LZRun, ITilesetRun {
@@ -113,19 +115,23 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public ISpriteRun Duplicate(SpriteFormat format) => new LzSpriteRun(format, Model, Start, PointerSources);
 
-      public ISpriteRun SetPixels(IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles) {
-         var tileSize = 8 * TilesetFormat.BitsPerPixel;
+      public ITilesetRun SetPixels(IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles) {
+         return SetPixels(this, model, token, tiles, (start, sources) => new LzTilesetRun(TilesetFormat, model, start, sources));
+      }
+
+      public static ITilesetRun SetPixels(ITilesetRun run, IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles, Func<int, SortedSpan<int>, ITilesetRun> construct) {
+         var tileSize = 8 * run.TilesetFormat.BitsPerPixel;
          var data = new byte[tiles.Count * tileSize];
 
          for (int i = 0; i < tiles.Count; i++) {
-            SpriteRun.SetPixels(data, i * tileSize, tiles[i], TilesetFormat.BitsPerPixel);
+            SpriteRun.SetPixels(data, i * tileSize, tiles[i], run.TilesetFormat.BitsPerPixel);
          }
 
          var newModelData = Compress(data, 0, data.Length);
-         var newRun = (LzTilesetRun)model.RelocateForExpansion(token, this, newModelData.Count);
+         var newRun = model.RelocateForExpansion(token, run, newModelData.Count);
          for (int i = 0; i < newModelData.Count; i++) token.ChangeData(model, newRun.Start + i, newModelData[i]);
-         for (int i = newModelData.Count; i < Length; i++) token.ChangeData(model, newRun.Start + i, 0xFF);
-         newRun = new LzTilesetRun(TilesetFormat, model, newRun.Start, newRun.PointerSources);
+         for (int i = newModelData.Count; i < run.Length; i++) token.ChangeData(model, newRun.Start + i, 0xFF);
+         newRun = construct(newRun.Start, newRun.PointerSources);
          model.ObserveRunWritten(token, newRun);
          return newRun;
       }

@@ -1,5 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
@@ -51,7 +53,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) {
-         throw new System.NotImplementedException();
+         while (length > 0) {
+            builder.Append(model[start].ToString("X2"));
+            length -= 1;
+            if (length > 0) builder.Append(" ");
+            start += 1;
+         }
       }
 
       public void Clear(IDataModel model, ModelDelta changeToken, int start, int length) {
@@ -68,9 +75,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          throw new System.NotImplementedException();
       }
 
-      public int FindMatchingTileset(IDataModel model) {
-         throw new System.NotImplementedException();
-      }
+      private int arrayTilesetAddress;
+      public int FindMatchingTileset(IDataModel model) => LzTilemapRun.FindMatchingTileset(this, model, ref arrayTilesetAddress);
 
       public byte[] GetTilemapData() {
          var data = new byte[Format.ExpectedUncompressedLength];
@@ -105,7 +111,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       public ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels) {
-         throw new System.NotImplementedException();
+         return LzTilemapRun.SetPixels(this, model, token, page, pixels, ref arrayTilesetAddress, ReplaceData);
+      }
+
+      /// <param name="newRawData">Uncompressed data that we want to compress and insert.</param>
+      public ITilemapRun ReplaceData(byte[] newRawData, ModelDelta token) {
+         var newModelData = newRawData.ToList();
+         var newRun = Model.RelocateForExpansion(token, this, newModelData.Count);
+         for (int i = 0; i < newModelData.Count; i++) token.ChangeData(Model, newRun.Start + i, newModelData[i]);
+         for (int i = newModelData.Count; i < Length; i++) token.ChangeData(Model, newRun.Start + i, 0xFF);
+         newRun = new TilemapRun(Model, newRun.Start, Format, newRun.PointerSources);
+         Model.ObserveRunWritten(token, newRun);
+         return newRun;
       }
 
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new TilemapRun(Model, Start, Format, newPointerSources);
