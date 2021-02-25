@@ -221,9 +221,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Scripts\How_To_Use_HMA_Files.txt">
+    <None Include="Scripts\How_To_Use_HMA_Files.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

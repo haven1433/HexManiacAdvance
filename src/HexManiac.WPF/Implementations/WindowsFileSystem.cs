@@ -73,6 +73,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
       public void LaunchProcess(string file) {
          try {
+            file = Path.GetFullPath(file);
             Process.Start(file);
          } catch (System.ComponentModel.Win32Exception) {
             var nl = Environment.NewLine;

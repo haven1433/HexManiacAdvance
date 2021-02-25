@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
+using HavenSoft.HexManiac.Core.ViewModels.QuickEditItems;
 using HavenSoft.HexManiac.WPF.Controls;
 using HavenSoft.HexManiac.WPF.Implementations;
 using System;
@@ -96,75 +97,88 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       }
 
       private void FillQuickEditMenu() {
-         foreach (var edit in ViewModel.QuickEdits) {
-            var command = new StubCommand {
-               CanExecute = arg => ViewModel.SelectedIndex >= 0 && edit.CanRun(ViewModel[ViewModel.SelectedIndex] as IViewPort),
-               Execute = arg => {
-                  Window window = default;
-                  window = new Window {
-                     Title = edit.Name,
-                     Background = (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][nameof(Theme.Background)],
-                     SizeToContent = SizeToContent.WidthAndHeight,
-                     WindowStyle = WindowStyle.ToolWindow,
-                     Content = new StackPanel {
-                        Width = 300,
-                        Children = {
-                              new TextBlock {
-                                 Margin = new Thickness(5),
-                                 FontSize = 14,
-                                 Text = edit.Description,
-                                 TextWrapping = TextWrapping.Wrap,
-                              },
-                              new TextBlock(
-                                 string.IsNullOrEmpty(edit.WikiLink) ? (Inline)new Run() :
-                                 new Hyperlink(new Run("Click here to learn more.")) {
-                                    Foreground = (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][nameof(Theme.Accent)],
-                                    NavigateUri = new Uri(edit.WikiLink),
-                                 }.Fluent(link => link.RequestNavigate += Navigate)
-                              ) {
-                                 HorizontalAlignment = HorizontalAlignment.Center,
-                              },
-                              new StackPanel {
-                                 Orientation = Orientation.Horizontal,
-                                 VerticalAlignment = VerticalAlignment.Bottom,
-                                 HorizontalAlignment = HorizontalAlignment.Right,
-                                 Children = {
-                                    new Button {
-                                       Content = "Run",
-                                       Margin = new Thickness(5),
-                                       Command = new StubCommand {
-                                          CanExecute = arg1 => true,
-                                          Execute = arg1 => {
-                                             ViewModel.RunQuickEdit(edit);
-                                             window.Close();
-                                          }
-                                       },
-                                    },
-                                    new Button {
-                                       Content = "Cancel",
-                                       IsCancel = true,
-                                       Margin = new Thickness(5),
-                                       Command = new StubCommand {
-                                          CanExecute = arg1 => true,
-                                          Execute = arg1 => window.Close(),
-                                       },
-                                    },
-                                 },
-                              },
-                           },
-                     },
-                  };
-                  window.ShowDialog();
-               },
-            };
-
-            edit.CanRunChanged += (sender, e) => command.CanExecuteChanged.Invoke(command, EventArgs.Empty);
-
-            QuickEdits.Items.Add(new MenuItem {
+         foreach (var edit in ViewModel.QuickEditsPokedex) {
+            var command = CreateQuickEditCommand(edit);
+            QuickEditsPokedex.Items.Add(new MenuItem {
                Header = edit.Name,
                Command = command,
             });
          }
+
+         foreach (var edit in ViewModel.QuickEditsExpansion) {
+            var command = CreateQuickEditCommand(edit);
+            QuickEditsExpansion.Items.Add(new MenuItem {
+               Header = edit.Name,
+               Command = command,
+            });
+         }
+      }
+
+      private ICommand CreateQuickEditCommand(IQuickEditItem edit) {
+         var command = new StubCommand {
+            CanExecute = arg => ViewModel.SelectedIndex >= 0 && edit.CanRun(ViewModel[ViewModel.SelectedIndex] as IViewPort),
+            Execute = arg => {
+               Window window = default;
+               window = new Window {
+                  Title = edit.Name,
+                  Background = (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][nameof(Theme.Background)],
+                  SizeToContent = SizeToContent.WidthAndHeight,
+                  WindowStyle = WindowStyle.ToolWindow,
+                  Content = new StackPanel {
+                     Width = 300,
+                     Children = {
+                           new TextBlock {
+                              Margin = new Thickness(5),
+                              FontSize = 14,
+                              Text = edit.Description,
+                              TextWrapping = TextWrapping.Wrap,
+                           },
+                           new TextBlock(
+                              string.IsNullOrEmpty(edit.WikiLink) ? (Inline)new Run() :
+                              new Hyperlink(new Run("Click here to learn more.")) {
+                                 Foreground = (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][nameof(Theme.Accent)],
+                                 NavigateUri = new Uri(edit.WikiLink),
+                              }.Fluent(link => link.RequestNavigate += Navigate)
+                           ) {
+                              HorizontalAlignment = HorizontalAlignment.Center,
+                           },
+                           new StackPanel {
+                              Orientation = Orientation.Horizontal,
+                              VerticalAlignment = VerticalAlignment.Bottom,
+                              HorizontalAlignment = HorizontalAlignment.Right,
+                              Children = {
+                                 new Button {
+                                    Content = "Run",
+                                    Margin = new Thickness(5),
+                                    Command = new StubCommand {
+                                       CanExecute = arg1 => true,
+                                       Execute = arg1 => {
+                                          ViewModel.RunQuickEdit(edit);
+                                          window.Close();
+                                       }
+                                    },
+                                 },
+                                 new Button {
+                                    Content = "Cancel",
+                                    IsCancel = true,
+                                    Margin = new Thickness(5),
+                                    Command = new StubCommand {
+                                       CanExecute = arg1 => true,
+                                       Execute = arg1 => window.Close(),
+                                    },
+                                 },
+                              },
+                           },
+                        },
+                  },
+               };
+               window.ShowDialog();
+            },
+         };
+
+         edit.CanRunChanged += (sender, e) => command.CanExecuteChanged.Invoke(command, EventArgs.Empty);
+
+         return command;
       }
 
       private void Navigate(object sender, RequestNavigateEventArgs e) {

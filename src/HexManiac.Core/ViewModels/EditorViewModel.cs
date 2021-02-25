@@ -297,6 +297,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private bool allowMultipleElementsPerLine = true;
       public bool AllowMultipleElementsPerLine { get => allowMultipleElementsPerLine; set => Set(ref allowMultipleElementsPerLine, value); }
 
+      private StubCommand launchScriptsLocation;
+      public ICommand LaunchScriptsLocation => StubCommand(ref launchScriptsLocation, () => fileSystem.LaunchProcess("resources/scripts"));
+
       public Theme Theme { get; }
 
       private string infoMessage;
@@ -309,7 +312,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public IToolTrayViewModel Tools => (SelectedTab as IViewPort)?.Tools;
 
-      public IReadOnlyList<IQuickEditItem> QuickEdits { get; }
+      public IReadOnlyList<IQuickEditItem> QuickEditsPokedex { get; }
+
+      public IReadOnlyList<IQuickEditItem> QuickEditsExpansion { get; }
 
       public Singletons Singletons { get; }
 
@@ -338,7 +343,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   runFile.RaiseCanExecuteChanged();
                   if (selectedIndex >= 0 && selectedIndex < tabs.Count) tabs[selectedIndex].Refresh();
                   UpdateGotoViewModel();
-                  foreach (var edit in QuickEdits) edit.TabChanged();
+                  foreach (var edit in QuickEditsPokedex.Concat(QuickEditsExpansion)) edit.TabChanged();
                   NotifyPropertyChanged(nameof(SelectedTab));
                   NotifyPropertyChanged(nameof(ShowWidthOptions));
                }
@@ -359,12 +364,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Singletons = new Singletons(workDispatcher);
          this.workDispatcher = workDispatcher ?? InstantDispatch.Instance;
          this.allowLoadingMetadata = allowLoadingMetadata;
-         QuickEdits = utilities ?? new List<IQuickEditItem> {
-            new MakeTutorsExpandable(),
-            new MakeMovesExpandable(),
+         QuickEditsPokedex = utilities ?? new List<IQuickEditItem> {
             new UpdateDexConversionTable(),
             new ReorderDex("National", HardcodeTablesModel.NationalDexTableName),
             new ReorderDex("Regional", HardcodeTablesModel.RegionalDexTableName),
+         }.Select(edit => new EditItemWrapper(edit)).ToList();
+         QuickEditsExpansion = new List<IQuickEditItem> {
+            new MakeTutorsExpandable(),
+            new MakeMovesExpandable(),
             // new MakeTmsExpandable(),   // expanding TMs requires further research.
             // new MakeItemsExpandable(),
          }.Select(edit => new EditItemWrapper(edit)).ToList();
@@ -601,7 +608,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (viewModel.Model != null) {
                viewModel.Model.InitializeComplete += (sender, e) => Singletons.WorkDispatcher.DispatchWork(() => {
                   viewModel.Refresh();
-                  foreach (var edit in QuickEdits) edit.TabChanged();
+                  foreach (var edit in QuickEditsPokedex.Concat(QuickEditsExpansion)) edit.TabChanged();
                   gotoViewModel.RefreshOptions();
                });
             }

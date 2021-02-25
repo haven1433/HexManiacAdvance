@@ -176,7 +176,11 @@
                   <MenuItem Header="Toggle _Image Tool" Command="{Binding Tools.SpriteToolCommand}"/>
                   <MenuItem Header="Toggle _Code Tool" Command="{Binding Tools.CodeToolCommand}"/>
                </MenuItem>
-               <MenuItem Name="QuickEdits" Header="Utilities"/>
+               <MenuItem Header="Utilities">
+                  <MenuItem Name="QuickEditsPokedex" Header="Pokedex" />
+                  <MenuItem Name="QuickEditsExpansion" Header="Expand" />
+                  <MenuItem Header="Scripts" Command="{Binding LaunchScriptsLocation}"/>
+               </MenuItem>
                <MenuItem Header="_Help">
                   <MenuItem Header="_Update" IsEnabled="{Binding IsNewVersionAvailable}" Click="UpdateClick">
                      <MenuItem.ToolTip>
