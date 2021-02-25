@@ -21,7 +21,7 @@
 + Fight Fairy  5 + Poison Fairy 20
 + Steel Fairy 20 + Dragon Fairy  0
 # Effectiveness that care about Scrappy / Foresight / Odor Sleuth
-+ 254 254 0       + Normal Ghost 0  + Fight Ghost 0
++ 254 254 0      + Normal Ghost 0  + Fight Ghost 0
 
 # Change the types of Gen1/Gen3 pokemon to add the fairy type
 @data.pokemon.stats/cleffa/type1     Fairy Fairy

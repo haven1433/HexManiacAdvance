@@ -1,0 +1,9 @@
+
+1. Open the .gba you want to edit with HexManiacAdvance
+2. Click and drag the .hma file over HexManiacAdvance.
+   You should see a preview describing what the script will do.
+3. Release. The script will make edits to your rom.
+4. If you're happy with the changes, save.
+
+Note:
+.hma files are just text files. You can open them and read them if you want.
