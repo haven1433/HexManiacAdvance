@@ -172,7 +172,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             if (line == "{") {
                var streamStart = i + 1;
                var indentCount = 1;
-               i += 2;
+               i += 1;
                while (indentCount > 0) {
                   line = lines[i].Trim();
                   if (line == "{") indentCount += 1;
@@ -182,7 +182,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                }
                i -= 1;
                var streamEnd = i;
-               var stream = lines.Skip(streamStart).Take(streamEnd - streamStart).Aggregate((a, b) => a + Environment.NewLine + b);
+               var streamLines = lines.Skip(streamStart).Take(streamEnd - streamStart).ToList();
+               var stream = streamLines.Aggregate(string.Empty, (a, b) => a + Environment.NewLine + b);
 
                // Let the stream run handle updating itself based on the stream content.
                if (streamLocation >= 0 && streamPointerLocation >= 0) {
@@ -278,8 +279,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       public string GetHelp(string currentLine) {
-         var tokens = ScriptLine.Tokenize(currentLine);
-         var candidates = engine.Where(line => line.LineCommand.Contains(currentLine.Split(' ')[0])).ToList();
+         var tokens = ScriptLine.Tokenize(currentLine.Trim());
+         var candidates = engine.Where(line => line.LineCommand.Contains(tokens[0])).ToList();
          if (candidates.Count > 10) return null;
          if (candidates.Count == 0) return null;
          if (candidates.Count == 1) {

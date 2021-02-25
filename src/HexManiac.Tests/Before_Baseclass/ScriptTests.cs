@@ -141,6 +141,27 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x11, Model[0]);
       }
 
+      [Fact]
+      public void EventScriptWithText_ClearText_ScriptIsUnchanged() {
+         ViewPort.Edit("@100!put(FF) ^text\"\" Hello");
+         var script = @"
+loadpointer 00 <100>
+{
+
+}
+end
+";
+         var code = ViewPort.Tools.CodeTool.ScriptParser.Compile(ViewPort.CurrentChange, Model, 0, ref script, out var _);
+
+         Assert.Equal(7, code.Length);
+         Assert.Equal("\"\"", PCSString.Convert(Model, 0x100, 0x100));
+      }
+
+      [Fact]
+      public void LoadPointerCommand_StartsWithWhitespace_StillGetHelp() {
+         Assert.NotEmpty(ViewPort.Tools.CodeTool.ScriptParser.GetHelp("  loadpointer"));
+      }
+
       private string Script(params string[] lines) => lines.CombineLines();
    }
 }
