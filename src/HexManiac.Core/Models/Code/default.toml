@@ -44,7 +44,7 @@ Name = '''moveeffects'''
    '''Burn''',
    '''Freeze''',
    '''Paralyze''',
-   '''Suicide''',
+   '''SelfKO''',
    '''HealHalfIfOpponentSleeping''',
    '''RepeatFoeMove''',
    '''RaiseAttackPrimary''',
