@@ -84,7 +84,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ObservableCollection<GotoLabelSection> PrefixSelections { get; }
 
-      public GotoControlViewModel(ITabContent tabContent) {
+      public GotoControlViewModel(ITabContent tabContent, IWorkDispatcher dispatcher) {
          viewPort = (tabContent as IViewPort);
          MoveAutoCompleteSelectionUp = new StubCommand {
             CanExecute = CanAlwaysExecute,
@@ -97,7 +97,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Goto = new StubCommand {
             CanExecute = arg => viewPort?.Goto != null,
             Execute = arg => {
-               using (ModelCacheScope.CreateScope(viewPort.Model)) {
+               viewPort.Model.AfterInitialized(() => dispatcher.DispatchWork(() => {
                   var text = Text;
                   var index = completionIndex.LimitToRange(-1, AutoCompleteOptions.Count - 1);
                   if (index != -1) text = AutoCompleteOptions[index].CompletionText;
@@ -112,7 +112,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   }
                   ControlVisible = false;
                   ShowAutoCompleteOptions = false;
-               }
+               }));
             },
          };
          ShowGoto = new StubCommand {

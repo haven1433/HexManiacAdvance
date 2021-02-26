@@ -1,4 +1,6 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+﻿using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
@@ -262,6 +264,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   var move = moveNames.Count > moveID ? moveNames[moveID] : moveID.ToString();
                   buffer.AppendLine($"- {move}");
                }
+            } else {
+               buffer.AppendLine();
             }
             if (i + 1 < ElementCount) buffer.AppendLine();
          }
@@ -313,6 +317,24 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return ArrayRunEnumSegment.GetOptions(model, HardcodeTablesModel.MoveNamesTable)
             .Where(option => option.MatchesPartial(namePart, onlyCheckLettersAndDigits: true))
             .Select(option => new AutocompleteItem(option, $"- {option}"));
+      }
+
+      public IReadOnlyList<IPixelViewModel> Visualizations {
+         get {
+            var list = new List<IPixelViewModel>();
+            var monOffset = ElementContent.Take(2).Sum(seg => seg.Length);
+            var monSeg = ElementContent[2];
+            if (!(model.GetTable(HardcodeTablesModel.FrontSpritesTable) is ITableRun sprites)) return list;
+            for (int i = 0; i < ElementCount; i++) {
+               var index = model.ReadMultiByteValue(Start + ElementLength * i + monOffset, monSeg.Length);
+               var spriteAddress = model.ReadPointer(sprites.Start + sprites.ElementLength * index);
+               if (!(model.GetNextRun(spriteAddress) is ISpriteRun sprite)) return new List<IPixelViewModel>();
+               var pixels = SpriteDecorator.BuildSprite(model, sprite, useTransparency: true);
+               if (pixels == null) return new List<IPixelViewModel>();
+               list.Add(pixels);
+            }
+            return list;
+         }
       }
 
       public bool DependsOn(string anchorName) => anchorName == HardcodeTablesModel.ItemsTableName || anchorName == HardcodeTablesModel.MoveNamesTable || anchorName == HardcodeTablesModel.PokemonNameTable;

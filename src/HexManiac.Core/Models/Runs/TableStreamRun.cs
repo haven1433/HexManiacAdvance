@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
@@ -356,6 +357,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
+      public IReadOnlyList<IPixelViewModel> Visualizations => new List<IPixelViewModel>();
       #endregion
 
       #region TableRun

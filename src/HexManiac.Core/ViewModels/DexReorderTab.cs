@@ -277,6 +277,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public int CanonicalIndex { get; }
       public IReadOnlyList<int> ExtraIndices => extraIndices;
+      public short Transparent => -1;
       public int PixelWidth { get; }
       public int PixelHeight { get; }
       public short[] PixelData { get; }

@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections;
@@ -55,6 +56,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       /// <param name="caretCharacterIndex">The index of the caret within the line</param>
       /// <returns>A list of named commands. Executing a command will complete the option.</returns>
       IReadOnlyList<AutocompleteItem> GetAutoCompleteOptions(string line, int caretLineIndex, int caretCharacterIndex);
+
+      IReadOnlyList<IPixelViewModel> Visualizations { get; }
    }
 
    public class FormattedRunComparer : IComparer<IFormattedRun> {

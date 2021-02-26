@@ -109,7 +109,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand CopyAlignedAddress => StubCommand<IFileSystem>(ref copyAlignedAddress, ExecuteCopyAlignedAddress);
       public ICommand CopyAnchorReference => StubCommand<IFileSystem>(ref copyAnchorReference, ExecuteCopyAnchorReference);
 
-      private GotoControlViewModel gotoViewModel = new GotoControlViewModel(null);
+      private GotoControlViewModel gotoViewModel = new GotoControlViewModel(null, null);
       public GotoControlViewModel GotoViewModel {
          get => gotoViewModel;
          private set {
@@ -491,7 +491,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      Debug.Assert(viewPort.ChangeHistory.IsSaved, "Put a breakpoint in ChangeHistory.CurrentChange, because a changable token is being created too soon!");
                   };
                   if (Singletons.WorkDispatcher is InstantDispatch) saveMetadata();
-                  else viewPort.Model.InitializeComplete += (sender, e) => saveMetadata();
+                  else viewPort.Model.AfterInitialized(saveMetadata);
                }
                Add(viewPort);
             } catch (IOException ex) {
@@ -612,21 +612,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, content));
          if (content is IViewPort viewModel) {
             if (viewModel.Model != null) {
-               viewModel.Model.InitializeComplete += (sender, e) => Singletons.WorkDispatcher.DispatchWork(() => {
+               viewModel.Model.AfterInitialized(() => Singletons.WorkDispatcher.DispatchWork(() => {
                   viewModel.Refresh();
                   foreach (var edit in QuickEditsPokedex.Concat(QuickEditsExpansion)) edit.TabChanged();
                   gotoViewModel.RefreshOptions();
-               });
+               }));
             }
             viewModel.UseCustomHeaders = useTableEntryHeaders;
             viewModel.AutoAdjustDataWidth = AutoAdjustDataWidth;
             viewModel.AllowMultipleElementsPerLine = AllowMultipleElementsPerLine;
             viewModel.StretchData = StretchData;
-            if (Singletons.WorkDispatcher is InstantDispatch) {
-               viewModel.ValidateMatchedWords();
-            } else if (viewModel.Model != null) {
-               viewModel.Model.InitializeComplete += (sender, e) => Singletons.WorkDispatcher.DispatchWork(viewModel.ValidateMatchedWords);
-            }
+            viewModel.Model?.AfterInitialized(() => Singletons.WorkDispatcher.DispatchWork(viewModel.ValidateMatchedWords));
             if (content is ViewPort viewPort) {
                bool anyTabsHaveMatchingViewModel = false;
                foreach (var tab in tabs) {
@@ -808,7 +804,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void UpdateGotoViewModel() {
          GotoViewModel.PropertyChanged -= GotoPropertyChanged;
-         GotoViewModel = new GotoControlViewModel(SelectedTab);
+         GotoViewModel = new GotoControlViewModel(SelectedTab, workDispatcher);
          GotoViewModel.PropertyChanged += GotoPropertyChanged;
          NotifyPropertyChanged(nameof(Tools));
       }

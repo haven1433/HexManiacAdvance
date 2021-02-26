@@ -181,7 +181,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          (CellWidth, CellHeight) = (cellWidth, cellHeight);
       }
 
-      public static IPixelViewModel BuildSprite(IDataModel model, ISpriteRun sprite) {
+      public static IPixelViewModel BuildSprite(IDataModel model, ISpriteRun sprite, bool useTransparency = false) {
          if (sprite == null) return null;
          if (sprite is ITilemapRun tilemap) tilemap.FindMatchingTileset(model);
          var paletteRuns = sprite.FindRelatedPalettes(model);
@@ -190,7 +190,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          if (pixels == null) return null;
          var colors = paletteRun?.AllColors(model) ?? TileViewModel.CreateDefaultPalette((int)Math.Pow(2, sprite.SpriteFormat.BitsPerPixel));
          var imageData = SpriteTool.Render(pixels, colors, paletteRun?.PaletteFormat.InitialBlankPages ?? 0, 0);
-         return new ReadonlyPixelViewModel(sprite.SpriteFormat, imageData);
+         return new ReadonlyPixelViewModel(sprite.SpriteFormat, imageData, useTransparency ? colors[0] : (short)-1);
       }
 
       public bool Equals(IDataFormat other) {

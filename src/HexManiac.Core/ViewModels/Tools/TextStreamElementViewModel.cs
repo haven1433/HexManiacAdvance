@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using System.Collections.Generic;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class TextStreamElementViewModel : StreamElementViewModel {
@@ -19,8 +20,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   using (PreventSelfCopy()) {
                      RaiseDataChanged();
                   }
+                  NotifyPropertyChanged(nameof(Visualizations));
                }
             }
+         }
+      }
+
+      public IReadOnlyList<IPixelViewModel> Visualizations {
+         get {
+            var destination = Model.ReadPointer(Start);
+            if (Model.GetNextRun(destination) is IStreamRun run) {
+               return run.Visualizations;
+            }
+            return new List<IPixelViewModel>();
          }
       }
 
@@ -35,7 +47,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       protected override bool TryCopy(StreamElementViewModel other) {
          if (!(other is TextStreamElementViewModel stream)) return false;
+         Start = other.Start;
          TryUpdate(ref content, stream.content, nameof(Content));
+         NotifyPropertyChanged(nameof(Visualizations));
          return true;
       }
    }

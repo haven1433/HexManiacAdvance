@@ -15,13 +15,6 @@ using Xunit;
 using static HavenSoft.HexManiac.Core.Models.HardcodeTablesModel;
 
 namespace HavenSoft.HexManiac.Tests {
-   internal static class TestExtensions {
-      public static ITableRun GetTable(this IDataModel model, string name) {
-         var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, name);
-         return model.GetNextRun(address) as ITableRun;
-      }
-   }
-
    /// <summary>
    /// The Auto-Search tests exist to verify that data can be found in the Vanilla roms.
    /// These tests are skippable, so that they'll work even if you don't have the ROMs on your system.
@@ -521,7 +514,7 @@ namespace HavenSoft.HexManiac.Tests {
          var editor = new EditorViewModel(fileSystem, allowLoadingMetadata: false);
          var viewPort = NewViewPort(game, model);
          editor.Add(viewPort);
-         var expandTutors = editor.QuickEdits.Single(edit => edit.Name == new MakeTutorsExpandable().Name);
+         var expandTutors = editor.QuickEditsExpansion.Single(edit => edit.Name == new MakeTutorsExpandable().Name);
 
          // ruby/sapphire do not support this quick-edit
          var canRun = expandTutors.CanRun(viewPort);
@@ -555,7 +548,7 @@ namespace HavenSoft.HexManiac.Tests {
          var editor = new EditorViewModel(fileSystem, allowLoadingMetadata: false);
          var viewPort = new ViewPort(game, model, InstantDispatch.Instance, fixture.Singletons);
          editor.Add(viewPort);
-         var expandMoves = editor.QuickEdits.Single(edit => edit.Name == new MakeMovesExpandable().Name);
+         var expandMoves = editor.QuickEditsExpansion.Single(edit => edit.Name == new MakeMovesExpandable().Name);
          var originalPointerCount = model.GetTable(MoveDataTable).PointerSources.Count;
 
          Assert.True(expandMoves.CanRun(viewPort));
@@ -650,7 +643,7 @@ namespace HavenSoft.HexManiac.Tests {
          var editor = new EditorViewModel(fileSystem, allowLoadingMetadata: false);
          var viewPort = NewViewPort(game, model);
          editor.Add(viewPort);
-         var expandTMs = editor.QuickEdits.Single(edit => edit.Name == "Make TMs Expandable");
+         var expandTMs = editor.QuickEditsExpansion.Single(edit => edit.Name == "Make TMs Expandable");
 
          // Clover makes changes that prevent us from finding tmmoves/tmcompatibility. Don't support Clover.
          var canRun = expandTMs.CanRun(viewPort);
@@ -685,7 +678,7 @@ namespace HavenSoft.HexManiac.Tests {
          var editor = new EditorViewModel(fileSystem, allowLoadingMetadata: false);
          var viewPort = NewViewPort(game, model);
          editor.Add(viewPort);
-         var expandItems = editor.QuickEdits.Single(edit => edit.Name == "Make Items Expandable");
+         var expandItems = editor.QuickEditsExpansion.Single(edit => edit.Name == "Make Items Expandable");
 
          // run the actual quick-edit
          expandItems.Run(viewPort);

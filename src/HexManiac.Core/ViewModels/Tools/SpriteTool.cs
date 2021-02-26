@@ -13,6 +13,7 @@ using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public interface IPixelViewModel : INotifyPropertyChanged {
+      short Transparent { get; }
       int PixelWidth { get; }
       int PixelHeight { get; }
       short[] PixelData { get; }
@@ -20,11 +21,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    }
 
    public class ReadonlyPixelViewModel : ViewModelCore, IPixelViewModel {
+      public short Transparent { get; }
       public int PixelWidth { get; }
       public int PixelHeight { get; }
       public short[] PixelData { get; }
       public double SpriteScale => 1;
-      public ReadonlyPixelViewModel(SpriteFormat sf, short[] data) => (PixelWidth, PixelHeight, PixelData) = (sf.TileWidth * 8, sf.TileHeight * 8, data);
+      public ReadonlyPixelViewModel(SpriteFormat sf, short[] data, short transparent = -1) {
+         (PixelWidth, PixelHeight, PixelData) = (sf.TileWidth * 8, sf.TileHeight * 8, data);
+         Transparent = transparent;
+      }
    }
 
    public class SpriteTool : ViewModelCore, IToolViewModel, IPixelViewModel {
@@ -496,6 +501,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public int PixelWidth { get; private set; }
       public int PixelHeight { get; private set; }
+      public short Transparent => -1;
       public int PaletteWidth { get; private set; }
       public int PaletteHeight { get; private set; }
 

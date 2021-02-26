@@ -104,29 +104,30 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          (singletons?.WorkDispatcher ?? InstantDispatch.Instance).RunBackgroundWork(() => {
-            if (singletons.GameReferenceConstants.TryGetValue(gameCode, out var referenceConstants)) {
-               metadata = DecodeConstantsFromReference(singletons.MetadataInfo, metadata, referenceConstants);
-            }
-            Initialize(metadata);
-            isCFRU = GetIsCFRU();
-
-            // in vanilla emerald, this pointer isn't four-byte aligned
-            // it's at the very front of the ROM, so if there's no metadata we can be pretty sure that the pointer is still there
-            if (gameCode == Emerald && data.Length > EarliestAllowedAnchor && data[0x1C3] == 0x08) ObserveRunWritten(noChangeDelta, new PointerRun(0x1C0));
-
-            var gamesToDecode = new[] { Ruby, Sapphire, Emerald, FireRed, LeafGreen, Ruby1_1, Sapphire1_1, FireRed1_1, LeafGreen1_1 };
-            if (gamesToDecode.Contains(gameCode)) {
-               foreach (var defaultMetadata in GetDefaultMetadatas(gameCode.Substring(0, 4).ToLower(), gameCode.ToLower())) {
-                  this.LoadMetadata(defaultMetadata);
+            using (CreateInitializeScope()) {
+               if (singletons.GameReferenceConstants.TryGetValue(gameCode, out var referenceConstants)) {
+                  metadata = DecodeConstantsFromReference(singletons.MetadataInfo, metadata, referenceConstants);
                }
-               DecodeHeader();
-               if (singletons.GameReferenceTables.TryGetValue(gameCode, out var referenceTables)) {
-                  DecodeTablesFromReference(referenceTables);
-               }
-            }
+               Initialize(metadata);
+               isCFRU = GetIsCFRU();
 
-            ResolveConflicts();
-            RaiseInitializeComplete();
+               // in vanilla emerald, this pointer isn't four-byte aligned
+               // it's at the very front of the ROM, so if there's no metadata we can be pretty sure that the pointer is still there
+               if (gameCode == Emerald && data.Length > EarliestAllowedAnchor && data[0x1C3] == 0x08) ObserveRunWritten(noChangeDelta, new PointerRun(0x1C0));
+
+               var gamesToDecode = new[] { Ruby, Sapphire, Emerald, FireRed, LeafGreen, Ruby1_1, Sapphire1_1, FireRed1_1, LeafGreen1_1 };
+               if (gamesToDecode.Contains(gameCode)) {
+                  foreach (var defaultMetadata in GetDefaultMetadatas(gameCode.Substring(0, 4).ToLower(), gameCode.ToLower())) {
+                     this.LoadMetadata(defaultMetadata);
+                  }
+                  DecodeHeader();
+                  if (singletons.GameReferenceTables.TryGetValue(gameCode, out var referenceTables)) {
+                     DecodeTablesFromReference(referenceTables);
+                  }
+               }
+
+               ResolveConflicts();
+            }
          });
       }
 

@@ -355,6 +355,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private int xOffset, yOffset, width, height;
       public int XOffset { get => xOffset; private set => Set(ref xOffset, value); }
       public int YOffset { get => yOffset; private set => Set(ref yOffset, value); }
+      public short Transparent => -1;
       public int PixelWidth { get => width; private set => Set(ref width, value, old => RaiseRefreshSelection()); }
       public int PixelHeight { get => height; private set => Set(ref height, value, old => RaiseRefreshSelection()); }
 
@@ -1380,6 +1381,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    }
 
    public class BlockPreview : ViewModelCore, IPixelViewModel {
+      public short Transparent => -1;
+
       private int width, height;
       public int PixelWidth { get => width; private set => Set(ref width, value); }
       public int PixelHeight { get => height; private set => Set(ref height, value); }
@@ -1417,6 +1420,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    public class EditOption : ViewModelCore, IPixelViewModel {
       private readonly IDataModel model;
 
+      public short Transparent => -1;
       public int PixelWidth { get; }
       public int PixelHeight { get; }
       public int SpritePointer { get; }

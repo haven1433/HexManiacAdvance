@@ -149,6 +149,24 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          }
       }
 
+      #region TransparentBrush
+
+      public static readonly DependencyProperty TransparentBrushProperty = DependencyProperty.Register(nameof(TransparentBrush), typeof(Brush), typeof(PixelImage), new FrameworkPropertyMetadata(Brushes.Transparent, TransparentBrushChanged));
+
+      public Brush TransparentBrush {
+         get => (Brush)GetValue(TransparentBrushProperty);
+         set => SetValue(TransparentBrushProperty, value);
+      }
+
+      private static void TransparentBrushChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+         var self = (PixelImage)d;
+         self.OnTransparentBrushChanged(e);
+      }
+
+      protected virtual void OnTransparentBrushChanged(DependencyPropertyChangedEventArgs e) => UpdateSource();
+
+      #endregion
+
       public PixelImage() {
          DataContextChanged += (sender, e) => UpdateDataContext(e);
          SnapsToDevicePixels = true;
@@ -175,6 +193,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       public void UpdateSource() {
          if (ViewModel == null) return;
          var pixels = ViewModel.PixelData;
+         pixels = ConvertTransparentPixels(pixels);
          if (pixels == null) return;
          var expectedLength = ViewModel.PixelWidth * ViewModel.PixelHeight;
          if (pixels.Length < expectedLength || pixels.Length == 0) { Source = null; return; }
@@ -192,6 +211,19 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var source = (WriteableBitmap)Source;
          var rect = new Int32Rect(0, 0, ViewModel.PixelWidth, ViewModel.PixelHeight);
          source.WritePixels(rect, pixels, stride, 0);
+      }
+
+      private short[] ConvertTransparentPixels(short[] pixels) {
+         if (ViewModel.Transparent == -1) return pixels;
+         if (!(TransparentBrush is SolidColorBrush colorBrush)) return pixels;
+         pixels = pixels.ToArray();
+         short newColor = (short)((colorBrush.Color.B >> 3) << 10);
+         newColor += (short)((colorBrush.Color.G >> 3) << 5);
+         newColor += (short)(colorBrush.Color.R >> 3);
+         for (int i = 0; i < pixels.Length; i++) {
+            if (pixels[i] == ViewModel.Transparent) pixels[i] = newColor;
+         }
+         return pixels;
       }
 
       public static WriteableBitmap WriteOnce(IPixelViewModel viewModel) {

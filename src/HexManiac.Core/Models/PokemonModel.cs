@@ -108,63 +108,64 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       protected void Initialize(StoredMetadata metadata) {
-         var pointersForDestination = new Dictionary<int, SortedSpan<int>>();
-         var destinationForSource = new SortedList<int, int>();
-         SearchForPointers(pointersForDestination, destinationForSource);
-         WritePointerRuns(pointersForDestination, destinationForSource);
-         WriteSpriteRuns(pointersForDestination);
-         WriteStringRuns(pointersForDestination);
-         ResolveConflicts();
-         FreeSpaceStart = EarliestAllowedAnchor;
+         using (CreateInitializeScope()) {
+            var pointersForDestination = new Dictionary<int, SortedSpan<int>>();
+            var destinationForSource = new SortedList<int, int>();
+            SearchForPointers(pointersForDestination, destinationForSource);
+            WritePointerRuns(pointersForDestination, destinationForSource);
+            WriteSpriteRuns(pointersForDestination);
+            WriteStringRuns(pointersForDestination);
+            ResolveConflicts();
+            FreeSpaceStart = EarliestAllowedAnchor;
 
-         if (metadata == null) return;
-         var noChange = new NoDataChangeDeltaModel();
+            if (metadata == null) return;
+            var noChange = new NoDataChangeDeltaModel();
 
-         // metadata is more important than anything already found
-         foreach (var list in metadata.Lists) {
-            lists[list.Name] = list.ToList();
-         }
-         foreach (var anchor in metadata.NamedAnchors) {
-            // since we're loading metadata, we're pretty sure that the anchors in the metadata are right.
-            // therefore, allow those anchors to overwrite anything we found during the initial quick-search phase.
-            using (ModelCacheScope.CreateScope(this)) {
-               ApplyAnchor(this, noChange, anchor.Address, AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
+            // metadata is more important than anything already found
+            foreach (var list in metadata.Lists) {
+               lists[list.Name] = list.ToList();
             }
-         }
-         foreach (var unmappedPointer in metadata.UnmappedPointers) {
-            sourceToUnmappedName[unmappedPointer.Address] = unmappedPointer.Name;
-            if (!unmappedNameToSources.ContainsKey(unmappedPointer.Name)) unmappedNameToSources[unmappedPointer.Name] = SortedSpan<int>.None;
-            unmappedNameToSources[unmappedPointer.Name] = unmappedNameToSources[unmappedPointer.Name].Add1(unmappedPointer.Address);
-         }
-         foreach (var word in metadata.MatchedWords) {
-            if (!matchedWords.ContainsKey(word.Name)) matchedWords.Add(word.Name, new HashSet<int>());
-            matchedWords[word.Name].Add(word.Address);
-            var index = BinarySearch(word.Address);
-            if (index > 0) {
-               runs[index] = new WordRun(word.Address, word.Name, word.Length, word.AddOffset, word.MultOffset, word.Note, runs[index].PointerSources);
-            } else {
-               runs.Insert(~index, new WordRun(word.Address, word.Name, word.Length, word.AddOffset, word.MultOffset, word.Note));
+            foreach (var anchor in metadata.NamedAnchors) {
+               // since we're loading metadata, we're pretty sure that the anchors in the metadata are right.
+               // therefore, allow those anchors to overwrite anything we found during the initial quick-search phase.
+               using (ModelCacheScope.CreateScope(this)) {
+                  ApplyAnchor(this, noChange, anchor.Address, AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
+               }
             }
-         }
-         foreach (var offsetPointer in metadata.OffsetPointers) {
-            var newRun = new OffsetPointerRun(offsetPointer.Address, offsetPointer.Offset);
-            ClearFormat(noChange, newRun.Start, newRun.Length);
-            pointerOffsets[offsetPointer.Address] = offsetPointer.Offset;
-            ObserveRunWritten(noChange, newRun);
-         }
-
-         if (metadata.FreeSpaceSearch >= 0) FreeSpaceStart = Math.Min(RawData.Length - 1, metadata.FreeSpaceSearch);
-
-         if (!metadata.IsEmpty && StoredMetadata.NeedVersionUpdate(metadata.Version, singletons?.MetadataInfo.VersionNumber ?? "0")) {
-            var gameCode = this.GetGameCode();
-            if (singletons.GameReferenceTables.TryGetValue(gameCode, out var tables)) {
-               var metadatas = GetDefaultMetadatas(gameCode.Substring(0, 4), gameCode);
-               UpdateRuns(tables, metadatas);
+            foreach (var unmappedPointer in metadata.UnmappedPointers) {
+               sourceToUnmappedName[unmappedPointer.Address] = unmappedPointer.Name;
+               if (!unmappedNameToSources.ContainsKey(unmappedPointer.Name)) unmappedNameToSources[unmappedPointer.Name] = SortedSpan<int>.None;
+               unmappedNameToSources[unmappedPointer.Name] = unmappedNameToSources[unmappedPointer.Name].Add1(unmappedPointer.Address);
             }
-         }
+            foreach (var word in metadata.MatchedWords) {
+               if (!matchedWords.ContainsKey(word.Name)) matchedWords.Add(word.Name, new HashSet<int>());
+               matchedWords[word.Name].Add(word.Address);
+               var index = BinarySearch(word.Address);
+               if (index > 0) {
+                  runs[index] = new WordRun(word.Address, word.Name, word.Length, word.AddOffset, word.MultOffset, word.Note, runs[index].PointerSources);
+               } else {
+                  runs.Insert(~index, new WordRun(word.Address, word.Name, word.Length, word.AddOffset, word.MultOffset, word.Note));
+               }
+            }
+            foreach (var offsetPointer in metadata.OffsetPointers) {
+               var newRun = new OffsetPointerRun(offsetPointer.Address, offsetPointer.Offset);
+               ClearFormat(noChange, newRun.Start, newRun.Length);
+               pointerOffsets[offsetPointer.Address] = offsetPointer.Offset;
+               ObserveRunWritten(noChange, newRun);
+            }
 
-         ResolveConflicts();
-         RaiseInitializeComplete();
+            if (metadata.FreeSpaceSearch >= 0) FreeSpaceStart = Math.Min(RawData.Length - 1, metadata.FreeSpaceSearch);
+
+            if (!metadata.IsEmpty && StoredMetadata.NeedVersionUpdate(metadata.Version, singletons?.MetadataInfo.VersionNumber ?? "0")) {
+               var gameCode = this.GetGameCode();
+               if (singletons.GameReferenceTables.TryGetValue(gameCode, out var tables)) {
+                  var metadatas = GetDefaultMetadatas(gameCode.Substring(0, 4), gameCode);
+                  UpdateRuns(tables, metadatas);
+               }
+            }
+
+            ResolveConflicts();
+         }
       }
 
       private void UpdateRuns(GameReferenceTables referenceTables, IEnumerable<StoredMetadata> metadatas) {

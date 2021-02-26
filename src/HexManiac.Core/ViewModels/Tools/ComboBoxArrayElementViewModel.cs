@@ -25,6 +25,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    }
 
    public class VisualComboOption : ComboOption, IPixelViewModel {
+      public short Transparent => -1;
       public int PixelWidth { get; private set; }
       public int PixelHeight { get; private set; }
       public short[] PixelData { get; private set; }

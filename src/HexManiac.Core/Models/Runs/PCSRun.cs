@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
@@ -75,6 +76,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return result;
       }
 
+      public IReadOnlyList<IPixelViewModel> Visualizations => new List<IPixelViewModel>();
       public bool DependsOn(string anchorName) => false;
 
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new PCSRun(model, Start, Length, newPointerSources);

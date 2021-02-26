@@ -220,7 +220,7 @@ namespace HavenSoft.HexManiac.Tests {
                Equals = arg => arg is StubDataModel,
             },
          };
-         var viewModel = new GotoControlViewModel(tab);
+         var viewModel = new GotoControlViewModel(tab, InstantDispatch.Instance);
 
          Assert.False(viewModel.ControlVisible);
          viewModel.ShowGoto.Execute(true);

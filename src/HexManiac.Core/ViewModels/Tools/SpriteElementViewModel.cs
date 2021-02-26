@@ -14,6 +14,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private SpriteFormat format;
 
       public short[] PixelData { get; private set; }
+      public short Transparent => -1;
       public int PixelWidth => format.TileWidth * 8;
       public int PixelHeight => format.TileHeight * 8;
       public double SpriteScale { get; private set; }

@@ -9,8 +9,6 @@ using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models {
    public interface IDataModel : IReadOnlyList<byte>, IEquatable<IDataModel> {
-      event EventHandler InitializeComplete;
-
       byte[] RawData { get; }
       ModelCacheScope CurrentCacheScope { get; }
       bool HasChanged(int index);
@@ -83,6 +81,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       StoredMetadata ExportMetadata(IMetadataInfo metadataInfo);
       void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, int address, int destination);
       int ConsiderResultsAsTextRuns(ModelDelta changeToken, IReadOnlyList<int> startLocations);
+      void AfterInitialized(Action action);
       IReadOnlyList<string> GetAutoCompleteByteNameOptions(string text);
       IReadOnlyList<int> GetMatchedWords(string name);
    }
@@ -92,8 +91,45 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private readonly ISet<int> changes = new HashSet<int>();
 
-      public event EventHandler InitializeComplete;
-      protected void RaiseInitializeComplete() => InitializeComplete?.Invoke(this, EventArgs.Empty);
+      #region Initialization Shim
+
+      private List<Action> initComplete = new List<Action>();
+      private bool isInitialized;
+      private readonly object initLock = new object();
+
+      private int initializeScopeCount = 0;
+      protected IDisposable CreateInitializeScope() {
+         lock (initComplete) {
+            initializeScopeCount += 1;
+            return new StubDisposable { Dispose = () => {
+               lock (initLock) {
+                  initializeScopeCount -= 1;
+                  if (initializeScopeCount == 0) RaiseInitializeComplete();
+               }
+            } };
+         }
+      }
+
+      private void RaiseInitializeComplete() {
+         lock (initLock) {
+            if (isInitialized) return;
+            foreach (var work in initComplete) work();
+            initComplete.Clear();
+            isInitialized = true;
+         }
+      }
+
+      public void AfterInitialized(Action action) {
+         lock (initLock) {
+            if (isInitialized) {
+               action();
+            } else {
+               initComplete.Add(action);
+            }
+         }
+      }
+
+      #endregion
 
       public byte[] RawData { get; private set; }
 
@@ -662,7 +698,9 @@ namespace HavenSoft.HexManiac.Core.Models {
 
    public class BasicModel : BaseModel {
 
-      public BasicModel(byte[] data) : base(data) { }
+      public BasicModel(byte[] data) : base(data) {
+         using (CreateInitializeScope()) { }
+      }
 
       public override int GetAddressFromAnchor(ModelDelta changeToken, int requestSource, string anchor) => Pointer.NULL;
       public override string GetAnchorFromAddress(int requestSource, int destination) => string.Empty;
