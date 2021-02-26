@@ -205,7 +205,7 @@ Name = '''moveeffects'''
    '''Torment''',
    '''ConfuseAndRaiseSpAtk2''',
    '''BurnPrimary''',
-   '''SuicideLowerAtkSpAtk2''',
+   '''SelfKOLowerAtkSpAtk2''',
    '''DoubleDamageIfStatus''',
    '''SelfFlinchIfHit''',
    '''DoubleDamageToParalyzeAndHealParalyze''',
