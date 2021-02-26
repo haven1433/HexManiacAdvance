@@ -537,7 +537,7 @@
                <TextBlock Text="Search:" Margin="5,0" DockPanel.Dock="Bottom"/>
 
                <Grid Margin="5,5" MinHeight="50">
-                  <TextBox Name="StringToolTextBox" AcceptsReturn="True" TextWrapping="Wrap" FontFamily="Consolas" VerticalScrollBarVisibility="Auto" UndoLimit="0"
+                  <TextBox Name="StringToolTextBox" AcceptsReturn="True" TextWrapping="NoWrap" FontFamily="Consolas" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" UndoLimit="0"
                      SelectionChanged="StringToolContentSelectionChanged"
                      LostFocus="ShowManualSelection"
                      GotFocus="HideManualSelection"
@@ -687,6 +687,7 @@
                </Grid>
                <Grid Name="CodeToolBody">
                   <TextBox UndoLimit="0" Margin="5" FontFamily="Consolas" Visibility="{Binding CodeTool.UseSingleContent, Converter={StaticResource BoolToVisibility}}"
+                           HorizontalScrollBarVisibility="Auto"
                            Text="{Binding CodeTool.Content, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="{Binding CodeTool.IsReadOnly}" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
                   <DockPanel Visibility="{Binding CodeTool.UseMultiContent, Converter={StaticResource BoolToVisibility}}">
                      <TextBlock Foreground="{DynamicResource Error}" DockPanel.Dock="Bottom" TextWrapping="Wrap"
@@ -698,7 +699,8 @@
                                  <StackPanel>
                                     <TextBlock Text="{Binding Label}" Margin="2,0"/>
                                     <Grid Margin="5">
-                                       <TextBox  Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" UndoLimit="0"
+                                       <TextBox Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" UndoLimit="0"
+                                             HorizontalScrollBarVisibility="Auto"
                                              AcceptsReturn="True" FontFamily="Consolas" SelectionChanged="CodeToolContentsSelectionChanged"/>
                                        <TextBlock Visibility="{Binding IsOpen, ElementName=CodeContentsPopup, Converter={StaticResource BoolToVisibility}}"
                                              HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False" FontFamily="Consolas" FontWeight="Bold"/>
