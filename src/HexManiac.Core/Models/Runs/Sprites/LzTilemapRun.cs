@@ -11,6 +11,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       byte[] GetTilemapData();
       int FindMatchingTileset(IDataModel model);
       ITilemapRun Duplicate(TilemapFormat format);
+      ITilemapRun ReplaceData(byte[] newRawData, ModelDelta token);
    }
 
    public class LzTilemapRun : LZRun, ITilemapRun {

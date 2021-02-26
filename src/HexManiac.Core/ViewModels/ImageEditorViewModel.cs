@@ -268,7 +268,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var spriteAddress = model.ReadPointer(SpritePointer);
             return
                HasMultiplePalettePages &&
-               model.GetNextRun(spriteAddress) is LzTilemapRun tilemap &&
+               model.GetNextRun(spriteAddress) is ITilemapRun tilemap &&
                tilemap.Start == spriteAddress &&
                tilemap.BytesPerTile == 2;
          }
@@ -295,14 +295,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void PushTilePalettesToModel() {
          var spriteAddress = model.ReadPointer(SpritePointer);
-         if (!(model.GetNextRun(spriteAddress) is LzTilemapRun tilemapRun)) return;
-         var lzRunData = LZRun.Decompress(model, spriteAddress);
-         for (int i = 0; i < lzRunData.Length / 2; i++) {
-            var (paletteIndex, hFlip, vFlip, tileIndex) = LzTilemapRun.ReadTileData(lzRunData, i, tilemapRun.BytesPerTile);
+         if (!(model.GetNextRun(spriteAddress) is ITilemapRun tilemapRun)) return;
+         var runData = tilemapRun.GetData();
+         for (int i = 0; i < runData.Length / tilemapRun.BytesPerTile; i++) {
+            var (paletteIndex, hFlip, vFlip, tileIndex) = LzTilemapRun.ReadTileData(runData, i, tilemapRun.BytesPerTile);
             paletteIndex = TilePalettes[i];
-            LzTilemapRun.WriteTileData(lzRunData, i, paletteIndex, hFlip, vFlip, tileIndex);
+            LzTilemapRun.WriteTileData(runData, i, paletteIndex, hFlip, vFlip, tileIndex);
          }
-         tilemapRun.ReplaceData(lzRunData, history.CurrentChange);
+         tilemapRun.ReplaceData(runData, history.CurrentChange);
       }
 
       #endregion
@@ -330,7 +330,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand SelectTool => StubCommand<ImageEditorTools>(ref selectTool, arg => {
          if (arg == ImageEditorTools.TilePalette) {
             var spriteAddress = model.ReadPointer(SpritePointer);
-            if (!(model.GetNextRun(spriteAddress) is LzTilemapRun)) return;
+            if (!(model.GetNextRun(spriteAddress) is ITilemapRun)) return;
          }
          SelectedTool = arg;
       });
@@ -574,7 +574,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          SetupTilesetWidthControl();
 
          // tilemap may have been repointed: recalculate
-         if (spriteRun is LzTilemapRun tilemapRun) tilemapRun.FindMatchingTileset(model);
+         if (spriteRun is ITilemapRun tilemapRun) tilemapRun.FindMatchingTileset(model);
 
          pixels = (spriteRun is LzTilesetRun tsRun) ? tsRun.GetPixels(model, SpritePage, CurrentTilesetWidth) : spriteRun.GetPixels(model, SpritePage);
          Render();
@@ -651,7 +651,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          PixelHeight = readPixels.GetLength(1);
          if (palettePage >= palRun.pages) PalettePage = palRun.pages - 1;
          var renderPage = palettePage;
-         if (spriteRun.SpriteFormat.BitsPerPixel == 8 || spriteRun is LzTilemapRun) renderPage = 0;
+         if (spriteRun.SpriteFormat.BitsPerPixel == 8 || spriteRun is ITilemapRun) renderPage = 0;
          PixelData = SpriteTool.Render(pixels, palRun.colors, palRun.initialBlankPages, renderPage);
          NotifyPropertyChanged(nameof(PixelData));
 
@@ -663,7 +663,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
 
          // tilemap may have been repointed: recalculate
-         if (spriteRun is LzTilemapRun tilemapRun) tilemapRun.FindMatchingTileset(model);
+         if (spriteRun is ITilemapRun tilemapRun) tilemapRun.FindMatchingTileset(model);
 
          var newRun = spriteRun.SetPixels(model, history.CurrentChange, SpritePage, pixels);
          if (newRun.Start != spriteRun.Start) RaiseMessage("Sprite was move to " + newRun.Start.ToAddress());
@@ -1328,12 +1328,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var currentSelectedPage = parent.PalettePage;
                if (parent.model.GetNextRun(paletteAddress) is IPaletteRun paletteRun) currentSelectedPage += paletteRun.PaletteFormat.InitialBlankPages;
                var spriteAddress = parent.model.ReadPointer(parent.SpritePointer);
-               if (parent.TilePalettes[tileIndex] != currentSelectedPage && parent.model.GetNextRun(spriteAddress) is LzTilemapRun tilemapRun) {
+               if (parent.TilePalettes[tileIndex] != currentSelectedPage && parent.model.GetNextRun(spriteAddress) is ITilemapRun tilemapRun) {
                   parent.TilePalettes[tileIndex] = currentSelectedPage;
 
                   // tilemap may have been repointed: recalculate
                   spriteAddress = parent.model.ReadPointer(parent.SpritePointer);
-                  tilemapRun = (LzTilemapRun)parent.model.GetNextRun(spriteAddress);
+                  tilemapRun = (ITilemapRun)parent.model.GetNextRun(spriteAddress);
                   tilemapRun.FindMatchingTileset(parent.model);
 
                   parent.pixels = tilemapRun.GetPixels(parent.model, parent.SpritePage);

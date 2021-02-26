@@ -38,7 +38,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          var address = Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, Format.MatchingTileset);
          if (address >= 0 && address < Model.Count) {
             var tileset = Model.GetNextRun(address) as ISpriteRun;
-            // if (tileset == null) tileset = Model.GetNextRun(arrayTilesetAddress) as ISpriteRun;
+            if (tileset == null) tileset = Model.GetNextRun(arrayTilesetAddress) as ISpriteRun;
             if (tileset != null && !(tileset is LzTilemapRun)) hint = tileset.SpriteFormat.PaletteHint;
          }
 
@@ -65,9 +65,23 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          for (int i = 0; i < length; i++) changeToken.ChangeData(model, start + i, 0xFF);
       }
 
+      int lastFormatRequested = int.MaxValue;
       public override IDataFormat CreateDataFormat(IDataModel data, int index) {
+         var basicFormat = CreateDataFormatCore(data, index);
+         if (!CreateForLeftEdge) return basicFormat;
+         if (lastFormatRequested < index) {
+            lastFormatRequested = index;
+            return basicFormat;
+         }
+
+         var sprite = data.CurrentCacheScope.GetImage(this);
+         var availableRows = (Length - (index - Start)) / ExpectedDisplayWidth;
+         lastFormatRequested = index;
+         return new SpriteDecorator(basicFormat, sprite, ExpectedDisplayWidth, availableRows);
+      }
+      private IDataFormat CreateDataFormatCore(IDataModel model, int index) {
          var offset = index - Start;
-         var segStart = offset - offset % 2;
+         var segStart = Start + offset - offset % 2;
          return new IntegerHex(segStart, offset % 2, Model.ReadMultiByteValue(segStart, 2), 2);
       }
 
@@ -87,7 +101,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public byte[] GetData() {
          var tilesetAddress = Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, Format.MatchingTileset);
          var tileset = Model.GetNextRun(tilesetAddress) as ISpriteRun;
-         // if (tileset == null) tileset = Model.GetNextRun(arrayTilesetAddress) as ISpriteRun;
+         if (tileset == null) tileset = Model.GetNextRun(arrayTilesetAddress) as ISpriteRun;
 
          if (tileset == null) return new byte[Format.TileWidth * 8 * Format.TileHeight * Format.BitsPerPixel];
 
@@ -101,7 +115,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
          var tilesetAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, Format.MatchingTileset);
          var tileset = model.GetNextRun(tilesetAddress) as ISpriteRun;
-         // if (tileset == null) tileset = model.GetNextRun(arrayTilesetAddress) as ISpriteRun;
+         if (tileset == null) tileset = model.GetNextRun(arrayTilesetAddress) as ISpriteRun;
 
          if (tileset == null) return new int[Format.TileWidth * 8, Format.TileHeight * 8]; // relax the conditions slightly: if the run we found is an LZSpriteRun, that's close enough, we can use it as a tileset.
 

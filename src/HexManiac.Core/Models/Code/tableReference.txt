@@ -178,8 +178,6 @@ graphics.pokemon.type.icons,           3C11B8, 3C1210, 3C11D4, 3C1230,       ,  
 graphics.pokemon.type.index,           0A1A2C, 0A1A2C, 0A1A4C, 0A1A4C,       ,       ,       ,       , 1C439C, [index.]data.pokemon.type.names+5
 graphics.pokemon.type.palettes,        09E028, 09E028, 09E048, 09E048,       ,       ,       ,       , 1C0080, `lzp4`
 graphics.pokemon.type.map,             3C11C8, 3C1220, 3C11E4, 3C1240,       ,       ,       ,       , 61CFCC, [pointer<[index::|t|:.|i::::::. unknown:|h unused:|h]1>]data.pokemon.type.names+5
-// the 'start' value is the index of the tile from typeicons where that type's icon starts. Since each icon is 4x2 tiles, each 'start' value is a multiple of 8.
-// @Emerald:61CFC0 :graphics.pokemon.type.index
 graphics.pokemon.bag.type.icon,              ,       ,       ,       ,       ,       ,       ,       , 19A340, `ucs4x16x16|graphics.pokemon.bag.type.palette`
 graphics.pokemon.bag.type.palette,           ,       ,       ,       ,       ,       ,       ,       , 19A2E0, `ucp4`
 graphics.pokemon.bag.type.map,               ,       ,       ,       ,       ,       ,       ,       , 19A33C, [width. height. xy:|t|:|x:|.|y::]data.pokemon.type.names+1+5
@@ -287,7 +285,8 @@ graphics.battle.hud.idlelevel.sprite,                  ,       ,       ,       ,
 graphics.battle.textbox.palette,                 00DAF4, 00DAF4, 00DAF4, 00DAF4, 00F45C, 00F45C, 00F470, 00F470, 035AE0, `lzp4`
 graphics.battle.textbox.tileset,                 00DAE8, 00DAE8, 00DAE8, 00DAE8, 00F454, 00F454, 00F468, 00F468, 035AD8, `lzt4|graphics.battle.textbox.palette`
 graphics.battle.textbox.tilemap,                       ,       ,       ,       , 00F458, 00F458, 00F46C, 00F46C, 035ADC, `lzm4x32x64|graphics.battle.textbox.tileset`
-// ruby pointer to tilemap is 00DAEC, but tilemap is uncompressed?
+graphics.battle.textbox.tilemap,                 00DAEC, 00DAEC, 00DAEC, 00DAEC,       ,       ,       ,       ,       , `ucm4x32x64|graphics.battle.textbox.tileset`
+
 
 graphics.titlescreen.pokemon.palette,              07C298, 07C29C, 07C2B8, 07C2BC, ,,,, , `ucp4:01`
 graphics.titlescreen.pokemon.tileset,              07C280, 07C284, 07C2A0, 07C2A4, ,,,, , `lzt4|graphics.titlescreen.pokemon.palette`
