@@ -168,6 +168,11 @@
                   <MenuItem Header="Write Debug" Click="DeveloperWriteDebug"/>
                   <MenuItem Header="Write Trace" Click="DeveloperWriteTrace"/>
                </MenuItem>
+               <MenuItem Header="Utilities">
+                  <MenuItem Name="QuickEditsPokedex" Header="Pokedex" />
+                  <MenuItem Name="QuickEditsExpansion" Header="Expand" />
+                  <MenuItem Header="Scripts" Command="{Binding LaunchScriptsLocation}" />
+               </MenuItem>
                <MenuItem Header="_Tools">
                   <MenuItem Header="_Hide All Tools" Command="{Binding Tools.HideCommand}"/>
                   <Separator/>
@@ -176,13 +181,24 @@
                   <MenuItem Header="Toggle _Image Tool" Command="{Binding Tools.SpriteToolCommand}"/>
                   <MenuItem Header="Toggle _Code Tool" Command="{Binding Tools.CodeToolCommand}"/>
                </MenuItem>
-               <MenuItem Header="Utilities">
-                  <MenuItem Name="QuickEditsPokedex" Header="Pokedex" />
-                  <MenuItem Name="QuickEditsExpansion" Header="Expand" />
-                  <MenuItem Header="Scripts" Command="{Binding LaunchScriptsLocation}"/>
-               </MenuItem>
                <MenuItem Header="_Help">
-                  <MenuItem Header="_Update" IsEnabled="{Binding IsNewVersionAvailable}" Click="UpdateClick">
+                  <MenuItem.Style>
+                     <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                        <Style.Triggers>
+                           <MultiDataTrigger>
+                              <MultiDataTrigger.Conditions>
+                                 <Condition Binding="{Binding IsNewVersionAvailable}" Value="True"/>
+                                 <Condition Binding="{Binding NewVersionAcknowledged}" Value="False"/>
+                              </MultiDataTrigger.Conditions>
+                              <Setter Property="Background" Value="{DynamicResource Accent}"/>
+                           </MultiDataTrigger>
+                           <DataTrigger Binding="{Binding TutorialsAcknowledged}" Value="False">
+                              <Setter Property="Background" Value="{DynamicResource Accent}"/>
+                           </DataTrigger>
+                        </Style.Triggers>
+                     </Style>
+                  </MenuItem.Style>
+                  <MenuItem Header="_Update" IsEnabled="{Binding IsNewVersionAvailable}" Click="UpdateClick" MouseMove="AcknowledgeAccentItem" Tag="NewVersionAcknowledged">
                      <MenuItem.ToolTip>
                         <ToolTip>
                            <ToolTip.Content>
@@ -194,9 +210,34 @@
                            </ToolTip.Content>
                         </ToolTip>
                      </MenuItem.ToolTip>
+                     <MenuItem.Style>
+                        <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                           <Style.Triggers>
+                              <MultiDataTrigger>
+                                 <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding NewVersionAcknowledged}" Value="False"/>
+                                    <Condition Binding="{Binding IsNewVersionAvailable}" Value="True"/>
+                                 </MultiDataTrigger.Conditions>
+                                 <MultiDataTrigger.Setters>
+                                    <Setter Property="Background" Value="{DynamicResource Accent}"/>
+                                 </MultiDataTrigger.Setters>
+                              </MultiDataTrigger>
+                           </Style.Triggers>
+                        </Style>
+                     </MenuItem.Style>
                   </MenuItem>
                   <MenuItem Header="_Wiki" Click="WikiClick"/>
-                  <MenuItem Header="_Tutorials" Click="TutorialsClick"/>
+                  <MenuItem Header="_Tutorials" Click="TutorialsClick" MouseMove="AcknowledgeAccentItem" Tag="TutorialsAcknowledged">
+                     <MenuItem.Style>
+                        <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                           <Style.Triggers>
+                              <DataTrigger Binding="{Binding TutorialsAcknowledged}" Value="False">
+                                 <Setter Property="Background" Value="{DynamicResource Accent}"/>
+                              </DataTrigger>
+                           </Style.Triggers>
+                        </Style>
+                     </MenuItem.Style>
+                  </MenuItem>
                   <MenuItem Header="_Report an Issue" Click="ReportIssueClick"/>
                   <MenuItem Header="_Discord" Click="DiscordClick">
                      <MenuItem.Icon>

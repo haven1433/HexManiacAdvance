@@ -435,6 +435,11 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       private void DeveloperWriteTrace(object sender, RoutedEventArgs e) => Trace.WriteLine("Trace");
 
       #endregion
+
+      private void AcknowledgeAccentItem(object sender, MouseEventArgs e) {
+         var property = (string)((FrameworkElement)sender).Tag;
+         ViewModel.GetType().GetProperty(property).SetValue(ViewModel, true);
+      }
    }
 
    public class CustomTraceListener : TraceListener {

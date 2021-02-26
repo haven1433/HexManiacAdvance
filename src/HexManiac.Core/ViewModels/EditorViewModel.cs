@@ -297,6 +297,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private bool allowMultipleElementsPerLine = true;
       public bool AllowMultipleElementsPerLine { get => allowMultipleElementsPerLine; set => Set(ref allowMultipleElementsPerLine, value); }
 
+      private bool tutorialsAcknowledged, newVersionAcknowledged;
+      public bool TutorialsAcknowledged { get => tutorialsAcknowledged; set => Set(ref tutorialsAcknowledged, value); }
+      public bool NewVersionAcknowledged { get => newVersionAcknowledged; set => Set(ref newVersionAcknowledged, value); }
+
       private StubCommand launchScriptsLocation;
       public ICommand LaunchScriptsLocation => StubCommand(ref launchScriptsLocation, () => fileSystem.LaunchProcess("resources/scripts"));
 
@@ -423,6 +427,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          StretchData = !metadata.Contains("StretchData = False");
          IsNewVersionAvailable = metadata.Contains("IsNewVersionAvailable = True");
          AllowMultipleElementsPerLine = !metadata.Contains("AllowMultipleElementsPerLine = False");
+         TutorialsAcknowledged = metadata.Contains("AcknowledgeTutorials = True");
          var lastUpdateCheckLine = metadata.FirstOrDefault(line => line.StartsWith("LastUpdateCheck = "));
          if (lastUpdateCheckLine != null && DateTime.TryParse(lastUpdateCheckLine.Split('=').Last().Trim(), out var lastUpdateCheck)) LastUpdateCheck = lastUpdateCheck;
          var zoomLine = metadata.FirstOrDefault(line => line.StartsWith("ZoomLevel ="));
@@ -454,6 +459,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             $"AllowMultipleElementsPerLine = {AllowMultipleElementsPerLine}",
             $"IsNewVersionAvailable = {IsNewVersionAvailable}",
             $"LastUpdateCheck = {LastUpdateCheck}",
+            $"AcknowledgeTutorials = {TutorialsAcknowledged}",
             SerializeRecentFiles(),
             string.Empty
          };

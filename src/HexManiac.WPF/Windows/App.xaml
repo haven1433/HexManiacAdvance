@@ -423,10 +423,11 @@
       <Style TargetType="{x:Type MenuItem}">
          <Style.Triggers>
             <Trigger Property="Role" Value="TopLevelHeader">
+               <Setter Property="Background" Value="{DynamicResource Background}"/>
                <Setter Property="Template">
                   <Setter.Value>
                      <ControlTemplate TargetType="{x:Type MenuItem}">
-                        <Grid Name="ItemBorder">
+                        <Grid Name="ItemBorder" Background="{TemplateBinding Background}">
                            <ContentPresenter Margin="10,2" ContentSource="Header" RecognizesAccessKey="True" TextBlock.Foreground="{DynamicResource Primary}"/>
                            <Popup x:Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsSubmenuOpen}" SnapsToDevicePixels="True">
                               <Border x:Name="SubmenuBorder" BorderThickness="1" Background="{DynamicResource Background}" BorderBrush="{DynamicResource Accent}">
@@ -444,10 +445,11 @@
                </Setter>
             </Trigger>
             <Trigger Property="Role" Value="SubmenuHeader">
+               <Setter Property="Background" Value="{DynamicResource Background}"/>
                <Setter Property="Template">
                   <Setter.Value>
                      <ControlTemplate TargetType="{x:Type MenuItem}">
-                        <Grid Name="ItemBorder" Background="Transparent">
+                        <Grid Name="ItemBorder" Background="{TemplateBinding Background}">
                            <Grid.ColumnDefinitions>
                               <ColumnDefinition Width="30"/>
                               <ColumnDefinition Width="*"/>
@@ -455,7 +457,7 @@
                            </Grid.ColumnDefinitions>
                            <ContentPresenter Grid.Column="0" Margin="5,5,0,5" ContentSource="Icon" />
                            <Border x:Name="Border" Width="13" Height="13"
-                              Background="{DynamicResource Background}" BorderThickness="1" HorizontalAlignment="Center"
+                              Background="{TemplateBinding Background}" BorderThickness="1" HorizontalAlignment="Center"
                               VerticalAlignment="Center" BorderBrush="{DynamicResource Secondary}"
                               Visibility="{TemplateBinding IsCheckable, Converter={StaticResource BoolToVisibility}}">
                               <Path Width="7" Height="7" StrokeThickness="2" SnapsToDevicePixels="False" 
@@ -498,10 +500,11 @@
                </Setter>
             </Trigger>
             <Trigger Property="Role" Value="SubmenuItem">
+               <Setter Property="Background" Value="{DynamicResource Background}"/>
                <Setter Property="Template">
                   <Setter.Value>
                      <ControlTemplate TargetType="{x:Type MenuItem}">
-                        <Grid Name="ItemBorder" Background="Transparent">
+                        <Grid Name="ItemBorder" Background="{TemplateBinding Background}">
                            <Grid.ColumnDefinitions>
                               <ColumnDefinition Width="30"/>
                               <ColumnDefinition Width="*"/>
@@ -509,7 +512,7 @@
                            </Grid.ColumnDefinitions>
                            <ContentPresenter Grid.Column="0" Margin="5,5,0,5" ContentSource="Icon" />
                            <Border x:Name="Border" Width="13" Height="13"
-                              Background="{DynamicResource Background}" BorderThickness="1" HorizontalAlignment="Center"
+                              Background="{TemplateBinding Background}" BorderThickness="1" HorizontalAlignment="Center"
                               VerticalAlignment="Center" BorderBrush="{DynamicResource Secondary}"
                               Visibility="{TemplateBinding IsCheckable, Converter={StaticResource BoolToVisibility}}">
                               <Path Width="7" Height="7" StrokeThickness="2" SnapsToDevicePixels="False" 
