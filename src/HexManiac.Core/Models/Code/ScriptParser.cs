@@ -279,6 +279,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       public string GetHelp(string currentLine) {
+         if (string.IsNullOrEmpty(currentLine)) return null;
          var tokens = ScriptLine.Tokenize(currentLine.Trim());
          var candidates = engine.Where(line => line.LineCommand.Contains(tokens[0])).ToList();
          if (candidates.Count > 10) return null;
