@@ -116,7 +116,7 @@
 54 hidespritepos npc: x. y.                  # do not use
 55 showsprite npc:                           # opposite of hidesprite
 56 showspritepos npc: x. y.                  # shows a previously hidden sprite, then moves it to (x,y)
-57 movesprite npc: x. y.
+57 movesprite npc: x: y:
 58 spritevisible npc: bank. map.             # shows the sprite on the given map
 59 spriteinvisible npc: bank. map.           # hides the sprite on the given map
 5A faceplayer                                # if the script was called by a person event, make that person face the player
