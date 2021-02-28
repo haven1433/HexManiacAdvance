@@ -509,11 +509,13 @@ ApplicationVersion = '''0.1.0'''
       /// </summary>
       [Fact]
       public void TableReference_Load_NoNamesPrefixOtherNames() {
-         var tableNames = BaseViewModelTestClass.Singletons.GameReferenceTables.Values.SelectMany(tables => tables).Select(table => table.Name.ToLower()).Distinct().ToArray();
+         var tableNames = BaseViewModelTestClass.Singletons.GameReferenceTables.Values.SelectMany(tables => tables.Select(table => table.Name.ToLower()))
+            .Concat(BaseViewModelTestClass.Singletons.GameReferenceConstants.Values.SelectMany(constants => constants.Select(constant => constant.Name.ToLower())))
+            .Distinct().ToArray();
          for (int i = 0; i < tableNames.Length; i++) {
             Assert.All(tableNames.Length.Range(), j => {
                if (i == j) return;
-               Assert.False(tableNames[i].StartsWith(tableNames[j] + "."), $"{tableNames[i]} contains anchor {tableNames[j]}!");
+               Assert.False(tableNames[i].StartsWith(tableNames[j] + "."), $"{tableNames[i]} contains name {tableNames[j]}!");
             });
          }
       }
