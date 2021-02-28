@@ -432,13 +432,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
             if (alsoUpdateArrays) {
                foreach (var array in model.Arrays.Where(a => a.LengthFromAnchor == wordRun.SourceArrayName).ToList()) {
-                  var delta = value - array.ElementCount;
-                  var movedArray = model.RelocateForExpansion(token, array, (array.ElementCount + delta) * array.ElementLength);
-                  var newArray = movedArray.Append(token, delta);
-                  if (newArray != array) model.ObserveRunWritten(token, newArray);
+                  var delta = desiredValue - array.ElementCount;
+                  if (delta == 0) continue;
+                  var newArray = array;
+                  if (!(token is NoDataChangeDeltaModel)) {
+                     // relocate if needed
+                     newArray = model.RelocateForExpansion(token, array, (array.ElementCount + delta) * array.ElementLength);
+                  }
+                  newArray = newArray.Append(token, delta);
+                  if (token is NoDataChangeDeltaModel) {
+                     // the new 'added' elements may have stuff pointing to them, because they were already there
+                     newArray = newArray.AddSourcesPointingWithinArray(token);
+                  }
+                  if (newArray != array) {
+                     if (newArray.Length > array.Length && newArray.Start == array.Start) model.ClearFormat(token, array.Start + array.Length, newArray.Length - array.Length);
+                     model.ObserveRunWritten(token, newArray);
+                  }
                }
             }
 
+            if (token is NoDataChangeDeltaModel) return (newDataIndex, errorText);
             foreach (var address in model.GetMatchedWords(wordRun.SourceArrayName)) {
                if (address == run.Start) continue; // don't write the current run
                if (!(model.GetNextRun(address) is WordRun currentRun)) continue;

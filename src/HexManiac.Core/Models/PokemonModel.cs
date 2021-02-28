@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -145,7 +146,9 @@ namespace HavenSoft.HexManiac.Core.Models {
                   runs[index] = new WordRun(word.Address, word.Name, word.Length, word.AddOffset, word.MultOffset, word.Note, runs[index].PointerSources);
                } else {
                   runs.Insert(~index, new WordRun(word.Address, word.Name, word.Length, word.AddOffset, word.MultOffset, word.Note));
+                  index = ~index;
                }
+               CompleteCellEdit.UpdateAllWords(this, runs[index], noChange, this.ReadMultiByteValue(word.Address, word.Length), true);
             }
             foreach (var offsetPointer in metadata.OffsetPointers) {
                var newRun = new OffsetPointerRun(offsetPointer.Address, offsetPointer.Offset);
@@ -447,6 +450,16 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (string.IsNullOrEmpty(array.LengthFromAnchor)) continue;
             var parentName = array.LengthFromAnchor;
             var childName = GetAnchorFromAddress(-1, array.Start);
+            if (matchedWords.TryGetValue(parentName, out var set)) {
+               foreach (var wordAddress in set) {
+                  if (GetNextRun(wordAddress) is WordRun word) {
+                     var expectedElementCount = (this.ReadMultiByteValue(word.Start, word.Length) - word.ValueOffset) / word.MultOffset;
+                     Debug.Assert(array.ElementCount == expectedElementCount, $"Expected {childName} to have {expectedElementCount} elements because of {parentName}, but it had {array.ElementCount} elements instead!");
+                  } else {
+                     Debug.Fail("Expected a constant at " + wordAddress.ToAddress() + " but didn't find one!");
+                  }
+               }
+            }
             if (!(GetNextRun(GetAddressFromAnchor(token, -1, array.LengthFromAnchor)) is ITableRun parent)) continue;
             if (array.ParentOffset.BeginningMargin + array.ParentOffset.EndMargin + parent.ElementCount > 0) {
                Debug.Assert(parent.ElementCount + array.ParentOffset.BeginningMargin + array.ParentOffset.EndMargin == array.ElementCount);
@@ -765,10 +778,11 @@ namespace HavenSoft.HexManiac.Core.Models {
                changeToken.AddRun(run);
             }
 
-            if (run is WordRun word) {
+            if (run is WordRun word && word.Start + word.Length <= Count) {
                if (!matchedWords.ContainsKey(word.SourceArrayName)) matchedWords[word.SourceArrayName] = new HashSet<int>();
                matchedWords[word.SourceArrayName].Add(word.Start);
                changeToken.AddMatchedWord(this, word.Start, word.SourceArrayName);
+               CompleteCellEdit.UpdateAllWords(this, word, changeToken, this.ReadMultiByteValue(word.Start, word.Length), true);
             } else if (run is OffsetPointerRun offsetPointer) {
                pointerOffsets[offsetPointer.Start] = offsetPointer.Offset;
                changeToken.AddOffsetPointer(offsetPointer.Start, offsetPointer.Offset);

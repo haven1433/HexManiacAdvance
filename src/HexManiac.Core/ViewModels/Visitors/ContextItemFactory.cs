@@ -127,7 +127,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
          var group = new ContextItemGroup(name);
 
-         if (ViewPort.Model.GetNextRun(ViewPort.ConvertViewPointToAddress(ViewPort.SelectionStart)) is ITableRun tableRun && tableRun.Start != ViewPort.DataOffset) {
+         var selectionStartAddress = ViewPort.ConvertViewPointToAddress(ViewPort.SelectionStart);
+         if (ViewPort.Model.GetNextRun(selectionStartAddress) is ITableRun tableRun && tableRun.Start != ViewPort.DataOffset && tableRun.Start == selectionStartAddress) {
             group.Add(new ContextItem("Align Here", ViewPort.Goto.Execute, tableRun.Start));
          }
 

@@ -106,7 +106,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          (singletons?.WorkDispatcher ?? InstantDispatch.Instance).RunBackgroundWork(() => {
             using (CreateInitializeScope()) {
                if (singletons.GameReferenceConstants.TryGetValue(gameCode, out var referenceConstants)) {
-                  metadata = DecodeConstantsFromReference(singletons.MetadataInfo, metadata, referenceConstants);
+                  metadata = DecodeConstantsFromReference(this, singletons.MetadataInfo, metadata, referenceConstants);
                }
                Initialize(metadata);
                isCFRU = GetIsCFRU();
@@ -155,11 +155,18 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public static StoredMetadata DecodeConstantsFromReference(IMetadataInfo info, StoredMetadata metadata, GameReferenceConstants constants) {
+      public static StoredMetadata DecodeConstantsFromReference(IReadOnlyList<byte> model, IMetadataInfo info, StoredMetadata metadata, GameReferenceConstants constants) {
          if (metadata == null) return metadata;
          var words = metadata.MatchedWords.ToList();
-         foreach (var constant in constants) {
-            words.AddRange(constant.ToStoredMatchedWords());
+         var constantSet = new Dictionary<string, IList<StoredMatchedWord>>();
+         foreach (var constant in constants.SelectMany(c => c.ToStoredMatchedWords())) {
+            if (!constantSet.ContainsKey(constant.Name)) constantSet[constant.Name] = new List<StoredMatchedWord>();
+            constantSet[constant.Name].Add(constant);
+         }
+         foreach (var constant in constantSet.Values) {
+            var virtualValues = constant.Select(c => (model.ReadMultiByteValue(c.Address, c.Length) - c.AddOffset) / c.MultOffset).ToList();
+            var match = virtualValues.All(vv => vv == virtualValues[0]);
+            if (match) words.AddRange(constant);
          }
          return new StoredMetadata(metadata.NamedAnchors, metadata.UnmappedPointers, words, metadata.OffsetPointers, metadata.Lists, info, metadata.FreeSpaceSearch, metadata.FreeSpaceBuffer, metadata.NextExportID);
       }
