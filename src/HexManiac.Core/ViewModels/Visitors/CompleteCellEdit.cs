@@ -440,7 +440,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                      newArray = model.RelocateForExpansion(token, array, (array.ElementCount + delta) * array.ElementLength);
                   }
                   newArray = newArray.Append(token, delta);
-                  if (token is NoDataChangeDeltaModel) {
+                  if (token is NoDataChangeDeltaModel && newArray.SupportsPointersToElements) {
                      // the new 'added' elements may have stuff pointing to them, because they were already there
                      newArray = newArray.AddSourcesPointingWithinArray(token);
                   }
