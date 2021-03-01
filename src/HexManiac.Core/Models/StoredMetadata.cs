@@ -35,7 +35,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          MatchedWords = matchedWords ?? new List<StoredMatchedWord>();
          OffsetPointers = offsetPointers ?? new List<StoredOffsetPointer>();
          Lists = lists ?? new List<StoredList>();
-         Version = generalInfo.VersionNumber;
+         Version = generalInfo?.VersionNumber;
          FreeSpaceSearch = freeSpaceSearch;
          FreeSpaceBuffer = freeSpaceBuffer;
          NextExportID = nextExportID;

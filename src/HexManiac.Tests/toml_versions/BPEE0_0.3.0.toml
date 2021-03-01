@@ -1,0 +1,474 @@
+[[NamedAnchors]]
+Name = '''GameTitle'''
+Address = 0x0000A0
+Format = '''`asc`12'''
+
+[[NamedAnchors]]
+Name = '''GameCode'''
+Address = 0x0000AC
+Format = '''`asc`4'''
+
+[[NamedAnchors]]
+Name = '''MakerCode'''
+Address = 0x0000B0
+Format = '''`asc`2'''
+
+[[NamedAnchors]]
+Name = '''RomName'''
+Address = 0x000108
+Format = '''`asc`32'''
+
+[[NamedAnchors]]
+Name = '''pokenames'''
+Address = 0x3185C8
+Format = '''[name""11]412'''
+
+[[NamedAnchors]]
+Name = '''movenames'''
+Address = 0x31977C
+Format = '''[name""13]355'''
+
+[[NamedAnchors]]
+Name = '''abilitynames'''
+Address = 0x31B6DB
+Format = '''[name""13]78'''
+
+[[NamedAnchors]]
+Name = '''trainerclassnames'''
+Address = 0x30FCD4
+Format = '''[name""13]66'''
+
+[[NamedAnchors]]
+Name = '''types'''
+Address = 0x31AE38
+Format = '''^[name""7]18'''
+
+[[NamedAnchors]]
+Name = '''abilitydescriptions'''
+Address = 0x31BAD4
+Format = '''[description<"">]abilitynames'''
+
+[[NamedAnchors]]
+Name = '''movedescriptions'''
+Address = 0x61C524
+Format = '''[description<"">]movenames-1'''
+
+[[NamedAnchors]]
+Name = '''multichoice'''
+Address = 0x58B760
+Format = '''[options<[text<""> unused::]/count> count::]114'''
+
+[[NamedAnchors]]
+Name = '''pokestats'''
+Address = 0x3203CC
+Format = '''[hp. attack. def. speed. spatk. spdef. type1.types type2.types catchRate. baseExp. evs: item1:items item2:items genderratio. steps2hatch. basehappiness. growthrate. egg1. egg2. ability1.abilitynames ability2.abilitynames runrate. unknown. padding:]pokenames'''
+
+[[NamedAnchors]]
+Name = '''evolutions'''
+Address = 0x32531C
+Format = '''[[method:evolutionmethods arg: species:pokenames unused:]5]pokenames'''
+
+[[NamedAnchors]]
+Name = '''items'''
+Address = 0x5839A0
+Format = '''[name""14 index: price: holdeffect. param. description<""> keyitemvalue. bagkeyitem. pocket. type. fieldeffect<> battleusage:: battleeffect<> battleextra::]377'''
+
+[[NamedAnchors]]
+Name = '''movedata'''
+Address = 0x31C898
+Format = '''[effect.moveeffects power. type.types accuracy. pp. effectAccuracy. target|b[]movetarget priority. info|b[]moveinfo unused. unused:]movenames'''
+
+[[NamedAnchors]]
+Name = '''lvlmoves'''
+Address = 0x32937C
+Format = '''[movesFromLevel<`plm`>]pokenames'''
+
+[[NamedAnchors]]
+Name = '''tutormoves'''
+Address = 0x61500C
+Format = '''[move:movenames]30'''
+
+[[NamedAnchors]]
+Name = '''tutorcompatibility'''
+Address = 0x615048
+Format = '''[moves|b[]tutormoves]pokenames'''
+
+[[NamedAnchors]]
+Name = '''tmmoves'''
+Address = 0x616040
+Format = '''[move:movenames]58'''
+
+[[NamedAnchors]]
+Name = '''tmcompatibility'''
+Address = 0x31E898
+Format = '''[moves|b[]tmmoves]pokenames'''
+
+[[NamedAnchors]]
+Name = '''hmmoves'''
+Address = 0x329EEA
+Format = '''[move:movenames]8'''
+
+[[NamedAnchors]]
+Name = '''itemimages'''
+Address = 0x614410
+Format = '''[image<> palette<>]items'''
+
+[[NamedAnchors]]
+Name = '''trainerdata'''
+Address = 0x310030
+Format = '''[structType.4 class.trainerclassnames introMusic. sprite. name""12 item1:items item2:items item3:items item4:items doubleBattle:: ai:: pokemonCount:: pokemon<`tpt`>]855'''
+
+[[NamedAnchors]]
+Name = '''decorations'''
+Address = 0x5A5C08
+Format = '''[id. name""16 permission.decorpermissions shape.decorshape category.decorcategory price:: description<""> graphics<>]121'''
+
+[[NamedAnchors]]
+Name = '''wild'''
+Address = 0x552D48
+Format = '''[bank. map. unused: grass<[rate:: list<[low. high. species:pokenames]12>]1> surf<[rate:: list<[low. high. species:pokenames]5>]1> tree<[rate:: list<[low. high. species:pokenames]5>]1> fish<[rate:: list<[low. high. species:pokenames]10>]1>]125'''
+
+[[NamedAnchors]]
+Name = '''specials'''
+Address = 0x1DBA64
+Format = '''[code<>]538'''
+
+[[NamedAnchors]]
+Name = '''regionaldex'''
+Address = 0x31D94C
+Format = '''[index:]pokenames-1'''
+
+[[NamedAnchors]]
+Name = '''nationaldex'''
+Address = 0x31DC82
+Format = '''[index:]pokenames-1'''
+
+[[NamedAnchors]]
+Name = '''hoennToNational'''
+Address = 0x31DFB8
+Format = '''[index:]pokenames-1'''
+
+[[NamedAnchors]]
+Name = '''dexinfo'''
+Address = 0x56B5B0
+Format = '''[species""12 height: weight: description<""> unused: pokemonScale: pokemonOffset: trainerScale: trainerOffset: usused:]387'''
+
+[[NamedAnchors]]
+Name = '''eggmoves'''
+Address = 0x32ADD8
+Format = '''`egg`'''
+
+[[NamedAnchors]]
+Name = '''typeChart'''
+Address = 0x31ACE8
+Format = '''[attack.types defend.types strength.]!FEFE00'''
+
+[[NamedAnchors]]
+Name = '''typeChart2'''
+Address = 0x31AE2F
+Format = '''[attack.types defend.types strength.]!FFFF00'''
+
+#################################
+#################################
+#################################
+[[List]]
+Name = '''moveeffects'''
+0 = [
+   '''None''',
+   '''SleepPrimary''',
+   '''Poison''',
+   '''HealHalf''',
+   '''Burn''',
+   '''Freeze''',
+   '''Paralyze''',
+   '''Suicide''',
+   '''HealHalfIfOpponentSleeping''',
+   '''RepeatFoeMove''',
+   '''RaiseAttackPrimary''',
+   '''RaiseDefensePrimary''',
+   '''???RaiseSpeedPrimary???''',
+   '''RaiseAttackSpAttackPrimary''',
+   '''unknown1''',
+   '''???RaiseAccuracyPrimary???''',
+   '''RaiseEvasivenessPrimary''',
+   '''NeverMiss''',
+   '''LowerAttackPrimary''',
+   '''LowerDefensePrimary''',
+   '''LowerSpeedPrimary''',
+   '''???LowerAttackSpAttackPrimary???''',
+   '''unknown2''',
+   '''LowerAccuracyPrimary''',
+   '''LowerEvasionPrimary''',
+   '''RemoveStateChanges''',
+   '''Bide''',
+   '''2to3turnsThenConfused''',
+   '''OpponentSwitch''',
+   '''2to5hits''',
+   '''ChangeTypeToFriendlyMove''',
+   '''Flinch''',
+   '''Recover''',
+   '''BadPoisonPrimary''',
+   '''Money''',
+   '''RaiseSpDef2Wall''',
+   '''ParalyzeBurnFreeze''',
+   '''Rest''',
+   '''OHKO''',
+   '''2turnHighCrit''',
+   '''HalfDamage''',
+   '''20Damage''',
+   '''2to5turnTrap''',
+   '''HighCrit''',
+   '''2hits''',
+   '''MissHurtSelf''',
+   '''PreventStatReduction''',
+   '''RaiseCriticalRate''',
+   '''25Recoil''',
+   '''ConfusionPrimary''',
+   '''RaiseAttack2Primary''',
+   '''RaiseDefense2Primary''',
+   '''RaiseSpeed2Primary''',
+   '''RaiseSpAtk2Primary''',
+   '''RaiseSpDef2Primary''',
+   '''???RaiseAccuracy2Primary???''',
+   '''???RaiseEvasiveness2Primary???''',
+   '''Transform''',
+   '''LowerAttack2Primary''',
+   '''LowerDefense2Primary''',
+   '''LowerSpeed2Primary''',
+   '''???LowerSpAtk2Primary???''',
+   '''LowerSpDef2Primary''',
+   '''???''',
+   '''????''',
+   '''RaiseDefense2Wall''',
+   '''PoisonPrimary''',
+   '''ParalyzePrimary''',
+   '''LowerAttack''',
+   '''LowerDefense''',
+   '''LowerSpeed''',
+   '''LowerSpAtk''',
+   '''LowerSpDef''',
+   '''LowerAccuracy''',
+   '''?????''',
+   '''2turnHighCritFlinch''',
+   '''Confusion''',
+   '''2hitsPoison''',
+   '''NeverMiss(VitalThrow)''',
+   '''Substitute''',
+   '''SkipNextTurn''',
+   '''StrongerForLessHealth''',
+   '''Mimic''',
+   '''RandomMove''',
+   '''SeedOpponent''',
+   '''Splash''',
+   '''Disable''',
+   '''DamageBasedOnLevel''',
+   '''DamageRandom''',
+   '''DoublePhysicalDamage''',
+   '''OpponentRepeatMoveFor2to6turns''',
+   '''PainSplit''',
+   '''WhileSleepingFlinch''',
+   '''ChangeTypeToResistPreviousHit''',
+   '''NextAttackHits''',
+   '''Sketch''',
+   '''??????''',
+   '''SleepTalk''',
+   '''DestinyBond''',
+   '''StrengthDependsOnHealth''',
+   '''ReducePP''',
+   '''FalseSwipe''',
+   '''HealPartyStatus''',
+   '''NormalPlusPriority''',
+   '''3turnTripleHit''',
+   '''StealItem''',
+   '''NoSwitch''',
+   '''Nightmare''',
+   '''RaiseEvasivenessAndBecomeSmaller''',
+   '''Curse''',
+   '''??''',
+   '''EvadeNextAttack''',
+   '''Spikes''',
+   '''FoeCannnotRaiseEvasion''',
+   '''PerishSong''',
+   '''Sandstorm''',
+   '''Endure''',
+   '''5turnsUntilMiss''',
+   '''ConfuseAndRaiseAttack2''',
+   '''GetStrongerEachHit''',
+   '''Attract''',
+   '''StrongerWithFriendship''',
+   '''Present''',
+   '''WeakerWithFriendship''',
+   '''PreventStatus5Turns''',
+   '''BurnRaiseSpeed''',
+   '''Magnitude''',
+   '''BatonPass''',
+   '''DoublePowerIfOpponentSwitching''',
+   '''RemoveBindSeedSpikes''',
+   '''20Damage''',
+   '''???????''',
+   '''MorningSun''',
+   '''Synthesis''',
+   '''Moonlight''',
+   '''HiddenPower''',
+   '''Rain5turns''',
+   '''Sun5turns''',
+   '''RaiseDefense''',
+   '''RaiseAttack''',
+   '''RaiseAllStats''',
+   '''????????''',
+   '''HalfHealthToRaiseAttack6''',
+   '''CopyFoeStatChangesPrimary''',
+   '''DoubleSpecialDamage''',
+   '''RaiseDefenseThenAttackTurn2''',
+   '''FlinchAndDoubleDamageToFly''',
+   '''DoubleDamageToDig''',
+   '''DamageIn2Turns''',
+   '''DoubleDamageToFly''',
+   '''FlinchAndDoubleDamageToMinimize''',
+   '''ChargeFirstTurn''',
+   '''ParalyzeAndIncreaseAccuracyInRain''',
+   '''Escape''',
+   '''DamageBasedOnPartySize''',
+   '''2turn''',
+   '''RaiseDefenseAndImproveRollingMoves''',
+   '''RecoverOrFriend''',
+   '''OnlyWorksOnce''',
+   '''2to5turnsNoSleep''',
+   '''Stockpile''',
+   '''Spit Up''',
+   '''Swallow''',
+   '''?????????''',
+   '''Hail5turns''',
+   '''Torment''',
+   '''ConfuseAndRaiseSpAtk2''',
+   '''BurnPrimary''',
+   '''SuicideLowerAtkSpAtk2''',
+   '''DoubleDamageIfStatus''',
+   '''SelfFlinchIfHit''',
+   '''DoubleDamageToParalyzeAndHealParalyze''',
+   '''ForceFoesAttackMe''',
+   '''NaturePower''',
+   '''BoostNextElectricMove''',
+   '''Taunt''',
+   '''BoostAllyPower''',
+   '''TradeHeldItems''',
+   '''CopyAbility''',
+   '''HealHalfNextTurn''',
+   '''UseAllyMove''',
+   '''Ingrain''',
+   '''LowerSelfAtkDef''',
+   '''ReflectStatusMoves''',
+   '''Recycle''',
+   '''DoubleDamageIfHitThisTurn''',
+   '''BreakWall''',
+   '''Yawn''',
+   '''KnockOff''',
+   '''Endeavor''',
+   '''DamageBasedOnHighRemainingHealth''',
+   '''SkillSwap''',
+   '''Imprison''',
+   '''HealSelfStatus''',
+   '''Grudge''',
+   '''Snatch''',
+   '''DamageBasedOnWeight''',
+   '''SecondEffectBasedOnTerrain''',
+   '''33Recoil''',
+   '''ConfuseAllPokemon''',
+   '''HighCritBurn''',
+   '''MudSport''',
+   '''BadPoison''',
+   '''WeatherBall''',
+   '''LowerSpAtk2Self''',
+   '''LowerAttackDefensePrimary''',
+   '''RaiseDefenseSpDef''',
+   '''CanDamageFly''',
+   '''RaiseAttackDefensePrimary''',
+   '''HighCritPoison''',
+   '''WaterSport''',
+   '''RaiseSpAtkSpDefPrimary''',
+   '''RaiseAttackSpeedPrimary''',
+   '''ChangetypeFromTerrain''',
+]
+
+[[List]]
+Name = '''moveinfo'''
+0 = [
+   '''Makes Contact''',
+   '''Affected by Protect''',
+   '''Affected by Magic Coat''',
+   '''Affected by Snatch''',
+   '''Affected by Mirror Move''',
+   '''Affected by King's Rock''',
+]
+
+[[List]]
+Name = '''movetarget'''
+0 = [
+   '''RecentAttacker''',
+   '''Unused''',
+   '''Random''',
+   '''Both''',
+   '''Self''',
+   '''Everyone''',
+   '''Hazard''',
+]
+
+[[List]]
+Name = '''decorpermissions'''
+0 = [
+   '''Normal''',
+   '''Put On Floor''',
+   '''Object''',
+   '''Place On Wall''',
+   '''Doll or Cushion''',
+]
+
+[[List]]
+Name = '''decorcategory'''
+0 = [
+   '''Desk''',
+   '''Chair''',
+   '''Plant''',
+   '''Unique''',
+   '''Mat''',
+   '''Poster''',
+   '''Doll''',
+   '''Cushion''',
+]
+
+[[List]]
+Name = '''decorshape'''
+0 = [
+   '''1x1''',
+   '''unused''',
+   '''unused''',
+   '''1x1t''',
+   '''2x2p''',
+   '''1x1p''',
+   '''unused''',
+   '''3x1''',
+   '''2x2''',
+   '''2x1''',
+]
+
+[[List]]
+Name = '''evolutionmethods'''
+0 = [
+   '''None''',
+   '''Happiness''',
+   '''Happy Day''',
+   '''Happy Night''',
+   '''Level''',
+   '''Trade''',
+   '''Trade Item''',
+   '''Stone''',
+   '''Level High Attack''',
+   '''Level Attack matches Defense''',
+   '''Level High Defense''',
+   '''Level Odd Personality''',
+   '''Level Even Personality''',
+   '''Level And New Pokemon''',
+   '''Level But New Pokemon''',
+   '''Beauty''',
+]
+

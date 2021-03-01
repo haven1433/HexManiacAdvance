@@ -173,21 +173,44 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private void UpdateRuns(GameReferenceTables referenceTables, IEnumerable<StoredMetadata> metadatas) {
          var noChange = new NoDataChangeDeltaModel();
+
+         if (singletons.GameReferenceConstants != null && singletons.GameReferenceConstants.TryGetValue(this.GetGameCode(), out var referenceConstants)) {
+            var metadata = HardcodeTablesModel.DecodeConstantsFromReference(this, singletons.MetadataInfo, new StoredMetadata(new string[0]), referenceConstants);
+            this.LoadMetadata(metadata);
+         }
+
+         // if there's any differences between the previous metadata and the new metadata, go ahead and use the new metadata.
+         // this allows for default metadata updates when member names change, but may overwrite manual changes made by the user.
+         // We're not currently worried about that, since we don't expect that to be a common use case.
+         foreach (var metadata in metadatas) {
+            this.LoadMetadata(metadata);
+         }
+
+         var changedLocations = new HashSet<int>();
+
          foreach (var reference in referenceTables) {
-            var destination = ReadPointer(reference.Address);
+            var destination = base.ReadPointer(reference.Address) - reference.Offset;
             if (!anchorForAddress.ContainsKey(destination) && !addressForAnchor.ContainsKey(reference.Name)) {
                ApplyAnchor(this, noChange, destination, "^" + reference.Name + reference.Format, allowAnchorOverwrite: true);
+               changedLocations.Add(destination);
                continue;
             }
 
             if (!anchorForAddress.TryGetValue(destination, out var anchor)) continue;
-            if (anchor == reference.Name) continue;
+            var existingRun = GetNextRun(destination);
+            if (anchor == reference.Name && existingRun.Start == destination && existingRun.FormatString == reference.Format) continue;
             if (TryParseFormat(this, reference.Name, reference.Format, destination, out var replacementRun).HasError) continue;
 
             // update this anchor
             anchorForAddress[destination] = reference.Name;
             addressForAnchor.Remove(anchor);
             addressForAnchor[reference.Name] = destination;
+
+            // update the run, if the new one can drop-in replace the old one. Used for updating field names or general format
+            if (existingRun.Start == replacementRun.Start && existingRun.Length <= replacementRun.Length && existingRun.FormatString != replacementRun.FormatString) {
+               ObserveAnchorWritten(noChange, reference.Name, replacementRun);
+               changedLocations.Add(destination);
+            }
 
             // update runs that care about this name
             for (int i = 0; i < runs.Count; i++) {
@@ -200,9 +223,21 @@ namespace HavenSoft.HexManiac.Core.Models {
                      var arrayClose = array.FormatString.LastIndexOf(']');
                      var newFormat = array.FormatString.Substring(0, arrayClose + 1);
                      TryParse(this, newFormat + newLengthToken + lengthModifier, array.Start, array.PointerSources, out var newRun);
-                     runs[i] = newRun;
+                     ClearFormat(noChange, newRun.Start, newRun.Length);
+                     ObserveRunWritten(noChange, newRun);
+                     i = BinarySearch(newRun.Start);
+                  }
+                  if (parentName == reference.Name) {
+                     // there's a table that depends on the new name, which wasn't available yet.
+                     // re-evaluate that table to get the right length.
+                     TryParse(this, array.FormatString, array.Start, array.PointerSources, out var newRun);
+                     ClearFormat(noChange, newRun.Start, newRun.Length);
+                     ObserveRunWritten(noChange, newRun);
+                     i = BinarySearch(newRun.Start);
                   }
                }
+
+               if (changedLocations.Contains(runs[i].Start)) continue; // we've already updated this run, no need to check it again
 
                // update enum names / bitarray names
                if (runs[i] is ITableRun table) {
@@ -246,13 +281,6 @@ namespace HavenSoft.HexManiac.Core.Models {
                   ObserveRunWritten(noChange, newRun);
                }
             }
-         }
-
-         // if there's any differences between the previous metadata and the new metadata, go ahead and use the new metadata.
-         // this allows for default metadata updates when member names change, but may overwrite manual changes made by the user.
-         // We're not currently worried about that, since we don't expect that to be a common use case.
-         foreach (var metadata in metadatas) {
-            this.LoadMetadata(metadata);
          }
       }
 
@@ -462,7 +490,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
             if (!(GetNextRun(GetAddressFromAnchor(token, -1, array.LengthFromAnchor)) is ITableRun parent)) continue;
             if (array.ParentOffset.BeginningMargin + array.ParentOffset.EndMargin + parent.ElementCount > 0) {
-               Debug.Assert(parent.ElementCount + array.ParentOffset.BeginningMargin + array.ParentOffset.EndMargin == array.ElementCount);
+               var expectedChildLength = parent.ElementCount + array.ParentOffset.BeginningMargin + array.ParentOffset.EndMargin;
+               Debug.Assert(expectedChildLength == array.ElementCount, $"Expected table {childName} to be {expectedChildLength} elements based on {parentName}, but it was {array.ElementCount} elements instead.");
             } else {
                Debug.Assert(array.ElementCount == 1);
             }

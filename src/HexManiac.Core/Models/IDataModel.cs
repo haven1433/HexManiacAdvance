@@ -293,7 +293,7 @@ namespace HavenSoft.HexManiac.Core.Models {
    public static class IDataModelExtensions {
       public const int GameCodeStart = 0xAC;
       public const int GameVersionStart = 0xBC;
-      public static string GetGameCode(this IDataModel model) {
+      public static string GetGameCode(this IReadOnlyList<byte> model) {
          if (model.Count <= GameVersionStart) return string.Empty;
          var code = new string(Enumerable.Range(GameCodeStart, 4).Select(i => (char)model[i]).ToArray());
          code += model[GameVersionStart]; // should be "0" or "1"

@@ -53,13 +53,13 @@ graphics.pokemon.shiny.star.palette,              ,       ,       ,       , 13AE
 graphics.trainers.sprites.front,            031B9C, 031B9C, 031B9C, 031B9C,       ,       ,       ,       ,       , [sprite<`lzs4x8x8|graphics.trainers.palettes.front`> uncompressedLength: index:]83
 graphics.trainers.sprites.front,                  ,       ,       ,       , 03473C, 03473C, 034750, 034750,       , [sprite<`lzs4x8x8|graphics.trainers.palettes.front`> uncompressedLength: index:]148
 graphics.trainers.sprites.front,                  ,       ,       ,       ,       ,       ,       ,       , 05DF78, [sprite<`lzs4x8x8|graphics.trainers.palettes.front`> uncompressedLength: index:]93
-graphics.trainers.animation.back,                 ,       ,       ,       , 03F8A4, 03F8A4, 03F8B8, 03F8B8, 06A16C, [animationPointer<[animation<[a: b: c: d:]1> framedata<[frame: time:]!FFFF0000>]1>]graphics.trainers.sprites.back.enter
-graphics.trainers.animations.frames,        1436B8, 1436B8, 1436D8, 1436D8, 10BDA8, 10BD80, 10BE20, 10BDF8, 18D1E8, [animationPointer<[animation<>]1>]graphics.trainers.sprites.front
-graphics.trainers.coordinates.front,        0350F4, 0350F4, 0350F4, 0350F4, 037E78, 037E78, 037E8C, 037E8C, 0615C4, [x. y. unused:]graphics.trainers.sprites.front
-graphics.trainers.palettes.front,           031B98, 031B98, 031B98, 031B98, 03474C, 03474C, 034760, 034760, 05B784, [palette<`lzp4`> index: unused:]graphics.trainers.sprites.front
 graphics.trainers.sprites.back.enter,             ,       ,       ,       , 10BC58, 10BC30, 10BCD0, 10BCA8,       , [sprite<`ucs4x8x8|graphics.trainers.palettes.back`> a b c:]6
-graphics.trainers.sprites.back.throw,             ,       ,       ,       , 03F8A0, 03F8A0, 03F8B4, 03F8B4,       , [starterbytes:|h unknown:|h a<> b<> sprites<`osl|graphics.trainers.palettes.back:sprite`> d<> e<>]graphics.trainers.sprites.back.enter
 graphics.trainers.sprites.back.enter,             ,       ,       ,       ,       ,       ,       ,       , 05DFD4, [sprite<`ucs4x8x8|graphics.trainers.palettes.back`> a. b. c:]8
+graphics.trainers.animations.back,                ,       ,       ,       , 03F8A4, 03F8A4, 03F8B8, 03F8B8, 06A16C, [animationPointer<[animation<[a: b: c: d:]1> framedata<[frame: time:]!FFFF0000>]1>]graphics.trainers.sprites.back.enter
+graphics.trainers.animations.frames,        1436B8, 1436B8, 1436D8, 1436D8, 10BDA8, 10BD80, 10BE20, 10BDF8, 18D1E8, [animationPointer<[animation<>]1>]graphics.trainers.sprites.front
+graphics.trainers.coordinates.front,        031AE0, 031AE0, 031AE0, 031AE0, 037E78, 037E78, 037E8C, 037E8C, 05B614, [x. y. unused:]graphics.trainers.sprites.front
+graphics.trainers.palettes.front,           031B98, 031B98, 031B98, 031B98, 03474C, 03474C, 034760, 034760, 05B784, [palette<`lzp4`> index: unused:]graphics.trainers.sprites.front
+graphics.trainers.sprites.back.throw,             ,       ,       ,       , 03F8A0, 03F8A0, 03F8B4, 03F8B4,       , [starterbytes:|h unknown:|h a<> b<> sprites<`osl|graphics.trainers.palettes.back:sprite`> d<> e<>]graphics.trainers.sprites.back.enter
 graphics.trainers.sprites.back.throw,             ,       ,       ,       ,       ,       ,       ,       , 06A168, [starterbytes:|h unknown:|h a<> b<> sprites<`osl|graphics.trainers.palettes.back:sprite`> d<> e<>]graphics.trainers.sprites.back.enter
 graphics.trainers.coordinates.back,               ,       ,       ,       , 03240C, 03240C, 032420, 032420,       , [x. y. unused:]graphics.trainers.sprites.back.enter
 graphics.trainers.palettes.back,                  ,       ,       ,       , 0335D4, 0335D4, 0335E8, 0335E8, 05DFDC, [pal<`lzp4`> sprite::]graphics.trainers.sprites.back.enter

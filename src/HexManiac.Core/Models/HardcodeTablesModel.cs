@@ -120,7 +120,6 @@ namespace HavenSoft.HexManiac.Core.Models {
                   foreach (var defaultMetadata in GetDefaultMetadatas(gameCode.Substring(0, 4).ToLower(), gameCode.ToLower())) {
                      this.LoadMetadata(defaultMetadata);
                   }
-                  DecodeHeader();
                   if (singletons.GameReferenceTables.TryGetValue(gameCode, out var referenceTables)) {
                      DecodeTablesFromReference(referenceTables);
                   }
@@ -135,12 +134,6 @@ namespace HavenSoft.HexManiac.Core.Models {
       private void CheckForEmptyAnchors(int destination, string anchor) {
          var run = GetNextRun(destination);
          Debug.Assert(run.PointerSources == null || run.PointerSources.Count > 0, $"{anchor} refers to {destination:X6}, but has no pointers. So how did we find it?");
-      }
-
-      private void DecodeHeader() {
-         if (!gameCode.IsAny(Ruby, Sapphire, Ruby1_1, Sapphire1_1)) {
-            ObserveAnchorWritten(noChangeDelta, "data.header.romname", new AsciiRun(0x108, 0x20));
-         }
       }
 
       private void DecodeTablesFromReference(GameReferenceTables tables) {
