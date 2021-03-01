@@ -143,6 +143,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             using (ModelCacheScope.CreateScope(this)) {
                var format = table.Format;
                if (isCFRU && table.Name == LevelMovesTableName) format = $"[movesFromLevel<[move:{MoveNamesTable} level.]!0000FF>]{PokemonNameTable}";
+               if (isCFRU && table.Name == AbilityNamesTable) format = $"[name\"\"17]";
                AddTable(table.Address, table.Offset, table.Name, format);
             }
          }

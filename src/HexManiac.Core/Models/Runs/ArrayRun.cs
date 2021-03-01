@@ -701,13 +701,22 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
 
             // remove extra elements at the back. Add NoInfoRuns for the pointers to point to.
+            bool firstClear = true;
             for (int i = 0; i < -elementCount; i++) {
                var sources = newInnerElementsSources[newInnerElementsSources.Count - 1];
                newInnerElementsSources.RemoveAt(newInnerElementsSources.Count - 1);
 
                if (sources.Any()) {
                   var start = Start + Length - ElementLength * (i + 1);
-                  owner.ClearFormat(token, start, 1); // Since we're trying to add a run over space that we currently occupy, clear the existing run before adding this new one
+                  // Since we're trying to add a run over space that we currently occupy, clear the existing run before adding this new one
+                  if (firstClear) {
+                     // clear the whole length, starting at Start, to preserve the pointers
+                     owner.ClearFormat(token, Start, Length);
+                     firstClear = false;
+                  } else {
+                     // clear only a single byte where we are, to preserve pointers to that element
+                     owner.ClearFormat(token, start, 1);
+                  }
                   owner.ObserveRunWritten(token, new NoInfoRun(start, sources));
                }
             }
