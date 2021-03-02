@@ -116,5 +116,29 @@ namespace HavenSoft.HexManiac.Tests {
       public void StringMatchingTests(string full, string partial) {
          Assert.True(full.MatchesPartial(partial, true));
       }
+
+      [Fact]
+      public void NameList_TypeNameWithSingleQuote_AutocompleteCorrect() {
+         var test = new BaseViewModelTestClass();
+         test.CreateTextTable("names", 0x100, "Basic", "Quote'n'space Element");
+         test.CreateEnumTable("enums", 0, "names", 0, 0);
+         test.ViewPort.Goto.Execute(0);
+
+         test.ViewPort.Edit("\"Quote'\"");
+
+         Assert.Equal(1, test.Model[0]);
+      }
+
+      [Fact]
+      public void NameListWithTwoOfSameElementWithSpace_EnterSecondOption_CompleteCorrect() {
+         var test = new BaseViewModelTestClass();
+         test.CreateTextTable("names", 0x100, "default", "Some Element", "Some Element");
+         test.CreateEnumTable("enums", 0, "names", 0, 0);
+         test.ViewPort.Goto.Execute(0);
+
+         test.ViewPort.Edit("\"Some Element~2\"");
+
+         Assert.Equal(2, test.Model[0]);
+      }
    }
 }
