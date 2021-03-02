@@ -165,6 +165,13 @@ namespace HavenSoft.HexManiac.Core.Models {
                   var metadatas = GetDefaultMetadatas(gameCode.Substring(0, 4), gameCode);
                   UpdateRuns(tables, metadatas);
                }
+            } else {
+               // didn't run an update. Now that all the constants are setup correctly, do a quick second pass through the anchors to look for any that failed the first time.
+               // for example, if the types were loaded before the number of types was known, then the type chart probably failed to load.
+               foreach (var anchor in metadata.NamedAnchors) {
+                  if (addressForAnchor.ContainsKey(anchor.Name)) continue;
+                  ApplyAnchor(this, noChange, anchor.Address, AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
+               }
             }
 
             ResolveConflicts();
@@ -383,6 +390,9 @@ namespace HavenSoft.HexManiac.Core.Models {
       [Conditional("DEBUG")]
       public void ResolveConflicts() {
          for (int i = 0; i < runs.Count; i++) {
+            if (!anchorForAddress.TryGetValue(runs[i].Start, out var pointerSourceName)) pointerSourceName = string.Empty;
+            else pointerSourceName = " (" + pointerSourceName + ")";
+
             // for every pointer run, make sure that the thing it points to knows about it
             if (runs[i] is PointerRun pointerRun) {
                var destination = ReadPointer(pointerRun.Start);
@@ -411,8 +421,8 @@ namespace HavenSoft.HexManiac.Core.Models {
                foreach (var source in runs[i].PointerSources) {
                   var run = GetNextRun(source);
                   if (run is PointerRun) {
-                     Debug.Assert(run.Start == source, $"{runs[i].Start:X6} expects a pointer at {source:X6}, but the next pointer was found at {run.Start:X6}.");
-                     Debug.Assert(ReadPointer(source) == runs[i].Start, $"Expected {source:X6} to point to {runs[i].Start:X6}");
+                     Debug.Assert(run.Start == source, $"{runs[i].Start:X6}{pointerSourceName} expects a pointer at {source:X6}, but the next pointer was found at {run.Start:X6}.");
+                     Debug.Assert(ReadPointer(source) == runs[i].Start, $"Expected {source:X6} to point to {runs[i].Start:X6}{pointerSourceName}");
                   } else if (run is ITableRun) {
                      Debug.Assert(run.Start <= source);
                      Debug.Assert(ReadPointer(source) == runs[i].Start);
@@ -424,7 +434,15 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (runs[i] is ArrayRun arrayRun2 && arrayRun2.SupportsPointersToElements) {
                for (int j = 0; j < arrayRun2.ElementCount; j++) {
                   foreach (var source in arrayRun2.PointerSourcesForInnerElements[j]) {
-                     Debug.Assert(ReadPointer(source) == arrayRun2.Start + arrayRun2.ElementLength * j);
+                     var run = GetNextRun(source);
+                     if (run is PointerRun) {
+                        Debug.Assert(run.Start == source, $"{runs[i].Start:X6}{pointerSourceName} index {j} expects a pointer at {source:X6}, but the next pointer was found at {run.Start:X6}.");
+                        Debug.Assert(ReadPointer(source) == runs[i].Start + arrayRun2.ElementLength * j, $"Expected {source:X6} to point to {runs[i].Start:X6}{pointerSourceName} index {j}");
+                     } else if (run is ITableRun) {
+                        Debug.Assert(ReadPointer(source) == runs[i].Start + arrayRun2.ElementLength * j, $"Expected {source:X6} to point to {runs[i].Start:X6}{pointerSourceName} index {j}");
+                     } else {
+                        Debug.Fail($"Pointer at {source:X6} must be a {nameof(PointerRun)} or live within an {nameof(ITableRun)}");
+                     }
                   }
                }
             }
@@ -468,7 +486,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (i == runs.Count - 1 || runs[i].Start + runs[i].Length <= runs[i + 1].Start) continue;
             var debugRunStart1 = runs[i].Start.ToString("X6");
             var debugRunStart2 = runs[i + 1].Start.ToString("X6");
-            Debug.Fail($"Conflict: there's a run that ends after the next run starts! {debugRunStart1} and {debugRunStart2}");
+            Debug.Fail($"Conflict: there's a run that ends after the next run starts! {debugRunStart1}{pointerSourceName} and {debugRunStart2}");
          }
 
          // For every table with a matched-length, verify that the length is as expected.
@@ -825,6 +843,13 @@ namespace HavenSoft.HexManiac.Core.Models {
                // this run has no useful information. Remove it.
                changeToken.RemoveRun(runs[index]);
                runs.RemoveAt(index);
+            }
+
+            if (existingRun is ArrayRun arrayRun2 && arrayRun2.SupportsPointersToElements && arrayRun2.Length > run.Length) {
+               for (int i = 0; i < arrayRun2.ElementCount; i++) {
+                  if (arrayRun2.ElementLength * i < run.Length) continue;
+                  ObserveRunWritten(changeToken, new NoInfoRun(arrayRun2.Start + arrayRun2.ElementLength * i, arrayRun2.PointerSourcesForInnerElements[i]));
+               }
             }
          }
       }

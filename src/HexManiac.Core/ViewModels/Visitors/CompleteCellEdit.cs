@@ -447,6 +447,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                   if (newArray != array) {
                      if (newArray.Length > array.Length && newArray.Start == array.Start) model.ClearFormat(token, array.Start + array.Length, newArray.Length - array.Length);
                      model.ObserveRunWritten(token, newArray);
+                     // if this run supports pointers to elements, the clear may've accidentally cleared some pointers to those inner elements.
+                     // re-add pointers as needed
+                     if (newArray.SupportsPointersToElements) {
+                        for (int i = array.ElementCount; i < newArray.ElementCount; i++) {
+                           foreach (var source in newArray.PointerSourcesForInnerElements[i]) {
+                              var existingRun = model.GetNextRun(source);
+                              if (existingRun.Start <= source) continue;
+                              model.ObserveRunWritten(token, new PointerRun(source));
+                           }
+                        }
+                     }
                   }
                }
             }

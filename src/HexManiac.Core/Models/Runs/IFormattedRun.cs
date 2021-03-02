@@ -4,6 +4,7 @@ using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -162,16 +163,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public SortedSpan<T> Add1(T value) {
          var newElements = new T[Count + 1];
-         int i = 0, j = 0, compare = 0;
-         while (j < Count) {
-            compare = elements[j].CompareTo(value);
-            if (compare < 0) newElements[i++] = elements[j++];
+         int newElementCount = 0, oldElementIndex = 0, compare = 0;
+         while (oldElementIndex < Count) {
+            compare = elements[oldElementIndex].CompareTo(value);
+            if (compare < 0) newElements[newElementCount++] = elements[oldElementIndex++];
             else break;
          }
-         if (j < Count && compare == 0) j++;
-         newElements[i++] = value;
-         Array.Copy(elements, j, newElements, i, Count - j);
-         return new SortedSpan<T>(newElements, newElements.Length);
+         if (oldElementIndex < Count && compare == 0) oldElementIndex++;
+         newElements[newElementCount++] = value;
+         Array.Copy(elements, oldElementIndex, newElements, newElementCount, Count - oldElementIndex);
+         newElementCount += Count - oldElementIndex;
+         return new SortedSpan<T>(newElements, newElementCount);
       }
 
       public SortedSpan<T> Remove1(T value) {
