@@ -248,7 +248,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (EndMargin < 0) return "+0" + EndMargin;
          }
          if (EndMargin == 0) {
-            if (BeginningMargin > 0) throw new NotImplementedException();
+            if (BeginningMargin > 0) return $"+{BeginningMargin}+0";
             return BeginningMargin.ToString();
          }
          var text = string.Empty;
