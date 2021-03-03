@@ -405,7 +405,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          // part 1: find a previous FF, which is possibly the end of another text
          var startPlaces = new List<int>();
          if (left < 0 || left >= model.Count) return startPlaces;
-         while (model[left] != 0xFF && PCSString.PCS[model[left]] != null) { left--; length++; }
+         while (left >= 0 && model[left] != 0xFF && PCSString.PCS[model[left]] != null) { left--; length++; }
          left++; length--;
 
          // part 2: jump forward past any known runs that we're interupting
@@ -424,7 +424,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var run = model.GetNextRun(left);
             if (run is NoInfoRun && run.Start < left + length) startPlaces.Add(run.Start);
             if (!(run is NoInfoRun) && run.Start < left + length) break;
-            while (model[left] != 0xFF) { left++; length--; }
+            while (model.Count > left && model[left] != 0xFF) { left++; length--; }
             left++; length--;
          }
 
