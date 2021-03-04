@@ -32,7 +32,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public const char DirectiveMarker = '.'; // for things like .thumb, .align, etc. Directives always start with a single dot and contain no further dots until they contain a space.
       public const char CommandMarker = '!'; // commands are meta, so they also start with the goto marker.
       public const char CommentStart = '#';
-      public const int CopyLimit = 20000;
+      public const int CopyLimit = 40000;
 
       private static readonly NotifyCollectionChangedEventArgs ResetArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
       private readonly StubCommand
