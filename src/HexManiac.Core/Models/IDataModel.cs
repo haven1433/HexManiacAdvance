@@ -480,7 +480,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          var noChange = new NoDataChangeDeltaModel();
          foreach (var list in metadata.Lists) model.SetList(list.Name, list.Contents);
          foreach (var anchor in metadata.NamedAnchors) PokemonModel.ApplyAnchor(model, noChange, anchor.Address, BaseRun.AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
-         foreach (var match in metadata.MatchedWords) model.ObserveRunWritten(noChange, new WordRun(match.Address, match.Name, match.Length, match.AddOffset, match.MultOffset, match.Note));
+         foreach (var match in metadata.MatchedWords) {
+            model.ClearFormat(noChange, match.Address, match.Length);
+            model.ObserveRunWritten(noChange, new WordRun(match.Address, match.Name, match.Length, match.AddOffset, match.MultOffset, match.Note));
+         }
          foreach (var anchor in model.Anchors) {
             if (!(model.GetNextRun(model.GetAddressFromAnchor(noChange, -1, anchor)) is ArrayRun table)) continue;
             // the length may have changed: rewrite the run

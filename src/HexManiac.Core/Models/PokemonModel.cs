@@ -1449,7 +1449,10 @@ namespace HavenSoft.HexManiac.Core.Models {
                }
             } else if (!keepPointers) {
                // Clear pointer formats to it. They're not actually pointers.
-               foreach (var source in run.PointerSources) ClearFormat(changeToken, source, 4);
+               foreach (var source in run.PointerSources) {
+                  if (source > run.Start && source < run.Start + run.Length) continue;
+                  ClearFormat(changeToken, source, 4);
+               }
             }
             changeToken.RemoveName(run.Start, name);
             addressForAnchor.Remove(name);
