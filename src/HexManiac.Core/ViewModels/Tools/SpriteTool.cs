@@ -553,6 +553,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public void DataForCurrentRunChanged() {
          LoadSprite();
          LoadPalette();
+         UpdateSpriteProperties();
+         UpdatePaletteProperties();
       }
 
       public static short[] Render(int[,] pixels, IReadOnlyList<short> palette, int initialBlankPages, int palettePage) {
