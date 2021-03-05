@@ -1,5 +1,4 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
-using System.Collections.Generic;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class PointerRun : BaseRun {
@@ -9,9 +8,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public override int Length => 4;
       public override string FormatString => string.Empty;
 
-      public PointerRun(int start, SortedSpan<int> sources = null) : base(start, sources) {
-         if (start == 0) ;
-      }
+      public PointerRun(int start, SortedSpan<int> sources = null) : base(start, sources) { }
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) {
          var destinationAddress = data.ReadPointer(Start);

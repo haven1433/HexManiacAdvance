@@ -208,7 +208,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             lines.Add($"Address = 0x{word.Address:X6}");
             lines.Add($"Length = {word.Length}");
             if (word.AddOffset != 0) lines.Add($"Offset = {word.AddOffset}");
-            if (word.MultOffset != 1) lines.Add($"MultOffsetOffset = {word.MultOffset}");
+            if (word.MultOffset != 1) lines.Add($"MultOffset = {word.MultOffset}");
             if (word.Note != null) lines.Add($"Note = '''{word.Note}'''");
             lines.Add(string.Empty);
          }

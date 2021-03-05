@@ -74,5 +74,54 @@ namespace HavenSoft.HexManiac.Tests {
             Assert.Equal(newOffsetPointer.Offset, offsetPointer.Offset);
          }
       }
+
+      [SkippableTheory]
+      [InlineData("sampleFiles/Pokemon FireRed.gba")]
+      [InlineData("sampleFiles/Pokemon Emerald.gba")]
+      [InlineData("sampleFiles/Pokemon Ruby.gba")]
+      public void NewMetadata_Reopen_MetadataMatches(string romName) {
+         Skip.IfNot(File.Exists(romName), "Test cannot run without a real rom");
+
+         var singletons = BaseViewModelTestClass.Singletons;
+         var fileData = File.ReadAllBytes(romName);
+         var code = fileData.GetGameCode();
+
+         var freshModel = new HardcodeTablesModel(singletons, fileData);
+         var metadata1 = freshModel.ExportMetadata(singletons.MetadataInfo);
+         var serializedBack = new StoredMetadata(metadata1.Serialize());
+         var reopenModel = new HardcodeTablesModel(singletons, fileData, serializedBack);
+         var metadata2 = reopenModel.ExportMetadata(singletons.MetadataInfo);
+
+         // verify that the content is the same
+         Assert.Equal(metadata1.FreeSpaceBuffer, metadata2.FreeSpaceBuffer);
+         // FreeSpaceSearch is allowed to be different
+         Assert.Equal(metadata1.Version, metadata2.Version);
+         Assert.Equal(metadata1.NextExportID, metadata2.NextExportID);
+
+         foreach (var list in metadata2.Lists) {
+            var originalList = metadata1.Lists.Single(freshList => freshList.Name == list.Name);
+            Assert.Equal(originalList.Count, list.Count);
+            Assert.All(originalList.Contents.Count.Range(), i => Assert.Equal(originalList.Contents[i], list.Contents[i]));
+         }
+
+         foreach (var matchedWord in metadata2.MatchedWords) {
+            var originalMatchedWord = metadata1.MatchedWords.Single(freshMatchedWord => freshMatchedWord.Address == matchedWord.Address);
+            Assert.Equal(originalMatchedWord.Name, matchedWord.Name);
+            Assert.Equal(originalMatchedWord.AddOffset, matchedWord.AddOffset);
+            Assert.Equal(originalMatchedWord.MultOffset, matchedWord.MultOffset);
+            Assert.Equal(originalMatchedWord.Note, matchedWord.Note);
+         }
+
+         foreach (var namedAnchor in metadata2.NamedAnchors) {
+            var originalNamedAnchor = metadata1.NamedAnchors.Single(anchor => anchor.Name == namedAnchor.Name);
+            Assert.Equal(originalNamedAnchor.Address, namedAnchor.Address);
+            Assert.Equal(originalNamedAnchor.Format, namedAnchor.Format);
+         }
+
+         foreach (var offsetPointer in metadata2.OffsetPointers) {
+            var originalOffsetPointer = metadata1.OffsetPointers.Single(pointer => pointer.Address == offsetPointer.Address);
+            Assert.Equal(originalOffsetPointer.Offset, offsetPointer.Offset);
+         }
+      }
    }
 }
