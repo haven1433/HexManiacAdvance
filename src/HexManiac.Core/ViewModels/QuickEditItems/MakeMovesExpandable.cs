@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using static HavenSoft.HexManiac.Core.Models.HardcodeTablesModel;
@@ -32,6 +33,64 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       public event EventHandler CanRunChanged;
 
       public bool CanRun(IViewPort viewPort) {
+         return CanRun1(viewPort);
+         // return viewPort is IEditableViewPort;
+      }
+
+      public ErrorInfo Run(IViewPort viewPortInterface) {
+         //*
+         return Run1(viewPortInterface);
+         /*/
+         var viewPort = (IEditableViewPort)viewPortInterface;
+         var token = viewPort.ChangeHistory.CurrentChange;
+
+         // UpdateMoveEffectsAndMovePowerFields(viewPort, token);
+
+         // TODO update limiters
+         // TODO update levelup moves
+
+         // TODO
+         return ErrorInfo.NoError;
+         //*/
+      }
+
+      /// <summary>
+      /// Move Effects is only 1 byte. This limits us to only 256 move effects, which is a problem.
+      /// Expand move effects to be 2 bytes to fix this. But oh, that's where Power is!
+      /// Move Power to freespace later in the struct. Move it from offset 1 to offset 9.
+      /// </summary>
+      private static void UpdateMoveEffectsAndMovePowerFields(IEditableViewPort viewPort, ModelDelta token) {
+         // update all uses of ldr movestats[...].power
+         // power is moving from offset 1 to offset 9
+         const int OldPowerOffset = 1, NewPowerOffset = 9;
+         var model = viewPort.Model;
+         var allChanges = new List<string>();
+         var statsTable = viewPort.Model.GetTable(MoveDataTable);
+         foreach (var source in statsTable.PointerSources) {
+            var ldrbCommands = viewPort.Tools.CodeTool.Parser.FindUsagesOfByteFieldFromArray(model, source, OldPowerOffset);
+            // ldrb rd, [rn, #]: 01111 # rn rd
+            var writer = new TupleSegment(default, 5);
+            foreach (var address in ldrbCommands) {
+               allChanges.Add(address.ToAddress());
+               writer.Write(model, token, address, 6, NewPowerOffset);
+            }
+         }
+
+         // TODO update all uses of ldr movestats[...].effect
+         // needs to change from ldrb to ldrh
+
+         // update movestats table
+         var movestats = model.GetTable(MoveDataTable);
+         for (int i = 0; i < movestats.ElementCount; i++) {
+            var power = model[movestats.Start + movestats.ElementLength * i + OldPowerOffset];
+            token.ChangeData(model, movestats.Start + movestats.ElementLength * i + OldPowerOffset, 0);
+            token.ChangeData(model, movestats.Start + movestats.ElementLength * i + NewPowerOffset, power);
+         }
+         viewPort.Goto.Execute(movestats.Start);
+         viewPort.AnchorText = $"{MoveDataTable}[effect:moveeffects type.data.pokemon.type.names accuracy. pp. effectAccuracy. target|b[]movetarget priority. info|b[]moveinfo power. unused:]data.pokemon.moves.names";
+      }
+
+      public bool CanRun1(IViewPort viewPort) {
          if (!(viewPort is ViewPort)) return false;
          var model = viewPort.Model;
          var moveDataAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, MoveDataTable);
@@ -44,7 +103,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          return model.ThumbFind(limiterCode).Any();
       }
 
-      public ErrorInfo Run(IViewPort viewPortInterface) {
+      public ErrorInfo Run1(IViewPort viewPortInterface) {
          if (!(viewPortInterface is ViewPort viewPort)) return new ErrorInfo("Can only run move expansion on an editable tab.");
          var model = viewPort.Model;
          var game = model.GetGameCode();
