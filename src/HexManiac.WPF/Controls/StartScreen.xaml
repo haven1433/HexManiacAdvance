@@ -4,23 +4,38 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:hmv="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
+             xmlns:hsv="clr-namespace:HavenSoft.HexManiac.WPF.Resources"
              mc:Ignorable="d" Background="{StaticResource HexBrush}"
              d:DesignHeight="450" d:DesignWidth="800">
 
    <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-      <TextBlock FontStyle="Italic" TextWrapping="Wrap" DockPanel.Dock="Bottom" Margin="40,30,40,0">
+      <TextBlock HorizontalAlignment="Center" Margin="5" DockPanel.Dock="Bottom">
+         <Hyperlink
+               Foreground="{DynamicResource Accent}"
+               NavigateUri="https://github.com/haven1433/HexManiacAdvance/blob/master/LICENSE"
+               RequestNavigate="Navigate">
+            MIT License
+         </Hyperlink>
+      </TextBlock>
+      <TextBlock FontStyle="Italic" TextWrapping="Wrap" DockPanel.Dock="Bottom" Margin="40,5,40,0">
          Hex Maniac Advance is a non-profit open-source fan-made tool.
          Only use it with legally purchased software.
          Pokemon is the property of Nintendo and GameFreak.
          Please support the official release.
       </TextBlock>
+      <Border DockPanel.Dock="Bottom" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Margin="40,20,40,5" Height="1" VerticalAlignment="Stretch"/>
 
       <Grid>
          <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="9*"/>
             <ColumnDefinition Width="10"/>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="10*"/>
          </Grid.ColumnDefinitions>
+         <Grid.RowDefinitions>
+            <RowDefinition Height="3*"/>
+            <RowDefinition Height="10"/>
+            <RowDefinition Height="1*"/>
+         </Grid.RowDefinitions>
 
          <StackPanel Margin="40,0,0,0">
             <TextBlock Foreground="{DynamicResource Primary}" HorizontalAlignment="Center">
@@ -29,7 +44,8 @@
             <ItemsControl ItemsSource="{Binding RecentFileViewModels}">
                <ItemsControl.ItemTemplate>
                   <DataTemplate>
-                     <TextBlock Margin="0,2" ToolTip="{Binding LongName}" FontSize="16">
+                     <TextBlock Margin="0,4" ToolTip="{Binding LongName}" FontSize="18">
+                        <Path Data="{hsv:Icon Open}" Stretch="Uniform" Width="20" Height="20" Fill="{DynamicResource Secondary}" Visibility="{Binding IncludeIcon, Converter={StaticResource BoolToVisibility}}"/>
                         <Hyperlink Command="{Binding Open}" Foreground="{DynamicResource Accent}">
                            <Run Text="{Binding ShortName, Mode=OneWay}"/>
                         </Hyperlink>
@@ -39,11 +55,36 @@
             </ItemsControl>
          </StackPanel>
 
-         <Border Grid.Column="2" BorderThickness="1" CornerRadius="4" BorderBrush="{DynamicResource Secondary}" Padding="5" Margin="0,0,40,0">
+         <Border Grid.Row="2" BorderThickness="1" CornerRadius="4" BorderBrush="{DynamicResource Secondary}" Padding="5" Margin="40,0,0,0">
             <Grid>
                <Rectangle Fill="{DynamicResource Background}" Opacity=".6"/>
                <StackPanel>
-                  <TextBlock Visibility="{Binding IsNewVersionAvailable, Converter={StaticResource BoolToVisibility}}">
+                  <TextBlock Text="About" FontSize="20" Margin="0,0,0,0"/>
+
+                  <TextBlock LineHeight="16" Margin="10,4,0,0" TextWrapping="Wrap">
+                     Version
+                     <Run Text="{Binding Singletons.MetadataInfo.VersionNumber, Mode=OneWay}"/>
+                     <LineBreak/>
+                     <Run Name="Usage"/>
+                  </TextBlock>
+               </StackPanel>
+            </Grid>
+         </Border>
+
+         <Border Grid.Column="2" Grid.RowSpan="3" BorderThickness="1" CornerRadius="4" BorderBrush="{DynamicResource Secondary}" Padding="5" Margin="0,0,40,0">
+            <Grid>
+               <Rectangle Fill="{DynamicResource Background}" Opacity=".6"/>
+               <StackPanel VerticalAlignment="Center">
+                  <StackPanel.Resources>
+                     <Style TargetType="Border">
+                        <Setter Property="BorderThickness" Value="1,0,0,1"/>
+                        <Setter Property="Padding" Value="5"/>
+                        <Setter Property="Margin" Value="5"/>
+                        <Setter Property="BorderBrush" Value="{DynamicResource Secondary}"/>
+                        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                     </Style>
+                  </StackPanel.Resources>
+                  <TextBlock Visibility="{Binding IsNewVersionAvailable, Converter={StaticResource BoolToVisibility}}" FontSize="20" Margin="5,2">
                      <Hyperlink
                            Foreground="{DynamicResource Accent}"
                            NavigateUri="https://github.com/haven1433/HexManiacAdvance/releases"
@@ -52,56 +93,52 @@
                      </Hyperlink>
                      <LineBreak/>
                   </TextBlock>
-                  <TextBlock TextWrapping="Wrap">
-                     <TextBlock Text="Help" FontSize="20"/>
-                     <LineBreak/>
-                     <LineBreak/>
+                  <TextBlock Text="Help" FontSize="24"/>
 
-                     <Hyperlink
-                           Foreground="{DynamicResource Accent}"
-                           NavigateUri="https://github.com/haven1433/HexManiacAdvance/wiki/Tutorials"
-                           RequestNavigate="Navigate">
-                        Tutorials
-                     </Hyperlink>
-                     <LineBreak/>
+                  <DockPanel>
+                     <Path Width="30" Height="30" Stretch="Uniform" Data="{hsv:Icon Book}" Fill="{DynamicResource Secondary}"/>
+                     <Border>
+                        <TextBlock TextWrapping="Wrap">
+                           <Hyperlink RequestNavigate="Navigate"
+                                 NavigateUri="https://github.com/haven1433/HexManiacAdvance/wiki/Tutorials"
+                                 Foreground="{DynamicResource Accent}" FontSize="20">
+                              Tutorials
+                           </Hyperlink>
+                           <LineBreak/>
+                           Learn how to edit trainers, pokemon, the title screen, and more.
+                        </TextBlock>
+                     </Border>
+                  </DockPanel>
 
-                     <Hyperlink
-                           Foreground="{DynamicResource Accent}"
-                           NavigateUri="https://github.com/haven1433/HexManiacAdvance/wiki"
-                           RequestNavigate="Navigate">
-                        Wiki
-                     </Hyperlink>
-                     <LineBreak/>
+                  <DockPanel>
+                     <Path Width="30" Height="30" Stretch="Uniform" Data="{hsv:Icon Help}" Fill="{DynamicResource Secondary}"/>
+                     <Border>
+                        <TextBlock TextWrapping="Wrap">
+                           <Hyperlink RequestNavigate="Navigate"
+                                 NavigateUri="https://github.com/haven1433/HexManiacAdvance/wiki"
+                                 Foreground="{DynamicResource Accent}" FontSize="20">
+                              Wiki
+                           </Hyperlink>
+                           <LineBreak/>
+                           Access documentation to learn advanced features.
+                        </TextBlock>
+                     </Border>
+                  </DockPanel>
 
-                     <Hyperlink
-                           Foreground="{DynamicResource Accent}"
-                           NavigateUri="https://discord.gg/x9eQuBg"
-                           RequestNavigate="Navigate">
-                        Discord
-                     </Hyperlink>
-                     <LineBreak/>
-
-                     <LineBreak/>
-                     <LineBreak/>
-
-                     <TextBlock Text="About" FontSize="20"/>
-                     <LineBreak/>
-                     <LineBreak/>
-
-                     Version
-                     <Run Text="{Binding Singletons.MetadataInfo.VersionNumber, Mode=OneWay}"/>
-                     <LineBreak/>
-
-                     <Run Name="Usage"/>
-                     <LineBreak/>
-
-                     <Hyperlink
-                           Foreground="{DynamicResource Accent}"
-                           NavigateUri="https://github.com/haven1433/HexManiacAdvance/blob/master/LICENSE"
-                           RequestNavigate="Navigate">
-                        MIT License
-                     </Hyperlink>
-                  </TextBlock>
+                  <DockPanel>
+                     <Path Width="30" Height="30" Stretch="Uniform" Data="{hsv:Icon Discord}" Fill="{DynamicResource Secondary}"/>
+                     <Border>
+                        <TextBlock TextWrapping="Wrap">
+                           <Hyperlink RequestNavigate="Navigate"
+                                 NavigateUri="https://discord.gg/x9eQuBg"
+                                 Foreground="{DynamicResource Accent}" FontSize="20">
+                              Discord
+                           </Hyperlink>
+                           <LineBreak/>
+                           Join the community and learn from other users.
+                        </TextBlock>
+                     </Border>
+                  </DockPanel>
                </StackPanel>
             </Grid>
          </Border>

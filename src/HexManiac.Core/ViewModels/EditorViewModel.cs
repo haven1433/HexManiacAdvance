@@ -1012,17 +1012,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public string ShortName { get; }
       public string LongName { get; }
       public ICommand Open { get; }
+      public bool IncludeIcon { get; }
 
       public RecentFileViewModel(ICommand open) {
          LongName = null;
          ShortName = "Open file...";
          Open = open;
+         IncludeIcon = true;
       }
 
       public RecentFileViewModel(string filename, ICommand open) {
          LongName = filename;
          ShortName = Path.GetFileNameWithoutExtension(filename);
          Open = open;
+         IncludeIcon = false;
       }
    }
 }
