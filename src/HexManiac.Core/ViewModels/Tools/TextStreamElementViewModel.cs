@@ -17,6 +17,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   if (run.Start != newRun.Start) {
                      RaiseDataMoved(run.Start, newRun.Start);
                   }
+                  if (Model.GetNextRun(newRun.Start) is ITableRun table) {
+                     var offsets = table.ConvertByteOffsetToArrayOffset(newRun.Start);
+                     var info = table.NotifyChildren(Model, ViewPort.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
+                     ViewPort.HandleErrorInfo(info);
+                  }
                   using (PreventSelfCopy()) {
                      RaiseDataChanged();
                   }

@@ -312,6 +312,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public override void Write(IDataModel model, ModelDelta token, int start, string data) {
+         data = data.Trim();
          if (data.StartsWith("0x")) data = data.Substring(2);
          if (!int.TryParse(data, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var intValue)) intValue = 0;
          model.WriteMultiByteValue(start, Length, token, intValue);
