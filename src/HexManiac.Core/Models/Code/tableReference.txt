@@ -7,6 +7,7 @@ data.pokemon.moves.names,              02E18C, 02E18C, 02E18C, 02E18C, 000148, 0
 data.abilities.names,                  09FE64, 09FE64, 09FE84, 09FE84, 0001C0, 0001C0, 0001C0, 0001C0, 0001C0, [name""13]
 data.trainers.classes.names,           1217BC, 1217BC, 0F70A8, 0F70A8, 0D80A0, 0D8074, 0D80B4, 0D8088, 0183B4, [name""13]
 data.pokemon.type.names,               02E3A8, 02E3A8, 02E3A8, 02E3A8, 0309C8, 0309C8, 0309DC, 0309DC, 0166F4, ^[name""7]data.pokemon.type.length
+data.items.stats,                      0A98F0, 0A98F0, 0A9910, 0A9910, 0001C8, 0001C8, 0001C8, 0001C8, 0001C8, [name""14 index: price: holdeffect.holdeffects param. description<""> keyitemvalue. bagkeyitem. pocket. type. fieldeffect<> battleusage:: battleeffect<> battleextra::]
 data.pokemon.type.contest.names,       1338A0, 1338A0, 1338C0, 1338C0,       ,       ,       ,       , 09B210, [name<"">]5
 data.abilities.descriptions,           09FE68, 09FE68, 09FE88, 09FE88, 0001C4, 0001C4, 0001C4, 0001C4, 0001C4, [description<"">]data.abilities.names
 data.pokemon.moves.descriptions,       0A0494, 0A0494, 0A04B4, 0A04B4, 0E5440, 0E5418, 0E5454, 0E542C, 1C3EFC, [description<"">]data.pokemon.moves.names-1
@@ -95,12 +96,11 @@ graphics.items.fossils.sprite2,           ,       ,       ,       , 3E17C0, 3E15
 
 data.pokemon.stats,                    010B64, 010B64, 010B64, 010B64, 0001BC, 0001BC, 0001BC, 0001BC, 0001BC, [hp. attack. def. speed. spatk. spdef. type1.data.pokemon.type.names type2.data.pokemon.type.names catchRate. baseExp. evs:|t|hp:|atk:|def:|spd:|spatk:|spdef: item1:data.items.stats item2:data.items.stats genderratio. steps2hatch. basehappiness. growthrate. egg1.egggroups egg2.egggroups ability1.data.abilities.names ability2.data.abilities.names runrate. unknown. padding:]data.pokemon.names
 data.pokemon.evolutions,               03F534, 03F534, 03F534, 03F534, 042F6C, 042F6C, 042F80, 042F80, 06D140, [method1:evolutionmethods arg1:|s=method1(6=data.items.stats|7=data.items.stats) species1:data.pokemon.names unused1: method2:evolutionmethods arg2:|s=method2(6=data.items.stats|7=data.items.stats) species2:data.pokemon.names unused2: method3:evolutionmethods arg3:|s=method3(6=data.items.stats|7=data.items.stats) species3:data.pokemon.names unused3: method4:evolutionmethods arg4:|s=method4(6=data.items.stats|7=data.items.stats) species4:data.pokemon.names unused4: method5:evolutionmethods arg5:|s=method5(6=data.items.stats|7=data.items.stats) species5:data.pokemon.names unused5:]data.pokemon.names
-data.items.stats,                      0A98F0, 0A98F0, 0A9910, 0A9910, 0001C8, 0001C8, 0001C8, 0001C8, 0001C8, [name""14 index: price: holdeffect.holdeffects param. description<""> keyitemvalue. bagkeyitem. pocket. type. fieldeffect<> battleusage:: battleeffect<> battleextra::]
 data.items.effects,                    037178, 037178, 037178, 037178,       ,       ,       ,       ,       , [data<`pie`>]data.items.stats-13-172
 data.items.effects,                          ,       ,       ,       , 03A2B0, 03A2B0, 03A2C4, 03A2C4,       , [data<`pie`>]data.items.stats-13-198
 data.items.effects,                          ,       ,       ,       ,       ,       ,       ,       , 063FDC, [data<`pie`>]data.items.stats-13-200
 data.items.berry.stats,                0525D0, 0525D0, 0525F0, 0525F0, 09C77C, 09C750, 09C790, 09C764, 021CA4, [name""7 firmness. size: maxYield. minYield. description1<""> description2<""> stageDuration. spicy. dry. sweet. bitter. sour. smoothness:]43
-data.pokemon.moves.stats.battle,       00CA54, 00CA54, 00CA54, 00CA54, 0001CC, 0001CC, 0001CC, 0001CC, 0001CC, [effect.moveeffects power. type.data.pokemon.type.names accuracy. pp. effectAccuracy. target|b[]movetarget priority. info|b[]moveinfo unused. unused:]data.pokemon.moves.names
+data.pokemon.moves.stats.battle,       00CA54, 00CA54, 00CA54, 00CA54, 0001CC, 0001CC, 0001CC, 0001CC, 0001CC, [effect.moveeffectoptions power. type.data.pokemon.type.names accuracy. pp. effectAccuracy. target|b[]movetarget priority. info|b[]moveinfo unused. unused:]data.pokemon.moves.names
 data.pokemon.moves.stats.contest,      0A0290, 13389C, 1338BC, 1338BC,       ,       ,       ,       , 0D85F0, [appeal. type.data.pokemon.type.contest.names combo_key. combo_a. combo_b. combo_c. padding:]data.pokemon.moves.names
 data.pokemon.moves.levelup,            03B7BC, 03B7BC, 03B7BC, 03B7BC, 03EA7C, 03EA7C, 03EA90, 03EA90, 06930C, [movesFromLevel<[pair:|t|move::::.data.pokemon.moves.names|level:::.]!FFFF>]data.pokemon.names
 data.pokemon.moves.tutors,                   ,       ,       ,       , 120BE4, 120BBC, 120C5C, 120C34,       , [move:data.pokemon.moves.names]15
@@ -125,7 +125,7 @@ data.abilities.pickup.rareitems,             ,       ,       ,       ,       ,  
 data.abilities.soundproof.moves,       018ABC, 018ABC, 018ABC, 018ABC, 01A67C, 01A67C, 01A690, 01A690, 042F70, [move:data.pokemon.moves.names]!FFFF
 data.pokemon.moves.egg,                041B44, 041B44, 041B64, 041B64, 045C50, 045C50, 045C64, 045C64, 0703F0, `egg`
 data.pokemon.type.chart,               01CDC8, 01CDC8, 01CDC8, 01CDC8, 01E944, 01E944, 01E958, 01E958, 047134, [attack.data.pokemon.type.names defend.data.pokemon.type.names strength.]!FFFF00
-scripts.moves.effects,                 0146E4, 0146E4, 0146E4, 0146E4, 016364, 016364, 016378, 016378, 03E854, [effect<`bse`>]moveeffects
+scripts.moves.effects,                 0146E4, 0146E4, 0146E4, 0146E4, 016364, 016364, 016378, 016378, 03E854, [effect<`bse`>]moveeffectoptions
 scripts.specials.thumb,                0658B4, 0658B8, 0658D4, 0658D8, 069F18, 069F18, 069F2C, 069F2C, 099314, [code<>]
 scripts.battle.thumb,                  012F34, 012F34, 012F34, 012F34, 014C1C, 014C1C, 014C30, 014C30,       , [code<>]248
 scripts.battle.thumb,                        ,       ,       ,       ,       ,       ,       ,       , 03CD94, [code<>]249

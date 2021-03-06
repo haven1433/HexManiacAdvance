@@ -35,7 +35,7 @@ Name = '''egggroups'''
 ]
 
 [[List]]
-Name = '''moveeffects'''
+Name = '''moveeffectoptions'''
 0 = [
    '''None''',
    '''SleepPrimary''',

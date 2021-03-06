@@ -22,7 +22,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       // for a name, where is it?
       // for a location, what is its name?
-      private readonly Dictionary<string, int> addressForAnchor = new Dictionary<string, int>();
+      private readonly IDictionary<string, int> addressForAnchor = new Dictionary<string, int>();
       private readonly Dictionary<int, string> anchorForAddress = new Dictionary<int, string>();
 
       // for a name not actually in the file, what pointers point to it?
@@ -224,6 +224,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                // update matched-length lengths
                if (runs[i] is ArrayRun array) {
                   var parentName = array.LengthFromAnchor;
+                  if (!anchorForAddress.TryGetValue(array.Start, out var childTableName)) childTableName = null;
                   if (parentName == anchor) {
                      var lengthModifier = array.FormatString.Split(parentName).Last();
                      var newLengthToken = reference.Name + array.LengthFromAnchor.Substring(parentName.Length);
@@ -231,7 +232,11 @@ namespace HavenSoft.HexManiac.Core.Models {
                      var newFormat = array.FormatString.Substring(0, arrayClose + 1);
                      TryParse(this, newFormat + newLengthToken + lengthModifier, array.Start, array.PointerSources, out var newRun);
                      ClearFormat(noChange, newRun.Start, newRun.Length);
-                     ObserveRunWritten(noChange, newRun);
+                     if (childTableName == null) {
+                        ObserveRunWritten(noChange, newRun);
+                     } else {
+                        ObserveAnchorWritten(noChange, childTableName, newRun);
+                     }
                      i = BinarySearch(newRun.Start);
                   }
                   if (parentName == reference.Name) {
@@ -239,7 +244,11 @@ namespace HavenSoft.HexManiac.Core.Models {
                      // re-evaluate that table to get the right length.
                      TryParse(this, array.FormatString, array.Start, array.PointerSources, out var newRun);
                      ClearFormat(noChange, newRun.Start, newRun.Length);
-                     ObserveRunWritten(noChange, newRun);
+                     if (childTableName == null) {
+                        ObserveRunWritten(noChange, newRun);
+                     } else {
+                        ObserveAnchorWritten(noChange, childTableName, newRun);
+                     }
                      i = BinarySearch(newRun.Start);
                   }
                }

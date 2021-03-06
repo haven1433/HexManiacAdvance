@@ -49,10 +49,12 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(upgradedMetadata.Version, freshMetadata.Version);
          Assert.Equal(upgradedMetadata.NextExportID, freshMetadata.NextExportID);
 
-         foreach (var list in upgradedMetadata.Lists) {
-            var newList = freshMetadata.Lists.Single(freshList => freshList.Name == list.Name);
-            Assert.Equal(newList.Count, list.Count);
-            Assert.All(newList.Contents.Count.Range(), i => Assert.Equal(newList.Contents[i], list.Contents[i]));
+         // there may be some old non-deleted lists in upgradedMetadata. That's ok.
+         // but for every list in the fresh metadata, make sure the upgraded metadata has it.
+         foreach (var list in freshMetadata.Lists) {
+            var updateList = upgradedMetadata.Lists.Single(updatedList => updatedList.Name == list.Name);
+            Assert.Equal(list.Count, updateList.Count);
+            Assert.All(updateList.Contents.Count.Range(), i => Assert.Equal(list.Contents[i], updateList.Contents[i]));
          }
 
          foreach (var matchedWord in upgradedMetadata.MatchedWords) {
@@ -63,6 +65,12 @@ namespace HavenSoft.HexManiac.Tests {
             Assert.Equal(newMatchedWord.Note, matchedWord.Note);
          }
 
+         // every anchor in the fresh metadata should be represented in the upgrade case
+         var upgradeAnchorNames = upgradedMetadata.NamedAnchors.Select(na => na.Name).ToList();
+         foreach (var namedAnchor in freshMetadata.NamedAnchors) {
+            Assert.Contains(namedAnchor.Name, upgradeAnchorNames);
+         }
+         // every anchor in the upgraded metadata should have the right address and format to match the fresh versions
          foreach (var namedAnchor in upgradedMetadata.NamedAnchors) {
             var newNamedAnchor = freshMetadata.NamedAnchors.Single(anchor => anchor.Name == namedAnchor.Name);
             Assert.Equal(newNamedAnchor.Address, namedAnchor.Address);
