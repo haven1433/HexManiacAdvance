@@ -194,6 +194,10 @@ namespace HavenSoft.HexManiac.Core {
       }
    }
 
+   public static class DebugDictionaryExtensions {
+      public static DebugDictionary<TKey, TValue> Debug<TKey, TValue>(this IDictionary<TKey, TValue> self, TKey watch) => new DebugDictionary<TKey, TValue>(self, watch);
+   }
+
    public class DebugDictionary<TKey, TValue> : DictionaryDecorator<TKey, TValue> {
       private readonly TKey watchKey;
       public DebugDictionary(IDictionary<TKey, TValue> core, TKey watch) => (InnerDictionary, watchKey) = (core, watch);

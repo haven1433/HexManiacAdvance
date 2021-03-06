@@ -60,7 +60,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public const string
          MoveInfoListName = "moveinfo",
-         MoveEffectListName = "moveeffects",
+         MoveEffectListName = "moveeffectoptions",
          MoveTargetListName = "movetarget",
          EvolutionMethodListName = "evolutionmethods",
          DecorationsShapeListName = "decorshape",

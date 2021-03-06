@@ -18,10 +18,10 @@ data.menus.text.pc,                          ,       ,       ,       , 08FBC8, 0
 data.menus.text.pokemon,                     ,       ,       ,       , 121DF4, 121DCC, 121E6C, 121E44,       , [text<"">]27
 scripts.newgame.names.male,            00B7BC, 00B7BC, 00B7BC, 00B7BC,       ,       ,       ,       ,       , [name<""> unused::]5
 scripts.newgame.names.male,                  ,       ,       ,       , 1316F0, 1316C8, 131768, 131740,       , [name<"">]19
-scripts.newgame.names.male,                  ,       ,       ,       ,       ,       ,       ,       , 031DE0, [name<"">]
+scripts.newgame.names.male,                  ,       ,       ,       ,       ,       ,       ,       , 031DE0, [name<"">]20
 scripts.newgame.names.female,          00B7F4, 00B7F4, 00B7F4, 00B7F4,       ,       ,       ,       ,       , [name<""> unused::]5
 scripts.newgame.names.female,                ,       ,       ,       , 1316EC, 1316C4, 131764, 13173C,       , [name<"">]19
-scripts.newgame.names.female,                ,       ,       ,       ,       ,       ,       ,       , 031E10, [name<"">]
+scripts.newgame.names.female,                ,       ,       ,       ,       ,       ,       ,       , 031E10, [name<"">]20
 scripts.newgame.names.rival,                 ,       ,       ,       , 131750, 131728, 1317C8, 1317A0, , [name<"">]4
 
 data.maps.names,                       0FB550, 0FB550, 0FB570, 0FB570,       ,       ,       ,       , 123B44, [a b c d name<"">]
