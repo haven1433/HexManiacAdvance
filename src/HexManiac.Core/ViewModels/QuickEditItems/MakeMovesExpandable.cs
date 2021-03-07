@@ -33,8 +33,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       public event EventHandler CanRunChanged;
 
       public bool CanRun(IViewPort viewPort) {
-         return CanRun1(viewPort);
-         // return viewPort is IEditableViewPort;
+         // return CanRun1(viewPort);
+         return viewPort is IEditableViewPort;
       }
 
       public ErrorInfo Run(IViewPort viewPortInterface) {
@@ -44,7 +44,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var viewPort = (IEditableViewPort)viewPortInterface;
          var token = viewPort.ChangeHistory.CurrentChange;
 
-         // UpdateMoveEffectsAndMovePowerFields(viewPort, token);
+         var error = RefactorByteInTable(viewPort.Tools.CodeTool.Parser, viewPort.Model, token, MoveDataTable, "power", 9);
+         if (error.HasError) return error;
+         error = RefactorByteToHalfWordInTable(viewPort.Tools.CodeTool.Parser, viewPort.Model, token, MoveDataTable, "effect");
+         if (error.HasError) return error;
 
          // TODO update limiters
          // TODO update levelup moves
@@ -52,6 +55,100 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          // TODO
          return ErrorInfo.NoError;
          //*/
+      }
+
+      public static ErrorInfo RefactorByteInTable(ThumbParser parser, IDataModel model, ModelDelta token, string tableName, string fieldName, int newOffset) {
+         // setup
+         var table = model.GetTable(tableName);
+         if (table == null) return new ErrorInfo($"Couldn't find table {tableName}.");
+         var segToMove = table.ElementContent.FirstOrDefault(seg => seg.Name == fieldName);
+         if (segToMove == null) return new ErrorInfo($"Couldn't find field {fieldName} in {tableName}.");
+         if (segToMove.Length != 1) return new ErrorInfo($"{fieldName} must be a 1-byte field to refactor.");
+         if (newOffset >= table.ElementLength) return new ErrorInfo($"Trying to move {fieldName} to offset {newOffset}, but the table is only {table.ElementLength} bytes wide.");
+         var oldFieldIndex = table.ElementContent.IndexOf(segToMove);
+         var newFieldIndex = 0;
+         var remainingOffset = newOffset;
+         while (remainingOffset > 0) {
+            remainingOffset -= table.ElementContent[newFieldIndex].Length;
+            newFieldIndex += 1;
+         }
+         var segToReplace = table.ElementContent[newFieldIndex];
+         if (segToReplace.Length != 1) return new ErrorInfo($"{segToReplace.Name} must be a 1-byte field to be replaced.");
+         int oldOffset = table.ElementContent.Until(seg => seg == segToMove).Sum(seg => seg.Length);
+
+         // update table format
+         var format = table.FormatString;
+         format = format.ReplaceOne(segToMove.SerializeFormat, "#invalidtabletoken#");
+         format = format.ReplaceOne(segToReplace.SerializeFormat, segToMove.SerializeFormat);
+         format = format.ReplaceOne("#invalidtabletoken#", segToReplace.SerializeFormat);
+         var error = ArrayRun.TryParse(model, format, table.Start, table.PointerSources, out var newTable);
+         if (error.HasError) return new ErrorInfo($"Failed to create a table from new format {format}: {error.ErrorMessage}.");
+
+         // update code
+         var writer = new TupleSegment(default, 5);
+         foreach (var source in table.PointerSources) {
+            var ldrbCommands = parser.FindUsagesOfByteFieldFromArray(model, source, oldOffset);
+            // ldrb rd, [rn, #]: 01111 # rn rd
+            foreach (var address in ldrbCommands) {
+               writer.Write(model, token, address, 6, newOffset);
+            }
+         }
+
+         // update table contents
+         for (int i = 0; i < table.ElementCount; i++) {
+            var value = model[table.Start + table.ElementLength * i + oldOffset];
+            token.ChangeData(model, table.Start + table.ElementLength * i + oldOffset, 0);
+            token.ChangeData(model, table.Start + table.ElementLength * i + newOffset, value);
+         }
+
+         model.ObserveRunWritten(token, newTable);
+         return ErrorInfo.NoError;
+      }
+
+      public static ErrorInfo RefactorByteToHalfWordInTable(ThumbParser parser, IDataModel model, ModelDelta token, string tableName, string fieldName) {
+         // setup
+         var table = model.GetTable(tableName);
+         if (table == null) return new ErrorInfo($"Couldn't find table {tableName}.");
+         var segToGrow = table.ElementContent.FirstOrDefault(seg => seg.Name == fieldName);
+         if (segToGrow == null) return new ErrorInfo($"Couldn't find field {fieldName} in {tableName}.");
+         if (segToGrow.Length != 1) return new ErrorInfo($"{fieldName} must be a 1-byte field to refactor.");
+         var fieldIndex = table.ElementContent.IndexOf(segToGrow);
+         if (fieldIndex + 1 == table.ElementContent.Count) return new ErrorInfo($"{fieldName} is the last field in the table.");
+         var segToReplace = table.ElementContent[fieldIndex + 1];
+         if (segToReplace.Length != 1) return new ErrorInfo($"{segToReplace.Name} must be a 1-byte field to be replaced.");
+         int fieldOffset = table.ElementContent.Until(seg => seg == segToGrow).Sum(seg => seg.Length);
+         if (fieldOffset % 2 != 0) return new ErrorInfo($"{fieldName} must be on an even byte address to extend to a halfword.");
+
+         // update table format
+         var format = table.FormatString;
+         var newSegFormat = segToGrow.SerializeFormat.ReplaceOne(".", ":");
+         format = format.ReplaceOne(segToGrow.SerializeFormat, newSegFormat);
+         format = format.ReplaceOne(segToReplace.SerializeFormat, string.Empty);
+         var error = ArrayRun.TryParse(model, format, table.Start, table.PointerSources, out var newTable);
+         if (error.HasError) return new ErrorInfo($"Failed to create a table from new format {format}: {error.ErrorMessage}.");
+
+         // update code
+         var writer = new TupleSegment(default, 5);
+         var allChanges = new List<string>();
+         foreach (var source in table.PointerSources) {
+            var ldrbCommands = parser.FindUsagesOfByteFieldFromArray(model, source, fieldOffset);
+            allChanges.AddRange(ldrbCommands.Select(address => address.ToAddress()));
+            // ldrb rd, [rn, #]: 01111 # rn rd
+            // ldrh rd, [rn, #]: 10001 # rn rd, but # is /2
+            foreach (var address in ldrbCommands) {
+               writer.Write(model, token, address, 6, fieldOffset / 2); // divide offset by 2
+               writer.Write(model, token, address, 11, 0b10001);        // ldrb -> ldrh
+            }
+         }
+
+         // update table contents
+         for (int i = 0; i < table.ElementCount; i++) {
+            var value = model[table.Start + table.ElementLength * i + fieldOffset];
+            token.ChangeData(model, table.Start + table.ElementLength * i + fieldOffset + 1, 0); // make sure that any old data gets cleared
+         }
+
+         model.ObserveRunWritten(token, newTable);
+         return ErrorInfo.NoError;
       }
 
       /// <summary>
