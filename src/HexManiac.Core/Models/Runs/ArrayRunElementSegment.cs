@@ -118,7 +118,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public int ValueOffset { get; }
 
-      public override string SerializeFormat => base.SerializeFormat + EnumName;
+      public override string SerializeFormat {
+         get {
+            var result = base.SerializeFormat + EnumName;
+            if (ValueOffset > 0) result += "+" + ValueOffset;
+            if (ValueOffset < 0) result += ValueOffset;
+            return result;
+         }
+      }
 
       public ArrayRunEnumSegment(string name, int length, string enumName) : base(name, ElementContentType.Integer, length) {
          EnumName = enumName;
