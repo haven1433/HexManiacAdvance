@@ -33,8 +33,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       public event EventHandler CanRunChanged;
 
       public bool CanRun(IViewPort viewPort) {
-         // return CanRun1(viewPort);
-         return viewPort is IEditableViewPort;
+         return CanRun1(viewPort);
+         // return viewPort is IEditableViewPort;
       }
 
       public ErrorInfo Run(IViewPort viewPortInterface) {
@@ -44,7 +44,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var viewPort = (IEditableViewPort)viewPortInterface;
          var token = viewPort.ChangeHistory.CurrentChange;
 
-         var error = RefactorByteInTable(viewPort.Tools.CodeTool.Parser, viewPort.Model, token, MoveDataTable, "power", 9);
+         var error = RefactorMoveByteFieldInTable(viewPort.Tools.CodeTool.Parser, viewPort.Model, token, MoveDataTable, "power", 9);
          if (error.HasError) return error;
          error = RefactorByteToHalfWordInTable(viewPort.Tools.CodeTool.Parser, viewPort.Model, token, MoveDataTable, "effect");
          if (error.HasError) return error;
@@ -57,9 +57,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          //*/
       }
 
-      public static ErrorInfo RefactorByteInTable(ThumbParser parser, IDataModel model, ModelDelta token, string tableName, string fieldName, int newOffset) {
+      public static ErrorInfo RefactorMoveByteFieldInTable(ThumbParser parser, IDataModel model, ModelDelta token, string tableName, string fieldName, int newOffset) {
          // setup
-         var table = model.GetTable(tableName);
+         var table = model.GetTable(tableName) as ArrayRun;
          if (table == null) return new ErrorInfo($"Couldn't find table {tableName}.");
          var segToMove = table.ElementContent.FirstOrDefault(seg => seg.Name == fieldName);
          if (segToMove == null) return new ErrorInfo($"Couldn't find field {fieldName} in {tableName}.");
@@ -86,12 +86,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
          // update code
          var writer = new TupleSegment(default, 5);
-         foreach (var source in table.PointerSources) {
-            var ldrbCommands = parser.FindUsagesOfByteFieldFromArray(model, source, oldOffset);
+         var allChanges = new List<string>();
+         foreach (var address in table.FindAllByteReads(parser, oldFieldIndex)) {
+            allChanges.Add(address.ToAddress());
             // ldrb rd, [rn, #]: 01111 # rn rd
-            foreach (var address in ldrbCommands) {
-               writer.Write(model, token, address, 6, newOffset);
-            }
+            writer.Write(model, token, address, 6, newOffset);
          }
 
          // update table contents
@@ -107,7 +106,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
       public static ErrorInfo RefactorByteToHalfWordInTable(ThumbParser parser, IDataModel model, ModelDelta token, string tableName, string fieldName) {
          // setup
-         var table = model.GetTable(tableName);
+         var table = model.GetTable(tableName) as ArrayRun;
          if (table == null) return new ErrorInfo($"Couldn't find table {tableName}.");
          var segToGrow = table.ElementContent.FirstOrDefault(seg => seg.Name == fieldName);
          if (segToGrow == null) return new ErrorInfo($"Couldn't find field {fieldName} in {tableName}.");
@@ -130,15 +129,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          // update code
          var writer = new TupleSegment(default, 5);
          var allChanges = new List<string>();
-         foreach (var source in table.PointerSources) {
-            var ldrbCommands = parser.FindUsagesOfByteFieldFromArray(model, source, fieldOffset);
-            allChanges.AddRange(ldrbCommands.Select(address => address.ToAddress()));
+         foreach (var address in table.FindAllByteReads(parser, fieldIndex)) {
+            allChanges.Add(address.ToAddress());
             // ldrb rd, [rn, #]: 01111 # rn rd
             // ldrh rd, [rn, #]: 10001 # rn rd, but # is /2
-            foreach (var address in ldrbCommands) {
-               writer.Write(model, token, address, 6, fieldOffset / 2); // divide offset by 2
-               writer.Write(model, token, address, 11, 0b10001);        // ldrb -> ldrh
-            }
+            writer.Write(model, token, address, 6, fieldOffset / 2); // divide offset by 2
+            writer.Write(model, token, address, 11, 0b10001);        // ldrb -> ldrh
          }
 
          // update table contents
@@ -149,42 +145,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
          model.ObserveRunWritten(token, newTable);
          return ErrorInfo.NoError;
-      }
-
-      /// <summary>
-      /// Move Effects is only 1 byte. This limits us to only 256 move effects, which is a problem.
-      /// Expand move effects to be 2 bytes to fix this. But oh, that's where Power is!
-      /// Move Power to freespace later in the struct. Move it from offset 1 to offset 9.
-      /// </summary>
-      private static void UpdateMoveEffectsAndMovePowerFields(IEditableViewPort viewPort, ModelDelta token) {
-         // update all uses of ldr movestats[...].power
-         // power is moving from offset 1 to offset 9
-         const int OldPowerOffset = 1, NewPowerOffset = 9;
-         var model = viewPort.Model;
-         var allChanges = new List<string>();
-         var statsTable = viewPort.Model.GetTable(MoveDataTable);
-         foreach (var source in statsTable.PointerSources) {
-            var ldrbCommands = viewPort.Tools.CodeTool.Parser.FindUsagesOfByteFieldFromArray(model, source, OldPowerOffset);
-            // ldrb rd, [rn, #]: 01111 # rn rd
-            var writer = new TupleSegment(default, 5);
-            foreach (var address in ldrbCommands) {
-               allChanges.Add(address.ToAddress());
-               writer.Write(model, token, address, 6, NewPowerOffset);
-            }
-         }
-
-         // TODO update all uses of ldr movestats[...].effect
-         // needs to change from ldrb to ldrh
-
-         // update movestats table
-         var movestats = model.GetTable(MoveDataTable);
-         for (int i = 0; i < movestats.ElementCount; i++) {
-            var power = model[movestats.Start + movestats.ElementLength * i + OldPowerOffset];
-            token.ChangeData(model, movestats.Start + movestats.ElementLength * i + OldPowerOffset, 0);
-            token.ChangeData(model, movestats.Start + movestats.ElementLength * i + NewPowerOffset, power);
-         }
-         viewPort.Goto.Execute(movestats.Start);
-         viewPort.AnchorText = $"{MoveDataTable}[effect:moveeffects type.data.pokemon.type.names accuracy. pp. effectAccuracy. target|b[]movetarget priority. info|b[]moveinfo power. unused:]data.pokemon.moves.names";
       }
 
       public bool CanRun1(IViewPort viewPort) {

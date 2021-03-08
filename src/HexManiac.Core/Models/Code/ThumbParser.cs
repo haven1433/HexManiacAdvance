@@ -119,68 +119,6 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return parseResult.ToString();
       }
 
-      /// <summary>
-      /// Step 0: find the start of the function that contains the pointer to the array
-      /// Step 1: move forward until you find a 'ldr'  command that loads that pointer
-      /// Step 2: move forward until you find a 'add'  command that adds some sort of offset to the result of the ldr command
-      /// Step 3: move forward until you find a 'ldrb' command that uses the result of the add command (and the field offset)
-      /// </summary>
-      public IReadOnlyList<int> FindUsagesOfByteFieldFromArray(IDataModel model, int pointerToArray, int fieldOffset) {
-         var results = new List<int>();
-         var pointerText = $"<{pointerToArray:X6}>";
-         var funcStart = pointerToArray;
-
-         // level 0: look backward from the pointer to the start of the function : push {lr}
-         while (funcStart >= 0 && model[funcStart + 1] != 0xB5) funcStart -= 2;
-         if (funcStart < 0) return results;
-
-         // level 1: looking for where this pointer gets loaded : ldr rd, [pc, <pointerToArray>]
-         for (int i = funcStart + 2; i < pointerToArray; i += 2) {
-            var loadArrayLine = Parse(model, i, 2).Trim().SplitLines().Last().Trim();
-            if (!loadArrayLine.Contains(pointerText)) continue;
-            if (!loadArrayLine.StartsWith("ldr ")) continue;
-
-            var initialLoadRegister = loadArrayLine.Split(',').First().Split(' ').Last();
-            // level 2: look for an add command that uses the register we just loaded to
-            for (int j = i + 2; j < pointerToArray; j += 2) {
-               var addLine = Parse(model, j, 2).Trim().SplitLines().Last().Trim();
-               var addResultRegister = addLine.Split(',').First().Split(' ').Last();
-               if (addLine.StartsWith("add ") && addLine.Contains(initialLoadRegister)) {
-                  // level 3: look for a ldrb command so we know what register is being used
-                  results.AddRange(FindUsagesWithinLDRBCommands(model, j + 2, addResultRegister, fieldOffset));
-               }
-               if (addResultRegister == initialLoadRegister) break; // load register is no longer valid
-            }
-         }
-
-         return results.Distinct().ToList();
-      }
-
-      private IEnumerable<int> FindUsagesWithinLDRBCommands(IDataModel model, int start, string registerToLoadFrom, int fieldOffset) {
-         var loadByteTargetRegisterToken = $"[{registerToLoadFrom}, ";
-         var fieldOffsetToken = $" #{fieldOffset}]";
-
-         for (int k = start; true; k += 2) {
-            var loadByteLine = Parse(model, k, 2).Trim().SplitLines().Last().Trim();
-            if (loadByteLine.StartsWith("bx ")) break;
-            if (loadByteLine.StartsWith("b") && !loadByteLine.StartsWith("bl ")) {
-               var destination = loadByteLine.Split('<').Last().Split('>').First();
-               if (destination.Length < 8 && destination.All(ViewPort.AllHexCharacters.Contains)) {
-                  var nextStart = int.Parse(destination, NumberStyles.HexNumber);
-                  if (nextStart > k) {
-                     foreach (var result in FindUsagesWithinLDRBCommands(model, nextStart, registerToLoadFrom, fieldOffset)) yield return result;
-                  }
-               }
-               if (loadByteLine.StartsWith("b ")) break;
-            }
-            var loadByteResultRegister = loadByteLine.Split(',').First().Split(' ').Last();
-            if (loadByteLine.StartsWith("ldrb ") && loadByteLine.Contains(loadByteTargetRegisterToken) && loadByteLine.Contains(fieldOffsetToken)) {
-               yield return k;
-            }
-            if (loadByteResultRegister == registerToLoadFrom) break; // add register is no longer valid
-         }
-      }
-
       private static readonly IReadOnlyCollection<byte> nop = new byte[] { 0, 0 };
       public IReadOnlyList<byte> Compile(IDataModel model, int start, params string[] lines) {
          var result = new List<byte>();

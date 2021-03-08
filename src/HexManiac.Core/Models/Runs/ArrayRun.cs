@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models.Runs.Factory;
+﻿using HavenSoft.HexManiac.Core.Models.Code;
+using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
@@ -6,6 +7,7 @@ using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -857,6 +859,105 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
          return true;
       }
+
+      #region Seek Usages
+
+      /// <summary>
+      /// Finds all places in the current model that try to read the specified field.
+      /// The field must be a single byte wide.
+      /// Each result will be the address of a thumb instruction in the form `ldrb rD, [rN, #offset]`
+      /// </summary>
+      public IEnumerable<int> FindAllByteReads(ThumbParser parser, int fieldIndex) {
+         Debug.Assert(ElementContent.Count > fieldIndex, $"Table does not have {fieldIndex} fields.");
+         var results = new SortedSet<int>();
+         if (fieldIndex >= ElementContent.Count) return results;
+         Debug.Assert(ElementContent[fieldIndex].Length == 1, $"{ElementContent[fieldIndex].Name} is not a byte field.");
+         var offset = ElementContent.Take(fieldIndex).Sum(seg => seg.Length);
+         foreach (var source in PointerSources) {
+            foreach (var load in FindAllLoads(parser, source)) {
+               foreach (var add in FindAllCommands(parser, load.address + 2, load.register, (line, reg) => line.StartsWith("add ") && line.Contains($", {reg}"))) {
+                  var offsetText = $" #{offset}]";
+                  foreach (var ldrb in FindAllCommands(parser, add.address + 2, add.register, (line, reg) => line.StartsWith("ldrb ") && line.Contains($"[{reg}, ") && line.Contains(offsetText))) {
+                     results.Add(ldrb.address);
+                  }
+               }
+            }
+         }
+         return results;
+      }
+
+      /// <summary>
+      /// Seeks backwards from the pointer to the start of the function.
+      /// Then returns all locations that are loading the pointer.
+      /// </summary>
+      private IEnumerable<(int address, string register)> FindAllLoads(ThumbParser parser, int pointerLocation) {
+         var funcStart = pointerLocation - 2;
+         while (funcStart >= 0 && owner[funcStart + 1] != 0xB5) funcStart -= 2;
+         if (funcStart < 0) yield break;
+         var pointerText = $"<{pointerLocation:X6}>";
+         for (int i = funcStart + 2; i < pointerLocation; i += 2) {
+            var loadArrayLine = parser.Parse(owner, i, 2).Trim().SplitLines().Last().Trim();
+            if (!loadArrayLine.Contains(pointerText)) continue;
+            if (!loadArrayLine.StartsWith("ldr ")) continue;
+            var register = loadArrayLine.Split(',').First().Split(' ').Last();
+            yield return (i, register);
+         }
+      }
+
+      /// <summary>
+      /// From a starting address, seeks all uses of a register that match a preidcate.
+      /// Stops searching when the value of the register gets changed, or when the function returns.
+      /// Follows branches / moves for the value.
+      /// </summary>
+      /// <param name="predicate">
+      /// The first argument to the predicate is the line of assembly code that we're checking.
+      /// The second argument to the predicate is the register that we're currently watching.
+      /// This is usually registerSource, but may've changed because of mov operations.
+      /// We're guaranteed that the line in question contains the source register that we're watching.
+      /// The predicate allows the line to be checked for other conditions, such as making sure that it's an 'add' instruction.
+      /// </param>
+      /// <returns>
+      /// Returns the address of the command that used the source and the register of the result.
+      /// </returns>
+      private IEnumerable<(int address, string register)> FindAllCommands(ThumbParser parser,int startAddress, string registerSource, Func<string, string, bool> predicate, IReadOnlyList<int> callTrail = null) {
+         callTrail = callTrail ?? new List<int>();
+         if (callTrail.Contains(startAddress)) yield break;
+         if (callTrail.Count > 4) yield break; // only allow so many mov / branch operations before we lose interest. This keeps the routine fast.
+         var newTrail = callTrail.Concat(new[] { startAddress }).ToList();
+         for (int i = startAddress; true; i += 2) {
+            var commandLine = parser.Parse(owner, i, 2).Trim().SplitLines().Last().Trim();
+            if (commandLine.StartsWith("bx ")) break;
+            if (commandLine.StartsWith("pop ") && commandLine.Contains("pc")) break;
+
+            // follow branch logic (avoid recursion)
+            if (commandLine.StartsWith("b") && !commandLine.StartsWith("bic ")) {
+               var destination = commandLine.Split('<').Last().Split('>').First();
+               if (destination.Length < 8 && destination.All(ViewPort.AllHexCharacters.Contains)) {
+                  var nextStart = int.Parse(destination, NumberStyles.HexNumber);
+                  if (commandLine.StartsWith("bl ") && owner[nextStart + 1] == 0xB5) {
+                     // this is a branch link that pushes the link register
+                     // no need to recurse here
+                  } else {
+                     foreach (var result in FindAllCommands(parser, nextStart, registerSource, predicate, newTrail)) yield return result;
+                  }
+               }
+               if (commandLine.StartsWith("b ")) break;
+            }
+
+            var register = commandLine.Split(',').First().Split(' ').Last();
+
+            // follow move operations
+            if (commandLine.StartsWith("mov ") && commandLine.EndsWith(registerSource)) {
+               foreach (var result in FindAllCommands(parser, i + 2, register, predicate, callTrail)) yield return result;
+            }
+
+            // look for the actual instruction we care about
+            if (commandLine.Contains(registerSource) && predicate(commandLine, registerSource)) yield return (i, register);
+            if (register == registerSource) break;
+         }
+      }
+
+      #endregion
 
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) {
          // since the inner pointer sources includes the first row, update the first row
