@@ -329,7 +329,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public IStreamRun DeserializeRun(string content, ModelDelta token) {
          var pairs = content.Split(Environment.NewLine).Where(line => line.Count('=') == 1).Select(line => line.Split('=')).Select(pair => new KeyValuePair<string, string>(pair[0].Trim().ToLower(), pair[1].Trim().ToLower()));
          bool parseBool; sbyte parseInt;
-         using (var scope = new EditScope(token, this)) {
+         using (CreateEditScope(token)) {
             // check the bytes that everyone has
             foreach (var pair in pairs) {
                if (pair.Key == "applytofirstpokemononly" && bool.TryParse(pair.Value, out parseBool)) ApplyToFirstPokemonOnly = parseBool;
@@ -395,7 +395,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (pair.Key == "highhappinesschange" && editScope.Result.HasHighHappinessByte && sbyte.TryParse(pair.Value, out parseInt)) editScope.Result.HighHappinessChange = parseInt;
             }
 
-            return scope.Result;
+            return editScope.Result;
          }
       }
 
@@ -476,9 +476,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public PIERun Edit(ModelDelta token, Action editAction) {
-         using (var scope = new EditScope(token, this)) {
+         using (CreateEditScope(token)) {
             editAction();
-            return scope.Result;
+            return editScope.Result;
          }
       }
 
