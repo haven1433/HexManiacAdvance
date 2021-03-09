@@ -128,8 +128,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          var group = new ContextItemGroup(name);
 
          var selectionStartAddress = ViewPort.ConvertViewPointToAddress(ViewPort.SelectionStart);
-         if (ViewPort.Model.GetNextRun(selectionStartAddress) is ITableRun tableRun && tableRun.Start != ViewPort.DataOffset && tableRun.Start == selectionStartAddress) {
-            group.Add(new ContextItem("Align Here", ViewPort.Goto.Execute, tableRun.Start));
+         if (ViewPort.Model.GetNextRun(selectionStartAddress) is ITableRun tableRun && tableRun.Start == selectionStartAddress) {
+            if (tableRun.Start != ViewPort.DataOffset || tableRun.ElementLength != ViewPort.PreferredWidth) {
+               group.Add(new ContextItem("Align Here", ViewPort.Goto.Execute, tableRun.Start));
+            }
          }
 
          if (anchor.Sources.Count == 0) {
