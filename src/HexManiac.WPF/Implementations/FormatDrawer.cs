@@ -51,6 +51,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          CellTextOffset = new Point((cellWidth - testText.Width) / 2, (cellHeight - testText.Height) / 2);
       }
 
+      const bool LightWeightUI = false;
+
       /// <summary>
       /// Rendering individual cells is too slow!
       /// For formats that follow the standard method of drawing (truncate and center, one color/size/style),
@@ -113,11 +115,15 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             } else if (format is Ascii asc) {
                collector.Collect<Ascii>(format, x, 1, asc.ThisCharacter.ToString());
             } else if (format is None none) {
-               if (cell.Value == 0x00) collector.Collect<UnderEdit>(format, x, 1, "00");
-               else if (cell.Value == 0xFF) collector.Collect<Undefined>(format, x, 1, "FF");
-               else if (searchByte == -1) collector.Collect<None>(format, x, 1, cell.Value.ToHexString());
-               else if (cell.Value == searchByte) collector.Collect<None>(format, x, 1, cell.Value.ToHexString());
-               else collector.Collect<UnderEdit>(format, x, 1, cell.Value.ToHexString());
+               if (!LightWeightUI) {
+                  if (cell.Value == 0x00) collector.Collect<UnderEdit>(format, x, 1, "00");
+                  else if (cell.Value == 0xFF) collector.Collect<Undefined>(format, x, 1, "FF");
+                  else if (searchByte == -1) collector.Collect<None>(format, x, 1, cell.Value.ToHexString());
+                  else if (cell.Value == searchByte) collector.Collect<None>(format, x, 1, cell.Value.ToHexString());
+                  else collector.Collect<UnderEdit>(format, x, 1, cell.Value.ToHexString());
+               } else if (cell.Value == 0xB5 && x % 2 == 1) {
+                  collector.Collect<Undefined>(format, x - 1, 2, "thumb");
+               }
             } else if (format is BitArray array) {
                collector.Collect<BitArray>(format, x, array.Length, array.DisplayValue);
             } else if (format is MatchedWord word) {
@@ -176,7 +182,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
 
       public void Visit(None dataFormat, byte data) {
-         if (data == 0xB5) Underline(nameof(Theme.Secondary), false, false);
+         if (data == 0xB5 && !LightWeightUI) Underline(nameof(Theme.Secondary), false, false);
       }
 
       public static double CalculateTextOffset(string text, int fontSize, double cellWidth, UnderEdit edit) {

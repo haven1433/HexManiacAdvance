@@ -1,7 +1,16 @@
 @ quick reference special registers:
-@ sp = r13
-@ lr = r14
-@ pc = r15
+@      r0-r3: use as arguments. r0 is assumed to be the return value from a function. 
+@             r0 to r3 are assumed to not be preserved after function calls.
+@             Treat these like scratch space.
+@      r4-r7: easy access variable registers. These can be used with all instructions, and generally store local variables.
+@      r8-r12: hard access variables. High registers cannot be pushed/popped, and cannot be used with most instructions.
+@              these are usually used for 'long term storage' within a function.
+@ sp = r13    The stack pointer. Pushing decreases the value. You can manually subtract more to create extra space for more variables.
+@ lr = r14    bl commands set lr to the current value of pc as part of the branch. This sets you branch 'back' using lr.
+@             If you want to branch within the new function without losing this value, you'll need to store the value to the stack.
+@             Therefore, most functions start with some variant of 'push lr', which can be used to find the start of a function.
+@             Likewise, most functions end with 'pop r1 / bx r1' to jump back. Though if you know you're returning to thumb code, a simple 'pop pc' would suffice.
+@ pc = r15    Stores the location of the next instruction to execute. +1 for thumb mode. 
 
 @ possible compare results
 eq=0000  @ == equal

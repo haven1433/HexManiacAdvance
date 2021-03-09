@@ -274,9 +274,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       Register,
       Numeric,   // if code is non-zero, the high 8 bits is a multiplier and the low 8 bits is an addition offset.
                  // then add that whole thing to the current pc offset and display that
+                 // Hack: if the multiplier and adder are both 4, then the number is unsigned.
       HighRegister,
       List,
-      ReverseList,  // used for push
+      ReverseList,  // not used
       Condition,
    }
 
@@ -451,8 +452,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var mult = GrabBits(part.Code, 8, 8);
          var add = GrabBits(part.Code, 0, 8);
          var numeric = (short)bits;
-         numeric <<= 16 - part.Length;
-         numeric >>= 16 - part.Length; // get all the extra bits set to one so that the numeric value is correct
+
+         // Add on the sign. Note that ldr (recognized by mult=4, add=4) are unsigned.
+         if (mult != 4 || add != 4) {
+            numeric <<= 16 - part.Length;
+            numeric >>= 16 - part.Length; // signed-right-shift carries the sign
+         }
+
          if (instruction.Contains("#")) {
             // this is the first # in this instruction.
             var address = pcAddress - (pcAddress % mult) + numeric * mult + add;

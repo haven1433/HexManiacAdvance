@@ -924,6 +924,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (callTrail.Contains(startAddress)) yield break;
          if (callTrail.Count > 4) yield break; // only allow so many mov / branch operations before we lose interest. This keeps the routine fast.
          var newTrail = callTrail.Concat(new[] { startAddress }).ToList();
+         bool prevCommandIsCmp = false;
          for (int i = startAddress; true; i += 2) {
             var commandLine = parser.Parse(owner, i, 2).Trim().SplitLines().Last().Trim();
             if (commandLine.StartsWith("bx ")) break;
@@ -937,7 +938,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   if (commandLine.StartsWith("bl ") && owner[nextStart + 1] == 0xB5) {
                      // this is a branch link that pushes the link register
                      // no need to recurse here
-                  } else {
+                  } else if (prevCommandIsCmp || commandLine.IndexOf(" ") != 3) {
+                     // This is a b/bl that we want to follow, or it's an actual conditional branch (because it's preceded by cmp).
+                     // Either way, we want to recurse.
                      foreach (var result in FindAllCommands(parser, nextStart, registerSource, predicate, newTrail)) yield return result;
                   }
                }
@@ -954,6 +957,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             // look for the actual instruction we care about
             if (commandLine.Contains(registerSource) && predicate(commandLine, registerSource)) yield return (i, register);
             if (register == registerSource) break;
+            prevCommandIsCmp = commandLine.StartsWith("cmp ");
          }
       }
 
