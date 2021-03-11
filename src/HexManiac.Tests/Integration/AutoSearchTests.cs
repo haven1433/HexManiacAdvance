@@ -69,6 +69,17 @@ namespace HavenSoft.HexManiac.Tests {
 
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
+      public void MoveOffsetPointersAreFound(string game) {
+         var model = fixture.LoadModel(game);
+
+         var run = model.GetTable(MoveDataTable);
+         var sourcePointers = run.PointerSources.Select(source => model.GetNextRun(source)).ToList();
+
+         Assert.Equal(5, sourcePointers.Count(source => source is OffsetPointerRun));
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
       public void NaturesAreFound(string game) {
          var model = fixture.LoadModel(game);
          var run = model.GetTable(NaturesTableName);

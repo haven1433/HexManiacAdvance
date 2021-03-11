@@ -493,6 +493,11 @@ namespace HavenSoft.HexManiac.Core.Models {
                }
             }
          }
+         foreach (var pointer in metadata.OffsetPointers) {
+            if (pointer.Address >= 0 && pointer.Address < model.Count) {
+               model.ObserveRunWritten(noChange, new OffsetPointerRun(pointer.Address, pointer.Offset));
+            }
+         }
          if (metadata.NextExportID > 0) model.NextExportID = metadata.NextExportID;
          if (metadata.FreeSpaceSearch > 0) model.FreeSpaceStart = metadata.FreeSpaceSearch;
          if (metadata.FreeSpaceBuffer > 0) model.FreeSpaceBuffer = metadata.FreeSpaceBuffer;

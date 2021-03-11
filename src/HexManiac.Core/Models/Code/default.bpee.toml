@@ -3,3 +3,25 @@
 Name = '''data.header.romname'''
 Address = 0x000108
 Format = '''`asc`32'''
+
+[[OffsetPointer]]
+Address = 0x038850
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x0389F8
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x069188
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x069230
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x06B82C
+Offset = 0x000004
+
+
