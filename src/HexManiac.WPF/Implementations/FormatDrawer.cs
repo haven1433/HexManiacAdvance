@@ -439,6 +439,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
          var sectionPadding = (cellWidth * cellSize.Width - sectionWidth) / 2;
          double sectionStart = cellStart * cellSize.Width + sectionPadding;
+         if (widths.Count == 0) return;
          widths[widths.Count - 1] += sectionPadding;
          if (!initialHorizontalOffsets.ContainsKey(typeof(T))) {
             initialHorizontalOffsets[typeof(T)] = sectionStart;
