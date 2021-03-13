@@ -25,14 +25,14 @@ BPEE0.scripts.shiny.odds-1 067C56,06E76C,06E7E2,06EBE4,172F46
 # -1: GetHoennPokedexCount,GetPokedexRatingText
 # -2: GetPokedexRatingText
 # -3: HasAllHoennMons,GetPokedexRatingText
-AXPV0.scripts.pokedex.regional.length   0406FA,08D6BA,08D6E2,10D5E8
-AXPV0.scripts.pokedex.regional.length-1 090FB4,10D5A8
-AXPV0.scripts.pokedex.regional.length-2 10D570
-AXPV0.scripts.pokedex.regional.length-3 090FE6,10D56C
-AXPV1.scripts.pokedex.regional.length   04071A,08D6DA,08D702,10D608
-AXPV1.scripts.pokedex.regional.length-1 090FD4,10D5C8
-AXPV1.scripts.pokedex.regional.length-2 10D590
-AXPV1.scripts.pokedex.regional.length-3 091006,10D58C
+AXVE0.scripts.pokedex.regional.length   0406FA,08D6BA,08D6E2,10D5E8
+AXVE0.scripts.pokedex.regional.length-1 090FB4,10D5A8
+AXVE0.scripts.pokedex.regional.length-2 10D570
+AXVE0.scripts.pokedex.regional.length-3 090FE6,10D56C
+AXVE1.scripts.pokedex.regional.length   04071A,08D6DA,08D702,10D608
+AXVE1.scripts.pokedex.regional.length-1 090FD4,10D5C8
+AXVE1.scripts.pokedex.regional.length-2 10D590
+AXVE1.scripts.pokedex.regional.length-3 091006,10D58C
 AXPE0.scripts.pokedex.regional.length   0406FA,08D6BA,08D6E2,10D5E8
 AXPE0.scripts.pokedex.regional.length-1 090FB4,10D5A8
 AXPE0.scripts.pokedex.regional.length-2 10D570
@@ -212,4 +212,5 @@ AXVE1.data.pokemon.type.length+5 3C11D9
 AXVE1.data.pokemon.type.length*8 0A0214,0A0310
 AXPE1.data.pokemon.type.length+5 3C1235
 AXPE1.data.pokemon.type.length*8 0A0214,0A0310
+
 
