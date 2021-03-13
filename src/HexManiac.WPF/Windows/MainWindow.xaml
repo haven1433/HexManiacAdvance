@@ -149,6 +149,13 @@
                         </ToolTip>
                      </MenuItem.ToolTip>
                   </MenuItem>
+                  <MenuItem Header="Enable Single Table Focus" IsCheckable="True" IsChecked="{Binding AllowSingleTableMode}">
+                     <MenuItem.ToolTip>
+                        <ToolTip BorderThickness="0" Background="{DynamicResource Backlight}">
+                           <TextBlock Text="Limit the scrollable area to a single table after a goto."/>
+                        </ToolTip>
+                     </MenuItem.ToolTip>
+                  </MenuItem>
                   <MenuItem Header="Reset _Zoom" Command="{Binding ResetZoom}">
                      <MenuItem.ToolTip>
                         <ToolTip BorderThickness="0" Background="{DynamicResource Backlight}">

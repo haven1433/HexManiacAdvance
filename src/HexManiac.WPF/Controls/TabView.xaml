@@ -774,10 +774,11 @@
 
             <Line Width="1" DockPanel.Dock="Left" Stroke="{DynamicResource Background}"/>
             <ScrollBar DockPanel.Dock="Right"
-               Minimum="{Binding MinimumScroll}" Maximum="{Binding MaximumScroll}" Value="{Binding ScrollValue}"
+               Minimum="{Binding MinimumScroll}" Maximum="{Binding MaximumScroll}" Value="{Binding ScrollValue}" ViewportSize="{Binding Height}"
                SmallChange="1" LargeChange="{Binding Height}" />
             <ScrollBar DockPanel.Dock="Bottom" Orientation="Horizontal" SmallChange="10" LargeChange="{Binding CellWidth, ElementName=HexContent}"
                Minimum="0" Maximum="{Binding HorizontalScrollMaximum, ElementName=HexContent}" Value="{Binding HorizontalScrollValue, ElementName=HexContent}"
+               ViewportSize="{Binding DesiredHorizontalViewportSize, ElementName=HexContent}"
                Visibility="{Binding ShowHorizontalScroll, ElementName=HexContent, Converter={StaticResource BoolToVisibility}}" />
             <Grid Margin=".5,.5,0,0" ClipToBounds="True" Name="HexContentRenderAreaContainer">
                <Grid Name="HexContentRenderArea">

@@ -285,7 +285,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          set {
             Set(ref allowSingleTableMode, value, arg => {
                foreach (var tab in tabs) {
-                  if (tab is IEditableViewPort viewModel) viewModel.AllowSingleTableMode = arg;
+                  if (tab is IEditableViewPort viewModel) viewModel.AllowSingleTableMode = allowSingleTableMode;
                }
             });
          }

@@ -235,6 +235,24 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       #endregion
 
+      #region DesiredHorizontalViewportSize
+
+      public static readonly DependencyProperty DesiredHorizontalViewportSizeProperty = DependencyProperty.Register(nameof(DesiredHorizontalViewportSize), typeof(double), typeof(HexContent), new FrameworkPropertyMetadata(0.0, DesiredHorizontalViewportSizeChanged));
+
+      public double DesiredHorizontalViewportSize {
+         get => (double)GetValue(DesiredHorizontalViewportSizeProperty);
+         set => SetValue(DesiredHorizontalViewportSizeProperty, value);
+      }
+
+      private static void DesiredHorizontalViewportSizeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+         var self = (HexContent)d;
+         self.OnDesiredHorizontalViewportSizeChanged(e);
+      }
+
+      protected virtual void OnDesiredHorizontalViewportSizeChanged(DependencyPropertyChangedEventArgs e) { }
+
+      #endregion
+
       public ScreenPoint CursorLocation {
          get {
             if (!(ViewPort is ViewPort viewPort)) return new ScreenPoint(-1, -1);
@@ -670,6 +688,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             ShowHorizontalScroll = true;
             HorizontalScrollMaximum = requiredSize - ActualWidth;
             HorizontalScrollValue = Math.Min(HorizontalScrollValue, HorizontalScrollMaximum);
+            var desiredThumbWidth = ActualWidth / requiredSize;
+            DesiredHorizontalViewportSize = HorizontalScrollMaximum * desiredThumbWidth / (1 - desiredThumbWidth);
          } else {
             ShowHorizontalScroll = false;
             HorizontalScrollValue = 0;
