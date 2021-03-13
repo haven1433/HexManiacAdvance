@@ -60,6 +60,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    }
 
    public interface IEditableViewPort : IViewPort {
+      bool AllowSingleTableMode { get; set; }
       Point SelectionStart { get; }
       Point SelectionEnd { get; }
       new string AnchorText { get; set; }

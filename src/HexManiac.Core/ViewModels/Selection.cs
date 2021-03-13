@@ -244,7 +244,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void GotoAddress(int address) {
-         if (address > Scroll.DataLength || address < 0) {
+         if (address > model.Count || address < 0) {
             OnError?.Invoke(this, $"Address {address:X2} is not within the size of the data.");
             return;
          }
@@ -273,23 +273,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void GotoAddressAndAlign(int address, int preferredWidth, int tableStart = 0) {
+         Scroll.ClearTableMode();
          Debug.Assert(Scroll.DataLength == model.Count, "I forgot to update the Scroll.DataLength after expanding the data!");
-         using (ModelCacheScope.CreateScope(model)) {
-            var startAddress = address;
-            if (preferredWidth > 1) address -= (address - tableStart) % preferredWidth;
 
-            // first, change the scroll to view the actual requested address
-            Scroll.ScrollValue += Scroll.DataIndexToViewPoint(startAddress).Y;
+         var startAddress = address;
+         if (preferredWidth > 1) address -= (address - tableStart) % preferredWidth;
 
-            // then, scroll left/right as needed to align everything
-            while (Scroll.DataIndex < address) Scroll.Scroll.Execute(Direction.Right);
-            while (Scroll.DataIndex > address) Scroll.Scroll.Execute(Direction.Left);
+         // first, change the scroll to view the actual requested address
+         Scroll.ScrollValue += Scroll.DataIndexToViewPoint(startAddress).Y;
 
-            // update the width
-            if (autoAdjustDataWidth) PreferredWidth = preferredWidth;
+         // then, scroll left/right as needed to align everything
+         while (Scroll.DataIndex < address) Scroll.Scroll.Execute(Direction.Right);
+         while (Scroll.DataIndex > address) Scroll.Scroll.Execute(Direction.Left);
 
-            // finally, update the selection
-            SelectionStart = Scroll.DataIndexToViewPoint(startAddress);
+         // update the width
+         if (autoAdjustDataWidth) PreferredWidth = preferredWidth;
+
+         // finally, update the selection
+         SelectionStart = Scroll.DataIndexToViewPoint(startAddress);
+
+         if (model.GetNextRun(startAddress) is ITableRun tableRun && tableRun.Start <= startAddress) {
+            Scroll.SetTableMode(tableRun.Start, tableRun.Length);
+         } else {
+            Scroll.ClearTableMode();
          }
       }
 

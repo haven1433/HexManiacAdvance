@@ -279,6 +279,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      private bool allowSingleTableMode = true;
+      public bool AllowSingleTableMode {
+         get => allowSingleTableMode;
+         set {
+            Set(ref allowSingleTableMode, value, arg => {
+               foreach (var tab in tabs) {
+                  if (tab is IEditableViewPort viewModel) viewModel.AllowSingleTableMode = arg;
+               }
+            });
+         }
+      }
+
       public bool IsNewVersionAvailable { get; set; }
       public DateTime LastUpdateCheck { get; set; }
 
@@ -421,6 +433,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var metadata = fileSystem.MetadataFor(ApplicationName) ?? new string[0];
          Theme = new Theme(metadata);
          LogAppStartupProgress = metadata.Contains("LogAppStartupProgress = True");
+         UseTableEntryHeaders = !metadata.Contains("UseTableEntryHeaders = False");
+         AllowSingleTableMode = !metadata.Contains("AllowSingleTableMode = False");
          ShowMatrix = !metadata.Contains("ShowMatrixGrid = False");
          AnimateScroll = !metadata.Contains("AnimateScroll = False");
          AutoAdjustDataWidth = !metadata.Contains("AutoAdjustDataWidth = False");
@@ -451,6 +465,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var metadata = new List<string> {
             "[GeneralSettings]",
             $"LogAppStartupProgress = {LogAppStartupProgress}",
+            $"UseTableEntryHeaders = {UseTableEntryHeaders}",
+            $"AllowSingleTableMode = {AllowSingleTableMode}",
             $"ShowMatrixGrid = {ShowMatrix}",
             $"ZoomLevel = {ZoomLevel}",
             $"AnimateScroll = {AnimateScroll}",
@@ -617,6 +633,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                }));
             }
             viewModel.UseCustomHeaders = useTableEntryHeaders;
+            if (viewModel is IEditableViewPort evp) evp.AllowSingleTableMode = AllowSingleTableMode;
             viewModel.AutoAdjustDataWidth = AutoAdjustDataWidth;
             viewModel.AllowMultipleElementsPerLine = AllowMultipleElementsPerLine;
             viewModel.StretchData = StretchData;

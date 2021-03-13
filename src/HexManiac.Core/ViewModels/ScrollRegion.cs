@@ -22,6 +22,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private int dataIndex, width, height, scrollValue, maximumScroll, dataLength;
 
+      private int tableStart, tableLength;
+      private bool allowTableMode;
+      public bool AllowSingleTableMode { get => allowTableMode; set => Set(ref allowTableMode, value, arg => ClearTableMode()); }
+
       public IToolTrayViewModel Scheduler { get; set; }
 
       public ICommand Scroll => scroll;
@@ -75,10 +79,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      public int MinimumScroll => 0;
+      public int MinimumScroll {
+         get {
+            if (tableLength == 0) return 0;
+            int effectiveDataStart = CalculateEffectiveDataLength(tableStart);
+            return (int)Math.Ceiling((double)effectiveDataStart / width);
+         }
+      }
 
       public int MaximumScroll {
-         get => maximumScroll;
+         get {
+            if (tableLength == 0) return maximumScroll;
+            int effectiveDataLength = CalculateEffectiveDataLength(tableStart + tableLength);
+            var lineCount = (int)Math.Ceiling((double)effectiveDataLength / width);
+            return Math.Max(lineCount - 1, 0);
+         }
          private set => TryUpdate(ref maximumScroll, value);
       }
 
@@ -91,7 +106,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public int DataLength {
-         get => dataLength;
+         get {
+            if (tableLength == 0) return dataLength;
+            return tableStart + tableLength;
+         }
          set {
             if (TryUpdate(ref dataLength, value)) UpdateScrollRange();
          }
@@ -149,12 +167,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return false;
       }
 
+      public void SetTableMode(int start, int length) {
+         if (tableStart == start && tableLength == length) return;
+         tableStart = start;
+         tableLength = length;
+         NotifyPropertyChanged(nameof(MinimumScroll));
+         NotifyPropertyChanged(nameof(MaximumScroll));
+         NotifyPropertyChanged(nameof(DataLength));
+      }
+
+      public void ClearTableMode() => SetTableMode(0, 0);
+
       private void ScrollExecuted(Direction direction) {
          var dif = DirectionToDif[direction];
          if (dif.Y != 0) {
             ScrollValue += dif.Y;
          } else {
             DataIndex = (dataIndex + dif.X).LimitToRange(1 - width, dataLength - 1);
+            ClearTableMode();
          }
       }
 
@@ -162,6 +192,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (width < 1 || height < 1 || dataLength < 1) return;
          int effectiveDataLength = CalculateEffectiveDataLength();
          var lineCount = (int)Math.Ceiling((double)effectiveDataLength / width);
+         if (tableLength != 0) NotifyPropertyChanged(nameof(MinimumScroll));
          MaximumScroll = Math.Max(lineCount - 1, 0);
          var newCurrentScroll = (int)Math.Ceiling((double)dataIndex / width);
 
@@ -205,8 +236,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// to display at the start of the data. The 'effective data length' is the length
       /// of whatever actual data we have, plus the extra blank space on the first row.
       /// </summary>
-      private int CalculateEffectiveDataLength() {
-         int effectiveDataLength = dataLength;
+      private int CalculateEffectiveDataLength(int virtualDataLength = -1) {
+         if (virtualDataLength == -1) virtualDataLength = dataLength;
+         int effectiveDataLength = virtualDataLength;
 
          var columnOffset = DataIndex % width;
          if (columnOffset != 0) effectiveDataLength += width - columnOffset;
