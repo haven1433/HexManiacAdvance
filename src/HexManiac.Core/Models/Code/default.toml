@@ -523,3 +523,14 @@ Name = '''catchmap_shape'''
     '''widest''',
     '''tallest''',
 ]
+
+[[List]]
+Name = '''mapnamepopuptheme'''
+0 = [
+    '''wood''',
+    '''marble''',
+    '''stone''',
+    '''brick''',
+    '''underwater''',
+    '''stone2''',
+]
