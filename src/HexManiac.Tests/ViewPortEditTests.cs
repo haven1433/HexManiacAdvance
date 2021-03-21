@@ -517,5 +517,14 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.True(lastCanExecuteResult);
       }
+
+      [Fact]
+      public void AddConstant_Undo_NoConstant() {
+         Model.SetUnmappedConstant(ViewPort.CurrentChange, "bob", 3);
+
+         ViewPort.Undo.Execute();
+
+         Assert.False(Model.TryGetUnmappedConstant("bob", out var _));
+      }
    }
 }

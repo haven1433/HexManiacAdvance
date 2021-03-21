@@ -28,6 +28,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          addedOffsetPointers = new Dictionary<int, int>(),
          removedOffsetPointers = new Dictionary<int, int>();
 
+      private readonly Dictionary<string, int>
+         addedUnmappedConstants = new Dictionary<string, int>(),
+         removedUnmappedConstants = new Dictionary<string, int>();
+
       public event EventHandler OnNewDataChange;
       public bool HasDataChange { get; private set; }
       public bool HasAnyChange =>
@@ -39,7 +43,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          addedMatchedWords.Any() ||
          removedMatchedWords.Any() ||
          addedUnmappedPointers.Any() ||
-         removedUnmappedPointers.Any();
+         removedUnmappedPointers.Any() ||
+         addedUnmappedConstants.Any() ||
+         removedUnmappedConstants.Any();
 
       public int EarliestChange {
          get {
@@ -134,8 +140,15 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var kvp in removedMatchedWords) reverse.addedMatchedWords[kvp.Key] = kvp.Value;
          foreach (var kvp in addedOffsetPointers) reverse.removedOffsetPointers[kvp.Key] = kvp.Value;
          foreach (var kvp in removedOffsetPointers) reverse.addedOffsetPointers[kvp.Key] = kvp.Value;
+         foreach (var kvp in addedUnmappedConstants) reverse.removedUnmappedConstants[kvp.Key] = kvp.Value;
+         foreach (var kvp in removedUnmappedConstants) reverse.addedUnmappedConstants[kvp.Key] = kvp.Value;
 
-         model.MassUpdateFromDelta(addedRuns, removedRuns, addedNames, removedNames, addedUnmappedPointers, removedUnmappedPointers, addedMatchedWords, removedMatchedWords, addedOffsetPointers, removedOffsetPointers);
+         model.MassUpdateFromDelta(addedRuns, removedRuns,
+            addedNames, removedNames,
+            addedUnmappedPointers, removedUnmappedPointers,
+            addedMatchedWords, removedMatchedWords,
+            addedOffsetPointers, removedOffsetPointers,
+            addedUnmappedConstants, removedUnmappedConstants);
 
          return reverse;
       }
@@ -159,6 +172,15 @@ namespace HavenSoft.HexManiac.Core.Models {
       public void RemoveOffsetPointer(int start, int offset) {
          if (addedOffsetPointers.ContainsKey(start)) addedMatchedWords.Remove(start);
          else removedOffsetPointers[start] = offset;
+      }
+
+      public void AddUnmappedConstant(string name, int value) {
+         addedUnmappedConstants[name] = value;
+      }
+
+      public void RemoveUnmappedConstant(string name, int value) {
+         if (addedUnmappedConstants.ContainsKey(name)) addedUnmappedConstants.Remove(name);
+         else removedUnmappedConstants[name] = value;
       }
    }
 

@@ -384,7 +384,7 @@ namespace HavenSoft.HexManiac.Tests {
          var anchor2 = new StoredAnchor(0x20, "user1", "[number::bob]4");
          var anchor3 = new StoredAnchor(0x40, "user2", "[number::]bob");
          var metadataInfo = new StubMetadataInfo { VersionNumber = "0.3.0.0" };
-         var metadata = new StoredMetadata(new[] { anchor1, anchor2, anchor3 }, null, null, null, null, metadataInfo, default, default, default);
+         var metadata = new StoredMetadata(new[] { anchor1, anchor2, anchor3 }, null, null, null, null, null, metadataInfo, default, default, default);
 
          // setup the current reference, loaded from singletons
          var gameReferenceTables = new GameReferenceTables(new[] { new ReferenceTable("tom", 0, 0x60, "[number::]4") });
@@ -419,7 +419,7 @@ namespace HavenSoft.HexManiac.Tests {
          var anchor2 = new StoredAnchor(0x10, "bob", "[number::]names");
          var anchor3 = new StoredAnchor(0x20, "user1", "[number|b[]bob]4"); // should be 4 bytes long
          var metadataInfo = new StubMetadataInfo { VersionNumber = "0.3.0.0" };
-         var metadata = new StoredMetadata(new[] { anchor1, anchor2, anchor3 }, null, null, null, null, metadataInfo, default, default, default);
+         var metadata = new StoredMetadata(new[] { anchor1, anchor2, anchor3 }, null, null, null, null, null, metadataInfo, default, default, default);
 
          // setup the current reference, loaded from singletons
          var gameReferenceTables = new GameReferenceTables(new[] { new ReferenceTable("tom", 0, 0x60, "[number::]names") });
@@ -446,7 +446,7 @@ namespace HavenSoft.HexManiac.Tests {
                new StoredAnchor(0x00, "bob", "[data:]4"),
                new StoredAnchor(0x10, "sam", "[data:]bob+2")
             },
-            default, default, default, default,
+            default, default, default, default, default,
             new StubMetadataInfo { VersionNumber = "0.3.0.0" },
             default,
             default,
@@ -488,7 +488,7 @@ namespace HavenSoft.HexManiac.Tests {
                new StoredAnchor(0x00, "bob", "`lzm4x1x1|tileset1`"),
                new StoredAnchor(0x08, "tileset1", "`lzt4`")
             },
-            default, default, default, default,
+            default, default, default, default, default,
             new StubMetadataInfo { VersionNumber = "0.3.0.0" },
             default,
             default,
@@ -513,7 +513,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void Model_OffsetPointerMetadata_ContainsOffsetPointers() {
          var storedOffsetPointer = new StoredOffsetPointer(0x100, Pointer.NULL);
          var singletons = BaseViewModelTestClass.Singletons;
-         var metadata = new StoredMetadata(default, default, default, new[] { storedOffsetPointer }, default, singletons.MetadataInfo, default, default, default);
+         var metadata = new StoredMetadata(default, default, default, new[] { storedOffsetPointer }, default, default, singletons.MetadataInfo, default, default, default);
 
          var model = new PokemonModel(new byte[0x200], metadata, singletons);
 
@@ -539,6 +539,7 @@ namespace HavenSoft.HexManiac.Tests {
             metadata.MatchedWords,
             metadata.OffsetPointers,
             metadata.Lists,
+            metadata.UnmappedConstants,
             Singletons.MetadataInfo,
             metadata.FreeSpaceSearch,
             0x10,
@@ -550,6 +551,26 @@ namespace HavenSoft.HexManiac.Tests {
 
          var table = Model.GetTable("table");
          Assert.InRange(table.Start, 0x100, 0x180);
+      }
+
+      [Fact]
+      public void StaticVariable_Serialize_Serialized() {
+         ViewPort.Edit("@somevariable=0x12345678 ");
+
+         var metadata = Model.ExportMetadata(Singletons.MetadataInfo);
+
+         Assert.Single(metadata.UnmappedConstants);
+         Assert.Equal("somevariable", metadata.UnmappedConstants[0].Name);
+         Assert.Equal(0x12345678, metadata.UnmappedConstants[0].Value);
+      }
+
+      [Fact]
+      public void UnmappedConstantInMetadata_Deserialize_UnmappedConstantInModel() {
+         Model.Load(new byte[0x200], new StoredMetadata(default, default, default, default, default, new List<StoredUnmappedConstant> { new StoredUnmappedConstant("somevar", 0x12345678) }, default, default, default, default));
+
+         Model.TryGetUnmappedConstant("somevar", out var value);
+
+         Assert.Equal(0x12345678, value);
       }
    }
 }

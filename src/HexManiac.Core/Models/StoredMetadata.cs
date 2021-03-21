@@ -12,6 +12,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public IReadOnlyList<StoredMatchedWord> MatchedWords { get; }
       public IReadOnlyList<StoredOffsetPointer> OffsetPointers { get; }
       public IReadOnlyList<StoredList> Lists { get; }
+      public IReadOnlyList<StoredUnmappedConstant> UnmappedConstants { get; }
       public string Version { get; }
       public int NextExportID { get; }
       public int FreeSpaceSearch { get; } = -1;
@@ -25,6 +26,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          IReadOnlyList<StoredMatchedWord> matchedWords,
          IReadOnlyList<StoredOffsetPointer> offsetPointers,
          IReadOnlyList<StoredList> lists,
+         IReadOnlyList<StoredUnmappedConstant> unmappedConstants,
          IMetadataInfo generalInfo,
          int freeSpaceSearch,
          int freeSpaceBuffer,
@@ -35,6 +37,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          MatchedWords = matchedWords ?? new List<StoredMatchedWord>();
          OffsetPointers = offsetPointers ?? new List<StoredOffsetPointer>();
          Lists = lists ?? new List<StoredList>();
+         UnmappedConstants = unmappedConstants ?? new List<StoredUnmappedConstant>();
          Version = generalInfo?.VersionNumber;
          FreeSpaceSearch = freeSpaceSearch;
          FreeSpaceBuffer = freeSpaceBuffer;
@@ -47,12 +50,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          var matchedWords = new List<StoredMatchedWord>();
          var offsetPointers = new List<StoredOffsetPointer>();
          var lists = new List<StoredList>();
+         var unmappedConstants = new List<StoredUnmappedConstant>();
 
          foreach (var line in lines) {
             var cleanLine = line.Split('#').First().Trim();
             if (cleanLine == string.Empty) continue;
             if (cleanLine.StartsWith("[")) {
-               CloseCurrentItem(anchors, pointers, matchedWords, offsetPointers, lists);
+               CloseCurrentItem(anchors, pointers, matchedWords, offsetPointers, lists, unmappedConstants);
                currentItem = cleanLine;
                continue;
             }
@@ -91,6 +95,14 @@ namespace HavenSoft.HexManiac.Core.Models {
 
             if (cleanLine.StartsWith("Name = '''")) {
                currentItemName = cleanLine.Split("'''")[1];
+            }
+
+            if (cleanLine.StartsWith("Value = 0x")) {
+               var start = cleanLine.IndexOf("x") + 1;
+               currentItemValue = int.Parse(cleanLine.Substring(start), NumberStyles.HexNumber);
+            } else if (cleanLine.StartsWith("Value = ")) {
+               var start = cleanLine.IndexOf(" = ") + 3;
+               currentItemValue = int.Parse(cleanLine.Substring(start));
             }
 
             if (cleanLine.StartsWith("Format = '''")) {
@@ -137,12 +149,13 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
          }
 
-         CloseCurrentItem(anchors, pointers, matchedWords, offsetPointers, lists);
+         CloseCurrentItem(anchors, pointers, matchedWords, offsetPointers, lists, unmappedConstants);
 
          NamedAnchors = anchors;
          UnmappedPointers = pointers;
          MatchedWords = matchedWords;
          OffsetPointers = offsetPointers;
+         UnmappedConstants = unmappedConstants;
          Lists = lists;
       }
 
@@ -228,6 +241,15 @@ namespace HavenSoft.HexManiac.Core.Models {
             list.AppendContents(lines);
          }
 
+         lines.Add("#################################");
+
+         foreach (var constant in UnmappedConstants) {
+            lines.Add("[[UnmappedConstant]]");
+            lines.Add($"Name = '''{constant.Name}'''");
+            lines.Add($"Value = 0x{constant.Value:X8}");
+            lines.Add(string.Empty);
+         }
+
          return lines.ToArray();
       }
 
@@ -236,11 +258,12 @@ namespace HavenSoft.HexManiac.Core.Models {
       bool continueCurrentItemIndex;
       int currentItemLength = -1;
       int currentItemAddress = -1;
+      int currentItemValue = -1;
       int currentItemOffset = int.MinValue;
       int currentItemMultOffset = 1;
       string currentItemNote = null;
 
-      private void CloseCurrentItem(IList<StoredAnchor> anchors, IList<StoredUnmappedPointer> pointers, IList<StoredMatchedWord> matchedWords, IList<StoredOffsetPointer> offsetPointers, IList<StoredList> lists) {
+      private void CloseCurrentItem(IList<StoredAnchor> anchors, IList<StoredUnmappedPointer> pointers, IList<StoredMatchedWord> matchedWords, IList<StoredOffsetPointer> offsetPointers, IList<StoredList> lists, IList<StoredUnmappedConstant> unmappedConstants) {
          if (currentItem == "[[UnmappedPointers]]") {
             if (currentItemName == null) throw new ArgumentNullException("The Metadata file has an UnmappedPointer that didn't specify a name!");
             if (currentItemAddress == -1) throw new ArgumentOutOfRangeException("The Metadata file has an UnmappedPointer that didn't specify an Address!");
@@ -273,10 +296,17 @@ namespace HavenSoft.HexManiac.Core.Models {
             lists.Add(new StoredList(currentItemName, currentItemChildren));
          }
 
+         if (currentItem == "[[UnmappedConstant]]") {
+            if (currentItemName == null) throw new ArgumentNullException("The Metadata file has an unmapped constant that didn't specify a name!");
+            if (currentItemValue == -1) throw new ArgumentNullException("The Metadata file has an unmapped constant that didn't specify a value!");
+            unmappedConstants.Add(new StoredUnmappedConstant(currentItemName, currentItemValue));
+         }
+
          currentItem = null;
          currentItemName = null;
          currentItemFormat = null;
          currentItemAddress = -1;
+         currentItemValue = -1;
          currentItemOffset = int.MinValue;
          currentItemMultOffset = 1;
          currentItemLength = -1;
@@ -294,6 +324,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          Address = address;
          Name = name;
       }
+   }
+
+   public class StoredUnmappedConstant {
+      public string Name { get; }
+      public int Value { get; }
+
+      public StoredUnmappedConstant(string name, int value) => (Name, Value) = (name, value);
    }
 
    public class StoredAnchor {

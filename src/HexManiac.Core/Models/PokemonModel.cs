@@ -30,6 +30,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       private readonly Dictionary<string, SortedSpan<int>> unmappedNameToSources = new Dictionary<string, SortedSpan<int>>();
       private readonly Dictionary<int, string> sourceToUnmappedName = new Dictionary<int, string>();
 
+      private readonly Dictionary<string, int> unmappedConstants = new Dictionary<string, int>();
+
       // for a name of a table (which may not actually be in the file),
       // get the list of addresses in the file that want to store a number that matches the length of the table.
       private readonly Dictionary<string, ISet<int>> matchedWords = new Dictionary<string, ISet<int>>();
@@ -155,6 +157,9 @@ namespace HavenSoft.HexManiac.Core.Models {
                ClearFormat(noChange, newRun.Start, newRun.Length);
                pointerOffsets[offsetPointer.Address] = offsetPointer.Offset;
                ObserveRunWritten(noChange, newRun);
+            }
+            foreach (var unmappedConstant in metadata.UnmappedConstants) {
+               unmappedConstants.Add(unmappedConstant.Name, unmappedConstant.Value);
             }
 
             if (metadata.FreeSpaceSearch >= 0) FreeSpaceStart = Math.Min(RawData.Length - 1, metadata.FreeSpaceSearch);
@@ -623,6 +628,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (!unmappedNameToSources.TryGetValue(anchor, out var list)) return SortedSpan<int>.None;
          return list;
       }
+
+      public override void SetUnmappedConstant(ModelDelta changeToken, string name, int value) {
+         unmappedConstants[name] = value;
+         changeToken.AddUnmappedConstant(name, value);
+      }
+
+      public override bool TryGetUnmappedConstant(string name, out int value) => unmappedConstants.TryGetValue(name, out value);
 
       public override int GetAddressFromAnchor(ModelDelta changeToken, int requestSource, string anchor) {
 
@@ -1176,7 +1188,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          IReadOnlyDictionary<int, string> matchedWordsToRemove,
          IReadOnlyDictionary<int, string> matchedWordsToAdd,
          IReadOnlyDictionary<int, int> offsetPointersToRemove,
-         IReadOnlyDictionary<int, int> offsetPointersToAdd
+         IReadOnlyDictionary<int, int> offsetPointersToAdd,
+         IReadOnlyDictionary<string, int> unmappedConstantsToRemove,
+         IReadOnlyDictionary<string, int> unmappedConstantsToAdd
       ) {
          foreach (var kvp in namesToRemove) {
             var (address, name) = (kvp.Key, kvp.Value);
@@ -1221,6 +1235,12 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          foreach (var kvp in offsetPointersToAdd) pointerOffsets[kvp.Key] = kvp.Value;
+
+         foreach (var kvp in unmappedConstantsToRemove) {
+            if (unmappedConstants.ContainsKey(kvp.Key)) unmappedConstants.Remove(kvp.Key);
+         }
+
+         foreach (var kvp in unmappedConstantsToAdd) unmappedConstants[kvp.Key] = kvp.Value;
 
          foreach (var kvp in runsToRemove) {
             var index = BinarySearch(kvp.Key);
@@ -1829,7 +1849,14 @@ namespace HavenSoft.HexManiac.Core.Models {
             lists.Add(new StoredList(name, members.ToList()));
          }
 
-         return new StoredMetadata(anchors, unmappedPointers, matchedWords, offsetPointers, lists, metadataInfo, FreeSpaceStart, FreeSpaceBuffer, NextExportID);
+         var unmappedConstants = new List<StoredUnmappedConstant>();
+         foreach(var kvp in this.unmappedConstants) {
+            var name = kvp.Key;
+            var value = kvp.Value;
+            unmappedConstants.Add(new StoredUnmappedConstant(name, value));
+         }
+
+         return new StoredMetadata(anchors, unmappedPointers, matchedWords, offsetPointers, lists, unmappedConstants, metadataInfo, FreeSpaceStart, FreeSpaceBuffer, NextExportID);
       }
 
       /// <summary>

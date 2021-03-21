@@ -2165,14 +2165,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return;
          }
          if (!int.TryParse(parts[1], out var value)) {
-            RaiseError("Could not parse constant assignment expression.");
-            return;
+            if (!parts[1].StartsWith("0x") || !int.TryParse(parts[1].Substring(2), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out value)) {
+               RaiseError("Could not parse constant assignment expression.");
+               return;
+            }
          }
 
          var locations = Model.GetMatchedWords(parts[0]);
          if (locations == null || locations.Count == 0) {
-            RaiseError($"{parts[0]} is not a named constant!");
-            return;
+            Model.SetUnmappedConstant(CurrentChange, parts[0], value);
          }
 
          foreach (var address in locations) {

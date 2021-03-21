@@ -5,6 +5,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Xunit;
@@ -160,6 +161,14 @@ end
       [Fact]
       public void LoadPointerCommand_StartsWithWhitespace_StillGetHelp() {
          Assert.NotEmpty(ViewPort.Tools.CodeTool.ScriptParser.GetHelp("  loadpointer"));
+      }
+
+      [Fact]
+      public void StaticVariable_UseInThumb_ValueIsChanged() {
+         ViewPort.Edit("@somevariable=0x12345678 ");
+         var codeText = ".word somevariable";
+         var codeBytes = ViewPort.Tools.CodeTool.Parser.Compile(Model, 0, codeText);
+         Assert.Equal(0x12345678, codeBytes.ReadMultiByteValue(0, 4));
       }
 
       private string Script(params string[] lines) => lines.CombineLines();

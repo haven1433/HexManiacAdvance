@@ -21,6 +21,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          if (labels.TryGetValue(label, out int result)) return result + offset;
          return model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, label) + offset;
       }
+      public bool TryResolveValue(string title, out int value) {
+         return model.TryGetUnmappedConstant(title, out value);
+      }
    }
 
    public class ThumbParser {
@@ -782,6 +785,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             result = labels.ResolveLabel(line);
             if (result == Pointer.NULL && !int.TryParse(line, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out result)) return false;
             result -= Pointer.NULL;
+         } else if (labels.TryResolveValue(line, out result)) {
+            // Parse successful! Nothing else to do.
          } else {
             if (line.StartsWith("0x")) line = line.Substring(2);
             if (!int.TryParse(line, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out result)) return false;

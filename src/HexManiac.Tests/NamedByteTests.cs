@@ -88,7 +88,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void OldMetadata_UpgradeVersion_LoadConstants() {
          var anchors = new[] { new StoredAnchor(0, "bob", string.Empty) };
          var info = new StubMetadataInfo { VersionNumber = "0.3.0.0" };
-         var metadata = new StoredMetadata(anchors, default, default, default, default, info, default, default, default);
+         var metadata = new StoredMetadata(anchors, default, default, default, default, default, info, default, default, default);
          var gameReferenceTables = new GameReferenceTables(new ReferenceTable[0]);
          var singletons = new Singletons(
             new StubMetadataInfo { VersionNumber = "0.4.0.0" },
