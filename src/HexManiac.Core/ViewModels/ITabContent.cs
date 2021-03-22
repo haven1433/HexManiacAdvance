@@ -23,6 +23,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       ICommand Back { get; }
       ICommand Forward { get; }
       ICommand Close { get; }  // parameter: IFileSystem
+      ICommand Diff { get; }   // parameter: the tab to diff with. If null, then diff with self since last save
 
       event EventHandler<string> OnError;
       event EventHandler<string> OnMessage;

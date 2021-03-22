@@ -43,6 +43,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand Paste => StubCommand<IFileSystem>(ref pasteCommand, ExecutePaste, fs => fs.CopyImage.width != 0);
       public ICommand SelectAll => StubCommand(ref selectAllCommand, ExecuteSelectAll, () => true);
       public ICommand DeepCopy => null;
+      public ICommand Diff => null;
       public ICommand Clear => null;
       public ICommand Goto => null;
       public ICommand ResetAlignment => null;

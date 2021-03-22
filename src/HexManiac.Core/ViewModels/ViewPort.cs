@@ -519,6 +519,41 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #endregion
 
+      #region Diff
+
+      private StubCommand diff;
+      public ICommand Diff => StubCommand<ITabContent>(ref diff, ExecuteDiff);
+      private void ExecuteDiff(ITabContent otherTab) {
+         var resultsTab = new SearchResultsViewPort("Changes");
+         int firstResultStart = 0;
+         int firstResultLength = 0;
+         if (otherTab == null) {
+            for (int i = 0; i < Model.Count; i++) {
+               if (!Model.HasChanged(i)) continue;
+               var length = 1;
+               for (int j = i + 1; j < Model.Count; j++) {
+                  if (Model.HasChanged(j)) length++;
+                  else break;
+               }
+               resultsTab.Add(CreateChildView(i, i + length - 1), i, i + length - 1);
+               if (firstResultLength == 0) (firstResultStart, firstResultLength) = (i, length);
+               i += length;
+            }
+            var changeCount = resultsTab.ResultCount;
+            RaiseMessage($"{changeCount} changes found.");
+            if (changeCount == 1) {
+               Goto.Execute(firstResultStart);
+               SelectionEnd = ConvertAddressToViewPoint(firstResultStart + firstResultLength - 1);
+            } else if (changeCount > 1) {
+               RequestTabChange?.Invoke(this, resultsTab);
+            }
+         } else {
+            throw new NotImplementedException();
+         }
+      }
+
+      #endregion
+
       public int FreeSpaceStart { get => Model.FreeSpaceStart; set {
             if (Model.FreeSpaceStart != value) {
                Model.FreeSpaceStart = value;

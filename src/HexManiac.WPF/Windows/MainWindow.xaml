@@ -29,6 +29,7 @@
       <KeyBinding Key="C" Modifiers="Ctrl+Shift" Command="{Binding DeepCopy}" />
       <KeyBinding Key="V" Modifiers="Ctrl" Command="{Binding Paste}" />
       <KeyBinding Key="B" Modifiers="Ctrl" Command="{Binding Paste}" />
+      <KeyBinding Key="D" Modifiers="Ctrl" Command="{Binding DiffSinceLastSave}" />
       <KeyBinding Key="Delete" Command="{Binding Delete}" />
       <KeyBinding Key="F" Modifiers="Ctrl" Command="{Binding ShowFind}">
          <KeyBinding.CommandParameter>
@@ -140,6 +141,8 @@
                   </MenuItem>
                </MenuItem>
                <MenuItem Header="_View">
+                  <MenuItem Header="_Diff Since Last Save" Command="{Binding DiffSinceLastSave}" InputGestureText="Ctrl+D"/>
+                  <Separator/>
                   <MenuItem Header="Show _Matrix Grid" IsCheckable="True" IsChecked="{Binding ShowMatrix}" InputGestureText="Ctrl+M"/>
                   <MenuItem Header="_Animate when Scrolling" IsCheckable="True" IsChecked="{Binding AnimateScroll}"/>
                   <MenuItem Header="Use Table Entry Headers" IsCheckable="True" IsChecked="{Binding UseTableEntryHeaders}">

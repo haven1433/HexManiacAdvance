@@ -55,6 +55,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          showFind = new StubCommand(),
          showHexConverter = new StubCommand(),
          hideSearchControls = new StubCommand(),
+         diffSinceLastSave = new StubCommand(),
          resetZoom = new StubCommand(),
          resetAlignment = new StubCommand(),
          resetTheme = new StubCommand(),
@@ -88,6 +89,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand Paste => paste;
       public ICommand Delete => delete;
       public ICommand SelectAll => selectAll;
+      public ICommand DiffSinceLastSave => diffSinceLastSave;
       public ICommand Back => back;
       public ICommand Forward => forward;
       public ICommand Find => find;                         // parameter: target string to search
@@ -399,6 +401,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          copy = CreateWrapperForSelected(tab => tab.Copy);
          deepCopy = CreateWrapperForSelected(tab => tab.DeepCopy);
+         diffSinceLastSave = CreateWrapperForSelected(tab => tab.Diff);
          delete = CreateWrapperForSelected(tab => tab.Clear);
          selectAll = CreateWrapperForSelected(tab => tab.SelectAll);
          save = CreateWrapperForSelected(tab => tab.Save);
@@ -417,6 +420,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          forwardExecuteChangeNotifications = new Dictionary<Func<ITabContent, ICommand>, EventHandler> {
             { tab => tab.Copy, (sender, e) => copy.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.DeepCopy, (sender, e) => deepCopy.CanExecuteChanged.Invoke(this, e) },
+            { tab => tab.Diff, (sender, e) => diffSinceLastSave.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.Clear, (sender, e) => delete.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.SelectAll, (sender, e) => selectAll.CanExecuteChanged.Invoke(this,e) },
             { tab => tab.Save, (sender, e) => save.CanExecuteChanged.Invoke(this, e) },

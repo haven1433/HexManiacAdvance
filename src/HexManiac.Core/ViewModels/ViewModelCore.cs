@@ -120,7 +120,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       protected StubCommand StubCommand<T>(ref StubCommand field, Action<T> execute, Func<T, bool> canExecute = null) {
          if (field != null) return field;
          field = new StubCommand {
-            Execute = arg => execute((T)arg),
+            Execute = arg => execute(arg is T t ? t : default(T)),
             CanExecute = arg => canExecute?.Invoke((T)arg) ?? true,
          };
          return field;

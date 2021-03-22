@@ -120,6 +120,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ICommand DeepCopy => this[0].DeepCopy;
 
+      public ICommand Diff => this[0].Diff;
+
       public ICommand SelectAll => this[0].SelectAll;
 
       public ICommand Goto => this[0].Goto;

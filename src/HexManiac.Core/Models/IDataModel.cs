@@ -12,6 +12,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       byte[] RawData { get; }
       ModelCacheScope CurrentCacheScope { get; }
       bool HasChanged(int index);
+      int ChangeCount { get; }
       void ResetChanges();
 
       /// <summary>
@@ -174,6 +175,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public bool HasChanged(int index) => changes.Contains(index);
+      public int ChangeCount => changes.Count;
       public void ResetChanges() => changes.Clear();
 
       byte IReadOnlyList<byte>.this[int index] => RawData[index];
