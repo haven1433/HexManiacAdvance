@@ -428,7 +428,7 @@
                                                 </Style.Triggers>
                                              </Style>
                                           </Menu.Style>
-                                          <MenuItem Header="Export" Margin="0,1,0,0">
+                                          <MenuItem Header="Export" Margin="0,1,0,0" Background="{DynamicResource Backlight}">
                                              <MenuItem Header="Single Page" Command="{Binding ExportPair}" CommandParameter="{DynamicResource FileSystem}"/>
                                              <MenuItem Header="All Pages" Command="{Binding ExportMany}" CommandParameter="{DynamicResource FileSystem}"/>
                                           </MenuItem>
