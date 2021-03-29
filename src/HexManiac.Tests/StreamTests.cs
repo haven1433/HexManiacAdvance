@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Linq;
@@ -372,6 +373,22 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0, Model[1]);
          Assert.Equal(0, Model[2]);
          Assert.Equal(0, Model[3]);
+      }
+
+      [Fact]
+      public void TableWithPointerToStream_StreamContainsOffsetEnumSegment_ChildStreamsAdded() {
+         CreateTextTable("names", 0x100, "adam", "bob", "carl");
+         Model[0] = 7;       // 0x0:  carl + 5
+         Model[0x13] = 0x08; // 0x10: <000>
+
+         ViewPort.Edit("@10 ^table[sub<[element:names+5]1>]1 ");
+
+         var childTable = (TableStreamRun)Model.GetNextRun(0);
+         var enumSegment = (ArrayRunEnumSegment)childTable.ElementContent[0];
+         Assert.Equal(5, enumSegment.ValueOffset);
+
+         var cell = (Pointer)Model.GetNextRun(0x11).CreateDataFormat(Model, 0x11);
+         Assert.False(cell.HasError);
       }
    }
 }
