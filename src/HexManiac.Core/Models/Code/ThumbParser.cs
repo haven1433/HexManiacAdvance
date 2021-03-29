@@ -478,7 +478,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             if (address == Pointer.NULL) address = int.Parse(content, NumberStyles.HexNumber);
             address -= pcAddress - (pcAddress % mult) + add;
             address /= mult;
-            address = (address & ((1 << part.Length) - 1)); // drop the high bits, keep only the data bits. This makes it lose the sign.
+            address &= ((1 << part.Length) - 1); // drop the high bits, keep only the data bits. This makes it lose the sign.
             // concat the new numeric
             address += bits << part.Length;   // the new numeric is the higher bits
             // shift to get arithmetic sign bits
@@ -862,7 +862,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             word = parts[0];
          }
 
-         int wordValue = 0;
+         int wordValue;
          if (word.StartsWith("<") && word.EndsWith(">")) {
             word = word.Substring(1, word.Length - 1);
             int.TryParse(word, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out wordValue);
