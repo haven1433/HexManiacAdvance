@@ -630,11 +630,11 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override void SetUnmappedConstant(ModelDelta changeToken, string name, int value) {
-         unmappedConstants[name] = value;
-         changeToken.AddUnmappedConstant(name, value);
+         unmappedConstants[name.ToLower()] = value;
+         changeToken.AddUnmappedConstant(name.ToLower(), value);
       }
 
-      public override bool TryGetUnmappedConstant(string name, out int value) => unmappedConstants.TryGetValue(name, out value);
+      public override bool TryGetUnmappedConstant(string name, out int value) => unmappedConstants.TryGetValue(name.ToLower(), out value);
 
       public override int GetAddressFromAnchor(ModelDelta changeToken, int requestSource, string anchor) {
 
