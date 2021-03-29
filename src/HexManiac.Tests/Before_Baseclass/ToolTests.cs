@@ -542,6 +542,31 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
+      public void ThumbCode_InlinePointerLoad_Compiles() {
+         var model = new PokemonModel(new byte[0x200]);
+         model.ObserveAnchorWritten(new ModelDelta(), "destination", new NoInfoRun(0x20));
+         var result = parser.Compile(model, 0x100,
+            "    ldr  r0, =<destination>",
+            "    mov  r0, #0",
+            "    b    <end>",
+            // implicit nop for alignment
+            // implicit .word <destination>
+            "end:",
+            "    pop pc,  {}");
+
+         var expected = new byte[] {
+            0x01, 0b01001_000,
+            0x00, 0b00100_000,
+            0x02, 0b11100_000,
+            0x00, 0b00000_000, // inserted nop to align for .word value
+            0x20, 0, 0, 8,     // inserted word
+            0x00, 0b1011110_1,
+         };
+
+         Assert.All(expected.Length.Range(), i => Assert.Equal(expected[i], result[i]));
+      }
+
+      [Fact]
       public void ThumbCode_InlineWithOffset_Compiles() {
          var model = new PokemonModel(new byte[0x200]);
          var result = parser.Compile(model, 0x100,
@@ -662,7 +687,6 @@ namespace HavenSoft.HexManiac.Tests {
          var element = ViewPort.Tools.TableTool.Children.FirstOfType<IStreamArrayElementViewModel>();
          Assert.False(element.CanRepointAll);
       }
-
 
       [Fact]
       public void PointerTable_RepointAll_NoPointersShareTheSameValue() {

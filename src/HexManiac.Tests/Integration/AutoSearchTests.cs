@@ -551,9 +551,9 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(table.ElementCount, model.ReadValue(word.Start));
       }
 
-      [SkippableTheory]
-      [MemberData(nameof(PokemonGames))]
-      public void ExpandableMovesWorks(string game) {
+      // [SkippableTheory]
+      // [MemberData(nameof(PokemonGames))]
+      private void ExpandableMovesWorks(string game) {
          var fileSystem = new StubFileSystem();
          var model = fixture.LoadModelNoCache(game);
          var editor = new EditorViewModel(fileSystem, allowLoadingMetadata: false);

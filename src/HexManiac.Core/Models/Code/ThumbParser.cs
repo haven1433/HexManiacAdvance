@@ -191,7 +191,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                break;
             }
             if (!foundMatch) {
-               if (DeferredLoadRegisterToken.TryCompile(result.Count, line, inlineWords)) {
+               if (DeferredLoadRegisterToken.TryCompile(result.Count, line, labelLibrary, inlineWords)) {
                   result.AddRange(nop); // we'll come back to this once we know the offset
                } else {
                   result.AddRange(nop);
@@ -849,7 +849,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public int Register { get; }
       public int WordToLoad { get; }
 
-      public DeferredLoadRegisterToken(int address, int register, string word) {
+      public DeferredLoadRegisterToken(int address, int register, string word, LabelLibrary labels) {
          if (word.StartsWith("=")) word = word.Substring(1).Trim();
          if (word.StartsWith("(")) word = word.Substring(1).Trim();
          if (word.StartsWith("#")) word = word.Substring(1).Trim();
@@ -864,8 +864,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          int wordValue;
          if (word.StartsWith("<") && word.EndsWith(">")) {
-            word = word.Substring(1, word.Length - 1);
-            int.TryParse(word, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out wordValue);
+            word = word.Substring(1, word.Length - 2);
+            if (!(int.TryParse(word, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out wordValue))) {
+               wordValue = labels.ResolveLabel(word);
+            }
+            wordValue += 0x08000000;
          } else if (word.StartsWith("0x")) {
             int.TryParse(word.Substring(2), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out wordValue);
          } else {
@@ -900,7 +903,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return line.StartsWith("b ") || line.StartsWith("bx ") || (line.StartsWith("pop ") && line.Contains(" pc"));
       }
 
-      public static bool TryCompile(int address, string line, Queue<DeferredLoadRegisterToken> inlineWords) {
+      public static bool TryCompile(int address, string line, LabelLibrary labels, Queue<DeferredLoadRegisterToken> inlineWords) {
          if (!line.StartsWith("ldr ")) return false;
          line = line.Substring(4);
          var parts = line.Split("=");
@@ -910,7 +913,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          if (registerText[0] != 'r') return false;
          int register = registerText[1] - '0';
          if (register < 0 || register > 7) return false;
-         inlineWords.Enqueue(new DeferredLoadRegisterToken(address, register, parts[1].Trim()));
+         inlineWords.Enqueue(new DeferredLoadRegisterToken(address, register, parts[1].Trim(), labels));
          return true;
       }
    }
