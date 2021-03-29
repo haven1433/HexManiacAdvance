@@ -567,6 +567,31 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
+      public void ThumbCode_MultipleInlineLoads_OnlyOneValueAdded() {
+         var model = new PokemonModel(new byte[0x200]);
+         model.ObserveAnchorWritten(new ModelDelta(), "destination", new NoInfoRun(0x20));
+         var result = parser.Compile(model, 0x100,
+            "    ldr  r0, =256",
+            "    ldr  r0, =256",
+            "    b    <end>",
+            // implict nop for alignment
+            // implicit .word 256 (only once!)
+            "end:",
+            "    pop pc,  {}");
+
+         var expected = new byte[] {
+            0x01, 0b01001_000, // payload is 4 instructions away: ceil(4/2)-1 = 0x01
+            0x01, 0b01001_000, // payload is 3 instructions away: ceil(3/2)-1 = 0x01
+            0x02, 0b11100_000,
+            0, 0,              // inserted nop to align for .word value
+            0, 1, 0, 0,        // word inserted only once
+            0x00, 0b1011110_1,
+         };
+
+         Assert.All(expected.Length.Range(), i => Assert.Equal(expected[i], result[i]));
+      }
+
+      [Fact]
       public void ThumbCode_InlineWithOffset_Compiles() {
          var model = new PokemonModel(new byte[0x200]);
          var result = parser.Compile(model, 0x100,

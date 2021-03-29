@@ -158,7 +158,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   if (labelToFix != null) labels[labelToFix] = position - 4;
                }
                if (line.StartsWith("ldr ") && line.Contains("=")) {
-                  inlineWords.Enqueue(null); // we only care about the count during this step
+                  // We only care about the count during this step. But doing a full compile will keep us from double-counting duplicate words.
+                  DeferredLoadRegisterToken.TryCompile(position - 2, line, new LabelLibrary(model, labels), inlineWords);
                }
                if (DeferredLoadRegisterToken.IsEndOfSection(line) && inlineWords.Count > 0) {
                   if (position % 4 != 0) position += 2;
@@ -845,7 +846,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
    /// Later, after an unconditional branch statement (b, bx, or pop pc), the new address is used.
    /// </summary>
    public class DeferredLoadRegisterToken {
-      public int InstructionAddress { get; }
+      private IList<int> InstructionAddresses { get; set; }
       public int Register { get; }
       public int WordToLoad { get; }
 
@@ -875,28 +876,30 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             int.TryParse(word, out wordValue);
          }
 
-         InstructionAddress = address;
+         InstructionAddresses = new List<int> { address };
          Register = register;
          WordToLoad = wordValue + more;
       }
 
       public void Write(IList<byte> data, int wordAddress) {
          //build instruction
-         var instructionWord = InstructionAddress;
-         if (instructionWord % 4 != 0) instructionWord -= 2;
-         var offset = (wordAddress - instructionWord - 4) / 4;
-         var instruction = 0b01001;
-         instruction <<= 3;
-         instruction |= Register;
-         instruction <<= 8;
-         instruction |= offset;
+         foreach (var instructionAddress in InstructionAddresses) {
+            var instructionWord = instructionAddress;
+            if (instructionWord % 4 != 0) instructionWord -= 2;
+            var offset = (wordAddress - instructionWord - 4) / 4;
+            var instruction = 0b01001;
+            instruction <<= 3;
+            instruction |= Register;
+            instruction <<= 8;
+            instruction |= offset;
 
-         // insert instruction
-         data[InstructionAddress] = (byte)instruction;
-         data[InstructionAddress + 1] = (byte)(instruction >> 8);
+            // insert instruction
+            data[instructionAddress] = (byte)instruction;
+            data[instructionAddress + 1] = (byte)(instruction >> 8);
 
-         // insert word
-         for (int i = 0; i < 4; i++) data[wordAddress + i] = (byte)(WordToLoad >> 8 * i);
+            // insert word
+            for (int i = 0; i < 4; i++) data[wordAddress + i] = (byte)(WordToLoad >> 8 * i);
+         }
       }
 
       public static bool IsEndOfSection(string line) {
@@ -913,7 +916,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          if (registerText[0] != 'r') return false;
          int register = registerText[1] - '0';
          if (register < 0 || register > 7) return false;
-         inlineWords.Enqueue(new DeferredLoadRegisterToken(address, register, parts[1].Trim(), labels));
+         var newToken = new DeferredLoadRegisterToken(address, register, parts[1].Trim(), labels);
+         var existingToken = inlineWords.FirstOrDefault(token => token.WordToLoad == newToken.WordToLoad);
+         if (existingToken != null) {
+            existingToken.InstructionAddresses.Add(newToken.InstructionAddresses[0]);
+         } else {
+            inlineWords.Enqueue(newToken);
+         }
          return true;
       }
    }
