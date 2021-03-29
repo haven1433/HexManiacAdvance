@@ -19,6 +19,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          Fill(pcs, "ŒÙÚÛÑßàá", 0x10);
          Fill(pcs, "çèéêëì", 0x19);
          Fill(pcs, "îïòóôœùúûñºª", 0x20);
+         pcs[0x2C] = "\\e";
          Fill(pcs, "& \\+", 0x2D);
          Fill(pcs, "=;", 0x35);
 
@@ -34,6 +35,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          Fill(pcs, "\\au \\ad \\al \\ar", 0x79); // arrows
 
+         pcs[0x84] = "\\d";
          Fill(pcs, "\\< \\>", 0x85);
 
          Fill(pcs, "0123456789", 0xA1);
