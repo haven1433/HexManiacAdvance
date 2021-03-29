@@ -1,8 +1,11 @@
-﻿using HavenSoft.HexManiac.Core.Models.Runs;
+﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Windows.Input;
 using static HavenSoft.HexManiac.Core.ICommandExtensions;
 
@@ -210,7 +213,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(EndStream endStream, byte data) => Results.AddRange(GetFormattedChildren());
 
-      public void Visit(UncompressedPaletteColor color, byte data) => Results.AddRange(GetFormattedChildren());
+      public void Visit(UncompressedPaletteColor color, byte data) {
+         var selectionStart = ViewPort.ConvertViewPointToAddress(ViewPort.SelectionStart);
+         if (ViewPort.Model.GetNextRun(selectionStart) is IPaletteRun palRun) {
+            AddPalPaletteExportOption(palRun);
+         }
+         Results.AddRange(GetFormattedChildren());
+      }
+
+      private void AddPalPaletteExportOption(IPaletteRun palRun) {
+         Results.Add(new ContextItem("Copy Palette as .pal", arg => {
+            var fileSystem = (IFileSystem)arg;
+            var colors = new List<short>();
+            colors.AddRange(palRun.Pages.Range().SelectMany(i => palRun.GetPalette(ViewPort.Model, i)));
+            var copyText = new StringBuilder();
+            copyText.AppendLine("JASC-PAL");
+            copyText.AppendLine("0100");
+            copyText.AppendLine(colors.Count.ToString());
+            foreach (var color in colors) {
+               var (r, g, b) = UncompressedPaletteColor.ToRGB(color);
+               copyText.AppendLine($"{r << 3} {g << 3} {b << 3}");
+            }
+            fileSystem.CopyText = copyText.ToString();
+         }));
+      }
 
       public void Visit(DataFormats.Tuple tuple, byte data) => Results.AddRange(GetFormattedChildren());
 
@@ -235,6 +261,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(LzUncompressed lz, byte data) => VisitLzFormat();
 
-      private void VisitLzFormat() => Results.AddRange(GetFormattedChildren());
+      private void VisitLzFormat() {
+         var selectionStart = ViewPort.ConvertViewPointToAddress(ViewPort.SelectionStart);
+         if (ViewPort.Model.GetNextRun(selectionStart) is IPaletteRun palRun) {
+            AddPalPaletteExportOption(palRun);
+         }
+         Results.AddRange(GetFormattedChildren());
+      }
    }
 }
