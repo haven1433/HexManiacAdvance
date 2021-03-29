@@ -221,8 +221,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       }
 
       public static ErrorInfo ReplaceAll(ThumbParser parser, IDataModel model, ModelDelta token, string[] inputCode, string[] outputCode) {
-         var search = parser.Compile(model, 0, inputCode);
-         var replace = parser.Compile(model, 0, outputCode);
+         var search = parser.Compile(model, 0, out var _, inputCode);
+         var replace = parser.Compile(model, 0, out var _, outputCode);
          if (search.Count != replace.Count) return new ErrorInfo($"Input length ({search.Count}) doesn't match output length ({replace.Count}).");
          var results = model.Find(search.ToArray());
          foreach (var result in results) {

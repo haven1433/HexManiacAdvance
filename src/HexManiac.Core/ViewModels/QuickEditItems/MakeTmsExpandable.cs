@@ -211,6 +211,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          viewPort.Edit($"@{hmStart:X6} ^{HmCompatibility}[pokemon|b[]{HmMoves}]{PokemonNameTable} ");
       }
 
+      private IReadOnlyList<byte> Compile(ViewPort viewPort, int start, string[] code) {
+         return viewPort.Tools.CodeTool.Parser.Compile(viewPort.CurrentChange, viewPort.Model, start, code);
+      }
+
       // original-new   ->   58-58
       private void InsertCanPokemonLearnTmOrHmMove(ViewPort viewPort, string game) {
          var model = viewPort.Model;
@@ -265,8 +269,7 @@ TmCompatibilityTable:
 TmMoveCount:
     .word 00
 ".Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-         var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
-         for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
+         var bytes = Compile(viewPort, start, code);
          viewPort.Edit($"@{(start + bytes.Count - 4 * 4):X6} <> ::{HmMoves} <> ::{TmMoves} ");
       }
 
@@ -300,8 +303,7 @@ table:
 numberOfMoves:
     .word 00
 ".Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-         var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
-         for (int i = 0; i < bytes.Count - 4; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
+         var bytes = Compile(viewPort, start, code);
          viewPort.Edit($"@{(start + bytes.Count - 4 * 2):X6} <> ::{HmMoves} ");
       }
 
@@ -324,8 +326,7 @@ ReadBitArray:
     and   r0, r1
     bx    r14
 ".Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-         var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
-         for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
+         Compile(viewPort, start, code);
       }
 
       // original-new   ->   4C-30*
@@ -361,8 +362,7 @@ itemIDLocation:
 bufferLocation:
     .word 02021CD0
 ".Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-         var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
-         for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
+         var bytes = Compile(viewPort, start, code);
          for (int i = bytes.Count; i < length; i++) viewPort.CurrentChange.ChangeData(model, start + i, 0x00);
          viewPort.Edit($"@{(start + bytes.Count - 4 * 3):X6} <> ");
       }
@@ -388,7 +388,7 @@ Done:
     mov  r0, r2
     bx   r14
 ".Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-         var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
+         var bytes = Compile(viewPort, start, code);
          for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
       }
 
@@ -411,8 +411,7 @@ Fail:
 End:
     pop   pc, {{}}
 ".Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-         var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
-         for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
+         var bytes = Compile(viewPort, start, code);
          for (int i = bytes.Count; i < length; i++) viewPort.CurrentChange.ChangeData(model, start + i, 0x00);
       }
 
@@ -429,8 +428,7 @@ IsMoveHmMove1:
 mainroutine:
     .word <{(IsMoveHmMove2[game] + 1):X6}>
 ".Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-         var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
-         for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
+         var bytes = Compile(viewPort, start, code);
          for (int i = bytes.Count; i < length; i++) viewPort.CurrentChange.ChangeData(model, start + i, 0x00);
       }
 
@@ -468,8 +466,7 @@ End:
 ItemsTable:
     .word <{ItemsTableName}>
 ".Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-         var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
-         for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
+         var bytes = Compile(viewPort, start, code);
          viewPort.Edit($"@{(start + bytes.Count - 4 * 1):X6} <> ");
       }
 
@@ -529,8 +526,7 @@ MagicString4:
 MovesTable:
     .word <{MoveNamesTable}>
 ".Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-         var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
-         for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
+         var bytes = Compile(viewPort, start, code);
          for (int i = bytes.Count; i < length; i++) viewPort.CurrentChange.ChangeData(model, start + i, 0x00);
          viewPort.Edit($"@{(start + bytes.Count - 4 * 7):X6} <> ");
          viewPort.Edit($"@{(start + bytes.Count - 4 * 1):X6} <> ");
@@ -563,8 +559,7 @@ TmMovesTable:
 HmMovesTable:
     .word <{HmMoves}>
 ".Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-         var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, start, code);
-         for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
+         var bytes = Compile(viewPort, start, code);
          viewPort.Edit($"@{(start + bytes.Count - 4 * 2):X6} <> <> ");
       }
 
@@ -580,8 +575,7 @@ IsItemTmHm2:
     bl    <{IsItemTmHm[game]:X6}>
     pop   pc, {{r0}}
 ".Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-         var bytes = viewPort.Tools.CodeTool.Parser.Compile(model, start, code);
-         for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
+         var bytes = Compile(viewPort, start, code);
       }
 
       private void PatchItemRemovalFunctions(ViewPort viewPort, string game) {
@@ -598,8 +592,7 @@ IsItemTmHm2:
     mov   r1, #1
     bl    <{deleteLocation:X6}>
 ".Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-         var bytes = viewPort.Tools.CodeTool.Parser.Compile(model, start, code);
-         for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
+         Compile(viewPort, start, code);
 
          start = 0x125C74; // ItemRemoval2[game];
          length = 8 * 2;
@@ -611,8 +604,7 @@ IsItemTmHm2:
     mov   r1, #1
     bl    <{deleteLocation:X6}>
 ".Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-         bytes = viewPort.Tools.CodeTool.Parser.Compile(model, start, code);
-         for (int i = 0; i < bytes.Count; i++) viewPort.CurrentChange.ChangeData(model, start + i, bytes[i]);
+         Compile(viewPort, start, code);
       }
 
       public void TabChanged() => CanRunChanged?.Invoke(this, EventArgs.Empty);

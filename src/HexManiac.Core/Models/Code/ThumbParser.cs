@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels;
+﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
@@ -123,8 +124,24 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       private static readonly IReadOnlyCollection<byte> nop = new byte[] { 0, 0 };
-      public IReadOnlyList<byte> Compile(IDataModel model, int start, params string[] lines) {
+
+      /// <summary>
+      /// If you give the ThumbParser a token, it will make the data changes and the metadata changes
+      /// </summary>
+      public IReadOnlyList<byte> Compile(ModelDelta token, IDataModel model, int start, params string[] lines) {
+         var result = Compile(model, start, out var newRuns, lines);
+         model.ClearFormat(token, start, result.Count);
+         for (int i = 0; i < result.Count; i++) token.ChangeData(model, start + i, result[i]);
+         foreach (var run in newRuns) model.ObserveRunWritten(token, run);
+         return result;
+      }
+
+      /// <summary>
+      /// If you don't give the ThumbParser a token, it will return a set of new Pointers that it expects you to add.
+      /// </summary>
+      public IReadOnlyList<byte> Compile(IDataModel model, int start, out IReadOnlyList<IFormattedRun> newRuns, params string[] lines) {
          var result = new List<byte>();
+         var addedRuns = new List<IFormattedRun>();
          // labels are allowed to be on the same line as code, and code can end with comments.
          // remove excess whitespace/comments and splitting labels from code
          lines = lines.SelectMany(line => {
@@ -189,6 +206,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (instruction.RequiresAlignment && (result.Count + start) % 4 != 0) result.AddRange(nop);
                result.AddRange(code);
                foundMatch = true;
+               if(instruction is WordInstruction) {
+                  if (code[3] == 0x08 || code[3] == 0x09) {
+                     addedRuns.Add(new PointerRun(start + result.Count - 4));
+                  }
+               }
                break;
             }
             if (!foundMatch) {
@@ -203,6 +225,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   var token = inlineWords.Dequeue();
                   result.AddRange(new byte[] { 0, 0, 0, 0 }); // add space for the new word
                   token.Write(result, result.Count - 4);
+                  var highByte = token.WordToLoad >> 24;
+                  if (highByte == 0x08 || highByte == 0x09) addedRuns.Add(new PointerRun(start + result.Count - 4));
                }
             }
          }
@@ -216,6 +240,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
          }
 
+         newRuns = addedRuns;
          return result;
       }
 

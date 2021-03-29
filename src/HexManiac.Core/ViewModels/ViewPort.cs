@@ -1017,8 +1017,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void InsertThumbCode(string[] lines) {
          var start = ConvertViewPointToAddress(SelectionStart);
-         var result = tools.CodeTool.Parser.Compile(Model, start, lines);
-         for (int i = 0; i < result.Count; i++) CurrentChange.ChangeData(Model, start + i, result[i]);
+         var result = tools.CodeTool.Parser.Compile(CurrentChange, Model, start, lines);
          SelectionStart = ConvertAddressToViewPoint(start + result.Count);
          RefreshBackingData();
       }

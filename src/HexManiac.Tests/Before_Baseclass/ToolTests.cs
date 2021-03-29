@@ -12,6 +12,13 @@ using System.Linq;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
+   public static class ThumbToolExtensions {
+      public static IReadOnlyList<byte> Compile(this ThumbParser parser, IDataModel model, int start, params string[] lines) {
+         // added for compatibility: tests are allowed to call the old version of the method.
+         return parser.Compile(model, start, out var _, lines);
+      }
+   }
+
    public class ToolTests : BaseViewModelTestClass {
       private readonly ThumbParser parser;
       public ToolTests() => parser = new ThumbParser(Singletons);
@@ -543,9 +550,8 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void ThumbCode_InlinePointerLoad_Compiles() {
-         var model = new PokemonModel(new byte[0x200]);
-         model.ObserveAnchorWritten(new ModelDelta(), "destination", new NoInfoRun(0x20));
-         var result = parser.Compile(model, 0x100,
+         Model.ObserveAnchorWritten(new ModelDelta(), "destination", new NoInfoRun(0x20));
+         var result = parser.Compile(new ModelDelta(), Model, 0x100,
             "    ldr  r0, =<destination>",
             "    mov  r0, #0",
             "    b    <end>",
@@ -563,7 +569,27 @@ namespace HavenSoft.HexManiac.Tests {
             0x00, 0b1011110_1,
          };
 
+         // assert that the data is correct
          Assert.All(expected.Length.Range(), i => Assert.Equal(expected[i], result[i]));
+
+         // assert that a pointer run has been added
+         var pointerRun = Model.GetNextRun(0x100);
+         Assert.Equal(0x108, pointerRun.Start);
+         Assert.IsType<PointerRun>(pointerRun);
+      }
+
+      [Fact]
+      public void ThumbCode_OverwritePointer_RemovePointerRun() {
+         ViewPort.Edit("<100>");
+         var tools = ViewPort.Tools;
+         tools.SelectedIndex = tools.IndexOf(tools.CodeTool);
+         tools.CodeTool.Mode = CodeMode.Thumb;
+         ViewPort.SelectionStart = new Point(0, 0);
+
+         tools.CodeTool.Content = "push lr" + Environment.NewLine + "pop pc";
+
+         // pointer run should be removed
+         Assert.NotEqual(0, Model.GetNextRun(0).Start);
       }
 
       [Fact]

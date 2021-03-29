@@ -2,7 +2,7 @@
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
-
+using System.Collections.Generic;
 using static HavenSoft.HexManiac.Core.Models.HardcodeTablesModel;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
@@ -87,6 +87,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          }
       }
 
+      private IReadOnlyList<byte> Compile(ViewPort viewPort, int start, string[] code) {
+         return viewPort.Tools.CodeTool.Parser.Compile(viewPort.CurrentChange, viewPort.Model, start, code);
+      }
+
       private void InsertRoutine_GetTutorMove(ViewPort viewPort, int address, int originalLength) {
          var token = viewPort.CurrentChange;
          var model = viewPort.Model;
@@ -102,8 +106,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
                .word <{MoveTutors}>
          ".Split(Environment.NewLine);
 
-         var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, address, code);
-         for (int i = 0; i < bytes.Count; i++) token.ChangeData(model, address + i, bytes[i]);
+         var bytes = Compile(viewPort, address, code);
          for (int i = bytes.Count; i < originalLength; i++) token.ChangeData(model, address + i, 0x00);
 
          viewPort.Edit($"@{address + bytes.Count - 4:X6} <{MoveTutors}>");
@@ -136,8 +139,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
                .word 0 @ ::{MoveTutors}
          ".Split(Environment.NewLine);
 
-         var bytes = viewPort.Tools.CodeTool.Parser.Compile(viewPort.Model, address, code);
-         for (int i = 0; i < bytes.Count; i++) token.ChangeData(model, address + i, bytes[i]);
+         var bytes = Compile(viewPort, address, code);
          for (int i = bytes.Count; i < originalLength; i++) token.ChangeData(model, address + i, 0x00);
 
          viewPort.Edit($"@{address + bytes.Count - 8:X6} <{TutorCompatibility}> ::{MoveTutors} ");
