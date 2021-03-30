@@ -18,7 +18,7 @@ using static HavenSoft.HexManiac.Core.Models.Runs.PCSRun;
 namespace HavenSoft.HexManiac.Core.Models {
    public class PokemonModel : BaseModel {
       // list of runs, in sorted address order. Includes no names
-      private readonly List<IFormattedRun> runs = new List<IFormattedRun>();
+      private readonly IList<IFormattedRun> runs = new List<IFormattedRun>();
 
       // for a name, where is it?
       // for a location, what is its name?
@@ -2126,7 +2126,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       // otherwise, return a number such that ~index would be inserted into the list at the correct index
       // so ~index - 1 is the previous run, and ~index is the next run
       private int BinarySearch(int start) {
-         var index = runs.BinarySearch(new CompareFormattedRun(start), FormattedRunComparer.Instance);
+         var index = ((List<IFormattedRun>)runs).BinarySearch(new CompareFormattedRun(start), FormattedRunComparer.Instance);
          return index;
       }
    }
@@ -2144,6 +2144,23 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          value = default;
          return false;
+      }
+   }
+
+   public class DebugList<T> : List<T>, IList<T> {
+      public int InsertCount { get; private set; }
+      public int RemoveCount { get; private set; }
+      void ICollection<T>.Add(T item) {
+         InsertCount += 1;
+         Add(item);
+      }
+      void IList<T>.Insert(int index, T item) {
+         InsertCount += 1;
+         Insert(index, item);
+      }
+      void IList<T>.RemoveAt(int index) {
+         RemoveCount += 1;
+         RemoveAt(index);
       }
    }
 }
