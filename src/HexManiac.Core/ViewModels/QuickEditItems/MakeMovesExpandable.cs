@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Code;
@@ -12,6 +13,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
       public string Name => "Make Moves Expandable";
 
+      private const string ExpandLevelUpMovesCode = "resources/expand_levelup_moves_code.hma";
+
       public string Description => "Running this utility will remove the move limiters " +
                                    "and allow for unlimited moves and effects.";
 
@@ -20,31 +23,37 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       public event EventHandler CanRunChanged;
 
       public bool CanRun(IViewPort viewPort) {
-         return viewPort is IEditableViewPort;
+         if (!File.Exists(ExpandLevelUpMovesCode)) return false;
+         if (!(viewPort is IEditableViewPort editableViewPort)) return false;
+
+         var noChange = new NoDataChangeDeltaModel();
+         if (viewPort.Model.GetAddressFromAnchor(noChange, -1, LevelMovesTableName) == Pointer.NULL) return false;
+         if (viewPort.Model.GetAddressFromAnchor(noChange, -1, MoveDataTable) == Pointer.NULL) return false;
+         return true;
       }
 
-      public static IReadOnlyDictionary<string, int> GetNumberOfRelearnableMoves = new Dictionary<string, int> {
-         { "AXVE0", 0x040574 },
-         { "AXPE0", 0x040574 },
-         { "AXVE1", 0x040594 },
-         { "AXPE1", 0x040594 },
-         { "BPRE0", 0x043E2C },
-         { "BPGE0", 0x043E2C },
-         { "BPRE1", 0x043E40 },
-         { "BPGE1", 0x043E40 },
-         { "BPEE0", 0x06e25c },
-      };
-      public static IReadOnlyDictionary<string, int[]> MaxLevelUpMoveCountLocations = new Dictionary<string, int[]> { // each of these stores the max number of level-up moves, minus 1
-         { "AXVE0", new[] { 0x0404E8, 0x040556, 0x0406A4 } },
-         { "AXPE0", new[] { 0x0404E8, 0x040556, 0x0406A4 } },
-         { "AXVE1", new[] { 0x040508, 0x040576, 0x0406C4 } },
-         { "AXPE1", new[] { 0x040508, 0x040576, 0x0406C4 } },
-         { "BPRE0", new[] { 0x043DA0, 0x043E0E, 0x043F5C } },
-         { "BPGE0", new[] { 0x043DA0, 0x043E0E, 0x043F5C } },
-         { "BPRE1", new[] { 0x043DB4, 0x043E22, 0x043F70 } },
-         { "BPGE1", new[] { 0x043DB4, 0x043E22, 0x043F70 } },
-         { "BPEE0", new[] { 0x06E1D0, 0x06E23E, 0x06E38C } },
-      };
+      //public static IReadOnlyDictionary<string, int> GetNumberOfRelearnableMoves = new Dictionary<string, int> {
+      //   { "AXVE0", 0x040574 },
+      //   { "AXPE0", 0x040574 },
+      //   { "AXVE1", 0x040594 },
+      //   { "AXPE1", 0x040594 },
+      //   { "BPRE0", 0x043E2C },
+      //   { "BPGE0", 0x043E2C },
+      //   { "BPRE1", 0x043E40 },
+      //   { "BPGE1", 0x043E40 },
+      //   { "BPEE0", 0x06e25c },
+      //};
+      //public static IReadOnlyDictionary<string, int[]> MaxLevelUpMoveCountLocations = new Dictionary<string, int[]> { // each of these stores the max number of level-up moves, minus 1
+      //   { "AXVE0", new[] { 0x0404E8, 0x040556, 0x0406A4 } },
+      //   { "AXPE0", new[] { 0x0404E8, 0x040556, 0x0406A4 } },
+      //   { "AXVE1", new[] { 0x040508, 0x040576, 0x0406C4 } },
+      //   { "AXPE1", new[] { 0x040508, 0x040576, 0x0406C4 } },
+      //   { "BPRE0", new[] { 0x043DA0, 0x043E0E, 0x043F5C } },
+      //   { "BPGE0", new[] { 0x043DA0, 0x043E0E, 0x043F5C } },
+      //   { "BPRE1", new[] { 0x043DB4, 0x043E22, 0x043F70 } },
+      //   { "BPGE1", new[] { 0x043DB4, 0x043E22, 0x043F70 } },
+      //   { "BPEE0", new[] { 0x06E1D0, 0x06E23E, 0x06E38C } },
+      //};
 
       public ErrorInfo Run(IViewPort viewPortInterface) {
          var viewPort = (IEditableViewPort)viewPortInterface;
@@ -62,13 +71,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          if (error.HasError) return error;
 
          // update max level-up moves from 20 to 40
-         var code = model.GetGameCode();
-         error = AddStackSpace(parser, viewPort.Model, token, GetNumberOfRelearnableMoves[code], 48, 40);
-         if (error.HasError) return error;
-         foreach (var address in MaxLevelUpMoveCountLocations[code]) token.ChangeData(viewPort.Model, address, 40 - 1);
+         //var code = model.GetGameCode();
+         //error = AddStackSpace(parser, viewPort.Model, token, GetNumberOfRelearnableMoves[code], 48, 40);
+         //if (error.HasError) return error;
+         //foreach (var address in MaxLevelUpMoveCountLocations[code]) token.ChangeData(viewPort.Model, address, 40 - 1);
 
-         // TODO update levelup moves
-         var table = model.GetTable(LevelMovesTableName) as ArrayRun;
+         // update levelup moves
+         ExpandLevelUpMoveData(viewPort.Model, token);
+         ExpandLevelUpMoveCode(viewPort, token);
 
          viewPort.Refresh();
          return ErrorInfo.NoError;
@@ -195,30 +205,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          return ErrorInfo.NoError;
       }
 
-      public static ErrorInfo AddStackSpace(ThumbParser parser, IDataModel model, ModelDelta token, int funcStart, int stackAddOffset, int stackAddCount) {
-         for (int i = funcStart; true; i += 2) {
-            var commandLine = parser.Parse(model, i, 2).Trim().SplitLines().Last().Trim();
-            if (commandLine.Contains("[sp, ")) {
-               if (commandLine.StartsWith("str ") || commandLine.StartsWith("ldr ")) {
-                  var currentValue = model[i] * 4;
-                  if (currentValue >= stackAddOffset) {
-                     var newValue = (currentValue + stackAddCount) / 4;
-                     if (newValue > 255) return new ErrorInfo($"{i:X6}: Could not add {stackAddCount}, the result would be larger than 1020.");
-                     token.ChangeData(model, i, (byte)newValue);
-                  }
-               }
-            }
-            if (commandLine.Contains("  sp, ")) {
-               var writer = new TupleSegment(default, 7);
-               var value = writer.Read(model, i, 0) * 4;
-               value += stackAddCount;
-               writer.Write(model, token, i, 0, value / 4);
-            }
-            if (commandLine.StartsWith("bx ")) break;
-         }
+      //public static ErrorInfo AddStackSpace(ThumbParser parser, IDataModel model, ModelDelta token, int funcStart, int stackAddOffset, int stackAddCount) {
+      //   for (int i = funcStart; true; i += 2) {
+      //      var commandLine = parser.Parse(model, i, 2).Trim().SplitLines().Last().Trim();
+      //      if (commandLine.Contains("[sp, ")) {
+      //         if (commandLine.StartsWith("str ") || commandLine.StartsWith("ldr ")) {
+      //            var currentValue = model[i] * 4;
+      //            if (currentValue >= stackAddOffset) {
+      //               var newValue = (currentValue + stackAddCount) / 4;
+      //               if (newValue > 255) return new ErrorInfo($"{i:X6}: Could not add {stackAddCount}, the result would be larger than 1020.");
+      //               token.ChangeData(model, i, (byte)newValue);
+      //            }
+      //         }
+      //      }
+      //      if (commandLine.Contains("  sp, ")) {
+      //         var writer = new TupleSegment(default, 7);
+      //         var value = writer.Read(model, i, 0) * 4;
+      //         value += stackAddCount;
+      //         writer.Write(model, token, i, 0, value / 4);
+      //      }
+      //      if (commandLine.StartsWith("bx ")) break;
+      //   }
 
-         return ErrorInfo.NoError;
-      }
+      //   return ErrorInfo.NoError;
+      //}
 
       public static ErrorInfo ReplaceAll(ThumbParser parser, IDataModel model, ModelDelta token, string[] inputCode, string[] outputCode) {
          var search = parser.Compile(model, 0, out var _, inputCode);
@@ -229,6 +239,42 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
             for (int i = 0; i < replace.Count; i++) token.ChangeData(model, result + i, replace[i]);
          }
          return ErrorInfo.NoError;
+      }
+
+      public static void ExpandLevelUpMoveData(IDataModel model, ModelDelta token) {
+         var levelMovesTable = model.GetTable(LevelMovesTableName);
+         for (int i = 0; i < levelMovesTable.ElementCount; i++) {
+            var pokemonMovesStart = model.ReadPointer(levelMovesTable.Start + levelMovesTable.ElementLength * i);
+            if (!(model.GetNextRun(pokemonMovesStart) is TableStreamRun pokemonMovesTable)) continue;
+
+            // calculate the new 4-byte format from the old 2-byte format
+            var newData = new byte[pokemonMovesTable.Length * 2];
+            for (int j = 0; j < pokemonMovesTable.ElementCount; j++) {
+               var (level, move) = PLMRun.SplitToken(model.ReadMultiByteValue(pokemonMovesTable.Start + pokemonMovesTable.ElementLength * j, 2));
+               newData[j * 4 + 0] = (byte)move;
+               newData[j * 4 + 1] = (byte)(move >> 8);
+               newData[j * 4 + 2] = (byte)level;
+               newData[j * 4 + 3] = (byte)(level >> 8);
+            }
+
+            // write the new 4-byte format into the rom
+            var newMovesLocation = model.RelocateForExpansion(token, pokemonMovesTable, newData.Length + 4);
+            model.ClearFormat(token, newMovesLocation.Start, newMovesLocation.Length);
+            for (int j = 0; j < newData.Length; j++) token.ChangeData(model, newMovesLocation.Start + j, newData[j]);
+            for (int j = 0; j < 4; j++) token.ChangeData(model, newMovesLocation.Start + newData.Length + j, 0xFF);
+         }
+
+         // write metadata
+         var errorInfo = ArrayRun.TryParse(model, $"[movesFromLevel<[move:{MoveNamesTable} level:]!FFFFFFFF>]{PokemonNameTable}", levelMovesTable.Start, levelMovesTable.PointerSources, out var newTableRun);
+         if (errorInfo.HasError) {
+            throw new NotImplementedException("There was an unexpected error creating the new table: " + errorInfo.ErrorMessage);
+         }
+         model.ObserveAnchorWritten(token, LevelMovesTableName, newTableRun);
+      }
+
+      public static void ExpandLevelUpMoveCode(IEditableViewPort viewPort, ModelDelta token) {
+         var script = File.ReadAllText(ExpandLevelUpMovesCode);
+         viewPort.Edit(script);
       }
 
       public void TabChanged() => CanRunChanged?.Invoke(this, EventArgs.Empty);

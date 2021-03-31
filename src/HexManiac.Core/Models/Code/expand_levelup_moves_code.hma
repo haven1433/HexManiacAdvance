@@ -1,0 +1,666 @@
+﻿# This is meant to be run by Utilities -> Expand -> Make Moves Expandable
+# Edit code to expect 4 bytes per move-level pair
+# 2 bytes for the move, then 2 bytes for the level
+# End with FF FF FF FF, 40 moves maximum per pokemon
+
+# functions we call
+    @!game(AXVE0_AXPE0_AXVE1_AXPE1) @03B570 ^thumb.GetLevelFromBoxMonExp @03B5DC ^thumb.GiveMoveToMon @03B5F0 ^thumb.GiveMoveToBoxMon @03B980 ^thumb.DeleteFirstMoveAndGiveMoveToBoxMon @03CB60 ^thumb.GetMonData @03CBFC ^thumb.GetBoxMonData
+    @!game(BPRE0_BPGE0)             @03E830 ^thumb.GetLevelFromBoxMonExp @03E89C ^thumb.GiveMoveToMon @03E8B0 ^thumb.GiveMoveToBoxMon @03EC40 ^thumb.DeleteFirstMoveAndGiveMoveToBoxMon @03FBE8 ^thumb.GetMonData @03FD44 ^thumb.GetBoxMonData
+    @!game(BPRE1_BPGE1)             @03E844 ^thumb.GetLevelFromBoxMonExp @03E8B0 ^thumb.GiveMoveToMon @03E8C4 ^thumb.GiveMoveToBoxMon @03EC54 ^thumb.DeleteFirstMoveAndGiveMoveToBoxMon @03FBFC ^thumb.GetMonData @03FD58 ^thumb.GetBoxMonData
+    @!game(BPEE0)                   @0690C0 ^thumb.GetLevelFromBoxMonExp @06912C ^thumb.GiveMoveToMon @069140 ^thumb.GiveMoveToBoxMon @0694D0 ^thumb.DeleteFirstMoveAndGiveMoveToBoxMon @06A518 ^thumb.GetMonData @06A674 ^thumb.GetBoxMonData
+# functions we edit
+    @!game(AXVE0_AXPE0) @03B720 ^thumb.GiveBoxMonInitialMoveset @03B7C8 ^thumb.MonTryLearningNewMove @0403CC ^thumb.GetMoveRelearnerMoves @04051C ^thumb.GetLevelUpMovesBySpecies @040574 ^thumb.GetNumberOfRelearnableMoves
+    @!game(AXVE1_AXPE1) @03B720 ^thumb.GiveBoxMonInitialMoveset @03B7C8 ^thumb.MonTryLearningNewMove @0403EC ^thumb.GetMoveRelearnerMoves @04053C ^thumb.GetLevelUpMovesBySpecies @040594 ^thumb.GetNumberOfRelearnableMoves
+    @!game(BPRE0_BPGE0) @03E9E0 ^thumb.GiveBoxMonInitialMoveset @03EA88 ^thumb.MonTryLearningNewMove @043C84 ^thumb.GetMoveRelearnerMoves @043DD4 ^thumb.GetLevelUpMovesBySpecies @043E2C ^thumb.GetNumberOfRelearnableMoves
+    @!game(BPRE1_BPGE1) @03E9F4 ^thumb.GiveBoxMonInitialMoveset @03EA9C ^thumb.MonTryLearningNewMove @043C98 ^thumb.GetMoveRelearnerMoves @043DE8 ^thumb.GetLevelUpMovesBySpecies @043E40 ^thumb.GetNumberOfRelearnableMoves
+    @!game(BPEE0)       @069270 ^thumb.GiveBoxMonInitialMoveset @069318 ^thumb.MonTryLearningNewMove @06E0b4 ^thumb.GetMoveRelearnerMoves @06E204 ^thumb.GetLevelUpMovesBySpecies @06E25C ^thumb.GetNumberOfRelearnableMoves
+# statics
+@!game(BPRE0_BPGE0_BPRE1_BPGE1)
+    @thumb.sLearningMoveTableID=0x02024028  # these are all the same for FR/LG/1.0/1.1
+    @thumb.gMoveToLearn=0x02024022 
+@!game(AXVE0_AXPE0_AXVE1_AXPE1)
+    @thumb.sLearningMoveTableID=0x02024E88
+    @thumb.gMoveToLearn=0x02024E82
+@!game(BPEE0)
+    @thumb.sLearningMoveTableID=0x020244E8
+    @thumb.gMoveToLearn=0x020244E2
+
+@!game(All)
+
+@thumb.GiveBoxMonInitialMoveset .thumb
+GiveBoxMonInitialMoveset:
+        push  {r4-r7, lr}
+        mov   r7, r10
+        mov   r6, r9
+        mov   r5, r8
+        push  {r5-r7}
+        sub   sp, #4
+        mov   r8, r0
+        mov   r1, #11
+        mov   r2, #0
+        bl    <thumb.GetBoxMonData>
+        mov   r4, r0
+        lsl   r4, r4, #16
+        lsr   r4, r4, #16   @ r4  = species = thumb.GetBoxMonData(boxMon, MON_DATA_SPECIES, NULL);
+        mov   r0, r8
+        bl    <thumb.GetLevelFromBoxMonExp>
+        lsl   r0, r0, #24
+        lsr   r0, r0, #24
+        mov   r10, r0       @ r10 = level = thumb.GetLevelFromBoxMonExp(boxMon)
+        ldr   r0, [pc, <lvlmoves>]
+        lsl   r6, r4, #2
+        add   r0, r6, r0
+        ldr   r0, [r0, #0]
+        ldr   r1, [r0, #0]              @ ldrh  r1, [r0, #0]
+        ldr   r2, [pc, <highbits>]
+        mov   r0, r2
+        cmp   r1, r0
+        beq   <break>
+        mov   r9, r2
+        mov   r3, #0
+    forloop:
+        ldr   r0, [pc, <lvlmoves>]
+        add   r7, r6, r0
+        ldr   r0, [r7, #0]
+        add   r0, r3, r0
+        ldr   r2, [r0, #0]              @ ldrh  r2, [r0, #0]
+        ldr   r1, <highbits>            @ mov   r1, #254
+        lsl   r1, r1, #16
+        mov   r0, r1
+        and   r0, r2
+        mov   r4, r10
+        lsl   r1, r4, #16               @ lsl   r1, r4, #9
+        cmp   r0, r1
+        bgt   <break>       @ if (moveLevel > (level << 16))
+        ldr   r1, [pc, <movemask>]
+        mov   r0, r1
+        mov   r4, r0
+        and   r4, r2        @ move = gLevelUpLearnsets[species][i] & 0xFFFF
+        mov   r0, r8
+        mov   r1, r4
+        str   r3, [sp, #0]
+        bl    <thumb.GiveMoveToBoxMon>      @ thumb.GiveMoveToBoxMon(boxMon, move)
+        lsl   r0, r0, #16
+        mov   r1, r9
+        mov   r5, r1
+        ldr   r3, [sp, #0]
+        cmp   r0, r9
+        bne   <afterif0>      @ if (thumb.GiveMoveToBoxMon(boxMon, move) == 0xFFFF)
+            mov   r0, r8
+            mov   r1, r4
+            bl    <thumb.DeleteFirstMoveAndGiveMoveToBoxMon>      @ thumb.DeleteFirstMoveAndGiveMoveToBoxMon(boxMon, move);
+            ldr   r3, [sp, #0]
+        afterif0:
+        add   r3, #4                        # add   r3, #2
+        ldr   r0, [r7, #0]
+        add   r0, r3, r0
+        ldr   r0, [r0, #0]                  # ldrh  r0, [r0, #0]
+        cmp   r0, r5
+        bne   <forloop>
+    break:
+        add   sp, #4
+        pop   {r3-r5}
+        mov   r8, r3
+        mov   r9, r4
+        mov   r10, r5
+        pop   {r4-r7}
+        pop   {r0}
+        bx    r0
+    lvlmoves:
+        .word <data.pokemon.moves.levelup>
+    highbits:
+        .word 0xFFFFFFFF                      @ .word 0xFFFF0000
+    movemask:
+        .word 0x0000FFFF
+.end
+
+@thumb.MonTryLearningNewMove .thumb
+MonTryLearningNewMove:
+        push  {r4-r7, lr}
+        mov   r7, r10
+        mov   r6, r9
+        mov   r5, r8
+        push  {r5-r7}
+        sub   sp, #4
+        mov   r8, r0        @ r8 = mon
+        lsl   r4, r1, #24
+        lsr   r4, r4, #24   @ r4 = firstMove
+        mov   r0, #0
+        str   r0, [sp, #0]  @ stack[0] = retVal = 0;
+        mov   r0, r8
+        mov   r1, #11
+        mov   r2, #0
+        bl    <thumb.GetMonData>      @ thumb.GetMonData(mon, MON_DATA_SPECIES, NULL);
+        lsl   r0, r0, #16
+        lsr   r0, r0, #16
+        mov   r9, r0
+        mov   r0, r8
+        mov   r1, #56
+        mov   r2, #0
+        bl    <thumb.GetMonData>      @ thumb.GetMonData(mon, MON_DATA_LEVEL, NULL);
+        lsl   r0, r0, #24
+        lsr   r0, r0, #24
+        mov   r10, r0
+        cmp   r4, #0
+        beq   <endFirstIf>      @ if (firstMove)
+            ldr   r4, [pc, <tableid>]
+            mov   r1, sp
+            ldrb  r1, [r1, #0]
+            strb  r1, [r4, #0]
+            ldr   r2, [pc, <lvlmoves>]
+            mov   r5, r9
+            lsl   r3, r5, #2
+            add   r5, r3, r2
+            ldr   r0, [r5, #0]
+            ldrh  r1, [r0, #0]
+            mov   r7, #254
+            lsl   r7, r7, #8
+            mov   r0, r7
+            and   r0, r1
+            mov   r6, r4
+            mov   r12, r2
+            mov   r1, r10
+            lsl   r4, r1, #9
+            cmp   r0, r4
+            beq   <startSecondIf>      @ while ((gLevelUpLearnsets[species][sLearningMoveTableID] & 0xFE00) != (level << 9))
+            mov   r2, r6
+            ldr   r0, [pc, <shortbits>]
+            mov   r12, r0
+            mov   r6, r7
+            mov   r3, r5
+        whilebody:
+            ldrb  r0, [r2, #0]
+            add   r0, #1
+            strb  r0, [r2, #0]
+            ldrb  r0, [r2, #0]
+            ldr   r1, [r3, #0]
+            lsl   r0, r0, #1
+            add   r0, r0, r1
+            ldrh  r1, [r0, #0]
+            cmp   r1, r12
+            bne   <afterInnerIf>      @ if (gLevelUpLearnsets[species][sLearningMoveTableID] == LEVEL_UP_END)
+                mov   r0, #0
+                b     <break>      @ return 0;
+            tableid:   .word thumb.sLearningMoveTableID
+            lvlmoves:  .word <data.pokemon.moves.levelup>
+            shortbits: .word 0x0000FFFF
+        afterInnerIf:
+            mov   r0, r6
+            and   r0, r1
+            cmp   r0, r4
+            bne   <whilebody>
+    endFirstIf:
+        ldr   r3, [pc, <lvlmoves2>]
+        mov   r1, r9
+        lsl   r4, r1, #2
+        add   r1, r4, r3
+        ldr   r2, [pc, <tableid2>]
+        ldrb  r0, [r2, #0]
+        ldr   r1, [r1, #0]
+        lsl   r0, r0, #1
+        add   r0, r0, r1
+        ldrh  r1, [r0, #0]
+        mov   r0, #254
+        lsl   r0, r0, #8
+        and   r0, r1
+        mov   r5, r10
+        lsl   r1, r5, #9
+        mov   r6, r2
+        mov   r12, r3
+        mov   r3, r4
+        cmp   r0, r1
+        bne   <endSecondIf>      @ if ((gLevelUpLearnsets[species][sLearningMoveTableID] & 0xFE00) == (level << 9))
+        startSecondIf:
+            ldr   r2, [pc, <movetolearn>]
+            mov   r0, r12
+            add   r1, r3, r0
+            ldrb  r0, [r6, #0]
+            ldr   r1, [r1, #0]
+            lsl   r0, r0, #1
+            add   r0, r0, r1
+            ldrh  r1, [r0, #0]
+            ldr   r0, [pc, <movemask>]
+            and   r0, r1
+            strh  r0, [r2, #0]
+            ldrb  r0, [r6, #0]
+            add   r0, #1
+            strb  r0, [r6, #0]
+            ldrh  r1, [r2, #0]
+            mov   r0, r8
+            bl    <thumb.GiveMoveToMon>      @ thumb.GiveMoveToMon(mon, gMoveToLearn);
+            lsl   r0, r0, #16
+            lsr   r0, r0, #16
+            str   r0, [sp, #0]
+    endSecondIf:
+        ldr   r0, [sp, #0]
+    break:      @ return retVal
+        add   sp, #4
+        pop   {r3-r5}
+        mov   r8, r3
+        mov   r9, r4
+        mov   r10, r5
+        pop   {r4-r7}
+        pop   {r1}
+        bx    r1
+    lvlmoves2:   .word <data.pokemon.moves.levelup>
+    tableid2:    .word thumb.sLearningMoveTableID
+    movetolearn: .word thumb.gMoveToLearn
+    movemask:    .word 0x000001FF
+.end
+
+@thumb.GetMoveRelearnerMoves .thumb
+GetMoveRelearnerMoves:
+        push  {r4-r7, lr}
+        mov   r7, r10
+        mov   r6, r9
+        mov   r5, r8
+        push  {r5-r7}
+        sub   sp, #24
+        mov   r6, r0
+        str   r1, [sp, #8]
+        mov   r0, #0
+        mov   r10, r0
+        mov   r0, r6
+        mov   r1, #11
+        mov   r2, #0
+        bl    <thumb.GetMonData>
+        lsl   r0, r0, #16
+        lsr   r7, r0, #16
+        mov   r0, r6
+        mov   r1, #56
+        mov   r2, #0
+        bl    <thumb.GetMonData>
+        lsl   r0, r0, #24
+        lsr   r0, r0, #24
+        str   r0, [sp, #12]
+        mov   r5, #0
+        mov   r4, sp
+    learnedMovesForLoop:
+        mov   r1, r5
+        add   r1, #13
+        mov   r0, r6
+        mov   r2, #0
+        bl    <thumb.GetMonData>
+        strh  r0, [r4, #0]
+        add   r4, #2
+        add   r5, #1
+        cmp   r5, #3
+        ble   <learnedMovesForLoop>
+        mov   r5, #0
+        ldr   r6, [pc, <lvlmoves>]
+        lsl   r1, r7, #2
+        add   r2, r1, r6
+        ldr   r3, [r2, #0]
+        ldrh  r0, [r3, #0]
+        ldr   r4, [pc, <shortbits>]
+        str   r1, [sp, #20]
+        cmp   r0, r4
+        beq   <returnNumMoves>
+        mov   r9, r2
+        str   r3, [sp, #16]
+    fori1to20:
+        lsl   r2, r5, #1
+        ldr   r1, [sp, #16]
+        add   r0, r2, r1
+        ldrh  r3, [r0, #0]
+        mov   r0, #254
+        lsl   r0, r0, #8
+        and   r0, r3
+        ldr   r4, [sp, #12]
+        lsl   r1, r4, #9
+        mov   r7, r2
+        add   r5, #1
+        mov   r12, r5
+        cmp   r0, r1
+        bgt   <break>
+        mov   r4, #0
+        mov   r0, sp
+        ldrh  r1, [r0, #0]
+        ldr   r0, [pc, <movemask>]
+        and   r0, r3
+        cmp   r1, r0
+        beq   <ifjequal4>
+        ldr   r0, [sp, #20]
+        ldr   r1, [pc, <lvlmoves>]
+        add   r6, r0, r1
+        ldr   r2, [pc, <movemask>]
+        mov   r8, r2
+        mov   r3, sp
+        mov   r5, r7
+    forj0to4:
+        add   r3, #2
+        add   r4, #1
+        cmp   r4, #3
+        bgt   <ifjequal4>
+        ldr   r0, [r6, #0]
+        add   r0, r5, r0
+        ldrh  r1, [r0, #0]
+        ldrh  r2, [r3, #0]
+        mov   r0, r8
+        and   r0, r1
+        cmp   r2, r0
+        bne   <forj0to4>
+    ifjequal4:
+        cmp   r4, #4
+        bne   <break>
+        mov   r4, #0
+        cmp   r4, r10
+        bge   <ifkequalnumMoves>
+        mov   r1, r9
+        ldr   r0, [r1, #0]
+        add   r0, r7, r0
+        ldrh  r1, [r0, #0]
+        ldr   r0, [sp, #8]
+        ldrh  r2, [r0, #0]
+        ldr   r0, [pc, <movemask>]
+        and   r0, r1
+        cmp   r2, r0
+        beq   <ifkequalnumMoves>
+        ldr   r1, [sp, #20]
+        ldr   r2, [pc, <lvlmoves>]
+        add   r6, r1, r2
+        ldr   r0, [pc, <movemask>]
+        mov   r8, r0
+        ldr   r3, [sp, #8]
+        mov   r5, r7
+    fork0tonumMoves:
+        add   r3, #2
+        add   r4, #1
+        cmp   r4, r10
+        bge   <ifkequalnumMoves>
+        ldr   r0, [r6, #0]
+        add   r0, r5, r0
+        ldrh  r1, [r0, #0]
+        ldrh  r2, [r3, #0]
+        mov   r0, r8
+        and   r0, r1
+        cmp   r2, r0
+        bne   <fork0tonumMoves>
+    ifkequalnumMoves:
+        cmp   r4, r10
+        bne   <break>
+        mov   r0, r10
+        add   r0, #1
+        lsl   r0, r0, #24
+        lsr   r0, r0, #24
+        mov   r10, r0
+        lsl   r2, r4, #1
+        ldr   r1, [sp, #8]
+        add   r2, r2, r1
+        mov   r4, r9
+        ldr   r0, [r4, #0]
+        add   r0, r7, r0
+        ldrh  r1, [r0, #0]
+        ldr   r0, [pc, <movemask>]
+        and   r0, r1
+        strh  r0, [r2, #0]
+    break:
+        mov   r5, r12
+        cmp   r5, #19
+        bgt   <returnNumMoves>
+        mov   r1, r9
+        ldr   r0, [r1, #0]
+        lsl   r1, r5, #1
+        add   r1, r1, r0
+        ldrh  r0, [r1, #0]
+        ldr   r2, [pc, <shortbits>]
+        cmp   r0, r2
+        bne   <fori1to20>
+    returnNumMoves:
+        mov   r0, r10
+        add   sp, #24
+        pop   {r3-r5}
+        mov   r8, r3
+        mov   r9, r4
+        mov   r10, r5
+        pop   {r4-r7}
+        pop   {r1}
+        bx    r1
+    lvlmoves:
+        .word <data.pokemon.moves.levelup>
+    shortbits:
+        .word 0x0000FFFF
+    movemask:
+        .word 0x000001FF
+.end
+
+@thumb.GetLevelUpMovesBySpecies .thumb
+GetLevelUpMovesBySpecies:
+        push  {r4-r7, lr}
+        mov   r6, r1
+        lsl   r0, r0, #16
+        mov   r5, #0
+        mov   r4, #0
+        ldr   r1, [pc, <lvlmoves>]
+        lsr   r0, r0, #14
+        add   r0, r0, r1
+        ldr   r2, [r0, #0]
+        ldr   r0, [r2, #0]     @ ldrh  r0, [r2, #0]
+        ldr   r1, [pc, <shortbits>]
+        cmp   r0, r1
+        beq   <returnnumMoves>
+        ldr   r0, [pc, <movemask>]
+        mov   r12, r0
+        mov   r7, r1
+        mov   r3, r2
+    fori0to20:
+        mov   r1, r5
+        add   r0, r1, #1
+        lsl   r0, r0, #24
+        lsr   r5, r0, #24
+        lsl   r1, r1, #1
+        add   r1, r1, r6
+        ldr   r2, [r3, #0]      @ ldrh  r2, [r3, #0]
+        mov   r0, r12
+        and   r0, r2
+        strh  r0, [r1, #0]
+        add   r3, #4            @ add   r3, #2
+        add   r4, #1
+        cmp   r4, #39           @ cmp   r4, #19
+        bgt   <returnnumMoves>
+        ldr   r0, [r3, #0]      @ ldrh  r0, [r3, #0]
+        cmp   r0, r7
+        bne   <fori0to20>
+    returnnumMoves:
+        mov   r0, r5
+        pop   {r4-r7}
+        pop   {r1}
+        bx    r1
+    lvlmoves:
+        .word <data.pokemon.moves.levelup>
+    shortbits:
+        .word 0xFFFFFFFF        @ .word 0x0000FFFF
+    movemask:
+        .word 0x0000FFFF        @ .word 0x000001FF
+.end
+
+@thumb.GetNumberOfRelearnableMoves .thumb
+GetNumberOfRelearnableMoves:
+        push  {r4-r7, lr}
+        mov   r7, r10
+        mov   r6, r9
+        mov   r5, r8
+        push  {r5-r7}
+        sub   sp, #60
+        mov   r6, r0
+        mov   r0, #0
+        mov   r10, r0
+        mov   r0, r6
+        mov   r1, #65
+        mov   r2, #0
+        bl    <thumb.GetMonData>
+        lsl   r0, r0, #16
+        lsr   r4, r0, #16
+        mov   r0, r6
+        mov   r1, #56
+        mov   r2, #0
+        bl    <thumb.GetMonData>
+        lsl   r0, r0, #24
+        lsr   r0, r0, #24
+        str   r0, [sp, #48]
+        mov   r0, #206
+        lsl   r0, r0, #1
+        cmp   r4, r0
+        bne   <afterEggCheck>      @ if (species == SPECIES_EGG)
+            mov   r0, #0
+            b     <returnnumMoves>
+        afterEggCheck:
+        mov   r5, #0
+        lsl   r4, r4, #2
+        str   r4, [sp, #56]
+        mov   r4, sp
+    fori0to4:
+        mov   r1, r5
+        add   r1, #13
+        mov   r0, r6
+        mov   r2, #0
+        bl    <thumb.GetMonData>
+        strh  r0, [r4, #0]
+        add   r4, #2
+        add   r5, #1
+        cmp   r5, #3
+        ble   <fori0to4>
+        mov   r5, #0
+        ldr   r3, [pc, <lvlmoves>]
+        ldr   r2, [sp, #56]
+        add   r1, r2, r3
+        ldr   r0, [r1, #0]
+        ldrh  r0, [r0, #0]
+        ldr   r2, [pc, <shortbits>]
+        cmp   r0, r2
+        beq   <break>
+        mov   r9, r1
+        mov   r4, sp
+        add   r4, #8
+        str   r4, [sp, #52]
+    fori0to20:
+        mov   r1, r9
+        ldr   r0, [r1, #0]
+        lsl   r2, r5, #1
+        add   r0, r2, r0
+        ldrh  r3, [r0, #0]
+        mov   r0, #254
+        lsl   r0, r0, #8
+        and   r0, r3
+        ldr   r4, [sp, #48]
+        lsl   r1, r4, #9
+        mov   r7, r2
+        add   r5, #1
+        mov   r12, r5
+        cmp   r0, r1
+        bgt   <043F5A>
+        mov   r4, #0
+        mov   r0, sp
+        ldrh  r1, [r0, #0]
+        ldr   r0, [pc, <movemask>]
+        and   r0, r3
+        cmp   r1, r0
+        beq   <ifjEquals4>
+        ldr   r0, [sp, #56]
+        ldr   r1, [pc, <lvlmoves>]
+        add   r6, r0, r1
+        ldr   r2, [pc, <movemask>]
+        mov   r8, r2
+        mov   r3, sp
+        mov   r5, r7
+    forj0to4:
+        add   r3, #2
+        add   r4, #1
+        cmp   r4, #3
+        bgt   <ifjEquals4>
+        ldr   r0, [r6, #0]
+        add   r0, r5, r0
+        ldrh  r1, [r0, #0]
+        ldrh  r2, [r3, #0]
+        mov   r0, r8
+        and   r0, r1
+        cmp   r2, r0
+        bne   <forj0to4>
+    ifjEquals4:
+        cmp   r4, #4
+        bne   <afterLastIf>
+        mov   r4, #0
+        cmp   r4, r10
+        bge   <ifkEqualsnumMoves>
+        mov   r1, r9
+        ldr   r0, [r1, #0]
+        add   r0, r7, r0
+        ldrh  r1, [r0, #0]
+        ldr   r0, [sp, #52]
+        ldrh  r2, [r0, #0]
+        ldr   r0, [pc, <movemask>]
+        and   r0, r1
+        add   r1, sp, #8
+        cmp   r2, r0
+        beq   <ifkEqualsnumMoves>
+        ldr   r2, [sp, #56]
+        ldr   r0, [pc, <lvlmoves>]
+        add   r6, r2, r0
+        ldr   r2, [pc, <movemask>]
+        mov   r8, r2
+        mov   r3, r1
+        mov   r5, r7
+    fork0tonumMoves:
+        add   r3, #2
+        add   r4, #1
+        cmp   r4, r10
+        bge   <ifkEqualsnumMoves>
+        ldr   r0, [r6, #0]
+        add   r0, r5, r0
+        ldrh  r1, [r0, #0]
+        ldrh  r2, [r3, #0]
+        mov   r0, r8
+        and   r0, r1
+        cmp   r2, r0
+        bne   <fork0tonumMoves>
+    ifkEqualsnumMoves:
+        cmp   r4, r10
+        bne   <afterLastIf>
+        mov   r0, r10
+        add   r0, #1
+        lsl   r0, r0, #24
+        lsr   r0, r0, #24
+        mov   r10, r0
+        lsl   r2, r4, #1
+        ldr   r4, [sp, #52]
+        add   r2, r4, r2
+        mov   r1, r9
+        ldr   r0, [r1, #0]
+        add   r0, r7, r0
+        ldrh  r1, [r0, #0]
+        ldr   r0, [pc, <movemask>]
+        and   r0, r1
+        strh  r0, [r2, #0]
+    afterLastIf:
+        mov   r5, r12
+        cmp   r5, #19
+        bgt   <break>
+        mov   r2, r9
+        ldr   r0, [r2, #0]
+        lsl   r1, r5, #1
+        add   r1, r1, r0
+        ldrh  r0, [r1, #0]
+        ldr   r4, [pc, <shortbits>]
+        cmp   r0, r4
+        bne   <fori0to20>
+    break:
+        mov   r0, r10
+    returnnumMoves:
+        add   sp, #60
+        pop   {r3-r5}
+        mov   r8, r3
+        mov   r9, r4
+        mov   r10, r5
+        pop   {r4-r7}
+        pop   {r1}
+        bx    r1
+    lvlmoves:
+        .word <data.pokemon.moves.levelup>
+    shortbits:
+        .word 0x0000FFFF
+    movemask:
+        .word 0x000001FF
+.end
+
+@!game(BPEE0) # TODO there are 2 more functions in Emerald that we need to update.
+
