@@ -36,7 +36,7 @@
                      </Style.Triggers>
                   </Style>
                </Menu.Style>
-               <MenuItem Header="Repoint" Margin="0,1,0,0">
+               <MenuItem Header="Repoint" Margin="0,1,0,0" Background="{DynamicResource Backlight}">
                   <MenuItem Header="This One" Command="{Binding Repoint}">
                      <MenuItem.ToolTip>
                         <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
