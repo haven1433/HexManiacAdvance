@@ -13,13 +13,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems
             return default(bool);
         }
         
-        public virtual HavenSoft.HexManiac.Core.Models.ErrorInfo Run(HavenSoft.HexManiac.Core.ViewModels.IViewPort viewPort)
+        public virtual System.Threading.Tasks.Task<HavenSoft.HexManiac.Core.Models.ErrorInfo> Run(HavenSoft.HexManiac.Core.ViewModels.IViewPort viewPort)
         {
             if (InnerQuickEditItem != null)
             {
                 return InnerQuickEditItem.Run(viewPort);
             }
-            return default(HavenSoft.HexManiac.Core.Models.ErrorInfo);
+            return default(System.Threading.Tasks.Task<HavenSoft.HexManiac.Core.Models.ErrorInfo>);
         }
         
         public virtual void TabChanged()

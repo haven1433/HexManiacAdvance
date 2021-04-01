@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace HavenSoft.HexManiac.Core.Models {
    public interface IFileSystem {
@@ -125,6 +126,18 @@ namespace HavenSoft.HexManiac.Core.Models {
       public static IWorkDispatcher Instance { get; } = new InstantDispatch();
       public void DispatchWork(Action action) => action?.Invoke();
       public void RunBackgroundWork(Action action) => action();
+   }
+
+   /// <summary>
+   /// Adapter so that await operations cause a work split, so that the UI can take a break to update.
+   /// </summary>
+   public class InlineDispatch : INotifyCompletion {
+      private readonly IWorkDispatcher dispatcher;
+      public InlineDispatch(IWorkDispatcher dispatcher) => this.dispatcher = dispatcher;
+      public InlineDispatch GetAwaiter() => this;
+      public bool IsCompleted => false;
+      public void OnCompleted(Action continuation) => dispatcher.DispatchWork(continuation);
+      public void GetResult() { }
    }
 
    public class VisualOption : ViewModelCore {

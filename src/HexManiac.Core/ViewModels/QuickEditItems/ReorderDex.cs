@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using System;
+using System.Threading.Tasks;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
    public class ReorderDex : IQuickEditItem {
@@ -27,7 +28,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          return dexOrder != null && pokenames != null && dexInfo != null && frontSprites != null && pokepalettes != null;
       }
 
-      public ErrorInfo Run(IViewPort viewPortInterface) {
+      public async Task<ErrorInfo> Run(IViewPort viewPortInterface) {
          var viewPort = (ViewPort)viewPortInterface;
          viewPort.OpenDexReorderTab(dexTableName);
          return ErrorInfo.NoError;

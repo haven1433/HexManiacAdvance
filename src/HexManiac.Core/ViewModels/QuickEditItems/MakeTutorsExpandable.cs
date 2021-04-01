@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using static HavenSoft.HexManiac.Core.Models.HardcodeTablesModel;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
@@ -46,7 +47,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          return true;
       }
 
-      public ErrorInfo Run(IViewPort viewPortInterface) {
+      public async Task<ErrorInfo> Run(IViewPort viewPortInterface) {
          var viewPort = (ViewPort)viewPortInterface;
          var model = viewPort.Model;
          var token = new NoDataChangeDeltaModel();

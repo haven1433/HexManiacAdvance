@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using System;
+using System.Threading.Tasks;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
    public class UpdateDexConversionTable : IQuickEditItem {
@@ -38,7 +39,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          return false;
       }
 
-      public ErrorInfo Run(IViewPort viewPortInterface) {
+      public async Task<ErrorInfo> Run(IViewPort viewPortInterface) {
          var noChange = new NoDataChangeDeltaModel();
          var viewPort = (ViewPort)viewPortInterface;
          var model = viewPort.Model;

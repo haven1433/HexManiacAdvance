@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
@@ -55,51 +56,65 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       //   { "BPEE0", new[] { 0x06E1D0, 0x06E23E, 0x06E38C } },
       //};
 
-      public ErrorInfo Run(IViewPort viewPortInterface) {
+      public async Task<ErrorInfo> Run(IViewPort viewPortInterface) {
          var viewPort = (IEditableViewPort)viewPortInterface;
          var model = viewPort.Model;
          var token = viewPort.ChangeHistory.CurrentChange;
          var parser = viewPort.Tools.CodeTool.Parser;
 
-         var error = ExpandMoveEffects(parser, model, token);
+         var error = await ExpandMoveEffects(parser, viewPort, token);
          if (error.HasError) return error;
 
          // update limiters for move names
-         error = ReplaceAll(parser, viewPort.Model, token,
+         error = ReplaceAll(parser, model, token,
             new[] { "mov r0, #177", "lsl r0, r0, #1", "cmp r1, r0" },
             new[] { "mov r0, #177", "lsl r0, r0, #9", "cmp r1, r0" });
          if (error.HasError) return error;
+         await viewPort.UpdateProgress(.8);
 
          // update max level-up moves from 20 to 40
          //var code = model.GetGameCode();
          //error = AddStackSpace(parser, viewPort.Model, token, GetNumberOfRelearnableMoves[code], 48, 40);
          //if (error.HasError) return error;
          //foreach (var address in MaxLevelUpMoveCountLocations[code]) token.ChangeData(viewPort.Model, address, 40 - 1);
+         await viewPort.UpdateProgress(.9);
 
          // update levelup moves
-         ExpandLevelUpMoveData(viewPort.Model, token);
-         ExpandLevelUpMoveCode(viewPort, token);
+         //ExpandLevelUpMoveData(viewPort.Model, token);
+         //ExpandLevelUpMoveCode(viewPort, token);
+         await viewPort.UpdateProgress(1);
 
          viewPort.Refresh();
          return ErrorInfo.NoError;
       }
 
-      public static ErrorInfo ExpandMoveEffects(ThumbParser parser, IDataModel model, ModelDelta token) {
+      public static async Task<ErrorInfo> ExpandMoveEffects(ThumbParser parser, IEditableViewPort viewPort, ModelDelta token) {
          // make move effects 2 bytes instead of 1 byte
+         var model = viewPort.Model;
          var table = model.GetTable(MoveDataTable);
          var fieldNames = table.ElementContent.Select(seg => seg.Name).ToArray();
-         Func<ErrorInfo> shiftField(int i) => () => RefactorMoveByteFieldInTable(parser, model, token, MoveDataTable, fieldNames[i], i + 1);
-         var error = ChainErrors(
-            shiftField(8), shiftField(7), shiftField(6), shiftField(5),
-            shiftField(4), shiftField(3), shiftField(2), shiftField(1),
-            () => RefactorByteToHalfWordInTable(parser, model, token, MoveDataTable, fieldNames[0]));
-         if (error.HasError) return error;
+         async Task<ErrorInfo> shiftField(int i) {
+            var result = RefactorMoveByteFieldInTable(parser, model, token, MoveDataTable, fieldNames[i], i + 1);
+            await viewPort.UpdateProgress((9 - i) / 8.0 * 0.7);
+            return result;
+         }
+
+         ErrorInfo error;
+         error = await shiftField(8); if (error.HasError) return error;
+         error = await shiftField(7); if (error.HasError) return error;
+         error = await shiftField(6); if (error.HasError) return error;
+         error = await shiftField(5); if (error.HasError) return error;
+         error = await shiftField(4); if (error.HasError) return error;
+         error = await shiftField(3); if (error.HasError) return error;
+         error = await shiftField(2); if (error.HasError) return error;
+         error = await shiftField(1); if (error.HasError) return error;
 
          // update offset pointers (because the PP field moved)
          foreach (OffsetPointerRun pointerRun in table.PointerSources
             .Select(address => model.GetNextRun(address))
             .Where(pointer => pointer is OffsetPointerRun)
          ) {
+            model.ClearFormat(token, pointerRun.Start, 4);
             model.WritePointer(token, pointerRun.Start, table.Start + 5);
             model.ObserveRunWritten(token, new OffsetPointerRun(pointerRun.Start, 5));
          }
@@ -107,13 +122,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          return ErrorInfo.NoError;
       }
 
-      public static ErrorInfo ChainErrors(params Func<ErrorInfo>[] actions) {
-         foreach (var action in actions) {
-            var result = action();
-            if (result.HasError) return result;
-         }
-         return ErrorInfo.NoError;
-      }
+      //public static ErrorInfo ChainErrors(params Func<ErrorInfo>[] actions) {
+      //   foreach (var action in actions) {
+      //      var result = action();
+      //      if (result.HasError) return result;
+      //   }
+      //   return ErrorInfo.NoError;
+      //}
 
       public static ErrorInfo RefactorMoveByteFieldInTable(ThumbParser parser, IDataModel model, ModelDelta token, string tableName, string fieldName, int newOffset) {
          // setup

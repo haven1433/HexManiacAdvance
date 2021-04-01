@@ -66,5 +66,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       new string AnchorText { get; set; }
       void Edit(string input);
       void Edit(ConsoleKey key);
+      InlineDispatch UpdateProgress(double value);
+      void ClearProgress();
    }
 }

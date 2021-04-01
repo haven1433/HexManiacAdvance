@@ -2,7 +2,7 @@
 using HavenSoft.HexManiac.Core.Models.Runs;
 using System;
 using System.Linq;
-
+using System.Threading.Tasks;
 using static HavenSoft.HexManiac.Core.Models.HardcodeTablesModel;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
@@ -36,7 +36,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          return !(run is WordRun);
       }
 
-      public ErrorInfo Run(IViewPort viewPortInterface) {
+      public async Task<ErrorInfo> Run(IViewPort viewPortInterface) {
          var viewPort = (ViewPort)viewPortInterface;
          var model = viewPortInterface.Model;
          var gameCode = model.GetGameCode();

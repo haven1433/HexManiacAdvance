@@ -13,6 +13,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using static HavenSoft.HexManiac.Core.ICommandExtensions;
 
@@ -191,7 +192,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void RunQuickEdit(IQuickEditItem edit) {
-         var error = edit.Run(tabs[SelectedIndex] as IViewPort);
+         var viewPort = tabs[SelectedIndex] as IViewPort;
+         gotoViewModel.ControlVisible = false;
+         var errorTask = edit.Run(viewPort);
+         errorTask.ContinueWith(ContinueQuickEdit, TaskContinuationOptions.ExecuteSynchronously);
+      }
+      private void ContinueQuickEdit(Task<ErrorInfo> completedTask) {
+         var viewPort = tabs[SelectedIndex] as IViewPort;
+         if (viewPort is IEditableViewPort editableViewPort) editableViewPort.ClearProgress();
+         var error = completedTask.Result;
          if (!error.HasError) return;
          if (error.IsWarning) {
             InformationMessage = error.ErrorMessage;
@@ -1022,7 +1031,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    /// </summary>
    public class EditItemWrapper : QuickEditItemDecorator {
       public EditItemWrapper(IQuickEditItem core) => InnerQuickEditItem = core;
-      public override ErrorInfo Run(IViewPort viewPort) {
+      public override Task<ErrorInfo> Run(IViewPort viewPort) {
          var result = base.Run(viewPort);
          (viewPort.Model as PokemonModel)?.ResolveConflicts();
          return result;

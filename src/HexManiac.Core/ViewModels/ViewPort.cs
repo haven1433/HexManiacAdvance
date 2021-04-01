@@ -517,6 +517,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private int initialWorkLoad;
       private readonly List<IDisposable> CurrentProgressScopes = new List<IDisposable>();
 
+      public InlineDispatch UpdateProgress(double value) {
+         UpdateInProgress = true;
+         Progress = value;
+         return new InlineDispatch(dispatcher);
+      }
+
+      public void ClearProgress() { UpdateInProgress = false; }
+
       #endregion
 
       #region Diff

@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using System;
+using System.Threading.Tasks;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
    public interface IQuickEditItem {
@@ -9,7 +10,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
       event EventHandler CanRunChanged;
       bool CanRun(IViewPort viewPort);
-      ErrorInfo Run(IViewPort viewPort);
+      Task<ErrorInfo> Run(IViewPort viewPort);
       void TabChanged();
    }
 }
