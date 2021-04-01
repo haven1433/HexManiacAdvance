@@ -129,8 +129,15 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       /// If you give the ThumbParser a token, it will make the data changes and the metadata changes
       /// </summary>
       public IReadOnlyList<byte> Compile(ModelDelta token, IDataModel model, int start, params string[] lines) {
+         var initialAnchor = model.GetAnchorFromAddress(-1, start);
          var result = Compile(model, start, out var newRuns, lines);
+
+         // we want to clear the format since pointers may have moved
          model.ClearFormat(token, start, result.Count);
+         // but we want to keep an initial anchor pointing to this code block if there was one.
+         if (!string.IsNullOrEmpty(initialAnchor)) model.ObserveAnchorWritten(token, initialAnchor, new NoInfoRun(start));
+
+         // update the data, and the format
          for (int i = 0; i < result.Count; i++) token.ChangeData(model, start + i, result[i]);
          foreach (var run in newRuns) model.ObserveRunWritten(token, run);
          return result;

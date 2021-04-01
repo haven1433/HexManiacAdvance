@@ -135,9 +135,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public override int Length => 1;
       public override string FormatString => string.Empty;
 
-      public NoInfoRun(int start, SortedSpan<int> sources = null) : base(start, sources) {
-         if (start == 0x1964301) ;
-      }
+      public NoInfoRun(int start, SortedSpan<int> sources = null) : base(start, sources) { }
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) => None.Instance;
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) {
