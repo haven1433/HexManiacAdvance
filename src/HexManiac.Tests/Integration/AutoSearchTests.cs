@@ -565,7 +565,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.True(expandMoves.CanRun(viewPort));
 
          // run the actual quick-edit
-         var error = expandMoves.Run(viewPort);
+         var error = expandMoves.Run(viewPort).Result;
          Assert.True(error.IsWarning);
 
          // verify we can't run it again
