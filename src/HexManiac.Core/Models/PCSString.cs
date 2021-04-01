@@ -57,7 +57,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          PCS = pcs;
 
-         Newlines = new byte[] { 0xFB, 0xFE };
+         Newlines = new byte[] { 0xFA, 0xFB, 0xFE };
       }
 
       public static string Convert(IReadOnlyList<byte> data, int startIndex, int length) {
@@ -72,7 +72,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             result.Append(PCS[currentByte]);
 
             // this line optimized for maximum speed. Otherwise would like to use the Newlines array.
-            if (currentByte == 0xFB || currentByte == 0xFE) result.Append(Environment.NewLine);
+            if (currentByte == 0xFA || currentByte == 0xFB || currentByte == 0xFE) result.Append(Environment.NewLine);
 
             if (currentByte == Escape) {
                result.Append(data[startIndex + i + 1].ToString("X2"));
