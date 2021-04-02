@@ -62,7 +62,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var token = viewPort.ChangeHistory.CurrentChange;
          var parser = viewPort.Tools.CodeTool.Parser;
 
-         var error = await ExpandMoveEffects(parser, viewPort, token);
+         ErrorInfo error;
+         error = await ExpandMoveEffects(parser, viewPort, token);
          if (error.HasError) return error;
 
          // update limiters for move names
@@ -80,8 +81,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          await viewPort.UpdateProgress(.9);
 
          // update levelup moves
-         //ExpandLevelUpMoveData(viewPort.Model, token);
-         //ExpandLevelUpMoveCode(viewPort, token);
+         ExpandLevelUpMoveData(viewPort.Model, token);
+         ExpandLevelUpMoveCode(viewPort, token);
          await viewPort.UpdateProgress(1);
 
          viewPort.Refresh();
