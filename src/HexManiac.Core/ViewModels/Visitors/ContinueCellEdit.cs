@@ -60,6 +60,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(SpriteDecorator sprite, byte data) => sprite.OriginalFormat.Visit(this, data);
 
+      public void Visit(StreamEndDecorator decorator, byte data) {
+         if (UnderEdit.CurrentText == "[" && Input == ']') {
+            Result = true;
+         } else {
+            decorator.OriginalFormat.Visit(this, data);
+         }
+      }
+
       public void Visit(PCS pcs, byte data) {
          if (Input == StringDelimeter) { Result = true; return; }
          var currentText = UnderEdit.CurrentText;

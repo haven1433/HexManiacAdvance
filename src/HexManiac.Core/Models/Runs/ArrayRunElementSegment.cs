@@ -58,6 +58,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                recursionStopper = true;
                run.AppendTo(rawData, builder, run.Start, run.Length, deep);
                recursionStopper = false;
+               if (run is TableStreamRun tsr && tsr.AllowsZeroElements) builder.Append(" []"); // Include the end token, allowing streams to be made shorter.
                builder.Append(" @} ");
 
                return builder.ToString();

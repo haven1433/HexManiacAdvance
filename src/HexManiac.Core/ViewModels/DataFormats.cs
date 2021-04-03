@@ -32,6 +32,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       void Visit(Pointer pointer, byte data);
       void Visit(Anchor anchor, byte data);
       void Visit(SpriteDecorator decorator, byte data);
+      void Visit(StreamEndDecorator decorator, byte data);
       void Visit(PCS pcs, byte data);
       void Visit(EscapedPCS pcs, byte data);
       void Visit(ErrorPCS pcs, byte data);
@@ -198,6 +199,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          return sprite.OriginalFormat.Equals(OriginalFormat) && sprite.CellWidth == CellWidth && sprite.CellHeight == CellHeight;
       }
 
+      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
+   }
+
+   /// <summary>
+   /// Represents a token that can be changed into an end-of-stream character for a TableStream with an explicit End token.
+   /// End-of-stream tokens are always represented as []
+   /// </summary>
+   public class StreamEndDecorator : IDataFormatDecorator {
+      public IDataFormat OriginalFormat { get; }
+      public StreamEndDecorator(IDataFormat inner) => OriginalFormat = inner;
+      public bool Equals(IDataFormat other) {
+         if (!(other is StreamEndDecorator that)) return false;
+         return that.OriginalFormat.Equals(OriginalFormat);
+      }
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 

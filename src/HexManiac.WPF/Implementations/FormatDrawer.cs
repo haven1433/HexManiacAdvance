@@ -89,8 +89,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          for (int x = 0; x < modelWidth; x++) {
             var cell = viewPort[x, position.Y];
             var format = cell.Format;
-            if (format is Anchor anchor) format = anchor.OriginalFormat; // anchor's have other formats nested inside that we may care about
-            if (format is SpriteDecorator sprite) format = sprite.OriginalFormat;
+            while (format is IDataFormatDecorator decorator) format = decorator.OriginalFormat;
 
             if (format is PCS pcs) {
                collector.Collect<PCS>(format, x, 1, pcs.ThisCharacter);
@@ -242,6 +241,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
 
       public void Visit(SpriteDecorator sprite, byte data) => sprite.OriginalFormat.Visit(this, data);
+
+      public void Visit(StreamEndDecorator decorator, byte data) => decorator.OriginalFormat.Visit(this, data);
 
       public void Visit(PCS pcs, byte data) { }
 

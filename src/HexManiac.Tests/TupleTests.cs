@@ -289,6 +289,46 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0b0001_0011, Model[0]);
       }
 
+      [Fact]
+      public void ElementsWithSpaces_TypeTuple_Works() {
+         Model.SetList("options", new[] { "simple", "with space", "other" });
+         ViewPort.Edit("^table[a:|t|x::options|y::]2 ");
+
+         ViewPort.Edit("(\"with space\" 2)");
+
+         Assert.Equal(0b0010_0001, Model[0]);
+      }
+
+      [Fact]
+      public void Tuple_TypeSpace_NoEdit() {
+         ViewPort.Edit("^table[a:|t|x::|y::]2 ");
+
+         ViewPort.Edit(" ");
+
+         var cell = ViewPort[0, 0].Format;
+         Assert.IsNotType<UnderEdit>(cell);
+      }
+
+      [Fact]
+      public void Tuple_TypePlus_NoEdit() {
+         ViewPort.Edit("^table[a:|t|x::|y::]2 ");
+
+         ViewPort.Edit("+");
+
+         var cell = ViewPort[0, 0].Format;
+         Assert.IsNotType<UnderEdit>(cell);
+      }
+
+      [Fact]
+      public void TupleInTableStream_TypeEndStreamAtStartOfElement_TruncateStream() {
+         ViewPort.Edit("@!put(FFFF) ^table[a:|t|x::|y::]!FFFF +(2 3) +(3 4) @02 ");
+
+         ViewPort.Edit("[]");
+
+         var run = (TableStreamRun)Model.GetNextRun(0);
+         Assert.Equal(1, run.ElementCount);
+      }
+
       private TupleArrayElementViewModel TupleTable => (TupleArrayElementViewModel)ViewPort.Tools.TableTool.Children.Where(child => child is TupleArrayElementViewModel).Single();
    }
 }

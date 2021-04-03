@@ -163,6 +163,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(SpriteDecorator sprite, byte data) => sprite.OriginalFormat.Visit(this, data);
 
+      public void Visit(StreamEndDecorator decorator, byte data) => decorator.OriginalFormat.Visit(this, data);
+
       public void Visit(PCS pcs, byte data) {
          var point = ViewPort.SelectionStart;
          Results.Add(new ContextItem("Open In Text Tool", arg => ViewPort.FollowLink(point.X, point.Y)) { ShortcutText = "Ctrl+Click" });

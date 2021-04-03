@@ -110,10 +110,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                cachedCurrentString = PCSString.Convert(data, offsets.SegmentStart, currentSegment.Length);
             }
 
-            return PCSRun.CreatePCSFormat(data, offsets.SegmentStart, index, cachedCurrentString);
+            var pcsFormat = PCSRun.CreatePCSFormat(data, offsets.SegmentStart, index, cachedCurrentString);
+            if (offsets.SegmentIndex == 0) return new StreamEndDecorator(pcsFormat);
+            return pcsFormat;
          }
 
-         return this.CreateSegmentDataFormat(data, index);
+         var format = this.CreateSegmentDataFormat(data, index);
+         if (offsets.SegmentIndex == 0) return new StreamEndDecorator(format);
+         return format;
       }
 
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new TableStreamRun(model, Start, newPointerSources, FormatString, ElementContent, endStream);
@@ -378,7 +382,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return endStream.Append(this, token, length);
       }
 
-      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) => ITableRunExtensions.AppendTo(this, model, builder, start, length, deep);
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) {
+         ITableRunExtensions.AppendTo(this, model, builder, start, length, deep);
+      }
 
       public void Clear(IDataModel model, ModelDelta changeToken, int start, int length) {
          ITableRunExtensions.Clear(this, model, changeToken, start, length);
@@ -457,7 +463,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public TableStreamRun Append(TableStreamRun run, ModelDelta token, int length) {
          var naturalLength = run.Length - EndCode.Count;
          var newRun = model.RelocateForExpansion(token, run, naturalLength + length * run.ElementLength + EndCode.Count);
-         for (int i = 0; i < run.ElementLength * length; i++) token.ChangeData(model, newRun.Start + naturalLength + i, model[newRun.Start + naturalLength + i - run.ElementLength]);
+         if (naturalLength == 0) {
+            for (int i = 0; i < run.ElementLength * length; i++) token.ChangeData(model, newRun.Start + naturalLength + i, 0);
+         } else {
+            for (int i = 0; i < run.ElementLength * length; i++) token.ChangeData(model, newRun.Start + naturalLength + i, model[newRun.Start + naturalLength + i - run.ElementLength]);
+         }
          for (int i = naturalLength + length * run.ElementLength; i < naturalLength; i++) if (model[newRun.Start + i] != 0xFF) token.ChangeData(model, newRun.Start + i, 0xFF);
          for (int i = 0; i < EndCode.Count; i++) token.ChangeData(model, newRun.Start + naturalLength + length * run.ElementLength + i, EndCode[i]);
          return new TableStreamRun(model, newRun.Start, run.PointerSources, run.FormatString, run.ElementContent, this);

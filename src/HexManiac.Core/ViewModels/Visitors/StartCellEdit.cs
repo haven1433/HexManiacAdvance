@@ -120,6 +120,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(SpriteDecorator sprite, byte data) => sprite.OriginalFormat.Visit(this, data);
 
+      public void Visit(StreamEndDecorator decorator, byte data) {
+         if (Input == '[') {
+            Result = true;
+         } else {
+            decorator.OriginalFormat.Visit(this, data);
+         }
+      }
+
       public void Visit(PCS pcs, byte data) {
          // don't let it start with a space unless it's in quotes (for copy/paste)
          var run = Model.GetNextRun(MemoryLocation);
@@ -222,6 +230,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       }
 
       public void Visit(Tuple tuple, byte data) {
+         if (Input == ' ' || Input == '+') {
+            Result = false;
+            return;
+         }
+
          Result = true;
          var autocompleteVisitor = new AutocompleteCell(Model, Input.ToString(), MemoryLocation);
          tuple.Visit(autocompleteVisitor, data);

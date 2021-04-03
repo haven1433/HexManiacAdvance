@@ -79,6 +79,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(SpriteDecorator sprite, byte data) => sprite.OriginalFormat.Visit(this, data);
 
+      public void Visit(StreamEndDecorator decorator, byte data) {
+         if (CurrentText == "[]") {
+            var run = (TableStreamRun)Model.GetNextRun(memoryLocation);
+            var newDesiredElementCount = (memoryLocation - run.Start) / run.ElementLength;
+            var newRun = run.Append(CurrentChange, newDesiredElementCount - run.ElementCount);
+            Model.ObserveRunWritten(CurrentChange, newRun);
+            for (int i = newRun.Length; i < run.Length; i++) CurrentChange.ChangeData(Model, newRun.Start + i, 0xFF);
+            var endTokenLength = run.Length - run.ElementLength * run.ElementCount;
+            NewDataIndex = memoryLocation + endTokenLength;
+            Result = true;
+         } else {
+            decorator.OriginalFormat.Visit(this, data);
+         }
+      }
+
       public void Visit(PCS pcs, byte data) => VisitPCS(pcs);
 
       private void VisitPCS(IDataFormatStreamInstance pcs) {
@@ -345,7 +360,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(DataFormats.Tuple tuple, byte data) {
          Result = CurrentText.EndsWith(")");
          if (CurrentText.EndsWith(" ")) {
-            var tokens = CurrentText.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            var tokens = CurrentText.Split(new[] { ' ', '(', ')' }, StringSplitOptions.RemoveEmptyEntries).ToList();
             TableStreamRun.Recombine(tokens, "\"", "\"");
             if (tokens.Count == tuple.Model.VisibleElementCount) Result = true;
          }
