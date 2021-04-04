@@ -774,6 +774,41 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(12, Model.GetNextRun(0).Length);
       }
 
+      [Fact]
+      public void PointerTable_Delete_PointerIsNull() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("@100 ^text1\"\" Adam\"");
+         ViewPort.Edit("@120 ^text2\"\" Bob\"");
+         ViewPort.Edit("@140 ^text3\"\" Carl\"");
+         ViewPort.Edit("@160 ^text4\"\" Dave\"");
+         ViewPort.Edit("@00 <text1> <text2> <text3> <text4> @00 ^table[text<\"\">]4 ");
+
+         ViewPort.SelectionStart = new Point(4, 0);
+         ViewPort.Clear.Execute();
+
+         Assert.Equal(Model.GetAddressFromAnchor(ViewPort.CurrentChange, -1, "text1"), Model.ReadPointer(0));
+         Assert.Equal(Pointer.NULL, Model.ReadPointer(4));
+      }
+
+      [Fact]
+      public void PointerTable_DeleteMultiplePointers_OnlyThoseAreNull() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("@100 ^text1\"\" Adam\"");
+         ViewPort.Edit("@120 ^text2\"\" Bob\"");
+         ViewPort.Edit("@140 ^text3\"\" Carl\"");
+         ViewPort.Edit("@160 ^text4\"\" Dave\"");
+         ViewPort.Edit("@00 <text1> <text2> <text3> <text4> @00 ^table[text<\"\">]4 ");
+
+         ViewPort.SelectionStart = new Point(4, 0);
+         ViewPort.SelectionEnd = new Point(11, 0);
+         ViewPort.Clear.Execute();
+
+         Assert.Equal(Model.GetAddressFromAnchor(ViewPort.CurrentChange, -1, "text1"), Model.ReadPointer(0));
+         Assert.Equal(Pointer.NULL, Model.ReadPointer(4));
+         Assert.Equal(Pointer.NULL, Model.ReadPointer(8));
+         Assert.Equal(Model.GetAddressFromAnchor(ViewPort.CurrentChange, -1, "text4"), Model.ReadPointer(12));
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);

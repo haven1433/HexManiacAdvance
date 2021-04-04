@@ -41,7 +41,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          if (errorInfo == ErrorInfo.NoError) {
             run = arrayRun;
          } else if (Format != string.Empty) {
-            return new ErrorInfo($"Format {Format} was not understood.");
+            return new ErrorInfo($"Format {Format} was not understood: " + errorInfo.ErrorMessage);
          }
 
          return ErrorInfo.NoError;

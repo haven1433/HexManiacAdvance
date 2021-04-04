@@ -735,9 +735,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   var start = arrayRun.Start + arrayRun.ElementLength * i;
                   if (start + arrayRun.ElementLength <= left) continue;
                   if (start > right) break;
-                  for (int j = 0; j < arrayRun.ElementLength; j++) history.CurrentChange.ChangeData(Model, start + j, 0xFF);
+                  for (int j = 0; j < arrayRun.ElementContent.Count; j++) {
+                     start = arrayRun.Start + arrayRun.ElementLength * i + arrayRun.ElementContent.Take(j).Sum(seg => seg.Length);
+                     if (start + arrayRun.ElementContent[j].Length <= left) continue;
+                     if (start > right) break;
+                     for (int k = 0; k < arrayRun.ElementContent[j].Length; k++) {
+                        if (arrayRun.ElementContent[j].Type == ElementContentType.Pointer) {
+                           history.CurrentChange.ChangeData(Model, start + k, 0x00);
+                        } else {
+                           history.CurrentChange.ChangeData(Model, start + k, 0xFF);
+                        }
+                     }
+                  }
                }
-            } else if (startRun == endRun && (startRun.Start<left || startRun.Start + startRun.Length > right + 1)) {
+            } else if (startRun == endRun && (startRun.Start < left || startRun.Start + startRun.Length > right + 1)) {
                // clearing _within_ a single run
                Model.ClearData(history.CurrentChange, left, right - left + 1);
             } else {
