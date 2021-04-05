@@ -15,6 +15,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using static HavenSoft.HexManiac.Core.ICommandExtensions;
 using static HavenSoft.HexManiac.Core.Models.Runs.ArrayRun;
@@ -507,13 +508,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #region Progress
 
+      private readonly IWorkDispatcher dispatcher;
+
       private double progress;
       public double Progress { get => progress; set => Set(ref progress, value); }
 
       private bool updateInProgress;
       public bool UpdateInProgress { get => updateInProgress; set => Set(ref updateInProgress, value); }
 
-      private int initialWorkLoad;
+      private int initialWorkLoad, postEditWork; // describes the amount of work to complete, measured characters. Allows for a fairly accurate loading bar.
       private readonly List<IDisposable> CurrentProgressScopes = new List<IDisposable>();
 
       public InlineDispatch UpdateProgress(double value) {
@@ -980,17 +983,36 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Refresh();
       }
 
-      private readonly IWorkDispatcher dispatcher;
+      /// <summary>
+      /// The primary Edit method.
+      /// If the edit is large, this will create a loading bar that runs from 0 to 100%,
+      /// with parts of the edit split off to happen over time.
+      /// </summary>
       public void Edit(string input) {
-         if (!UpdateInProgress) {
-            UpdateInProgress = true;
-            CurrentProgressScopes.Insert(0, tools.DeferUpdates);
-            CurrentProgressScopes.Insert(0, ModelCacheScope.CreateScope(Model));
-            initialWorkLoad = input.Length;
-         }
+         UpdateInProgress = true;
+         CurrentProgressScopes.Insert(0, tools.DeferUpdates);
+         initialWorkLoad = input.Length;
+         postEditWork = 0;
+         EditCore(input);
+      }
 
+      /// <summary>
+      /// A separate Edit method that assumes that the edit is part of a larger operation.
+      /// The loading bar will still be cleared after the edit, just in case.
+      /// But this messes with how the loading bar will fill.
+      /// </summary>
+      public async Task Edit(string input, double startPercent, double endPercent) {
+         CurrentProgressScopes.Insert(0, tools.DeferUpdates);
+         initialWorkLoad = (int)(input.Length / (endPercent - startPercent));
+         postEditWork = (int)((1 - endPercent) * initialWorkLoad);
+         initialWorkLoad -= postEditWork;
+         await EditCoreAsync(input);
+      }
+
+      private const int DefaultChunkSize= 200;
+      private void EditCore(string input) {
          // allow chunking at newline boundaries only
-         int chunkSize = Math.Max(200, initialWorkLoad / 100);
+         int chunkSize = Math.Max(DefaultChunkSize, initialWorkLoad / 100);
          var maxSize = input.Length;
 
          if (dispatcher != null && input.Length > chunkSize) {
@@ -999,6 +1021,43 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          exitEditEarly = false;
+         int i = EditHelper(input, maxSize);
+
+         if (exitEditEarly) {
+            ClearEditWork();
+            Refresh();
+         } else if (input.Length > i) {
+            Progress = (double)(initialWorkLoad - input.Length) / (initialWorkLoad + postEditWork);
+            dispatcher.DispatchWork(() => EditCore(input.Substring(i)));
+         } else {
+            ClearEditWork();
+         }
+      }
+
+      private async Task EditCoreAsync(string input) {
+         int chunkSize = Math.Max(DefaultChunkSize, initialWorkLoad / 100);
+         var maxSize = input.Length;
+
+         if (dispatcher != null && input.Length > chunkSize) {
+            var nextNewline = input.Substring(chunkSize).IndexOf('\n');
+            if (nextNewline != -1) maxSize = chunkSize + nextNewline + 1;
+         }
+
+         exitEditEarly = false;
+         int i = EditHelper(input, maxSize);
+
+         if (exitEditEarly) {
+            ClearEditWork();
+            Refresh();
+         } else if (input.Length > i) {
+            await UpdateProgress((double)(initialWorkLoad - input.Length) / (initialWorkLoad + postEditWork));
+            await EditCoreAsync(input.Substring(i));
+         } else {
+            ClearEditWork();
+         }
+      }
+
+      private int EditHelper(string input, int maxSize) {
          int i = 0;
          try {
             for (i = 0; i < input.Length && i < maxSize && !exitEditEarly; i++) {
@@ -1022,15 +1081,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             throw;
          }
 
-         if (exitEditEarly) {
-            ClearEditWork();
-            Refresh();
-         } else if (input.Length > i) {
-            Progress = (double)(initialWorkLoad - input.Length) / initialWorkLoad;
-            dispatcher.DispatchWork(() => Edit(input.Substring(i)));
-         } else {
-            ClearEditWork();
-         }
+         return i;
       }
 
       public void InsertThumbCode(string[] lines) {

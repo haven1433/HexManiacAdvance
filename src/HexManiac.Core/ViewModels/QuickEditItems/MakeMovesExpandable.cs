@@ -63,7 +63,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var parser = viewPort.Tools.CodeTool.Parser;
 
          ErrorInfo error;
-         error = await ExpandMoveEffects(parser, viewPort, token);
+         error = await ExpandMoveEffects(parser, viewPort, token, .5);
          if (error.HasError) return error;
 
          // update limiters for move names
@@ -71,32 +71,32 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
             new[] { "mov r0, #177", "lsl r0, r0, #1", "cmp r1, r0" },
             new[] { "mov r0, #177", "lsl r0, r0, #9", "cmp r1, r0" });
          if (error.HasError) return error;
-         await viewPort.UpdateProgress(.8);
+         await viewPort.UpdateProgress(.6);
 
          // update max level-up moves from 20 to 40
          //var code = model.GetGameCode();
          //error = AddStackSpace(parser, viewPort.Model, token, GetNumberOfRelearnableMoves[code], 48, 40);
          //if (error.HasError) return error;
          //foreach (var address in MaxLevelUpMoveCountLocations[code]) token.ChangeData(viewPort.Model, address, 40 - 1);
-         await viewPort.UpdateProgress(.9);
+         await viewPort.UpdateProgress(.7);
 
          // update levelup moves
          ExpandLevelUpMoveData(viewPort.Model, token);
-         ExpandLevelUpMoveCode(viewPort, token);
-         await viewPort.UpdateProgress(1);
+         await viewPort.UpdateProgress(.8);
+         await ExpandLevelUpMoveCode(viewPort, token, .8, 1);
 
          viewPort.Refresh();
          return ErrorInfo.NoError;
       }
 
-      public static async Task<ErrorInfo> ExpandMoveEffects(ThumbParser parser, IEditableViewPort viewPort, ModelDelta token) {
+      public static async Task<ErrorInfo> ExpandMoveEffects(ThumbParser parser, IEditableViewPort viewPort, ModelDelta token, double targetLoadingPercent) {
          // make move effects 2 bytes instead of 1 byte
          var model = viewPort.Model;
          var table = model.GetTable(MoveDataTable);
          var fieldNames = table.ElementContent.Select(seg => seg.Name).ToArray();
          async Task<ErrorInfo> shiftField(int i) {
             var result = RefactorMoveByteFieldInTable(parser, model, token, MoveDataTable, fieldNames[i], i + 1);
-            await viewPort.UpdateProgress((9 - i) / 8.0 * 0.7);
+            await viewPort.UpdateProgress((9 - i) / 8.0 * targetLoadingPercent);
             return result;
          }
 
@@ -288,9 +288,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          model.ObserveAnchorWritten(token, LevelMovesTableName, newTableRun);
       }
 
-      public static void ExpandLevelUpMoveCode(IEditableViewPort viewPort, ModelDelta token) {
+      public static async Task ExpandLevelUpMoveCode(IEditableViewPort viewPort, ModelDelta token, double loadingStart, double loadingEnd) {
          var script = File.ReadAllText(ExpandLevelUpMovesCode);
-         viewPort.Edit(script);
+         await viewPort.Edit(script, loadingStart, loadingEnd);
       }
 
       public void TabChanged() => CanRunChanged?.Invoke(this, EventArgs.Empty);

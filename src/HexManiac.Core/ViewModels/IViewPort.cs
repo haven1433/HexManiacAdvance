@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
@@ -65,6 +66,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       Point SelectionEnd { get; }
       new string AnchorText { get; set; }
       void Edit(string input);
+      Task Edit(string input, double loadingPercentBeforeEdit, double loadingPercentAfterEdit);
       void Edit(ConsoleKey key);
       InlineDispatch UpdateProgress(double value);
       void ClearProgress();
