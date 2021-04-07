@@ -156,7 +156,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var data = new List<int>();
          var pokemonNames = cachedPokenames.Select(name => $"{GroupStart}{name.Trim('"').ToLower()}{GroupEnd}").ToList();
          var moveNames = cachedMovenames.Select(name => name.Trim('"').ToLower()).ToList();
-         var lines = content.ToLower().Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+         var lines = content.ToLower().Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
          foreach (var line in lines) {
             var index = pokemonNames.IndexOf(line);
             if (index != -1) { data.Add(index + MagicNumber); continue; }
