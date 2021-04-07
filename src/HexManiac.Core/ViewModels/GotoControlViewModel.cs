@@ -40,8 +40,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
       public void RefreshOptions() {
          var options = viewPort?.Model.GetExtendedAutocompleteOptions(text);
-         AutoCompleteOptions = AutoCompleteSelectionItem.Generate(options, completionIndex);
-         ShowAutoCompleteOptions = AutoCompleteOptions.Count > 0;
          UpdatePrefixSelectionsAfterTextChange();
       }
 
@@ -51,9 +49,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          set {
             if (value < -1) value = autoCompleteOptions.Count - 1;
             if (value >= autoCompleteOptions.Count) value = -1;
-            if (TryUpdate(ref completionIndex, value)) {
-               AutoCompleteOptions = AutoCompleteSelectionItem.Generate(AutoCompleteOptions.Select(option => option.CompletionText), completionIndex);
-            }
+            Set(ref completionIndex, value);
          }
       }
 

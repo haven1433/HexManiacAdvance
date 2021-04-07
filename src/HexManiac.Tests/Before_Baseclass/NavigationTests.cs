@@ -208,41 +208,6 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
-      public void GotoAutoCompleteNavigationCommandsWork() {
-         var tab = new StubViewPort {
-            Goto = new StubCommand { CanExecute = ICommandExtensions.CanAlwaysExecute },
-            Model = new StubDataModel {
-               GetAutoCompleteAnchorNameOptions = (str, max) => new List<string> {
-                  "Option 1",
-                  "Option 2",
-                  "Option 3",
-               },
-               Equals = arg => arg is StubDataModel,
-            },
-         };
-         var viewModel = new GotoControlViewModel(tab, InstantDispatch.Instance);
-
-         Assert.False(viewModel.ControlVisible);
-         viewModel.ShowGoto.Execute(true);
-         Assert.True(viewModel.ControlVisible);
-
-         Assert.False(viewModel.ShowAutoCompleteOptions);
-         viewModel.Text = "Something";
-         Assert.True(viewModel.ShowAutoCompleteOptions);
-         Assert.Equal(3, viewModel.AutoCompleteOptions.Count);
-         Assert.All(viewModel.AutoCompleteOptions, option => Assert.False(option.IsSelected));
-
-         viewModel.MoveAutoCompleteSelectionDown.Execute();
-         Assert.True(viewModel.AutoCompleteOptions[0].IsSelected);
-
-         viewModel.MoveAutoCompleteSelectionDown.Execute();
-         Assert.True(viewModel.AutoCompleteOptions[1].IsSelected);
-
-         viewModel.MoveAutoCompleteSelectionUp.Execute();
-         Assert.True(viewModel.AutoCompleteOptions[0].IsSelected);
-      }
-
-      [Fact]
       public void CanGotoUsingAtSymbol() {
          StandardSetup(out _, out _, out var viewPort);
 

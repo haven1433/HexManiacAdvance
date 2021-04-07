@@ -15,35 +15,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public AutoCompleteSelectionItem(string text, bool selection) => (CompletionText, DisplayText, IsSelected) = (text, text, selection);
       public AutoCompleteSelectionItem(string display, string completion, bool selection) => (DisplayText, CompletionText, IsSelected) = (display, completion, selection);
 
-      public static int SelectedIndex(IReadOnlyList<AutoCompleteSelectionItem> options) {
-         for (int i = 0; i < options.Count; i++) {
-            if (options[i].IsSelected) return i;
+      public static int SelectedIndex(IEnumerable<AutoCompleteSelectionItem> options) {
+         int index = 0;
+         foreach (var option in options) {
+            if (option.IsSelected) return index;
+            index += 1;
          }
          return -1;
       }
 
-      public static IReadOnlyList<AutoCompleteSelectionItem> Generate(IEnumerable<string> options, int selectionIndex) {
-         var list = new List<AutoCompleteSelectionItem>();
-
+      public static IEnumerable<AutoCompleteSelectionItem> Generate(IEnumerable<string> options, int selectionIndex) {
          int i = 0;
          foreach (var option in options ?? new string[0]) {
-            list.Add(new AutoCompleteSelectionItem(option, i == selectionIndex));
+            yield return new AutoCompleteSelectionItem(option, i == selectionIndex);
             i++;
          }
-
-         return list;
       }
 
-      public static IReadOnlyList<AutoCompleteSelectionItem> Generate(IEnumerable<AutocompleteItem> options, int selectionIndex) {
-         var list = new List<AutoCompleteSelectionItem>();
-
+      public static IEnumerable<AutoCompleteSelectionItem> Generate(IEnumerable<AutocompleteItem> options, int selectionIndex) {
          int i = 0;
          foreach (var option in options) {
-            list.Add(new AutoCompleteSelectionItem(option.Text, option.LineText, i == selectionIndex));
+            yield return new AutoCompleteSelectionItem(option.Text, option.LineText, i == selectionIndex);
             i++;
          }
-
-         return list;
       }
 
       public bool Equals(AutoCompleteSelectionItem other) {

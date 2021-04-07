@@ -59,13 +59,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                Dispose = () => {
                   var workingCopy = deferredWork.ToList();
                   runningDeferredWork = true;
+                  currentDeferralToken = null;
                   using (new StubDisposable { Dispose = () => runningDeferredWork = false }) {
                      foreach (var action in workingCopy) {
                         action();
                         deferredWork.Remove(action);
                      }
                   }
-                  currentDeferralToken = null;
                }
             };
             return currentDeferralToken;
@@ -114,8 +114,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public void Schedule(Action action) {
-         Debug.Assert(!runningDeferredWork, "Scheduling deferred work while deferred work is running is not safe!");
          if (currentDeferralToken != null) {
+            Debug.Assert(!runningDeferredWork, "Scheduling deferred work while deferred work is running is not safe!");
             deferredWork.Add(action);
          } else {
             action();

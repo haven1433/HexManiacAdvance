@@ -233,6 +233,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      private void UpdateToolsFromSelection() => UpdateToolsFromSelection(ConvertViewPointToAddress(SelectionStart));
       public void UpdateToolsFromSelection(int dataIndex) {
          var run = Model.GetNextRun(dataIndex);
          if (run.Start > dataIndex) {
@@ -898,7 +899,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (format is UnderEdit underEdit && underEdit.AutocompleteOptions != null && underEdit.AutocompleteOptions.Count > 0) {
             int index = -1;
             for (int i = 0; i < underEdit.AutocompleteOptions.Count; i++) if (underEdit.AutocompleteOptions[i].IsSelected) index = i;
-            var options = default(IReadOnlyList<AutoCompleteSelectionItem>);
+            var options = default(IEnumerable<AutoCompleteSelectionItem>);
             if (direction == Direction.Up) {
                index -= 1;
                if (index < -1) index = underEdit.AutocompleteOptions.Count - 1;
@@ -1296,7 +1297,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          // backspace in progress with characters left: just clear a character
          if (underEdit != null && underEdit.CurrentText.Length > 0) {
             var newText = underEdit.CurrentText.Substring(0, underEdit.CurrentText.Length - 1);
-            var options = underEdit.AutocompleteOptions;
+            IEnumerable<AutoCompleteSelectionItem> options = underEdit.AutocompleteOptions;
             if (options != null) {
                var selectedIndex = AutoCompleteSelectionItem.SelectedIndex(underEdit.AutocompleteOptions);
                options = GetAutocompleteOptions(underEdit.OriginalFormat, cellValue, newText, selectedIndex);
@@ -1943,7 +1944,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      private IReadOnlyList<AutoCompleteSelectionItem> GetAutocompleteOptions(IDataFormat originalFormat, byte value, string newText, int selectedIndex = -1) {
+      private IEnumerable<AutoCompleteSelectionItem> GetAutocompleteOptions(IDataFormat originalFormat, byte value, string newText, int selectedIndex = -1) {
          using (ModelCacheScope.CreateScope(Model)) {
             var visitor = new AutocompleteCell(Model, newText, selectedIndex);
             (originalFormat ?? Undefined.Instance).Visit(visitor, value);
@@ -2122,7 +2123,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      RefreshBackingData();
                   }
 
-                  UpdateToolsFromSelection(completeEditOperation.NewDataIndex);
+                  tools.Schedule(UpdateToolsFromSelection);
                }
             }
 

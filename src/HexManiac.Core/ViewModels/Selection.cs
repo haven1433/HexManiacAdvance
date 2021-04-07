@@ -170,7 +170,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      GotoAddress(result + offset);
                   } else {
                      address = address.ToLower().Trim();
-                     var options = model.GetAutoCompleteAnchorNameOptions(address);
+                     var options = model.GetAutoCompleteAnchorNameOptions(address).ToList();
                      if (!address.Contains("/") && options.All(option => !option.ToLower().Contains(address))) {
                         options = options.Concat(model.GetAutoCompleteAnchorNameOptions("/" + address)).ToList();
                      }

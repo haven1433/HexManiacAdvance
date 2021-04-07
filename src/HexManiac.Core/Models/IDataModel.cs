@@ -86,12 +86,12 @@ namespace HavenSoft.HexManiac.Core.Models {
       bool TryGetUnmappedConstant(string name, out int value);
       int GetAddressFromAnchor(ModelDelta changeToken, int requestSource, string anchor);
       string GetAnchorFromAddress(int requestSource, int destination);
-      IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial, int maxResults = 30);
+      IEnumerable<string> GetAutoCompleteAnchorNameOptions(string partial, int maxResults = 30);
       StoredMetadata ExportMetadata(IMetadataInfo metadataInfo);
       void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, int address, int destination);
       int ConsiderResultsAsTextRuns(ModelDelta changeToken, IReadOnlyList<int> startLocations);
       void AfterInitialized(Action action);
-      IReadOnlyList<string> GetAutoCompleteByteNameOptions(string text);
+      IEnumerable<string> GetAutoCompleteByteNameOptions(string text);
       IReadOnlyList<int> GetMatchedWords(string name);
    }
 
@@ -295,9 +295,9 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       public virtual int ConsiderResultsAsTextRuns(ModelDelta changeToken, IReadOnlyList<int> startLocations) => 0;
 
-      public virtual IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial, int maxResults = 30) => new string[0];
+      public virtual IEnumerable<string> GetAutoCompleteAnchorNameOptions(string partial, int maxResults = 30) => new string[0];
 
-      public virtual IReadOnlyList<string> GetAutoCompleteByteNameOptions(string text) => new string[0];
+      public virtual IEnumerable<string> GetAutoCompleteByteNameOptions(string text) => new string[0];
 
       public virtual StoredMetadata ExportMetadata(IMetadataInfo metadataInfo) => null;
 
@@ -450,27 +450,27 @@ namespace HavenSoft.HexManiac.Core.Models {
          return startPlaces;
       }
 
-      public static IReadOnlyList<AutoCompleteSelectionItem> GetNewPointerAutocompleteOptions(this IDataModel model, string text, int selectedIndex) {
+      public static IEnumerable<AutoCompleteSelectionItem> GetNewPointerAutocompleteOptions(this IDataModel model, string text, int selectedIndex) {
          var options = model.GetAutoCompleteAnchorNameOptions(text.Substring(1));
-         if (text.StartsWith(PointerRun.PointerStart.ToString())) options = options.Select(option => $"{PointerRun.PointerStart}{option}{PointerRun.PointerEnd}").ToList();
-         if (text.StartsWith(ViewPort.GotoMarker.ToString())) options = options.Select(option => $"{ViewPort.GotoMarker}{option} ").ToList();
+         if (text.StartsWith(PointerRun.PointerStart.ToString())) options = options.Select(option => $"{PointerRun.PointerStart}{option}{PointerRun.PointerEnd}");
+         if (text.StartsWith(ViewPort.GotoMarker.ToString())) options = options.Select(option => $"{ViewPort.GotoMarker}{option} ");
          return AutoCompleteSelectionItem.Generate(options, selectedIndex);
       }
 
-      public static IReadOnlyList<AutoCompleteSelectionItem> GetNewWordAutocompleteOptions(this IDataModel model, string text, int selectedIndex) {
-         IReadOnlyList<string> options;
+      public static IEnumerable<AutoCompleteSelectionItem> GetNewWordAutocompleteOptions(this IDataModel model, string text, int selectedIndex) {
+         IEnumerable<string> options;
 
          if (text.StartsWith(".")) {
             text = text.Substring(1);
             options = model.GetAutoCompleteByteNameOptions(text);
-            options = options.Select(option => $".{option} ").ToList();
+            options = options.Select(option => $".{option} ");
             return AutoCompleteSelectionItem.Generate(options, selectedIndex);
          }
 
          if (text.Length >= 2) text = text.Substring(2);
          else return null;
          options = model.GetAutoCompleteAnchorNameOptions(text);
-         options = options.Select(option => $"::{option} ").ToList();
+         options = options.Select(option => $"::{option} ");
          return AutoCompleteSelectionItem.Generate(options, selectedIndex);
       }
 

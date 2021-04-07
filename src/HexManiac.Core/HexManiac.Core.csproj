@@ -49,6 +49,7 @@
     <Compile Include="Models\Code\ScriptParser.cs" />
     <Compile Include="Models\Code\ThumbParser.cs" />
     <Compile Include="Models\HardcodeTablesModel.cs" />
+    <Compile Include="Models\LazyList.cs" />
     <Compile Include="Models\ModelTable.cs" />
     <Compile Include="Models\Runs\ArrayRun.cs" />
     <Compile Include="Models\ErrorInfo.cs" />

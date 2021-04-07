@@ -11,7 +11,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public string InputText { get; }
       public int SelectionIndex { get; }
 
-      public IReadOnlyList<AutoCompleteSelectionItem> Result { get; private set; }
+      public IEnumerable<AutoCompleteSelectionItem> Result { get; private set; }
 
       public AutocompleteCell(IDataModel model, string input, int index) => (Model, InputText, SelectionIndex) = (model, input, index);
 

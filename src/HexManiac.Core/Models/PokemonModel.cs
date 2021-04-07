@@ -1716,19 +1716,20 @@ namespace HavenSoft.HexManiac.Core.Models {
          (singletons?.WorkDispatcher ?? InstantDispatch.Instance).RunBackgroundWork(() => Initialize(metadata));
       }
 
-      public override IReadOnlyList<string> GetAutoCompleteAnchorNameOptions(string partial, int maxResults = 30) {
+      public override IEnumerable<string> GetAutoCompleteAnchorNameOptions(string partial, int maxResults = 30) {
          lock (threadlock) {
             partial = partial.ToLower();
             var mappedNames = addressForAnchor.Keys.ToList();
 
-            var results = new List<string>();
+            var resultsCount = 0;
 
             if (!partial.Contains(ArrayAnchorSeparator)) {
                foreach (var index in SystemExtensions.FindMatches(partial, mappedNames)) {
-                  results.Add(mappedNames[index]);
-                  if (results.Count == maxResults) break;
+                  yield return mappedNames[index];
+                  resultsCount += 1;
+                  if (resultsCount == maxResults) break;
                }
-               return results;
+               yield break;
             }
 
             var nameParts = partial.Split(ArrayAnchorSeparator);
@@ -1742,27 +1743,25 @@ namespace HavenSoft.HexManiac.Core.Models {
                   var includedBits = sanitizedName.BitLetters();
                   if ((seekBits & ~includedBits) != 0) continue;
                   if (!sanitizedName.MatchesPartialWithReordering(nameParts[0])) continue;
-                  results.AddRange(GetAutoCompleteOptions(name + ArrayAnchorSeparator, run, nameParts.Skip(1).ToArray()));
+                  foreach (var option in GetAutoCompleteOptions(name + ArrayAnchorSeparator, run, nameParts.Skip(1).ToArray())) {
+                     yield return option;
+                     resultsCount += 1;
+                     if (resultsCount >= maxResults) yield break;
+                  }
                }
             }
-
-            // limit it to the first MaxResults options for performance
-            if (results.Count > maxResults) results.RemoveRange(maxResults, results.Count - maxResults);
-            return results;
          }
       }
 
-      public override IReadOnlyList<string> GetAutoCompleteByteNameOptions(string text) {
+      public override IEnumerable<string> GetAutoCompleteByteNameOptions(string text) {
          var seekBits = text.BitLetters();
-         var results = new List<string>(0);
          foreach (var key in matchedWords.Keys) {
             var includedBits = key.BitLetters();
             if ((seekBits & ~includedBits) != 0) continue;
             if (key.MatchesPartialWithReordering(text)) {
-               results.Add(key);
+               yield return key;
             }
          }
-         return results;
       }
 
       /// <summary>

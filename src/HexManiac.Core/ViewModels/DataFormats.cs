@@ -83,6 +83,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public string CurrentText { get; }
       public int EditWidth { get; }
       public IReadOnlyList<AutoCompleteSelectionItem> AutocompleteOptions { get; }
+      public UnderEdit(IDataFormat original, string text, int editWidth, IEnumerable<AutoCompleteSelectionItem> autocompleteOptions) :
+         this(original, text, editWidth, autocompleteOptions != null ? new LazyList<AutoCompleteSelectionItem>(autocompleteOptions) : default(IReadOnlyList<AutoCompleteSelectionItem>)) { }
       public UnderEdit(IDataFormat original, string text, int editWidth = 1, IReadOnlyList<AutoCompleteSelectionItem> autocompleteOptions = null) {
          OriginalFormat = original;
          CurrentText = text;
