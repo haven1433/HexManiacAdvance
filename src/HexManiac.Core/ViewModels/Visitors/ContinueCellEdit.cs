@@ -90,12 +90,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(Ascii ascii, byte data) => throw new NotImplementedException();
 
       public void Visit(Integer integer, byte data) {
-         Result = integer.CanStartWithCharacter(Input) || char.IsWhiteSpace(Input);
+         Result = integer.CanStartWithCharacter(Input) || char.IsWhiteSpace(Input) || Input == ')';
       }
 
       public void Visit(IntegerEnum integer, byte data) {
          Result = integer.CanStartWithCharacter(Input) ||
-            ".'~|,".Contains(Input) ||
+            ".'~|,)".Contains(Input) ||
             char.IsWhiteSpace(Input);
       }
 

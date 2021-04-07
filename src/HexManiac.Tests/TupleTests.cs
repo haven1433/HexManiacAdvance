@@ -329,6 +329,19 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(1, run.ElementCount);
       }
 
+      [Fact]
+      public void TupleSyntax_ApplyToNormalElements_StillWorks() {
+         Model.SetList("options", new[] { "adam", "brad", "carl", "dave" });
+         ViewPort.Edit("^table[number: name:options]4 ");
+
+         ViewPort.Edit("(10 brad) (20 carl)");
+
+         Assert.Equal(10, Model[0]);
+         Assert.Equal(1,  Model[2]);
+         Assert.Equal(20, Model[4]);
+         Assert.Equal(2,  Model[6]);
+      }
+
       private TupleArrayElementViewModel TupleTable => (TupleArrayElementViewModel)ViewPort.Tools.TableTool.Children.Where(child => child is TupleArrayElementViewModel).Single();
    }
 }

@@ -135,7 +135,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             Result = true;
          }
 
-         if (char.IsWhiteSpace(CurrentText.Last())) {
+         if (char.IsWhiteSpace(CurrentText.Last()) || CurrentText.Last() == ')') {
             CompleteIntegerEdit(integer);
             Result = true;
          }
@@ -145,7 +145,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          // must end in whitespace or must have matching quotation marks (ex. "Mr. Mime")
          var quoteCount = CurrentText.Count(c => c == '"');
 
-         if (quoteCount == 0 && char.IsWhiteSpace(CurrentText.Last())) {
+         if (quoteCount == 0 && (char.IsWhiteSpace(CurrentText.Last()) || CurrentText.Last() == ')')) {
             CompleteIntegerEnumEdit();
             Result = true;
          } else if (quoteCount == 2) {
@@ -155,7 +155,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       }
 
       public void Visit(IntegerHex integerHex, byte data) {
-         if (char.IsWhiteSpace(CurrentText.Last())) {
+         if (char.IsWhiteSpace(CurrentText.Last()) || CurrentText.Last() == ')') {
             CompleteIntegerHexEdit(integerHex);
             Result = true;
          }
@@ -400,8 +400,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       }
 
       private void CompleteIntegerHexEdit(IntegerHex integerHex) {
-         if(!int.TryParse(CurrentText,NumberStyles.HexNumber,CultureInfo.CurrentCulture,out var result)) {
-            ErrorText = $"Could not parse {CurrentText} as a number";
+         string sanitizedText = CurrentText.Replace(')', ' ');
+         if (!int.TryParse(sanitizedText, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var result)) {
+            ErrorText = $"Could not parse {CurrentText} as a hex number";
             return;
          }
 
@@ -411,7 +412,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       }
 
       private void CompleteIntegerEdit(Integer integer) {
-         if (!int.TryParse(CurrentText, out var result)) {
+         string sanitizedText = CurrentText.Replace(')', ' ');
+         if (!int.TryParse(sanitizedText, out var result)) {
             ErrorText = $"Could not parse {CurrentText} as a number";
             return;
          }
@@ -495,14 +497,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       }
 
       private void CompleteIntegerEnumEdit() {
+         string sanitizedText = CurrentText.Replace(')', ' ');
          var array = (ITableRun)Model.GetNextRun(memoryLocation);
          var offsets = array.ConvertByteOffsetToArrayOffset(memoryLocation);
          var segment = (ArrayRunEnumSegment)array.ElementContent[offsets.SegmentIndex];
-         if (segment.TryParse(Model, CurrentText, out int value)) {
+         if (segment.TryParse(Model, sanitizedText, out int value)) {
             Model.WriteMultiByteValue(offsets.SegmentStart, segment.Length, CurrentChange, value);
             NewDataIndex = offsets.SegmentStart + segment.Length;
          } else {
-            ErrorText = $"Could not parse {CurrentText}as an enum from the {segment.EnumName} array";
+            ErrorText = $"Could not parse {CurrentText} as an enum from the {segment.EnumName} array";
          }
       }
 
