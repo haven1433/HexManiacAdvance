@@ -1297,7 +1297,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             // if the space we want intersects the current run, then skip past the current run
             if (start + minimumLength > currentRun.Start) {
                start = currentRun.Start + currentRun.Length + FreeSpaceBuffer;
-               start -= start % 4;
+               var modulo = start % 4;
+               if (modulo != 0) start += 4 - modulo;
                continue;
             }
 
@@ -1306,7 +1307,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             for (int i = start; i < start + minimumLength; i++) if (RawData[i] != 0xFF) lastConflictingData = i;
             if (lastConflictingData != -1) {
                start = lastConflictingData + FreeSpaceBuffer;
-               start -= start % 4;
+               var modulo = start % 4;
+               if (modulo != 0) start += 4 - modulo;
                continue;
             }
 

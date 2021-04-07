@@ -74,14 +74,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          await viewPort.UpdateProgress(.6);
 
          // update max level-up moves from 20 to 40
-         //var code = model.GetGameCode();
-         //error = AddStackSpace(parser, viewPort.Model, token, GetNumberOfRelearnableMoves[code], 48, 40);
-         //if (error.HasError) return error;
-         //foreach (var address in MaxLevelUpMoveCountLocations[code]) token.ChangeData(viewPort.Model, address, 40 - 1);
          await viewPort.UpdateProgress(.7);
 
          // update levelup moves
-         ExpandLevelUpMoveData(viewPort.Model, token);
+         var storeFreeSpaceBuffer = viewPort.Model.FreeSpaceBuffer;
+         viewPort.Model.FreeSpaceBuffer = 0;
+         using (new StubDisposable { Dispose = () => viewPort.Model.FreeSpaceBuffer = storeFreeSpaceBuffer }) {
+            ExpandLevelUpMoveData(viewPort.Model, token);
+         }
          await viewPort.UpdateProgress(.8);
          await ExpandLevelUpMoveCode(viewPort, token, .8, 1);
 
@@ -213,31 +213,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          return ErrorInfo.NoError;
       }
 
-      //public static ErrorInfo AddStackSpace(ThumbParser parser, IDataModel model, ModelDelta token, int funcStart, int stackAddOffset, int stackAddCount) {
-      //   for (int i = funcStart; true; i += 2) {
-      //      var commandLine = parser.Parse(model, i, 2).Trim().SplitLines().Last().Trim();
-      //      if (commandLine.Contains("[sp, ")) {
-      //         if (commandLine.StartsWith("str ") || commandLine.StartsWith("ldr ")) {
-      //            var currentValue = model[i] * 4;
-      //            if (currentValue >= stackAddOffset) {
-      //               var newValue = (currentValue + stackAddCount) / 4;
-      //               if (newValue > 255) return new ErrorInfo($"{i:X6}: Could not add {stackAddCount}, the result would be larger than 1020.");
-      //               token.ChangeData(model, i, (byte)newValue);
-      //            }
-      //         }
-      //      }
-      //      if (commandLine.Contains("  sp, ")) {
-      //         var writer = new TupleSegment(default, 7);
-      //         var value = writer.Read(model, i, 0) * 4;
-      //         value += stackAddCount;
-      //         writer.Write(model, token, i, 0, value / 4);
-      //      }
-      //      if (commandLine.StartsWith("bx ")) break;
-      //   }
-
-      //   return ErrorInfo.NoError;
-      //}
-
       public static ErrorInfo ReplaceAll(ThumbParser parser, IDataModel model, ModelDelta token, string[] inputCode, string[] outputCode) {
          var search = parser.Compile(model, 0, out var _, inputCode);
          var replace = parser.Compile(model, 0, out var _, outputCode);
@@ -250,6 +225,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       }
 
       public static void ExpandLevelUpMoveData(IDataModel model, ModelDelta token) {
+         // Note that ALL the data changes before ANY new metadata gets written.
+         // This means that edited data blocks will get seen as NoInfoRuns during the write.
          var levelMovesTable = model.GetTable(LevelMovesTableName);
          for (int i = 0; i < levelMovesTable.ElementCount; i++) {
             var pokemonMovesStart = model.ReadPointer(levelMovesTable.Start + levelMovesTable.ElementLength * i);
@@ -270,6 +247,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
             model.ClearFormat(token, newMovesLocation.Start, newMovesLocation.Length);
             for (int j = 0; j < newData.Length; j++) token.ChangeData(model, newMovesLocation.Start + j, newData[j]);
             for (int j = 0; j < 4; j++) token.ChangeData(model, newMovesLocation.Start + newData.Length + j, 0xFF);
+
+            // update FreeSpaceStart to just after the current run ends.
+            model.FreeSpaceStart = newMovesLocation.Start + newData.Length + 4;
          }
 
          // write metadata
