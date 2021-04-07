@@ -402,6 +402,9 @@ graphics.townmap.tileset,                      ,       ,       ,       , 0C0330,
 graphics.townmap.tileset,                      ,       ,       ,       ,       ,       ,       , , 122E14, `lzt8|graphics.townmap.palette`
 graphics.townmap.tilemap,                      ,       ,       ,       , 0C035C, 0C0330, 0C0370, 0C0344, , `lzm4x30x20|graphics.townmap.tileset`
 graphics.townmap.tilemap,                      ,       ,       ,       ,       ,       ,       , , 122E60, `lzm8x64x64|graphics.townmap.tileset`
+graphics.townmap.pokedex.palette,              ,,,, ,,,,                                           1C4E80, `ucp4:789`
+graphics.townmap.pokedex.tileset,              ,,,, ,,,,                                           1C4DD4, `lzt8|graphics.townmap.pokedex.palette`
+graphics.townmap.pokedex.tilemap,              ,,,, ,,,,                                           1C4DD8, `lzm8x32x32|graphics.townmap.pokedex.tileset`
 graphics.townmap.islands.tilemap1,             ,       ,       ,       , 0C0370, 0C0344, 0C0384, 0C0358, , `lzm4x30x20|graphics.townmap.tileset`
 graphics.townmap.islands.tilemap2,             ,       ,       ,       , 0C0388, 0C035C, 0C039C, 0C0370, , `lzm4x30x20|graphics.townmap.tileset`
 graphics.townmap.islands.tilemap3,             ,       ,       ,       , 0C03A4, 0C0378, 0C03B8, 0C038C, , `lzm4x30x20|graphics.townmap.tileset`
