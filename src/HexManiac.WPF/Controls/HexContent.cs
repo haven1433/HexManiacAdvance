@@ -482,7 +482,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       protected override void OnRender(DrawingContext drawingContext) {
          base.OnRender(drawingContext);
-         if (ViewPort == null || ViewPort.UpdateInProgress) return;
+         if (ViewPort == null) return;
          var visitor = new FormatDrawer(drawingContext, ViewPort, ViewPort.Width, ViewPort.Height, CellWidth, CellHeight, FontSize, SearchByte);
 
          // clear
