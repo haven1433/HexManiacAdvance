@@ -213,4 +213,13 @@ AXVE1.data.pokemon.type.length*8 0A0214,0A0310
 AXPE1.data.pokemon.type.length+5 3C1235
 AXPE1.data.pokemon.type.length*8 0A0214,0A0310
 
-
+# evolution methods limiter
+AXVE0.scripts.evolution.count-1  03F574
+AXPE0.scripts.evolution.count-1  03F574
+AXVE1.scripts.evolution.count-1  03F574
+AXPE1.scripts.evolution.count-1  03F574
+BPRE0.scripts.evolution.count-1  042FAA
+BPGE0.scripts.evolution.count-1  042FAA
+BPRE1.scripts.evolution.count-1  042FBE
+BPGE1.scripts.evolution.count-1  042FBE
+BPEE0.scripts.evolution.count-1  06D180
