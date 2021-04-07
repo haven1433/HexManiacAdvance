@@ -182,7 +182,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
          var end = run.Start + data.Count * 2;
          if (model.ReadMultiByteValue(end, 2) != EndStream) model.WriteMultiByteValue(end, 2, token, EndStream); // write the new end token
-         for (int i = data.Count + 2; i < Length / 2; i++) model.WriteMultiByteValue(run.Start + i * 2, 2, token, EndStream); // fill any remaining old space with FF
+         for (int i = data.Count + 1; i < Length / 2; i++) model.WriteMultiByteValue(run.Start + i * 2, 2, token, EndStream); // fill any remaining old space with FF
          return new EggMoveRun(model, run.Start);
       }
 
