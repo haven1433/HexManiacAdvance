@@ -123,14 +123,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          return ErrorInfo.NoError;
       }
 
-      //public static ErrorInfo ChainErrors(params Func<ErrorInfo>[] actions) {
-      //   foreach (var action in actions) {
-      //      var result = action();
-      //      if (result.HasError) return result;
-      //   }
-      //   return ErrorInfo.NoError;
-      //}
-
       public static ErrorInfo RefactorMoveByteFieldInTable(ThumbParser parser, IDataModel model, ModelDelta token, string tableName, string fieldName, int newOffset) {
          // setup
          var table = model.GetTable(tableName) as ArrayRun;
@@ -264,7 +256,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
             if (!(model.GetNextRun(pokemonMovesStart) is TableStreamRun pokemonMovesTable)) continue;
 
             // calculate the new 4-byte format from the old 2-byte format
-            var newData = new byte[pokemonMovesTable.Length * 2];
+            var newData = new byte[pokemonMovesTable.ElementCount * 4];
             for (int j = 0; j < pokemonMovesTable.ElementCount; j++) {
                var (level, move) = PLMRun.SplitToken(model.ReadMultiByteValue(pokemonMovesTable.Start + pokemonMovesTable.ElementLength * j, 2));
                newData[j * 4 + 0] = (byte)move;
