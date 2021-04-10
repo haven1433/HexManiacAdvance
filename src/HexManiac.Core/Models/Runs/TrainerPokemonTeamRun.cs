@@ -1,7 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
-using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -62,7 +61,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       private IReadOnlyList<ArrayRunElementSegment> Initialize() {
          var segments = new List<ArrayRunElementSegment> {
-            new ArrayRunElementSegment("ivSpread", ElementContentType.Integer, 2),
+            new ArrayRunTupleSegment("ivSpread", "|:.|each::.", 2),
             new ArrayRunElementSegment("level", ElementContentType.Integer, 2),
             new ArrayRunEnumSegment("mon", 2, HardcodeTablesModel.PokemonNameTable)
          };
