@@ -202,6 +202,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return result;
       }
 
+      public static int ReadPointer(this ITableRun self, IDataModel model, int elementIndex, int fieldIndex = 0) {
+         var fieldOffset = self.ElementContent.Take(fieldIndex).Sum(seg => seg.Length);
+         return model.ReadPointer(self.Start + self.ElementLength * elementIndex + fieldOffset);
+      }
+
+      public static int ReadValue(this ITableRun self, IDataModel model, int elementIndex, int fieldIndex = 0) {
+         var fieldOffset = self.ElementContent.Take(fieldIndex).Sum(seg => seg.Length);
+         return model.ReadMultiByteValue(self.Start + self.ElementLength * elementIndex + fieldOffset, self.ElementContent[fieldIndex].Length);
+      }
+
       public static IEnumerable<(int, int)> Search(this ITableRun self, IDataModel model, string baseName, int index) {
          int segmentOffset = 0;
          for (int i = 0; i < self.ElementContent.Count; i++) {
