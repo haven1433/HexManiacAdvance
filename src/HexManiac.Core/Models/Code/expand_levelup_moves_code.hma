@@ -485,7 +485,7 @@ GetNumberOfRelearnableMoves: @ (mon)
         mov   r6, r9
         mov   r5, r8
         push  {r5-r7}
-        sub   sp, #100 @! sub   sp, #60  @ extend sp[8] to be 80 bytes long for 40 moves
+        sub   sp, #70 @! sub   sp, #60  @ extend sp[8] to be 80 bytes long for 40 moves
         mov   r6, r0     @ r6 = mon
         mov   r0, #0
         mov   r10, r0    @ r10 = numMoves = 0
@@ -501,7 +501,7 @@ GetNumberOfRelearnableMoves: @ (mon)
         bl    <thumb.GetMonData>
         lsl   r0, r0, #24
         lsr   r0, r0, #24
-        str   r0, [sp, #88] @!str   r0, [sp, #48]  @ sp[88] = level
+        str   r0, [sp, #58] @!str   r0, [sp, #48]  @ sp[58] = level
         mov   r0, #206
         lsl   r0, r0, #1
         cmp   r4, r0
@@ -526,7 +526,7 @@ GetNumberOfRelearnableMoves: @ (mon)
         ble   <fori0to4>
         mov   r5, #0    @ r5 = i = 0
         ldr   r3, [pc, <lvlmoves>]
-        ldr   r2, [sp, #96]  @! ldr   r2, [sp, #56]
+        ldr   r2, [sp, #66]  @! ldr   r2, [sp, #56]
         add   r1, r2, r3     @ r1 = lvlmoves + species*4
         ldr   r0, [r1, #0]   @ r0 = lvlmoves[species]
         ldr   r0, [r0, #0]   @! ldrh  r0, [r0, #0]
@@ -536,7 +536,7 @@ GetNumberOfRelearnableMoves: @ (mon)
         mov   r9, r1  @ r9 = lvlmoves + species*4
         mov   r4, sp
         add   r4, #8  @ r4 = moves + 0
-        str   r4, [sp, #92] @! str   r4, [sp, #52]
+        str   r4, [sp, #62] @! str   r4, [sp, #52]
     fori0to20:
         mov   r1, r9
         ldr   r0, [r1, #0] @ r0 = lvlmoves[species]
@@ -546,13 +546,13 @@ GetNumberOfRelearnableMoves: @ (mon)
         ldr   r0, [pc, <movemask>]     @! mov   r0, #254
         lsl   r0, r0, #16              @! lsl   r0, r0, #8
         and   r0, r3        @ r0 = lvlmoves[species][i] & 0xFFFF0000
-        ldr   r4, [sp, #88] @! ldr   r4, [sp, #48]
+        ldr   r4, [sp, #58] @! ldr   r4, [sp, #48]
         lsl   r1, r4, #16   @! lsl   r1, r4, #9
         mov   r7, r2        @ r7 = i*4
         add   r5, #1
         mov   r12, r5
         cmp   r0, r1
-        bgt   <043F5A>
+        bgt   <afterLastIf>
         mov   r4, #0        @ r4 = j = 0
         mov   r0, sp
         ldrh  r1, [r0, #0]  @ r1 = learnedMoves[0]
@@ -560,7 +560,7 @@ GetNumberOfRelearnableMoves: @ (mon)
         and   r0, r3        @ r0 = lvlmoves[species][i] & 0xFFFF
         cmp   r1, r0
         beq   <ifjEquals4>
-        ldr   r0, [sp, #96] @! ldr   r0, [sp, #56]
+        ldr   r0, [sp, #66] @! ldr   r0, [sp, #56]
         ldr   r1, [pc, <lvlmoves>]
         add   r6, r0, r1    @ r6 = lvlmoves + species*4
         ldr   r2, [pc, <movemask>]
@@ -590,14 +590,14 @@ GetNumberOfRelearnableMoves: @ (mon)
         ldr   r0, [r1, #0] @ r0 = lvlmoves[species]
         add   r0, r7, r0
         ldr   r1, [r0, #0]  @! ldrh  r1, [r0, #0]
-        ldr   r0, [sp, #92] @! ldr   r0, [sp, #52]
+        ldr   r0, [sp, #62] @! ldr   r0, [sp, #52]
         ldrh  r2, [r0, #0]  @ r2 = moves[0]
         ldr   r0, [pc, <movemask>]
         and   r0, r1        @ r0 = lvlmoves[species][i] & 0xFFFF
         add   r1, sp, #8    @ r1 = moves + 0
         cmp   r2, r0
         beq   <ifkEqualsnumMoves>
-        ldr   r2, [sp, #96] @! ldr   r2, [sp, #56]
+        ldr   r2, [sp, #66] @! ldr   r2, [sp, #56]
         ldr   r0, [pc, <lvlmoves>]
         add   r6, r2, r0    @ r6 = lvlmoves + species*4
         ldr   r2, [pc, <movemask>]
@@ -626,7 +626,7 @@ GetNumberOfRelearnableMoves: @ (mon)
         lsr   r0, r0, #24
         mov   r10, r0       @ r10 = nummoves++
         lsl   r2, r4, #1    @ r2 = k*2
-        ldr   r4, [sp, #92] @! ldr   r4, [sp, #52] @ r4 = moves + 0
+        ldr   r4, [sp, #62] @! ldr   r4, [sp, #52] @ r4 = moves + 0
         add   r2, r4, r2    @ r2 = moves + k*2
         mov   r1, r9        @ r1 = lvlmoves + species*4
         ldr   r0, [r1, #0]  @ r0 = lvlmoves[species]
@@ -650,7 +650,7 @@ GetNumberOfRelearnableMoves: @ (mon)
     break:
         mov   r0, r10
     returnnumMoves:
-        add   sp, #100      @! add   sp, #60
+        add   sp, #70      @! add   sp, #60
         pop   {r3-r5}
         mov   r8, r3
         mov   r9, r4
@@ -666,5 +666,5 @@ GetNumberOfRelearnableMoves: @ (mon)
         .word 0x0000FFFF @! .word 0x000001FF
 .end
 
-@!game(BPEE0) # TODO there are 2 more functions in Emerald that we need to update.
+@!game(BPEE0) # there are 2 more functions in Emerald that we need to update.
 
