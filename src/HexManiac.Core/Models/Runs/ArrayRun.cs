@@ -184,6 +184,24 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return true;
       }
 
+      public static byte[] Sort(this ITableRun self, IDataModel model, int fieldIndex) {
+         var fieldOffset = self.ElementContent.Take(fieldIndex).Sum(seg => seg.Length);
+         var field = self.ElementContent[fieldIndex];
+         var indexed = self.ElementCount.Range().ToList();
+         int value(int index) => model.ReadMultiByteValue(self.Start + self.ElementLength * index + fieldOffset, field.Length);
+         indexed.Sort((i, j) => value(i).CompareTo(value(j)));
+
+         var result = new byte[self.ElementCount * self.ElementLength];
+         for (int i = 0; i < self.ElementCount; i++) {
+            var sourceIndex = indexed[i];
+            for (int j = 0; j < self.ElementLength; j++) {
+               result[i * self.ElementLength + j] = model[self.Start + self.ElementLength * sourceIndex + j];
+            }
+         }
+
+         return result;
+      }
+
       public static IEnumerable<(int, int)> Search(this ITableRun self, IDataModel model, string baseName, int index) {
          int segmentOffset = 0;
          for (int i = 0; i < self.ElementContent.Count; i++) {

@@ -648,6 +648,19 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(2, table.ElementCount);
       }
 
+      [Fact]
+      public void IntTable_Sort_ValuesSorted() {
+         ViewPort.Edit("^table[a:]3 10 12 11 ");
+
+         var table = Model.GetTable("table");
+         var newData = table.Sort(Model, 0);
+         ViewPort.CurrentChange.ChangeData(Model, 0, newData);
+
+         Assert.Equal(10, Model.ReadMultiByteValue(0, 2));
+         Assert.Equal(11, Model.ReadMultiByteValue(2, 2));
+         Assert.Equal(12, Model.ReadMultiByteValue(4, 2));
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
