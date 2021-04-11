@@ -68,6 +68,10 @@ namespace HavenSoft.HexManiac.Core {
          return -1;
       }
 
+      public static void WriteInto<T>(this IReadOnlyList<T> list, T[] array, int index) {
+         for (int i = 0; i < list.Count; i++) array[index + i] = list[i];
+      }
+
       public static string Join(this string separator, IEnumerable<string> elements) => string.Join(separator, elements);
 
       public static string[] Split(this string self, string token) => self.Split(new[] { token }, StringSplitOptions.None);

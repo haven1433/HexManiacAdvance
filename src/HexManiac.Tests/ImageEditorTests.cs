@@ -3,6 +3,8 @@ using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Linq;
 using Xunit;
@@ -1455,8 +1457,74 @@ namespace HavenSoft.HexManiac.Tests {
       }
    }
 
+   public class ImageEditor8BitTilemapTests : BaseViewModelTestClass {
+
+      private const int PaletteStart = 0x000, TilesetStart = 0x080, TilemapStart = 0x100;
+      private readonly short
+         Black = UncompressedPaletteColor.Pack(0, 0, 0),
+         White = UncompressedPaletteColor.Pack(31, 31, 31),
+         Red = UncompressedPaletteColor.Pack(31, 0, 0);
+
+      private readonly ImageEditorViewModel editor;
+
+      public ImageEditor8BitTilemapTests() {
+         SetFullModel(0xFF);
+         LZRun.Compress(new byte[0x40]).WriteInto(Model.RawData, PaletteStart);
+         LZRun.Compress(new byte[0x40]).WriteInto(Model.RawData, TilesetStart);
+         LZRun.Compress(new byte[0x08]).WriteInto(Model.RawData, TilemapStart);
+
+         Model.WritePointer(ViewPort.CurrentChange, 0x180, PaletteStart);
+         Model.WritePointer(ViewPort.CurrentChange, 0x184, TilesetStart);
+         Model.WritePointer(ViewPort.CurrentChange, 0x188, TilemapStart);
+
+         Model.ObserveAnchorWritten(ViewPort.CurrentChange, "palette", new LzPaletteRun(new PaletteFormat(4, 2, 2), Model, PaletteStart)); // pages are 2 and 3
+         Model.ObserveAnchorWritten(ViewPort.CurrentChange, "tileset", new LzTilesetRun(new TilesetFormat(8, "palette"), Model, TilesetStart));
+         Model.ObserveAnchorWritten(ViewPort.CurrentChange, "tilemap", new LzTilemapRun(new TilemapFormat(8, 2, 2, "tileset"), Model, TilemapStart));
+
+         editor = new ImageEditorViewModel(ViewPort.ChangeHistory, Model, TilemapStart) { SpriteScale = 1 };
+      }
+
+      [Fact]
+      public void Tileset_8BPP_CannotEditTilePalettes() {
+         Assert.False(editor.CanEditTilePalettes);
+      }
+
+      [Fact]
+      public void Bucket_Fill_Filled() {
+         editor.Palette.SelectionStart = 1;
+         editor.Palette.Elements[1].Color = White;
+         editor.SelectedTool = ImageEditorTools.Fill;
+
+         editor.ToolDown(0, 0);
+         editor.ToolUp(0, 0);
+
+         Assert.Equal(White, editor.PixelData[editor.PixelIndex(0, 0)]);
+      }
+
+      [Fact]
+      public void ImageWithMoreThan16ColorsInATile_Import_ColorsAreImportedCorrectly() {
+         var tool = ViewPort.Tools.SpriteTool;
+         ViewPort.Tools.SelectedIndex = ViewPort.Tools.IndexOf(tool);
+         tool.SpriteAddress = TilemapStart;
+         tool.PaletteAddress = PaletteStart;
+         var imageToImport = new short[16 * 16];
+         for (int i = 0; i < 32; i++) imageToImport[i / 8 * 16 + i % 8] = UncompressedPaletteColor.Pack(i, i, i);
+
+         tool.ImportPair.Execute(new StubFileSystem { LoadImage = arg => (imageToImport, 16) });
+
+         var tilesetData = ((ITilesetRun)Model.GetNextRun(TilesetStart)).GetPixels(Model, 0);
+         var palette = (IPaletteRun)Model.GetNextRun(PaletteStart);
+         var paletteData = palette.AllColors(Model);
+         var pixels = SpriteTool.Render(tilesetData, paletteData, palette.PaletteFormat.InitialBlankPages, 0);
+         Assert.All(32.Range(), i => {
+            var pixel = pixels[8 + i + (i / 8) * 8];
+            Assert.Equal(i, UncompressedPaletteColor.ToRGB(pixel).r);
+         });
+      }
+   }
+
    public class ImageEditorOneBitImageTests : BaseViewModelTestClass {
-      private readonly IDataModel model = new PokemonModel(new byte[0x200], singletons: BaseViewModelTestClass.Singletons);
+      private readonly IDataModel model = new PokemonModel(new byte[0x200], singletons: Singletons);
       private readonly ChangeHistory<ModelDelta> history;
       private readonly ImageEditorViewModel editor;
       private ModelDelta RevertHistoryChange(ModelDelta change) => change.Revert(model);
@@ -1534,5 +1602,4 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.NotEqual(data[0], data[1]);
       }
    }
-
 }

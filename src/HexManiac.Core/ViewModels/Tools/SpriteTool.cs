@@ -1070,7 +1070,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var palettes = paletteRun?.Pages.Range().Select(i => paletteRun.GetPalette(model, i)).ToArray();
          if (palettes != null) {
             var newPalettes = usablePalPages.Select(i => palettes[i]).ToArray();
-            newPalettes = DiscoverPalettes(tiles, paletteRun?.PaletteFormat.Bits ?? spriteRun.SpriteFormat.BitsPerPixel, usablePalPages.Count, newPalettes);
+            newPalettes = DiscoverPalettes(tiles, spriteRun.SpriteFormat.BitsPerPixel, usablePalPages.Count, newPalettes);
             for (int i = 0; i < usablePalPages.Count; i++) palettes[usablePalPages[i]] = newPalettes[i];
          }
 
@@ -1233,16 +1233,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private static IReadOnlyList<short>[] DiscoverPalettes(short[][] tiles, int bitness, int paletteCount, IReadOnlyList<short>[] existingPalettes) {
          if (bitness == 1) return new[] { TileViewModel.CreateDefaultPalette(2) };
          if (bitness == 2) return new[] { TileViewModel.CreateDefaultPalette(4) };
-         var targetColors = (int)Math.Pow(2, bitness);
+         var targetColors = Math.Min((int)Math.Pow(2, bitness), existingPalettes.Sum(pal => pal.Count));
 
          // special case: we don't need to run palette discovery if the existing palette works
          bool allTilesFitExistingPalettes = true;
          foreach (var tile in tiles) {
             if (existingPalettes?.Any(pal => tile.All(pal.Contains)) ?? false) continue;
             allTilesFitExistingPalettes = false;
+            break;
          }
          if (allTilesFitExistingPalettes && paletteCount == existingPalettes.Length) return existingPalettes;
 
+         int palettePageCount = paletteCount;
+         if (bitness == 8) paletteCount = 1;
          var palettes = new WeightedPalette[paletteCount];
          for (int i = 0; i < paletteCount; i++) palettes[i] = WeightedPalette.Reduce(tiles[i], targetColors);
          for (int i = paletteCount; i < tiles.Length; i++) {
@@ -1255,11 +1258,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                palettes[a] = palettes[a].Merge(newPalette, out var _);
             }
          }
+
+         // if this is an 8-bit image using 16-color palettes, split the resulting colors into arbitrary palettes.
+         if (bitness == 8 && palettePageCount > 1) {
+            var result = new List<IReadOnlyList<short>>();
+            for (int i = 0; i < palettePageCount; i++) {
+               result.Add(palettes[0].Palette.Skip(16 * i).Take(16).ToList());
+            }
+            return result.ToArray();
+         }
+
          return palettes.Select(p => p.Palette).ToArray();
       }
 
       public static int[,] Index(short[] tile, IReadOnlyList<short>[] palettes, IReadOnlyList<int> usablePalPages, int bitness, int initialPageIndex, bool palettePerSprite = false) {
          var cheapestIndex = 0;
+         if (bitness == 8 && usablePalPages.Count == palettes.Length) {
+            palettes = new[] { palettes.SelectMany(pal => pal).ToList() };
+            usablePalPages = new[] { 0 };
+         }
          var cheapest = (usablePalPages != null && usablePalPages.Contains(0)) ? WeightedPalette.CostToUse(tile, palettes[0]) : double.PositiveInfinity;
          for (int i = 1; i < palettes.Length; i++) {
             if (cheapest == 0) break;

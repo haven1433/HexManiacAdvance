@@ -271,6 +271,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                HasMultiplePalettePages &&
                model.GetNextRun(spriteAddress) is ITilemapRun tilemap &&
                tilemap.Start == spriteAddress &&
+               model.GetNextRun( tilemap.FindMatchingTileset(model)) is ITilesetRun tileset &&
+               tileset.TilesetFormat.BitsPerPixel == 4 &&
                tilemap.BytesPerTile == 2;
          }
       }
@@ -719,7 +721,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private bool SpriteOnlyExpects16Colors() {
          var spriteAddress = model.ReadPointer(SpritePointer);
          var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
-         if (spriteRun is ITilesetRun) return true;
+         if (spriteRun is ITilesetRun tileset && tileset.TilesetFormat.BitsPerPixel == 4) return true;
          if (spriteRun is ITilemapRun) return false;
          if (spriteRun.SpriteFormat.BitsPerPixel < 8 && spriteRun.Pages == 1) return true;
          return false;
@@ -1151,7 +1153,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             int originalColorIndex = parent.pixels[a.X, a.Y];
             var originalPaletteIndex = parent.PaletteIndex(originalColorIndex);
             if (parent.SpriteOnlyExpects16Colors() && parent.PalettePages > 1) originalPaletteIndex = originalColorIndex;
-            if (originalPaletteIndex < 0 || originalPaletteIndex >= parent.Palette.Elements.Count) return;
+            if (originalPaletteIndex >= parent.Palette.Elements.Count) return;
             if (parent.PalettePage < 0) return;
             var direction = Math.Sign(parent.Palette.SelectionEnd - parent.Palette.SelectionStart);
             var targetColors = new List<int> { parent.Palette.SelectionStart };

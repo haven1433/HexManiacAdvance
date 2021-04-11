@@ -103,6 +103,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return (runLength, runOffset);
       }
 
+      public static IReadOnlyList<byte> Compress(IReadOnlyList<byte> data) => Compress(data, 0, data.Count);
+
       public static IReadOnlyList<byte> Compress(IReadOnlyList<byte> data, int start, int length) {
          // step 1: tokenize
          var tokens = new List<ILzDataToken>();
