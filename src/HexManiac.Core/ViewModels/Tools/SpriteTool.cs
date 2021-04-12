@@ -1070,8 +1070,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var palettes = paletteRun?.Pages.Range().Select(i => paletteRun.GetPalette(model, i)).ToArray();
          if (palettes != null) {
             var newPalettes = usablePalPages.Select(i => palettes[i]).ToArray();
-            newPalettes = DiscoverPalettes(tiles, spriteRun.SpriteFormat.BitsPerPixel, usablePalPages.Count, newPalettes);
-            for (int i = 0; i < usablePalPages.Count; i++) palettes[usablePalPages[i]] = newPalettes[i];
+            var allColors = palettes.SelectMany(p => p).ToList();
+            if (spriteRun.SpriteFormat.BitsPerPixel == 8 && paletteRun.PaletteFormat.Bits == 4 && usablePalPages.Count == palettes.Length && image.All(allColors.Contains)) {
+               // this is an 8-bit sprite with a 4-bit palette
+               // if the original palette works, then don't change it.
+            } else {
+               newPalettes = DiscoverPalettes(tiles, spriteRun.SpriteFormat.BitsPerPixel, usablePalPages.Count, newPalettes);
+               for (int i = 0; i < usablePalPages.Count; i++) palettes[usablePalPages[i]] = newPalettes[i];
+            }
          }
 
          var needWriteSpriteData = true;
