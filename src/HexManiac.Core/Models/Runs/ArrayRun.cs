@@ -222,6 +222,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   yield return (segmentStart, segmentStart + segment.Length - 1);
                }
             }
+            if (self.ElementContent[i] is ArrayRunTupleSegment tupSeg) {
+               var bitOffset = 0;
+               for (int tupleElementIndex = 0; tupleElementIndex < tupSeg.Elements.Count; tupleElementIndex++) {
+                  if (tupSeg.Elements[tupleElementIndex].SourceName == baseName) {
+                     for (int j = 0; j < self.ElementCount; j++) {
+                        var segmentStart = self.Start + j * self.ElementLength + segmentOffset;
+                        var enumValue = tupSeg.Elements[tupleElementIndex].Read(model, segmentStart, bitOffset);
+                        if (enumValue != index) continue;
+                        yield return (segmentStart, segmentStart + tupSeg.Length - 1);
+                     }
+                  }
+                  bitOffset += tupSeg.Elements[tupleElementIndex].BitWidth;
+               }
+            }
             segmentOffset += self.ElementContent[i].Length;
          }
       }
