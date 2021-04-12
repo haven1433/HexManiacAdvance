@@ -103,6 +103,7 @@
     <Compile Include="ViewModels\QuickEditItems\MakeMovesExpandable.cs" />
     <Compile Include="ViewModels\QuickEditItems\MakeTmsExpandable.cs" />
     <Compile Include="ViewModels\QuickEditItems\MakeTutorsExpandable.cs" />
+    <Compile Include="ViewModels\QuickEditItems\LevelUpMoveSorter.cs" />
     <Compile Include="ViewModels\QuickEditItems\QuickEditItemDecorator.cs" />
     <Compile Include="ViewModels\QuickEditItems\UpdateDexConversionTable.cs" />
     <Compile Include="ViewModels\QuickEditItems\ReorderDex.cs" />
