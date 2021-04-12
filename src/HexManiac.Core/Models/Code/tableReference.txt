@@ -268,6 +268,7 @@ graphics.gamecorner.score.tileset, ,,,, 1413D0, 1413A8, 141448, 141420, , `lzt4|
 graphics.gamecorner.score.tilemap, ,,,, 1413D4, 1413AC, 14144C, 141424, , `lzm4x32x20|graphics.gamecorner.score.tileset`
 graphics.gamecorner.sprites,       ,,,, 140C3C, 140C14, 140CB4, 140C8C, , [rolls<`lzs4x4x4`> a:: cheer<`lzs4x4x4`> b:: digits<`lzs4x5x4`> c::]1
 graphics.gamecorner.palettes,      ,,,, 140C40, 140C18, 140CB8, 140C90, , [pal<`ucp4`> id::]7
+data.gamecorner.payout,            ,,,, 140BD8, 140BB0, 140C50, 140C28, , [payout:]7
 
 graphics.questionnaire.palette,        ,,,, 100D10, 100CE8, 100D88, 100D60, , `ucp4`
 graphics.questionnaire.tileset,        ,,,, 100064, 10003C, 1000DC, 1000B4, , `lzt4|graphics.questionnaire.palette`
