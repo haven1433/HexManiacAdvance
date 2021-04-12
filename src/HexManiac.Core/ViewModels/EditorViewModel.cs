@@ -395,6 +395,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             new UpdateDexConversionTable(),
             new ReorderDex("National", HardcodeTablesModel.NationalDexTableName),
             new ReorderDex("Regional", HardcodeTablesModel.RegionalDexTableName),
+            new LevelUpMoveSorter(),
          }.Select(edit => new EditItemWrapper(edit)).ToList();
          QuickEditsExpansion = new List<IQuickEditItem> {
             new MakeTutorsExpandable(),
