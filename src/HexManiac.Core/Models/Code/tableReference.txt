@@ -263,7 +263,7 @@ graphics.menu.text.bold.palette,                 ,,,, 10B8E8, 10B8C0, 10B960, 10
 graphics.gamecorner.game.palette,  ,,,, 1413C0, 141398, 141438, 141410, , `ucp4`
 graphics.gamecorner.game.tileset,  ,,,, 1413AC, 141384, 141424, 1413FC, , `lzt4|graphics.gamecorner.game.palette`
 graphics.gamecorner.game.tilemap,  ,,,, 1413B8, 141390, 141430, 141408, , `lzm4x32x20|graphics.gamecorner.game.tileset`
-graphics.gamecorner.score.palette, ,,,, 1413C4, 14139C, 14143C, 141414, , `ucp4:012`
+graphics.gamecorner.score.palette, ,,,, 1413C4, 14139C, 14143C, 141414, , `ucp4:789`
 graphics.gamecorner.score.tileset, ,,,, 1413D0, 1413A8, 141448, 141420, , `lzt4|graphics.gamecorner.score.palette`
 graphics.gamecorner.score.tilemap, ,,,, 1413D4, 1413AC, 14144C, 141424, , `lzm4x32x20|graphics.gamecorner.score.tileset`
 graphics.gamecorner.sprites,       ,,,, 140C3C, 140C14, 140CB4, 140C8C, , [rolls<`lzs4x4x4`> a:: cheer<`lzs4x4x4`> b:: digits<`lzs4x5x4`> c::]1
