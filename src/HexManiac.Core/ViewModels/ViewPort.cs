@@ -133,8 +133,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             NotifyPropertyChanged(e);
          }
 
-         if (e.PropertyName == nameof(Width) || e.PropertyName == nameof(Height)) {
-            RefreshBackingData();
+         if (e.PropertyName == nameof(Width) || e.PropertyName == nameof(Height) || e.PropertyName == nameof(scroll.AllowSingleTableMode)) {
+            dispatcher.DispatchWork(RefreshBackingData);
          }
 
          if (e.PropertyName == nameof(Width)) {

@@ -169,7 +169,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void SetTableMode(int start, int length) {
          if (tableStart == start && tableLength == length) return;
-         if (!allowTableMode) return;
+         if (!allowTableMode && length != 0) return;
          tableStart = start;
          tableLength = length;
          NotifyPropertyChanged(nameof(MinimumScroll));
