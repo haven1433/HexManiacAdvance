@@ -59,11 +59,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly IViewPort viewPort;
       private string sectionName;
       private int sectionLink;
+      private bool showSection;
+      private string lastFilter = string.Empty;
       private StubCommand followLink, collapseAll, expandAll, toggleVisibility;
 
       public bool IsInError => false;
       public string ErrorText => string.Empty;
       public int ZIndex => 0;
+      public bool ShowSection { get => showSection; private set => Set(ref showSection, value); }
       public string SectionName { get => sectionName; set => Set(ref sectionName, value); }
       public int SectionLink { get => sectionLink; set => Set(ref sectionLink, value); }
       public ICommand FollowLink => StubCommand(ref followLink, () => viewPort.Goto.Execute(SectionLink));
@@ -72,17 +75,32 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ICommand ToggleVisibility => StubCommand(ref toggleVisibility, () => Visible = !Visible);
 
       private bool visible = true;
-      public bool Visible { get => visible; set => Set(ref visible, value, arg => UpdateCollapsed()); }
-      public void UpdateCollapsed() {
+      public bool Visible { get => visible; set => Set(ref visible, value, arg => UpdateCollapsed(lastFilter)); }
+      public void UpdateCollapsed(string filter) {
          var start = false;
-         foreach(var child in viewPort.Tools.TableTool.Children) {
+         var filterMatchesGroup = filter.Length == 0 || sectionName.MatchesPartial(filter);
+         bool lastFieldVisible = filterMatchesGroup;
+         bool anyChildrenVisible = false;
+         foreach (var child in viewPort.Tools.TableTool.Children) {
             if (child == this) start = true;
             if (!start) continue;
             if (child is SplitterArrayElementViewModel && child != this) break;
+            if (child is SplitterArrayElementViewModel) continue;
             if (child is ButtonArrayElementViewModel) break;
-            child.Visible = visible;
+            var childVisible = filterMatchesGroup;
+            if (child is FieldArrayElementViewModel faevm) childVisible = filterMatchesGroup || faevm.Name.MatchesPartial(filter);
+            if (child is ComboBoxArrayElementViewModel cbaevm) childVisible = filterMatchesGroup || cbaevm.Name.MatchesPartial(filter);
+            if (child is TupleArrayElementViewModel taevm) childVisible = filterMatchesGroup || taevm.Name.MatchesPartial(filter);
+            if (child is BitListArrayElementViewModel blaevm) childVisible = filterMatchesGroup || blaevm.Name.MatchesPartial(filter);
+            if (child is IStreamArrayElementViewModel saevm) childVisible = lastFieldVisible;
+            child.Visible = childVisible && visible;
+            lastFieldVisible = childVisible;
+            anyChildrenVisible = anyChildrenVisible || childVisible;
          }
+         ShowSection = anyChildrenVisible || filterMatchesGroup;
+         lastFilter = filter;
       }
+
       private void UpdateAllVisibility(bool newValue) {
          foreach (var child in viewPort.Tools.TableTool.Children) {
             if (child is SplitterArrayElementViewModel) child.Visible = newValue;

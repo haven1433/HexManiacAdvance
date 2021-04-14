@@ -139,6 +139,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          private set => TryUpdate(ref enabled, value);
       }
 
+      private string fieldFilter = string.Empty;
+      public string FieldFilter {
+         get => fieldFilter;
+         set => Set(ref fieldFilter, value, oldVal => ApplyFieldFilter());
+      }
+
 #pragma warning disable 0067 // it's ok if events are never used after implementing an interface
       public event EventHandler<IFormattedRun> ModelDataChanged;
       public event EventHandler<string> OnError;
@@ -304,7 +310,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                sevm.UpdateTiles();
             }
             // update 'visible' for children based on their parents.
-            if (child is SplitterArrayElementViewModel splitter) splitter.UpdateCollapsed();
+            if (child is SplitterArrayElementViewModel splitter) splitter.UpdateCollapsed(fieldFilter);
          }
       }
 
@@ -452,6 +458,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                }
                segmentOffset += tableRun.ElementContent[i].Length;
             }
+         }
+      }
+
+      private void ApplyFieldFilter() {
+         foreach (var child in Children) {
+            // update 'visible' for children based on their parents.
+            if (child is SplitterArrayElementViewModel splitter) splitter.UpdateCollapsed(fieldFilter);
          }
       }
 
