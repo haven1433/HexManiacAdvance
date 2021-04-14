@@ -192,6 +192,7 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+    <None Include="Resources\MoveRelearnerTesting.hma" />
     <None Include="Scripts\AddFairyType.hma">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
