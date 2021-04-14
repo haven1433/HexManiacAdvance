@@ -400,7 +400,7 @@ GetMoveRelearnerMoves: @ (mon, moves)
         strh  r0, [r2, #0] @ moves[k] = lvlmoves[species][i] & 0xFFFF;
     break:
         mov   r5, r12  @ r5 = i
-        cmp   r5, #39  @! cmp   r5, #19
+        cmp   r5, #24  @! cmp   r5, #19
         bgt   <returnNumMoves>
         mov   r1, r9
         ldr   r0, [r1, #0] @ r0 = lvlmoves[species]
@@ -460,7 +460,7 @@ GetLevelUpMovesBySpecies:
         strh  r0, [r1, #0]      @ moves[numMoves] = lvlMoves[species][i].move
         add   r3, #4            @! add   r3, #2
         add   r4, #1      @ i += 1
-        cmp   r4, #39           @! cmp   r4, #19
+        cmp   r4, #24           @! cmp   r4, #19
         bgt   <returnnumMoves>
         ldr   r0, [r3, #0]      @! ldrh  r0, [r3, #0]
         cmp   r0, r7
@@ -485,7 +485,7 @@ GetNumberOfRelearnableMoves: @ (mon)
         mov   r6, r9
         mov   r5, r8
         push  {r5-r7}
-        sub   sp, #70 @! sub   sp, #60  @ extend sp[8] to be 80 bytes long for 40 moves
+        sub   sp, #72 @! sub   sp, #60  @ extend sp[8] to be 52 bytes long for 25 moves (+2 bytes for alignment). So +12 bytes total
         mov   r6, r0     @ r6 = mon
         mov   r0, #0
         mov   r10, r0    @ r10 = numMoves = 0
@@ -501,7 +501,7 @@ GetNumberOfRelearnableMoves: @ (mon)
         bl    <thumb.GetMonData>
         lsl   r0, r0, #24
         lsr   r0, r0, #24
-        str   r0, [sp, #58] @!str   r0, [sp, #48]  @ sp[58] = level
+        str   r0, [sp, #60] @!str   r0, [sp, #48]  @ sp[60] = level
         mov   r0, #206
         lsl   r0, r0, #1
         cmp   r4, r0
@@ -511,7 +511,7 @@ GetNumberOfRelearnableMoves: @ (mon)
         afterEggCheck:
         mov   r5, #0        @ r5 = i
         lsl   r4, r4, #2    @ r4 = species*4
-        str   r4, [sp, #96] @ str   r4, [sp, #56] 
+        str   r4, [sp, #68] @! str   r4, [sp, #56] 
         mov   r4, sp
     fori0to4:
         mov   r1, r5
@@ -526,7 +526,7 @@ GetNumberOfRelearnableMoves: @ (mon)
         ble   <fori0to4>
         mov   r5, #0    @ r5 = i = 0
         ldr   r3, [pc, <lvlmoves>]
-        ldr   r2, [sp, #66]  @! ldr   r2, [sp, #56]
+        ldr   r2, [sp, #68]  @! ldr   r2, [sp, #56]
         add   r1, r2, r3     @ r1 = lvlmoves + species*4
         ldr   r0, [r1, #0]   @ r0 = lvlmoves[species]
         ldr   r0, [r0, #0]   @! ldrh  r0, [r0, #0]
@@ -536,7 +536,7 @@ GetNumberOfRelearnableMoves: @ (mon)
         mov   r9, r1  @ r9 = lvlmoves + species*4
         mov   r4, sp
         add   r4, #8  @ r4 = moves + 0
-        str   r4, [sp, #62] @! str   r4, [sp, #52]
+        str   r4, [sp, #64] @! str   r4, [sp, #52]
     fori0to20:
         mov   r1, r9
         ldr   r0, [r1, #0] @ r0 = lvlmoves[species]
@@ -546,7 +546,7 @@ GetNumberOfRelearnableMoves: @ (mon)
         ldr   r0, [pc, <movemask>]     @! mov   r0, #254
         lsl   r0, r0, #16              @! lsl   r0, r0, #8
         and   r0, r3        @ r0 = lvlmoves[species][i] & 0xFFFF0000
-        ldr   r4, [sp, #58] @! ldr   r4, [sp, #48]
+        ldr   r4, [sp, #60] @! ldr   r4, [sp, #48]
         lsl   r1, r4, #16   @! lsl   r1, r4, #9
         mov   r7, r2        @ r7 = i*4
         add   r5, #1
@@ -560,7 +560,7 @@ GetNumberOfRelearnableMoves: @ (mon)
         and   r0, r3        @ r0 = lvlmoves[species][i] & 0xFFFF
         cmp   r1, r0
         beq   <ifjEquals4>
-        ldr   r0, [sp, #66] @! ldr   r0, [sp, #56]
+        ldr   r0, [sp, #68] @! ldr   r0, [sp, #56]
         ldr   r1, [pc, <lvlmoves>]
         add   r6, r0, r1    @ r6 = lvlmoves + species*4
         ldr   r2, [pc, <movemask>]
@@ -590,14 +590,14 @@ GetNumberOfRelearnableMoves: @ (mon)
         ldr   r0, [r1, #0] @ r0 = lvlmoves[species]
         add   r0, r7, r0
         ldr   r1, [r0, #0]  @! ldrh  r1, [r0, #0]
-        ldr   r0, [sp, #62] @! ldr   r0, [sp, #52]
+        ldr   r0, [sp, #64] @! ldr   r0, [sp, #52]
         ldrh  r2, [r0, #0]  @ r2 = moves[0]
         ldr   r0, [pc, <movemask>]
         and   r0, r1        @ r0 = lvlmoves[species][i] & 0xFFFF
         add   r1, sp, #8    @ r1 = moves + 0
         cmp   r2, r0
         beq   <ifkEqualsnumMoves>
-        ldr   r2, [sp, #66] @! ldr   r2, [sp, #56]
+        ldr   r2, [sp, #68] @! ldr   r2, [sp, #56]
         ldr   r0, [pc, <lvlmoves>]
         add   r6, r2, r0    @ r6 = lvlmoves + species*4
         ldr   r2, [pc, <movemask>]
@@ -626,7 +626,7 @@ GetNumberOfRelearnableMoves: @ (mon)
         lsr   r0, r0, #24
         mov   r10, r0       @ r10 = nummoves++
         lsl   r2, r4, #1    @ r2 = k*2
-        ldr   r4, [sp, #62] @! ldr   r4, [sp, #52] @ r4 = moves + 0
+        ldr   r4, [sp, #64] @! ldr   r4, [sp, #52] @ r4 = moves + 0
         add   r2, r4, r2    @ r2 = moves + k*2
         mov   r1, r9        @ r1 = lvlmoves + species*4
         ldr   r0, [r1, #0]  @ r0 = lvlmoves[species]
@@ -637,7 +637,7 @@ GetNumberOfRelearnableMoves: @ (mon)
         strh  r0, [r2, #0]  @ moves[k] = lvlmoves[species][i] & 0xFFFF
     afterLastIf:
         mov   r5, r12
-        cmp   r5, #39       @ cmp   r5, #19
+        cmp   r5, #24       @ cmp   r5, #19
         bgt   <break>
         mov   r2, r9        @ r2 = lvlmoves + species*4
         ldr   r0, [r2, #0]  @ r0 = lvlmoves[species]
@@ -650,7 +650,7 @@ GetNumberOfRelearnableMoves: @ (mon)
     break:
         mov   r0, r10
     returnnumMoves:
-        add   sp, #70      @! add   sp, #60
+        add   sp, #72      @! add   sp, #60
         pop   {r3-r5}
         mov   r8, r3
         mov   r9, r4
@@ -668,3 +668,360 @@ GetNumberOfRelearnableMoves: @ (mon)
 
 @!game(BPEE0) # there are 2 more functions in Emerald that we need to update.
 
+@19FF98 .thumb
+GetRandomAlternateMove:
+        push  {r4-r7, lr}
+        mov   r7, r10
+        mov   r6, r9
+        mov   r5, r8
+        push  {r5-r7}
+        sub   sp, #16
+        lsl   r0, r0, #24
+        lsr   r0, r0, #24
+        str   r0, [sp, #0]
+        mov   r0, #0
+        str   r0, [sp, #12]
+        mov   r7, #0
+        ldr   r1, [sp, #0]
+        cmp   r1, #2
+        bhi   <19FFE0>
+        ldr   r2, [pc, <19FFDC>]
+        ldr   r1, [r2, #0]
+        mov   r0, r1
+        add   r0, #180
+        ldr   r3, [sp, #0]
+        add   r0, r0, r3
+        ldrb  r4, [r0, #0]
+        add   r1, #178
+        ldrb  r0, [r1, #0]
+        lsl   r0, r0, #29
+        lsr   r0, r0, #29
+        asr   r0, r3
+        mov   r1, #1
+        and   r0, r1
+        lsl   r0, r0, #2
+        asr   r4, r0
+        mov   r0, #15
+        and   r4, r0
+        b     <19FFE4>
+    19FFDC:
+        .word 0x03005D90
+    19FFE0:
+        mov   r4, #0
+        ldr   r2, [pc, <1A00A4>]
+    19FFE4:
+        ldr   r3, [pc, <1A00A8>]
+        lsl   r1, r4, #1
+        ldr   r4, [r2, #0]
+        mov   r0, r4
+        add   r0, #176
+        ldrb  r2, [r0, #0]
+        mov   r0, #88
+        mul   r0, r2
+        add   r1, r1, r0
+        add   r3, #52
+        add   r1, r1, r3
+        ldrh  r1, [r1, #0]
+        str   r1, [sp, #8]        @ sp[8] = species
+        ldr   r1, [pc, <1A00AC>]  @ r1 = lvlmoves
+        ldr   r2, [sp, #8]
+        lsl   r0, r2, #2
+        add   r0, r0, r1          @ r0 = lvlmoves + species*4
+        ldr   r6, [r0, #0]        @ r6 = lvlmoves[species]
+        mov   r3, #0
+        add   r4, #177
+        ldrb  r1, [r4, #0]
+        mov   r0, #3
+        and   r0, r1
+        mov   r5, #60
+        cmp   r0, #1
+        bne   <1A001A>
+        mov   r5, #50            @ r5 = level
+    1A001A:
+        ldr   r1, [r6, #0]       @! ldrh  r1, [r6, #0]
+        ldr   r4, [pc, <learnsetEndSentinel>]
+        cmp   r1, r4
+        beq   <1A004C>
+        ldr   r2, [pc, <moveMask>] @! mov   r2, #254
+        lsl   r2, r2, #16          @! lsl   r2, r2, #8
+        mov   r0, r2
+        and   r0, r1
+        lsl   r1, r5, #16        @! lsl   r1, r5, #9
+        cmp   r0, r1
+        bgt   <1A004C>
+        mov   r5, r2             @ r5 = 0xFFFF0000
+        mov   r2, r1             @ r2 = level << 16
+    for_j_InLearnset:
+        add   r0, r3, #1
+        lsl   r0, r0, #24
+        lsr   r3, r0, #24        @ r3 = j
+        lsl   r0, r3, #2         @! lsl   r0, r3, #1
+        add   r0, r0, r6
+        ldr   r1, [r0, #0]       @! ldrh  r1, [r0, #0]
+        cmp   r1, r4
+        beq   <1A004C>
+        mov   r0, r5
+        and   r0, r1
+        cmp   r0, r2
+        ble   <for_j_InLearnset>
+    1A004C:
+        mov   r5, r3
+        mov   r3, #0
+        str   r3, [sp, #4]
+    bigInfiniteLoop:
+        bl    <06F5CC>    @ Random()
+        lsl   r0, r0, #16
+        lsr   r0, r0, #16
+        mov   r1, #1
+        and   r0, r1
+        cmp   r0, #0
+        beq   <1A0068>
+        ldr   r0, [sp, #12]
+        cmp   r0, #1
+        bne   <1A00E0>
+    1A0068:
+        ldr   r1, [pc, <moveMask>]
+        mov   r8, r1
+    1A006C:
+        bl    <06F5CC>    @ Random()
+        lsl   r0, r0, #16
+        lsr   r0, r0, #16
+        mov   r1, #58
+        bl    <2E7BE0>
+        lsl   r0, r0, #24
+        lsr   r4, r0, #24
+        ldr   r0, [sp, #8]
+        mov   r1, r4
+        bl    <06E064>
+        mov   r2, r0
+        cmp   r2, #0
+        beq   <1A006C>
+        ldr   r2, [pc, <1A00B8>]
+        add   r0, r4, r2
+        bl    <1B6CFC>
+        lsl   r0, r0, #16
+        lsr   r7, r0, #16
+        mov   r2, #1
+        cmp   r5, #4
+        bhi   <1A00BC>
+        mov   r3, #0
+        b     <1A00C6>
+    1A00A4:
+        .word 0x03005D90
+    1A00A8:
+        .word 0x08610970
+    1A00AC:
+        .word <data.pokemon.moves.levelup>
+    learnsetEndSentinel:
+        .word 0xFFFFFFFF   @! .word 0x0000FFFF
+    moveMask:
+        .word 0x0000FFFF   @! .word 0x000001FF
+    1A00B8:
+        .word 0x00000121
+    1A00BC:
+        sub   r0, r5, #4
+        b     <1A00C2>
+    1A00C0:
+        add   r0, r3, #1
+    1A00C2:
+        lsl   r0, r0, #24
+        lsr   r3, r0, #24
+    1A00C6:
+        cmp   r3, r5
+        bhs   <1A00DA>
+        lsl   r0, r3, #2    @! lsl   r0, r3, #1
+        add   r0, r0, r6    @ r0 = lvlmoves[species] + j*4
+        ldr   r0, [r0, #0]  @! ldrh  r0, [r0, #0]   @ r0 = lvlmoves[species][j]
+        mov   r1, r8
+        and   r0, r1  @ r0 & 0xFFFF
+        cmp   r0, r7
+        bne   <1A00C0>
+        mov   r2, #0
+    1A00DA:
+        cmp   r2, #1
+        bne   <1A006C>
+        b     <1A0146>
+    1A00E0:
+        cmp   r5, #4
+        bhi   <1A00EA>
+        mov   r2, #1
+        str   r2, [sp, #12]
+        b     <1A0168>
+    1A00EA:
+        sub   r4, r5, #4
+        ldr   r3, [pc, <1A0124>]  @ r3 = 0xFFFF
+        mov   r10, r3
+        mov   r8, r3
+        lsl   r0, r4, #24
+        mov   r9, r0
+    1A00F6:
+        bl    <06F5CC>   @ Random()
+        lsl   r0, r0, #16
+        lsr   r0, r0, #16
+        mov   r1, r4
+        bl    <2E7650>    @ Random % (numLearnsetMoves - 4)
+        lsl   r0, r0, #24
+        lsr   r0, r0, #22 @! lsr   r0, r0, #23
+        add   r0, r0, r6  @  lvlmoves[species] + moveID * 4
+        ldr   r0, [r0, #0]  @! ldrh  r0, [r0, #0]
+        mov   r7, r8 @ r7 = 0xFFFF
+        and   r7, r0
+        mov   r2, #1
+        mov   r1, r9
+        lsr   r3, r1, #24
+        cmp   r3, r5
+        bhs   <1A0142>
+        lsl   r0, r3, #2     @! lsl   r0, r3, #1
+        add   r0, r0, r6     @ lvlmoves[spceies] + j*4
+        ldr   r1, [r0, #0]   @! ldrh  r1, [r0, #0]
+        mov   r0, r8
+        b     <1A013A>
+    1A0124:
+        .word 0x0000FFFF     @! .word 0x000001FF
+    1A0128:
+        add   r0, r3, #1
+        lsl   r0, r0, #24
+        lsr   r3, r0, #24
+        cmp   r3, r5
+        bhs   <1A0142>
+        lsl   r0, r3, #2     @! lsl   r0, r3, #1
+        add   r0, r0, r6
+        ldr   r0, [r0, #0]   @! ldrh  r0, [r0, #0]
+        mov   r1, r10
+    1A013A:
+        and   r0, r1
+        cmp   r0, r7
+        bne   <1A0128>
+        mov   r2, #0
+    1A0142:
+        cmp   r2, #1
+        bne   <1A00F6>
+    1A0146:
+        ldr   r0, [sp, #0]
+        mov   r1, r7
+        bl    <1A0194>
+        lsl   r0, r0, #24
+        cmp   r0, #0
+        beq   <1A0168>
+        ldr   r0, [pc, <1A018C>]
+        add   r0, r7, r0
+        ldrb  r0, [r0, #0]
+        cmp   r0, #0
+        bne   <1A0170>
+        ldr   r0, [sp, #4]
+        add   r0, #1
+        lsl   r0, r0, #24
+        lsr   r0, r0, #24
+        str   r0, [sp, #4]
+    1A0168:
+        ldr   r2, [sp, #4]
+        cmp   r2, #4
+        bhi   <1A0170>
+        b     <bigInfiniteLoop>
+    1A0170:
+        ldr   r0, [pc, <1A0190>]
+        ldr   r1, [r0, #0]
+        ldrb  r0, [r1, #0]
+        add   r0, #1
+        strb  r0, [r1, #0]
+        mov   r0, r7
+        add   sp, #16
+        pop   {r3-r5}
+        mov   r8, r3
+        mov   r9, r4
+        mov   r10, r5
+        pop   {r4-r7}
+        pop   {r1}
+        bx    r1
+    1A018C:
+        .word 0x08611370
+    1A0190:
+        .word 0x030062EC
+.end
+
+@1A01E8 .thumb
+GetLatestLearnedMoves:  @ (species, *moves)
+        push  {r4-r7, lr}
+        mov   r12, r1
+        lsl   r0, r0, #16
+        lsr   r2, r0, #16
+        ldr   r0, [pc, <1A0274>]
+        ldr   r0, [r0, #0]
+        add   r0, #177
+        ldrb  r1, [r0, #0]
+        mov   r0, #3
+        and   r0, r1
+        mov   r4, #60
+        cmp   r0, #1
+        bne   <1A0204>
+        mov   r4, #50
+    1A0204:
+        ldr   r1, [pc, <lvlmoves>]
+        lsl   r0, r2, #2
+        add   r0, r0, r1
+        ldr   r6, [r0, #0]    @ r6 = lvlmoves[species]
+        mov   r5, #0
+        ldr   r1, [r6, #0]    @! ldrh  r1, [r6, #0]
+        ldr   r3, [pc, <sentinel>]
+        cmp   r1, r3
+        beq   <1A0240>
+        ldr   r2, [pc, <movemask>]   @! mov   r2, #254
+        lsl   r2, r2, #16            @! lsl   r2, r2, #8
+        mov   r0, r2
+        and   r0, r1
+        lsl   r1, r4, #16            @! lsl   r1, r4, #9
+        cmp   r0, r1
+        bgt   <1A0240>
+        mov   r4, r2
+        mov   r2, r1
+    1A0228:
+        add   r0, r5, #1
+        lsl   r0, r0, #24
+        lsr   r5, r0, #24
+        lsl   r0, r5, #1
+        add   r0, r0, r6
+        ldrh  r1, [r0, #0]
+        cmp   r1, r3
+        beq   <1A0240>
+        mov   r0, r4
+        and   r0, r1
+        cmp   r0, r2
+        ble   <1A0228>
+    1A0240:
+        mov   r4, r5
+        cmp   r4, #4
+        bls   <1A0248>
+        mov   r4, #4
+    1A0248:
+        mov   r2, #0
+        cmp   r2, r4
+        bhs   <1A026C>
+        ldr   r7, [pc, <movemask>]
+    1A0250:
+        lsl   r3, r2, #1
+        add   r3, r12
+        add   r2, #1
+        sub   r0, r5, r2
+        lsl   r0, r0, #2    @! lsl   r0, r0, #1
+        add   r0, r0, r6
+        ldr   r1, [r0, #0]  @! ldrh  r1, [r0, #0]
+        mov   r0, r7
+        and   r0, r1
+        strh  r0, [r3, #0]
+        lsl   r2, r2, #24
+        lsr   r2, r2, #24
+        cmp   r2, r4
+        blo   <1A0250>
+    1A026C:
+        pop   {r4-r7}
+        pop   {r0}
+        bx    r0
+    1A0274:
+        .word 0x03005D90
+    lvlmoves:
+        .word <data.pokemon.moves.levelup>
+    sentinel:
+        .word 0xFFFFFFFF @! .word 0x0000FFFF
+    movemask:
+        .word 0x0000FFFF @! .word 0x000001FF
+.end
