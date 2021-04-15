@@ -632,7 +632,6 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(1, table.ElementCount);
       }
 
-
       [Fact]
       public void TableWithNegativeOffset_ShrinkAndGrowParent_ChildLengthRestored() {
          CreateTextTable("names", 0, "adam", "bob", "carl", "dave");
@@ -659,6 +658,16 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(10, Model.ReadMultiByteValue(0, 2));
          Assert.Equal(11, Model.ReadMultiByteValue(2, 2));
          Assert.Equal(12, Model.ReadMultiByteValue(4, 2));
+      }
+
+      [Fact]
+      public void PointerTable_RequestHeaderForDestination_GetTableIndexName() {
+         Model.SetList("options", new[] { "Adam", "Bob", "Carl", "Dave" });
+         ViewPort.Edit("^table[entry<>]options <100> <120> <140> <160>");
+
+         Model.TryGetUsefulHeader(0x120, out var header);
+
+         Assert.Equal("Bob", header);
       }
 
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {

@@ -767,14 +767,26 @@ namespace HavenSoft.HexManiac.Core.Models {
          // only produce headers for arrays with length based on other arrays that start with a text member.
          var run = GetNextRun(address);
          if (run.Start > address) return false;
-         if (!(run is ArrayRun array)) return false;
+         if (!(run is ArrayRun array)) {
+            if (run.PointerSources != null && run.PointerSources.Count > 0 && run.Start == address) {
+               var parentRun = GetNextRun(run.PointerSources[0]);
+               if (parentRun is ArrayRun parentArray) {
+                  array = parentArray;
+                  var arrayIndex = parentArray.ConvertByteOffsetToArrayOffset(run.PointerSources[0]).ElementIndex;
+                  address = parentArray.Start + arrayIndex * parentArray.ElementLength;
+               } else {
+                  return false;
+               }
+            } else {
+               return false;
+            }
+         }
+
          if ((address - array.Start) % array.ElementLength != 0) return false;
 
-         using (ModelCacheScope.CreateScope(this)) {
-            var index = (address - array.Start) / array.ElementLength;
-            if (array.ElementNames.Count <= index) return false;
-            header = array.ElementNames[index];
-         }
+         var index = (address - array.Start) / array.ElementLength;
+         if (array.ElementNames.Count <= index) return false;
+         header = array.ElementNames[index];
 
          return true;
       }
