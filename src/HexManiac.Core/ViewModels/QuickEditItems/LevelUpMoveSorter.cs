@@ -36,8 +36,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          return ErrorInfo.NoError;
       }
 
-      public void TabChanged() {
-         CanRunChanged(this, EventArgs.Empty);
-      }
+      public void TabChanged() => CanRunChanged?.Invoke(this, EventArgs.Empty);
    }
 }
