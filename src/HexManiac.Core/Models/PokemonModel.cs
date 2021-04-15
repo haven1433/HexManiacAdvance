@@ -1767,7 +1767,8 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public override IEnumerable<string> GetAutoCompleteByteNameOptions(string text) {
          var seekBits = text.BitLetters();
-         foreach (var key in matchedWords.Keys) {
+         var matchedWordsCopy = matchedWords.Keys.ToList();
+         foreach (var key in matchedWordsCopy) {
             var includedBits = key.BitLetters();
             if ((seekBits & ~includedBits) != 0) continue;
             if (key.MatchesPartialWithReordering(text)) {
