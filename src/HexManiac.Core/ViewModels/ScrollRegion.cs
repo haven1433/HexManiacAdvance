@@ -58,7 +58,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          get => height;
          set {
             // do the update manually so that we don't notify value change until after calling UpdateScrollRange
-            value = value.LimitToRange(4, int.MaxValue);
+            value = value.LimitToRange(1, int.MaxValue);
             if (value == height) return;
             var oldHeight = height;
             height = value;

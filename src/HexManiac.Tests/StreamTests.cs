@@ -390,5 +390,17 @@ namespace HavenSoft.HexManiac.Tests {
          var cell = (Pointer)Model.GetNextRun(0x11).CreateDataFormat(Model, 0x11);
          Assert.False(cell.HasError);
       }
+
+      [Fact]
+      public void TableStream_CreateChildTab_StreamIsOneLine() {
+         ViewPort.Edit("@0A FF @06 ^table[data.]!FF ");
+
+         var child = ViewPort.CreateChildView(7, 7);
+
+         Assert.Equal(5, child.Width);
+         Assert.Equal(6, child.DataOffset);
+         Assert.Equal(1, child.Height);
+         Assert.True(child.IsSelected(new Point(1, 0)));
+      }
    }
 }

@@ -90,9 +90,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public int Height {
          get => scroll.Height;
-         set {
-            using (ModelCacheScope.CreateScope(Model)) scroll.Height = value;
-         }
+         set => scroll.Height = value;
       }
 
       public int MinimumScroll => scroll.MinimumScroll;
@@ -1692,6 +1690,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             child.Goto.Execute(lineStart.ToString("X2"));
             child.SelectionStart = child.ConvertAddressToViewPoint(startAddress);
             child.SelectionEnd = child.ConvertAddressToViewPoint(endAddress);
+         } else if (run is ITableRun tableRun) {
+            child.Goto.Execute(tableRun.Start);
+            child.Width = tableRun.Length;
+            child.SelectionStart = child.ConvertAddressToViewPoint(startAddress);
+            child.SelectionEnd = child.ConvertAddressToViewPoint(endAddress);
+            child.Height = 1;
          } else {
             child.Goto.Execute(startAddress.ToString("X2"));
             child.SelectionEnd = child.ConvertAddressToViewPoint(endAddress);
