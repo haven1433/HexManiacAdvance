@@ -351,9 +351,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
          if (streamResults.Count > 0) {
             AddChild(new ButtonArrayElementViewModel("Show uses in other streams.", () => {
-               using (ModelCacheScope.CreateScope(model)) {
-                  viewPort.OpenSearchResultsTab($"{elementName} within streams", streamResults);
-               }
+               viewPort.OpenSearchResultsTab($"{elementName} within streams", streamResults);
             }));
          }
 
