@@ -440,6 +440,14 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          var property = (string)((FrameworkElement)sender).Tag;
          ViewModel.GetType().GetProperty(property).SetValue(ViewModel, true);
       }
+
+      private void FillGotoBox(object sender, MouseButtonEventArgs e) {
+         var source = (TextBlock)sender;
+         GotoBox.Text = source.Text;
+         GotoBox.SelectAll();
+         GotoBox.Focus();
+         e.Handled = true;
+      }
    }
 
    public class CustomTraceListener : TraceListener {
