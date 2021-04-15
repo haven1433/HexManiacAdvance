@@ -153,7 +153,7 @@ namespace HavenSoft.HexManiac.Core {
          if (partial.Length == 0) return true;
          var parts = full.Split('.').Where(part => part.Any(partial.Contains)).ToList(); // only bother checking the parts where at least some letter matches
          foreach (var possibleOrder in EnumerateOrders(parts)) {
-            if (!MatchesPartial(possibleOrder, partial)) continue;
+            if (!MatchesPartial(possibleOrder, partial, true)) continue;
             return true;
          }
          return false;
