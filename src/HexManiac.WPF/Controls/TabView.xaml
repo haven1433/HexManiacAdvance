@@ -251,6 +251,7 @@
                                  <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
                                     <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
                                  </Grid.ColumnDefinitions>
                                  <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
                                  <UserControl Margin="5,0" Grid.Column="1" IsTabStop="True" Focusable="True"
@@ -259,6 +260,26 @@
                                     GotFocus="UpdateFieldTextBox" LostFocus="UpdateFieldTextBox">
                                     <hsg3hv:TextBoxLookAlike />
                                  </UserControl>
+                                 <Button Grid.Column="2" Command="{Binding Accept}" Width="20" Height="20" IsTabStop="False">
+                                    <Button.Style>
+                                       <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                          <Setter Property="Visibility" Value="Collapsed"/>
+                                          <Style.Triggers>
+                                             <DataTrigger Binding="{Binding Type}" Value="Address">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                             </DataTrigger>
+                                          </Style.Triggers>
+                                       </Style>
+                                    </Button.Style>
+                                    <Button.ToolTip>
+                                       <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                                          <TextBlock TextAlignment="Left">
+                                             Jump to the pointer's destination<LineBreak/>
+                                          </TextBlock>
+                                       </ToolTip>
+                                    </Button.ToolTip>
+                                    <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                                 </Button>
                               </Grid>
                            </DataTemplate>
                            <DataTemplate DataType="{x:Type hsg3hvmtr:ColorFieldArrayElementViewModel}">
