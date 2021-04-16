@@ -568,8 +568,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    }
 
    public class ArrayRunCalculatedSegment : ArrayRunElementSegment {
+      private readonly string left, right, operand;
+
       public IDataModel Model { get; }
-      public string left, right, operand;
+      public string Left => left;
+      public string Right => right;
+      public string Operand => operand;
+      public bool HasOperand => !string.IsNullOrEmpty(operand);
+
       public ArrayRunCalculatedSegment(IDataModel model, string name, string contract) : base(name, ElementContentType.Integer, 0) {
          Model = model;
          if (contract.Contains("*")) {
