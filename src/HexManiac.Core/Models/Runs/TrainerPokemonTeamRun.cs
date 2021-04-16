@@ -176,11 +176,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       // - "Aerial Ace"
       // - "Silver Wind"
 
-      public IStreamRun DeserializeRun(string content, ModelDelta token) {
+      public IStreamRun DeserializeRun(string content, ModelDelta token) => DeserializeRun(content, token, false, false);
+      public TrainerPokemonTeamRun DeserializeRun(string content, ModelDelta token, bool setDefaultMoves, bool setDefaultItems) {
          var lines = content.Split(Environment.NewLine).Select(line => line.Trim()).ToArray();
 
          // step 1: parse it into some data containers
-         var data = new TeamData(ModelCacheScope.GetCache(model), lines);
+         var data = new TeamData(model, lines);
+         if (setDefaultMoves) data.SetDefaultMoves(this);
+         if (setDefaultItems) data.SetDefaultItems();
 
          // step 2: figure out what I need based on the data
          var elementLength = data.MovesIncluded ? 16 : 8;
@@ -344,6 +347,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          private readonly List<int> ivs = new List<int>();
          private readonly List<int> items = new List<int>();
          private readonly List<int> moves = new List<int>();
+         private readonly IDataModel model;
 
          public bool ItemsIncluded { get; private set; }
          public bool MovesIncluded { get; private set; }
@@ -354,11 +358,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          public IReadOnlyList<int> Items => items;
          public IReadOnlyList<int> Moves => moves;
 
-         public TeamData(ModelCacheScope cache, string[] lines) {
+         public TeamData(IDataModel model, string[] lines) {
+            this.model = model;
             var currentPokemonMoveCount = 0;
-            var moveNames = cache.GetOptions(HardcodeTablesModel.MoveNamesTable);
-            var itemNames = cache.GetOptions(HardcodeTablesModel.ItemsTableName);
-            var pokemonNames = cache.GetOptions(HardcodeTablesModel.PokemonNameTable);
+            var moveNames = model.GetOptions(HardcodeTablesModel.MoveNamesTable);
+            var itemNames = model.GetOptions(HardcodeTablesModel.ItemsTableName);
+            var pokemonNames = model.GetOptions(HardcodeTablesModel.PokemonNameTable);
 
             foreach (var line in lines) {
                if (line.Trim() is "") continue;
@@ -403,6 +408,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
 
          public TeamData(IDataModel model, int start, int structType, int count) {
+            this.model = model;
             ItemsIncluded = (INCLUDE_ITEM & structType) != 0;
             MovesIncluded = (INCLUDE_MOVES & structType) != 0;
             for (int i = 0; i < count; i++) {
@@ -437,7 +443,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          public void SetDefaultItems() {
             ItemsIncluded = true;
             items.Clear();
-            items.AddRange(Enumerable.Repeat(0, pokemons.Count));
+            var pokemonTable = model.GetTable(HardcodeTablesModel.PokemonStatsTable);
+            items.AddRange(pokemons.Select(p => pokemonTable.ReadValue(model, p, "item1")));
          }
 
          public void RemoveItems() => ItemsIncluded = false;
@@ -510,10 +517,19 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var lvlMoves = model.GetNextRun(levelMovesAddress) as ArrayRun;
          if (lvlMoves != null) {
             var movesStart = model.ReadPointer(lvlMoves.Start + lvlMoves.ElementLength * pokemon);
-            if (model.GetNextRun(movesStart) is PLMRun run) {
-               for (int i = 0; i < run.Length; i += 2) {
-                  var pair = model.ReadMultiByteValue(run.Start + i, 2);
-                  var (level, move) = PLMRun.SplitToken(pair);
+            if (model.GetNextRun(movesStart) is ITableRun run) {
+               for (int i = 0; i < run.ElementCount; i += 1) {
+                  int level = 0, move = 0;
+                  if (run.ElementContent.Count == 1) {
+                     var pair = model.ReadMultiByteValue(run.Start + i * run.ElementLength, run.ElementLength);
+                     (level, move) = PLMRun.SplitToken(pair);
+                  } else if (run.ElementContent.Count == 2) {
+                     move = model.ReadMultiByteValue(run.Start + i * run.ElementLength, run.ElementContent[0].Length);
+                     level = model.ReadMultiByteValue(run.Start + i * run.ElementLength + run.ElementContent[0].Length, run.ElementContent[1].Length);
+                  } else {
+                     level = int.MaxValue;
+                  }
+
                   if (currentLevel >= level) results.Add(move);
                   else break;
                }

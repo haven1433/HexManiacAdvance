@@ -13,22 +13,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   var destination = Model.ReadPointer(Start);
                   var run = (IStreamRun)Model.GetNextRun(destination);
                   var newRun = run.DeserializeRun(content, ViewPort.CurrentChange);
-                  Model.ObserveRunWritten(ViewPort.CurrentChange, newRun);
-                  if (run.Start != newRun.Start) {
-                     RaiseDataMoved(run.Start, newRun.Start);
-                  }
-                  if (Model.GetNextRun(newRun.Start) is ITableRun table) {
-                     var offsets = table.ConvertByteOffsetToArrayOffset(newRun.Start);
-                     var info = table.NotifyChildren(Model, ViewPort.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
-                     ViewPort.HandleErrorInfo(info);
-                  }
-                  using (PreventSelfCopy()) {
-                     RaiseDataChanged();
-                  }
-                  NotifyPropertyChanged(nameof(Visualizations));
+                  HandleNewDataStream(run, newRun);
                }
             }
          }
+      }
+
+      protected void HandleNewDataStream(IStreamRun oldRun, IStreamRun newRun) {
+         Model.ObserveRunWritten(ViewPort.CurrentChange, newRun);
+         if (oldRun.Start != newRun.Start) {
+            RaiseDataMoved(oldRun.Start, newRun.Start);
+         }
+
+         if (Model.GetNextRun(newRun.Start) is ITableRun table) {
+            var offsets = table.ConvertByteOffsetToArrayOffset(newRun.Start);
+            var info = table.NotifyChildren(Model, ViewPort.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
+            ViewPort.HandleErrorInfo(info);
+         }
+
+         using (PreventSelfCopy()) {
+            RaiseDataChanged();
+         }
+
+         NotifyPropertyChanged(nameof(Visualizations));
       }
 
       public IReadOnlyList<IPixelViewModel> Visualizations {
