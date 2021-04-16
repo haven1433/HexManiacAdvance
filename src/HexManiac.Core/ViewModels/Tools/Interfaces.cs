@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
@@ -88,11 +89,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (child is SplitterArrayElementViewModel) continue;
             if (child is ButtonArrayElementViewModel) break;
             var childVisible = filterMatchesGroup;
+
             if (child is FieldArrayElementViewModel faevm) childVisible = filterMatchesGroup || faevm.Name.MatchesPartial(filter);
             if (child is ComboBoxArrayElementViewModel cbaevm) childVisible = filterMatchesGroup || cbaevm.Name.MatchesPartial(filter);
-            if (child is TupleArrayElementViewModel taevm) childVisible = filterMatchesGroup || taevm.Name.MatchesPartial(filter);
             if (child is BitListArrayElementViewModel blaevm) childVisible = filterMatchesGroup || blaevm.Name.MatchesPartial(filter);
             if (child is IStreamArrayElementViewModel saevm) childVisible = lastFieldVisible;
+            if (child is TupleArrayElementViewModel taevm) {
+               childVisible = filterMatchesGroup ||
+                  taevm.Name.MatchesPartial(filter) ||
+                  taevm.Children.Any(tupleChild => tupleChild.Name.MatchesPartial(filter));
+            }
+
             child.Visible = childVisible && visible;
             lastFieldVisible = childVisible;
             anyChildrenVisible = anyChildrenVisible || childVisible;
