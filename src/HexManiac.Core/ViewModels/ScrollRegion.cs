@@ -220,9 +220,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
             if (!useCustomHeaders || !tryGetUsefulHeader(address, out string hexAddress)) {
                hexAddress = address.ToString("X6");
-               if (address >= DataLength) hexAddress = string.Empty;
                if (address < 0) hexAddress = string.Empty;
             }
+
+            if (address >= DataLength) hexAddress = string.Empty;
 
             if (Headers.Count > i) {
                Headers[i] = hexAddress;
