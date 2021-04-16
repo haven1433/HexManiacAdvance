@@ -680,6 +680,31 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(12, table.ReadValue(Model, 0, "c"));
       }
 
+      [Fact]
+      public void CalculatedSegment_CheckNestedValueFromEnum_IsCalculated() {
+         CreateTextTable("names", 0x180, "adam", "bob", "carl");
+         ViewPort.Edit("@100 ^correlate[data:names number:]4 carl 10 bob 5 ");
+         ViewPort.Edit("@00 ^table[thing:names calc|=(correlate/data=thing)/number]2 bob ");
+
+         var table = Model.GetTable("table");
+         var segment = (ArrayRunCalculatedSegment)table.ElementContent[1];
+         var value = segment.CalculatedValue(0);
+
+         Assert.Equal(5, value);
+      }
+
+      [Fact]
+      public void CalculatedSegment_CheckNestedValueFromPointer_IsCalculated() {
+         ViewPort.Edit("@100 ^destination[data: number:]4 1 2 3 4 ");
+         ViewPort.Edit("@00 ^table[thing<> calc|=thing/1/data]2 <100> ");
+
+         var table = Model.GetTable("table");
+         var segment = (ArrayRunCalculatedSegment)table.ElementContent[1];
+         var value = segment.CalculatedValue(0);
+
+         Assert.Equal(3, value);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

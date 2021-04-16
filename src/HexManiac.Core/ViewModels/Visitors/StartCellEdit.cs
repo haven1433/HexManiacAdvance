@@ -20,6 +20,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       private static readonly char[] SpecialAnchorAllowedCharacters = new[] {
          AnchorStart,
          ArrayStart, ArrayEnd,
+         '(', ')',
          StringDelimeter, StreamDelimeter,
          PointerStart, PointerEnd,
          '|', '!', '-', '_', '=', '+', '*', ArrayAnchorSeparator,

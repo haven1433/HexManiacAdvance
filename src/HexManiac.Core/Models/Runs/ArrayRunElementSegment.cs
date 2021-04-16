@@ -581,12 +581,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             (left, right) = (parts[0], parts[1]);
             operand = "+";
          } else {
-            left = right = operand = string.Empty;
+            left = contract;
+            right = operand = string.Empty;
          }
       }
 
       public int CalculatedValue(int index) {
-         if (operand == string.Empty || right == string.Empty) return 0;
+         if (left == string.Empty) return 0;
          var table = (ITableRun)Model.GetNextRun(index);
          var offset = table.ConvertByteOffsetToArrayOffset(index);
          var leftValue = ParseValue(Model, table, offset.ElementIndex, left);
@@ -594,14 +595,45 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          switch (operand) {
             case "+": return leftValue + rightValue;
             case "*": return leftValue * rightValue;
-            default:  return 0;
+            default:  return leftValue;
          }
       }
 
       public static int ParseValue(IDataModel model, ITableRun table, int elementIndex, string content) {
+         if (string.IsNullOrEmpty(content)) return 0;
+         if (int.TryParse(content, out int simpleValue)) return simpleValue;
          if (table.ElementContent.Any(seg => seg.Name == content)) {
             return table.ReadValue(model, elementIndex, content);
          }
+         if (content.MatchesPartial("(/=)/")) {
+            var parts = content.Split("(/=)".ToCharArray());
+            var message = $"Expected {content} to fit the form (table/field=local)/field. But it didn't.";
+            if (parts.Length != 6) throw new NotImplementedException(message);
+            if (!string.IsNullOrEmpty(parts[0]) || !string.IsNullOrEmpty(parts[4])) throw new NotImplementedException(message);
+            var matchTableName = parts[1];
+            var matchTableField = parts[2];
+            var matchLocalField = parts[3];
+            var localFieldValue = ParseValue(model, table, elementIndex, matchLocalField);
+            var valueField = parts[5];
+            var matchTable = model.GetTable(matchTableName);
+            if (matchTable == null) throw new NotImplementedException(message);
+            for (int i = 0; i < matchTable.ElementCount; i++) {
+               if (matchTable.ReadValue(model, i, matchTableField) != localFieldValue) continue;
+               return ParseValue(model, matchTable, i, valueField);
+            }
+            throw new NotImplementedException(message);
+         }
+         if (content.MatchesPartial("//")) {
+            var parts = content.Split("/");
+            var message = $"Expected {content} to fit the form field/index/field. But it didn't.";
+            if (parts.Length != 3) throw new NotImplementedException(message);
+            var destination = table.ReadPointer(model, elementIndex, parts[0]);
+            var childTable = model.GetNextRun(destination) as ITableRun;
+            if (childTable == null) throw new NotImplementedException(message);
+            var childTableIndex = ParseValue(model, table, elementIndex, parts[1]);
+            return childTable.ReadValue(model, childTableIndex, parts[2]);
+         }
+         
          throw new NotImplementedException();
       }
    }

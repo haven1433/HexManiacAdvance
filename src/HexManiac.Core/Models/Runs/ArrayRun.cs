@@ -207,6 +207,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return model.ReadPointer(self.Start + self.ElementLength * elementIndex + fieldOffset);
       }
 
+      public static int ReadPointer(this ITableRun self, IDataModel model, int elementIndex, string fieldName) {
+         var field = self.ElementContent.Single(seg => seg.Name == fieldName);
+         var fieldIndex = self.ElementContent.IndexOf(field);
+         return self.ReadPointer(model, elementIndex, fieldIndex);
+      }
+
       public static int ReadValue(this ITableRun self, IDataModel model, int elementIndex, int fieldIndex = 0) {
          var fieldOffset = self.ElementContent.Take(fieldIndex).Sum(seg => seg.Length);
          if (self.ElementContent[fieldIndex].Length == 0 && self.ElementContent[fieldIndex] is ArrayRunCalculatedSegment calcSeg) {
