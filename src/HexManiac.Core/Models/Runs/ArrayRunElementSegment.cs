@@ -573,8 +573,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public IDataModel Model { get; }
       public string Left => left;
       public string Right => right;
-      public string Operand => operand;
-      public bool HasOperand => !string.IsNullOrEmpty(operand);
+      public string Operator => operand;
+      public bool HasOperator => !string.IsNullOrEmpty(operand);
 
       public ArrayRunCalculatedSegment(IDataModel model, string name, string contract) : base(name, ElementContentType.Integer, 0) {
          Model = model;
@@ -605,6 +605,46 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
+      public static int CalculateSource(IDataModel model, ITableRun table, int elementIndex, string content) {
+         if (string.IsNullOrEmpty(content)) return Pointer.NULL;
+         var tableSegment = table.ElementContent.FirstOrDefault(seg => seg.Name == content);
+         if (tableSegment != null) {
+            return table.Start + table.ElementLength * elementIndex +
+               table.ElementContent.Until(seg => seg == tableSegment).Sum(seg => seg.Length);
+         }
+
+         if (content.MatchesPartial("(/=)/")) {
+            var parts = content.Split("(/=)".ToCharArray());
+            var message = $"Expected {content} to fit the form (table/field=local)/field. But it didn't.";
+            if (parts.Length != 6) throw new NotImplementedException(message);
+            if (!string.IsNullOrEmpty(parts[0]) || !string.IsNullOrEmpty(parts[4])) throw new NotImplementedException(message);
+            var matchTableName = parts[1];
+            var matchTableField = parts[2];
+            var matchLocalField = parts[3];
+            var localFieldValue = ParseValue(model, table, elementIndex, matchLocalField);
+            var valueField = parts[5];
+            var matchTable = model.GetTable(matchTableName);
+            if (matchTable == null) throw new NotImplementedException(message);
+            for (int i = 0; i < matchTable.ElementCount; i++) {
+               if (matchTable.ReadValue(model, i, matchTableField) != localFieldValue) continue;
+               return CalculateSource(model, matchTable, i, valueField);
+            }
+            return CalculateSource(model, matchTable, matchTable.ElementCount, valueField);
+         }
+         if (content.MatchesPartial("//")) {
+            var parts = content.Split("/");
+            var message = $"Expected {content} to fit the form field/index/field. But it didn't.";
+            if (parts.Length != 3) throw new NotImplementedException(message);
+            var destination = table.ReadPointer(model, elementIndex, parts[0]);
+            var childTable = model.GetNextRun(destination) as ITableRun;
+            if (childTable == null) throw new NotImplementedException(message);
+            var childTableIndex = ParseValue(model, table, elementIndex, parts[1]);
+            return CalculateSource(model, childTable, childTableIndex, parts[2]);
+         }
+
+         throw new NotImplementedException();
+      }
+
       public static int ParseValue(IDataModel model, ITableRun table, int elementIndex, string content) {
          if (string.IsNullOrEmpty(content)) return 0;
          if (int.TryParse(content, out int simpleValue)) return simpleValue;
@@ -627,7 +667,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (matchTable.ReadValue(model, i, matchTableField) != localFieldValue) continue;
                return ParseValue(model, matchTable, i, valueField);
             }
-            throw new NotImplementedException(message);
+            return ParseValue(model, matchTable, matchTable.ElementCount, valueField);
          }
          if (content.MatchesPartial("//")) {
             var parts = content.Split("/");
@@ -637,7 +677,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var childTable = model.GetNextRun(destination) as ITableRun;
             if (childTable == null) throw new NotImplementedException(message);
             var childTableIndex = ParseValue(model, table, elementIndex, parts[1]);
-            return childTable.ReadValue(model, childTableIndex, parts[2]);
+            return ParseValue(model, childTable, childTableIndex, parts[2]);
          }
          
          throw new NotImplementedException();

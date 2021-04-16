@@ -4,6 +4,7 @@ using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -327,6 +328,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public static void WriteMultiByteValue(this IDataModel model, int index, int length, ModelDelta changeToken, int value) {
+         Debug.Assert(length > 0, "Trying to write a value with no length!");
          for (int i = 0; i < length; i++) {
             changeToken.ChangeData(model, index + i, (byte)value);
             value >>= 8;

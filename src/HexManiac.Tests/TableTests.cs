@@ -672,12 +672,24 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CalculatedSegment_CheckValue_IsCalculated() {
-         ViewPort.Edit("^table[a: b: c|=a*b]2 3 4 ");
+         ViewPort.Edit("^table[a: c|=a*b b:]2 3 4 ");
          var table = Model.GetTable("table");
-         var segment = (ArrayRunCalculatedSegment)table.ElementContent[2];
+         var segment = (ArrayRunCalculatedSegment)table.ElementContent[1];
+         var viewmodel = (CalculatedElementViewModel)ViewPort.Tools.TableTool.Children.Single(vm => vm is CalculatedElementViewModel);
 
          Assert.Equal(12, segment.CalculatedValue(0));
          Assert.Equal(12, table.ReadValue(Model, 0, "c"));
+         Assert.Equal(12, viewmodel.CalculatedValue);
+      }
+
+      [Fact]
+      public void CalculatedSegment_CalculateSource_GetSource() {
+         ViewPort.Edit("^table[a: c|=a*b b:]2 3 4 ");
+         var table = Model.GetTable("table");
+
+         int source = ArrayRunCalculatedSegment.CalculateSource(Model, table, 0, "b");
+
+         Assert.Equal(2, source);
       }
 
       [Fact]
