@@ -566,4 +566,43 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          owner.ObserveRunWritten(token, newRun.MergeAnchor(new SortedSpan<int>(source)));
       }
    }
+
+   public class ArrayRunCalculatedSegment : ArrayRunElementSegment {
+      public IDataModel Model { get; }
+      public string left, right, operand;
+      public ArrayRunCalculatedSegment(IDataModel model, string name, string contract) : base(name, ElementContentType.Integer, 0) {
+         Model = model;
+         if (contract.Contains("*")) {
+            var parts = contract.Split('*');
+            (left, right) = (parts[0], parts[1]);
+            operand = "*";
+         } else if (contract.Contains("+")) {
+            var parts = contract.Split('+');
+            (left, right) = (parts[0], parts[1]);
+            operand = "+";
+         } else {
+            left = right = operand = string.Empty;
+         }
+      }
+
+      public int CalculatedValue(int index) {
+         if (operand == string.Empty || right == string.Empty) return 0;
+         var table = (ITableRun)Model.GetNextRun(index);
+         var offset = table.ConvertByteOffsetToArrayOffset(index);
+         var leftValue = ParseValue(Model, table, offset.ElementIndex, left);
+         var rightValue = ParseValue(Model, table, offset.ElementIndex, right);
+         switch (operand) {
+            case "+": return leftValue + rightValue;
+            case "*": return leftValue * rightValue;
+            default:  return 0;
+         }
+      }
+
+      public static int ParseValue(IDataModel model, ITableRun table, int elementIndex, string content) {
+         if (table.ElementContent.Any(seg => seg.Name == content)) {
+            return table.ReadValue(model, elementIndex, content);
+         }
+         throw new NotImplementedException();
+      }
+   }
 }

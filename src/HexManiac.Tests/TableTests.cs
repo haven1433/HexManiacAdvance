@@ -670,6 +670,16 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("Bob", header);
       }
 
+      [Fact]
+      public void CalculatedSegment_CheckValue_IsCalculated() {
+         ViewPort.Edit("^table[a: b: c|=a*b]2 3 4 ");
+         var table = Model.GetTable("table");
+         var segment = (ArrayRunCalculatedSegment)table.ElementContent[2];
+
+         Assert.Equal(12, segment.CalculatedValue(0));
+         Assert.Equal(12, table.ReadValue(Model, 0, "c"));
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

@@ -209,6 +209,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public static int ReadValue(this ITableRun self, IDataModel model, int elementIndex, int fieldIndex = 0) {
          var fieldOffset = self.ElementContent.Take(fieldIndex).Sum(seg => seg.Length);
+         if (self.ElementContent[fieldIndex].Length == 0 && self.ElementContent[fieldIndex] is ArrayRunCalculatedSegment calcSeg) {
+            return calcSeg.CalculatedValue(self.Start + elementIndex * self.ElementLength);
+         }
          return model.ReadMultiByteValue(self.Start + self.ElementLength * elementIndex + fieldOffset, self.ElementContent[fieldIndex].Length);
       }
 
@@ -325,6 +328,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public const string RecordFormatString = "|s=";
       public const string TupleFormatString = "|t";
       public const string ColorFormatString = "|c";
+      public const string CalculatedFormatString = "|=";
 
       private const int JunkLimit = 80;
 
@@ -1068,6 +1072,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   if (endOfToken == -1) endOfToken = segments.Length;
                   segments = segments.Substring(endOfToken).Trim();
                   list.Add(new ArrayRunColorSegment(name));
+               } else if (segments.StartsWith(CalculatedFormatString)) {
+                  var endOfToken = segments.IndexOf(' ');
+                  if (endOfToken == -1) endOfToken = segments.Length;
+                  var calculationContract = segments.Substring(CalculatedFormatString.Length, endOfToken - CalculatedFormatString.Length);
+                  segments = segments.Substring(endOfToken).Trim();
+                  list.Add(new ArrayRunCalculatedSegment(model, name, calculationContract));
                } else if (segments.StartsWith(RecordFormatString)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
@@ -1120,6 +1130,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (int.TryParse(segments.Substring(2, formatLength - 2), out var segmentLength)) {
                return (format, formatLength, segmentLength);
             }
+         } else if (segments.StartsWith(CalculatedFormatString)) {
+            return (ElementContentType.Integer, 0, 0);
          } else if (segments.StartsWith(DoubleByteIntegerFormat + string.Empty + DoubleByteIntegerFormat)) {
             return (ElementContentType.Integer, 2, 4);
          } else if (segments.StartsWith(DoubleByteIntegerFormat + string.Empty + SingleByteIntegerFormat) || segments.StartsWith(".:")) {
