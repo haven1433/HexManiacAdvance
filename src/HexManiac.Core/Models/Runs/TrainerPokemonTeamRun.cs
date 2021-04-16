@@ -444,7 +444,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             ItemsIncluded = true;
             items.Clear();
             var pokemonTable = model.GetTable(HardcodeTablesModel.PokemonStatsTable);
-            items.AddRange(pokemons.Select(p => pokemonTable.ReadValue(model, p, "item1")));
+            items.AddRange(pokemons.Select(p => pokemonTable?.ReadValue(model, p, "item1") ?? 0));
          }
 
          public void RemoveItems() => ItemsIncluded = false;
