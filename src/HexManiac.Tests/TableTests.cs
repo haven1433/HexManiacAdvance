@@ -672,7 +672,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CalculatedSegment_CheckValue_IsCalculated() {
-         ViewPort.Edit("^table[a: c|=a*b b:]2 3 4 ");
+         ViewPort.Edit("^table[a: c|=a*b b:]2 3 4 @table ");
          var table = Model.GetTable("table");
          var segment = (ArrayRunCalculatedSegment)table.ElementContent[1];
          var viewmodel = (CalculatedElementViewModel)ViewPort.Tools.TableTool.Children.Single(vm => vm is CalculatedElementViewModel);

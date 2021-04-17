@@ -568,45 +568,44 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    }
 
    public class ArrayRunCalculatedSegment : ArrayRunElementSegment {
-      private readonly string left, right, operand;
-
       public IDataModel Model { get; }
-      public string Left => left;
-      public string Right => right;
-      public string Operator => operand;
-      public bool HasOperator => !string.IsNullOrEmpty(operand);
+      public IReadOnlyList<string> Operands { get; }
+      public string Operator { get; }
+      public bool HasOperator => !string.IsNullOrEmpty(Operator);
 
       public ArrayRunCalculatedSegment(IDataModel model, string name, string contract) : base(name, ElementContentType.Integer, 0) {
          Model = model;
          if (contract.Contains("*")) {
             var parts = contract.Split('*');
-            (left, right) = (parts[0], parts[1]);
-            operand = "*";
+            Operands = parts;
+            Operator = "*";
          } else if (contract.Contains("+")) {
             var parts = contract.Split('+');
-            (left, right) = (parts[0], parts[1]);
-            operand = "+";
+            Operands = parts;
+            Operator = "+";
          } else {
-            left = contract;
-            right = operand = string.Empty;
+            Operands = new[] { contract };
+            Operator = string.Empty;
          }
       }
 
       public int CalculatedValue(int index) {
-         if (left == string.Empty) return 0;
+         if (string.IsNullOrEmpty(Operands[0])) return 0;
          var table = (ITableRun)Model.GetNextRun(index);
          var offset = table.ConvertByteOffsetToArrayOffset(index);
-         var leftValue = ParseValue(Model, table, offset.ElementIndex, left);
-         var rightValue = ParseValue(Model, table, offset.ElementIndex, right);
-         switch (operand) {
-            case "+": return leftValue + rightValue;
-            case "*": return leftValue * rightValue;
-            default:  return leftValue;
+
+         var values = Operands.Select(operand => ParseValue(Model, table, offset.ElementIndex, operand));
+         switch (Operator) {
+            case "+": return values.Aggregate((a, b) => a + b);
+            case "*": return values.Aggregate((a, b) => a * b);
+            default:  return values.First();
          }
       }
 
       public static int CalculateSource(IDataModel model, ITableRun table, int elementIndex, string content) {
          if (string.IsNullOrEmpty(content)) return Pointer.NULL;
+         if (int.TryParse(content, out var _)) return Pointer.NULL;
+
          var tableSegment = table.ElementContent.FirstOrDefault(seg => seg.Name == content);
          if (tableSegment != null) {
             return table.Start + table.ElementLength * elementIndex +
@@ -637,8 +636,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (parts.Length != 3) throw new NotImplementedException(message);
             var destination = table.ReadPointer(model, elementIndex, parts[0]);
             var childTable = model.GetNextRun(destination) as ITableRun;
-            if (childTable == null) throw new NotImplementedException(message);
-            var childTableIndex = ParseValue(model, table, elementIndex, parts[1]);
+            if (childTable == null) return Pointer.NULL;
+            var childTableIndex = ParseValue(model, childTable, elementIndex, parts[1]);
             return CalculateSource(model, childTable, childTableIndex, parts[2]);
          }
 
@@ -648,9 +647,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public static int ParseValue(IDataModel model, ITableRun table, int elementIndex, string content) {
          if (string.IsNullOrEmpty(content)) return 0;
          if (int.TryParse(content, out int simpleValue)) return simpleValue;
+         if (content == "last") return table.ElementCount - 1;
+
          if (table.ElementContent.Any(seg => seg.Name == content)) {
             return table.ReadValue(model, elementIndex, content);
          }
+
          if (content.MatchesPartial("(/=)/")) {
             var parts = content.Split("(/=)".ToCharArray());
             var message = $"Expected {content} to fit the form (table/field=local)/field. But it didn't.";
@@ -667,7 +669,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (matchTable.ReadValue(model, i, matchTableField) != localFieldValue) continue;
                return ParseValue(model, matchTable, i, valueField);
             }
-            return ParseValue(model, matchTable, matchTable.ElementCount, valueField);
+            return ParseValue(model, matchTable, matchTable.ElementCount - 1, valueField);
          }
          if (content.MatchesPartial("//")) {
             var parts = content.Split("/");
@@ -676,7 +678,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var destination = table.ReadPointer(model, elementIndex, parts[0]);
             var childTable = model.GetNextRun(destination) as ITableRun;
             if (childTable == null) throw new NotImplementedException(message);
-            var childTableIndex = ParseValue(model, table, elementIndex, parts[1]);
+            var childTableIndex = ParseValue(model, childTable, elementIndex, parts[1]);
             return ParseValue(model, childTable, childTableIndex, parts[2]);
          }
          

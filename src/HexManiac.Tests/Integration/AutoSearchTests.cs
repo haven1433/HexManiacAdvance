@@ -603,9 +603,7 @@ namespace HavenSoft.HexManiac.Tests {
          var run = model.GetNextRun(address) as ITableRun;
          var trainerClassesTable = model.GetTable(TrainerClassNamesTable);
 
-         if (game.Contains("DarkRisingKAIZO")) Assert.Null(run);
-         else if (game.Contains("Gaia")) Assert.Null(run);
-         else Assert.InRange(run.ElementCount, 0, trainerClassesTable.ElementCount);
+         Assert.InRange(run.ElementCount, 0, trainerClassesTable.ElementCount);
       }
 
       [SkippableTheory]
