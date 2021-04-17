@@ -213,6 +213,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return self.ReadPointer(model, elementIndex, fieldIndex);
       }
 
+      public static void WritePointer(this ITableRun self, int destination, IDataModel model, ModelDelta token, int elementIndex, int fieldIndex = 0) {
+         var fieldOffset = self.ElementContent.Take(fieldIndex).Sum(seg => seg.Length);
+         model.WritePointer(token, self.Start + self.ElementLength * elementIndex + fieldOffset, destination);
+      }
+
+      public static void WritePointer(this ITableRun self, int destination, IDataModel model, ModelDelta token, int elementIndex, string fieldName) {
+         var field = self.ElementContent.Single(seg => seg.Name == fieldName);
+         var fieldIndex = self.ElementContent.IndexOf(field);
+         self.WritePointer(destination, model, token, elementIndex, fieldIndex);
+      }
+
       public static int ReadValue(this ITableRun self, IDataModel model, int elementIndex, int fieldIndex = 0) {
          var fieldOffset = self.ElementContent.Take(fieldIndex).Sum(seg => seg.Length);
          if (self.ElementContent[fieldIndex].Length == 0 && self.ElementContent[fieldIndex] is ArrayRunCalculatedSegment calcSeg) {
@@ -225,6 +236,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var field = self.ElementContent.Single(seg => seg.Name == fieldName);
          var fieldIndex = self.ElementContent.IndexOf(field);
          return self.ReadValue(model, elementIndex, fieldIndex);
+      }
+
+      public static void WriteValue(this ITableRun self, int value, IDataModel model, ModelDelta token, int elementIndex, int fieldIndex = 0) {
+         var fieldOffset = self.ElementContent.Take(fieldIndex).Sum(seg => seg.Length);
+         if (self.ElementContent[fieldIndex].Length == 0 && self.ElementContent[fieldIndex] is ArrayRunCalculatedSegment calcSeg) {
+            throw new NotImplementedException("Cannot write value to a calculated field!");
+         }
+         model.WriteMultiByteValue(self.Start + self.ElementLength * elementIndex + fieldOffset, self.ElementContent[fieldIndex].Length, token, value);
+      }
+
+      public static void WriteValue(this ITableRun self, int value, IDataModel model, ModelDelta token, int elementIndex, string fieldName) {
+         var field = self.ElementContent.Single(seg => seg.Name == fieldName);
+         var fieldIndex = self.ElementContent.IndexOf(field);
+         self.WriteValue(value, model, token, elementIndex, fieldIndex);
       }
 
       public static IEnumerable<(int, int)> Search(this ITableRun self, IDataModel model, string baseName, int index) {
