@@ -47,7 +47,6 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("\"hyper potion\"", options[1].Text);
       }
 
-
       [Fact]
       public void TrainerTeam_RequestAutocompleteMove_CorrectOptions() {
          var options = run.GetAutoCompleteOptions("- t", 0, 12);
@@ -56,6 +55,38 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("- tackle", options[0].LineText);
          Assert.Equal("scratch", options[1].Text);
          Assert.Equal("rest", options[2].Text);
+      }
+
+      [Fact]
+      public void TrainerData_Serialize_SeeIVLabel() {
+         var parent = SetupTrainerTable(0x100, 1);
+         parent.WriteValue(4, Model, ViewPort.CurrentChange, 0, "pokemonCount");
+         parent.WritePointer(0x80, Model, ViewPort.CurrentChange, 0, "pokemon");
+         var teamRun = new TrainerPokemonTeamRun(Model, 0x80, new SortedSpan<int>(0x100 + 36));
+         Model.ObserveRunWritten(ViewPort.CurrentChange, teamRun);
+
+         var text = teamRun.SerializeRun();
+
+         Assert.Contains("(IVs=0)", text);
+      }
+
+      [Fact]
+      public void TrainerData_DeserializeWithIVLabel_IVChanges() {
+         var parent = SetupTrainerTable(0x100, 1);
+         parent.WriteValue(4, Model, ViewPort.CurrentChange, 0, "pokemonCount");
+         parent.WritePointer(0x80, Model, ViewPort.CurrentChange, 0, "pokemon");
+         var teamRun = new TrainerPokemonTeamRun(Model, 0x80, new SortedSpan<int>(0x100 + 36));
+         Model.ObserveRunWritten(ViewPort.CurrentChange, teamRun);
+
+         var newRun = teamRun.DeserializeRun("1 bulbasaur (IVs=12) ", ViewPort.CurrentChange, false, false);
+
+         Assert.InRange(newRun.ReadValue(Model, 0, "ivSpread"), 12 * 8, 12 * 8 + 7);
+      }
+
+      private ITableRun SetupTrainerTable(int address, int elementCount) {
+         ViewPort.Goto.Execute(address);
+         ViewPort.Edit($"^trainertable[structType. class. stuff: name\"\"12 items:: items:: doubleBattle:: ai:: pokemonCount:: pokemon<>]{elementCount} ");
+         return Model.GetTable("trainertable");
       }
    }
 }

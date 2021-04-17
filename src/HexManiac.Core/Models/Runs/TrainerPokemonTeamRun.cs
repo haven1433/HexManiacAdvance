@@ -258,7 +258,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                start += 2;
             }
 
-            buffer.AppendLine($"{level} {pokemon} ({ivSpread}){item}");
+            buffer.AppendLine($"{level} {pokemon} (IVs={ivSpread}){item}");
             if ((StructType & INCLUDE_MOVES) != 0) {
                var moveNames = cache.GetOptions(HardcodeTablesModel.MoveNamesTable);
                for (int j = 0; j < 4; j++) {
@@ -452,6 +452,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          private void AddIV(List<int> ivs, string[] ivTokenized) {
             if (ivTokenized.Length == 2) {
                ivTokenized[1] = ivTokenized[1].Replace(")", "").Trim();
+               ivTokenized[1] = ivTokenized[1].Split('=').Last();
                if (int.TryParse(ivTokenized[1], out int fixedIV)) {
                   ivs.Add((int)Math.Round(fixedIV * 255.0 / 31));
                } else {
