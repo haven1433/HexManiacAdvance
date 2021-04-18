@@ -142,6 +142,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (e.PropertyName == nameof(scroll.MinimumScroll)) NotifyPropertyChanged(nameof(MinimumScroll));
          if (e.PropertyName == nameof(scroll.MaximumScroll)) NotifyPropertyChanged(nameof(MaximumScroll));
          if (e.PropertyName == nameof(scroll.AllowSingleTableMode)) NotifyPropertyChanged(nameof(AllowSingleTableMode));
+         if (e.PropertyName == nameof(scroll.DataLength)) dispatcher.DispatchWork(RefreshBackingData);
       }
 
       #endregion
@@ -2540,7 +2541,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   if (run == null || index >= run.Start + run.Length) {
                      run = Model.GetNextRun(index) ?? new NoInfoRun(Model.Count);
                   }
-                  if (index < 0 || index >= scroll.DataLength) {
+                  if (index < scroll.DataStart || index >= scroll.DataLength) {
                      currentView[x, y] = HexElement.Undefined;
                   } else if (index >= run.Start) {
                      var format = run is BaseRun baseRun ? baseRun.CreateDataFormat(Model, index, x == 0, Width) : run.CreateDataFormat(Model, index);

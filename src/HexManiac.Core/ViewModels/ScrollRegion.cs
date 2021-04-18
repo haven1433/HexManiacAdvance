@@ -83,7 +83,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          get {
             if (tableLength == 0) return 0;
             int effectiveDataStart = CalculateEffectiveDataLength(tableStart);
-            return (int)Math.Ceiling((double)effectiveDataStart / width);
+            return effectiveDataStart / width;
          }
       }
 
@@ -104,6 +104,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (TryUpdate(ref useCustomHeaders, value)) UpdateHeaders();
          }
       }
+
+      public int DataStart => tableLength == 0 ? 0 : tableStart;
 
       public int DataLength {
          get {
