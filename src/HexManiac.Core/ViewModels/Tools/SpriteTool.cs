@@ -581,8 +581,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             PixelHeight = 0;
          } else {
             pixels = run.GetPixels(model, spritePage);
-            PixelWidth = pixels.GetLength(0);
-            PixelHeight = pixels.GetLength(1);
+            PixelWidth = pixels?.GetLength(0) ?? 0;
+            PixelHeight = pixels?.GetLength(1) ?? 0;
          }
          var renderPalette = GetRenderPalette(run);
          PixelData = Render(pixels, renderPalette, paletteFormat.InitialBlankPages, spritePage);

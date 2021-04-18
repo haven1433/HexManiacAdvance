@@ -116,7 +116,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          if (tileset == null || tileset is ITilemapRun) return new int[Format.TileWidth * 8, Format.TileHeight * 8]; // relax the conditions slightly: if the run we found is an LZSpriteRun, that's close enough, we can use it as a tileset.
 
          var tiles = tileset.GetData();
-
+         if (tiles == null) return null;
          return GetPixels(mapData, tiles, Format, BytesPerTile);
       }
 
