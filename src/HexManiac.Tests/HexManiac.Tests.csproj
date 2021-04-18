@@ -79,6 +79,7 @@
     <Compile Include="Integration\UpgradeTests.cs" />
     <Compile Include="ItemEffectTests.cs" />
     <Compile Include="OverworldSpriteListTests.cs" />
+    <Compile Include="TestExtensions.cs" />
     <Compile Include="TestUtilities\StubView.cs" />
     <Compile Include="ImageEditorTests.cs" />
     <Compile Include="ImageImportTests.cs" />

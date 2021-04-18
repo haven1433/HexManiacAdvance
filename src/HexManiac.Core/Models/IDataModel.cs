@@ -69,7 +69,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       void ClearFormat(ModelDelta changeToken, int start, int length);
       void ClearData(ModelDelta changeToken, int start, int length);
       void ClearFormatAndData(ModelDelta changeToken, int start, int length);
-      void SetList(string name, IReadOnlyList<string> list);
+      void SetList(ModelDelta changeToken, string name, IReadOnlyList<string> list);
       void ClearPointer(ModelDelta currentChange, int source, int destination);
       string Copy(Func<ModelDelta> changeToken, int start, int length, bool deep = false);
 
@@ -211,7 +211,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public abstract void ClearFormatAndData(ModelDelta changeToken, int originalStart, int length);
 
-      public virtual void SetList(string name, IReadOnlyList<string> list) => throw new NotImplementedException();
+      public virtual void SetList(ModelDelta changeToken, string name, IReadOnlyList<string> list) => throw new NotImplementedException();
 
       public abstract string Copy(Func<ModelDelta> changeToken, int start, int length, bool deep = false);
 
@@ -496,7 +496,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public static void LoadMetadata(this IDataModel model, StoredMetadata metadata) {
          var noChange = new NoDataChangeDeltaModel();
-         foreach (var list in metadata.Lists) model.SetList(list.Name, list.Contents);
+         foreach (var list in metadata.Lists) model.SetList(noChange, list.Name, list.Contents);
          foreach (var anchor in metadata.NamedAnchors) PokemonModel.ApplyAnchor(model, noChange, anchor.Address, BaseRun.AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
          foreach (var match in metadata.MatchedWords) {
             model.ClearFormat(noChange, match.Address, match.Length);
@@ -720,6 +720,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             yield return array;
          }
       }
+
+      public static void SetList(this IDataModel model, ModelDelta token, string name, params string[] items) => model.SetList(token, name, (IReadOnlyList<string>)items);
    }
 
    public class BasicModel : BaseModel {

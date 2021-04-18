@@ -69,20 +69,6 @@ Name = '''Input'''
       }
 
       [Fact]
-      public void ListLengthedArraysCannotBeExpanded() {
-         var input = new List<string> { "bob", "tom", "steve" };
-         Model.SetList("list", input);
-         ViewPort.Edit("^table[content:]list ");
-
-         var run = (ITableRun)Model.GetNextRun(0);
-         Assert.Equal(3, run.ElementCount);
-         Assert.False(run.CanAppend);
-
-         ViewPort.Edit("@06 +");
-         Assert.Single(Errors);
-      }
-
-      [Fact]
       public void ListWithPipe_WritePipeInEnum_EditWorks() {
          Model.SetList("list", new List<string> { "some|text", "other|text", "content" });
          ViewPort.Edit("^table[a:list]2 ");
@@ -102,6 +88,38 @@ Name = '''Input'''
          Assert.Equal(1, Model.ReadMultiByteValue(0, 2));
          Assert.Equal(2, ViewPort.ConvertViewPointToAddress(ViewPort.SelectionStart));
       }
+
+      [Fact]
+      public void ListLengthTable_Append_CanAppend() {
+         Model.SetList(new ModelDelta(), "list", "item1", "item2");
+
+         ViewPort.Edit("^table[a:]list ");
+         var table = Model.GetTable("table");
+
+         Assert.True(table.CanAppend);
+      }
+
+      [Fact]
+      public void ModelDelta_ExpressListChange_HasChange() {
+         var token = new ModelDelta();
+         token.ChangeList("list", new[] { "oldcontents" }, new[] { "newcontents" });
+         Assert.False(token.HasDataChange);
+         Assert.True(token.HasAnyChange);
+      }
+
+      [Fact]
+      public void Model_ChangeList_TokenSeesChange() {
+         Model.SetList(new ModelDelta(), "name", "a", "b");
+
+         var token = new ModelDelta();
+         Model.SetList(token, "name", "a", "b", "c");
+
+         Assert.True(token.HasAnyChange);
+      }
+
+      // TODO When the model is asked to process a delta object that contains a list change, it does so
+      // TODO when a list-lengthed array grows, the list grows too
+      // TODO if exactly one table uses a list for its length, then enums using that list should be able to jump to that table
    }
 }
 

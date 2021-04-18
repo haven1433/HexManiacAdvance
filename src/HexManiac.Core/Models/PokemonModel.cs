@@ -1362,9 +1362,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public override void SetList(string name, IReadOnlyList<string> list) {
+      public override void SetList(ModelDelta changeToken, string name, IReadOnlyList<string> list) {
+         if (!lists.TryGetValue(name, out var oldContent)) oldContent = null;
          if (list == null && lists.ContainsKey(name)) lists.Remove(name);
          else lists[name] = list.ToList();
+         changeToken.ChangeList(name, oldContent, list);
       }
 
       public override bool TryGetList(string name, out IReadOnlyList<string> list) {

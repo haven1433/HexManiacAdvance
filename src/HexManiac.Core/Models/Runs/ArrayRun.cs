@@ -424,15 +424,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      public bool CanAppend {
-         get {
-            // if length is numeric, we can append
-            if (string.IsNullOrEmpty(LengthFromAnchor)) return true;
-
-            // if length is from a list, we cannot append
-            return !owner.TryGetList(LengthFromAnchor, out var _);
-         }
-      }
+      public bool CanAppend => true;
 
       private ArrayRun(IDataModel data, string format, int start, SortedSpan<int> pointerSources) : base(start, pointerSources) {
          owner = data;

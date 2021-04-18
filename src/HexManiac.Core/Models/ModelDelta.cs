@@ -32,6 +32,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          addedUnmappedConstants = new Dictionary<string, int>(),
          removedUnmappedConstants = new Dictionary<string, int>();
 
+      private readonly Dictionary<string, IReadOnlyList<string>>
+         addedLists = new Dictionary<string, IReadOnlyList<string>>(),
+         removedLists = new Dictionary<string, IReadOnlyList<string>>();
+
       public event EventHandler OnNewDataChange;
       public bool HasDataChange { get; private set; }
       public bool HasAnyChange =>
@@ -45,6 +49,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          addedUnmappedPointers.Any() ||
          removedUnmappedPointers.Any() ||
          addedUnmappedConstants.Any() ||
+         removedLists.Any() ||
+         addedLists.Any() ||
          removedUnmappedConstants.Any();
 
       public int EarliestChange {
@@ -87,6 +93,11 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public void ChangeData(IDataModel model, int index, byte[] array) {
          for (int i = 0; i < array.Length; i++) ChangeData(model, index + i, array[i]);
+      }
+
+      public void ChangeList(string name, IReadOnlyList<string> oldValues, IReadOnlyList<string> newValues) {
+         if (!removedLists.ContainsKey(name)) removedLists.Add(name, oldValues);
+         addedLists[name] = newValues;
       }
 
       public void AddRun(IFormattedRun run) {
@@ -138,12 +149,12 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var kvp in removedRuns) reverse.addedRuns[kvp.Key] = kvp.Value;
          foreach (var kvp in addedNames) reverse.removedNames[kvp.Key] = kvp.Value;
          foreach (var kvp in removedNames) reverse.addedNames[kvp.Key] = kvp.Value;
-         foreach (var kvp in addedUnmappedPointers) reverse.removedUnmappedPointers[kvp.Key] = kvp.Value;
-         foreach (var kvp in removedUnmappedPointers) reverse.addedUnmappedPointers[kvp.Key] = kvp.Value;
          foreach (var kvp in addedMatchedWords) reverse.removedMatchedWords[kvp.Key] = kvp.Value;
          foreach (var kvp in removedMatchedWords) reverse.addedMatchedWords[kvp.Key] = kvp.Value;
          foreach (var kvp in addedOffsetPointers) reverse.removedOffsetPointers[kvp.Key] = kvp.Value;
          foreach (var kvp in removedOffsetPointers) reverse.addedOffsetPointers[kvp.Key] = kvp.Value;
+         foreach (var kvp in addedUnmappedPointers) reverse.removedUnmappedPointers[kvp.Key] = kvp.Value;
+         foreach (var kvp in removedUnmappedPointers) reverse.addedUnmappedPointers[kvp.Key] = kvp.Value;
          foreach (var kvp in addedUnmappedConstants) reverse.removedUnmappedConstants[kvp.Key] = kvp.Value;
          foreach (var kvp in removedUnmappedConstants) reverse.addedUnmappedConstants[kvp.Key] = kvp.Value;
 
