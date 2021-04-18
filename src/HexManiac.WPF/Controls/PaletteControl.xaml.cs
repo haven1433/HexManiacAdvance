@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using HavenSoft.HexManiac.WPF.Resources;
 using HavenSoft.HexManiac.WPF.Windows;
 using System;
 using System.Globalization;
@@ -61,13 +62,31 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                   },
                },
                swatch,
-               new UniformGrid {
-                  Columns = 4,
+               new DockPanel {
                   Children = {
-                     swatchTextBoxes[3],
-                     swatchTextBoxes[0],
-                     swatchTextBoxes[1],
-                     swatchTextBoxes[2],
+                     new Button {
+                        Padding = new Thickness(0),
+                        Content = new Path {
+                           Data = IconExtension.GetIcon("EyeDropper"),
+                           Fill = (Brush)FindResource("Primary"),
+                           Stretch = Stretch.Uniform,
+                           Width = 16,
+                           Height = 16,
+                        },
+                        ToolTip = new ToolTip { Content = EyeDropperToolTip.Content },
+                     }.Fluent(button => {
+                        DockPanel.SetDock(button, Dock.Left);
+                        button.Click += GrabScreenColor;
+                     }),
+                     new UniformGrid {
+                        Columns = 4,
+                        Children = {
+                           swatchTextBoxes[3],
+                           swatchTextBoxes[0],
+                           swatchTextBoxes[1],
+                           swatchTextBoxes[2],
+                        },
+                     },
                   },
                },
             },
@@ -304,7 +323,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private bool isInScreenGrabMode = false;
       private int colorIndexForScreenGrab;
-      private void GrabScreenColor(object sender, ExecutedRoutedEventArgs e) {
+      private void GrabScreenColor(object sender, EventArgs e) {
          ViewModel.SingleSelect();
          colorIndexForScreenGrab = ViewModel.SelectionStart;
          isInScreenGrabMode = true;
@@ -321,6 +340,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          ReleaseMouseCapture();
          PreviewMouseDown -= GrabColorFromScreen;
          e.Handled = true;
+         isInScreenGrabMode = false;
+         ClosePopup();
       }
 
       private void ControlRequestBringIntoView(object sender, RequestBringIntoViewEventArgs e) => e.Handled = true;

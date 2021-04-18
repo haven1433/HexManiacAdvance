@@ -62,9 +62,11 @@ namespace HavenSoft.HexManiac.WPF.Resources {
 
       public IconExtension(string name) { Name = name; }
 
-      public override object ProvideValue(IServiceProvider serviceProvider) {
+      public override object ProvideValue(IServiceProvider serviceProvider) => GetIcon(Name);
+
+      public static Geometry GetIcon(string name) {
          var icons = (Icons)Application.Current.FindResource("Icons");
-         return icons.FindName(Name);
+         return (Geometry)icons.FindName(name);
       }
    }
 }

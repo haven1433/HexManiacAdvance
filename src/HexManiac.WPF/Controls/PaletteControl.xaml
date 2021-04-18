@@ -17,7 +17,7 @@
          <MenuItem Header="Merge Colors" InputGestureText="Ctrl+M" Command="{Binding SingleReduce}" />
          <MenuItem Header="Choose Color from Screen" Command="Select">
             <MenuItem.ToolTip>
-               <ToolTip Content="Click this, then click any color on your screen to pull that color into the palette."/>
+               <ToolTip Name="EyeDropperToolTip" Content="Click this, then click any color on your screen to pull that color into the palette."/>
             </MenuItem.ToolTip>
          </MenuItem>
       </ContextMenu>
