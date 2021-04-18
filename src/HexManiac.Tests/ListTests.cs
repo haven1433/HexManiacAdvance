@@ -117,7 +117,18 @@ Name = '''Input'''
          Assert.True(token.HasAnyChange);
       }
 
-      // TODO When the model is asked to process a delta object that contains a list change, it does so
+      [Fact]
+      public void DeltaObjectWithListChange_ProcessWithModel_ListChanged() {
+         Model.SetList(new ModelDelta(), "name", "a", "b");
+
+         var token = new ModelDelta();
+         token.ChangeList("name", new[] { "a" }, new[] { "a", "b" });
+         token.Revert(Model);
+
+         Model.TryGetList("name", out var list);
+         Assert.Equal(new[] { "a" }, list);
+      }
+
       // TODO when a list-lengthed array grows, the list grows too
       // TODO if exactly one table uses a list for its length, then enums using that list should be able to jump to that table
    }

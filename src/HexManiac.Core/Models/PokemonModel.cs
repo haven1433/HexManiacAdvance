@@ -1202,8 +1202,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          IReadOnlyDictionary<int, int> offsetPointersToRemove,
          IReadOnlyDictionary<int, int> offsetPointersToAdd,
          IReadOnlyDictionary<string, int> unmappedConstantsToRemove,
-         IReadOnlyDictionary<string, int> unmappedConstantsToAdd
+         IReadOnlyDictionary<string, int> unmappedConstantsToAdd,
+         IReadOnlyDictionary<string, IReadOnlyList<string>> listsToRemove,
+         IReadOnlyDictionary<string, IReadOnlyList<string>> listsToAdd
       ) {
+         foreach (var kvp in listsToRemove) lists.Remove(kvp.Key);
+         foreach (var kvp in listsToAdd) lists.Add(kvp.Key, kvp.Value.ToList());
+
          foreach (var kvp in namesToRemove) {
             var (address, name) = (kvp.Key, kvp.Value);
             addressForAnchor.Remove(name);

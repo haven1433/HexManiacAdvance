@@ -149,6 +149,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var kvp in removedRuns) reverse.addedRuns[kvp.Key] = kvp.Value;
          foreach (var kvp in addedNames) reverse.removedNames[kvp.Key] = kvp.Value;
          foreach (var kvp in removedNames) reverse.addedNames[kvp.Key] = kvp.Value;
+         foreach (var kvp in addedLists) reverse.removedLists[kvp.Key] = kvp.Value;
+         foreach (var kvp in removedLists) reverse.addedLists[kvp.Key] = kvp.Value;
          foreach (var kvp in addedMatchedWords) reverse.removedMatchedWords[kvp.Key] = kvp.Value;
          foreach (var kvp in removedMatchedWords) reverse.addedMatchedWords[kvp.Key] = kvp.Value;
          foreach (var kvp in addedOffsetPointers) reverse.removedOffsetPointers[kvp.Key] = kvp.Value;
@@ -163,7 +165,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             addedUnmappedPointers, removedUnmappedPointers,
             addedMatchedWords, removedMatchedWords,
             addedOffsetPointers, removedOffsetPointers,
-            addedUnmappedConstants, removedUnmappedConstants);
+            addedUnmappedConstants, removedUnmappedConstants,
+            addedLists, removedLists);
 
          return reverse;
       }

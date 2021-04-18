@@ -62,7 +62,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd,
          IReadOnlyDictionary<int, string> matchedWordsToRemove, IReadOnlyDictionary<int, string> matchedWordsToAdd,
          IReadOnlyDictionary<int, int> offsetPointersToRemove, IReadOnlyDictionary<int, int> offsetPointersToAdd,
-         IReadOnlyDictionary<string, int> unmappedConstantsToRemove, IReadOnlyDictionary<string, int> unmappedConstantsToAdd);
+         IReadOnlyDictionary<string, int> unmappedConstantsToRemove, IReadOnlyDictionary<string, int> unmappedConstantsToAdd,
+         IReadOnlyDictionary<string, IReadOnlyList<string>> listsToRemove, IReadOnlyDictionary<string, IReadOnlyList<string>> listsToAdd);
       T RelocateForExpansion<T>(ModelDelta changeToken, T run, int minimumLength) where T : IFormattedRun;
       int FindFreeSpace(int start, int length);
       void ClearAnchor(ModelDelta changeToken, int start, int length);
@@ -266,7 +267,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          IReadOnlyDictionary<int, int> offsetPointersToRemove,
          IReadOnlyDictionary<int, int> offsetPointersToAdd,
          IReadOnlyDictionary<string, int> unmappedConstantsToRemove,
-         IReadOnlyDictionary<string, int> unmappedConstantsToAdd);
+         IReadOnlyDictionary<string, int> unmappedConstantsToAdd,
+         IReadOnlyDictionary<string, IReadOnlyList<string>> listsToRemove,
+         IReadOnlyDictionary<string, IReadOnlyList<string>> listsToAdd);
 
       public abstract T RelocateForExpansion<T>(ModelDelta changeToken, T run, int minimumLength) where T : IFormattedRun;
 
@@ -743,7 +746,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          IReadOnlyDictionary<int, string> unmappedPointersToRemove, IReadOnlyDictionary<int, string> unmappedPointersToAdd,
          IReadOnlyDictionary<int, string> matchedWordsToRemove, IReadOnlyDictionary<int, string> matchedWordsToAdd,
          IReadOnlyDictionary<int, int> offsetPointersToRemove, IReadOnlyDictionary<int, int> offsetPointersToAdd,
-         IReadOnlyDictionary<string, int> unmappedConstantsToRemove, IReadOnlyDictionary<string, int> unmappedConstantsToAdd) { }
+         IReadOnlyDictionary<string, int> unmappedConstantsToRemove, IReadOnlyDictionary<string, int> unmappedConstantsToAdd,
+         IReadOnlyDictionary<string, IReadOnlyList<string>> listsToRemove, IReadOnlyDictionary<string, IReadOnlyList<string>> listsToAdd) { }
       public override T RelocateForExpansion<T>(ModelDelta changeToken, T run, int minimumLength) => throw new NotImplementedException();
       public override int FindFreeSpace(int start, int length) => throw new NotImplementedException();
       public override void ClearAnchor(ModelDelta changeToken, int start, int length) { }
