@@ -85,6 +85,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          await viewPort.UpdateProgress(.8);
          await ExpandLevelUpMoveCode(viewPort, token, .8, 1);
 
+         // update move name length
+         //ExpandMoveNameData(model, token);
+         //ExpandMoveNameCode(model, parser, token);
+
          viewPort.Refresh();
          return ErrorInfo.NoError;
       }
@@ -263,6 +267,38 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       public static async Task ExpandLevelUpMoveCode(IEditableViewPort viewPort, ModelDelta token, double loadingStart, double loadingEnd) {
          var script = File.ReadAllText(ExpandLevelUpMovesCode);
          await viewPort.Edit(script, loadingStart, loadingEnd);
+      }
+
+      const byte OriginalElementLength = 13, NewElementLength = 17;
+      public static void ExpandMoveNameData(IDataModel model, ModelDelta token) {
+         var table = model.GetTable(MoveNamesTable);
+         table = model.RelocateForExpansion(token, table, table.ElementCount * NewElementLength);
+         for (int i = table.ElementCount - 1; i >= 0; i--) {
+            var text = table.ReadText(model, i);
+            var writeBytes = PCSString.Convert(text);
+            while (writeBytes.Count < NewElementLength) writeBytes.Add(0x00);
+            token.ChangeData(model, table.Start + i * NewElementLength, writeBytes.ToArray());
+         }
+         ArrayRun.TryParse(model, $"[name\"\"{NewElementLength}]{table.ElementCount}", table.Start, table.PointerSources, out var newTable);
+         model.ObserveRunWritten(token, newTable);
+      }
+
+      public static void ExpandMoveNameCode(IDataModel model, ThumbParser parser, ModelDelta token) {
+         var table = (ArrayRun)model.GetTable(MoveNamesTable);
+         foreach (var source in table.PointerSources) {
+            var funcLoc = source - 2;
+            while (funcLoc >= 0 && model[funcLoc] != 0xB5) funcLoc -= 2;
+            if (funcLoc < 0) continue;
+            for (funcLoc += 2; funcLoc < source; funcLoc += 2) {
+               if (model[funcLoc] != OriginalElementLength) continue;
+               var loadArrayLine = parser.Parse(model, funcLoc, 2).Trim().SplitLines().Last().Trim();
+               // change commands like mov r0, #13 or add r1, #13
+               // given the proximity to the name table pointer, the constant is probably used by that table
+               if (loadArrayLine.EndsWith(", #" + OriginalElementLength)) {
+                  token.ChangeData(model, funcLoc, NewElementLength);
+               }
+            }
+         }
       }
 
       public void TabChanged() => CanRunChanged?.Invoke(this, EventArgs.Empty);

@@ -252,6 +252,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          self.WriteValue(value, model, token, elementIndex, fieldIndex);
       }
 
+      public static string ReadText(this ITableRun self, IDataModel model, int elementIndex, int fieldIndex = 0) {
+         var segOffset = self.ElementContent.Take(fieldIndex).Sum(seg => seg.Length);
+         var textStart = self.Start + self.ElementLength * elementIndex + segOffset;
+         var length = PCSString.ReadString(model.RawData, textStart, true, self.ElementContent[fieldIndex].Length);
+         return PCSString.Convert(model.RawData, textStart, length);
+      }
+
       public static IEnumerable<(int, int)> Search(this ITableRun self, IDataModel model, string baseName, int index) {
          int segmentOffset = 0;
          for (int i = 0; i < self.ElementContent.Count; i++) {
@@ -957,10 +964,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          Debug.Assert(ElementContent[fieldIndex].Length == 1, $"{ElementContent[fieldIndex].Name} is not a byte field.");
          var offset = ElementContent.Take(fieldIndex).Sum(seg => seg.Length);
          foreach (var source in PointerSources) {
-            foreach (var load in FindAllLoads(parser, source)) {
-               foreach (var add in FindAllCommands(parser, load.address + 2, load.register, (line, reg) => line.StartsWith("add ") && line.Contains($", {reg}"))) {
+            foreach (var load in FindAllLoads(owner, parser, source)) {
+               foreach (var add in FindAllCommands(owner, parser, load.address + 2, load.register, (line, reg) => line.StartsWith("add ") && line.Contains($", {reg}"))) {
                   var offsetText = $" #{offset}]";
-                  foreach (var ldrb in FindAllCommands(parser, add.address + 2, add.register, (line, reg) => line.StartsWith("ldrb ") && line.Contains($"[{reg}, ") && line.Contains(offsetText))) {
+                  foreach (var ldrb in FindAllCommands(owner, parser, add.address + 2, add.register, (line, reg) => line.StartsWith("ldrb ") && line.Contains($"[{reg}, ") && line.Contains(offsetText))) {
                      results.Add(ldrb.address);
                   }
                }
@@ -973,7 +980,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       /// Seeks backwards from the pointer to the start of the function.
       /// Then returns all locations that are loading the pointer.
       /// </summary>
-      private IEnumerable<(int address, string register)> FindAllLoads(ThumbParser parser, int pointerLocation) {
+      public static IEnumerable<(int address, string register)> FindAllLoads(IDataModel owner, ThumbParser parser, int pointerLocation) {
          var funcStart = pointerLocation - 2;
          while (funcStart >= 0 && owner[funcStart + 1] != 0xB5) funcStart -= 2;
          if (funcStart < 0) yield break;
@@ -1002,7 +1009,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       /// <returns>
       /// Returns the address of the command that used the source and the register of the result.
       /// </returns>
-      private IEnumerable<(int address, string register)> FindAllCommands(ThumbParser parser,int startAddress, string registerSource, Func<string, string, bool> predicate, IReadOnlyList<int> callTrail = null) {
+      public static IEnumerable<(int address, string register)> FindAllCommands(IDataModel owner, ThumbParser parser,int startAddress, string registerSource, Func<string, string, bool> predicate, IReadOnlyList<int> callTrail = null) {
          callTrail = callTrail ?? new List<int>();
          if (callTrail.Contains(startAddress)) yield break;
          if (callTrail.Count > 4) yield break; // only allow so many mov / branch operations before we lose interest. This keeps the routine fast.
@@ -1024,7 +1031,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   } else if (prevCommandIsCmp || commandLine.IndexOf(" ") != 3) {
                      // This is a b/bl that we want to follow, or it's an actual conditional branch (because it's preceded by cmp).
                      // Either way, we want to recurse.
-                     foreach (var result in FindAllCommands(parser, nextStart, registerSource, predicate, newTrail)) yield return result;
+                     foreach (var result in FindAllCommands(owner, parser, nextStart, registerSource, predicate, newTrail)) yield return result;
                   }
                }
                if (commandLine.StartsWith("b ")) break;
@@ -1034,7 +1041,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
             // follow move operations
             if (commandLine.StartsWith("mov ") && commandLine.EndsWith(registerSource)) {
-               foreach (var result in FindAllCommands(parser, i + 2, register, predicate, callTrail)) yield return result;
+               foreach (var result in FindAllCommands(owner, parser, i + 2, register, predicate, callTrail)) yield return result;
             }
 
             // look for the actual instruction we care about
