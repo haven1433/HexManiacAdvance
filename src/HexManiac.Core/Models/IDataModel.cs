@@ -549,7 +549,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   visitedAddress.Add(address);
                   arrayRun = (ArrayRun)model.GetNextRun(address);
                } else {
-                  break; // this is a top-level table, with length depending on a named constant
+                  break; // this is a top-level table, with length depending on a named constant or list
                }
             }
             table = arrayRun;

@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -129,8 +130,31 @@ Name = '''Input'''
          Assert.Equal(new[] { "a" }, list);
       }
 
-      // TODO when a list-lengthed array grows, the list grows too
-      // TODO if exactly one table uses a list for its length, then enums using that list should be able to jump to that table
+      [Fact]
+      public void ListLengthArray_Append_ListGrows() {
+         Model.SetList(new ModelDelta(), "list", "a", "b");
+         ViewPort.Edit("^table[x:]list ");
+
+         ViewPort.Goto.Execute(4);
+         ViewPort.Edit("+");
+
+         Model.TryGetList("list", out var list);
+         var table = Model.GetTable("table");
+         Assert.Equal(3, list.Count);
+         Assert.Equal(3, table.ElementCount);
+      }
+
+      [Fact]
+      public void OneListLengthTable_EnumsUseList_AllowJumpToTable() {
+         Model.SetList("list", new[] { "a", "b" });
+         ViewPort.Edit("@00 ^table1[x:]list ");
+
+         ViewPort.Edit("@100 ^table2[y:list]2 ");
+         var tool = (ComboBoxArrayElementViewModel)ViewPort.Tools.TableTool.Children.Single(e => e is ComboBoxArrayElementViewModel cbaevm && cbaevm.Name == "y");
+         tool.GotoSource.Execute();
+
+         Assert.Equal(0, ViewPort.ConvertViewPointToAddress(ViewPort.SelectionStart));
+      }
    }
 }
 

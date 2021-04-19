@@ -156,10 +156,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var rawSegment = run.ElementContent[offsets.SegmentIndex];
          if (rawSegment is ArrayRunRecordSegment recordSegment) rawSegment = recordSegment.CreateConcrete(viewPort.Model, start);
          var segment = rawSegment as ArrayRunEnumSegment;
-         int optionSource = Pointer.NULL;
+         var optionSource = new Lazy<int>(() => Pointer.NULL);
          Debug.Assert(segment != null);
          if (segment != null) {
-            optionSource = ViewPort.Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, segment.EnumName);
+            optionSource = new Lazy<int>(() => CalculateOptionSource(segment.EnumName));
+
             fullOptions = new List<ComboOption>(segment.GetComboOptions(ViewPort.Model));
          } else {
             fullOptions = new List<ComboOption>();
@@ -175,11 +176,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          filterText = selectedIndex >= 0 && selectedIndex < fullOptions.Count ? fullOptions[selectedIndex].Text : string.Empty;
          Options = fullOptions.ToList();
          GotoSource = new StubCommand {
-            CanExecute = arg => optionSource != Pointer.NULL,
+            CanExecute = arg => optionSource.Value != Pointer.NULL,
             Execute = arg => {
-               var indexSource = (viewPort.Model.GetNextRun(optionSource) is ITableRun optionSourceTable) ?
+               var indexSource = (viewPort.Model.GetNextRun(optionSource.Value) is ITableRun optionSourceTable) ?
                   optionSourceTable.Start + optionSourceTable.ElementLength * selectedIndex :
-                  optionSource;
+                  optionSource.Value;
                selection.GotoAddress(indexSource);
             },
          };
@@ -212,6 +213,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          dataChanged = comboBox.dataChanged;
 
          return true;
+      }
+
+      private int CalculateOptionSource(string name) {
+         var model = ViewPort.Model;
+         var initialGuess = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, name);
+         if (initialGuess != Pointer.NULL) return initialGuess;
+         // maybe it's a list?
+         if (!model.TryGetList(name, out var list)) return Pointer.NULL;
+         // look for tables with length based on that list
+         var arrays = model.Arrays.Where(array => array.LengthFromAnchor == name).ToList();
+         if (arrays.Count != 1) return Pointer.NULL;
+
+         // there's a single array 
+         return arrays[0].Start;
       }
    }
 }

@@ -802,6 +802,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          elementCount += ElementCount; // elementCount is now the full count, not the delta
          UpdateNamedConstant(token, ref elementCount, alsoUpdateArrays: false);
+         UpdateList(token, elementCount);
 
          return new ArrayRun(owner, newFormat, LengthFromAnchor, newParentOffset, Start, elementCount, ElementContent, PointerSources, newInnerElementsSources);
       }
@@ -821,6 +822,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          length += lengthSource.ValueOffset;
          owner.WriteMultiByteValue(lengthSource.Start, lengthSource.Length, token, length);
          CompleteCellEdit.UpdateAllWords(owner, lengthSource, token, length, alsoUpdateArrays);
+      }
+
+      private void UpdateList(ModelDelta token, int desiredValue) {
+         if (!owner.TryGetList(LengthFromAnchor, out var originalList)) return;
+         var newList = originalList.ToList();
+         while (newList.Count < desiredValue) newList.Add(newList.Count.ToString());
+         owner.SetList(token, LengthFromAnchor, newList);
       }
 
       private void WriteSegment(ModelDelta token, ArrayRunElementSegment segment, IReadOnlyList<byte> readData, int readPosition, int writePosition) {
