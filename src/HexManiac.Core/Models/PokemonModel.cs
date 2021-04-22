@@ -1732,7 +1732,14 @@ namespace HavenSoft.HexManiac.Core.Models {
          addressForAnchor.Clear();
          anchorForAddress.Clear();
          runs.Clear();
-         (singletons?.WorkDispatcher ?? InstantDispatch.Instance).RunBackgroundWork(() => Initialize(metadata));
+         lists.Clear();
+         pointerOffsets.Clear();
+         unmappedConstants.Clear();
+         matchedWords.Clear();
+         (singletons?.WorkDispatcher ?? InstantDispatch.Instance).RunBackgroundWork(() => {
+            BuildDestinationToSourceCache(newData);
+            Initialize(metadata);
+         });
       }
 
       public override IEnumerable<string> GetAutoCompleteAnchorNameOptions(string partial, int maxResults = 30) {
