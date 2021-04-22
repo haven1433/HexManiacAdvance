@@ -188,11 +188,16 @@
                <ScrollViewer VerticalScrollBarVisibility="Visible">
                   <StackPanel>
                      <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                        <Grid.ToolTip>
+                           <ToolTip>
+                              Search for specific fields
+                           </ToolTip>
+                        </Grid.ToolTip>
                         <Grid.ColumnDefinitions>
                            <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
                            <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Search:" Margin="5,0" Grid.Column="0"/>
+                        <TextBlock Text="Filter:" Margin="5,0" Grid.Column="0"/>
                         <TextBox Margin="5,0" Grid.Column="1" Text="{Binding TableTool.FieldFilter, UpdateSourceTrigger=PropertyChanged}"/>
                      </Grid>
                      <ItemsControl ItemsSource="{Binding TableTool.Children}" Grid.IsSharedSizeScope="True">
