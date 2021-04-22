@@ -102,7 +102,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var fieldNames = table.ElementContent.Select(seg => seg.Name).ToArray();
          async Task<ErrorInfo> shiftField(int i) {
             var result = RefactorMoveByteFieldInTable(parser, model, token, MoveDataTable, fieldNames[i], i + 1);
-            await viewPort.UpdateProgress((9 - i) / 8.0 * targetLoadingPercent);
+            await viewPort.UpdateProgress((9 - i) / 9.0 * targetLoadingPercent);
             return result;
          }
 
@@ -115,6 +115,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          error = await shiftField(3); if (error.HasError) return error;
          error = await shiftField(2); if (error.HasError) return error;
          error = await shiftField(1); if (error.HasError) return error;
+         error = RefactorByteToHalfWordInTable(parser, model, token, MoveDataTable, fieldNames[0]); if (error.HasError) return error;
+         await viewPort.UpdateProgress(targetLoadingPercent);
 
          // update offset pointers (because the PP field moved)
          foreach (OffsetPointerRun pointerRun in table.PointerSources
