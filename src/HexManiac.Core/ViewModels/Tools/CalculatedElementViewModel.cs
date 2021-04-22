@@ -43,6 +43,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          (segment, dataStart) = (that.segment, that.dataStart);
          Operands.Clear();
          foreach (var operand in that.Operands) Operands.Add(operand);
+         NotifyPropertyChanged(nameof(CalculatedValue));
          return true;
       }
 
