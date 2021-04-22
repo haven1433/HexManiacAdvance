@@ -717,6 +717,17 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(3, value);
       }
 
+      [Fact]
+      public void ZeroWidthSegment_GetColumnHeaders_NoHeaderForZeroWidthColumn() {
+         ViewPort.Edit("^table[a: b|=a c:]2 ");
+         var table = (ArrayRun)Model.GetTable("table");
+
+         var headers = table.GetColumnHeaders(4, 0)[0].ColumnHeaders;
+         Assert.Equal(2, headers.Count);
+         Assert.Equal("a", headers[0].ColumnTitle);
+         Assert.Equal("c", headers[1].ColumnTitle);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

@@ -30,6 +30,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          currentByte = 0;
          for (int i = 0; currentByte < length; i++) {
             var segment = source.ElementContent[(startIndex + i) % source.ElementContent.Count];
+            if (segment.Length == 0) continue;
             if (initialPartialSegmentLength != 0) {
                headers.Add(new ColumnHeader(segment.Name, initialPartialSegmentLength));
                currentByte += initialPartialSegmentLength;
