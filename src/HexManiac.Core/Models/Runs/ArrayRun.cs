@@ -892,7 +892,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          foreach (var source in sources) {
             var destination = owner.ReadPointer(source);
             int destinationIndex = (destination - Start) / ElementLength;
-            results[destinationIndex] = results[destinationIndex].Add1(source);
+            // destinationIndex is expected to be within the table
+            // but if the rom was modified by another program while open in HMA, it might not be.
+            if (destinationIndex >= 0 && destinationIndex < results.Count) {
+               results[destinationIndex] = results[destinationIndex].Add1(source);
+            }
          }
 
          var pointerSourcesForInnerElements = results.Cast<SortedSpan<int>>().ToList();
