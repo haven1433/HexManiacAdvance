@@ -40,7 +40,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          get => selectionStart;
          set {
             var index = Scroll.ViewPointToDataIndex(value);
-            value = Scroll.DataIndexToViewPoint(index.LimitToRange(0, Scroll.DataLength));
+            value = Scroll.DataIndexToViewPoint(index.LimitToRange(Scroll.DataStart, Scroll.DataLength));
 
             if (selectionStart.Equals(value)) return;
 
@@ -60,7 +60,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          get => selectionEnd;
          set {
             var index = Scroll.ViewPointToDataIndex(value);
-            value = Scroll.DataIndexToViewPoint(index.LimitToRange(0, Scroll.DataLength));
+            value = Scroll.DataIndexToViewPoint(index.LimitToRange(Scroll.DataStart, Scroll.DataLength));
 
             if (selectionEnd.Equals(value)) return;
 

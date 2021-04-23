@@ -231,5 +231,28 @@ namespace HavenSoft.HexManiac.Tests {
          var destination = test.Model.GetAddressFromAnchor(new ModelDelta(), -1, "newAnchor");
          Assert.NotEqual(Pointer.NULL, destination);
       }
+
+      [Fact]
+      public void ScrollWithSingleTableView_SelectCellBeforeStartOfTable_FirstCellOfTableSelected() {
+         var scroll = new ScrollRegion { AllowSingleTableMode = true, Width = 16, Height = 16 };
+         var select = new Selection(scroll, new PokemonModel(new byte[0x200]), new ChangeHistory<ModelDelta>(p => p));
+         scroll.SetTableMode(8, 24);
+
+         select.SelectionStart = new Point(4, 0);
+
+         Assert.Equal(new Point(8, 0), select.SelectionStart);
+      }
+
+      [Fact]
+      public void ScrollWithSingleTableView_SelectionEndBeforeStartOfTable_FirstCellOfTableSelected() {
+         var scroll = new ScrollRegion { AllowSingleTableMode = true, Width = 16, Height = 16 };
+         var select = new Selection(scroll, new PokemonModel(new byte[0x200]), new ChangeHistory<ModelDelta>(p => p));
+         scroll.SetTableMode(8, 24);
+
+         select.SelectionStart = new Point(4, 0);
+         select.SelectionEnd = new Point(4, 0);
+
+         Assert.Equal(new Point(8, 0), select.SelectionEnd);
+      }
    }
 }
