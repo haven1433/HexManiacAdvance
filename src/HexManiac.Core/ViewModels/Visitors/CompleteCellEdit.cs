@@ -15,6 +15,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       private readonly int memoryLocation;
       private readonly string CurrentText;
       private readonly ModelDelta CurrentChange;
+      private readonly ScrollRegion scroll;
 
       public bool Result { get; private set; }         // if true, the edit was completed correctly
       public int NewDataIndex { get; private set; }    // for completed edits, where should the selection move to?
@@ -25,8 +26,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                                                        // and refresh the one cell (along with any other UnderEdit cells)
                                                        // if result is true and this _is_ null, then the entire screen needs to be refreshed.
 
-      public CompleteCellEdit(IDataModel model, int memoryLocation, string currentText, ModelDelta currentChange) {
+      public CompleteCellEdit(IDataModel model, ScrollRegion scroll, int memoryLocation, string currentText, ModelDelta currentChange) {
          Model = model;
+         this.scroll = scroll;
          this.memoryLocation = memoryLocation;
          CurrentText = currentText;
          CurrentChange = currentChange;
@@ -109,6 +111,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             CompleteCharacterEdit(pcs);
             Result = true;
          }
+
+         if (Result) scroll.UpdateHeaders();
       }
 
       public void Visit(EscapedPCS pcs, byte data) {

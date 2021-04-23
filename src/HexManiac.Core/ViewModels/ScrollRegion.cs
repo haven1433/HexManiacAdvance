@@ -215,7 +215,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      private void UpdateHeaders() {
+      public void UpdateHeaders() {
          while (Headers.Count > Height) Headers.RemoveAt(Headers.Count - 1);
          for (int i = 0; i < Height; i++) {
             var address = dataIndex + i * Width;

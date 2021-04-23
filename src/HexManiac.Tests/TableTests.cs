@@ -728,6 +728,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("c", headers[1].ColumnTitle);
       }
 
+      [Fact]
+      public void TextTable_ChangeText_HeaderChanges() {
+         ViewPort.AllowMultipleElementsPerLine = false;
+         ViewPort.UseCustomHeaders = true;
+         CreateTextTable("table", 0, "adam", "bob", "carl", "dave");
+         ViewPort.Goto.Execute("table/bob ");
+
+         ViewPort.Edit("B");
+
+         Assert.Equal("Bob", ViewPort.Headers[0]);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
