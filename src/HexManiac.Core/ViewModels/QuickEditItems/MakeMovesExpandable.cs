@@ -24,12 +24,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       public event EventHandler CanRunChanged;
 
       public bool CanRun(IViewPort viewPort) {
-         if (!File.Exists(ExpandLevelUpMovesCode)) return false;
+         // this ViewPort must be editable
          if (!(viewPort is IEditableViewPort editableViewPort)) return false;
 
-         var noChange = new NoDataChangeDeltaModel();
-         if (viewPort.Model.GetAddressFromAnchor(noChange, -1, LevelMovesTableName) == Pointer.NULL) return false;
-         if (viewPort.Model.GetAddressFromAnchor(noChange, -1, MoveDataTable) == Pointer.NULL) return false;
+         // the new levelup thumb code must exist
+         if (!File.Exists(ExpandLevelUpMovesCode)) return false;
+
+         // we need tables for level-up moves, move names, move stats, and move effects
+         foreach (var table in new[] { LevelMovesTableName, MoveDataTable, MoveNamesTable, MoveEffectsTable }) {
+            if (viewPort.Model.GetTable(table) == null) return false;
+         }
+
+         // the expansion must not have been run yet
+         // easy way to check: if the move stats table has 2 bytes for the effect field, it's been tampered with
+         var moveStatsTable = viewPort.Model.GetTable(MoveDataTable);
+         if (moveStatsTable.ElementContent[0].Length != 1) return false;
+
          return true;
       }
 

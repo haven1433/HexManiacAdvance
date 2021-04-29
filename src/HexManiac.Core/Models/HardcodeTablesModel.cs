@@ -26,6 +26,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          DexInfoTableName = "data.pokedex.stats",
          PokemonNameTable = "data.pokemon.names",
          TrainerTableName = "data.trainers.stats",
+         MoveEffectsTable = "scripts.moves.effects",
          NaturesTableName = "data.pokemon.natures.names",
          OverworldSprites = "graphics.overworld.sprites",
          BallSpritesTable = "graphics.items.ball.sprites",
