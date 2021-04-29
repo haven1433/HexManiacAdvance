@@ -155,6 +155,16 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
       }
 
+      /// <summary>
+      /// Potentially edits the script text and returns a set of data repoints.
+      /// The data is moved, but the script itself has not written by this method.
+      /// </summary>
+      /// <param name="token"></param>
+      /// <param name="model"></param>
+      /// <param name="start"></param>
+      /// <param name="script"></param>
+      /// <param name="movedData"></param>
+      /// <returns></returns>
       public byte[] Compile(ModelDelta token, IDataModel model, int start, ref string script, out IReadOnlyList<(int originalLocation, int newLocation)> movedData) {
          movedData = new List<(int, int)>();
          var lines = script.Split(new[] { '\n', '\r' }, StringSplitOptions.None)
@@ -279,7 +289,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       public string GetHelp(string currentLine) {
-         if (string.IsNullOrEmpty(currentLine)) return null;
+         if (string.IsNullOrWhiteSpace(currentLine)) return null;
          var tokens = ScriptLine.Tokenize(currentLine.Trim());
          var candidates = engine.Where(line => line.LineCommand.Contains(tokens[0])).ToList();
          if (candidates.Count > 10) return null;
@@ -415,7 +425,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          result = null;
          var tokens = Tokenize(scriptLine);
          if (tokens[0] != LineCommand) throw new ArgumentException($"Command {LineCommand} was expected, but received {tokens[0]} instead.");
-         if (Args.Count != tokens.Length - 1) {
+         if (Args.Count > 0 && Args.Last() is ArrayArg) {
+            if (Args.Count > tokens.Length) {
+               return $"Command {LineCommand} expects {Args.Count} arguments, but received {tokens.Length - 1} instead.";
+            }
+         } else if (Args.Count != tokens.Length - 1) {
             return $"Command {LineCommand} expects {Args.Count} arguments, but received {tokens.Length - 1} instead.";
          }
          var results = new List<byte>(LineCode);
@@ -460,7 +474,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   throw new NotImplementedException();
                }
             } else if (Args[i] is ArrayArg arrayArg) {
-               var values = arrayArg.ConvertMany(model, tokens.Skip(i + 1));
+               var values = arrayArg.ConvertMany(model, tokens.Skip(i + 1)).ToList();
+               results.Add((byte)values.Count);
                foreach (var value in values) {
                   if (Args[i].Type == ArgType.Byte) {
                      results.Add((byte)value);

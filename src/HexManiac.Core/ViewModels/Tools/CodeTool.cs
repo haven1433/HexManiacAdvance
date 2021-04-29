@@ -164,7 +164,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void ScriptChanged(object viewModel, EventArgs e) {
-         var parser = mode == CodeMode.Script ? script : battleScript;
+         var parser = mode == CodeMode.Script ? script : mode == CodeMode.BattleScript ? battleScript : animationScript;
          var body = (CodeBody)viewModel;
          var codeContent = body.Content;
 
@@ -359,12 +359,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          get => caretPosition;
          set {
             if (!TryUpdate(ref caretPosition, value)) return;
-            var lines = content.Split(Environment.NewLine).ToList();
+            var lines = content.Split('\r', '\n').ToList();
             var contentBoundaryCount = 0;
             while (caretPosition > lines[0].Length) {
                if (lines[0].Trim() == "{") contentBoundaryCount += 1;
                if (lines[0].Trim() == "}") contentBoundaryCount -= 1;
-               caretPosition -= lines[0].Length + Environment.NewLine.Length;
+               caretPosition -= lines[0].Length + 1;
                lines.RemoveAt(0);
             }
 

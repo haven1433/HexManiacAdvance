@@ -171,6 +171,66 @@ end
          Assert.Equal(0x12345678, codeBytes.ReadMultiByteValue(0, 4));
       }
 
+      [Fact]
+      public void AnimationScript_Write_Written() {
+         SetFullModel(0xFF);
+         ViewPort.Refresh();
+         var tool = ViewPort.Tools.CodeTool;
+         ViewPort.Tools.CodeToolCommand.Execute();
+         ViewPort.SelectionStart = new Point(0, 0);
+         tool.Mode = CodeMode.AnimationScript;
+
+         var script = @"
+Script:
+   delay 10
+   end";
+         tool.Contents[0].Content = script;
+
+         // 04 delay time.
+         // 08 end
+         var result = Model.Take(3).ToArray();
+         Assert.Equal(new byte[] { 0x04, 0x10, 0x08 }, result);
+      }
+
+      [Fact]
+      public void AnimationScript_CreateVisualTask_ArgumentsReadCorrectly() {
+         SetFullModel(0xFF);
+         ViewPort.Refresh();
+         var tool = ViewPort.Tools.CodeTool;
+         ViewPort.Tools.CodeToolCommand.Execute();
+         ViewPort.SelectionStart = new Point(0, 0);
+         tool.Mode = CodeMode.AnimationScript;
+
+         var script = @"
+Script:
+   createvisualtask <0BA7F9> 0A 0001 0000 0006 0000 0000
+   end
+";
+         tool.Contents[0].Content = script;
+
+         // 03 createvisualtask address<> priority. [argv:]
+         // 08 end
+         var result = Model.Take(1 + 4 + 1 + (1 + 5 * 2) + 1).ToArray();
+         //                          op    pointer               prir arg  0             1          2           3           4          end
+         Assert.Equal(new byte[] { 0x03, 0xF9, 0xA7, 0x0B, 0x08, 0x0A, 5, 0x01, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08 }, result);
+      }
+
+      [Fact]
+      public void EventScript_SingleSpaceOnLine_NoIssue() {
+         SetFullModel(0xFF);
+         ViewPort.Refresh();
+         var tool = ViewPort.Tools.CodeTool;
+         ViewPort.Tools.CodeToolCommand.Execute();
+         ViewPort.SelectionStart = new Point();
+         tool.Mode = CodeMode.Script;
+
+         var script = "Script:\n ";
+         tool.Contents[0].Content = script;
+         tool.Contents[0].CaretPosition = script.Length;
+
+         // if it doesn't crash, we're good
+      }
+
       private string Script(params string[] lines) => lines.CombineLines();
    }
 }
