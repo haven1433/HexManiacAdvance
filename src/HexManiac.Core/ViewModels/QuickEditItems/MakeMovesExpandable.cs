@@ -40,6 +40,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var moveStatsTable = viewPort.Model.GetTable(MoveDataTable);
          if (moveStatsTable.ElementContent[0].Length != 1) return false;
 
+         // moves must be 2 bytes each
+         var levelMovesTable = viewPort.Model.GetTable(LevelMovesTableName);
+         var destination = levelMovesTable.ReadPointer(viewPort.Model, 0);
+         var pokemonMoves = viewPort.Model.GetNextRun(destination) as ITableRun;
+         if (pokemonMoves == null || pokemonMoves.ElementLength != 2) return false;
+
          return true;
       }
 
