@@ -84,11 +84,11 @@ graphics.pokemon.moves.animations,          075734, 075738, 075754, 075758, 0725
 graphics.moves.particles.sprites-13880,     075A60, 075A64, 075A80, 075A84, 0728B8, 0728B8, 0728CC, 0728CC, 0A3D74, [ptr<`lzt4`> size: index:]289
 graphics.moves.particles.palettes-13880,    075A64, 075A68, 075A84, 075A88, 0728BC, 0728BC, 0728D0, 0728D0, 0A3D78, [ptr<`lzp4`> index: unused:]graphics.moves.particles.sprites
 graphics.moves.backgrounds.all,                   ,       ,       ,       , 073960, 073960, 073974, 073974,       , [tileset<`lzt4`> palette<`lzp4`> tilemap<`lzm4x32x32|graphics.moves.backgrounds.all`>]27
-graphics.moves.backgrounds.psychic,               ,       ,       ,       , 3ADE44, 3ADE24, 3ADEB4, 3ADE94,       , `lzm4x32x20|graphics.moves.backgrounds.all` // BPRE0
-graphics.moves.backgrounds.impact.opponent,       ,       ,       ,       , 3ADE50, 3ADE30, 3ADEC0, 3ADEA0,       , `lzm4x32x20|graphics.moves.backgrounds.all` // BPRE0
-graphics.moves.backgrounds.impact.player,         ,       ,       ,       , 3ADE5C, 3ADE3C, 3ADECC, 3ADEAC,       , `lzm4x32x20|graphics.moves.backgrounds.all` // BPRE0
-graphics.moves.backgrounds.impact.contest,        ,       ,       ,       , 3ADE68, 3ADE48, 3ADED8, 3ADEB8,       , `lzm4x32x20|graphics.moves.backgrounds.all` // BPRE0
-graphics.moves.backgrounds.impact.fissure,        ,       ,       ,       , 3ADF1C, 3ADEFC, 3ADF8C, 3ADF6C,       , `lzm4x32x64|graphics.moves.backgrounds.all` // BPRE0
+graphics.moves.backgrounds.psychic,               ,       ,       ,       , 3ADE44, 3ADE24, 3ADEB4, 3ADE94,       , `lzm4x32x20|graphics.moves.backgrounds.all`
+graphics.moves.backgrounds.impact.opponent,       ,       ,       ,       , 3ADE50, 3ADE30, 3ADEC0, 3ADEA0,       , `lzm4x32x20|graphics.moves.backgrounds.all`
+graphics.moves.backgrounds.impact.player,         ,       ,       ,       , 3ADE5C, 3ADE3C, 3ADECC, 3ADEAC,       , `lzm4x32x20|graphics.moves.backgrounds.all`
+graphics.moves.backgrounds.impact.contest,        ,       ,       ,       , 3ADE68, 3ADE48, 3ADED8, 3ADEB8,       , `lzm4x32x20|graphics.moves.backgrounds.all`
+graphics.moves.backgrounds.impact.fissure,        ,       ,       ,       , 3ADF1C, 3ADEFC, 3ADF8C, 3ADF6C,       , `lzm4x32x64|graphics.moves.backgrounds.all`
 graphics.moves.surf.palette,                      ,       ,       ,       , 0AB464, 0AB438, 0AB478, 0AB44C,       , `lzp4`
 graphics.moves.surf.tileset,                      ,       ,       ,       , 0AB45C, 0AB430, 0AB470, 0AB444,       , `lzt4|graphics.moves.surf.palette`
 graphics.moves.surf.opponent,                     ,       ,       ,       , 0AB404, 0AB3D8, 0AB418, 0AB3EC,       , `lzm4x32x64|graphics.moves.surf.tileset`
@@ -465,6 +465,14 @@ graphics.credits.trainer.rival.palette,        ,       ,       ,       , 0F4ADC,
 graphics.credits.trainer.male.sprite,          ,       ,       ,       , 0F4A10, 0F49E8, 0F4A88, 0F4A60, , `lzs4x8x8|graphics.credits.trainer.male.palette`
 graphics.credits.trainer.female.sprite,        ,       ,       ,       , 0F4A44, 0F4A1C, 0F4ABC, 0F4A94, , `lzs4x8x8|graphics.credits.trainer.female.palette`
 graphics.credits.trainer.rival.sprite,         ,       ,       ,       , 0F4AD8, 0F4AB0, 0F4B50, 0F4B28, , `lzs4x8x8|graphics.credits.trainer.rival.palette`
+graphics.credits.pokemon.Starter1.idle,    , , , , 0F41F8, 0F41D0, 0F4270, 0F4248, , `lzs4x10x10|graphics.pokemon.palettes.normal:index=6`
+graphics.credits.pokemon.Starter1.animate, , , , , 0F41FC, 0F41D4, 0F4274, 0F424C, , `lzs4x12x13|graphics.pokemon.palettes.normal:index=6`
+graphics.credits.pokemon.Starter2.idle,    , , , , 0F4238, 0F4210, 0F42B0, 0F4288, , `lzs4x10x10|graphics.pokemon.palettes.normal:index=3`
+graphics.credits.pokemon.Starter2.animate, , , , , 0F423C, 0F4214, 0F42B4, 0F428C, , `lzs4x12x10|graphics.pokemon.palettes.normal:index=3`
+graphics.credits.pokemon.Starter3.idle,    , , , , 0F4280, 0F4258, 0F42F8, 0F42D0, , `lzs4x10x10|graphics.pokemon.palettes.normal:index=9`
+graphics.credits.pokemon.Starter3.animate, , , , , 0F4284, 0F425C, 0F42FC, 0F42D4, , `lzs4x10x12|graphics.pokemon.palettes.normal:index=9`
+graphics.credits.pokemon.Mascot.idle,      , , , , 0F42E8, 0F42C0, 0F4360, 0F4338, , `lzs4x10x10|graphics.pokemon.palettes.normal:index=25`
+graphics.credits.pokemon.Mascot.animate,   , , , , 0F42EC, 0F42C4, 0F4364, 0F433C, , `lzs4x12x12|graphics.pokemon.palettes.normal:index=25`
 
 graphics.trainercard.badges.palette,                 ,,,,               08ADB4, 08AD88, 08ADC8, 08AD9C, , `ucp4`
 graphics.trainercard.stickers.palette,               ,,,,               08ADC0, 08AD94, 08ADD4, 08ADA8, , `ucp4`
