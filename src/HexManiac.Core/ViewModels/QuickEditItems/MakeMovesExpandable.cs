@@ -89,23 +89,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          if (error.HasError) return error;
          await viewPort.UpdateProgress(.6);
 
-         // update max level-up moves from 20 to 40
-         await viewPort.UpdateProgress(.7);
-
-         // update levelup moves
+         // update levelup moves (update limit from 20 to 25)
          var storeFreeSpaceBuffer = viewPort.Model.FreeSpaceBuffer;
          viewPort.Model.FreeSpaceBuffer = 0;
          using (new StubDisposable { Dispose = () => viewPort.Model.FreeSpaceBuffer = storeFreeSpaceBuffer }) {
             ExpandLevelUpMoveData(viewPort.Model, token);
          }
-         await viewPort.UpdateProgress(.8);
-         await ExpandLevelUpMoveCode(viewPort, token, .8, 1);
-
-         // update move name length
-         // Disable for now because of data structures in the RAM that expect moves to be exactly 13 bytes.
-         // See pokefirered, pokemon_summary_screen.c, struct PokeSummary
-         //ExpandMoveNameData(model, token);
-         //ExpandMoveNameCode(model, parser, token);
+         await viewPort.UpdateProgress(.7);
+         await ExpandLevelUpMoveCode(viewPort, token, .7, 1);
 
          viewPort.Refresh();
          return ErrorInfo.NoError;
