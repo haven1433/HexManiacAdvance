@@ -10,12 +10,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       public string Description => "Sorts all level-up moves of all Pokemon in ascending order." +
          Environment.NewLine + "By Petuuuhhh (thanks to Haven for walking me through it!)";
 
-      public string WikiLink => "TODO";
+      public string WikiLink => "https://github.com/haven1433/HexManiacAdvance/wiki/Sorting-Level-Up-Moves:-Explained";
 
       public event EventHandler CanRunChanged;
 
       public bool CanRun(IViewPort viewPort) {
-         return viewPort is IEditableViewPort;
+         if (!(viewPort is IEditableViewPort)) return false;
+         return viewPort.Model.GetTable(HardcodeTablesModel.LevelMovesTableName) != null;
       }
 
       public async Task<ErrorInfo> Run(IViewPort viewPort) {
@@ -24,7 +25,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var levelUpMoveTable = model.GetTable(HardcodeTablesModel.LevelMovesTableName);
          for (int i = 0; i < levelUpMoveTable.ElementCount; i++) {
             var destination = levelUpMoveTable.ReadPointer(model, i);
-            var moveset = (ITableRun)model.GetNextRun(destination);
+            var moveset = model.GetNextRun(destination) as ITableRun;
+            if (moveset == null) continue;
             var sortedMoves = moveset.Sort(model, moveset.ElementContent.Count - 1);
             viewModel.ChangeHistory.CurrentChange.ChangeData(model, moveset.Start, sortedMoves);
             await viewModel.UpdateProgress((double)i / levelUpMoveTable.ElementCount);
