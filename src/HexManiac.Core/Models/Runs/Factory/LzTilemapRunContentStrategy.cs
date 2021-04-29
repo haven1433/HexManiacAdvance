@@ -23,8 +23,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
 
       public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
          var lzRun = new LZRun(model, dataIndex);
-         if (lzRun.DecompressedLength != TilemapFormat.ExpectedUncompressedLength && lzRun.DecompressedLength * 2!= TilemapFormat.ExpectedUncompressedLength) {
-            return new ErrorInfo($"Expected an uncompressed length of {TilemapFormat.ExpectedUncompressedLength}, but it was {lzRun.DecompressedLength}");
+         var rowRemainder = lzRun.DecompressedLength % TilemapFormat.TileWidth;
+         if (rowRemainder != 0) {
+            return new ErrorInfo($"{lzRun.DecompressedLength} cannot be divided into {TilemapFormat.TileWidth} columns.");
          }
          if (lzRun.Length < 6) {
             return new ErrorInfo($"Unable to decompress run at {dataIndex:X6}.");
