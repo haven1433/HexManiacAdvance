@@ -1,0 +1,3184 @@
+# Created by Kbueno
+
+[General]
+ApplicationVersion = '''0.4.1.2'''
+FreeSpaceSearch = '''000200'''
+FreeSpaceBuffer = '''100'''
+NextExportID = '''0'''
+
+#################################
+
+[[NamedAnchors]]
+Name = '''data.header.title'''
+Address = 0x0000A0
+Format = '''`asc`12'''
+
+[[NamedAnchors]]
+Name = '''data.header.gamecode'''
+Address = 0x0000AC
+Format = '''`asc`4'''
+
+[[NamedAnchors]]
+Name = '''data.header.makercode'''
+Address = 0x0000B0
+Format = '''`asc`2'''
+
+[[NamedAnchors]]
+Name = '''data.header.romname'''
+Address = 0x000108
+Format = '''`asc`32'''
+
+[[NamedAnchors]]
+Name = '''data.pokemon.names'''
+Address = 0x2402EC
+Format = '''[name""11]412'''
+
+[[NamedAnchors]]
+Name = '''data.pokemon.moves.names'''
+Address = 0x2414A0
+Format = '''^[name""13]355'''
+
+[[NamedAnchors]]
+Name = '''data.abilities.names'''
+Address = 0x24A090
+Format = '''[name""13]78'''
+
+[[NamedAnchors]]
+Name = '''data.trainers.classes.names'''
+Address = 0x238964
+Format = '''[name""13]107'''
+
+[[NamedAnchors]]
+Name = '''data.pokemon.type.names'''
+Address = 0x2495AC
+Format = '''^[name""7]data.pokemon.type.length'''
+
+[[NamedAnchors]]
+Name = '''data.items.stats'''
+Address = 0x3D3324
+Format = '''[name""14 index: price: holdeffect.holdeffects param. description<""> keyitemvalue. bagkeyitem. pocket. type. fieldeffect<> battleusage:: battleeffect<> battleextra::]375'''
+
+[[NamedAnchors]]
+Name = '''data.abilities.descriptions'''
+Address = 0x249F58
+Format = '''[description<"">]data.abilities.names'''
+
+[[NamedAnchors]]
+Name = '''data.pokemon.moves.descriptions'''
+Address = 0x47E7DC
+Format = '''[description<"">]data.pokemon.moves.names-1'''
+
+[[NamedAnchors]]
+Name = '''scripts.text.multichoice'''
+Address = 0x3D87AC
+Format = '''[options<[text<""> unused::]/count> count::]65'''
+
+[[NamedAnchors]]
+Name = '''data.pokemon.natures.names'''
+Address = 0x45D3C0
+Format = '''[name<"">]25'''
+
+[[NamedAnchors]]
+Name = '''data.menus.text.options'''
+Address = 0x3C668C
+Format = '''[text<"">]7'''
+
+[[NamedAnchors]]
+Name = '''data.menus.text.pc'''
+Address = 0x3C88C8
+Format = '''[text<""> data::]31'''
+
+[[NamedAnchors]]
+Name = '''data.menus.text.pokemon'''
+Address = 0x4538EC
+Format = '''[text<"">]27'''
+
+[[NamedAnchors]]
+Name = '''scripts.newgame.names.male'''
+Address = 0x45C690
+Format = '''[name<"">]19'''
+
+[[NamedAnchors]]
+Name = '''scripts.newgame.names.female'''
+Address = 0x45C6DC
+Format = '''[name<"">]19'''
+
+[[NamedAnchors]]
+Name = '''scripts.newgame.names.rival'''
+Address = 0x45C728
+Format = '''[name<"">]4'''
+
+[[NamedAnchors]]
+Name = '''data.maps.names'''
+Address = 0x3EA268
+Format = '''[name<"">]109'''
+
+[[NamedAnchors]]
+Name = '''data.maps.banks'''
+Address = 0x34CAF8
+Format = '''[maps<[map<[layout<[width:: height:: s1<> s2<> tiles<[a. b. c. d. tileset<`lzt4`> pal<`ucp4:0123456789ABCDEF`> block<> unknown<> blockend<>]1> s4<> borderwidth. borderheight. unused:]1> events<[e1 e2 e3 e4 ee1<> ee2<> ee3<> ee4<>]1> mapscripts<[type. pointer<>]!00> d<> song: map: label. flash. weather. type. unused: useLabel:]1>]1>]43'''
+
+[[NamedAnchors]]
+Name = '''data.maps.dungeons.stats'''
+Address = 0x3EA0F8
+Format = '''[id:: name<""> description<"">]19'''
+
+[[NamedAnchors]]
+Name = '''data.maps.heal.map'''
+Address = 0x3E72BC
+Format = '''[bank: map:]20'''
+
+[[NamedAnchors]]
+Name = '''data.maps.heal.healerNPC'''
+Address = 0x3E730C
+Format = '''[ID.]data.maps.heal.map'''
+
+[[NamedAnchors]]
+Name = '''data.maps.fly.spawn'''
+Address = 0x3E721C
+Format = '''[bank. map. x: y: unused:]data.maps.heal.map'''
+
+[[NamedAnchors]]
+Name = '''data.maps.fly.connections'''
+Address = 0x3EB49C
+Format = '''[bank. map. flight.]108'''
+
+[[NamedAnchors]]
+Name = '''graphics.pokemon.sprites.front'''
+Address = 0x22F4B8
+Format = '''[sprite<`lzs4x8x8`> uncompressedLength: index:]data.pokemon.names+28'''
+
+[[NamedAnchors]]
+Name = '''graphics.pokemon.sprites.back'''
+Address = 0x230958
+Format = '''[sprite<`lzs4x8x8`> uncompressedLength: index:]data.pokemon.names+28'''
+
+[[NamedAnchors]]
+Name = '''graphics.pokemon.sprites.elevation'''
+Address = 0x234410
+Format = '''[elevation.]data.pokemon.names'''
+
+[[NamedAnchors]]
+Name = '''graphics.pokemon.sprites.footprint'''
+Address = 0x437F34
+Format = '''[footprint<`ucs1x2x2`>]data.pokemon.names+1'''
+
+[[NamedAnchors]]
+Name = '''graphics.pokemon.sprites.coordinates.front'''
+Address = 0x22EDD8
+Format = '''[size. yOffset. unused:]data.pokemon.names+28'''
+
+[[NamedAnchors]]
+Name = '''graphics.pokemon.sprites.coordinates.back'''
+Address = 0x230278
+Format = '''[size. yOffset. unused:]data.pokemon.names+28'''
+
+[[NamedAnchors]]
+Name = '''graphics.pokemon.palettes.normal'''
+Address = 0x231718
+Format = '''[palette<`lzp4`> index: unused:]data.pokemon.names+28'''
+
+[[NamedAnchors]]
+Name = '''graphics.pokemon.palettes.shiny'''
+Address = 0x2324D8
+Format = '''[palette<`lzp4`> index: unused:]data.pokemon.names+28'''
+
+[[NamedAnchors]]
+Name = '''graphics.pokemon.icons.sprites'''
+Address = 0x3CD5E0
+Format = '''[icon<`ucs4x4x8|graphics.pokemon.icons.index`>]data.pokemon.names+28'''
+
+[[NamedAnchors]]
+Name = '''graphics.pokemon.icons.index'''
+Address = 0x3CDCC0
+Format = '''[index.graphics.pokemon.icons.palettes]data.pokemon.names+28'''
+
+[[NamedAnchors]]
+Name = '''graphics.pokemon.icons.palettes'''
+Address = 0x3CDE78
+Format = '''[palette<`ucp4`> id::]3'''
+
+[[NamedAnchors]]
+Name = '''graphics.pokemon.icons.deoxys'''
+Address = 0xE3A388
+Format = '''`ucs4x4x16|graphics.pokemon.icons.index`'''
+
+[[NamedAnchors]]
+Name = '''graphics.pokemon.shiny.star.sprite'''
+Address = 0x45D168
+Format = '''`lzs4x1x2|graphics.pokemon.shiny.star.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.pokemon.shiny.star.palette'''
+Address = 0x45D148
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.trainers.sprites.front'''
+Address = 0x233988
+Format = '''[sprite<`lzs4x8x8|graphics.trainers.palettes.front`> uncompressedLength: index:]148'''
+
+[[NamedAnchors]]
+Name = '''graphics.trainers.sprites.back.enter'''
+Address = 0x2343B0
+Format = '''[sprite<`ucs4x8x8|graphics.trainers.palettes.back`> a b c:]6'''
+
+[[NamedAnchors]]
+Name = '''graphics.trainers.animations.back'''
+Address = 0x234380
+Format = '''[animationPointer<[animation<[a: b: c: d:]1> framedata<[frame: time:]!FFFF0000>]1>]graphics.trainers.sprites.back.enter'''
+
+[[NamedAnchors]]
+Name = '''graphics.trainers.animations.frames'''
+Address = 0x2334E8
+Format = '''[animationPointer<[animation<>]1>]graphics.trainers.sprites.front'''
+
+[[NamedAnchors]]
+Name = '''graphics.trainers.coordinates.front'''
+Address = 0x233738
+Format = '''[x. y. unused:]graphics.trainers.sprites.front'''
+
+[[NamedAnchors]]
+Name = '''graphics.trainers.palettes.front'''
+Address = 0x233E28
+Format = '''[palette<`lzp4`> index: unused:]graphics.trainers.sprites.front'''
+
+[[NamedAnchors]]
+Name = '''graphics.trainers.sprites.back.throw'''
+Address = 0x2583A0
+Format = '''[starterbytes:|h unknown:|h a<> b<> sprites<`osl|graphics.trainers.palettes.back:sprite`> d<> e<>]graphics.trainers.sprites.back.enter'''
+
+[[NamedAnchors]]
+Name = '''graphics.trainers.coordinates.back'''
+Address = 0x234398
+Format = '''[x. y. unused:]graphics.trainers.sprites.back.enter'''
+
+[[NamedAnchors]]
+Name = '''graphics.trainers.palettes.back'''
+Address = 0x2343E0
+Format = '''[pal<`lzp4`> sprite::]graphics.trainers.sprites.back.enter'''
+
+[[NamedAnchors]]
+Name = '''graphics.trainers.emotes.sprites'''
+Address = 0x3C1624
+Format = '''[pointer<`ucs4x2x2|graphics.overworld.palettes:id=1100`> lengeth::]15'''
+
+[[NamedAnchors]]
+Name = '''graphics.pokedex.habitats'''
+Address = 0x44B814
+Format = '''[sprite<`lzs4x8x6`> pal<`ucp4`>]data.pokedex.habitat.names+6'''
+
+[[NamedAnchors]]
+Name = '''graphics.pokedex.minibox'''
+Address = 0x4385A8
+Format = '''`lzs4x8x4|graphics.townmap.catchmap.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.pokedex.minibox'''
+Address = 0xEB2058
+Format = '''`lzs4x8x4|graphics.townmap.catchmap.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.pokedex.regionaldex.tileset'''
+Address = 0xEB1F6C
+Format = '''`lzt4|graphics.townmap.catchmap.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.pokedex.nationaldex.tileset'''
+Address = 0xEB1E64
+Format = '''`lzt4|graphics.townmap.catchmap.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.pokemon.moves.animations'''
+Address = 0x1C50C0
+Format = '''[animation<`ase`>]data.pokemon.moves.names'''
+
+[[NamedAnchors]]
+Name = '''graphics.moves.particles.sprites'''
+Address = 0x3A6F80
+Format = '''[ptr<`lzt4`> size: index:]289'''
+
+[[NamedAnchors]]
+Name = '''graphics.moves.particles.palettes'''
+Address = 0x3A7888
+Format = '''[ptr<`lzp4`> index: unused:]graphics.moves.particles.sprites'''
+
+[[NamedAnchors]]
+Name = '''graphics.moves.surf.palette'''
+Address = 0xE81CEC
+Format = '''`lzp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.moves.surf.tileset'''
+Address = 0xE809CC	
+Format = '''`lzt4|graphics.moves.surf.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.moves.surf.opponent'''
+Address = 0xE81D14
+Format = '''`lzm4x32x64|graphics.moves.surf.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.moves.surf.player'''
+Address = 0xE81FE4
+Format = '''`lzm4x32x64|graphics.moves.surf.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.moves.surf.contest'''
+Address = 0xE822B8
+Format = '''`lzm4x32x64|graphics.moves.surf.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.items.ball.sprites'''
+Address = 0x25A9BC
+Format = '''[sprite<`lzs4x2x6|graphics.items.ball.palettes`> uncompressedLength: a b]12'''
+
+[[NamedAnchors]]
+Name = '''graphics.items.ball.palettes'''
+Address = 0x25AA1C
+Format = '''[palette<`lzp4`> a b unused:]graphics.items.ball.sprites'''
+
+[[NamedAnchors]]
+Name = '''graphics.items.sprites'''
+Address = 0x3CE114
+Format = '''[sprite<`lzs4x3x3`> palette<`lzp4`>]data.items.stats+1'''
+
+[[NamedAnchors]]
+Name = '''graphics.items.mail'''
+Address = 0x3E6FEC
+Format = '''[pal<`ucp4`> tileset<`lzt4`> tilemap<`lzm4x32x20|graphics.items.mail`> size:: textcolor:|c shadow:|c]12'''
+
+[[NamedAnchors]]
+Name = '''graphics.items.fossils.palette1'''
+Address = 0x3D927C
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.items.fossils.palette2'''
+Address = 0x3D9A9C
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.items.fossils.sprite1'''
+Address = 0x3D8A7C
+Format = '''`ucs4x8x8|graphics.items.fossils.palette1`'''
+
+[[NamedAnchors]]
+Name = '''graphics.items.fossils.sprite2'''
+Address = 0x3D929C
+Format = '''`ucs4x8x8|graphics.items.fossils.palette2`'''
+
+[[NamedAnchors]]
+Name = '''data.pokemon.stats'''
+Address = 0x24EBD4
+Format = '''[hp. attack. def. speed. spatk. spdef. type1.data.pokemon.type.names type2.data.pokemon.type.names catchRate. baseExp. evs:|t|hp:|atk:|def:|spd:|spatk:|spdef: item1:data.items.stats item2:data.items.stats genderratio. steps2hatch. basehappiness. growthrate. egg1.egggroups egg2.egggroups ability1.data.abilities.names ability2.data.abilities.names runrate. unknown. padding:]data.pokemon.names'''
+	
+[[NamedAnchors]]
+Name = '''data.pokemon.evolutions'''
+Address = 0x253BA4
+Format = '''[method1:evolutionmethods arg1:|s=method1(6=data.items.stats|7=data.items.stats) species1:data.pokemon.names unused1: method2:evolutionmethods arg2:|s=method2(6=data.items.stats|7=data.items.stats) species2:data.pokemon.names unused2: method3:evolutionmethods arg3:|s=method3(6=data.items.stats|7=data.items.stats) species3:data.pokemon.names unused3: method4:evolutionmethods arg4:|s=method4(6=data.items.stats|7=data.items.stats) species4:data.pokemon.names unused4: method5:evolutionmethods arg5:|s=method5(6=data.items.stats|7=data.items.stats) species5:data.pokemon.names unused5:]data.pokemon.names'''
+
+[[NamedAnchors]]
+Name = '''data.items.effects'''
+Address = 0x24CD0C
+Format = '''[data<`pie`>]data.items.stats-13-198'''
+
+[[NamedAnchors]]
+Name = '''data.items.berry.stats'''
+Address = 0x3D7AE4
+Format = '''[name""7 firmness. size: maxYield. minYield. description1<""> description2<""> stageDuration. spicy. dry. sweet. bitter. sour. smoothness:]43'''
+
+[[NamedAnchors]]
+Name = '''data.pokemon.moves.stats.battle'''
+Address = 0x24B054
+Format = '''[effect.moveeffectoptions power. type.data.pokemon.type.names accuracy. pp. effectAccuracy. target|b[]movetarget priority. info|b[]moveinfo unused. unused:]data.pokemon.moves.names'''
+
+[[NamedAnchors]]
+Name = '''data.pokemon.moves.levelup'''
+Address = 0x257C04
+Format = '''[movesFromLevel<[pair:|t|move::::.data.pokemon.moves.names|level:::.]!FFFF>]data.pokemon.names'''
+
+[[NamedAnchors]]
+Name = '''data.pokemon.moves.tutors'''
+Address = 0x453164
+Format = '''[move:data.pokemon.moves.names]15'''
+
+[[NamedAnchors]]
+Name = '''data.pokemon.moves.tutorcompatibility'''
+Address = 0x453182
+Format = '''[moves|b[]data.pokemon.moves.tutors]data.pokemon.names'''
+
+[[NamedAnchors]]
+Name = '''data.pokemon.moves.tms'''
+Address = 0x453E10
+Format = '''[move:data.pokemon.moves.names]58'''
+
+[[NamedAnchors]]
+Name = '''data.pokemon.moves.tmcompatibility'''
+Address = 0x24D018
+Format = '''[moves|b[]data.pokemon.moves.tms]data.pokemon.names'''
+
+[[NamedAnchors]]
+Name = '''data.pokemon.moves.hms'''
+Address = 0x258464
+Format = '''[move:data.pokemon.moves.names]8'''
+
+[[NamedAnchors]]
+Name = '''data.trainers.stats'''
+Address = 0x238ED4
+Format = '''[structType.trainerStructType class.data.trainers.classes.names introMusic. sprite.graphics.trainers.sprites.front name""12 item1:data.items.stats item2:data.items.stats item3:data.items.stats item4:data.items.stats doubleBattle:: ai|b[]traineraibits pokemonCount:: pokemon<`tpt`>]743'''
+
+[[NamedAnchors]]
+Name = '''data.trainers.money'''
+Address = 0x24962C
+Format = '''[class.data.trainers.classes.names moneyrate. unused:]!FF050000'''
+
+[[NamedAnchors]]
+Name = '''data.trainers.vsseeker'''
+Address = 0x44C8AC
+Format = '''[match1:data.trainers.stats match2:data.trainers.stats match3:data.trainers.stats match4:data.trainers.stats match5:data.trainers.stats match6:data.trainers.stats mapbank: map:]221'''
+
+[[NamedAnchors]]
+Name = '''data.decorations.stats'''
+Address = 0x44EDA4
+Format = '''[id. name""16 permission.decorpermissions shape.decorshape category.decorcategory price:: description<""> graphics<>]121'''
+
+[[NamedAnchors]]
+Name = '''data.pokemon.wild'''
+Address = 0x3C4030
+Format = '''[bank. map. unused: grass<[rate:: list<[low. high. species:data.pokemon.names]12>]1> surf<[rate:: list<[low. high. species:data.pokemon.names]5>]1> tree<[rate:: list<[low. high. species:data.pokemon.names]5>]1> fish<[rate:: list<[low. high. species:data.pokemon.names]10>]1>]133'''
+
+[[NamedAnchors]]
+Name = '''data.pokemon.trades'''
+Address = 0x2673DC
+Format = '''[nickname""12 receive:data.pokemon.names hp attack defense speed spatk spdef abilitynum:: trainerid:: cool. tough. beauty. smart. cute. unused. unused: personality:: helditem:data.items.stats mailnum. trainername""11 trainergender. sheen. give::data.pokemon.names]9'''
+
+[[NamedAnchors]]
+Name = '''data.pokemon.moves.mimic.metronome.forbidden'''
+Address = 0x24AC38
+Format = '''[move:data.pokemon.moves.names]!FFFF'''
+
+[[NamedAnchors]]
+Name = '''data.abilities.pickup.items'''
+Address = 0x24AC98
+Format = '''[item:data.items.stats chance:]16'''
+
+[[NamedAnchors]]
+Name = '''data.abilities.soundproof.moves'''
+Address = 0x24A554
+Format = '''[move:data.pokemon.moves.names]!FFFF'''
+
+[[NamedAnchors]]
+Name = '''data.pokemon.moves.egg'''
+Address = 0x25935C
+Format = '''`egg`'''
+
+[[NamedAnchors]]
+Name = '''data.pokemon.type.chart'''
+Address = 0x24945C
+Format = '''[attack.data.pokemon.type.names defend.data.pokemon.type.names strength.]!FFFF00'''
+
+[[NamedAnchors]]
+Name = '''scripts.moves.effects'''
+Address = 0x1D4D74
+Format = '''[effect<`bse`>]moveeffectoptions'''
+
+[[NamedAnchors]]
+Name = '''scripts.specials.thumb'''
+Address = 0x15FD7C
+Format = '''[code<>]455'''
+
+[[NamedAnchors]]
+Name = '''scripts.battle.thumb'''
+Address = 0x24A56C
+Format = '''[code<>]248'''
+
+[[NamedAnchors]]
+Name = '''scripts.newgame.setflags'''
+Address = 0x1A4FCF
+Format = '''`xse`'''
+
+[[NamedAnchors]]
+Name = '''scripts.newgame.pc.item'''
+Address = 0x3FAC28
+Format = '''[item:data.items.stats count:]1'''
+
+[[NamedAnchors]]
+Name = '''scripts.credits.panmap'''
+Address = 0x40CD54
+Format = '''[data<[loadmapCommand: bank: map:: x: y: delay:: xspeed: yspeed: length:: end1Command: end2Command: end3Command::]1>]13'''
+
+[[NamedAnchors]]
+Name = '''scripts.credits.text'''
+Address = 0x40CD88
+Format = '''[header<""> text<""> bool::|t|unknown.]43'''
+
+[[NamedAnchors]]
+Name = '''graphics.pokemon.castform.sprite.coordinates.front'''
+Address = 0x3A83B4
+Format = '''[size. yOffset. unused:]4'''
+
+[[NamedAnchors]]
+Name = '''graphics.pokemon.castform.sprite.elevations'''
+Address = 0x3A83C4
+Format = '''[elevation.]graphics.pokemon.castform.sprite.coordinates.front'''
+
+[[NamedAnchors]]
+Name = '''graphics.pokemon.castform.sprite.coordinates.back'''
+Address = 0x3A83C8
+Format = '''[yOffset.]graphics.pokemon.castform.sprite.coordinates.front'''
+
+[[NamedAnchors]]
+Name = '''data.battle.text'''
+Address = 0x3F68D8
+Format = '''[text<"">]374'''
+
+[[NamedAnchors]]
+Name = '''data.pokedex.regional'''
+Address = 0x24C108
+Format = '''[index:]data.pokemon.names-1'''
+
+[[NamedAnchors]]
+Name = '''data.pokedex.national'''
+Address = 0x24C43E
+Format = '''[index:]data.pokemon.names-1'''
+
+[[NamedAnchors]]
+Name = '''data.pokedex.hoennToNational'''
+Address = 0x24C774
+Format = '''[index:]data.pokemon.names-1'''
+
+[[NamedAnchors]]
+Name = '''data.pokedex.stats'''
+Address = 0x447F70
+Format = '''[species""12 height: weight: description1<""> description2<""> unused: pokemonScale: pokemonOffset: trainerScale: trainerOffset: unused:]387'''
+
+[[NamedAnchors]]
+Name = '''data.pokedex.search.alpha'''
+Address = 0x43C0A0
+Format = '''[species:data.pokedex.national]data.pokedex.national'''
+
+[[NamedAnchors]]
+Name = '''data.pokedex.search.weight'''
+Address = 0x43C3D6
+Format = '''[species:data.pokedex.national]386'''
+
+[[NamedAnchors]]
+Name = '''data.pokedex.search.size'''
+Address = 0x43C6DA
+Format = '''[species:data.pokedex.national]386'''
+
+[[NamedAnchors]]
+Name = '''data.pokedex.search.type'''
+Address = 0x43C9DE
+Format = '''[species:data.pokemon.names]data.pokedex.national'''
+
+[[NamedAnchors]]
+Name = '''data.pokedex.habitat.names'''
+Address = 0x44BA64
+Format = '''[name<"">]9'''
+
+[[NamedAnchors]]
+Name = '''data.pokedex.habitat.pages'''
+Address = 0x44C36C
+Format = '''[data<[pokemon<[species:data.pokemon.names]/pokecount> pokecount::]/count> count::]data.pokedex.habitat.names'''
+
+[[NamedAnchors]]
+Name = '''data.battletower.items'''
+Address = 0x3F84CC
+Format = '''[item:data.items.stats]64'''
+
+[[NamedAnchors]]
+Name = '''data.battletower.pokemon.level50'''
+Address = 0x3F854C
+Format = '''[species:data.pokemon.names heldItem.data.battletower.items flags.|h move1:data.pokemon.moves.names move2:data.pokemon.moves.names move3:data.pokemon.moves.names move4:data.pokemon.moves.names evSpread|b[]battletowerEvFlags nature.data.pokemon.natures.names unused:]300'''
+
+[[NamedAnchors]]
+Name = '''data.battletower.pokemon.level100'''
+Address = 0x3F980C
+Format = '''[species:data.pokemon.names heldItem.data.battletower.items flags.|h move1:data.pokemon.moves.names move2:data.pokemon.moves.names move3:data.pokemon.moves.names move4:data.pokemon.moves.names evSpread|b[]battletowerEvFlags nature.data.pokemon.natures.names unused:]300'''
+
+[[NamedAnchors]]
+Name = '''data.trainers.trainertower.trainers'''
+Address = 0x479F88
+Format = '''[trainer<[header:: name""11 class. a. unused. a1: a2: a3: a4: a5: a6: b1: b2: b3: b4: b5: b6: c1: c2: c3: c4: c5: c6: d1: d2: d3: d4: d5: d6: unused:]1>]32'''
+
+[[NamedAnchors]]
+Name = '''graphics.pokemon.type.icons'''
+Address = 0xE95D30
+Format = '''`ucs4x16x16|graphics.pokemon.type.palettes`'''
+
+[[NamedAnchors]]
+Name = '''graphics.pokemon.type.palettes'''
+Address = 0xE95D10
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.pokemon.type.map'''
+Address = 0x44C3B4
+Format = '''[width. height. xy:|t|:|x:|.|y::]data.pokemon.type.names+1+5'''
+
+[[NamedAnchors]]
+Name = '''graphics.text.importer'''
+Address = 0x46092C
+Format = '''[a:: tileset<`lzt4`> tilemap<`lzm4x30x20|graphics.text.importer`> pal<`ucp4`>]8'''
+
+[[NamedAnchors]]
+Name = '''graphics.text.box.palette'''
+Address = 0x469724
+Format = '''`ucp4:01234`'''
+
+[[NamedAnchors]]
+Name = '''graphics.text.box.message'''
+Address = 0x41769C
+Format = '''`uct4x18|graphics.text.box.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.text.box.signpost'''
+Address = 0x468444
+Format = '''`uct4x19|graphics.text.box.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.text.boxes'''
+Address = 0x4697C4
+Format = '''[sprite<`ucs4x3x3`> pal<`ucp4`>]10'''
+
+[[NamedAnchors]]
+Name = '''graphics.bag.male'''
+Address = 0xE83628
+Format = '''`lzs4x8x8|graphics.bag.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.bag.female'''
+Address = 0xE83DB8
+Format = '''`lzs4x8x8|graphics.bag.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.bag.palette'''
+Address = 0xE8455C
+Format = '''`lzp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.bag.berrycase.palette'''
+Address = 0xE85C18
+Format = '''`lzp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.bag.berrycase.sprite'''
+Address = 0xE85608
+Format = '''`lzs4x8x8|graphics.bag.berrycase.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.bag.inside1.palette'''
+Address = 0xE835B0
+Format = '''`lzp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.bag.inside1.tileset'''
+Address = 0xE830C8
+Format = '''`lzt4|graphics.bag.inside1.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.bag.inside1.tilemap.item'''
+Address = 0xE832BC
+Format = '''`lzm4x32x32|graphics.bag.inside1.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.bag.inside1.tilemap.keyitems'''
+Address = 0xE83440
+Format = '''`lzm4x32x32|graphics.bag.inside1.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.bag.inside1.berry.palette'''
+Address = 0xE85404
+Format = '''`lzp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.bag.inside1.berry.tileset'''
+Address = 0xE8508C
+Format = '''`lzt4|graphics.bag.inside1.berry.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.bag.inside1.berry.tilemap'''
+Address = 0xE85454
+Format = '''`lzm4x32x32|graphics.bag.inside1.berry.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.bag.inside2.palette'''
+Address = 0xE85BF0
+Format = '''`lzp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.bag.inside2.tileset'''
+Address = 0xE859CC
+Format = '''`lzt4|graphics.bag.inside2.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.bag.inside2.tilemap'''
+Address = 0xE85C40
+Format = '''`lzm4x32x32|graphics.bag.inside2.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.bag.inside3.palette'''
+Address = 0xE8616C
+Format = '''`lzp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.bag.inside3.tileset'''
+Address = 0xE85DC4
+Format = '''`lzt4|graphics.bag.inside3.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.bag.inside3.tilemap1'''
+Address = 0xE85EF8
+Format = '''`lzm4x32x32|graphics.bag.inside3.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.bag.inside3.tilemap2'''
+Address = 0xE86034
+Format = '''`lzm4x32x32|graphics.bag.inside3.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.pokeball.palette'''
+Address = 0xE82E7C
+Format = '''`lzp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.pokeball.large'''
+Address = 0xE82BE8
+Format = '''`lzs4x4x8|graphics.menu.pokeball.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.pokeball.small'''
+Address = 0xE82D68
+Format = '''`lzs4x2x4|graphics.menu.pokeball.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.status.palette'''
+Address = 0xE830A0
+Format = '''`lzp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.status.sprite'''
+Address = 0xE82EA0
+Format = '''`lzs4x4x8|graphics.menu.status.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.bar.palette'''
+Address = 0xE9B564
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.bar.hp'''
+Address = 0xE9B4A0
+Format = '''`lzs4x12x1|graphics.menu.bar.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.bar.exp'''
+Address = 0xE9B3D8
+Format = '''`lzs4x12x1|graphics.menu.bar.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.summaryscreen.palette'''
+Address = 0xE9B2F8
+Format = '''`ucp4:012345`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.summaryscreen.tileset'''
+Address = 0xE9A40C
+Format = '''`lzt4|graphics.menu.summaryscreen.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.summaryscreen.tilemap.info'''
+Address = 0xE9B584
+Format = '''`lzm4x32x20|graphics.menu.summaryscreen.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.summaryscreen.tilemap.skills'''
+Address = 0xE9B73C
+Format = '''`lzm4x32x20|graphics.menu.summaryscreen.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.summaryscreen.tilemap.knownmoves'''
+Address = 0xE9B93C
+Format = '''`lzm4x32x32|graphics.menu.summaryscreen.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.summaryscreen.tilemap.egg'''
+Address = 0xE9BBB8
+Format = '''`lzm4x32x20|graphics.menu.summaryscreen.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.summaryscreen.tilemap.changemoves'''
+Address = 0xE9BA88
+Format = '''`lzm4x32x20|graphics.menu.summaryscreen.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.relearner.palette'''
+Address = 0xE97D30
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.relearner.tileset'''
+Address = 0xE97D50
+Format = '''`lzt4|graphics.menu.relearner.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.relearner.tilemap1'''
+Address = 0xE97E18
+Format = '''`lzm4x32x32|graphics.menu.relearner.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.relearner.tilemap2'''
+Address = 0x45D284
+Format = '''`lzm4x32x32|graphics.menu.summaryscreen.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.summaryscreen.unknown.tilemap3'''
+Address = 0x45D18C
+Format = '''`lzm4x32x20|graphics.menu.summaryscreen.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.partyscreen.selection.palette'''
+Address = 0x45CD24
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.partyscreen.selection.sprite1'''
+Address = 0x45CD44
+Format = '''`lzs4x8x8|graphics.menu.partyscreen.selection.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.partyscreen.selection.sprite2'''
+Address = 0x45CE70
+Format = '''`lzs4x8x8|graphics.menu.partyscreen.selection.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.pokemon.background.palette'''
+Address = 0xE829C8
+Format = '''`lzp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.pokemon.background.tileset'''
+Address = 0xE82700
+Format = '''`lzt4|graphics.menu.pokemon.background.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.pokemon.background.tilemap'''
+Address = 0xE82AB0
+Format = '''`lzm4x32x32|graphics.menu.pokemon.background.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.boxes.background'''
+Address = 0x3CC850
+Format = '''[tileset<`lzt4`> tilemap<`lzm4x20x18|graphics.menu.boxes`> palette<`ucp4`>]16'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.boxes.picker.palette'''
+Address = 0xE9C404
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.boxes.picker.tileset'''
+Address = 0xE9C424
+Format = '''`lzt4|graphics.menu.box.picker.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.boxes.hand.palette.normal'''
+Address = 0x3C8630
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.boxes.hand.palette.catch'''
+Address = 0x3CCA0C
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.boxes.hand.sprite'''
+Address = 0x3CCA2C
+Format = '''`ucs4x4x16|graphics.menu.boxes.hand.palette.normal`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.tms.tileset'''
+Address = 0xE845D4
+Format = '''`lzt4|graphics.menu.tms.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.tms.background'''
+Address = 0xE84A20
+Format = '''`lzm4x32x32|graphics.menu.tms.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.tms.case'''
+Address = 0xE84B6C
+Format = '''`lzm4x32x32|graphics.menu.tms.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.tms.palette'''
+Address = 0xE84CAC
+Format = '''`lzp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.tms.palette2'''
+Address = 0xE84D1C
+Format = '''`lzp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.help.palette'''
+Address = 0x45D734
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.text.bold.palette'''
+Address = 0x44C7B8
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.gamecorner.game.palette'''
+Address = 0x45EF3C
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.gamecorner.game.tileset'''
+Address = 0xEAFDD0
+Format = '''`lzt4|graphics.gamecorner.game.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.gamecorner.game.tilemap'''
+Address = 0xEB05C4
+Format = '''`lzm4x32x20|graphics.gamecorner.game.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.gamecorner.score.palette'''
+Address = 0x45F040
+Format = '''`ucp4:012`'''
+
+[[NamedAnchors]]
+Name = '''graphics.gamecorner.score.tileset'''
+Address = 0x45F0A0
+Format = '''`lzt4|graphics.gamecorner.score.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.gamecorner.score.tilemap'''
+Address = 0x45F418
+Format = '''`lzm4x32x20|graphics.gamecorner.score.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.gamecorner.sprites'''
+Address = 0x45EBBC
+Format = '''[rolls<`lzs4x4x4`> a:: cheer<`lzs4x4x4`> b:: digits<`lzs4x5x4`> c::]1'''
+
+[[NamedAnchors]]
+Name = '''graphics.gamecorner.palettes'''
+Address = 0x45EBD4
+Format = '''[pal<`ucp4`> id::]7'''
+
+[[NamedAnchors]]
+Name = '''graphics.questionnaire.palette'''
+Address = 0xE99D14
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.questionnaire.tileset'''
+Address = 0xE99D34
+Format = '''`lzt4|graphics.questionnaire.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.questionnaire.tilemap'''
+Address = 0xE99DFC
+Format = '''`lzm4x32x20|graphics.questionnaire.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.questionnaire.button.palette'''
+Address = 0xE99EAC
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.questionnaire.button.sprite'''
+Address = 0xE99ECC
+Format = '''`lzs4x8x8|graphics.questionnaire.button.palette`'''
+
+[NamedAnchors]]
+Name = '''graphics.unknown.stationary'''
+Address = 0x461094
+Format = '''[id:: tileset<`lzt4`> tilemap<`lzm4x30x24|table`> palette<`ucp4`>]8'''
+
+[[NamedAnchors]]
+Name = '''graphics.firstpersonview.sprites'''
+Address = 0x436EBC
+Format = '''[id. transition. worldmapflag: tileset<`lzt4|graphics.firstpersonview.sprites`> tilemap<`lzm4x32x20|graphics.firstpersonview.sprites`> pal<`ucp4:DE`>]28'''
+
+[[NamedAnchors]]
+Name = '''graphics.battle.background.sprites'''
+Address = 0x249240
+Format = '''[battletiles<`lzt4|graphics.battle.background.sprites`> battlemap<`lzm4x32x64|graphics.battle.background.sprites|battletiles`> introtiles<`lzt4`> intromap<`lzm4x32x14|graphics.battle.background.sprites|introtiles`> pal<`lzp4:234`>]20'''
+
+[[NamedAnchors]]
+Name = '''graphics.battle.background.fighttype'''
+Address = 0x2493D0
+Format = '''[id. entry.graphics.battle.background.sprites unused:]8'''
+
+[[NamedAnchors]]
+Name = '''graphics.battle.hud.palette'''
+Address = 0xD11B84
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.battle.hud.hpbar.sprite'''
+Address = 0xD11BC4
+Format = '''`ucs4x11x6|graphics.battle.hud.hpbar.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.battle.hud.hpbar.palette'''
+Address = 0xD11BA4
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.battle.hud.hpbox.player'''
+Address = 0xD1F340
+Format = '''`lzs4x8x16|graphics.battle.hud.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.battle.hud.hpbox.opponent'''
+Address = 0xD1F604
+Format = '''`lzs4x8x8|graphics.battle.hud.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.battle.hud.hpbox.doublebattle.player'''
+Address = 0xD1F794
+Format = '''`lzs4x8x8|graphics.battle.hud.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.battle.hud.hpbox.doublebattle.opponent'''
+Address = 0xD1F928
+Format = '''`lzs4x8x8|graphics.battle.hud.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.battle.hud.hpbox.safarizone'''
+Address = 0xD1FABC
+Format = '''`lzs4x8x16|graphics.battle.hud.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.battle.hud.status'''
+Address = 0xD12404
+Format = '''`ucs4x10x5|graphics.battle.hud.hpbar.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.battle.hud.pokeballbar'''
+Address = 0xE7BB04
+Format = '''`lzs4x16x1|graphics.battle.hud.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.battle.hud.idlelevel.palette'''
+Address = 0x24AB20
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.battle.hud.idlelevel.sprite'''
+Address = 0x24AB40
+Format = '''`lzs4x12x3|graphics.battle.hud.idlelevel.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.battle.textbox.palette'''
+Address = 0xD004D8
+Format = '''`lzp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.battle.textbox.tileset'''
+Address = 0xD00000
+Format = '''`lzt4|graphics.battle.textbox.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.battle.textbox.tilemap'''
+Address = 0xD0051C
+Format = '''`lzm4x32x64|graphics.battle.textbox.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.background.animation.sprite'''
+Address = 0x3B9B14
+Format = '''`lzs4x2x2|graphics.titlescreen.background.animation.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.background.animation.palette'''
+Address = 0x3B9AF4
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.logo.palette'''
+Address = 0xEAA020
+Format = '''`ucp8`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.logo.tileset'''
+Address = 0xEAA220
+Format = '''`lzt8|graphics.titlescreen.logo.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.logo.tilemap'''
+Address = 0xEABCFC
+Format = '''`lzm8x32x20|graphics.titlescreen.logo.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.pokemon.palette'''
+Address = 0xEABF60
+Format = '''`ucp4:D`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.pokemon.tileset'''
+Address = 0xEABF80
+Format = '''`lzt4|graphics.titlescreen.pokemon.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.pokemon.tilemap'''
+Address = 0xEAC85C
+Format = '''`lzm4x32x20|graphics.titlescreen.pokemon.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.publisher.palette'''
+Address = 0xEACA0C
+Format = '''`ucp4:F`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.publisher.tileset'''
+Address = 0xEACA2C
+Format = '''`lzt4|graphics.titlescreen.publisher.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.publisher.tilemap'''
+Address = 0xEACD60
+Format = '''`lzm4x32x20|graphics.titlescreen.publisher.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.widescreen.tileset'''
+Address = 0x3B9904
+Format = '''`lzt4|graphics.titlescreen.publisher.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.widescreen.tilemap'''
+Address = 0x3B9920
+Format = '''`lzm4x32x20|graphics.titlescreen.widescreen.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.gengar.palette'''
+Address = 0x3FE74C
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.nidorino.palette'''
+Address = 0x402054
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.grass.palette'''
+Address = 0x4023C4
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.gengar.sprite'''
+Address = 0x401C14
+Format = '''`lzs4x8x8|graphics.titlescreen.introscene.gengar.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.nidorino.sprite'''
+Address = 0x402074
+Format = '''`lzs4x8x8|graphics.titlescreen.introscene.nidorino.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.nidorino.palette1'''
+Address = 0x3FEFDC
+Format = '''`ucp4:6`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.nidorino.tileset'''
+Address = 0x3FEFFC
+Format = '''`lzt4|graphics.titlescreen.introscene.nidorino.palette1`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.nidorino.tilemap'''
+Address = 0x3FFB78
+Format = '''`lzm4x32x32|graphics.titlescreen.introscene.nidorino.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.gengar.tileset'''
+Address = 0x3FE76C
+Format = '''`lzt4|graphics.titlescreen.introscene.gengar.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.gengar.tilemap'''
+Address = 0x3FEDF4
+Format = '''`lzm4x32x32|graphics.titlescreen.introscene.gengar.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.gengar.tileset2'''
+Address = 0x400544
+Format = '''`lzt4|graphics.titlescreen.introscene.gengar.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.gengar.tilemap2'''
+Address = 0x401740
+Format = '''`lzm4x32x64|graphics.titlescreen.introscene.gengar.tileset2`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.nidorino.sprite2'''
+Address = 0x402D8C
+Format = '''`lzs4x8x8|graphics.titlescreen.introscene.nidorino.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.grass.sprite'''
+Address = 0x4023E4
+Format = '''`lzs4x8x4|graphics.titlescreen.introscene.grass.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.gengar.sprite2'''
+Address = 0x4026C8
+Format = '''`lzs4x8x8|graphics.titlescreen.introscene.gengar.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.slash.tiles'''
+Address = 0x40421C
+Format = '''`lzt4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.forest.palette'''
+Address = 0x3FFDD8
+Format = '''`ucp4:12`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.forest.tileset'''
+Address = 0x3FFE18
+Format = '''`lzt4|graphics.titlescreen.introscene.forest.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.forest.tilemap'''
+Address = 0x4003F8
+Format = '''`lzm4x32x20|graphics.titlescreen.introscene.forest.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.forest.palette2'''
+Address = 0x3FDD5C
+Format = '''`ucp4:123`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.forest.tileset2'''
+Address = 0x3FDDBC
+Format = '''`lzt4|graphics.titlescreen.introscene.forest.palette2`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.forest.tilemap2'''
+Address = 0x3FE238
+Format = '''`lzm4x32x64|graphics.titlescreen.introscene.forest.tileset2`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.grass.palette1'''
+Address = 0x3FB6DC
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.grass.tileset'''
+Address = 0x3FB6FC
+Format = '''`lzt4|graphics.titlescreen.introscene.grass.palette1`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.grass.tilemap'''
+Address = 0x3FC990
+Format = '''`lzm4x32x64|graphics.titlescreen.introscene.grass.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.grass.tileset2'''
+Address = 0x3FE4D0
+Format = '''`lzt4|graphics.titlescreen.introscene.forest.palette2`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.grass.tilemap2'''
+Address = 0x3FE684
+Format = '''`lzm4x32x20|graphics.titlescreen.introscene.grass.tileset2`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.grass.background.palette'''
+Address = 0x3FD274
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.grass.background.tileset'''
+Address = 0x3FD294
+Format = '''`lzt4|graphics.titlescreen.introscene.grass.background.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.introscene.grass.background.tilemap'''
+Address = 0x3FD924
+Format = '''`lzm4x32x64|graphics.titlescreen.introscene.grass.background.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.developer.palette1'''
+Address = 0x3FB44C
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.developer.palette2'''
+Address = 0x3FB4C4
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.developer.palette3'''
+Address = 0x3FB114
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.developer.bigstar'''
+Address = 0x3FB46C
+Format = '''`lzs4x2x2|graphics.titlescreen.developer.palette1`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.developer.littlestar'''
+Address = 0x3FB4E4
+Format = '''`lzs4x1x1|graphics.titlescreen.developer.palette2`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.developer.mediumstar'''
+Address = 0x3FB534
+Format = '''`lzs4x4x4|graphics.titlescreen.developer.palette2`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.developer.logo'''
+Address = 0x3FB300
+Format = '''`lzs4x4x8|graphics.titlescreen.developer.palette3`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.developer.presents'''
+Address = 0xEAFCD0
+Format = '''`lzs4x8x1|graphics.titlescreen.developer.palette3`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.developer.text'''
+Address = 0x3FB134
+Format = '''`lzs4x18x2|graphics.titlescreen.developer.palette3`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.copyright.tileset'''
+Address = 0x3FAC88
+Format = '''`lzt4|graphics.titlescreen.copyright.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.copyright.tilemap'''
+Address = 0x3FAEEC
+Format = '''`lzm4x32x32|graphics.titlescreen.copyright.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.titlescreen.copyright.palette'''
+Address = 0xEACF20
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.newgame.platform.palette'''
+Address = 0x45BFD4
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.newgame.platform.sprite'''
+Address = 0x45C014
+Format = '''`lzs4x4x12|graphics.newgame.platform.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.newgame.pikachu.palette'''
+Address = 0x45BFF4
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.newgame.pikachu.body'''
+Address = 0x45C178
+Format = '''`lzs4x4x8|graphics.newgame.pikachu.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.newgame.pikachu.ears'''
+Address = 0x45C338
+Format = '''`lzs4x4x4|graphics.newgame.pikachu.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.newgame.pikachu.eyes'''
+Address = 0x45C41C
+Format = '''`lzs4x2x2|graphics.newgame.pikachu.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.newgame.player.male.palette'''
+Address = 0x45AC00
+Format = '''`ucp4:45`'''
+
+[[NamedAnchors]]
+Name = '''graphics.newgame.player.male.sprite'''
+Address = 0x45AC40
+Format = '''`lzs8x8x12|graphics.newgame.player.male.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.newgame.player.female.palette'''
+Address = 0x45A4D8
+Format = '''`ucp4:45`'''
+
+[[NamedAnchors]]
+Name = '''graphics.newgame.player.female.sprite'''
+Address = 0x45A518
+Format = '''`lzs8x8x12|graphics.newgame.player.female.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.newgame.rival.palette'''
+Address = 0x45B9B0
+Format = '''`ucp4:67`'''
+
+[[NamedAnchors]]
+Name = '''graphics.newgame.rival.sprite'''
+Address = 0x45B9F0
+Format = '''`lzs8x8x12|graphics.newgame.rival.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.newgame.professor.palette'''
+Address = 0x45B2D8
+Format = '''`ucp4:67`'''
+
+[[NamedAnchors]]
+Name = '''graphics.newgame.professor.sprite'''
+Address = 0x45B318
+Format = '''`lzs8x8x12|graphics.newgame.professor.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.newgame.background.palette'''
+Address = 0x459B6C
+Format = '''`ucp4:0123`'''
+
+[[NamedAnchors]]
+Name = '''graphics.newgame.background.tileset1'''
+Address = 0x459BEC
+Format = '''`lzt4|graphics.newgame.background.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.newgame.background.tilemap1'''
+Address = 0x45A1AC
+Format = '''`lzm4x30x18|graphics.newgame.background.tileset1`'''
+
+[[NamedAnchors]]
+Name = '''graphics.newgame.background.tileset2'''
+Address = 0x45A2A8
+Format = '''`lzt4|graphics.newgame.background.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.newgame.background.tilemap2'''
+Address = 0x45A2EC
+Format = '''`lzm4x32x20|graphics.newgame.background.tileset2`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.palette'''
+Address = 0x3E7898
+Format = '''`ucp4:0123`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.tileset'''
+Address = 0x3E7BD8
+Format = '''`lzt4|graphics.townmap.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.tilemap'''
+Address = 0x3E8E58
+Format = '''`lzm4x30x20|graphics.townmap.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.islands.tilemap1'''
+Address = 0x3E90B8
+Format = '''`lzm4x30x20|graphics.townmap.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.islands.tilemap2'''
+Address = 0x3E91C8
+Format = '''`lzm4x30x20|graphics.townmap.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.islands.tilemap3'''
+Address = 0x3E92AC
+Format = '''`lzm4x30x20|graphics.townmap.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.border.tileset'''
+Address = 0x3E9F34
+Format = '''`lzt4|graphics.townmap.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.border.tilemap'''
+Address = 0x3E9F5C
+Format = '''`lzm4x30x20|graphics.townmap.border.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.border.tileset2'''
+Address = 0x3E88EC
+Format = '''`lzt4|graphics.townmap.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.border.tilemap2'''
+Address = 0x3E93C8
+Format = '''`lzm4x30x20|graphics.townmap.border.tileset2`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.namesoverlay.xy'''
+Address = 0x3EA41C
+Format = '''[x: y:]data.maps.names'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.namesoverlay.widthheight'''
+Address = 0x3EA734
+Format = '''[width: height:]data.maps.names'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.icon.palette'''
+Address = 0x3E7878
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.icon.area'''
+Address = 0x3E9E94
+Format = '''`lzs4x1x1|graphics.townmap.icon.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.icon.fly'''
+Address = 0x3E9EC4
+Format = '''`lzs4x2x2|graphics.townmap.icon.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.icon.indicator'''
+Address = 0x3E7A9C
+Format = '''`lzs4x2x2|graphics.townmap.icon.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.icon.head.male.palette'''
+Address = 0x3E7838
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.icon.head.female.palette'''
+Address = 0x3E7858
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.icon.head.male.sprite'''
+Address = 0x3E7AE0
+Format = '''`lzs4x2x2|graphics.townmap.icon.head.male.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.icon.head.female.sprite'''
+Address = 0x3E7B58
+Format = '''`lzs4x2x2|graphics.townmap.icon.head.female.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.catchmap.palette'''
+Address = 0x4387C0
+Format = '''`ucp4:0123456789ABCDEF`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.catchmap.kanto'''
+Address = 0x43B700
+Format = '''`lzs4x12x9|graphics.townmap.catchmap.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.catchmap.island'''
+Address = 0x44B974
+Format = '''[data<[a b c width height d e f]1> map<`lzt4|graphics.townmap.catchmap.palette`>]7'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.catchmap.shape'''
+Address = 0x45CB84
+Format = '''[shape.catchmap_shape x. y. unused.]80'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.catchmap.conversion.sevii'''
+Address = 0x45D8C8
+Format = '''[data<[worldmap:data.maps.names+88 catchmap:]/length> length::]7'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.catchmap.conversion.kanto'''
+Address = 0x45D754
+Format = '''[worldmap:data.maps.names+88 catchmap:]data.maps.catchmap.conversion.kanto.length'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.selector.tilemap'''
+Address = 0x3E9640
+Format = '''`lzm4x30x20|graphics.townmap.selector.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.selector.tilemap2'''
+Address = 0x3E974C
+Format = '''`lzm4x30x20|graphics.townmap.selector.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.selector.tilemap3'''
+Address = 0x3E94D8
+Format = '''`lzm4x30x20|graphics.townmap.selector.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.selector.tileset'''
+Address = 0x3E8B3C
+Format = '''`lzt4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.opening.left.top'''
+Address = 0x3E9888
+Format = '''`lzs4x4x8|graphics.townmap.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.opening.left.center'''
+Address = 0x3E9B0C
+Format = '''`lzs4x4x8|graphics.townmap.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.opening.left.down'''
+Address = 0x3E9CF4
+Format = '''`lzs4x4x8|graphics.townmap.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.opening.right.top'''
+Address = 0x3E99A8
+Format = '''`lzs4x4x8|graphics.townmap.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.opening.right.center'''
+Address = 0x3E9BFC
+Format = '''`lzs4x4x8|graphics.townmap.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.opening.right.down'''
+Address = 0x3E9DC0
+Format = '''`lzs4x4x8|graphics.townmap.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.annotations.kanto'''
+Address = 0x3EAA4C
+Format = '''[worldmap.data.maps.names+88]graphics.townmap.tilemap*2-4-4-4-1'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.annotations.island1'''
+Address = 0x3EACE0
+Format = '''[worldmap.data.maps.names+88]graphics.townmap.islands.tilemap1*2-4-4-4-1'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.annotations.island2'''
+Address = 0x3EAF74
+Format = '''[worldmap.data.maps.names+88]graphics.townmap.islands.tilemap2*2-4-4-4-1'''
+
+[[NamedAnchors]]
+Name = '''graphics.townmap.annotations.island3'''
+Address = 0x3EB208
+Format = '''[worldmap.data.maps.names+88]graphics.townmap.islands.tilemap3*2-4-4-4-1'''
+
+[[NamedAnchors]]
+Name = '''graphics.credits.trainer.male.palette'''
+Address = 0x4095DC
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.credits.trainer.female.palette'''
+Address = 0x40A3C4
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.credits.trainer.rival.palette'''
+Address = 0x40B16C
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.credits.trainer.male.sprite'''
+Address = 0x4095FC
+Format = '''`lzs4x8x8|graphics.credits.trainer.male.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.credits.trainer.female.sprite'''
+Address = 0x40A3E4
+Format = '''`lzs4x8x8|graphics.credits.trainer.female.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.credits.trainer.rival.sprite'''
+Address = 0x40B18C
+Format = '''`lzs4x8x8|graphics.credits.trainer.rival.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.trainercard.badges.palette'''
+Address = 0x3C7104
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.trainercard.stickers.palette'''
+Address = 0x3C7124
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''graphics.trainercard.badges.sprite'''
+Address = 0x3C742C
+Format = '''`lzs4x16x2|graphics.trainercard.badges.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.trainercard.stickers.sprite'''
+Address = 0x3C66E0
+Format = '''`lzs4x2x8|graphics.trainercard.stickers.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.trainercard.palette'''
+Address = 0xE990EC
+Format = '''`ucp4:012`'''
+
+[[NamedAnchors]]
+Name = '''graphics.trainercard.palette2'''
+Address = 0x3C6E24
+Format = '''`ucp4:012`'''
+
+[[NamedAnchors]]
+Name = '''graphics.trainercard.palette3'''
+Address = 0x3C6FA4
+Format = '''`ucp4:012`'''
+
+[[NamedAnchors]]
+Name = '''graphics.trainercard.tileset'''
+Address = 0xE9914C
+Format = '''`lzt4|graphics.trainercard.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.trainercard.tileset2'''
+Address = 0xE9984C
+Format = '''`lzt4|graphics.trainercard.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.trainercard.front.tilemap'''
+Address = 0x3C6854
+Format = '''`lzm4x30x20|graphics.trainercard.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.trainercard.front.nobadges.tilemap'''
+Address = 0x3C6AE8
+Format = '''`lzm4x30x20|graphics.trainercard.tileset`'''
+
+## [[NamedAnchors]]
+## Name = '''graphics.trainercard.front.unknown.tilemap'''
+## Address = 0x??????
+## Format = '''`lzm4x30x20|graphics.trainercard.tileset2`'''
+
+## [[NamedAnchors]]
+## Name = '''graphics.trainercard.front.unknown.nobadges.tilemap'''
+## Address = 0x??????
+## Format = '''`lzm4x30x20|graphics.trainercard.tileset2`'''
+
+[[NamedAnchors]]
+Name = '''graphics.trainercard.back.tilemap'''
+Address = 0xEAF928
+Format = '''`lzm4x30x20|graphics.trainercard.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.trainercard.back.unknown.tilemap'''
+Address = 0x3C6A0C
+Format = '''`lzm4x30x20|graphics.trainercard.tileset2`'''
+
+[[NamedAnchors]]
+Name = '''graphics.trainercard.background.tilemap'''
+Address = 0x3C6D0C
+Format = '''`lzm4x30x20|graphics.trainercard.tileset`'''
+
+[[NamedAnchors]]
+Name = '''graphics.trainercard.background.tilemap2'''
+Address = 0x3C6C74
+Format = '''`lzm4x30x20|graphics.trainercard.tileset2`'''
+
+[[NamedAnchors]]
+Name = '''graphics.overworld.palettes'''
+Address = 0x39F548
+Format = '''[pal<`ucp4`> id:|h unused:]!0000000000000000'''
+
+[[NamedAnchors]]
+Name = '''graphics.overworld.palettes2'''
+Address = 0x39F730
+Format = '''[pal<`ucp4`> id:|h unused:]2'''
+
+[[NamedAnchors]]
+Name = '''graphics.overworld.sprites'''
+Address = 0x39A1A0
+Format = '''[data<[starterbytes:|h paletteid:|h secondid:|h length: width: height: info.|t|palSlot::|shadowSize:|inanimate.|reflectionPalette. footprint.owfootprints unused: distribution<> sizedraw<> animation<> sprites<`osl`> ramstore<>]1>]152'''
+
+[[NamedAnchors]]
+Name = '''graphics.overworld.sprites2'''
+Address = 0x39A400
+Format = '''[data<[starterbytes:|h paletteid:|h a<> b<> sprites<`osl|graphics.overworld.palettes2:id=`> d<> e<>]1>]36'''
+
+[[NamedAnchors]]
+Name = '''graphics.text.font.other.characters'''
+Address = 0x1ED50C
+Format = '''`ucs2x2x1024`'''
+
+[[NamedAnchors]]
+Name = '''graphics.text.font.other.width'''
+Address = 0x1F550C
+Format = '''[width.]512'''
+
+[[NamedAnchors]]
+Name = '''graphics.text.font.black.characters'''
+Address = 0x1F970C
+Format = '''`ucs2x2x1024`'''
+
+[[NamedAnchors]]
+Name = '''graphics.text.font.black.width'''
+Address = 0x20170C
+Format = '''[width.]512'''
+
+[[NamedAnchors]]
+Name = '''graphics.text.font.blue.characters'''
+Address = 0x209A24
+Format = '''`ucs2x2x1024`'''
+
+[[NamedAnchors]]
+Name = '''graphics.text.font.blue.width'''
+Address = 0x211A24
+Format = '''[width.]512'''
+
+[[NamedAnchors]]
+Name = '''graphics.text.font.red.characters'''
+Address = 0x219D3C
+Format = '''`ucs2x2x1024`'''
+
+[[NamedAnchors]]
+Name = '''graphics.text.font.red.width'''
+Address = 0x221D3C
+Format = '''[width.]512'''
+
+[[NamedAnchors]]
+Name = '''data.text.menu.pause'''
+Address = 0x3A16BC
+Format = '''[text<""> code<>]9'''
+
+[[NamedAnchors]]
+Name = '''data.text.menu.pokemon.options'''
+Address = 0x453C1C
+Format = '''[text<""> code<>]30'''
+
+[[NamedAnchors]]
+Name = '''sound.tracks'''
+Address = 0x499394
+Format = '''[pointer<> musicplayer: unknown:]songnames'''
+
+[[NamedAnchors]]
+Name = '''sound.pokemon.cry.growl'''
+Address = 0x483C0C
+Format = '''^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]388'''
+
+[[NamedAnchors]]
+Name = '''sound.pokemon.cry.normal'''
+Address = 0x4829DC
+Format = '''^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]388'''
+
+[[NamedAnchors]]
+Name = '''sound.pokemon.cry.hoennconversion'''
+Address = 0x24DE24
+Format = '''[index:]data.pokemon.names-277'''
+
+#################################
+#################################
+
+[[MatchedWords]]
+Name = '''scripts.shiny.odds'''
+Address = 0x104D38
+Length = 1
+
+[[MatchedWords]]
+Name = '''scripts.shiny.odds'''
+Address = 0x03DA36
+Length = 1
+Offset = -1
+
+[[MatchedWords]]
+Name = '''scripts.shiny.odds'''
+Address = 0x043FF8
+Length = 1
+Offset = -1
+
+[[MatchedWords]]
+Name = '''scripts.shiny.odds'''
+Address = 0x04406E
+Length = 1
+Offset = -1
+
+[[MatchedWords]]
+Name = '''scripts.shiny.odds'''
+Address = 0x044388
+Length = 1
+Offset = -1
+
+[[MatchedWords]]
+Name = '''scripts.shiny.odds'''
+Address = 0x0F1ABE
+Length = 1
+Offset = -1
+
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x103840
+Length = 1
+
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x126D56
+Length = 1
+
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x0890BC
+Length = 1
+Offset = -1
+
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x10390A
+Length = 1
+Offset = -1
+
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x104F5E
+Length = 1
+Offset = -1
+
+[[MatchedWords]]
+Name = '''scripts.pokedex.regional.length'''
+Address = 0x08911A
+Length = 1
+Offset = -2
+
+[[MatchedWords]]
+Name = '''graphics.townmap.position.cancel.x'''
+Address = 0x0C075A
+Length = 1
+
+[[MatchedWords]]
+Name = '''graphics.townmap.position.cancel.x'''
+Address = 0x0C0974
+Length = 1
+
+[[MatchedWords]]
+Name = '''graphics.townmap.position.cancel.x'''
+Address = 0x0C34F4
+Length = 1
+
+[[MatchedWords]]
+Name = '''graphics.townmap.position.cancel.x'''
+Address = 0x0C372C
+Length = 1
+
+[[MatchedWords]]
+Name = '''graphics.townmap.position.cancel.x'''
+Address = 0x0C531A
+Length = 1
+
+[[MatchedWords]]
+Name = '''graphics.townmap.position.cancel.y'''
+Address = 0x0C0766
+Length = 1
+
+[[MatchedWords]]
+Name = '''graphics.townmap.position.cancel.y'''
+Address = 0x0C0980
+Length = 1
+
+[[MatchedWords]]
+Name = '''graphics.townmap.position.cancel.y'''
+Address = 0x0C34F6
+Length = 1
+
+[[MatchedWords]]
+Name = '''graphics.townmap.position.cancel.y'''
+Address = 0x0C3728
+Length = 1
+
+[[MatchedWords]]
+Name = '''graphics.townmap.position.cancel.y'''
+Address = 0x0C5326
+Length = 1
+
+[[MatchedWords]]
+Name = '''graphics.townmap.position.switch.x'''
+Address = 0x0C072C
+Length = 1
+
+[[MatchedWords]]
+Name = '''graphics.townmap.position.switch.x'''
+Address = 0x0C0940
+Length = 1
+
+[[MatchedWords]]
+Name = '''graphics.townmap.position.switch.x'''
+Address = 0x0C34F8
+Length = 1
+
+[[MatchedWords]]
+Name = '''graphics.townmap.position.switch.x'''
+Address = 0x0C36E8
+Length = 1
+
+[[MatchedWords]]
+Name = '''graphics.townmap.position.switch.x'''
+Address = 0x0C0FE2
+Length = 1
+Offset = 3
+
+[[MatchedWords]]
+Name = '''graphics.townmap.position.switch.x'''
+Address = 0x0C0FF8
+Length = 1
+Offset = 3
+
+[[MatchedWords]]
+Name = '''graphics.townmap.position.switch.x'''
+Address = 0x0C100E
+Length = 1
+Offset = 3
+
+[[MatchedWords]]
+Name = '''graphics.townmap.position.switch.y'''
+Address = 0x0C0738
+Length = 1
+
+[[MatchedWords]]
+Name = '''graphics.townmap.position.switch.y'''
+Address = 0x0C094C
+Length = 1
+
+[[MatchedWords]]
+Name = '''graphics.townmap.position.switch.y'''
+Address = 0x0C34FA
+Length = 1
+
+[[MatchedWords]]
+Name = '''graphics.townmap.position.switch.y'''
+Address = 0x0C36EC
+Length = 1
+
+[[MatchedWords]]
+Name = '''graphics.townmap.position.switch.y'''
+Address = 0x0C0FE4
+Length = 1
+Offset = 3
+
+[[MatchedWords]]
+Name = '''graphics.townmap.position.switch.y'''
+Address = 0x0C0FFA
+Length = 1
+Offset = 4
+
+[[MatchedWords]]
+Name = '''graphics.townmap.position.switch.y'''
+Address = 0x0C1010
+Length = 1
+Offset = 5
+
+[[MatchedWords]]
+Name = '''scripts.daycare.exp.multiplier'''
+Address = 0x0462AC
+Length = 1
+Note = '''Picking an even number will prevent new eggs from being created.'''
+
+[[MatchedWords]]
+Name = '''scripts.daycare.exp.multiplier'''
+Address = 0x046398
+Length = 1
+Note = '''Picking an even number will prevent new eggs from being created.'''
+
+[[MatchedWords]]
+Name = '''scripts.newgame.money'''
+Address = 0x054C40
+Length = 2
+
+[[MatchedWords]]
+Name = '''scripts.newgame.start.bank'''
+Address = 0x054AE4
+Length = 1
+
+[[MatchedWords]]
+Name = '''scripts.newgame.start.map'''
+Address = 0x054AE6
+Length = 1
+
+[[MatchedWords]]
+Name = '''scripts.newgame.start.x'''
+Address = 0x054AE8
+Length = 1
+
+[[MatchedWords]]
+Name = '''scripts.newgame.start.y'''
+Address = 0x054AE0
+Length = 1
+
+[[MatchedWords]]
+Name = '''data.maps.catchmap.conversion.kanto.length'''
+Address = 0x13CBF4
+Length = 1
+
+[[MatchedWords]]
+Name = '''scripts.battle.badge.boost'''
+Address = 0x014D9C
+Length = 1
+
+[[MatchedWords]]
+Name = '''scripts.battle.badge.boost'''
+Address = 0x014E84
+Length = 1
+
+[[MatchedWords]]
+Name = '''scripts.battle.badge.boost'''
+Address = 0x03ED0E
+Length = 1
+
+[[MatchedWords]]
+Name = '''scripts.battle.badge.boost'''
+Address = 0x03ED40
+Length = 1
+
+[[MatchedWords]]
+Name = '''scripts.battle.badge.boost'''
+Address = 0x03ED76
+Length = 1
+
+[[MatchedWords]]
+Name = '''scripts.battle.badge.boost'''
+Address = 0x03EDAE
+Length = 1
+
+[[MatchedWords]]
+Name = '''scripts.battle.trade.exp.boost'''
+Address = 0x021D4E
+Length = 1
+
+[[MatchedWords]]
+Name = '''data.pokemon.type.length'''
+Address = 0x0E572C
+Length = 1
+Offset = 1
+
+[[MatchedWords]]
+Name = '''data.pokemon.type.length'''
+Address = 0x133560
+Length = 1
+Offset = 1
+
+[[MatchedWords]]
+Name = '''data.pokemon.type.length'''
+Address = 0x0E5738
+Length = 1
+Offset = 2
+
+[[MatchedWords]]
+Name = '''data.pokemon.type.length'''
+Address = 0x13356C
+Length = 1
+Offset = 2
+
+[[MatchedWords]]
+Name = '''data.pokemon.type.length'''
+Address = 0x0E5744
+Length = 1
+Offset = 3
+
+[[MatchedWords]]
+Name = '''data.pokemon.type.length'''
+Address = 0x133578
+Length = 1
+Offset = 3
+
+[[MatchedWords]]
+Name = '''data.pokemon.type.length'''
+Address = 0x0E5750
+Length = 1
+Offset = 4
+
+[[MatchedWords]]
+Name = '''data.pokemon.type.length'''
+Address = 0x133584
+Length = 1
+Offset = 4
+
+[[MatchedWords]]
+Name = '''data.pokemon.type.length'''
+Address = 0x0E575C
+Length = 1
+Offset = 5
+
+#################################
+
+[[OffsetPointer]]
+Address = 0x0728DC
+Offset = 0xFFFEC780
+
+[[OffsetPointer]]
+Address = 0x0728E0
+Offset = 0xFFFEC780
+
+#################################
+
+[[List]]
+Name = '''egggroups'''
+0 = [
+   '''None''',
+   '''Monster''',
+   '''Water1''',
+   '''Bug''',
+   '''Flying''',
+   '''Field''',
+   '''Fairy''',
+   '''Grass''',
+   '''Human-Like''',
+   '''Water3''',
+   '''Mineral''',
+   '''Amorphous''',
+   '''Water2''',
+   '''Ditton''',
+   '''Dragon''',
+   '''Undiscovered''',
+]
+
+[[List]]
+Name = '''moveeffectoptions'''
+0 = [
+   '''None''',
+   '''SleepPrimary''',
+   '''Poison''',
+   '''HealHalf''',
+   '''Burn''',
+   '''Freeze''',
+   '''Paralyze''',
+   '''SelfKO''',
+   '''HealHalfIfOpponentSleeping''',
+   '''RepeatFoeMove''',
+   '''RaiseAttackPrimary''',
+   '''RaiseDefensePrimary''',
+   '''???RaiseSpeedPrimary???''',
+   '''RaiseSpAttackPrimary''',
+   '''unknown1''',
+   '''???RaiseAccuracyPrimary???''',
+   '''RaiseEvasivenessPrimary''',
+   '''NeverMiss''',
+   '''LowerAttackPrimary''',
+   '''LowerDefensePrimary''',
+   '''LowerSpeedPrimary''',
+   '''???LowerAttackSpAttackPrimary???''',
+   '''unknown2''',
+   '''LowerAccuracyPrimary''',
+   '''LowerEvasionPrimary''',
+   '''RemoveStateChanges''',
+   '''Bide''',
+   '''2to3turnsThenConfused''',
+   '''OpponentSwitch''',
+   '''2to5hits''',
+   '''ChangeTypeToFriendlyMove''',
+   '''Flinch''',
+   '''Recover''',
+   '''BadPoisonPrimary''',
+   '''Money''',
+   '''RaiseSpDef2Wall''',
+   '''ParalyzeBurnFreeze''',
+   '''Rest''',
+   '''OHKO''',
+   '''2turnHighCrit''',
+   '''HalfDamage''',
+   '''20Damage''',
+   '''2to5turnTrap''',
+   '''HighCrit''',
+   '''2hits''',
+   '''MissHurtSelf''',
+   '''PreventStatReduction''',
+   '''RaiseCriticalRate''',
+   '''25Recoil''',
+   '''ConfusionPrimary''',
+   '''RaiseAttack2Primary''',
+   '''RaiseDefense2Primary''',
+   '''RaiseSpeed2Primary''',
+   '''RaiseSpAtk2Primary''',
+   '''RaiseSpDef2Primary''',
+   '''???RaiseAccuracy2Primary???''',
+   '''???RaiseEvasiveness2Primary???''',
+   '''Transform''',
+   '''LowerAttack2Primary''',
+   '''LowerDefense2Primary''',
+   '''LowerSpeed2Primary''',
+   '''???LowerSpAtk2Primary???''',
+   '''LowerSpDef2Primary''',
+   '''???''',
+   '''????''',
+   '''RaiseDefense2Wall''',
+   '''PoisonPrimary''',
+   '''ParalyzePrimary''',
+   '''LowerAttack''',
+   '''LowerDefense''',
+   '''LowerSpeed''',
+   '''LowerSpAtk''',
+   '''LowerSpDef''',
+   '''LowerAccuracy''',
+   '''?????''',
+   '''2turnHighCritFlinch''',
+   '''Confusion''',
+   '''2hitsPoison''',
+   '''NeverMiss(VitalThrow)''',
+   '''Substitute''',
+   '''SkipNextTurn''',
+   '''StrongerForLessHealth''',
+   '''Mimic''',
+   '''RandomMove''',
+   '''SeedOpponent''',
+   '''Splash''',
+   '''Disable''',
+   '''DamageBasedOnLevel''',
+   '''DamageRandom''',
+   '''DoublePhysicalDamage''',
+   '''OpponentRepeatMoveFor2to6turns''',
+   '''PainSplit''',
+   '''WhileSleepingFlinch''',
+   '''ChangeTypeToResistPreviousHit''',
+   '''NextAttackHits''',
+   '''Sketch''',
+   '''??????''',
+   '''SleepTalk''',
+   '''DestinyBond''',
+   '''StrengthDependsOnHealth''',
+   '''ReducePP''',
+   '''FalseSwipe''',
+   '''HealPartyStatus''',
+   '''NormalPlusPriority''',
+   '''3turnTripleHit''',
+   '''StealItem''',
+   '''NoSwitch''',
+   '''Nightmare''',
+   '''RaiseEvasivenessAndBecomeSmaller''',
+   '''Curse''',
+   '''??''',
+   '''EvadeNextAttack''',
+   '''Spikes''',
+   '''FoeCannnotRaiseEvasion''',
+   '''PerishSong''',
+   '''Sandstorm''',
+   '''Endure''',
+   '''5turnsUntilMiss''',
+   '''ConfuseAndRaiseAttack2''',
+   '''GetStrongerEachHit''',
+   '''Attract''',
+   '''StrongerWithFriendship''',
+   '''Present''',
+   '''WeakerWithFriendship''',
+   '''PreventStatus5Turns''',
+   '''BurnDefrost''',
+   '''Magnitude''',
+   '''BatonPass''',
+   '''DoublePowerIfOpponentSwitching''',
+   '''RemoveBindSeedSpikes''',
+   '''20Damage''',
+   '''???????''',
+   '''MorningSun''',
+   '''Synthesis''',
+   '''Moonlight''',
+   '''HiddenPower''',
+   '''Rain5turns''',
+   '''Sun5turns''',
+   '''RaiseDefense''',
+   '''RaiseAttack''',
+   '''RaiseAllStats''',
+   '''????????''',
+   '''HalfHealthToRaiseAttack6''',
+   '''CopyFoeStatChangesPrimary''',
+   '''DoubleSpecialDamage''',
+   '''RaiseDefenseThenAttackTurn2''',
+   '''FlinchAndDoubleDamageToFly''',
+   '''DoubleDamageToDig''',
+   '''DamageIn2Turns''',
+   '''DoubleDamageToFly''',
+   '''FlinchAndDoubleDamageToMinimize''',
+   '''ChargeFirstTurn''',
+   '''ParalyzeAndIncreaseAccuracyInRain''',
+   '''Escape''',
+   '''DamageBasedOnPartySize''',
+   '''2turn''',
+   '''RaiseDefenseAndImproveRollingMoves''',
+   '''RecoverOrFriend''',
+   '''OnlyWorksOnce''',
+   '''2to5turnsNoSleep''',
+   '''Stockpile''',
+   '''Spit Up''',
+   '''Swallow''',
+   '''?????????''',
+   '''Hail5turns''',
+   '''Torment''',
+   '''ConfuseAndRaiseSpAtk2''',
+   '''BurnPrimary''',
+   '''SelfKOLowerAtkSpAtk2''',
+   '''DoubleDamageIfStatus''',
+   '''SelfFlinchIfHit''',
+   '''DoubleDamageToParalyzeAndHealParalyze''',
+   '''ForceFoesAttackMe''',
+   '''NaturePower''',
+   '''BoostNextElectricMove''',
+   '''Taunt''',
+   '''BoostAllyPower''',
+   '''TradeHeldItems''',
+   '''CopyAbility''',
+   '''HealHalfNextTurn''',
+   '''UseAllyMove''',
+   '''Ingrain''',
+   '''LowerSelfAtkDef''',
+   '''ReflectStatusMoves''',
+   '''Recycle''',
+   '''DoubleDamageIfHitThisTurn''',
+   '''BreakWall''',
+   '''Yawn''',
+   '''KnockOff''',
+   '''Endeavor''',
+   '''DamageBasedOnHighRemainingHealth''',
+   '''SkillSwap''',
+   '''Imprison''',
+   '''HealSelfStatus''',
+   '''Grudge''',
+   '''Snatch''',
+   '''DamageBasedOnWeight''',
+   '''SecondEffectBasedOnTerrain''',
+   '''33Recoil''',
+   '''ConfuseAllPokemon''',
+   '''HighCritBurn''',
+   '''MudSport''',
+   '''BadPoison''',
+   '''WeatherBall''',
+   '''LowerSpAtk2Self''',
+   '''LowerAttackDefensePrimary''',
+   '''RaiseDefenseSpDef''',
+   '''CanDamageFly''',
+   '''RaiseAttackDefensePrimary''',
+   '''HighCritPoison''',
+   '''WaterSport''',
+   '''RaiseSpAtkSpDefPrimary''',
+   '''RaiseAttackSpeedPrimary''',
+   '''ChangetypeFromTerrain''',
+]
+
+[[List]]
+Name = '''moveinfo'''
+0 = [
+   '''Makes Contact''',
+   '''Affected by Protect''',
+   '''Affected by Magic Coat''',
+   '''Affected by Snatch''',
+   '''Affected by Mirror Move''',
+   '''Affected by King's Rock''',
+]
+
+[[List]]
+Name = '''holdeffects'''
+0 = [
+   '''None''',
+   '''Heal|HP Yellow|Once''',
+   '''Remove Paralysis|Once''',
+   '''Remove Sleep|Once''',
+   '''Remove Poison|Once''',
+   '''Remove Burn|Once''',
+   '''Remove Freeze|Once''',
+   '''Restore PP|Empty|Once''',
+   '''Remove Confusion|Once''',
+   '''Remove Any Status Condition|Once''',
+   '''Heal, May Confuse|Once''',
+   '''Heal, May Confuse|Once''',
+   '''Heal, May Confuse|Once''',
+   '''Heal, May Confuse|Once''',
+   '''Heal, May Confuse|Once''',
+   '''Boost ATK|HP Red|Once''',
+   '''Boost DEF|HP Red|Once''',
+   '''Boost SPD|HP Red|Once''',
+   '''Boost SP.ATK|HP Red|Once''',
+   '''Boost SP.DEF|HP Red|Once''',
+   '''Boost Crit.Ratio|HP Red|Once''',
+   '''Sharp Boost Random Stat|HP Red|Once''',
+   '''Reduce Enemy Accuracy''',
+   '''Restore Any Stat Loss|Once''',
+   '''Macho Brace''',
+   '''Exp. Share''',
+   '''May Strike First''',
+   '''Boost Friendliness''',
+   '''Remove Infatuation''',
+   '''Choice Band''',
+   '''Enemy May Flinch''',
+   '''Boost Bug-Type Moves''',
+   '''Doubles Battle Money''',
+   '''Repels Wild PKMN''',
+   '''Soul Dew''',
+   '''Boost SP.ATK''',
+   '''Boost SP.DEF''',
+   '''Flee Any Wild Battle''',
+   '''Prevent Evolution''',
+   '''May Endure Hit''',
+   '''Boost Exp. Gain''',
+   '''Boost Crit Ratio''',
+   '''Boost Steel-Type Moves''',
+   '''Restore Health Each Round''',
+   '''No effect''',
+   '''Boost SP.ATK For Pikachu''',
+   '''Boost Ground-Type Moves''',
+   '''Boost Rock-Type Moves''',
+   '''Boost Grass-Type Moves''',
+   '''Boost Dark-Type Moves''',
+   '''Boost Fighting-Type Moves''',
+   '''Boost Electric-Type Moves''',
+   '''Boost Water-Type Moves''',
+   '''Boost Flying-Type Moves''',
+   '''Boost Poison-Type Moves''',
+   '''Boost Ice-Type Moves''',
+   '''Boost Ghost-Type Moves''',
+   '''Boost Psychic-Type Moves''',
+   '''Boost Fire-Type Moves''',
+   '''Boost Dragon-Type Moves''',
+   '''Boost Normal-Type Moves''',
+   '''Up-Grade''',
+   '''Heal When Striking An Enemy''',
+   '''Boost Chansey's Crit.Ratio''',
+   '''Boost Ditto's DEF''',
+   '''Boost Cubone and Marowak ATK''',
+   '''Boost Farfetch'd Crit.Ratio''',
+]
+
+[[List]]
+Name = '''contestPokemonFlags'''
+0 = [
+   '''whichRankHigh''',
+   '''whichRankLow''',
+   '''Cool''',
+   '''Beauty''',
+   '''Cute''',
+   '''Smart''',
+   '''Tough''',
+]
+
+[[List]]
+Name = '''owfootprints'''
+0 = [
+   '''None''',
+   '''Feet''',
+   '''Bike''',
+]
+
+[[List]]
+Name = '''movetarget'''
+0 = [
+   '''RecentAttacker''',
+   '''UserOrSelected''',
+   '''Random''',
+   '''Both''',
+   '''Self''',
+   '''Everyone''',
+   '''Hazard''',
+]
+
+[[List]]
+Name = '''trainerStructType'''
+0 = [
+   '''Normal''',
+   '''Moves''',
+   '''Items''',
+   '''Both''',
+]
+
+[[List]]
+Name = '''decorpermissions'''
+0 = [
+   '''Normal''',
+   '''Put On Floor''',
+   '''Object''',
+   '''Place On Wall''',
+   '''Doll or Cushion''',
+]
+
+[[List]]
+Name = '''decorcategory'''
+0 = [
+   '''Desk''',
+   '''Chair''',
+   '''Plant''',
+   '''Unique''',
+   '''Mat''',
+   '''Poster''',
+   '''Doll''',
+   '''Cushion''',
+]
+
+[[List]]
+Name = '''decorshape'''
+0 = [
+   '''1x1''',
+   '''2x1''',
+   '''unused''',
+   '''1x1t''',
+   '''2x2p''',
+   '''1x1p''',
+   '''unused''',
+   '''3x1''',
+   '''2x2''',
+   '''3x2''',
+]
+
+[[List]]
+Name = '''evolutionmethods'''
+0 = [
+   '''None''',
+   '''Happiness''',
+   '''Happy Day''',
+   '''Happy Night''',
+   '''Level''',
+   '''Trade''',
+   '''Trade Item''',
+   '''Stone''',
+   '''Level High Attack''',
+   '''Level Attack matches Defense''',
+   '''Level High Defense''',
+   '''Level Odd Personality''',
+   '''Level Even Personality''',
+   '''Level And New Pokemon''',
+   '''Level But New Pokemon''',
+   '''Beauty''',
+]
+
+[[List]]
+Name = '''evbits'''
+0 = [
+   '''+1 HP''',
+   '''+2 HP''',
+   '''+1 Attack''',
+   '''+2 Attack''',
+   '''+1 Defense''',
+   '''+2 Defense''',
+   '''+1 Speed''',
+   '''+2 Speed''',
+   '''+1 Sp Attack''',
+   '''+2 Sp Attack''',
+   '''+1 Sp Defense''',
+   '''+2 Sp Defense''',
+]
+
+[[List]]
+Name = '''battletowerEvFlags'''
+0 = [
+   '''Hp''',
+   '''Attack''',
+   '''Defense''',
+   '''Speed''',
+   '''SpAttack''',
+   '''SpDefense''',
+]
+
+[[List]]
+Name = '''traineraibits'''
+0 = [
+   '''CheckBadMove''',
+   '''TryToFaint''',
+   '''CheckViability''',
+   '''SetupFirstTurn''',
+   '''Risky''',
+   '''PreferStrongestMove''',
+   '''PreferBatonPass''',
+   '''DoubleBattle''',
+   '''HPAware''',
+   '''Unknown''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Roaming''',
+   '''Safari''',
+   '''FirstBattle''',
+]
+
+[[List]]
+Name = '''script_compare'''
+0 = [
+   '''<''',
+   '''=''',
+   '''>''',
+   '''<=''',
+   '''>=''',
+   '''!=''',
+]
+
+[[List]]
+Name = '''catchmap_shape'''
+0 = [
+   '''small''',
+   '''wide''',
+   '''tall''',
+   '''wider''',
+   '''taller''',
+   '''widest''',
+   '''tallest''',
+]
+
+[[List]]
+Name = '''movementtypes'''
+0 = [
+   '''face_down''',
+   '''face_up''',
+   '''face_left''',
+   '''face_right''',
+   '''face_down_fast''',
+   '''face_up_fast''',
+   '''face_left_fast''',
+   '''face_right_fast''',
+   '''walk_slowest_down''',
+   '''walk_slowest_up''',
+   '''walk_slowest_left''',
+   '''walk_slowest_right''',
+   '''walk_slow_down''',
+   '''walk_slow_up''',
+   '''walk_slow_left''',
+   '''walk_slow_right''',
+   '''walk_down''',
+   '''walk_up''',
+   '''walk_left''',
+   '''walk_right''',
+   '''jump_2_down''',
+   '''jump_2_up''',
+   '''jump_2_left''',
+   '''jump_2_right''',
+   '''delay_1''',
+   '''delay_2''',
+   '''delay_4''',
+   '''delay_8''',
+   '''delay_16''',
+   '''walk_fast_down''',
+   '''walk_fast_up''',
+   '''walk_fast_left''',
+   '''walk_fast_right''',
+   '''walk_in_place_slow_down''',
+   '''walk_in_place_slow_up''',
+   '''walk_in_place_slow_left''',
+   '''walk_in_place_slow_right''',
+   '''walk_in_place_down''',
+   '''walk_in_place_up''',
+   '''walk_in_place_left''',
+   '''walk_in_place_right''',
+   '''walk_in_place_fast_down''',
+   '''walk_in_place_fast_up''',
+   '''walk_in_place_fast_left''',
+   '''walk_in_place_fast_right''',
+   '''walk_in_place_fastest_down''',
+   '''walk_in_place_fastest_up''',
+   '''walk_in_place_fastest_left''',
+   '''walk_in_place_fastest_right''',
+   '''face_down_slow''',
+   '''face_up_slow''',
+   '''face_left_slow''',
+   '''face_right_slow''',
+   '''walk_fastest_down''',
+   '''walk_fastest_up''',
+   '''walk_fastest_left''',
+   '''walk_fastest_right''',
+   '''slide_down''',
+   '''slide_up''',
+   '''slide_left''',
+   '''slide_right''',
+   '''player_run_down''',
+   '''player_run_up''',
+   '''player_run_left''',
+   '''player_run_right''',
+   '''player_run_down_slow''',
+   '''player_run_up_slow''',
+   '''player_run_left_slow''',
+   '''player_run_right_slow''',
+   '''step_45''',
+   '''jump_down_run''',
+   '''jump_up_run''',
+   '''jump_left_run''',
+   '''jump_right_run''',
+   '''face_player''',
+   '''face_away_player''',
+   '''lock_facing_direction''',
+   '''unlock_facing_direction''',
+   '''jump_down''',
+   '''jump_up''',
+   '''jump_left''',
+   '''jump_right''',
+   '''jump_in_place_down''',
+   '''jump_in_place_up''',
+   '''jump_in_place_left''',
+   '''jump_in_place_right''',
+   '''jump_in_place_down_up''',
+   '''jump_in_place_up_down''',
+   '''jump_in_place_left_right''',
+   '''jump_in_place_right_left''',
+   '''face_original_direction''',
+   '''nurse_joy_bow''',
+   '''enable_jump_landing_ground_effect''',
+   '''disable_jump_landing_ground_effect''',
+   '''disable_anim''',
+   '''restore_anim''',
+   '''set_invisible''',
+   '''set_visible''',
+   '''emote_exclamation_mark''',
+   '''emote_question_mark''',
+   '''emote_x''',
+   '''emote_double_exclamation_mark''',
+   '''emote_smile''',
+   '''reveal_trainer''',
+   '''rock_smash_break''',
+   '''cut_tree''',
+]
+
+[[List]]
+Name = '''songnames'''
+0 = [
+   '''mus_dummy''',
+   '''se_use_item''',
+   '''se_pc_login''',
+   '''se_pc_off''',
+   '''se_pc_on''',
+   '''se_select''',
+   '''se_win_open''',
+   '''se_wall_hit''',
+   '''se_rs_door''',
+   '''se_exit''',
+   '''se_ledge''',
+   '''se_bike_bell''',
+   '''se_not_effective''',
+   '''se_effective''',
+   '''se_super_effective''',
+   '''se_ball_open''',
+   '''se_faint''',
+   '''se_flee''',
+   '''se_sliding_door''',
+   '''se_ship''',
+   '''se_bang''',
+   '''se_pin''',
+   '''se_boo''',
+   '''se_ball''',
+   '''se_contest_place''',
+   '''se_success''',
+   '''se_failure''',
+   '''se_exp''',
+   '''se_bike_hop''',
+   '''se_switch''',
+   '''se_click''',
+   '''se_fu_zaku''',
+   '''se_contest_condition_lose''',
+   '''se_lavaridge_fall_warp''',
+   '''se_ice_stairs''',
+   '''se_ice_break''',
+   '''se_ice_crack''',
+   '''se_fall''',
+   '''se_unlock''',
+   '''se_warp_in''',
+   '''se_warp_out''',
+   '''se_repel''',
+   '''se_rotating_gate''',
+   '''se_truck_move''',
+   '''se_truck_stop''',
+   '''se_truck_unload''',
+   '''se_truck_door''',
+   '''se_berry_blender''',
+   '''se_save''',
+   '''se_ball_bounce_1''',
+   '''se_ball_bounce_2''',
+   '''se_ball_bounce_3''',
+   '''se_ball_bounce_4''',
+   '''se_ball_trade''',
+   '''se_ball_throw''',
+   '''se_note_c''',
+   '''se_note_d''',
+   '''se_note_e''',
+   '''se_note_f''',
+   '''se_note_g''',
+   '''se_note_a''',
+   '''se_note_b''',
+   '''se_note_c_high''',
+   '''se_puddle''',
+   '''se_bridge_walk''',
+   '''se_itemfinder''',
+   '''se_ding_dong''',
+   '''se_balloon_red''',
+   '''se_balloon_blue''',
+   '''se_balloon_yellow''',
+   '''se_breakable_door''',
+   '''se_mud_ball''',
+   '''se_field_poison''',
+   '''se_escalator''',
+   '''se_thunderstorm''',
+   '''se_thunderstorm_stop''',
+   '''se_downpour''',
+   '''se_downpour_stop''',
+   '''se_rain''',
+   '''se_rain_stop''',
+   '''se_thunder''',
+   '''se_thunder2''',
+   '''se_elevator''',
+   '''se_low_health''',
+   '''se_exp_max''',
+   '''se_roulette_ball''',
+   '''se_roulette_ball2''',
+   '''se_taillow_wing_flap''',
+   '''se_rs_shop''',
+   '''se_contest_heart''',
+   '''se_contest_curtain_rise''',
+   '''se_contest_curtain_fall''',
+   '''se_contest_icon_change''',
+   '''se_contest_icon_clear''',
+   '''se_contest_mons_turn''',
+   '''se_shiny''',
+   '''se_intro_blast''',
+   '''se_mugshot''',
+   '''se_applause''',
+   '''se_vend''',
+   '''se_orb''',
+   '''se_dex_scroll''',
+   '''se_dex_page''',
+   '''se_pokenav_on''',
+   '''se_pokenav_off''',
+   '''se_dex_search''',
+   '''se_egg_hatch''',
+   '''se_ball_tray_enter''',
+   '''se_ball_tray_ball''',
+   '''se_ball_tray_exit''',
+   '''se_glass_flute''',
+   '''se_m_thunderbolt''',
+   '''se_m_thunderbolt2''',
+   '''se_m_harden''',
+   '''se_m_nightmare''',
+   '''se_m_vital_throw''',
+   '''se_m_vital_throw2''',
+   '''se_m_bubble''',
+   '''se_m_bubble2''',
+   '''se_m_bubble3''',
+   '''se_m_rain_dance''',
+   '''se_m_cut''',
+   '''se_m_string_shot''',
+   '''se_m_string_shot2''',
+   '''se_m_rock_throw''',
+   '''se_m_gust''',
+   '''se_m_gust2''',
+   '''se_m_double_slap''',
+   '''se_m_double_team''',
+   '''se_m_razor_wind''',
+   '''se_m_icy_wind''',
+   '''se_m_thunder_wave''',
+   '''se_m_comet_punch''',
+   '''se_m_mega_kick''',
+   '''se_m_mega_kick2''',
+   '''se_m_crabhammer''',
+   '''se_m_jump_kick''',
+   '''se_m_flame_wheel''',
+   '''se_m_flame_wheel2''',
+   '''se_m_flamethrower''',
+   '''se_m_fire_punch''',
+   '''se_m_toxic''',
+   '''se_m_sacred_fire''',
+   '''se_m_sacred_fire2''',
+   '''se_m_ember''',
+   '''se_m_take_down''',
+   '''se_m_blizzard''',
+   '''se_m_blizzard2''',
+   '''se_m_scratch''',
+   '''se_m_vicegrip''',
+   '''se_m_wing_attack''',
+   '''se_m_fly''',
+   '''se_m_sand_attack''',
+   '''se_m_razor_wind2''',
+   '''se_m_bite''',
+   '''se_m_headbutt''',
+   '''se_m_surf''',
+   '''se_m_hydro_pump''',
+   '''se_m_whirlpool''',
+   '''se_m_horn_attack''',
+   '''se_m_tail_whip''',
+   '''se_m_mist''',
+   '''se_m_poison_powder''',
+   '''se_m_bind''',
+   '''se_m_dragon_rage''',
+   '''se_m_sing''',
+   '''se_m_perish_song''',
+   '''se_m_pay_day''',
+   '''se_m_dig''',
+   '''se_m_dizzy_punch''',
+   '''se_m_self_destruct''',
+   '''se_m_explosion''',
+   '''se_m_absorb_2''',
+   '''se_m_absorb''',
+   '''se_m_screech''',
+   '''se_m_bubble_beam''',
+   '''se_m_bubble_beam2''',
+   '''se_m_supersonic''',
+   '''se_m_belly_drum''',
+   '''se_m_metronome''',
+   '''se_m_bonemerang''',
+   '''se_m_lick''',
+   '''se_m_psybeam''',
+   '''se_m_faint_attack''',
+   '''se_m_swords_dance''',
+   '''se_m_leer''',
+   '''se_m_swagger''',
+   '''se_m_swagger2''',
+   '''se_m_heal_bell''',
+   '''se_m_confuse_ray''',
+   '''se_m_snore''',
+   '''se_m_brick_break''',
+   '''se_m_giga_drain''',
+   '''se_m_psybeam2''',
+   '''se_m_solar_beam''',
+   '''se_m_petal_dance''',
+   '''se_m_teleport''',
+   '''se_m_minimize''',
+   '''se_m_sketch''',
+   '''se_m_swift''',
+   '''se_m_reflect''',
+   '''se_m_barrier''',
+   '''se_m_detect''',
+   '''se_m_lock_on''',
+   '''se_m_moonlight''',
+   '''se_m_charm''',
+   '''se_m_charge''',
+   '''se_m_strength''',
+   '''se_m_hyper_beam''',
+   '''se_m_waterfall''',
+   '''se_m_reversal''',
+   '''se_m_acid_armor''',
+   '''se_m_sandstorm''',
+   '''se_m_tri_attack''',
+   '''se_m_tri_attack2''',
+   '''se_m_encore''',
+   '''se_m_encore2''',
+   '''se_m_baton_pass''',
+   '''se_m_milk_drink''',
+   '''se_m_attract''',
+   '''se_m_attract2''',
+   '''se_m_morning_sun''',
+   '''se_m_flatter''',
+   '''se_m_sand_tomb''',
+   '''se_m_grasswhistle''',
+   '''se_m_spit_up''',
+   '''se_m_dive''',
+   '''se_m_earthquake''',
+   '''se_m_twister''',
+   '''se_m_sweet_scent''',
+   '''se_m_yawn''',
+   '''se_m_sky_uppercut''',
+   '''se_m_stat_increase''',
+   '''se_m_heat_wave''',
+   '''se_m_uproar''',
+   '''se_m_hail''',
+   '''se_m_cosmic_power''',
+   '''se_m_teeter_dance''',
+   '''se_m_stat_decrease''',
+   '''se_m_haze''',
+   '''se_m_hyper_beam2''',
+   '''se_door''',
+   '''se_card_flip''',
+   '''se_card_flipping''',
+   '''se_card_open''',
+   '''se_bag_cursor''',
+   '''se_bag_pocket''',
+   '''se_ball_click''',
+   '''se_shop''',
+   '''se_ss_anne_horn''',
+   '''se_help_open''',
+   '''se_help_close''',
+   '''se_help_error''',
+   '''se_deoxys_move''',
+   '''se_poke_jump_success''',
+   '''se_poke_jump_failure''',
+   '''mus_heal''',
+   '''mus_level_up''',
+   '''mus_obtain_item''',
+   '''mus_evolved''',
+   '''mus_obtain_badge''',
+   '''mus_obtain_tmhm''',
+   '''mus_obtain_berry''',
+   '''mus_evolution_intro''',
+   '''mus_evolution''',
+   '''mus_rs_vs_gym_leader''',
+   '''mus_rs_vs_trainer''',
+   '''mus_school''',
+   '''mus_slots_jackpot''',
+   '''mus_slots_win''',
+   '''mus_move_deleted''',
+   '''mus_too_bad''',
+   '''mus_follow_me''',
+   '''mus_game_corner''',
+   '''mus_rocket_hideout''',
+   '''mus_gym''',
+   '''mus_jigglypuff''',
+   '''mus_intro_fight''',
+   '''mus_title''',
+   '''mus_cinnabar''',
+   '''mus_lavender''',
+   '''mus_heal_unused''',
+   '''mus_cycling''',
+   '''mus_encounter_rocket''',
+   '''mus_encounter_girl''',
+   '''mus_encounter_boy''',
+   '''mus_hall_of_fame''',
+   '''mus_viridian_forest''',
+   '''mus_mt_moon''',
+   '''mus_poke_mansion''',
+   '''mus_credits''',
+   '''mus_route1''',
+   '''mus_route24''',
+   '''mus_route3''',
+   '''mus_route11''',
+   '''mus_victory_road''',
+   '''mus_vs_gym_leader''',
+   '''mus_vs_trainer''',
+   '''mus_vs_wild''',
+   '''mus_vs_champion''',
+   '''mus_pallet''',
+   '''mus_oak_lab''',
+   '''mus_oak''',
+   '''mus_poke_center''',
+   '''mus_ss_anne''',
+   '''mus_surf''',
+   '''mus_poke_tower''',
+   '''mus_silph''',
+   '''mus_fuchsia''',
+   '''mus_celadon''',
+   '''mus_victory_trainer''',
+   '''mus_victory_wild''',
+   '''mus_victory_gym_leader''',
+   '''mus_vermillion''',
+   '''mus_pewter''',
+   '''mus_encounter_rival''',
+   '''mus_rival_exit''',
+   '''mus_dex_rating''',
+   '''mus_obtain_key_item''',
+   '''mus_caught_intro''',
+   '''mus_photo''',
+   '''mus_game_freak''',
+   '''mus_caught''',
+   '''mus_new_game_instruct''',
+   '''mus_new_game_intro''',
+   '''mus_new_game_exit''',
+   '''mus_poke_jump''',
+   '''mus_union_room''',
+   '''mus_net_center''',
+   '''mus_mystery_gift''',
+   '''mus_berry_pick''',
+   '''mus_sevii_cave''',
+   '''mus_teachy_tv_show''',
+   '''mus_sevii_route''',
+   '''mus_sevii_dungeon''',
+   '''mus_sevii_123''',
+   '''mus_sevii_45''',
+   '''mus_sevii_67''',
+   '''mus_poke_flute''',
+   '''mus_vs_deoxys''',
+   '''mus_vs_mewtwo''',
+   '''mus_vs_legend''',
+   '''mus_encounter_gym_leader''',
+   '''mus_encounter_deoxys''',
+   '''mus_trainer_tower''',
+   '''mus_slow_pallet''',
+   '''mus_teachy_tv_menu''',
+]
