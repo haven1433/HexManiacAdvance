@@ -200,7 +200,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   if (array != null) {
                      if (array.Start != originalArray.Start) {
                         ModelDataMoved?.Invoke(this, (originalArray.Start, array.Start));
-                        selection.GotoAddress(array.Start + array.Length - array.ElementLength);
+                        selection.SelectionStart = viewPort.ConvertAddressToViewPoint(array.Start + array.Length - array.ElementLength);
                      }
                      if (error.HasError && !error.IsWarning) {
                         OnError?.Invoke(this, error.ErrorMessage);
