@@ -144,7 +144,7 @@ scripts.specials.thumb,                0658B4, 0658B8, 0658D4, 0658D8, 069F18, 0
 scripts.battle.thumb,                  012F34, 012F34, 012F34, 012F34, 014C1C, 014C1C, 014C30, 014C30,       , [code<>]248
 scripts.battle.thumb,                        ,       ,       ,       ,       ,       ,       ,       , 03CD94, [code<>]249
 scripts.newgame.setflags,              052F58, 052F58, 052F78, 052F78, 054B6C, 054B6C, 054B80, 054B80, 0845C8, `xse`
-scripts.newgame.pc.item,               139C70, 139C70, 139C90, 139C90, 0EB6A8, 0EB680, 0EB6BC, 0EB694, 16AE54, [item:data.items.stats count:]1
+scripts.newgame.pc.item,               139C70, 139C70, 139C90, 139C90, 0EB6A8, 0EB680, 0EB6BC, 0EB694, 16AE54, [item:data.items.stats count:]!00000000
 scripts.credits.panmap,                                           ,,,, 0F3BC0, 0F3B98, 0F3C38, 0F3C10,       , [data<[loadmapCommand: bank: map:: x: y: delay:: xspeed: yspeed: length:: end1Command: end2Command: end3Command::]1>]13
 scripts.credits.text,                        ,       ,       ,       , 0F3F18, 0F3EF0, 0F3F90, 0F3F68,       , [header<""> text<""> bool::|t|unknown.]
 scripts.evolution.routines,            03F588, 03F588, 03F588, 03F588, 042FC0, 042FC0, 042FD4, 042FD4, 06D194, [thumb<>]scripts.evolution.count
