@@ -516,7 +516,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
          foreach (var pointer in metadata.OffsetPointers) {
             if (pointer.Address >= 0 && pointer.Address < model.Count) {
-               model.ObserveRunWritten(noChange, new OffsetPointerRun(pointer.Address, pointer.Offset));
+               if (model.GetNextRun(pointer.Address) is OffsetPointerRun existingPointerRun && existingPointerRun.Start == pointer.Address) {
+                  // we already have an offset pointer run at this location: don't overwrite it.
+               } else {
+                  model.ObserveRunWritten(noChange, new OffsetPointerRun(pointer.Address, pointer.Offset));
+               }
             }
          }
          if (metadata.NextExportID > 0) model.NextExportID = metadata.NextExportID;

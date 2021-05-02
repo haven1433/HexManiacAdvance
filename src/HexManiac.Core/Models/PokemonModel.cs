@@ -212,7 +212,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var existingRun = GetNextRun(destination);
             if (anchor == reference.Name && existingRun.Start == destination && existingRun.FormatString == reference.Format) continue;
             if (TryParseFormat(this, reference.Name, reference.Format, destination, out var replacementRun).HasError) continue;
-
+            if (DoNotChangeFormatOnUpdate(existingRun.FormatString)) continue;
             // update this anchor
             anchorForAddress[destination] = reference.Name;
             addressForAnchor.Remove(anchor);
@@ -530,6 +530,13 @@ namespace HavenSoft.HexManiac.Core.Models {
                Debug.Assert(array.ElementCount == 1);
             }
          }
+      }
+
+      private bool DoNotChangeFormatOnUpdate(string format) {
+         // move utility changes the format of moves.stats: effects is now 2 bytes and other formats have moved.
+         if (format.Contains("[effect:") && format.Contains(" pp. ")) return true;
+
+         return false;
       }
 
       #endregion
