@@ -573,6 +573,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public string Operator { get; }
       public bool HasOperator => !string.IsNullOrEmpty(Operator);
 
+      public override string SerializeFormat => Name + "|=" + Operator.Join(Operands);
+
       public ArrayRunCalculatedSegment(IDataModel model, string name, string contract) : base(name, ElementContentType.Integer, 0) {
          Model = model;
          if (contract.Contains("*")) {

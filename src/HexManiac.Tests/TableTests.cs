@@ -740,6 +740,12 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("Bob", ViewPort.Headers[0]);
       }
 
+      [Fact]
+      public void CalculatedSegment_Serialize_ReasonableText() {
+         var segment = new ArrayRunCalculatedSegment(Model, "bob", "4+a");
+         Assert.Equal("bob|=4+a", segment.SerializeFormat);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
