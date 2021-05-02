@@ -20,7 +20,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
    public interface IToolTrayViewModel : IReadOnlyList<IToolViewModel>, INotifyPropertyChanged {
       int SelectedIndex { get; set; }
-      IToolViewModel SelectedTool { get; }
+      IToolViewModel SelectedTool { get; set; }
 
       ICommand HideCommand { get; }
       ICommand StringToolCommand { get; }

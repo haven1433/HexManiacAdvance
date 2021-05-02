@@ -31,7 +31,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
-      public IToolViewModel SelectedTool => selectedIndex == -1 ? null : tools[selectedIndex];
+      public IToolViewModel SelectedTool {
+         get => selectedIndex == -1 ? null : tools[selectedIndex];
+         set => SelectedIndex = this.IndexOf(value);
+      }
 
       public int Count => tools.Count;
       public IToolViewModel this[int index] => tools[index];
