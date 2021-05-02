@@ -157,6 +157,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void BackRecallsYourLastScrollPosition() {
          var viewPort = new ViewPort(new LoadedFile("test.txt", new byte[0x1000])) { Width = 0x10, Height = 0x10 };
+         viewPort.SelectionStart = new Point(0, 4);
 
          viewPort.ScrollValue++;
          viewPort.Goto.Execute("000A00");

@@ -11,6 +11,12 @@ using System.Windows.Input;
 namespace HavenSoft.HexManiac.Core.ViewModels {
    public delegate (Point start, Point end) GetSelectionSpan(Point p);
 
+   public class JumpInfo {
+      public int ViewStart { get; }
+      public int SelectionStart { get; }
+      public JumpInfo(int viewStart, int selectionStart) => (ViewStart, SelectionStart) = (viewStart, selectionStart);
+   }
+
    public class Selection : ViewModelCore {
       private const int DefaultPreferredWidth = 0x10;
 
@@ -27,7 +33,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       // these back/forward stacks are not encapsulated in a history object because we want to be able to change a remembered address each time we visit it.
       // if we navigate back, then scroll, then navigate forward, we want to remember the scroll if we go back again.
-      private readonly Stack<int> backStack = new Stack<int>(), forwardStack = new Stack<int>();
+      private readonly Stack<JumpInfo> backStack = new Stack<JumpInfo>(), forwardStack = new Stack<JumpInfo>();
 
       private int preferredWidth = DefaultPreferredWidth, maxWidth = 4;
 
@@ -193,9 +199,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             CanExecute = args => backStack.Count > 0,
             Execute = args => {
                if (backStack.Count == 0) return;
-               forwardStack.Push(Scroll.DataIndex);
+               var selectionPoint = Scroll.ViewPointToDataIndex(SelectionStart);
+               if (selectionPoint < Scroll.DataIndex || selectionPoint > Scroll.DataIndex + Scroll.Width * Scroll.Height) selectionPoint = Scroll.DataIndex;
+               forwardStack.Push(new JumpInfo(Scroll.DataIndex, selectionPoint));
                if (forwardStack.Count == 1) forward.CanExecuteChanged.Invoke(forward, EventArgs.Empty);
-               GotoAddressHelper(backStack.Pop());
+               var backInfo = backStack.Pop();
+               GotoAddressHelper(backInfo.ViewStart);
+               SelectionStart = Scroll.DataIndexToViewPoint(backInfo.SelectionStart);
                if (backStack.Count == 0) backward.CanExecuteChanged.Invoke(backward, EventArgs.Empty);
             },
          };
@@ -203,9 +213,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             CanExecute = args => forwardStack.Count > 0,
             Execute = args => {
                if (forwardStack.Count == 0) return;
-               backStack.Push(Scroll.DataIndex);
+               var selectionPoint = Scroll.ViewPointToDataIndex(SelectionStart);
+               if (selectionPoint < Scroll.DataIndex || selectionPoint > Scroll.DataIndex + Scroll.Width * Scroll.Height) selectionPoint = Scroll.DataIndex;
+               backStack.Push(new JumpInfo(Scroll.DataIndex, selectionPoint));
                if (backStack.Count == 1) backward.CanExecuteChanged.Invoke(backward, EventArgs.Empty);
-               GotoAddressHelper(forwardStack.Pop());
+               var forwardInfo = forwardStack.Pop();
+               GotoAddressHelper(forwardInfo.ViewStart);
+               SelectionStart = Scroll.DataIndexToViewPoint(forwardInfo.SelectionStart);
                if (forwardStack.Count == 0) forward.CanExecuteChanged.Invoke(forward, EventArgs.Empty);
             },
          };
@@ -249,7 +263,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return;
          }
 
-         backStack.Push(Scroll.DataIndex);
+         var selectionPoint = Scroll.ViewPointToDataIndex(SelectionStart);
+         if (selectionPoint < Scroll.DataIndex || selectionPoint > Scroll.DataIndex + Scroll.Width * Scroll.Height) selectionPoint = Scroll.DataIndex;
+         backStack.Push(new JumpInfo(Scroll.DataIndex, selectionPoint));
          if (backStack.Count == 1) backward.CanExecuteChanged.Invoke(backward, EventArgs.Empty);
          if (forwardStack.Count > 0) {
             forwardStack.Clear();
@@ -260,7 +276,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void SetJumpBackPoint(int address) {
          if (backStack.Count > 0) backStack.Pop();
-         backStack.Push(address);
+         backStack.Push(new JumpInfo(address, address));
       }
 
       private static (Point start, Point end) GetDefaultSelectionSpan(Point p) => (p, p);
