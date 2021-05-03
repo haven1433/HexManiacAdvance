@@ -746,6 +746,13 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("bob|=4+a", segment.SerializeFormat);
       }
 
+      [Fact]
+      public void CreateTable_BadEndTokenFormat_NoCrash() {
+         ViewPort.Edit("^table[a:]1 ");
+         ViewPort.AnchorText = "^table[a:]!";
+         Assert.Single(Errors);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

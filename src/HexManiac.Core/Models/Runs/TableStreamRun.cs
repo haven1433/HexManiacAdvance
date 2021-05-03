@@ -70,6 +70,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             return new FixedLengthStreamStrategy(number);
          }
          if (endToken.StartsWith("!") && endToken.Length % 2 == 1 && endToken.Substring(1).All(ViewModels.ViewPort.AllHexCharacters.Contains)) {
+            if (endToken.Length == 1) return null; // end token must be at least 1 byte long
             return new EndCodeStreamStrategy(model, endToken.Substring(1).ToUpper());
          }
          var tokens = endToken.Split("/");
