@@ -678,6 +678,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var message = $"Expected {content} to fit the form field/index/field. But it didn't.";
             if (parts.Length != 3) throw new NotImplementedException(message);
             var destination = table.ReadPointer(model, elementIndex, parts[0]);
+            if (destination == Pointer.NULL) return 0;
             var childTable = model.GetNextRun(destination) as ITableRun;
             if (childTable == null) throw new NotImplementedException(message);
             var childTableIndex = ParseValue(model, childTable, elementIndex, parts[1]);
