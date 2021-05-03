@@ -494,6 +494,7 @@
                </TabControl.ContentTemplate>
             </TabControl>
             <Rectangle Fill="{DynamicResource Background}" Opacity="0" Name="GotoBackground" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}"/>
+            <!-- Goto Panel -->
             <ScrollViewer Name="GotoPanel" VerticalScrollBarVisibility="Auto" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}">
                <ScrollViewer.InputBindings>
                   <KeyBinding Key="Esc" Command="{Binding GotoViewModel.ShowGoto}">
@@ -582,6 +583,9 @@
                      </Canvas>
                      <StackPanel Orientation="Horizontal">
                         <Grid>
+                           <Canvas Width="0" Height="0" HorizontalAlignment="Left" VerticalAlignment="Top">
+                              <Path Data="{hsv:Icon Home}" Opacity=".5" Fill="{DynamicResource Secondary}" Stretch="Uniform" Width="20" Height="20" Canvas.Right="8" Canvas.Top="9"/>
+                           </Canvas>
                            <TextBox Name="GotoBox" FontSize="30" Text="{Binding GotoViewModel.Text, UpdateSourceTrigger=PropertyChanged}" MinWidth="400" IsVisibleChanged="EditBoxVisibilityChanged">
                               <TextBox.InputBindings>
                                  <KeyBinding Key="Esc" Command="{Binding GotoViewModel.ShowGoto}">
