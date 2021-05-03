@@ -3182,3 +3182,138 @@ Name = '''songnames'''
    '''mus_slow_pallet''',
    '''mus_teachy_tv_menu''',
 ]
+
+############################################### Additions for 0.4.2
+
+[[NamedAnchors]]
+Name = '''graphics.moves.backgrounds.all'''
+Address = 0x3A8190
+Format = '''[tileset<`lzt4`> palette<`lzp4:2`> tilemap<`lzm4x32x32|graphics.moves.backgrounds.all`>]27'''
+
+[[NamedAnchors]]
+Name = '''graphics.moves.backgrounds.psychic'''
+Address = 0xD1EC78
+Format = '''`lzm4x32x20|graphics.moves.backgrounds.all`'''
+
+[[NamedAnchors]]
+Name = '''graphics.moves.backgrounds.impact.opponent'''
+Address = 0xD26B2C
+Format = '''`lzm4x32x20|graphics.moves.backgrounds.all`'''
+
+[[NamedAnchors]]
+Name = '''graphics.moves.backgrounds.impact.player'''
+Address = 0xD27028
+Format = '''`lzm4x32x20|graphics.moves.backgrounds.all`'''
+
+[[NamedAnchors]]
+Name = '''graphics.moves.backgrounds.impact.contest'''
+Address = 0xD274F8
+Format = '''`lzm4x32x20|graphics.moves.backgrounds.all`'''
+
+[[NamedAnchors]]
+Name = '''graphics.moves.backgrounds.impact.fissure'''
+Address = 0xE80280
+Format = '''`lzm4x32x64|graphics.moves.backgrounds.all`'''
+
+[[NamedAnchors]]
+Name = '''scripts.evolution.routines'''
+Address = 0x042E98
+Format = '''[thumb<>]scripts.evolution.count'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.pokemon.item.sprite'''
+Address = 0x4539B0
+Format = '''`ucs4x1x2|graphics.menu.pokemon.item.palette`'''
+
+[[NamedAnchors]]
+Name = '''graphics.menu.pokemon.item.palette'''
+Address = 0x4539F0
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''data.gamecorner.payout'''
+Address = 0x45DF72
+Format = '''[payout:]7'''
+
+[[NamedAnchors]]
+Name = '''graphics.credits.pokemon.Starter1.idle'''
+Address = 0x405534
+Format = '''`lzs4x10x10|graphics.pokemon.palettes.normal:index=6`'''
+
+[[NamedAnchors]]
+Name = '''graphics.credits.pokemon.Starter1.animate'''
+Address = 0x405BD0
+Format = '''`lzs4x12x13|graphics.pokemon.palettes.normal:index=6`'''
+
+[[NamedAnchors]]
+Name = '''graphics.credits.pokemon.Starter2.idle'''
+Address = 0x406B00
+Format = '''`lzs4x10x10|graphics.pokemon.palettes.normal:index=3`'''
+
+[[NamedAnchors]]
+Name = '''graphics.credits.pokemon.Starter2.animate'''
+Address = 0x4072AC
+Format = '''`lzs4x12x10|graphics.pokemon.palettes.normal:index=3`'''
+
+[[NamedAnchors]]
+Name = '''graphics.credits.pokemon.Starter3.idle'''
+Address = 0x407BE8
+Format = '''`lzs4x10x10|graphics.pokemon.palettes.normal:index=9`'''
+
+[[NamedAnchors]]
+Name = '''graphics.credits.pokemon.Starter3.animate'''
+Address = 0x4082EC
+Format = '''`lzs4x10x12|graphics.pokemon.palettes.normal:index=9`'''
+
+[[NamedAnchors]]
+Name = '''graphics.credits.pokemon.Mascot.idle'''
+Address = 0x408B40
+Format = '''`lzs4x10x10|graphics.pokemon.palettes.normal:index=25`'''
+
+[[NamedAnchors]]
+Name = '''graphics.credits.pokemon.Mascot.animate'''
+Address = 0x408F5C
+Format = '''`lzs4x12x12|graphics.pokemon.palettes.normal:index=25`'''
+
+[[NamedAnchors]]
+Name = '''graphics.overworld.textcolor'''
+Address = 0x45D90C
+Format = '''[data.|t|low::|high::]76'''
+
+
+[[MatchedWords]]
+Name = '''scripts.evolution.count'''
+Address = 0x042E82
+Length = 1
+Offset = -1
+
+[[OffsetPointer]]
+Address = 0x011480
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x011630
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x03E7D0
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x03E878
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x040DB8
+Offset = 0x000004
+
+[[List]]
+Name = '''mapnamepopuptheme'''
+0 = [
+   '''wood''',
+   '''marble''',
+   '''stone''',
+   '''brick''',
+   '''underwater''',
+   '''stone2''',
+]
