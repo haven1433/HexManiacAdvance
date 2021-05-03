@@ -349,6 +349,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (ViewPort is ViewPort editableViewPort) {
             var point = e.GetPosition(this);
             if (point.X < 0) {
+               downPoint = new ModelPoint(0, downPoint.Y);
                editableViewPort.SelectionStart = downPoint;
                editableViewPort.SelectionEnd = new ModelPoint(editableViewPort.Width - 1, downPoint.Y);
             } else if (Keyboard.Modifiers == ModifierKeys.Shift) {
