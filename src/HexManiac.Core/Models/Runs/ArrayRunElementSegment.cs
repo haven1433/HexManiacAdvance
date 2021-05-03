@@ -144,7 +144,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
             var resultAsInteger = ToInteger(model, address, Length) - ValueOffset;
             if (resultAsInteger >= options.Count || resultAsInteger < 0) return resultAsInteger.ToString();
-            var value = options[resultAsInteger];
+            var value = options[resultAsInteger] ?? resultAsInteger.ToString();
 
             // use ~2 postfix for a value if an earlier entry in the array has the same string
             var elementsUpToHereWithThisName = 1;
