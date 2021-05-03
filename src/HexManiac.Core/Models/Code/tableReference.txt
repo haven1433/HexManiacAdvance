@@ -165,7 +165,7 @@ data.pokedex.national,                 03F83C, 03F83C, 03F83C, 03F83C, 04323C, 0
 // hoenn[bulbasaur]= 203, national[bulbasaur]=   1, HoennToNationalDex[203]=   1
 // -> this table's values can be determined automatically based on the first two
 data.pokedex.hoennToNational,          03F888, 03F888, 03F888, 03F888, 043288, 043288, 04329C, 04329C, 06D494, [index:]data.pokemon.names-1
-data.pokedex.stats,                    08F508, 08F508, 08F528, 08F528, 088E34, 088E30, 088E48, 088E1C,       , [species""12 height: weight: description1<""> description2<""> unused: pokemonScale: pokemonOffset: trainerScale: trainerOffset: unused:]
+data.pokedex.stats,                    08F508, 08F508, 08F528, 08F528, 088E34, 088E30, 088E48, 088E1C,       , [species""12 height: weight: description1<""> description2<""> unused: pokemonScale: pokemonOffset:|z trainerScale: trainerOffset:|z unused:]
 data.pokedex.stats,                          ,       ,       ,       ,       ,       ,       ,       , 0BFA20, [species""12 height: weight: description<""> unused: pokemonScale: pokemonOffset: trainerScale: trainerOffset: unused:]
 data.pokedex.search.alpha,             08D930, 08D930, 08D950, 08D950, 103694, 10366C, 10370C, 1036E4, 0BCB74, [species:data.pokedex.national]data.pokedex.national
 data.pokedex.search.weight,            08D9BC, 08D9BC, 08D9DC, 08D9DC, 1037CC, 1037A4, 103844, 10381C, 0BCC00, [species:data.pokedex.national]386

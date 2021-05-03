@@ -114,6 +114,21 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
    }
 
+   public class ArrayRunSignedSegment : ArrayRunElementSegment {
+      public override string SerializeFormat => base.SerializeFormat + ArrayRun.SignedFormatString;
+      public ArrayRunSignedSegment(string name, int length) : base(name, ElementContentType.Integer, length) { }
+      public override string ToText(IDataModel rawData, int offset, bool deep = false) {
+         return ReadValue(rawData, offset).ToString();
+      }
+
+      public int ReadValue(IDataModel model, int offset) {
+         var value = model.ReadMultiByteValue(offset, Length);
+         if (Length == 1) return (sbyte)value;
+         if (Length == 2) return (short)value;
+         return value;
+      }
+   }
+
    public class ArrayRunEnumSegment : ArrayRunElementSegment, IHasOptions {
       public string EnumName { get; }
 

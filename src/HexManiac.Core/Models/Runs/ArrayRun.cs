@@ -57,6 +57,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             } else if (currentSegment is ArrayRunColorSegment) {
                var color = (short)data.ReadMultiByteValue(offsets.SegmentStart, currentSegment.Length);
                return new UncompressedPaletteColor(offsets.SegmentStart, position, color);
+            } else if (currentSegment is ArrayRunSignedSegment signed) {
+               var signedValue = signed.ReadValue(data, offsets.SegmentStart);
+               return new Integer(offsets.SegmentStart, position, signedValue, currentSegment.Length);
             } else {
                var value = ArrayRunElementSegment.ToInteger(data, offsets.SegmentStart, currentSegment.Length);
                return new Integer(offsets.SegmentStart, position, value, currentSegment.Length);
@@ -362,6 +365,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public const char SingleByteIntegerFormat = '.';
       public const char DoubleByteIntegerFormat = ':';
       public const char ArrayAnchorSeparator = '/';
+      public const string SignedFormatString = "|z";
       public const string HexFormatString = "|h";
       public const string RecordFormatString = "|s=";
       public const string TupleFormatString = "|t";
@@ -1103,6 +1107,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   if (endOfToken == -1) endOfToken = segments.Length;
                   segments = segments.Substring(endOfToken).Trim();
                   list.Add(new ArrayRunHexSegment(name, segmentLength));
+               } else if (segments.StartsWith(SignedFormatString)) {
+                  var endOfToken = segments.IndexOf(' ');
+                  if (endOfToken == -1) endOfToken = segments.Length;
+                  segments = segments.Substring(endOfToken).Trim();
+                  list.Add(new ArrayRunSignedSegment(name, segmentLength));
                } else if (segments.StartsWith(TupleFormatString)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;

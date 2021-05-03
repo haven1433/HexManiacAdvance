@@ -753,6 +753,16 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Single(Errors);
       }
 
+      [Fact]
+      public void Table_SignedIntFormat_NumbersCanBeNegative() {
+         ViewPort.Edit("^table[a.|z b:|z c::|z]1 -1 -2 -3 ");
+         var table = Model.GetTable("table");
+         Assert.Equal(0xFF, Model[0]);
+         Assert.Equal(ushort.MaxValue - 1, table.ReadValue(Model, 0, 1));
+         Assert.Equal(-3, Model.ReadValue(3));
+         Assert.Equal(-2, ((Integer)ViewPort[1, 0].Format).Value);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

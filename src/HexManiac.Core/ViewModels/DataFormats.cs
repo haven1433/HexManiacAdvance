@@ -295,7 +295,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       }
 
       public virtual bool CanStartWithCharacter(char input) {
-         return char.IsNumber(input);
+         return char.IsNumber(input) || input == '-';
       }
 
       public virtual void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
