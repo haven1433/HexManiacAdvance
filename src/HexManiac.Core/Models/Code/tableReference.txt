@@ -499,7 +499,7 @@ graphics.overworld.sprites,                  ,       ,       ,       , 05F2F4, 0
 graphics.overworld.sprites,                  ,       ,       ,       ,       ,       ,       ,       , 08E6D8, [data<[starterbytes:|h paletteid:|h secondid:|h length: width: height: info.|t|palSlot::|shadowSize:|inanimate.|reflectionPalette. footprint.owfootprints unused: distribution<> sizedraw<> animation<> sprites<`osl`> ramstore<>]1>]246
 graphics.overworld.sprites2,           05AB4C, 05AB50, 05AB6C, 05AB70, 05DF28, 05DF28, 05DF3C, 05DF3C,       , [data<[starterbytes:|h paletteid:|h a<> b<> sprites<`osl|graphics.overworld.palettes2:id=`> d<> e<>]1>]36
 graphics.overworld.sprites2,                 ,       ,       ,       ,       ,       ,       ,       , 08D4EC, [data<[starterbytes:|h paletteid:|h a<> b<> sprites<`osl|graphics.overworld.palettes2:id=`> d<> e<>]1>]37
-graphics.ovewrold.textcolor,                 ,       ,       ,       , 13CD44, 13CD1C, 13CDBC, 13CD94,       , [data.|t|low::|high::]76
+graphics.overworld.textcolor,                ,       ,       ,       , 13CD44, 13CD1C, 13CDBC, 13CD94,       , [data.|t|low::|high::]76
 
 graphics.text.font.other.characters, ,,,, 00658C, 00658C, 0065A0, 0065A0, 0068BC, `ucs2x2x1024`
 graphics.text.font.other.width,      ,,,, 006594, 006594, 0065A8, 0065A8, 0068C4, [width.]512
