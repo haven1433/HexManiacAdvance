@@ -1212,7 +1212,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var destination2 = Model.GetNextRun(destination.Start);
          Model.ObserveRunWritten(CurrentChange, destination2.Duplicate(newDestination, new SortedSpan<int>(pointer))); // create a new run at the new destination
          OnMessage?.Invoke(this, "New Copy added at " + newDestination.ToString("X6"));
-         Refresh();
       }
 
       public void OpenInNewTab(int destination) {

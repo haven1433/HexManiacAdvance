@@ -5,6 +5,7 @@ using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
@@ -180,26 +181,41 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void ExecuteRepoint(object arg) {
          ViewPort.RepointToNewCopy(Start);
+         ViewPort.Refresh();
          UsageCount = 1;
          dataChanged?.Invoke(this, EventArgs.Empty);
       }
 
       private void ExecuteRepointAll(object arg) {
          var destination = Model.ReadPointer(Start);
-         var sources = Model.GetNextRun(destination).PointerSources.Skip(1);
-         foreach (var source in sources) {
-            ViewPort.RepointToNewCopy(source);
+         var sources = Model.GetNextRun(destination).PointerSources.Skip(1).ToList();
+         RepointAllAsync(sources).ContinueWith(completedTask => {
+            ViewPort.ClearProgress();
+            ViewPort.Refresh();
+            UsageCount = 1;
+            dataChanged?.Invoke(this, EventArgs.Empty);
+         }, TaskContinuationOptions.ExecuteSynchronously);
+      }
+
+      private async Task<ErrorInfo> RepointAllAsync(IReadOnlyList<int> sources) {
+         var buffer = ViewPort.Model.FreeSpaceBuffer;
+         ViewPort.Model.FreeSpaceBuffer = 0;
+         var groupSize = Math.Max(1, sources.Count / 100);
+         for (int i = 0; i < sources.Count; i++) {
+            ViewPort.RepointToNewCopy(sources[i]);
+            if (i % groupSize == 0) {
+               await ViewPort.UpdateProgress((i + 1) / (double)sources.Count);
+            }
          }
-         UsageCount = 1;
-         dataChanged?.Invoke(this, EventArgs.Empty);
+         ViewPort.Model.FreeSpaceBuffer = buffer;
+         return ErrorInfo.NoError;
       }
 
       private void ExecuteCreateNew(object arg) {
-         using (ModelCacheScope.CreateScope(Model)) {
-            ViewPort.RepointToNewCopy(Start);
-            UsageCount = 1;
-            dataChanged?.Invoke(this, EventArgs.Empty);
-         }
+         ViewPort.RepointToNewCopy(Start);
+         ViewPort.Refresh();
+         UsageCount = 1;
+         dataChanged?.Invoke(this, EventArgs.Empty);
       }
    }
 }

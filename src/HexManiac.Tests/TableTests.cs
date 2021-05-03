@@ -293,7 +293,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          // verify that it's in the table
          var toolElements = ViewPort.Tools.TableTool.Children;
-         var createNewTool = toolElements.Single(element => element is TextStreamElementViewModel stream && stream.CanCreateNew);
+         var createNewTool = (TextStreamElementViewModel)toolElements.Single(element => element is TextStreamElementViewModel stream && stream.CanCreateNew);
 
          // verify that the command works
          createNewItem.Command.Execute();
@@ -302,7 +302,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(1, run.Length);
 
          // verify that you can't use the table tool's version anymore
-         Assert.False(((TextStreamElementViewModel)createNewTool).CanRepoint);
+         Assert.False(createNewTool.CanRepoint);
       }
 
       [Fact]

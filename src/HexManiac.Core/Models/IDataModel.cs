@@ -222,6 +222,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          var newData = new byte[minimumIndex + 1];
          Array.Copy(RawData, newData, RawData.Length);
+         for (int i = RawData.Length; i < newData.Length; i++) newData[i] = 0xFF;
          RawData = newData;
       }
 

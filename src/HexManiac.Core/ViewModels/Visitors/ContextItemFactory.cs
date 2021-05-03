@@ -107,11 +107,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          var pointerAddress = ViewPort.ConvertViewPointToAddress(point);
          var pointerDestination = ViewPort.Model.ReadPointer(pointerAddress);
          if (pointerDestination == Pointer.NULL) {
-            group.Add(new ContextItem("Create New Data", arg => ViewPort.RepointToNewCopy(pointerAddress)));
+            group.Add(new ContextItem("Create New Data", arg => {
+               ViewPort.RepointToNewCopy(pointerAddress);
+               ViewPort.Refresh();
+            }));
          } else {
             var destination = ViewPort.Model.GetNextRun(pointerDestination);
             if (!(destination is NoInfoRun) && destination.PointerSources.Count > 1) {
-               group.Add(new ContextItem("Repoint to New Copy", arg => ViewPort.RepointToNewCopy(pointerAddress)));
+               group.Add(new ContextItem("Repoint to New Copy", arg => {
+                  ViewPort.RepointToNewCopy(pointerAddress);
+                  ViewPort.Refresh();
+               }));
             }
             group.Add(new ContextItem("Open in New Tab", arg => ViewPort.OpenInNewTab(pointerDestination)));
          }
