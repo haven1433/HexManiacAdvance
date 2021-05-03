@@ -196,10 +196,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                using (ModelCacheScope.CreateScope(model)) {
                   var array = (ITableRun)model.GetNextRun(address);
                   var originalArray = array;
+                  var initialViewOffset = viewPort.DataOffset;
                   var error = model.CompleteArrayExtension(viewPort.CurrentChange, addCount, ref array);
                   if (array != null) {
                      if (array.Start != originalArray.Start) {
                         ModelDataMoved?.Invoke(this, (originalArray.Start, array.Start));
+                        viewPort.Goto.Execute(array.Start + (initialViewOffset - originalArray.Start));
                         selection.SelectionStart = viewPort.ConvertAddressToViewPoint(array.Start + array.Length - array.ElementLength);
                      }
                      if (error.HasError && !error.IsWarning) {
