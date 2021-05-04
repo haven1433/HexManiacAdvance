@@ -252,12 +252,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public IndexComboBoxViewModel(IEditableViewPort viewPort) => ViewPort = viewPort;
 
-      public void Notify() => NotifyPropertyChanged(nameof(Options));
+      public void Notify() {
+         NotifyPropertyChanged(nameof(Options));
+         NotifyPropertyChanged(nameof(SelectedIndex));
+      }
 
       private void TableStartChanged(int oldValue) {
          var newTable = Model.GetNextRun(tableStart) as ITableRun;
          if (newTable == null || newTable.Start != tableStart) return;
          var options = newTable.ElementNames;
+         if (options == null || options.Count != newTable.ElementCount) options = newTable.ElementCount.Range().Select(i => i.ToString()).ToList();
 
          fullOptions.Clear();
          fullOptions.AddRange(options);
