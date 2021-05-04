@@ -152,6 +152,9 @@
                <Viewbox HorizontalAlignment="Center" Margin="0,2" DockPanel.Dock="Top" StretchDirection="DownOnly">
                   <TextBlock Text="{Binding TableTool.CurrentElementName}" TextAlignment="Center" />
                </Viewbox>
+               <ComboBox DockPanel.Dock="Top" HorizontalAlignment="Center"
+                  ItemsSource="{Binding TableTool.CurrentElementSelector.Options}"
+                  SelectedIndex="{Binding TableTool.CurrentElementSelector.SelectedIndex}" />
                <Grid DockPanel.Dock="Top">
                   <Button Margin="5" Content="Previous" Command="{Binding TableTool.Previous}" HorizontalAlignment="Left"/>
                   <Button Margin="5" Content="Next" Command="{Binding TableTool.Next}" HorizontalAlignment="Right"/>

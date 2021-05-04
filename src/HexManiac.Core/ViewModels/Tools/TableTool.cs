@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows.Input;
 using HavenSoft.HexManiac.Core.Models;
@@ -80,8 +81,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private string currentElementName;
       public string CurrentElementName {
          get => currentElementName;
-         set => TryUpdate(ref currentElementName, value);
+         private set => TryUpdate(ref currentElementName, value);
       }
+
+      public IndexComboBoxViewModel CurrentElementSelector { get; }
 
       private readonly StubCommand previous, next, append;
       private StubCommand incrementAdd, decrementAdd;
@@ -159,6 +162,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          this.history = history;
          this.viewPort = viewPort;
          this.toolTray = toolTray;
+         CurrentElementSelector = new IndexComboBoxViewModel(viewPort);
+         CurrentElementSelector.PropertyChanged += RespondToElementSelectorIndexChange;
          Children = new ObservableCollection<IArrayElementViewModel>();
 
          previous = new StubCommand {
@@ -273,6 +278,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             } else {
                CurrentElementName = $"{basename}/{index}";
             }
+            UpdateCurrentElementSelector(array, index);
 
             var elementOffset = array.Start + array.ElementLength * index;
             AddChild(new SplitterArrayElementViewModel(viewPort, basename, elementOffset));
@@ -314,6 +320,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             // update 'visible' for children based on their parents.
             if (child is SplitterArrayElementViewModel splitter) splitter.UpdateCollapsed(fieldFilter);
          }
+      }
+
+      private void UpdateCurrentElementSelector(ITableRun array, int index) {
+         CurrentElementSelector.PropertyChanged -= RespondToElementSelectorIndexChange;
+         CurrentElementSelector.TableStart = array.Start;
+         CurrentElementSelector.SelectedIndex = index;
+         CurrentElementSelector.Notify();
+         CurrentElementSelector.PropertyChanged += RespondToElementSelectorIndexChange;
+      }
+      private void RespondToElementSelectorIndexChange(object sender, PropertyChangedEventArgs e) {
+         if (e.PropertyName != nameof(CurrentElementSelector.SelectedIndex)) return;
+
+         var array = (ITableRun)model.GetNextRun(Address);
+         var address = array.Start + array.ElementLength * CurrentElementSelector.SelectedIndex;
+         selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(address);
+         selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(address + array.ElementLength - 1);
       }
 
       private void AddChildrenFromStreams(ITableRun array, string basename, int index) {

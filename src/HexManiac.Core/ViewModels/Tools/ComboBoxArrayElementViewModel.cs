@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -227,6 +228,41 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          // there's a single array 
          return arrays[0].Start;
+      }
+   }
+
+   public class IndexComboBoxViewModel : ViewModelCore {
+      public IEditableViewPort ViewPort { get; }
+      public TableTool Tool => ViewPort.Tools.TableTool;
+      public IDataModel Model => ViewPort.Model;
+
+      private string filterText;
+      public string FilterText { get => filterText; set => Set(ref filterText, value); }
+      private bool isFiltering;
+      public bool IsFiltering { get => isFiltering; set => Set(ref isFiltering, value); }
+
+      private int selectedIndex;
+      public int SelectedIndex { get => selectedIndex; set => Set(ref selectedIndex, value); }
+
+      private int tableStart;
+      public int TableStart { get => tableStart; set => Set(ref tableStart, value, TableStartChanged); }
+
+      private readonly List<string> fullOptions = new List<string>();
+      public List<string> Options { get; } = new List<string>();
+
+      public IndexComboBoxViewModel(IEditableViewPort viewPort) => ViewPort = viewPort;
+
+      public void Notify() => NotifyPropertyChanged(nameof(Options));
+
+      private void TableStartChanged(int oldValue) {
+         var newTable = Model.GetNextRun(tableStart) as ITableRun;
+         if (newTable == null || newTable.Start != tableStart) return;
+         var options = newTable.ElementNames;
+
+         fullOptions.Clear();
+         fullOptions.AddRange(options);
+         Options.Clear();
+         Options.AddRange(options);
       }
    }
 }
