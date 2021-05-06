@@ -164,6 +164,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          this.toolTray = toolTray;
          CurrentElementSelector = new IndexComboBoxViewModel(viewPort);
          CurrentElementSelector.PropertyChanged += RespondToElementSelectorIndexChange;
+         CurrentElementSelector.RequestUpdateViewPortSelectionFromTableComboBoxIndex += UpdateViewPortSelectionFromTableComboBoxIndex;
          Children = new ObservableCollection<IArrayElementViewModel>();
 
          previous = new StubCommand {
@@ -329,9 +330,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          CurrentElementSelector.ConfirmSelection();
          CurrentElementSelector.PropertyChanged += RespondToElementSelectorIndexChange;
       }
+
       private void RespondToElementSelectorIndexChange(object sender, PropertyChangedEventArgs e) {
          if (e.PropertyName != nameof(CurrentElementSelector.SelectedIndex)) return;
+         UpdateViewPortSelectionFromTableComboBoxIndex();
+      }
 
+      private void UpdateViewPortSelectionFromTableComboBoxIndex(object sender = null, EventArgs e = null) {
          var array = (ITableRun)model.GetNextRun(Address);
          var address = array.Start + array.ElementLength * CurrentElementSelector.SelectedIndex;
          selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(address);

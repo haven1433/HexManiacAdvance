@@ -271,6 +271,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public IndexComboBoxViewModel(IEditableViewPort viewPort) => ViewPort = viewPort;
 
+      public event EventHandler RequestUpdateViewPortSelectionFromTableComboBoxIndex;
+
       public void ConfirmSelection() {
          if (recursionCheck != 0) return;
          IsFiltering = false;
@@ -283,6 +285,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          SelectedIndex = value;
+         RequestUpdateViewPortSelectionFromTableComboBoxIndex?.Invoke(this, EventArgs.Empty);
       }
 
       private void TableStartChanged(int oldValue) {
