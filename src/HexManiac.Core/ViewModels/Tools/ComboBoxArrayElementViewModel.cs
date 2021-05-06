@@ -237,24 +237,52 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public IDataModel Model => ViewPort.Model;
 
       private string filterText;
-      public string FilterText { get => filterText; set => Set(ref filterText, value); }
+      public string FilterText { get => filterText; set => Set(ref filterText, value, FilterTextChanged); }
       private bool isFiltering;
-      public bool IsFiltering { get => isFiltering; set => Set(ref isFiltering, value); }
+      public bool IsFiltering {
+         get => isFiltering;
+         set => Set(ref isFiltering, value, old => {
+            if (old) {
+               recursionCheck--;
+               ConfirmSelection();
+               recursionCheck++;
+            }
+         });
+      }
 
       private int selectedIndex;
-      public int SelectedIndex { get => selectedIndex; set => Set(ref selectedIndex, value); }
+      public int SelectedIndex {
+         get => selectedIndex;
+         set {
+            if (recursionCheck != 0) return;
+            recursionCheck++;
+            Set(ref selectedIndex, value, old => IsFiltering = false);
+            recursionCheck--;
+         }
+      }
 
       private int tableStart;
       public int TableStart { get => tableStart; set => Set(ref tableStart, value, TableStartChanged); }
 
       private readonly List<string> fullOptions = new List<string>();
-      public List<string> Options { get; } = new List<string>();
+      // Because of the way binding works, we need the options to be a new list instead of just changing the contents.
+      // We could use an observable collection, but we only want to notify once, not on every change.
+      public List<string> Options { get; private set; }
 
       public IndexComboBoxViewModel(IEditableViewPort viewPort) => ViewPort = viewPort;
 
-      public void Notify() {
-         NotifyPropertyChanged(nameof(Options));
-         NotifyPropertyChanged(nameof(SelectedIndex));
+      public void ConfirmSelection() {
+         if (recursionCheck != 0) return;
+         IsFiltering = false;
+         var value = selectedIndex;
+         if (Options.Count > value && value >= 0) value = fullOptions.IndexOf(Options[value]);
+         if (value >= 0) FilterText = fullOptions[value];
+         if (Options.Count != fullOptions.Count) {
+            Options = fullOptions.ToList();
+            NotifyPropertyChanged(nameof(Options));
+         }
+
+         SelectedIndex = value;
       }
 
       private void TableStartChanged(int oldValue) {
@@ -265,8 +293,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          fullOptions.Clear();
          fullOptions.AddRange(options);
-         Options.Clear();
-         Options.AddRange(options);
+         Options = options.ToList();
+         NotifyPropertyChanged(nameof(Options));
+      }
+
+      private int recursionCheck = 0;
+      private void FilterTextChanged(string oldFilter) {
+         if (recursionCheck != 0 || !isFiltering) return;
+         recursionCheck++;
+         Options = fullOptions.Where(option => option.MatchesPartial(filterText)).ToList();
+         if (selectedIndex >= 0 && selectedIndex < fullOptions.Count && Options.Contains(fullOptions[selectedIndex])) {
+            // selected index is already fine
+         } else if (Options.Count > 0) {
+            // based on typing filter text, we can change the selection
+            selectedIndex = fullOptions.IndexOf(Options[0]);
+         }
+         NotifyPropertyChanged(nameof(Options));
+         recursionCheck--;
       }
    }
 }

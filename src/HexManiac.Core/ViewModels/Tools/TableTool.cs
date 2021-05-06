@@ -326,7 +326,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          CurrentElementSelector.PropertyChanged -= RespondToElementSelectorIndexChange;
          CurrentElementSelector.TableStart = array.Start;
          CurrentElementSelector.SelectedIndex = index;
-         CurrentElementSelector.Notify();
+         CurrentElementSelector.ConfirmSelection();
          CurrentElementSelector.PropertyChanged += RespondToElementSelectorIndexChange;
       }
       private void RespondToElementSelectorIndexChange(object sender, PropertyChangedEventArgs e) {
