@@ -461,21 +461,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (e.Key == Key.Enter) viewModel.ConfirmSelection();
       }
 
-      private void IndexComboBoxViewModelTextInput(object sender, TextCompositionEventArgs e) {
-         var element = (FrameworkElement)sender;
-         var viewModel = (IndexComboBoxViewModel)element.DataContext;
-         var keyString = e.Text;
-         var filter = false;
-         if (keyString.Length == 1 && char.IsLetterOrDigit(keyString[0])) filter = true;
-         else if (keyString.Length == 1 && keyString[0].IsAny(" '?\"-_".ToCharArray())) filter = true;
-         viewModel.IsFiltering = filter;
-      }
-      private void IndexComboBoxViewModelKeyDown(object sender, KeyEventArgs e) {
-         var element = (FrameworkElement)sender;
-         var viewModel = (IndexComboBoxViewModel)element.DataContext;
-         if (e.Key == Key.Enter) viewModel.ConfirmSelection();
-      }
-
       /// <summary>
       /// TextBlock is a lot faster than TextBox.
       /// And we only ever really need to have the focus in a single textbox at a time.

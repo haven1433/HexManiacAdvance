@@ -112,6 +112,7 @@
     <Compile Include="ViewModels\Tools\CodeTool.cs" />
     <Compile Include="ViewModels\Tools\ComboBoxArrayElementViewModel.cs" />
     <Compile Include="ViewModels\Tools\CalculatedElementViewModel.cs" />
+    <Compile Include="ViewModels\Tools\IndexComboBoxViewModel.cs" />
     <Compile Include="ViewModels\Tools\Interfaces.cs" />
     <Compile Include="ViewModels\Tools\PagedElementViewModel.cs" />
     <Compile Include="ViewModels\Tools\PaletteCollection.cs" />

@@ -68,6 +68,9 @@
     <Compile Include="Controls\DexReorderView.xaml.cs">
       <DependentUpon>DexReorderView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\EditableComboBox.xaml.cs">
+      <DependentUpon>EditableComboBox.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\HexContentToolTip.xaml.cs">
       <DependentUpon>HexContentToolTip.xaml</DependentUpon>
     </Compile>
@@ -106,6 +109,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\DexReorderView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\EditableComboBox.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
