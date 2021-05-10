@@ -91,6 +91,7 @@
       <DependentUpon>TextBoxLookAlike.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\TileImage.cs" />
+    <Compile Include="Resources\MultiKeyGesture.cs" />
     <Compile Include="Windows\OptionDialog.xaml.cs">
       <DependentUpon>OptionDialog.xaml</DependentUpon>
     </Compile>

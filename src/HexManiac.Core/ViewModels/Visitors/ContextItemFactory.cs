@@ -68,14 +68,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(None dataFormat, byte data) {
 
          Results.Add(new ContextItemGroup("Display As...") {
-            new ContextItem("Text", ViewPort.IsText.Execute),
-            new ContextItem("Sprite", ViewPort.Tools.SpriteTool.IsSprite.Execute),
-            new ContextItem("Palette", ViewPort.Tools.SpriteTool.IsPalette.Execute),
-            new ContextItem("Event Script", arg => {
-               ViewPort.Tools.CodeTool.IsEventScript.Execute();
-               ViewPort.Refresh();
-               ViewPort.UpdateToolsFromSelection(ViewPort.ConvertViewPointToAddress(ViewPort.SelectionStart));
-            }),
+            new ContextItem("Text", ViewPort.Shortcuts.DisplayAsText.Execute) { ShortcutText = "Ctrl+D, T" },
+            new ContextItem("Sprite", ViewPort.Shortcuts.DisplayAsSprite.Execute) { ShortcutText = "Ctrl+D, S" },
+            new ContextItem("Color Palette", ViewPort.Shortcuts.DisplayAsColorPalette.Execute) { ShortcutText = "Ctrl+D, C" },
+            new ContextItem("Event Script", ViewPort.Shortcuts.DisplayAsEventScript.Execute) { ShortcutText = "Ctrl+D, E" },
          });
 
          if (data == 0xFF && ViewPort.SelectionEnd == ViewPort.SelectionStart && ViewPort[ViewPort.SelectionStart].Format is None) Results.Add(new ContextItemGroup("Create New...") {

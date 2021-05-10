@@ -675,6 +675,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler RequestMenuClose;
 #pragma warning restore 0067
 
+      public Shortcuts Shortcuts { get; }
+
       #region Constructors
 
       public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
@@ -712,6 +714,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          ImplementCommands();
          if (changeHistory == null) CascadeScripts(); // if we're sharing history with another viewmodel, our model has already been updated like this.
          RefreshBackingData();
+         Shortcuts = new Shortcuts(this);
       }
 
       public ViewPort(LoadedFile file) : this(file.Name, new BasicModel(file.Contents), InstantDispatch.Instance) { }

@@ -12,6 +12,11 @@
       <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
    </Window.Resources>
    <Window.InputBindings>
+      <KeyBinding Gesture="{hsv:MultiKeyGesture Ctrl+D, T}" Command="{Binding DisplayAsText}"/>
+      <KeyBinding Gesture="{hsv:MultiKeyGesture Ctrl+D, E}" Command="{Binding DisplayAsEventScript}"/>
+      <KeyBinding Gesture="{hsv:MultiKeyGesture Ctrl+D, S}" Command="{Binding DisplayAsSprite}"/>
+      <KeyBinding Gesture="{hsv:MultiKeyGesture Ctrl+D, C}" Command="{Binding DisplayAsColorPalette}"/>
+
       <KeyBinding Key="N" Modifiers="Ctrl" Command="{Binding New}" />
       <KeyBinding Key="O" Modifiers="Ctrl" Command="{Binding Open}" />
       <KeyBinding Key="S" Modifiers="Ctrl" Command="{Binding Save}" />
@@ -29,7 +34,7 @@
       <KeyBinding Key="C" Modifiers="Ctrl+Shift" Command="{Binding DeepCopy}" />
       <KeyBinding Key="V" Modifiers="Ctrl" Command="{Binding Paste}" />
       <KeyBinding Key="B" Modifiers="Ctrl" Command="{Binding Paste}" />
-      <KeyBinding Key="D" Modifiers="Ctrl" Command="{Binding DiffSinceLastSave}" />
+      <KeyBinding Key="D" Modifiers="Ctrl+Shift" Command="{Binding DiffSinceLastSave}" />
       <KeyBinding Key="Delete" Command="{Binding Delete}" />
       <KeyBinding Key="F" Modifiers="Ctrl" Command="{Binding ShowFind}">
          <KeyBinding.CommandParameter>
@@ -112,6 +117,12 @@
                      </MenuItem.Icon>
                   </MenuItem>
                   <Separator />
+                  <MenuItem Header="Display As...">
+                     <MenuItem Header="Text" Command="{Binding DisplayAsText}" InputGestureText="Ctrl+D, T"/>
+                     <MenuItem Header="Event Script" Command="{Binding DisplayAsEventScript}" InputGestureText="Ctrl+D, E"/>
+                     <MenuItem Header="Sprite" Command="{Binding DisplayAsSprite}" InputGestureText="Ctrl+D, S"/>
+                     <MenuItem Header="Color Palette" Command="{Binding DisplayAsColorPalette}" InputGestureText="Ctrl+D, C"/>
+                  </MenuItem>
                   <MenuItem Header="Cu_t" Command="{Binding Cut}" InputGestureText="Ctrl+X"/>
                   <MenuItem Header="_Copy" Command="{Binding Copy}" InputGestureText="Ctrl+C"/>
                   <MenuItem Header="D_eep Copy" Command="{Binding DeepCopy}" InputGestureText="Ctrl+Shift+C"/>
@@ -141,7 +152,7 @@
                   </MenuItem>
                </MenuItem>
                <MenuItem Header="_View">
-                  <MenuItem Header="_Diff Since Last Save" Command="{Binding DiffSinceLastSave}" InputGestureText="Ctrl+D"/>
+                  <MenuItem Header="_Diff Since Last Save" Command="{Binding DiffSinceLastSave}" InputGestureText="Ctrl+Shift+D"/>
                   <Separator/>
                   <MenuItem Header="Show _Matrix Grid" IsCheckable="True" IsChecked="{Binding ShowMatrix}" InputGestureText="Ctrl+M"/>
                   <MenuItem Header="_Animate when Scrolling" IsCheckable="True" IsChecked="{Binding AnimateScroll}"/>

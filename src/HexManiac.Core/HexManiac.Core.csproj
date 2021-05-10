@@ -107,6 +107,7 @@
     <Compile Include="ViewModels\QuickEditItems\QuickEditItemDecorator.cs" />
     <Compile Include="ViewModels\QuickEditItems\UpdateDexConversionTable.cs" />
     <Compile Include="ViewModels\QuickEditItems\ReorderDex.cs" />
+    <Compile Include="ViewModels\Shortcuts.cs" />
     <Compile Include="ViewModels\Tools\BitListArrayElementViewModel.cs" />
     <Compile Include="ViewModels\Tools\ButtonArrayElementViewModel.cs" />
     <Compile Include="ViewModels\Tools\CodeTool.cs" />

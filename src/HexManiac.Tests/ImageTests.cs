@@ -363,7 +363,7 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Edit("^bob @20 ^tom @bob ");
          var items = ViewPort.GetContextMenuItems(new Point(0, 0));
          var item = items.Single(element => element.Text == "Display As...");
-         item = ((ContextItemGroup)item).Single(element => element.Text == "Palette");
+         item = ((ContextItemGroup)item).Single(element => element.Text == "Color Palette");
          item.Command.Execute();
 
          var anchor = Model.GetAnchorFromAddress(-1, 0);
@@ -485,7 +485,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          var items = ViewPort.GetContextMenuItems(new Point(0, 0));
          var item = items.Single(element => element.Text == "Display As...");
-         item = ((ContextItemGroup)item).Single(element => element.Text == "Palette");
+         item = ((ContextItemGroup)item).Single(element => element.Text == "Color Palette");
          var makePalette = item.Command;
          makePalette.Execute();
 
@@ -498,7 +498,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          var items = ViewPort.GetContextMenuItems(new Point(0, 0));
          var item = items.Single(element => element.Text == "Display As...");
-         item = ((ContextItemGroup)item).Single(element => element.Text == "Palette");
+         item = ((ContextItemGroup)item).Single(element => element.Text == "Color Palette");
          var makePalette = item.Command;
          makePalette.Execute();
 
@@ -654,7 +654,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          ViewPort.SelectionStart = new Point(1, 0);
          var group = (ContextItemGroup)ViewPort.GetContextMenuItems(new Point(1, 0)).Single(item => item.Text == "Display As...");
-         var contextItem = group.Single(item => item.Text == "Palette");
+         var contextItem = group.Single(item => item.Text == "Color Palette");
          contextItem.Command.Execute();
 
          Assert.Equal(ViewPort.Tools.SpriteTool, ViewPort.Tools.SelectedTool);

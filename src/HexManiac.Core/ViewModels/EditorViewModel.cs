@@ -62,6 +62,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          resetTheme = new StubCommand(),
          clearError = new StubCommand(),
          clearMessage = new StubCommand(),
+         displayAsText = new StubCommand(),
+         displayAsEventScript = new StubCommand(),
+         displayAsSprite = new StubCommand(),
+         displayAsColorPalette = new StubCommand(),
          toggleMatrix = new StubCommand(),
          toggleScrollAnimation = new StubCommand(),
          toggleTableHeaders = new StubCommand();
@@ -104,6 +108,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand ResetTheme => resetTheme;
       public ICommand ClearError => clearError;
       public ICommand ClearMessage => clearMessage;
+      public ICommand DisplayAsText => displayAsText;
+      public ICommand DisplayAsEventScript => displayAsEventScript;
+      public ICommand DisplayAsSprite => displayAsSprite;
+      public ICommand DisplayAsColorPalette => displayAsColorPalette;
       public ICommand ToggleMatrix => toggleMatrix;
       public ICommand ToggleScrollAnimation => toggleScrollAnimation;
       public ICommand ToggleTableHeaders => toggleTableHeaders;
@@ -423,6 +431,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          back = CreateWrapperForSelected(tab => tab.Back);
          forward = CreateWrapperForSelected(tab => tab.Forward);
          resetAlignment = CreateWrapperForSelected(tab => tab.ResetAlignment);
+         displayAsText = CreateWrapperForSelected(tab => (tab as ViewPort)?.Shortcuts.DisplayAsText);
+         displayAsEventScript = CreateWrapperForSelected(tab => (tab as ViewPort)?.Shortcuts.DisplayAsEventScript);
+         displayAsSprite = CreateWrapperForSelected(tab => (tab as ViewPort)?.Shortcuts.DisplayAsSprite);
+         displayAsColorPalette = CreateWrapperForSelected(tab => (tab as ViewPort)?.Shortcuts.DisplayAsColorPalette);
 
          saveAll = CreateWrapperForAll(tab => tab.Save);
          closeAll = CreateWrapperForAll(tab => tab.Close);
@@ -442,6 +454,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             { tab => tab.Back, (sender, e) => back.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.Forward, (sender, e) => forward.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.ResetAlignment, (sender, e) => resetAlignment.CanExecuteChanged.Invoke(this, e) },
+            { tab => (tab as ViewPort)?.Shortcuts.DisplayAsText, (sender, e) => displayAsText.RaiseCanExecuteChanged() },
+            { tab => (tab as ViewPort)?.Shortcuts.DisplayAsEventScript, (sender, e) => displayAsEventScript.RaiseCanExecuteChanged() },
+            { tab => (tab as ViewPort)?.Shortcuts.DisplayAsSprite, (sender, e) => displayAsSprite.RaiseCanExecuteChanged() },
+            { tab => (tab as ViewPort)?.Shortcuts.DisplayAsColorPalette, (sender, e) => displayAsColorPalette.RaiseCanExecuteChanged() },
          };
 
          var metadata = fileSystem.MetadataFor(ApplicationName) ?? new string[0];
