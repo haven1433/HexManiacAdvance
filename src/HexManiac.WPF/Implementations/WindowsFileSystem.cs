@@ -204,10 +204,14 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
 
       public bool? TrySavePrompt(LoadedFile file) {
-         var result = ShowCustomMessageBox($"Would you like to save{Environment.NewLine}{file.Name}?");
+         var displayName = string.Empty;
+         if (!string.IsNullOrEmpty(file.Name)) displayName = Environment.NewLine + file.Name;
+         var result = ShowCustomMessageBox($"Would you like to save{displayName}?");
          if (result == MessageBoxResult.Cancel) return null;
          if (result == MessageBoxResult.No) return false;
-         return Save(file);
+         if (displayName == string.Empty) displayName = RequestNewName(displayName);
+         if (string.IsNullOrEmpty(displayName)) return null;
+         return Save(new LoadedFile(displayName.Trim(), file.Contents));
       }
 
       public MessageBoxResult ShowCustomMessageBox(string message, bool showYesNoCancel = true, string processButtonText = null, string processContent = null) {
