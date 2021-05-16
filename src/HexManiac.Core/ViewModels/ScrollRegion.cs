@@ -79,6 +79,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      public bool IsSingleTableMode => tableLength != 0;
+
       public int MinimumScroll {
          get {
             if (tableLength == 0) return 0;

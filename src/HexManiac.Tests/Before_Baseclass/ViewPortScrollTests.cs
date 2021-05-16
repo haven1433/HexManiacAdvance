@@ -254,5 +254,25 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(new Point(8, 0), select.SelectionEnd);
       }
+
+      [Fact]
+      public void ScrollWithSingleTableView_SelectAfterTable_CoerceSelectionIntoTable() {
+         var scroll = new ScrollRegion { AllowSingleTableMode = true, Width = 16, Height = 16 };
+         var select = new Selection(scroll, new PokemonModel(new byte[0x200]), new ChangeHistory<ModelDelta>(p => p));
+         scroll.SetTableMode(8, 24);
+
+         select.SelectionStart = new Point(0, 2);
+         Assert.Equal(new Point(15, 1), select.SelectionStart);
+      }
+
+      [Fact]
+      public void ScrollWithinSingleTableView_SelectEndAfterTable_CoerceSelectionEndIntoTable() {
+         var scroll = new ScrollRegion { AllowSingleTableMode = true, Width = 16, Height = 16 };
+         var select = new Selection(scroll, new PokemonModel(new byte[0x200]), new ChangeHistory<ModelDelta>(p => p));
+         scroll.SetTableMode(8, 24);
+
+         select.SelectionEnd = new Point(0, 2);
+         Assert.Equal(new Point(15, 1), select.SelectionEnd);
+      }
    }
 }

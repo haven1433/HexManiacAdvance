@@ -46,7 +46,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          get => selectionStart;
          set {
             var index = Scroll.ViewPointToDataIndex(value);
-            value = Scroll.DataIndexToViewPoint(index.LimitToRange(Scroll.DataStart, Scroll.DataLength));
+            var max = Scroll.IsSingleTableMode ? Scroll.DataLength - 1 : Scroll.DataLength;
+            value = Scroll.DataIndexToViewPoint(index.LimitToRange(Scroll.DataStart, max));
 
             if (selectionStart.Equals(value)) return;
 
@@ -66,7 +67,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          get => selectionEnd;
          set {
             var index = Scroll.ViewPointToDataIndex(value);
-            value = Scroll.DataIndexToViewPoint(index.LimitToRange(Scroll.DataStart, Scroll.DataLength));
+            var max = Scroll.IsSingleTableMode ? Scroll.DataLength - 1 : Scroll.DataLength;
+            value = Scroll.DataIndexToViewPoint(index.LimitToRange(Scroll.DataStart, max));
 
             if (selectionEnd.Equals(value)) return;
 
