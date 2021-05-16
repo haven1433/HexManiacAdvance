@@ -199,12 +199,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var parent = child.Parent;
          if (child.Model.GetNextRun(child.DataOffset) is ArrayRun array) {
             parent.Goto.Execute(child.DataOffset.ToString("X6"));
-            parent.ScrollValue += line - y + Height - parent.Height;
+            parent.ScrollValue += line - y;
             // heuristic: if the parent height matches the search results height, then the parent
             // probably doesn't have labels yet but is about to get them. We don't know how big the
             // labels will be, but they will probably push all the data down quite a bit.
             // compensate by scrolling slightly
-            if (parent.Height == Height) parent.ScrollValue += 2;
+            if (parent.Height == Height) parent.ScrollValue += 3;
          } else {
             var dataOffset = Math.Max(0, child.DataOffset - (y - line) * child.Width);
             parent.Goto.Execute(dataOffset.ToString("X6"));
