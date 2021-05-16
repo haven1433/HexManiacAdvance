@@ -1305,7 +1305,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   return modelValue - enumSegment.ValueOffset < options.Count;
                } else {
                   if (flags.HasFlag(FormatMatchFlags.AllowJunkAfterText)) return true; // don't bother verifying if junk is allowed
-                  return segment.Length < 4 || owner[start + 3] < 0x08; // we want an integer, not a pointer
+                  return segment.Length < 4 || owner[start + 3] < 0x08 || owner[start + 3] > 0x09; // we want an integer, not a pointer
                }
             case ElementContentType.Pointer:
                var destination = owner.ReadPointer(start);
