@@ -604,6 +604,12 @@
                         <Button Content="Go" VerticalAlignment="Stretch" Padding="12,0" Command="{Binding GotoViewModel.Goto}" Background="{DynamicResource Accent}"/>
                      </StackPanel>
                   </StackPanel>
+                  <TextBlock Grid.Row="2"
+                     VerticalAlignment="Bottom"
+                     HorizontalAlignment="Center"
+                     Foreground="{DynamicResource Secondary}"
+                     FontSize="20"
+                     Text="Explore Available Categories:"/>
                   <ItemsControl MinHeight="100" ItemsSource="{Binding GotoViewModel.PrefixSelections}" Grid.Row="3">
                      <ItemsControl.ItemTemplate>
                         <DataTemplate>
