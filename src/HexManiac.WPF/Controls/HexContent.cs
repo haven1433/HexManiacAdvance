@@ -19,6 +19,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using ModelPoint = HavenSoft.HexManiac.Core.Models.Point;
 using ScreenPoint = System.Windows.Point;
 
@@ -195,12 +196,19 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void MakeSelectionEndOnScreen() {
          if (!(ViewPort is IEditableViewPort viewPort)) return;
          var x = viewPort.SelectionEnd.X;
+         var newDesiredValue = HorizontalScrollValue;
          if (HorizontalScrollValue > x * CellWidth) {
             // can't see left edge of cell
-            HorizontalScrollValue = x * CellWidth;
+            newDesiredValue = x * CellWidth;
          } else if (HorizontalScrollValue + ActualWidth < (x + 1) * CellWidth) {
             // can't see right edge of cell
-            HorizontalScrollValue = (x + 1) * CellWidth - ActualWidth;
+            newDesiredValue = (x + 1) * CellWidth - ActualWidth;
+         }
+
+         if (newDesiredValue != HorizontalScrollValue) {
+            var duration = new Duration(TimeSpan.FromMilliseconds(200));
+            var animation = new DoubleAnimation(newDesiredValue, duration) { DecelerationRatio = 1 };
+            BeginAnimation(HorizontalScrollValueProperty, animation);
          }
       }
 
