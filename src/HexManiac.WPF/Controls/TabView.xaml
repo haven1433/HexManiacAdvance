@@ -578,23 +578,28 @@
                                  <Expander Margin="20,0,0,5" HorizontalAlignment="Left">
                                     <Expander.Header>
                                        <TextBlock>
-                                          <Run>See Operands (Operator </Run>
+                                          <Run>How's it Calculated?</Run>
+                                       </TextBlock>
+                                    </Expander.Header>
+                                    <StackPanel HorizontalAlignment="Left">
+                                       <TextBlock FontStyle="Italic" HorizontalAlignment="Left">
+                                          <Run>(Operator </Run>
                                           <Run Text="{Binding Operator, Mode=OneWay}"/>
                                           <Run Text=")"/>
                                        </TextBlock>
-                                    </Expander.Header>
-                                    <ItemsControl ItemsSource="{Binding Operands}">
-                                       <ItemsControl.ItemTemplate>
-                                          <DataTemplate>
-                                             <DockPanel>
-                                                <Button DockPanel.Dock="Right" Command="{Binding JumpTo}" Width="20" Height="20" IsTabStop="False">
-                                                   <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                                                </Button>
-                                                <TextBlock Text="{Binding Text}"/>
-                                             </DockPanel>
-                                          </DataTemplate>
-                                       </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
+                                       <ItemsControl ItemsSource="{Binding Operands}">
+                                          <ItemsControl.ItemTemplate>
+                                             <DataTemplate>
+                                                <DockPanel>
+                                                   <Button DockPanel.Dock="Right" Command="{Binding JumpTo}" Width="20" Height="20" IsTabStop="False">
+                                                      <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                                                   </Button>
+                                                   <TextBlock Text="{Binding Text}"/>
+                                                </DockPanel>
+                                             </DataTemplate>
+                                          </ItemsControl.ItemTemplate>
+                                       </ItemsControl>
+                                    </StackPanel>
                                  </Expander>
                               </StackPanel>
                            </DataTemplate>
