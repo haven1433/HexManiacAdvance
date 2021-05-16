@@ -135,6 +135,9 @@
                      <MenuItem.CommandParameter>
                         <sys:Boolean>true</sys:Boolean>
                      </MenuItem.CommandParameter>
+                     <MenuItem.Icon>
+                        <Path Data="{hsv:Icon Search}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                     </MenuItem.Icon>
                   </MenuItem>
                   <MenuItem Header="Find _Next" Command="{Binding FindNext}" CommandParameter="{Binding Text, ElementName=FindBox}" InputGestureText="F3"/>
                   <MenuItem Header="Find _Previous" Command="{Binding FindPrevious}" CommandParameter="{Binding Text, ElementName=FindBox}" InputGestureText="Shift+F3"/>
@@ -142,6 +145,9 @@
                      <MenuItem.CommandParameter>
                         <sys:Boolean>true</sys:Boolean>
                      </MenuItem.CommandParameter>
+                     <MenuItem.Icon>
+                        <Path Data="{hsv:Icon Home}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                     </MenuItem.Icon>
                   </MenuItem>
                   <MenuItem Header="Go _Back" Command="{Binding Back}" InputGestureText="Ctrl+-"/>
                   <MenuItem Header="Go _Forward" Command="{Binding Forward}" InputGestureText="Ctrl+Shift+-"/>
