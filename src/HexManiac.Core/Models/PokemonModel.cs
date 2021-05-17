@@ -536,6 +536,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          // move utility changes the format of moves.stats: effects is now 2 bytes and other formats have moved.
          if (format.Contains("[effect:") && format.Contains(" pp. ")) return true;
 
+         // move utility changes the format of moves.levelup: pointer is now to a series of 4-byte tokens
+         if (format.Contains(" level:]!FFFFFFFF>]")) return true;
+
          return false;
       }
 
