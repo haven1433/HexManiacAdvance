@@ -193,6 +193,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       public static readonly DependencyProperty HorizontalScrollValueProperty = DependencyProperty.Register("HorizontalScrollValue", typeof(double), typeof(HexContent), new FrameworkPropertyMetadata(0.0, RequestInvalidateVisual));
 
+      DoubleAnimation lastAnimation;
       private void MakeSelectionEndOnScreen() {
          if (!(ViewPort is IEditableViewPort viewPort)) return;
          var x = viewPort.SelectionEnd.X;
@@ -207,7 +208,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
          if (newDesiredValue != HorizontalScrollValue) {
             var duration = new Duration(TimeSpan.FromMilliseconds(200));
-            var animation = new DoubleAnimation(newDesiredValue, duration) { DecelerationRatio = 1 };
+            var animation = new DoubleAnimation(newDesiredValue, duration) { DecelerationRatio = 1, FillBehavior = FillBehavior.Stop };
+            lastAnimation = animation;
+            animation.Completed += (sender, e) => {
+               if (animation == lastAnimation) HorizontalScrollValue = newDesiredValue;
+            };
             BeginAnimation(HorizontalScrollValueProperty, animation);
          }
       }
