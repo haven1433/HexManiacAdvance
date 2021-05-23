@@ -675,7 +675,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          } else if (width == PixelWidth && height == PixelHeight * spritePages) {
             ImportTallSpriteAndPalette(fileSystem, image, spriteRun, paletteRun);
          } else {
-            viewPort.RaiseError("The width/height of the loaded image must match the current width/height!");
+            var displayWidth = PixelWidth;
+            var displayHeight = PixelHeight;
+            if (Math.Abs(displayWidth * spritePages - width) < Math.Abs(displayWidth - width)) displayWidth *= spritePages;
+            if (Math.Abs(displayHeight * spritePages - height) < Math.Abs(displayHeight - height)) displayHeight *= spritePages;
+            viewPort.RaiseError($"The imported width/height ({width}/{height}) doesn't match the image ({displayWidth}/{displayHeight})!");
          }
       }
 

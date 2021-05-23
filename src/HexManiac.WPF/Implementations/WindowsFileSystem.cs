@@ -408,8 +408,9 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                }
             }
          } else if (format == PixelFormats.Indexed4) {
-            byte[] raw = new byte[frame.PixelWidth * frame.PixelHeight / 2];
-            frame.CopyPixels(raw, frame.PixelWidth / 2, 0);
+            var stride = (int)Math.Ceiling(frame.PixelWidth / 2.0);
+            byte[] raw = new byte[stride * frame.PixelHeight];
+            frame.CopyPixels(raw, stride, 0);
             for (int y = 0; y < frame.PixelHeight; y++) {
                for (int x = 0; x < frame.PixelWidth / 2; x++) {
                   var outputPoint1 = y * frame.PixelWidth + x * 2;
