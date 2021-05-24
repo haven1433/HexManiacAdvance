@@ -549,16 +549,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (firstResultLength == 0) (firstResultStart, firstResultLength) = (i, length);
                i += length;
             }
-            var changeCount = resultsTab.ResultCount;
-            RaiseMessage($"{changeCount} changes found.");
-            if (changeCount == 1) {
-               Goto.Execute(firstResultStart);
-               SelectionEnd = ConvertAddressToViewPoint(firstResultStart + firstResultLength - 1);
-            } else if (changeCount > 1) {
-               RequestTabChange?.Invoke(this, resultsTab);
+         } else if (otherTab is IEditableViewPort otherViewPort) {
+            IDataModel modelA = Model, modelB = otherViewPort.Model;
+            for (int i = 0; i < modelA.Count && i < modelB.Count; i++) {
+               if (modelA[i] == modelB[i]) continue;
+               var lastDiff = i;
+               for (int j = i + 1; j < Model.Count && j < otherViewPort.Model.Count; j++) {
+                  if (modelA[j] != modelB[j]) lastDiff = j;
+                  if (lastDiff == j - 4) break;
+               }
+               resultsTab.Add(CreateChildView(i, lastDiff), i, lastDiff);
+               if (firstResultLength == 0) (firstResultStart, firstResultLength) = (i, lastDiff - i + 1);
+               i = lastDiff + 1;
             }
          } else {
             throw new NotImplementedException();
+         }
+
+         var changeCount = resultsTab.ResultCount;
+         RaiseMessage($"{changeCount} changes found.");
+         if (changeCount == 1) {
+            Goto.Execute(firstResultStart);
+            SelectionEnd = ConvertAddressToViewPoint(firstResultStart + firstResultLength - 1);
+         } else if (changeCount > 1) {
+            RequestTabChange?.Invoke(this, resultsTab);
          }
       }
 

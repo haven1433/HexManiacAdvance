@@ -447,6 +447,12 @@
                               <TextBlock Text="{Binding FullFileName}"/>
                            </ToolTip>
                         </StackPanel.ToolTip>
+                        <StackPanel.ContextMenu>
+                           <ContextMenu>
+                              <MenuItem Header="Diff with Left" Click="DiffLeft"/>
+                              <MenuItem Header="Diff with Right" Click="DiffRight"/>
+                           </ContextMenu>
+                        </StackPanel.ContextMenu>
                         <TextBlock Name="TabTextBlock" Background="Transparent" Text="{Binding Name}" Foreground="{DynamicResource Primary}" MouseDown="TabMouseDown" MouseMove="TabMouseMove" MouseUp="TabMouseUp">
                            <TextBlock.InputBindings>
                               <MouseBinding MouseAction="MiddleClick" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}"/>

@@ -704,6 +704,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 
+      public void DiffLeft(ITabContent tab) {
+         var index = tabs.IndexOf(tab);
+         var leftIndex = index - 1;
+         DiffTabs(leftIndex, index);
+      }
+
+      public void DiffRight(ITabContent tab) {
+         var index = tabs.IndexOf(tab);
+         var rightIndex = index + 1;
+         DiffTabs(index, rightIndex);
+      }
+
+      private void DiffTabs(int left, int right) {
+         if (!(tabs[left] is ViewPort leftViewPort)) {
+            ErrorMessage = "You can only diff data tabs!";
+            return;
+         }
+         if (!(tabs[right] is ViewPort rightViewPort)) {
+            ErrorMessage = "You can only diff data tabs!";
+            return;
+         }
+
+         leftViewPort.Diff.Execute(rightViewPort);
+      }
+
       private StubCommand CreateWrapperForSelected(Func<ITabContent, ICommand> commandGetter) {
          var command = new StubCommand {
             CanExecute = arg => {
