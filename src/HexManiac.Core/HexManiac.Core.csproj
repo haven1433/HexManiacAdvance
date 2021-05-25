@@ -97,6 +97,7 @@
     <Compile Include="Models\Runs\Factory\TrainerPokemonTeamRunContentStrategy.cs" />
     <Compile Include="ViewModels\AutoCompleteSelectionItem.cs" />
     <Compile Include="ViewModels\DexReorderTab.cs" />
+    <Compile Include="ViewModels\DiffViewPort.cs" />
     <Compile Include="ViewModels\ImageEditorViewModel.cs" />
     <Compile Include="ViewModels\QuickEditItems\IQuickEditItem.cs" />
     <Compile Include="ViewModels\QuickEditItems\MakeItemsExpandable.cs" />

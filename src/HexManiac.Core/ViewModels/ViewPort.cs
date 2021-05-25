@@ -535,9 +535,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand Diff => StubCommand<ITabContent>(ref diff, ExecuteDiff);
       private void ExecuteDiff(ITabContent otherTab) {
          var resultsTab = new SearchResultsViewPort("Changes");
-         int firstResultStart = 0;
-         int firstResultLength = 0;
          if (otherTab == null) {
+            int firstResultStart = 0;
+            int firstResultLength = 0;
             for (int i = 0; i < Model.Count; i++) {
                if (!Model.HasChanged(i)) continue;
                var length = 1;
@@ -549,8 +549,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (firstResultLength == 0) (firstResultStart, firstResultLength) = (i, length);
                i += length;
             }
+
+            var changeCount = resultsTab.ResultCount;
+            RaiseMessage($"{changeCount} changes found.");
+            if (changeCount == 1) {
+               Goto.Execute(firstResultStart);
+               SelectionEnd = ConvertAddressToViewPoint(firstResultStart + firstResultLength - 1);
+            } else if (changeCount > 1) {
+               RequestTabChange?.Invoke(this, resultsTab);
+            }
          } else if (otherTab is IEditableViewPort otherViewPort) {
             IDataModel modelA = Model, modelB = otherViewPort.Model;
+            var resultsTabB = new SearchResultsViewPort("Changes");
             for (int i = 0; i < modelA.Count && i < modelB.Count; i++) {
                if (modelA[i] == modelB[i]) continue;
                var lastDiff = i;
@@ -559,20 +569,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   if (lastDiff == j - 4) break;
                }
                resultsTab.Add(CreateChildView(i, lastDiff), i, lastDiff);
-               if (firstResultLength == 0) (firstResultStart, firstResultLength) = (i, lastDiff - i + 1);
+               resultsTabB.Add(otherViewPort.CreateChildView(i, lastDiff), i, lastDiff);
                i = lastDiff + 1;
             }
+            var diffTab = new DiffViewPort(resultsTab, resultsTabB);
+            var changeCount = resultsTab.ResultCount;
+            RaiseMessage($"{changeCount} changes found.");
+            RequestTabChange?.Invoke(this, diffTab);
          } else {
             throw new NotImplementedException();
-         }
-
-         var changeCount = resultsTab.ResultCount;
-         RaiseMessage($"{changeCount} changes found.");
-         if (changeCount == 1) {
-            Goto.Execute(firstResultStart);
-            SelectionEnd = ConvertAddressToViewPoint(firstResultStart + firstResultLength - 1);
-         } else if (changeCount > 1) {
-            RequestTabChange?.Invoke(this, resultsTab);
          }
       }
 

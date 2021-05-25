@@ -479,6 +479,11 @@
                                  AnimateScroll="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.AnimateScroll}"
                                  ZoomLevel="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.ZoomLevel}"/>
                            </DataTemplate>
+                           <DataTemplate DataType="{x:Type hshmcvm:DiffViewPort}">
+                              <hsg3hv:TabView
+                                 AnimateScroll="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.AnimateScroll}"
+                                 ZoomLevel="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.ZoomLevel}"/>
+                           </DataTemplate>
                            <DataTemplate DataType="{x:Type hshmcvm:DexReorderTab}">
                               <hsg3hv:DexReorderView />
                            </DataTemplate>
