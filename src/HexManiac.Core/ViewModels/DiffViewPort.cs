@@ -145,7 +145,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          throw new NotImplementedException();
       }
 
-      public bool IsSelected(Point point) => false;
+      public bool IsSelected(Point point) {
+         if (point.X < left.Width) return left.IsSelected(point);
+         return right.IsSelected(new Point(point.X - left.Width - 1, point.Y));
+      }
 
       public bool IsTable(Point point) => false;
 

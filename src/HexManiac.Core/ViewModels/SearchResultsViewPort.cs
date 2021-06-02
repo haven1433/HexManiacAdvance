@@ -159,6 +159,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          children.Add(child);
          childrenSelection.Add((start, end));
          maxScrollValue += child.Height;
+         width = Math.Max(width, child.Width);
          if (children.Count > 1) maxScrollValue++;
          if (!firstChildToUseParent.ContainsKey(child.Parent)) {
             firstChildToUseParent.Add(child.Parent, children.Count - 1);
