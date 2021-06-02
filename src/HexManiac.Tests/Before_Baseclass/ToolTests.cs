@@ -260,6 +260,7 @@ namespace HavenSoft.HexManiac.Tests {
       [InlineData(0b00000_00100_010_001, "lsl   r1, r2, #4")]
       [InlineData(0b1101_0000_00001100, "beq   <00001C>")] // 1C = 28 (current address is zero). 28 = 12*2+4
       [InlineData(0b01000110_0_1_000_111, "mov   r7, r8")]
+      [InlineData(0b11011111_00000000, "swi   #0")]
       public void ThumbDecompilerTests(int input, string output) {
          var bytes = new[] { (byte)input, (byte)(input >> 8) };
          var model = new PokemonModel(bytes);

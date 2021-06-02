@@ -104,8 +104,8 @@ nv=1111  @    never
 10111101 list       |     pop   pc, {list}
 11000 rn list       |     stmia rn, {list}     @ *(rn)=Rx, then increment rn by 4. Continue for each x in list. (store array)
 11001 rn list       |     ldmia rn, {list}
-1101 cond #         |     b{cond}   #=pc+#*2+4 @ if(cond) PC = *(PC+#*2) @example: b #10 jumps to the instruction 28 bytes after the current instruction.
 11011111 #          |     swi   #              @ run a bios function
+1101 cond #         |     b{cond}   #=pc+#*2+4 @ if(cond) PC = *(PC+#*2) @example: b #10 jumps to the instruction 28 bytes after the current instruction.
 11100 #             |     b     #=pc+#*2+4     @ PC = *(PC+#*2)
 11111 #11 11110 #11 |     bl    #=pc+#*2+4     @ The 22 numeric bits go together and act as a single signed 22-bit number
                                                @ If I want to branch-link, I need the space of 2 instructions, or a register for blx
