@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Linq;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
@@ -96,11 +95,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public bool HasTools => false;
 
-      public ChangeHistory<ModelDelta> ChangeHistory => left.ChangeHistory;
+      public ChangeHistory<ModelDelta> ChangeHistory { get; }
 
       public IToolTrayViewModel Tools => null;
 
-      public string Name => left.FileName + " -> " + right.FileName;
+      public string Name => left.Name.Trim('*') + " -> " + right.Name.Trim('*');
       public ICommand Save => null;
       public ICommand SaveAs => null;
       public ICommand ExportBackup => null;

@@ -534,8 +534,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private StubCommand diff;
       public ICommand Diff => StubCommand<ITabContent>(ref diff, ExecuteDiff);
       private void ExecuteDiff(ITabContent otherTab) {
-         var resultsTab = new SearchResultsViewPort("Changes");
          if (otherTab == null) {
+            var resultsTab = new SearchResultsViewPort("Changes");
             int firstResultStart = 0;
             int firstResultLength = 0;
             for (int i = 0; i < Model.Count; i++) {
@@ -560,7 +560,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          } else if (otherTab is IEditableViewPort otherViewPort) {
             IDataModel modelA = Model, modelB = otherViewPort.Model;
-            var resultsTabB = new SearchResultsViewPort("Changes");
+            var resultsTabA = new SearchResultsViewPort(Name);
+            var resultsTabB = new SearchResultsViewPort(otherViewPort.Name);
             for (int i = 0; i < modelA.Count && i < modelB.Count; i++) {
                if (modelA[i] == modelB[i]) continue;
                var lastDiff = i;
@@ -568,14 +569,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   if (modelA[j] != modelB[j]) lastDiff = j;
                   if (lastDiff == j - 4) break;
                }
-               resultsTab.Add(CreateChildView(i, lastDiff), i, lastDiff);
+               resultsTabA.Add(CreateChildView(i, lastDiff), i, lastDiff);
                resultsTabB.Add(otherViewPort.CreateChildView(i, lastDiff), i, lastDiff);
                i = lastDiff + 1;
             }
-            var diffTab = new DiffViewPort(resultsTab, resultsTabB);
-            var changeCount = resultsTab.ResultCount;
+            var diffTab = new DiffViewPort(resultsTabA, resultsTabB);
+            var changeCount = resultsTabA.ResultCount;
             RaiseMessage($"{changeCount} changes found.");
-            RequestTabChange?.Invoke(this, diffTab);
+            if (changeCount > 0) {
+               RequestTabChange?.Invoke(this, diffTab);
+            }
          } else {
             throw new NotImplementedException();
          }

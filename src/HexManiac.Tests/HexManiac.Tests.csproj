@@ -76,6 +76,7 @@
     <Compile Include="Before_Baseclass\ArrayRunTests.cs" />
     <Compile Include="Before_Baseclass\ScriptTests.cs" />
     <Compile Include="Before_Baseclass\SortedSpanTests.cs" />
+    <Compile Include="DiffTests.cs" />
     <Compile Include="Integration\UpgradeTests.cs" />
     <Compile Include="ItemEffectTests.cs" />
     <Compile Include="OverworldSpriteListTests.cs" />

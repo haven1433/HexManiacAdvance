@@ -726,6 +726,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return;
          }
 
+         SelectedIndex = left;
          leftViewPort.Diff.Execute(rightViewPort);
       }
 
