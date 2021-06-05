@@ -560,8 +560,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          } else if (otherTab is IEditableViewPort otherViewPort) {
             IDataModel modelA = Model, modelB = otherViewPort.Model;
-            var resultsTabA = new SearchResultsViewPort(Name);
-            var resultsTabB = new SearchResultsViewPort(otherViewPort.Name);
+            var resultsTabA = new List<IChildViewPort>();
+            var resultsTabB = new List<IChildViewPort>();
             for (int i = 0; i < modelA.Count && i < modelB.Count; i++) {
                if (modelA[i] == modelB[i]) continue;
                var lastDiff = i;
@@ -569,12 +569,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   if (modelA[j] != modelB[j]) lastDiff = j;
                   if (lastDiff == j - 4) break;
                }
-               resultsTabA.Add(CreateChildView(i, lastDiff), i, lastDiff);
-               resultsTabB.Add(otherViewPort.CreateChildView(i, lastDiff), i, lastDiff);
+               resultsTabA.Add(CreateChildView(i, lastDiff));
+               resultsTabB.Add(otherViewPort.CreateChildView(i, lastDiff));
                i = lastDiff + 1;
             }
-            var diffTab = new DiffViewPort(resultsTabA, resultsTabB);
-            var changeCount = resultsTabA.ResultCount;
+            var diffTab = new DiffViewPort(resultsTabA, resultsTabB) { Height = Height };
+            var changeCount = resultsTabA.Count;
             RaiseMessage($"{changeCount} changes found.");
             if (changeCount > 0) {
                RequestTabChange?.Invoke(this, diffTab);

@@ -1,5 +1,7 @@
-﻿using HavenSoft.HexManiac.Core.Models;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -10,10 +12,12 @@ namespace HavenSoft.HexManiac.Tests {
 
       public DiffTests() {
          editor = new EditorViewModel(new StubFileSystem(), InstantDispatch.Instance);
-         editor.Open.Execute(new LoadedFile("Left.gba", new byte[0x100]));
-         editor.Open.Execute(new LoadedFile("Right.gba", new byte[0x100]));
+         editor.Open.Execute(new LoadedFile("Left.gba", new byte[0x200]));
+         editor.Open.Execute(new LoadedFile("Right.gba", new byte[0x200]));
          ViewModel0.Width = 16;
          ViewModel1.Width = 16;
+         ViewModel0.Height = 16;
+         ViewModel1.Height = 16;
       }
 
       private IViewPort ViewModel0 => (IViewPort)editor[0];
@@ -54,10 +58,34 @@ namespace HavenSoft.HexManiac.Tests {
 
          editor.DiffRight(editor[0]);
 
-         Assert.True(ViewModel2.IsSelected(new Point(17, 1)));
+         Assert.True(ViewModel2.IsSelected(new Point(17, 0)));
       }
 
-      // TODO if the left/right sides don't have the same number of lines (because the formatting of the bytes is different), render extra blank lines to make the height match
+      [Fact]
+      public void TwoTabs_DifferentFormatsForDiff_AlignmentStillMatches() {
+         Edit1("^table[a: b: c:]4 1 2 3 4 5 6 7 8 9 10 11 12 ");
+         Model1[0x100] = 1;
+
+         editor.DiffRight(editor[0]);
+
+         Assert.All(10.Range(), y => {
+            var leftIsUndefined = ViewModel2[0, y].Format == Undefined.Instance;
+            var rightIsUndefined = ViewModel2[17, y].Format == Undefined.Instance;
+            Assert.Equal(leftIsUndefined, rightIsUndefined);
+         });
+      }
+
+      [Fact]
+      public void TwoTabs_TwoDifferences_SeeBothDifferences() {
+         Model1[0x000] = 10;
+         Model1[0x100] = 20;
+
+         editor.DiffRight(editor[0]);
+
+         Assert.IsNotType<Undefined>(ViewModel2[0, 6].Format);
+      }
+
       // TODO jump down 1 screen height doesn't work right, only goes down ~4 lines?
+      // TODO diff with left/right when there is no left/right -> option is disabled, doing it doesn't crash
    }
 }

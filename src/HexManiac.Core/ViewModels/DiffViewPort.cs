@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
@@ -7,30 +8,32 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Linq;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
    public class DiffViewPort : ViewModelCore, IViewPort {
-      private readonly IViewPort left, right;
+      private readonly IChildViewPort[] left, right;
+      private readonly int leftWidth, rightWidth;
+      private readonly List<int> startOfNextSegment;
 
       private HexElement[,] cell;
-      private void FillCells() {
-         cell = new HexElement[Width, Height];
-         for (int y = 0; y < Height; y++) {
-            for (int x = 0; x < left.Width; x++) {
-               cell[x, y] = left[x, y];
-            }
-            cell[left.Width, y] = new HexElement(default, default, DataFormats.Undefined.Instance);
-            for (int x = 0; x < right.Width; x++) {
-               cell[left.Width + 1 + x, y] = right[x, y];
-            }
+
+      public DiffViewPort(IEnumerable<IChildViewPort> leftChildren, IEnumerable<IChildViewPort> rightChildren) {
+         left = leftChildren.ToArray();
+         right = rightChildren.ToArray();
+         Debug.Assert(left.Length == right.Length, "Diff views must have the same number of diff elements on each side!");
+         leftWidth = left.Length == 0 ? 16 : left.Max(child => child.Width);
+         rightWidth = right.Length == 0 ? 16 : right.Max(child => child.Width);
+         startOfNextSegment = new List<int>();
+         startOfNextSegment.Add(0);
+         for (int i = 0; i < Math.Min(left.Length, right.Length); i++) {
+            startOfNextSegment.Add(startOfNextSegment[i] + 1 + Math.Max(left[i].Height, right[i].Height));
          }
-         CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
       }
 
-      public DiffViewPort(IViewPort left, IViewPort right) {
-         (this.left, this.right) = (left, right);
-      }
+      #region IViewPort
 
       public HexElement this[int x, int y] {
          get {
@@ -43,11 +46,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public string FullFileName => string.Empty;
 
-      public int Width { get => left.Width + right.Width + 1; set { } }
-      public int Height { get => left.Height; set {
-            left.Height = value;
-            right.Height = value;
-      } }
+      public int Width { get => leftWidth + rightWidth + 1; set { } }
+
+      private int height;
+      public int Height { get => height; set => Set(ref height, value, Refresh); }
+
       public bool AutoAdjustDataWidth { get; set; }
       public bool StretchData { get; set; }
       public bool AllowMultipleElementsPerLine { get; set; }
@@ -56,16 +59,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public int MinimumScroll => 0;
 
       private int scrollValue;
-      public int ScrollValue { get => scrollValue; set => Set(ref scrollValue, value.LimitToRange(MinimumScroll, MaximumScroll), ScrollValueChanged); }
-      private void ScrollValueChanged(int oldValue) {
-         left.ScrollValue = scrollValue;
-         right.ScrollValue = scrollValue;
-         FillCells();
-      }
+      public int ScrollValue { get => scrollValue; set => Set(ref scrollValue, value.LimitToRange(MinimumScroll, MaximumScroll), Refresh); }
 
-      public int MaximumScroll => left.MaximumScroll;
+      public int MaximumScroll => startOfNextSegment[startOfNextSegment.Count - 1] - 1;
 
-      public ObservableCollection<string> Headers => left.Headers;
+      public ObservableCollection<string> Headers { get; } = new ObservableCollection<string>();
 
       public ObservableCollection<HeaderRow> ColumnHeaders => null;
 
@@ -74,9 +72,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private StubCommand scrollCommand;
       public ICommand Scroll => StubCommand<Direction>(ref scrollCommand, ExecuteScroll);
       private void ExecuteScroll(Direction direction) {
-         left.Scroll.Execute(direction);
-         right.Scroll.Execute(direction);
-         FillCells();
+         if (direction == Direction.Up) ScrollValue -= 1;
+         if (direction == Direction.Up) ScrollValue += 1;
       }
 
       public double Progress => 0;
@@ -91,7 +88,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public bool AnchorTextVisible => false;
 
-      public IDataModel Model => left.Model;
+      public IDataModel Model => null;
 
       public bool HasTools => false;
 
@@ -99,7 +96,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public IToolTrayViewModel Tools => null;
 
-      public string Name => left.Name.Trim('*') + " -> " + right.Name.Trim('*');
+      public string Name => left[0].Parent.Name.Trim('*') + " -> " + right[0].Parent.Name.Trim('*');
       public ICommand Save => null;
       public ICommand SaveAs => null;
       public ICommand ExportBackup => null;
@@ -146,20 +143,58 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public bool IsSelected(Point point) {
-         if (point.X < left.Width) return left.IsSelected(point);
-         return right.IsSelected(new Point(point.X - left.Width - 1, point.Y));
+         var (childIndex, childLine) = ConvertLine(point.Y);
+         if (childIndex >= left.Length) return false;
+         if (point.X < leftWidth) return left[childIndex].IsSelected(new Point(point.X, childLine));
+         return right[childIndex].IsSelected(new Point(point.X - leftWidth - 1, childLine));
       }
 
       public bool IsTable(Point point) => false;
 
-      public void Refresh() {
-         FillCells();
-      }
+      private void Refresh(int unused) => FillCells();
+      public void Refresh() => FillCells();
 
       public bool TryImport(LoadedFile file, IFileSystem fileSystem) {
          throw new NotImplementedException();
       }
 
       public void ValidateMatchedWords() { }
+
+      #endregion
+
+      private (int childIndex, int childLine) ConvertLine(int parentLine) {
+         var scrollLine = parentLine + scrollValue;
+         if (scrollLine < 0) return (0, scrollLine);
+         int index = startOfNextSegment.BinarySearch(scrollLine);
+         if (index >= 0) return (index, 0);
+         index = ~index - 1;
+         return (index, scrollLine - startOfNextSegment[index]);
+      }
+
+      private void FillCells() {
+         Headers.Clear();
+         cell = new HexElement[Width, Height];
+         var defaultCell = new HexElement(default, default, Undefined.Instance);
+
+         var (childIndex, childLine) = ConvertLine(0);
+         for (int y = 0; y < Height; y++) {
+            var childIsValid = childIndex < left.Length;
+            for (int x = 0; x < leftWidth; x++) {
+               cell[x, y] = childIsValid ? left[childIndex][x, childLine] : defaultCell;
+            }
+            cell[leftWidth, y] = defaultCell;
+            for (int x = 0; x < rightWidth; x++) {
+               cell[leftWidth + 1 + x, y] = childIsValid ? right[childIndex][x, childLine] : defaultCell;
+            }
+
+            var hasHeader = childIsValid && left[childIndex].Headers.Count > childLine;
+            Headers.Add(hasHeader ? left[childIndex].Headers[childLine] : string.Empty);
+            childLine += 1;
+            if (childIsValid && y + scrollValue == startOfNextSegment[childIndex + 1] - 1) {
+               (childIndex, childLine) = (childIndex + 1, 0);
+            }
+         }
+         CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+      }
    }
 }
