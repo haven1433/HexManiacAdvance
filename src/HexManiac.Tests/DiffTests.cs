@@ -137,5 +137,23 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.False(editor.DiffRight.CanExecute(editor[1]));
          Assert.Equal(3, editor.Count);
       }
+
+      [Fact]
+      public void DiffTab_SaveAll_NoCrash() {
+         Model1[1] = 1;
+         ViewModel0.DiffRight.Execute();
+
+         editor.SaveAll.Execute();
+      }
+
+      [Fact]
+      public void DiffTab_Close_Closes() {
+         Model1[1] = 1;
+         ViewModel0.DiffRight.Execute();
+
+         editor.Close.Execute();
+
+         Assert.Equal(2, editor.Count);
+      }
    }
 }

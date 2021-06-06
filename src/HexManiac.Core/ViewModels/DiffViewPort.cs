@@ -99,7 +99,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public IToolTrayViewModel Tools => null;
 
       public string Name => left[0].Parent.Name.Trim('*') + " -> " + right[0].Parent.Name.Trim('*');
-      public ICommand Save => null;
+      public ICommand Save { get; } = new StubCommand();
       public ICommand SaveAs => null;
       public ICommand ExportBackup => null;
       public ICommand Undo => null;
@@ -112,7 +112,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand ResetAlignment => null;
       public ICommand Back => null;
       public ICommand Forward => null;
-      public ICommand Close => null;
+      private StubCommand close;
+      public ICommand Close => StubCommand(ref close, () => Closed?.Invoke(this, EventArgs.Empty));
       public ICommand Diff => null;
       public ICommand DiffLeft => null;
       public ICommand DiffRight => null;
