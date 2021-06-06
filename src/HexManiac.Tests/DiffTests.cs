@@ -118,6 +118,24 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(2, editor.Count);
       }
 
-      // TODO test that CanExecute is disabled for non-viewport tabs
+      [Fact]
+      public void NonViewPortTab_TryDiffFromNonViewPort_NoDiff() {
+         editor.Add(new StubTabContent());
+
+         editor.DiffLeft.Execute(editor[2]);
+
+         Assert.False(editor.DiffLeft.CanExecute(editor[2]));
+         Assert.Equal(3, editor.Count);
+      }
+
+      [Fact]
+      public void NonViewPortTab_TryDiffToNonViewPort_NoDiff() {
+         editor.Add(new StubTabContent());
+
+         editor.DiffRight.Execute(editor[1]);
+
+         Assert.False(editor.DiffRight.CanExecute(editor[1]));
+         Assert.Equal(3, editor.Count);
+      }
    }
 }

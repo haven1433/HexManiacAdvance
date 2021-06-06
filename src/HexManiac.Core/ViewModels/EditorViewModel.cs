@@ -726,7 +726,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private bool CanExecuteDiffLeft(ITabContent tab) {
          var index = tabs.IndexOf(tab);
          var leftIndex = index - 1;
-         return leftIndex >= 0;
+         return leftIndex >= 0 && tabs[leftIndex] is ViewPort && tabs[index] is ViewPort;
       }
 
       private void ExecuteDiffRight(ITabContent tab) {
@@ -738,7 +738,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private bool CanExecuteDiffRight(ITabContent tab) {
          var index = tabs.IndexOf(tab);
          var rightIndex = index + 1;
-         return rightIndex < tabs.Count;
+         return index >= 0 && rightIndex < tabs.Count && tabs[index] is ViewPort && tabs[rightIndex] is ViewPort;
       }
 
       private void DiffTabs(int left, int right) {
