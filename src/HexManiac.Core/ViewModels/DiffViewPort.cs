@@ -74,6 +74,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void ExecuteScroll(Direction direction) {
          if (direction == Direction.Up) ScrollValue -= 1;
          if (direction == Direction.Up) ScrollValue += 1;
+         if (direction == Direction.PageUp) ScrollValue -= height;
+         if (direction == Direction.PageDown) ScrollValue += height;
       }
 
       public double Progress => 0;

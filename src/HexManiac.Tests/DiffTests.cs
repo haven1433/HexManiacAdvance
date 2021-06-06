@@ -85,7 +85,17 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.IsNotType<Undefined>(ViewModel2[0, 6].Format);
       }
 
-      // TODO jump down 1 screen height doesn't work right, only goes down ~4 lines?
+      [Fact]
+      public void DiffTab_PageDown_MoveDownOnePage() {
+         foreach (var address in 7.Range().Select(i => i * 0x50))
+            Model1[address] = 1;
+         editor.DiffRight(editor[0]);
+
+         ViewModel2.Scroll.Execute(Direction.PageDown);
+
+         Assert.Equal(16, ViewModel2.ScrollValue);
+      }
+
       // TODO diff with left/right when there is no left/right -> option is disabled, doing it doesn't crash
    }
 }
