@@ -717,6 +717,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand DiffLeft => StubCommand<ITabContent>(ref diffLeft, ExecuteDiffLeft, CanExecuteDiffLeft);
       public ICommand DiffRight => StubCommand<ITabContent>(ref diffRight, ExecuteDiffRight, CanExecuteDiffRight);
 
+      private void CanDiffRequested(object sender, CanDiffEventArgs e) {
+         var tab = (ITabContent)sender;
+         if (e.Direction == Direction.Left) e.Result = CanExecuteDiffLeft(tab);
+         if (e.Direction == Direction.Right) e.Result = CanExecuteDiffRight(tab);
+      }
+
+      private void DiffRequested(object sender, Direction direction) {
+         var tab = (ITabContent)sender;
+         if (direction == Direction.Left) ExecuteDiffLeft(tab);
+         if (direction == Direction.Right) ExecuteDiffRight(tab);
+      }
+
       private void ExecuteDiffLeft(ITabContent tab) {
          var index = tabs.IndexOf(tab);
          var leftIndex = index - 1;
@@ -877,6 +889,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          content.ClearMessage += AcceptMessageClear;
          content.RequestTabChange += TabChangeRequested;
          content.RequestDelayedWork += ForwardDelayedWork;
+         content.RequestCanDiff += CanDiffRequested;
+         content.RequestDiff += DiffRequested;
          content.PropertyChanged += TabPropertyChanged;
          if (content.Save != null) content.Save.CanExecuteChanged += RaiseSaveAllCanExecuteChanged;
 
@@ -892,6 +906,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          content.ClearMessage -= AcceptMessageClear;
          content.RequestTabChange -= TabChangeRequested;
          content.RequestDelayedWork -= ForwardDelayedWork;
+         content.RequestCanDiff -= CanDiffRequested;
+         content.RequestDiff -= DiffRequested;
          content.PropertyChanged -= TabPropertyChanged;
          if (content.Save != null) content.Save.CanExecuteChanged -= RaiseSaveAllCanExecuteChanged;
 

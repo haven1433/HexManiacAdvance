@@ -531,8 +531,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #region Diff
 
-      private StubCommand diff;
+      public event EventHandler<CanDiffEventArgs> RequestCanDiff;
+      public event EventHandler<Direction> RequestDiff;
+
+      private StubCommand diff, diffLeft, diffRight;
       public ICommand Diff => StubCommand<ITabContent>(ref diff, ExecuteDiff);
+      public ICommand DiffLeft => StubCommand(ref diffLeft, ExecuteDiffLeft, CanExecuteDiffLeft);
+      public ICommand DiffRight => StubCommand(ref diffRight, ExecuteDiffRight, CanExecuteDiffRight);
       private void ExecuteDiff(ITabContent otherTab) {
          if (otherTab == null) {
             var resultsTab = new SearchResultsViewPort("Changes");
@@ -582,6 +587,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else {
             throw new NotImplementedException();
          }
+      }
+
+      private void ExecuteDiffLeft() => RequestDiff?.Invoke(this, Direction.Left);
+      private bool CanExecuteDiffLeft() {
+         var args = new CanDiffEventArgs(Direction.Left);
+         RequestCanDiff?.Invoke(this, args);
+         return args.Result;
+      }
+
+      private void ExecuteDiffRight() => RequestDiff?.Invoke(this, Direction.Right);
+      private bool CanExecuteDiffRight() {
+         var args = new CanDiffEventArgs(Direction.Right);
+         RequestCanDiff?.Invoke(this, args);
+         return args.Result;
       }
 
       #endregion

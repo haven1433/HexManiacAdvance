@@ -80,6 +80,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand Copy { get; } = new StubCommand();
       public ICommand DeepCopy { get; } = new StubCommand();
       public ICommand Diff => null;
+      public ICommand DiffLeft => null;
+      public ICommand DiffRight => null;
       public ICommand Clear { get; } = new StubCommand();
       public ICommand SelectAll { get; } = new StubCommand();
       public ICommand Goto => null;
@@ -119,6 +121,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler<ITabContent> RequestTabChange;
       public event EventHandler<Action> RequestDelayedWork;
       public event EventHandler RequestMenuClose;
+      public event EventHandler<Direction> RequestDiff;
+      public event EventHandler<CanDiffEventArgs> RequestCanDiff;
 #pragma warning restore 0067
 
       #endregion

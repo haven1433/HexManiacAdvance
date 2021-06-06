@@ -121,6 +121,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand DeepCopy => this[0].DeepCopy;
 
       public ICommand Diff => this[0].Diff;
+      public ICommand DiffLeft => this[0].DiffLeft;
+      public ICommand DiffRight => this[0].DiffRight;
 
       public ICommand SelectAll => this[0].SelectAll;
 
@@ -144,6 +146,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler<ITabContent> RequestTabChange { add => ForEach(child => child.RequestTabChange += value); remove => ForEach(child => child.RequestTabChange -= value); }
       public event EventHandler<Action> RequestDelayedWork { add => ForEach(child => child.RequestDelayedWork += value); remove => ForEach(child => child.RequestDelayedWork -= value); }
       public event EventHandler RequestMenuClose { add => ForEach(child => child.RequestMenuClose += value); remove => ForEach(child => child.RequestMenuClose -= value); }
+      public event EventHandler<Direction> RequestDiff { add => ForEach(child => child.RequestDiff += value); remove => ForEach(child => child.RequestDiff -= value); }
+      public event EventHandler<CanDiffEventArgs> RequestCanDiff { add => ForEach(child => child.RequestCanDiff += value); remove => ForEach(child => child.RequestCanDiff -= value); }
       public event PropertyChangedEventHandler PropertyChanged { add => ForEach(child => child.PropertyChanged += value); remove => ForEach(child => child.PropertyChanged -= value); }
       public event NotifyCollectionChangedEventHandler CollectionChanged { add => ForEach(child => child.CollectionChanged += value); remove => ForEach(child => child.CollectionChanged -= value); }
 

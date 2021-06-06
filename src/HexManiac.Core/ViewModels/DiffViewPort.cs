@@ -114,6 +114,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand Forward => null;
       public ICommand Close => null;
       public ICommand Diff => null;
+      public ICommand DiffLeft => null;
+      public ICommand DiffRight => null;
 
       public event EventHandler PreviewScrollChanged;
       public event EventHandler<string> OnError;
@@ -123,6 +125,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler<ITabContent> RequestTabChange;
       public event EventHandler<Action> RequestDelayedWork;
       public event EventHandler RequestMenuClose;
+      public event EventHandler<Direction> RequestDiff;
+      public event EventHandler<CanDiffEventArgs> RequestCanDiff;
       public event PropertyChangedEventHandler PropertyChanged;
       public event NotifyCollectionChangedEventHandler CollectionChanged;
 

@@ -44,6 +44,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand SelectAll => StubCommand(ref selectAllCommand, ExecuteSelectAll, () => true);
       public ICommand DeepCopy => null;
       public ICommand Diff => null;
+      public ICommand DiffLeft => null;
+      public ICommand DiffRight => null;
       public ICommand Clear => null;
       public ICommand Goto => null;
       public ICommand ResetAlignment => null;
@@ -57,6 +59,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler<ITabContent> RequestTabChange;
       public event EventHandler<Action> RequestDelayedWork;
       public event EventHandler RequestMenuClose;
+      public event EventHandler<Direction> RequestDiff;
+      public event EventHandler<CanDiffEventArgs> RequestCanDiff;
 
       public void RaiseMessage(string message) => OnMessage?.Invoke(this, message);
 

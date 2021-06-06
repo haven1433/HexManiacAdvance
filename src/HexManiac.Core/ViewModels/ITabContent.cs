@@ -24,6 +24,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       ICommand Forward { get; }
       ICommand Close { get; }  // parameter: IFileSystem
       ICommand Diff { get; }   // parameter: the tab to diff with. If null, then diff with self since last save
+      ICommand DiffLeft { get; }  // send a request to the editor to diff this tab with the tab on the left
+      ICommand DiffRight { get; } // send a request to the editor to diff this tab with the tab on the right
 
       event EventHandler<string> OnError;
       event EventHandler<string> OnMessage;
@@ -32,6 +34,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       event EventHandler<ITabContent> RequestTabChange;
       event EventHandler<Action> RequestDelayedWork;
       event EventHandler RequestMenuClose;
+      event EventHandler<Direction> RequestDiff;
+      event EventHandler<CanDiffEventArgs> RequestCanDiff;
 
       void Refresh();
       bool TryImport(LoadedFile file, IFileSystem fileSystem);
@@ -39,5 +43,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
    public interface IRaiseMessageTab : ITabContent {
       void RaiseMessage(string message);
+   }
+
+   public class CanDiffEventArgs : EventArgs {
+      public Direction Direction { get; }
+      public bool Result { get; set; }
+      public CanDiffEventArgs(Direction d) => Direction = d;
    }
 }

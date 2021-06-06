@@ -40,6 +40,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand Copy { get; } = new StubCommand();
       public ICommand DeepCopy { get; } = new StubCommand();
       public ICommand Diff => null;
+      public ICommand DiffLeft => null;
+      public ICommand DiffRight => null;
       public ICommand Clear { get; } = new StubCommand();
       public ICommand SelectAll { get; } = new StubCommand();
       public ICommand Goto { get; } = new StubCommand();
@@ -55,6 +57,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       event EventHandler<ITabContent> ITabContent.RequestTabChange { add { } remove { } }
       event EventHandler<Action> ITabContent.RequestDelayedWork { add { } remove { } }
       event EventHandler ITabContent.RequestMenuClose { add { } remove { } }
+      event EventHandler<Direction> ITabContent.RequestDiff { add { } remove { } }
+      event EventHandler<CanDiffEventArgs> ITabContent.RequestCanDiff { add { } remove { } }
 
       private int selectionStart;
       public int SelectionStart {
