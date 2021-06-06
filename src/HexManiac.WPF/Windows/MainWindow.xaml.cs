@@ -1,5 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.QuickEditItems;
 using HavenSoft.HexManiac.WPF.Controls;
@@ -11,6 +13,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -18,6 +21,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Effects;
+using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Threading;
 
@@ -433,6 +437,63 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       private void DeveloperWriteDebug(object sender, RoutedEventArgs e) => Debug.WriteLine("Debug");
 
       private void DeveloperWriteTrace(object sender, RoutedEventArgs e) => Trace.WriteLine("Trace");
+
+      private void DeveloperRenderRomOverview(object sender, RoutedEventArgs e) {
+         var tab = (ViewPort)ViewModel.SelectedTab;
+         var model = tab.Model;
+         const int BlockSize = 64, BlockCount = 16, BytesPerPixel = 16;
+         var imageWidth = BlockSize * BlockCount + (BlockCount - 1);
+         var imageData = new int[imageWidth * imageWidth];
+         var backlight = Color(nameof(Theme.Backlight));
+         var accent = Color(nameof(Theme.Accent));
+         var secondary = Color(nameof(Theme.Secondary));
+         var data1 = Color(nameof(Theme.Data1));
+         var data2 = Color(nameof(Theme.Data2));
+         var text2 = Color(nameof(Theme.Text2));
+
+         Parallel.For(0, BlockCount * BlockCount, i => {
+            var blockXStart = (BlockSize + 1) * (i % BlockCount);
+            var blockYStart = (BlockSize + 1) * (i / BlockCount);
+            var blockStart = blockYStart * imageWidth + blockXStart;
+            for (int j = 0; j < BlockSize * BlockSize * BytesPerPixel; j += BytesPerPixel) {
+               var blockOffsetX = (j / BytesPerPixel) % BlockSize;
+               var blockOffsetY = (j / BytesPerPixel) / BlockSize;
+               var blockOffset = blockOffsetY * imageWidth + blockOffsetX;
+               var pixelIndex = blockStart + blockOffset;
+               var address = (i * BlockSize * BlockSize * BytesPerPixel) + j;
+               var run = model.GetNextRun(address);
+               if (model[address] == 0xFF) {
+                  imageData[pixelIndex] = backlight;
+               } else if (run.Start > address || run is NoInfoRun) {
+                  imageData[pixelIndex] = secondary;
+               } else if (run is PointerRun) {
+                  imageData[pixelIndex] = accent;
+               } else if (run is ITableRun tableRun0 && tableRun0.ElementContent[tableRun0.ConvertByteOffsetToArrayOffset(address).SegmentIndex].Type == ElementContentType.Pointer) {
+                  imageData[pixelIndex] = accent;
+               } else if (run is ISpriteRun || run is IPaletteRun) {
+                  imageData[pixelIndex] = data2;
+               } else if (run is PCSRun || run is AsciiRun) {
+                  imageData[pixelIndex] = text2;
+               } else {
+                  imageData[pixelIndex] = data1;
+               }
+            }
+         });
+
+         var source = BitmapSource.Create(imageWidth, imageWidth, 96, 96, PixelFormats.Bgra32, null, imageData, imageWidth * 4);
+         var window = new Window {
+            Title = tab.Name,
+            Background = (Brush)Application.Current.Resources.MergedDictionaries[0][nameof(Theme.Background)],
+            Content = new Image { Source = source, Width = imageWidth * .9 },
+            SizeToContent = SizeToContent.WidthAndHeight,
+         };
+         window.Show();
+      }
+
+      private static int Color(string name) {
+         var color = ((SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][name]).Color;
+         return (color.A << 24) + (color.R << 16) + (color.G << 8) + color.B;
+      }
 
       #endregion
 
