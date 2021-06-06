@@ -32,14 +32,14 @@ namespace HavenSoft.HexManiac.Tests {
       public void TwoTabs_Diff_NameIsFromBothTabs() {
          Model1[0] = 1;
 
-         editor.DiffRight(editor[0]);
+         editor.DiffRight.Execute(editor[0]);
 
          Assert.Equal("Left -> Right", editor[2].Name);
       }
 
       [Fact]
       public void TwoTabsWithSameData_Diff_NoNewTab() {
-         editor.DiffRight(editor[0]);
+         editor.DiffRight.Execute(editor[0]);
          Assert.Equal(2, editor.Count);
       }
 
@@ -47,7 +47,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void TwoTabs_Diff_FullWidthPlusOne() {
          Model1[0] = 1;
 
-         editor.DiffRight(editor[0]);
+         editor.DiffRight.Execute(editor[0]);
 
          Assert.Equal(16 + 1 + 16, ((IViewPort)editor[2]).Width);
       }
@@ -56,7 +56,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void TwoTabs_Diff_DiffBytesAreSelected() {
          Model1[0] = 1;
 
-         editor.DiffRight(editor[0]);
+         editor.DiffRight.Execute(editor[0]);
 
          Assert.True(ViewModel2.IsSelected(new Point(17, 0)));
       }
@@ -66,7 +66,7 @@ namespace HavenSoft.HexManiac.Tests {
          Edit1("^table[a: b: c:]4 1 2 3 4 5 6 7 8 9 10 11 12 ");
          Model1[0x100] = 1;
 
-         editor.DiffRight(editor[0]);
+         editor.DiffRight.Execute(editor[0]);
 
          Assert.All(10.Range(), y => {
             var leftIsUndefined = ViewModel2[0, y].Format == Undefined.Instance;
@@ -80,7 +80,7 @@ namespace HavenSoft.HexManiac.Tests {
          Model1[0x000] = 10;
          Model1[0x100] = 20;
 
-         editor.DiffRight(editor[0]);
+         editor.DiffRight.Execute(editor[0]);
 
          Assert.IsNotType<Undefined>(ViewModel2[0, 6].Format);
       }
@@ -89,13 +89,35 @@ namespace HavenSoft.HexManiac.Tests {
       public void DiffTab_PageDown_MoveDownOnePage() {
          foreach (var address in 7.Range().Select(i => i * 0x50))
             Model1[address] = 1;
-         editor.DiffRight(editor[0]);
+         editor.DiffRight.Execute(editor[0]);
 
          ViewModel2.Scroll.Execute(Direction.PageDown);
 
          Assert.Equal(16, ViewModel2.ScrollValue);
       }
 
-      // TODO diff with left/right when there is no left/right -> option is disabled, doing it doesn't crash
+      [Fact]
+      public void LeftMostTab_DiffLeft_CanNotExecute() {
+         Assert.False(editor.DiffLeft.CanExecute(ViewModel0));
+      }
+
+      [Fact]
+      public void RightMostTab_DiffRight_CanNotExecute() {
+         Assert.False(editor.DiffRight.CanExecute(ViewModel1));
+      }
+
+      [Fact]
+      public void LeftMostTab_ExecuteDiffLeft_NoTabAdded() {
+         editor.DiffLeft.Execute(ViewModel0);
+         Assert.Equal(2, editor.Count);
+      }
+
+      [Fact]
+      public void RightMostTab_ExecuteDiffRight_NoTabAdded() {
+         editor.DiffRight.Execute(ViewModel1);
+         Assert.Equal(2, editor.Count);
+      }
+
+      // TODO test that CanExecute is disabled for non-viewport tabs
    }
 }

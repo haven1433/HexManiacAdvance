@@ -682,6 +682,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                }
             }
          }
+         RefreshTabHeaderContextMenus();
       }
 
       public void SwapTabs(int a, int b) {
@@ -698,22 +699,46 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var args = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, tabs[a], a, b);
          CollectionChanged?.Invoke(this, args);
+         RefreshTabHeaderContextMenus();
+      }
+
+      private void RefreshTabHeaderContextMenus() {
+         diffLeft.RaiseCanExecuteChanged();
+         diffRight.RaiseCanExecuteChanged();
       }
 
       public IEnumerator<ITabContent> GetEnumerator() => tabs.GetEnumerator();
 
       IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 
-      public void DiffLeft(ITabContent tab) {
+      #region Diffing Tabs
+
+      private StubCommand diffLeft, diffRight;
+      public ICommand DiffLeft => StubCommand<ITabContent>(ref diffLeft, ExecuteDiffLeft, CanExecuteDiffLeft);
+      public ICommand DiffRight => StubCommand<ITabContent>(ref diffRight, ExecuteDiffRight, CanExecuteDiffRight);
+
+      private void ExecuteDiffLeft(ITabContent tab) {
          var index = tabs.IndexOf(tab);
          var leftIndex = index - 1;
+         if (leftIndex < 0) return;
          DiffTabs(leftIndex, index);
       }
+      private bool CanExecuteDiffLeft(ITabContent tab) {
+         var index = tabs.IndexOf(tab);
+         var leftIndex = index - 1;
+         return leftIndex >= 0;
+      }
 
-      public void DiffRight(ITabContent tab) {
+      private void ExecuteDiffRight(ITabContent tab) {
          var index = tabs.IndexOf(tab);
          var rightIndex = index + 1;
+         if (rightIndex >= tabs.Count) return;
          DiffTabs(index, rightIndex);
+      }
+      private bool CanExecuteDiffRight(ITabContent tab) {
+         var index = tabs.IndexOf(tab);
+         var rightIndex = index + 1;
+         return rightIndex < tabs.Count;
       }
 
       private void DiffTabs(int left, int right) {
@@ -729,6 +754,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          SelectedIndex = left;
          leftViewPort.Diff.Execute(rightViewPort);
       }
+
+      #endregion
 
       private StubCommand CreateWrapperForSelected(Func<ITabContent, ICommand> commandGetter) {
          var command = new StubCommand {

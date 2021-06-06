@@ -374,15 +374,6 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          Tabs.Effect = null;
       }
 
-      private void DiffLeft(object sender, EventArgs e) {
-         var viewModel = (ITabContent)((FrameworkElement)sender).DataContext;
-         ViewModel.DiffLeft(viewModel);
-      }
-      private void DiffRight(object sender, EventArgs e) {
-         var viewModel = (ITabContent)((FrameworkElement)sender).DataContext;
-         ViewModel.DiffRight(viewModel);
-      }
-
       private void ShowThemeSelector(object sender, RoutedEventArgs e) {
          if (themeWindow?.IsVisible != true) {
             themeWindow = new ThemeSelector { DataContext = ViewModel.Theme };

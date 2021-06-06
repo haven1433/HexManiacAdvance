@@ -449,8 +449,10 @@
                         </StackPanel.ToolTip>
                         <StackPanel.ContextMenu>
                            <ContextMenu>
-                              <MenuItem Header="Diff with Left" Click="DiffLeft"/>
-                              <MenuItem Header="Diff with Right" Click="DiffRight"/>
+                              <MenuItem Header="Diff with Left" CommandParameter="{Binding}"
+                                 Command="{Binding DataContext.DiffLeft, RelativeSource={RelativeSource AncestorType=TabControl}}" />
+                              <MenuItem Header="Diff with Right" CommandParameter="{Binding}"
+                                 Command="{Binding DataContext.DiffRight, RelativeSource={RelativeSource AncestorType=TabControl}}}" />
                            </ContextMenu>
                         </StackPanel.ContextMenu>
                         <TextBlock Name="TabTextBlock" Background="Transparent" Text="{Binding Name}" Foreground="{DynamicResource Primary}" MouseDown="TabMouseDown" MouseMove="TabMouseMove" MouseUp="TabMouseUp">
