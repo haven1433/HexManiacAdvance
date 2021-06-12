@@ -299,6 +299,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var pokemon = start.Substring(spaceIndex + 1);
             return ArrayRunEnumSegment.GetOptions(model, HardcodeTablesModel.PokemonNameTable)
                .Where(option => option.MatchesPartial(pokemon, onlyCheckLettersAndDigits: true))
+               .Where(option => option.Contains("-") || !pokemon.Contains("-"))
+               .Where(option => option.Contains("'") || !pokemon.Contains("'"))
+               .Where(option => option.Contains(".") || !pokemon.Contains("."))
                .Select(option => new AutocompleteItem(option, $"{level} {option} {end}"));
          }
 
@@ -309,15 +312,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (atIndex == -1) return result;
          var item = start.Substring(atIndex + 1);
          start = start.Substring(0, atIndex);
-         return ArrayRunEnumSegment.GetOptions(model, HardcodeTablesModel.ItemsTableName)
+         var options = ArrayRunEnumSegment.GetOptions(model, HardcodeTablesModel.ItemsTableName).ToList();
+         return options
             .Where(option => option.MatchesPartial(item, onlyCheckLettersAndDigits: true))
+            .Where(option => option.Contains("-") || !item.Contains("-"))
+            .Where(option => option.Contains("'") || !item.Contains("'"))
             .Select(option => new AutocompleteItem(option, $"{start.Trim()} @{option}"));
       }
 
       private IEnumerable<AutocompleteItem> GetAutocompleteMoveOptions(string line, int caretIndex) {
-         var namePart = line.Split("-")[1].Trim();
+         var namePart = line.Split(new[] { '-' }, 2)[1].Trim();
+         if (namePart == string.Empty) return Enumerable.Empty<AutocompleteItem>();
          return ArrayRunEnumSegment.GetOptions(model, HardcodeTablesModel.MoveNamesTable)
             .Where(option => option.MatchesPartial(namePart, onlyCheckLettersAndDigits: true))
+            .Where(option => option.Contains("-") || !namePart.Contains("-"))
             .Select(option => new AutocompleteItem(option, $"- {option}"));
       }
 

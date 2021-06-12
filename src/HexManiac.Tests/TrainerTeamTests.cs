@@ -10,9 +10,9 @@ namespace HavenSoft.HexManiac.Tests {
       private readonly TrainerPokemonTeamRun run;
 
       public TrainerTeamTests() {
-         CreateTextTable(HardcodeTablesModel.ItemsTableName, 0x100, "potion", "hyper potion", "rare candy", "masterball");
-         CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x140, "bulbasaur", "farfetch'd", "nidoran \\sm", "mr. mime");
-         CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x180, "tackle", "scratch", "hyper beam", "rest");
+         CreateTextTable(HardcodeTablesModel.ItemsTableName, 0x100, "potion", "hyper potion", "rare candy", "masterball", "go-goggles", "king's rock");
+         CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x150, "bulbasaur", "farfetch'd", "nidoran \\sm", "mr. mime", "ho-oh");
+         CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1A0, "tackle", "scratch", "hyper beam", "rest", "name-with-dash");
          run = new TrainerPokemonTeamRun(Model, 0, SortedSpan<int>.None);
       }
 
@@ -52,10 +52,11 @@ namespace HavenSoft.HexManiac.Tests {
       public void TrainerTeam_RequestAutocompleteMove_CorrectOptions() {
          var options = run.GetAutoCompleteOptions("- t", 0, 12);
 
-         Assert.Equal(3, options.Count);
+         Assert.Equal(4, options.Count);
          Assert.Equal("- tackle", options[0].LineText);
          Assert.Equal("scratch", options[1].Text);
          Assert.Equal("rest", options[2].Text);
+         Assert.Equal("name-with-dash", options[3].Text);
       }
 
       [Fact]
@@ -106,6 +107,43 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Single(Messages);
          Assert.NotEqual(0x80, Model.GetNextRun(0x80).Start); // run should've repointed
          Assert.NotEqual(0x80, Model.ReadPointer(TrainerTablePokemonPointerOffset));
+      }
+
+      [Fact]
+      public void DashWithSpace_AutoComplete_NoOptions() {
+         var options = run.GetAutoCompleteOptions("- ", 2, 2).ToList();
+         Assert.Empty(options);
+      }
+
+      [Fact]
+      public void DashSpaceDash_AutoComplete_HaveOptions() {
+         var options = run.GetAutoCompleteOptions("- -", 3, 3).ToList();
+         Assert.NotEmpty(options);
+      }
+
+      [Fact]
+      public void DashInName_AutoComplete_AutoCompleteOptionsHaveDash() {
+         var options = run.GetAutoCompleteOptions("- -", 3, 3).ToList();
+         Assert.All(options, option => Assert.Contains("-", option.Text));
+      }
+
+      [Theory]
+      [InlineData("-")]
+      [InlineData("'")]
+      [InlineData(".")]
+      public void SpecialCharacterInPokemonName_AutoComplete_ListContainsOnlyElementsWithThatCharacter(string specialCharacter) {
+         var options = run.GetAutoCompleteOptions("12 " + specialCharacter, 4, 4).ToList();
+         Assert.NotEmpty(options);
+         Assert.All(options, option => Assert.Contains(specialCharacter, option.Text));
+      }
+
+      [Theory]
+      [InlineData("-")]
+      [InlineData("'")]
+      public void SpecialCharacterInItemName_AutoComplete_ListContainsOnlyElementsWithThatCharacter(string specialCharacter) {
+         var options = run.GetAutoCompleteOptions("12 bulbsaur @" + specialCharacter, 14, 14).ToList();
+         Assert.NotEmpty(options);
+         Assert.All(options, option => Assert.Contains(specialCharacter, option.Text));
       }
 
       /// <summary>
