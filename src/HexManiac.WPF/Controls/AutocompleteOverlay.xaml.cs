@@ -81,7 +81,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
          var options = getAutocomplete(lines[lineIndex], lineIndex, index);
          if (options != null && options.Count > 0) {
-            AutocompleteItems.ItemsSource = AutoCompleteSelectionItem.Generate(options, 0);
+            AutocompleteItems.ItemsSource = AutoCompleteSelectionItem.Generate(options, 0).ToList();
             Visibility = Visibility.Visible;
          }
          var screenVertical = Target.TranslatePoint(new Point(0, verticalStart), Application.Current.MainWindow).Y;
@@ -133,7 +133,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          }
 
          var models = items.Select(item => new AutocompleteItem(item.DisplayText, item.CompletionText));
-         AutocompleteItems.ItemsSource = AutoCompleteSelectionItem.Generate(models, index);
+         AutocompleteItems.ItemsSource = AutoCompleteSelectionItem.Generate(models, index).ToList();
          e.Handled = true;
       }
 
