@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System.Linq;
 using Xunit;
 
@@ -83,9 +84,49 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.InRange(newRun.ReadValue(Model, 0, "ivSpread"), 12 * 8, 12 * 8 + 7);
       }
 
+      [Fact]
+      public void TrainerWithTwoPokemon_ChangePokemonCountToThree_PokemonTeamRepoints() {
+         // write data for two trainers
+         Model[TrainerTablePokemonCountOffset] = 2;
+         Model.WritePointer(new ModelDelta(), TrainerTablePokemonPointerOffset, 0x80);
+         WriteBasicTrainerPokmeon(0x80, 0, 5, 0);
+         WriteBasicTrainerPokmeon(0x88, 0, 5, 0);
+         Model[TrainerTableElementLength + TrainerTablePokemonCountOffset] = 2;
+         Model.WritePointer(new ModelDelta(), TrainerTableElementLength + TrainerTablePokemonPointerOffset, 0x88);
+         WriteBasicTrainerPokmeon(0x90, 0, 5, 0);
+         WriteBasicTrainerPokmeon(0x98, 0, 5, 0);
+
+         SetupTrainerTable(0, 2);
+
+         // set the trainer to have 3 pokemon
+         ViewPort.Refresh();
+         var tool = (FieldArrayElementViewModel)ViewPort.Tools.TableTool.Children.Single(child => child is FieldArrayElementViewModel faevm && faevm.Name == "pokemonCount");
+         tool.Content = "3";
+
+         Assert.Single(Messages);
+         Assert.NotEqual(0x80, Model.GetNextRun(0x80).Start); // run should've repointed
+         Assert.NotEqual(0x80, Model.ReadPointer(TrainerTablePokemonPointerOffset));
+      }
+
+      /// <summary>
+      /// Basic trainer pokemon are 8 bytes
+      /// </summary>
+      private void WriteBasicTrainerPokmeon(int address, int ivs, int level, int species) {
+         var token = new ModelDelta();
+         Model.WriteMultiByteValue(address + 0, 2, token, ivs);
+         Model.WriteMultiByteValue(address + 2, 2, token, level);
+         Model.WriteMultiByteValue(address + 4, 2, token, species);
+         Model.WriteMultiByteValue(address + 6, 2, token, 0);
+      }
+
+      const int TrainerTablePokemonCountOffset = 32;
+      const int TrainerTablePokemonPointerOffset = 36;
+      const int TrainerTableElementLength = 40;
       private ITableRun SetupTrainerTable(int address, int elementCount) {
          ViewPort.Goto.Execute(address);
-         ViewPort.Edit($"^trainertable[structType. class. stuff: name\"\"12 items:: items:: doubleBattle:: ai:: pokemonCount:: pokemon<>]{elementCount} ");
+         // 40 bytes per trainer
+         //                                                      4          16      20      24             28   32             36
+         ViewPort.Edit($"^trainertable[structType. class. stuff: name\"\"12 items:: items:: doubleBattle:: ai:: pokemonCount:: pokemon<`tpt`>]{elementCount} ");
          return Model.GetTable("trainertable");
       }
    }

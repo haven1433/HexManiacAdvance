@@ -479,7 +479,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public TrainerPokemonTeamRun UpdateFromParent(ModelDelta token, int parentSegmentChange, int pointerSource) {
          // we only care if the change was to the parent's structType or pokemonCount.
-         if (parentSegmentChange != 0 && parentSegmentChange != 11) return this;
+         var sourceTable = model.GetNextRun(pointerSource) as ITableRun;
+         if (sourceTable == null) return this;
+         if (sourceTable.ElementContent.Count <= parentSegmentChange) return this;
+         if (parentSegmentChange != 0 && sourceTable.ElementContent[parentSegmentChange].Name != "pokemonCount") return this;
 
          var newStructType = model[pointerSource - TrainerFormat_PointerOffset];
          var newElementCount = model[pointerSource - TrainerFormat_PointerOffset + TrainerFormat_PokemonCountOffset];
