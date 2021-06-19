@@ -314,7 +314,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          return colorString;
       }
 
-      private string[] Color16ToChannelStrings(short color16) {
+      private static string[] Color16ToChannelStrings(short color16) {
          var r = color16 >> 10;
          var g = (color16 >> 5) & 0x1F;
          var b = color16 & 0x1F;
@@ -336,6 +336,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var color16 = TileImage.Convert16BitColor(color);
 
          ViewModel.Elements[colorIndexForScreenGrab].Color = color16;
+         ViewModel.PushColorsToModel();
 
          ReleaseMouseCapture();
          PreviewMouseDown -= GrabColorFromScreen;
