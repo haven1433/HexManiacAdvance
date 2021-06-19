@@ -509,9 +509,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var result = new StringBuilder("-");
          var options = rawData.GetBitOptions(SourceArrayName);
 
+         // handle edge cases: no options, or no options for some set bits
+         var highestByteSet = Length - 1;
+         while (rawData[offset + highestByteSet] == 0 && highestByteSet > 0) {
+            highestByteSet -= 1;
+         }
+         var highestBitSet = (int)Math.Log(rawData[offset + highestByteSet], 2);
+         var unknownBitsAreSet = options == null || (highestByteSet * 8) + highestBitSet >= options.Count;
+
          for (int i = 0; i < Length; i++) {
             var bits = rawData[offset + i];
-            if (options == null) {
+            if (unknownBitsAreSet) {
                result.Append(bits.ToString("X2"));
             } else {
                var optionOffset = i << 3;

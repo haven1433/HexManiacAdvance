@@ -1091,6 +1091,21 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.True(match);
       }
 
+      [Fact]
+      public void BitFieldWithUnknownBitSet_CopyPaste_CorrectBitsSet() {
+         var fileSystem = new StubFileSystem();
+         Model.SetList(new ModelDelta(), "bits", "adam", "bob", "carl", "dave");
+         ViewPort.Edit("^table[a|b[]bits]3 00 10 ");
+
+         ViewPort.SelectionStart = new Point(1, 0);
+         ViewPort.Copy.Execute(fileSystem);
+
+         ViewPort.SelectionStart = new Point(2, 0);
+         ViewPort.Edit(fileSystem.CopyText);
+
+         Assert.Equal(0x10, Model[2]);
+      }
+
       private static void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);
