@@ -770,5 +770,25 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.True(tuple.Visible);
       }
+
+      [Fact]
+      public void AllZeroes_FindLength_Zero() {
+         Model[0x40] = 0x02; // end command
+
+         var length = ViewPort.Tools.CodeTool.ScriptParser.FindLength(Model, 0);
+
+         Assert.Equal(0, length);
+      }
+
+      [Fact]
+      public void AllZeroes_DecodeAsScript_NotManyNops() {
+         Model[0x40] = 0x02; // end command
+
+         ViewPort.Tools.CodeTool.Mode = CodeMode.Script;
+         ViewPort.Tools.CodeTool.UpdateContent();
+         var content = ViewPort.Tools.CodeTool.Contents[0].Content;
+
+         Assert.Single(content.Split(Environment.NewLine));
+      }
    }
 }

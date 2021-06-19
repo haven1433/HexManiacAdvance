@@ -68,10 +68,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public int FindLength(IDataModel model, int address) {
          int length = 0;
+         int consecutiveNops = 0;
 
          while (true) {
             var line = engine.GetMatchingLine(model, address + length);
             if (line == null) break;
+            consecutiveNops = model[address + length] == 0 ? consecutiveNops + 1 : 0;
+            if (consecutiveNops > 5) return 0;
             length += line.CompiledByteLength(model, address + length);
             if (line.IsEndingCommand) break;
          }
