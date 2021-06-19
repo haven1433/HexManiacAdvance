@@ -95,9 +95,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          Unloaded += (sender, e) => ClosePopup();
       }
 
+      private void AppClosePopup(object sender, EventArgs e) => ClosePopup();
       public void ClosePopup() {
          swatchPopup.IsOpen = false;
          swatch.ResultChanged -= SwatchResultChanged;
+         Application.Current.MainWindow.Deactivated -= AppClosePopup;
       }
       public void SingleSelect() => ViewModel?.SingleSelect();
 
@@ -157,6 +159,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                swatchPopup.IsOpen = ViewModel.CanEditColors;
                if (swatchPopup.IsOpen) {
                   swatch.ResultChanged += SwatchResultChanged;
+                  Application.Current.MainWindow.Deactivated += AppClosePopup;
                   commitTextboxChanges = true;
                }
             }
@@ -235,8 +238,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
          var tilesToAnimate = ViewModel.HandleMove(oldTileIndex, newTileIndex);
          if (oldTileIndex != newTileIndex) {
-            swatch.ResultChanged -= SwatchResultChanged;
-            swatchPopup.IsOpen = false;
+            ClosePopup();
          }
 
          foreach (var (index, direction) in tilesToAnimate) {
