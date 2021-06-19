@@ -478,11 +478,11 @@ graphics.trainercard.badges.palette,                 ,,,,               08ADB4, 
 graphics.trainercard.stickers.palette,               ,,,,               08ADC0, 08AD94, 08ADD4, 08ADA8, , `ucp4`
 graphics.trainercard.badges.sprite,                  ,,,,               089530, 089504, 089544, 089518, , `lzs4x16x2|graphics.trainercard.badges.palette`
 graphics.trainercard.stickers.sprite,                ,,,,               089594, 089568, 0895A8, 08957C, , `lzs4x2x8|graphics.trainercard.stickers.palette`
-graphics.trainercard.palette,                        ,,,,               3CD8CC, 3CD708, 3CD93C, 3CD778, , `ucp4:012`
+graphics.trainercard.palette1,                       ,,,,               3CD8CC, 3CD708, 3CD93C, 3CD778, , `ucp4:012`
 graphics.trainercard.palette2,                       ,,,,               3CD8D0, 3CD70C, 3CD940, 3CD77C, , `ucp4:012`
 graphics.trainercard.palette3,                       ,,,,               3CD8D8, 3CD714, 3CD948, 3CD784, , `ucp4:012`
-graphics.trainercard.tileset,                        ,,,,               089568, 08953C, 08957C, 089550, , `lzt4|graphics.trainercard.palette`
-graphics.trainercard.tileset2,                       ,,,,               089558, 08952C, 08956C, 089540, , `lzt4|graphics.trainercard.palette`
+graphics.trainercard.tileset,                        ,,,,               089568, 08953C, 08957C, 089550, , `lzt4|graphics.trainercard.palette1`
+graphics.trainercard.tileset2,                       ,,,,               089558, 08952C, 08956C, 089540, , `lzt4|graphics.trainercard.palette1`
 graphics.trainercard.front.tilemap,                  ,,,,               0894F4, 0894C8, 089508, 0894DC, , `lzm4x30x20|graphics.trainercard.tileset`
 graphics.trainercard.front.nobadges.tilemap,         ,,,,               08951C, 0894F0, 089530, 089504, , `lzm4x30x20|graphics.trainercard.tileset`
 graphics.trainercard.front.unknown.tilemap,          ,,,,               0894E8, 0894BC, 0894FC, 0894D0, , `lzm4x30x20|graphics.trainercard.tileset2`
