@@ -8,6 +8,7 @@ using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class TrainerPokemonTeamRun : BaseRun, IStreamRun, ITableRun {
+      public const int IV_Cap = 31;
       public const int TrainerFormat_StructTypeOffset = 0;
       public const int TrainerFormat_PokemonCountOffset = 32;
       public const int TrainerFormat_PointerOffset = 36;
@@ -242,7 +243,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var buffer = new StringBuilder();
          for (int i = 0; i < ElementCount; i++) {
             var start = Start + ElementLength * i;
-            var ivSpread = (int)Math.Round(model.ReadMultiByteValue(start + 0, 2) * 31.0 / 255);
+            var ivSpread = (int)Math.Round(model.ReadMultiByteValue(start + 0, 2) * IV_Cap / 255.0);
             var level = model.ReadMultiByteValue(start + 2, 2);
             var pokeID = model.ReadMultiByteValue(start + 4, 2);
             var pokemonNames = cache.GetOptions(HardcodeTablesModel.PokemonNameTable);
@@ -462,7 +463,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                ivTokenized[1] = ivTokenized[1].Replace(")", "").Trim();
                ivTokenized[1] = ivTokenized[1].Split('=').Last();
                if (int.TryParse(ivTokenized[1], out int fixedIV)) {
-                  ivs.Add((int)Math.Round(fixedIV * 255.0 / 31));
+                  ivs.Add((int)Math.Round(fixedIV * 255.0 / IV_Cap));
                } else {
                   ivs.Add(0);
                }
