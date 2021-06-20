@@ -100,6 +100,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          swatchPopup.IsOpen = false;
          swatch.ResultChanged -= SwatchResultChanged;
          Application.Current.MainWindow.Deactivated -= AppClosePopup;
+         Application.Current.MainWindow.LocationChanged -= AppClosePopup;
       }
       public void SingleSelect() => ViewModel?.SingleSelect();
 
@@ -160,6 +161,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                if (swatchPopup.IsOpen) {
                   swatch.ResultChanged += SwatchResultChanged;
                   Application.Current.MainWindow.Deactivated += AppClosePopup;
+                  Application.Current.MainWindow.LocationChanged += AppClosePopup;
                   commitTextboxChanges = true;
                }
             }
