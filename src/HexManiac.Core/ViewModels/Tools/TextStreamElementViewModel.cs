@@ -58,6 +58,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       protected override bool TryCopy(StreamElementViewModel other) {
+         if (GetType() != other.GetType()) return false;
          if (!(other is TextStreamElementViewModel stream)) return false;
          Start = other.Start;
          TryUpdate(ref content, stream.content, nameof(Content));
