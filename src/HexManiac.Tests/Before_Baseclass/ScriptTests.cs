@@ -216,6 +216,41 @@ Script:
       }
 
       [Fact]
+      public void AnimationScript_LinkToBody_EncodeCorrectly() {
+         //                     createSprite  <100>       2  (1arg)  0  end
+         var compiledScript = new byte[] { 2, 128, 0, 0, 8, 2, 1, 0, 0, 8 };
+         Array.Copy(compiledScript, 0, Model.RawData, 0, compiledScript.Length);
+
+         var spriteData = new byte[] {
+            /*tileTag*/ 1, 0,
+            /*paletteTag*/ 2, 0,
+            /*oam*/ 3, 1, 0, 8,
+            /*anims*/ 4, 1, 0, 8,
+            /*images*/ 5, 1, 0, 8,
+            /*affineAnims*/ 6, 1, 0, 8,
+            /*callback*/ 7, 1, 0, 8
+         };
+         Array.Copy(spriteData, 0, Model.RawData, 0x80, spriteData.Length);
+
+         Model.ObserveRunWritten(ViewPort.CurrentChange, new PointerRun(1));
+         var stream = new TableStreamRun(
+            Model,
+            0x80,
+            new SortedSpan<int>(1),
+            "[tileTag: paletteTag: oam<> anims<> images<> affineAnims<> callback<>]",
+            null,
+            new FixedLengthStreamStrategy(1));
+         Model.ObserveRunWritten(ViewPort.CurrentChange, stream);
+
+         var script = ViewPort.Tools.CodeTool.AnimationScriptParser.Parse(Model, 0, compiledScript.Length);
+         Model.ResetChanges();
+
+         ViewPort.Tools.CodeTool.AnimationScriptParser.Compile(ViewPort.CurrentChange, Model, 0, ref script, out var movedData);
+         Assert.Contains("{", script);
+         Assert.Equal(0, Model.ChangeCount);
+      }
+
+      [Fact]
       public void EventScript_SingleSpaceOnLine_NoIssue() {
          SetFullModel(0xFF);
          ViewPort.Refresh();

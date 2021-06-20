@@ -206,10 +206,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          Debug.Assert(endStream is FixedLengthStreamStrategy flss && flss.Count == 1);
          var fields = content.SplitLines();
          int segmentOffset = 0;
+         int fieldIndex = 0;
          for (int j = 0; j < ElementContent.Count; j++) {
-            var data = j < fields.Length ? fields[j].Split(new[] { ':' }, 2).Last() : string.Empty;
+            while (fieldIndex < fields.Length && string.IsNullOrWhiteSpace(fields[fieldIndex])) fieldIndex += 1;
+            if (fieldIndex >= fields.Length) break;
+            var data = j < fields.Length ? fields[fieldIndex].Split(new[] { ':' }, 2).Last() : string.Empty;
             ElementContent[j].Write(model, token, Start + segmentOffset, data);
             segmentOffset += ElementContent[j].Length;
+            fieldIndex += 1;
          }
          return this;
       }
