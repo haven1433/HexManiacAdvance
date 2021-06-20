@@ -115,10 +115,10 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                collector.Collect<Ascii>(format, x, 1, asc.ThisCharacter.ToString());
             } else if (format is None none) {
                if (!LightWeightUI) {
-                  if (cell.Value == 0x00) collector.Collect<UnderEdit>(format, x, 1, "00");
+                  if (cell.Value == searchByte) collector.Collect<None>(format, x, 1, cell.Value.ToHexString());
+                  else if (cell.Value == 0x00) collector.Collect<UnderEdit>(format, x, 1, "00");
                   else if (cell.Value == 0xFF) collector.Collect<Undefined>(format, x, 1, "FF");
                   else if (searchByte == -1) collector.Collect<None>(format, x, 1, cell.Value.ToHexString());
-                  else if (cell.Value == searchByte) collector.Collect<None>(format, x, 1, cell.Value.ToHexString());
                   else collector.Collect<UnderEdit>(format, x, 1, cell.Value.ToHexString());
                } else if (cell.Value == 0xB5 && x % 2 == 1) {
                   collector.Collect<Undefined>(format, x - 1, 2, "thumb");
