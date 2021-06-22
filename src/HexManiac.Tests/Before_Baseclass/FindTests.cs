@@ -477,6 +477,21 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.InRange(results.MaximumScroll, 5, 12);
       }
 
+      [Theory]
+      [InlineData("POKéBALL", "POKéBALL")]
+      [InlineData("POKéBALL", "POKeBALL")]
+      [InlineData("POKeBALL", "POKéBALL")]
+      [InlineData("POKeBALL", "POKeBALL")]
+      public void Text_SearchTerm_Find(string text, string searchTerm) {
+         var test = new BaseViewModelTestClass();
+         var bytes = PCSString.Convert(text).ToArray();
+         Array.Copy(bytes, test.Model.RawData, bytes.Length);
+
+         var results = test.ViewPort.Find(searchTerm);
+
+         Assert.Single(results);
+      }
+
       private static StubDataModel SelfEqualStub() {
          var model = new StubDataModel();
          model.Equals = input => input == model;

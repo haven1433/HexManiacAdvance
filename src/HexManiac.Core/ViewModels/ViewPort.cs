@@ -1555,7 +1555,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          // only search for the string if every character in the search string is allowed
          if (pcsBytes.Count != cleanedSearchString.Length) yield break;
 
-         searchBytes.AddRange(pcsBytes.Select(b => new PCSSearchByte(b)));
+         searchBytes.AddRange(pcsBytes.Select(PCSSearchByte.Create));
          var textResults = Model.Search(searchBytes).ToList();
          Model.ConsiderResultsAsTextRuns(history.CurrentChange, textResults);
          foreach (var result in textResults) {
