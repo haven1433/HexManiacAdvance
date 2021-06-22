@@ -139,7 +139,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void ExpandSelection(int x, int y) { }
 
-      public IReadOnlyList<(int start, int end)> Find(string search) => throw new NotImplementedException();
+      public IReadOnlyList<(int start, int end)> Find(string search, bool matchExactCase = false) => throw new NotImplementedException();
 
       public void FindAllSources(int x, int y) { }
 

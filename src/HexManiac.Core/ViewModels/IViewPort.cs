@@ -45,7 +45,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       bool IsSelected(Point point);
       bool IsTable(Point point);
 
-      IReadOnlyList<(int start, int end)> Find(string search);
+      IReadOnlyList<(int start, int end)> Find(string search, bool matchExactCase = false);
       IChildViewPort CreateChildView(int startAddress, int endAddress);
       void FollowLink(int x, int y);
       void ExpandSelection(int x, int y);

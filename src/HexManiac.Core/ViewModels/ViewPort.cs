@@ -1458,14 +1458,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #region Find
 
-      public IReadOnlyList<(int start, int end)> Find(string rawSearch) {
+      public IReadOnlyList<(int start, int end)> Find(string rawSearch, bool matchExactCase = false) {
          var results = new List<(int start, int end)>();
-         var cleanedSearchString = rawSearch.ToUpper();
+         var cleanedSearchString = rawSearch;
+         if (!matchExactCase) cleanedSearchString = rawSearch.ToUpper();
          var searchBytes = new List<ISearchByte>();
 
          // it might be a string with no quotes, we should check for matches for that.
          if (cleanedSearchString.Length > 3 && !cleanedSearchString.Contains(StringDelimeter) && !cleanedSearchString.All(AllHexCharacters.Contains)) {
-            results.AddRange(FindUnquotedText(cleanedSearchString, searchBytes));
+            results.AddRange(FindUnquotedText(cleanedSearchString, searchBytes, matchExactCase));
          }
 
          // it might be a matched-word
@@ -1548,14 +1549,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      private IEnumerable<(int start, int end)> FindUnquotedText(string cleanedSearchString, List<ISearchByte> searchBytes) {
+      private IEnumerable<(int start, int end)> FindUnquotedText(string cleanedSearchString, List<ISearchByte> searchBytes, bool matchExactCase) {
          var pcsBytes = PCSString.Convert(cleanedSearchString);
          pcsBytes.RemoveAt(pcsBytes.Count - 1); // remove the 0xFF that was added, since we're searching for a string segment instead of a whole string.
 
          // only search for the string if every character in the search string is allowed
          if (pcsBytes.Count != cleanedSearchString.Length) yield break;
 
-         searchBytes.AddRange(pcsBytes.Select(PCSSearchByte.Create));
+         searchBytes.AddRange(pcsBytes.Select(b => PCSSearchByte.Create(b, matchExactCase)));
          var textResults = Model.Search(searchBytes).ToList();
          Model.ConsiderResultsAsTextRuns(history.CurrentChange, textResults);
          foreach (var result in textResults) {

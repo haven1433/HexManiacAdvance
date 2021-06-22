@@ -159,7 +159,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void ExpandSelection(int x, int y) => ForEach(child => child.ExpandSelection(x, y));
 
-      public IReadOnlyList<(int start, int end)> Find(string search) => new (int, int)[0];
+      public IReadOnlyList<(int start, int end)> Find(string search, bool matchExactCase = false) => new (int, int)[0];
 
       public void FindAllSources(int x, int y) { }
 

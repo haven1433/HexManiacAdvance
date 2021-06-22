@@ -174,7 +174,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public IChildViewPort CreateChildView(int startAddress, int endAddress) => throw new NotImplementedException();
 
       // if asked to search the search results... just don't
-      public IReadOnlyList<(int, int)> Find(string search) => new (int, int)[0];
+      public IReadOnlyList<(int, int)> Find(string search, bool matchExactCase = false) => new (int, int)[0];
 
       public bool UseCustomHeaders {
          get => children.FirstOrDefault()?.UseCustomHeaders ?? false;

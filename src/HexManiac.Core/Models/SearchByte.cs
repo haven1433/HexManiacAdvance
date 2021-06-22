@@ -24,8 +24,10 @@ namespace HavenSoft.HexManiac.Core.Models {
       private static readonly int CapitalE = PCSString.PCS.IndexOf("E");
       private static readonly int LowerE = PCSString.PCS.IndexOf("e");
       private readonly byte match1, match2;
-      public static ISearchByte Create(byte value) {
-         if (value == CapitalE || value == CapitalEWithAccent || value == LowerE || value == LowerEWithAccent) {
+      public static ISearchByte Create(byte value, bool matchExactCase) {
+         if (matchExactCase) {
+            return new ExactMatchSearchByte(value);
+         } else if (value == CapitalE || value == CapitalEWithAccent || value == LowerE || value == LowerEWithAccent) {
             return MatchESearchByte.Instance;
          } else {
             return new PCSSearchByte(value);
@@ -50,6 +52,12 @@ namespace HavenSoft.HexManiac.Core.Models {
          public static ISearchByte Instance { get; } = new MatchESearchByte();
          private MatchESearchByte() { }
          public bool Match(byte value) => value == CapitalE || value == CapitalEWithAccent || value == LowerE || value == LowerEWithAccent;
+      }
+
+      private class ExactMatchSearchByte : ISearchByte {
+         private byte value;
+         public ExactMatchSearchByte(byte value) => this.value = value;
+         public bool Match(byte value) => value == this.value;
       }
    }
 }

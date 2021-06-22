@@ -12,6 +12,7 @@ namespace HavenSoft.HexManiac.Tests {
    public class FindTests {
       private static Func<int, int, ChildViewPort> CreateCreateChildView(Func<IViewPort> tab) => (start, end) => new ChildViewPort(tab(), InstantDispatch.Instance, BaseViewModelTestClass.Singletons);
       private static ViewPort NewViewPort(IDataModel model) => new ViewPort("test.gba", model, InstantDispatch.Instance, BaseViewModelTestClass.Singletons);
+      private static Func<string, bool, (int, int)[]> DefaultFind(params (int, int)[] results) => (text, matchExactCase) => results;
 
       [Fact]
       public void FindCanFindSingle() {
@@ -45,7 +46,7 @@ namespace HavenSoft.HexManiac.Tests {
          var tab = new StubViewPort();
          var editor = new EditorViewModel(new StubFileSystem()) { tab };
 
-         tab.Find = str => new (int, int)[0];
+         tab.Find = DefaultFind();
          editor.Find.Execute("something");
 
          Assert.True(editor.ShowError);
@@ -58,7 +59,7 @@ namespace HavenSoft.HexManiac.Tests {
          var editor = new EditorViewModel(new StubFileSystem()) { tab };
          string gotoArg = string.Empty;
 
-         tab.Find = str => new[] { (0x54, 0x54) };
+         tab.Find = DefaultFind((0x54, 0x54));
          tab.Goto = new StubCommand { CanExecute = arg => true, Execute = arg => gotoArg = (string)arg };
          editor.Find.Execute("something");
 
@@ -72,7 +73,7 @@ namespace HavenSoft.HexManiac.Tests {
          var editor = new EditorViewModel(new StubFileSystem()) { tab };
          var count = 0;
 
-         tab.Find = str => new[] { (0x54, 0x54), (0x154, 0x154) };
+         tab.Find = DefaultFind((0x54, 0x54), (0x154, 0x154));
          tab.Model = new BasicModel(new byte[0x200]);
          tab.CreateChildView = (int startAddress, int endAddress) => {
             var child = new ChildViewPort(tab, InstantDispatch.Instance, BaseViewModelTestClass.Singletons);
@@ -92,7 +93,7 @@ namespace HavenSoft.HexManiac.Tests {
          int gotoCount = 0;
          StubViewPort tab = null;
          tab = new StubViewPort {
-            Find = str => new[] { (0x54, 0x54), (0x154, 0x154) },
+            Find = DefaultFind((0x54, 0x54), (0x154, 0x154)),
             Model = new BasicModel(new byte[0x200]),
             Goto = new StubCommand { CanExecute = arg => true, Execute = arg => gotoCount++ },
             CreateChildView = (start, end) => new ChildViewPort(tab, InstantDispatch.Instance, BaseViewModelTestClass.Singletons),
@@ -114,7 +115,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void EditorFindNextDoesNotSwitchTabs() {
          StubViewPort tab1 = null;
          tab1 = new StubViewPort {
-            Find = query => new[] { (0x60, 0x60) },
+            Find = DefaultFind((0x60, 0x60)),
             Goto = new StubCommand(),
             Model = new BasicModel(new byte[0x200]),
             CreateChildView = CreateCreateChildView(() => tab1),
@@ -124,7 +125,7 @@ namespace HavenSoft.HexManiac.Tests {
          };
          StubViewPort tab2 = null;
          tab2 = new StubViewPort {
-            Find = query => new[] { (0x50, 0x50), (0x70, 0x70) },
+            Find = DefaultFind((0x50, 0x50), (0x70, 0x70)),
             Goto = new StubCommand(),
             Model = new BasicModel(new byte[0x200]),
             CreateChildView = CreateCreateChildView(() => tab2),
@@ -152,7 +153,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void FindResultsHasHeadersAndGaps() {
          StubViewPort tab = null;
          tab = new StubViewPort {
-            Find = query => new[] { (0x50, 0x50), (0x70, 0x70) },
+            Find = DefaultFind((0x50, 0x50), (0x70, 0x70)),
             Goto = new StubCommand(),
             Model = new BasicModel(new byte[0x200]),
             CreateChildView = CreateCreateChildView(() => tab),
@@ -173,7 +174,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void FindClosesAfterRun() {
          StubViewPort tab = null;
          tab = new StubViewPort {
-            Find = query => new[] { (0x50, 0x50), (0x70, 0x70) },
+            Find = DefaultFind((0x50, 0x50), (0x70, 0x70)),
             Goto = new StubCommand(),
             Model = new BasicModel(new byte[0x200]),
             CreateChildView = CreateCreateChildView(() => tab),
@@ -234,7 +235,7 @@ namespace HavenSoft.HexManiac.Tests {
          var tab1 = new StubTabContent();
          var editor = new EditorViewModel(new StubFileSystem()) { tab0, tab1 };
 
-         tab0.Find = query => new[] { (0x50, 0x50) };
+         tab0.Find = DefaultFind((0x50, 0x50));
          editor.Find.Execute("search");
 
          Assert.Equal(0, editor.SelectedIndex);
@@ -253,7 +254,7 @@ namespace HavenSoft.HexManiac.Tests {
          var editor = new EditorViewModel(new StubFileSystem());
          StubViewPort tab = null;
          tab = new StubViewPort {
-            Find = query => new[] { (0x50, 0x50) },
+            Find = DefaultFind((0x50, 0x50)),
             Goto = new StubCommand(),
             CreateChildView = CreateCreateChildView(() => tab),
             Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
@@ -273,7 +274,7 @@ namespace HavenSoft.HexManiac.Tests {
          var editor = new EditorViewModel(new StubFileSystem());
          StubViewPort tab = null;
          tab = new StubViewPort {
-            Find = query => new[] { (0x50, 0x50), (0x70, 0x70) },
+            Find = DefaultFind((0x50, 0x50), (0x70, 0x70)),
             Goto = new StubCommand(),
             Model = new BasicModel(new byte[0x200]),
             CreateChildView = CreateCreateChildView(() => tab),
@@ -404,7 +405,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void SameModelDoesNotGetSearchedMultipleTimes() {
          int findCalls = 0;
-         IReadOnlyList<(int, int)> Find(string input) {
+         IReadOnlyList<(int, int)> Find(string input, bool matchExactCase = false) {
             findCalls += 1;
             return new List<(int, int)>();
          }
@@ -422,7 +423,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void DifferentModelsAllGetSearched() {
          int findCalls = 0;
-         IReadOnlyList<(int, int)> Find(string input) {
+         IReadOnlyList<(int, int)> Find(string input, bool matchExactCase = false) {
             findCalls += 1;
             return new List<(int, int)>();
          }
