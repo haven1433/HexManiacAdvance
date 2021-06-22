@@ -29,6 +29,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       }
    }
 
+   public class DisabledContextItem : IContextItem {
+      public string Text { get; }
+      public ICommand Command { get; }
+      public object Parameter { get; }
+      public string ShortcutText { get; set; }
+      public DisabledContextItem(string text, object parameter = null) {
+         Text = text;
+         Command = new StubCommand { CanExecute = arg => false, Execute = arg => { } };
+         Parameter = parameter;
+      }
+   }
+
    /// <summary>
    /// Displays a set of contex items inline
    /// </summary>
@@ -136,6 +148,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (ViewPort.Model.GetNextRun(selectionStartAddress) is ITableRun tableRun && tableRun.Start == selectionStartAddress) {
             if (tableRun.Start != ViewPort.DataOffset || tableRun.ElementLength != ViewPort.PreferredWidth) {
                group.Add(new ContextItem("Align Here", ViewPort.Goto.Execute, tableRun.Start));
+            } else {
+               group.Add(new DisabledContextItem("Align Here"));
             }
          }
 
