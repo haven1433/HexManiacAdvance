@@ -255,6 +255,27 @@
             <!-- Find -->
             <StackPanel Name="FindPanel" Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding FindControlVisible, Converter={StaticResource BoolToVisibility}}">
                <TextBlock Text="Find :" Margin="10,0" />
+               <ToggleButton IsChecked="{Binding MatchExactCase}" Content="Aa">
+                  <ToggleButton.ToolTip>
+                     <ToolTip>
+                        <StackPanel>
+                           <TextBlock>Match Exact Case</TextBlock>
+                           <TextBlock FontStyle="Italic">
+                              <TextBlock.Style>
+                                 <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                    <Setter Property="Text" Value="Current off: 'abc' can find 'ABC'"/>
+                                    <Style.Triggers>
+                                       <DataTrigger Binding="{Binding MatchExactCase}" Value="True">
+                                          <Setter Property="Text" Value="Current on: 'abc' will not find 'ABC'"/>
+                                       </DataTrigger>
+                                    </Style.Triggers>
+                                 </Style>
+                              </TextBlock.Style>
+                           </TextBlock>
+                        </StackPanel>
+                     </ToolTip>
+                  </ToggleButton.ToolTip>
+               </ToggleButton>
                <TextBox Name="FindBox" MinWidth="200" IsVisibleChanged="EditBoxVisibilityChanged" Text="{Binding FindText, UpdateSourceTrigger=PropertyChanged}">
                   <TextBox.InputBindings>
                      <KeyBinding Key="Esc" Command="{Binding ShowFind}">
