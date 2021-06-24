@@ -614,6 +614,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
       private StubCommand gotoFreeSpaceStart;
       public ICommand GotoFreeSpaceStart => StubCommand(ref gotoFreeSpaceStart, () => Goto.Execute(Model.FreeSpaceStart));
+      public void FindFreeSpace(IFileSystem fileSystem) {
+         var sizeText = fileSystem.RequestText("Free Space Finder", "How many bytes of freespace do you want to find?");
+         if (sizeText == null) return;
+         if (!int.TryParse(sizeText, out int size)) {
+            RaiseError($"Could not parse {sizeText} as a number");
+            return;
+         }
+         if (size < 1) {
+            RaiseError("Try a number bigger than zero.");
+            return;
+         }
+
+         var start = Model.FindFreeSpace(FreeSpaceStart, size);
+         Goto.Execute(start);
+         SelectionEnd = ConvertAddressToViewPoint(start + size - 1);
+      }
 
       private readonly ToolTray tools;
       public bool HasTools => true;

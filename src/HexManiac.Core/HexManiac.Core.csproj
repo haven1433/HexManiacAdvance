@@ -46,6 +46,7 @@
     <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubComparer`1.cs" />
     <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubDisposable.cs" />
     <Compile Include="ICommandExtensions.cs" />
+    <Compile Include="MethodCommand.cs" />
     <Compile Include="Models\Code\ScriptParser.cs" />
     <Compile Include="Models\Code\ThumbParser.cs" />
     <Compile Include="Models\HardcodeTablesModel.cs" />

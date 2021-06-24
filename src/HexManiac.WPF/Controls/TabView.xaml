@@ -29,6 +29,9 @@
                      </TextBlock>
                   </TextBox.ToolTip>
                </TextBox>
+               <Button Command="{hsv:MethodCommand FindFreeSpace}" CommandParameter="{DynamicResource FileSystem}" ToolTip="Find Free Space">
+                  <Path Data="{hsv:Icon Search}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+               </Button>
             </StackPanel>
             <TextBlock DockPanel.Dock="Left" Text="{Binding SelectedAddress}" MouseRightButtonUp="AddressShowMenu" Margin="10,0,0,0"/>
             <Grid HorizontalAlignment="Right" DockPanel.Dock="Right">

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HavenSoft.HexManiac.Core;
+using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Markup;
@@ -67,6 +68,23 @@ namespace HavenSoft.HexManiac.WPF.Resources {
       public static Geometry GetIcon(string name) {
          var icons = (Icons)Application.Current.FindResource("Icons");
          return (Geometry)icons.FindName(name);
+      }
+   }
+
+   /// <summary>
+   /// Creates a Command from a method on the ViewModel
+   /// </summary>
+   public class MethodCommandExtension : MarkupExtension {
+      public string CommandMethod { get; }
+      public MethodCommandExtension(string methodName) => CommandMethod = methodName;
+      public override object ProvideValue(IServiceProvider serviceProvider) {
+         var valueProvider = serviceProvider.GetService(typeof(IProvideValueTarget)) as IProvideValueTarget;
+         if (valueProvider == null) return null;
+         var element = (FrameworkElement)valueProvider.TargetObject;
+         var context = element.DataContext;
+         var command = new MethodCommand(context, CommandMethod);
+         element.DataContextChanged += (sender, e) => command.Context = element.DataContext;
+         return command;
       }
    }
 }
