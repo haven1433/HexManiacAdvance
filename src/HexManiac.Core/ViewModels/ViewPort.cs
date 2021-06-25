@@ -535,10 +535,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler<Direction> RequestDiff;
 
       private StubCommand diff, diffLeft, diffRight;
-      public ICommand Diff => StubCommand<ITabContent>(ref diff, ExecuteDiff);
+      public ICommand Diff => StubCommand<object>(ref diff, ExecuteDiff);
       public ICommand DiffLeft => StubCommand(ref diffLeft, ExecuteDiffLeft, CanExecuteDiffLeft);
       public ICommand DiffRight => StubCommand(ref diffRight, ExecuteDiffRight, CanExecuteDiffRight);
-      private void ExecuteDiff(ITabContent otherTab) {
+      private void ExecuteDiff(object data) {
+         var args = (ValueTuple<ViewPort, int>)data;
+         var (otherTab, maxSegments) = args;
          if (otherTab == null) {
             var resultsTab = new SearchResultsViewPort("Changes");
             int firstResultStart = 0;
@@ -551,12 +553,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   else break;
                }
                resultsTab.Add(CreateChildView(i, i + length - 1), i, i + length - 1);
+               if (resultsTab.ResultCount >= maxSegments) break;
                if (firstResultLength == 0) (firstResultStart, firstResultLength) = (i, length);
                i += length;
             }
 
             var changeCount = resultsTab.ResultCount;
-            RaiseMessage($"{changeCount} changes found.");
+            var changeCountText = changeCount.ToString();
+            if (changeCount >= maxSegments) changeCountText += "+";
+            RaiseMessage($"{changeCountText} changes found.");
             if (changeCount == 1) {
                Goto.Execute(firstResultStart);
                SelectionEnd = ConvertAddressToViewPoint(firstResultStart + firstResultLength - 1);
@@ -577,10 +582,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                resultsTabA.Add(CreateChildView(i, lastDiff));
                resultsTabB.Add(otherViewPort.CreateChildView(i, lastDiff));
                i = lastDiff + 1;
+               if (resultsTabA.Count >= maxSegments) break;
             }
             var diffTab = new DiffViewPort(resultsTabA, resultsTabB) { Height = Height };
             var changeCount = resultsTabA.Count;
-            RaiseMessage($"{changeCount} changes found.");
+            var changeCountText = changeCount.ToString();
+            if (changeCount >= maxSegments) changeCountText += "+";
+            RaiseMessage($"{changeCountText} changes found.");
             if (changeCount > 0) {
                RequestTabChange?.Invoke(this, diffTab);
             }

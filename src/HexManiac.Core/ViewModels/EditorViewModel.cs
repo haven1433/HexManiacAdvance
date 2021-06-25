@@ -348,6 +348,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      private int maxDiffSegCount = 1000;
+      public int MaximumDiffSegments { get => maxDiffSegCount; set => Set(ref maxDiffSegCount, value.LimitToRange(1, 10000)); }
+
       public IToolTrayViewModel Tools => (SelectedTab as IViewPort)?.Tools;
 
       public IReadOnlyList<IQuickEditItem> QuickEditsPokedex { get; }
@@ -767,7 +770,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          SelectedIndex = left;
-         leftViewPort.Diff.Execute(rightViewPort);
+         leftViewPort.Diff.Execute((Other: rightViewPort, MaxSegments: maxDiffSegCount));
       }
 
       #endregion

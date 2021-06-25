@@ -170,5 +170,17 @@ namespace HavenSoft.HexManiac.Tests {
          var selectedAddress = selectedTab.ConvertViewPointToAddress(selectedTab.SelectionStart);
          Assert.Equal(newSelectionStart, selectedAddress);
       }
+
+      [Fact]
+      public void ManyChanges_Diff_LimitTo1000Changes() {
+         editor.MaximumDiffSegments = 2;
+         Model1[1] = 1;
+         Model1[30] = 1;
+         Model1[60] = 1;
+
+         ViewModel0.DiffRight.Execute();
+
+         Assert.Contains("+", editor.InformationMessage);
+      }
    }
 }
