@@ -155,5 +155,20 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(2, editor.Count);
       }
+
+      [Theory]
+      [InlineData(2, 2, 0, 34)]
+      [InlineData(19, 2, 1, 34)]
+      public void DiffTab_ExpandSelection_GotoInNewTab(int x, int y, int targetTab, int newSelectionStart) {
+         Model1[1] = 1;
+         ViewModel0.DiffRight.Execute();
+
+         ViewModel2.ExpandSelection(x, y);
+
+         Assert.Equal(targetTab, editor.SelectedIndex);
+         var selectedTab = (ViewPort)editor.SelectedTab;
+         var selectedAddress = selectedTab.ConvertViewPointToAddress(selectedTab.SelectionStart);
+         Assert.Equal(newSelectionStart, selectedAddress);
+      }
    }
 }

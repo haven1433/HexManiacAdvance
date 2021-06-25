@@ -137,7 +137,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          throw new NotImplementedException();
       }
 
-      public void ExpandSelection(int x, int y) { }
+      public void ExpandSelection(int x, int y) {
+         if (x < leftWidth) {
+            RequestTabChange(this, left[0].Parent);
+            var (childIndex, childLine) = ConvertLine(y);
+            var child = left[childIndex];
+            var targetAddress = child.DataOffset + child.Width * childLine;
+            left[0].Parent.Goto.Execute(targetAddress + x);
+         } else if (x > leftWidth + 1) {
+            RequestTabChange(this, right[0].Parent);
+            var (childIndex, childLine) = ConvertLine(y);
+            var child = right[childIndex];
+            var targetAddress = child.DataOffset + child.Width * childLine;
+            right[0].Parent.Goto.Execute(targetAddress + x - leftWidth - 1);
+         }
+      }
 
       public IReadOnlyList<(int start, int end)> Find(string search, bool matchExactCase = false) => throw new NotImplementedException();
 
