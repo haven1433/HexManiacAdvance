@@ -570,6 +570,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          } else if (otherTab is IEditableViewPort otherViewPort) {
             IDataModel modelA = Model, modelB = otherViewPort.Model;
+            if (modelA.Count != modelB.Count) {
+               RaiseError("Cannot diff files of different length.");
+               return;
+            }
             var resultsTabA = new List<IChildViewPort>();
             var resultsTabB = new List<IChildViewPort>();
             for (int i = 0; i < modelA.Count && i < modelB.Count; i++) {
@@ -1767,7 +1771,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             child.Height = 1;
          } else {
             child.Goto.Execute(startAddress.ToString("X2"));
-            child.SelectionEnd = child.ConvertAddressToViewPoint(endAddress);
+            var endPoint = child.ConvertAddressToViewPoint(endAddress);
+            if (endPoint.Y > 3) child.Height = endPoint.Y + 1;
+            child.SelectionEnd = endPoint;
          }
 
          return child;

@@ -193,5 +193,24 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(32 + 1 + 32, ViewModel2.Width);
       }
+
+      [Fact]
+      public void DifferentLengthFiles_Diff_Error() {
+         Model1.ExpandData(new ModelDelta(), 0x300);
+
+         ViewModel0.DiffRight.Execute();
+
+         Assert.True(editor.ShowError);
+      }
+
+      [Fact]
+      public void MultipleCloseChanges_Diff_MultipleSections() {
+         for (int i = 0; i < 0x10 * 5; i++) Model1[i] = 1;
+
+         ViewModel0.DiffRight.Execute();
+
+         Assert.All(Enumerable.Range(0, 5),
+            i => Assert.IsNotType<Undefined>(ViewModel2[0, i].Format));
+      }
    }
 }
