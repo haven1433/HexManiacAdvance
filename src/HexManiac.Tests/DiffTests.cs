@@ -20,8 +20,8 @@ namespace HavenSoft.HexManiac.Tests {
          ViewModel1.Height = 16;
       }
 
-      private IViewPort ViewModel0 => (IViewPort)editor[0];
-      private IViewPort ViewModel1 => (IViewPort)editor[1];
+      private IEditableViewPort ViewModel0 => (IEditableViewPort)editor[0];
+      private IEditableViewPort ViewModel1 => (IEditableViewPort)editor[1];
       private IViewPort ViewModel2 => (IViewPort)editor[2];
       private IDataModel Model0 => ViewModel0.Model;
       private IDataModel Model1 => ViewModel1.Model;
@@ -181,6 +181,17 @@ namespace HavenSoft.HexManiac.Tests {
          ViewModel0.DiffRight.Execute();
 
          Assert.Contains("+", editor.InformationMessage);
+      }
+
+      [Fact]
+      public void WideViewPorts_Diff_LimitTotalWidth() {
+         ViewModel0.Edit("^table[a1:: a2:: a3:: a4:: b1:: b2:: b3:: b4:: c1:: c2:: c3:: c4::]2 ");
+         ViewModel1.Edit("^table[a1:: a2:: a3:: a4:: b1:: b2:: b3:: b4:: c1:: c2:: c3:: c4::]2 ");
+         Model1[1] = 1;
+
+         ViewModel0.DiffRight.Execute();
+
+         Assert.Equal(32 + 1 + 32, ViewModel2.Width);
       }
    }
 }

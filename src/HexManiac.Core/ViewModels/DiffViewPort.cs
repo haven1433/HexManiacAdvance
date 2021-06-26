@@ -14,6 +14,7 @@ using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
    public class DiffViewPort : ViewModelCore, IViewPort {
+      public const int MaxInnerTabWIdth = 32;
       private readonly IChildViewPort[] left, right;
       private readonly int leftWidth, rightWidth;
       private readonly List<int> startOfNextSegment;
@@ -24,8 +25,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          left = leftChildren.ToArray();
          right = rightChildren.ToArray();
          Debug.Assert(left.Length == right.Length, "Diff views must have the same number of diff elements on each side!");
-         leftWidth = left.Length == 0 ? 16 : left.Max(child => child.Width);
-         rightWidth = right.Length == 0 ? 16 : right.Max(child => child.Width);
+         leftWidth = left.Length == 0 ? 16 : Math.Min(MaxInnerTabWIdth, left.Max(child => child.Width));
+         rightWidth = right.Length == 0 ? 16 : Math.Min(MaxInnerTabWIdth, right.Max(child => child.Width));
          startOfNextSegment = new List<int>();
          startOfNextSegment.Add(0);
          for (int i = 0; i < Math.Min(left.Length, right.Length); i++) {
