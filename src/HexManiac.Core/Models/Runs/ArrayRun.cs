@@ -972,11 +972,21 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          Debug.Assert(ElementContent[fieldIndex].Length == 1, $"{ElementContent[fieldIndex].Name} is not a byte field.");
          var offset = ElementContent.Take(fieldIndex).Sum(seg => seg.Length);
          foreach (var source in PointerSources) {
+            // ldr rX [pc, XXXXXX]=<address>
             foreach (var load in FindAllLoads(owner, parser, source)) {
+               // add rY, rX <- rY points to a specific element in the table
                foreach (var add in FindAllCommands(owner, parser, load.address + 2, load.register, (line, reg) => line.StartsWith("add ") && line.Contains($", {reg}"))) {
                   var offsetText = $" #{offset}]";
+                  // ldrb rZ, [rY, #offset] <- rZ now holds the specific byte
                   foreach (var ldrb in FindAllCommands(owner, parser, add.address + 2, add.register, (line, reg) => line.StartsWith("ldrb ") && line.Contains($"[{reg}, ") && line.Contains(offsetText))) {
                      results.Add(ldrb.address);
+                  }
+                  // mov rA, #offset
+                  foreach (var mov in FindAllCommands(owner, parser, add.address + 2, null, (line, reg) => line.StartsWith("mov ") && line.Contains($", #{offset}"), recurse: false)) {
+                     // ldrsb rZ, [rY, rA]
+                     if (FindAllCommands(owner, parser, mov.address + 2, add.register, (line, reg) => line.StartsWith("ldrsb ") && line.Contains($"[{reg}, ") && line.Contains($", {mov.register}]")).Any()) {
+                        results.Add(mov.address);
+                     }
                   }
                }
             }
@@ -1017,7 +1027,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       /// <returns>
       /// Returns the address of the command that used the source and the register of the result.
       /// </returns>
-      public static IEnumerable<(int address, string register)> FindAllCommands(IDataModel owner, ThumbParser parser,int startAddress, string registerSource, Func<string, string, bool> predicate, IReadOnlyList<int> callTrail = null) {
+      public static IEnumerable<(int address, string register)> FindAllCommands(IDataModel owner, ThumbParser parser,int startAddress, string registerSource, Func<string, string, bool> predicate, IReadOnlyList<int> callTrail = null, bool recurse = true) {
          callTrail = callTrail ?? new List<int>();
          if (callTrail.Contains(startAddress)) yield break;
          if (callTrail.Count > 4) yield break; // only allow so many mov / branch operations before we lose interest. This keeps the routine fast.
@@ -1029,7 +1039,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (commandLine.StartsWith("pop ") && commandLine.Contains("pc")) break;
 
             // follow branch logic (avoid recursion)
-            if (commandLine.StartsWith("b") && !commandLine.StartsWith("bic ")) {
+            if (recurse && commandLine.StartsWith("b") && !commandLine.StartsWith("bic ")) {
                var destination = commandLine.Split('<').Last().Split('>').First();
                if (destination.Length < 8 && destination.All(ViewPort.AllHexCharacters.Contains)) {
                   var nextStart = int.Parse(destination, NumberStyles.HexNumber);
@@ -1048,12 +1058,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var register = commandLine.Split(',').First().Split(' ').Last();
 
             // follow move operations
-            if (commandLine.StartsWith("mov ") && commandLine.EndsWith(registerSource)) {
+            if (recurse && registerSource != null && commandLine.StartsWith("mov ") && commandLine.EndsWith(registerSource)) {
                foreach (var result in FindAllCommands(owner, parser, i + 2, register, predicate, callTrail)) yield return result;
             }
 
             // look for the actual instruction we care about
-            if (commandLine.Contains(registerSource) && predicate(commandLine, registerSource)) yield return (i, register);
+            if ((registerSource == null || commandLine.Contains(registerSource)) && predicate(commandLine, registerSource)) yield return (i, register);
             if (register == registerSource) break;
             prevCommandIsCmp = commandLine.StartsWith("cmp ");
          }

@@ -113,6 +113,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
             return result;
          }
 
+         // effect. power. type. accuracy. pp. effectAccuracy. target. priority. info. unused. unused:
          ErrorInfo error;
          error = await shiftField(8); if (error.HasError) return error;
          error = await shiftField(7); if (error.HasError) return error;
@@ -166,12 +167,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          if (error.HasError) return new ErrorInfo($"Failed to create a table from new format {format}: {error.ErrorMessage}.");
 
          // update code
-         var writer = new TupleSegment(default, 5);
-         var allChanges = new List<string>();
+         var ldrbWriter = new TupleSegment(default, 5);
          foreach (var address in table.FindAllByteReads(parser, oldFieldIndex)) {
-            allChanges.Add(address.ToAddress());
-            // ldrb rd, [rn, #]: 01111 # rn rd
-            writer.Write(model, token, address, 6, newOffset);
+            var instructionOpCode = model[address + 1] >> 3;
+            if (instructionOpCode == 0b01111) {
+               // ldrb rd, [rn, #]: 01111 # rn rd
+               ldrbWriter.Write(model, token, address, 6, newOffset);
+            } else if (instructionOpCode == 0b00100) {
+               // mov  rd, #: 00100 rd #
+               model[address] = (byte)newOffset;
+            }
          }
 
          // update table contents
