@@ -1027,7 +1027,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       /// <returns>
       /// Returns the address of the command that used the source and the register of the result.
       /// </returns>
-      public static IEnumerable<(int address, string register)> FindAllCommands(IDataModel owner, ThumbParser parser,int startAddress, string registerSource, Func<string, string, bool> predicate, IReadOnlyList<int> callTrail = null, bool recurse = true) {
+      public static IEnumerable<(int address, string register)> FindAllCommands(IDataModel owner, ThumbParser parser, int startAddress, string registerSource, Func<string, string, bool> predicate, IReadOnlyList<int> callTrail = null, bool recurse = true) {
          callTrail = callTrail ?? new List<int>();
          if (callTrail.Contains(startAddress)) yield break;
          if (callTrail.Count > 4) yield break; // only allow so many mov / branch operations before we lose interest. This keeps the routine fast.
@@ -1035,6 +1035,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          bool prevCommandIsCmp = false;
          for (int i = startAddress; true; i += 2) {
             var commandLine = parser.Parse(owner, i, 2).Trim().SplitLines().Last().Trim();
+            if (commandLine.Length == 4 && commandLine.All(ViewPort.AllHexCharacters.Contains)) break; // not a valid command
             if (commandLine.StartsWith("bx ")) break;
             if (commandLine.StartsWith("pop ") && commandLine.Contains("pc")) break;
 
