@@ -166,6 +166,17 @@ BPGE0.scripts.battle.badge.boost 014E2C,014F14,03EE36,03EE68,03EE9E,03EED6
 BPGE1.scripts.battle.badge.boost 014E40,014F28,03EE4A,03EE7C,03EEB2,03EEEA
 BPEE0.scripts.battle.badge.boost 03D064,03D150,0696B6,0696D2,0696F4,069716
 
+# lucky egg exp boost
+AXVE0.scripts.lucky.egg.exp.boost 0203AC
+AXVE1.scripts.lucky.egg.exp.boost 0203AC
+AXPE0.scripts.lucky.egg.exp.boost 0203AC
+AXPE1.scripts.lucky.egg.exp.boost 0203AC
+BPRE0.scripts.lucky.egg.exp.boost 021DC2
+BRPE1.scripts.lucky.egg.exp.boost 021DD6
+BRGE0.scripts.lucky.egg.exp.boost 021DC2
+BRGE1.scripts.lucky.egg.exp.boost 021DD6
+BPEE0.scripts.lucky.egg.exp.boost 04A682
+
 # Exp Boost %, normally 150%
 AXVE0.scripts.battle.trade.exp.boost 0203D6
 AXVE1.scripts.battle.trade.exp.boost 0203D6
