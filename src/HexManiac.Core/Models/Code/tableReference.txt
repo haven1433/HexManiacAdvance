@@ -183,7 +183,7 @@ data.trainers.trainertower.trainers,   ,,,, 15DD24, 15DD00, 15DD9C, 15DD78, , [t
 data.trainers.trainerhill.prizelist,   ,,,, ,,,, 1D6718, [prizelist<[prizeoptions<[prize:data.items.stats]6>]10>]2
 data.battlefrontier.items,             ,,,, ,,,, 163440, [item:data.items.stats]63
 data.battlefrontier.trainerclass,      ,,,, ,,,, 068C10, [class.data.trainers.classes.names]82
-data.battlefrontier.pokemon,           ,,,, ,,,, 165C80, [species:data.pokemon.names move1:data.pokemon.moves.names move2:data.pokemon.moves.names move3:data.pokemon.moves.names move4:data.pokemon.moves.names item.data.battlefrontier.items iv|b[]battletowerEvFlags nature::data.pokemon.natures.names]882
+data.battlefrontier.pokemon,           ,,,, ,,,, 165C80, [species:data.pokemon.names move1:data.pokemon.moves.names move2:data.pokemon.moves.names move3:data.pokemon.moves.names move4:data.pokemon.moves.names item.data.battlefrontier.items ev|b[]battletowerEvFlags nature::data.pokemon.natures.names]882
 data.battlefrontier.trainers,          ,,,, ,,,, 165C78, [facilityclass::data.battlefrontier.trainerclass trainername""8 before1:|h before2:|h before3:|h before4:|h before5:|h before6:|h win1:|h win2:|h win3:|h win4:|h win5:|h win6:|h lose1:|h lose2:|h lose3:|h lose4:|h lose5:|h lose6:|h teamoptions<[pokemon:data.battlefrontier.pokemon]!FFFF>]300
 
 graphics.trainercard.frontier.sprite,      ,,,, ,,,, 0C55CC, `lzs8x16x14|graphics.trainercard.frontier.palette`
