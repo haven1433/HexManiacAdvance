@@ -482,6 +482,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (lastUpdateCheckLine != null && DateTime.TryParse(lastUpdateCheckLine.Split('=').Last().Trim(), out var lastUpdateCheck)) LastUpdateCheck = lastUpdateCheck;
          var zoomLine = metadata.FirstOrDefault(line => line.StartsWith("ZoomLevel ="));
          if (zoomLine != null && int.TryParse(zoomLine.Split('=').Last().Trim(), out var zoomLevel)) ZoomLevel = zoomLevel;
+         var maxDiffLine = metadata.FirstOrDefault(line => line.StartsWith("MaximumDiffSegments = "));
+         if (maxDiffLine != null && int.TryParse(maxDiffLine.Split('=').Last().Trim(), out var maxDiffs)) MaximumDiffSegments = maxDiffs;
 
          var recentFilesLine = metadata.FirstOrDefault(line => line.StartsWith("RecentFiles = ["));
          if (recentFilesLine != null) {
@@ -505,6 +507,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             $"AllowSingleTableMode = {AllowSingleTableMode}",
             $"ShowMatrixGrid = {ShowMatrix}",
             $"ZoomLevel = {ZoomLevel}",
+            $"MaximumDiffSegments = {MaximumDiffSegments}",
             $"AnimateScroll = {AnimateScroll}",
             $"AutoAdjustDataWidth = {AutoAdjustDataWidth}",
             $"StretchData = {StretchData}",
