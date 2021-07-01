@@ -260,7 +260,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             Content = new StackPanel {
                Orientation = Orientation.Vertical,
                Children = {
-                  new TextBlock { Text = message, Margin = new Thickness(15, 20, 15, 20) },
+                  new TextBlock { Text = message, Margin = new Thickness(15, 20, 15, 20), TextWrapping = TextWrapping.Wrap },
                   choices,
                }
             }.Fluent(sp => {
