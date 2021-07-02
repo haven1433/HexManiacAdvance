@@ -326,7 +326,7 @@ namespace HavenSoft.HexManiac.Tests {
          var view = new StubView(vm);
          Assert.Equal(0, vm.ZIndex);
 
-         vm.GetAutoCompleteOptions(string.Empty, 0, 0);
+         vm.GetAutoCompleteOptions("o", 0, 0);
          Assert.Equal(1, vm.ZIndex);
 
          vm.ClearAutocomplete();
