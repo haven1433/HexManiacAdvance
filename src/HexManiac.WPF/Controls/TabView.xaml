@@ -374,6 +374,9 @@
                                        <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
                                     </Button>
                                  </Grid>
+                                 <TextBlock Foreground="{DynamicResource Error}" TextWrapping="Wrap"
+                                    Text="{Binding ErrorText}"
+                                    Visibility="{Binding IsInError, Converter={StaticResource BoolToVisibility}}"/>
                                  <ItemsControl ItemsSource="{Binding}">
                                     <ItemsControl.ContextMenu>
                                        <ContextMenu>

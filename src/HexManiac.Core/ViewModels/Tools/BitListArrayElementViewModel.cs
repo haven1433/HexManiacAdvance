@@ -93,9 +93,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          // get all the bits of this segment and turn them into BitElements
          var optionSource = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, bitSegment.SourceArrayName);
          var bits = model.ReadMultiByteValue(start, bitSegment.Length);
-         var names = bitSegment.GetOptions(model)?.ToArray() ?? new string[0];
-         Debug.Assert(names.Length > 0, "The user is using a source for a bit array that either doesn't exist or has no length. This is probably not what the user wanted.");
-         for (int i = 0; i < names.Length; i++) {
+         var names = bitSegment.GetOptions(model)?.ToList() ?? new List<string>();
+
+         if (names.Count == 0) {
+            ErrorText = $"Trying to use {bitSegment.SourceArrayName} for a bit-source, but it doesn't exist or has no length.";
+            names.Add("UNKNOWN");
+         } else {
+            ErrorText = string.Empty;
+         }
+
+         for (int i = 0; i < names.Count; i++) {
             var element = new BitElement { BitLabel = names[i] };
             children.Add(element);
             element.PropertyChanged += ChildChanged;
@@ -199,6 +206,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          start = bitList.start;
          Visible = other.Visible;
+         if (ErrorText != other.ErrorText) {
+            ErrorText = other.ErrorText;
+            NotifyPropertyChanged(nameof(ErrorText));
+            NotifyPropertyChanged(nameof(IsInError));
+         }
          for (int i = 0; i < children.Count; i++) {
             children[i].PropertyChanged -= ChildChanged;
             children[i].IsChecked = bitList.children[i].IsChecked;
