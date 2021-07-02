@@ -161,7 +161,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void FollowLink(int x, int y) { }
 
       public IReadOnlyList<IContextItem> GetContextMenuItems(Point point) {
-         throw new NotImplementedException();
+         return Array.Empty<IContextItem>();
       }
 
       public bool IsSelected(Point point) {

@@ -212,5 +212,15 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.All(Enumerable.Range(0, 5),
             i => Assert.IsNotType<Undefined>(ViewModel2[0, i].Format));
       }
+
+      [Fact]
+      public void Diff_ContextMenu_NoCrash() {
+         Model1[1] = 1;
+         ViewModel0.DiffRight.Execute();
+
+         ViewModel2.GetContextMenuItems(new Point(0, 0));
+
+         // no throw -> pass
+      }
    }
 }
