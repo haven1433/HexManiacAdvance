@@ -526,5 +526,17 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.False(Model.TryGetUnmappedConstant("bob", out var _));
       }
+
+      [Fact]
+      public void EditingNumberCellOnBottomRow_SelectDown_CompleteCurrentChange() {
+         ViewPort.Edit("@0F0 ^table[a:: b:: c:: d::]1 @000 "); // make a table
+         ViewPort.SelectionStart = new Point(0, 15); // select bottom row
+         ViewPort.Edit("3");                         // start an edit
+
+         ViewPort.MoveSelectionStart.Execute(Direction.Down); // scroll down
+
+         var table = Model.GetTable("table");
+         Assert.Equal(3, Model[table.Start]);
+      }
    }
 }

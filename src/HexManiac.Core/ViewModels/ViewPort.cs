@@ -121,6 +121,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void ScrollPropertyChanged(object sender, PropertyChangedEventArgs e) {
          if (e.PropertyName == nameof(scroll.DataIndex)) {
+            ClearActiveEditBeforeSelectionChanges(selection, selection.SelectionStart);
             RefreshBackingData();
             if (e is ExtendedPropertyChangedEventArgs<int> ex) {
                var previous = ex.OldValue;
@@ -2197,6 +2198,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   if (completeEditOperation.ErrorText != null) OnError?.Invoke(this, completeEditOperation.ErrorText);
 
                   // refresh the screen
+                  RefreshBackingData(point);
                   if (!SilentScroll(completeEditOperation.NewDataIndex) && completeEditOperation.NewCell == null) {
                      RefreshBackingData();
                   }
@@ -2326,6 +2328,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var errorInfo = Model.CompleteArrayExtension(history.CurrentChange, 1, ref arrayRun);
             if (!errorInfo.HasError || errorInfo.IsWarning) {
                if (arrayRun != null && arrayRun.Start != originalArray.Start) {
+                  // refresh first to clear any active edit cells
+                  RefreshBackingData(point);
                   ScrollFromTableMove(dataIndex, originalArray, arrayRun);
                }
                RefreshBackingData();
