@@ -33,7 +33,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public const char DirectiveMarker = '.'; // for things like .thumb, .align, etc. Directives always start with a single dot and contain no further dots until they contain a space.
       public const char CommandMarker = '!'; // commands are meta, so they also start with the goto marker.
       public const char CommentStart = '#';
-      public const int CopyLimit = 40000;
 
       private static readonly NotifyCollectionChangedEventArgs ResetArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
       private readonly StubCommand
@@ -838,8 +837,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
             var left = Math.Min(selectionStart, selectionEnd);
             var length = Math.Abs(selectionEnd - selectionStart) + 1;
-            if (length > CopyLimit) {
-               OnError?.Invoke(this, $"Cannot copy more than {CopyLimit} bytes at once!");
+            if (length > Singletons.CopyLimit) {
+               OnError?.Invoke(this, $"Cannot copy more than {Singletons.CopyLimit} bytes at once!");
             } else {
                bool usedHistory = false;
                if (left + length > Model.Count) {
@@ -952,8 +951,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
          var left = Math.Min(selectionStart, selectionEnd);
          var length = Math.Abs(selectionEnd - selectionStart) + 1;
-         if (length > CopyLimit) {
-            OnError?.Invoke(this, $"Cannot copy more than {CopyLimit} bytes at once!");
+         if (length > Singletons.CopyLimit) {
+            OnError?.Invoke(this, $"Cannot copy more than {Singletons.CopyLimit} bytes at once!");
          } else {
             bool usedHistory = false;
             fileSystem.CopyText = Model.Copy(() => { usedHistory = true; return history.CurrentChange; }, left, length, deep: true);

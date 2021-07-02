@@ -31,8 +31,9 @@ namespace HavenSoft.HexManiac.Core.Models {
       public IReadOnlyList<ScriptLine> BattleScriptLines { get; }
       public IReadOnlyList<ScriptLine> AnimationScriptLines { get; }
       public IWorkDispatcher WorkDispatcher { get; }
+      public int CopyLimit { get; }
 
-      public Singletons(IWorkDispatcher dispatcher = null) {
+      public Singletons(IWorkDispatcher dispatcher = null, int copyLimit = 40000) {
          MetadataInfo = new MetadataInfo();
          GameReferenceTables = CreateGameReferenceTables();
          GameReferenceConstants = CreateGameReferenceConstants();
@@ -41,12 +42,14 @@ namespace HavenSoft.HexManiac.Core.Models {
          BattleScriptLines = LoadScriptReference<BSEScriptLine>(BattleScriptReferenceFileName);
          AnimationScriptLines = LoadScriptReference<ASEScriptLine>(AnimationScriptReferenceFileName);
          WorkDispatcher = dispatcher ?? InstantDispatch.Instance;
+         CopyLimit = copyLimit;
       }
 
-      public Singletons(IMetadataInfo metadataInfo, IReadOnlyDictionary<string, GameReferenceTables> gameReferenceTables) {
+      public Singletons(IMetadataInfo metadataInfo, IReadOnlyDictionary<string, GameReferenceTables> gameReferenceTables, int copyLimit = 40000) {
          MetadataInfo = metadataInfo;
          GameReferenceTables = gameReferenceTables;
          WorkDispatcher = InstantDispatch.Instance;
+         CopyLimit = copyLimit;
       }
 
       private IReadOnlyList<ScriptLine> LoadScriptReference<TLine>(string file) where TLine : ScriptLine {

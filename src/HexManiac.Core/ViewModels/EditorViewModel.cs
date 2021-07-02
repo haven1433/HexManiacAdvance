@@ -402,7 +402,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public EditorViewModel(IFileSystem fileSystem, IWorkDispatcher workDispatcher = null, bool allowLoadingMetadata = true, IReadOnlyList<IQuickEditItem> utilities = null) {
          this.fileSystem = fileSystem;
-         Singletons = new Singletons(workDispatcher);
+
+         var metadata = fileSystem.MetadataFor(ApplicationName) ?? new string[0];
+         var copyLimitLine = metadata.FirstOrDefault(line => line.StartsWith("CopyLimit = "));
+         if (copyLimitLine == null || !int.TryParse(copyLimitLine.Split('=').Last().Trim(), out var copyLimit)) copyLimit = 40000;
+         Singletons = new Singletons(workDispatcher, copyLimit);
+
          this.workDispatcher = workDispatcher ?? InstantDispatch.Instance;
          this.allowLoadingMetadata = allowLoadingMetadata;
          QuickEditsPokedex = utilities ?? new List<IQuickEditItem> {
@@ -466,7 +471,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             { tab => (tab as ViewPort)?.Shortcuts.DisplayAsColorPalette, (sender, e) => displayAsColorPalette.RaiseCanExecuteChanged() },
          };
 
-         var metadata = fileSystem.MetadataFor(ApplicationName) ?? new string[0];
          Theme = new Theme(metadata);
          LogAppStartupProgress = metadata.Contains("LogAppStartupProgress = True");
          UseTableEntryHeaders = !metadata.Contains("UseTableEntryHeaders = False");
@@ -508,6 +512,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             $"ShowMatrixGrid = {ShowMatrix}",
             $"ZoomLevel = {ZoomLevel}",
             $"MaximumDiffSegments = {MaximumDiffSegments}",
+            $"CopyLimit = {Singletons.CopyLimit}",
             $"AnimateScroll = {AnimateScroll}",
             $"AutoAdjustDataWidth = {AutoAdjustDataWidth}",
             $"StretchData = {StretchData}",
