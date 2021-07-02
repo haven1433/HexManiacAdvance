@@ -265,6 +265,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
 
          var results = new List<AutocompleteItem>();
+         if (line.Trim().Length == 0) return results;
          var lineStart = line.Substring(0, caretCharacterIndex);
          var lineEnd = line.Substring(caretCharacterIndex);
          var tokens = Tokenize(lineStart);
