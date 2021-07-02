@@ -440,7 +440,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                      Debug.Assert(run.Start == source, $"{runs[i].Start:X6}{pointerSourceName} expects a pointer at {source:X6}, but the next pointer was found at {run.Start:X6}.");
                      Debug.Assert(ReadPointer(source) == runs[i].Start, $"Expected {source:X6} to point to {runs[i].Start:X6}{pointerSourceName}");
                   } else if (run is ITableRun) {
-                     Debug.Assert(run.Start <= source);
+                     Debug.Assert(run.Start <= source, $"The run at {runs[i].Start:X6} expects a pointer at {source:X6}, but found a table at {run.Start:X6}.");
                      Debug.Assert(ReadPointer(source) == runs[i].Start);
                   } else {
                      Debug.Fail($"Pointer must be a {nameof(PointerRun)} or live within an {nameof(ITableRun)}");

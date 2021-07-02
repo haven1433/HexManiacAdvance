@@ -78,7 +78,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                } else {
                   IFormattedRun run = destinationRun;
                   hasError = destinationRun.Start != destination;
-                  if (currentSegment is ArrayRunPointerSegment pointerSegment) {
+                  // if the run isn't a ITableRun, parse the data to see if it's valid
+                  // if it _is_ an ITableRun, skip this step
+                  if (currentSegment is ArrayRunPointerSegment pointerSegment && !(run is ITableRun)) {
                      hasError |= FormatRunFactory.GetStrategy(pointerSegment.InnerFormat).TryParseData(data, string.Empty, destination, ref run).HasError;
                   }
                }

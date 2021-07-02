@@ -80,7 +80,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return null;
       }
 
-      public TableStreamRun(IDataModel model, int start, SortedSpan<int> sources, string formatString, IReadOnlyList<ArrayRunElementSegment> parsedSegments, IStreamEndStrategy endStream) : base(start, sources) {
+      public TableStreamRun(
+         IDataModel model,
+         int start,
+         SortedSpan<int> sources,
+         string formatString,
+         IReadOnlyList<ArrayRunElementSegment> parsedSegments,
+         IStreamEndStrategy endStream
+      ) : base(start, sources) {
          if (parsedSegments == null) parsedSegments = ArrayRun.ParseSegments(formatString.Substring(1, formatString.Length - 2), model);
          this.model = model;
          ElementContent = parsedSegments;
@@ -121,7 +128,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return format;
       }
 
-      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new TableStreamRun(model, Start, newPointerSources, FormatString, ElementContent, endStream);
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) =>
+         new TableStreamRun(model, Start, newPointerSources, FormatString, ElementContent, endStream);
 
       #endregion
 
