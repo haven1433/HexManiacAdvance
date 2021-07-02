@@ -145,6 +145,8 @@ scripts.moves.effects,                 0146E4, 0146E4, 0146E4, 0146E4, 016364, 0
 scripts.specials.thumb,                0658B4, 0658B8, 0658D4, 0658D8, 069F18, 069F18, 069F2C, 069F2C, 099314, [code<>]
 scripts.battle.thumb,                  012F34, 012F34, 012F34, 012F34, 014C1C, 014C1C, 014C30, 014C30,       , [code<>]248
 scripts.battle.thumb,                        ,       ,       ,       ,       ,       ,       ,       , 03CD94, [code<>]249
+scripts.battle.ai.thumb,               1073FC, 1073FC, 10741C, 10741C, 0C70E0, 0C70B4, 0C70F4, 0C70C8,       , [command<>]94
+scripts.battle.ai.thumb,                     ,       ,       ,       ,       ,       ,       ,       , 130FF0, [command<>]99
 scripts.newgame.setflags,              052F58, 052F58, 052F78, 052F78, 054B6C, 054B6C, 054B80, 054B80, 0845C8, `xse`
 scripts.newgame.pc.item,               139C70, 139C70, 139C90, 139C90, 0EB6A8, 0EB680, 0EB6BC, 0EB694, 16AE54, [item:data.items.stats count:]!00000000
 scripts.credits.panmap,                                           ,,,, 0F3BC0, 0F3B98, 0F3C38, 0F3C10,       , [data<[loadmapCommand: bank: map:: x: y: delay:: xspeed: yspeed: length:: end1Command: end2Command: end3Command::]1>]13
