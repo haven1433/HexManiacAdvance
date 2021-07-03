@@ -441,9 +441,13 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       private void DeveloperRenderRomOverview(object sender, RoutedEventArgs e) {
          var tab = (ViewPort)ViewModel.SelectedTab;
          var model = tab.Model;
-         const int BlockSize = 64, BlockCount = 16, BytesPerPixel = 16;
-         var imageWidth = BlockSize * BlockCount + (BlockCount - 1);
-         var imageData = new int[imageWidth * imageWidth];
+         int BlockSize = 64, BlockWidth = 16, BlockHeight = 16, BytesPerPixel = 16;
+         if (model.Count == 0x2000000) {
+            BlockWidth = 32;
+         }
+         var imageWidth = BlockSize * BlockWidth + (BlockWidth - 1);
+         var imageHeight = BlockSize * BlockHeight + (BlockHeight - 1);
+         var imageData = new int[imageWidth * imageHeight];
          var backlight = Color(nameof(Theme.Backlight));
          var accent = Color(nameof(Theme.Accent));
          var secondary = Color(nameof(Theme.Secondary));
@@ -451,9 +455,9 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          var data2 = Color(nameof(Theme.Data2));
          var text2 = Color(nameof(Theme.Text2));
 
-         Parallel.For(0, BlockCount * BlockCount, i => {
-            var blockXStart = (BlockSize + 1) * (i % BlockCount);
-            var blockYStart = (BlockSize + 1) * (i / BlockCount);
+         Parallel.For(0, BlockWidth * BlockHeight, i => {
+            var blockXStart = (BlockSize + 1) * (i % BlockWidth);
+            var blockYStart = (BlockSize + 1) * (i / BlockWidth);
             var blockStart = blockYStart * imageWidth + blockXStart;
             for (int j = 0; j < BlockSize * BlockSize * BytesPerPixel; j += BytesPerPixel) {
                var blockOffsetX = (j / BytesPerPixel) % BlockSize;
@@ -480,7 +484,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             }
          });
 
-         var source = BitmapSource.Create(imageWidth, imageWidth, 96, 96, PixelFormats.Bgra32, null, imageData, imageWidth * 4);
+         var source = BitmapSource.Create(imageWidth, imageHeight, 96, 96, PixelFormats.Bgra32, null, imageData, imageWidth * 4);
          var window = new Window {
             Title = tab.Name,
             Background = (Brush)Application.Current.Resources.MergedDictionaries[0][nameof(Theme.Background)],
