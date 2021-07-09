@@ -161,7 +161,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void FollowLink(int x, int y) { }
 
       public IReadOnlyList<IContextItem> GetContextMenuItems(Point point) {
-         return Array.Empty<IContextItem>();
+         var results = new List<IContextItem>();
+         results.Add(new ContextItem("Copy Address", arg => {
+            var fileSystem = (IFileSystem)arg;
+            var (childIndex, childLine) = ConvertLine(point.Y);
+            var address = left[childIndex].DataOffset + childLine * left[childIndex].Width + point.X;
+            if (point.X > leftWidth) address = right[childIndex].DataOffset + childLine * right[childIndex].Width + point.X - leftWidth - 1;
+            fileSystem.CopyText = address.ToAddress();
+         }));
+         return results;
       }
 
       public bool IsSelected(Point point) {

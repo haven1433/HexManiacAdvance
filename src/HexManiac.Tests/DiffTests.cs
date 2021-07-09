@@ -214,13 +214,14 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
-      public void Diff_ContextMenu_NoCrash() {
+      public void Diff_ContextMenu_HasCopyAddress() {
          Model1[1] = 1;
          ViewModel0.DiffRight.Execute();
 
-         ViewModel2.GetContextMenuItems(new Point(0, 0));
+         var items = ViewModel2.GetContextMenuItems(new Point(0, 0));
+         var itemText = items.Select(item => item.Text).ToList();
 
-         // no throw -> pass
+         Assert.Single(itemText, "Copy Address");
       }
    }
 }
