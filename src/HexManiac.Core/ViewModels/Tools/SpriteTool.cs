@@ -894,7 +894,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          // figure out the new palettes, using only the usable palettes. Leave the other palettes alone.
          var palettes = paletteRun?.Pages.Range().Select(i => paletteRun.GetPalette(model, i)).ToArray();
-         if (palettes != null) {
+         if (palettes != null && usablePalPages.All(upp => palettes.Length > upp)) {
             var newPalettes = usablePalPages.Select(i => palettes[i]).ToArray();
             newPalettes = DiscoverPalettes(allTiles.ToArray(), paletteRun?.PaletteFormat.Bits ?? 1, expectedPalettePages, newPalettes);
             for (int i = 0; i < usablePalPages.Count; i++) palettes[usablePalPages[i]] = newPalettes[usablePalPages[i]];
