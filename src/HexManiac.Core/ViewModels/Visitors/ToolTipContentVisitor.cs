@@ -102,8 +102,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          using (ModelCacheScope.CreateScope(model)) {
             var table = (ITableRun)model.GetNextRun(array.Source);
             var offset = table.ConvertByteOffsetToArrayOffset(array.Source);
-            var segment = (ArrayRunBitArraySegment)table.ElementContent[offset.SegmentIndex];
-            var options = segment.GetOptions(model)?.ToList();
+            var segment = table.ElementContent[offset.SegmentIndex] as ArrayRunBitArraySegment;
+            var options = segment?.GetOptions(model)?.ToList();
             if (options == null) return;
 
             for (int i = 0; i < array.Length; i++) {
