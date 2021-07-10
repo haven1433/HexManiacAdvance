@@ -162,7 +162,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                unmappedConstants.Add(unmappedConstant.Name, unmappedConstant.Value);
             }
 
-            if (metadata.FreeSpaceSearch >= 0) FreeSpaceStart = Math.Min(RawData.Length - 1, metadata.FreeSpaceSearch);
+            this.LoadMetadataProperties(metadata);
 
             if (!metadata.IsEmpty && StoredMetadata.NeedVersionUpdate(metadata.Version, singletons?.MetadataInfo.VersionNumber ?? "0")) {
                var gameCode = this.GetGameCode();
