@@ -28,7 +28,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          run = runAttempt;
       }
       public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
-         run = new TrainerPokemonTeamRun(model, dataIndex, run.PointerSources);
+         var pointerSources = run.PointerSources;
+         if (pointerSources == null || pointerSources.Count == 0) {
+            pointerSources = model.GetUnmappedSourcesToAnchor(name);
+         }
+         if (pointerSources.Count == 0) {
+            return new ErrorInfo("Cannot create trainer team without a pointer from trainer data.");
+         }
+         run = new TrainerPokemonTeamRun(model, dataIndex, pointerSources);
          return ErrorInfo.NoError;
       }
    }
