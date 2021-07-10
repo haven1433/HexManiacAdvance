@@ -1034,10 +1034,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (callTrail.Contains(startAddress)) yield break;
          if (callTrail.Count > 4) yield break; // only allow so many mov / branch operations before we lose interest. This keeps the routine fast.
          var newTrail = callTrail.Concat(new[] { startAddress }).ToList();
-         bool prevCommandIsCmp = false;
+         bool prevCommandIsCmp = false, prevCommandIsBl = false;
          for (int i = startAddress; true; i += 2) {
             var commandLine = parser.Parse(owner, i, 2).Trim().SplitLines().Last().Trim();
-            if (commandLine.Length == 4 && commandLine.All(ViewPort.AllHexCharacters.Contains)) break; // not a valid command
+            if (!prevCommandIsBl && commandLine.Length == 4 && commandLine.All(ViewPort.AllHexCharacters.Contains)) break; // not a valid command
             if (commandLine.StartsWith("bx ")) break;
             if (commandLine.StartsWith("pop ") && commandLine.Contains("pc")) break;
 
@@ -1069,6 +1069,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if ((registerSource == null || commandLine.Contains(registerSource)) && predicate(commandLine, registerSource)) yield return (i, register);
             if (register == registerSource) break;
             prevCommandIsCmp = commandLine.StartsWith("cmp ");
+            prevCommandIsBl = commandLine.StartsWith("bl ");
          }
       }
 
