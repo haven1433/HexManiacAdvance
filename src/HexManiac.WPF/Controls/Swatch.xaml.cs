@@ -115,6 +115,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var screenimage = CaptureDesktop();
          int stride = (screenimage.PixelWidth * screenimage.Format.BitsPerPixel + 7) / 8;
          var pixels = new byte[4];
+         point.X = point.X.LimitToRange(0, screenimage.PixelWidth - 1);
+         point.Y = point.Y.LimitToRange(0, screenimage.PixelHeight - 1);
          screenimage.CopyPixels(new Int32Rect(point.X, point.Y, 1, 1), pixels, stride, 0);
          return Color.FromRgb(pixels[2], pixels[1], pixels[0]);
       }
@@ -167,6 +169,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          IntPtr targetDC = IntPtr.Zero;
          IntPtr compatibleBitmapHandle = IntPtr.Zero;
          BitmapSource bitmap = null;
+
+         PresentationSource source = PresentationSource.FromVisual(Application.Current.MainWindow);
+         if (source != null) {
+            var dpiScale = source.CompositionTarget.TransformToDevice.M11;
+            width = (int)(width * dpiScale);
+            height = (int)(height * dpiScale);
+         }
 
          try {
             // gets the main desktop and all open windows
