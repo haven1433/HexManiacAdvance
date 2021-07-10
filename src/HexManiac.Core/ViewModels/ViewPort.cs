@@ -539,8 +539,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand DiffLeft => StubCommand(ref diffLeft, ExecuteDiffLeft, CanExecuteDiffLeft);
       public ICommand DiffRight => StubCommand(ref diffRight, ExecuteDiffRight, CanExecuteDiffRight);
       private void ExecuteDiff(object data) {
-         var args = (ValueTuple<ViewPort, int>)data;
-         var (otherTab, maxSegments) = args;
+         ViewPort otherTab = null;
+         int maxSegments = 0;
+         if (data is ValueTuple<ViewPort, int> args) {
+            otherTab = args.Item1;
+            maxSegments = args.Item2;
+         }
          if (otherTab == null) {
             var resultsTab = new SearchResultsViewPort("Changes");
             int firstResultStart = 0;
