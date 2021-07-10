@@ -154,7 +154,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      public IReadOnlyList<(int start, int end)> Find(string search, bool matchExactCase = false) => throw new NotImplementedException();
+      public IReadOnlyList<(int start, int end)> Find(string search, bool matchExactCase = false) => Array.Empty<(int, int)>();
 
       public void FindAllSources(int x, int y) { }
 
