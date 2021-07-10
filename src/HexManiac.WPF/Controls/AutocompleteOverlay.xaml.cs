@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using HavenSoft.HexManiac.WPF.Resources;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,7 +52,16 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          AutocompleteItems.ItemsSource = null;
          Visibility = Visibility.Collapsed;
          if (DataContext is StreamElementViewModel streamViewModel) streamViewModel.ClearAutocomplete();
+         Application.Current.MainWindow.Deactivated -= AppClosePopup;
+         Application.Current.MainWindow.LocationChanged -= AppClosePopup;
       }
+      private void ShowAutocompleteOptions() {
+         Visibility = Visibility.Visible;
+         Application.Current.MainWindow.Deactivated += AppClosePopup;
+         Application.Current.MainWindow.LocationChanged += AppClosePopup;
+      }
+      private void AppClosePopup(object sender, EventArgs e) => ClearAutocompleteOptions();
+
 
       private void TargetTextChanged(object sender, TextChangedEventArgs e) {
          if (e.Source != Target) return;
@@ -82,12 +92,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var options = getAutocomplete(lines[lineIndex], lineIndex, index);
          if (options != null && options.Count > 0) {
             AutocompleteItems.ItemsSource = AutoCompleteSelectionItem.Generate(options, 0).ToList();
-            Visibility = Visibility.Visible;
+            ShowAutocompleteOptions();
          }
          var screenVertical = Target.TranslatePoint(new Point(0, verticalStart), Application.Current.MainWindow).Y;
          ScrollBorder.UpdateLayout();
          if (Application.Current.MainWindow.ActualHeight - screenVertical < 200) verticalStart -= ScrollBorder.ActualHeight + 12;
          AutocompleteTransform.Y = verticalStart;
+         Popup.Reposition();
 
          ignoreNextSelectionChange = true;
       }

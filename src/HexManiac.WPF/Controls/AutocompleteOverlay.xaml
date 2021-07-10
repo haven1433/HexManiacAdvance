@@ -11,6 +11,16 @@
       <TranslateTransform x:Name="AutocompleteTransform"/>
    </UserControl.RenderTransform>
    <Canvas Width="0" Height="0" ClipToBounds="False">
+   <Popup Name="Popup">
+      <Popup.Style>
+         <Style TargetType="Popup">
+            <Style.Triggers>
+               <DataTrigger Binding="{Binding Visibility, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="Visible">
+                  <Setter Property="IsOpen" Value="True"/>
+               </DataTrigger>
+            </Style.Triggers>
+         </Style>
+      </Popup.Style>
       <Border Name="ScrollBorder" Padding="1" BorderThickness="1" BorderBrush="{DynamicResource Accent}" Background="{DynamicResource Background}">
          <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="200">
             <ItemsControl Name="AutocompleteItems" IsTabStop="False">
@@ -32,5 +42,6 @@
             </ItemsControl>
          </ScrollViewer>
       </Border>
+   </Popup>
    </Canvas>
 </UserControl>
