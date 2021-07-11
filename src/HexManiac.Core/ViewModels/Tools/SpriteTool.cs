@@ -1060,7 +1060,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var tiles = Tilize(image, PixelWidth);
          var expectedPalettePages = paletteRun?.Pages ?? 1;
          bool palettePerSprite = false;
-         if (spriteRun.Pages == expectedPalettePages) {
+         if (spriteRun.Pages == expectedPalettePages && expectedPalettePages > 1) {
             palettePerSprite = true;
             expectedPalettePages = 1; // handle the Castform case
          }
