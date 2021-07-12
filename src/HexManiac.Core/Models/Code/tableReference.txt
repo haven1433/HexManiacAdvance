@@ -208,6 +208,7 @@ graphics.text.box.palette,                   ,       ,       ,       , 150450, 1
 graphics.text.box.message,                   ,       ,       ,       , 14FD68, 14FD44, 14FDE0, 14FDBC,       , `uct4x18|graphics.text.box.palette`
 graphics.text.box.signpost,                  ,       ,       ,       , 14FD9C, 14FD78, 14FE14, 14FDF0,       , `uct4x19|graphics.text.box.palette`
 graphics.text.boxes,                         ,       ,       ,       , 06979C, 06979C, 0697B0, 0697B0,       , [sprite<`ucs4x3x3`> pal<`ucp4`>]10
+graphics.text.boxes,                         ,       ,       ,       ,       ,       ,       ,       , 09876C, [sprite<`ucs4x3x3`> pal<`ucp4`>]20
 
 graphics.bag.male,                     3C1CC8, 3C1D20, 3C1CE4, 3C1D40, 3D41E4, 3D4020, 3D4254, 3D4090, 57FB34, `lzs4x8x8|graphics.bag.palette`
 graphics.bag.female,                   3C1CD0, 3C1D28, 3C1CEC, 3C1D50, 3D41EC, 3D4028, 3D425C, 3D4098, 57FB3C, `lzs4x8x8|graphics.bag.palette`
