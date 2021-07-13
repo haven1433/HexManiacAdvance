@@ -51,15 +51,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (customChangeInProgress) ChangeCompleted();
 
             if (currentChange == null) {
-               bool notifyIsSavedChanged = IsSaved;
-               currentChange = new T();
-               currentChange.OnNewDataChange += OnCurrentTokenDataChanged;
-               if (undoStack.Count == 0) undo.RaiseCanExecuteChanged();
-               if (notifyIsSavedChanged) NotifyPropertyChanged(nameof(IsSaved));
+               PrepareNewToken(new T());
             }
 
             return currentChange;
          }
+      }
+
+      private void PrepareNewToken(T token) {
+         bool notifyIsSavedChanged = IsSaved;
+         currentChange = token;
+         currentChange.OnNewDataChange += OnCurrentTokenDataChanged;
+         if (undoStack.Count == 0) undo.RaiseCanExecuteChanged();
+         if (notifyIsSavedChanged) NotifyPropertyChanged(nameof(IsSaved));
       }
 
       public bool IsSaved => undoStackSizeAtSaveTag == undoStack.Count && currentChange == null;
@@ -108,7 +112,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public T InsertCustomChange(T change) {
          if (continueCurrentTransaction) throw new InvalidOperationException("Inserting a change during a CurrentTransactionScope will cause changes to be lost.");
          ChangeCompleted();
-         currentChange = change;
+         PrepareNewToken(change);
          customChangeInProgress = true;
          return change;
       }

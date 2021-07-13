@@ -572,5 +572,40 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(0x12345678, value);
       }
+
+      [Fact]
+      public void MetadataChangeThenUndo_ChangeTableLengthFromAnchor_CanSave() {
+         var fs = new StubFileSystem { Save = arg => true };
+         ViewPort.Edit("^table[a:]4 ");
+         ViewPort.Save.Execute(fs);
+         ViewPort.Refresh();
+         ViewPort.AnchorText = "^table[a:]3 ";
+         ViewPort.Undo.Execute();
+         ViewPort.Refresh();
+
+         bool notifyCanExecuteChange = false;
+         ViewPort.Save.CanExecuteChanged += (sender, e) => notifyCanExecuteChange = true;
+         ViewPort.AnchorText = "^table[a:]3 ";
+
+         Assert.True(notifyCanExecuteChange);
+         Assert.True(ViewPort.Save.CanExecute(fs));
+      }
+
+      [Fact]
+      public void SavedMetadata_MetadataChange_ToolbarCanSave() {
+         var fs = new StubFileSystem { Save = arg => true };
+         ViewPort.Edit("^table[a:]4 ");
+         ViewPort.Save.Execute(fs);
+         ViewPort.Refresh();
+         var editor = new EditorViewModel(fs, Singletons.WorkDispatcher);
+         editor.Add(ViewPort);
+
+         bool notifyCanExecuteChange = false;
+         editor.Save.CanExecuteChanged += (sender, e) => notifyCanExecuteChange = true;
+         ViewPort.AnchorText = "^table[a:]3 ";
+
+         Assert.True(notifyCanExecuteChange);
+         Assert.True(editor.Save.CanExecute(fs));
+      }
    }
 }
