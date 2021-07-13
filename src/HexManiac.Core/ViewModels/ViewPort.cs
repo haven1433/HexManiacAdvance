@@ -285,6 +285,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          }
 
+         UpdateAnchorText(dataIndex);
+
+         RequestMenuClose?.Invoke(this, EventArgs.Empty);
+      }
+
+      private void UpdateAnchorText(int dataIndex) {
+         var run = Model.GetNextRun(dataIndex);
+
          if (this[SelectionStart].Format is Anchor anchor) {
             // there is an anchor exactly here: show that format
             TryUpdate(ref anchorText, AnchorStart + anchor.Name + anchor.Format, nameof(AnchorText));
@@ -297,8 +305,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else {
             AnchorTextVisible = false;
          }
-
-         RequestMenuClose?.Invoke(this, EventArgs.Empty);
       }
 
       private string selectedAddress;
@@ -1026,6 +1032,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          RefreshBackingData();
          Tools.TableTool.DataForCurrentRunChanged();
          Tools.SpriteTool.DataForCurrentRunChanged();
+         UpdateAnchorText(ConvertViewPointToAddress(SelectionStart));
       }
 
       public bool TryImport(LoadedFile file, IFileSystem fileSystem) {
