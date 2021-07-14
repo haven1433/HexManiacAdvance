@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
@@ -797,6 +798,13 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Edit($"^trainertable[team<{TrainerPokemonTeamRun.SharedFormatString}>]1 ");
 
          ViewPort.Goto.Execute("00");
+      }
+   }
+
+   public static class TableToolTestExtensions {
+      public static FieldArrayElementViewModel GetField(this TableTool table, string name) {
+         var child = table.Children.Single(vm => vm is FieldArrayElementViewModel fvm && fvm.Name == name);
+         return (FieldArrayElementViewModel)child;
       }
    }
 }

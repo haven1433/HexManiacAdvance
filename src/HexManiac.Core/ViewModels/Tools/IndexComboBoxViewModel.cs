@@ -23,7 +23,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          get => selectedVisibleIndex;
          set {
             if (value == -1) return;
-            if (selectedVisibleIndex != value) {
+            if (selectedVisibleIndex != value && !resetting) {
                selectedIndex = allOptions.IndexOf(Options[value]);
                ResetFilter();
                UpdateSelection?.Invoke(this, EventArgs.Empty);
