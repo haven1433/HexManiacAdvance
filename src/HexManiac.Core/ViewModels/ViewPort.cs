@@ -481,7 +481,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void ExportBackupExecuted(IFileSystem fileSystem) {
          var changeDescription = fileSystem.RequestText("Export Summary", "What was your most recent change?");
          if (changeDescription == null) return;
-         changeDescription = new string(changeDescription.Where(char.IsLetterOrDigit).ToArray());
+         changeDescription = new string(changeDescription.Select(letter => char.IsLetterOrDigit(letter) ? letter : '_').ToArray());
 
          var exportID = Model.NextExportID;
          Model.NextExportID += 1;
@@ -495,6 +495,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var exportName = $"{directory}backups{Path.DirectorySeparatorChar}{fileName}_backup{exportID}__{changeDescription}{extension}";
          if (fileSystem.Save(new LoadedFile(exportName, Model.RawData))) {
             fileSystem.SaveMetadata(exportName, metadata?.Serialize());
+            fileSystem.SaveMetadata(FileName, metadata?.Serialize());
          }
       }
 
