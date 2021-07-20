@@ -35,6 +35,21 @@ Name = '''egggroups'''
 ]
 
 [[List]]
+Name = '''bodycolors'''
+0 = [
+   '''Red''',
+   '''Blue''',
+   '''Yellow''',
+   '''Green''',
+   '''Black''',
+   '''Brown''',
+   '''Purple''',
+   '''Gray''',
+   '''White''',
+   '''Pink''',
+]
+
+[[List]]
 Name = '''pocketid'''
 1 = [
    '''item''',
