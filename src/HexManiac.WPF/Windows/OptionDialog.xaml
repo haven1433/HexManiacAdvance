@@ -50,6 +50,6 @@
             </DataTemplate>
          </ItemsControl.ItemTemplate>
       </ItemsControl>
-      <TextBlock Name="Prompt" HorizontalAlignment="Center" Margin="5"/>
+      <TextBlock Name="Prompt" HorizontalAlignment="Center" Margin="5" TextWrapping="Wrap"/>
    </DockPanel>
 </Window>
