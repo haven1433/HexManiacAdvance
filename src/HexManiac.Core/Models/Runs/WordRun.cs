@@ -44,5 +44,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public void Clear(IDataModel model, ModelDelta changeToken, int start, int length) {
          for (int i = 0; i < length; i++) changeToken.ChangeData(model, start + i, 0x00);
       }
+
+      public int Read(IDataModel model) {
+         return (model.ReadMultiByteValue(Start, Length) - ValueOffset) / MultOffset;
+      }
    }
 }

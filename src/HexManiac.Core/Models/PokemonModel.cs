@@ -152,6 +152,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                }
                CompleteCellEdit.UpdateAllWords(this, runs[index], noChange, this.ReadMultiByteValue(word.Address, word.Length), true);
             }
+            RemoveMatchedWordsThatDoNotMatch(noChange);
             foreach (var offsetPointer in metadata.OffsetPointers) {
                var newRun = new OffsetPointerRun(offsetPointer.Address, offsetPointer.Offset);
                ClearFormat(noChange, newRun.Start, newRun.Length);
@@ -180,6 +181,33 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
 
             ResolveConflicts();
+         }
+      }
+
+      private void RemoveMatchedWordsThatDoNotMatch(ModelDelta token) {
+         foreach (var key in matchedWords.Keys.ToList()) {
+            bool allMatch = true;
+            var addresses = matchedWords[key].ToList();
+            foreach (var address in addresses) {
+               var run = GetNextRun(address) as WordRun;
+               if (run == null) { allMatch = false; break; }
+               if (address == addresses[0]) continue;
+               var firstRun = (WordRun)GetNextRun(addresses[0]);
+               var virtualTargetValue = firstRun.Read(this);
+               var virtualActualValue = run.Read(this);
+               if (virtualActualValue != virtualTargetValue) {
+                  allMatch = false;
+                  break;
+               }
+            }
+            if (!allMatch) {
+               var run = GetNextRun(addresses[0]) as WordRun;
+               var name = run?.SourceArrayName ?? $"Constant at {addresses[0]:X2}";
+               Debug.Fail($"{name} will be removed because not all the uses match.");
+               foreach (var address in addresses) {
+                  ClearFormat(token, address, 1);
+               }
+            }
          }
       }
 
