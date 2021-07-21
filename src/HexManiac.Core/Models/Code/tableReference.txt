@@ -406,12 +406,16 @@ graphics.newgame.professor.palette,            ,       ,       ,       , 131300,
 graphics.newgame.professor.sprite,             ,       ,       ,       , 131304, 1312DC, 13137C, 131354,       , `lzs8x8x12|graphics.newgame.professor.palette`
 graphics.newgame.professor.palette,      39F114, 39EF5C, 39F12C, 39EF74,       ,       ,       ,       , 55C230, `ucp4`
 graphics.newgame.professor.sprite,       39F10C, 39EF54, 39F124, 39EF6C,       ,       ,       ,       , 55C228, `ucs4x8x8|graphics.newgame.professor.palette`
-
 graphics.newgame.background.palette,           ,       ,       ,       , 130DCC, 130DA4, 130E44, 130E1C,       , `ucp4:0123`
 graphics.newgame.background.tileset1,          ,       ,       ,       , 12ED68, 12ED40, 12EDE0, 12EDB8,       , `lzt4|graphics.newgame.background.palette`
 graphics.newgame.background.tilemap1,          ,       ,       ,       , 12F488, 12F460, 12F500, 12F4D8,       , `lzm4x30x18|graphics.newgame.background.tileset1`
 graphics.newgame.background.tileset2,          ,       ,       ,       , 130DE4, 130DBC, 130E5C, 130E34,       , `lzt4|graphics.newgame.background.palette`
 graphics.newgame.background.tilemap2,          ,       ,       ,       , 130E34, 130E0C, 130EAC, 130E84,       , `lzm4x32x20|graphics.newgame.background.tileset2`
+graphics.newgame.pokemon.selection.palette,            ,,,,,,,, 1341AC, `ucp4:0123`
+graphics.newgame.pokemon.selection.bag.tilemap,        ,,,,,,,, 134194, `lzm4x32x20|graphics.newgame.pokemon.selection.tileset`
+graphics.newgame.pokemon.selection.background.tilemap, ,,,,,,,, 13419C, `lzm4x32x32|graphics.newgame.pokemon.selection.tileset`
+graphics.newgame.pokemon.selection.tileset,            ,,,,,,,, 134190, `lzt4|graphics.newgame.pokemon.selection.palette`
+graphics.newgame.pokemon.selection.pokeball,           ,,,,,,,, 5B1ED8, `lzs4x4x4|graphics.newgame.pokemon.selection.palette`
 
 graphics.townmap.palette,                      ,       ,       ,       , 0C02EC, 0C02C0, 0C0300, 0C02D4, , `ucp4:0123`
 graphics.townmap.palette,                      ,       ,       ,       ,       ,       ,       , , 122E90, `ucp4:78`
