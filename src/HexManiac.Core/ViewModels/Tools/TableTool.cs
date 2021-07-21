@@ -286,7 +286,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
             if (array is ArrayRun arrayRun) {
                index -= arrayRun.ParentOffset.BeginningMargin;
-               if (!string.IsNullOrEmpty(arrayRun.LengthFromAnchor)) basename = arrayRun.LengthFromAnchor; // basename is now a 'parent table' name, if there is one
+               if (!string.IsNullOrEmpty(arrayRun.LengthFromAnchor) && model.GetMatchedWords(arrayRun.LengthFromAnchor).Count == 0) basename = arrayRun.LengthFromAnchor; // basename is now a 'parent table' name, if there is one
 
                foreach (var currentArray in model.GetRelatedArrays(arrayRun)) {
                   if (currentArray == arrayRun) continue;
