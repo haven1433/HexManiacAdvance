@@ -203,7 +203,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (!allMatch) {
                var run = GetNextRun(addresses[0]) as WordRun;
                var name = run?.SourceArrayName ?? $"Constant at {addresses[0]:X2}";
-               Debug.Fail($"{name} will be removed because not all the uses match.");
+               // {name} will be removed because not all the uses match.
                foreach (var address in addresses) {
                   ClearFormat(token, address, 1);
                }
