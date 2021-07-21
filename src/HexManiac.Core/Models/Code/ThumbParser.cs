@@ -666,10 +666,16 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (line[0] == '<') line = line.Substring(1);
                var content = line;
                if (content.Contains('>')) content = content.Split('>')[0];
+               int extraLength = 0;
+               if (content.StartsWith("0x")) {
+                  content = content.Substring(2);
+                  extraLength += 2;
+               }
                numeric = labels.ResolveLabel(content);
                if (numeric == Pointer.NULL && !int.TryParse(content, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out numeric)) return false;
                if (line.Length < content.Length) return false;
-               line = line.Substring(content.Length);
+               if (numeric >= 0x08000000) numeric -= 0x08000000;
+               line = line.Substring(content.Length + extraLength);
                if (line.StartsWith(">")) line = line.Substring(1);
                template = template.Substring(template.IndexOf('+') + 1);
                template = template.Substring(template.IndexOf('+') + 2);
