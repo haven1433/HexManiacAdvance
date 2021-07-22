@@ -259,7 +259,7 @@ graphics.menu.pokemon.background.tileset,        ,,,, 11EFB0, 11EF88, 11F028, 11
 graphics.menu.pokemon.background.tilemap,        ,,,, 11EFCC, 11EFA4, 11F044, 11F01C, , `lzm4x32x32|graphics.menu.pokemon.background.tileset`
 graphics.menu.pokemon.item.sprite,               3765DC, 37656C, 3765F4, 376584, 45A42C, 459E4C, 45A48C, 459EBC, 615EB0, `ucs4x1x2|graphics.menu.pokemon.item.palette`
 graphics.menu.pokemon.item.palette,              3765E4, 376574, 3765FC, 37658C, 45A434, 459E54, 45A494, 459EC4, 615EB8, `ucp4`
-graphics.menu.boxes.background,                  ,,,, 09191C, 0918F0, 091930, 091904, , [tileset<`lzt4`> tilemap<`lzm4x20x18|graphics.menu.boxes`> palette<`ucp4`>]16
+graphics.menu.boxes.background,                  ,,,, 09191C, 0918F0, 091930, 091904, , [tileset<`lzt4`> tilemap<`lzm4x20x18|graphics.menu.boxes.background`> palette<`ucp4`>]16
 graphics.menu.boxes.picker.palette,              ,,,, 08F0B4, 08F088, 08F0C8, 08F09C, , `ucp4`
 graphics.menu.boxes.picker.tileset,              ,,,, 08F034, 08F008, 08F048, 08F01C, , `lzt4|graphics.menu.box.picker.palette`
 graphics.menu.boxes.hand.palette.normal,         ,,,, 3CEA60, 3CE89C, 3CEAD0, 3CE90C, , `ucp4`
