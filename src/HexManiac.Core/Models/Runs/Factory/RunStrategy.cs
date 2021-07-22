@@ -111,14 +111,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          return true;
       }
 
-      // TODO
       public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
          run = new XSERun(dataIndex, run.PointerSources);
          return ErrorInfo.NoError;
       }
 
       public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
-         throw new System.NotImplementedException();
+         if (run is XSERun) return;
+         run = new XSERun(run.Start, run.PointerSources);
       }
 
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
