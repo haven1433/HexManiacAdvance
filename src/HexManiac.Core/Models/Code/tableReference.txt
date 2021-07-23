@@ -122,6 +122,8 @@ data.pokemon.moves.tms,                06F038, 06F03C, 06F058, 06F05C, 125A8C, 1
 data.pokemon.moves.tmcompatibility,    0403B0, 0403B0, 0403D0, 0403D0, 043C68, 043C68, 043C7C, 043C7C, 06E048, [moves|b[]data.pokemon.moves.tms]data.pokemon.names
 data.pokemon.moves.hms,                040A24, 040A24, 040A44, 040A44, 0441DC, 0441DC, 0441F0, 0441F0, 06E828, [move:data.pokemon.moves.names]8
 data.pokemon.moves.flash.radius,       0815DC, 0815DC, 0815FC, 0815FC, 07F070, 07F080, 07F084, 07F058, 0B00E4, [max: current:]1
+data.pokemon.moves.fallback.names,     120E1C, 120E1C, 120E3C, 120E3C, 0D7624, 0D75F8, 0D7638, 0D760C,       , [name<"">]data.pokemon.type.names
+data.pokemon.moves.fallback.names,           ,       ,       ,       ,       ,       ,       ,       , 14E530, [name""17]data.pokemon.type.names
 data.trainers.stats,                   00D890, 00D890, 00D890, 00D890, 00FC00, 00FC00, 00FC14, 00FC14, 03587C, [structType.trainerStructType class.data.trainers.classes.names introMusicAndGender.|t|music:::.|female. sprite.graphics.trainers.sprites.front name""12 prizeMoney|=4*(data.trainers.money/class=class)/moneyrate*pokemon/last/level item1:data.items.stats item2:data.items.stats item3:data.items.stats item4:data.items.stats doubleBattle:: ai|b[]traineraibits pokemonCount:: pokemon<`tpt`>]
 data.trainers.money,                   024120, 024120, 024120, 024120,       ,       ,       ,       ,       , [class.data.trainers.classes.names moneyrate. unused:]55   // last element, FF, is 'catch all': the money rate for any other unspecified class
 data.trainers.money,                         ,       ,       ,       , 0259CC, 0259CC, 0259E0, 0259E0,       , [class.data.trainers.classes.names moneyrate. unused:]105  // last element, FF, is 'catch all': the money rate for any other unspecified class
@@ -175,6 +177,9 @@ data.pokedex.search.alpha,             08D930, 08D930, 08D950, 08D950, 103694, 1
 data.pokedex.search.weight,            08D9BC, 08D9BC, 08D9DC, 08D9DC, 1037CC, 1037A4, 103844, 10381C, 0BCC00, [species:data.pokedex.national]386
 data.pokedex.search.size,              08DAE4, 08DAE4, 08DB04, 08DB04, 103868, 103840, 1038E0, 1038B8, 0BCD28, [species:data.pokedex.national]386
 data.pokedex.search.type,                    ,       ,       ,       , 103734, 10370C, 1037AC, 103784,       , [species:data.pokemon.names]data.pokedex.national
+data.pokedex.search.type.options,      092C7C, 092C7C, 092C9C, 092C9C,       ,       ,       ,       , 0C21C8, [empty<""> type<>]data.pokemon.type.names+1
+data.pokedex.search.type.ids,          092EAC, 092EAC, 092ECC, 092ECC,       ,       ,       ,       , 0C23B4, [type.data.pokemon.type.names]data.pokemon.type.names
+data.pokemon.type.unionroom.options,         ,       ,       ,       , 456F04, 456924, 456F64, 456994,       , [type<> index::]data.pokemon.type.names-1+1
 data.pokedex.habitat.names,                  ,       ,       ,       , 104F84, 104F5C, 104FFC, 104FD4,       , [name<"">]
 data.pokedex.habitat.pages,                  ,       ,       ,       , 106888, 106860, 106900, 1068D8,       , [data<[pokemon<[species:data.pokemon.names]/pokecount> pokecount::]/count> count::]data.pokedex.habitat.names
 

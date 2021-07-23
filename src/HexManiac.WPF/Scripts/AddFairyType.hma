@@ -1,13 +1,36 @@
 # Add Fairy Type to Type list
+# Update pokedex search / union room tables
+# Update default move names
 # Update Type Chart to Gen 6
 # Update Type for Clefairy, etc.
 # Add Fairy Type Icon
+
+# Note: For Emerald, you may want to update the XSE script around 259E9B,
+#       which has a section for each type. The script is part of the battle
+#       factory, so you can ignore it if that isn't in your game.
 
 # -------------------------- All Games : Update Type Names, Chart, and Pokemon --------------------------
 
 # Extend the type names table
 @data.pokemon.type.names/18
 +"FAIRY"
+
+# Update the pokedex search options
+@!game(AXVE0_AXPE0_AXVE1_AXPE1_BPEE0)
+@data.pokedex.search.type.options/Fairy/type <data.pokemon.type.names/Fairy>
+@data.pokedex.search.type.ids/Fairy Fairy
+
+# Update the union room names
+@!game(BPRE0_BPRE1_BPGE0_BPGE1)
+@data.pokemon.type.unionroom.options/Fairy <data.pokemon.type.names/Fairy> 18 <> 19 
+
+# Update move fallback names
+@!game(AXVE0_AXPE0_AXVE1_AXPE1_BPRE0_BPRE1_BPGE0_BPGE1)
+@data.pokemon.moves.fallback.names/Fairy <null>
+@data.pokemon.moves.fallback.names/Fairy @{ "a FAIRY move" @}
+@!game(BPEE0)
+@data.pokemon.moves.fallback.names/Fairy "a FAIRY move"
+@!game(All)
 
 # Update the type effectiveness chart
 @data.pokemon.type.chart/93  # previously Steel-Resists-Ghost

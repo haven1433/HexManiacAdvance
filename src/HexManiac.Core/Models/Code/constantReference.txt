@@ -189,6 +189,14 @@ BPGE1.scripts.battle.trade.exp.boost 021E26
 BPEE0.scripts.battle.trade.exp.boost 04A6FC
 
 # type limiter. See LoadMoveInfoUI and DrawMoveInfoUIMarkers
+BPRE0.data.pokemon.type.length   456F10
+BPGE0.data.pokemon.type.length   456930
+BPRE1.data.pokemon.type.length   456F70
+BPGE1.data.pokemon.type.length   4569A0
+AXVE0.data.pokemon.type.length   3B5A92,3B5A9A
+AXPE0.data.pokemon.type.length   3B5AEA,3B5AF2
+AXVE1.data.pokemon.type.length   3B5AAE,3B5AB6
+AXPE1.data.pokemon.type.length   3B5B0A,3B5B12
 BPRE0.data.pokemon.type.length+1 0E5448,133408
 BPRE0.data.pokemon.type.length+2 0E5454,133414
 BPRE0.data.pokemon.type.length+3 0E5460,133420
@@ -209,6 +217,8 @@ BPGE1.data.pokemon.type.length+2 0E5440,133464
 BPGE1.data.pokemon.type.length+3 0E544C,133470
 BPGE1.data.pokemon.type.length+4 0E5458,13347C
 BPGE1.data.pokemon.type.length+5 0E5464
+BPEE0.data.pokemon.type.length-1 1A6A2A,1A6AB8
+BPEE0.data.pokemon.type.length   1A6ADA,56EFDE,56EFE6
 BPEE0.data.pokemon.type.length+1 1AE2C0
 BPEE0.data.pokemon.type.length+2 1AE2CC
 BPEE0.data.pokemon.type.length+3 1AE2D8
