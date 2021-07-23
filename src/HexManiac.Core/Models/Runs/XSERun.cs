@@ -1,5 +1,4 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
-using System.Collections.Generic;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public interface IScriptStartRun : IFormattedRun { }

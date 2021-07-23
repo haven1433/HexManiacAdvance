@@ -106,8 +106,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
          var run = new XSERun(destination, new SortedSpan<int>(source));
          if (run.Length < 1) return false;
-         owner.ClearFormat(token, run.Start, run.Length);
-         owner.ObserveRunWritten(token, run);
+         if (!(token is NoDataChangeDeltaModel)) {
+            owner.ClearFormat(token, run.Start, run.Length);
+            owner.ObserveRunWritten(token, run);
+         }
          return true;
       }
 
@@ -134,8 +136,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
          var run = new BSERun(destination, new SortedSpan<int>(source));
          if (run.Length < 1) return false;
-         owner.ClearFormat(token, run.Start, run.Length);
-         owner.ObserveRunWritten(token, run);
+         if (!(token is NoDataChangeDeltaModel)) {
+            owner.ClearFormat(token, run.Start, run.Length);
+            owner.ObserveRunWritten(token, run);
+         }
          return true;
       }
 
@@ -162,8 +166,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
          var run = new ASERun(destination, new SortedSpan<int>(source));
          if (run.Length < 1) return false;
-         owner.ClearFormat(token, run.Start, run.Length);
-         owner.ObserveRunWritten(token, run);
+         if (!(token is NoDataChangeDeltaModel)) {
+            owner.ClearFormat(token, run.Start, run.Length);
+            owner.ObserveRunWritten(token, run);
+         }
          return true;
       }
 
