@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.QuickEditItems;
@@ -76,6 +77,58 @@ namespace HavenSoft.HexManiac.Tests {
          var sourcePointers = run.PointerSources.Select(source => model.GetNextRun(source)).ToList();
 
          Assert.Equal(5, sourcePointers.Count(source => source is OffsetPointerRun));
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void Rom_TilemapLoaded_TilesetFound(string game) {
+         if (game.Contains("Clover") || game.Contains("Gaia")) return; // these hacks have busted tilesets, it's fine
+         var noChange = new NoDataChangeDeltaModel();
+         var model = fixture.LoadModel(game);
+
+         foreach (var anchor in model.Anchors) {
+            var run = model.GetNextRun(model.GetAddressFromAnchor(noChange, -1, anchor));
+            if (!(run is ITilemapRun tilemap)) continue;
+            var tilesetAddress = tilemap.FindMatchingTileset(model);
+            var tileset = model.GetNextRun(tilesetAddress);
+            Assert.IsAssignableFrom<ISpriteRun>(tileset);
+         }
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void Rom_SpriteLoaded_PaletteFound(string game) {
+         if (game.Contains("Gaia")) return; // Gaia has busted palettes, it's fine
+         var noChange = new NoDataChangeDeltaModel();
+         var model = fixture.LoadModel(game);
+
+         foreach (var anchor in model.Anchors) {
+            var run = model.GetNextRun(model.GetAddressFromAnchor(noChange, -1, anchor));
+            if (!(run is ISpriteRun sprite)) continue;
+            if (sprite.SpriteFormat.BitsPerPixel < 4) continue;
+            var palettes = sprite.FindRelatedPalettes(model);
+            if (palettes.Count == 0 && sprite.SpriteFormat.PaletteHint == null) continue;
+            Assert.IsAssignableFrom<IPaletteRun>(palettes[0]);
+         }
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(PokemonGames))]
+      public void Table_Enum_SourceFound(string game) {
+         var noChange = new NoDataChangeDeltaModel();
+         var model = fixture.LoadModel(game);
+
+         foreach (var anchor in model.Anchors) {
+            var run = model.GetNextRun(model.GetAddressFromAnchor(noChange, -1, anchor));
+            if (!(run is ITableRun table)) continue;
+            for (int i = 0; i < table.ElementContent.Count; i++) {
+               if (table.ElementContent[i] is ArrayRunBitArraySegment bitArray) {
+                  Assert.NotEmpty(bitArray.GetOptions(model));
+               } else if (table.ElementContent[i] is ArrayRunEnumSegment enumSegment) {
+                  Assert.NotEmpty(enumSegment.GetOptions(model));
+               }
+            }
+         }
       }
 
       [SkippableTheory]

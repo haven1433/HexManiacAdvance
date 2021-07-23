@@ -211,8 +211,8 @@ graphics.text.boxes,                         ,       ,       ,       , 06979C, 0
 graphics.text.boxes,                         ,       ,       ,       ,       ,       ,       ,       , 09876C, [sprite<`ucs4x3x3`> pal<`ucp4`>]20
 
 graphics.bag.male,                     3C1CC8, 3C1D20, 3C1CE4, 3C1D40, 3D41E4, 3D4020, 3D4254, 3D4090, 57FB34, `lzs4x8x8|graphics.bag.palette`
-graphics.bag.female,                   3C1CD0, 3C1D28, 3C1CEC, 3C1D50, 3D41EC, 3D4028, 3D425C, 3D4098, 57FB3C, `lzs4x8x8|graphics.bag.palette`
-graphics.bag.palette,                  3C1CD8, 3C1D30, 3C1CF4, 3C1D60, 3D41F4, 3D4030, 3D4264, 3D40A0, 57FB44, `lzp4`
+graphics.bag.female,                   3C1CD0, 3C1D28, 3C1CEC, 3C1D48, 3D41EC, 3D4028, 3D425C, 3D4098, 57FB3C, `lzs4x8x8|graphics.bag.palette`
+graphics.bag.palette,                  3C1CD8, 3C1D30, 3C1CF4, 3C1D50, 3D41F4, 3D4030, 3D4264, 3D40A0, 57FB44, `lzp4`
 graphics.bag.berry.sprites,            0A7D7C, 0A7D7C, 0A7D9C, 0A7D9C,       ,       ,       ,       , 0D50C0, [sprite<`lzs4x6x6`> pal<`lzp4`>]
 graphics.bag.berrycase.palette,        ,,,, 4644B0, 463ED0, 464510, 463F40, , `lzp4`
 graphics.bag.berrycase.sprite,         ,,,, 4644A8, 463EC8, 464508, 463F38, , `lzs4x8x8|graphics.bag.berrycase.palette`
@@ -261,7 +261,7 @@ graphics.menu.pokemon.item.sprite,               3765DC, 37656C, 3765F4, 376584,
 graphics.menu.pokemon.item.palette,              3765E4, 376574, 3765FC, 37658C, 45A434, 459E54, 45A494, 459EC4, 615EB8, `ucp4`
 graphics.menu.boxes.background,                  ,,,, 09191C, 0918F0, 091930, 091904, , [tileset<`lzt4`> tilemap<`lzm4x20x18|graphics.menu.boxes.background`> palette<`ucp4`>]16
 graphics.menu.boxes.picker.palette,              ,,,, 08F0B4, 08F088, 08F0C8, 08F09C, , `ucp4`
-graphics.menu.boxes.picker.tileset,              ,,,, 08F034, 08F008, 08F048, 08F01C, , `lzt4|graphics.menu.box.picker.palette`
+graphics.menu.boxes.picker.tileset,              ,,,, 08F034, 08F008, 08F048, 08F01C, , `lzt4|graphics.menu.boxes.picker.palette`
 graphics.menu.boxes.hand.palette.normal,         ,,,, 3CEA60, 3CE89C, 3CEAD0, 3CE90C, , `ucp4`
 graphics.menu.boxes.hand.palette.catch,          ,,,, 3D34B8, 3D32F4, 3D3528, 3D3364, , `ucp4`
 graphics.menu.boxes.hand.sprite,                 ,,,, 3D34A0, 3D32DC, 3D3510, 3D334C, , `ucs4x4x16|graphics.menu.boxes.hand.palette.normal`
