@@ -83,17 +83,17 @@ graphics.pokedex.nationaldex.tileset,             ,       ,       ,       , 1025
 graphics.pokemon.moves.animations,          075734, 075738, 075754, 075758, 0725D0, 0725D0, 0725E4, 0725E4, 0A3A44, [animation<`ase`>]data.pokemon.moves.names
 graphics.moves.particles.sprites-13880,     075A60, 075A64, 075A80, 075A84, 0728B8, 0728B8, 0728CC, 0728CC, 0A3D74, [ptr<`lzt4`> size: index:]289
 graphics.moves.particles.palettes-13880,    075A64, 075A68, 075A84, 075A88, 0728BC, 0728BC, 0728D0, 0728D0, 0A3D78, [ptr<`lzp4`> index: unused:]graphics.moves.particles.sprites
-graphics.moves.backgrounds.all,                   ,       ,       ,       , 073960, 073960, 073974, 073974,       , [tileset<`lzt4`> palette<`lzp4:2`> tilemap<`lzm4x32x32|graphics.moves.backgrounds.all`>]27
-graphics.moves.backgrounds.psychic,               ,       ,       ,       , 3ADE44, 3ADE24, 3ADEB4, 3ADE94,       , `lzm4x32x20|graphics.moves.backgrounds.all`
-graphics.moves.backgrounds.impact.opponent,       ,       ,       ,       , 3ADE50, 3ADE30, 3ADEC0, 3ADEA0,       , `lzm4x32x20|graphics.moves.backgrounds.all`
-graphics.moves.backgrounds.impact.player,         ,       ,       ,       , 3ADE5C, 3ADE3C, 3ADECC, 3ADEAC,       , `lzm4x32x20|graphics.moves.backgrounds.all`
-graphics.moves.backgrounds.impact.contest,        ,       ,       ,       , 3ADE68, 3ADE48, 3ADED8, 3ADEB8,       , `lzm4x32x20|graphics.moves.backgrounds.all`
-graphics.moves.backgrounds.impact.fissure,        ,       ,       ,       , 3ADF1C, 3ADEFC, 3ADF8C, 3ADF6C,       , `lzm4x32x64|graphics.moves.backgrounds.all`
-graphics.moves.surf.palette,                      ,       ,       ,       , 0AB464, 0AB438, 0AB478, 0AB44C,       , `lzp4`
-graphics.moves.surf.tileset,                      ,       ,       ,       , 0AB45C, 0AB430, 0AB470, 0AB444,       , `lzt4|graphics.moves.surf.palette`
-graphics.moves.surf.opponent,                     ,       ,       ,       , 0AB404, 0AB3D8, 0AB418, 0AB3EC,       , `lzm4x32x64|graphics.moves.surf.tileset`
-graphics.moves.surf.player,                       ,       ,       ,       , 0AB414, 0AB3E8, 0AB428, 0AB3FC,       , `lzm4x32x64|graphics.moves.surf.tileset`
-graphics.moves.surf.contest,                      ,       ,       ,       , 0AB458, 0AB42C, 0AB46C, 0AB440,       , `lzm4x32x64|graphics.moves.surf.tileset`
+graphics.moves.backgrounds.all,             076E54, 076E58, 076E74, 076E78, 073960, 073960, 073974, 073974,       , [tileset<`lzt4`> palette<`lzp4:2`> tilemap<`lzm4x32x32|graphics.moves.backgrounds.all`>]27
+graphics.moves.backgrounds.psychic,         37F3A0, 37F330, 37F3B8, 37F348, 3ADE44, 3ADE24, 3ADEB4, 3ADE94,       , `lzm4x32x20|graphics.moves.backgrounds.all`
+graphics.moves.backgrounds.impact.opponent, 37F3AC, 37F33C, 37F3C4, 37F354, 3ADE50, 3ADE30, 3ADEC0, 3ADEA0,       , `lzm4x32x20|graphics.moves.backgrounds.all`
+graphics.moves.backgrounds.impact.player,   37F3B8, 37F348, 37F3D0, 37F360, 3ADE5C, 3ADE3C, 3ADECC, 3ADEAC,       , `lzm4x32x20|graphics.moves.backgrounds.all`
+graphics.moves.backgrounds.impact.contest,  37F3C4, 37F354, 37F3DC, 37F36C, 3ADE68, 3ADE48, 3ADED8, 3ADEB8,       , `lzm4x32x20|graphics.moves.backgrounds.all`
+graphics.moves.backgrounds.impact.fissure,  37F478, 37F408, 37F490, 37F420, 3ADF1C, 3ADEFC, 3ADF8C, 3ADF6C,       , `lzm4x32x64|graphics.moves.backgrounds.all`
+graphics.moves.surf.palette,                0D39FC, 0D39FC, 0D3A1C, 0D3A1C, 0AB464, 0AB438, 0AB478, 0AB44C,       , `lzp4`
+graphics.moves.surf.tileset,                0D39F4, 0D39F4, 0D3A14, 0D3A14, 0AB45C, 0AB430, 0AB470, 0AB444,       , `lzt4|graphics.moves.surf.palette`
+graphics.moves.surf.opponent,               0D39A4, 0D39A4, 0D39C4, 0D39C4, 0AB404, 0AB3D8, 0AB418, 0AB3EC,       , `lzm4x32x64|graphics.moves.surf.tileset`
+graphics.moves.surf.player,                 0D39B4, 0D39B4, 0D39D4, 0D39D4, 0AB414, 0AB3E8, 0AB428, 0AB3FC,       , `lzm4x32x64|graphics.moves.surf.tileset`
+graphics.moves.surf.contest,                0D39F0, 0D39F0, 0D3A10, 0D3A10, 0AB458, 0AB42C, 0AB46C, 0AB440,       , `lzm4x32x64|graphics.moves.surf.tileset`
 
 graphics.items.ball.sprites,                0473BC, 0473BC, 0473DC, 0473DC, 0001D0, 0001D0, 0001D0, 0001D0, 0001D0, [sprite<`lzs4x2x6|graphics.items.ball.palettes`> uncompressedLength: a b]12
 graphics.items.ball.palettes,               0473C0, 0473C0, 0473E0, 0473E0, 0001D4, 0001D4, 0001D4, 0001D4, 0001D4, [palette<`lzp4`> a b unused:]graphics.items.ball.sprites
