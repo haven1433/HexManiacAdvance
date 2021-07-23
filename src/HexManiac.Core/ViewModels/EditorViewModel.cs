@@ -778,7 +778,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          SelectedIndex = left;
-         leftViewPort.Diff.Execute((Other: rightViewPort, MaxSegments: maxDiffSegCount));
+         leftViewPort.MaxDiffSegmentCount = maxDiffSegCount;
+         leftViewPort.Diff.Execute(rightViewPort);
       }
 
       #endregion
@@ -804,6 +805,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      innerCommand.Execute(fileSystem);
                   }
                } else {
+                  if (tab is ViewPort vp) vp.MaxDiffSegmentCount = this.maxDiffSegCount;
                   innerCommand.Execute(fileSystem);
                }
             }
