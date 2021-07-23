@@ -17,8 +17,8 @@
 
 # Update the pokedex search options
 @!game(AXVE0_AXPE0_AXVE1_AXPE1_BPEE0)
-@data.pokedex.search.type.options/Fairy/type <data.pokemon.type.names/Fairy>
-@data.pokedex.search.type.ids/Fairy Fairy
+@data.pokedex.filter.type.options/Fairy/type <data.pokemon.type.names/Fairy>
+@data.pokedex.filter.type.ids/Fairy Fairy
 
 # Update the union room names
 @!game(BPRE0_BPRE1_BPGE0_BPGE1)

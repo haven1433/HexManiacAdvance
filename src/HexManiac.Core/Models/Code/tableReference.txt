@@ -177,8 +177,8 @@ data.pokedex.search.alpha,             08D930, 08D930, 08D950, 08D950, 103694, 1
 data.pokedex.search.weight,            08D9BC, 08D9BC, 08D9DC, 08D9DC, 1037CC, 1037A4, 103844, 10381C, 0BCC00, [species:data.pokedex.national]386
 data.pokedex.search.size,              08DAE4, 08DAE4, 08DB04, 08DB04, 103868, 103840, 1038E0, 1038B8, 0BCD28, [species:data.pokedex.national]386
 data.pokedex.search.type,                    ,       ,       ,       , 103734, 10370C, 1037AC, 103784,       , [species:data.pokemon.names]data.pokedex.national
-data.pokedex.search.type.options,      092C7C, 092C7C, 092C9C, 092C9C,       ,       ,       ,       , 0C21C8, [empty<""> type<>]data.pokemon.type.names+1
-data.pokedex.search.type.ids,          092EAC, 092EAC, 092ECC, 092ECC,       ,       ,       ,       , 0C23B4, [type.data.pokemon.type.names]data.pokemon.type.names
+data.pokedex.filter.type.options,      092C7C, 092C7C, 092C9C, 092C9C,       ,       ,       ,       , 0C21C8, [empty<""> type<>]data.pokemon.type.names+1
+data.pokedex.filter.type.ids,          092EAC, 092EAC, 092ECC, 092ECC,       ,       ,       ,       , 0C23B4, [type.data.pokemon.type.names]data.pokemon.type.names
 data.pokemon.type.unionroom.options,         ,       ,       ,       , 456F04, 456924, 456F64, 456994,       , [type<> index::]data.pokemon.type.names-1+1
 data.pokedex.habitat.names,                  ,       ,       ,       , 104F84, 104F5C, 104FFC, 104FD4,       , [name<"">]
 data.pokedex.habitat.pages,                  ,       ,       ,       , 106888, 106860, 106900, 1068D8,       , [data<[pokemon<[species:data.pokemon.names]/pokecount> pokecount::]/count> count::]data.pokedex.habitat.names
