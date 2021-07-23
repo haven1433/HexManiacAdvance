@@ -121,7 +121,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                         if (line.PointsToNextScript) toProcess.Add(destination);
                         if (line.PointsToText) {
                            var destinationLength = PCSString.ReadString(model, destination, true);
-                           if (destinationLength > 0) model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength));
+                           if (destinationLength > 0) {
+                              model.ClearFormat(token, destination, destinationLength);
+                              model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength));
+                           }
                         } else if (line.PointsToMovement) {
                            WriteMovementStream(model, token, destination, address + length);
                         } else if (line.PointsToMart) {
