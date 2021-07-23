@@ -487,7 +487,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             return new Anchor(format, name, run.FormatString, run.PointerSources);
          }
 
-         if (run is ArrayRun array && array.SupportsPointersToElements && (dataIndex - run.Start) % array.ElementLength == 0) {
+         if (run is ArrayRun array && array.SupportsInnerPointers && (dataIndex - run.Start) % array.ElementLength == 0) {
             var arrayIndex = (dataIndex - run.Start) / array.ElementLength;
             var pointerSources = array.PointerSourcesForInnerElements[arrayIndex];
             if (pointerSources == null || pointerSources.Count == 0) return format;

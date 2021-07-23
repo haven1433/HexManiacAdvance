@@ -72,7 +72,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var destinationRun = data.GetNextRun(destination);
             var hasError = false;
             if (destination >= 0 && destination < data.Count) {
-               if (destinationRun is ArrayRun arrayRun && arrayRun.SupportsPointersToElements) {
+               if (destinationRun is ArrayRun arrayRun && arrayRun.SupportsInnerPointers) {
                   // it's an error unless the arrayRun starts before the destination and the destination is the start of one of the elements
                   hasError = !(arrayRun.Start <= destination && (destination - arrayRun.Start) % arrayRun.ElementLength == 0);
                } else {
@@ -360,7 +360,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
    }
 
-   public class ArrayRun : BaseRun, ITableRun {
+   public interface ISupportInnerPointersRun : IFormattedRun {
+      bool SupportsInnerPointers { get; }
+      ISupportInnerPointersRun RemoveInnerSource(int source);
+      ISupportInnerPointersRun AddSourcePointingWithinRun(int source);
+   }
+
+   public class ArrayRun : BaseRun, ITableRun, ISupportInnerPointersRun {
       public const char ExtendArray = '+';
       public const char ArrayStart = '[';
       public const char ArrayEnd = ']';
@@ -401,7 +407,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       /// </summary>
       public ParentOffset ParentOffset { get; }
 
-      public bool SupportsPointersToElements { get; }
+      public bool SupportsInnerPointers { get; }
 
       /// <summary>
       /// For Arrays that support pointers to individual elements within the array,
@@ -442,8 +448,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private ArrayRun(IDataModel data, string format, int start, SortedSpan<int> pointerSources) : base(start, pointerSources) {
          owner = data;
          FormatString = format;
-         SupportsPointersToElements = format.StartsWith(AnchorStart.ToString());
-         if (SupportsPointersToElements) format = format.Substring(1);
+         SupportsInnerPointers = format.StartsWith(AnchorStart.ToString());
+         if (SupportsInnerPointers) format = format.Substring(1);
          var closeArray = format.LastIndexOf(ArrayEnd.ToString());
          if (!format.StartsWith(ArrayStart.ToString()) || closeArray == -1) throw new ArrayRunParseException($"Array Content must be wrapped in {ArrayStart}{ArrayEnd}.");
          var segments = format.Substring(1, closeArray - 1);
@@ -486,7 +492,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
 
          Length = ElementLength * ElementCount;
-         if (SupportsPointersToElements) PointerSourcesForInnerElements = ElementCount.Range().Select(i => SortedSpan<int>.None).ToList();
+         if (SupportsInnerPointers) PointerSourcesForInnerElements = ElementCount.Range().Select(i => SortedSpan<int>.None).ToList();
       }
 
       private ArrayRun(IDataModel data, string format, string lengthFromAnchor, ParentOffset parentOffset, int start, int elementCount, IReadOnlyList<ArrayRunElementSegment> segments, SortedSpan<int> pointerSources, IReadOnlyList<SortedSpan<int>> pointerSourcesForInnerElements) : base(start, pointerSources) {
@@ -498,7 +504,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          LengthFromAnchor = lengthFromAnchor;
          ParentOffset = parentOffset;
          Length = ElementLength * ElementCount;
-         SupportsPointersToElements = pointerSourcesForInnerElements != null;
+         SupportsInnerPointers = pointerSourcesForInnerElements != null;
          PointerSourcesForInnerElements = pointerSourcesForInnerElements;
       }
 
@@ -872,13 +878,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new ArrayRun(owner, FormatString, LengthFromAnchor, ParentOffset, Start, ElementCount, content, PointerSources, PointerSourcesForInnerElements);
       }
 
-      public ArrayRun AddSourcePointingWithinArray(int source) {
+      ISupportInnerPointersRun ISupportInnerPointersRun.AddSourcePointingWithinRun(int source) => AddSourcePointingWithinRun(source);
+      public ArrayRun AddSourcePointingWithinRun(int source) {
          var destination = owner.ReadPointer(source);
          var index = (destination - Start) / ElementLength;
          if (index < 0 || index >= ElementCount) throw new IndexOutOfRangeException();
-         if (index == 0) throw new NotImplementedException();
          var newInnerPointerSources = PointerSourcesForInnerElements.ToList();
          newInnerPointerSources[index] = newInnerPointerSources[index].Add1(source);
+         if (index == 0) {
+            return new ArrayRun(owner, FormatString, LengthFromAnchor, ParentOffset, Start, ElementCount, ElementContent, PointerSources.Add1(source), newInnerPointerSources);
+         }
          return new ArrayRun(owner, FormatString, LengthFromAnchor, ParentOffset, Start, ElementCount, ElementContent, PointerSources, newInnerPointerSources);
       }
 
@@ -930,8 +939,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new ArrayRun(owner, FormatString, LengthFromAnchor, ParentOffset, newStart, ElementCount, ElementContent, PointerSources, PointerSourcesForInnerElements);
       }
 
-      public override IFormattedRun RemoveSource(int source) {
-         if (!SupportsPointersToElements) return base.RemoveSource(source);
+      public override IFormattedRun RemoveSource(int source) => RemoveInnerSource(source);
+      ISupportInnerPointersRun ISupportInnerPointersRun.RemoveInnerSource(int source) => RemoveInnerSource(source);
+      public ArrayRun RemoveInnerSource(int source) {
+         if (!SupportsInnerPointers) return (ArrayRun)base.RemoveSource(source);
          var newPointerSources = PointerSources.Remove1(source);
          var newInnerPointerSources = new List<SortedSpan<int>>();
          foreach (var list in PointerSourcesForInnerElements) {

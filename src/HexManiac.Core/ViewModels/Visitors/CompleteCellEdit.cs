@@ -461,7 +461,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                      newArray = model.RelocateForExpansion(token, array, (array.ElementCount + delta) * array.ElementLength);
                   }
                   newArray = newArray.Append(token, delta);
-                  if (token is NoDataChangeDeltaModel && newArray.SupportsPointersToElements) {
+                  if (token is NoDataChangeDeltaModel && newArray.SupportsInnerPointers) {
                      // the new 'added' elements may have stuff pointing to them, because they were already there
                      newArray = newArray.AddSourcesPointingWithinArray(token);
                   }
@@ -470,7 +470,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                      model.ObserveRunWritten(token, newArray);
                      // if this run supports pointers to elements, the clear may've accidentally cleared some pointers to those inner elements.
                      // re-add pointers as needed
-                     if (newArray.SupportsPointersToElements) {
+                     if (newArray.SupportsInnerPointers) {
                         for (int i = array.ElementCount; i < newArray.ElementCount; i++) {
                            foreach (var source in newArray.PointerSourcesForInnerElements[i]) {
                               var existingRun = model.GetNextRun(source);

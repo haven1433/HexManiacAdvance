@@ -1106,6 +1106,22 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x10, Model[2]);
       }
 
+      [Fact]
+      public void TableAPointsAtElementsOfTableB_ExpandTableA_TableBPointerKnowledgeCorrect() {
+         ViewPort.Edit("@060 ^tableB^[a: b: c.]4 @020 <060> <065> <06A> <null> DD @020 ^tableA[entry<>]4 ");
+         Assert.Single(Model.GetTable("tableB").PointerSources); // precondition: 1 thing points to tableB
+
+         var tableA = Model.GetTable("tableA");
+         ViewPort.SelectionStart = ViewPort.ConvertAddressToViewPoint(tableA.Start + tableA.Length - 1);
+         ViewPort.Tools.TableTool.Append.Execute();
+
+         tableA = Model.GetTable("tableA");
+         var tableB = Model.GetTable("tableB");
+         Assert.NotEqual(0x20, tableA.Start);
+         Assert.Equal(0x60, tableB.Start);
+         Assert.Single(tableB.PointerSources);
+      }
+
       private static void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);

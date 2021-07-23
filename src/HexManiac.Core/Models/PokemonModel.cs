@@ -441,7 +441,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                var run = GetNextRun(destination);
                if (destination < 0 || destination >= Count) {
                   // pointer points outside scope. Such a pointer is an error, but is not a metadata inconsistency.
-               } else if (run is ArrayRun arrayRun1 && arrayRun1.SupportsPointersToElements) {
+               } else if (run is ArrayRun arrayRun1 && arrayRun1.SupportsInnerPointers) {
                   var offsets = arrayRun1.ConvertByteOffsetToArrayOffset(destination);
                   Debug.Assert(arrayRun1.PointerSourcesForInnerElements[offsets.ElementIndex].Contains(pointerRun.Start));
                   if (offsets.ElementIndex == 0) Debug.Assert(run.PointerSources.Contains(pointerRun.Start));
@@ -469,13 +469,14 @@ namespace HavenSoft.HexManiac.Core.Models {
                      Debug.Assert(ReadPointer(source) == runs[i].Start, $"Expected {source:X6} to point to {runs[i].Start:X6}{pointerSourceName}");
                   } else if (run is ITableRun) {
                      Debug.Assert(run.Start <= source, $"The run at {runs[i].Start:X6} expects a pointer at {source:X6}, but found a table at {run.Start:X6}.");
-                     Debug.Assert(ReadPointer(source) == runs[i].Start);
+                     var destination = ReadPointer(source);
+                     Debug.Assert(destination == runs[i].Start, $"The run at {runs[i].Start:X6} expects a pointer at {source:X6}, but that source points to {destination:X6}.");
                   } else {
                      Debug.Fail($"Pointer must be a {nameof(PointerRun)} or live within an {nameof(ITableRun)}");
                   }
                }
             }
-            if (runs[i] is ArrayRun arrayRun2 && arrayRun2.SupportsPointersToElements) {
+            if (runs[i] is ArrayRun arrayRun2 && arrayRun2.SupportsInnerPointers) {
                for (int j = 0; j < arrayRun2.ElementCount; j++) {
                   foreach (var source in arrayRun2.PointerSourcesForInnerElements[j]) {
                      var run = GetNextRun(source);
@@ -502,7 +503,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                      var run = GetNextRun(destination);
                      if (destination < 0 || destination >= Count) {
                         // pointer points outside scope. Such a pointer is an error, but is not a metadata inconsistency.
-                     } else if (run is ArrayRun arrayRun1 && arrayRun1.SupportsPointersToElements) {
+                     } else if (run is ArrayRun arrayRun1 && arrayRun1.SupportsInnerPointers) {
                         var offsets = arrayRun1.ConvertByteOffsetToArrayOffset(destination);
                         if (offsets.SegmentOffset == 0) {
                            Debug.Assert(arrayRun1.PointerSourcesForInnerElements[offsets.ElementIndex].Contains(start));
@@ -918,7 +919,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                runs.RemoveAt(index);
             }
 
-            if (existingRun is ArrayRun arrayRun2 && arrayRun2.SupportsPointersToElements && arrayRun2.Length > run.Length) {
+            if (existingRun is ArrayRun arrayRun2 && arrayRun2.SupportsInnerPointers && arrayRun2.Length > run.Length) {
                for (int i = 0; i < arrayRun2.ElementCount; i++) {
                   if (arrayRun2.ElementLength * i < run.Length) continue;
                   ObserveRunWritten(changeToken, new NoInfoRun(arrayRun2.Start + arrayRun2.ElementLength * i, arrayRun2.PointerSourcesForInnerElements[i]));
@@ -987,8 +988,16 @@ namespace HavenSoft.HexManiac.Core.Models {
                if (destination < 0 || destination >= RawData.Length) continue;
                var destinationRun = GetNextRun(destination);
                changeToken.RemoveRun(destinationRun);
-               destinationRun = destinationRun.RemoveSource(originalStart);
-               destinationRun = destinationRun.MergeAnchor(new SortedSpan<int>(movedStart));
+
+               if (destinationRun is ISupportInnerPointersRun destinationTable && destinationTable.SupportsInnerPointers) {
+                  // special case: use the override methods to handle inner-pointers
+                  destinationTable = destinationTable.RemoveInnerSource(originalStart);
+                  destinationRun = destinationTable.AddSourcePointingWithinRun(movedStart);
+               } else {
+                  destinationRun = destinationRun.RemoveSource(originalStart);
+                  destinationRun = destinationRun.MergeAnchor(new SortedSpan<int>(movedStart));
+               }
+
                changeToken.AddRun(destinationRun);
                var runIndex = BinarySearch(destinationRun.Start);
                runs[runIndex] = destinationRun;
@@ -1090,13 +1099,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (destination < 0 || destination >= Count) return;
          int index = BinarySearch(destination);
          if (index < 0 && ~index > 0 && runs[~index - 1] is ArrayRun array &&
-            array.SupportsPointersToElements &&
+            array.SupportsInnerPointers &&
             array.Start + array.Length > destination &&
             (destination - array.Start) % array.ElementLength == 0) {
             // the pointer points into an array that supports inner anchors
             index = ~index - 1;
             changeToken.RemoveRun(array);
-            runs[index] = array.AddSourcePointingWithinArray(start);
+            runs[index] = array.AddSourcePointingWithinRun(start);
             changeToken.AddRun(runs[index]);
          } else if (index < 0) {
             // the pointer points to a location between existing runs
@@ -1218,7 +1227,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             // if we're adding an array, a few extra updates
             if (run is ArrayRun array) {
                // update inner pointers and dependent arrays
-               if (array.SupportsPointersToElements) run = array.AddSourcesPointingWithinArray(changeToken);
+               if (array.SupportsInnerPointers) run = array.AddSourcesPointingWithinArray(changeToken);
             }
 
             var newRun = run.MergeAnchor(sources);
@@ -1527,7 +1536,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   sourceToUnmappedName[source] = name;
                }
                unmappedNameToSources[name] = run.PointerSources;
-               if (run is ArrayRun array && array.SupportsPointersToElements) {
+               if (run is ArrayRun array && array.SupportsInnerPointers) {
                   for (int i = 0; i < array.PointerSourcesForInnerElements.Count; i++) {
                      foreach (var source in array.PointerSourcesForInnerElements[i]) {
                         WriteValue(changeToken, source, i);
@@ -2115,7 +2124,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             changeToken.RemoveUnmappedPointer(source, anchorName);
             sourceToUnmappedName.Remove(source);
             int offset = 0;
-            if (run is ArrayRun array && array.SupportsPointersToElements) {
+            if (run is ArrayRun array && array.SupportsInnerPointers) {
                offset = (ReadValue(source) * array.ElementLength).LimitToRange(0, array.Length);
                if (offset != 0) sourcesDirectlyToThis = sourcesDirectlyToThis.Remove1(source);
             }
@@ -2131,7 +2140,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var source in run.PointerSources) {
             WritePointer(changeToken, source, newStart);
          }
-         if (run is ArrayRun tableRun && tableRun.SupportsPointersToElements) {
+         if (run is ArrayRun tableRun && tableRun.SupportsInnerPointers) {
             for (int i = 1; i < tableRun.ElementCount; i++) {
                foreach (var source in tableRun.PointerSourcesForInnerElements[i]) {
                   WritePointer(changeToken, source, newStart + i * tableRun.ElementLength);
