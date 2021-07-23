@@ -296,11 +296,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                if (orphanRun.Start == orphan && string.IsNullOrEmpty(model.GetAnchorFromAddress(-1, orphan))) {
                   parser.FormatScript<TSERun>(history.CurrentChange, model, orphan);
                   if (typeof(TSERun) == typeof(XSERun)) {
-                     model.ObserveAnchorWritten(history.CurrentChange, $"xse{orphan:X6}", new XSERun(orphan));
+                     model.ObserveAnchorWritten(history.CurrentChange, $"orphans.xse{orphan:X6}", new XSERun(orphan));
                   } else if (typeof(TSERun) == typeof(BSERun)) {
-                     model.ObserveAnchorWritten(history.CurrentChange, $"bse{orphan:X6}", new BSERun(orphan));
+                     model.ObserveAnchorWritten(history.CurrentChange, $"orphans.bse{orphan:X6}", new BSERun(orphan));
                   } else if (typeof(TSERun) == typeof(ASERun)) {
-                     model.ObserveAnchorWritten(history.CurrentChange, $"ase{orphan:X6}", new ASERun(orphan));
+                     model.ObserveAnchorWritten(history.CurrentChange, $"orphans.ase{orphan:X6}", new ASERun(orphan));
                   } else {
                      throw new NotImplementedException();
                   }
