@@ -140,6 +140,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
    }
 
+   public static class SortedSpan {
+      public static SortedSpan<T> One<T>(T element) where T : IComparable<T> => new SortedSpan<T>(element);
+   }
    public class SortedSpan<T> : IReadOnlyList<T> where T : IComparable<T> {
       private readonly T[] elements;
       public int Count { get; }

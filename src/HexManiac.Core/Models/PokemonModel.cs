@@ -1115,6 +1115,13 @@ namespace HavenSoft.HexManiac.Core.Models {
                ClearFormat(changeToken, newRun.Start, newRun.Length); // adding a new destination, so clear anything in the way.
                ObserveRunWritten(changeToken, newRun);
             }
+         } else if (runs[index].Start <= start && start < runs[index].Start + runs[index].Length) {
+            // self-referential pointer: don't write a new run, just add the pointer
+            var existingRun = runs[index];
+            changeToken.RemoveRun(existingRun);
+            existingRun = existingRun.MergeAnchor(SortedSpan.One(start));
+            runs[index] = existingRun;
+            changeToken.AddRun(existingRun);
          } else {
             // the pointer points to a known normal anchor
             var existingRun = runs[index];
