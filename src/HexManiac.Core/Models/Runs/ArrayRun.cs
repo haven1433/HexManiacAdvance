@@ -1330,6 +1330,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   return modelValue - enumSegment.ValueOffset < options.Count;
                } else {
                   if (flags.HasFlag(FormatMatchFlags.AllowJunkAfterText)) return true; // don't bother verifying if junk is allowed
+                  if (segment is ArrayRunHexSegment) return true; // don't validate raw hex content
                   return segment.Length < 4 || owner[start + 3] < 0x08 || owner[start + 3] > 0x09; // we want an integer, not a pointer
                }
             case ElementContentType.Pointer:
@@ -1337,7 +1338,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (destination == Pointer.NULL) return true;
                if (0 > destination || destination > owner.Count) return false;
                if (segment is ArrayRunPointerSegment pointerSegment) {
-                  if (!pointerSegment.DestinationDataMatchesPointerFormat(owner, new NoDataChangeDeltaModel(), start, destination, sourceSegments, parentIndex)) return false;
+                  // allow the format to not match if the pointer points to zero
+                  // this is because AdvanceMap inserts pointers to zero and expects them to act like NULLs
+                  if (!pointerSegment.DestinationDataMatchesPointerFormat(owner, new NoDataChangeDeltaModel(), start, destination, sourceSegments, parentIndex) && destination != 0) return false;
                }
                return true;
             case ElementContentType.BitArray:
