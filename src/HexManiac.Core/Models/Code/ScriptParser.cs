@@ -83,7 +83,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       // TODO refactor to rely on CollectScripts rather than duplicate code
-      public void FormatScript<TSERun>(ModelDelta token, IDataModel model, int address, SortedSpan<int> sources = null) where TSERun : IScriptStartRun {
+      public void FormatScript<TSERun>(ModelDelta token, IDataModel model, int address) where TSERun : IScriptStartRun {
          Func<int, SortedSpan<int>, IScriptStartRun> constructor = (a, s) => new XSERun(a, s);
          if (typeof(TSERun) == typeof(BSERun)) constructor = (a, s) => new BSERun(a, s);
          if (typeof(TSERun) == typeof(ASERun)) constructor = (a, s) => new ASERun(a, s);
@@ -96,10 +96,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             if (processed.Contains(address)) continue;
             var existingRun = model.GetNextRun(address);
             if (!(existingRun is TSERun) && existingRun.Start == address) {
-               if (sources == null && existingRun.Start != address) sources = model.SearchForPointersToAnchor(token, address);
                var anchorName = model.GetAnchorFromAddress(-1, address);
-               model.ObserveAnchorWritten(token, anchorName, constructor(address, sources));
-               sources = null;
+               model.ObserveAnchorWritten(token, anchorName, constructor(address, existingRun.PointerSources));
             }
             int length = 0;
             while (true) {

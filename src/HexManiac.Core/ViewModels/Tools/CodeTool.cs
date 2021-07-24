@@ -279,7 +279,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
             for (int i = 0; i < code.Length; i++) history.CurrentChange.ChangeData(model, start + i, code[i]);
             model.ClearFormatAndData(history.CurrentChange, start + code.Length, length - code.Length);
-            parser.FormatScript<TSERun>(history.CurrentChange, model, start, sources);
+            parser.FormatScript<TSERun>(history.CurrentChange, model, start);
             if (sources != null) {
                foreach (var source in sources) {
                   var existingRun = model.GetNextRun(source);
