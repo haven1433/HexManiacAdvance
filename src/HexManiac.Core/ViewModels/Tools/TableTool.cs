@@ -419,12 +419,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                throw new NotImplementedException();
             }
             AddChild(viewModel);
-            AddChildrenFromPointerSegment(itemAddress, item, childInsertionIndex - 1);
+            AddChildrenFromPointerSegment(itemAddress, item, childInsertionIndex - 1, recursionLevel: 0);
             itemAddress += item.Length;
          }
       }
 
-      private void AddChildrenFromPointerSegment(int itemAddress, ArrayRunElementSegment item, int parentIndex) {
+      private void AddChildrenFromPointerSegment(int itemAddress, ArrayRunElementSegment item, int parentIndex, int recursionLevel) {
          if (!(item is ArrayRunPointerSegment pointerSegment)) return;
          if (pointerSegment.InnerFormat == string.Empty) return;
          var destination = model.ReadPointer(itemAddress);
@@ -468,13 +468,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          AddChild(streamElement);
 
          parentIndex = childInsertionIndex - 1;
-         if (streamRun is ITableRun tableRun) {
+         if (streamRun is ITableRun tableRun && recursionLevel < 1) {
             int segmentOffset = 0;
             for (int i = 0; i < tableRun.ElementContent.Count; i++) {
                if (!(tableRun.ElementContent[i] is ArrayRunPointerSegment)) { segmentOffset += tableRun.ElementContent[i].Length; continue; }
                for (int j = 0; j < tableRun.ElementCount; j++) {
                   itemAddress = tableRun.Start + segmentOffset + j * tableRun.ElementLength;
-                  AddChildrenFromPointerSegment(itemAddress, tableRun.ElementContent[i], parentIndex);
+                  AddChildrenFromPointerSegment(itemAddress, tableRun.ElementContent[i], parentIndex, recursionLevel + 1);
                }
                segmentOffset += tableRun.ElementContent[i].Length;
             }
