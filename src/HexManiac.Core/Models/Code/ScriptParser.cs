@@ -144,7 +144,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       private void WriteMovementStream(IDataModel model, ModelDelta token, int start, int source) {
          TableStreamRun.TryParseTableStream(model, start, new SortedSpan<int>(source), string.Empty, "[move.movementtypes]!FE", null, out var tsRun);
-         if (tsRun != null) model.ObserveRunWritten(token, tsRun);
+         if (tsRun != null) {
+            model.ClearFormat(token, tsRun.Start, tsRun.Length);
+            model.ObserveRunWritten(token, tsRun);
+         }
       }
 
       private void WriteMartStream(IDataModel model, ModelDelta token, int start, int source) {
