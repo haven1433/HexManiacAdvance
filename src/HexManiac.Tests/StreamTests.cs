@@ -402,5 +402,26 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(1, child.Height);
          Assert.True(child.IsSelected(new Point(1, 0)));
       }
+
+      [Fact]
+      public void DynamicStreamLength_AddFormat_ChildrenHaveDifferentLengths() {
+         var token = new ModelDelta();
+         ViewPort.Edit("@000 <010> <020> <030> ");
+         ViewPort.Edit("@010 03 00 05 00 02 00 01 00 00 00 04 00 05 00 03 00 "); // table A buts up against table 2 (8 elements)
+         ViewPort.Edit("@020 03 00 05 00 02 00 01 00 FF FF FF FF FF FF FF FF "); // table B ends short (4 elements)
+         ViewPort.Edit("@030 03 00 05 00 02 00 01 00 00 00 ^conflict ");         // table C ends at another anchor (5 elements)
+         CreateTextTable("names", 0x100, "adam", "bob", "carl", "dave", "eric", "fred", "gary");
+
+         ViewPort.Edit("@000 ^table[child<[entry:names]?>]3 "); // create a table where each entry is a pointer to a table of unknown length
+
+         var table = Model.GetTable("table");
+         var childA = Model.GetNextRun(table.ReadPointer(Model, 0)) as ITableRun;
+         var childB = Model.GetNextRun(table.ReadPointer(Model, 1)) as ITableRun;
+         var childC = Model.GetNextRun(table.ReadPointer(Model, 2)) as ITableRun;
+
+         Assert.Equal(8, childA.ElementCount);
+         Assert.Equal(4, childB.ElementCount);
+         Assert.Equal(5, childC.ElementCount);
+      }
    }
 }

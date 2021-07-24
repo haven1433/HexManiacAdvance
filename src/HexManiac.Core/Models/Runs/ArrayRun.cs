@@ -189,6 +189,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return true;
       }
 
+      public static bool DataFormatMatches(this IReadOnlyList<ArrayRunElementSegment> segments, IDataModel model, int start, int elementIndex) {
+         ArrayRun.FormatMatchFlags flags = default;
+         if (segments.Count == 1) flags = ArrayRun.FormatMatchFlags.IsSingleSegment;
+         for (int i = 0; i < segments.Count; i++) {
+            if (!ArrayRun.DataMatchesSegmentFormat(model, start, segments[i], flags, segments, elementIndex)) return false;
+            start += segments[i].Length;
+         }
+         return true;
+      }
+
       public static byte[] Sort(this ITableRun self, IDataModel model, int fieldIndex) {
          var fieldOffset = self.ElementContent.Take(fieldIndex).Sum(seg => seg.Length);
          var field = self.ElementContent[fieldIndex];

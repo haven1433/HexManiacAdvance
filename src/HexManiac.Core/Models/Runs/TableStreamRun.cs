@@ -13,7 +13,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private readonly IDataModel model;
       private readonly IStreamEndStrategy endStream;
 
-      public bool CanAppend => !(endStream is FixedLengthStreamStrategy);
+      public bool CanAppend => !(endStream is FixedLengthStreamStrategy || endStream is DynamicStreamStrategy);
 
       public bool AllowsZeroElements => endStream is EndCodeStreamStrategy;
 
@@ -25,11 +25,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (content.Length < 4 || content[0] != '[') return false;
          var close = content.LastIndexOf(']');
          if (close == -1) return false;
-         var endStream = ParseEndStream(model, fieldName, content.Substring(close + 1), sourceSegments);
-         if (endStream == null) return false;
-         var segmentContent = content.Substring(1, close - 1);
          try {
+            var segmentContent = content.Substring(1, close - 1);
             var segments = ArrayRun.ParseSegments(segmentContent, model);
+            var endStream = ParseEndStream(model, fieldName, content.Substring(close + 1), segments, sourceSegments);
+            if (endStream == null) return false;
             tableStream = new TableStreamRun(model, start, sources, content, segments, endStream);
          } catch (ArrayRunParseException) {
             return false;
@@ -65,7 +65,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return true;
       }
 
-      public static IStreamEndStrategy ParseEndStream(IDataModel model, string fieldName, string endToken, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
+      /// <summary>
+      /// ]3      -> FixedLength
+      /// ]!00    -> EndCode
+      /// ]/field -> LengthFromParent
+      /// ]?      -> Dynamic
+      /// </summary>
+      public static IStreamEndStrategy ParseEndStream(IDataModel model, string fieldName, string endToken, IReadOnlyList<ArrayRunElementSegment> childSegments, IReadOnlyList<ArrayRunElementSegment> parentSegments) {
          if (int.TryParse(endToken, out var number)) {
             return new FixedLengthStreamStrategy(number);
          }
@@ -73,9 +79,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (endToken.Length == 1) return null; // end token must be at least 1 byte long
             return new EndCodeStreamStrategy(model, endToken.Substring(1).ToUpper());
          }
+         if (endToken == "?") {
+            return new DynamicStreamStrategy(model, childSegments);
+         }
          var tokens = endToken.Split("/");
          if (tokens.Length == 2) {
-            return new LengthFromParentStreamStrategy(model, tokens, fieldName, sourceSegments);
+            return new LengthFromParentStreamStrategy(model, tokens, fieldName, parentSegments);
          }
          return null;
       }
@@ -440,6 +449,35 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public int GetCount(int start, int elementLength, IReadOnlyList<int> pointerSources) => Count;
 
       public TableStreamRun Append(TableStreamRun run, ModelDelta token, int length) => run;
+   }
+
+   public class DynamicStreamStrategy : IStreamEndStrategy {
+      private readonly IDataModel model;
+      private readonly IReadOnlyList<ArrayRunElementSegment> segments;
+      public DynamicStreamStrategy(IDataModel model, IReadOnlyList<ArrayRunElementSegment> segments) => (this.model, this.segments) = (model, segments);
+
+      public int ExtraLength => 0;
+
+      public TableStreamRun Append(TableStreamRun run, ModelDelta token, int length) {
+         throw new NotImplementedException();
+      }
+
+      public int GetCount(int start, int elementLength, IReadOnlyList<int> pointerSources) {
+         Debug.Assert(elementLength == segments.Sum(seg => seg.Length), "ElementLength is expected to be the sum of the segments.");
+         for (int i = 0; true; i++) {
+            // verify that there's enough room for another element
+            var existingRun = model.GetNextRun(start);
+            if (existingRun.Start >= start && existingRun.Start < start + elementLength) {
+               if (existingRun.PointerSources != null && !(existingRun is NoInfoRun)) return i;        // break if it's not a no-info run and has pointers
+               if (!string.IsNullOrEmpty(model.GetAnchorFromAddress(-1, existingRun.Start))) return i; // break if it's an anchor
+            }
+
+            // verify that the data matches the expected format
+            if (!segments.DataFormatMatches(model, start, i)) return i;
+
+            start += elementLength;
+         }
+      }
    }
 
    public class EndCodeStreamStrategy : IStreamEndStrategy {

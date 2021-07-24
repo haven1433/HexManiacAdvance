@@ -518,7 +518,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                         // for tables, the invalidly point into a run. Such is an error in the data, but is allowed for the metadata.
                      } else {
                         if (run.PointerSources != null) {
-                           Debug.Assert(run.PointerSources.Contains(start));
+                           Debug.Assert(run.PointerSources.Contains(start), $"Expected {run.Start:X6} to know about pointer {start:X6} (within table {tableRun.Start:X6}), but it did not.");
                         } else {
                            Debug.Fail("This run is referenced by a table, but doesn't know about the table that points to it.");
                         }
@@ -954,7 +954,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          for (int i = 0; i < arrayRun.ElementContent.Count; i++) {
             if (arrayRun.ElementContent[i].Type != ElementContentType.Pointer) { segmentOffset += arrayRun.ElementContent[i].Length; continue; }
             // for a pointer segment, j loops over all the elements in the array
-            for (int j = 0; j < elementCount; j++) {
+            var range = elementCount.Range();
+            if (arrayRun.ElementContent[i] is ArrayRunPointerSegment pSeg && pSeg.InnerFormat.EndsWith("?")) range = range.Reverse();
+            foreach (int j in range) {
                if (formatMatches && shorterTable - parentOffset > j) continue; // we can skip this one
                var start = segmentOffset + arrayRun.ElementLength * j;
                changeAnchors(arrayRun.ElementContent[i], arrayRun.ElementContent, j, changeToken, start);
