@@ -277,7 +277,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                }
             }
 
-            for (int i = 0; i < code.Length; i++) history.CurrentChange.ChangeData(model, start + i, code[i]);
+            // pre-clear the format before we change the data
+            // waiting beyond this point won't clear anchors correctly, since pointer values will be changed
+            var changeStart = code.Length;
+            for (int i = 0; i < code.Length; i++) {
+               if (model[start + i] == code[i]) continue;
+               changeStart = Math.Max(1, i); // changeStart should never be zero: we don't want to clear the script anchor
+               break;
+            }
+            if (changeStart < code.Length) model.ClearFormat(history.CurrentChange, start + changeStart, code.Length - changeStart);
+
+            history.CurrentChange.ChangeData(model, start, code);
             model.ClearFormatAndData(history.CurrentChange, start + code.Length, length - code.Length);
             parser.FormatScript<TSERun>(history.CurrentChange, model, start);
             if (sources != null) {

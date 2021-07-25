@@ -266,6 +266,19 @@ Script:
          // if it doesn't crash, we're good
       }
 
+      [Fact]
+      public void EventScriptThatCallsAnotherScript_ExpandInitialScript_OtherScriptPointerSourceUpdated() {
+         ViewPort.Edit("@000 02 @100 02 @100 ^script`xse` ");
+         var script = Script("if1 = <000000>", "end");
+         ViewPort.Tools.CodeTool.Contents[0].Content = script;
+
+         script = Script("lock", "if1 = <000000>", "end");
+         ViewPort.Tools.CodeTool.Contents[0].Content = script;
+
+         var run = Model.GetNextRun(0);
+         Assert.Equal(0x100 + 3, run.PointerSources.Single());
+      }
+
       private string Script(params string[] lines) => lines.CombineLines();
    }
 }
