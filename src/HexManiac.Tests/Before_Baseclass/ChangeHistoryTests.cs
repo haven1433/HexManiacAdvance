@@ -365,5 +365,15 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.True(watcher.LastCanExecute);
       }
+
+      [Fact]
+      public void ChangeTextWithTextTool_Undo_TextToolUpdates() {
+         ViewPort.Edit("FF @00 ^text\"\" Test\" @00 ");
+         ViewPort.Tools.StringTool.Content = "Blah";
+
+         ViewPort.Undo.Execute();
+
+         Assert.Equal("Test", ViewPort.Tools.StringTool.Content);
+      }
    }
 }

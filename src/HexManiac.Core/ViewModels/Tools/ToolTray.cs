@@ -126,6 +126,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public void RefreshContent() {
+         StringTool.DataForCurrentRunChanged();
          TableTool.DataForCurrentRunChanged();
          SpriteTool.DataForCurrentRunChanged();
       }
