@@ -8,7 +8,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    public interface IChangeToken {
       bool HasDataChange { get; }
       bool HasAnyChange { get; }
-      event EventHandler OnNewDataChange;
+      event EventHandler OnNewChange;
    }
 
    /// <summary>
@@ -61,7 +61,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void PrepareNewToken(T token) {
          bool notifyIsSavedChanged = IsSaved;
          currentChange = token;
-         currentChange.OnNewDataChange += OnCurrentTokenDataChanged;
+         currentChange.OnNewChange += OnCurrentTokenDataChanged;
          if (undoStack.Count == 0) undo.RaiseCanExecuteChanged();
          if (notifyIsSavedChanged) NotifyPropertyChanged(nameof(IsSaved));
       }
@@ -105,7 +105,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (continueCurrentTransaction) return;
 
          undoStack.Push(currentChange);
-         currentChange.OnNewDataChange -= OnCurrentTokenDataChanged;
+         currentChange.OnNewChange -= OnCurrentTokenDataChanged;
          currentChange = null;
       }
 

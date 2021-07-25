@@ -82,6 +82,7 @@
     <Compile Include="OverworldSpriteListTests.cs" />
     <Compile Include="SingleTableModeTests.cs" />
     <Compile Include="TestExtensions.cs" />
+    <Compile Include="TestUtilities\EventWatcher.cs" />
     <Compile Include="TestUtilities\StubView.cs" />
     <Compile Include="ImageEditorTests.cs" />
     <Compile Include="ImageImportTests.cs" />

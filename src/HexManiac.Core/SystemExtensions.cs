@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Windows.Input;
 
@@ -184,6 +185,10 @@ namespace HavenSoft.HexManiac.Core {
             }
          }
          return result;
+      }
+
+      public static byte[] ToByteArray(this string content) {
+         return content.Split(' ').Select(t => (byte)int.Parse(t, NumberStyles.HexNumber)).ToArray();
       }
    }
 

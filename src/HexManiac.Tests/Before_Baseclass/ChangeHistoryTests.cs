@@ -3,15 +3,17 @@ using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
    public class FakeChangeToken : List<int>, IChangeToken {
 #pragma warning disable 0067 // it's ok if events are never used after implementing an interface
-      public event EventHandler OnNewDataChange;
+      public event EventHandler OnNewChange;
 #pragma warning restore 0067
       public bool HasDataChange => Count > 0;
       public bool HasAnyChange => true;
@@ -348,6 +350,20 @@ namespace HavenSoft.HexManiac.Tests {
                history.InsertCustomChange(new FakeChangeToken());
             }
          });
+      }
+
+      [Fact]
+      public void TextBytes_FormatAsText_CanUndo() {
+         "FF EB D5 ED AB FF".ToByteArray().WriteInto(Model.RawData, 0);
+         Model.WritePointer(new ModelDelta(), 6, 1); // needs a pointer in order to get recognized by the algorithm
+         var watcher = new CommandWatcher(ViewPort.Undo);
+
+         ViewPort.SelectionStart = new Point(1, 0);
+         var items = ViewPort.GetContextMenuItems(ViewPort.SelectionStart);
+         items = (ContextItemGroup)items.Single(item => item.Text == "Display As...");
+         items.Single(item => item.Text == "Text").Command.Execute();
+
+         Assert.True(watcher.LastCanExecute);
       }
    }
 }

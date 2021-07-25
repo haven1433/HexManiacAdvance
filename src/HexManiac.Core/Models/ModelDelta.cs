@@ -36,7 +36,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          addedLists = new Dictionary<string, IReadOnlyList<string>>(),
          removedLists = new Dictionary<string, IReadOnlyList<string>>();
 
-      public event EventHandler OnNewDataChange;
+      public event EventHandler OnNewChange;
       public bool HasDataChange { get; private set; }
       public bool HasAnyChange =>
          HasDataChange ||
@@ -87,7 +87,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          model[index] = data;
          if (!HasDataChange) {
             HasDataChange = true;
-            OnNewDataChange?.Invoke(this, EventArgs.Empty);
+            OnNewChange?.Invoke(this, EventArgs.Empty);
          }
       }
 
@@ -96,15 +96,19 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public void ChangeList(string name, IReadOnlyList<string> oldValues, IReadOnlyList<string> newValues) {
-         if (!removedLists.ContainsKey(name)) removedLists.Add(name, oldValues);
-         addedLists[name] = newValues;
+         using (CaptureNonDataChange()) {
+            if (!removedLists.ContainsKey(name)) removedLists.Add(name, oldValues);
+            addedLists[name] = newValues;
+         }
       }
 
       public void AddRun(IFormattedRun run) {
+         using (CaptureNonDataChange())
          addedRuns[run.Start] = run;
       }
 
       public void RemoveRun(IFormattedRun run) {
+         using (CaptureNonDataChange())
          if (addedRuns.ContainsKey(run.Start)) {
             addedRuns.Remove(run.Start);
          } else if (!removedRuns.ContainsKey(run.Start)) {
@@ -113,10 +117,12 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public void AddName(int index, string name) {
+         using (CaptureNonDataChange())
          addedNames[index] = name;
       }
 
       public void RemoveName(int index, string name) {
+         using (CaptureNonDataChange())
          if (addedNames.ContainsKey(index)) {
             addedNames.Remove(index);
          } else if (!removedNames.ContainsKey(index)) {
@@ -125,10 +131,12 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public void AddUnmappedPointer(int index, string name) {
+         using (CaptureNonDataChange())
          addedUnmappedPointers[index] = name;
       }
 
       public void RemoveUnmappedPointer(int index, string name) {
+         using (CaptureNonDataChange())
          if (addedUnmappedPointers.ContainsKey(index)) {
             addedUnmappedPointers.Remove(index);
          } else if (!removedUnmappedPointers.ContainsKey(index)) {
@@ -175,30 +183,45 @@ namespace HavenSoft.HexManiac.Core.Models {
          var parentAddress = model.GetAddressFromAnchor(this, -1, parentName);
          var parent = model.GetNextRun(parentAddress) as ArrayRun;
          if (parent != null) model.WriteValue(this, memoryLocation, parent.ElementCount);
-         addedMatchedWords[memoryLocation] = parentName;
+         using (CaptureNonDataChange())
+            addedMatchedWords[memoryLocation] = parentName;
       }
 
       public void RemoveMatchedWord(int memoryLocation, string parentName) {
+         using (CaptureNonDataChange())
          if (addedMatchedWords.ContainsKey(memoryLocation)) addedMatchedWords.Remove(memoryLocation);
          else removedMatchedWords[memoryLocation] = parentName;
       }
 
       public void AddOffsetPointer(int start, int offset) {
+         using (CaptureNonDataChange())
          addedOffsetPointers[start] = offset;
       }
 
       public void RemoveOffsetPointer(int start, int offset) {
+         using (CaptureNonDataChange())
          if (addedOffsetPointers.ContainsKey(start)) addedMatchedWords.Remove(start);
          else removedOffsetPointers[start] = offset;
       }
 
       public void AddUnmappedConstant(string name, int value) {
+         using (CaptureNonDataChange())
          addedUnmappedConstants[name] = value;
       }
 
       public void RemoveUnmappedConstant(string name, int value) {
+         using (CaptureNonDataChange())
          if (addedUnmappedConstants.ContainsKey(name)) addedUnmappedConstants.Remove(name);
          else removedUnmappedConstants[name] = value;
+      }
+
+      private IDisposable CaptureNonDataChange() {
+         var initialState = HasAnyChange;
+         if (HasAnyChange) return new StubDisposable();
+         return new StubDisposable { Dispose = () => {
+            if (!HasAnyChange) return;
+            OnNewChange?.Invoke(this, EventArgs.Empty);
+         } };
       }
    }
 
