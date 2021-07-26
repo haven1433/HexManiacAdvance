@@ -441,8 +441,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
          var results = new List<byte>(LineCode);
          for (int i = 0; i < Args.Count; i++) {
-            var token = tokens[i + 1];
             if (Args[i] is ScriptArg scriptArg) {
+               var token = tokens[i + 1];
                if (Args[i].Type == ArgType.Byte) {
                   results.Add((byte)scriptArg.Convert(model, token));
                } else if (Args[i].Type == ArgType.Short) {

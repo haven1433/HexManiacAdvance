@@ -279,6 +279,16 @@ Script:
          Assert.Equal(0x100 + 3, run.PointerSources.Single());
       }
 
+      [Fact]
+      public void IncompleteArrayArgLine_Compile_NoException() {
+         var line = "createvisualtask <0A9F11> 05";
+
+         var parser = ViewPort.Tools.CodeTool.AnimationScriptParser;
+         var bytes = parser.Compile(ViewPort.CurrentChange, Model, 0, ref line, out var _);
+
+         Assert.Equal(new byte[] { 03, 0x11, 0x9F, 0x0A, 0x08, 0x05, 0x00 }, bytes);
+      }
+
       private string Script(params string[] lines) => lines.CombineLines();
    }
 }
