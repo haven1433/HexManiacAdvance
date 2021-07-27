@@ -1602,4 +1602,20 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.NotEqual(data[0], data[1]);
       }
    }
+
+   public class ImageEditorTilesetTests : BaseViewModelTestClass {
+      [Fact]
+      public void NoPalette_LoadInEditor_EditorLoadsSelectedPalette() {
+         SetFullModel(0xFF);
+         var parent = new EditorViewModel(new StubFileSystem(), Singletons.WorkDispatcher) { ViewPort };
+         ViewPort.Edit("@00 <020> <100> ");
+         ViewPort.Edit("@20!lz(1024) ^tileset`lzt4` ");
+         ViewPort.Edit("@100!lz(32)  ^pal`lzp4` ");
+
+         ViewPort.Tools.SpriteTool.OpenInImageTab.Execute();
+
+         var editor = (ImageEditorViewModel)parent.SelectedTab;
+         Assert.Equal(4, editor.PalettePointer);
+      }
+   }
 }

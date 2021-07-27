@@ -411,7 +411,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #endregion
 
-      public ImageEditorViewModel(ChangeHistory<ModelDelta> history, IDataModel model, int address, ICommand save = null) {
+      public ImageEditorViewModel(ChangeHistory<ModelDelta> history, IDataModel model, int address, ICommand save = null, int toolPaletteAddress = -1) {
          this.history = history;
          this.model = model;
          FullFileName = ViewPort.BuildElementName(model, address);
@@ -429,6 +429,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var palRun = inputRun as IPaletteRun;
          if (spriteRun == null) spriteRun = palRun.FindDependentSprites(model).First();
          if (palRun == null) palRun = spriteRun.FindRelatedPalettes(model).FirstOrDefault();
+         if (palRun == null) palRun = model.GetNextRun(toolPaletteAddress) as IPaletteRun;
          SpritePointer = spriteRun.PointerSources[0];
          PalettePointer = palRun?.PointerSources[0] ?? Pointer.NULL;
          Palette = new PaletteCollection(this, model, history) {
