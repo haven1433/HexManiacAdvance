@@ -589,7 +589,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          pixels = (spriteRun is LzTilesetRun tsRun) ? tsRun.GetPixels(model, SpritePage, CurrentTilesetWidth) : spriteRun.GetPixels(model, SpritePage);
          Render();
-         RefreshPaletteColors();
+         RefreshPaletteColors(spriteRun.SpriteFormat);
          SetupPageOptions();
       }
 
@@ -620,13 +620,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return new Point(x, y);
       }
 
-      private void RefreshPaletteColors() {
+      private void RefreshPaletteColors(SpriteFormat spriteFormat) {
          var palRun = ReadPalette();
          Palette.SourcePalettePointer = PalettePointer;
          Palette.Page = PalettePage;
          var desiredCount = (int)Math.Pow(2, Palette.SpriteBitsPerPixel);
          IReadOnlyList<short> palette = TileViewModel.CreateDefaultPalette(desiredCount);
-         if (palRun.colors.Count > 16 && palRun.colors.Count < 256) palRun.colors = palRun.colors.Skip(Math.Max(0, palettePage) * 16).Take(16).ToArray();
+         if (spriteFormat.BitsPerPixel == 4 || (palRun.colors.Count > 16 && palRun.colors.Count < 256)) palRun.colors = palRun.colors.Skip(Math.Max(0, palettePage) * 16).Take(16).ToArray();
          Palette.SetContents(palRun.colors);
          Palette.HasMultiplePages = palRun.pages > 1;
          foreach (var e in Palette.Elements) {
