@@ -83,6 +83,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          text.AppendLine(DateTime.Now.ToString());
          text.AppendLine(e.Exception.GetType().ToString());
          text.AppendLine(e.Exception.Message);
+         if (e.Exception is ArgumentOutOfRangeException aoore) text.AppendLine(aoore.ActualValue.ToString());
          text.AppendLine(e.Exception.StackTrace);
          text.AppendLine("-------------------------------------------");
          text.AppendLine(Environment.NewLine);
