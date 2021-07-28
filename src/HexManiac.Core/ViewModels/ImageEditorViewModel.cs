@@ -454,6 +454,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var paletteAddress = model.ReadPointer(palettePointer);
          var palette = model.GetNextRun(paletteAddress) as IPaletteRun;
+         if (palette == null) {
+            return (TileViewModel.CreateDefaultPalette((int)Math.Pow(2, spriteBits)), 1, 0);
+         }
          return (palette.AllColors(model), palette.Pages, palette.PaletteFormat.InitialBlankPages);
       }
 
