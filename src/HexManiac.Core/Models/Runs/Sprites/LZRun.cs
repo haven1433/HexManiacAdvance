@@ -353,6 +353,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          while (length > 0) {
             if (start >= Start + Length) break;
             var format = CreateDataFormat(model, start);
+            while (format is IDataFormatDecorator decorator) format = decorator.OriginalFormat;
             if (format is LzMagicIdentifier) {
                builder.Append("lz ");
                start += 1;
