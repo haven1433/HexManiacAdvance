@@ -471,7 +471,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      }
                      value -= Pointer.NULL;
                   } else {
-                     value = int.Parse(token, NumberStyles.HexNumber);
+                     if (labels.TryGetValue(token, out value)) {
+                        value += start;
+                     } else if (int.TryParse(token, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out value)) {
+                        // pointer *is* an address: nothing else to do
+                     } else {
+                        return $"Unable to parse {token} as a hex number.";
+                     }
                   }
                   results.Add((byte)value);
                   results.Add((byte)(value >> 0x8));
