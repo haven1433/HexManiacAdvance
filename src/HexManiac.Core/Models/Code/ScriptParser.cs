@@ -120,8 +120,16 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                         if (line.PointsToText) {
                            var destinationLength = PCSString.ReadString(model, destination, true);
                            if (destinationLength > 0) {
-                              model.ClearFormat(token, destination, destinationLength);
-                              model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength));
+                              // if there's an anchor that starts exactly here, we don't want to clear it: just update it
+                              // if the run starts somewhere else, we better to a clear to prevent conflicting formats
+                              var existingTextRun = model.GetNextRun(destination);
+                              if (existingTextRun.Start != destination) {
+                                 model.ClearFormat(token, destination, destinationLength);
+                                 model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength));
+                              } else {
+                                 model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength));
+                                 model.ClearFormat(token, destination + destinationLength, existingTextRun.Length - destinationLength);
+                              }
                            }
                         } else if (line.PointsToMovement) {
                            WriteMovementStream(model, token, destination, address + length);

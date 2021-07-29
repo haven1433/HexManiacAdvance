@@ -117,6 +117,20 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
+      public void TextWithNamedAnchor_EditScript_KeepsAnchor() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("@10 ^text\"\" \"Hello\" @00 02 @00 ^script`xse` 0F 00 <010> 02 ");
+         ViewPort.SelectionStart = ViewPort.ConvertAddressToViewPoint(0);
+
+         var tool = ViewPort.Tools.CodeTool.Contents[0];
+         var lines = tool.Content.SplitLines();
+         lines[3] = "Hello!";
+         tool.Content = Environment.NewLine.Join(lines);
+
+         Assert.Equal(0x10, Model.GetAddressFromAnchor(new ModelDelta(), -1, "text"));
+      }
+
+      [Fact]
       public void BranchLinkToKnownName_Decompile_BranchLinkContainsKnownName() {
          Model.ObserveAnchorWritten(ViewPort.CurrentChange, "bob", new NoInfoRun(0x100));
          var thumb = ViewPort.Tools.CodeTool.Parser;
