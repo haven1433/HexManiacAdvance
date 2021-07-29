@@ -221,7 +221,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
             streamLocation = -1; streamPointerLocation = -1;
             foreach (var command in engine) {
-               if (!(line + " ").StartsWith(command.LineCommand + " ")) continue;
+               if (!command.CanCompile(line)) continue;
                var currentSize = result.Count;
 
                if (line.Contains("<??????>")) {
@@ -428,6 +428,20 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return LineCode.Count.Range().All(i => data[index + i] == LineCode[i]);
       }
 
+      public bool CanCompile(string line) {
+         if (!(line + " ").StartsWith(LineCommand + " ")) return false;
+         if (LineCode.Count == 1) return true;
+         var tokens = Tokenize(line).ToList();
+         if (tokens.Count < LineCode.Count) return false;
+         tokens.RemoveAt(0);
+         for (int i = 1; i < LineCode.Count; i++) {
+            if (!byte.TryParse(tokens[0], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var value)) return false;
+            if (value != LineCode[i]) return false;
+            tokens.RemoveAt(0);
+         }
+         return true;
+      }
+
       public string Compile(IDataModel model, int start, string scriptLine, IReadOnlyDictionary<string, int> labels, out byte[] result) {
          result = null;
          var tokens = Tokenize(scriptLine);
@@ -436,13 +450,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             if (Args.Count > tokens.Length) {
                return $"Command {LineCommand} expects {Args.Count} arguments, but received {tokens.Length - 1} instead.";
             }
-         } else if (Args.Count != tokens.Length - 1) {
+         } else if (Args.Count != tokens.Length - LineCode.Count) {
             return $"Command {LineCommand} expects {Args.Count} arguments, but received {tokens.Length - 1} instead.";
          }
          var results = new List<byte>(LineCode);
          for (int i = 0; i < Args.Count; i++) {
             if (Args[i] is ScriptArg scriptArg) {
-               var token = tokens[i + 1];
+               var token = tokens[i + LineCode.Count];
                if (Args[i].Type == ArgType.Byte) {
                   results.Add((byte)scriptArg.Convert(model, token));
                } else if (Args[i].Type == ArgType.Short) {

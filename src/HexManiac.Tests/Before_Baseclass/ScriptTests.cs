@@ -104,6 +104,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.All(expected.Length.Range(), i => Assert.Equal(expected[i], result[i]));
       }
 
+      [Theory]
+      [InlineData("trainerbattle 02 009B 0000 <2967AD> <2967D8> <1EE5D8>", "5C 02 9B 00 00 00 AD 67 29 08 D8 67 29 08 D8 E5 1E 08")]
+      [InlineData("trainerbattle 00 009B 0000 <2967AD> <2967D8>", "5C 00 9B 00 00 00 AD 67 29 08 D8 67 29 08")]
+      public void XSECompileScriptToBytes(string script, string bytes) {
+         SetFullModel(0xFF);
+
+         var actual = ViewPort.Tools.CodeTool.ScriptParser.Compile(new ModelDelta(), Model, 0, ref script, out _);
+
+         var expected = bytes.ToByteArray();
+         Assert.Equal(expected, actual);
+      }
+
       [Fact]
       public void BranchLinkToKnownName_Decompile_BranchLinkContainsKnownName() {
          Model.ObserveAnchorWritten(ViewPort.CurrentChange, "bob", new NoInfoRun(0x100));
