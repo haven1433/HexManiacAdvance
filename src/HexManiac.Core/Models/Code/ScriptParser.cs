@@ -127,8 +127,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                                  model.ClearFormat(token, destination, destinationLength);
                                  model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength));
                               } else {
-                                 model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength));
-                                 model.ClearFormat(token, destination + destinationLength, existingTextRun.Length - destinationLength);
+                                 model.ClearAnchor(token, destination + existingTextRun.Length, destinationLength - existingTextRun.Length); // assuming that the old run ends before the new run, clear the difference
+                                 model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength, SortedSpan.One(address + length)));
+                                 model.ClearAnchor(token, destination + destinationLength, existingTextRun.Length - destinationLength); // assuming that the new run ends before the old run, clear the difference
                               }
                            }
                         } else if (line.PointsToMovement) {
