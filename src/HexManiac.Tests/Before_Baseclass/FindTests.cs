@@ -493,6 +493,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Single(results);
       }
 
+      [Fact]
+      public void MatchCaseTurnedOn_FindText_OnlyFindsText() {
+         var test = new BaseViewModelTestClass();
+         test.CreateTextTable("names", 0x100, "ELEMENT", "element");        // insert at 0x100
+         test.CreateEnumTable("enums", 0, "names", 0, 1);                   // insert element we should miss at 0 and 1
+         PCSString.Convert("ELEMENT").WriteInto(test.Model.RawData, 0x180); // insert unformatted text at 0x180
+
+         var results = test.ViewPort.Find("ELEMENT", matchExactCase: true).Select(pair => pair.start).ToArray();
+
+         Assert.Equal(new[] { 0x100, 0x180 }, results);
+      }
+
       private static StubDataModel SelfEqualStub() {
          var model = new StubDataModel();
          model.Equals = input => input == model;

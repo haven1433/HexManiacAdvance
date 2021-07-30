@@ -1598,7 +1598,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var textResults = Model.Search(searchBytes).ToList();
          Model.ConsiderResultsAsTextRuns(history.CurrentChange, textResults);
          foreach (var result in textResults) {
-            if (Model.GetNextRun(result) is ArrayRun parentArray && parentArray.LengthFromAnchor == string.Empty) {
+            // also look for elements that use that text as a name or value
+            // (if matching exact case, we only want to find text: skip this step)
+            if (!matchExactCase && Model.GetNextRun(result) is ArrayRun parentArray && parentArray.LengthFromAnchor == string.Empty) {
                foreach (var dataResult in FindMatchingDataResultsFromArrayElement(parentArray, result)) yield return dataResult;
             }
 
